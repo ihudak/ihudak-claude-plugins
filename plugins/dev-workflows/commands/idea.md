@@ -1,10 +1,12 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose links to other pages are followed two levels deep, in either syntax, and whose linked images are read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Copies the sources it actually read into the PRD folder (markdown into attachments/, images into design/idea-sources/ with the index that frame set requires) and rewrites idea.md's links onto the copies. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose links to other pages are followed two levels deep, in either syntax, and whose linked images are read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Copies the sources it actually read into the PRD folder (markdown into attachments/, images into design/idea-sources/ with the index that frame set requires) and rewrites idea.md's links onto the copies. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`workflows-core:phase-handoff` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
 Refine an idea into `idea.md`: $ARGUMENTS
+
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
 `/idea` is the **front door of the PRD-creation flow** (PM phase) — upstream of `/create-prd` and
 the existing pipeline. It ingests one source, refines it through a grill, and writes a lean one-page
@@ -22,12 +24,13 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
 ## Phase 0 — Resolve the address + model routing
 
 1. **The address (mandatory).** Parse the first non-flag token and validate it with `key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). Absent or malformed → stop:
+   (`workflows-core:addressing` §1). Absent or malformed → stop:
    `IDEA_NEEDS_KEY: /idea needs a PRD key (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-77) — it names the folder this idea will live in. Re-run '/dev-workflows:idea <PRD-KEY> [<prompt>|@<file>]'.`
 
    **The key is an argument because there is nowhere keyless to write.** `idea.md` lands in its final
    folder on the first write — `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/`, resolved with
-   `resolve-address` and created there when absent (`addressing.md` §2, §3). It is never relocated
+   `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3)
+   and created there when absent (`workflows-core:addressing` §2). It is never relocated
    afterwards, and `/create-prd <KEY>` finds it there.
 
    **Validated for shape and checked against nothing**, exactly as `/brd-intake <BRD-KEY>` already
@@ -36,7 +39,7 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
    **Accepted cost:** an abandoned idea leaves a folder in `specifications/`. Reintroducing a staging
    area to avoid that would restore the relocation step this removes.
 2. **Resolve model routing.** Invoke the `model-routing` skill (Skill tool,
-   `skill: "dev-workflows:model-routing"`), then record:
+   `skill: "workflows-core:model-routing"`), then record:
    ```yaml
    model_routing:
      classification: MODERATE          # idea refinement is typically MODERATE
@@ -56,8 +59,7 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
    here, because the grill and authoring run inline on `current_model` while the scanners run on
    `detection_model`.
 
-**Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
-`specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run,
+**Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run,
 retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the
 specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
 `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts`
@@ -81,7 +83,7 @@ is the route that seeds one PRD from another. **Case A of the confirmation below
 asked which of two tracker item types an unrecognised one should be read as, and there are no item
 types to disambiguate.
 
-**Confirm the classification — conditionally.** Per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` ("When a choice list fires"), a list is shown only where the answer genuinely varies. Two cases here do; the rest do not.
+**Confirm the classification — conditionally.** Per `workflows-core:escalation-rules` ("When a choice list fires"), a list is shown only where the answer genuinely varies. Two cases here do; the rest do not.
 
 **B — the argument is path-like (contains `/`, ends in `.md`, or starts with `@`) but resolved to no existing file.** Without this gate it falls through precedence rule 2 to **prompt** and the path string itself becomes the raw idea text — a mistyped path silently ingested as prose:
 ```
@@ -90,7 +92,7 @@ choices: ["Re-enter the path (Recommended)", "Read the argument as a prompt — 
 
 **Everything else** — a `.md` path that resolves, and plain prose — is unambiguous. State the resolution in one line that invites correction and **proceed without waiting**; the list would have one plausible answer. (A dedicated `--as prompt|markdown|rfe|prd` override is future work — this inline confirmation covers a mis-detection.)
 
-Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
+Show the `docs grounding:` line in the form `workflows-core:docs-grounding` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 
 
 ---
@@ -125,7 +127,7 @@ which it is forbidden to do.
 deep**, in either syntax, under one total-file cap and **reads** the images the source links, returning a
 `description` of what each frame shows rather than a bare path. Both are **context**: they inform the
 grill and the prose Phase 4 writes. Neither is grounded evidence — an image here is never a `[DG#n]`
-finding and gets no verifier pass (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md`
+finding and gets no verifier pass (`workflows-core:grounding-format`
 §6 governs *that*, and this route does not enter it). Phase 4.5 does write the index its vendored
 frame set requires — §6.1 makes that mandatory for any set — but an index makes a set **readable**,
 which is not the same as reconciling it into evidence. Treat a described frame the way you treat a
@@ -146,7 +148,7 @@ indistinguishable from a link that was never there.
 
 Dispatch both grounding agents **in a single response** so they run in parallel. Each is independent; either being OFF never suppresses the other.
 
-**Docs.** Run `resolve-docs-grounding idea` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; pass `key` = the run's own key, which enables the git-grep backstop. When OFF, skip silently.
+**Docs.** Run `resolve-docs-grounding idea` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; pass `key` = the run's own key, which enables the git-grep backstop. When OFF, skip silently.
 
 Carry the digest into Phase 3 with **grill-rank** consumption — its challenges compete for the ≤10 question slots, they do not add slots. (One digest, not two: prior-art discovery was removed with its finder, so `docs_challenges` is the only challenge set an agent produces here. There is no `area_proposal` to carry either — nothing proposes a write path now that the key names the folder.)
 
@@ -156,7 +158,7 @@ Carry the digest into Phase 3 with **grill-rank** consumption — its challenges
 
 Runs only when `--ground-code` was given; otherwise take the OFF branch at the end of this phase. Kept separate from Phase 2.5 because the repo gate needs a user answer (which cannot happen inside a parallel dispatch) and because the scan is two-round and therefore sequential.
 
-**1. Resolve the repo set.** The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text. Validate each resolved path is a directory; a repo that is not mounted is handled by the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` — never invented, never silently dropped. A repo the user drops is carried to Phase 5 by name, with the themes it would have grounded left unverified. With `--ground-code <repo>[,<repo>…]`, use exactly those repos and skip the derivation below. Bare, derive them:
+**1. Resolve the repo set.** The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text. Validate each resolved path is a directory; a repo that is not mounted is handled by the `Repo missing (after resolution)` rule in `workflows-core:escalation-rules` — never invented, never silently dropped. A repo the user drops is carried to Phase 5 by name, with the themes it would have grounded left unverified. With `--ground-code <repo>[,<repo>…]`, use exactly those repos and skip the derivation below. Bare, derive them:
 
 - **Cheap discovery.** List the top-level directories under each `${REPOS_PATH:-/workspace}` entry (may be colon-separated) with `ls`. Optionally attach each directory's one-line identity — `timeout 5 git -C <dir> remote get-url origin 2>/dev/null` (slug) or its README's first heading. Do **not** deep-scan to guess relevance.
 - **Propose** a candidate set from the `idea-reader` digest's themes.
@@ -164,12 +166,12 @@ Runs only when `--ground-code` was given; otherwise take the OFF branch at the e
   ```
   choices: ["Ground the proposed set (Recommended)", "Ground a different set (you'll be prompted)", "Ground nothing — continue without a code scan", "Cancel"]
   ```
-- **Empty proposal — do not show that list.** When no theme matches any mounted repo its first option names a set that does not exist. Escalate instead per the `No repos derivable — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`. Every option in a shown list must name something that exists.
+- **Empty proposal — do not show that list.** When no theme matches any mounted repo its first option names a set that does not exist. Escalate instead per the `No repos derivable — /epics` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`. Every option in a shown list must name something that exists.
 - **"Ground nothing — continue without a code scan"** ends this phase for the run: no scanner is dispatched, Phase 4 writes no `## Feasibility grounding` section, and the Final report shows `code grounding: declined at the repo gate` — distinct from `code grounding: off`, which means the flag was never given at all.
 
-**2. Round 1 — broad.** Spawn `code-scanner` on the confirmed set in **batches of up to 4 concurrent agents per Agent message**, on `detection_model` per `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §8.3. For each repo in the batch:
+**2. Round 1 — broad.** Spawn `code-scanner` on the confirmed set in **batches of up to 4 concurrent agents per Agent message**, on `detection_model` per `workflows-core:model-routing/classification` §8.3. For each repo in the batch:
 
-→ Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "workflows-core:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Scan this repo for the brief:
   >
   > repo_path:        <resolved absolute path>
@@ -178,7 +180,7 @@ Runs only when `--ground-code` was given; otherwise take the OFF branch at the e
   > search_hints:     <symbols/paths/keywords derived from the idea, if any>
   > refresh:          { switch_to_default_branch: false, pull: false }"
 
-Handle every returned status through the list `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` already carries for it — `REPO_MISSING` → *Repo missing (after resolution)*. `prep.read_only: true` is **not** a failure: the scan ran at `prep.scanned_ref`; escalate per *Read-only mount — ref stale or diverged* **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, and cite evidence at `prep.scanned_ref` either way. With `switch_to_default_branch` and `pull` both false, every repo is scanned read-only as it stands, at `prep.scanned_ref`, without switching branches or pulling — `code-scanner`'s dirty-tree status is gated on `pull: true`, a condition never met here, so this scan never produces it.
+Handle every returned status through the list `workflows-core:escalation-rules` already carries for it — `REPO_MISSING` → *Repo missing (after resolution)*. `prep.read_only: true` is **not** a failure: the scan ran at `prep.scanned_ref`; escalate per *Read-only mount — ref stale or diverged* **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, and cite evidence at `prep.scanned_ref` either way. With `switch_to_default_branch` and `pull` both false, every repo is scanned read-only as it stands, at `prep.scanned_ref`, without switching branches or pulling — `code-scanner`'s dirty-tree status is gated on `pull: true`, a condition never met here, so this scan never produces it.
 
 **3. Round 2 — narrow.** Apply §8.5 of the model-routing reference: for each theme round 1 left **inconclusive** (`classification` `partial` / `absent` / `error`, or **two or more** scanners' per-theme `capability_map[].gap_summary` texts point at each other's repo in a cycle, or at a component/subsystem that no scanned repo covers), and for which round 1 produced at least one evidence anchor, dispatch `code-scanner` again with `capability_themes` holding exactly **one** question and `search_hints.paths` / `.symbols` / `.keywords` seeded from that round's verified `evidence[].path` and `.symbols`; where an evidence entry carries `lines`, name the anchor as `<path>:<line>` in the round-2 `context` prose, since `search_hints` has no line-number field. Round 2 reuses round 1's `refresh:` block verbatim — `switch_to_default_branch: false`, `pull: false` — so the read-only posture and the "dirty-tree status never produced here" claim at `:162` hold for both rounds. Cap **4 dispatches, one round only** — there is no round 3, and a theme still inconclusive is carried to Phase 4 as a `[NEEDS CLARIFICATION]`, never guessed at. A theme confirmed `absent` — by round 2, or by round 1 when no anchor existed to seed a round 2 — is a **resolved** finding: it belongs in Section 7's *What's missing*, not in Open questions. `[NEEDS CLARIFICATION]` is for a theme the scan could not settle — mutual deferral, or `error`.
 
@@ -188,13 +190,13 @@ Handle every returned status through the list `${CLAUDE_PLUGIN_ROOT}/references/
 This idea names <repo>; re-run with --ground-code to verify it against the code.
 ```
 
-and **proceed without waiting** — an inline confirmation per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` ("When a choice list fires"), not a gate. No match ⇒ silent. There is no auto-trigger: grounding is a fan-out across every confirmed repo plus a second seeded round, and starts only on the user's explicit flag.
+and **proceed without waiting** — an inline confirmation per `workflows-core:escalation-rules` ("When a choice list fires"), not a gate. No match ⇒ silent. There is no auto-trigger: grounding is a fan-out across every confirmed repo plus a second seeded round, and starts only on the user's explicit flag.
 
 ---
 
 ## Phase 3 — Refine via grill
 
-**Interview technique (grilling — embedded; no runtime dependency).** Follow the shared technique in `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the `idea-reader` digest, put only decisions to the user), walk the design tree in dependency order. **Depth: bounded by default (below); `--deep` = relentless.**
+**Interview technique (grilling — embedded; no runtime dependency).** Follow the shared technique in `Skill(skill: "workflows-core:reference", args: "grilling-technique")` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the `idea-reader` digest, put only decisions to the user), walk the design tree in dependency order. **Depth: bounded by default (below); `--deep` = relentless.**
 
 Scan for gaps against an idea-stage **ambiguity taxonomy**: *problem clarity, target users, desired
 outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps by **Impact × Uncertainty**, ranking every `docs_challenges` entry from Phase 2.5 into that same list. Challenges **compete** for the slots below; they never add slots. **Code findings are facts, not questions.** A Phase 2.6 finding answers a gap rather than raising one — look it up, cite it, and do not spend a question on it. The one exception is the finding that **contradicts the idea's premise** (the capability already exists, or the gap is far smaller than the idea assumes): that becomes a challenge ranked into the same Impact × Uncertainty list, competing for a slot exactly like a `docs_challenges` entry and never adding one. At most **2** such challenges.
@@ -212,7 +214,7 @@ outcome/value, scope boundaries, evidence/demand sufficiency, success signal, te
 ## Phase 4 — Write idea.md
 
 Author `idea.md` per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` into the write root resolved in
-Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`:
+Phase 0, applying the no-hard-wrap prose convention in `Skill(skill: "workflows-core:reference", args: "prose-formatting")`:
 
 - **Path.** `idea.md` in the folder Phase 0 resolved. There is no container derivation, no
   write-path gate and no `prd_disposition`: the operator named the folder when they named the key,
@@ -237,7 +239,7 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 
   **There is no "write a second one beside it" option, and the reason is structural.** The key was fixed
   in Phase 0, so a second brief under a different slug is a second folder asserting the *same* key —
-  `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4 rule 5's hard `ambiguous` stop, which makes the key
+  `workflows-core:addressing` §4 rule 5's hard `ambiguous` stop, which makes the key
   unaddressable by every command that resolves one, `/create-prd <KEY>` — the command this run is about to
   recommend — included. Phase 4.5 would vendor into the folder Phase 0 resolved rather than the new one,
   and Phase 5 would hand off a `feature_folder` the deliverable was not written into. A genuinely separate
@@ -246,7 +248,7 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 - **`kind` and `key`:** write `kind: prd` and `key: <the key this run was invoked with>` into the
   frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`). This command creates the folder, so
   until `/create-prd` writes `prd.md` this file is the only artifact carrying the pair
-  `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4 resolves the folder's identity from — and §4's
+  `workflows-core:addressing` §4 resolves the folder's identity from — and §4's
   own invariant is that a folder is never keyless, not even between its creation and its first
   document.
 - **`status`:** set frontmatter `status: refined` IFF zero `[NEEDS CLARIFICATION]` markers remain;
@@ -263,7 +265,7 @@ Runs after Phase 4 and before Phase 5, because the handoff stages what this phas
 alone, the record holds a provenance document nobody but that operator can follow. Cite
 `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` and execute its **Vendored sources** rules inline —
 that file owns the two destinations, the copy set, the collision rule and the rewriting rule, and
-cites `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.2 for the index format and its
+cites `workflows-core:grounding-format` §6.2 for the index format and its
 reconciliation contract. This phase restates none of them.
 
 **It changes nothing the brief says.** `idea-reader` distilled every source into `raw_context` in
@@ -281,7 +283,7 @@ repairs where `idea.md` points.
    destination is reused rather than re-copied; otherwise the name takes the lowest free `_NN`, derived
    from the destination directory and appended to the **original** basename, never to a name already
    carrying a suffix.
-3. **Rebuild `design/idea-sources/index.md` per `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md`
+3. **Rebuild `design/idea-sources/index.md` per `workflows-core:grounding-format`
    §6.2** — the one index format and reconciliation contract every writer of a frame-set index follows,
    executed inline and restated nowhere. That section owns the filename, the frontmatter, the table
    shape, the `Linked from` semantics, and every one of its six reconciliation steps, including what
@@ -290,12 +292,12 @@ repairs where `idea.md` points.
    `description`, transcribed verbatim and never invented. An image the collision rule *reused*
    (byte-identical content already at the destination) is not a new frame and gets no second row; the
    row already describing it stands. **The index is not optional**:
-   `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.1 makes its absence unrecoverable, so images
+   `workflows-core:grounding-format` §6.1 makes its absence unrecoverable, so images
    written without one would be a frame set nothing can ever read. **Writing it does not mean `/idea`
    design grounding has shipped** — nothing here dispatches `design-grounder`, produces a `[DG#n]`, or
    reaches a verifier, and that capability remains deliberately unbuilt (§6.1 says so; this phase keeps
    it true). A set left with rows the run could not describe is repaired by
-   `/dev-workflows:frames <KEY>`, which reads the frames themselves and fills exactly those rows.
+   `/workflows-core:frames <KEY>`, which reads the frames themselves and fills exactly those rows.
 4. **Rewrite `idea.md`'s links onto the copies** — `[[wikilinks]]`, `![[embeds]]`, `[text](path)` and
    `![alt](path)`, absolute and relative alike — replacing the target, preserving the display text, and
    **writing every rewritten link as standard markdown**. `$SPECS_PATH` is a git repo read on a forge and
@@ -346,7 +348,7 @@ substituted or refreshed by the collision rule — for the Final report, and car
 a byte-identical copy was not written by this run, but `idea.md` links it and an earlier run may have
 left it on no ref, so omitting it is a link to a file that never lands.
 
-**The bookkeeping steps do not stage any of this.** `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
+**The bookkeeping steps do not stage any of this.** `workflows-core:specs-repo-git`
 §2.1 classifies `attachments/**` and `design/**` as OTHER, so `commit-artifacts` never touches them —
 they are deliverables, and they reach the default branch only through Phase 5's handoff.
 
@@ -372,8 +374,7 @@ every later run until those paths are committed or the handoff is taken.
 Report where `idea.md` was written and its `status`, and what Phase 4.5 vendored beside it, then offer
 the next phase — **adapted to status**:
 
-- **`status: refined`** — offer the handoff. Present
-  `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim, then on the
+- **`status: refined`** — offer the handoff. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim, then on the
   first option execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: idea`;
   `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = `idea.md`, **plus every file
   Phase 4.5 wrote or reused** — each copy under `attachments/`, each image copy under
@@ -396,7 +397,7 @@ the next phase — **adapted to status**:
   phase existed. Then recommend
   `/dev-workflows:create-prd <KEY> <merge-clause>`, which finds `idea.md` in that folder —
   `<merge-clause>` resolved from the `Phase handoff:` line §4.1 just emitted, per
-  `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s resolution table, and never written
+  `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`'s resolution table, and never written
   unconditionally. **The clause is load-bearing here, not decoration**: `/create-prd` Phase 0 step 3
   rung 1 runs `require-on-main` on exactly this `idea.md`, so while the pull request this offer just
   opened is still open that command stops on rows D/E — an unqualified recommendation sends the
@@ -433,7 +434,7 @@ one was written. A reframing that changed the idea's Problem section must not be
 the file.
 
 `/create-prd` is a separate command; this offer is guidance the user acts on — it never auto-invokes
-another command. (Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — the plugin-wide
+another command. (Per `workflows-core:next-phase-offer` — the plugin-wide
 next-phase-offer contract; `/idea` is one reference implementation.)
 
 ### Context hygiene
@@ -441,7 +442,7 @@ next-phase-offer contract; `/idea` is one reference implementation.)
 Continuing to `/dev-workflows:create-prd` (still the PM phase)? → run **`/compact`** to free context; your
 `idea.md` is already on disk. (No resume pointer or `/rename` label here — the PRD-Key is
 minted later, and the ideation phase is short.) Guidance only — see
-`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
+`workflows-core:session-hygiene`.
 
 ---
 
@@ -451,15 +452,15 @@ Terminal phase — runs after Phase 5, NEVER interrupts an earlier phase.
 
 **Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference
 gap** (a capability the run needed but the plugin lacked), `emit-block` (per
-`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating — so a run
+`workflows-core:feedback-emission`) at that halt **before** escalating — so a run
 abandoned at the block still records the gap. NEVER `emit-block` for an environment / user halt (bad
 source-not-found, cancellation).
 
 **Session-hygiene invariant.** End Phase 5 with a `### Context hygiene` note per
-`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — a same-role `/compact` suggestion
+`workflows-core:session-hygiene` — a same-role `/compact` suggestion
 (no `resume.md`, no `/rename`: pre-PRD, short PM phase). Guidance only, never auto-run.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
    >
    > Session handoff:
@@ -470,27 +471,24 @@ source-not-found, cancellation).
    > - Review verdict: N/A (no reviewer in /idea)
    > - Test result: N/A (no tests in /idea)
    > - Project root: [the idea.md folder]"
-2. **Persist plugin feedback (automatic).** Cite
-   `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6)
+2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6)
    with the Lessons Learned report, `command: /idea`, `key` = the run's own key, the run's `source`, and
    `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It renders only the
    plugin-facing slice (§4), dedupes by stable `id` (§3), resolves the target via the §2 specs-first
    ladder, and writes silently. Surface the persisted path (or "no plugin-facing signal — nothing
    persisted").
-3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call its
-   `emit-cost` entry point with `command: /idea`, `phase: prd-creation`, `role: pm`, `key` = the run's own key,
+3. **Session cost (ALWAYS runs).** Invoke `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and call its `emit-cost` entry point with `command: /idea`, `phase: prd-creation`, `role: pm`, `key` = the run's own key,
    the run's `source`, and `plugin_version`. The key is always present — `/idea` refuses to run without
    one — so the entry lands on the keyed tier and never on the pending ladder (§9), which
    **advances the chained checkpoint** (§3); surface the persisted path (or the report-only notice).
-4. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
-   and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages
+4. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages
    ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows
    session artifacts (/idea)` — the key is mandatory here, so `NOISSUE` never applies — and pushes. It NEVER
    touches a code/docs repo, or the current working directory; NEVER force-pushes; NEVER
    fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting
    that notice. Hold its §6 outcome line for the Final report.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (idea.md itself is handed off separately, before this phase, via `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2, behind Phase 5's §4.3 consent choice; the terminal step above commits only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into a code/docs repo or the current working directory; no user name is ever written.
+ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (idea.md itself is handed off separately, before this phase, via `workflows-core:phase-handoff` §2, behind Phase 5's §4.3 consent choice; the terminal step above commits only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into a code/docs repo or the current working directory; no user name is ever written.
 
 ---
 
@@ -514,7 +512,7 @@ not markdown, not an image — with its extension, or a copy that failed) — st
 vendored at all ("no source to vendor: the idea came from a prompt", or "nothing linked"), and naming no
 directory this run did not actually create; the resolved model routing (+ any Opus degradation); the feedback path; the cost
 path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
-(`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; the
+(`workflows-core:specs-repo-git` §6), with any guard notice repeated in full; the
 `Phase handoff:` outcome line when the handoff ran; the code grounding outcome — the grounded repos with their `scanned_ref`s, any
 descoped or inconclusive ones, and — first, because it is the most consequential thing a run can
 produce — the **Reframing** line if one was written; or, when no scan ran, `code grounding: off` (no

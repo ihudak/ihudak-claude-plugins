@@ -1,8 +1,10 @@
 ---
 name: release-notes-writer
 description: Renders an example-docs release-notes draft (the authored body only) for a resolved PRD/ticket from the folder read the orchestrator hands it, plus optional diff summaries. Emits exactly ONE Summary. Resolves the note's destination (breaking-changes / feature-updates / fixes) to pick the draft's shape — a category label + H3 title + prose, or a single bare sentence for fixes — and never writes the Change Type as text. Sources the category label from the resolved PRD's release_notes_category and omits it when absent. Emits NO identifiers, NO PR links, and NO {{#internal-note}} block (the docs automation adds those). Does NOT write files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep"]
+tools: ["Read", "Glob", "Grep", "Skill"]
 ---
+
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
 Render a release-notes draft for a resolved Product Requirements Document in the
 example-docs feature-update format. You produce only the **authored body** that a
@@ -116,7 +118,7 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
 
      The rendered `prose` field carries this shaped body (prose and/or list/`> Note:`);
      it stays plain customer-facing content with no identifiers and no PR links, and follows the
-     no-hard-wrap convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md` — each
+     no-hard-wrap convention in `workflows-core:prose-formatting` — each
      paragraph is one unbroken line.
 
 7. **Render.** For a **titled** destination (`breaking-changes`, `feature-updates`), render the
@@ -139,7 +141,7 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
    `Release-notes category:` line, and NO `--- Summary ---` divider — the whole output is the text the
    PM publishes wherever release notes are published.
 
-8. **Source-truth check (when `code_repos` is provided).** Verify the specific option/label/count claims the draft makes against the source (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3). Do NOT auto-resolve: when a claim is contradicted, record a `gaps[]` entry with `field: prose`, `prd_phrasing`, `source_phrasing`, `source_location`, and `recommended_action: "ask user"`. Keep the draft prose in the PRD phrasing for now; the command resolves it.
+8. **Source-truth check (when `code_repos` is provided).** Verify the specific option/label/count claims the draft makes against the source (per `Skill(skill: "workflows-core:reference", args: "source-truth")` §3). Do NOT auto-resolve: when a claim is contradicted, record a `gaps[]` entry with `field: prose`, `prd_phrasing`, `source_phrasing`, `source_location`, and `recommended_action: "ask user"`. Keep the draft prose in the PRD phrasing for now; the command resolves it.
 
 ## Output
 

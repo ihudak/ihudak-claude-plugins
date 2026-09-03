@@ -4,6 +4,26 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.26.0] — 2026-09-03
+
+### Changed — the shared foundation now ships as `workflows-core`
+
+Run `claude plugin install workflows-core@ihudak-plugins` — this release moves the shared reference corpus, five agents and six utility commands into a new `workflows-core` plugin, which `dev-workflows` now declares as a dependency.
+
+**The explicit install is belt-and-braces, not the mechanism.** `.claude-plugin/plugin.json` now carries `"dependencies": ["workflows-core"]`, and a declared dependency is resolved by the host and installed alongside the plugin that names it — so on a machine whose catalogue is current, it arrives on its own. Run the command above where it has not refreshed. An unsatisfied dependency **disables** `dev-workflows` rather than letting it half-run: every pipeline command loads at least one core reference in its first phase, so there is no degraded mode to fall back to and none is wanted.
+
+**Six commands ship from `workflows-core` now, not from here** — `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline` and `/frames`, all six to that one plugin.
+
+Once the dependency is installed the bare names keep working; what changes is the namespaced form — `/dev-workflows:frames` is now `/workflows-core:frames`, and likewise for the other five. All six are family-meta rather than pipeline commands: they log friction about the plugin family itself, drive its status line, or index a design frame set, so they belong wherever the shared machinery lives. `dev-workflows` keeps its twenty pipeline commands, unchanged.
+
+**Five agents move with them** — `code-scanner`, `doc-fixer`, `docs-grounder`, `frame-describer` and `impl-maintenance` — and nothing user-visible changes there. An agent crosses a plugin boundary for free, so every dispatch site simply names `workflows-core:<agent>` instead.
+
+**Twenty-nine reference files move**, which is the part that needed real work. `${CLAUDE_PLUGIN_ROOT}` resolves to the *reading* plugin, so a dependent plugin cannot read a shared reference by path however the dependency is declared. Each of them is now reached through one argument-taking loader skill — `Skill(skill: "workflows-core:reference", args: "<name>")`, with an optional second argument naming an entry point within the reference — and every command and agent that cites one carries a preamble saying so. Citations in this plugin are written `workflows-core:<name>`. A gate (`check-docs.sh` check 16) holds both directions: every loader argument resolves to a file that exists, every reference in the corpus is reached by something, and no file outside `workflows-core` reaches a shared reference by path.
+
+The `model-routing` skill and the cost helper `scripts/session-cost.py` move to `workflows-core` too. `session-cost.py` drops a flag in that move — see the `workflows-core` changelog, which owns that note.
+
+This is the second increment of the marketplace split designed in `docs/superpowers/specs/2026-09-02-marketplace-split-design.md`; the first extracted `guideline-reviewers`. It changes no behaviour: the same references say the same things, reached a different way. `4.0.0` stays reserved for the end state of the split, so this increment is a minor bump like the last one — no intermediate increment is published on a major version of its own.
+
 ## [3.25.0] — 2026-09-02
 
 ### Removed — the guideline reviewers moved to their own plugin

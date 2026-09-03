@@ -9,8 +9,8 @@
   "plugins": [
     {
       "name": "dev-workflows",
-      "version": "3.25.0",
-      "description": "Twenty-six slash commands for the product lifecycle — /idea → /create-prd → /create-ard → /specify → /design → /epics → /implement → /document → /release-notes → /ready — plus a six-command BRD-to-PRD route (/brd-intake → /brd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile) that grounds a customer's requirements document, settles it with them, and seeds the PRD, ARD and specification. /frames indexes exported design frame sets so they can be read. Thirty-six subagents, four hooks. Opus-backed gates review every artifact — plans, code, docs, Epics, specs, designs, ARDs, PRDs, readiness. One markdown tree is the system of record; no tracker is read. Each phase hands its artifact to the next on the specs repo's default branch: the producer opens a PR, the consumer waits for it to land. Optional read-only grounding on product docs and code.",
+      "version": "3.26.0",
+      "description": "Twenty slash commands for the product lifecycle — /idea → /create-prd → /create-ard → /specify → /design → /epics → /implement → /document → /release-notes → /ready — plus a six-command BRD-to-PRD route (/brd-intake → /brd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile) that grounds a customer's requirements document, settles it with them, and seeds the PRD, ARD and specification. Thirty-one subagents, four hooks; its shared foundation ships in the companion workflows-core plugin. Opus-backed gates review every artifact — plans, code, docs, Epics, specs, designs, ARDs, PRDs, readiness. One markdown tree is the system of record; no tracker is read. Each phase hands its artifact to the next on the specs repo's default branch: the producer opens a PR, the consumer waits for it to land. Optional read-only grounding on product docs and code.",
       "author": {
         "name": "Ivan Gudak",
         "email": "ihudak@gmail.com"
@@ -66,6 +66,18 @@
       "category": "productivity",
       "source": "./plugins/guideline-reviewers",
       "homepage": "https://github.com/ihudak/ihudak-claude-plugins"
+    },
+    {
+      "name": "workflows-core",
+      "version": "1.0.0",
+      "description": "Shared foundation for the dev-workflows plugin family: the addressing grammar and specs-repo git entry points, phase handoff, model routing, escalation and finding-triage rules, cost/feedback/follow-up emission, and the reference loader skill that lets a dependent plugin read them. Also carries the family-meta utility commands — /feedback, /prompt, /prompt-brainstorm, /prompt-grill-me, /statusline — and /frames for indexing design frame sets.",
+      "author": {
+        "name": "Ivan Gudak",
+        "email": "ihudak@gmail.com"
+      },
+      "category": "development",
+      "source": "./plugins/workflows-core",
+      "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/workflows-core"
     }
   ]
 }

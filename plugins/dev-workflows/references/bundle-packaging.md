@@ -1,5 +1,7 @@
 # Bundle packaging (embedded authority)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 How the customer-facing bundle for a BRD→PRD package is built, what it may and may not contain, the
 three degradation tiers a bundle can ship at and what each obliges the reviewer to state, the
 delivery note's hard length rule, and where the rendered bundle lands and why it is committed.
@@ -10,12 +12,12 @@ Neighbouring rules are owned elsewhere and cited, not restated: the twelve secti
 review carries, and the constraint that governs the one file rendered verbatim into the customer's
 prompt, belong to `references/customer-review-schema.md`; the finding record and the
 `baseline-integrity` procedure whose three commands the prompt hands the reviewer to re-run belong
-to `references/grounding-format.md` §2 and §4; the `[CD#n]`/`[AS#n]` record shape, `conditional_on`,
+to `workflows-core:grounding-format` §2 and §4; the `[CD#n]`/`[AS#n]` record shape, `conditional_on`,
 and the rule that every open `[AS#n]` reaches the customer belong to
 `references/decision-register-format.md` §1, §5 and §7; the coverage ledger's dispositions belong to
 `references/coverage-ledger-format.md` §3; the `<BRD-KEY>` grammar and BRD-folder resolution belong
-to `references/addressing.md` §1 and §3; the commit entry point every bookkeeping write into the
-specs repo runs through belongs to `references/specs-repo-git.md`.
+to `workflows-core:addressing` §1 and §3; the commit entry point every bookkeeping write into the
+specs repo runs through belongs to `workflows-core:specs-repo-git`.
 
 **Consumed by `commands/brd-package.md`**, which builds a bundle against this contract — its
 plugin-free rules, its §1.1 content allow-list, its de-Obsidianising pass, its degradation tiers, its
@@ -232,17 +234,17 @@ cannot be missed.
 ## 5. Where the bundle lands
 
 The rendered bundle is written to **`bundle-<YYYYMMDD>/` inside the BRD folder** — resolved per
-`references/addressing.md` §3 — and **committed to the specs repo** (D18), as a **deliverable**:
-through `handoff-to-main` (`references/phase-handoff.md` §2), behind that reference's §4.3 consent
+`workflows-core:addressing` §3 — and **committed to the specs repo** (D18), as a **deliverable**:
+through `handoff-to-main` (`workflows-core:phase-handoff` §2), behind that reference's §4.3 consent
 choice, with every file under the dated directory in the calling command's `deliverable_paths`.
 
-**Not through `references/specs-repo-git.md`, and the difference is not pedantry.** That reference
+**Not through `workflows-core:specs-repo-git`, and the difference is not pedantry.** That reference
 owns the plugin's *bookkeeping* commit, and its §2.1 bounds staging to three path shapes, all of them
 under `dev-workflows/**` — a bundle is under none of them, so `commit-artifacts` cannot stage one and
 was never meant to. A reader sent to the wrong entry point finds the bundle missing from §2.1 and
 reaches for the plausible repair, which is to widen those path shapes; that would let the prompt-free
 bookkeeping step commit a customer-facing deliverable with no consent choice in front of it, which is
-exactly the boundary the two references were split to hold (`phase-handoff.md` §1 rule 7).
+exactly the boundary the two references were split to hold (`workflows-core:phase-handoff` §1 rule 7).
 
 **"Committed" therefore means "committed where the operator accepted the handoff".** Declining §4.3's
 choice leaves the bundle written and uncommitted, and the run says so — D18 is what the accepted path

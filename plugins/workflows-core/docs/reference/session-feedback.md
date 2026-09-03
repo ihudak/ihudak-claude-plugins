@@ -1,0 +1,26 @@
+# Session feedback
+
+Session feedback is the family's channel for friction about **the plugin itself**, as distinct from the product it is used to build. `references/feedback-emission.md` is the contract; this page says what the four commands in this plugin put through it.
+
+## What gets logged, and by what
+
+Two different signals, from two different sources:
+
+- [`/feedback`](../commands/feedback.md) logs what you tell it — a note about the plugin, in your own words, for the maintainer to aggregate later.
+- [`/prompt`](../commands/prompt.md), [`/prompt-brainstorm`](../commands/prompt-brainstorm.md) and [`/prompt-grill-me`](../commands/prompt-grill-me.md) capture a **correction**: the bad result a command produced, what you told it instead, and the good result that came out of it. The three differ only in what happens after the log — `/prompt` applies the fix directly, `/prompt-brainstorm` hands off to `superpowers:brainstorming` to redesign it, `/prompt-grill-me` grills the fix inline.
+
+### Why `/prompt*` is the more valuable of the two
+
+A `/feedback` note is a report. A `/prompt*` entry is a worked example: it carries the exact input, the exact wrong output, and the exact correction, which is what a later fix to a command's instructions can actually be tested against. Both are worth logging; only one of them can be replayed.
+
+Every long-running command in the family also emits session feedback automatically at the end of its run, so the channel is not fed by these four commands alone.
+
+## Where files land
+
+Feedback writes **one file per folder**, not one per session — the opposite of the cost subsystem's split, because feedback is read as a stream about a plugin rather than measured per run. The resolution ladder is the same as cost's: a resolved folder in `$SPECS_PATH` first, a pending location where no folder resolves, and report-only where nothing does. Nothing is committed by the emitting phase itself; the run's terminal artifact commit picks it up with everything else it wrote.
+
+## What a correction costs
+
+A `/prompt*` or `/feedback` run is charged to the phase of the command it is correcting, not to a phase of its own — see [Roles and phases](../roles-and-phases.md#plugin-feedback) for the inheritance rule and the `plugin-feedback` fallback, and [Session cost](session-cost.md) for the mechanics.
+
+The entry format, the ladder's exact tiers, and the automatic-emission contract live in `references/feedback-emission.md`, which is the single source of truth this page describes rather than restates.

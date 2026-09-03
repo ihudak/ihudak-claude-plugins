@@ -7,8 +7,10 @@ description: >
   with all other components in the repo. Invoked in parallel by the upgrade
   orchestrator — NOT triggered by direct user prompts. Returns a structured
   upgrade plan (ready to hand off to upgrade-executor) or a conflict report.
-tools: ["Read", "Glob", "Grep", "WebFetch"]
+tools: ["Read", "Glob", "Grep", "WebFetch", "Skill"]
 ---
+
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
 # upgrade-planner — Upgrade Compatibility Agent
 
@@ -50,7 +52,7 @@ Receive a single upgrade request (one component, one target spec).
 ## Model Routing
 
 If the orchestrator passes a `model_routing` block (see
-`${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §4), record it in the output
+`workflows-core:model-routing/classification` §4), record it in the output
 `plan` record so the executor and the final report can quote it. This agent
 always runs on the `detection_model` (§2.1 Sonnet chain) — the orchestrator
 invokes it at `/upgrade` Phase 1 step 3, before per-component classification

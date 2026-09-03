@@ -1,5 +1,7 @@
 # upgrade-planner Handoff Format
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 ## Input (orchestrator → upgrade-planner)
 
 ```markdown
@@ -15,7 +17,7 @@ repo_inventory:            # snapshot of key version info from build files
   spring-boot: "3.1.4"
   hibernate: "6.2.0"
   gradle: "8.4"
-model_routing:             # optional; echoed back in output. See `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` for the model-routing block schema
+model_routing:             # optional; echoed back in output. See `workflows-core:model-routing/classification` for the model-routing block schema
   classification: SIGNIFICANT
 ```
 

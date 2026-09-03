@@ -1,11 +1,13 @@
 # Coverage ledger format (embedded authority)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 The canonical shape of the **coverage ledger** (`coverage-ledger.md`): the row a BRD (business
 requirements document) keeps per requirement, the states that row can carry, and the rule that
 blocks a split until every row has one. Design authority:
 `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §4, §4.1. Requirement and defect
 identifiers (`[BR#n]`, `[DEF#n]`) are defined once in `references/brd-format.md` — cited here, not
-restated; key grammar and folder resolution are defined once in `references/addressing.md`.
+restated; key grammar and folder resolution are defined once in `workflows-core:addressing`.
 
 ## 1. Purpose
 
@@ -31,7 +33,7 @@ reported as exactly that, and the line names how many were delegated and then no
 arithmetic unremarked.
 
 One ledger exists per BRD, at either level a `<BRD-KEY>` can name — a BRD that owns its source
-document, or a slice one level inside it (`references/addressing.md` §6 caps nesting there). **What
+document, or a slice one level inside it (`workflows-core:addressing` §6 caps nesting there). **What
 its rows are is not the same at both levels**, and §3's creator table is the authority: a
 source-owning BRD gets one row per `[BR#n]` in the inventory `/brd-intake` extracted, while a slice
 gets one row per `[BR#n]` its `brd-link.md` claims **at the moment `/brd-split` creates it**. That
@@ -123,7 +125,7 @@ different writer at each.** On a BRD that owns its source document it names a **
 written by that BRD's own Phase 4 walk. On a slice it names a **sibling under the same parent, or
 that parent**, and is written by the **parent's** Phase 4 walk — never by the slice's own. It is
 never a child at either level below the root: nesting is capped at one level
-(`references/addressing.md` §6), so **no child can exist below a slice** and no key a slice
+(`workflows-core:addressing` §6), so **no child can exist below a slice** and no key a slice
 writes could name one.
 
 **The slice form exists for exactly one state — an orphan row (§2) — and for no other.** A slice's
@@ -149,7 +151,7 @@ The first three all say *another BRD owns this*, which is what `covered-by` mean
 the other five can say: `deferred-to: <this BRD>` would falsely book it as the slice's own live obligation,
 and `superseded-by` names a requirement, not a BRD. Both keys resolve: `resolve-address` finds a
 sibling one level under `specifications/` and the parent at the top level
-(`references/addressing.md` §3), so neither form names a folder that does not exist.
+(`workflows-core:addressing` §3), so neither form names a folder that does not exist.
 
 **This is not a general-purpose delegation, and a slice's own walk never writes it.** Every row a
 slice's walk visits is a row that slice `claims:` — a row the parent's ledger allocated *here*.
@@ -258,7 +260,7 @@ row.
 **The level test is a check the consumer performs, and it comes first.** A BRD is a container and is
 never the folder a PRD is authored in, so a consumer handed a `BRD-` folder refuses it **before
 opening `coverage-ledger.md` at all** — on the resolved folder's own kind, never on what its rows
-say. The check is: the `BRD-` prefix `references/addressing.md` §2 fixes, read off the resolved
+say. The check is: the `BRD-` prefix `workflows-core:addressing` §2 fixes, read off the resolved
 folder's name. A `PRD-` or an `EPIC-` prefix is not a container and needs no further test; an
 **unprefixed** folder is answered by §5.1's positive test.
 
@@ -277,7 +279,7 @@ always have somewhere eligible to land.
 
 **Why a container, rather than letting a BRD hold its own PRD.** A BRD that could be split *and* be
 PRD-eligible itself would hold PRD folders and its own Epic folders as siblings — two kinds in one
-namespace, which `references/addressing.md` §2's second invariant forbids, and which `/brd-split`
+namespace, which `workflows-core:addressing` §2's second invariant forbids, and which `/brd-split`
 Phase 0 step 9's child enumeration would then have to tell apart. One slice always existing means the
 requirements always land somewhere a PRD can be written, and that somewhere is always one level down.
 This argument is stated **here**, in the authority the refusals cite, rather than only in the command
@@ -329,7 +331,7 @@ that carves the slices.
   removed as a standing empty child holds no illegal row at all — every row is legally `deferred-to`,
   `rejected` or `superseded-by`, and nothing is owed to anybody. That is an **ending**, and a
   consumer reporting it names no command for the decision to un-defer a requirement, which is taken
-  with the customer (`escalation-rules.md`, *When no option is safe to recommend*). It must not,
+  with the customer (`workflows-core:escalation-rules`, *When no option is safe to recommend*). It must not,
   however, report it as a state with no exit: once that decision is taken it is carried out by the
   same two repairs, in the same order — the one row moved back to `unallocated` by hand so
   `/brd-split` has a row to walk, or the `/brd-intake` re-run that reopens every row.
@@ -376,14 +378,14 @@ refusal is about this ledger's own written dispositions, and about nothing else.
 
 ### 5.1 The unprefixed folder — a positive test, never an absence
 
-A folder resolved through `references/addressing.md` §5's legacy fallback carries **no prefix at
+A folder resolved through `workflows-core:addressing` §5's legacy fallback carries **no prefix at
 all**, so the prefix test cannot answer it. **The answer must be positive evidence that this folder
 is a BRD, never the absence of a file** — because a pre-prefix specs repo holds *two* unprefixed
 shapes and only one of them is a container:
 
 - a **root BRD folder**, `specifications/<KEY>-<slug>/`, written by `/brd-intake` before the kind
   prefixes shipped — a current run writes `BRD-<KEY>-<slug>/` and never reaches this test
-  (`commands/brd-intake.md` Phase 0 step 7, `references/addressing.md` §2);
+  (`commands/brd-intake.md` Phase 0 step 7, `workflows-core:addressing` §2);
 - a legacy **idea-route PRD folder**, `specifications/<KEY>-<slug>/` holding `idea.md` and `prd.md`,
   written before the kind prefixes shipped.
 
@@ -394,7 +396,7 @@ no `parent:`", which is the correct test for **root versus slice** *once a folde
 the BRD route*, separates nothing here: used as the container test it refuses the legacy idea-route
 PRD folder too, and then offers `/brd-split` on a folder holding no coverage ledger to walk — a stop
 naming a remedy that cannot run. An unprefixed idea-route folder is not an exotic input: it misses
-`references/addressing.md` §3's `*-<KEY>-*` prefixed glob by construction and lands in §5's fallback
+`workflows-core:addressing` §3's `*-<KEY>-*` prefixed glob by construction and lands in §5's fallback
 every time.
 
 **What a root BRD carries and an idea-route PRD folder never does is the BRD bookkeeping**, and
@@ -429,7 +431,7 @@ stops. The container refusal must therefore be taken one step earlier, at 1a, on
 the other three use. A rule stated as covering three consumers while a fourth needed it is how that
 dead end shipped.
 
-A prefixed tree never reaches this test at all, exactly as it never reaches `addressing.md` §5.
+A prefixed tree never reaches this test at all, exactly as it never reaches `workflows-core:addressing` §5.
 
 ### 5.2 Offering `/create-prd` — three refusals, not one
 
@@ -452,7 +454,7 @@ gate is fully satisfied. An orphan row can neither add the option nor withhold i
 none of them, and one is never `covered-here` and never `unallocated` (§2, §3).
 
 **`<PARENT-KEY>` is read, never derived.** It is the `parent:` field of the same `brd-link.md` the
-`claims:` list came from (`references/addressing.md` §4) — the offering run has already opened that
+`claims:` list came from (`workflows-core:addressing` §4) — the offering run has already opened that
 file to build the gate set, so the key is in hand and is never parsed out of the slice's own key or
 its folder name.
 
@@ -529,7 +531,7 @@ row that does:
   `covered-here` or `deferred-to` (§3's orphan table), never on another `covered-by`: a parent row
   reading `covered-by: <SIBLING-KEY>` is what produces the sibling form instead of the parent one.
 
-Nesting is capped at one level throughout (`references/addressing.md` §6), so there is no third
+Nesting is capped at one level throughout (`workflows-core:addressing` §6), so there is no third
 level for a chain to reach even if one were somehow written.
 
 This is the arithmetic §1 promises. The failure §1 names — every child independently deciding the
@@ -563,7 +565,7 @@ whose fate this BRD has fully recorded — that is the resolution working, not a
 ### 6.2 A ledger that cannot be read is `unresolved`, never `covered`
 
 Resolution reads the named BRD's `coverage-ledger.md` **from the working tree**, through
-`resolve-address` (`references/addressing.md` §3) — not from git, because this line reports what
+`resolve-address` (`workflows-core:addressing` §3) — not from git, because this line reports what
 the run can actually see. A delegated row is `unresolved` when no folder resolves for the
 `<BRD-KEY>` it names; when that folder holds no `coverage-ledger.md`; when the tree the run is
 standing in does not carry that BRD at all, because the split that created it has not merged; or

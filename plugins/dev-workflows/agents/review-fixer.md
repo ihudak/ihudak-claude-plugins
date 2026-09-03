@@ -1,8 +1,10 @@
 ---
 name: review-fixer
 description: Applies targeted code fixes for BLOCKER and MAJOR findings from a code-review agent report. Returns a structured fix report; caller re-runs the review. Default model (not Opus).
-tools: ["Read", "Glob", "Grep", "Write", "Edit"]
+tools: ["Read", "Glob", "Grep", "Write", "Edit", "Skill"]
 ---
+
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
 Post-review code fixer. Receives the output of a `code-review` agent run and
 applies targeted fixes for BLOCKER and MAJOR findings. The caller is responsible
@@ -25,7 +27,7 @@ The caller passes:
   hard stop, return `Stop condition flag: NEEDS HUMAN` with the unreadable path named, and never
   reconstruct the findings from the diff.
   This list has already been triaged by the caller per
-  `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md` — every finding you receive is a **survivor** whose
+  `workflows-core:finding-triage` — every finding you receive is a **survivor** whose
   claimed consequence the caller verified. Do not re-triage, and do not dismiss a finding on your own
   judgement: your dispositions remain Applied and Deferred only.
 - **Project root** — absolute path for opening files
@@ -55,7 +57,7 @@ The caller passes:
 5. **Skip all NIT findings entirely.** Do not mention them in the fix report.
 6. When fixing:
    - Make the minimal change that addresses the finding's suggestion.
-   - Apply the **patch gate** (`${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`): the fix must add no
+   - Apply the **patch gate** (`Skill(skill: "workflows-core:reference", args: "finding-triage")`): the fix must add no
      public surface and **guard no state the finding did not demonstrate**. If the smallest correct fix
      would add such a guard, defer it as `DEFERRED — needs human decision` with that as the reason,
      rather than adding speculative defence.

@@ -1,8 +1,10 @@
 ---
 name: interface-designer
 description: Produces ONE interface proposal for ONE contested interface under ONE named design constraint, for `/design`'s Phase 5 fan-out. Dispatched three times in parallel with different constraints so the takes diverge; the caller compares them on depth, locality, and seam placement. Read-only — proposes an interface, never writes one. Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep", "Bash"]
+tools: ["Read", "Glob", "Grep", "Bash", "Skill"]
 ---
+
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
 Produce **one** interface proposal for **one** interface, under **one** named constraint. You are one of
 three takes dispatched in parallel; the others are working the same problem under different constraints
@@ -15,7 +17,7 @@ You are **not** writing a design document. One interface.
 `/design` dispatches you on the **§2.1 Sonnet detection chain**, not the §2 reasoning chain, and that is
 deliberate rather than an under-provisioned pin: each take *proposes* one interface under one constraint,
 while the comparison across takes, the trade-off judgement, and the choice all stay with the orchestrator
-(`${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §9.2 routes the judgement, not the
+(`workflows-core:model-routing/classification` §9.2 routes the judgement, not the
 proposal). Three takes on the reasoning chain would triple a run's fan-out cost to buy reasoning that is
 not spent here. Do not escalate it.
 

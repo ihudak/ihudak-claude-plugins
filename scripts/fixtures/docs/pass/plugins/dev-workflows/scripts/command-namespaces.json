@@ -1,0 +1,12 @@
+{
+  "dev-workflows": [
+    "alpha",
+    "alpha-two"
+  ],
+  "fixture-two": [
+    "omega"
+  ],
+  "renamed-namespace": [
+    "theta"
+  ]
+}

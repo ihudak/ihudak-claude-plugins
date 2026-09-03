@@ -6,6 +6,8 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 
 Profile the documentation repository: $ARGUMENTS
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 `$ARGUMENTS` is an optional repo path (default: the current working directory), optionally followed by `--inline`. The `--inline` token is passed when `/document` (keyed mode) invokes this flow inline (its Phase 0 case (c)); it switches this command to **inline mode** — see Phase 5 step 1, step 2, step 6, and Phase 6.
 
 `/docs-profile` **bootstraps or refreshes** the machine-readable docs-profile that `/document` (keyed mode) consumes. It scans a documentation repository, synthesises a `.dev-workflows/docs-profile.yml` (and complementary CLAUDE.md guidance) that conforms to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`, then writes the result as a **reviewable PR** — branch + commit + a drafted PR message. It never pushes or auto-merges.
@@ -46,7 +48,7 @@ For one-off doc edits use direct mode; for keyed feature documentation use `/doc
 
 ## Phase 1 — Model routing
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md`. Slash-command bodies cannot expand `${CLAUDE_PLUGIN_ROOT}` themselves, so the skill is what makes the policy text available.
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`) to load `workflows-core:model-routing/classification`. Slash-command bodies cannot expand `${CLAUDE_PLUGIN_ROOT}` themselves, so the skill is what makes the policy text available.
 
 Profiling is **SIGNIFICANT** — it is a cross-cutting synthesis of the whole repository whose output (`docs-profile.yml`) steers every later `/document` run, so a wrong profile has a large blast radius. State the classification and a one-line reason.
 
@@ -122,7 +124,7 @@ On the §2 powerful chain (`planning_model`), turn the detection report into a d
 
 ## Phase 4 — Confirm and fill gaps
 
-**Rule: Ask, don't guess.** For every field the synthesis marked `needs-confirmation` — and anything detection could not settle — ask the user. Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0); the recommended default is first and labelled `"(Recommended)"`. Group related fields into one question where possible.
+**Rule: Ask, don't guess.** For every field the synthesis marked `needs-confirmation` — and anything detection could not settle — ask the user. Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`Skill(skill: "workflows-core:reference", args: "escalation-rules")` §0); the recommended default is first and labelled `"(Recommended)"`. Group related fields into one question where possible.
 
 Typical gaps:
 
@@ -162,7 +164,7 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
 
 1. **Resolve the branch name.** **Inline mode** (`--inline`): skip the prompt and the confirmation entirely — use the deterministic name `dev-workflows/docs-profile-bootstrap`; `/document` (keyed mode) Phase 6.2 renames it to the docs-branch convention. **Standalone** (default):
    - If the repo documents a branch-naming convention (detected in Phase 2 / confirmed in Phase 4), fill its placeholders and use it.
-   - If the convention has an **identity** placeholder, fill it from the §2 ladder in `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt); its issue-key segment takes the documented no-issue literal, since profiling has no ticket.
+   - If the convention has an **identity** placeholder, fill it from the §2 ladder in `Skill(skill: "workflows-core:reference", args: "branch-naming")` (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt); its issue-key segment takes the documented no-issue literal, since profiling has no ticket.
    - Else (no convention documented, §1.4) use `<prefix>/NOISSUE-docs-profile`, where `<prefix>` comes from the same §2 ladder with fallback `docs/`. If the ladder yields nothing, run its §2.5 escalation:
      ```
      "I couldn't infer a branch prefix from $GIT_USER_INITIALS, `git config user.initials`, or existing branches. This command's default is `docs/`. What prefix should I use?"
@@ -253,6 +255,6 @@ Branch <name> created with 1 commit on <repo-root>. NOT pushed and NOT merged �
 - ALWAYS show a field-level diff and confirm before overwriting an existing `.dev-workflows/docs-profile.yml` (idempotent refresh)
 - ALWAYS write the profile to `.dev-workflows/docs-profile.yml` in the TARGET repo — never the plugin
 - NEVER push or auto-merge — output a reviewable PR (branch + commit + drafted PR message) for the user to push
-- ALWAYS use `choices` arrays for decision points; recommended default first and labelled "(Recommended)"; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0)
+- ALWAYS use `choices` arrays for decision points; recommended default first and labelled "(Recommended)"; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)
 - ALWAYS reference plugin paths with `${CLAUDE_PLUGIN_ROOT}`
 - ALWAYS produce the Phase 6 report as the final output, noting any §2.1/§2 model fallback

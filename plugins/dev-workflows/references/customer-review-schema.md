@@ -1,5 +1,7 @@
 # Customer review schema (embedded authority)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 The canonical shape of the file the **customer's reviewer** writes and sends back: the twelve
 sections it must carry, in the order it must carry them, the rule that puts the review's evidence
 limitations in front of every claim that rests on them, and the rule that makes the review exactly
@@ -20,14 +22,14 @@ this repository's design spec, and the decision rows above:
 - the degradation tier the review's section 1 must state, and how the bundle it describes is built —
   `references/bundle-packaging.md` §3 and §1
 - the finding record, the six verdicts, and the `baseline-integrity` procedure whose three commands
-  are handed to the customer's reviewer to re-run — `references/grounding-format.md` §2, §3 and §4
+  are handed to the customer's reviewer to re-run — `workflows-core:grounding-format` §2, §3 and §4
 - the `[CD#n]` and `[AS#n]` record shape, the mandatory `argumentation`, and the rule (D14) that a
   customer answer becomes a `[CD#n]` only once an operator confirms it —
   `references/decision-register-format.md` §1, §2 and §7
 - the coverage ledger's dispositions, which a returned review never sets —
   `references/coverage-ledger-format.md` §3
 - the `[BR#n]` requirement identifier — `references/brd-format.md` §2; the `<BRD-KEY>` grammar —
-  `references/addressing.md` §1
+  `workflows-core:addressing` §1
 
 **Consumed by two shipped commands.** One renders the body below into the prompt a customer
 pastes — from the boundary this preamble declares, never in full. The other parses a returned review

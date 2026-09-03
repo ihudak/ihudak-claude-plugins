@@ -1,6 +1,6 @@
 # Model routing reference
 
-Every pipeline command classifies its own task before doing real work, and that classification decides how much planning, authoring, and review rigor the rest of the run applies — and, for two commands, which model the session itself must be running on. This page covers the four things a user can observe or influence about that; the full policy — including the mechanics agents don't need restated here — lives in `classification.md` and is linked at the end.
+Every pipeline command classifies its own task before doing real work, and that classification decides how much planning, authoring, and review rigor the rest of the run applies — and, for two commands, which model the session itself must be running on. This page covers the four things a user can observe or influence about that; the full policy — including the mechanics agents don't need restated here — lives in `workflows-core:model-routing/classification`, named again at the end.
 
 ## What gets classified
 
@@ -11,7 +11,7 @@ Every pipeline command classifies its own task before doing real work, and that 
 | `SIGNIFICANT` | Multi-file or cross-cutting, non-trivial design, real correctness risk. |
 | `HIGH-RISK` | Security-, data-, or contract-sensitive — a mistake here causes an outage or a breach. |
 
-All twenty-one pipeline commands that load the `model-routing` skill run this classification as an early step and state their class plus a one-line reason: `/implement`, `/document`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/docs-profile`, `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, `/ready`, `/frames`, and the six commands of the BRD-to-PRD route — `/brd-intake`, `/brd-ground`, `/brd-split`, `/brd-interview`, `/brd-package` and `/brd-reconcile`. Each command has a typical class for its own kind of work (a Product Requirements Document authoring run is typically `MODERATE`, keyed feature docs are typically `SIGNIFICANT`) but escalates when the task in front of it warrants it. What over-escalating costs differs by command — from an extra Opus planner call to a hard stop requiring an Opus session (`## What classification changes` below has the breakdown) — while misclassifying downward can ship bugs regardless of which command you're running, so the policy's own rule is to escalate one level whenever in doubt.
+All twenty pipeline commands in this plugin load the `model-routing` skill, run this classification as an early step, and state their class plus a one-line reason: `/implement`, `/document`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/docs-profile`, `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, `/ready`, and the six commands of the BRD-to-PRD route — `/brd-intake`, `/brd-ground`, `/brd-split`, `/brd-interview`, `/brd-package` and `/brd-reconcile`. A twenty-first, `/workflows-core:frames`, does the same from the companion plugin that ships both it and the skill. Each command has a typical class for its own kind of work (a Product Requirements Document authoring run is typically `MODERATE`, keyed feature docs are typically `SIGNIFICANT`) but escalates when the task in front of it warrants it. What over-escalating costs differs by command — from an extra Opus planner call to a hard stop requiring an Opus session (`## What classification changes` below has the breakdown) — while misclassifying downward can ship bugs regardless of which command you're running, so the policy's own rule is to escalate one level whenever in doubt.
 
 ## What classification changes
 
@@ -44,4 +44,4 @@ Every `SIGNIFICANT`/`HIGH-RISK` Opus step resolves against the same ordered list
 
 ---
 
-The full policy — the classification triggers in detail, the `model_routing` handoff block, the mid-tier detection chain used for mechanical steps, the mandatory Opus code-review checklist, and the large-input scan fan-out — is authoritative in [`../../references/model-routing/classification.md`](../../references/model-routing/classification.md). This page is a summary of it, not a substitute for it.
+The full policy — the classification triggers in detail, the `model_routing` handoff block, the mid-tier detection chain used for mechanical steps, the mandatory Opus code-review checklist, and the large-input scan fan-out — is authoritative in `workflows-core:model-routing/classification`, a reference the companion `workflows-core` plugin ships rather than this one. This page is a summary of it, not a substitute for it.

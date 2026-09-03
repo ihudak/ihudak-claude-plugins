@@ -45,14 +45,14 @@ flowchart TD
     p8 --> p9["Phase 9 — Session cost"]
 ```
 
-Four `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 4, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `code-scanner` (Phase 4, one instance per mounted candidate repo, up to 4 concurrent per batch — deliberately **light** relative to `/epics`' scan, grounding for feasibility rather than a full reuse audit), `spec-reviewer` (Phase 6, Opus-pinned), and `impl-maintenance` (Phase 8, session lessons-learned). The grill and the `specification.md` authoring itself run inline on `current_model` rather than through a delegated subagent.
+Four subagents are dispatched: `workflows-core:docs-grounder` (Phase 4, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `workflows-core:code-scanner` (Phase 4, one instance per mounted candidate repo, up to 4 concurrent per batch — deliberately **light** relative to `/epics`' scan, grounding for feasibility rather than a full reuse audit), `spec-reviewer` (Phase 6, Opus-pinned), and `workflows-core:impl-maintenance` (Phase 8, session lessons-learned). The grill and the `specification.md` authoring itself run inline on `current_model` rather than through a delegated subagent.
 
 ## What it needs
 
 - **An Epic or PRD address** — a prompt with no address is rejected outright (`SPECIFY_NEEDS_KEY`); `/specify` has no non-tracker behaviour.
 - **The PRD on the specs repo's default branch** — gated via `require-on-main` against `specifications/<PRD>-<vslug>/`. An unmerged PRD is a hard stop, naming the branch and any open pull request. An **absent** PRD is not a stop: `/specify`'s existing specs-tree behaviour is unaffected, and the run reports that it is specifying from the export directly — the same fallback `/create-ard` uses.
 - **`$SPECS_PATH`** (required) — `/specify` writes under `$SPECS_PATH/specifications/`, the specs repo; unset stops the run naming `SPECS_PATH`, with no fallback.
-- **An optional ARD** for this item (Phase 2.5), resolved via `../../references/ard-resolution.md` with the PRD and the resolved focus Epic. `status: none` skips silently; `status: unmerged` stops, naming the branch and any pull request; `status: found` keeps the spec's user stories and scope consistent with its `[AD#N]` invariants during the grill, passed to `spec-reviewer` as `applicable_ard`.
+- **An optional ARD** for this item (Phase 2.5), resolved via `workflows-core:ard-resolution` with the PRD and the resolved focus Epic. `status: none` skips silently; `status: unmerged` stops, naming the branch and any pull request; `status: found` keeps the spec's user stories and scope consistent with its `[AD#N]` invariants during the grill, passed to `spec-reviewer` as `applicable_ard`.
 - **Mounted repos under `$REPOS_PATH`** — candidates are auto-derived from the PRD's capability themes and linked PR URLs. An *unresolved* repo slug (zero or ambiguous matches) hard-escalates before Phase 4 runs at all. A resolved-but-unmounted repo, by contrast, only **soft-gates**: it becomes an open question in `_session.md` and the run proceeds with the remaining mounted repos — the specification just can't cite the ungrounded one until it's mounted and the run is re-invoked.
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — consumed with grill-rank ranking in Phase 4. Missing, unreadable, or empty is a silent, non-blocking skip. Turned off with `--no-docs`.
 - **A prior `_session.md`** (optional) — if one exists in the resolved feature folder, Phase 1 offers resume-vs-fresh; on resume, Phase 5 begins at the first unsettled stage instead of the header.
@@ -80,7 +80,7 @@ On the BRD route the run is seeded by a reconciled BRD, and what it needs change
 
 Phase 6 dispatches `spec-reviewer`, Opus-pinned by frontmatter (`model: opus`, no override), checking per-stage quality, cross-stage consistency, coverage, and identifier integrity. `BLOCK` fixes the BLOCKER findings inline — the orchestrator/grill edits `specification.md` directly; there is no delegated writer to re-dispatch — and re-reviews once; an unresolved BLOCKER after that cycle is escalated individually, with "Defer" appending a `## Refinement notes` section to the spec itself. `MAJOR`/`MINOR`/`NIT` under `PASS WITH RECOMMENDATIONS` are deferred to the final report with no mandatory fix cycle. Cap: one fix cycle plus one re-review.
 
-Ahead of the review, Phase 5.5 runs a structural pre-lint (`../../references/pre-lint.md`) — advisory only — checking the Universal checks and the spec block, including that the header's `Open questions` count matches the actual `- [ ]` count.
+Ahead of the review, Phase 5.5 runs a structural pre-lint (`workflows-core:pre-lint`) — advisory only — checking the Universal checks and the spec block, including that the header's `Open questions` count matches the actual `- [ ]` count.
 
 ## Example
 
@@ -109,5 +109,5 @@ The run resolves `EPIC-008-01`'s folder one level under `specifications/`, reads
 - [Model routing](../reference/model-routing.md) — the classification rules and the `spec-reviewer` Opus pin.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 8–9 bookkeeping every run emits.
 - [`specification-format.md`](../../references/specification-format.md) — the canonical structure `specification.md` is authored and reviewed against.
-- [`ard-resolution.md`](../../references/ard-resolution.md) — how the optional ARD is resolved and inherited.
+- `workflows-core:ard-resolution` — how the optional ARD is resolved and inherited.
 - [The BRD-to-PRD route](../brd-workflow.md) — the `/brd-*` commands that produce the register, findings and derivation matrix the BRD route reads, and the customer sign-off that makes those decisions unreopenable here. They produce no `spec-seed.md`: the only writer of a seed file is `/brd-intake --sort-existing`, a migration path, so a reconciled BRD normally holds none and the implementation altitude arrives through the register, the findings and the matrix.

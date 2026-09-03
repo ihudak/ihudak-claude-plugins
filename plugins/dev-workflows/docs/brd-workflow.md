@@ -160,7 +160,7 @@ docs grounding to turn off — `/brd-split` allocates requirements, and the last
 decisions already taken, on which a documentation page (a claim *about* behaviour, not the
 behaviour) settles nothing. It reappears on all three **handover** rows, where it turns off that
 same grounding in the authoring run itself rather than in the route. See
-[`docs-grounding.md`](../references/docs-grounding.md) for the resolution gate and the two
+`workflows-core:docs-grounding` for the resolution gate and the two
 consumption modes this route uses.
 
 `<BRD-KEY>` follows the same shape everywhere in this route: `^[A-Z][A-Z0-9_]*(-\d+)+$`, checked
@@ -218,7 +218,7 @@ specifications/BRD-<BRD-KEY>-<slug>/
 
 Two of those entries are **reserved subdirectory names** rather than this route's own files, and both
 are shared with the idea route: `design/` holds exported frame sets, one immediate subdirectory each,
-images plus an index that [`grounding-format.md`](../references/grounding-format.md) §6.1 makes
+images plus an index that `workflows-core:grounding-format` §6.1 makes
 mandatory — `design-grounder` returns `NO_INDEX` rather than read a frame set without one, because a
 filename is not a reliable statement of what a frame shows. `attachments/` holds the text and markdown
 sources a run copied into the folder; today [`/idea`](commands/idea.md) is its only writer. Neither

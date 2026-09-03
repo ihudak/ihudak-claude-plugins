@@ -6,16 +6,18 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 
 Ground the BRD's requirement inventory against code and design: $ARGUMENTS
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 `/brd-ground` is the **second command of the BRD-to-PRD flow** (PA phase) — it takes the
 `[BR#n]` inventory `/brd-intake` wrote and checks its premises against real code and real design
 assets, at pinned commits, rather than letting a plausible-sounding claim stand unverified. Every
 finding is independently re-derived by a different agent before it counts as evidence
-(`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §8) — this command's whole job is to make
+(`workflows-core:grounding-format` §8) — this command's whole job is to make
 that discipline happen, not to ground anything itself.
 
 Usage: `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-design] [--no-docs] [--rebaseline]`
 
-Runs at either of the two levels `<BRD-KEY>` can name (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md`
+Runs at either of the two levels `<BRD-KEY>` can name (`workflows-core:addressing`
 §3) — a BRD that owns its source document, or one of its slices — grounding only the requirements
 that BRD claims. Unlike `/brd-split`, this command refuses neither: a slice is ground exactly as
 its parent is.
@@ -30,7 +32,7 @@ behaviour, not the behaviour.
 ## Phase 0 — Resolve inputs and gate on main
 
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). If absent or invalid, stop:
+   (`workflows-core:addressing` §1). If absent or invalid, stop:
    `BRD_GROUND_NEEDS_KEY: /brd-ground needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-ground <KEY>'.`
 2. **Flags.** `--depends-on <BRD-KEY>` — repeatable, each consuming the next token; validate each
    with `key-valid` and drop (warn, do not stop the run) any that fail shape. `--no-design` —
@@ -38,25 +40,23 @@ behaviour, not the behaviour.
    grounding off for this run (Phase 1 step 0, Phase 4.5). `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
    / `--no-derivation-matrix` — mutually exclusive; absent means "let Phase 8 decide the default".
 3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
-   `Required path environment variable unset` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+   `Required path environment variable unset` rule in `workflows-core:escalation-rules`:
    ```
    choices: ["Set SPECS_PATH (enter the path)", "Cancel"]
    ```
-4. **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute
-   its `specs-preflight` entry point (§3) inline, **before** the gate below — `require-on-main`
-   performs no fetch of its own (`phase-handoff.md` §3.2) and relies on this step's best-effort
+4. **Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline, **before** the gate below — `require-on-main`
+   performs no fetch of its own (`workflows-core:phase-handoff` §3.2) and relies on this step's best-effort
    one, the same ordering `/design` Phase 0 uses and for the same reason. Prompt-free and silent
    when the specs repo is clean and on its default branch. If it returns `specs_git: blocked`
    (§3.3 G0), carry that flag for the whole run.
-5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
-   `specifications/` and the levels below it that `resolve-address` searches (three, per `addressing.md` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it.
+5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
+   `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it.
    Absent → stop, without asserting which command would create it: no folder exists, so no
    `brd-link.md` exists either, and nothing on disk says whether this key names a BRD with a source
    document or a slice of one. Naming `/brd-intake` unconditionally would be the wrong advice for
    half the cases, exactly as it is in step 6's `absent` branch below:
    `BRD_GROUND_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent. Do not run /brd-intake on a slice; it has no source document of its own.`
-6. **Gate this BRD's own inventory and ledger on main.** Execute `require-on-main`
-   (`phase-handoff.md` §3) against the resolved BRD folder's `coverage-ledger.md`. Whichever
+6. **Gate this BRD's own inventory and ledger on main.** Execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against the resolved BRD folder's `coverage-ledger.md`. Whichever
    command wrote that ledger wrote the inventory beside it in the same handoff commit
    (`coverage-ledger-format.md` §3's creator table), so its presence on `origin/<default>` implies
    `brd/brd-inventory.md` landed with it: for a BRD with a source document of its own, that was
@@ -99,7 +99,7 @@ behaviour, not the behaviour.
      (`coverage-ledger-format.md` §4): it stages nothing, reports `nothing to commit` and opens no
      pull request. `handoff-to-main` stages only the paths *that* run declared, so the slice's
      already-written files are OTHER to it
-     (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.3) and can never reach main by that
+     (`workflows-core:phase-handoff` §2.3) and can never reach main by that
      route.
 
      **Both halves of that condition matter, so the clause carries both.** A parent re-run is a
@@ -129,7 +129,7 @@ behaviour, not the behaviour.
 7. **Require `$REPOS_PATH`.** Resolve `${REPOS_PATH:-/workspace}` (`docs/reference/environment.md`)
    as one directory or a colon-separated list. If no entry resolves to an existing directory,
    stop naming `REPOS_PATH`, per the `Required path environment variable unset` rule in
-   `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` — grounding has nothing to check a claim
+   `workflows-core:escalation-rules` — grounding has nothing to check a claim
    against without at least one mounted repository:
    ```
    choices: ["Set REPOS_PATH (enter the path)", "Cancel"]
@@ -184,7 +184,7 @@ BRDs carry no PR links to auto-derive a repo list from (unlike `/epics`), so thi
 the manual path:
 
 0. **Resolve documentation grounding, once, before prompting.** Run
-   `resolve-docs-grounding brd-ground` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` and
+   `resolve-docs-grounding brd-ground` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` and
    surface the `docs grounding:` line it returns — `ON <root> (retrieval: …)` or `OFF (<reason>)` —
    **verbatim**, including any index-build, staleness, or shadowing clause it carries (off switch:
    --no-docs), alongside the repo prompt below. It runs **exactly once per run**, here; Phase 4.5
@@ -206,18 +206,18 @@ the manual path:
 3. Resolve each named repo against the map: one match → use it; multiple matches → auto-prefer
    basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last (show candidates before
    proceeding); zero matches → escalate per the `Repo unresolved (zero matches) — /brd-ground` rule
-   in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+   in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`:
    ```
    choices: ["Skip and continue without this repo", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
    ```
 4. Empty final list (every repo skipped or missing) → escalate per the `No repos derivable — /epics`
-   rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, whose `/brd-ground` variant
+   rule in `workflows-core:escalation-rules`, whose `/brd-ground` variant
    this is:
    ```
    choices: ["List repos to check manually", "Cancel"]
    ```
 
-Read-only throughout (`${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`) — this command never
+Read-only throughout (`workflows-core:read-only-repos`) — this command never
 switches a branch, fetches, or pulls any repository it resolves here; Phase 3 reads whatever
 `HEAD` already is.
 
@@ -225,7 +225,7 @@ switches a branch, fetches, or pulls any repository it resolves here; Phase 3 re
 
 ## Phase 2 — Classify + model routing
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`), then record:
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then record:
 
 ```yaml
 model_routing:
@@ -249,8 +249,9 @@ report — never hard-block.
 
 ## Phase 3 — Baseline integrity gate
 
-Run `baseline-integrity` (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §4) **once per
-resolved repository, before any finding is written**:
+Invoke `Skill(skill: "workflows-core:reference", args: "grounding-format")` and run its
+`baseline-integrity` procedure (§4) **once per resolved repository, before any finding is
+written**:
 
 ```bash
 git -C "<repo>" rev-parse HEAD
@@ -291,18 +292,18 @@ already records a pin for a repository:
   against the new pin, and Phase 8 supersedes the old findings by ID rather than renumbering them
   (grounding-format.md §3, `SUPERSEDED`) — a citation into an already-sent package still resolves.
 
-**Record the outcome as a `[CG#n]` finding** (`grounding-format.md` §4: "the outcome is recorded
+**Record the outcome as a `[CG#n]` finding** (`workflows-core:grounding-format` §4: "the outcome is recorded
 as a `[CG#n]` finding" — a verified fact about a code repository at a commit is exactly what that
 prefix denotes, and inventing a separate prefix for it would only fragment the namespace). One per
 repository that passes this gate, assigned first, in repo-resolution order, **before** Phase 5's
 claim-level findings — `CG#1..CG#R` on a first run for `R` resolved repositories, continuing after
 whatever the highest `CG#n` already on file is on a `--rebaseline` run. Each carries every field
-`grounding-format.md` §2 defines: `claim` — "baseline integrity: `<repo>` is pinned at a verified,
+`workflows-core:grounding-format` §2 defines: `claim` — "baseline integrity: `<repo>` is pinned at a verified,
 unmodified commit"; `verdict: CONFIRMED` (a repository that failed this gate never reaches a
 finding — it stopped the run instead); `evidence` — the three command outputs (the pinned SHA, the
 empty `--stat` diff, and the `--porcelain`/line-count result); `commit` — the same pinned SHA;
 `altitude: implementation`; `horizon: current`; `consumed_by: none` — which on a baseline finding is
-permanent and reports no gap, per `grounding-format.md` §4.1: there is nothing for a PRD, an ARD or a
+permanent and reports no gap, per `workflows-core:grounding-format` §4.1: there is nothing for a PRD, an ARD or a
 specification to draw from an assertion that a commit is identifiable, so every downstream
 unconsumed-item report excludes these findings rather than carrying one open item per repository
 forever. Phase 5 continues the BRD-wide
@@ -330,7 +331,7 @@ For every declared prerequisite (this run's plus any already on file):
 1. `resolve-address <PREREQ-KEY>`. Absent → report `<PREREQ-KEY> — BRD not found`.
 2. Found → look for `decisions.md` in its folder. Absent → report
    `<PREREQ-KEY> — no decisions.md yet; contributes no will-change horizons` (per
-   `grounding-format.md` §5: a prerequisite whose decisions are not yet frozen contributes none).
+   `workflows-core:grounding-format` §5: a prerequisite whose decisions are not yet frozen contributes none).
 3. Present → read only the decisions that are **frozen, which is a field test and not a judgement:
    `status: decided`**, the second of the five statuses
    `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §3 fixes. Nothing else counts, and
@@ -370,7 +371,7 @@ report; Phase 6 also uses it to decide which findings get `horizon: will-change`
 
 Consume the `resolve-docs-grounding brd-ground` result cached in Phase 1 step 0 — never re-run it.
 `docs_grounding: OFF` → skip silently, reporting the `OFF` line once. `docs_grounding: ON` →
-`dispatch-docs-grounder` (`${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`) with
+`dispatch-docs-grounder` (`workflows-core:docs-grounding`) with
 `feature_summary` = two to four sentences built from the Phase 0 step 8 claim list (what this BRD
 asserts and asks for, in product terms), `key` = `<BRD-KEY>`, and `themes` = the capability
 themes those claims cluster into.
@@ -380,7 +381,7 @@ themes those claims cluster into.
 **No `[CG#n]` or `[DG#n]` may cite a documentation page in its `evidence`, under any verdict, in
 any phase of this run.** Not as a supporting line, not as a corroborating second source, not as the
 thing that turns a `NOT-PROVABLE` into a `CONFIRMED`. Grounding answers one question — *is this
-claim true of this specific commit?* (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §1) —
+claim true of this specific commit?* (`workflows-core:grounding-format` §1) —
 and a document cannot answer it, because **a document is a claim about behaviour, not the
 behaviour**. It was written by a person, at a date, about a version, and nothing keeps it in step
 with the code. Cite one and a confident, stale page satisfies a claim the code does not: precisely
@@ -404,12 +405,12 @@ be given one. The digest is consumed by this orchestrator alone, in exactly two 
 neither is stylistic:
 
 - **`[CG#n]`/`[DG#n]` cannot carry it.** Those prefixes denote a *finding* — an answer to a `[BR#n]`
-  premise checked against a pinned commit or a frame set (`grounding-format.md` §1, §2). A
+  premise checked against a pinned commit or a frame set (`workflows-core:grounding-format` §1, §2). A
   divergence is not an answer to a `[BR#n]`; it is an observation about two artifacts, neither of
   which is the requirement. Minting a `[CG#n]` for it would also make it citable and
   `consumed_by`-able — the exact outcome the rule above forbids.
 - **A new prefix would be worse, not better.** Every `[CG#n]`/`[DG#n]` must carry a verifier
-  outcome or it is not evidence and blocks `/brd-split` (`grounding-format.md` §8). A divergence
+  outcome or it is not evidence and blocks `/brd-split` (`workflows-core:grounding-format` §8). A divergence
   cannot earn one: `grounding-verifier` re-derives from a pinned repository or from a frame set,
   and a documentation page is neither, so a new prefix would either need a verification pass this
   workflow does not have or would sit permanently unverified in the namespace. The existing
@@ -454,7 +455,7 @@ own numbers as the BRD's numbering.
 
 **Then `design-grounder`, unless `--no-design`.** Look for `<BRD-dir>/design/`; each immediate
 subdirectory is a candidate exported frame set. The location and the index requirement are
-`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.1's, cited here rather than restated —
+`workflows-core:grounding-format` §6.1's, cited here rather than restated —
 `design/` is a reserved subdirectory of any folder under `specifications/`, so the same path resolves
 whether this run stands on a BRD folder or on the PRD folder a slice is. None found → skip, reporting
 why (`--no-design` given, or no `design/` folder exists yet for this BRD). One or more found → dispatch one instance per frame set, same ≤4
@@ -474,7 +475,7 @@ fourth reconciliation class cites a `[CG#n]`, so the findings it needs must alre
 Handle `status`: `OK` → collect `findings` (may be empty — agreement produces none). `INPUT_MISSING`
 / `FRAME_SET_MISSING` → should not occur; stop and name the gap if it does. `NO_INDEX` → this
 frame set cannot be reconciled without an index file; report it and skip that directory rather
-than guessing at frame identity — and name the repair, `/dev-workflows:frames <this run's KEY>`,
+than guessing at frame identity — and name the repair, `/workflows-core:frames <this run's KEY>`,
 which writes the index and lets a re-run ground the set. Renumber into one BRD-wide `[DG#n]` sequence the same way as
 `[CG#n]` above, continuing from the highest `DG#n` already on file.
 
@@ -499,7 +500,7 @@ For each finding, and for each declared prerequisite whose decisions Phase 4 fou
 read the frozen decision text and judge whether it directly determines this finding's claim once
 built — not merely mentions the same area. Where it does, set `horizon: will-change` and record
 `prerequisite: <the specific decision, by id and a one-line summary>` — naming the decision itself,
-never merely the prerequisite BRD (`grounding-format.md` §5). Where no declared prerequisite has any
+never merely the prerequisite BRD (`workflows-core:grounding-format` §5). Where no declared prerequisite has any
 `status: decided` record at all, every finding stays `current`, and this is reported plainly rather
 than left to look like nothing was checked.
 
@@ -576,7 +577,7 @@ flag — so a plain re-run against an unmoved repository inherits exactly as a `
 over one does. Illustrating only the flagged case would read as though the flag were what made a
 finding `inherited`; the rule is the origin, and the flag never enters it. Phrasing the rule by origin rather than by
 phase number is deliberate: it is immune to a future renumbering the way a phase-keyed rule is not.
-The agent's own Inputs contract and `grounding-format.md` §8 both define `inherited` as "another
+The agent's own Inputs contract and `workflows-core:grounding-format` §8 both define `inherited` as "another
 team's report **or an earlier run of this workflow**," and a finding surviving from before this
 invocation, unreproduced, is the second of those, regardless of how confident its write-up reads —
 mislabelling it `own-run` would tell the verifier to relax exactly where §5 of its own instructions
@@ -585,7 +586,7 @@ say rigor must not drop.
 **Act on `status` first — an `outcome` exists only on `status: OK`.** The four statuses below are
 refusals, not verdicts: the agent performed no re-derivation and returned no `outcome`, and a
 finding carrying no outcome is not evidence and blocks `/brd-split` for as long as it stays on file
-(`grounding-format.md` §8). So none of them may be shrugged off and none may be written:
+(`workflows-core:grounding-format` §8). So none of them may be shrugged off and none may be written:
 
 - **`OK`** — act on `outcome`, below.
 - **`COMMIT_MISMATCH`** — the repository moved between Phase 3's pin and this dispatch. Stop:
@@ -604,9 +605,9 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
   or unusable (a repository unmounted mid-run, a frame set removed or exported without an index
   since it was ground). Stop, naming the finding and the path the agent reported — and, per the
   four-part stop contract, the command that resolves it: on `NO_INDEX` that is
-  `/dev-workflows:frames <this run's KEY>`, then re-run this command. **On `STALE_INDEX` it is
+  `/workflows-core:frames <this run's KEY>`, then re-run this command. **On `STALE_INDEX` it is
   not** — the index is there and its descriptions are intact; the frames are gone. Re-running
-  `/frames` on an empty directory writes nothing (`grounding-format.md` §6.2 step 6 forbids it), so
+  `/frames` on an empty directory writes nothing (`workflows-core:grounding-format` §6.2 step 6 forbids it), so
   naming it would send the operator to a no-op. Name the missing frames instead: restore them to the
   directory, then re-run this command — and `/frames` only if the set changed while they were away.
 
@@ -628,7 +629,7 @@ Act on `outcome`:
   keep a one-line note of the pre-rewrite verdict for the audit trail. The id never changes, so
   every existing citation into it still resolves.
 
-A finding carrying no verifier outcome is not evidence (`grounding-format.md` §8) and is never
+A finding carrying no verifier outcome is not evidence (`workflows-core:grounding-format` §8) and is never
 written to the package with `consumed_by` anything but `none` — this phase is what stands between
 a raw finding and one a downstream command may cite.
 
@@ -639,7 +640,7 @@ a raw finding and one a downstream command may cite.
 Write `<BRD-dir>/grounding/code-grounding.md` (every `[CG#n]`) and
 `<BRD-dir>/grounding/design-grounding.md` (every `[DG#n]`, or a short note when Phase 5 skipped
 design grounding and why) — one block per finding, carrying every field
-`grounding-format.md` §2 defines (`id`, `claim`, `verdict`, `evidence`, `altitude`, `horizon`,
+`workflows-core:grounding-format` §2 defines (`id`, `claim`, `verdict`, `evidence`, `altitude`, `horizon`,
 `consumed_by: none`, plus `class`/`cites` on a `[DG#n]` and `commit` on everything **except** a
 `[DG#n]` of class 1, 2 or 3 — those are settled from the frame set alone and are pinned to no commit,
 per §2's applicability note) plus this run's verifier `outcome` **and any `notes` the verifier returned**. Its contract calls those *"anything the caller should know before recording this outcome"*, so they are read before the outcome is written, not after — a verdict recorded without them is recorded against a caveat the verifier raised and nothing carried.
@@ -663,7 +664,7 @@ row's `evidence` column ever names a page.
 as reporting- or data-centric (a judgment call this command makes from the claim text — recurring
 language about reports, dashboards, exports, extracts, or stored/displayed data fields) and **off**
 otherwise. When on, append one implementation-altitude row per data element the inventory asks to
-display or store to `<BRD-dir>/grounding/code-grounding.md`, classed per `grounding-format.md` §7
+display or store to `<BRD-dir>/grounding/code-grounding.md`, classed per `workflows-core:grounding-format` §7
 (`EXISTS | DERIVED | NEW-CAPTURE | NEW-CONFIG | PARTNER | DEFERRED | DEPENDENCY`) — appended there
 rather than as a new file, since it is not in this command's produced-artifact set on its own.
 
@@ -671,13 +672,13 @@ rather than as a new file, since it is not in this command's produced-artifact s
 
 ## Phase 9 — Handoff
 
-Present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim:
+Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim:
 
 ```
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`phase-handoff.md` §2) with `prefix: brd` (shared
+On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (shared
 by every `/brd-*` command, per `brd-intake.md`'s own precedent), `feature_folder` as resolved
 in Phase 0, `deliverable_paths` = every file this run wrote or updated under `<BRD-dir>`
 (`grounding/baselines.md`, `grounding/code-grounding.md`, `grounding/design-grounding.md`,
@@ -707,16 +708,16 @@ order, since it refuses a ledger that still holds an unallocated row. `/brd-spli
 until this phase's findings are on the specs repo's default branch — its own Phase 0 gates
 `grounding/code-grounding.md` on `origin/<default>`; **which words state that wait are
 `<merge-clause>`'s**, resolved from this run's own `Phase handoff:` outcome line per
-`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`, since a declined handoff opened no pull
+`Skill(skill: "workflows-core:reference", args: "next-phase-offer")`, since a declined handoff opened no pull
 request to wait on — and it carries its own role and
 cost-attribution row (`docs/roles-and-phases.md`). Guidance only, per
-`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only that `/brd-split` exists and
+`workflows-core:next-phase-offer` — names only that `/brd-split` exists and
 where it sits in the route, never its behaviour, which `commands/brd-split.md` owns.
 
 **`parent: <PARENT-KEY>` — this BRD is a slice.** `/brd-split` **is** offered, and the offer says
 which of its two modes will run, so nobody expects a fan-out that cannot happen: on a slice it runs
 `allocate-only` (`commands/brd-split.md` Phase 0 step 5) — it creates no child, because nesting is
-capped at one level (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §6), and walks this
+capped at one level (`workflows-core:addressing` §6), and walks this
 slice's ledger to a recorded fate through its own four resolutions, `covered-by` being the
 one that command's walk does not offer on a slice. Allocating is what
 makes this slice PRD-eligible
@@ -730,7 +731,7 @@ choices: ["Allocate this slice's ledger — /dev-workflows:brd-split <BRD-KEY> (
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase (Phase 11), per
-`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Grounding another repository or
+`workflows-core:session-hygiene` §1. Grounding another repository or
 prerequisite in the same BRD? → run **`/compact`**. Handing off to `/brd-split`, even yourself? →
 run **`/clear`**. Guidance only — nothing is auto-run.
 
@@ -741,7 +742,7 @@ run **`/clear`**. Guidance only — nothing is auto-run.
 Terminal phase — runs after Phase 10, NEVER interrupts an earlier phase.
 
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command /
-reference gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) fires at
+reference gap, `emit-block` (`workflows-core:feedback-emission`) fires at
 that halt before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD,
 an inventory or ledger not yet on main (`BRD_GROUND_NEEDS_INTAKE` or, for a slice,
 `BRD_GROUND_NEEDS_SPLIT`; `BRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off),
@@ -753,26 +754,22 @@ halts, never a plugin capability gap. `BRD_GROUND_DIRTY_TREE`, `BRD_GROUND_NEEDS
 7's `INPUT_MISSING`, which is this command getting its own dispatch contract wrong and does fire
 `emit-block`.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-ground`; what was produced (baselines,
    code/design findings, verifier tally, prerequisite readiness, documentation divergences); key
    events (a dirty-tree stop, a rebaseline, a skipped design pass, an unresolved repo, docs
    grounding OFF or a lead that added a repository — or "none"); workarounds; test result
    N/A; project root = the BRD folder.
-2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`
-   and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /brd-ground`,
+2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /brd-ground`,
    the run's `key` (the `<BRD-KEY>`), `source`, and `plugin_version` (read from
    `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no
    plugin-facing signal — nothing persisted").
-3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and
-   call its `emit-cost` entry point with `command: /brd-ground`, `phase: brd-to-prd`, `role: pa`,
+3. **Session cost (ALWAYS runs).** Invoke `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and call its `emit-cost` entry point with `command: /brd-ground`, `phase: brd-to-prd`, `role: pa`,
    the run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the
    report-only notice).
-4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and
-   write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry, before the
+4. **Write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` and, per its §1, write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry, before the
    commit step below. Redact per §1. Silent.
-5. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
-   and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. Stages
+5. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. Stages
    ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
    `<BRD-KEY> Add dev-workflows session artifacts (/brd-ground)` with no `Co-Authored-By` trailer,
    and pushes to the branch Phase 9's handoff created. NEVER touches a code repo, or the current working directory; NEVER force-pushes; NEVER fails the run; skips entirely when the run
@@ -796,7 +793,7 @@ id; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Ph
 and the count of documentation divergences recorded (each named by the `[CG#n]` it diverges from —
 never by an identifier of its own, because it has none); whether the derivation matrix ran and why; any `design-grounder` class-4 gap deferred for want
 of a settling `[CG#n]`; the feedback + cost paths; the `Phase handoff:` outcome line
-(`phase-handoff.md` §4.1); the `Specs repo:` outcome line (`specs-repo-git.md` §6); the next-step
+(`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line (`workflows-core:specs-repo-git` §6); the next-step
 recommendation; and end with the ledger line, read fresh from the (unmodified-by-this-run)
 `coverage-ledger.md`, exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
@@ -811,7 +808,7 @@ going into `/brd-split`.
 BRD it names — a child on a BRD that owns its source document, a sibling or the parent on a slice
 (`coverage-ledger-format.md` §3) — so this report resolves each `covered-by: <BRD-KEY>` row one hop
 into that BRD's own `coverage-ledger.md`, resolved from the
-working tree by `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). **This adds
+working tree by `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). **This adds
 no precondition and no gate.** A child folder that is absent from the tree this run is standing in —
 its split not yet merged, most commonly — makes that row `unresolved` in the line and nothing more:
 grounding this BRD does not depend on any child, and a run must never stop, degrade, or withhold its

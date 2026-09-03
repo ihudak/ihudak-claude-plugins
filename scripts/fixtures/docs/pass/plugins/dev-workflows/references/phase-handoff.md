@@ -10,3 +10,6 @@ and what it does when the artifact is on no ref.
 | `/omega` | the fixture's `alpha-deliverable.md` | **stops** — the first family command's consumer |
 | `/tau` | the fixture's `alpha-two-out.md` | **stops** — the second family command's consumer |
 | `/sigma` | the fixture's `elsewhere.md` | **stops** — gated on an artifact no fixture command writes |
+
+Cost attribution for a handoff is `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md`; the offer a
+handoff feeds is `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.

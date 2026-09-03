@@ -1,5 +1,7 @@
 # Design format (embedded authority)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 The canonical structure and per-section rules for an engineering `design.md`. `/design` authors
 against this file; `design-reviewer` reviews against it, `interface-designer` reads its `## Seams` dependency categories, and `/ready` reads its `- **Repos**:` header. **Net-new — authored for the dev-workflows
 plugin, no import source** (unlike `specification-format.md`, which is a snapshot from
@@ -29,7 +31,7 @@ key: <KEY>                   # this folder's key — must match the folder name
 ```
 
 Both fields are how the folder asserts its own identity, so that nothing downstream parses a key out
-of a directory name (`references/addressing.md` §4). The filename is `design.md` and carries no key:
+of a directory name (`workflows-core:addressing` §4). The filename is `design.md` and carries no key:
 the folder supplies identity, the filename supplies kind.
 
 ## Header

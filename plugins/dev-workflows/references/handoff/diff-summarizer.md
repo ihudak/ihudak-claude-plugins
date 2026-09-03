@@ -1,5 +1,7 @@
 # diff-summarizer Handoff Format
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 ## Input
 
 ```yaml
@@ -41,7 +43,7 @@ model_routing:
 
 Refuse to run without `repo_path` and at least one element in **`refs` or `pr_refs`**.
 
-**`refs` is the shape the callers actually have.** `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §1
+**`refs` is the shape the callers actually have.** `workflows-core:implementation-format` §1
 records `repo` / `branch` / `base` / `commit` / `pushed` — no URL, no host, no PR id — so a caller
 holding only that record could satisfy neither a `pr_refs`-only requirement nor the host routing the
 agent applies to one. Every host-specific strategy is skipped for a `refs` element and the diff is
@@ -96,7 +98,7 @@ aggregate_summary: |
   <1–2 paragraphs: what this repo contributed to the feature>
 ```
 
-`prep.read_only`, `prep.scanned_ref`, `prep.ref_committed_at`, and `prep.head_divergence` are always present, so a caller never branches on absence. See `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`.
+`prep.read_only`, `prep.scanned_ref`, `prep.ref_committed_at`, and `prep.head_divergence` are always present, so a caller never branches on absence. See `workflows-core:read-only-repos`.
 
 ## Status codes
 

@@ -55,7 +55,8 @@ emit_model_routing() {
     echo "  SIGNIFICANT / HIGH-RISK -> plan with risk-planner (Opus), code-review (Opus)"
     echo "  BEFORE running tests. Invoke via Agent(subagent_type: general-purpose,"
     echo "  model: opus) + prompt to read the plugin-installed agents/<name>.md."
-    echo "  Full rules: invoke the model-routing skill (loads references/model-routing/classification.md)"
+    echo "  Full rules: invoke the workflows-core:model-routing skill, which loads"
+    echo "  workflows-core:model-routing/classification from the companion plugin."
 }
 
 emit_git_full() {

@@ -1,0 +1,6 @@
+{
+  "name": "renamed-namespace",
+  "version": "1.0.0",
+  "description": "Third fixture plugin. Ships a command, has no docs/ tree, and declares a name its DIRECTORY does not carry -- so it pins two things nothing else here does: that check 4's manifest assertion walks plugins outside PLUGIN_RELS, and that a namespace is the declared name rather than the directory.",
+  "author": { "name": "Fixture" }
+}

@@ -70,7 +70,7 @@ flowchart TD
 ```
 
 `brd-package-reviewer` is dispatched on Opus for the adversarial pass, and once more when a `fixed`
-disposition changed the package the review was written against. `impl-maintenance` runs in the
+disposition changed the package the review was written against. `workflows-core:impl-maintenance` runs in the
 terminal phase for session lessons-learned. No other subagent is dispatched.
 
 ## What it needs
@@ -185,7 +185,7 @@ attack.
   supplies a free-text option, so the picker cannot decline one — what protects the closed vocabulary
   is what the run *does* with the answer: a free-text reply is normalised into one of the four, or the
   finding is re-asked. It is never written through, because a fifth disposition is one nothing
-  downstream can read ([`escalation-rules.md`](../reference/references.md) §0).
+  downstream can read ([`workflows-core:escalation-rules`](../reference/references.md) §0).
 - **Phase 4 — a `fixed` correction re-opens the review, exactly once.** Correcting the package
   changes what the review was written against, so the reviewer runs again over the corrected package
   with the first pass in `prior_reviews`. Once, not until clean: an unbounded loop trades the
@@ -256,7 +256,7 @@ archive command with an absolute path, the repo→SHA table, and the ledger line
   customer.
 - [`interview-tagging.md`](../../references/interview-tagging.md) — the `[C]` tag, and the rule that
   a customer question reaches the customer only through this package.
-- [`grounding-format.md`](../../references/grounding-format.md) — the finding record and the
+- `workflows-core:grounding-format` — the finding record and the
   `baseline-integrity` commands the prompt hands the customer to re-run.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the dispositions the
   review-scope part reads, and §6's ledger line the final report ends with.

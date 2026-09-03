@@ -6,6 +6,12 @@
 # in the two restructures this one follows (a sibling managed-plugins repo,
 # ai-containers#78).
 #
+# SIXTEEN checks, numbered 1-16 in the order their functions appear below. The number is
+# written here and nowhere else in this file, and nothing gates it -- re-derive it with
+# `grep -oE '\bfail [0-9]+ ' "$0" | awk '{print $2}' | sort -un` -- the numbers a fail() call
+# can actually report -- rather than trusting this sentence, and update it in the commit that
+# adds a check. Counting the banner comments instead gives 15: checks 1 and 2 share one.
+#
 # --selftest mutates a copy of the passing fixture once per check and asserts the
 # gate rejects it. Without that, the fixtures are decorative: a gate that cannot
 # be shown to fail proves nothing when it passes. ai-containers' equivalent gate
@@ -18,16 +24,19 @@ set -uo pipefail
 # Everything below is byte-identical in ihudak-claude-plugins, mgd-claude-plugins
 # and ihudak-copilot-plugins, so a fix to the gate ports by plain `cp` of the body.
 #
-# THE BODY REQUIRES EVERY NAME BELOW TO EXIST. `set -u` is on, so a ported edition
-# whose hand-written config block omits one aborts at the dispatch loop rather than
-# skipping a check. PLUGIN_RELS, COST_PLUGIN_RELS and HANDOFF_PLUGIN_RELS arrived
-# with multi-plugin support and are the ones a config block copied from an older
+# THE BODY REQUIRES EVERY NAME BELOW TO EXIST. `set -u` is on, so a ported edition whose
+# hand-written config block omits one ABORTS rather than skipping a check -- which is the
+# property that matters, though not everywhere at the same moment. The three LIST variables
+# the dispatch loop expands (PLUGIN_RELS, COST_PLUGIN_RELS, HANDOFF_PLUGIN_RELS) abort at
+# that loop; CORE_PLUGIN_REL is read only inside check bodies, so it aborts at the first one
+# that reads it -- check_handoff_applicability, which runs for every listed plugin. All four
+# arrived with multi-plugin support and are the ones a config block copied from an older
 # edition will be missing.
 # Space-separated; the dispatch loop sets PLUGIN_REL from it per iteration, so every
 # check function below is unchanged and still reads a single PLUGIN_REL. A one-element
 # list behaves exactly as the old scalar did, which is what keeps this body portable to
 # editions that ship one plugin.
-PLUGIN_RELS="${PLUGIN_RELS:-plugins/dev-workflows plugins/guideline-reviewers}"   # copilot: dev-workflows
+PLUGIN_RELS="${PLUGIN_RELS:-plugins/dev-workflows plugins/guideline-reviewers plugins/workflows-core}"   # copilot: dev-workflows
 CMD_DIR="commands"                   # copilot: skills
 CMD_SUFFIX=".md"                     # copilot: /SKILL.md
 CMD_EXCLUDE=""                       # copilot: _shared
@@ -44,11 +53,38 @@ CLI_REQUIRED="marketplace add|marketplace update"   # copilot: marketplace add|u
                                      # updates with `plugin update --all`, not a marketplace verb.
 HAS_COST=1                           # copilot: 0 -- no cost subsystem exists there
 
+# The command-namespace manifest session-cost.py resolves every cost boundary against,
+# repo-relative. Empty means this edition ships none, and check 4's manifest assertion is
+# skipped. It is NOT derived from CORE_PLUGIN_REL: the manifest sits beside the script,
+# and a corpus that relocates without the script would silently stop being checked.
+NS_MAP_REL="${NS_MAP_REL:-plugins/workflows-core/scripts/command-namespaces.json}"
+                                     # copilot: "" -- no cost subsystem, so no manifest
+
 # Which plugins ship the subsystems checks 8 and 11 examine. Applicability is declared,
-# never inferred from a missing file: absence-implies-skip would let a genuine regression
-# in a plugin that DOES ship them pass silently.
-COST_PLUGIN_RELS="${COST_PLUGIN_RELS:-plugins/dev-workflows}"        # copilot: ""
+# never inferred: absence-implies-skip would let a genuine regression in a plugin that DOES
+# ship them pass silently. Membership is guarded in both directions -- the dispatch loop
+# skips an undeclared plugin, and check_cost_applicability / check_handoff_applicability
+# assert that a plugin holding the CALL SITES is declared. The trigger is the call sites and
+# not the reference file: the corpus extraction separated the two, and a file-presence
+# trigger got both directions wrong at once (see those two functions).
+COST_PLUGIN_RELS="${COST_PLUGIN_RELS:-plugins/dev-workflows plugins/workflows-core}"        # copilot: ""
 HANDOFF_PLUGIN_RELS="${HANDOFF_PLUGIN_RELS:-plugins/dev-workflows}"  # copilot: ""
+
+# The plugin that holds the shared reference corpus. Checks 8, 9, 11 and 16 read a reference
+# from HERE and their call sites from $PLUGIN_REL -- the corpus now lives in its own plugin,
+# so those are different directories, and a check that resolved both halves against the
+# plugin under check would report a MISSING reference for every plugin that merely reads it.
+# An edition whose corpus and call sites still live together points this at that one plugin,
+# which is byte-for-byte the behaviour this variable replaces.
+CORE_PLUGIN_REL="${CORE_PLUGIN_REL:-plugins/workflows-core}"         # copilot: dev-workflows
+
+# The skill a dependent plugin reads that corpus THROUGH, as it is written at a call site.
+# It is edition config in its own right and NOT derived from CORE_PLUGIN_REL, deliberately:
+# the corpus can be relocated (the selftest does exactly that) without the call sites being
+# rewritten, and a derived name would silently stop matching them. Empty means this edition
+# has no loader -- its corpus and its call sites ship in one plugin, so ${CLAUDE_PLUGIN_ROOT}
+# reaches every reference by path and check 16 has nothing to assert.
+LOADER_SKILL="${LOADER_SKILL:-workflows-core:reference}"             # copilot: "" -- one plugin, no loader
 
 # RUNTIME_VARS is a SILENCER: every name in it kills both directions of check 5 (env-var doc
 # agreement) for that variable, permanently -- no mutation of the fixture tree can reveal a
@@ -210,8 +246,111 @@ $abs"
 # user-overridable and therefore user-facing.
 # Every inventory is derived from the edition being checked, never from a number
 # written into a page.
+# Set once the namespace-manifest assertion below has run. It is a RUN-level assertion
+# about ONE file describing EVERY plugin, dispatched from a per-plugin loop -- the same
+# shape as check 8's reverse direction, and it needs the same latch. It deliberately walks
+# every plugin directory in the tree rather than $PLUGIN_RELS: the manifest covers every
+# plugin of the marketplace that ships commands, and a plugin with no docs/ tree of its own
+# is exactly the one whose entry nothing else would ever look at.
+NS_MAP_DONE=0
+
+# The manifest session-cost.py resolves cost boundaries against equals the tree's own
+# per-plugin command inventory, in both directions. It is a data file with no reader that
+# would notice it going stale: a missing entry costs that plugin's invocations their
+# boundary -- a deferred claim then swallows the whole segment, measured at 9000 tokens
+# where 5000 was correct -- and a phantom entry mints a boundary for a command nobody can
+# run. DERIVED, NEVER HAND-MAINTAINED is the property this enforces, and cmd_names is
+# already the edition's own command enumeration, so the two cannot drift apart in silence.
+check_namespace_map() {
+  local root="$1" out h d rel n
+  [ "$NS_MAP_DONE" = 0 ] || return
+  NS_MAP_DONE=1
+  # Latched FIRST: the note below is run-wide like the assertion it stands in for, and an
+  # edition with no manifest used to print it once per listed plugin.
+  [ -n "$NS_MAP_REL" ] || { note "check 4 manifest assertion not applicable: this edition ships no command-namespace manifest"; return; }
+  # The reader is passed with -c and the derived inventory arrives on the PIPE. It cannot be
+  # a `python3 - <<HEREDOC` the way check 16's is: a heredoc redirection wins over the pipe,
+  # so the program would be read from the heredoc and the inventory would never arrive --
+  # observed here as a manifest whose every namespace was reported as naming no plugin.
+  local prog
+  prog=$(cat <<'NSEOF'
+import json, os, sys
+
+root, rel = sys.argv[1], sys.argv[2]
+
+# The namespace is the plugin's DECLARED name, not its directory, because the namespace is
+# what a user TYPES before the colon and that is the name the host registers the plugin
+# under -- which a directory is free to differ from. The basename is the fallback for a
+# plugin that declares none. Both branches are exercised: plugins/fixture-unlisted declares
+# a name its directory does not carry, and plugins/dev-workflows in the fixture ships no
+# plugin.json at all.
+#
+# This does NOT mirror session-cost.py's loader, and an earlier version of this comment
+# claimed it did: that loader reads a JSON map and does no directory reading of any kind.
+# The <cache>/<marketplace>/<plugin>/<version>/ layout is likewise beside the point here --
+# this gate only ever runs against a source tree.
+derived = {}
+for line in sys.stdin:
+    line = line.rstrip("\n")
+    if not line:
+        continue
+    d, name = line.split("\t", 1)
+    ns = os.path.basename(d)
+    try:
+        with open(os.path.join(root, d, ".claude-plugin", "plugin.json"),
+                  encoding="utf-8", errors="replace") as fh:
+            ns = (json.load(fh) or {}).get("name") or ns
+    except (OSError, ValueError, TypeError, AttributeError):
+        pass
+    derived.setdefault(ns, set()).add(name)
+
+try:
+    with open(os.path.join(root, rel), encoding="utf-8", errors="replace") as fh:
+        manifest = json.load(fh)
+except OSError:
+    print("%s does not exist -- session-cost.py resolves every cost boundary against it" % rel)
+    sys.exit(0)
+except ValueError as exc:
+    print("%s is not valid JSON (%s)" % (rel, exc))
+    sys.exit(0)
+if not isinstance(manifest, dict):
+    print("%s is not a JSON object mapping a plugin namespace to its command names" % rel)
+    sys.exit(0)
+
+for ns in sorted(set(manifest) - set(derived)):
+    print("%s names namespace '%s', which is no plugin in this tree that ships commands"
+          % (rel, ns))
+for ns in sorted(set(derived) - set(manifest)):
+    print("plugin namespace '%s' ships %d command(s) and has no entry in %s -- every one "
+          "of its invocations mints no cost boundary" % (ns, len(derived[ns]), rel))
+for ns in sorted(set(derived) & set(manifest)):
+    got = manifest[ns]
+    if not isinstance(got, list) or not all(isinstance(x, str) for x in got):
+        print("%s entry '%s' is not a list of command names" % (rel, ns))
+        continue
+    for n in sorted(set(got) - derived[ns]):
+        print("%s lists '%s:%s', which is not a command of that plugin" % (rel, ns, n))
+    for n in sorted(derived[ns] - set(got)):
+        print("%s omits '%s:%s' -- that invocation mints no cost boundary" % (rel, ns, n))
+NSEOF
+)
+  out=$(for d in "$root"/plugins/*/; do
+          [ -d "$d" ] || continue
+          rel="${d#$root/}"; rel="${rel%/}"
+          while IFS= read -r n; do
+            [ -n "$n" ] && printf '%s\t%s\n' "$rel" "$n"
+          done < <(cmd_names "${d%/}")
+        done | python3 -c "$prog" "$root" "$NS_MAP_REL")
+  while IFS= read -r h; do
+    [ -n "$h" ] || continue
+    fail 4 "$h"
+  done <<<"$out"
+}
+
 check_inventory() {
   local root="$1" p="$1/$PLUGIN_REL" d="$1/$PLUGIN_REL/docs" n
+
+  check_namespace_map "$root"
 
   # commands <-> docs/$DOC_CMD_DIR/
   while IFS= read -r n; do
@@ -412,6 +551,10 @@ check_install_block() {
 # survived since the command shipped. `/document` is the shape that defeats a naive
 # grep: it calls emit-cost twice, as `/document (Jira mode)` and `/document (direct
 # mode)`, against a single `/document` row.
+# The two halves live in different plugins: the section-7 table in $CORE_PLUGIN_REL, the
+# call sites in $PLUGIN_REL. That asymmetry is why the reverse direction is run-wide (it
+# scans every plugin in COST_PLUGIN_RELS) while the forward direction and the
+# extractor-coverage assertion stay per-plugin -- one table, many emitters.
 # A command earns a section-7 row two ways: it calls emit-cost itself, or it CEDES
 # the session and records a section-13 intent that a later run replays on its
 # behalf. Both declare the same triple. A file doing NEITHER must not match --
@@ -441,15 +584,25 @@ emit_cost_calls() { # <plugin-dir>  ->  lines of  <command>|<phase>|<role>
   done < <(cmd_names "$p") | sort -u
 }
 
+# Set once the run-wide reverse direction below has executed. It is a RUN-level assertion
+# about one table, dispatched from a per-plugin loop, so it needs a latch rather than a
+# per-plugin repetition. Set only where the loop actually runs, so an early return (no
+# table, no call site) leaves it for the next listed plugin instead of swallowing it.
+COST_REVERSE_DONE=0
+
 check_cost_attribution() {
   [ "$HAS_COST" = 1 ] || { note "check 8 not applicable: this edition has no cost subsystem"; return; }
-  local root="$1" p="$1/$PLUGIN_REL" table calls line cmd phase role want
-  table=$(sed -n '/^## 7\./,/^## 8\./p' "$p/$REF_DIR/cost-emission.md" 2>/dev/null \
+  # The TABLE comes from $CORE_PLUGIN_REL and the CALL SITES from $PLUGIN_REL: after the
+  # reference corpus is extracted into its own plugin those are different directories, and
+  # every plugin that emits reads the one table. While they are the same directory this
+  # resolves exactly as it did before.
+  local root="$1" p="$1/$PLUGIN_REL" table calls all_calls line cmd phase role want q
+  table=$(sed -n '/^## 7\./,/^## 8\./p' "$1/$CORE_PLUGIN_REL/$REF_DIR/cost-emission.md" 2>/dev/null \
           | grep -oE '^\| `/[a-z-]+` \| [^|]+ \| [^|]+ \|' \
           | sed -E 's/^\| `//; s/` \| /|/; s/ \| /|/; s/ *\|$//; s/\*//g; s/ *\| */|/g')
-  [ -n "$table" ] || { fail 8 "$REF_DIR/cost-emission.md has no section-7 attribution table"; return; }
+  [ -n "$table" ] || { fail 8 "$CORE_PLUGIN_REL/$REF_DIR/cost-emission.md has no section-7 attribution table"; return; }
   calls=$(emit_cost_calls "$p")
-  [ -n "$calls" ] || { fail 8 "no emit-cost call site found in $CMD_DIR/ -- the extractor has stopped matching"; return; }
+  [ -n "$calls" ] || { fail 8 "no emit-cost call site found in $PLUGIN_REL/$CMD_DIR/ -- the extractor has stopped matching"; return; }
 
   while IFS='|' read -r cmd phase role; do
     [ -n "$cmd" ] || continue
@@ -461,11 +614,22 @@ check_cost_attribution() {
     fi
   done <<<"$calls"
 
-  while IFS='|' read -r cmd phase role; do
-    [ -n "$cmd" ] || continue
-    grep -qF "$cmd|" <<<"$calls" \
-      || fail 8 "cost-emission.md section 7 attributes $cmd, which neither passes emit-cost a phase/role pair nor records a section-13 intent"
-  done <<<"$table"
+  # REVERSE direction, and it is RUN-WIDE, not per-plugin. One table attributes the emitting
+  # commands of every plugin in COST_PLUGIN_RELS, so a row is unattributed only when NO
+  # listed plugin emits it. Matching a row against the call sites of the single plugin under
+  # check would fire on every row belonging to a sibling -- the whole table, twice over, the
+  # moment the emitting commands are spread across two plugins. Runs once per invocation
+  # (the first listed plugin that gets this far), because a duplicated identical FAIL line
+  # reads as two defects.
+  if [ "$COST_REVERSE_DONE" = 0 ]; then
+    COST_REVERSE_DONE=1
+    all_calls=$(for q in $COST_PLUGIN_RELS; do emit_cost_calls "$1/$q"; done | sort -u)
+    while IFS='|' read -r cmd phase role; do
+      [ -n "$cmd" ] || continue
+      grep -qF "$cmd|" <<<"$all_calls" \
+        || fail 8 "cost-emission.md section 7 attributes $cmd, which neither passes emit-cost a phase/role pair nor records a section-13 intent in any of COST_PLUGIN_RELS ($COST_PLUGIN_RELS)"
+    done <<<"$table"
+  fi
 
   # Extractor-coverage assertion. Every command file that calls emit-cost OR records a
   # section-13 intent must yield a triple; otherwise a reworded call site makes this check
@@ -486,16 +650,31 @@ check_cost_attribution() {
 
 # COST_PLUGIN_RELS is a declared list, not an inferred one -- but a declaration only guards
 # the LOUD direction (a plugin wrongly listed runs check 8 against a subsystem it has
-# nothing to attribute). The QUIET direction was unguarded: a plugin that DOES ship
-# $REF_DIR/cost-emission.md but is missing from the list has check 8 silently skipped for
-# it -- deleting every row from the section-7 table left the whole tree green. This asserts
-# the other half: presence of the file implies membership in the list.
+# nothing to attribute). The QUIET direction was unguarded: a plugin that emits but is
+# missing from the list has check 8 silently skipped for it -- deleting every row from the
+# section-7 table left the whole tree green. This asserts the other half.
+#
+# THE TRIGGER IS THE CALL SITES, NOT THE REFERENCE FILE, and that is a correction. It used
+# to fire on a plugin shipping $REF_DIR/cost-emission.md, on the premise that shipping the
+# reference implies shipping the emitters. Extracting the corpus falsified that premise in
+# both directions at once: the plugin that kept twenty emitting commands stopped shipping
+# the reference, so its assertion went SILENT -- drop it from COST_PLUGIN_RELS afterwards
+# and nothing catches it -- while the corpus plugin was forced into the list by a file it
+# merely holds. What check 8 is about is the emitters, so that is what this asks for.
+# `cost_role_marker` is the same predicate check 8 itself uses for "this command owes a
+# section-7 row": an emit-cost call, or a section-13 intent a later run replays.
 check_cost_applicability() {
-  local root="$1" p="$1/$PLUGIN_REL"
-  [ -f "$p/$REF_DIR/cost-emission.md" ] || return
+  local root="$1" p="$1/$PLUGIN_REL" cn f n=0
+  [ "$HAS_COST" = 1 ] || return
+  while IFS= read -r cn; do
+    [ -n "$cn" ] || continue
+    f=$(cmd_file "$p" "$cn"); [ -f "$f" ] || continue
+    [ -n "$(cost_role_marker "$f")" ] && n=$((n + 1))
+  done < <(cmd_names "$p")
+  [ "$n" -gt 0 ] || return
   case " $COST_PLUGIN_RELS " in
     *" $PLUGIN_REL "*) : ;;
-    *) fail 8 "$PLUGIN_REL ships $REF_DIR/cost-emission.md but is not a member of COST_PLUGIN_RELS -- check 8 never runs for it" ;;
+    *) fail 8 "$PLUGIN_REL ships $n command(s) that call emit-cost or record a section-13 intent but is not a member of COST_PLUGIN_RELS -- check 8 never runs for it" ;;
   esac
 }
 
@@ -574,14 +753,25 @@ check_prose_counts() {
   _one "environment variables" "$d/reference/environment.md" '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) user-settable' "$n_settable"
 
   # The size of the cost-emitting set is prose too, and it is the count that went stale the
-  # moment /prompt and /feedback started emitting. Derived from the same extractor check 8 uses.
-  if [ "$HAS_COST" = 1 ]; then
+  # moment /prompt and /feedback started emitting. Derived from the same extractor check 8 uses,
+  # and -- deliberately -- from NOTHING else: the sentence names the emitting commands of the
+  # plugin that ships the page, so both halves stay inside $PLUGIN_REL even after
+  # $REF_DIR/cost-emission.md has moved to $CORE_PLUGIN_REL. Tying this assertion to the
+  # presence of that reference would be applicability inferred from a missing file, and it
+  # would go silent for every emitting plugin that is not the corpus.
+  #
+  # The one thing it IS gated on is the page: session-cost.md is documentation of the
+  # subsystem written from the invoking side, and a plugin may emit without shipping its own
+  # copy. Absent page => this ONE count is skipped, out loud, and the other six still run.
+  if [ "$HAS_COST" != 1 ]; then
+    note "check 9 cost-emitting-commands assertion not applicable: this edition has no cost subsystem"
+  elif [ ! -f "$d/reference/session-cost.md" ]; then
+    note "check 9 cost-emitting-commands assertion not applicable: $PLUGIN_REL ships no docs/reference/session-cost.md"
+  else
     local n_emit
     n_emit=$(emit_cost_calls "$p" | cut -d'|' -f1 | sort -u | grep -c . || true)
     _one "cost-emitting commands" "$d/reference/session-cost.md" \
          '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty-one|twenty-two|twenty-three|twenty-four|twenty-five|twenty-six|twenty-seven|thirty-four|ninety-eight|[0-9]+) commands emit a cost entry' "$n_emit"
-  else
-    note "check 9 cost-emitting-commands assertion not applicable: this edition has no cost subsystem"
   fi
 }
 
@@ -648,6 +838,30 @@ check_identity_quarantine() {
 }
 
 # ------------------------------------------------------------------ check 11
+# The family glob, read out of ONE line: next-phase-offer.md's scope paragraph, the single
+# unwrapped line beginning `**Where this rule applies:`. Both readers below call this, so the
+# two can never disagree about which commands the rule binds.
+#
+# WHY NOT `head -1` OVER THE WHOLE FILE, which is what this was. That was a proxy, and it held
+# only while the scope paragraph happened to be the first `<plugin>:<family>*` phrase in the
+# file. CLAUDE.md has always said the family comes from the scope paragraph; the proxy agreed
+# with it by accident of line order. The file also carries a `## Not pipeline nodes` list --
+# commands that print NO offer -- and the moment a phrase there qualifies for the plugin under
+# check, the proxy hands that plugin a family the rule never bound: check_handoff_applicability
+# forces it into HANDOFF_PLUGIN_RELS, check_merge_clause then finds no offer of it anywhere,
+# and NEITHER branch is green. Anchoring is behaviour-preserving on a file whose scope
+# paragraph does come first, and it is strictly stronger in the direction CLAUDE.md asks for: a
+# reworded scope sentence now empties the glob and turns the build red, where before any stray
+# phrase elsewhere in the file would silently stand in for it.
+#
+# The two empty-glob dispositions stay exactly as they are -- `fail 11` in check_merge_clause,
+# an early `return` in check_handoff_applicability. The quiet one is safe only because the
+# loud one exists.
+scope_family() { # <next-phase-offer.md> <qualifier>  -> the family glob, or empty
+  grep '^\*\*Where this rule applies:' "$1" 2>/dev/null \
+    | grep -oE "$2[a-z][a-z0-9-]*\*" | head -1 | sed "s|^$2||"
+}
+
 # Merge-clause adoption. An offer that names a downstream command whose Phase 0 gate
 # targets an artifact THIS run writes must carry the `<merge-clause>` placeholder, because
 # that command stops while this phase's pull request is open. The placeholder and its
@@ -691,17 +905,24 @@ check_identity_quarantine() {
 # whole command to drop out. Any relation coming up empty is a FAILURE -- per family command
 # for `writers`, run-wide for the family glob and the target table -- so a reworded handoff
 # turns the build red instead of quietly narrowing this check's surface.
+#
+# WHERE EACH HALF IS READ FROM. Both references -- next-phase-offer.md (the family and the
+# placeholder) and phase-handoff.md (the row-F target table) -- come from $CORE_PLUGIN_REL;
+# the commands, their offers and their `deliverable_paths` come from $PLUGIN_REL. Once the
+# corpus is extracted those are different plugins, and the rule still binds the offers of the
+# plugin that prints them. None of the three relations becomes optional as a result: an
+# absent reference is still a FAILURE, not a skip, exactly as an emptied one is.
 check_merge_clause() {
-  local root="$1" p="$1/$PLUGIN_REL"
-  local ref="$p/$REF_DIR/next-phase-offer.md" ph="$p/$REF_DIR/phase-handoff.md"
+  local root="$1" p="$1/$PLUGIN_REL" core="$1/$CORE_PLUGIN_REL"
+  local ref="$core/$REF_DIR/next-phase-offer.md" ph="$core/$REF_DIR/phase-handoff.md"
   local qual="/${PLUGIN_REL##*/}:" glob targets writers offers route_n=0 req_n=0
   local y f x ln has t need needt
 
-  [ -f "$ref" ] || { fail 11 "$REF_DIR/next-phase-offer.md is missing -- it owns the <merge-clause> placeholder, its resolution table, and the command family the rule binds"; return; }
-  [ -f "$ph" ]  || { fail 11 "$REF_DIR/phase-handoff.md is missing -- its row-F table is where each command's require-on-main target is declared"; return; }
+  [ -f "$ref" ] || { fail 11 "$CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md is missing -- it owns the <merge-clause> placeholder, its resolution table, and the command family the rule binds"; return; }
+  [ -f "$ph" ]  || { fail 11 "$CORE_PLUGIN_REL/$REF_DIR/phase-handoff.md is missing -- its row-F table is where each command's require-on-main target is declared"; return; }
 
-  glob=$(grep -oE "$qual[a-z][a-z0-9-]*\*" "$ref" 2>/dev/null | head -1 | sed "s|^$qual||")
-  [ -n "$glob" ] || { fail 11 "next-phase-offer.md no longer names the command family the <merge-clause> rule binds (expected a \`$qual<family>*\` phrase) -- with no family, this check would examine no offer at all"; return; }
+  glob=$(scope_family "$ref" "$qual")
+  [ -n "$glob" ] || { fail 11 "$CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md no longer names the command family the <merge-clause> rule binds -- the family is read ONLY from the scope-paragraph line, the single line beginning \`**Where this rule applies:\`, and that line carries no \`$qual<family>*\` phrase. A phrase of that shape elsewhere in the file does NOT count and will not silence this; with no family, the check would examine no offer at all"; return; }
 
   # targets: one `<command>|<artifact-basename>` line per row-F table cell. Column 2 only --
   # column 3 routinely cites reference FILES that are not gate targets.
@@ -718,7 +939,7 @@ check_merge_clause() {
         for (i = 1; i <= n; i++) print cmd "|" tg[i]
       }
     }' "$ph" | sort -u)
-  [ -n "$targets" ] || { fail 11 "$REF_DIR/phase-handoff.md's row-F table yielded no require-on-main target -- the EXTRACTOR has drifted, not the table; fix the parser, never the rows"; return; }
+  [ -n "$targets" ] || { fail 11 "$CORE_PLUGIN_REL/$REF_DIR/phase-handoff.md's row-F table yielded no require-on-main target -- the EXTRACTOR has drifted, not the table; fix the parser, never the rows"; return; }
 
   while IFS= read -r y; do
     [ -n "$y" ] || continue
@@ -778,26 +999,52 @@ check_merge_clause() {
       done < <(grep -F "$x|" <<<"$targets" | sed 's/^[^|]*|//')
       [ "$need" = 1 ] || continue
       req_n=$((req_n + 1))
-      [ "$has" = 1 ] || fail 11 "$CMD_DIR/$y$CMD_SUFFIX:$ln offers $qual$x with no <merge-clause>, and this run writes '$needt' -- the artifact $qual$x's require-on-main gate targets, so that command stops while this phase's pull request is open ($REF_DIR/next-phase-offer.md owns the placeholder and its resolution table)"
+      [ "$has" = 1 ] || fail 11 "$CMD_DIR/$y$CMD_SUFFIX:$ln offers $qual$x with no <merge-clause>, and this run writes '$needt' -- the artifact $qual$x's require-on-main gate targets, so that command stops while this phase's pull request is open ($CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md owns the placeholder and its resolution table)"
     done <<<"$offers"
   done < <(cmd_names "$p")
 
   # Coverage assertions. Both states mean the check has gone quiet rather than clean, and a
   # gate that has stopped being able to fail must turn the build red, not green.
-  [ "$route_n" -gt 0 ] || fail 11 "next-phase-offer.md binds the <merge-clause> rule to '$qual$glob', which matches no command in $CMD_DIR/ -- the family was renamed or retired and this check now examines nothing"
+  [ "$route_n" -gt 0 ] || fail 11 "$CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md binds the <merge-clause> rule to '$qual$glob', which matches no command in $CMD_DIR/ -- the family was renamed or retired and this check now examines nothing"
   [ "$req_n" -gt 0 ] || fail 11 "no offer in the '$glob' family names a command whose require-on-main target that offer's own run writes -- either the route stopped handing off to itself or the EXTRACTOR drifted; fix the parser, never the offers"
 }
 
 # HANDOFF_PLUGIN_RELS is a declared list, not an inferred one -- same asymmetry as
-# COST_PLUGIN_RELS above. A plugin that DOES ship $REF_DIR/next-phase-offer.md but is
-# missing from the list has check 11 silently skipped for it. This asserts the other
-# half: presence of the file implies membership in the list.
+# COST_PLUGIN_RELS above, and the same correction. A plugin that ships commands of the
+# family the <merge-clause> rule binds, but is missing from the list, has check 11 silently
+# skipped for it. This asserts the other half.
+#
+# THE TRIGGER IS THE CALL SITES, NOT THE REFERENCE FILE. It used to fire on a plugin
+# shipping $REF_DIR/next-phase-offer.md; extracting the corpus made the corpus plugin ship
+# that reference and not one command of the family, so the old form FORCED it into the list,
+# whereupon check 11 ran for it, derived an empty family and failed -- with neither branch
+# green, because "a relation that comes up empty fails" is the property that must not be
+# relaxed. The family is derived exactly as check_merge_clause derives it, from
+# $CORE_PLUGIN_REL's copy of the reference and qualified by the plugin under check, so the
+# two can never disagree about which commands the rule binds.
+#
+# NOT the alternative fixes. Making the dispatch guard skip a plugin with no family command,
+# or exempting $CORE_PLUGIN_REL there, are both absence-implies-skip at the dispatch site:
+# under either, a plugin whose family commands were RENAMED drops out of check 11 entirely
+# and the route_n vacuity guard cannot catch it, because the check never runs at all.
+# Re-basing the trigger keeps that direction loud.
 check_handoff_applicability() {
-  local root="$1" p="$1/$PLUGIN_REL"
-  [ -f "$p/$REF_DIR/next-phase-offer.md" ] || return
+  local root="$1" p="$1/$PLUGIN_REL" ref="$1/$CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+  local qual="/${PLUGIN_REL##*/}:" glob y n=0
+  # An absent or family-less reference is not degraded to a skip HERE only because it is
+  # already loud THERE: check_merge_clause fails on both for every declared plugin, and
+  # HANDOFF_PLUGIN_RELS is non-empty in every edition that ships the subsystem.
+  [ -f "$ref" ] || return
+  glob=$(scope_family "$ref" "$qual")
+  [ -n "$glob" ] || return
+  while IFS= read -r y; do
+    [ -n "$y" ] || continue
+    case "$y" in $glob) n=$((n + 1)) ;; esac
+  done < <(cmd_names "$p")
+  [ "$n" -gt 0 ] || return
   case " $HANDOFF_PLUGIN_RELS " in
     *" $PLUGIN_REL "*) : ;;
-    *) fail 11 "$PLUGIN_REL ships $REF_DIR/next-phase-offer.md but is not a member of HANDOFF_PLUGIN_RELS -- check 11 never runs for it" ;;
+    *) fail 11 "$PLUGIN_REL ships $n command(s) of the '$glob' family that $CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md binds the <merge-clause> rule to, but is not a member of HANDOFF_PLUGIN_RELS -- check 11 never runs for it" ;;
   esac
 }
 
@@ -813,6 +1060,24 @@ selftest() {
   # one element. A one-element run cannot distinguish "the loop works" from "the loop
   # runs once and the body ignores it".
   export PLUGIN_RELS="plugins/dev-workflows plugins/fixture-two"
+  # The other three plugin-set variables are fixture edition config too, and they became so
+  # the moment the repository's corpus moved out of plugins/dev-workflows: the fixture tree
+  # keeps its corpus and its call sites in ONE plugin -- a legitimate edition shape, and the
+  # one every edition had before the extraction -- so a CORE_PLUGIN_REL inherited from the
+  # repository would name a plugin the fixture does not contain, and every green case would
+  # go red reporting a missing reference. Cases that need the split shape override
+  # CORE_PLUGIN_REL per run (see expect_fail_env / expect_pass_after_env below).
+  export CORE_PLUGIN_REL="plugins/dev-workflows"
+  # The loader skill is edition config in its own right, NOT derived from CORE_PLUGIN_REL:
+  # the relocation helper below moves the corpus without rewriting a single call site, which
+  # is the real shape too, and a derived name would stop matching them the moment it moved.
+  export LOADER_SKILL="dev-workflows:reference"
+  export COST_PLUGIN_RELS="plugins/dev-workflows"
+  # The manifest is edition config too, and the fixture ships its own: pointed at the
+  # repository's would make every case below assert against real command names, and the
+  # green cases are worthless if anything outside the mutation can redden them.
+  export NS_MAP_REL="plugins/dev-workflows/scripts/command-namespaces.json"
+  export HANDOFF_PLUGIN_RELS="plugins/dev-workflows"
   [ -d "$fixture" ] || { echo "SELFTEST FAIL: fixture tree missing at $fixture" >&2; exit 2; }
 
   expect_pass() {
@@ -847,6 +1112,95 @@ selftest() {
     rm -rf "$tmp"
   }
 
+  # ...and the same two, with EDITION CONFIG overridden for the child run. Checks 8, 9, 11 and 16
+  # each read a shared reference from $CORE_PLUGIN_REL and their call sites from $PLUGIN_REL,
+  # and there is no way to exercise that split without running the gate against a config in
+  # which the two differ. The assignments are eval'd rather than word-split, because
+  # COST_PLUGIN_RELS is itself a space-separated list and `env VAR=$3` would tear it apart.
+  expect_fail_env() { # <description> <check-number> <env-assignments> <mutation-shell>
+    tmp=$(mktemp -d); cp -R "$fixture/." "$tmp/"
+    ( cd "$tmp" && eval "$4" )
+    local out; out=$(eval "export $3"; "$0" --root "$tmp" 2>&1); local got=$?
+    if [ "$got" -eq 1 ] && grep -q "FAIL check $2:" <<<"$out"; then
+      printf 'ok    %s (check %s fired)\n' "$1" "$2"
+    else
+      printf 'FAIL  %s: expected exit 1 with "FAIL check %s", got exit %s\n' "$1" "$2" "$got"; rc=1
+    fi
+    rm -rf "$tmp"
+  }
+  expect_pass_after_env() { # <description> <env-assignments> <mutation-shell>
+    tmp=$(mktemp -d); cp -R "$fixture/." "$tmp/"
+    ( cd "$tmp" && eval "$3" )
+    if ( eval "export $2"; "$0" --root "$tmp" ) >/dev/null 2>&1; then printf 'ok    %s\n' "$1"
+    else printf 'FAIL  %s: expected exit 0\n' "$1"; rc=1; fi
+    rm -rf "$tmp"
+  }
+
+  # Moves part of the reference corpus into a SECOND plugin -- the shape checks 8, 9, 11 and 16
+  # have to survive: the reference in one plugin, the call sites in another. Every case that
+  # calls it runs the gate with CORE_PLUGIN_REL pointed at plugins/fixture-core.
+  #
+  # fixture-core is deliberately NOT in PLUGIN_RELS. It stands in for a reference corpus, not
+  # for a third documented plugin, and giving it a docs/ tree would prove nothing about the
+  # cross-plugin READ that this fixture does not already prove about the dispatch loop.
+  # docs/reference/references.md is amended in the same breath because check 4 inventories the
+  # reference dir in BOTH directions and check 9 counts its files -- a stale inventory would
+  # turn the tree red for a reason that has nothing to do with the case being made, and the
+  # green cases below are worthless if anything else can redden them. The replacement count is
+  # DERIVED from the tree after the move, never arithmetic on the number already written there.
+  relocate_refs() { # <reference-basename>... -- run from inside the copied tree
+    local f left idx="$PLUGIN_REL/docs/reference/references.md"
+    mkdir -p "plugins/fixture-core/$REF_DIR"
+    for f in "$@"; do
+      mv "$PLUGIN_REL/$REF_DIR/$f" "plugins/fixture-core/$REF_DIR/$f" || return 1
+      sed "/^- \`$f\`\$/d" "$idx" > rr.tmp && mv rr.tmp "$idx"
+    done
+    left=$(find "$PLUGIN_REL/$REF_DIR" -type f | wc -l | tr -d ' ')
+    sed -E "s|ships [0-9]+ files|ships $left files|" "$idx" > rr.tmp && mv rr.tmp "$idx"
+  }
+  # ...and the unit the corpus actually moves in. CORE_PLUGIN_REL is ONE variable serving all
+  # three checks, so a case that relocated only the file it is about would leave the other two
+  # checks reporting a reference missing from the corpus plugin -- red, for a reason the case
+  # was not making. That is the real shape too: the corpus is extracted as a whole.
+  relocate_corpus() { relocate_refs cost-emission.md next-phase-offer.md phase-handoff.md; }
+
+  # Rebuilds the namespace manifest from the tree. The two fixture-GROWING cases below add real
+  # commands, and check 4 asserts the manifest equals the tree in both directions -- so a case
+  # that grew one without the other would go red for a reason it is not making, and the green
+  # cases are worthless if anything but their own subject can redden them. DERIVED here for the
+  # same reason the gate demands it of the repository: a hand-written list in the mutation would
+  # be a second place to keep the command set, and the two would drift.
+  ns_map_regen() { # run from inside the copied tree
+    [ -n "$NS_MAP_REL" ] || return 0
+    local d rel n
+    for d in plugins/*/; do
+      rel="${d%/}"
+      while IFS= read -r n; do
+        [ -n "$n" ] && printf '%s\t%s\n' "$rel" "$n"
+      done < <(cmd_names "$rel")
+    done | python3 -c '
+import json, os, sys
+out = {}
+for line in sys.stdin:
+    line = line.rstrip("\n")
+    if not line:
+        continue
+    d, name = line.split("\t", 1)
+    ns = os.path.basename(d)
+    pj = os.path.join(d, ".claude-plugin", "plugin.json")
+    if os.path.isfile(pj):
+        try:
+            with open(pj, encoding="utf-8", errors="replace") as fh:
+                ns = (json.load(fh) or {}).get("name") or ns
+        except (OSError, ValueError, TypeError, AttributeError):
+            pass
+    out.setdefault(ns, []).append(name)
+with open(sys.argv[1], "w", encoding="utf-8") as fh:
+    json.dump({k: sorted(v) for k, v in out.items()}, fh, indent=2, sort_keys=True)
+    fh.write("\n")
+' "$NS_MAP_REL"
+  }
+
   expect_pass "the unmutated fixture passes every check"
   expect_fail "a broken relative link is rejected"  1 "sed -i.bak 's|(reference/hooks.md)|(reference/nope.md)|' $PLUGIN_REL/docs/README.md"
   expect_fail "a broken link in the plugin README is rejected" 1 "sed -i.bak 's|(docs/README.md)|(docs/NOPE.md)|' $PLUGIN_REL/README.md"
@@ -855,6 +1209,30 @@ selftest() {
   expect_fail "an undocumented command is rejected" 4 "mkdir -p $(dirname $(cmd_file $PLUGIN_REL delta)) 2>/dev/null; printf -- '---\nname: delta\n---\n' > $(cmd_file $PLUGIN_REL delta)"
   expect_fail "a drifted subtree count is rejected" 4 "sed -i.bak 's|\`handoff/\` (2)|\`handoff/\` (3)|' $PLUGIN_REL/docs/reference/references.md"
   expect_fail "an undocumented skill is rejected"    4 "mkdir -p $PLUGIN_REL/skills/epsilon && printf -- '---\nname: epsilon\n---\n' > $PLUGIN_REL/skills/epsilon/SKILL.md"
+  # The command-namespace manifest, in both directions and on both axes. Each of the first
+  # four REWRITES the file whole rather than editing a line out of it: deleting a name with
+  # sed leaves a dangling comma, and the invalid-JSON message would then stand in for the
+  # missing-name one -- same check number, different failure mode, a case proving nothing.
+  # The fifth removes the file outright, which is its own failure mode. Each rewrite is
+  # otherwise CORRECT, carrying one error and no other, so the manifest assertion is the
+  # only check 4 failure any of the five can produce -- and each therefore also re-states
+  # what a correct manifest looks like, including `renamed-namespace`, the entry keyed by a
+  # DECLARED plugin name that its directory does not carry.
+  expect_fail "a command missing from the namespace manifest is rejected" 4 \
+    "printf '{\"dev-workflows\": [\"alpha\"], \"fixture-two\": [\"omega\"], \"renamed-namespace\": [\"theta\"]}\n' > $NS_MAP_REL"
+  expect_fail "a manifest name that is no command is rejected" 4 \
+    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\", \"phantom\"], \"fixture-two\": [\"omega\"], \"renamed-namespace\": [\"theta\"]}\n' > $NS_MAP_REL"
+  expect_fail "a command-shipping plugin with no manifest entry is rejected" 4 \
+    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\"], \"fixture-two\": [\"omega\"]}\n' > $NS_MAP_REL"
+  expect_fail "a manifest namespace naming no plugin is rejected" 4 \
+    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\"], \"fixture-two\": [\"omega\"], \"renamed-namespace\": [\"theta\"], \"ghost\": [\"x\"]}\n' > $NS_MAP_REL"
+  # The DECLARED-name branch, pinned: plugins/fixture-unlisted ships theta and declares the
+  # namespace `renamed-namespace`. Keyed by its directory instead, the manifest is wrong in
+  # both directions at once -- a namespace naming no plugin, and a plugin with no entry --
+  # which is exactly what a gate reading the directory would accept.
+  expect_fail "a manifest keyed by a plugin's DIRECTORY rather than its declared name is rejected" 4 \
+    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\"], \"fixture-two\": [\"omega\"], \"fixture-unlisted\": [\"theta\"]}\n' > $NS_MAP_REL"
+  expect_fail "a missing namespace manifest is rejected" 4 "rm -f $NS_MAP_REL"
   expect_fail "an undocumented env var is rejected" 5 "printf 'Reads \$NEW_SETTABLE_VAR here.\n' >> $(cmd_file $PLUGIN_REL alpha)"
   expect_fail "an over-long table cell is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\\n| a | %s |\\n|---|---|\\n| b | c |\\n\", s}' >> $PLUGIN_REL/docs/reference/hooks.md"
   expect_fail "a drifted install block is rejected" 7 "sed -i.bak 's|$CLI plugin install ${PLUGIN_REL##*/}@fixture-plugins|$CLI plugin install ${PLUGIN_REL##*/}@drifted|' $PLUGIN_REL/docs/getting-started.md"
@@ -908,7 +1286,7 @@ selftest() {
   # Verified red (this case FAILs: "no count sentence found") with the word2num/alternation
   # additions stashed, green with them applied.
   expect_pass_after "a correctly-worded seventeen-command count is accepted" \
-    "for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && sed -i.bak 's|two slash commands|seventeen slash commands|' $PLUGIN_REL/README.md && for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do printf -- '\nCommand: \`/%s\`.\n' \$n >> $PLUGIN_REL/README.md; done && { printf -- '\n\`\`\`mermaid\nflowchart TD\n'; for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do printf -- '    x%s[\"/%s\"]\n' \$n \$n; done; printf -- '\`\`\`\n'; } >> $PLUGIN_REL/docs/workflow.md"
+    "for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && sed -i.bak 's|two slash commands|seventeen slash commands|' $PLUGIN_REL/README.md && for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do printf -- '\nCommand: \`/%s\`.\n' \$n >> $PLUGIN_REL/README.md; done && { printf -- '\n\`\`\`mermaid\nflowchart TD\n'; for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do printf -- '    x%s[\"/%s\"]\n' \$n \$n; done; printf -- '\`\`\`\n'; } >> $PLUGIN_REL/docs/workflow.md && ns_map_regen"
   # The same proof for the OTHER gated alternation. The case above exercises the commands
   # alternation only; the cost-emitting-commands alternation in check 9 has its own word list,
   # and until this case existed nothing exercised it -- a word missing from it would have failed
@@ -922,7 +1300,7 @@ selftest() {
   # applied -- and the seventeen-command case above stays green throughout, which is what shows
   # the two cases cover different alternations.
   expect_pass_after "a correctly-worded seventeen cost-emitting-command count is accepted" \
-    "for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCall \`emit-cost\` with \`command: /%s\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' \$n >> \$(cmd_file $PLUGIN_REL \$n); done && { printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n| \`/alpha\` | fixture-phase | pm |\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '| \`/%s\` | fixture-phase | pm |\n' \$n; done; printf -- '\n## 8. Persistence\n\nNot modelled in the fixture.\n'; } > $PLUGIN_REL/$REF_DIR/cost-emission.md && sed -i.bak 's|two slash commands|eighteen slash commands|' $PLUGIN_REL/README.md && sed -i.bak 's|One commands emit a cost entry|Seventeen commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCommand: \`/%s\`.\n' \$n >> $PLUGIN_REL/README.md; done && { printf -- '\n\`\`\`mermaid\nflowchart TD\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '    x%s[\"/%s\"]\n' \$n \$n; done; printf -- '\`\`\`\n'; } >> $PLUGIN_REL/docs/workflow.md"
+    "for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCall \`emit-cost\` with \`command: /%s\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' \$n >> \$(cmd_file $PLUGIN_REL \$n); done && { printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n| \`/alpha\` | fixture-phase | pm |\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '| \`/%s\` | fixture-phase | pm |\n' \$n; done; printf -- '\n## 8. Persistence\n\nNot modelled in the fixture.\n'; } > $PLUGIN_REL/$REF_DIR/cost-emission.md && sed -i.bak 's|two slash commands|eighteen slash commands|' $PLUGIN_REL/README.md && sed -i.bak 's|One commands emit a cost entry|Seventeen commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCommand: \`/%s\`.\n' \$n >> $PLUGIN_REL/README.md; done && { printf -- '\n\`\`\`mermaid\nflowchart TD\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '    x%s[\"/%s\"]\n' \$n \$n; done; printf -- '\`\`\`\n'; } >> $PLUGIN_REL/docs/workflow.md && ns_map_regen"
   expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a wrong duplicate-heading index is rejected"    2 "printf '\n[bad](#notes-2)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   # Check 14 is asserted through the same decoder the check uses, so the fixture carries the
@@ -994,6 +1372,20 @@ selftest() {
   # nothing, which must be RED: a gate that has stopped being able to fail proves nothing green.
   expect_fail "a reworded family-scope sentence is rejected" 11 \
     "sed 's|/${PLUGIN_REL##*/}:alpha\*|the family|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+  # ...and the PAIR that discriminates the scope-paragraph anchor from whole-file `head -1`.
+  # Neither case proves anything alone. RED: the scope sentence is reworded away AND a stray
+  # `$qual<family>*` phrase is added under another heading -- exactly the `## Not pipeline
+  # nodes` shape the live reference carries. Under `head -1` the stray stands in for the
+  # reworded sentence and the tree comes back green, so this case FAILs; anchored, the glob
+  # empties and check 11 fires. GREEN: a stray phrase naming a DIFFERENT family, placed
+  # BEFORE the scope paragraph so `head -1` would reach it first. Under `head -1` the glob
+  # becomes `zulu*`, which matches no command, and this case goes red; anchored, the scope
+  # paragraph still wins and the tree stays green. Verified red before / green after by
+  # stashing scope_family.
+  expect_fail "a reworded scope sentence is rejected even with a stray family phrase elsewhere" 11 \
+    "sed 's|^\*\*Where this rule applies:.*|**Where this rule applies:** every offer this plugin prints.|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md && printf -- '\n## Not pipeline nodes\n\n\`/${PLUGIN_REL##*/}:alpha*\` prints no offer.\n' >> $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+  expect_pass_after "a stray family phrase under another heading does not become the family" \
+    "{ printf -- '## Not pipeline nodes\n\n\`/${PLUGIN_REL##*/}:zulu*\` prints no offer.\n\n'; cat $PLUGIN_REL/$REF_DIR/next-phase-offer.md; } > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
   expect_fail "a family glob matching no command is rejected" 11 \
     "sed 's|alpha\*|zulu*|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
   expect_fail "a row-F table with no gated artifact is rejected" 11 \
@@ -1005,6 +1397,34 @@ selftest() {
   # goes red. Verified red before / green after by stashing the writer test.
   expect_pass_after "a clause-free offer of a command this run does not feed is accepted" \
     "printf -- '\nchoices: [\"Hand to the ungated consumer — /${PLUGIN_REL##*/}:sigma <KEY>\", \"Stop here\"]\n' >> $(cmd_file $PLUGIN_REL alpha)"
+
+  # ---- check 11 with BOTH its references in another plugin ----
+  # The shape after the reference corpus is extracted: next-phase-offer.md (the family and the
+  # placeholder) and phase-handoff.md (the row-F target table) in one plugin, the commands that
+  # make the offers in another. The GREEN case is the one that discriminates, and it has to be
+  # here: every red case below is also red under an implementation that never learned to look
+  # in $CORE_PLUGIN_REL, because a reference it cannot find is reported as a MISSING reference
+  # -- itself a check-11 failure. Only a correct cross-plugin tree that must come back green
+  # separates "resolves the reference elsewhere" from "cannot find it and says so".
+  expect_pass_after_env "the tree stays green with the merge-clause references in another plugin" \
+    "CORE_PLUGIN_REL=plugins/fixture-core" \
+    "relocate_corpus"
+  expect_fail_env "an offer that drops <merge-clause> is rejected with the references in another plugin" 11 \
+    "CORE_PLUGIN_REL=plugins/fixture-core" \
+    "relocate_corpus && sed -i.bak 's| <merge-clause>||' $(cmd_file $PLUGIN_REL alpha)"
+  # ...and the vacuity guard, which is the property most easily lost in a cross-plugin rewrite:
+  # a relation that comes up empty must still FAIL rather than quietly narrowing the check's
+  # surface. Emptying the RELOCATED row-F table proves the target relation is still asserted
+  # after it stopped living next to the commands it describes.
+  expect_fail_env "a relocated row-F table with no gated artifact is rejected" 11 \
+    "CORE_PLUGIN_REL=plugins/fixture-core" \
+    "relocate_corpus && sed '/alpha-deliverable.md/d; /alpha-two-out.md/d; /elsewhere.md/d' plugins/fixture-core/$REF_DIR/phase-handoff.md > ph.tmp && mv ph.tmp plugins/fixture-core/$REF_DIR/phase-handoff.md"
+  # ...and the vacuity guard for the CORE_PLUGIN_REL config itself, which is a failure mode the
+  # variable CREATES: the corpus moves and the config is not repointed at it. No env override
+  # here -- that is the point. A missing reference must stay a FAILURE rather than degrade to a
+  # skip, or a mis-set corpus path silences this check for the whole run and every offer in the
+  # tree stops being examined while the build stays green.
+  expect_fail "a corpus CORE_PLUGIN_REL does not point at is rejected" 11 "relocate_corpus"
 
   # Check 12 -- one case per failure mode, plus the bracket-matching case that is the whole
   # reason this check parses rather than regexes. A naive non-greedy `\[(.*?)\]` stops at the
@@ -1061,13 +1481,125 @@ selftest() {
   expect_pass_after "a marked vendor token in a config file is accepted" \
     "printf -- '\n# quoting a foreign key shape: JIRA-1  # vendor-token-ok: fixture quote\n' >> $PLUGIN_REL/references/cost-prices.yaml"
 
+  # Check 16 -- the loader contract. The UNMUTATED fixture already exercises three of the
+  # four relations and is the only place two of them are proven: fixture-two/$CMD_DIR/omega
+  # carries the preamble and makes a real loader call (relations 1 and 3, green), and the
+  # corpus is reached through BOTH non-loader citation forms -- `gamma.md` by the bare
+  # backticked form ALONE and `handoff/one.md`, `handoff/two.md` and
+  # `model-routing/classification.md` by the ${CLAUDE_PLUGIN_ROOT} form alone. An
+  # implementation that counted only the loader `args:` string, or only two of the three
+  # forms, turns the baseline case red rather than needing a case of its own.
+  #
+  # Every mutation below rewrites through a temp file rather than with `sed -i.bak`, and that
+  # is not style: this check walks every file under $CMD_DIR/, agents/ and $REF_DIR/, so a
+  # `.bak` sibling still carrying the citation or the call the case just removed keeps the
+  # relation satisfied and the case passes for the wrong reason. Two of these cases were
+  # written with `-i.bak` first and came back green against a deliberately broken tree.
+  expect_fail "an unresolvable loader argument is rejected" 16 \
+    "sed 's|args: \"phase-handoff\"|args: \"no-such-reference\"|' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # THE DISCRIMINATOR for the forward direction. A second argument is an entry point WITHIN
+  # the reference, not part of its name; 141 of the live tree's 270 real invocations carry
+  # one. An implementation matching the whole argument string passes both red cases above
+  # and below and fails only this one.
+  expect_pass_after "the two-argument entry-point form resolves on its first token" \
+    "sed 's|args: \"phase-handoff\"|args: \"phase-handoff handoff-to-main\"|' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # ...and the extension guard, which points the OTHER way and was wrong here first. The
+  # skill body reads `${CLAUDE_PLUGIN_ROOT}/references/<the first argument>.md`, appending
+  # `.md` UNCONDITIONALLY, so an argument naming the corpus's one non-markdown member reads
+  # cost-prices.yaml.md and finds nothing. This case used to assert the opposite and pass,
+  # which made the gate and the runtime it gates state contradictory contracts -- latent,
+  # because no live argument carries an extension, and durable, because a green case pinned
+  # it. The pressure to namespace that data file alongside its cost-emission.md neighbour
+  # recurs every time someone applies the citation convention uniformly; this is what now
+  # meets it. The CITATION path stays extension-tolerant -- `<core>:cost-prices.yaml` in
+  # prose names a real corpus member -- and the two resolvers must stay separate.
+  expect_fail "a loader argument carrying its own extension is rejected" 16 \
+    "printf -- '\nPrices come from \`Skill(skill: \"dev-workflows:reference\", args: \"cost-prices.yaml\")\`.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # The REVERSE direction. gamma.md is reached by exactly one citation -- the bare backticked
+  # form in alpha -- so demoting it to a prose name leaves the reference unreached. This is
+  # also what proves the reverse direction is not satisfied by a mere mention: the file name
+  # still appears on the line, without the form that resolves it.
+  expect_fail "a core reference nothing cites is rejected" 16 \
+    "sed 's|\`references/gamma.md\`|the gamma reference|' $(cmd_file $PLUGIN_REL alpha) > c16.tmp && mv c16.tmp $(cmd_file $PLUGIN_REL alpha)"
+  # ...and the two citation forms, separately. gamma.md is reached by the BARE backticked form
+  # alone and handoff/one.md by the ${CLAUDE_PLUGIN_ROOT} form alone, so each case converts one
+  # to the other and must stay green. An implementation that dropped either form turns the
+  # unmutated fixture red; these two make WHICH form was dropped attributable.
+  expect_pass_after "the plugin-root citation form reaches a reference" \
+    "sed 's|\`references/gamma.md\`|\`\${CLAUDE_PLUGIN_ROOT}/references/gamma.md\`|' $(cmd_file $PLUGIN_REL alpha) > c16.tmp && mv c16.tmp $(cmd_file $PLUGIN_REL alpha)"
+  expect_pass_after "the bare backticked citation form reaches a reference" \
+    "sed 's|\`\${CLAUDE_PLUGIN_ROOT}/references/handoff/one.md\`|\`references/handoff/one.md\`|' $(cmd_file $PLUGIN_REL alpha) > c16.tmp && mv c16.tmp $(cmd_file $PLUGIN_REL alpha)"
+  # Relation 3, and its SCOPE, which is the half a red case cannot prove. Measured on the
+  # live tree: within $CMD_DIR/, agents/ and $REF_DIR/ the match is exact (64 files cite a
+  # core reference, 64 carry the preamble), while 28 files OUTSIDE them cite one -- docs
+  # pages and a shell hook -- and none of them should carry a runtime loader instruction. An
+  # implementation reading "every file that cites" fires 28 times on a correct tree; here it
+  # turns the green case red.
+  expect_fail "a consuming file that cites core without the preamble is rejected" 16 \
+    "sed '/^\*\*Core references\.\*\*/d' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  expect_pass_after "a docs page citing core without the preamble is accepted" \
+    "printf -- '\nThis page describes what \`dev-workflows:phase-handoff\` does, for a reader.\n' >> plugins/fixture-two/docs/$DOC_CMD_DIR/omega.md"
+  # Relation 4 -- the fence, earned rather than designed: a fix round put a loader call
+  # inside a report TEMPLATE, a block the command prints to the user, where it would be read
+  # as text and never executed. It is invisible to every other relation, because the call is
+  # well-formed and its argument resolves. The GREEN case is what discriminates: a checker
+  # that simply ignores fenced content passes neither, but one that flags any core mention
+  # inside a fence passes the red case and breaks on the bare tokens that correctly sit in
+  # report templates today.
+  expect_fail "a loader call inside a fenced block is rejected" 16 \
+    "printf -- '\n\`\`\`text\nSkill(skill: \"dev-workflows:reference\", args: \"phase-handoff\")\n\`\`\`\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  expect_pass_after "a bare core reference NAME inside a fenced block is accepted" \
+    "printf -- '\n\`\`\`text\nHandoff: per dev-workflows:phase-handoff, <outcome>\n\`\`\`\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # Relation 5 -- the wrong-plugin path, which is the defect the loader exists to prevent and
+  # the one every other relation is silent on: the call is not a loader call, the file is
+  # reached by core's own citations anyway, and the citing file carries the preamble. Both
+  # path forms get a red case, because they fail for different reasons -- ${CLAUDE_PLUGIN_ROOT}
+  # opens nothing in the reading plugin, while the bare form sends a READER to the wrong
+  # directory -- and an implementation covering one and not the other passes half the suite.
+  expect_fail "a consumer citing a core reference by plugin-root path is rejected" 16 \
+    "printf -- '\nLoad \`\${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md\` directly.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  expect_fail "a consumer citing a core reference by bare path is rejected" 16 \
+    "printf -- '\nSee \`references/phase-handoff.md\`.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # ...and the two greens, which are what keep it from being a check on the two path forms
+  # themselves. Inside core those SAME forms are correct and are what relation 2 counts, so
+  # an implementation that flagged them everywhere turns the whole corpus red.
+  expect_pass_after "a core-internal citation by the same path form is accepted" \
+    "printf -- '\nSee \`\${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md\`.\n' >> $PLUGIN_REL/$REF_DIR/gamma.md"
+  # ...and the own-reference carve-out: only a name that belongs to core and NOT to the
+  # citing plugin fires. give_two_refs gives fixture-two a cost-emission.md of its own, after
+  # which its plugin-root citation of that name is unambiguous and correct. Without the
+  # carve-out this case goes red, and so would every future consumer that legitimately ships
+  # a reference whose basename core also uses.
+  expect_pass_after "a consumer citing a same-named reference IT ships is accepted" \
+    "give_two_refs cost-emission.md && printf -- '\nPrices: \`\${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md\`.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+
+  # The vacuity guard. The forward direction reads ONE syntax; a repo-wide rewording of it
+  # would leave relations 1 and 4 examining nothing while every message stayed silent. The
+  # preamble is the evidence that the syntax is still meant to be in use, so documenting it
+  # while calling it nowhere is the state that must be loud.
+  expect_fail "a documented loader that is never actually invoked is rejected" 16 \
+    "sed '/args: \"phase-handoff\"/d' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # ...and the CORE_PLUGIN_REL vacuity guard, check 16's twin of the ones checks 8 and 11
+  # carry: the corpus moved and the config was not repointed at it. No env override here --
+  # that is the point. Every loader argument must go on resolving against the CONFIGURED
+  # corpus, so a mis-set corpus path is red rather than a silently narrowed check.
+  expect_fail "a corpus CORE_PLUGIN_REL does not point at is rejected by check 16" 16 "relocate_corpus"
+  # ...and the cross-plugin red, whose green half is the relocation case above: with the
+  # corpus in a plugin of its own, an unresolvable argument must still be caught there.
+  expect_fail_env "an unresolvable loader argument is rejected with the corpus in another plugin" 16 \
+    "CORE_PLUGIN_REL=plugins/fixture-core" \
+    "relocate_corpus && sed 's|args: \"phase-handoff\"|args: \"no-such-reference\"|' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+
   # The cost subsystem (check 8, and check 9's cost-emitting-commands sentence) does not
   # exist in every edition -- check_cost_attribution and that half of check_prose_counts
   # both return immediately when HAS_COST=0, so a mutation that only a cost check can see
   # would never trip a failure there and would falsely report this selftest case itself as
-  # broken. Skip the five cases that depend on the cost subsystem being active -- ALL FOUR
-  # check-8 cases (including the emit-cost-call-site field-reorder, which check 8's
-  # extractor-coverage assertion alone can see) plus the one check-9 cost-emitting-count case.
+  # broken. Everything inside the branch below depends on the cost subsystem being active --
+  # every check-8 case (including the emit-cost-call-site field-reorder, which check 8's
+  # extractor-coverage assertion alone can see) and every check-9 cost-emitting-count case,
+  # cross-plugin ones included. No number is written here: it moved every time a case was
+  # added, and every number that had been written -- in this comment and in the skip line
+  # below -- disagreed with the block by the time anyone counted it.
   if [ "$HAS_COST" = 1 ]; then
     expect_fail "a drifted emit-cost call site is rejected" 8 "sed -i.bak 's|\`command: /alpha\`, \`phase: fixture-phase\`, \`role: pm\`|\`command: /alpha\`, \`role: pm\`, \`phase: fixture-phase\`|' $(cmd_file $PLUGIN_REL alpha)"
     expect_fail "an unattributed emit-cost call is rejected" 8 "mkdir -p $(dirname $(cmd_file $PLUGIN_REL zeta)) 2>/dev/null; printf -- '---\nname: zeta\n---\n\nCall \`emit-cost\` with \`command: /zeta\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' > $(cmd_file $PLUGIN_REL zeta) && printf -- '# /zeta\n\nFixture page.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/zeta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/zeta\`]($DOC_CMD_DIR/zeta.md)|' $PLUGIN_REL/docs/README.md"
@@ -1076,8 +1608,43 @@ selftest() {
     expect_fail "a drifted attributed role is rejected"      8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pe |;' $PLUGIN_REL/$REF_DIR/cost-emission.md"
     expect_fail "a section-7 row for a non-emitting command is rejected" 8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pm |\n| \`/omega\` | fixture-phase | pm |;' $PLUGIN_REL/$REF_DIR/cost-emission.md"
     expect_fail "a drifted cost-emitting count is rejected"  9 "sed -i.bak 's|One commands emit a cost entry|Five commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md"
+
+    # ---- checks 8 and 9 with the section-7 table in ANOTHER plugin ----
+    # The green cases lead, because they are the ones that discriminate. Every red case here
+    # is ALSO red under an implementation that never learned to look in $CORE_PLUGIN_REL: it
+    # reports "no section-7 attribution table", which is a check-8 failure of its own. Only a
+    # correct cross-plugin tree that must come back GREEN tells the two apart.
+    expect_pass_after_env "the tree stays green with the section-7 table in another plugin" \
+      "CORE_PLUGIN_REL=plugins/fixture-core" \
+      "relocate_corpus"
+    # ...and the reverse direction's own green case, which is a different claim. One table
+    # attributes the emitters of EVERY plugin in COST_PLUGIN_RELS, so a row belonging to a
+    # sibling plugin is correctly attributed and must not fire. A reverse loop that matched
+    # each row against only the plugin under check goes red here twice over -- on `/omega`
+    # while checking dev-workflows, and on `/alpha` while checking fixture-two.
+    expect_pass_after_env "a section-7 table attributing a SECOND plugin's emitter is accepted" \
+      "CORE_PLUGIN_REL=plugins/fixture-core COST_PLUGIN_RELS='plugins/dev-workflows plugins/fixture-two'" \
+      "relocate_corpus && printf -- '\nCall \`emit-cost\` with \`command: /omega\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX && sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pm |\n| \`/omega\` | fixture-phase | pm |;' plugins/fixture-core/$REF_DIR/cost-emission.md"
+    # The matching reds. The first proves the reverse direction still reads the relocated
+    # table; the second proves check 9's cost-emitting count is still ASSERTED once the
+    # reference has moved out of the plugin whose page states it -- the count derives from
+    # the call sites alone, and gating it on the reference's presence would be applicability
+    # inferred from a missing file, silently dropping the assertion for every emitting plugin
+    # that is not the corpus. The green case above cannot see that: a check that skips the
+    # count passes it too.
+    expect_fail_env "a section-7 row for a non-emitting command is rejected with the table in another plugin" 8 \
+      "CORE_PLUGIN_REL=plugins/fixture-core" \
+      "relocate_corpus && sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pm |\n| \`/omega\` | fixture-phase | pm |;' plugins/fixture-core/$REF_DIR/cost-emission.md"
+    expect_fail_env "a drifted cost-emitting count is rejected with the table in another plugin" 9 \
+      "CORE_PLUGIN_REL=plugins/fixture-core" \
+      "relocate_corpus && sed -i.bak 's|One commands emit a cost entry|Five commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md"
+    # ...and check 8's half of the CORE_PLUGIN_REL vacuity guard (check 11's twin sits with the
+    # merge-clause cases above): the corpus moved and the config was not repointed at it. An
+    # absent table must be RED. Degrading it to a skip would silence both directions of check 8
+    # for every plugin at once, on nothing louder than a stale config line.
+    expect_fail "a corpus CORE_PLUGIN_REL does not point at is rejected by check 8" 8 "relocate_corpus"
   else
-    printf 'skip  5 cost cases (this edition has no cost subsystem)\n'
+    printf 'skip  the cost cases (this edition has no cost subsystem)\n'
   fi
 
   expect_fail "second plugin's command page is checked too" 4 \
@@ -1090,15 +1657,48 @@ selftest() {
     'printf "\n[dangling](#no-such-heading-here)\n" >> plugins/fixture-two/docs/README.md'
 
   # check_cost_applicability / check_handoff_applicability guard the QUIET direction: a
-  # plugin that ships the capability file but was never added to the declaring list has
-  # its check silently skipped. plugins/fixture-two ships neither file and is a member of
-  # neither list, so simply CREATING the file there -- no config edit needed at runtime --
-  # is the mutation: undeclared-but-present is exactly the state the reviewer proved was
-  # invisible by deleting every row from the section-7 table.
-  expect_fail "a plugin shipping cost-emission.md undeclared in COST_PLUGIN_RELS is rejected" 8 \
-    "mkdir -p plugins/fixture-two/$REF_DIR && printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n' > plugins/fixture-two/$REF_DIR/cost-emission.md"
-  expect_fail "a plugin shipping next-phase-offer.md undeclared in HANDOFF_PLUGIN_RELS is rejected" 11 \
-    "mkdir -p plugins/fixture-two/$REF_DIR && printf -- '# Next-phase offer (fixture)\n' > plugins/fixture-two/$REF_DIR/next-phase-offer.md"
+  # plugin that ships the CALL SITES but was never added to the declaring list has its check
+  # silently skipped -- exactly the state the reviewer proved was invisible by deleting every
+  # row from the section-7 table. plugins/fixture-two is a member of neither list, so it is
+  # where both directions are exercised; no config edit is needed at runtime.
+  #
+  # Each direction needs a PAIR. The trigger used to be the reference FILE, and the corpus
+  # extraction falsified that premise both ways at once -- the plugin that kept the emitters
+  # stopped shipping the reference (assertion goes silent), and the corpus plugin was forced
+  # into a list by a file it merely holds (check runs, derives nothing, fails). So the red
+  # case alone would be satisfied by the OLD implementation too, wherever the mutation
+  # happens to create both; only the green case -- a plugin holding the reference and no call
+  # site, which must PASS -- separates a call-site trigger from a file-presence one.
+  #
+  # give_two_refs is what makes the green cases possible at all: dropping a reference file
+  # into a plugin with no references/ tree reddens check 4 (no inventory row), check 3 (the
+  # new index page is unreachable) and check 9 (no file-count sentence), none of which is the
+  # case being made. It gives fixture-two the minimum tree those three demand, with the count
+  # DERIVED from what it just wrote.
+  give_two_refs() { # <reference-basename>... -- run from inside the copied tree
+    local f
+    mkdir -p "plugins/fixture-two/$REF_DIR" "plugins/fixture-two/docs/reference"
+    for f in "$@"; do printf -- '# %s (fixture copy)\n' "$f" > "plugins/fixture-two/$REF_DIR/$f"; done
+    { printf -- '# References\n\n'
+      for f in "$@"; do printf -- '- `%s`\n' "$f"; done
+      printf -- '\nThe fixture ships %s files.\n' "$(find "plugins/fixture-two/$REF_DIR" -type f | wc -l | tr -d ' ')"
+    } > plugins/fixture-two/docs/reference/references.md
+    printf -- '\n- [References](reference/references.md)\n' >> plugins/fixture-two/docs/README.md
+  }
+
+  expect_fail "a plugin with an emit-cost call site undeclared in COST_PLUGIN_RELS is rejected" 8 \
+    "printf -- '\nCall \`emit-cost\` with \`command: /omega\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  expect_pass_after "a plugin holding cost-emission.md with no emit-cost call site is accepted" \
+    "give_two_refs cost-emission.md"
+  # The handoff family is qualified by the plugin under check, so the reference has to NAME
+  # fixture-two's family before fixture-two can be in it -- which is the real shape: the
+  # family belongs to whichever plugin ships those commands, and the reference says so. The
+  # phrase is added INSIDE the scope paragraph, because that is the one line scope_family
+  # reads; appended anywhere else it would be the stray the anchoring pair above rejects.
+  expect_fail "a plugin with a family command undeclared in HANDOFF_PLUGIN_RELS is rejected" 11 \
+    "sed 's|^\*\*Where this rule applies:.*|& The \`/fixture-two:omega*\` commands write their offers to the same convention.|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+  expect_pass_after "a plugin holding next-phase-offer.md with no family command is accepted" \
+    "give_two_refs next-phase-offer.md"
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
   exit "$rc"
@@ -1217,7 +1817,9 @@ PYEOF
 # skipped by default -- templates and handoff blocks are exactly where a tracker-shaped
 # field would hide -- so the marked/unmarked fence pair is a selftest case.
 # Sanctioned users -- 14 marked lines across 6 files, in four kinds. Re-derive with
-# `grep -rn vendor-token-ok: plugins/dev-workflows CLAUDE.md` rather than adjusting the number:
+# `grep -rn --exclude=CHANGELOG.md vendor-token-ok: plugins CLAUDE.md` rather than adjusting the
+# number -- scoped to `plugins`, not to one plugin, because six of the fourteen moved into
+# workflows-core with the reference corpus:
 #   * recognition (8): branch-naming.md's three quotes of a repository's own convention file
 #     plus its fenced verbatim pattern; /vuln's no-address placeholder literals (its prose
 #     step, its two handoff blocks) and the docs page mirroring them -- foreign text the
@@ -1366,6 +1968,308 @@ check_index_membership() {
   done
 }
 
+# ------------------------------------------------------------------ check 16
+# The loader contract. $CORE_PLUGIN_REL holds the shared reference corpus; every other
+# plugin reads it through ONE argument-taking skill, because ${CLAUDE_PLUGIN_ROOT} resolves
+# to the READING plugin and a dependent plugin therefore cannot open core's files by path.
+# One skill instead of one wrapper per reference is a deliberate trade: a typo in an
+# argument misfires silently where a named wrapper could not compile. This check is the
+# other half of that trade. Without it the loader is a string nothing validates.
+#
+# FOUR RELATIONS, all derived, none written in here:
+#   1. FORWARD  -- every real `args:` string resolves to a file under
+#                  $CORE_PLUGIN_REL/$REF_DIR/. The FIRST whitespace token is the reference;
+#                  a second token is an entry point WITHIN it (`specs-repo-git
+#                  specs-preflight`), and 141 of this tree's 270 real invocations carry one.
+#                  An implementation matching the whole argument string reports every one of
+#                  them as unresolvable.
+#   2. REVERSE  -- every markdown file in the corpus is reached by at least one citation.
+#   3. PREAMBLE -- every consuming file that cites a core reference documents the loader
+#                  form, so a reader meeting the citation is not left to invent a path.
+#   4. FENCE    -- no real loader call sits inside a fenced block.
+#   5. WRONG-PLUGIN PATH -- no CONSUMER file cites a core reference by either path form.
+#                  ${CLAUDE_PLUGIN_ROOT} resolves to the READING plugin, so that path opens
+#                  nothing there, and a bare `$REF_DIR/<name>` sends a reader to a directory
+#                  that does not hold the file. This is the defect the loader exists to
+#                  prevent -- the class Task 4 swept by hand across 787 sites -- and every
+#                  other relation is silent on it: such a citation is not a loader call, its
+#                  file is reached by core's own citations anyway, and the citing file
+#                  carries the preamble. Only a name that is in core's corpus and NOT in the
+#                  citing plugin's own $REF_DIR/ fires, so a plugin shipping its own
+#                  `<name>.md` and citing it is never touched; the two trees have zero name
+#                  collisions today, which is a fact to re-derive rather than to trust.
+#
+# THE PLACEHOLDER TRAP, which is the single most likely way to get this wrong. The preamble
+# quotes the invocation form literally -- `args: "<name>"` -- as documentation of the
+# convention, on 64 files in this tree. A forward direction that resolves every `args:`
+# string it finds opens `<name>.md`, fails, and reports 64 defects on entirely correct
+# content. A bracketed first token is therefore the PREAMBLE MARKER, not an argument: it is
+# what relation 3 looks for, and it is skipped by relations 1 and 4. Anything else that is
+# not a plausible reference name is still reported -- skipping "implausible" arguments
+# wholesale would let a genuinely malformed one through under the same exemption.
+#
+# WHY .md IS NOT APPENDED BLINDLY. `cost-prices.yaml` is a data file in the corpus, and the
+# pressure to namespace it alongside its `cost-emission.md` neighbour recurs every time
+# someone reads the citation convention and applies it uniformly. A token that already
+# carries an extension is used as it stands.
+#
+# RELATION 2 COUNTS THREE CITATION FORMS, NOT TWO, and the third is not optional. A core
+# reference is reached by (a) a loader `args:` string from any scanned plugin, (b) a
+# `${CLAUDE_PLUGIN_ROOT}/$REF_DIR/<name>` path inside core, or (c) a bare backticked
+# `` `$REF_DIR/<name>` `` inside core. Form (c) became unambiguous when the outward-pointing
+# bare names were rewritten as `<other-plugin>:<name>`, so inside core that form now means
+# core's own file and nothing else. Counting only (a) and (b) reports dependencies.md as
+# unreached while grilling-technique.md cites it perfectly well. Requiring a LOADER call
+# would be worse still: instruction-file-maintenance.md is cited by impl-maintenance.md
+# alone and handoff/code-scanner.md by code-scanner.md alone -- both core-internal, both
+# correct, and neither will ever appear in an `args:` string.
+#
+# SCOPE IS $CMD_DIR/, agents/ and $REF_DIR/, and the bound is measured rather than tasteful.
+# Relation 3 over those three directories is an EXACT match on this tree -- 64 files cite a
+# core reference, 64 carry the preamble -- while 28 further files cite one from OUTSIDE them
+# (human-facing pages under docs/ and one shell hook), and not one of them should carry a
+# runtime loader instruction. A relation-3 implemented as "every file that cites" fires 28
+# times on a correct tree. The same bound is what keeps relation 2 falsifiable: core's own
+# docs/reference/references.md enumerates every reference file by name, so admitting docs/
+# as a citation source would make the reverse direction unfalsifiable by construction.
+# CHANGELOG.md is excluded for the same reason it is excluded everywhere else -- history
+# keeps the words it shipped with, and a retired reference must not stay "reached" by them.
+#
+# RELATION 5'S SCOPE WAS MEASURED BEFORE IT WAS TAKEN, because this repo has twice rejected a
+# widening that fired only on correct content. Over $CMD_DIR/, agents/ and $REF_DIR/ it fires
+# on NOTHING: Task 4 swept all 787 sites and the tree is clean, so it starts green and exists
+# to keep a constraint that currently holds by discipline from quietly stopping to hold --
+# the same profile as check 14, not the profile of the two rejected widenings, which produced
+# false positives. Widening it to the whole plugin fires ONCE, on correct content:
+# docs/reference/session-cost.md names the companion plugin's `references/cost-prices.yaml`
+# while explaining in the same sentence why it is named as a path and not in the loader's
+# form. One false positive and zero true ones is the result on which the other widenings were
+# refused, so the scope stops where relation 3's does.
+#
+# WHAT THIS DELIBERATELY DOES NOT GATE, stated so nobody mistakes green for safe:
+#   * The BARE-BASENAME class -- an unqualified `<name>.md` with no directory in front of
+#     it. NO COUNT IS GIVEN HERE, deliberately: the figure this comment used to carry ("~27
+#     hits") was reproducible under no reading of the tree, and the case for the exclusion
+#     never rested on it. It rests on a collision that can be checked in one command:
+#     `code-scanner.md` and `impl-maintenance.md` each name BOTH a file in the corpus
+#     (handoff/) and an agent in the same plugin, so a bare mention of either is undecidable
+#     by pattern -- which is precisely why Task 4's `8d20345` had to qualify those two by
+#     hand after a basename scan could not see them. The form carries no directory context
+#     at all, so it equally names an artifact in the specs tree, a repo file, or a docs
+#     page. Resolving an identifier against a known set is this repo's rule; parsing one out
+#     of free text is what that rule forbids. Left to review. (Relation 5 above gates the
+#     PREFIXED forms, which do carry the context that makes them decidable.)
+#   * skills/. No skill in any consuming plugin cites a core reference today, so including
+#     it would assert nothing; a skill that starts to is review's to catch.
+#   * WHETHER the loaded content is used correctly. This validates that the argument names
+#     a real file and that the call is reachable, nothing about what the run then does.
+check_loader_contract() {
+  local root="$1" out h
+  [ -n "$LOADER_SKILL" ] \
+    || { note "check 16 not applicable: this edition declares no loader skill (its corpus and its call sites ship in one plugin)"; return; }
+  out=$(python3 - "$root" "$CORE_PLUGIN_REL" "$CMD_DIR" "$REF_DIR" "$LOADER_SKILL" "$PLUGIN_RELS" <<'PYEOF'
+import io, os, re, sys
+
+root, core_rel, cmd_dir, ref_dir, loader, plugin_list = sys.argv[1:7]
+plugins = plugin_list.split()
+if core_rel not in plugins:
+    plugins = plugins + [core_rel]
+scan_dirs = (cmd_dir, 'agents', ref_dir)
+core_ref_root = os.path.join(root, core_rel, ref_dir)
+out = []
+
+# The corpus: every FILE under the core reference dir, keyed by its path relative to that
+# dir, so `handoff/code-scanner.md` and `model-routing/classification.md` are ordinary
+# members rather than special cases.
+corpus = set()
+for dirpath, _dirs, names in os.walk(core_ref_root):
+    for n in names:
+        corpus.add(os.path.relpath(os.path.join(dirpath, n), core_ref_root).replace(os.sep, '/'))
+md_corpus = sorted(r for r in corpus if r.endswith('.md'))
+
+NAME = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9][A-Za-z0-9_.-]*)*$')
+
+# TWO resolvers, and they must stay two. They were one, extension-tolerant on both paths,
+# and that made the gate BLESS a call the runtime cannot serve: skills/reference/SKILL.md
+# reads `${CLAUDE_PLUGIN_ROOT}/references/<the first argument>.md`, appending `.md`
+# UNCONDITIONALLY, so `args: "cost-prices.yaml"` reads cost-prices.yaml.md and finds
+# nothing. A green selftest case pinned the tolerant behaviour, which would have made the
+# divergence durable. Latent -- no live argument carries an extension -- which is exactly
+# why it would have survived.
+def arg_target(tok):
+    """A loader `args:` first token -> (corpus path or None, the candidate tried). `.md` is
+    appended unconditionally, because that is what the skill body does. An argument carrying
+    its own extension is therefore a DEFECT, not a tolerated form: the loader serves
+    reference prose, and the corpus's one non-markdown member is read by the script that
+    prices with it, never loaded."""
+    cand = tok + '.md'
+    if '..' in tok or not NAME.match(tok):
+        return None, cand
+    return (cand if cand in corpus else None), cand
+
+def cite_target(tok):
+    """A CITATION token -> its corpus path, or None. Extension-tolerant, and deliberately so:
+    a prose citation of the data file (`<core>:cost-prices.yaml`) names a real corpus member
+    and must resolve, even though the loader could never serve it. Do not merge this with
+    arg_target() again -- the two answer different questions about the same corpus."""
+    if '..' in tok or not NAME.match(tok):
+        return None
+    cand = tok if os.path.splitext(tok)[1] else tok + '.md'
+    return cand if cand in corpus else None
+
+CALL = re.compile(r'"' + re.escape(loader) + r'"\s*,\s*args:\s*"([^"]*)"')
+core_name = os.path.basename(core_rel)
+TOKEN = re.compile(r'(?<![A-Za-z0-9_-])' + re.escape(core_name) + r':([A-Za-z0-9][A-Za-z0-9_./-]*)')
+FENCE = re.compile(r'^[ \t]*(```|~~~)')
+PATHCITE = re.compile(r'\$\{CLAUDE_PLUGIN_ROOT\}/' + re.escape(ref_dir) + r'/([A-Za-z0-9][A-Za-z0-9_./-]*)')
+BARECITE = re.compile(r'`' + re.escape(ref_dir) + r'/([A-Za-z0-9][A-Za-z0-9_./-]*)`')
+
+def files_under(rel):
+    for d in scan_dirs:
+        base = os.path.join(root, rel, d)
+        for dirpath, _dirs, names in os.walk(base):
+            for n in sorted(names):
+                if n == 'CHANGELOG.md':
+                    continue
+                yield os.path.join(dirpath, n)
+
+def own_refs(rel):
+    """The reference files THIS plugin ships, by corpus-relative name. Relation 5 flags a
+    consumer-side path citation only where the name belongs to core and NOT to the citing
+    plugin: a plugin that ships its own `<name>.md` is citing its own, unambiguously, and
+    the two trees have zero name collisions today (re-derive rather than trust that)."""
+    base = os.path.join(root, rel, ref_dir)
+    got = set()
+    for dirpath, _dirs, names in os.walk(base):
+        for n in names:
+            got.add(os.path.relpath(os.path.join(dirpath, n), base).replace(os.sep, '/'))
+    return got
+
+reached = dict((r, 0) for r in md_corpus)
+preamble_files = 0
+real_calls = 0
+
+for rel in plugins:
+    consumer = (rel != core_rel)
+    mine = own_refs(rel) if consumer else set()
+    for path in files_under(rel):
+        try:
+            text = io.open(path, encoding='utf-8').read()
+        except Exception:
+            continue
+        show = os.path.relpath(path, root)
+        self_ref = None
+        if path.startswith(os.path.join(root, core_rel, ref_dir) + os.sep):
+            self_ref = os.path.relpath(path, core_ref_root).replace(os.sep, '/')
+        has_preamble = False
+        cites_core = False
+        infence = False
+        for lineno, line in enumerate(text.split('\n'), 1):
+            if FENCE.match(line):
+                infence = not infence
+                continue
+            for m in CALL.finditer(line):
+                arg = m.group(1)
+                parts = arg.split()
+                tok = parts[0] if parts else ''
+                if tok.startswith('<'):
+                    # The documentation placeholder: this line IS the preamble.
+                    has_preamble = True
+                    continue
+                real_calls += 1
+                cites_core = True
+                target, cand = arg_target(tok)
+                if target is None:
+                    out.append("%s:%d loads '%s' through %s, which resolves to %s/%s/%s -- "
+                               "no such file. The reference is the FIRST whitespace token "
+                               "(a second is an entry point WITHIN it) and the loader "
+                               "appends '.md' unconditionally, so an argument carrying its "
+                               "own extension cannot resolve: a non-markdown corpus member "
+                               "is cited as a path and read by whatever consumes it, never "
+                               "loaded through the loader"
+                               % (show, lineno, arg, loader, core_rel, ref_dir, cand))
+                elif target != self_ref:
+                    reached[target] = reached.get(target, 0) + 1
+                if infence:
+                    out.append("%s:%d puts a %s call inside a fenced block -- a run PRINTS a "
+                               "fenced block, it never executes it, so this reference is "
+                               "never loaded. Name it in the block and make the call in prose"
+                               % (show, lineno, loader))
+            for m in TOKEN.finditer(line):
+                # Trailing sentence punctuation is not part of the name. Stripped HERE and not
+                # inside cite_target(), because in a loader `args:` string a trailing dot is a
+                # typo to report rather than noise to forgive.
+                if cite_target(m.group(1).rstrip('./-')) is not None:
+                    cites_core = True
+            for pat, form in ((PATHCITE, '${CLAUDE_PLUGIN_ROOT}/%s/<name>' % ref_dir),
+                              (BARECITE, '`%s/<name>`' % ref_dir)):
+                for m in pat.finditer(line):
+                    c = m.group(1)
+                    if rel == core_rel:
+                        # Inside core these two forms are what relation 2 counts.
+                        if c in reached and c != self_ref:
+                            reached[c] += 1
+                    elif c in corpus and c not in mine:
+                        # RELATION 5. Outside core the same two forms are the defect the
+                        # loader exists to prevent: ${CLAUDE_PLUGIN_ROOT} resolves to the
+                        # READING plugin, so this path opens nothing, and the bare form
+                        # sends a reader to a directory that does not hold the file.
+                        cites_core = True
+                        out.append("%s:%d cites the %s reference '%s' as %s, which resolves "
+                                   "to THIS plugin's %s/ and not to the corpus -- that is the "
+                                   "defect the loader exists to prevent. Name it '%s:%s' in "
+                                   "prose, and load it with Skill(skill: \"%s\", args: \"%s\")"
+                                   % (show, lineno, core_rel, c, form, ref_dir,
+                                      core_name, c[:-3] if c.endswith('.md') else c,
+                                      loader, c[:-3] if c.endswith('.md') else c))
+        if has_preamble:
+            preamble_files += 1
+        if consumer and cites_core and not has_preamble:
+            out.append("%s cites a %s reference but carries no loader preamble -- the line "
+                       "documenting Skill(skill: \"%s\", args: \"<name>\"), which is what "
+                       "tells a run to read it through the loader instead of by a "
+                       "${CLAUDE_PLUGIN_ROOT} path that resolves to this plugin"
+                       % (show, core_rel, loader))
+
+if not md_corpus:
+    out.append("%s/%s/ holds no markdown -- the corpus every loader argument resolves "
+               "against is missing or empty, and this check would examine nothing"
+               % (core_rel, ref_dir))
+else:
+    for r in md_corpus:
+        if reached[r] == 0:
+            out.append("%s/%s/%s is reached by no citation -- no loader args: string names "
+                       "it, and no file inside %s's %s/, agents/ or %s/ cites it as "
+                       "${CLAUDE_PLUGIN_ROOT}/%s/%s or `%s/%s`. An unreached reference is "
+                       "either dead or cited in a form nothing resolves"
+                       % (core_rel, ref_dir, r, core_rel, cmd_dir, ref_dir,
+                          ref_dir, r, ref_dir, r))
+
+# Vacuity: the forward direction reads one syntax, and a repo-wide rewording of it would
+# make relations 1 and 4 examine nothing while every message above stayed silent. The
+# preamble count is the evidence that the syntax is still meant to be in use.
+if preamble_files > 0 and real_calls == 0:
+    out.append("%d file(s) document the %s preamble but no real invocation of it was found "
+               "anywhere under %s -- the call syntax was reworded and the forward direction "
+               "now examines nothing; fix the extractor, never the call sites"
+               % (preamble_files, loader, ' '.join(plugins)))
+
+for line in out:
+    print(line)
+print("__CHECK16_RAN__")
+PYEOF
+)
+  case "$out" in
+    *__CHECK16_RAN__*) : ;;
+    *) fail 16 "the loader-contract scan did not complete (python3 absent, or the scan itself errored) -- this check would examine nothing"; return ;;
+  esac
+  while IFS= read -r h; do
+    [ -n "$h" ] || continue
+    [ "$h" = "__CHECK16_RAN__" ] && continue
+    fail 16 "$h"
+  done <<<"$out"
+}
+
 # ---------------------------------------------------------------------- main
 # selftest() runs before the dispatch loop below ever assigns PLUGIN_REL per iteration,
 # and its fixture mutations reference the bare (singular) $PLUGIN_REL directly -- so it
@@ -1405,6 +2309,15 @@ for PLUGIN_REL in $PLUGIN_RELS; do
   check_foreign_identity    "$ROOT"
   check_index_membership    "$ROOT"
 done
+
+# Check 16 sits OUTSIDE the loop, unlike every check above it. The loader contract is a
+# relation between the corpus plugin and all of its consumers at once -- the reverse
+# direction asks whether a reference is reached by ANY of them -- so a per-plugin dispatch
+# would either report the same unreached reference once per plugin or need a latch to
+# suppress the repeats. It derives its own plugin set from $PLUGIN_RELS plus
+# $CORE_PLUGIN_REL, which is the same set the loop walks plus the corpus when that is not a
+# documented plugin of its own.
+check_loader_contract     "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_RELS" >&2

@@ -32,7 +32,7 @@ flowchart TD
     p6 --> p7["Phase 7 — Session maintenance, feedback & cost"]
 ```
 
-Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `prd-reviewer` (Phase 4, Opus-pinned), and `impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. A fourth agent, `prose-style:prose-style-checker`, runs in Phase 3.5 exactly as it does in [`/create-prd`](create-prd.md) — a non-gating quality pass from a separate plugin, not counted in the dispatch total above.
+Three subagents are dispatched: `workflows-core:docs-grounder` (Phase 2, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `prd-reviewer` (Phase 4, Opus-pinned), and `workflows-core:impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. A fourth agent, `prose-style:prose-style-checker`, runs in Phase 3.5 exactly as it does in [`/create-prd`](create-prd.md) — a non-gating quality pass from an optional plugin that may not be installed, and so not counted in the dispatch total above. The count is of dispatches, not of shipping plugins: two of the three above ship in the companion `workflows-core` plugin, which is a hard prerequisite rather than an optional one.
 
 ## What it needs
 
@@ -55,8 +55,8 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-o
 ## Gates
 
 - **Phase 3.5 — Prose style check**, mirroring [`/create-prd`](create-prd.md) exactly: `prose-style:prose-style-checker` applies MAJOR fixes inline and re-runs once; a non-gating quality pass, skipped gracefully when the `prose-style` plugin is not installed.
-- **Phase 3.6 — Structural pre-lint** (`../../references/pre-lint.md`), advisory only — mechanical findings fixed inline, content gaps left for the grill.
-- **Phase 4 — `prd-reviewer`**, Opus-pinned by frontmatter (`model: opus`, no override), reviewing the whole updated PRD against `../../references/prd-format.md`. `PASS` / `PASS WITH RECOMMENDATIONS` proceeds. `BLOCK` triggers one inline fix cycle and one re-review; a persistent `BLOCK` is escalated per `../../references/escalation-rules.md`'s "Review verdict BLOCK" choices, exactly as in [`/create-prd`](create-prd.md).
+- **Phase 3.6 — Structural pre-lint** (`workflows-core:pre-lint`), advisory only — mechanical findings fixed inline, content gaps left for the grill.
+- **Phase 4 — `prd-reviewer`**, Opus-pinned by frontmatter (`model: opus`, no override), reviewing the whole updated PRD against `workflows-core:prd-format`. `PASS` / `PASS WITH RECOMMENDATIONS` proceeds. `BLOCK` triggers one inline fix cycle and one re-review; a persistent `BLOCK` is escalated per `workflows-core:escalation-rules`'s "Review verdict BLOCK" choices, exactly as in [`/create-prd`](create-prd.md).
 
 ## Example
 
@@ -75,4 +75,4 @@ The run resolves the feature folder, reads its `prd.md` as the base, grills the 
 - [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/epics`](epics.md), and [`/release-notes`](release-notes.md) — the role re-runs `/update-prd`'s Phase 6 offers when an ARD, spec, or release note already exists.
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `prd-reviewer` runs under.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 7 bookkeeping every run emits.
-- [`prd-format.md`](../../references/prd-format.md) — the canonical structure the PRD is updated and reviewed against.
+- `workflows-core:prd-format` — the canonical structure the PRD is updated and reviewed against.

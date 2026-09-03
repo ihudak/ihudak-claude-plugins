@@ -6,8 +6,9 @@ Ivan Gudak's open-source Claude Code plugin marketplace.
 
 | Plugin | Description |
 |--------|-------------|
-| [dev-workflows](plugins/dev-workflows/) | Twenty-six slash commands for the PM → PA → PE → Dev pipeline, with Opus-backed planning and review gates. [Docs](plugins/dev-workflows/docs/README.md) |
+| [dev-workflows](plugins/dev-workflows/) | Twenty slash commands for the PM → PA → PE → Dev pipeline, with Opus-backed planning and review gates. Needs `workflows-core`. [Docs](plugins/dev-workflows/docs/README.md) |
 | [guideline-reviewers](plugins/guideline-reviewers/) | Two standalone commands: `/api-guideline-reviewer` reviews OpenAPI specs against bundled REST/IAM guidance; `/guideline-reviewer` reviews code/UI against bundled design-system and a11y standards. |
+| [workflows-core](plugins/workflows-core/) | Shared foundation for the `dev-workflows` family — addressing, git handoff, model routing, emission — plus six utility commands. [Docs](plugins/workflows-core/docs/README.md) |
 | [prose-style](plugins/prose-style/) | Pluggable prose style enforcement: `/prose-review-pr`, `/prose-review-docs`, `/prose-style-refresh`, plus sub-agents `dev-workflows` uses for Epics and docs. Vendor-neutral, overridable baseline. |
 | [obsidian-llm-wiki](plugins/obsidian-llm-wiki/) | Ten slash commands for compiling Obsidian vault knowledge into a persistent, cross-referenced wiki with task management; supports Claude Code and GitHub Copilot. |
 | [acli](plugins/acli/) | Atlassian CLI (`acli`) skill for Jira and Confluence — search, work items, comments, attachments, boards, sprints, pages. From [pi-skill-acli](https://github.com/ziegenberg/pi-skill-acli) (MIT). |
@@ -15,7 +16,7 @@ Ivan Gudak's open-source Claude Code plugin marketplace.
 ## Prerequisites
 
 - **Claude Code** — the plugins install into Claude Code (some `obsidian-llm-wiki` commands also support GitHub Copilot).
-- **`superpowers`** *(recommended)* — the Claude Code plugin `dev-workflows` leans on for `/prompt-brainstorm` and its brainstorm → plan → subagent-driven-development flow. No hard dependency; commands degrade gracefully without it.
+- **`superpowers`** *(recommended)* — the Claude Code plugin `workflows-core` leans on for `/prompt-brainstorm`, and that the whole family uses for its brainstorm → plan → subagent-driven-development flow. No hard dependency; commands degrade gracefully without it.
 - **`gh` + `gh auth login`** *(recommended)* — enables reading GitHub PR diffs (`/document`, `/release-notes`); without it those commands fall back to local-git strategies.
 - **`vale`** *(optional)* — a prose linter for docs; `dev-workflows` falls back to a repo lint script, then the `prose-style` plugin, when `vale` is absent.
 - **Recommended environment: [`ihudak/ai-containers`](https://github.com/ihudak/ai-containers)** — mounts every repository and your specs repo under one `/workspace` umbrella (repos at `/workspace/<repo>`, the specs repo at `/workspace/specs`), so the default `$REPOS_PATH` (`/workspace`) and an exported `SPECS_PATH` just work; it also installs `gh` and mounts the host `gh` auth. Outside a container the commands still work — set `$REPOS_PATH` yourself and manage `gh` login.
@@ -36,6 +37,7 @@ claude plugin install prose-style@ihudak-plugins
 claude plugin install obsidian-llm-wiki@ihudak-plugins
 claude plugin install acli@ihudak-plugins
 claude plugin install guideline-reviewers@ihudak-plugins
+claude plugin install workflows-core@ihudak-plugins
 ```
 
 ### 3. Configure environment variables
@@ -52,17 +54,17 @@ export GIT_USER_INITIALS="iv-gu"       # optional: branch prefix for every branc
 - **`SPECS_PATH`** — the shared, team-visible store for a ticket's `specification.md` / `design.md` / ARD under `specifications/<KIND>-<KEY>-<slug>/…` (kind `BRD`/`PRD`/`EPIC`). Required by the specs-authoring commands (`/create-prd`, `/create-ard`, `/specify`, `/design`, `/ready`); advisory for `/implement`; additive for `/document`.
 - **`REPOS_PATH`** — where code clones live; a single directory or a colon-separated list. Defaults to `/workspace`. Repos are matched by their `git remote get-url origin` slug, not by directory name.
 - **`DOCS_PATH`** *(optional)* — a **read-only** clone of the product documentation (default `/workspace/docs`). When it is an existing directory containing markdown, `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, and `/release-notes` automatically ground on the existing shipped docs (via the read-only `docs-grounder` agent), and `/document` prefers it as a docs-repo discovery hint. Never written to; every miss is a silent, non-blocking skip. Disable per-run with `--no-docs`, or override the root with `--docs <path>`.
-- **`GIT_USER_INITIALS`** *(optional)* — your branch identifier, used verbatim (no trailing `/`) by every branch-creating command: `/implement`, `/document`, `/docs-profile`, `/upgrade`, and `/vuln`. Branch naming is **repo-rule-first**: each command reads the target repo's own `CONTRIBUTING.md` / `README.md` / `DOCUMENTATION-GUIDELINES.md` / `CLAUDE.md` and follows the convention documented there. Where that convention has a name/initials segment — as `example-docs` does (`<your-name-or-initials>/<JIRA-ISSUE-KEY>-<short-branch-name>`) — this variable fills it, giving `iv-gu/PRODUCT-1234-add-oauth`. Where it has none (say a plain `feat/<slug>` repo), the convention is followed as written and no initials are injected. Only when a repo documents no convention at all does this variable become the whole prefix. When unset, the commands fall back to `git config user.initials`, then infer from existing branch names, then ask. Full algorithm: `plugins/dev-workflows/references/branch-naming.md`.
+- **`GIT_USER_INITIALS`** *(optional)* — your branch identifier, used verbatim (no trailing `/`) by every branch-creating command: `/implement`, `/document`, `/docs-profile`, `/upgrade`, and `/vuln`. Branch naming is **repo-rule-first**: each command reads the target repo's own `CONTRIBUTING.md` / `README.md` / `DOCUMENTATION-GUIDELINES.md` / `CLAUDE.md` and follows the convention documented there. Where that convention has a name/initials segment — as `example-docs` does (`<your-name-or-initials>/<JIRA-ISSUE-KEY>-<short-branch-name>`) — this variable fills it, giving `iv-gu/PRODUCT-1234-add-oauth`. Where it has none (say a plain `feat/<slug>` repo), the convention is followed as written and no initials are injected. Only when a repo documents no convention at all does this variable become the whole prefix. When unset, the commands fall back to `git config user.initials`, then infer from existing branch names, then ask. Full algorithm: `plugins/workflows-core/references/branch-naming.md`.
 
-### 4. Run `/dev-workflows:statusline` first
+### 4. Run `/workflows-core:statusline` first
 
-After installing, run `/dev-workflows:statusline` once. It installs the `dev-workflows` multi-line status line (session identity, git, context, cost, tokens, rate limits) into `~/.claude/settings.json` and enables the Option-B snapshot used by session-cost reporting. It is idempotent and backs up anything it would overwrite, and it changes no workflow-command behavior.
+After installing, run `/workflows-core:statusline` once. The command ships in `workflows-core`, so install that plugin too (step 2 above lists it). It installs the family's multi-line status line (session identity, git, context, cost, tokens, rate limits) into `~/.claude/settings.json` and enables the Option-B snapshot used by session-cost reporting. It is idempotent and backs up anything it would overwrite, and it changes no workflow-command behavior.
 
 ```
-/dev-workflows:statusline
+/workflows-core:statusline
 ```
 
-> Claude Code ships its own built-in `/statusline` command (backed by the `statusline-setup` agent) that configures a plain, single-line status line. Since the plugin's command shares that name, typing the bare `/statusline` runs Claude Code's built-in flow instead — always use the fully-qualified `/dev-workflows:statusline` to install this plugin's status line.
+> Claude Code ships its own built-in `/statusline` command (backed by the `statusline-setup` agent) that configures a plain, single-line status line. Since the plugin's command shares that name, typing the bare `/statusline` runs Claude Code's built-in flow instead — always use the fully-qualified `/workflows-core:statusline` to install the family's status line.
 
 ### 5. Update after new releases
 

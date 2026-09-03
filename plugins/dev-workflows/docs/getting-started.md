@@ -21,9 +21,9 @@ claude plugin install prose-style@ihudak-plugins
 
 **What you also need, and it is not a plugin.** Nothing — the pipeline reads and writes one markdown tree and calls no external service. If you keep your work in a tracker as well, syncing the two is yours to arrange; no command here learns whether one exists.
 
-**One more that is not in this marketplace.** [`superpowers`](https://github.com/obra/superpowers) is a separate Claude Code plugin, recommended rather than required: `/prompt-brainstorm` cedes its Phase 3 to `superpowers:brainstorming`, and the brainstorm → plan → subagent-driven-development flow this plugin's own development uses comes from it. Without it that one hand-off has nowhere to go; everything else degrades gracefully. Note that *grilling* is **not** an external dependency — the relentless-interrogation technique the authoring commands run is bundled here, in `references/grilling-technique.md`.
+**One more that is not in this marketplace.** [`superpowers`](https://github.com/obra/superpowers) is a separate Claude Code plugin, recommended rather than required: `/prompt-brainstorm` cedes its Phase 3 to `superpowers:brainstorming`, and the brainstorm → plan → subagent-driven-development flow this plugin's own development uses comes from it. Without it that one hand-off has nowhere to go; everything else degrades gracefully. Note that *grilling* is **not** an external dependency — the relentless-interrogation technique the authoring commands run is bundled here, in `workflows-core:grilling-technique`.
 
-**What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki` (compiling a vault into a cross-referenced wiki) and `acli` (an Atlassian CLI reference skill) <!-- vendor-token-ok: names the subject of a sibling plugin this one does not use -->. Neither is used by `dev-workflows` — `acli` is referenced nowhere in it, and `references/followup-emission.md` states outright that it has no dependency on it — runtime or editorial. It used to mirror that plugin's task conventions, because follow-ups landed in a vault; they land in the specs tree now, as plain markdown. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
+**What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki` (compiling a vault into a cross-referenced wiki) and `acli` (an Atlassian CLI reference skill) <!-- vendor-token-ok: names the subject of a sibling plugin this one does not use -->. Neither is used by `dev-workflows` — `acli` is referenced nowhere in it, and `workflows-core:followup-emission` states outright that it has no dependency on it — runtime or editorial. It used to mirror that plugin's task conventions, because follow-ups landed in a vault; they land in the specs tree now, as plain markdown. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
 
 ## Update
 
@@ -35,7 +35,7 @@ Run this whenever you want the latest command, agent, hook, and reference conten
 
 ## What you set on your machine
 
-`dev-workflows` reads five environment variables. One is required for the pipeline to have anywhere to write (`SPECS_PATH`); the rest are optional and each degrades to a documented default or a silent skip.
+`dev-workflows` reads four environment variables. One is required for the pipeline to have anywhere to write (`SPECS_PATH`); the rest are optional and each degrades to a documented default or a silent skip.
 
 ### `SPECS_PATH`
 
@@ -53,13 +53,9 @@ A **read-only** clone of your shipped product documentation. It matters most to 
 
 Your branch identifier. Branch naming is **repo-rule-first**: every branch-creating command reads the target repo's own documented convention and follows it as written. Where that convention has a name-or-initials segment, `GIT_USER_INITIALS` fills it; where it does not, the convention is followed without it, and this variable is simply unused for that repo.
 
-### `DEV_WORKFLOWS_COST_PRICES`
-
-An optional path to your own price table, overriding the bundled `references/cost-prices.yaml` that session-cost reporting prices tokens against. It is the variable of the five you are least likely ever to set — the bundled defaults are used until you do.
-
 ## Install the status line
 
-**Worth doing before your first real run.** Two things come out of it.
+**Worth doing before your first real run.** The command that installs it ships in the companion `workflows-core` plugin rather than this one, which is why every form below is qualified. Two things come out of it.
 
 The visible half is a permanent multi-line status line at the bottom of your terminal — session identity, git state, context usage, running cost, tokens, and rate limits — so you can see a long command spending your budget while it spends it, rather than finding out in the final report.
 
@@ -68,10 +64,10 @@ The half you don't see is the **cost cross-check**. Session-cost reporting works
 See [Session cost](reference/session-cost.md) for what the report contains and where it lands. The command is idempotent, backs up anything it would overwrite, and changes no workflow-command behaviour.
 
 ```
-/dev-workflows:statusline
+/workflows-core:statusline
 ```
 
-Claude Code ships its own built-in `/statusline` command, so typing the bare form reaches that instead of this plugin's — always use the qualified `/dev-workflows:statusline`.
+Claude Code ships its own built-in `/statusline` command, so typing the bare form reaches that instead of the companion plugin's — always use the qualified `/workflows-core:statusline`.
 
 ## Your first run
 

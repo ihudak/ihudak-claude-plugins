@@ -6,6 +6,8 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 
 Intake the customer-supplied business requirements document: $ARGUMENTS
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 `/brd-intake` is the **entry point of the BRD-to-PRD flow** (PM phase) — the first of the
 `/brd-*` commands, which between them turn a long, often internally
 contradictory customer BRD into requirements a PRD can be built from. It copies the customer's
@@ -22,7 +24,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
 ## Phase 0 — Resolve inputs
 
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate it with `key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1's `key-valid` — shape only,
+   (`workflows-core:addressing` §1's `key-valid` — shape only,
    never checked against a tracker). If absent or invalid, **stop gracefully**:
    `BRD_INTAKE_NEEDS_KEY: /brd-intake needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-001) — pick a short stable identifier for this business requirements document, then re-run '/dev-workflows:brd-intake <KEY> @<brd-file>'.`
 2. **`@<brd-file>` (mandatory).** The customer's source file argument. If absent, **stop**:
@@ -42,17 +44,15 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    carried to Phase 1's `resolve-docs-grounding` call. Neither changes anything else about Phase 0:
    the BRD source is still required and still gated by step 3.
 5. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
-   `Required path environment variable unset` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+   `Required path environment variable unset` rule in `workflows-core:escalation-rules`:
    ```
    choices: ["Set SPECS_PATH (enter the path)", "Cancel"]
    ```
-6. **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute
-   its `specs-preflight` entry point (§3) inline. Prompt-free and silent when the specs repo is
+6. **Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline. Prompt-free and silent when the specs repo is
    clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
    `commit-artifacts` step skips on it.
-7. **Resolve or derive the BRD folder** via `resolve-address <BRD-KEY>`
-   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Found → this is an existing BRD folder
+7. **Resolve or derive the BRD folder** via `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Found → this is an existing BRD folder
    and this invocation is a re-run over it; use it. **A slice is never a legitimate target here** —
    it has no source document of its own to intake, and its inventory and ledger are the parent's
    `/brd-split` to write (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1,
@@ -62,11 +62,11 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    brand-new BRD: derive `<slug>` from the source file's first heading (kebab-cased), falling back
    to a kebab of the source filename when no heading is found, and prepare to create
    `specifications/BRD-<BRD-KEY>-<slug>/` — **the `BRD-` kind prefix is part of the name**
-   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2), never optional and never derived from the
+   (`workflows-core:addressing` §2), never optional and never derived from the
    key. The directory is not actually created until Phase 2's first write.
 
    **Writing it unprefixed is the pre-prefix shape §5 exists to tolerate, never to produce**, and
-   the cost is not cosmetic. A folder created without the prefix misses `addressing.md` §3's
+   the cost is not cosmetic. A folder created without the prefix misses `workflows-core:addressing` §3's
    `*-<KEY>-*` glob by construction, so every downstream run resolves it through §5's legacy
    fallback and reports it `legacy: true` — deprecated, once per run — on a tree this command wrote
    minutes earlier. Worse, the container refusals `/dev-workflows:create-prd`,
@@ -76,7 +76,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    folder that has none — so an unprefixed root BRD moves all four refusals onto the legacy branch
    they hold for repositories written before increment A. And `/dev-workflows:brd-split` Phase 3
    step 2 creates its slice at `specifications/BRD-<PARENT-KEY>-<parent-slug>/PRD-…`, a path that
-   would not exist. `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5 keeps resolving the folders
+   would not exist. `workflows-core:addressing` §5 keeps resolving the folders
    a pre-prefix repo already holds; this command does not add to them.
 
 
@@ -118,13 +118,13 @@ cwd-agnostic and needs no repos mounted (no `$REPOS_PATH`); grounding against co
 Show, and confirm before writing anything:
 
 - The BRD folder (existing, or the derived `BRD-<BRD-KEY>-<slug>` to be created — the `BRD-`
-  prefix included, per `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2).
+  prefix included, per `workflows-core:addressing` §2).
 - The resolved absolute path to `@<brd-file>`.
 - Whether `--sort-existing <dir>` is in play, and its resolved directory.
-- The `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`
+- The `docs grounding:` line in the form `workflows-core:docs-grounding`
   resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build,
   staleness, or shadowing clause it carries (off switch: --no-docs). Run
-  `resolve-docs-grounding brd-intake` per that reference to obtain it; it runs **exactly once per
+  `resolve-docs-grounding brd-intake` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` to obtain it; it runs **exactly once per
   run**, here, and Phase 3.5 consumes the cached result rather than re-resolving.
 
 **The `/epics` consent-ordering exception does not apply to this command.** `/epics` resolves docs
@@ -142,7 +142,7 @@ choices: ["Proceed with <folder> (Recommended)", "Use a different key or path (y
 
 ## Phase 1.5 — Classify + model routing
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`), then record:
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then record:
 
 ```yaml
 model_routing:
@@ -226,13 +226,13 @@ Act on `status`:
 
 Consume the `resolve-docs-grounding brd-intake` result cached in Phase 1 — never re-run it. When
 `docs_grounding: OFF`, skip silently and say so once in the final report. When `docs_grounding: ON`,
-`dispatch-docs-grounder` (`${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`) with
+`dispatch-docs-grounder` (`workflows-core:docs-grounding`) with
 `feature_summary` = two to four sentences drawn from the Phase 3 inventory (what this BRD asks the
 product to do, in the operator's own product terms), `key` = `<BRD-KEY>`, and `themes` = the
 capability themes the inventory rows cluster into. This runs after Phase 3 because the inventory is
 what the summary is built from, and before Phase 4 because Phase 4 is where the digest is consumed.
 
-**Consumption is grill-rank (`docs-grounding.md`), against the Phase 4 defect walk — and a
+**Consumption is grill-rank (`workflows-core:docs-grounding`), against the Phase 4 defect walk — and a
 `[DEF#n]` is the only thing documentation can ever put on a `[BR#n]` row.** Two effects, both of
 them landing on the row only through Phase 4's existing human confirmation:
 
@@ -333,21 +333,20 @@ grounding has actually run. When `--sort-existing` was not given, this phase is 
 
 ## Phase 7 — Handoff
 
-Present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim:
+Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim:
 
 ```
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md`
-§2) with `prefix: brd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = every file
+On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = every file
 this run wrote under `<BRD-dir>` — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 classifies either as OTHER and stages it silently, so a declaration that looks complete ships nothing. That is each file this run actually copied into `brd/source/` named individually (the copy step knows them; `brd/source/**` is not a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`,
 `coverage-ledger.md`, and — only when Phase 6 ran — `prd-seed.md`, `ard-seed.md`, `spec-seed.md`),
 `title: <BRD-KEY> Intake BRD source and requirement inventory`, and `body_facts` = the requirement
 count, the confirmed-defect count by class, and whether Phase 6 wrote seeds; emit its §4.1 outcome
 line in the final report.
 
-`brd` is the branch prefix `phase-handoff.md` §2.9 lists as shared by every `/brd-*`
+`brd` is the branch prefix `workflows-core:phase-handoff` §2.9 lists as shared by every `/brd-*`
 command (the way `prd` is shared by `/create-prd` and `/update-prd`) — a BRD is neither a PRD nor
 any of the other five prefixes, and reusing `prd` would collide with the `prd/<SLICE-KEY>-<slug>`
 branch `/create-prd` on the BRD route opens once a slice of this BRD is PRD-eligible. **That
@@ -367,7 +366,7 @@ each, and all three commands refuse the container itself
 
 **Branch on Phase 3's result.** A BRD whose inventory holds no `[BR#n]` row is refused by every
 downstream command on the route, so offering one here would name a run that stops on its own Phase 0
-— the offer `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` exists to prevent.
+— the offer `workflows-core:next-phase-offer` exists to prevent.
 
 **One or more `[BR#n]` rows — the ordinary case:**
 
@@ -384,7 +383,7 @@ choices: ["Re-run this intake with a corrected source — /dev-workflows:brd-int
 
 Neither option on that second list carries a `(Recommended)` marker, and the omission is deliberate
 per the `When no option is safe to recommend` guidance in
-`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`: whether the source was mis-converted, was
+`Skill(skill: "workflows-core:reference", args: "escalation-rules")`: whether the source was mis-converted, was
 the wrong file, or genuinely states no requirement is a judgement about the customer's document, and
 only the operator who has read it can take it. Say beside the list which conversion or file this run
 actually read, so that judgement has something to stand on.
@@ -394,14 +393,14 @@ design repos. It will not start reading this BRD's artifacts until they are on t
 default branch — its own Phase 0 gates `coverage-ledger.md` on `origin/<default>` and stops with
 `BRD_GROUND_NEEDS_INTAKE` otherwise — so offering it here is the next step, not an instruction to
 run it before that lands. **State the wait as `<merge-clause>` resolves it** from this run's own
-`Phase handoff:` outcome line (`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`): a declined
+`Phase handoff:` outcome line (`Skill(skill: "workflows-core:reference", args: "next-phase-offer")`): a declined
 handoff opened no pull request, so telling the operator to wait for one would name a thing that does
 not exist. Guidance only — never auto-invokes another command.
-Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
+Per `workflows-core:next-phase-offer`.
 
 ### Context hygiene
 
-Per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`, the resume pointer is written in the
+Per `workflows-core:session-hygiene`, the resume pointer is written in the
 terminal cost phase (Phase 9), after the cost entry and before the commit step. Continuing this
 route yourself into `/dev-workflows:brd-ground <BRD-KEY>`, even as the same person? → run
 **`/clear`** for a clean slate. Guidance only — nothing is auto-run.
@@ -413,32 +412,27 @@ route yourself into `/dev-workflows:brd-ground <BRD-KEY>`, even as the same pers
 Terminal phase — runs after Phase 8, NEVER interrupts an earlier phase.
 
 **Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command /
-reference gap**, `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that
+reference gap**, `emit-block` (per `workflows-core:feedback-emission`) at that
 halt **before** escalating. None of Phase 0's stops qualify — a missing key, a missing source, a
 non-markdown source, and an unset `$SPECS_PATH` are all environment / user halts, never a plugin
 capability gap, so `emit-block` never fires from this command's own Phase 0.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/brd-intake`; what was
    produced (the inventory, the confirmed defect log, the ledger skeleton); key events (a rejected
    PDF, an `EMPTY` read, unresolved candidates left `open`, docs grounding OFF or a docs-raised
    defect — or "none"); workarounds; test result
    N/A; project root = the BRD folder.
-2. **Persist plugin feedback (automatic).** Cite
-   `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6)
+2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6)
    with the Lessons Learned report, `command: /brd-intake`, the run's `key` (the `<BRD-KEY>`),
    `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`).
    Surface the persisted path (or "no plugin-facing signal — nothing persisted").
-3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call
-   its `emit-cost` entry point with `command: /brd-intake`, `phase: brd-to-prd`, `role: pm`, the
+3. **Session cost (ALWAYS runs).** Invoke `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and call its `emit-cost` entry point with `command: /brd-intake`, `phase: brd-to-prd`, `role: pm`, the
    run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
    notice).
-4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and
-   write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry above, and before
+4. **Write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` and, per its §1, write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry above, and before
    the commit step below. Redact per §1. Silent.
-5. **Commit session artifacts (terminal).** Cite
-   `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry
-   point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths
+5. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths
    inside `$SPECS_PATH`, commits `<BRD-KEY> Add dev-workflows session artifacts (/brd-intake)` with
    no `Co-Authored-By` trailer, and pushes to the branch Phase 7's handoff created. It NEVER touches
    a code repo, a docs repo, or the current working directory; NEVER force-pushes; NEVER
@@ -459,9 +453,9 @@ documentation rather than by `brd-reader`); the `docs grounding:` line from Phas
 when it was ON — the `docs_references` list of requirements the shipped documentation describes as
 already built, flagged for `/brd-ground` to check against code; whether Phase 6 wrote seeds and
 which; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Phase handoff:` outcome line from
-`handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1), including the `brd`
+`handoff-to-main` (`workflows-core:phase-handoff` §4.1), including the `brd`
 prefix note; the `Specs repo:` outcome line from `commit-artifacts`
-(`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6); the next-step recommendation; and end with
+(`workflows-core:specs-repo-git` §6); the next-step recommendation; and end with
 the ledger line, exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
 ```

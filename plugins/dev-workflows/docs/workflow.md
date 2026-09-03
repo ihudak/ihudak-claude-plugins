@@ -32,11 +32,9 @@ flowchart TD
         document --> rndev["/dev-workflows:release-notes (final)"]
         ready["/ready"]
     end
-    subgraph ANY["Anytime — improve the plugin & utilities"]
-        improve["/feedback · /prompt · /prompt-brainstorm · /prompt-grill-me"]
+    subgraph ANY["Anytime — standalone maintenance & utilities"]
         maint["/vuln · /dev-workflows:upgrade"]
-        tooling["/dev-workflows:statusline · /docs-profile"]
-        framesidx["/dev-workflows:frames — (re)build a design/ frame-set index"]
+        tooling["/docs-profile"]
     end
 
     createvi -->|PRD| createard
@@ -65,7 +63,7 @@ The two dashed edges leaving `/brd-reconcile` go to different commands on purpos
 
 The diagram above shows where each command sits in the pipeline; [Roles and phases](roles-and-phases.md) says what each role is accountable for and what it hands over at each seam.
 
-**Three command names collide with a Claude Code built-in of the same name: `/release-notes`, `/upgrade`, and `/statusline`.** Typing the bare form reaches Claude Code's own command instead of the plugin's, so use the qualified form — `/dev-workflows:release-notes`, `/dev-workflows:upgrade`, `/dev-workflows:statusline` — for those three. No other command in this plugin is known to collide today, so the rest work either way, and the diagram above spells out the qualified form only where it is required.
+**Two command names here collide with a Claude Code built-in of the same name: `/release-notes` and `/upgrade`.** Typing the bare form reaches Claude Code's own command instead of the plugin's, so use the qualified form — `/dev-workflows:release-notes` and `/dev-workflows:upgrade` — for both. `/statusline` collides the same way and is qualified `/workflows-core:statusline`, since it ships in the companion plugin. No other command in this plugin is known to collide today, so the rest work either way, and the diagram above spells out the qualified form only where it is required.
 
 ## Parameters at the BRD-to-PRD handoff
 
@@ -107,7 +105,6 @@ See [Roles and phases](roles-and-phases.md) for what each role owns, consumes, a
 
 These run outside the role pipeline above, at any time:
 
-- **Plugin improvement.** `/feedback` logs a note about the plugin itself; `/prompt`, `/prompt-brainstorm`, and `/prompt-grill-me` turn a correction you just made into logged feedback plus a fix.
 - **Standalone maintenance.** `/vuln` (CVE remediation) and `/upgrade` (dependency / runtime upgrades) run on their own, outside the PRD pipeline.
-- **Setup and review utilities.** `/statusline` (install the status line — run this first), `/docs-profile` (bootstrap a docs repo's profile).
-- **Specs-tree repair.** [`/frames`](commands/frames.md) (re)builds the frame-set index of any folder holding exported design frames — a BRD, PRD, or Epic folder alike — so a set somebody dropped in by hand becomes readable. It advances no phase and grounds nothing.
+- **Setup utilities.** `/docs-profile` bootstraps a docs repo's profile.
+- **In the companion plugin.** The status line, the specs-tree frame-set indexer, and the plugin-feedback commands ship in `workflows-core` and run against the same specs tree: `/statusline`, `/frames`, `/feedback`, `/prompt`, `/prompt-brainstorm` and `/prompt-grill-me`.

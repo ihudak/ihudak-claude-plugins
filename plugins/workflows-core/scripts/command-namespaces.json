@@ -1,0 +1,53 @@
+{
+  "dev-workflows": [
+    "brd-ground",
+    "brd-intake",
+    "brd-interview",
+    "brd-package",
+    "brd-reconcile",
+    "brd-split",
+    "create-ard",
+    "create-prd",
+    "design",
+    "docs-profile",
+    "document",
+    "epics",
+    "idea",
+    "implement",
+    "ready",
+    "release-notes",
+    "specify",
+    "update-prd",
+    "upgrade",
+    "vuln"
+  ],
+  "guideline-reviewers": [
+    "api-guideline-reviewer",
+    "guideline-reviewer"
+  ],
+  "obsidian-llm-wiki": [
+    "wiki-hot",
+    "wiki-ingest",
+    "wiki-init",
+    "wiki-lint",
+    "wiki-query",
+    "wiki-save",
+    "wiki-scan",
+    "wiki-tags-refresh",
+    "wiki-task",
+    "wiki-tasks-extract"
+  ],
+  "prose-style": [
+    "prose-review-docs",
+    "prose-review-pr",
+    "prose-style-refresh"
+  ],
+  "workflows-core": [
+    "feedback",
+    "frames",
+    "prompt",
+    "prompt-brainstorm",
+    "prompt-grill-me",
+    "statusline"
+  ]
+}

@@ -4,7 +4,7 @@ Drafts a customer-facing release-notes summary for a resolved Product Requiremen
 
 ## Who runs it
 
-`/release-notes` is the plugin's one **dual-role** command — the same command runs at two different points in a PRD's life, and `emit-cost` tells them apart by inference rather than by a fixed label. `references/cost-emission.md` §7 gives the discriminator, and it is deliberately narrow: **the presence of downstream engineering artifacts** — any `specification.md` or `design.md` under the PRD's specs dir. **None present** → phase [prd-creation](../roles-and-phases.md#prd-creation), role [pm](../roles-and-phases.md#pm--product-management) — the PRD exists but no engineering work has started, and Epics may or may not exist yet. **Either present** → phase [documenting](../roles-and-phases.md#documenting), role [dev](../roles-and-phases.md#dev--build-verify-and-deliver) — the dev re-run, once a specification or design is in scope.
+`/release-notes` is the plugin's one **dual-role** command — the same command runs at two different points in a PRD's life, and `emit-cost` tells them apart by inference rather than by a fixed label. `workflows-core:cost-emission` §7 gives the discriminator, and it is deliberately narrow: **the presence of downstream engineering artifacts** — any `specification.md` or `design.md` under the PRD's specs dir. **None present** → phase [prd-creation](../roles-and-phases.md#prd-creation), role [pm](../roles-and-phases.md#pm--product-management) — the PRD exists but no engineering work has started, and Epics may or may not exist yet. **Either present** → phase [documenting](../roles-and-phases.md#documenting), role [dev](../roles-and-phases.md#dev--build-verify-and-deliver) — the dev re-run, once a specification or design is in scope.
 
 **Epic presence is deliberately not part of the signal.** A PRD can have drafted Epics — via [`/epics`](epics.md) — while still entirely in PM/PE hands: nothing about an Epic draft implies engineering has started on it. Keying the discriminator on Epics would misattribute that ordinary PM-phase PRD as a dev run. Specs and designs are the right signal because they can only exist once [`/specify`](specify.md) or [`/design`](design.md) has actually run against the PRD — an Epic drafted by `/epics` never gets close to producing either.
 
@@ -16,7 +16,7 @@ Drafts a customer-facing release-notes summary for a resolved Product Requiremen
 /release-notes <ADDRESS> [--version <v>] [--no-docs]
 ```
 
-`/release-notes` is **address-required** — there is no free-text or `@file` input; a prompt with no positional address stops with `RELEASE_NOTES_NEEDS_KEY`. The address is a `<KEY>`, or an `@<path>` naming a folder in the specs tree; [`addressing.md`](../../references/addressing.md) §3 resolves either.
+`/release-notes` is **address-required** — there is no free-text or `@file` input; a prompt with no positional address stops with `RELEASE_NOTES_NEEDS_KEY`. The address is a `<KEY>`, or an `@<path>` naming a folder in the specs tree; `workflows-core:addressing` §3 resolves either.
 
 ## How it runs
 
@@ -40,7 +40,7 @@ flowchart TD
 
 The `d1` fork is the Phase 1 diff-grounding choice, default OFF — the PRD alone is usually enough for a release note; it decides the folder read's `depth` before Phase 3 even runs (`prd-only` when off, `full` when on, so PR links are collected), and only Phase 4's repo resolution and Phase 5's `diff-summarizer` batches are actually skipped on the "off" path.
 
-Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 5.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `release-notes-writer` (Phase 6, the sole author of the rendered draft), and `impl-maintenance` (Phase 9, alongside no other maintenance agents — `/release-notes` has none of `/document`'s or `/implement`'s three general-purpose maintenance dispatches). `diff-summarizer` (Phase 5) is a fifth agent, dispatched only when diff grounding is on. `prose-style-checker` and `prose-fixer` (Phase 7) belong to the separate `prose-style` plugin and run only when it's installed.
+Three subagents are dispatched: `workflows-core:docs-grounder` (Phase 5.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `release-notes-writer` (Phase 6, the sole author of the rendered draft), and `workflows-core:impl-maintenance` (Phase 9, alongside no other maintenance agents — `/release-notes` has none of `/document`'s or `/implement`'s three general-purpose maintenance dispatches). `diff-summarizer` (Phase 5) is a fifth agent, dispatched only when diff grounding is on. `prose-style-checker` and `prose-fixer` (Phase 7) belong to the separate `prose-style` plugin and run only when it's installed.
 
 ## What it needs
 
@@ -95,4 +95,4 @@ Byte for byte the same command, and every step above happens the same way. The s
 - [Model routing](../reference/model-routing.md) — the classification rules; `/release-notes` is always `MODERATE`.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal Phase 9–11 bookkeeping every run emits.
 - [`release-note-types.md`](../../references/release-note-types.md) — the section map, the per-section draft shape and prose rules, and the deprecation-note rule `release-notes-writer` applies.
-- [`cost-emission.md`](../../references/cost-emission.md) — §7's full phase/role inference this page's `## Who runs it` section is derived from.
+- `workflows-core:cost-emission` — §7's full phase/role inference this page's `## Who runs it` section is derived from.

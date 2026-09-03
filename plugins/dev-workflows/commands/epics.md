@@ -6,13 +6,15 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 
 Draft child Epics for the resolved Product Requirements Document: $ARGUMENTS
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 `/epics` is the **keyed Epic-writing** workflow. Given a Product Requirements Document key, it reads the PRD plus its existing Epics from the resolved PRD folder, optionally scans code repos to identify reusable capabilities and gaps, drafts child Epic definitions as markdown files under the resolved output directory, and gates the result on an Opus review.
 
 Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not yet implemented** — there are no PRs to diff. Code scanning (when enabled) is a plain filesystem search to understand what exists and what needs to be built.
 
 **`/epics` accepts exactly two shapes and refuses everything else** (Phase 0 steps 1a and 1b): a `PRD-` folder, which it partitions into new Epics, or an `EPIC-` folder **that has a PRD above it**, which it re-refines. A stand-alone `EPIC-` folder and a `BRD-` container are both refused. **Epics come from a PRD only**, and `/epics` is the only command in this plugin that creates an `EPIC-` folder — `/create-ard` and `/specify` refuse an absent one rather than minting it.
 
-`/epics` **never branches** and **never commits the Epic drafts** (still true — the run's git **writes** are confined to `$SPECS_PATH`, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`; the run does make read-only git calls elsewhere — Phase 4's `git remote get-url origin` per candidate clone and Phase 8's `git diff --stat` from `project_root` — but none of them writes), and writes only inside the resolved PRD folder — one `EPIC-<PRD-KEY>-NN-<eslug>/` per Epic, plus `_coverage.md` beside `prd.md`. Git hygiene of the write target is the user's responsibility — they may or may not have it under version control. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) — via the `specs-preflight` flush at run start (§3.4) and the terminal `commit-artifacts` step (§4); never the drafts, never the write target. It still creates no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none).
+`/epics` **never branches** and **never commits the Epic drafts** (still true — the run's git **writes** are confined to `$SPECS_PATH`, per `workflows-core:specs-repo-git`; the run does make read-only git calls elsewhere — Phase 4's `git remote get-url origin` per candidate clone and Phase 8's `git diff --stat` from `project_root` — but none of them writes), and writes only inside the resolved PRD folder — one `EPIC-<PRD-KEY>-NN-<eslug>/` per Epic, plus `_coverage.md` beside `prd.md`. Git hygiene of the write target is the user's responsibility — they may or may not have it under version control. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths (`workflows-core:specs-repo-git` §2.1) — via the `specs-preflight` flush at run start (§3.4) and the terminal `commit-artifacts` step (§4); never the drafts, never the write target. It still creates no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`workflows-core:specs-repo-git` §2.2); it creates none).
 
 ---
 
@@ -20,10 +22,10 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an
    `@<path>` naming a folder or a file inside one — and resolve it with
-   `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), **with no `<KIND>`
+   `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), **with no `<KIND>`
    argument**: a slice folder is `PRD-`-prefixed while the `brd-link.md` inside it asserts
    `kind: brd`, so narrowing the resolution by kind would refuse on one route the very folder it
-   resolves on the other (`addressing.md` §3, `resolve-key` step 1). The kind gate is step 1b's, and
+   resolves on the other (`workflows-core:addressing` §3, `resolve-key` step 1). The kind gate is step 1b's, and
    it is taken on what the resolved folder **holds**.
    `status: found` → carry its `path`, `kind` and `key` forward; `ambiguous` → stop,
    naming every match and `@<path>` as the way through. **`absent` is a graceful stop, not a folder
@@ -38,7 +40,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    `/epics` is **address-required**: with no positional address, stop with
    `EPICS_NEEDS_KEY: /epics needs a PRD or Epic address — a key, or an @<path> to its folder.` —
    `/epics` has no direct-prompt behavior. Downstream, `<PRD-KEY>` denotes the
-   **PRD folder's** own `key` (`addressing.md` §4), read from its frontmatter
+   **PRD folder's** own `key` (`workflows-core:addressing` §4), read from its frontmatter
    and never parsed out of its directory name — the resolved folder itself when the address named a
    PRD, its parent when the address named an Epic (step 1b).
 
@@ -47,7 +49,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    (`docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` D6): a BRD is a container,
    and the `EPIC-` folders this command writes belong under the `PRD-` slices carved from it — never
    beside `brd/`, `grounding/`, `coverage-ledger.md` and `slices.md`, in a folder
-   `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2 invariant 1 gives no Epic. This refusal is
+   `workflows-core:addressing` §2 invariant 1 gives no Epic. This refusal is
    taken here rather than left to step 1b: a container fails 1b's test anyway (it holds no `prd.md`),
    but 1b's remedy names `/dev-workflows:create-prd`, which refuses a container in turn — a stop
    whose remedy stops is a dead end, and this step is what keeps it from being one.
@@ -57,7 +59,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    **asserts `brd` while being exactly the folder Epics belong under**, and a gate on the asserted
    kind would refuse every slice and accept nothing.
 
-   **Where the folder resolved through `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5's legacy
+   **Where the folder resolved through `workflows-core:addressing` §5's legacy
    fallback and carries no prefix, the question is answered by positive evidence that it is a BRD,
    never by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
    §5.1, the shared authority `/create-prd`, `/create-ard` and `/specify` take this same test from.
@@ -144,13 +146,13 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    command can, because by the time it runs the PRD exists. The Epic side of the gate is the same
    test one level down: `epic.md`'s own `kind: epic`, which is also what settles an `@<path>` naming
    a file (§6.3 of the design: stop if the file is not an Epic, naming what it found instead).
-   Neither test reads a directory name, so a folder resolved through `addressing.md` §5's legacy
+   Neither test reads a directory name, so a folder resolved through `workflows-core:addressing` §5's legacy
    fallback — unprefixed — is classified exactly as a prefixed one is.
 
    | The resolved folder | What `/epics` does |
    |---|---|
    | Holds a `prd.md` asserting `kind: prd` | **Draft.** `prd_dir` = the resolved `path`, `<PRD-KEY>` = the folder's own `key`, `focus_key` = `null`. This is the `PRD-` folder on either route — the one `/idea` wrote into, or the slice `/brd-split` carved |
-   | Holds an `epic.md` asserting `kind: epic`, and its **parent** holds a `prd.md` asserting `kind: prd` | **Re-refine.** `prd_dir` = the **parent**, `<PRD-KEY>` = the parent's own `key`, `focus_key` = the resolved Epic folder's own `key` — all three read from frontmatter (`addressing.md` §4), never parsed from a directory name |
+   | Holds an `epic.md` asserting `kind: epic`, and its **parent** holds a `prd.md` asserting `kind: prd` | **Re-refine.** `prd_dir` = the **parent**, `<PRD-KEY>` = the parent's own `key`, `focus_key` = the resolved Epic folder's own `key` — all three read from frontmatter (`workflows-core:addressing` §4), never parsed from a directory name |
    | Holds an `epic.md` asserting `kind: epic`, and its parent holds no such `prd.md` | Refuse — `EPICS_EPIC_NOT_UNDER_PRD` below |
    | Anything else — including a `PRD-` folder in which no `prd.md` has been authored yet | Refuse — `EPICS_NO_PRD` below |
 
@@ -205,9 +207,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
 `/epics` is **cwd-agnostic**: it writes Epic drafts to an absolute output
 directory (resolved in Phase 1), so it does **not** require cwd to be anywhere in particular.
 
-**Specs-repo preflight.** Cite
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
-`specs-preflight` entry point (§3) inline: flush any leftover session
+**Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session
 artifacts from an earlier run, retry an artifact commit that failed to push,
 and settle the branch. Prompt-free and silent when the specs repo is clean and
 on its default branch. If a guard fires, emit its §5 notice; if it returns
@@ -220,7 +220,7 @@ terminal `commit-artifacts` step skips on it.
 
 **Rule: Ask, don't guess. This rule is absolute.**
 
-Group questions where possible; use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
+Group questions where possible; use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`Skill(skill: "workflows-core:reference", args: "escalation-rules")` §0).
 
 Ask about:
 
@@ -230,7 +230,7 @@ Ask about:
 
   **Mint the key** as `<PRD-KEY>-NN` — the next unused two-digit segment under this PRD, skipping any
   an existing `EPIC-` folder already uses. Propose it, let the operator override, and validate
-  whatever is used with `key-valid` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1); an invalid
+  whatever is used with `key-valid` (`workflows-core:addressing` §1); an invalid
   key is **re-prompted, never silently coerced**. This is `commands/brd-split.md` Phase 3 step 1's
   mechanism, reused rather than restated.
 
@@ -263,15 +263,15 @@ Also display (for user context):
 - Resolved `$REPOS_PATH` (or "N/A — code scan off")
 - Resolved `prd_dir`, `key` and `focus_key` (or "none — PRD-level")
 
-No branching context is shown — this command never branches (still true — `specs-preflight` only switches `$SPECS_PATH` between branches that already exist, and only ones the plugin created, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2; it creates none).
+No branching context is shown — this command never branches (still true — `specs-preflight` only switches `$SPECS_PATH` between branches that already exist, and only ones the plugin created, per `workflows-core:specs-repo-git` §2.2; it creates none).
 
 ---
 
 ## Phase 1.5 — Classify
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or `HIGH-RISK`. Epic writing is typically **MODERATE** (bounded scope, single PRD, specs-tree output). State the classification and a one-sentence reason.
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`) to load the classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or `HIGH-RISK`. Epic writing is typically **MODERATE** (bounded scope, single PRD, specs-tree output). State the classification and a one-sentence reason.
 
-MODERATE → no separate Opus planner; the `epic-reviewer` gate (Opus, frontmatter-pinned) is mandatory. Resolve the per-step routing per `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §9:
+MODERATE → no separate Opus planner; the `epic-reviewer` gate (Opus, frontmatter-pinned) is mandatory. Resolve the per-step routing per `workflows-core:model-routing/classification` §9:
 
 ```yaml
 model_routing:
@@ -291,7 +291,7 @@ Each subagent dispatch below cites its chain (§9 role→chain map). **No relaun
 
 ## Phase 2 — Plan + approval
 
-**Documentation grounding (optional, independent of code scan).** Before presenting the plan below, run `resolve-docs-grounding epics` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's the folder read, Phase 4's repo resolution, and Phase 5's parallel code scan do any of the run's real work. This runs ahead of Phase 2.5/2.6's `require-on-main`/`ard-resolution.md` gates — a deliberate exception to `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §5 rule 2's ordering, kept here rather than moved because `resolve-docs-grounding`'s only expensive step is itself behind its own consent prompt (`docs-grounding.md` step 3.5), and an index build it produces is a durable, run-independent artifact, not per-run work a later stop would waste.
+**Documentation grounding (optional, independent of code scan).** Before presenting the plan below, run `resolve-docs-grounding epics` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's the folder read, Phase 4's repo resolution, and Phase 5's parallel code scan do any of the run's real work. This runs ahead of Phase 2.5/2.6's `require-on-main`/`workflows-core:ard-resolution` gates — a deliberate exception to `workflows-core:phase-handoff` §5 rule 2's ordering, kept here rather than moved because `resolve-docs-grounding`'s only expensive step is itself behind its own consent prompt (`workflows-core:docs-grounding` step 3.5), and an index build it produces is a durable, run-independent artifact, not per-run work a later stop would waste.
 
 Present a concise plan:
 
@@ -318,8 +318,7 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 ## Phase 2.5 — Resolve applicable ARD (optional)
 
-Resolve any PRD-level ARD for this PRD by citing
-`${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `prd = key`,
+Resolve any PRD-level ARD for this PRD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and running its resolution with `prd = key`,
 **`epic: null`** (Epics do not exist yet — PRD-level ARD only), and `$SPECS_PATH`.
 
 - On `status: none` (including `$SPECS_PATH` unset/unresolvable) → **skip and
@@ -340,15 +339,14 @@ If a PRD-level specification exists, fold its requirements into the coverage
 inventory. **Additive, zero-cost when absent** — the common case, since
 `/specify` usually runs per-Epic *after* `/epics`.
 
-1. **Resolve the PRD dir:** call `resolve-address <PRD>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md`
-   §3), which searches every level §3 bounds and carries §5's legacy fallback. `status: found` →
+1. **Resolve the PRD dir:** call `resolve-address <PRD>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches every level §3 bounds and carries §5's legacy fallback. `status: found` →
    use its `path`; `status: absent` → none exists; `status: ambiguous` → stop, naming every match
    and `@<path>` as the way through. No matching rule is written here: a second copy of the one §5
    states is the drift §1 warns about. If `$SPECS_PATH` is
    unset/unresolvable, or no PRD dir matches at either level → **skip** (set
    `vi_spec_present: false`) — the skip a PRD with no nested folder takes today,
    unchanged.
-2. **Detect:** execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against `<PRD-dir>/specification.md`, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. On any stopping state, stop per §4.4, naming `$SPECS_PATH` explicitly — a spec that exists but has not yet landed on `<default>` is a weaker grounding basis than the one about to arrive, and Epics drafted against it would need re-doing. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed to step 3 (`pass_amending` prints §3.3's row-B message). On `unmanaged`, behave exactly as before this feature — **skip** (set `vi_spec_present: false`). On `absent`, **skip** (set `vi_spec_present: false`); the run proceeds byte-identically to today — this is the common case, and PRD-level `/specify` remains optional.
+2. **Detect:** execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against `<PRD-dir>/specification.md`, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. On any stopping state, stop per §4.4, naming `$SPECS_PATH` explicitly — a spec that exists but has not yet landed on `<default>` is a weaker grounding basis than the one about to arrive, and Epics drafted against it would need re-doing. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed to step 3 (`pass_amending` prints §3.3's row-B message). On `unmanaged`, behave exactly as before this feature — **skip** (set `vi_spec_present: false`). On `absent`, **skip** (set `vi_spec_present: false`); the run proceeds byte-identically to today — this is the common case, and PRD-level `/specify` remains optional.
 3. **Parse** `<PRD-dir>/specification.md` directly (Read it — one file, a simple
    heading scan): extract its user stories `[Uxx]` and their nested acceptance
    criteria `[ACxx]` into `vi_spec_requirements[]`. **Skip `[TCxx]` test cases**
@@ -375,7 +373,7 @@ inventory. **Additive, zero-cost when absent** — the common case, since
 **Read the PRD folder directly.** Read its `prd.md` for the product content, and list the `EPIC-`
 subfolders under it for the Epics that already exist — that listing *is* the linked-item hierarchy
 the retired reader used to return. Each Epic folder's `key` and title come from its own frontmatter
-(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4), never from its directory name.
+(`workflows-core:addressing` §4), never from its directory name.
 
 **Build `requirements[]` here, from the PRD you just read.** It is the coverage ground truth Phases 6–7
 run on — `epic-writer` receives it, `epic-reviewer` checks Epic coverage against it, and `_coverage.md`
@@ -387,7 +385,7 @@ the PRD states: its `id` (`[US#n]` / `[AC#n]` / `[SM#n]` / `[UC#n]` / `[FR#n]`),
 **Existing Epics come from the same read**, as one entry per `EPIC-` subfolder with its `key` and
 title, which is what the non-duplication dimension compares a new draft against. An empty PRD folder,
 or one whose `prd.md` states no requirements, is the `key dir not found` case: surface the rule in
-`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`choices: ["Re-enter key", "Cancel"]`) rather
+`workflows-core:escalation-rules` (`choices: ["Re-enter key", "Cancel"]`) rather
 than proceeding with an empty ground truth, which would let every Epic pass coverage vacuously.
 
 **This step used to dispatch an agent and wait for a handoff.** That agent read a tracker export and
@@ -415,7 +413,7 @@ typed** (Phase 0 step 1b — the address resolved to an `EPIC-` folder and `prd_
 grammar, where the second key arrived independently of the first and could disagree with it; D4
 removed the second key, and with it the disagreement. A focus Epic that the enumeration cannot see
 would mean the resolved folder is not under the folder resolution said it was — a tree defect, not
-an operator error, and `addressing.md` §3's ambiguity stop is where that is reported.
+an operator error, and `workflows-core:addressing` §3's ambiguity stop is where that is reported.
 Treat `focus_key` as the **single refinement target**: Phase 6 re-drafts
 only that Epic's `epic.md`, and Phase 7 reviews only that file. The non-duplication
 set (`existing_epics`) is the *other* `EPIC-` folders under `prd_dir` — exclude the focus Epic so
@@ -468,12 +466,12 @@ If code scan is ON:
    - **Auto-derived** (Phase 1 default) — walk the `EPIC-` folders under the PRD folder; for each `epic.md` (already read during Phase 3), collect repo names from the `implementation.md` beside it, where one exists. Dedupe. If the auto-derived list is empty, fall back to asking the user.
    - **Manual list** — prompt for a free-text list of repo short names (one per line or space-separated). Resolve each against the `$REPOS_PATH` slug→clone map built in step 2 below.
 
-2. Build a slug→clone map. For each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as that clone's slug. Skip directories with no `.git` or whose `git remote` call fails/times out. Resolve each in-scope repo slug against the map: one match → use it; multiple matches → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last (show candidates at plan approval); zero matches → escalate per the `Repo unresolved (zero matches) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+2. Build a slug→clone map. For each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as that clone's slug. Skip directories with no `.git` or whose `git remote` call fails/times out. Resolve each in-scope repo slug against the map: one match → use it; multiple matches → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last (show candidates at plan approval); zero matches → escalate per the `Repo unresolved (zero matches) — /epics` rule in `workflows-core:escalation-rules`:
    ```
    choices: ["Skip and continue without this repo's scan", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
    ```
 
-3. If the final resolved repo list is empty (every repo was skipped or missing), escalate per the `No repos derivable — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+3. If the final resolved repo list is empty (every repo was skipped or missing), escalate per the `No repos derivable — /epics` rule in `workflows-core:escalation-rules`:
    ```
    choices: ["List repos to scan manually", "Proceed without code scan", "Cancel"]
    ```
@@ -488,7 +486,7 @@ Spawn `code-scanner` instances in **batches of up to 4 concurrent agents** per A
 
 For each repo in the batch:
 
-→ Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "workflows-core:code-scanner", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Scan this repo for the brief:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 4>
@@ -508,7 +506,7 @@ For each repo in the batch:
 Handle per-repo status after the batch returns:
 
 - `OK` / `PARTIAL` / `EMPTY` — store the output, continue.
-- `REPO_MISSING` — should not happen at this stage (Phase 4 already checked). If it does, escalate per the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+- `REPO_MISSING` — should not happen at this stage (Phase 4 already checked). If it does, escalate per the `Repo missing (after resolution)` rule in `workflows-core:escalation-rules`.
 - `DIRTY_TREE` — escalate:
   ```
   choices: ["Stash changes and retry this repo", "Skip this repo", "Cancel"]
@@ -517,15 +515,15 @@ Handle per-repo status after the batch returns:
   ```
   choices: ["Continue with current local state", "Skip this repo", "Cancel"]
   ```
-- `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
+- `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule in `workflows-core:escalation-rules` **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
 
 ---
 
 ## Phase 6 — Write Epics
 
-The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits in this phase** (still true — `/epics` never branches, and the Epic drafts it writes are never committed; git hygiene of the write target is the user's responsibility. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
+The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `workflows-core:model-routing/classification` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits in this phase** (still true — `/epics` never branches, and the Epic drafts it writes are never committed; git hygiene of the write target is the user's responsibility. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths, per `workflows-core:specs-repo-git` §2.1).
 
-1. **Write the handoff file.** Create a temp file (`mktemp` — never a repo, never the specs tree) containing the `epic-writer` input contract: `folder_read`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `prd_dir` (the resolved PRD folder), `vi_goal`, `key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), `refinement_targets` (list of `{key, scope_hint, current_body_path}`, where `current_body_path = <prd_dir>/EPIC-<EPIC-KEY>-<eslug>/epic.md` — the keyed folder, keyless filename shape `epic-writer` writes and `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2/§4 define; empty in `generate` mode), and `docs_grounding` (the Phase 3.6 digest, or omit when OFF/EMPTY). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's `epic.md`; the PRD folder is unchanged.
+1. **Write the handoff file.** Create a temp file (`mktemp` — never a repo, never the specs tree) containing the `epic-writer` input contract: `folder_read`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `prd_dir` (the resolved PRD folder), `vi_goal`, `key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), `refinement_targets` (list of `{key, scope_hint, current_body_path}`, where `current_body_path = <prd_dir>/EPIC-<EPIC-KEY>-<eslug>/epic.md` — the keyed folder, keyless filename shape `epic-writer` writes and `workflows-core:addressing` §2/§4 define; empty in `generate` mode), and `docs_grounding` (the Phase 3.6 digest, or omit when OFF/EMPTY). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's `epic.md`; the PRD folder is unchanged.
 
 2. **Dispatch the writer:**
 
@@ -582,7 +580,7 @@ Act on the return:
 - **`status: OK`** — zero violations. Proceed to Phase 7.
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, re-run `prose-style-checker` once:
 
-  → Agent (subagent_type: "dev-workflows:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
+  → Agent (subagent_type: "workflows-core:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
     > "Fix the style violations for this brief:
     >
     > Task description: [Epic drafting for <KEY>]
@@ -600,8 +598,7 @@ If `prose-style-checker` is unavailable (agent file not found), proceed directly
 
 ## Phase 6.3 — Structural pre-lint
 
-Before the review gate, run the deterministic checks in
-`${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against each drafted Epic file: the **Universal checks**,
+Before the review gate, run the deterministic checks in `Skill(skill: "workflows-core:reference", args: "pre-lint")` against each drafted Epic file: the **Universal checks**,
 the **key-collision** check (run on the whole Epic file — the template has no frontmatter), and
 the **Epic** block (required headings incl. `## Independent Test`; Given/When/Then acceptance
 criteria; `[NEEDS CLARIFICATION]` ≤ 3 per Epic; `_coverage.md` present). Surface every finding;
@@ -628,9 +625,9 @@ When `mode` is `refine`/`both`, include `refinement_targets` in the `epic-review
 
 Act on the verdict (same shape as `/document` keyed mode Phase 7):
 
-**Triage sub-step** (before any fixer dispatch): follow `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
+**Triage sub-step** (before any fixer dispatch): invoke `Skill(skill: "workflows-core:reference", args: "finding-triage")` and follow it. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
 
-- **BLOCK** — invoke `doc-fixer` with `Severities to fix: BLOCKER and MAJOR`. Write the `doc-fixer` Fix Report to a temp file (`mktemp -t dw-epics-claims-XXXX.md`, never inside a repo tree or the specs tree), record its path as `claims_file`, then **check `doc-fixer`'s `Stop condition flag` before re-invoking anything**. If it is `NEEDS HUMAN`, the fixer deferred at least one BLOCKER as needing a human decision: do NOT re-invoke `epic-reviewer` — a re-review can only re-find the BLOCKER the fixer has just reported it could not resolve — and instead surface each deferred BLOCKER with the reason the fixer gave, then escalate it individually per the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, which names this entry point alongside the second-BLOCK one. Only when the flag is `CLEAR` do you re-invoke `epic-reviewer` once **passing `claims_file`** — so the re-review falsifies the fixer's account rather than assuming it. If still BLOCK, escalate per the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` for each unresolved BLOCKER individually:
+- **BLOCK** — invoke `doc-fixer` with `Severities to fix: BLOCKER and MAJOR`. Write the `doc-fixer` Fix Report to a temp file (`mktemp -t dw-epics-claims-XXXX.md`, never inside a repo tree or the specs tree), record its path as `claims_file`, then **check `doc-fixer`'s `Stop condition flag` before re-invoking anything**. If it is `NEEDS HUMAN`, the fixer deferred at least one BLOCKER as needing a human decision: do NOT re-invoke `epic-reviewer` — a re-review can only re-find the BLOCKER the fixer has just reported it could not resolve — and instead surface each deferred BLOCKER with the reason the fixer gave, then escalate it individually per the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in `workflows-core:escalation-rules`, which names this entry point alongside the second-BLOCK one. Only when the flag is `CLEAR` do you re-invoke `epic-reviewer` once **passing `claims_file`** — so the re-review falsifies the fixer's account rather than assuming it. If still BLOCK, escalate per the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in `workflows-core:escalation-rules` for each unresolved BLOCKER individually:
   ```
   choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run"]
   ```
@@ -638,7 +635,7 @@ Act on the verdict (same shape as `/document` keyed mode Phase 7):
 
 - **PASS WITH RECOMMENDATIONS** — invoke `doc-fixer` for MAJOR findings only:
 
-  → Agent (subagent_type: "dev-workflows:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
+  → Agent (subagent_type: "workflows-core:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
     > "Fix the review findings for this brief:
     >
     > Task description: [Epic drafting for <KEY>]
@@ -658,7 +655,7 @@ Cap: one fix cycle + one re-review maximum.
 
 First gather the change context:
 
-a. `project_root` is the resolved PRD folder. Run `git diff --stat` from `project_root` if it is a git repo; otherwise list the written files manually. This command never commits anything under `project_root` — just report what changed (the terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
+a. `project_root` is the resolved PRD folder. Run `git diff --stat` from `project_root` if it is a git repo; otherwise list the written files manually. This command never commits anything under `project_root` — just report what changed (the terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths, per `workflows-core:specs-repo-git` §2.1).
 b. Compose a **change summary block**:
 
 ```
@@ -709,7 +706,7 @@ Then spawn all four maintenance agents in a **single Agent message**. They are i
 > If YES: apply minimal, additive, scoped changes only.
 > Return: what was changed and why, OR 'no update required'."
 
-**Agent 4 — Session maintenance** (dev-workflows:impl-maintenance):
+**Agent 4 — Session maintenance** (workflows-core:impl-maintenance):
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
@@ -724,9 +721,7 @@ Then spawn all four maintenance agents in a **single Agent message**. They are i
 Collect all four summaries for the Phase 9 report.
 
 **Persist plugin feedback (automatic).** After Agent 4 (`impl-maintenance`)
-returns, project its plugin-facing slice into the specs repo by citing
-`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
-`emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
+returns, project its plugin-facing slice into the specs repo by invoking `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and calling its `emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
 `command: /epics`, the run's `key` and `source`, and `plugin_version`
 (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto`
 renders only the report's **Command workflow improvements**, **New agents /
@@ -739,7 +734,7 @@ the Phase 9 report's Session learnings line. ADDITIVE — the impl-maintenance
 report still appears in the report; this step NEVER fails the run, NEVER
 commits (still true — this step only writes the feedback file; those writes
 are committed by the terminal `commit-artifacts` step in Phase 11, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes
+`workflows-core:specs-repo-git` §4), and NEVER writes
 into the current working directory.
 
 ---
@@ -822,17 +817,17 @@ MODERATE — Epic drafting for a single PRD
 The project root has uncommitted changes. `/epics` never commits the project root — git management there is your responsibility. (This run's `$SPECS_PATH` session artifacts are committed separately by the terminal step — see its outcome line at the end of the run.)
 
 ### Next step
-[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/dev-workflows:specify <EPIC>` (PE) — one address, the Epic's own (D4); `/specify` resolves that folder and, finding no `brd-link.md` in it, looks one level up, so a slice-derived Epic keeps the BRD-route contract on this address exactly as it does through the picker; the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/dev-workflows:create-ard <EPIC>`. If the review BLOCKED, resolve that first.]
+[Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/dev-workflows:specify <EPIC>` (PE) — one address, the Epic's own (D4); `/specify` resolves that folder and, finding no `brd-link.md` in it, looks one level up, so a slice-derived Epic keeps the BRD-route contract on this address exactly as it does through the picker; the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/dev-workflows:create-ard <EPIC>`. If the review BLOCKED, resolve that first.]
 
 ### Context hygiene
 
-The resume pointer is written in the terminal cost phase (Phase 11), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
+The resume pointer is written in the terminal cost phase (Phase 11), per `workflows-core:session-hygiene` §1. Then:
 
 - **Continuing as PE (`/dev-workflows:specify <EPIC>`)?** → run **`/compact`** — context still relevant.
 - **Handing to PA (`/dev-workflows:create-ard <EPIC>`), even yourself?** → run **`/clear`** for a clean slate.
 - Consider **`/rename <PRD-ID>-<slug>-pe`** to relocate this session later.
 
-Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
+Guidance only — see `workflows-core:session-hygiene`.
 ```
 
 ---
@@ -841,8 +836,7 @@ Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
 
 Terminal phase — runs AFTER the Phase 9 Final Report is composed; NEVER
 interrupts an earlier phase. Persist the run's manual-step / out-of-scope
-follow-ups by citing `${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md`
-and executing its steps inline.
+follow-ups by invoking `Skill(skill: "workflows-core:reference", args: "followup-emission")` and executing its steps inline.
 
 1. **Collect** the qualifying follow-ups: the manual publish step ("create these
    drafted Epics elsewhere manually" — the drafts are plain files
@@ -855,7 +849,7 @@ and executing its steps inline.
 ADDITIVE — the follow-ups also remain in the Phase 9 report. This phase NEVER
 fails the run, NEVER commits (still true — this phase only writes follow-up
 files; those writes are committed by the terminal `commit-artifacts` step in
-Phase 11, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and
+Phase 11, per `workflows-core:specs-repo-git` §4), and
 NEVER writes into the current working directory.
 
 ---
@@ -864,16 +858,14 @@ NEVER writes into the current working directory.
 
 Terminal phase — the NEW final operational phase; runs after Phase 10 (the
 follow-up phase) and NEVER interrupts an earlier phase. Records this command's
-token-cost contribution to the PRD by citing
-`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and calling its single
-`emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
+token-cost contribution to the PRD by invoking `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and calling its single `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
 nothing".
 
 Call `emit-cost` with `command: /epics`, `phase: epic-refinement`, `role: pe`,
 the run's `key` (or `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
-runs `scripts/session-cost.py` to compute the per-model token-cost delta against
+computes the per-model token-cost delta against
 the price table (§4), records the optional statusline cross-check (§5), and
 appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via
 the specs-first ladder (§8) — pending + opportunistic move-then-delete
@@ -881,16 +873,13 @@ reconciliation (§9) when no PRD key resolves. **The checkpoint advances even in
 the pending / report-only tiers.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 
-**Then write the resume pointer.** Cite
-`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite
+**Then write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` and, per its §1, write/overwrite
 `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
 pointer reflects the completed run, and before the commit step below, so it is
 included in it. Redact per §1. Silent; the printed `### Context hygiene`
 guidance already appeared in the Phase 9 report.
 
-**Then commit session artifacts (terminal).** Cite
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
-`commit-artifacts` entry point (§4) inline — the LAST action of the run. It
+**Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/epics)`, and pushes per §4 step 5.
 It NEVER touches a code/docs
@@ -912,13 +901,13 @@ user name is ever written (§10 privacy).
 
 ## Invariants (always enforced)
 
-- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
+- ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
 - ALWAYS resolve one positional address (Phase 0) — a key or an `@<path>` naming a folder in the specs tree works without it; `/epics` is cwd-agnostic and rejects `mode: direct`
 - ALWAYS gate the resolved folder in Phase 0 step 1b on **`prd.md`'s own `kind: prd`** (and, one level down, `epic.md`'s own `kind: epic`) — NEVER on the folder's asserted `kind:`, which a `PRD-` slice folder sets to `brd`; two shapes are accepted (a PRD folder → draft; an `EPIC-` folder with a PRD above it → re-refine, `focus_key` derived from it) and every other shape is refused
 - NEVER partition a `BRD-` container (step 1a, `EPICS_BRD_NOT_SLICED`, taken on the directory prefix before any read) or a stand-alone `EPIC-` folder (`EPICS_EPIC_NOT_UNDER_PRD`) — Epics come from a PRD only, and `/epics` is the ONLY command that creates an `EPIC-` folder
-- NEVER create a git branch — this command never branches. `specs-preflight` may switch `$SPECS_PATH` between branches that already exist, and only ones the plugin created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none.
-- NEVER commit the Epic files, or anything in the current working directory — git management there is the user's responsibility. **Say what leaving them uncommitted costs**: an `epic.md` in the PRD folder is an `OTHER` path to `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1, so it fires §3.3's G1 advisory on every later run of any command and keeps the preflight's leftover flush and branch settle skipped until it is committed or removed. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
-- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
+- NEVER create a git branch — this command never branches. `specs-preflight` may switch `$SPECS_PATH` between branches that already exist, and only ones the plugin created (`workflows-core:specs-repo-git` §2.2); it creates none.
+- NEVER commit the Epic files, or anything in the current working directory — git management there is the user's responsibility. **Say what leaving them uncommitted costs**: an `epic.md` in the PRD folder is an `OTHER` path to `workflows-core:specs-repo-git` §2.1, so it fires §3.3's G1 advisory on every later run of any command and keeps the preflight's leftover flush and branch settle skipped until it is committed or removed. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1).
+- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - NEVER write inside `_archive/` — read-only by convention
 - ALWAYS write inside the resolved PRD folder — each Epic in its own `EPIC-` subfolder, `_coverage.md` beside `prd.md` (there is one home and it is derived, so no path is asked for)
 - ALWAYS write to `EPIC-<PRD-KEY>-NN-<eslug>/epic.md` under the resolved PRD folder — one home, derived rather than asked for  — auto-create the directory if missing
@@ -930,10 +919,10 @@ user name is ever written (§10 privacy).
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
 - ALWAYS pass `Command run: /epics` in the Phase 8 Agent 4 session handoff
 - ALWAYS spawn Phase 8 agents in a single message — never sequentially
-- ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0)
+- ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)
 - ALWAYS produce the Phase 9 report as the final output
-- ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked
-- ALL written claims must be traceable to a resolved key (from the folder read) or code paths (from `code-scanner`); do not invent content the sources don't contain. `[[KEY]]` wikilinks in the draft are correct here and stay: `/epics` writes markdown that Obsidian and IntelliJ both render, where a wikilink resolves. `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1 — which bans in-page provenance — governs **rendered product-docs pages** (`/document`'s write targets), not Epic definitions; do not apply it to them
+- ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`) — guidance only, never auto-invoked
+- ALL written claims must be traceable to a resolved key (from the folder read) or code paths (from `code-scanner`); do not invent content the sources don't contain. `[[KEY]]` wikilinks in the draft are correct here and stay: `/epics` writes markdown that Obsidian and IntelliJ both render, where a wikilink resolves. `workflows-core:doc-structure-conventions` §1 — which bans in-page provenance — governs **rendered product-docs pages** (`/document`'s write targets), not Epic definitions; do not apply it to them
 - NEVER run `docs-style-checker` — Epic definitions are specs-tree content and not subject to product-docs prose linting. Prose style is checked via `prose-style-checker` in Phase 6.2 instead.
 - ALWAYS have `epic-writer` write `_coverage.md` to the PRD folder itself (PRD-holistic, even in focus mode); it is NOT an Epic definition and is never published
 - ALWAYS run the Phase 6.1 clarification gate when the writer returns clarifications; unresolved-by-choice markers become `epic-reviewer` BLOCKERs
@@ -944,4 +933,4 @@ user name is ever written (§10 privacy).
 - ALWAYS re-surface the code-scan default adaptively in Phase 3.5 for refine/both (ON at ≥2 targets, OFF at 1) — never in the generate path
 - ALWAYS run the Phase 6.1 leftover-disposition gate in refine/both when `_coverage.md` has `❌ gap` rows; silent no-op when none
 - Refinement mode (Phase 3.5 gate, `refinement_targets` handoff, leftover gate, keyed output) is ADDITIVE and guarded — no `refinement_candidate` targets AND no `focus_key` ⇒ `mode = generate` and the run is byte-identical to the legacy net-new flow
-- ALWAYS end the Phase 9 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a role-aware `/compact`|`/clear` suggestion + `/rename <PRD-ID>-<slug>-pe`; guidance only, never auto-run.
+- ALWAYS end the Phase 9 report with a `### Context hygiene` block per `workflows-core:session-hygiene` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `workflows-core:session-hygiene` §1 — this block prints the guidance only), then a role-aware `/compact`|`/clear` suggestion + `/rename <PRD-ID>-<slug>-pe`; guidance only, never auto-run.

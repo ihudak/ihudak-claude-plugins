@@ -6,6 +6,8 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 
 Implement the following: $ARGUMENTS
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 ---
 
 ## Phase 0 — Load and classify inputs
@@ -18,12 +20,12 @@ Implement the following: $ARGUMENTS
 |---|---|---|
 | **Spec file** | a single `.md` file | read fully; use as the description/spec |
 | **Spec folder** | a directory containing `prompt.md` and/or a `*-design.md` | read all `.md` specs within; fold into the description |
-| **Specs folder** | a directory under `specifications/` that asserts a `key:` in a keyless artifact it holds — `prd.md`, `epic.md`, `specification.md` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4) | hand to the folder read in Phase 1.7 |
+| **Specs folder** | a directory under `specifications/` that asserts a `key:` in a keyless artifact it holds — `prd.md`, `epic.md`, `specification.md` (`workflows-core:addressing` §4) | hand to the folder read in Phase 1.7 |
 | **Code repo** | a directory where `git -C <path> rev-parse --is-inside-work-tree` succeeds (includes the cwd) | scan target in Phase 1.7 |
 
 **Address resolution.** Before the per-`@path` classification above, look for a **single positional
 address** in `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a folder in the specs tree. Present →
-resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) and the run
+resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3) and the run
 is **keyed**; absent → the run is **direct** (free-text / `@file`, this command's existing flow).
 That is the whole mode test, and it unifies the input grammar with `/document`.
 
@@ -43,7 +45,7 @@ resolved `path`, `kind` and `key`, and `specs` forward.
   `/dev-workflows:epics` is the only command that creates an `EPIC-` folder and it writes every one
   of them under a PRD folder, so an Epic address is always the bullet above.
   - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
-  - **PRD with ≥2 Epics** → render the picker per `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`,
+  - **PRD with ≥2 Epics** → render the picker per `Skill(skill: "workflows-core:reference", args: "epic-picker")`,
     honouring that file's *The cap*: every Epic listed as prose, the array carrying at most three rows
     plus *"Another Epic from the list above — name its key"*. **`/implement`'s done-predicate is now the artifacts
     present in each Epic folder**, which is the mechanism `/design`'s own Epic picker already uses:
@@ -79,7 +81,7 @@ Rules:
   incorporate a spec that still carries them. "Override" is the only escape and is recorded in the
   Phase 5 report's `### Assumptions & limitations`.
 - Multiple inputs of the same kind are allowed.
-- A referenced `@dir` that is missing, or is neither a recognized folder type nor a git repo, MUST be surfaced to the user immediately (do not silently skip) — then ask whether to continue without it or stop. This mirrors `classification.md` §8.4.
+- A referenced `@dir` that is missing, or is neither a recognized folder type nor a git repo, MUST be surfaced to the user immediately (do not silently skip) — then ask whether to continue without it or stop. This mirrors `workflows-core:model-routing/classification` §8.4.
 - Note any embedded images as "referenced image: <path>".
 - If a single `@file` cannot be read, stop and report the error immediately.
 - **Specs are required for keyed runs.** When `mode: keyed` and the resolution found
@@ -90,9 +92,7 @@ Rules:
   `### Assumptions & limitations`. Direct-mode runs (no address) are exempt —
   the prompt/spec file is the instruction.
 
-**Specs-repo preflight.** Cite
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
-`specs-preflight` entry point (§3) inline: flush any leftover session
+**Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session
 artifacts from an earlier run, retry an artifact commit that failed to push,
 and settle the branch. This runs against `$SPECS_PATH` only — `git -C
 "$SPECS_PATH"`, never a `cd`, so the code/docs repo this run is working
@@ -101,7 +101,7 @@ is clean and on its default branch. If a guard fires, emit its §5 notice;
 if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
 run — the terminal `commit-artifacts` step skips on it.
 
-**Gate the in-scope specs on `$SPECS_PATH`'s main.** This runs after the cheap `focus_key`-null folder classification above — a deliberate, bounded exception to `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §5 rule 2's "before its first subagent dispatch", and structurally forced: this gate's `specs` set is derived from `focus_key`, which that dispatch resolves. The exception is bounded to that one read-only Epic-unit classification; every expensive step — the Phase 1.7 fan-out, `risk-planner`, and all writes — still follows the gate. (`/epics` records its own §5 rule 2 deviation the same way.) For each resolved `specs` path whose basename is `specification.md` or `design.md` — `/implement`'s **in-scope** spec/design files, the same set Phase 2B and the invariants section reference for the conformance dimension — execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against it, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4, naming `$SPECS_PATH` explicitly — `/implement` stands in a **code** repo, so an unqualified stop message would point at the wrong repository. Otherwise (`stopped: false`): `pass`/`pass_amending` → proceed (on `pass_amending`, print §3.3's row-B message — reachable only when an **earlier** `/implement` run's Phase 4.5 handoff created the branch and `specs-repo-git.md` §3.5 B3 kept this run's preflight checkout on it — never this run's own Phase 4.5, which has not executed when this Phase 0 gate runs; `/implement` does not itself author `specification.md`/`design.md`, so a leftover `spec/`/`design/` branch left by an earlier `/specify`/`/design` run is never row B for this gate — it is row C/C′, and the stop/repair path above already covers it). `absent` → **only an in-scope spec is gated at all** — a direct-prompt run resolves none of these `specs` entries and is entirely unaffected, so do not stop; behave exactly as before this feature. `unmanaged` → behave exactly as before this feature. A spec/design supplied directly as a lone `@path` primary description — the Design-doc open-question guard's own input above, a separate mechanism from the `specs` list this gate reads — is **out-of-contract**: read where it sits, deliberately not gated here, the same rule this plan set for `/create-prd <KEY> @<path>`.
+**Gate the in-scope specs on `$SPECS_PATH`'s main.** This runs after the cheap `focus_key`-null folder classification above — a deliberate, bounded exception to `workflows-core:phase-handoff` §5 rule 2's "before its first subagent dispatch", and structurally forced: this gate's `specs` set is derived from `focus_key`, which that dispatch resolves. The exception is bounded to that one read-only Epic-unit classification; every expensive step — the Phase 1.7 fan-out, `risk-planner`, and all writes — still follows the gate. (`/epics` records its own §5 rule 2 deviation the same way.) For each resolved `specs` path whose basename is `specification.md` or `design.md` — `/implement`'s **in-scope** spec/design files, the same set Phase 2B and the invariants section reference for the conformance dimension — execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against it, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4, naming `$SPECS_PATH` explicitly — `/implement` stands in a **code** repo, so an unqualified stop message would point at the wrong repository. Otherwise (`stopped: false`): `pass`/`pass_amending` → proceed (on `pass_amending`, print §3.3's row-B message — reachable only when an **earlier** `/implement` run's Phase 4.5 handoff created the branch and `workflows-core:specs-repo-git` §3.5 B3 kept this run's preflight checkout on it — never this run's own Phase 4.5, which has not executed when this Phase 0 gate runs; `/implement` does not itself author `specification.md`/`design.md`, so a leftover `spec/`/`design/` branch left by an earlier `/specify`/`/design` run is never row B for this gate — it is row C/C′, and the stop/repair path above already covers it). `absent` → **only an in-scope spec is gated at all** — a direct-prompt run resolves none of these `specs` entries and is entirely unaffected, so do not stop; behave exactly as before this feature. `unmanaged` → behave exactly as before this feature. A spec/design supplied directly as a lone `@path` primary description — the Design-doc open-question guard's own input above, a separate mechanism from the `specs` list this gate reads — is **out-of-contract**: read where it sits, deliberately not gated here, the same rule this plan set for `/create-prd <KEY> @<path>`.
 
 ---
 
@@ -138,7 +138,7 @@ Before producing a plan, analyze the description for:
 
 If **any** ambiguity exists, ask the user. Rules:
 - Use `choices` arrays for every question — never plain text questions
-- Every `choices` array carries 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0), which is what allows free-text
+- Every `choices` array carries 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`Skill(skill: "workflows-core:reference", args: "escalation-rules")` §0), which is what allows free-text
 - When a clearly superior default exists, make it the first choice and label it `"(Recommended)"`
 - Group related decisions into a single question (minimize total questions)
 - Do **not** proceed until all questions are answered
@@ -149,7 +149,7 @@ If **nothing** is ambiguous, skip directly to Phase 1.5.
 
 ## Phase 1.5 — Classify task complexity
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of:
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`) to load the classification rules, then classify the task as exactly one of:
 
 - **SIMPLE** — local, trivial, clearly reversible; no mandatory Opus steps
 - **MODERATE** — bounded scope, few files, clear requirements; no mandatory Opus steps
@@ -158,7 +158,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 State the classification and the specific criterion that triggered it. When in doubt between MODERATE and SIGNIFICANT, pick SIGNIFICANT.
 
-**Resolve the per-step routing.** Following `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §9, record a `model_routing` block resolving each model against the fallback chains:
+**Resolve the per-step routing.** Invoke `Skill(skill: "workflows-core:reference", args: "model-routing/classification")` and, following its §9, record a `model_routing` block resolving each model against the fallback chains:
 
 ```yaml
 model_routing:
@@ -194,21 +194,21 @@ From the Phase 0 classification, compute:
 
 Set `fan_out = (repo_count > 1) OR has_ticket_folder OR has_spec_folder`.
 
-- **`fan_out = true`** → the input is multi-source. Per `classification.md` §1.1 (the multi-source trigger; see §8 for the fan-out policy) this floors the classification at **SIGNIFICANT** (raise it now if Phase 1.5 chose SIMPLE/MODERATE). Announce: `"Multi-source input detected (<facts>) — flooring at SIGNIFICANT; this is overridable at plan approval."` Then run **Phase 1.7** (fan-out scan) and continue on the SIGNIFICANT/HIGH-RISK branch (Phase 2B).
+- **`fan_out = true`** → the input is multi-source. Per `workflows-core:model-routing/classification` §1.1 (the multi-source trigger; see §8 for the fan-out policy) this floors the classification at **SIGNIFICANT** (raise it now if Phase 1.5 chose SIMPLE/MODERATE). Announce: `"Multi-source input detected (<facts>) — flooring at SIGNIFICANT; this is overridable at plan approval."` Then run **Phase 1.7** (fan-out scan) and continue on the SIGNIFICANT/HIGH-RISK branch (Phase 2B).
 - **`fan_out = false`** → unchanged behavior; skip Phase 1.7 and proceed to Phase 2A or 2B exactly as the Phase 1.5 classification directs (the single-explorer path).
 
 ---
 
 ## Phase 1.7 — Multi-source exploration (only when `fan_out = true`)
 
-Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for multi-source input. Follows `classification.md` §8.
+Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for multi-source input. Follows `workflows-core:model-routing/classification` §8.
 
 1. **Read each referenced specs folder** (read-only):
 
    1. **Read the resolved folder.** Read its `prd.md` and the `specs` files resolved in Phase 0, plus —
    for a PRD-level address — the `EPIC-` subfolders under it. This phase reads no PR URLs:
    `implementation.md` (Phase 4.7) is where this run records its own refs, and
-   `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §4 is how a later run reads them.
+   `workflows-core:implementation-format` §4 is how a later run reads them.
 
    Read each folder in turn. Collect the themes; there are no PR references until `implementation.md` exists.
 
@@ -221,7 +221,7 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 
 3. **Fan out `code-scanner` — one per repo, single response, cap 4 concurrent.** Spawn all repo scanners in **one** message (batch in groups of 4 if there are more than 4 repos). For each code repo:
 
-   → Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
+   → Agent (subagent_type: "workflows-core:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
      > "repo_path: <absolute repo path>
      >  capability_themes: <themes from steps 1–2 + the implementation spec>
      >  context: <3–5 sentences: the implementation goal and what the change must accomplish>
@@ -241,21 +241,21 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
    shown. `/implement` scans repositories it may write to, which is exactly what the other five
    `code-scanner` callers do not do; `/idea` pins the same two values for the same reason.
 
-   Wait for all scanners in the batch to return. A scanner returning `REPO_MISSING` — the path is not a directory — escalates per the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`; `DIRTY_TREE` **cannot occur here** — `code-scanner` gates it on `refresh.pull`, which this dispatch
+   Wait for all scanners in the batch to return. A scanner returning `REPO_MISSING` — the path is not a directory — escalates per the `Repo missing (after resolution)` rule in `workflows-core:escalation-rules`; `DIRTY_TREE` **cannot occur here** — `code-scanner` gates it on `refresh.pull`, which this dispatch
    pins false, so no scanner stashes anything in a repo whose pre-existing changes Pre-Phase 3 is about
-   to record as `stash_ref`. It escalates per the `Dirty working tree` rule and `REFRESH_BLOCKED` per the `Refresh blocked` rule in the same file. None is ever hidden, and none is merely announced — each offers the user a way forward (§8.4). A scanner returning `prep.read_only: true` is not a failure — it scanned at `prep.scanned_ref`; escalate per the `Read-only mount — ref stale or diverged` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` only when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, and cite evidence at `prep.scanned_ref`.
+   to record as `stash_ref`. It escalates per the `Dirty working tree` rule and `REFRESH_BLOCKED` per the `Refresh blocked` rule in the same file. None is ever hidden, and none is merely announced — each offers the user a way forward (§8.4). A scanner returning `prep.read_only: true` is not a failure — it scanned at `prep.scanned_ref`; escalate per the `Read-only mount — ref stale or diverged` rule in `workflows-core:escalation-rules` only when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, and cite evidence at `prep.scanned_ref`.
 
-   **Round 2 — narrow and seeded (§8.5).** Apply `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §8.5. A theme is **inconclusive** when its round-1 `classification` is `partial`, `absent`, or `error`, or when **two or more** scanners' per-theme `capability_map[].gap_summary` texts point at each other's repo in a cycle, or at a component/subsystem that no scanned repo covers — the shape that yields confident answers which together say nothing. For every inconclusive theme that round 1 left at least one evidence anchor for, dispatch `code-scanner` again on `detection_model` with `capability_themes` holding exactly **one** question — the single thing round 1 failed to settle, not the broad theme — and `search_hints.paths`/`.symbols`/`.keywords` seeded from that round's verified `evidence[].path` and `.symbols`; where an evidence entry carries `lines`, name the anchor as `<path>:<line>` in the `context` prose. Cap **4 dispatches, one round only** — there is no round 3. This matters more here than where §8.5 was first adopted: `/idea`'s summary feeds a grill with a human in it, while this one feeds a planner whose output becomes code. **A theme round 1 left with no evidence anchor never enters round 2** — it stays inconclusive with no round-2 attempt possible, and that absence of an attempt is not itself a resolution.
+   **Round 2 — narrow and seeded (§8.5).** Invoke `Skill(skill: "workflows-core:reference", args: "model-routing/classification")` and apply its §8.5. A theme is **inconclusive** when its round-1 `classification` is `partial`, `absent`, or `error`, or when **two or more** scanners' per-theme `capability_map[].gap_summary` texts point at each other's repo in a cycle, or at a component/subsystem that no scanned repo covers — the shape that yields confident answers which together say nothing. For every inconclusive theme that round 1 left at least one evidence anchor for, dispatch `code-scanner` again on `detection_model` with `capability_themes` holding exactly **one** question — the single thing round 1 failed to settle, not the broad theme — and `search_hints.paths`/`.symbols`/`.keywords` seeded from that round's verified `evidence[].path` and `.symbols`; where an evidence entry carries `lines`, name the anchor as `<path>:<line>` in the `context` prose. Cap **4 dispatches, one round only** — there is no round 3. This matters more here than where §8.5 was first adopted: `/idea`'s summary feeds a grill with a human in it, while this one feeds a planner whose output becomes code. **A theme round 1 left with no evidence anchor never enters round 2** — it stays inconclusive with no round-2 attempt possible, and that absence of an attempt is not itself a resolution.
 
 4. **Synthesize.** Combine the folder read output, all `code-scanner` reports, and the spec into a single **multi-source codebase summary** (per-repo: relevant files, existing capabilities, gaps; plus the cross-repo picture and the PRD themes). This summary is the codebase context for Phase 2B — do **not** also run the single Explore subagent. Write this summary to a temp file (`mktemp -t dw-impl-summary-XXXX.md` — **never inside a repo working tree**, so a captured `git diff` never picks it up) and record its absolute path as `summary_file`; Phase 2B receives this path, not the pasted summary.
 
-   **Name what the scan did not settle.** The summary carries a `## Unresolved` section listing **every theme still inconclusive at the end of Phase 1.7** — this explicitly includes a theme that never entered round 2 because round 1 left no anchor to seed from, a theme classified `error`, and a mutual-deferral theme, whether or not either scanner logged an anchor. None of these becomes resolved merely by having had no round-2 attempt. Per `classification.md` §8.5 Bounds, name **why** each theme is unresolved — mutual deferral / scan error / partial-or-absent with no anchor — and give the repos-and-conclusions detail only where scanners actually disagreed. An inconclusive theme is **never** folded in as an ordinary gap: a gap asserts the capability is absent with no deferral outside the scanned set, an unresolved theme asserts only that the scan could not tell, and once flattened the two are indistinguishable to the planner. Omit the section entirely when nothing is unresolved.
+   **Name what the scan did not settle.** The summary carries a `## Unresolved` section listing **every theme still inconclusive at the end of Phase 1.7** — this explicitly includes a theme that never entered round 2 because round 1 left no anchor to seed from, a theme classified `error`, and a mutual-deferral theme, whether or not either scanner logged an anchor. None of these becomes resolved merely by having had no round-2 attempt. Per `workflows-core:model-routing/classification` §8.5 Bounds, name **why** each theme is unresolved — mutual deferral / scan error / partial-or-absent with no anchor — and give the repos-and-conclusions detail only where scanners actually disagreed. An inconclusive theme is **never** folded in as an ordinary gap: a gap asserts the capability is absent with no deferral outside the scanned set, an unresolved theme asserts only that the scan could not tell, and once flattened the two are indistinguishable to the planner. Omit the section entirely when nothing is unresolved.
 
 ---
 
 ## Phase 1.8 — Resolve applicable ARD (keyed mode; optional)
 
-Only when the run resolved a key (PRD/Epic) — i.e. NOT direct-prompt mode — resolve any ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with the resolved `<PRD>`, `<EPIC>`, and `$SPECS_PATH`. Direct mode (no key) → treat as `status: none`. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr` and naming `$SPECS_PATH` explicitly (`/implement` stands in a code repo, not the specs repo, so an unqualified message would point at the wrong one) — per `ard-resolution.md`'s Output section, this state is unreachable when no ARD resolves. On `status: found`, carry the `invariants` as **implementation guardrails** (the implementer honors each `AD#N` `rule`; a necessary deviation is logged as an `- ARD deviation:` line in the Phase 5 report), and — in the SIGNIFICANT / HIGH-RISK path — pass them to `code-review` (Phase 3B) as `applicable_ard`. In the SIMPLE / MODERATE path there is no `code-review` gate, so the guardrails act as guidance only.
+Only when the run resolved a key (PRD/Epic) — i.e. NOT direct-prompt mode — resolve any ARD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and running its resolution with the resolved `<PRD>`, `<EPIC>`, and `$SPECS_PATH`. Direct mode (no key) → treat as `status: none`. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr` and naming `$SPECS_PATH` explicitly (`/implement` stands in a code repo, not the specs repo, so an unqualified message would point at the wrong one) — per `workflows-core:ard-resolution`'s Output section, this state is unreachable when no ARD resolves. On `status: found`, carry the `invariants` as **implementation guardrails** (the implementer honors each `AD#N` `rule`; a necessary deviation is logged as an `- ARD deviation:` line in the Phase 5 report), and — in the SIGNIFICANT / HIGH-RISK path — pass them to `code-review` (Phase 3B) as `applicable_ard`. In the SIMPLE / MODERATE path there is no `code-review` gate, so the guardrails act as guidance only.
 
 ---
 
@@ -369,7 +369,7 @@ Before writing any file:
 
    A clean tree records `pre_existing_dirty: null` and `stash_ref: null` — the state Phase 4.6's precondition assumes.
 
-2. **Resolve the branch name** per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` — **the repo's own documented convention wins**. Read the target repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` (+ `.claude/`) for a branch-naming section (§1.1); if one is found, classify its segments (§1.2) and fill them: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, …) from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt), an **issue-key** segment from the `key` resolved in Phase 0 (or the pattern's documented no-issue literal in direct mode), and the **description** segment from step 3's slug. A pattern with no identity segment gets none — never inject initials into a convention that does not ask for one. Only when the repo documents no convention (§1.4) build `<prefix>/<slug>` with `<prefix>` from the §2 ladder, whose fallback here is `feat/`.
+2. **Resolve the branch name** by invoking `Skill(skill: "workflows-core:reference", args: "branch-naming")` and following it — **the repo's own documented convention wins**. Read the target repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` (+ `.claude/`) for a branch-naming section (§1.1); if one is found, classify its segments (§1.2) and fill them: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, …) from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt), an **issue-key** segment from the `key` resolved in Phase 0 (or the pattern's documented no-issue literal in direct mode), and the **description** segment from step 3's slug. A pattern with no identity segment gets none — never inject initials into a convention that does not ask for one. Only when the repo documents no convention (§1.4) build `<prefix>/<slug>` with `<prefix>` from the §2 ladder, whose fallback here is `feat/`.
 
 3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`. When a `key` is resolved and the chosen shape has no separate issue-key segment, prefix it: `<KEY>-<slug>`.
 
@@ -469,7 +469,7 @@ Use the currently selected model or Sonnet for implementation itself. Opus is re
 For a long step list, apply `${CLAUDE_PLUGIN_ROOT}/references/context-management.md` — checkpoint at N,
 offload parallel-safe (`[P]`) steps to subagents, or decompose — so the run does not degrade as context fills.
 
-At each checkpoint, also consider suggesting **`/compact`** to free context before the next scope/Epic (per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §3 — mid-command → `/compact` only, never `/clear`; guidance only).
+At each checkpoint, also consider suggesting **`/compact`** to free context before the next scope/Epic (per `workflows-core:session-hygiene` §3 — mid-command → `/compact` only, never `/clear`; guidance only).
 
 1. Work through each step in order
 2. Make precise, surgical changes — do not modify unrelated code
@@ -515,7 +515,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
    - **PASS WITH RECOMMENDATIONS** — invoke the review-fixer agent for MAJOR findings (see Review-fixer sub-step below). MINOR / NIT findings may be deferred — note them in the Phase 5 report.
    - **PASS** — proceed.
 
-   **Triage sub-step** (before any fixer dispatch): follow `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
+   **Triage sub-step** (before any fixer dispatch): invoke `Skill(skill: "workflows-core:reference", args: "finding-triage")` and follow it. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
 
    **Review-fixer sub-step** (for BLOCK and PASS WITH RECOMMENDATIONS): first write the **triaged survivor list** from the sub-step above — the surviving findings only, each with its severity, location, observation, and suggestion — to a temp file (`mktemp -t dw-impl-review-XXXX.md`, never inside a repo tree) and record its path as `review_file`. Dismissed findings NEVER enter that file; they go to the `### Review triage` report section instead.
 
@@ -593,7 +593,7 @@ Then spawn all four agents. They are independent and can run in any order — sp
 > If YES: apply minimal, additive, scoped changes only — do not rewrite sections wholesale.
 > Return: what was changed and why, OR 'no update required'."
 
-**Agent 4 — Session maintenance** (dev-workflows:impl-maintenance):
+**Agent 4 — Session maintenance** (workflows-core:impl-maintenance):
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
@@ -608,9 +608,7 @@ Then spawn all four agents. They are independent and can run in any order — sp
 Collect all four summaries for the Phase 5 report.
 
 **Persist plugin feedback (automatic).** After Agent 4 (`impl-maintenance`)
-returns, project its plugin-facing slice into the specs repo by citing
-`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
-`emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
+returns, project its plugin-facing slice into the specs repo by invoking `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and calling its `emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
 `command: /implement`, the run's `key` and `source`, and `plugin_version`
 (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto`
 renders only the report's **Command workflow improvements**, **New agents /
@@ -623,7 +621,7 @@ the Phase 5 `### Session learnings` line. ADDITIVE — the impl-maintenance
 report still appears in the report; this step NEVER fails the run, NEVER
 commits (still true — this step only writes the feedback file; those writes
 are committed by the terminal `commit-artifacts` step in Phase 7, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes
+`workflows-core:specs-repo-git` §4), and NEVER writes
 into the code repo or the current working directory.
 
 ---
@@ -632,11 +630,11 @@ into the code repo or the current working directory.
 
 A **silent no-op** when step 7.5 (Phase 3B) wrote no `- [ ]` notes — which covers every SIMPLE/MODERATE run (no `code-review`, so step 7.5 never runs) and every run with no spec/design in scope, direct-prompt or otherwise.
 
-When step 7.5 did write one or more notes: `prefix` = `spec` when only `specification.md` was annotated, otherwise `design`; `feature_folder` = the directory the annotated file(s) live in (the same specs-repo folder Phase 0 resolved them from); `deliverable_paths` = the annotated file(s) themselves. Present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim:
+When step 7.5 did write one or more notes: `prefix` = `spec` when only `specification.md` was annotated, otherwise `design`; `feature_folder` = the directory the annotated file(s) live in (the same specs-repo folder Phase 0 resolved them from); `deliverable_paths` = the annotated file(s) themselves. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim:
 
 `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`
 
-On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix`, `feature_folder`, and `deliverable_paths` as above; `title: <KEY> Record spec/design conformance findings from /implement`; and `body_facts` = the count of escalated `- [ ]` notes, the code-review Spec/design-conformance dimension summary they came from, and the fact that whoever next reads this `specification.md`/`design.md` will not see them until this pull request is merged. Emit its §4.1 outcome line in the Phase 5 `### Spec/design conformance` section.
+On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix`, `feature_folder`, and `deliverable_paths` as above; `title: <KEY> Record spec/design conformance findings from /implement`; and `body_facts` = the count of escalated `- [ ]` notes, the code-review Spec/design-conformance dimension summary they came from, and the fact that whoever next reads this `specification.md`/`design.md` will not see them until this pull request is merged. Emit its §4.1 outcome line in the Phase 5 `### Spec/design conformance` section.
 
 Placement is deliberate, not stylistic: step 7.5 sits inside Phase 3B, before the tests run, so calling `handoff-to-main` there would commit mid-review — hence the notes are written in 7.5 and handed off here instead, after Phase 4's post-implementation maintenance and before Phase 6's follow-ups and Phase 7's cost/`resume.md`/`commit-artifacts`. A call from inside Phase 6 or Phase 7 would falsify Phase 7's never-commits-the-deliverable claim below.
 
@@ -658,7 +656,7 @@ Pass the §2.11 inputs:
 
 - `repo` — the repo Pre-Phase 3 branched; `branch` — the name it created.
 - `pre_existing_dirty` and `stash_ref` — as recorded in Pre-Phase 3 step 1; both `null` on the clean-tree path.
-- `key` and `workitem_key` — from the resolved folder (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4); both `null` in direct mode. §2.3 turns them into the `[<key>]` subject suffix and the `Work-Item:` trailer that `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3 requires — **this is where the plugin writes that convention rather than teaching it**.
+- `key` and `workitem_key` — from the resolved folder (`workflows-core:addressing` §4); both `null` in direct mode. §2.3 turns them into the `[<key>]` subject suffix and the `Work-Item:` trailer that `workflows-core:implementation-format` §3 requires — **this is where the plugin writes that convention rather than teaching it**.
 - `title` — the commit subject and pull-request title: with a key, `<one-line summary of what was built> [<key>]`; in direct mode, the imperative summary alone.
 - `body_facts` — what was implemented; the files changed; the Opus review verdict and triage summary where Phase 3B produced one; the `test-baseliner` verify result against the Pre-Phase 3.5 baseline; and any deferred `MINOR`/`NIT` findings.
 - `clean_finish` — `false` when the Opus review is still `BLOCK` after its one fix cycle plus re-review, or when the Phase 3.5 fix loop ended with regressions the user chose to keep; `true` otherwise. Per §2.9 this changes only the pull request (draft, with a DO-NOT-MERGE banner) — **never** whether the commit and push happen.
@@ -675,13 +673,14 @@ Record what this phase actually did — the commit sha, and whether the push hap
 **Skipped entirely when `mode: direct`** — there is no resolved folder to append to, and a
 directly-implemented change has no block, exactly as before.
 
-**Write `implementation.md`** in the resolved folder, appending one block per run against
-`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §1: one entry per repository this run
-touched, each naming `repo`, `branch`, `base`, `commit` and `pushed`. Append-only — never edit or
+**Write `implementation.md`** in the resolved folder. Invoke
+`Skill(skill: "workflows-core:reference", args: "implementation-format")` and append one block per
+run against its §1: one entry per repository this run touched, each naming `repo`, `branch`,
+`base`, `commit` and `pushed`. Append-only — never edit or
 remove an earlier block, and a re-run adds a block rather than replacing one.
 
 **It records refs and nothing else.** No summary of what was implemented: a summary is a
-*description*, `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` exists because descriptions drift
+*description*, `workflows-core:source-truth` exists because descriptions drift
 from the code they describe, and one here would be an unverified description in a folder of grounded
 artifacts. A ref cannot drift.
 
@@ -689,7 +688,7 @@ artifacts. A ref cannot drift.
 pushed"* rather than reporting an empty diff against a ref the remote does not hold.
 
 This file is what `/document` and `/release-notes` read to ground their prose in the shipped diff
-(§4 of that reference), and what `epic-picker.md`'s ● marker is computed from. It is committed by
+(§4 of that reference), and what `workflows-core:epic-picker`'s ● marker is computed from. It is committed by
 the terminal `commit-artifacts` step with the rest of the run's `$SPECS_PATH` artifacts.
 
 ---
@@ -722,7 +721,7 @@ Output a structured report — do NOT ask any closing confirmation:
 - **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"] — or "N/A (SIMPLE / MODERATE, no Opus review)"
 
 ### Spec/design conformance (if a spec/design was in scope)
-[coverage summary from code-review's dimension; list any missing/partial/contradicts — or "N/A"; if Phase 4.5 escalated notes, add the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1)]
+[coverage summary from code-review's dimension; list any missing/partial/contradicts — or "N/A"; if Phase 4.5 escalated notes, add the `Phase handoff:` outcome line from `handoff-to-main` (`workflows-core:phase-handoff` §4.1)]
 
 ### Commands / tests run
 - [command] → [result]
@@ -746,17 +745,17 @@ Output a structured report — do NOT ask any closing confirmation:
 - [MINOR / NIT findings that were not applied] OR "none"
 
 ### Next step
-[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. keyed mode: finish the remaining Epics under the PRD (breadth) — `/dev-workflows:implement <SIBLING-EPIC>`, one address, the Epic's own (D4) — and, once **all** Epics are implemented, `/dev-workflows:document <PRD>` then `/dev-workflows:release-notes <PRD>` (both PRD-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
+[Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. keyed mode: finish the remaining Epics under the PRD (breadth) — `/dev-workflows:implement <SIBLING-EPIC>`, one address, the Epic's own (D4) — and, once **all** Epics are implemented, `/dev-workflows:document <PRD>` then `/dev-workflows:release-notes <PRD>` (both PRD-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
 
 ### Context hygiene
 
 *(keyed runs only — omit this whole block in direct-prompt mode, like the `### Next step` above.)*
-The resume pointer is written in the terminal cost phase (Phase 7), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
+The resume pointer is written in the terminal cost phase (Phase 7), per `workflows-core:session-hygiene` §1. Then:
 
 - **More Epics to build (`/dev-workflows:implement <SIBLING-EPIC>`) or on to `/dev-workflows:document <PRD>` — same build lane?** → run **`/compact`** — context stays relevant.
 - Consider **`/rename <PRD-ID>-<slug>-dev`** to relocate this session later.
 
-Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
+Guidance only — see `workflows-core:session-hygiene`.
 ```
 
 ---
@@ -765,8 +764,7 @@ Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
 
 Terminal phase — runs AFTER the Phase 5 Final Report is composed; NEVER
 interrupts an earlier phase. Persist the run's out-of-scope / manual-step
-follow-ups by citing `${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md`
-and executing its steps inline.
+follow-ups by invoking `Skill(skill: "workflows-core:reference", args: "followup-emission")` and executing its steps inline.
 
 1. **Collect** the qualifying follow-ups: manual publish/config steps and
    out-of-scope maintenance items surfaced in the Phase 5 `### Session
@@ -785,7 +783,7 @@ and executing its steps inline.
 ADDITIVE — the follow-ups also remain in the Phase 5 report. This phase NEVER
 fails the run, NEVER commits (still true — this phase only writes follow-up
 files; those writes are committed by the terminal `commit-artifacts` step in
-Phase 7, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and
+Phase 7, per `workflows-core:specs-repo-git` §4), and
 NEVER writes into the code repo or the current working directory.
 
 ---
@@ -794,33 +792,27 @@ NEVER writes into the code repo or the current working directory.
 
 Terminal phase — the NEW final operational phase; runs after Phase 6 (the
 follow-up phase) and NEVER interrupts an earlier phase. Records this command's
-token-cost contribution to the PRD by citing
-`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and calling its single
-`emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
+token-cost contribution to the PRD by invoking `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and calling its single `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
 nothing".
 
 Call `emit-cost` with `command: /implement`, `phase: implementation`,
 `role: dev`, the run's `key` (or `null`) and `source`, and `plugin_version`
 (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the
 session transcript + subagents (§1), loads and **advances the chained
-checkpoint** (§3), runs `scripts/session-cost.py` to compute the per-model
-token-cost delta against the price table (§4), records the optional statusline
+checkpoint** (§3), computes the per-model token-cost delta against the price table (§4), records the optional statusline
 cross-check (§5), and appends one per-invocation entry to
 `<PRD-dir>/dev-workflows/cost/<sid8>.md` via the specs-first ladder (§8) — pending
 + opportunistic move-then-delete reconciliation (§9) when no PRD key resolves.
 **The checkpoint advances even in the pending / report-only tiers.** Surface the
 persisted path (or the report-only notice) as this phase's only output.
 
-**Then write the resume pointer (keyed runs only).** Cite
-`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite
+**Then write the resume pointer (keyed runs only).** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` and, per its §1, write/overwrite
 `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
 pointer reflects the completed run, and before the commit step below, so it
 is included in it. Redact per §1. Silent; the printed `### Context hygiene`
 guidance already appeared in the Phase 5 report.
 
-**Then commit session artifacts (terminal).** Cite
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
-`commit-artifacts` entry point (§4) inline — the LAST action of the run. It
+**Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/implement)`, and pushes per §4
 step 5. It NEVER writes into the code repo this run just changed — that repo's
@@ -835,14 +827,14 @@ last output — prefixed `Specs repo:`, with any guard notice repeated in full.
 
 ADDITIVE — this phase NEVER fails the run and NEVER commits the deliverable itself
 (the terminal step above commits only the bounded session-artifact paths in
-`$SPECS_PATH`; the implementation itself was committed and pushed in Phase 4.6, in the code repo, via `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2; the spec/design conformance notes from step 7.5 are handed off separately, also before this phase, via `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2), and NEVER writes into the code repo or the current working
+`$SPECS_PATH`; the implementation itself was committed and pushed in Phase 4.6, in the code repo, via `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2; the spec/design conformance notes from step 7.5 are handed off separately, also before this phase, via `workflows-core:phase-handoff` §2), and NEVER writes into the code repo or the current working
 directory; no user name is ever written (§10 privacy).
 
 ---
 
 ## Invariants (always enforced)
 
-- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
+- ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
 - NEVER skip Phase 1.5 classification — every run must state the level
 - NEVER use Opus for routine implementation; reserve it for planning + review on SIGNIFICANT / HIGH-RISK
 - NEVER run tests on SIGNIFICANT / HIGH-RISK work before the Opus code review returns a non-BLOCK verdict
@@ -857,11 +849,11 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS run Phase 4.6 (`finish-code-branch`, per `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md`) after Phase 4 and before the Phase 5 report — the commit is prompt-free (§1 rule 5) and the push + pull request sit behind §2.4's choice; a run that ends with the implementation uncommitted is a defect, not a style, and `--no-commit` is its only opt-out
 - NEVER commit the implementation before Phase 4 — Phase 4's maintenance agents write into the same repo, and a commit ahead of them ships a partial run
 - NEVER skip Phase 4.6 because a gate failed — a run whose review is still `BLOCK` or whose regressions the user kept is committed and pushed like any other, and sets `clean_finish: false` so its pull request is a draft carrying the DO-NOT-MERGE banner (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.9)
-- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
+- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS spawn Phase 4 agents in a single message — never sequentially
-- ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0)
+- ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)
 - ALWAYS produce the Phase 5 report as the final output
-- ALWAYS end the Phase 5 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; omitted in direct mode (no PRD/Epic pipeline context)
+- ALWAYS end the Phase 5 report with a `### Next step` recommendation (per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`) — guidance only, never auto-invoked; omitted in direct mode (no PRD/Epic pipeline context)
 - ALWAYS pass `Command run: /implement` in the Phase 4 Agent 4 session handoff
 - ALWAYS pass `Change type: code` in the Phase 4 change summary block (scopes the four maintenance agents' suggestions to code-change territory — docs variants use `docs`)
 - AFTER one review-fixer pass + one re-review, if verdict is still BLOCK: stop and surface to user — do NOT loop
@@ -875,4 +867,4 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS fan out `code-scanner` one-per-repo in a single response, capped at 4 concurrent — never sequentially
 - NEVER silently skip a referenced `@dir` that is missing or unrecognized — surface it and ask (classification.md §8.4)
 - Scanning agents (the folder read, `code-scanner`) are pinned to the §2.1 detection (Sonnet) chain like every mechanical step (never inherit the session model); escalate a single scanner to Opus only when one repo slice is oversized
-- ALWAYS end the Phase 5 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a same-lane `/compact` suggestion + `/rename <PRD-ID>-<slug>-dev`; **omitted in direct mode** (no PRD/Epic context, no `resume.md`); the Phase 3B checkpoint additionally suggests `/compact` mid-run. Guidance only, never auto-run.
+- ALWAYS end the Phase 5 report with a `### Context hygiene` block per `workflows-core:session-hygiene` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `workflows-core:session-hygiene` §1 — this block prints the guidance only), then a same-lane `/compact` suggestion + `/rename <PRD-ID>-<slug>-dev`; **omitted in direct mode** (no PRD/Epic context, no `resume.md`); the Phase 3B checkpoint additionally suggests `/compact` mid-run. Guidance only, never auto-run.

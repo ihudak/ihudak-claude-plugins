@@ -1,0 +1,5 @@
+A wrong $SPECS_PATH and a read-only specs mount produce the same symptom — silence. environment.md deliberately tolerates an unwritable .git because a read-only mount is normal here; that's sound. But it also swallows no .git at all, which is never normal. The run writes its deliverables, commits nothing, opens no PR, and reports a terminal "gate failed" line that never names the cause — after brd-reader has read a 30-page document and a human has walked its defect candidates. The whole cost is paid before the failure surfaces.
+
+
+
+a missing path: /frames has no way to adopt an existing index under another name, and the operator who has one is left to hand-convert it or lose it.

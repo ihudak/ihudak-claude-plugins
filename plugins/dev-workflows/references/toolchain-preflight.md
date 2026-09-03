@@ -1,5 +1,7 @@
 # Toolchain preflight (shared)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Single source of truth for verifying, before a run writes anything, that the tools its gates invoke
 are actually present.
 
@@ -123,6 +125,6 @@ directory is the normal AI-container case.
 - NEVER modify any file under `repo_root`.
 - NEVER prompt when every required tool is present.
 - NEVER move the `(Recommended)` marker off "Cancel" in §5 — the "Choice lists are presented verbatim"
-  rule in `escalation-rules.md` binds this prompt.
+  rule in `workflows-core:escalation-rules` binds this prompt.
 - NEVER fail the run because a `Prerequisites` section could not be parsed; source 3 is best-effort.
 - NEVER treat a tool with an empty `required_by` as blocking.

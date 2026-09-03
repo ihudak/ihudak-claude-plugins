@@ -9,8 +9,10 @@ description: >
   /vuln Step 3.9. Invoked sequentially by the fix-vuln
   orchestrator with a research report from vuln-research. NOT triggered by direct
   user prompts.
-tools: ["Read", "Glob", "Grep", "Bash", "Edit", "Task"]
+tools: ["Read", "Glob", "Grep", "Bash", "Edit", "Task", "Skill"]
 ---
+
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
 # vuln-fixer — CVE Fix Agent
 
@@ -126,7 +128,7 @@ granted, so this agent can never ask the user directly. The orchestrator owns th
 ## Model Routing
 
 If the orchestrator passes a `model_routing` block (see
-`${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §4):
+`workflows-core:model-routing/classification` §4):
 
 - Record it in the output result record so the final report can quote it.
 - If the block contains `gate_tests_on_review: true` (set by the orchestrator

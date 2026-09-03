@@ -24,14 +24,14 @@ Measured at `v3.24.1`. Agents attributed by `subagent_type` dispatch (transitive
 
 | Plugin | Commands | Agents | References |
 |---|---|---|---|
-| `workflows-core` | 6 | 4 | 31 |
-| `pm-workflows` | 12 | 13 | 8 |
+| `workflows-core` | 6 | 5 | 31 |
+| `pm-workflows` | 12 | 12 | 8 |
 | `dev-workflows` | 5 | 12 | 14 |
 | `docs-workflows` | 3 | 7 | 14 |
 | `guideline-reviewers` | 2 | 2 | 38 |
 | **Total** | **28** | **38** | **105** |
 
-The totals reconcile exactly against the tree, with no remainder. Two findings shaped everything that follows.
+The totals reconcile exactly against the tree, with no remainder. **The agent column carries one amendment made after the measurement:** `doc-fixer` was measured under `pm-workflows` and is allocated to `workflows-core` instead (increment 2's ruling R1). Its two consumer groups are pm (`/epics`) and docs (`/document`), both of which leave `dev-workflows` in later increments, so leaving it behind would strand an agent in a plugin that never dispatches it. That is an allocation change, not a correction to the count — the total is unmoved, and the narrative below reads the measurement as taken. Two findings shaped everything that follows.
 
 **The core is tiny in agents and large in references.** Four agents of thirty-eight; thirty references of one hundred and five. The intuition — that the shared thing is the agents — is wrong, and it matters because **agents cross a plugin boundary for free and references do not** (§4). So the split's real work sits in the part that looked incidental.
 
@@ -163,6 +163,19 @@ Increment 1 discovered this list one failure at a time. It is recorded so increm
 
 Two failure modes remain **ungated** and must be handled by hand at every move: a `subagent_type` prefix still naming the old plugin (nothing verifies a dispatch target resolves), and prose anywhere describing content that left (only the gated inventories are checked, not the sentences around them).
 
+### What increment 2 learned, recorded for increments 3 and 4
+
+**A sweep driven by a file list misses whatever is not on the list, and the same three files were missed twice.** `/vuln`, `/upgrade` and `/brd-ground` were outside both of increment 2's citation sweeps. Every functional finding of its whole-branch review landed in those three files, and the un-namespaced-dispatch defect a later task had to fix hit the first two. **Drive a sweep from the tree, then verify per file, not per class** — "cited-but-unloaded is zero" was true per *reference across the plugin* while three files were each told to execute a procedure they never loaded.
+
+**Three defects in this increment shared one root cause: a substitution that could not see the context it was editing.** A loader call landed inside a fenced report template, where it would print rather than execute; a namespace rewrite hit a constant inside a selftest fixture, leaving a gate red for two tasks; and the bare-name form came to mean two different things inside one plugin. The first is now gated (check 16 relation 4). **Test data is an oracle — a sweep that edits it is editing the thing that decides correctness.**
+
+**Take the gate list from `.github/workflows/validate-catalog.yml`, never from a plan.** A plan's copy of it went stale and the seventh gate sat red across two tasks while every task reported "all gates green".
+
+**Two checks for cross-plugin dispatch, measured on increment 2's tree and ready to build.** Roughly twenty agents move in increments 3 and 4, so these earn their place there rather than here:
+
+- **Check A — `subagent_type` resolution, both directions.** Every `subagent_type: "<ns>:<name>"` whose `<ns>` is a plugin in the tree resolves to `plugins/<ns>/agents/<name>.md`; and every agent a plugin ships is named by at least one such call. Built-ins (`general-purpose`, `Explore`) allowlisted, and the bracketed `"<plugin>:<name>"` placeholder excluded exactly as check 16 already excludes `<name>`. **Measured: 90 occurrences, 4 fires, 0 true defects — all four the placeholder.** With the exclusion: zero either direction. Its header must say what it cannot see: it would **not** have caught increment 2's dispatch defect, which carried no `subagent_type` at all.
+- **Check B — the bare cross-plugin dispatch name.** Fires when a backticked agent name owned by *another* plugin sits on a line carrying a dispatch verb in a file that never writes that agent's namespaced form. **Measured three ways:** unrestricted, 35 fires and 0 true defects — the profile this document has twice refused; cross-plugin only on the fixed tree, 10 fires and 0 true, every one a negation ("never dispatch", "Do NOT invoke"); cross-plugin only on the tree the defect shipped in, **2 true and 0 false — exactly the two real sites**. Exempt by a `dispatch-name-ok` marker as check 13 does, never by a negation regex: that keeps the resolution half running against a known set and reduces the textual half to ten audited lines.
+
 **A new check: the loader contract, in both directions.** Every `args:` string passed to `workflows-core:reference` must name a reference that exists in core, and every core reference must be reached by at least one caller.
 
 The justification is narrower than first stated. Because the argument arrives as a trailing line rather than being substituted into a path, **a typo surfaces as a file-not-found when the loader reads it — observable, not a silent misfire.** So the gate is not rescuing a dangerous failure mode; it is catching an unresolvable argument and an unreferenced core reference at build time instead of at run time. Still worth having, for the same reason every other inventory check here is, and it is the same both-directions shape.
@@ -207,7 +220,7 @@ Move `/api-guideline-reviewer`, `/guideline-reviewer`, their two agents, and `re
 
 ### Increment 2 — `workflows-core`
 
-Create the plugin with the four core agents, the thirty-one core references, the six commands it carries (the five utilities plus `/frames`, S13), the `model-routing` skill and the new loader skill. `dev-workflows` declares `"dependencies": ["workflows-core"]`.
+Create the plugin with the five core agents (four measured, plus `doc-fixer` per R1), the thirty-one core references, the six commands it carries (the five utilities plus `/frames`, S13), the `model-routing` skill and the new loader skill. `dev-workflows` declares `"dependencies": ["workflows-core"]`.
 
 Then the sweep (S10): every `${CLAUDE_PLUGIN_ROOT}/references/<core-ref>` citation becomes a loader invocation, and every `subagent_type: "dev-workflows:<core-agent>"` becomes `"workflows-core:<core-agent>"`. Add the loader gate.
 
@@ -336,6 +349,18 @@ Two riders came back with it, and both make the design smaller:
 
 - **The manifest is derived, not hand-maintained.** A hand-maintained list is the exact defect class `CLAUDE.md` warns about — but `check-docs.sh` already computes `cmd_names` per plugin, and S7 makes it loop over the plugin list, so "manifest equals derived inventory, in both directions" is **a few lines inside the existing loop**, not a seventh gate.
 - **The manifest is also what fix part two resolves against.** `record.plugin` needs a set of valid plugin names, and the manifest's keys are exactly that set. The two halves of §8.4 compose into **one structure**, not two.
+
+### 8.7 Open, found in implementation: a foreign marketplace's boundary is still invisible
+
+Increment 2's review of the shipped fix found that §8.2 still reproduces **in miniature** for a command from a marketplace outside this one. Between a cede and its replay, such a command mints no boundary — its namespace is not a key of the manifest — so its spend is absorbed into the claim exactly as `/vuln`'s was before the map landed.
+
+**§13.2's "It errs safe either way" does not cover this.** That sentence is about a missed *claimed* invocation, which ends unmatched and is dropped; it says nothing about a missed *unclaimed boundary*, which fails unsafely and silently. The two are different directions of the same conflation: the detector uses one test both to decide **where to cut the window** and to decide **where a claim may match**.
+
+Separating them is the fix — cut at every well-formed command envelope, match only against manifest names — and it would close the bare-`/upgrade` case by the same stroke. It is safe today because the only claimable names are the two deferring commands. It is **not** a patch: the current fixtures assert the conflated behaviour explicitly, so it needs this section amended and those assertions rewritten together.
+
+**It is not split-caused, and that decides when it is fixed.** The pre-split detector behaved identically — `session-cost.py`'s own selftest at `v3.24.1` carries the case *"a FOREIGN namespace (`/superpowers:implement`) is not a boundary"*, asserting the behaviour as intended. So this is not a regression of increment 2, and it does not have to ship with the fix that exposed it. **Nor is it blocked by the rest of the split**: the whole cost subsystem — `cost-emission.md`, `feedback-emission.md` and `session-cost.py` — is in `workflows-core` as of increment 2 and moves again in neither increment 3 nor 4. It is therefore fixable as a standalone change from the moment increment 2 merges, and is scheduled there rather than inside any increment of the split.
+
+**The decision it needs, stated so the next session does not have to re-derive it:** may a command from outside this marketplace *cut a window* without being *claimable*? Today one test answers both questions, and the two requirements pull opposite ways — the safety case wants a foreign name to mint nothing, the segmentation case wants its spend attributed to it. Splitting the test is the fix; deciding that is the work.
 
 ### 8.6 Verification
 

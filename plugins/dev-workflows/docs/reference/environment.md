@@ -1,6 +1,6 @@
 # Environment reference
 
-[Getting started](../getting-started.md) says what each variable is *for* and what to export before your first run. This page says what each variable **is** — its default, where that default comes from, what happens when it is unset, what happens when it points somewhere the plugin cannot read or write, and the directory layout it expects underneath it. The plugin reads five user-settable variables. The rest of the names the plugin's own inventory check encounters while scanning for `$VAR` reads are never user-settable and stay out of scope here: `CLAUDE_PLUGIN_ROOT` and `ARGUMENTS` are runtime plumbing Claude Code itself sets for every plugin invocation, and `OSTYPE`, `BASH_SOURCE`, `BASH_REMATCH`, `ROOT`, and `OWNER_REPO` are shell built-ins or internal template/hook-local names, not plugin configuration.
+[Getting started](../getting-started.md) says what each variable is *for* and what to export before your first run. This page says what each variable **is** — its default, where that default comes from, what happens when it is unset, what happens when it points somewhere the plugin cannot read or write, and the directory layout it expects underneath it. The plugin reads four user-settable variables. The rest of the names the plugin's own inventory check encounters while scanning for `$VAR` reads are never user-settable and stay out of scope here: `CLAUDE_PLUGIN_ROOT` and `ARGUMENTS` are runtime plumbing Claude Code itself sets for every plugin invocation, and `OSTYPE`, `BASH_SOURCE`, `BASH_REMATCH`, `ROOT`, and `OWNER_REPO` are shell built-ins or internal template/hook-local names, not plugin configuration.
 
 ## `$SPECS_PATH`
 
@@ -42,7 +42,7 @@
 
 - **`$GIT_USER_INITIALS`** — your branch identity string; no default, and the plugin never fails when it is absent.
 
-**Resolution.** It is rung 1 of a five-rung identity ladder applied by the five commands that name branches in a *code* repo (`/implement`, `/document` in both modes, `/docs-profile`, `/upgrade`, `/vuln`) — the specs-repo handoff branches (`idea/`, `prd/`, `ard/`, `spec/`, `design/`, `ready/`, `brd/`, `frames/`) are named by `phase-handoff.md` §2.2 instead and never enter it. The rungs run in order, stopping at the first non-empty result: `$GIT_USER_INITIALS` (used verbatim, never with a trailing `/`) → `git config user.initials` (same semantics, set once per repo or globally) → inference from existing branch names (a candidate accepted at ≥30% of a sampled 200 branches and ≥3 occurrences) → a mandatory prompt if all three yield nothing.
+**Resolution.** It is rung 1 of a five-rung identity ladder applied by the five commands that name branches in a *code* repo (`/implement`, `/document` in both modes, `/docs-profile`, `/upgrade`, `/vuln`) — the specs-repo handoff branches (`idea/`, `prd/`, `ard/`, `spec/`, `design/`, `ready/`, `brd/`, `frames/`) are named by `workflows-core:phase-handoff` §2.2 instead and never enter it. The rungs run in order, stopping at the first non-empty result: `$GIT_USER_INITIALS` (used verbatim, never with a trailing `/`) → `git config user.initials` (same semantics, set once per repo or globally) → inference from existing branch names (a candidate accepted at ≥30% of a sampled 200 branches and ≥3 occurrences) → a mandatory prompt if all three yield nothing.
 
 **When unset.** The ladder simply falls through to rung 2, then 3, then the prompt — there is no error, only degradation to a less certain source. Where the target repo's documented branch-naming convention has no name-or-initials segment at all, the variable is simply unused for that repo regardless of whether it is set.
 
@@ -50,21 +50,9 @@
 
 **Directory layout.** Not applicable — this variable configures a branch-name segment, not a filesystem location.
 
-## `$DEV_WORKFLOWS_COST_PRICES`
-
-- **`$DEV_WORKFLOWS_COST_PRICES`** — optional override path for the token-price table session-cost reporting prices against; the plugin ships its own default price table, so setting this is never required.
-
-**Resolution.** First-found-wins, three tiers: `$DEV_WORKFLOWS_COST_PRICES` (a path) → a repo-local `cost-prices.yaml` → the bundled `${CLAUDE_PLUGIN_ROOT}/references/cost-prices.yaml`. Whichever file resolves must carry a top-level `models:` map keyed by model id (`input`/`output`/`cache_read`/`cache_write_5m`/`cache_write_1h`, in USD per million tokens) — a file missing that wrapper, whether it is the override or the shipped default, prices every model as `cost_usd: null` rather than raising an error.
-
-**When unset.** Resolution falls straight through to the repo-local file, then the bundled default — this is the variable of the five most users never touch — though `$REPOS_PATH`, `$DOCS_PATH`, and `$GIT_USER_INITIALS` all have working fallbacks too.
-
-**When it points somewhere unreadable.** An unreadable or missing path at this tier is treated the same as "not set at this tier" — resolution continues down the same first-found-wins chain to the next tier rather than failing the run.
-
-**Directory layout.** Not applicable — this variable names one file, not a directory tree.
-
 ## Directory layout
 
-The three directory-valued variables above expect this layout. `$GIT_USER_INITIALS` holds a string, not a path, and `$DEV_WORKFLOWS_COST_PRICES` names one file rather than a directory, so neither appears here.
+The three directory-valued variables above expect this layout. `$GIT_USER_INITIALS` holds a string, not a path, so it does not appear here. `$DEV_WORKFLOWS_COST_PRICES`, the price-table override, is read by the `workflows-core` plugin that now ships the cost subsystem, and is documented on its environment page rather than this one.
 
 ```
 

@@ -119,7 +119,7 @@ holds no child standing empty** — a two-part test taken in Phase 0's last step
 nothing to commit. Holding one, it is not a no-op — Phase 0 skips the walk it has no rows for and
 runs Phase 4.5 alone, which is what keeps a child kept empty by an earlier run reachable by the one
 command that can remove it. Deciding the no-op on the ledger alone made that child unreachable in
-every run after the one that created it. `impl-maintenance` runs in
+every run after the one that created it. `workflows-core:impl-maintenance` runs in
 Phase 8 for session lessons-learned; no other subagent is dispatched — every finding this command
 reads was already independently verified by `/brd-ground`'s own agents.
 
@@ -135,7 +135,7 @@ reads was already independently verified by `/brd-ground`'s own agents.
 - **Nothing more, at either level.** A key that resolves to a **slice** does not stop the run; it
   sets `allocate-only` (see "Two modes" above) and emits the `BRD_SPLIT_ON_SLICE` notice. What the
   one-level cap forbids is creating anything below a slice but its Epics
-  ([`addressing.md`](../../references/addressing.md) §6): a slice of a slice would inherit
+  (`workflows-core:addressing` §6): a slice of a slice would inherit
   `brd/source/` and a defect log from a parent that holds neither, so its inventory header would
   name a path that does not exist.
 - **`/brd-ground`'s findings already merged to the specs repo's default branch.** Phase 0 gates
@@ -287,19 +287,19 @@ folder per confirmed slice, walks every remaining ledger row to one of the four 
 writes `slices.md`, and offers to branch, commit, push, and open a pull request. Its next-step offer
 names two different keys: [`/brd-interview`](brd-interview.md) on the BRD just allocated — the route
 continues past the split — and [`/brd-ground`](brd-ground.md) on each child the run created, once
-this run's deliverables reach the specs repo's default branch — stated in the offer as the `<merge-clause>` placeholder ([`next-phase-offer.md`](../../references/next-phase-offer.md)) resolves it, since a no-op run and a declined handoff open no pull request to wait on.
+this run's deliverables reach the specs repo's default branch — stated in the offer as the `<merge-clause>` placeholder (`workflows-core:next-phase-offer`) resolves it, since a no-op run and a declined handoff open no pull request to wait on.
 
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off.
-- [`addressing.md`](../../references/addressing.md) — the `<BRD-KEY>` grammar and folder
+- `workflows-core:addressing` — the `<BRD-KEY>` grammar and folder
   resolution this command uses by name (`key-valid`, `resolve-address`), including how a slice
   nests inside its parent and why that nesting — and only the nesting — is capped at one level
   (§3).
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the authority for
   the ledger row shape, the six dispositions, the allocation gate this command enforces, and the
   PRD-eligibility rule a slice's `covered-here` rows satisfy.
-- [`grounding-format.md`](../../references/grounding-format.md) — §8's four verification outcomes,
+- `workflows-core:grounding-format` — §8's four verification outcomes,
   which this command's Phase 0 gate depends on.
 - [Agents](../reference/agents.md) — `impl-maintenance`'s full contract.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md),

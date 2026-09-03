@@ -9,6 +9,4 @@ resolved from the handoff outcome the run actually emitted.
 | Pull request opened | `(once the pull request above is merged)` |
 | Nothing to commit | `(its inputs are already on the default branch — you can run it now)` |
 
-**Where this rule applies.** The `<merge-clause>` placeholder is the convention the
-`/dev-workflows:alpha*` commands write their offers to, and an offer added to that
-family carries it. Offers outside the family are outside the rule.
+**Where this rule applies: every next-step offer this plugin prints.** The `<merge-clause>` placeholder is the convention the `/dev-workflows:alpha*` commands write their offers to, and an offer added to that family carries it. Offers outside the family are outside the rule.

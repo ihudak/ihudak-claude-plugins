@@ -1,5 +1,7 @@
 # Idea format (embedded authority)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 The canonical structure and per-section rules for a refined `idea.md`. `/idea` is the only caller — it authors against this file. `/create-prd` consumes the resulting `idea.md` **artifact**, not this format doc, and never cites it. A lean one-page brief — the seed a Product Requirements Document is built
 from, NOT a mini-PRD.
 
@@ -20,7 +22,7 @@ status: draft | refined        # refined IFF zero open [NEEDS CLARIFICATION] rem
 ---
 ```
 
-**`kind` and `key` are required, and they are why the folder is resolvable at all.** `/idea` is the command that *creates* `PRD-<KEY>-<slug>/`, and `idea.md` is usually its only file — so until `/create-prd` writes `prd.md`, this is the one artifact carrying the pair that `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4 resolves a folder's identity from. §4 forbids recovering either from the directory name ("a key re-derived by pattern is a key nothing in the tree ever asserted"), and states as its own invariant that a folder is never keyless, "not even between its creation and its first document". A frontmatter without them leaves every later `resolve-address` on that key unable to fill `kind` and `key`. `kind: prd` is correct here even though the file is an idea: the folder is a PRD folder, and `kind` names the folder's altitude rather than this file's genre.
+**`kind` and `key` are required, and they are why the folder is resolvable at all.** `/idea` is the command that *creates* `PRD-<KEY>-<slug>/`, and `idea.md` is usually its only file — so until `/create-prd` writes `prd.md`, this is the one artifact carrying the pair that `workflows-core:addressing` §4 resolves a folder's identity from. §4 forbids recovering either from the directory name ("a key re-derived by pattern is a key nothing in the tree ever asserted"), and states as its own invariant that a folder is never keyless, "not even between its creation and its first document". A frontmatter without them leaves every later `resolve-address` on that key unable to fill `kind` and `key`. `kind: prd` is correct here even though the file is an idea: the folder is a PRD folder, and `kind` names the folder's altitude rather than this file's genre.
 
 Rules: `status` is `refined` only when the **Open questions & assumptions** section carries zero
 `[NEEDS CLARIFICATION]` markers; otherwise `draft`. `sources` lists every ingested source with its
@@ -171,9 +173,9 @@ because nothing read it — and the run must report it in those terms. `attachme
 name for the text and markdown a folder vendors; what reaches it *today* is markdown.
 
 `design/` is not a name this file invents: it is the reserved frame-set subdirectory
-`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.1 already fixes for **any** folder under
+`workflows-core:grounding-format` §6.1 already fixes for **any** folder under
 `specifications/`, reused rather than duplicated. `attachments/` is reserved the same way, and both are
-listed as reserved names in `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2. **`idea-sources` is the
+listed as reserved names in `workflows-core:addressing` §2. **`idea-sources` is the
 frame-set name, and there is one per PRD folder rather than one per run** — a later `/idea` run over the
 same folder adds to that set and rewrites its index, because a frame set per run would scatter one
 idea's mockups across directories no single index could relate.
@@ -213,13 +215,13 @@ earlier run had already populated — see *The index is mandatory*, below.
 
 ### The index is mandatory, and its format is not this file's
 
-`grounding-format.md` §6.1: `design-grounder` returns `NO_INDEX` rather than reading a frame set that
+`workflows-core:grounding-format` §6.1: `design-grounder` returns `NO_INDEX` rather than reading a frame set that
 has no index, because *a filename is not a reliable statement of what a frame shows*. Writing images
 into `design/idea-sources/` **without** an index would therefore create a frame set that is
 permanently unreadable — worse than not vendoring the images at all.
 
 **The index format and its reconciliation contract are
-`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.2's, and this file restates none of it.**
+`workflows-core:grounding-format` §6.2's, and this file restates none of it.**
 That section owns the filename, the frontmatter, the table shape, the `Linked from` semantics, and
 every one of the six reconciliation steps — read them there, because a reader who learns the list
 from a second place learns whichever copy went stale first. It lived here while `/idea` was the
@@ -242,7 +244,7 @@ re-run copies nothing at all, and an index written from "each image copied" woul
 **Writing this index does not mean `/idea` design grounding has shipped.** Nothing on this route
 dispatches `design-grounder`, produces a `[DG#n]`, or reaches `grounding-verifier` — the index makes
 the frame set *readable*, not reconciled. That capability remains deliberately unbuilt and is a
-decision of its own; `grounding-format.md` §6.1 says so, and this section keeps it true.
+decision of its own; `workflows-core:grounding-format` §6.1 says so, and this section keeps it true.
 
 ### The collision rule
 

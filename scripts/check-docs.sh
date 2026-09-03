@@ -1567,6 +1567,22 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
   # an implementation that flagged them everywhere turns the whole corpus red.
   expect_pass_after "a core-internal citation by the same path form is accepted" \
     "printf -- '\nSee \`\${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md\`.\n' >> $PLUGIN_REL/$REF_DIR/gamma.md"
+  # give_two_refs is what makes the green cases possible at all: dropping a reference file
+  # into a plugin with no references/ tree reddens check 4 (no inventory row), check 3 (the
+  # new index page is unreachable) and check 9 (no file-count sentence), none of which is the
+  # case being made. It gives fixture-two the minimum tree those three demand, with the count
+  # DERIVED from what it just wrote.
+  give_two_refs() { # <reference-basename>... -- run from inside the copied tree
+    local f
+    mkdir -p "plugins/fixture-two/$REF_DIR" "plugins/fixture-two/docs/reference"
+    for f in "$@"; do printf -- '# %s (fixture copy)\n' "$f" > "plugins/fixture-two/$REF_DIR/$f"; done
+    { printf -- '# References\n\n'
+      for f in "$@"; do printf -- '- `%s`\n' "$f"; done
+      printf -- '\nThe fixture ships %s files.\n' "$(find "plugins/fixture-two/$REF_DIR" -type f | wc -l | tr -d ' ')"
+    } > plugins/fixture-two/docs/reference/references.md
+    printf -- '\n- [References](reference/references.md)\n' >> plugins/fixture-two/docs/README.md
+  }
+
   # ...and the own-reference carve-out: only a name that belongs to core and NOT to the
   # citing plugin fires. give_two_refs gives fixture-two a cost-emission.md of its own, after
   # which its plugin-root citation of that name is unambiguous and correct. Without the
@@ -1672,21 +1688,6 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
   # happens to create both; only the green case -- a plugin holding the reference and no call
   # site, which must PASS -- separates a call-site trigger from a file-presence one.
   #
-  # give_two_refs is what makes the green cases possible at all: dropping a reference file
-  # into a plugin with no references/ tree reddens check 4 (no inventory row), check 3 (the
-  # new index page is unreachable) and check 9 (no file-count sentence), none of which is the
-  # case being made. It gives fixture-two the minimum tree those three demand, with the count
-  # DERIVED from what it just wrote.
-  give_two_refs() { # <reference-basename>... -- run from inside the copied tree
-    local f
-    mkdir -p "plugins/fixture-two/$REF_DIR" "plugins/fixture-two/docs/reference"
-    for f in "$@"; do printf -- '# %s (fixture copy)\n' "$f" > "plugins/fixture-two/$REF_DIR/$f"; done
-    { printf -- '# References\n\n'
-      for f in "$@"; do printf -- '- `%s`\n' "$f"; done
-      printf -- '\nThe fixture ships %s files.\n' "$(find "plugins/fixture-two/$REF_DIR" -type f | wc -l | tr -d ' ')"
-    } > plugins/fixture-two/docs/reference/references.md
-    printf -- '\n- [References](reference/references.md)\n' >> plugins/fixture-two/docs/README.md
-  }
 
   expect_fail "a plugin with an emit-cost call site undeclared in COST_PLUGIN_RELS is rejected" 8 \
     "printf -- '\nCall \`emit-cost\` with \`command: /omega\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"

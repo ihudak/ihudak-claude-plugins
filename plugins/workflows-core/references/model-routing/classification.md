@@ -1,6 +1,6 @@
 # Model Routing by Task Complexity (Shared Policy)
 
-This document is the **single source of truth** for how the dev-workflows commands (`/implement`, `/vuln`, `/upgrade`, and related commands) and their sub-agents classify tasks and route them to the
+This document is the **single source of truth** for how the pipeline commands of this plugin and of every plugin that depends on it (`/implement`, `/vuln`, `/upgrade`, `/frames`, and related commands) and their sub-agents classify tasks and route them to the
 appropriate model. Every top-level orchestrator MUST load and follow this policy
 before doing any planning, implementation, or review work.
 
@@ -215,6 +215,8 @@ The CLI's `task` tool accepts an explicit `model:` override. Use it like this:
 
 ```
 task(
+  # the two `dev-workflows:` forms are dispatchable only from a plugin that depends on
+  # `dev-workflows`; every other reader uses "general-purpose" — see the note below
   subagent_type: "dev-workflows:risk-planner" | "dev-workflows:code-review" | "general-purpose",
   model:      "claude-opus-5",   # or the highest available per §2
   prompt:     "<full self-contained context — sub-agent has no memory>",
@@ -223,13 +225,17 @@ task(
 )
 ```
 
+**`risk-planner` and `code-review` belong to `dev-workflows`, not to the plugin that ships this file.** Only a plugin that declares `dev-workflows` in its `dependencies` can name them as a `subagent_type`; a reader in `workflows-core` — or in any other dependent plugin that does not itself depend on `dev-workflows` — has no such agent to dispatch and takes the `general-purpose` fallback below. The fallback is not a degraded path bolted on for a missing environment: for those readers it is the *normal* one, and it is complete, because the §6 checklist this file already carries is the whole of what `code-review` is pinned to.
+
 - For **planning** on SIGNIFICANT/HIGH-RISK tasks, prefer `subagent_type: "dev-workflows:risk-planner"`
-  with Opus, asking it to critique the proposed plan.
+  with Opus, asking it to critique the proposed plan — available only where the calling plugin
+  depends on `dev-workflows`.
 - For **post-implementation review** on SIGNIFICANT/HIGH-RISK tasks, use
-  `subagent_type: "dev-workflows:code-review"` with Opus, passing the diff and §6 checklist.
-- If `code-review` is unavailable in the environment, fall back to
-  `subagent_type: "general-purpose"` with the same Opus model and the explicit
-  §6 checklist embedded in the prompt.
+  `subagent_type: "dev-workflows:code-review"` with Opus, passing the diff and §6 checklist —
+  again, only where the calling plugin depends on `dev-workflows`.
+- Where either agent is unreachable — the calling plugin does not depend on `dev-workflows`, or the
+  agent is unavailable in the environment — fall back to `subagent_type: "general-purpose"` with the
+  same Opus model, the same prompt, and the explicit §6 checklist embedded in that prompt.
 
 ---
 

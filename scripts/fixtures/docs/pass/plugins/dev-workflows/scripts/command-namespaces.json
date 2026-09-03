@@ -5,5 +5,8 @@
   ],
   "fixture-two": [
     "omega"
+  ],
+  "renamed-namespace": [
+    "theta"
   ]
 }

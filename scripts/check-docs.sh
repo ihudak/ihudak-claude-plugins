@@ -263,9 +263,11 @@ NS_MAP_DONE=0
 # already the edition's own command enumeration, so the two cannot drift apart in silence.
 check_namespace_map() {
   local root="$1" out h d rel n
-  [ -n "$NS_MAP_REL" ] || { note "check 4 manifest assertion not applicable: this edition ships no command-namespace manifest"; return; }
   [ "$NS_MAP_DONE" = 0 ] || return
   NS_MAP_DONE=1
+  # Latched FIRST: the note below is run-wide like the assertion it stands in for, and an
+  # edition with no manifest used to print it once per listed plugin.
+  [ -n "$NS_MAP_REL" ] || { note "check 4 manifest assertion not applicable: this edition ships no command-namespace manifest"; return; }
   # The reader is passed with -c and the derived inventory arrives on the PIPE. It cannot be
   # a `python3 - <<HEREDOC` the way check 16's is: a heredoc redirection wins over the pipe,
   # so the program would be read from the heredoc and the inventory would never arrive --
@@ -276,10 +278,17 @@ import json, os, sys
 
 root, rel = sys.argv[1], sys.argv[2]
 
-# The namespace is the plugin's DECLARED name, not its directory: installed content lives
-# at <cache>/<marketplace>/<plugin>/<version>/, so the parent of commands/ is the version
-# there and only the plugin name in a dev tree. This is the same reading session-cost.py's
-# own manifest loader documents, basename fallback included.
+# The namespace is the plugin's DECLARED name, not its directory, because the namespace is
+# what a user TYPES before the colon and that is the name the host registers the plugin
+# under -- which a directory is free to differ from. The basename is the fallback for a
+# plugin that declares none. Both branches are exercised: plugins/fixture-unlisted declares
+# a name its directory does not carry, and plugins/dev-workflows in the fixture ships no
+# plugin.json at all.
+#
+# This does NOT mirror session-cost.py's loader, and an earlier version of this comment
+# claimed it did: that loader reads a JSON map and does no directory reading of any kind.
+# The <cache>/<marketplace>/<plugin>/<version>/ layout is likewise beside the point here --
+# this gate only ever runs against a source tree.
 derived = {}
 for line in sys.stdin:
     line = line.rstrip("\n")
@@ -1200,20 +1209,29 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
   expect_fail "an undocumented command is rejected" 4 "mkdir -p $(dirname $(cmd_file $PLUGIN_REL delta)) 2>/dev/null; printf -- '---\nname: delta\n---\n' > $(cmd_file $PLUGIN_REL delta)"
   expect_fail "a drifted subtree count is rejected" 4 "sed -i.bak 's|\`handoff/\` (2)|\`handoff/\` (3)|' $PLUGIN_REL/docs/reference/references.md"
   expect_fail "an undocumented skill is rejected"    4 "mkdir -p $PLUGIN_REL/skills/epsilon && printf -- '---\nname: epsilon\n---\n' > $PLUGIN_REL/skills/epsilon/SKILL.md"
-  # The command-namespace manifest, in both directions and on both axes. Every mutation
-  # REWRITES the file whole rather than editing a line out of it: deleting a name with sed
-  # leaves a dangling comma, and the invalid-JSON message would then stand in for the
+  # The command-namespace manifest, in both directions and on both axes. Each of the first
+  # four REWRITES the file whole rather than editing a line out of it: deleting a name with
+  # sed leaves a dangling comma, and the invalid-JSON message would then stand in for the
   # missing-name one -- same check number, different failure mode, a case proving nothing.
-  # The tree is left untouched in all four, so the manifest assertion is the only check 4
-  # failure any of them can produce.
+  # The fifth removes the file outright, which is its own failure mode. Each rewrite is
+  # otherwise CORRECT, carrying one error and no other, so the manifest assertion is the
+  # only check 4 failure any of the five can produce -- and each therefore also re-states
+  # what a correct manifest looks like, including `renamed-namespace`, the entry keyed by a
+  # DECLARED plugin name that its directory does not carry.
   expect_fail "a command missing from the namespace manifest is rejected" 4 \
-    "printf '{\"dev-workflows\": [\"alpha\"], \"fixture-two\": [\"omega\"]}\n' > $NS_MAP_REL"
+    "printf '{\"dev-workflows\": [\"alpha\"], \"fixture-two\": [\"omega\"], \"renamed-namespace\": [\"theta\"]}\n' > $NS_MAP_REL"
   expect_fail "a manifest name that is no command is rejected" 4 \
-    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\", \"phantom\"], \"fixture-two\": [\"omega\"]}\n' > $NS_MAP_REL"
+    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\", \"phantom\"], \"fixture-two\": [\"omega\"], \"renamed-namespace\": [\"theta\"]}\n' > $NS_MAP_REL"
   expect_fail "a command-shipping plugin with no manifest entry is rejected" 4 \
-    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\"]}\n' > $NS_MAP_REL"
+    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\"], \"fixture-two\": [\"omega\"]}\n' > $NS_MAP_REL"
   expect_fail "a manifest namespace naming no plugin is rejected" 4 \
-    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\"], \"fixture-two\": [\"omega\"], \"ghost\": [\"x\"]}\n' > $NS_MAP_REL"
+    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\"], \"fixture-two\": [\"omega\"], \"renamed-namespace\": [\"theta\"], \"ghost\": [\"x\"]}\n' > $NS_MAP_REL"
+  # The DECLARED-name branch, pinned: plugins/fixture-unlisted ships theta and declares the
+  # namespace `renamed-namespace`. Keyed by its directory instead, the manifest is wrong in
+  # both directions at once -- a namespace naming no plugin, and a plugin with no entry --
+  # which is exactly what a gate reading the directory would accept.
+  expect_fail "a manifest keyed by a plugin's DIRECTORY rather than its declared name is rejected" 4 \
+    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\"], \"fixture-two\": [\"omega\"], \"fixture-unlisted\": [\"theta\"]}\n' > $NS_MAP_REL"
   expect_fail "a missing namespace manifest is rejected" 4 "rm -f $NS_MAP_REL"
   expect_fail "an undocumented env var is rejected" 5 "printf 'Reads \$NEW_SETTABLE_VAR here.\n' >> $(cmd_file $PLUGIN_REL alpha)"
   expect_fail "an over-long table cell is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\\n| a | %s |\\n|---|---|\\n| b | c |\\n\", s}' >> $PLUGIN_REL/docs/reference/hooks.md"

@@ -1817,7 +1817,9 @@ PYEOF
 # skipped by default -- templates and handoff blocks are exactly where a tracker-shaped
 # field would hide -- so the marked/unmarked fence pair is a selftest case.
 # Sanctioned users -- 14 marked lines across 6 files, in four kinds. Re-derive with
-# `grep -rn vendor-token-ok: plugins/dev-workflows CLAUDE.md` rather than adjusting the number:
+# `grep -rn --exclude=CHANGELOG.md vendor-token-ok: plugins CLAUDE.md` rather than adjusting the
+# number -- scoped to `plugins`, not to one plugin, because six of the fourteen moved into
+# workflows-core with the reference corpus:
 #   * recognition (8): branch-naming.md's three quotes of a repository's own convention file
 #     plus its fenced verbatim pattern; /vuln's no-address placeholder literals (its prose
 #     step, its two handoff blocks) and the docs page mirroring them -- foreign text the

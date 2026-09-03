@@ -24,14 +24,14 @@ Measured at `v3.24.1`. Agents attributed by `subagent_type` dispatch (transitive
 
 | Plugin | Commands | Agents | References |
 |---|---|---|---|
-| `workflows-core` | 6 | 4 | 31 |
-| `pm-workflows` | 12 | 13 | 8 |
+| `workflows-core` | 6 | 5 | 31 |
+| `pm-workflows` | 12 | 12 | 8 |
 | `dev-workflows` | 5 | 12 | 14 |
 | `docs-workflows` | 3 | 7 | 14 |
 | `guideline-reviewers` | 2 | 2 | 38 |
 | **Total** | **28** | **38** | **105** |
 
-The totals reconcile exactly against the tree, with no remainder. Two findings shaped everything that follows.
+The totals reconcile exactly against the tree, with no remainder. **The agent column carries one amendment made after the measurement:** `doc-fixer` was measured under `pm-workflows` and is allocated to `workflows-core` instead (increment 2's ruling R1). Its two consumer groups are pm (`/epics`) and docs (`/document`), both of which leave `dev-workflows` in later increments, so leaving it behind would strand an agent in a plugin that never dispatches it. That is an allocation change, not a correction to the count — the total is unmoved, and the narrative below reads the measurement as taken. Two findings shaped everything that follows.
 
 **The core is tiny in agents and large in references.** Four agents of thirty-eight; thirty references of one hundred and five. The intuition — that the shared thing is the agents — is wrong, and it matters because **agents cross a plugin boundary for free and references do not** (§4). So the split's real work sits in the part that looked incidental.
 
@@ -207,7 +207,7 @@ Move `/api-guideline-reviewer`, `/guideline-reviewer`, their two agents, and `re
 
 ### Increment 2 — `workflows-core`
 
-Create the plugin with the four core agents, the thirty-one core references, the six commands it carries (the five utilities plus `/frames`, S13), the `model-routing` skill and the new loader skill. `dev-workflows` declares `"dependencies": ["workflows-core"]`.
+Create the plugin with the five core agents (four measured, plus `doc-fixer` per R1), the thirty-one core references, the six commands it carries (the five utilities plus `/frames`, S13), the `model-routing` skill and the new loader skill. `dev-workflows` declares `"dependencies": ["workflows-core"]`.
 
 Then the sweep (S10): every `${CLAUDE_PLUGIN_ROOT}/references/<core-ref>` citation becomes a loader invocation, and every `subagent_type: "dev-workflows:<core-agent>"` becomes `"workflows-core:<core-agent>"`. Add the loader gate.
 

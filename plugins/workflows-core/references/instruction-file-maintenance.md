@@ -1,9 +1,9 @@
 # Instruction-file maintenance (embedded — shared reference)
 
 Rules for proposing or making changes to an agent-instruction file — `CLAUDE.md`, `AGENTS.md`,
-`.github/copilot-instructions.md`, a rules file, or any `references/*.md` in this plugin. Consulted by
-`impl-maintenance` when it proposes changes, and binding on hand edits, which is where most stale claims
-originate.
+`.github/copilot-instructions.md`, a rules file, or any `references/*.md` in this plugin or in one
+that depends on it. Consulted by `impl-maintenance` when it proposes changes, and binding on hand
+edits, which is where most stale claims originate.
 
 ## 1. Verify every command claim against the thing that runs it
 

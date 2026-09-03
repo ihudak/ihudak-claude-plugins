@@ -865,9 +865,11 @@ scope_family() { # <next-phase-offer.md> <qualifier>  -> the family glob, or emp
 # Merge-clause adoption. An offer that names a downstream command whose Phase 0 gate
 # targets an artifact THIS run writes must carry the `<merge-clause>` placeholder, because
 # that command stops while this phase's pull request is open. The placeholder and its
-# resolution table live in $REF_DIR/next-phase-offer.md, which binds the rule to EVERY offer
-# this plugin prints; the family glob below is this GATE's scope, not the rule's, and that
-# same file records why it is not widened. This check only enforces adoption.
+# resolution table live in $CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md, which binds the rule
+# to EVERY offer the dependent plugin family prints -- not to the corpus plugin that ships the
+# rule, whose own single offer deliberately carries no clause; the family glob below is this
+# GATE's scope, not the rule's, and that same file records why it is not widened. This check
+# only enforces adoption.
 #
 # The failure it exists for is PARTIAL adoption, which is worse than none: a reference
 # claiming family-wide ownership while seven offers still carried a hardcoded clause, or

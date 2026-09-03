@@ -95,7 +95,7 @@ sampled pages. The shapes named above are seed examples, not the permitted set.
 
 **No component list is vendored.** This rule carries no catalog of components to choose from for any
 repo, including an example-docs one: the evidence comes from the sampled sibling pages of whatever
-repo is in front of the run, never from a reference table in this plugin. A repo's own authoring
+repo is in front of the run, never from a reference table shipped anywhere in the plugin family. A repo's own authoring
 guidance may separately document that a component exists; which shape it is idiomatic for is still
 read off the sibling pages.
 

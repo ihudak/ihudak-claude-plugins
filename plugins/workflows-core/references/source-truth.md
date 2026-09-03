@@ -87,9 +87,10 @@ and `design.md`; `tasks.md` is secondary (supporting, not contractual); and
 `idea.md`, `prompt.md`, and any rendered HTML mirrors are ignored. The
 **"actual"** phrasing is always taken from the source code.
 
-For every documentation page, snippet, or release-notes entry produced by
-this plugin, verify the following classes of user-visible claim against the
-source code:
+For every documentation page, snippet, or release-notes entry produced by a
+command of a plugin that depends on this one — `/document` and
+`/release-notes` today — verify the following classes of user-visible claim
+against the source code:
 
 | Claim type | Where to verify in code |
 |---|---|

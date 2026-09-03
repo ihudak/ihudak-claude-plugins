@@ -19,7 +19,7 @@ Logs a corrective interaction, then grills the fix inline with a bounded (≤5-q
 - **`$ARGUMENTS` itself, verbatim** — the correction to interrogate, and the corrective-triple's User prompt block.
 - **Recent session context**, to infer the target `command`.
 - **`$SPECS_PATH`** — for the specs-preflight/commit-artifacts bookkeeping only.
-- **No plugin dependency.** Unlike [`/prompt-brainstorm`](prompt-brainstorm.md), which hands off to the separate `superpowers` plugin's `brainstorming` skill, this command's grill runs entirely on the bundled `references/grilling-technique.md` — nothing outside `dev-workflows` is required.
+- **No plugin dependency.** Unlike [`/prompt-brainstorm`](prompt-brainstorm.md), which hands off to the separate `superpowers` plugin's `brainstorming` skill, this command's grill runs entirely on the bundled `references/grilling-technique.md` — nothing outside `workflows-core` is required.
 
 ## What it produces
 

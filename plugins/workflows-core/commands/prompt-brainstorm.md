@@ -62,6 +62,11 @@ intent record now, before ceding:
   entry already carries.
 - `key` (or `null`), `epic` (when the resolved kind is `epic`, else
   `null`), `source`, `plugin_version`, and `ceded_at`.
+- `plugin` — this plugin's own `name`, from the same `.claude-plugin/plugin.json`
+  the version is read from. The replay pairs a claim with a boundary by bare
+  command name, which is unambiguous only because each command has one home in
+  this marketplace; recording the home makes that a property of the record rather
+  than of the current allocation.
 
 **Append — never overwrite.** The file holds a JSON **array**: read it if it
 exists, append this record, write it back; create it with a one-element array

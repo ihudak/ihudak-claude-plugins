@@ -75,14 +75,10 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/session-cost.py" \
   --checkpoint    ~/.claude/dev-workflows/cost-state/<session_id>.json \
   --snapshot      ~/.claude/dev-workflows/cost-snapshots/<session_id>.json \
   --now-ts        <current UTC ISO8601> \
-  --commands-dir  "${CLAUDE_PLUGIN_ROOT}/commands" \
   --claim         </command per §13.1 deferred record, oldest first; repeatable>
 ```
 
-`--commands-dir` is what makes command boundaries visible; **omit it and boundary
-detection is silently off** — every claim comes back unmatched and §13.4 discards
-the attribution. Pass it on every invocation, not only when a claim is present.
-`--claim` is absent on the ordinary run, which is every run with no §13.1 file.
+**Nothing here names a `commands/` directory, and that absence is the fix rather than an omission.** Command boundaries resolve against `scripts/command-namespaces.json`, the manifest shipped beside the helper — namespace → that plugin's own command names, one entry per plugin of this marketplace that ships commands — read with no flag and no path assumption. The invocation used to carry `--commands-dir "${CLAUDE_PLUGIN_ROOT}/commands"`, and that flag was wrong twice over. **This file is read through the loader skill**, so `${CLAUDE_PLUGIN_ROOT}` resolves to the plugin that *ships this reference* and its handful of family-meta commands, while the run emitting the entry is routinely a sibling's — the path resolved, just to the wrong files, which is why no assertion ever saw it. And one plugin's set is the wrong set regardless: §13.2's boundary rule spans every plugin here, so a caller-supplied per-plugin path could only ever narrow it back. `--namespaces <path>` overrides the manifest and exists to be pointed at a fixture; where it resolves to nothing, **boundary detection is off** — every claim comes back unmatched and §13.4 discards the attribution. `--claim` is absent on the ordinary run, which is every run with no §13.1 file.
 
 The helper reads the main transcript **from the checkpoint's line offset
 forward, skipping JSON-parsing of every line before that offset** — I/O still
@@ -115,7 +111,8 @@ With no `--claim`, `claims` and `unmatched_claims` are empty and
 claims, **the top-level block is the remainder** — this run's own spend — and each
 `claims[]` entry carries its own `models`, `cost_computed_usd` and `duration_s`,
 which is what §13.3 builds a replayed §6 entry from. `command_boundaries` is
-reported whenever `--commands-dir` resolves, claim or no claim.
+reported whenever the §2 manifest resolves, claim or no claim, and `namespaces`
+lists the plugin namespaces it was resolved against.
 
 An unknown model (absent from the table) is recorded with its tokens,
 `cost_usd: null`, and `note: unpriced-model` — the run never fails. `emit-cost`
@@ -548,9 +545,9 @@ Inputs:
 Behavior:
 1. Resolve session artifacts (§1) and the price table (§4).
 2. Read the §13.1 deferred file, if any. Run `session-cost.py` (§2) with the
-   checkpoint (§3), the snapshot (§5) when present, `--commands-dir`, and **one
-   `--claim` per deferred record, oldest first**. With no deferred file this is
-   the call it has always been and every step below is unchanged.
+   checkpoint (§3), the snapshot (§5) when present, and **one `--claim` per
+   deferred record, oldest first**. With no deferred file this is the call it has
+   always been and every step below is unchanged.
 3. If `unmatched_claims` comes back non-empty, take §13.4 before writing
    anything.
 4. Apply attribution (§7) to **this run**, whose spend is the returned remainder;
@@ -618,7 +615,8 @@ because the earlier run is over.
 
 ```json
 [
-  {"command": "/prompt-grill-me", "phase": "inferred", "role": "inferred",
+  {"command": "/prompt-grill-me", "plugin": "workflows-core",
+   "phase": "inferred", "role": "inferred",
    "target_command": "/document", "key": "PRODUCT-1234", "epic": null,
    "source": "specs", "plugin_version": "3.17.1",
    "ceded_at": "2026-09-01T10:04:00Z"}
@@ -627,7 +625,7 @@ because the earlier run is over.
 
 No field is a measurement — the spend has not happened yet — and each is here
 because a replay cannot re-derive it once the run is over. `command` and
-`plugin_version` build the entry (§6). `target_command` resolves `phase`/`role`
+`plugin_version` build the entry (§6). **`plugin` is the plugin that ships the ceding command** — its `name` from the same `.claude-plugin/plugin.json` `plugin_version` is read from, and necessarily one of the §2 manifest's keys. What it protects is **uniqueness, not resolvability**: §13.3 matches a claim to a boundary by bare command name, which is unambiguous only because each command has exactly one home in this marketplace. Recording the home turns that from a property of today's allocation into one the record itself carries, so a command that ever moves cannot silently pair a claim with a namesake. It is not what makes a cross-plugin claim resolve — the §2 manifest already does that, and a replay in any plugin matches without reading this field. `target_command` resolves `phase`/`role`
 through §7 at replay time; the two are carried literally as `inferred` because
 that is the marker §11's contract takes, and carrying them keeps the record a
 complete §11 input rather than one the replay must patch. `key`, `epic` and
@@ -643,10 +641,10 @@ per-session, transient, local, NEVER committed, and safe to delete.**
 ### 13.2 Where the window is cut
 
 The boundary is not guessed and is not recorded by the ceding run: it is read out
-of the transcript, which marks every slash-command invocation.
-`session-cost.py --commands-dir <plugin>/commands` reports them as
-`command_boundaries`. Three disciplines make that safe, and each exists because
-its absence was a live defect:
+of the transcript, which marks every slash-command invocation. `session-cost.py`
+reports them as `command_boundaries`, resolved against the §2 manifest. Three
+disciplines make that safe, and each exists because its absence was a live
+defect:
 
 - **Anchored to the envelope, not to one tag.** Claude Code writes the envelope
   in two orders — built-ins name-first (`<command-name>…`), plugin commands
@@ -655,18 +653,8 @@ its absence was a live defect:
   silently inert. Anchoring on either opener keeps the property that matters: the
   envelope must *start* the message, so the same marker text quoted inside prose
   or a pasted file is not an invocation.
-- **Namespaced, and resolved against this plugin's own name.** A boundary is
-  accepted only as `<this plugin>:<known command>`, the namespace checked against
-  the `name` in the plugin's own `plugin.json`. Two facts force that. Claude
-  Code's built-ins are written **bare**, and one of them — `/upgrade` — collides
-  with a command this plugin also ships, so accepting a bare name mints a boundary
-  from a subscription command the plugin never ran. And another installed plugin's
-  `/superpowers:implement` must not read as this plugin's `/implement`, which is
-  what discarding the namespace would do. This is `specs-repo-git.md` §3.5's
-  `branch-key` discipline applied to a transcript: resolve against the set you
-  hold, never parse. It errs safe — an invocation missed becomes an unmatched
-  claim, reported and dropped (§13.4), where a phantom one would silently file one
-  command's spend under another's phase.
+- **Namespaced, and both halves resolved against the §2 manifest.** A boundary is accepted only as `<a plugin of this marketplace>:<that plugin's own command>` — the namespace must be a key of the manifest and the name must be in *that key's* list. Two facts force the namespace requirement. Claude Code's built-ins are written **bare**, and one of them — `/upgrade` — collides with a command a plugin here also ships, so accepting a bare name mints a boundary from a subscription command nothing here ever ran. And another marketplace's `/superpowers:implement` must not read as this family's `/implement`, which is what discarding the namespace would do. This is `specs-repo-git.md` §3.5's `branch-key` discipline applied to a transcript: resolve against the set you hold, never parse.
+  **What widened at the split is which namespaces are accepted, and a namespace *list* would not have been enough.** The rule used to be `<this plugin>:<this plugin's command>`, resolved against whichever single plugin supplied the command set — so once the family spanned several plugins, a **sibling's** invocation between a cede and its replay was invisible, and §13.3 gives a claim the segment up to the next boundary *of any kind*. The claim then swallowed the sibling's run whole: reproduced at 9000 tokens claimed where 5000 was correct, taken silently out of the replaying run's own remainder. Both halves are resolved at once, which is why widening only the namespaces still rejects `/dev-workflows:vuln` and still mis-measures; the manifest widens both, and the two safety properties above are asserted against it rather than argued. It errs safe either way — an invocation missed becomes an unmatched claim, reported and dropped (§13.4), where a phantom one would silently file one command's spend under another's phase.
 - **Matched by name, never by position.** See §13.3.
 
 `session-cost.py --selftest` covers each, paired with the broken implementation it

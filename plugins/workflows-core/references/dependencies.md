@@ -31,4 +31,13 @@ A companion outside the family is **convention + runtime-resolve + graceful fall
 
 ## Marketplace siblings (independent plugins, same marketplace)
 
-`prose-style` and `obsidian-llm-wiki` ship alongside this family in the same marketplace but are versioned independently and depend on nothing here.
+Four plugins ship alongside this family in the same marketplace. Each is versioned independently and declares no dependency on anything here.
+
+| Sibling | What it is | Its tie to this family |
+|---|---|---|
+| `prose-style` | a pluggable prose style checker | The one sibling this family resolves **at runtime** — it is also the optional companion listed above, and the only entry appearing in both sections. |
+| `obsidian-llm-wiki` | the LLM Wiki pattern for an active Obsidian vault | None at runtime. |
+| `guideline-reviewers` | the two guideline-review commands, extracted out of `dev-workflows` | None at runtime — the extraction kept no tie in either direction. |
+| `acli` | a reference skill for a vendor CLI | None at runtime. It ships a skill and no commands, which is why it is the one sibling absent from the manifest below. |
+
+**"Depends on nothing here" is true in exactly one direction, and the reverse direction has a gate.** This plugin's `scripts/command-namespaces.json` lists the command set of **every** plugin of this marketplace that ships commands — `guideline-reviewers`, `obsidian-llm-wiki` and `prose-style` as well as this family's own two — because `session-cost.py` resolves a session's command boundaries against *both* halves of a `<namespace>:<command>` marker, so a sibling's invocation has to be recognised in order to be rejected as a boundary of ours rather than silently swallowed into a deferred claim (`references/cost-emission.md` §13.2). `scripts/check-docs.sh` derives that manifest from the tree in both directions, over every plugin directory rather than the documented ones, so **a sibling that adds, renames or removes a command turns this repository's build red in a plugin that sibling has never heard of.** That manifest is the whole of the coupling: nothing at run time reads a sibling, and a stale entry costs that sibling's invocations their boundary rather than breaking anything of ours.

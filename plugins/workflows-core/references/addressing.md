@@ -108,7 +108,7 @@ the kind is frequently what decides the run's mode.
    where `<KIND>` was supplied, whose `kind:` equals it. This is §4's read, applied as a filter rather
    than only to the winner, and it is the only place `<KIND>` narrows anything. **This step is not optional and it is not
    tidiness**: `*-<KEY>-*` matches every folder whose key merely *extends* `<KEY>`, and a child keyed
-   from its parent is this plugin's default. `/brd-split` proposes "the parent's key plus the next
+   from its parent is the default wherever a command mints one. `/brd-split` proposes "the parent's key plus the next
    unused two-digit segment" and nests the child inside the parent, so on a tree holding
    `BRD-ACME-90-billing-intake/` with children `PRD-ACME-90-01-invoicing/` and
    `PRD-ACME-90-02-dunning/`, the bare glob returns **three** matches for `ACME-90` — and step 4 would

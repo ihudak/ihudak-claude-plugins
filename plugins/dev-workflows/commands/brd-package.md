@@ -618,10 +618,10 @@ artifact it was interpolated from:
 | Class | Examples |
 |---|---|
 | A path rooted at the plugin's install directory | the plugin-root variable, in any form |
-| A reference-file citation | `references/…`, `docs/superpowers/…` |
+| A reference-file citation | `references/…`, a bare `workflows-core:<name>` loader argument, the `Skill(skill: "workflows-core:reference", …)` call itself, `docs/superpowers/…` |
 | A numbered cross-reference in this plugin's notation | any `§` |
-| A slash command | `/brd-…`, `/dev-workflows:…`, any leading-slash command name |
-| An agent, subagent type or skill name | `subagent_type`, any `dev-workflows:` prefix, any agent filename |
+| A slash command | `/brd-…`, `/dev-workflows:…`, `/workflows-core:…`, any leading-slash command name |
+| An agent, subagent type or skill name | `subagent_type`, any `<plugin>:<name>` prefix (`dev-workflows:`, `workflows-core:`, and any namespace a later split adds), any agent filename |
 | A decision-row reference | `D12`, `D13`, `D18`, `D20`, or any other bare `D<n>` row id |
 
 `BRD_PACKAGE_PROMPT_LEAK: the rendered prompt carries <token> in part <n>, interpolated from <artifact> — the prompt is read by somebody with no plugin, and a token they cannot resolve is not fixed by deleting it.`

@@ -131,7 +131,7 @@ today.
 - NEVER write into `$DOCS_PATH`, any git working tree, or any repository.
 - MAY read and touch the user-scope qmd index under `~/.cache/qmd/` — qmd's read commands create and update that file (`qmd status` alone creates it), and it lies outside every git working tree.
 - NEVER **build or refresh** the index from inside this agent: no `qmd collection add`, `qmd collection remove`, `qmd collection rename`, `qmd embed`, `qmd update`, `qmd init`, `qmd cleanup`. Building and refreshing belong to `resolve-docs-grounding`, which can ask the user first.
-- NEVER run `qmd init` anywhere — a project-local `.qmd/` index resolves relative to cwd, and this plugin's commands routinely run standing in a different repo from the one they read.
+- NEVER run `qmd init` anywhere — a project-local `.qmd/` index resolves relative to cwd, and the commands that dispatch this agent (which live in the depending plugin, not in this one) routinely run standing in a different repo from the one they read.
 - NEVER run `qmd update --pull` (it writes into a possibly-read-only docs clone).
 - NEVER run `qmd query` — use the Path A rung ladder.
 - Every qmd invocation carries an explicit wall-clock cap.

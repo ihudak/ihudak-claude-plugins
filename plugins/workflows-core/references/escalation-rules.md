@@ -5,11 +5,12 @@ Canonical `choices:` arrays for escalation decision points. Command bodies are a
 
 ## §0 — Array shape: two to four options, and the free-text option is the harness's
 
-**Every `choices:` array in this plugin carries between two and four options, and never authors an
-"Other" option of its own.** `AskUserQuestion` renders `minItems: 2, maxItems: 4` and supplies the
-free-text escape itself — its own schema says *"There should be no 'Other' option, that will be
-provided automatically."* A five-option array is not a long prompt; it is a tool call the harness
-rejects at validation, so the run cannot present it at all.
+**Every `choices:` array in this plugin and in every plugin that depends on it carries between two
+and four options, and never authors an "Other" option of its own.** `AskUserQuestion` renders
+`minItems: 2, maxItems: 4` and supplies the free-text escape itself — its own schema says *"There
+should be no 'Other' option, that will be provided automatically."* A five-option array is not a
+long prompt; it is a tool call the harness rejects at validation, so the run cannot present it at
+all.
 
 This replaces the rule that stood here, which said the opposite: that every array ends in
 `"Other… (describe)"` and that adding one where a phase omitted it was a permitted adjustment. That
@@ -33,7 +34,7 @@ order, their wording, and the `(Recommended)` marker are not the orchestrator's 
 orchestrator that believes a different option is correct for this run says so in prose alongside the
 list — it never edits the list.**
 
-This rule binds every command in the plugin, not only the ones documented below. It exists because a
+This rule binds every command in the family — this plugin's own and those of every plugin that depends on it — not only the ones documented below. It exists because a
 `/document` run presented Phase 6.5's `["Run smoke-check (Recommended)", "Skip — use the manual table
 only", "Cancel"]` with the recommendation moved onto Skip, and the render gate was never exercised.
 
@@ -112,7 +113,7 @@ deciding a marker belongs somewhere the command did not put a placeholder.
 When no option is safe to recommend across the runs that reach a prompt, omit the marker and say so
 in prose beside the list (as `/document` Phase 5.6 does for its per-occurrence image review).
 
-This rule binds every command in the plugin, not only the ones documented below.
+This rule binds every command in the family — this plugin's own and those of every plugin that depends on it — not only the ones documented below.
 
 ## When a choice list fires
 
@@ -140,7 +141,7 @@ question with one plausible answer.
 This rule governs only *whether* a list is presented. Option wording, option order, and the
 `(Recommended)` marker are governed by the two rules above and are untouched by it.
 
-This rule binds every command in the plugin, not only the ones documented below.
+This rule binds every command in the family — this plugin's own and those of every plugin that depends on it — not only the ones documented below.
 
 ## key dir not found
 

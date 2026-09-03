@@ -746,7 +746,7 @@ Run this phase after Phase 6.4 **only** when Phase 6.3 wrote files into a builda
 ### Step 1 — Build check (gating)
 
 Resolve the build command per space — `profile.commands.per_space.<space>.build`, else the flat `profile.commands.build` — and run it for every space in the **verification set** (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md` §2): every space whose `content_root` holds at least one affected page. Do NOT re-run the Phase 6.4 prose linter. Classify any failure:
-- **Content failure** (the template won't compile, unresolved snippet include, broken postid/internal link, malformed token) → invoke `doc-fixer` (Severities: BLOCKER and MAJOR), then re-run the build once. If failures remain:
+- **Content failure** (the template won't compile, unresolved snippet include, broken postid/internal link, malformed token) → invoke `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`; Severities: BLOCKER and MAJOR), then re-run the build once. If failures remain:
   ```
   choices: ["Proceed to smoke-check anyway", "Show remaining and fix manually", "Cancel"]
   ```
@@ -1365,7 +1365,7 @@ After writing the edits and before Phase 4, dispatch `docs-style-checker` on the
   > repo_root: [cwd's git root]
   > files:     [the files edited in Phase 3]
 
-- `VIOLATIONS_FOUND` → apply safe fixes via `doc-fixer` (one fix cycle), then check the fixer's `Stop condition flag`. On `NEEDS HUMAN` it deferred a blocking violation it could not safely fix: surface each deferred BLOCKER with the fixer's reason and ask the user whether to fix it by hand and re-run, or skip the check — direct mode runs no reviewer, so nothing downstream would catch it. Record the `style_check` row from that answer per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` (`RAN` after a hand fix and re-run, `SKIPPED_BY_USER` with the choice quoted verbatim). Only on `CLEAR` re-run once.
+- `VIOLATIONS_FOUND` → apply safe fixes via `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`, one fix cycle), then check the fixer's `Stop condition flag`. On `NEEDS HUMAN` it deferred a blocking violation it could not safely fix: surface each deferred BLOCKER with the fixer's reason and ask the user whether to fix it by hand and re-run, or skip the check — direct mode runs no reviewer, so nothing downstream would catch it. Record the `style_check` row from that answer per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` (`RAN` after a hand fix and re-run, `SKIPPED_BY_USER` with the choice quoted verbatim). Only on `CLEAR` re-run once.
 - `OK` → proceed to Phase 4.
 - `NOT_CONFIGURED` / `ERROR` → no primary rung and no complementary pass produced a result, so the gate has no coverage. Record `style_check` as `UNAVAILABLE` and convert it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 before proceeding. Direct mode has no reviewer gate, so this prompt is the only place the gap surfaces — never proceed past it silently.
 

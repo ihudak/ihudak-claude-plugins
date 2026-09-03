@@ -350,7 +350,8 @@ the prerequisite BRD and the specific decision, alongside the `depends-on:` list
 carries.
 
 **Inheritance on the BRD route uses `brd-link.md`'s `parent:`, never a segment count.** Resolve any
-inherited ARD via `workflows-core:ard-resolution` with:
+inherited ARD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and
+running its resolution with:
 
 - **a `parent:`** (this folder is a slice — the only shape this route resolves, since step 1a
   refuses the container) → `prd: <parent-key>`, `epic: <SLICE-KEY>`.
@@ -358,8 +359,13 @@ inherited ARD via `workflows-core:ard-resolution` with:
 The second mapping needs no change to that reference: a slice folder sits inside its parent's exactly
 as an Epic subfolder sits inside a PRD dir, which is the layout its Epic-level branch already
 collects — the slice's own `ard.md` plus the parent BRD folder's `ard.md` for inherited
-invariants. Act on the returned `status` exactly as above: `found` → inherit those `AD#N` read-only;
+invariants. Act on the returned `status`: `found` → inherit those `AD#N` read-only;
 `unmerged` → **stop**, naming the returned `branch` and any `pr`; `none` → proceed unchanged.
+
+**This subsection loads `ard-resolution` itself, and the second load site is deliberate.** The other
+one is in this phase's Epic-level paragraph, so it neither runs on a PRD-level run nor is guaranteed
+to stay above this subsection if the phase is ever reordered — and nothing in either place asserts
+that ordering. A reader who arrives here has the load in front of them and needs nothing above it.
 
 ---
 

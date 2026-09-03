@@ -411,8 +411,8 @@ to them would be the defect.** Note also what is *not* the reason: both run `spe
 resolved — so "nowhere to write it" was never true either.
 
 **Session feedback is a different question with a different answer.** `/vuln` and `/upgrade` do emit
-it, and should: `emit-auto` records that *this plugin* lacked a capability the run needed
-(`references/feedback-emission.md` §6), which is how the plugin learns about its own gaps. A
+it, and should: `emit-auto` records that *the plugin whose command ran* lacked a capability the run
+needed (`references/feedback-emission.md` §6), which is how the family learns about its own gaps. A
 vulnerability run surfaces one as readily as a PRD run does, and the size of the work has nothing to
 do with it.
 

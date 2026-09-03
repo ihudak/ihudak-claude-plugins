@@ -713,6 +713,23 @@ Then list every moved command and its new plugin. Note that a declared dependenc
 
 The workflow map, the command/agent/reference/skill counts, the "Active plugin" paragraph (now two active plugins), the reference-authority paragraphs that name paths inside `dev-workflows` for files that moved, and the citation convention under *Internal reference convention*. Re-derive every number against the tree; nothing in `CLAUDE.md` is gated.
 
+- [ ] **Step 4a: Closing sweep — re-derive every carried defect, do not trust this list**
+
+Three defects were deferred into Tasks 6 and 7 rather than fixed where they were found. Each is a checkbox in its owning step, but the one ruling in this increment that was written as prose instead of a checkbox (R3) was missed for two whole tasks — so this step re-derives all three against the tree before the increment is called done:
+
+```bash
+# 1. the dependency field the shipped dependencies.md already asserts (Task 7 step 1)
+python3 -c "import json;print(json.load(open('plugins/dev-workflows/.claude-plugin/plugin.json')).get('dependencies','ABSENT'))"
+# expect ['workflows-core'] -- and never grep the raw text: the keywords list contains the word
+
+# 2. no core reference passes a --commands-dir that resolves to core (Task 6 step 1a)
+grep -rn 'commands-dir .*CLAUDE_PLUGIN_ROOT' plugins/workflows-core/references/   # expect no hit
+
+# 3. no CLAUDE.md reference path names a file that has moved (Task 7 step 4)
+grep -o 'plugins/dev-workflows/references/[a-z-]*\.md' CLAUDE.md | sort -u \
+  | while read -r f; do [ -f "$f" ] || echo "STALE: $f"; done                     # expect no output
+```
+
 - [ ] **Step 5: Run every gate one final time.** Expected: all PASS, 0 errors, 0 warnings.
 
 - [ ] **Step 6: Commit**
@@ -723,6 +740,14 @@ git commit -m "feat(core): dev-workflows declares workflows-core as a dependency
 ```
 
 ---
+
+## Post-split follow-ups — the operator's own bug list
+
+Two defects found while using pre-split `dev-workflows`, recorded here because both land in **`workflows-core`** and so become fixable the moment this increment merges. They are **not** in scope for increment 2 — the split changes no behaviour (§9) — and neither is a consequence of the split.
+
+**PS1 — a wrong `$SPECS_PATH` and a read-only specs mount produce the same symptom: silence.** `environment.md` deliberately tolerates an unwritable `.git`, which is right, because a read-only mount is normal here. But it also swallows **no `.git` at all**, which is never normal. The run writes its deliverables, commits nothing, opens no pull request, and ends on a terminal "gate failed" line that never names the cause — after `brd-reader` has read a 30-page document and a human has walked its defect candidates. The whole cost is paid before the failure surfaces. The fix is a Phase 0 stop that distinguishes *unwritable* from *absent* and names which it found; the guard, the preflight and the handoff entry points are all core's now.
+
+**PS2 — `/frames` cannot adopt an existing index under another name.** An operator who already keeps one must hand-convert it or lose it. `/frames` and `grounding-format.md` are both core's as of this increment (S13).
 
 ## Verification (after the branch is green, before the merge)
 

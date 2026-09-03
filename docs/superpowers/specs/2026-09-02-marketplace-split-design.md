@@ -337,6 +337,14 @@ Two riders came back with it, and both make the design smaller:
 - **The manifest is derived, not hand-maintained.** A hand-maintained list is the exact defect class `CLAUDE.md` warns about — but `check-docs.sh` already computes `cmd_names` per plugin, and S7 makes it loop over the plugin list, so "manifest equals derived inventory, in both directions" is **a few lines inside the existing loop**, not a seventh gate.
 - **The manifest is also what fix part two resolves against.** `record.plugin` needs a set of valid plugin names, and the manifest's keys are exactly that set. The two halves of §8.4 compose into **one structure**, not two.
 
+### 8.7 Open, found in implementation: a foreign marketplace's boundary is still invisible
+
+Increment 2's review of the shipped fix found that §8.2 still reproduces **in miniature** for a command from a marketplace outside this one. Between a cede and its replay, such a command mints no boundary — its namespace is not a key of the manifest — so its spend is absorbed into the claim exactly as `/vuln`'s was before the map landed.
+
+**§13.2's "It errs safe either way" does not cover this.** That sentence is about a missed *claimed* invocation, which ends unmatched and is dropped; it says nothing about a missed *unclaimed boundary*, which fails unsafely and silently. The two are different directions of the same conflation: the detector uses one test both to decide **where to cut the window** and to decide **where a claim may match**.
+
+Separating them is the fix — cut at every well-formed command envelope, match only against manifest names — and it would close the bare-`/upgrade` case by the same stroke. It is safe today because the only claimable names are the two deferring commands. It is **not** a patch: the current fixtures assert the conflated behaviour explicitly, so it needs this section amended and those assertions rewritten together. Deliberately left for a later increment rather than folded into the one that found it.
+
 ### 8.6 Verification
 
 The review's four probe transcripts are adopted as fixtures rather than writing new ones. Two **discriminate**: `split2.jsonl` (the segment case) and `split3.jsonl` (both safety cases) — an implementation that widens namespaces without widening the per-namespace name sets **passes `split3` and fails `split2`**. That is precisely the `--selftest` contract §13.2 already imposes on its three existing disciplines: a case paired with the broken implementation it exists to catch.

@@ -236,7 +236,7 @@ Append a `### Model Routing` section summarising the per-CVE classification, why
 
 Append a `### Review triage` section with one line per CVE that went through Opus review: - **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"] — or "N/A (SIMPLE / MODERATE path, no Opus review)" for CVEs that never reached review.
 
-Then invoke `impl-maintenance` with a compact session handoff covering the CVEs fixed, notable regressions, workarounds, and overall outcome. **Always pass `Command run: /vuln`** in that handoff — omitting it makes `impl-maintenance` default to `/implement`, mislabeling the run.
+Then invoke `impl-maintenance` (subagent_type: `"workflows-core:impl-maintenance"`) with a compact session handoff covering the CVEs fixed, notable regressions, workarounds, and overall outcome. **Always pass `Command run: /vuln`** in that handoff — omitting it makes `impl-maintenance` default to `/implement`, mislabeling the run.
 
 **Context hygiene.** This was a large run — consider **`/compact`** to free context before your next task (per `workflows-core:session-hygiene` §3 — non-pipeline, so `/compact` only; guidance only).
 

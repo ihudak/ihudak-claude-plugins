@@ -24,6 +24,7 @@ Two pages orient you before you touch a command: [Getting started](getting-start
 - [References](reference/references.md) — the reference-doc inventory under `references/`, grouped by concern.
 - [Skills](reference/references.md#skills) — the one bundled skills entry, `docs-frontmatter`: what it is for, and whether it is user-invocable.
 - [Environment](reference/environment.md) — every environment variable the plugin reads, and what it configures.
+- [Hooks](reference/hooks.md) — the two bundled hooks and what each one does.
 - [Session cost](reference/session-cost.md) — which commands here emit a cost entry, what they charge to, and where the file lands.
 
 ## Where the rest lives
@@ -36,4 +37,4 @@ This plugin is the documentation half of a family. Three sibling plugins matter 
 
 ## Status
 
-This plugin ships 3 slash commands, 7 agents, and 14 reference files — and it ships one bundled skills entry, `docs-frontmatter`. All of it moved here unchanged from `dev-workflows` in the third increment of the marketplace split: the commands behave exactly as they did, and only the namespace they answer to and the way they reach the shared corpus have changed.
+This plugin ships 3 slash commands, 7 agents, 14 reference files and 2 hooks — and it ships one bundled skills entry, `docs-frontmatter`. All of it moved here unchanged from `dev-workflows` in the third increment of the marketplace split: the commands behave exactly as they did, and only the namespace they answer to and the way they reach the shared corpus have changed. The `preload-context` hook is the one thing that was split rather than moved, because `dev-workflows` still needs its half.

@@ -12,7 +12,7 @@ Three slash commands for the documentation half of the `dev-workflows` pipeline:
 | PM / Dev | [`/release-notes`](docs/commands/release-notes.md) | Draft the one Summary that announces a change, shaped by the destination it resolves to: breaking change, feature update, or fix. |
 | Anytime — setup | [`/docs-profile`](docs/commands/docs-profile.md) | Scan a documentation repository once and write the reusable profile plus `CLAUDE.md` guidance `/document` reads, as a reviewable pull request. |
 
-Seven agents and 14 reference files carry the docs-repo discovery, PR-diff summarising, doc planning, doc writing and doc review these three commands share, plus the `docs-frontmatter` skill `/docs-profile` points a repository at.
+Seven agents and 14 reference files carry the docs-repo discovery, PR-diff summarising, doc planning, doc writing and doc review these three commands share, plus the `docs-frontmatter` skill `/docs-profile` points a repository at and two advisory hooks — one injecting specs context on a `/document` or `/release-notes` prompt, one reminding about a docs page's changelog and owners frontmatter.
 
 ## Documentation
 
@@ -24,6 +24,7 @@ Seven agents and 14 reference files carry the docs-repo discovery, PR-diff summa
 | [Agents](docs/reference/agents.md) | The subagent inventory the commands dispatch internally. |
 | [References](docs/reference/references.md) | The reference-doc inventory under `references/`, and the one bundled skill. |
 | [Environment](docs/reference/environment.md) | Every environment variable the plugin reads. |
+| [Hooks](docs/reference/hooks.md) | The two bundled hooks, what each injects or reminds about, and why neither blocks Claude. |
 | [Session cost](docs/reference/session-cost.md) | Which commands emit a cost entry, what they charge to, and where it lands. |
 
 ## Recommended environment

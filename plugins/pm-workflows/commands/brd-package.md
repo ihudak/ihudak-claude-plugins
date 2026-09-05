@@ -101,7 +101,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
 
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
    (`workflows-core:addressing` §1). If absent or invalid, stop:
-   `BRD_PACKAGE_NEEDS_KEY: /brd-package needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-package <KEY>'.`
+   `BRD_PACKAGE_NEEDS_KEY: /brd-package needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/pm-workflows:brd-package <KEY>'.`
 2. **`--depends-on <BRD-KEY>`.** Repeatable, each consuming the next token; validate each with
    `key-valid` and drop (warn, do not stop the run) any that fail shape — the same handling
    `/brd-ground` Phase 0 gives the same flag, because the flag means the same thing here and a
@@ -123,7 +123,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
 5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
    `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it:
-   `BRD_PACKAGE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
+   `BRD_PACKAGE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /pm-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /pm-workflows:brd-split on its parent.`
 6. **Gate the decision register on main.** This command **consumes** a `$SPECS_PATH` deliverable it
    did not write, so per `workflows-core:phase-handoff` §5 rule 2 it executes
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
@@ -134,11 +134,11 @@ cannot review, and they will not tell you that — they will review it anyway, b
    concrete branch/PR state it reports; `pass` → proceed; `pass_amending` → proceed, printing the
    §3.3 row-B message; `unmanaged` → proceed as before this feature; `absent` (row F — the register
    is on no ref at all) → **split it before stopping**, on a test row F cannot make, exactly as
-   `/dev-workflows:brd-reconcile` splits its own. Row F covers two states, and sending the second
+   `/pm-workflows:brd-reconcile` splits its own. Row F covers two states, and sending the second
    one back to `/brd-interview` walks the operator into a wall:
 
    - **No `decisions.md` in the folder at all** — no interview has ever run for this BRD.
-     `BRD_PACKAGE_NEEDS_INTERVIEW: no decision register on file for <BRD-KEY> — run /dev-workflows:brd-interview <BRD-KEY> first.`
+     `BRD_PACKAGE_NEEDS_INTERVIEW: no decision register on file for <BRD-KEY> — run /pm-workflows:brd-interview <BRD-KEY> first.`
    - **A register is in the folder, and on no ref** — the interview ran and its handoff was
      declined. **Do not send the operator back to `/brd-interview`**: its *Resolve the round* phase
      opens a new round only on a changed finding, a changed verifier outcome or a moved decision, so
@@ -147,14 +147,14 @@ cannot review, and they will not tell you that — they will review it anyway, b
      the paths *that* run declared (`workflows-core:phase-handoff` §2.3), and the
      register already on disk is not among them. What is needed is the register already written,
      landed:
-     `BRD_PACKAGE_REGISTER_NOT_HANDED_OFF: <BRD-KEY>'s decision register is written at <path> but is on no branch — its handoff was declined. Commit and merge decisions.md and the interview/ round records to the specs repo's default branch, then re-run; do not re-run /dev-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
+     `BRD_PACKAGE_REGISTER_NOT_HANDED_OFF: <BRD-KEY>'s decision register is written at <path> but is on no branch — its handoff was declined. Commit and merge decisions.md and the interview/ round records to the specs repo's default branch, then re-run; do not re-run /pm-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
 7. **Gate on the interview's rounds — and read the precondition the only way that is not a
    deadlock.** Read every `interview/round-<N>.md`. Stop unless **every question in every round
    carries either a terminal disposition or the holding state *held for the customer*** — the
    vocabulary `/brd-interview`'s *Resolve the round* phase fixes. Any question in the *deferred*,
    *needs grounding* or *untagged* holding state → stop, naming each one, its round, its holding
    state and the concrete fix:
-   `BRD_PACKAGE_ROUND_UNSETTLED: N questions in <BRD-KEY>'s rounds are still deferred, needs-grounding or untagged — run /dev-workflows:brd-interview <BRD-KEY> (a needs-grounding question is answered by /dev-workflows:brd-ground <BRD-KEY> first).`
+   `BRD_PACKAGE_ROUND_UNSETTLED: N questions in <BRD-KEY>'s rounds are still deferred, needs-grounding or untagged — run /pm-workflows:brd-interview <BRD-KEY> (a needs-grounding question is answered by /pm-workflows:brd-ground <BRD-KEY> first).`
 
    **Why *held for the customer* is admitted and the other three are not.** The design's
    precondition for this command is that the interview's open rounds are closed, and read literally
@@ -169,7 +169,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
 8. **Gate on there being something to review — and report it as a finished state, not a missing
    step.** A package with **no** `[C]` question, **no** open `[AS#n]`, and **no** `[VD#n]` in the
    register has nothing for a customer to confirm, correct or attack. Stop rather than sending it:
-   `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — every question its rounds asked was settled from verified findings, so there is nothing for a customer to confirm, correct or attack. This is a finished state, not a missing step: the delivery team owes the customer no decision here, and a package built from it would ask for a review of nothing. Re-running /dev-workflows:brd-interview <BRD-KEY> is NOT the fix — it opens a new round only when the findings or the decisions have moved, so on an unchanged BRD it reports that nothing is askable and asks nothing. What makes a round askable again is new evidence or a moved position: '/dev-workflows:brd-ground <BRD-KEY> --rebaseline' re-derives the findings against current commits, and a decision reopened or superseded in decisions.md has the same effect. Absent either, this BRD is decided and needs no customer review.`
+   `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — every question its rounds asked was settled from verified findings, so there is nothing for a customer to confirm, correct or attack. This is a finished state, not a missing step: the delivery team owes the customer no decision here, and a package built from it would ask for a review of nothing. Re-running /pm-workflows:brd-interview <BRD-KEY> is NOT the fix — it opens a new round only when the findings or the decisions have moved, so on an unchanged BRD it reports that nothing is askable and asks nothing. What makes a round askable again is new evidence or a moved position: '/pm-workflows:brd-ground <BRD-KEY> --rebaseline' re-derives the findings against current commits, and a decision reopened or superseded in decisions.md has the same effect. Absent either, this BRD is decided and needs no customer review.`
 
    **Why the message names grounding rather than another interview round.** The register is reached
    through `/brd-interview`, so naming it is the reflex — but its *Resolve the round* phase opens a
@@ -575,7 +575,7 @@ one: a review of `EPIC-008` finished on 22 April 2026 is `EPIC-008 Customer Revi
 **Never substitute this run's own `<YYYYMMDD>` stamp here**, however tempting the symmetry with the
 prompt, the note and the bundle: those three are dated by when they were *built*, and a returned
 review is dated by when it was *written*. Stamping the package's date onto the filename makes the
-customer echo it back, and `/dev-workflows:brd-reconcile` then derives the review's date from a
+customer echo it back, and `/pm-workflows:brd-reconcile` then derives the review's date from a
 filename that records when the delivery team sent the package — which is the one thing that phase
 says the date must not be. Ask for the same date in the review's section 1, so the file and its own
 first section agree and either can settle it. One line saying it is the only file to send back. The
@@ -801,14 +801,14 @@ state rather than about the plugin. This run packaged a BRD whose customer round
 `[C]` it just rendered into the prompt, and every open `[AS#n]` it carried in, is a register item
 `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §3 forbids consuming downstream while
 it is open, and `/create-prd` on the BRD route reads exactly that register as its seed. The answers are
-frozen by `/dev-workflows:brd-reconcile` and by nothing here, so the reconciled BRD that route needs
-is the state the *next* command leaves rather than this one, and `/dev-workflows:brd-reconcile`'s own
+frozen by `/pm-workflows:brd-reconcile` and by nothing here, so the reconciled BRD that route needs
+is the state the *next* command leaves rather than this one, and `/pm-workflows:brd-reconcile`'s own
 next-step phase is where the three the BRD route options are offered. The same holds for the BRD route
 on `/create-ard` and `/specify`, which read the architecture- and implementation-altitude seeds
 alongside the same register. So the honest offer is the state this run actually leaves behind:
 
 ```
-choices: ["Stop here — the package is written and, if you handed it off, committed", "Send it — the delivery note is printed above and the archive command is in the report", "Reconcile the review once it comes back — /dev-workflows:brd-reconcile <BRD-KEY> @<review-file> <merge-clause>", "Package another BRD or slice"]
+choices: ["Stop here — the package is written and, if you handed it off, committed", "Send it — the delivery note is printed above and the archive command is in the report", "Reconcile the review once it comes back — /pm-workflows:brd-reconcile <BRD-KEY> @<review-file> <merge-clause>", "Package another BRD or slice"]
 ```
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
@@ -821,7 +821,7 @@ orchestrator would then have to evaluate.
 
 Say plainly what remains, per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — names only,
 never behaviour a command of its own owns: the round holding each `[C]` stays open until the
-customer's answer comes back and `/dev-workflows:brd-reconcile` records it, and what happens between
+customer's answer comes back and `/pm-workflows:brd-reconcile` records it, and what happens between
 this run and that one is not the plugin's to do — the package has to reach a customer and the
 customer has to answer.
 

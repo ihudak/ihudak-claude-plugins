@@ -143,7 +143,7 @@ levels are scanned, each enumerating a finite set of directories; nothing found 
 that. So `resolve-key` always answers, and always after a bounded number of scans.
 
 **The key's segment count buys no depth.** The default key `/brd-split` proposes is the parent's key
-plus one more numeric segment (`/dev-workflows:brd-split` Phase 3), and an operator may supply any key
+plus one more numeric segment (`/pm-workflows:brd-split` Phase 3), and an operator may supply any key
 satisfying §1 instead, including one that adds no segment. Either resolves identically: a segment count
 is a naming convention, never a depth declaration, and §1's grammar deliberately fixes no depth.
 

@@ -42,7 +42,7 @@ workitem_key: <optional — your own tracker's identity for this work; the plugi
 `brd_key`, `brd_parent` and `depends_on` are written only by `/create-prd` on the BRD route, from the BRD's
 own `brd-link.md`, and are never asked of the PM. **`brd_parent` is present on every PRD that carries
 `brd_key`.** The BRD route resolves a `PRD-` slice folder and refuses a `BRD-` container before any
-seed is read (`/dev-workflows:create-prd` Phase 0 step 5a), and a slice always carries a
+seed is read (`/pm-workflows:create-prd` Phase 0 step 5a), and a slice always carries a
 `parent:` — so the earlier "omitted when it owns its source document" case describes a PRD the route
 can no longer author. An absent `brd_parent` beside a present `brd_key` is therefore a **finding**,
 not a legitimate omission, and `pm-workflows:prd-reviewer` raises it. **`/update-prd` preserves all three and authors
@@ -70,7 +70,7 @@ folder name built from it, against §1's grammar rather than a narrower one. **T
 
 **`key` is written by `/create-prd`, on both routes, and by nothing else.** It is set to the key of
 the folder the run resolved — the positional key on the idea route, the `PRD-` slice's own key on the
-BRD route (`/dev-workflows:create-prd` Phase 3, the frontmatter step) — and `/update-prd` carries it
+BRD route (`/pm-workflows:create-prd` Phase 3, the frontmatter step) — and `/update-prd` carries it
 forward unchanged rather than re-deriving it. **It was for a time deferred on the BRD route** to a
 tracker step that minted a second identity and wrote it back; that step is gone, nothing replaced it,
 and the field simply stayed unset — which left a folder whose only `kind:`+`key:` carrier was

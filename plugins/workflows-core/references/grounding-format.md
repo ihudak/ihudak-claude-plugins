@@ -12,8 +12,8 @@ every repository grounding reads.
 
 **Consumed by** the three grounding agents that write against the contract fixed here —
 `pm-workflows:code-grounder`, `pm-workflows:design-grounder`, and `pm-workflows:grounding-verifier` — and by
-the two commands that read what they produce: `/dev-workflows:brd-ground`, which orchestrates all
-three, and `/dev-workflows:brd-split`, whose Phase 0 gate turns on §8's verification outcomes.
+the two commands that read what they produce: `/pm-workflows:brd-ground`, which orchestrates all
+three, and `/pm-workflows:brd-split`, whose Phase 0 gate turns on §8's verification outcomes.
 
 ## 1. What grounding is, and is not
 

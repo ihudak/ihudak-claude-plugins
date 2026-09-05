@@ -26,9 +26,9 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate it with `key-valid`
    (`workflows-core:addressing` §1's `key-valid` — shape only,
    never checked against a tracker). If absent or invalid, **stop gracefully**:
-   `BRD_INTAKE_NEEDS_KEY: /brd-intake needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-001) — pick a short stable identifier for this business requirements document, then re-run '/dev-workflows:brd-intake <KEY> @<brd-file>'.`
+   `BRD_INTAKE_NEEDS_KEY: /brd-intake needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-001) — pick a short stable identifier for this business requirements document, then re-run '/pm-workflows:brd-intake <KEY> @<brd-file>'.`
 2. **`@<brd-file>` (mandatory).** The customer's source file argument. If absent, **stop**:
-   `BRD_INTAKE_NEEDS_SOURCE: /brd-intake needs the customer's source as an @-argument — re-run '/dev-workflows:brd-intake <KEY> @<path-to-brd>'.`
+   `BRD_INTAKE_NEEDS_SOURCE: /brd-intake needs the customer's source as an @-argument — re-run '/pm-workflows:brd-intake <KEY> @<path-to-brd>'.`
 3. **Reject a PDF — do not convert it.** If the resolved source does not end in `.md`/`.markdown`
    (a PDF, a Word document, a slide deck, any non-markdown source), **stop**:
    `BRD_INTAKE_NEEDS_MARKDOWN: the source must be markdown — convert it first, and check the conversion. It becomes the immutable record every [BR#n] anchors into.`
@@ -69,12 +69,12 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    the cost is not cosmetic. A folder created without the prefix misses `workflows-core:addressing` §3's
    `*-<KEY>-*` glob by construction, so every downstream run resolves it through §5's legacy
    fallback and reports it `legacy: true` — deprecated, once per run — on a tree this command wrote
-   minutes earlier. Worse, the container refusals `/dev-workflows:create-prd`,
-   `/dev-workflows:create-ard`, `/dev-workflows:specify` and `/dev-workflows:epics` each read
+   minutes earlier. Worse, the container refusals `/pm-workflows:create-prd`,
+   `/pm-workflows:create-ard`, `/pm-workflows:specify` and `/pm-workflows:epics` each read
    the `BRD-` prefix off the resolved folder's **own name**, falling through to
    `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1's positive test only for a
    folder that has none — so an unprefixed root BRD moves all four refusals onto the legacy branch
-   they hold for repositories written before increment A. And `/dev-workflows:brd-split` Phase 3
+   they hold for repositories written before increment A. And `/pm-workflows:brd-split` Phase 3
    step 2 creates its slice at `specifications/BRD-<PARENT-KEY>-<parent-slug>/PRD-…`, a path that
    would not exist. `workflows-core:addressing` §5 keeps resolving the folders
    a pre-prefix repo already holds; this command does not add to them.
@@ -87,7 +87,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    `covered-by`, `deferred-to`, `rejected`, `superseded-by`, and any illegal root `covered-here`
    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5) — and that Phase 5 replaces
    **every one of them** with `unallocated`. Name what that destroys rather than calling it a
-   rewrite: each `deferred-to`, `rejected` and `superseded-by` decision `/dev-workflows:brd-split`'s
+   rewrite: each `deferred-to`, `rejected` and `superseded-by` decision `/pm-workflows:brd-split`'s
    walk took is discarded and has to be re-taken, a `rejected` row re-cited against its `[DEF#n]`,
    and every child's `claims:` re-allocated. Then ask:
    ```
@@ -103,8 +103,8 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    **A single illegal root `covered-here` row does not need this run**, and the offer says so rather
    than letting a re-run be taken for the only exit: `coverage-ledger-format.md` §5 names the
    one-row hand repair that leaves every other disposition standing, and the four container refusals
-   in `/dev-workflows:create-prd`, `/dev-workflows:create-ard`, `/dev-workflows:specify` and
-   `/dev-workflows:epics` offer that repair first and this re-run second.
+   in `/pm-workflows:create-prd`, `/pm-workflows:create-ard`, `/pm-workflows:specify` and
+   `/pm-workflows:epics` offer that repair first and this re-run second.
 
 `/brd-intake` is the **first command of the BRD-to-PRD route** — unlike every downstream `/brd-*`
 command, it consumes no prior phase's deliverable, so it runs no `require-on-main` gate here. It is
@@ -297,12 +297,12 @@ the six that blocks §4." No row is ever written in any other disposition here.
 
 **On a re-run this phase rewrites every disposition, and it does so unconditionally by design.**
 Where Phase 0 step 7 resolved an **existing** folder, the ledger that folder holds is replaced row
-for row: every `covered-by`, `deferred-to`, `rejected` and `superseded-by` `/dev-workflows:brd-split`'s
+for row: every `covered-by`, `deferred-to`, `rejected` and `superseded-by` `/pm-workflows:brd-split`'s
 walk wrote is gone, and so is any illegal root `covered-here`. **The warning and the confirmation
 for that are step 7's**, taken before Phase 2 copied anything, because by the time this phase runs
 the source has been re-copied and the inventory re-extracted and there is no state left to decline
 into. What this phase owes is the restatement: report which dispositions this write discarded, how
-many of each, and that they must be re-taken in `/dev-workflows:brd-split`'s walk. A rewrite the
+many of each, and that they must be re-taken in `/pm-workflows:brd-split`'s walk. A rewrite the
 operator consented to at step 7 is still a rewrite the run has to name.
 
 ---
@@ -352,8 +352,8 @@ any of the other five prefixes, and reusing `prd` would collide with the `prd/<S
 branch `/create-prd` on the BRD route opens once a slice of this BRD is PRD-eligible. **That
 switch ships**, so the collision is live rather than hypothetical: that command's handoff derives
 `prd/<SLICE-KEY>-<slug>` from a slice folder nested inside the very folder this run wrote into,
-exactly as `/dev-workflows:create-ard` on the BRD route derives `ard/<SLICE-KEY>-<slug>` and
-`/dev-workflows:specify` on the BRD route derives `spec/<SLICE-KEY>-<slug>` from it. Keeping `brd`
+exactly as `/pm-workflows:create-ard` on the BRD route derives `ard/<SLICE-KEY>-<slug>` and
+`/pm-workflows:specify` on the BRD route derives `spec/<SLICE-KEY>-<slug>` from it. Keeping `brd`
 separate is what lets all four branches exist on one key without either family renaming anything —
 and this command's own `<BRD-KEY>` never carries the other three, because **the folder it creates is
 a container**: a PRD, an ARD and a specification are authored in the `PRD-` slices under it, one
@@ -371,14 +371,14 @@ downstream command on the route, so offering one here would name a run that stop
 **One or more `[BR#n]` rows — the ordinary case:**
 
 ```
-choices: ["Ground the inventory against code and design — /dev-workflows:brd-ground <BRD-KEY> (Recommended) <merge-clause>", "Stop here"]
+choices: ["Ground the inventory against code and design — /pm-workflows:brd-ground <BRD-KEY> (Recommended) <merge-clause>", "Stop here"]
 ```
 
-**Zero `[BR#n]` rows (a Phase 3 `EMPTY` read) — `/dev-workflows:brd-ground` is left out rather than
+**Zero `[BR#n]` rows (a Phase 3 `EMPTY` read) — `/pm-workflows:brd-ground` is left out rather than
 offered and refused:**
 
 ```
-choices: ["Re-run this intake with a corrected source — /dev-workflows:brd-intake <BRD-KEY> @<brd-file> (this folder is a re-run, not a refusal)", "Stop here — this document states no requirement the route can carry"]
+choices: ["Re-run this intake with a corrected source — /pm-workflows:brd-intake <BRD-KEY> @<brd-file> (this folder is a re-run, not a refusal)", "Stop here — this document states no requirement the route can carry"]
 ```
 
 Neither option on that second list carries a `(Recommended)` marker, and the omission is deliberate
@@ -388,7 +388,7 @@ the wrong file, or genuinely states no requirement is a judgement about the cust
 only the operator who has read it can take it. Say beside the list which conversion or file this run
 actually read, so that judgement has something to stand on.
 
-`/dev-workflows:brd-ground <BRD-KEY>` grounds every `[BR#n]` against the mounted implementation and
+`/pm-workflows:brd-ground <BRD-KEY>` grounds every `[BR#n]` against the mounted implementation and
 design repos. It will not start reading this BRD's artifacts until they are on the specs repo's
 default branch — its own Phase 0 gates `coverage-ledger.md` on `origin/<default>` and stops with
 `BRD_GROUND_NEEDS_INTAKE` otherwise — so offering it here is the next step, not an instruction to
@@ -402,7 +402,7 @@ Per `workflows-core:next-phase-offer`.
 
 Per `workflows-core:session-hygiene`, the resume pointer is written in the
 terminal cost phase (Phase 9), after the cost entry and before the commit step. Continuing this
-route yourself into `/dev-workflows:brd-ground <BRD-KEY>`, even as the same person? → run
+route yourself into `/pm-workflows:brd-ground <BRD-KEY>`, even as the same person? → run
 **`/clear`** for a clean slate. Guidance only — nothing is auto-run.
 
 ---

@@ -6,7 +6,7 @@
 flowchart TD
     subgraph UP["Upstream — in the dev-workflows plugin"]
         implement["/dev-workflows:implement"]
-        createprd["/dev-workflows:create-prd"]
+        createprd["/pm-workflows:create-prd"]
     end
     subgraph DOCS["Dev — documentation & release notes"]
         document["/docs-workflows:document"]
@@ -22,7 +22,7 @@ flowchart TD
     profile -.->|.dev-workflows/docs-profile.yml| document
 ```
 
-Two nodes are drawn for continuity and are not this plugin's commands: `/dev-workflows:implement` and `/dev-workflows:create-prd` ship in the companion pipeline plugin and are documented there.
+Two nodes are drawn for continuity and are not this plugin's commands: `/dev-workflows:implement` and `/pm-workflows:create-prd` ship in the companion pipeline plugin and are documented there.
 
 **One command name here collides with a Claude Code built-in of the same name: `/release-notes`.** Typing the bare form reaches Claude Code's own command instead of this one, so use the qualified `/docs-workflows:release-notes`. `/document` and `/docs-profile` are not known to collide today, so the rest work either way, and the diagram above spells out the qualified form throughout because that form always works.
 

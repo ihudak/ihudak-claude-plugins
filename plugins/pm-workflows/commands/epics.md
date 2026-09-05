@@ -31,7 +31,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    naming every match and `@<path>` as the way through. **`absent` is a graceful stop, not a folder
    to create** — `/epics` partitions a PRD folder that exists and creates no PRD folder of its own:
    ```
-   EPICS_NOT_FOUND: no folder found for <ADDRESS> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — check the address. /epics partitions an existing PRD folder and creates none. A PRD folder is created by /dev-workflows:idea <KEY> or /dev-workflows:create-prd <KEY> on the idea route, and by /dev-workflows:brd-split on its parent BRD on the BRD route; an EPIC- folder is created by this command and by no other, so an Epic address that resolves to nothing was never drafted here.
+   EPICS_NOT_FOUND: no folder found for <ADDRESS> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — check the address. /epics partitions an existing PRD folder and creates none. A PRD folder is created by /pm-workflows:idea <KEY> or /pm-workflows:create-prd <KEY> on the idea route, and by /pm-workflows:brd-split on its parent BRD on the BRD route; an EPIC- folder is created by this command and by no other, so an Epic address that resolves to nothing was never drafted here.
    ```
    Every command that stop names creates the folder it claims to, and none of them is a command this
    one would then refuse: `/idea` and `/create-prd` each write `PRD-<KEY>-<slug>/` on their first
@@ -51,7 +51,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    beside `brd/`, `grounding/`, `coverage-ledger.md` and `slices.md`, in a folder
    `workflows-core:addressing` §2 invariant 1 gives no Epic. This refusal is
    taken here rather than left to step 1b: a container fails 1b's test anyway (it holds no `prd.md`),
-   but 1b's remedy names `/dev-workflows:create-prd`, which refuses a container in turn — a stop
+   but 1b's remedy names `/pm-workflows:create-prd`, which refuses a container in turn — a stop
    whose remedy stops is a dead end, and this step is what keeps it from being one.
 
    **The test is the directory prefix, and never the folder's asserted `kind:`** — `/brd-split`
@@ -66,10 +66,10 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    In short: a legacy folder carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no
    `brd-link.md` naming a `parent:`, is a root container; a legacy folder carrying **neither** of
    those two files is a legacy **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md`
-   either — this refusal does not fire on it, and refusing it would offer `/dev-workflows:brd-split`
+   either — this refusal does not fire on it, and refusing it would offer `/pm-workflows:brd-split`
    on a folder with no coverage ledger to walk. **Without this clause step 1a is prefix-only, and
    the dead end this step exists to prevent is reachable from one typo**: an unprefixed root BRD
-   would pass 1a, fail 1b for holding no `prd.md`, and be sent to `/dev-workflows:create-prd`, which
+   would pass 1a, fail 1b for holding no `prd.md`, and be sent to `/pm-workflows:create-prd`, which
    takes §5.1 and refuses it as a container — a stop whose remedy stops. §5.1's test **opens no
    ledger**, exactly like the remedy below: it asks which files the folder carries —
    `coverage-ledger.md` and `brd/brd-inventory.md` are tested for presence and never read — and
@@ -87,18 +87,18 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    ledger and does not start now. Enumerate slices by `/brd-split` Phase 0 step 9's **positive
    test**: an immediate subdirectory carrying a `brd-link.md` whose `parent:` names this BRD.
    - **One or more slices** — the ordinary shape, since a split always confirms at least one. Name
-     every slice and offer `/dev-workflows:epics <SLICE-KEY>` once per slice. That run resolves a
+     every slice and offer `/pm-workflows:epics <SLICE-KEY>` once per slice. That run resolves a
      `PRD-` folder and passes this refusal; whether it then passes step 1b depends on whether a
      `prd.md` has been authored in that slice, which the offer **states** rather than promises. Do
-     **not** name `/dev-workflows:brd-split <BRD-KEY>` here: the slices it would carve exist, and on
+     **not** name `/pm-workflows:brd-split <BRD-KEY>` here: the slices it would carve exist, and on
      a parent whose ledger is fully allocated that run is a no-op (`commands/brd-split.md` Phase 0
      step 10).
-   - **No slice at all** — `/dev-workflows:brd-split <BRD-KEY>` is the run that carves one, walking
+   - **No slice at all** — `/pm-workflows:brd-split <BRD-KEY>` is the run that carves one, walking
      every row still `unallocated` and always confirming at least one slice (its Phase 2), after
-     which `/dev-workflows:create-prd <SLICE-KEY>` authors the PRD and `/dev-workflows:epics
+     which `/pm-workflows:create-prd <SLICE-KEY>` authors the PRD and `/pm-workflows:epics
      <SLICE-KEY>` partitions it. **Two conditions travel with that offer**, in its own text, because
      this command holds neither answer: its Phase 0 gates on this BRD's grounding findings each
-     carrying a verifier verdict and stops naming `/dev-workflows:brd-ground <BRD-KEY>` when they do
+     carrying a verifier verdict and stops naming `/pm-workflows:brd-ground <BRD-KEY>` when they do
      not; and **where this BRD's ledger leaves no row `unallocated` that run is a no-op** (its
      Phase 0 step 10) and carves nothing, since nothing in this plugin moves a terminal row back to
      `unallocated` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). Say what the
@@ -111,8 +111,8 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
      the decision — and say, rather than implying the state is sealed, that once it is taken it is
      carried out by the same two repairs the other way below names, in the same order: hand-edit the
      one row that is now to be built back to `unallocated`, after which
-     `/dev-workflows:brd-split <BRD-KEY>` has a row to walk and carves the slice; or re-run
-     `/dev-workflows:brd-intake <BRD-KEY> @<brd-file>`, which reopens **every** row and discards
+     `/pm-workflows:brd-split <BRD-KEY>` has a row to walk and carves the slice; or re-run
+     `/pm-workflows:brd-intake <BRD-KEY> @<brd-file>`, which reopens **every** row and discards
      every deferral and rejection recorded here. Or the ledger
      records a fate a container can no longer hold — a **root** row `covered-here`, which only a
      tree written before a BRD became a container, or a hand edit, can have produced
@@ -121,15 +121,15 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
      terminal: hand-edit that one row's `disposition:` in `coverage-ledger.md`, leaving every other
      row untouched — to `deferred-to: <this BRD>`, `rejected: [DEF#n]` or `superseded-by: [BR#n]`
      where the requirement is not to be built here, which makes the ledger legal and lands on the
-     ending above; or back to `unallocated` where it is, after which `/dev-workflows:brd-split
+     ending above; or back to `unallocated` where it is, after which `/pm-workflows:brd-split
      <BRD-KEY>` has a row to walk, confirms a slice, and that slice's own walk takes the row to
      `covered-here`, the one level at which `covered-here` is legal. §3's *no command ever moves a
      row back to `unallocated`* binds the commands; this is a hand repair of a value no command
      wrote, and §5 already names hand editing as how this state arises. **Offer the `/brd-intake`
      re-run second, and only where the whole inventory is to be re-taken:** re-running
-     `/dev-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather than
+     `/pm-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather than
      a refusal (its Phase 0 step 7 warns and confirms before the first write) and rewrites the
-     ledger with **every** row `unallocated`, after which `/dev-workflows:brd-split <BRD-KEY>` has
+     ledger with **every** row `unallocated`, after which `/pm-workflows:brd-split <BRD-KEY>` has
      rows to walk. It also **discards every disposition this ledger records**: each `deferred-to`,
      `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and must be
      re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Name those decisions —
@@ -165,7 +165,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    from the one address rather than typed beside it (D4). `/epics` takes **one** address; there is no
    `<PRD> <Epic>` pair to give.
 
-   **No authored PRD.** The remedy is `/dev-workflows:create-prd`, and it is named **only where that
+   **No authored PRD.** The remedy is `/pm-workflows:create-prd`, and it is named **only where that
    command can actually run**. `/create-prd` refuses **three** shapes, not one, and step 1a has
    taken only the first — the container
    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2, which is the authority and is
@@ -178,10 +178,10 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
 
    | The resolved folder | What the stop names |
    |---|---|
-   | No `brd-link.md` — an idea-route `PRD-` folder | `/dev-workflows:create-prd <KEY>`. It is greenfield-only and redirects to `/update-prd` where a PRD is already there, which this stop has already excluded, and neither data refusal exists off the BRD route |
-   | A `brd-link.md`; the gate set leaves **no** row `unallocated` **and** at least one `covered-here` | `/dev-workflows:create-prd <KEY>` — all three refusals cleared |
-   | A `brd-link.md`; a gate-set row is still `unallocated` | **Not** `/create-prd`, which raises `CREATE_PRD_BRD_UNALLOCATED`. Name `/dev-workflows:brd-split <KEY>`, whose walk moves exactly those rows and which on a slice runs allocate-only — and say beside it that its own Phase 0 gates on this slice's grounding findings each carrying a verifier verdict and stops naming `/dev-workflows:brd-ground <KEY>` when they do not |
-   | A `brd-link.md`; no gate-set row `covered-here`, and the gate set is **empty** | **Not** `/create-prd`, which raises `CREATE_PRD_BRD_NOT_ELIGIBLE`. This is a standing empty child: name the keep-or-remove `/dev-workflows:brd-split <PARENT-KEY>`, the one run that resolves one and not a no-op there (`commands/brd-split.md` Phase 0 step 10) |
+   | No `brd-link.md` — an idea-route `PRD-` folder | `/pm-workflows:create-prd <KEY>`. It is greenfield-only and redirects to `/update-prd` where a PRD is already there, which this stop has already excluded, and neither data refusal exists off the BRD route |
+   | A `brd-link.md`; the gate set leaves **no** row `unallocated` **and** at least one `covered-here` | `/pm-workflows:create-prd <KEY>` — all three refusals cleared |
+   | A `brd-link.md`; a gate-set row is still `unallocated` | **Not** `/create-prd`, which raises `CREATE_PRD_BRD_UNALLOCATED`. Name `/pm-workflows:brd-split <KEY>`, whose walk moves exactly those rows and which on a slice runs allocate-only — and say beside it that its own Phase 0 gates on this slice's grounding findings each carrying a verifier verdict and stops naming `/pm-workflows:brd-ground <KEY>` when they do not |
+   | A `brd-link.md`; no gate-set row `covered-here`, and the gate set is **empty** | **Not** `/create-prd`, which raises `CREATE_PRD_BRD_NOT_ELIGIBLE`. This is a standing empty child: name the keep-or-remove `/pm-workflows:brd-split <PARENT-KEY>`, the one run that resolves one and not a no-op there (`commands/brd-split.md` Phase 0 step 10) |
    | A `brd-link.md`; no gate-set row `covered-here`, and the gate set is **non-empty** | **Name no command at all**, and say why rather than going quiet: this slice holds no PRD of its own, `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE` whose non-empty branch names nothing either, and nothing in this plugin moves a terminal row back to `unallocated` (§3). Report what the gate-set rows actually resolved to — `deferred-to` is a live obligation of this slice, `rejected` is an obligation of nobody, `superseded-by` was absorbed by the `[BR#n]` that replaced it |
 
    Stop gracefully:
@@ -197,7 +197,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    **A stand-alone `EPIC-` folder — one with no PRD above it.** Stop gracefully. It names no plugin
    command, because none of them authors a PRD over an `EPIC-` folder that already exists:
    ```
-   EPICS_EPIC_NOT_UNDER_PRD: <KEY> resolves to an Epic folder at <path> with no PRD above it, and an Epic comes from a PRD only — /epics drafts Epics under a PRD folder and re-refines an Epic that has one. No command in this plugin authors a PRD above an Epic folder that already exists. If this Epic's PRD folder exists elsewhere, move the folder into it (git mv) and re-run '/dev-workflows:epics <KEY>'. If the work has no PRD at all, it starts at /dev-workflows:create-prd <A-NEW-PRD-KEY>, which creates its own PRD- folder — this Epic folder is not an input to that run.
+   EPICS_EPIC_NOT_UNDER_PRD: <KEY> resolves to an Epic folder at <path> with no PRD above it, and an Epic comes from a PRD only — /epics drafts Epics under a PRD folder and re-refines an Epic that has one. No command in this plugin authors a PRD above an Epic folder that already exists. If this Epic's PRD folder exists elsewhere, move the folder into it (git mv) and re-run '/pm-workflows:epics <KEY>'. If the work has no PRD at all, it starts at /pm-workflows:create-prd <A-NEW-PRD-KEY>, which creates its own PRD- folder — this Epic folder is not an input to that run.
    ```
    A top-level `EPIC-` folder is a shape nothing in this plugin produces: `/epics` writes every
    `EPIC-` folder under a PRD folder, and `commands/create-ard.md` and `commands/specify.md` refuse
@@ -817,14 +817,14 @@ MODERATE — Epic drafting for a single PRD
 The project root has uncommitted changes. `/epics` never commits the project root — git management there is your responsibility. (This run's `$SPECS_PATH` session artifacts are committed separately by the terminal step — see its outcome line at the end of the run.)
 
 ### Next step
-[Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/dev-workflows:specify <EPIC>` (PE) — one address, the Epic's own (D4); `/specify` resolves that folder and, finding no `brd-link.md` in it, looks one level up, so a slice-derived Epic keeps the BRD-route contract on this address exactly as it does through the picker; the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/dev-workflows:create-ard <EPIC>`. If the review BLOCKED, resolve that first.]
+[Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/pm-workflows:specify <EPIC>` (PE) — one address, the Epic's own (D4); `/specify` resolves that folder and, finding no `brd-link.md` in it, looks one level up, so a slice-derived Epic keeps the BRD-route contract on this address exactly as it does through the picker; the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/pm-workflows:create-ard <EPIC>`. If the review BLOCKED, resolve that first.]
 
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase (Phase 11), per `workflows-core:session-hygiene` §1. Then:
 
-- **Continuing as PE (`/dev-workflows:specify <EPIC>`)?** → run **`/compact`** — context still relevant.
-- **Handing to PA (`/dev-workflows:create-ard <EPIC>`), even yourself?** → run **`/clear`** for a clean slate.
+- **Continuing as PE (`/pm-workflows:specify <EPIC>`)?** → run **`/compact`** — context still relevant.
+- **Handing to PA (`/pm-workflows:create-ard <EPIC>`), even yourself?** → run **`/clear`** for a clean slate.
 - Consider **`/rename <PRD-ID>-<slug>-pe`** to relocate this session later.
 
 Guidance only — see `workflows-core:session-hygiene`.

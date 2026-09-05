@@ -27,7 +27,7 @@ resolves from the folder itself:
 An `<instruction>` is honoured in **both** modes, and what it seeds differs: in `full` mode it seeds
 the Phase 2 grouping *and* the Phase 4 walk's per-row recommendation; in `allocate-only`, where
 Phase 2 never runs, it seeds the walk alone. That is why a slicing instruction on a slice is a real
-invocation rather than an ignored one — `/dev-workflows:brd-split <SLICE-KEY> build the order rows,
+invocation rather than an ignored one — `/pm-workflows:brd-split <SLICE-KEY> build the order rows,
 defer the rest` is a sentence this command can act on, and the picker it acts on is still the
 four-resolution one.
 
@@ -48,7 +48,7 @@ four-resolution one.
 
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
    (`workflows-core:addressing` §1). If absent or invalid, stop:
-   `BRD_SPLIT_NEEDS_KEY: /brd-split needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-split <KEY>'.`
+   `BRD_SPLIT_NEEDS_KEY: /brd-split needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/pm-workflows:brd-split <KEY>'.`
 1a. **`<instruction>` (optional).** Every **non-flag** token after the key, joined verbatim, is a
    slicing instruction in the operator's own words — `cover orders and measurements in the first
    iteration`, `slice everything EPIC-008 still holds that no child covers`. Absent → this command
@@ -71,7 +71,7 @@ four-resolution one.
 4. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
    `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) (§2 step 2) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent → stop, without asserting which command would create it, because nothing on disk
    says whether this key names a BRD with a source document or a slice of one:
-   `BRD_SPLIT_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
+   `BRD_SPLIT_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /pm-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /pm-workflows:brd-split on its parent.`
 5. **Resolve the run mode.** Read the resolved folder's `brd-link.md` and branch on its `parent:`
    field — the same signal `/brd-ground` Phase 0 uses to tell a slice from a root, and the only
    reliable one: a key's segment count is a naming convention, never a depth declaration
@@ -110,13 +110,13 @@ four-resolution one.
    message for the second one must not name a command that stops on the same emptiness. Read
    `<BRD-dir>/brd/brd-inventory.md` from the worktree and count its `[BR#n]` rows:
    - **One or more rows** — grounding simply has not run yet, and running it is the fix:
-     `BRD_SPLIT_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /dev-workflows:brd-ground <BRD-KEY> first.`
+     `BRD_SPLIT_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /pm-workflows:brd-ground <BRD-KEY> first.`
    - **Zero rows** — there is nothing to ground, so `/brd-ground` stops with
      `BRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants. Naming it here
      would be the loop, so name the upstream fix instead, by the `split_mode` step 5 already
      resolved — `full` means this BRD owns its source document, `allocate-only` means it is a slice:
-     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full): <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and nothing to allocate — do not run /dev-workflows:brd-ground, which stops on the same emptiness. Re-run '/dev-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
-     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /dev-workflows:brd-ground, and do not run /dev-workflows:brd-intake on a slice; it has no source document of its own. Re-run '/dev-workflows:brd-split <PARENT-KEY>': it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason, and it will offer covered-by against it for any row on the parent's ledger that is still unallocated. If the parent's ledger has no unallocated row left, removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
+     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full): <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and nothing to allocate — do not run /pm-workflows:brd-ground, which stops on the same emptiness. Re-run '/pm-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
+     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /pm-workflows:brd-ground, and do not run /pm-workflows:brd-intake on a slice; it has no source document of its own. Re-run '/pm-workflows:brd-split <PARENT-KEY>': it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason, and it will offer covered-by against it for any row on the parent's ledger that is still unallocated. If the parent's ledger has no unallocated row left, removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
    `unmanaged` → proceed as before this feature.
 7. **Gate on verification.** Every `[CG#n]`/`[DG#n]` finding carries a verifier `outcome` (one of
    the four in `workflows-core:grounding-format` §8 — `agree`, `extend`,
@@ -124,7 +124,7 @@ four-resolution one.
    "is not evidence and cannot be recorded as `consumed_by` anything" (§8), and this command must
    never propose a slice or offer `covered-here` against a claim nobody has actually verified.
    Count every finding on file carrying no recorded `outcome`. Any count `N` greater than zero →
-   stop: `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run /dev-workflows:brd-ground first.`
+   stop: `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run /pm-workflows:brd-ground first.`
 8. **Read the ledger; check for the no-op case.** Read `<BRD-dir>/coverage-ledger.md` and compute
    its disposition counts (`coverage-ledger-format.md` §3) — **this BRD's own rows, as written, with
    no child ledger consulted.** The no-op test and the §4 gate are both about `unallocated` on
@@ -232,7 +232,7 @@ never hard-block.
 **Skipped entirely when Phase 0 step 1a found no instruction**: a run without one reaches Phase 2
 exactly as it always has, and nothing below fires. **Runs in both modes**, unlike Phase 2 — a
 slice has no children to propose, but its walk takes recommendations from an instruction just as a
-parent's does (Phase 4), which is what makes `/dev-workflows:brd-split <SLICE-KEY> <instruction>` a
+parent's does (Phase 4), which is what makes `/pm-workflows:brd-split <SLICE-KEY> <instruction>` a
 real invocation rather than an ignored one.
 
 **Also skipped where no row is `unallocated`**, whatever Phase 0 step 10 decided — the no-op path and
@@ -974,21 +974,21 @@ a BRD standing at its own level, on its own route. And this slice cannot be spli
 re-running this command on it would only find a
 fully-allocated ledger and report the no-op. **The route does not end here.** Its ledger now records
 a fate for every requirement it claims, which is exactly the precondition
-`/dev-workflows:brd-interview <BRD-KEY>` — the route's fourth command — refuses to start without, so
+`/pm-workflows:brd-interview <BRD-KEY>` — the route's fourth command — refuses to start without, so
 that is the real next step for this slice and it is offered by name. A slice reaches its own
 decisions exactly as its parent does, and the register it writes is its own. If any row reached
 `covered-here` the slice is also PRD-eligible
 (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5), which is one of the two tests
-`/dev-workflows:create-prd <SLICE-KEY>` applies in its own Phase 0 — the other being the level
+`/pm-workflows:create-prd <SLICE-KEY>` applies in its own Phase 0 — the other being the level
 test that refuses the `BRD-` container this slice sits inside. It is still not offered here, and the reason is the register rather than the ledger: that run
-seeds its PRD from this slice's `decisions.md`, which `/dev-workflows:brd-interview` has not written
+seeds its PRD from this slice's `decisions.md`, which `/pm-workflows:brd-interview` has not written
 yet, so starting it from here would author a PRD off an allocation and no decisions at all. The route
-crosses into the PRD pipeline from `/dev-workflows:brd-reconcile`'s own next-step offer, once the
+crosses into the PRD pipeline from `/pm-workflows:brd-reconcile`'s own next-step offer, once the
 customer answers are frozen — three commands further on, which is why only the next one is named
 here:
 
 ```
-choices: ["Decide this slice's open questions — /dev-workflows:brd-interview <BRD-KEY> (Recommended) <merge-clause>", "Stop here — this slice's allocation is complete"]
+choices: ["Decide this slice's open questions — /pm-workflows:brd-interview <BRD-KEY> (Recommended) <merge-clause>", "Stop here — this slice's allocation is complete"]
 ```
 
 **`split_mode: full`** — everything below. Every child folder Phase 3 created, still claiming at
@@ -1000,7 +1000,7 @@ this run's pull request. Grounding a child is possible only once that pull reque
 `/brd-intake` is never the answer for a child at any point:
 
 ```
-choices: ["Ground each non-empty child created above, one run per child — /dev-workflows:brd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Decide this BRD's open questions — /dev-workflows:brd-interview <BRD-KEY> <merge-clause>", "Stop here — this BRD's own allocation is complete"]
+choices: ["Ground each non-empty child created above, one run per child — /pm-workflows:brd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Decide this BRD's open questions — /pm-workflows:brd-interview <BRD-KEY> <merge-clause>", "Stop here — this BRD's own allocation is complete"]
 ```
 
 **Every merge clause in this phase is the `<merge-clause>` placeholder**, resolved per
@@ -1021,25 +1021,25 @@ ground would have nothing to check a claim against. No children remain at all th
 as empty) → the child-grounding choice is the one that does not apply, stated plainly rather than
 omitted. Guidance only — never auto-invokes another command.
 
-**This BRD's own next step is `/dev-workflows:brd-interview <BRD-KEY>`, and it is offered on both
+**This BRD's own next step is `/pm-workflows:brd-interview <BRD-KEY>`, and it is offered on both
 paths.** `/brd-split` is **not** the last command of this route: the walk above just left this
 BRD's ledger with no row `unallocated`, which is the one precondition `/brd-interview` refuses to
 start without, so a fully-allocated BRD — split or not — goes on to have its open questions decided
 rather than stopping. It will not start until this BRD's artifacts are on the specs repo's default
 branch, and **exactly which words say so are `<merge-clause>`'s to supply** — this sentence is one of
 the mentions that rule governs, not an exception to it. Recording
-decisions is `/dev-workflows:brd-interview`, preparing the customer package is
-`/dev-workflows:brd-package`, and freezing the returned review is `/dev-workflows:brd-reconcile`;
+decisions is `/pm-workflows:brd-interview`, preparing the customer package is
+`/pm-workflows:brd-package`, and freezing the returned review is `/pm-workflows:brd-reconcile`;
 only the first of those three is the step *after this one*, so only it is offered here. Naming a
 child's grounding and this BRD's interview in one list is deliberate — they are different keys, and
 an operator who created children has both to do. The BRD route on `/create-prd`, `/create-ard` and
 `/specify` all **ships**, and none of the three is offered on either path — for the same reason
-`/dev-workflows:brd-package` and `/dev-workflows:brd-reconcile` are not, that they sit further down
+`/pm-workflows:brd-package` and `/pm-workflows:brd-reconcile` are not, that they sit further down
 the route than the step after this one. All three read an altitude seed and this BRD's decision
-register out of its folder, `/dev-workflows:brd-interview` is the command that writes that register,
+register out of its folder, `/pm-workflows:brd-interview` is the command that writes that register,
 and an `open` or `reopened` record may not be consumed downstream while it is open
 (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §3) — which is what the interview and
-then the customer loop exist to close. `/dev-workflows:brd-reconcile`'s next-step phase is where the
+then the customer loop exist to close. `/pm-workflows:brd-reconcile`'s next-step phase is where the
 three are offered, each under the precondition its own Phase 0 enforces.
 
 ### Context hygiene
@@ -1048,7 +1048,7 @@ Per `workflows-core:session-hygiene`, the resume pointer is written in the
 terminal cost phase (Phase 8), after the cost entry and before the commit step. **The offer above
 spans both roles, so both branches are printed** (§2's *Next options span both* bullet): grounding a
 child created above is a hand to PA, even when the same person does it → run **`/clear`**;
-continuing as PM into `/dev-workflows:brd-interview <BRD-KEY>` on this same BRD keeps the context
+continuing as PM into `/pm-workflows:brd-interview <BRD-KEY>` on this same BRD keeps the context
 relevant → run **`/compact`**. An `allocate-only` run created no child, so only the second branch
 applies to it. Guidance only — nothing is auto-run.
 

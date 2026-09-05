@@ -57,7 +57,7 @@ expectation and an engineering NFR.
 **The first row is a genuine disagreement, and upstream may well have the better of it** for the
 relentless callers: numbering the round and attaching a recommended answer to each question answers
 this file's own "a firehose is bewildering" objection, and it costs fewer round-trips on a long
-grill. It is not adopted because `/dev-workflows:brd-split`'s ledger walk — the one caller that is both
+grill. It is not adopted because `/pm-workflows:brd-split`'s ledger walk — the one caller that is both
 a grilling caller and a never-batch caller — presents rows one at a time by its own rule, and
 because a cadence that differs by caller is worse than one that is merely debatable.
 
@@ -81,7 +81,7 @@ upstream at runtime.
 ## Depth (the caller chooses)
 
 - **Bounded** — a capped set of the highest Impact×Uncertainty questions, then stop; unresolved high-impact gaps are recorded (e.g. `[NEEDS CLARIFICATION]`). Used by `/idea` (≤10; `--deep` switches to relentless), `/prompt-grill-me` (≤5) and `/brd-split` (≤5, and only when given a slicing instruction).
-  **A bounded caller states what its cap costs, because that is what sizes it.** For `/idea` an unresolved gap becomes a marker inside the shipped artifact, so a low cap leaves a hole and ≤10 earns its length. For `/brd-split` an unplaced row simply reaches its own ledger walk without a recommendation, in a Phase 4 that settles every row anyway — one at a time, or inside its Step 1 bulk offer, which names each row it would write and lets any of them be held back to the one-at-a-time walk — the residue has a free fallback, so its cap is lower and its questions carry a further gate of the caller's own (`/dev-workflows:brd-split` Phase 1.5: ask only where one answer places more than one row). Neither the extra gate nor the differing numbers are this file's to fix; what this file fixes is that a caller declaring **bounded** owes a stated cap rather than an open-ended interview called capped.
+  **A bounded caller states what its cap costs, because that is what sizes it.** For `/idea` an unresolved gap becomes a marker inside the shipped artifact, so a low cap leaves a hole and ≤10 earns its length. For `/brd-split` an unplaced row simply reaches its own ledger walk without a recommendation, in a Phase 4 that settles every row anyway — one at a time, or inside its Step 1 bulk offer, which names each row it would write and lets any of them be held back to the one-at-a-time walk — the residue has a free fallback, so its cap is lower and its questions carry a further gate of the caller's own (`/pm-workflows:brd-split` Phase 1.5: ask only where one answer places more than one row). Neither the extra gate nor the differing numbers are this file's to fix; what this file fixes is that a caller declaring **bounded** owes a stated cap rather than an open-ended interview called capped.
 - **Relentless** — keep walking the tree until convergence, no cap. Used by `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`.
 
 **A bounded caller numbers its questions against its cap; a relentless one does not.** Render a

@@ -25,7 +25,7 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
 
 1. **The address (mandatory).** Parse the first non-flag token and validate it with `key-valid`
    (`workflows-core:addressing` §1). Absent or malformed → stop:
-   `IDEA_NEEDS_KEY: /idea needs a PRD key (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-77) — it names the folder this idea will live in. Re-run '/dev-workflows:idea <PRD-KEY> [<prompt>|@<file>]'.`
+   `IDEA_NEEDS_KEY: /idea needs a PRD key (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-77) — it names the folder this idea will live in. Re-run '/pm-workflows:idea <PRD-KEY> [<prompt>|@<file>]'.`
 
    **The key is an argument because there is nowhere keyless to write.** `idea.md` lands in its final
    folder on the first write — `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/`, resolved with
@@ -243,7 +243,7 @@ Phase 0, applying the no-hard-wrap prose convention in `Skill(skill: "workflows-
   unaddressable by every command that resolves one, `/create-prd <KEY>` — the command this run is about to
   recommend — included. Phase 4.5 would vendor into the folder Phase 0 resolved rather than the new one,
   and Phase 5 would hand off a `feature_folder` the deliverable was not written into. A genuinely separate
-  idea is a separate key: say so, and name `/dev-workflows:idea <ANOTHER-KEY> <the same source>` as the way
+  idea is a separate key: say so, and name `/pm-workflows:idea <ANOTHER-KEY> <the same source>` as the way
   to write one.
 - **`kind` and `key`:** write `kind: prd` and `key: <the key this run was invoked with>` into the
   frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`). This command creates the folder, so
@@ -374,7 +374,7 @@ every later run until those paths are committed or the handoff is taken.
 Report where `idea.md` was written and its `status`, and what Phase 4.5 vendored beside it, then offer
 the next phase — **adapted to status**:
 
-- **`status: refined`** — offer the handoff. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — the **gated** variant (§4.0), because `/dev-workflows:create-prd <KEY>` runs `require-on-main` on this `idea.md` (§3.4's first row) — then on the
+- **`status: refined`** — offer the handoff. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — the **gated** variant (§4.0), because `/pm-workflows:create-prd <KEY>` runs `require-on-main` on this `idea.md` (§3.4's first row) — then on the
   first option execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: idea`;
   `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = `idea.md`, **plus every file
   Phase 4.5 wrote or reused** — each copy under `attachments/`, each image copy under
@@ -395,7 +395,7 @@ the next phase — **adapted to status**:
   the one this feature set out to repair. Phase 4.5 hands over that literal list; pass it through
   unchanged. A bare-prompt run vendored nothing and passes `idea.md` alone, exactly as before this
   phase existed. Then recommend
-  `/dev-workflows:create-prd <KEY> <merge-clause>`, which finds `idea.md` in that folder —
+  `/pm-workflows:create-prd <KEY> <merge-clause>`, which finds `idea.md` in that folder —
   `<merge-clause>` resolved from the `Phase handoff:` line §4.1 just emitted, per
   `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`'s resolution table, and never written
   unconditionally. **The clause is load-bearing here, not decoration**: `/create-prd` Phase 0 step 3
@@ -410,19 +410,19 @@ the next phase — **adapted to status**:
   governing principle the phase is not finished, so there is nothing to hand over. **Offer a next
   step even so**, because an offer left empty here is what makes a draft disappear: the file is
   written, on no branch, and the command that would read it does not. Two steps, in order:
-  1. **Recommended — `/dev-workflows:idea <KEY> <the same source>`.** Re-running over the folder
+  1. **Recommended — `/pm-workflows:idea <KEY> <the same source>`.** Re-running over the folder
      this run resolved takes Phase 4's *Refine the existing `idea.md`* path, re-opens this file, and
      puts the N open markers one at a time. Closing all of them sets `status: refined`, and the
      handoff offer above fires on that run instead. No merge clause: this run handed nothing off, so
      there is no pull request to wait for.
   2. **Only where the PRD is to be grilled from the draft as it stands —
-     `/dev-workflows:create-prd <KEY> @<the absolute path of this idea.md>`.** The `@<path>` is
+     `/pm-workflows:create-prd <KEY> @<the absolute path of this idea.md>`.** The `@<path>` is
      required, and this is the one place the reason is visible. Nothing was handed off, so
      `/create-prd`'s in-contract rung 1 runs `require-on-main` against this file, finds it on no ref
      and returns row F `absent` — which is a fall-through rather than a stop, and no later rung of
      that ladder looks in the folder again. Named as a path, the file is read where it sits on
      rung 2's terms — never relocated, never gated, reported once as out-of-contract — and its open
-     markers are folded into that command's own grill. `/dev-workflows:create-prd <KEY>` with no
+     markers are folded into that command's own grill. `/pm-workflows:create-prd <KEY>` with no
      path resolves the same folder and grills the PRD from scratch, ignoring this file: that is the
      wait this offer names in place of a merge clause, and it is discharged by the path, not by a
      merge.
@@ -439,7 +439,7 @@ next-phase-offer contract; `/idea` is one reference implementation.)
 
 ### Context hygiene
 
-Continuing to `/dev-workflows:create-prd` (still the PM phase)? → run **`/compact`** to free context; your
+Continuing to `/pm-workflows:create-prd` (still the PM phase)? → run **`/compact`** to free context; your
 `idea.md` is already on disk. (No resume pointer or `/rename` label here — the PRD-Key is
 minted later, and the ideation phase is short.) Guidance only — see
 `workflows-core:session-hygiene`.

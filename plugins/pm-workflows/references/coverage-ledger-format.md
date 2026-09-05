@@ -477,7 +477,7 @@ commands that read a slice's ledger to shape an offer.
 
 **Where a data refusal would fire, drop the `/create-prd` option and say which test failed.** The
 precedent is `commands/brd-reconcile.md` Phase 14, which runs both data tests before offering
-`/dev-workflows:create-prd <SLICE-KEY>` and **drops** the option rather than annotating it, on the
+`/pm-workflows:create-prd <SLICE-KEY>` and **drops** the option rather than annotating it, on the
 stated ground that a hard refusal in another command's Phase 0 is not a state the reader can judge
 for themselves. Dropping is not going quiet: name what moves the failing test where a command exists
 — `/brd-split <SLICE-KEY>` for an `unallocated` row, the keep-or-remove `/brd-split <PARENT-KEY>` for

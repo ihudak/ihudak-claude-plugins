@@ -41,36 +41,45 @@ loop: a **run-start** flush and branch disposition (`specs-preflight`, §3) and 
 
 ### 2.1 Paths
 
-Exactly five shapes, derived from the emission ladders — three directory shapes and the two single files §2.1 names below. Nothing outside this
+Exactly six shapes, derived from the emission ladders — three directory shapes and the three single files §2.1 names below. Nothing outside this
 set is ever staged.
 
 ```
-<specs-root>/{specs|specifications|vis}/**/dev-workflows/**   # tier 1: feedback, cost, follow-ups, resume.md
+<specs-root>/{specs|specifications|vis}/**/dev-workflows/**   # tier 1: feedback, cost, resume.md
 <specs-root>/dev-workflows-feedback/**                        # feedback-emission.md §2 tier 2 (keyless runs)
 <specs-root>/dev-workflows-cost/**                            # cost-emission.md §9 pending files (keyless runs)
 <specs-root>/{specs|specifications|vis}/**/implementation.md  # implementation-format.md §1, appended by /implement
 <specs-root>/{specs|specifications|vis}/**/release-notes.md   # the /release-notes draft
+<specs-root>/{specs|specifications|vis}/**/follow-ups.md      # followup-emission.md §2, appended per PRD/Epic folder
 ```
 
-**The fourth and fifth shapes name two files, never their folder, and the distinction is the whole
-safety property.** Both sit in the feature folder rather than under `dev-workflows/`, because both are
-read by *key* rather than by session — `implementation.md` is what `/document`, `/release-notes` and
-`epic-picker.md`'s ● marker read, and a record only one machine holds is a record the next run cannot
-use. But that same folder holds the phase deliverables (`prd.md`, `ard.md`, `specification.md`,
+**The fourth, fifth and sixth shapes name three files, never their folder, and the distinction is the
+whole safety property.** All three sit in the feature folder rather than under `dev-workflows/`, because
+all three are read by *key* rather than by session — `implementation.md` is what `/document`,
+`/release-notes` and `epic-picker.md`'s ● marker read, and a record only one machine holds is a record
+the next run cannot use; `follow-ups.md` is `followup-emission.md` §2's "alongside the artifacts the
+follow-ups are about", which §3 makes explicit is about where a *reader* looking at the folder finds
+them. But that same folder holds the phase deliverables (`prd.md`, `ard.md`, `specification.md`,
 `design.md`, `idea.md`, `_readiness.md`), which are `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md`'s
 to commit behind its own consent choice. Widening this shape to the folder would sweep them into a
 prompt-free bookkeeping commit and take the operator's choice away, so the two files are named
 literally and nothing else in that directory is ever staged here.
 
-**Both were outside this set until a review found them**, while `/implement` and `/release-notes` each
-told the operator the terminal step committed them. It did not: step 2 below classified each as OTHER,
-step 3 skipped it, and the file then sat permanently dirty — which fired §3.3's G1 dirty-tree guard on
-every later run of any of the twenty-four callers, suppressing the leftover flush and the branch
-disposition for the rest of the session. `/epics` is the deliberate contrast and stays as it is: it
+**All three were outside this set until a review found them**, while `/implement` and `/release-notes`
+each told the operator the terminal step committed them. It did not: step 2 below classified each as
+OTHER, step 3 skipped it, and the file then sat permanently dirty — which fired §3.3's G1 dirty-tree
+guard on every later run of any of the twenty-four callers, suppressing the leftover flush and the
+branch disposition for the rest of the session. **`follow-ups.md` was the third instance and it was
+found the same way, by a live run rather than by reading** — long after the first two were fixed, because
+this section's own comment claimed follow-ups were tier 1 under `dev-workflows/**` and its source
+citation pointed at a section of `followup-emission.md` that had been renumbered out from under it when
+that ladder was cut from four rungs to two. Two stale pointers agreeing with each other read exactly like
+a verified fact. When an emission ladder changes shape, re-derive this list against it rather than
+trusting either end. `/epics` is the deliberate contrast and stays as it is: it
 writes `epic.md` files this reference never stages, and says so in place.
 
 Sources: `feedback-emission.md` §2 tiers 1–2, `cost-emission.md` §8 tier 1 and
-§9 pending, `followup-emission.md` §4 (the shared per-PRD area),
+§9 pending, `followup-emission.md` §2 (where it lands, per PRD/Epic folder),
 `session-hygiene.md` §1 (resume tier 1).
 
 **Staging is by enumeration, not by glob.** Pathspec glob magic (`:(glob)`) is
@@ -83,7 +92,7 @@ fragile to express and to review. The procedure is:
 2. Classify each reported path: **ARTIFACT** if it matches
    `^(specs|specifications|vis)/.+/dev-workflows/` or `^dev-workflows-feedback/`
    or `^dev-workflows-cost/` or
-   `^(specs|specifications|vis)/.+/(implementation|release-notes)\.md$`;
+   `^(specs|specifications|vis)/.+/(implementation|release-notes|follow-ups)\.md$`;
    **OTHER** otherwise.
 3. Stage the literal ARTIFACT paths only:
    `git -C "$SPECS_PATH" add -A -- <path> [<path>…]`.

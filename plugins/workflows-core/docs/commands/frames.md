@@ -46,7 +46,7 @@ One `index.md` per frame set, in the format [`grounding-format.md`](../../refere
 
 Descriptions come from the `frame-describer` agent, which looks at the frames and returns one plain-language description each — an agent whose whole tool list is `Read`, `Glob`, `Grep`, so it cannot write the index it describes into. The command hands the frames to it rather than opening them itself, so every description in an index is one that something which actually saw the frame produced, and "transcribed, never inferred" is a rule about copying rather than a hope about restraint.
 
-The indexes are deliverables, so they reach the default branch through the [phase handoff](../../references/phase-handoff.md) — each named as one literal path, behind the phase handoff's consent choice — the **no-§3.4-row variant**, whose second option says nothing downstream reads these rather than promising a stop, because no gate consumes a frame-set index. Declining leaves them written and on no ref; they still work locally, because a grounding run reads a frame set from the working tree.
+The indexes are deliverables, so they reach the default branch through the [phase handoff](../../references/phase-handoff.md) — each named as one literal path, behind the phase handoff's consent choice — the **unread** variant, whose second option says nothing downstream reads these rather than promising a stop, because no gate consumes a frame-set index and no command reads one. Declining leaves them written and on no ref; they still work locally, because a grounding run reads a frame set from the working tree.
 
 ## The cap
 

@@ -318,8 +318,8 @@ plugin-gap halt (see Invariants).
    see this run's terminal report for the outcome.
    ```
 
-3. **Hand off** `_readiness.md` (commit-when-asked — never automatic). Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim:
-   `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`.
+3. **Hand off** `_readiness.md` (commit-when-asked — never automatic). Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — the **advisory** array, which is the class §4.0 puts `_readiness.md` in: read downstream (`/dev-workflows:implement` Phase 0.5's one-line, never-blocking advisory) and gated by nothing. The gated array would promise a downstream stop that cannot happen here, and the unread one would claim nothing reads a file that is read on every keyed `/dev-workflows:implement` run:
+   `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (no command stops on this; what reads it reads your working copy)", "Cancel"]`.
    On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2)
    with `prefix: ready`; `feature_folder` = the PRD dir or Epic subdir step 2 wrote into;
    `deliverable_paths` = `_readiness.md`; `title: <PRD|EPIC> Update readiness snapshot`; and `body_facts` =
@@ -378,8 +378,10 @@ plugin-gap halt (see Invariants).
    Written (overwritten) to: <absolute path>.
 
    ### Phase handoff
-   [the step-3 §4.1 outcome line — e.g. "Phase handoff: ready/<KEY>-<slug> pushed — PR #<n> open (<url>).
-   The next phase runs once it is merged." or the declined/gate-failed/nothing-to-commit variant]
+   [the step-3 §4.1 outcome line, with §4.1's **advisory** <downstream-clause> — e.g. "Phase handoff:
+   ready/<KEY>-<slug> pushed — PR #<n> open (<url>). No command waits on this; what reads it reads it
+   as advice." — or the declined/no-remote/gate-failed/nothing-to-commit variant. Never the gated
+   clause: nothing runs require-on-main on _readiness.md]
 
    ### Next step
    [Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <ADDRESS>` — the same single address this run judged (D4), no handoff. PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the

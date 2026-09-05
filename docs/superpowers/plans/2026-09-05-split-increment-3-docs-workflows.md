@@ -135,6 +135,15 @@ Three statements about `docs-workflows`'s corpus are each true and read as contr
 
 State the relationship explicitly in `README.md`, where both numbers meet — twelve markdown reference pages plus two bundled data files, fourteen in all — rather than leaving a reader to infer it from two different nouns. Do not change the description; it is at 887 of a 900-character warning and is correct as written.
 
+- [ ] **Step 2c: Finish `workflows-core:dependencies`, which Task 4 deliberately left half-updated.**
+
+Task 4 fixed only the clause its own change falsified — the `prose-style` companion row, which now correctly says *"Optional companion there, **declared dependency** of `docs-workflows`"*. It reported the rest as out of its scope, which was right. What remains:
+
+- The **Marketplace siblings** section opens *"Four plugins ship alongside this family"* and lists `prose-style`, `obsidian-llm-wiki`, `guideline-reviewers`, `acli`. `docs-workflows` is now a **family member**, not a sibling, so the framing and any count that follows from it need re-deriving.
+- That section calls `prose-style` *"the one sibling this family resolves **at runtime**"*. It is now a **declared dependency** of `docs-workflows` and a runtime resolution for `dev-workflows` — two different relationships in one sentence, which is the shape §12 of this same file warns about.
+
+Re-derive both against the tree rather than editing the numbers in place.
+
 - [ ] **Step 3: `CLAUDE.md`** — the workflow map, the per-plugin counts, the active-plugins paragraph, and every reference path that moved. **Nothing gates any path or number in this file**; increment 2 left eleven stale paths there and found them only by a hand sweep. Re-derive.
 - [ ] **Step 4: Closing sweep — re-derive, do not trust.** Assert zero `dev-workflows:<moved-agent>` and `/dev-workflows:<moved-command>` tokens outside `CHANGELOG.md`; zero dangling `${CLAUDE_PLUGIN_ROOT}` paths in all four plugins; every loader `args:` first token resolving; `dependencies` parsed from JSON (never grepped — `keywords` contains the word); and every `CLAUDE.md` reference path resolving.
 - [ ] **Step 5: All seven gates. Step 6: Commit.**

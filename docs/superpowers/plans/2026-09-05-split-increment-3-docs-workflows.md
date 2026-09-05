@@ -68,24 +68,7 @@ The plugin ships **nothing** at the end of this task, which is how increment 1 a
 
 ---
 
-### Task 2: Give `docs-workflows` its own hook, and narrow `dev-workflows`'s
-
-**Files:** create `plugins/docs-workflows/hooks/hooks.json` and its scripts; modify `plugins/dev-workflows/hooks/preload-context.sh`.
-
-**This is the one thing neither earlier increment faced, and spec §6's checklist does not mention it, because `guideline-reviewers` and `workflows-core` ship no hooks.** `dev-workflows`'s `preload-context.sh` fires on `UserPromptSubmit` and matches `^/(implement|document|epics|release-notes|vuln|upgrade)`. **Two of those six — `/document` and `/release-notes` — move in this increment.** Hooks do not cross a plugin boundary (§4): each plugin ships its own, and `${CLAUDE_PLUGIN_ROOT}` in `hooks.json` is correct only for the plugin that ships it.
-
-The failure is quiet rather than loud, which is why it needs naming: a `UserPromptSubmit` hook fires on every prompt in a session regardless of which plugin ships it, so **as long as both plugins are installed the preload keeps working and nothing looks wrong**. It breaks for the user who installs `docs-workflows` and not `dev-workflows` — which is now a supported configuration, since `docs-workflows` depends on `workflows-core`, not on `dev-workflows`.
-
-- [ ] **Step 1: Read `preload-context.sh` end to end** and establish exactly which branches serve `/document` and `/release-notes` — its header comment routes them differently (`/document` gets specs context only when its argument is an address; `/release-notes` gets `$SPECS_PATH` + `$REPOS_PATH`). Do not split by pattern-matching the regex alone.
-- [ ] **Step 2: Give `docs-workflows` a hook** carrying those two branches, with its own `hooks.json` using `${CLAUDE_PLUGIN_ROOT}`. Hook scripts must exit 0 always — a hook must never block Claude.
-- [ ] **Step 3: Narrow `dev-workflows`'s regex** to the four commands it still ships, and update the header comment, which enumerates all six by name.
-- [ ] **Step 4: Check the other three hooks** — `notify-done.sh`, `test-notify.sh`, `changelog-owners-reminder.sh` — for command-name coupling. Report what you find even if the answer is none.
-- [ ] **Step 5: Update both plugins' `docs/reference/hooks.md`** and their hook-count sentences (check 9 gates the count).
-- [ ] **Step 6: Gates. Step 7: Commit.**
-
----
-
-### Task 3: Move everything, rewriting citations as they move
+### Task 2: Move everything, rewriting citations as they move
 
 **Files:** `git mv` the 3 commands, 7 agents, 12 references + the `docs-profiles/` non-markdown files, the `docs-frontmatter/` skill, and 3 documentation pages; modify both plugins' inventories, counts and diagrams; modify `scripts/check-docs.sh` config.
 
@@ -99,6 +82,25 @@ The failure is quiet rather than loud, which is why it needs naming: a `UserProm
 - [ ] **Step 6: Update the gate's applicability lists.** `COST_PLUGIN_RELS` and `HANDOFF_PLUGIN_RELS` are keyed on **call sites** (R7): add `plugins/docs-workflows` iff its commands carry `emit-cost` call sites / commands of the `next-phase-offer` family. Derive, do not assume.
 - [ ] **Step 7: Update both inventories and every count sentence**, on both sides: `agents.md` rows, `references.md` flat rows and subtree counts (**markdown-only**), `environment.md` in both directions (check 5 fires twice on a move), the two `docs/README.md`s, both plugin READMEs, both `docs/workflow.md` mermaid diagrams — **removing the departed commands from `dev-workflows`'s diagram by hand, since check 15 is forward-only.**
 - [ ] **Step 8: Verify the counts**: `docs-workflows` 3 commands / 7 agents / 12 reference markdown files / 1 skill; `dev-workflows` 17 / 24 / 24. **Step 9: Gates. Step 10: Commit.**
+
+---
+
+### Task 3: Give `docs-workflows` its own hook, and narrow `dev-workflows`'s
+
+**Files:** create `plugins/docs-workflows/hooks/hooks.json` and its scripts; modify `plugins/dev-workflows/hooks/preload-context.sh`.
+
+**Ordered after the move deliberately.** Step 3 narrows `dev-workflows`'s regex to the commands it still ships — which is only true once Task 2 has moved them. Running it first would strip the preload from two commands that are still in the plugin. Nothing breaks in the window between: a `UserPromptSubmit` hook fires on every prompt regardless of which plugin ships it, so the old regex keeps working until it is narrowed.
+
+**This is the one thing neither earlier increment faced, and spec §6's checklist does not mention it, because `guideline-reviewers` and `workflows-core` ship no hooks.** `dev-workflows`'s `preload-context.sh` fires on `UserPromptSubmit` and matches `^/(implement|document|epics|release-notes|vuln|upgrade)`. **Two of those six — `/document` and `/release-notes` — move in this increment.** Hooks do not cross a plugin boundary (§4): each plugin ships its own, and `${CLAUDE_PLUGIN_ROOT}` in `hooks.json` is correct only for the plugin that ships it.
+
+The failure is quiet rather than loud, which is why it needs naming: a `UserPromptSubmit` hook fires on every prompt in a session regardless of which plugin ships it, so **as long as both plugins are installed the preload keeps working and nothing looks wrong**. It breaks for the user who installs `docs-workflows` and not `dev-workflows` — which is now a supported configuration, since `docs-workflows` depends on `workflows-core`, not on `dev-workflows`.
+
+- [ ] **Step 1: Read `preload-context.sh` end to end** and establish exactly which branches serve `/document` and `/release-notes` — its header comment routes them differently (`/document` gets specs context only when its argument is an address; `/release-notes` gets `$SPECS_PATH` + `$REPOS_PATH`). Do not split by pattern-matching the regex alone.
+- [ ] **Step 2: Give `docs-workflows` a hook** carrying those two branches, with its own `hooks.json` using `${CLAUDE_PLUGIN_ROOT}`. Hook scripts must exit 0 always — a hook must never block Claude.
+- [ ] **Step 3: Narrow `dev-workflows`'s regex** to the four commands it still ships, and update the header comment, which enumerates all six by name.
+- [ ] **Step 4: Check the other three hooks** — `notify-done.sh`, `test-notify.sh`, `changelog-owners-reminder.sh` — for command-name coupling. Report what you find even if the answer is none.
+- [ ] **Step 5: Update both plugins' `docs/reference/hooks.md`** and their hook-count sentences (check 9 gates the count).
+- [ ] **Step 6: Gates. Step 7: Commit.**
 
 ---
 

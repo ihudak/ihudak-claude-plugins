@@ -366,12 +366,13 @@ this checker never emits BLOCKER.
 
 This plugin is a **fallback** for the `docs-style-checker` agent in `docs-workflows`:
 
-- **`/document`** (Jira mode) Phase 6.4 dispatches `docs-style-checker`, which runs the
-  chain **internally**: the repo's primary linter (Vale/markdownlint) **and**, when this
-  plugin is installed, `prose-style-checker` as a complementary semantic /
-  cross-page-consistency pass, with both finding sets merged and deduped. `/document`
-  never invokes `prose-style-checker` separately; `NOT_CONFIGURED` means neither was
-  available.
+- **`/document`** (keyed mode) Phase 6.4 dispatches `docs-style-checker`, which runs the
+  chain **internally**: the repo's primary linter (Vale/markdownlint) **and**
+  `prose-style-checker` as a complementary semantic / cross-page-consistency pass, with
+  both finding sets merged and deduped. `/document` never invokes `prose-style-checker`
+  separately. `docs-workflows` declares this plugin as a dependency, so that complementary
+  pass has no absent case — it is also what carries the check on a repo with no linter of
+  its own.
 - **`/epics`** Phase 6.2 invokes `prose-style-checker` directly (Epic drafts are
   vault-internal and have no repo linter). `/create-prd`, `/update-prd`, and
   `/release-notes` invoke it directly too.

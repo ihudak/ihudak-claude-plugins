@@ -17,7 +17,7 @@ A companion outside the family is **convention + runtime-resolve + graceful fall
 | Companion | Used by | Relationship | Fallback when absent |
 |-----------|---------|--------------|----------------------|
 | `superpowers` (skill `brainstorming`) | `/prompt-brainstorm` | Recommended | Embedded technique; no hard dependency. |
-| `prose-style` (a marketplace sibling) | `docs-style-checker`; planning-doc style checks | Optional companion | `docs-style-checker` falls back to it when no repo-configured prose linter exists; `/epics` and `/release-notes` skip the style gate entirely if it is absent. |
+| `prose-style` (a marketplace sibling) | planning-doc style checks in `dev-workflows` | Optional companion there, **declared dependency** of `docs-workflows` | `/epics` skips the style gate entirely if it is absent. `docs-workflows` declares it, so its style checks have no absent case at all. |
 
 ## External tools and services
 

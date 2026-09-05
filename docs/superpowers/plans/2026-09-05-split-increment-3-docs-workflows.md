@@ -177,4 +177,4 @@ Everything a review raised was fixed **except** these. None blocks increment 4; 
 
 **I3-5 — `accessibility.md` stays with `guideline-reviewers`, decided late and only because a reviewer caught it.** The design pinned this decision to increment 3 *"so it cannot be forgotten"*, and this plan forgot it — no task carried it and the first draft of this list omitted it. Settled on the evidence: `/docs-brand` exists nowhere, so under S16 the second consumer group does not exist and the file does not move. Recorded in the design's §11 along with the process failure, which is the more useful half.
 
-**Still open from before, unchanged and deliberately so:** PS1, PS2, PS3, PS10. S18 gates the release on this whole ledger being empty — increments may ship with items open, the release may not.
+**Still open from before, unchanged and deliberately so:** PS1, PS2, PS3, PS10 — plus **PS11** and **PS12**, both found by this increment's live verification and recorded in the increment-2 plan's ledger. PS12 decides PS10. S18 gates the release on this whole ledger being empty — increments may ship with items open, the release may not.

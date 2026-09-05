@@ -31,4 +31,4 @@
 
 ## Status
 
-This plugin ships 6 slash commands, 5 agents, and 29 reference files. Most of what it carries is not a command: it is the shared corpus and the agents a sibling plugin in the `dev-workflows` family reads and dispatches, extracted here so more than one plugin can depend on one copy.
+This plugin ships 6 slash commands, 5 agents, and 29 reference files. Most of what it carries is not a command: it is the shared corpus and the agents the sibling plugins in this family — `dev-workflows` and `docs-workflows` — read and dispatch, extracted here so more than one plugin can depend on one copy. Both declare it, which is what makes it shared rather than merely reused.

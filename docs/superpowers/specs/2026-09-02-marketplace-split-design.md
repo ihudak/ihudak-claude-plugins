@@ -213,7 +213,7 @@ flowchart TD
 
 ### Increment 1 — `guideline-reviewers`
 
-Move `/api-guideline-reviewer`, `/guideline-reviewer`, their two agents, and `references/api-guidelines/**` plus `references/guidelines/**`. Register in `marketplace.json`. Give it its own `docs/` tree. `guidelines/accessibility.md` moves with the rest of the corpus. It is the one file the documentation family will later want — `/docs-brand` contrast-checks against it — but that family does not exist yet, so nothing is copied pre-emptively for a consumer that has no code. The decision is deferred to **increment 3**, where `docs-workflows` is created and the need becomes real — pinned to an increment rather than left in the open-questions list, so it cannot be forgotten.
+Move `/api-guideline-reviewer`, `/guideline-reviewer`, their two agents, and `references/api-guidelines/**` plus `references/guidelines/**`. Register in `marketplace.json`. Give it its own `docs/` tree. `guidelines/accessibility.md` moves with the rest of the corpus. It is the one file the documentation family will later want — `/docs-brand` contrast-checks against it — but that family does not exist yet, so nothing is copied pre-emptively for a consumer that has no code. The decision was deferred to **increment 3** and settled there: it stays with `guideline-reviewers`, because `/docs-brand` — the consumer that would make its second group real — still does not exist. See §11.
 
 **Nothing here needs the loader, a dependency, or a citation rewrite.** That is the point: it proves plugin creation, registration, the `check-docs.sh` loop, per-plugin documentation and installation, with no coupling in play.
 
@@ -406,4 +406,8 @@ The review's four probe transcripts are adopted as fixtures rather than writing 
 | How the documentation family reaches `guidelines/accessibility.md` | **S16** — it moves with `guideline-reviewers` now and is promoted to core when `/docs-brand` exists to be its second consumer. Not a test to run during implementation: a decision, and the rule that decides it already existed |
 | Whether the root README becomes a marketplace index | **S15** — it does, and check 7 goes per-plugin |
 
-Two things are deliberately *decided but deferred in execution*, which is not the same as open: the `accessibility.md` promotion happens in increment 3 (pinned there, not to this list), and `design-grounder`'s promotion happens whenever a dev route adopts it — both governed by S16.
+One thing is deliberately *decided but deferred in execution*, which is not the same as open: `design-grounder`'s promotion happens whenever a dev route adopts it, governed by S16.
+
+**`accessibility.md` was the other, and increment 3 settled it: it stays with `guideline-reviewers`.** S16 moves a file when its second consumer group *actually exists*; `/docs-brand`, the consumer that would make it two, **does not exist anywhere in the tree** — the documentation-workflow family waits on the split finishing. The file is cited today only from inside `guideline-reviewers`. Revisit when `/docs-brand` is built, not before.
+
+**And the pinning did not work, which is worth more than the decision.** This was pinned to an increment rather than left in an open-questions list expressly *"so it cannot be forgotten"* — and increment 3 forgot it: the plan never mentioned it, no task carried it, and the closing ledger did not list it. It surfaced only because a whole-branch reviewer read this spec against that branch. **A commitment recorded in the spec but absent from the increment's own plan is a commitment nothing will execute** — the same failure as a ruling written as prose instead of a checkbox. Pin the next one by writing it into the plan that implements it, not only into the design that decides it.

@@ -98,7 +98,13 @@ The failure is quiet rather than loud, which is why it needs naming: a `UserProm
 - [ ] **Step 1: Read `preload-context.sh` end to end** and establish exactly which branches serve `/document` and `/release-notes` — its header comment routes them differently (`/document` gets specs context only when its argument is an address; `/release-notes` gets `$SPECS_PATH` + `$REPOS_PATH`). Do not split by pattern-matching the regex alone.
 - [ ] **Step 2: Give `docs-workflows` a hook** carrying those two branches, with its own `hooks.json` using `${CLAUDE_PLUGIN_ROOT}`. Hook scripts must exit 0 always — a hook must never block Claude.
 - [ ] **Step 3: Narrow `dev-workflows`'s regex** to the four commands it still ships, and update the header comment, which enumerates all six by name.
-- [ ] **Step 4: Check the other three hooks** — `notify-done.sh`, `test-notify.sh`, `changelog-owners-reminder.sh` — for command-name coupling. Report what you find even if the answer is none.
+- [ ] **Step 4: Move `changelog-owners-reminder`, which Task 2 broke — and note *why* this step's original wording would have missed it**
+
+Task 2 found and reported this itself. `hooks/changelog-owners-reminder.py` reads two files under its own `${CLAUDE_PLUGIN_ROOT}` — `references/docs-profiles/default-owners.txt` (line 63) and `references/docs-profiles/docs-profile.default.yml` (line 93) — and **both moved to `docs-workflows` in Task 2**. Verified: neither path now exists under `plugins/dev-workflows/`. The hook swallows the `OSError` and still exits 0, so it **fails silently**, losing the owners check and the built-in default profile with no signal at all.
+
+This step originally asked only about **command-name** coupling. That is the wrong question: this is **reference-path** coupling, and no amount of grepping for command names would have surfaced it. Move the hook and its `hooks.json` entry to `docs-workflows`, where its data now lives. `dev-workflows/docs/reference/hooks.md` currently documents the degradation as an interim truth — remove that once the hook moves, and make sure `docs-workflows`'s own `hooks.md` and hook count replace it.
+
+- [ ] **Step 4a: Now check the remaining two hooks — `notify-done.sh` and `test-notify.sh` — for coupling of *either* kind**: a command name, and a path into `references/`, `agents/`, `commands/` or `skills/`. Report what you find even if the answer is none.
 - [ ] **Step 5: Update both plugins' `docs/reference/hooks.md`** and their hook-count sentences (check 9 gates the count).
 - [ ] **Step 6: Gates. Step 7: Commit.**
 

@@ -379,6 +379,14 @@ HANDOFF_PLUGIN_RELS="...plugins/dev-workflows"
 
 So the failure mode to actually guard against here is not a silent pass; it is **"fixing" a loud failure by relaxing a guard**. If check 11 fails after your edit, the fix is the list, never the guard.
 
+- [ ] **Step 1c: Make `validate-catalog.py` reject duplicate plugin names (I4-4)**
+
+Task 4's review disproved a claim this plan implicitly relied on: **`validate-catalog.py` does not enforce plugin-name uniqueness.** A fixture with two directories both declaring `"name": "dupname"` validates clean. In the source, `manifests[name] = (...)` is a plain dict assignment and `advertised` is a `set[str]` — a duplicate silently overwrites in one and is absorbed by the other.
+
+This matters more after Task 4 than before it. The hook regexes are now disjoint on two invariants — distinct plugin names, distinct command-name sets — and the report claimed the first was structurally enforced. It is not; **both hold by authorship alone**. A new plugin added with a copy-pasted `plugin.json` whose `name` was never edited would collide, and nothing would catch it.
+
+Add the check where the manifest is first recorded, and give it a **paired selftest case** — a red fixture with the duplicate and a green one without — because a check that never fires is indistinguishable from one that cannot. Follow the file's existing selftest conventions rather than inventing a shape.
+
 - [ ] **Step 2: Split the namespace manifest**
 
 `plugins/workflows-core/scripts/command-namespaces.json` currently lists all 17 commands under `"dev-workflows"`. Reduce that key to the five that stay, and add a `"pm-workflows"` key with the twelve that moved. Keys are sorted; keep the file's existing formatting.
@@ -498,7 +506,7 @@ git commit -m "docs(pm): build the pm-workflows documentation tree"
 
 ---
 
-### Task 7: Reduce `dev-workflows`'s documentation tree to what it still ships
+### Task 7: Repair every documentation tree this increment touched except `pm-workflows`'s
 
 **Files:**
 - Modify/delete: `plugins/dev-workflows/docs/` — the pages for moved commands are gone by Task 6; the survivors must stop asserting a 17-command plugin
@@ -507,6 +515,20 @@ git commit -m "docs(pm): build the pm-workflows documentation tree"
 **Interfaces:**
 - Consumes: Task 6's moves.
 - Produces: a `dev-workflows` tree whose every claim matches a five-command plugin.
+
+- [ ] **Step 0: Own all three remaining trees, not just `dev-workflows`'s**
+
+Task 6 owns `pm-workflows/docs/`. **Everything else is yours**, and that is wider than this task's original name implied:
+
+| Tree | Why it needs you |
+|---|---|
+| `plugins/dev-workflows/docs/` | 12 command pages leave, and check 9's four stale counts live here |
+| `plugins/workflows-core/docs/` | **Task 2 edited it** (`docs/commands/frames.md`) and no task verified it. If Task 4's follow-up ever moves the notify hooks here, this tree gains a `hooks.md` |
+| `plugins/docs-workflows/docs/` | Task 2 fixed a mermaid subgraph label here; Task 4 changed its hook regex, so `docs/reference/hooks.md` quotes a regex that no longer exists |
+
+**This gap is the reason the step exists.** Two files have now been found stale by a reviewer rather than by a task, both for the same structural reason: **a task scoped to one plugin cannot see a file that describes several.** `workflows-core/references/dependencies.md` has been corrected in four commits across three increments, always as someone else's finding. Do not let a third instance through.
+
+Task 4's report specifies the exact wording each `hooks.md` needs. Use it rather than re-deriving.
 
 - [ ] **Step 1: Re-derive every inventory sentence**
 

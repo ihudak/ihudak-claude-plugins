@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart TD
-    subgraph UP["Upstream — in the dev-workflows plugin"]
+    subgraph UP["Upstream — in the pm-workflows and dev-workflows plugins"]
         implement["/dev-workflows:implement"]
         createprd["/pm-workflows:create-prd"]
     end

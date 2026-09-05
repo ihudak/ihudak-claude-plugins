@@ -125,6 +125,10 @@ S12: with `prose-style` a declared dependency, an unsatisfied dependency disable
 
 - [ ] **Step 1: Bump** `dev-workflows` to 3.27.0; `docs-workflows` stays 1.0.0.
 - [ ] **Step 2: CHANGELOGs.** `dev-workflows`'s entry leads with the install command (S17). `docs-workflows` 1.0.0 lists every moved command and its new namespace.
+- [ ] **Step 2a: One contradiction to resolve while you are in `CLAUDE.md` — found by Task 2's resolution pass, and pre-existing rather than split-caused.**
+
+`CLAUDE.md`'s `/document` (direct mode) invariants say *"**No branch creation by default** — it works on the current branch unless the user requests one"*. The command is stronger: `commands/document.md:1352` says *"**Do NOT create a branch, and do NOT commit the doc edits.** The user manages git manually for doc edits."* Never, not "not by default", and no user-request escape. Two live contradictory instructions is the defect `workflows-core:instruction-file-maintenance` names, and the rule there is that the **thing that runs** is the authority — verify against `document.md`'s own Phase 3 and rewrite `CLAUDE.md` to match, not the reverse. Check whether the same sentence was carried into `docs-workflows`'s documentation pages.
+
 - [ ] **Step 3: `CLAUDE.md`** — the workflow map, the per-plugin counts, the active-plugins paragraph, and every reference path that moved. **Nothing gates any path or number in this file**; increment 2 left eleven stale paths there and found them only by a hand sweep. Re-derive.
 - [ ] **Step 4: Closing sweep — re-derive, do not trust.** Assert zero `dev-workflows:<moved-agent>` and `/dev-workflows:<moved-command>` tokens outside `CHANGELOG.md`; zero dangling `${CLAUDE_PLUGIN_ROOT}` paths in all four plugins; every loader `args:` first token resolving; `dependencies` parsed from JSON (never grepped — `keywords` contains the word); and every `CLAUDE.md` reference path resolving.
 - [ ] **Step 5: All seven gates. Step 6: Commit.**

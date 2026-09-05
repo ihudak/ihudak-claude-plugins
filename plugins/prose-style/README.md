@@ -341,7 +341,7 @@ yours to supply.
 ## Violation schema
 
 Both `prose-style-checker` and `prose-fixer` use this schema (compatible with
-`docs-style-checker` from `dev-workflows`):
+`docs-style-checker` from `docs-workflows`):
 
 ```yaml
 file:       <absolute path>
@@ -362,16 +362,17 @@ this checker never emits BLOCKER.
 
 ---
 
-## How it fits with dev-workflows
+## How it fits with the dev-workflows family
 
-This plugin is a **fallback** for the `docs-style-checker` agent in `dev-workflows`:
+This plugin supplies the **complementary semantic pass** that the `docs-style-checker` agent in `docs-workflows` always runs alongside a repo's own linter. Fallback is what it becomes in one branch of that ladder — the sole pass, when no primary rung produced a result — not the relationship:
 
-- **`/document`** (Jira mode) Phase 6.4 dispatches `docs-style-checker`, which runs the
-  chain **internally**: the repo's primary linter (Vale/markdownlint) **and**, when this
-  plugin is installed, `prose-style-checker` as a complementary semantic /
-  cross-page-consistency pass, with both finding sets merged and deduped. `/document`
-  never invokes `prose-style-checker` separately; `NOT_CONFIGURED` means neither was
-  available.
+- **`/document`** (keyed mode) Phase 6.4 dispatches `docs-style-checker`, which runs the
+  chain **internally**: the repo's primary linter (Vale/markdownlint) **and**
+  `prose-style-checker` as a complementary semantic / cross-page-consistency pass, with
+  both finding sets merged and deduped. `/document` never invokes `prose-style-checker`
+  separately. `docs-workflows` declares this plugin as a dependency, so that complementary
+  pass has no absent case — it is also what carries the check on a repo with no linter of
+  its own.
 - **`/epics`** Phase 6.2 invokes `prose-style-checker` directly (Epic drafts are
   vault-internal and have no repo linter). `/create-prd`, `/update-prd`, and
   `/release-notes` invoke it directly too.

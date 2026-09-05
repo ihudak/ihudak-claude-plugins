@@ -22,7 +22,7 @@ Any secret, credential, token, or other sensitive value that might otherwise lan
 
 **Where it lands.** Three tiers, walked in order: `$SPECS_PATH` writable with the PRD directory matched → `<PRD-dir>/dev-workflows/resume.md`, the primary case; `$SPECS_PATH` writable but **no PRD directory matched** → the file is skipped outright and the run relies on the printed `### Next step` instead; and `$SPECS_PATH` not writable → skipped, with a one-line warning that no resume pointer could be persisted and you should set it.
 
-**Which runs skip it entirely.** `/implement` in direct mode and `/document`'s doc-edit mode have no PRD to anchor a pointer to. `/vuln` and `/upgrade` are non-pipeline runs whose durable state is the branch or PR already on disk. `/idea` and the companion plugin's `/workflows-core:frames` do resolve a PRD folder, but neither is a phase a later run resumes — `/idea` hands its brief off in the same run, and `/workflows-core:frames` repairs a frame-set index rather than advancing the pipeline — so a pointer would only go stale.
+**Which runs skip it entirely.** `/implement` in direct mode has no PRD to anchor a pointer to, and neither does the companion plugin's `/docs-workflows:document` in doc-edit mode. `/vuln` and `/upgrade` are non-pipeline runs whose durable state is the branch or PR already on disk. `/idea` and the companion plugin's `/workflows-core:frames` do resolve a PRD folder, but neither is a phase a later run resumes — `/idea` hands its brief off in the same run, and `/workflows-core:frames` repairs a frame-set index rather than advancing the pipeline — so a pointer would only go stale.
 
 ## The suggestion: `/compact` or `/clear`
 
@@ -30,7 +30,7 @@ Every next-step option a command offers already carries a role label — see [Ro
 
 - **Staying in the same role** for the next step (`/design E1` → `/design E2`, Dev → Dev) → **`/compact`** — the context is still relevant, so keep the thread going.
 - **Moving to a different role** (`/epics` PE → `/design` Dev) → **`/clear`** is the better default when one person is wearing both hats, since the prior role's reasoning becomes noise for the next one; `/compact` still works fine if you're continuing right away yourself.
-- **The next step could go either way** (`/create-prd` → PM `/release-notes`, or handing off to PA/PE) → both branches are named explicitly: continuing as the same role suggests `/compact`, handing off — even to yourself — suggests `/clear`.
+- **The next step could go either way** (`/create-prd` → PM `/docs-workflows:release-notes`, or handing off to PA/PE) → both branches are named explicitly: continuing as the same role suggests `/compact`, handing off — even to yourself — suggests `/clear`.
 - **You're done, or ending the session** → no suggestion at all.
 
 ## Mid-phase checkpoints and big non-pipeline commands
@@ -39,7 +39,7 @@ A run doesn't have to finish to earn a checkpoint. `/implement`'s own mid-phase 
 
 ## The `/rename` aid
 
-Within this rename-aid set, a PRD key is first available at `/release-notes`, and every PA/PE/Dev command that takes a `<PRD>` argument (`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement`, `/document`, `/release-notes`) prints a suggested `/rename <PRD-ID>-<slug>-<role>` line, so you can find this session again later in `claude --resume` by name instead of by scrolling. `<role>` is the lane tag of the command that just finished — pm, pa, pe, or dev. `/idea` and `/create-prd` are excluded from this aid: idea refinement is short, it usually runs before the handoff that lands the PRD key in the first place, so there is often no key yet to name the session after — and on the rarer runs that do carry one already, the phase is still short enough that naming the session isn't worth automatically suggesting.
+Within this rename-aid set, a PRD key is first available at `/docs-workflows:release-notes`, and every PA/PE/Dev command that takes a `<PRD>` argument (`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement` here, and the companion plugin's `/docs-workflows:document` and `/docs-workflows:release-notes`) prints a suggested `/rename <PRD-ID>-<slug>-<role>` line, so you can find this session again later in `claude --resume` by name instead of by scrolling. `<role>` is the lane tag of the command that just finished — pm, pa, pe, or dev. `/idea` and `/create-prd` are excluded from this aid: idea refinement is short, it usually runs before the handoff that lands the PRD key in the first place, so there is often no key yet to name the session after — and on the rarer runs that do carry one already, the phase is still short enough that naming the session isn't worth automatically suggesting.
 
 ## The contract
 

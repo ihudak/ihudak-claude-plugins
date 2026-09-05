@@ -214,7 +214,7 @@ the same ordering for the same reason.
    `brd-link.md` to say which route it would have been on. Its code keeps the `_BRD_` segment it was
    minted with; what it must not keep is a remedy list that only fits one route, so it names every
    command that creates a folder this one accepts, the same three `/dev-workflows:ready`,
-   `/dev-workflows:release-notes`, `/dev-workflows:epics` and `/dev-workflows:create-ard` each name
+   `/docs-workflows:release-notes`, `/dev-workflows:epics` and `/dev-workflows:create-ard` each name
    in their own `absent` stops — and step 0 refuses the `BRD-` container a `/dev-workflows:brd-intake` run
    would leave behind:
    `SPECIFY_BRD_NOT_FOUND: no folder found for <ADDRESS> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — check the address. /specify specifies an existing PRD or Epic folder and creates neither. A PRD- folder is created by /dev-workflows:idea <KEY> or /dev-workflows:create-prd <KEY> on the idea route, and by /dev-workflows:brd-split on its parent BRD on the BRD route — /specify writes into that folder, never into the BRD- container above it, and a parent BRD is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file> and then grounded and split before any slice exists. An EPIC- folder is created by /dev-workflows:epics <PRD-ADDRESS> and by no other command.`

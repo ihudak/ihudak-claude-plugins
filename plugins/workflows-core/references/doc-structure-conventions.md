@@ -4,7 +4,7 @@ Single source of truth for how a written page is **structured** and what it may 
 independent of any single docs repo. This reference is repo-agnostic: it governs the shape of prose,
 callouts, and reusable components for whatever docs repo `/document` writes into. Consumed by `/document` and `/epics`, and by `doc-planner`, `doc-writer`, and `doc-reviewer`. Repo-specific
 conventions — frontmatter fields, changelog format, terminology lists, component syntax — live under
-the `dev-workflows` plugin's `references/docs-profiles/`, not here.
+the `docs-workflows` plugin's `references/docs-profiles/`, not here.
 
 Consumed by `doc-writer`, `doc-planner`, and `doc-reviewer`.
 
@@ -27,7 +27,7 @@ where a `[[KEY]]` wikilink is the native idiom, resolves, and is the required tr
 | Run handoff / final report | Per-claim attribution to resolved keys and PR URLs. |
 
 A changelog entry is reader-visible "what changed on this page" prose, so it is covered by the rule
-above: a key never belongs in it. `dev-workflows:doc-writer`, `dev-workflows:doc-planner`, and `/dev-workflows:document`
+above: a key never belongs in it. `docs-workflows:doc-writer`, `docs-workflows:doc-planner`, and `/docs-workflows:document`
 each state that instance; this section is their authority — they are instances of this rule, not
 competing ones.
 

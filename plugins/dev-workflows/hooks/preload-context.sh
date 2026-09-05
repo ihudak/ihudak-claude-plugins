@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
-# Fires on every message submission. Matches /implement, /document, /epics,
-# /release-notes, /vuln, /upgrade and routes per spec §3:
+# Fires on every message submission. Matches /implement, /epics, /vuln,
+# /upgrade and routes per spec §3:
 #   • /implement, /vuln, /upgrade       → full (model-routing + git status +
 #                                         recent commits + small-repo directory
 #                                         listing); /implement also preloads
 #                                         specs context when its argument is a
 #                                         address (keyed via the shared
 #                                         address resolver)
-#   • /document                         → specs context iff the argument is a
-#                                         address (e.g. /document PRODUCT-1234);
-#                                         free-text / @file → silent (direct-edit
-#                                         mode owns its own git hygiene and never
-#                                         invokes Opus)
-#   • /epics, /release-notes            → $SPECS_PATH + $REPOS_PATH default
+#   • /epics                            → $SPECS_PATH + $REPOS_PATH default
 #                                         + git branch only if cwd is inside
 #                                         a git repo (no model-routing, no full
-#                                         status/log, no directory listing). Both
-#                                         accept an address or a specs
+#                                         status/log, no directory listing). It
+#                                         accepts an address or a specs
 #                                         directory via the shared front-end.
-#   • /docs-profile                     → not matched (no context injected)
 #
 # emit_specs_context surfaces $SPECS_PATH alongside $REPOS_PATH.
+#
+# The companion docs-workflows plugin ships a hook of the same name covering the
+# documentation commands it owns (/document, /release-notes; /docs-profile is
+# matched by neither). A UserPromptSubmit hook fires whichever plugin ships it,
+# so both run on every prompt; the two regexes are disjoint, so at most one of
+# them ever emits.
 #
 # Exits immediately (near-zero overhead) if the message doesn't match.
 # Always exits 0 — must never block Claude.
@@ -40,11 +40,11 @@ except Exception:
     print('')
 " 2>/dev/null) || true
 
-# Require at least one non-whitespace, non-flag argument so bare `/document` or
+# Require at least one non-whitespace, non-flag argument so bare `/epics` or
 # `/implement --help` doesn't inject noise on every misfire. The first capture
-# group holds the command token (e.g. "implement", "document", "release-notes")
+# group holds the command token (e.g. "implement", "epics", "upgrade")
 # — see spec §3 "Hook scope" for the normative regex.
-if [[ ! "$prompt" =~ ^/(implement|document|epics|release-notes|vuln|upgrade)[[:space:]]+[^[:space:]-] ]]; then
+if [[ ! "$prompt" =~ ^/(implement|epics|vuln|upgrade)[[:space:]]+[^[:space:]-] ]]; then
     exit 0
 fi
 cmd="${BASH_REMATCH[1]}"
@@ -110,14 +110,7 @@ case "$cmd" in
             emit_specs_context
         fi
         ;;
-    document)
-        # Mode-aware: an address argument → specs context; free-text / @file → silent
-        # (direct-edit mode owns its own git hygiene and never invokes Opus).
-        if [[ "$prompt" =~ ^/document[[:space:]]+[A-Z][A-Z0-9]+-[0-9]+ ]]; then
-            emit_specs_context
-        fi
-        ;;
-    epics|release-notes)
+    epics)
         # Keyed, specs + repos context.
         emit_specs_context
         ;;

@@ -1,0 +1,26 @@
+{
+  "description": "docs-workflows plugin hooks — specs-context injection for the documentation commands, and example-docs frontmatter reminder",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/preload-context.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/changelog-owners-reminder.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

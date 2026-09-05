@@ -55,7 +55,7 @@ A failed gate is reported through §3.1's `NOT committed` line and the run conti
 
 ### 2.2 What gets staged
 
-**The precondition.** The caller is responsible for establishing, before its first file edit, that the tree held nothing it did not put there — `/implement` at Pre-Phase 3 step 1 and `/upgrade` at Phase 2 prep step 1 do it with an explicit dirty-tree prompt, and `/vuln` does it by capturing the porcelain set at the top of Step 3 and passing it as `pre_existing_dirty` (it never prompts, so on `/vuln` a non-empty set always takes carve-out 1 below rather than the `add -A` path). Where the tree was established clean, everything uncommitted in the repo now **is** this run's work — the same reasoning `finish-and-handoff.md` §2 applies to the docs repo — and staging is `git -C "<repo>" add -A`.
+**The precondition.** The caller is responsible for establishing, before its first file edit, that the tree held nothing it did not put there — `/implement` at Pre-Phase 3 step 1 and `/upgrade` at Phase 2 prep step 1 do it with an explicit dirty-tree prompt, and `/vuln` does it by capturing the porcelain set at the top of Step 3 and passing it as `pre_existing_dirty` (it never prompts, so on `/vuln` a non-empty set always takes carve-out 1 below rather than the `add -A` path). Where the tree was established clean, everything uncommitted in the repo now **is** this run's work — the same reasoning `docs-workflows:finish-and-handoff` §2 applies to the docs repo — and staging is `git -C "<repo>" add -A`.
 
 Enumerate before staging regardless: `git -C "<repo>" status --porcelain --untracked-files=all`. `--untracked-files=all` is required because the default collapses an untracked directory to a single `?? dir/` line, which would hide individual files from carve-out 1's set subtraction below.
 
@@ -135,7 +135,7 @@ Otherwise derive the repository and create it. Run the cheap `gh auth status` pr
 
 The `sed` expressions strip, in order: a scheme (`ssh://`, `https://`), a `user@`, and a host with an optional `:port` terminated by `/` **or** `:` (the scp-like `git@host:Org/repo` form uses a colon), then a trailing slash and the `.git` suffix. Verified against `git@host:Org/repo.git`, `https://host/Org/repo(.git)`, `https://user@host/Org/repo.git`, `ssh://git@host/Org/repo.git`, `ssh://git@host:7999/proj/repo.git`, `git@ghe.corp:Team/repo.git`, and a nested `group/sub/repo`. A two-expression form matching only `git@host:` or `https://host/` passes an `ssh://…` URL through **unchanged** — do not simplify it back.
 
-**Capability probe, not host classification.** Try the call; on any failure fall back to §3.2. Push authority and pull-request authority are independent — push runs over SSH with a per-repo key, `gh` runs over the API with a token, and the same account can have write access to one repository and read access to another. No hostname test can detect that mismatch, which is why `finish-and-handoff.md` §4's host classification is right for choosing *instructions* and insufficient here.
+**Capability probe, not host classification.** Try the call; on any failure fall back to §3.2. Push authority and pull-request authority are independent — push runs over SSH with a per-repo key, `gh` runs over the API with a token, and the same account can have write access to one repository and read access to another. No hostname test can detect that mismatch, which is why `docs-workflows:finish-and-handoff` §4's host classification is right for choosing *instructions* and insufficient here.
 
 `gh` wraps the API rather than calling it over HTTPS, which is what the zero-direct-API rule permits.
 
@@ -261,7 +261,7 @@ Four obligations. Omitting any one is a defect, not a style choice.
 
 ## 5. What this entry point never does
 
-- Never touches `$SPECS_PATH` — that repository belongs to `workflows-core:specs-repo-git` (bookkeeping) and `workflows-core:phase-handoff` (deliverables) — and never touches a docs repo, which belongs to `finish-and-handoff.md`. `$DOCS_PATH` is a read-only grounding base and is nobody's to commit.
+- Never touches `$SPECS_PATH` — that repository belongs to `workflows-core:specs-repo-git` (bookkeeping) and `workflows-core:phase-handoff` (deliverables) — and never touches a docs repo, which belongs to `docs-workflows:finish-and-handoff`. `$DOCS_PATH` is a read-only grounding base and is nobody's to commit.
 - Never merges a pull request, and never approves one.
 - Never calls a REST API over HTTPS. `git push` is git-protocol; `gh` wraps the API (§2.6).
 - Never writes a file into the repository it is committing. Everything it needs — the pull-request body included — is written outside the tree.

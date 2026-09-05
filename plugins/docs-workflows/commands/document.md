@@ -20,7 +20,7 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 
 `/document` has **two modes**, selected by the first argument token:
 
-- **Keyed mode (Mode A)** — the first token is a **single positional address**: a `<KEY>` matching `workflows-core:addressing` §1's grammar, or an `@<path>` naming a folder in the specs tree. `resolve-address` (§3) turns it into a folder; `ambiguous` is a stop naming every match. **`status: absent` is a stop, not a folder to create** — it surfaces the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`), the same rule Phase 3 surfaces for a folder that exists and holds no PRD, and names what creates a folder this command reads — **all three creators, not one**: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command. Naming only `/create-prd` is wrong on the BRD route, where that command refuses the container above the slice, and wrong for an `EPIC-` address, which it never mints — the same list `/dev-workflows:ready`, `/dev-workflows:release-notes`, `/dev-workflows:epics` and `/dev-workflows:create-ard` each print in their own `absent` stops. It never falls through to direct mode: an address that resolved to nothing is a typo to correct, not a prose prompt to document.
+- **Keyed mode (Mode A)** — the first token is a **single positional address**: a `<KEY>` matching `workflows-core:addressing` §1's grammar, or an `@<path>` naming a folder in the specs tree. `resolve-address` (§3) turns it into a folder; `ambiguous` is a stop naming every match. **`status: absent` is a stop, not a folder to create** — it surfaces the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`), the same rule Phase 3 surfaces for a folder that exists and holds no PRD, and names what creates a folder this command reads — **all three creators, not one**: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command. Naming only `/create-prd` is wrong on the BRD route, where that command refuses the container above the slice, and wrong for an `EPIC-` address, which it never mints — the same list `/dev-workflows:ready`, `/docs-workflows:release-notes`, `/dev-workflows:epics` and `/dev-workflows:create-ard` each print in their own `absent` stops. It never falls through to direct mode: an address that resolved to nothing is a typo to correct, not a prose prompt to document.
 - **Direct mode (Mode B)** — no positional address: a leading `@file` token, free-text prose, or a directory that is not in the specs tree, which Mode B handles via its existing "anything else" path.
 
 **The mode test is the presence of an address**, which is what replaces the retired shared front-end's own mode return. Mode B is unchanged in every other respect — a direct-mode run is byte-identical to before.
@@ -76,7 +76,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 4. **Resolve the profile** (record `profile_source`). The profile steers all later phases' conventions. Resolve in this order:
    - **(a) In-repo profile →** `in-repo`. If `<docs_repo_path>/.dev-workflows/docs-profile.yml` exists, load it. `profile_source: in-repo`.
    - **(b) Built-in default profile →** `built-in`. Else, if `is_known_docs_repo`, load `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile.default.yml`. `profile_source: built-in`.
-   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/docs-profile` flow against `docs_repo_path` (Skill tool, `skill: "dev-workflows:docs-profile"`, with `docs_repo_path --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to write `<docs_repo_path>/.dev-workflows/docs-profile.yml`. Then load that file. `profile_source: generated`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /dev-workflows:docs-profile or switch to a profiled repo.`
+   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/docs-profile` flow against `docs_repo_path` (Skill tool, `skill: "docs-workflows:docs-profile"`, with `docs_repo_path --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to write `<docs_repo_path>/.dev-workflows/docs-profile.yml`. Then load that file. `profile_source: generated`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /docs-workflows:docs-profile or switch to a profiled repo.`
 
    Hold the loaded profile for later phases.
 
@@ -229,7 +229,7 @@ Each subagent dispatch below cites which chain it uses (the §9 role→chain map
 - **`current_model` is on the §2 chain** → no advisory.
 - **`current_model` is NOT on the §2 chain and `opus_available: true`** → the heavy synthesis + writing are already on Opus; the residual risk is the orchestrator's **context window** on a **large multi-repo ticket**. Offer relaunch **only** on such a ticket — that condition gates the prompt, so once the list is shown the recommendation holds unconditionally (per the `(Recommended)`-marker rule in `workflows-core:escalation-rules`):
   ```
-  choices: ["Relaunch /dev-workflows:document under Opus — I'll restart (Recommended)", "Proceed on <current_model>", "Cancel"]
+  choices: ["Relaunch /docs-workflows:document under Opus — I'll restart (Recommended)", "Proceed on <current_model>", "Cancel"]
   ```
   Otherwise proceed without prompting.
 - **`current_model` is NOT on the §2 chain and `opus_available: false`** → `planning_model`, `review_model`, and the **doc-writer** all fall to the Sonnet floor; record the degradation in `notes` and the Phase 9 report; proceed.
@@ -355,7 +355,7 @@ Spawn `diff-summarizer` instances in **batches of up to 4 concurrent agents** pe
 
 For each repo, in the same Agent message:
 
-→ Agent (subagent_type: "dev-workflows:diff-summarizer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "docs-workflows:diff-summarizer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Summarise this repo's PRs for the brief:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 4>
@@ -395,7 +395,7 @@ choices: ["Proceed with PRD-only content (Recommended — writer/planner draw fr
 
 Invoke `doc-location-finder`:
 
-→ Agent (subagent_type: "dev-workflows:doc-location-finder", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "docs-workflows:doc-location-finder", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Find write target(s) for the brief:
   >
   > repo_root:       [the resolved docs_repo_path (Phase 0)]
@@ -505,7 +505,7 @@ The selected add-list paths populate the existing **`screenshots[]`** passed to 
 
 Invoke `doc-planner`:
 
-→ Agent (subagent_type: "dev-workflows:doc-planner", model: `<planning_model — §9 / §2 Opus chain>`):
+→ Agent (subagent_type: "docs-workflows:doc-planner", model: `<planning_model — §9 / §2 Opus chain>`):
   > "Produce the documentation checklist for the brief:
   >
   > folder_read: [paste full YAML from Phase 3; when focus_key is set, restrict linked items to focus_items]
@@ -649,7 +649,7 @@ The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opu
 
 2. **Dispatch the writer:**
 
-→ Agent (subagent_type: "dev-workflows:doc-writer", model: `<planning_model — §9 / §2 Opus chain>`):
+→ Agent (subagent_type: "docs-workflows:doc-writer", model: `<planning_model — §9 / §2 Opus chain>`):
   > "Write the product documentation for this brief.
   >
   > handoff_file: [absolute path of the temp handoff file from step 1]"
@@ -679,11 +679,11 @@ This table governs the **documentation write target only**. Independently of eve
 
 **Mandatory:** the orchestrator MUST dispatch `docs-style-checker` and act on its return — never skip on its own judgement of which linters are installed.
 
-`docs-style-checker` runs the chain **internally**: the repo's primary linter (Vale, etc.) AND — when the `prose-style` plugin is installed — `prose-style-checker` as a complementary semantic / cross-page-consistency pass, merging and deduping both finding sets. The two are complementary, not redundant (Vale: lexical at scale + frontmatter; `prose-style-checker`: engineer jargon, cross-page label consistency, subject-verb agreement, plural/singular label mismatch). The command does NOT invoke `prose-style-checker` separately — the agent already did. It climbs the rungs as a ladder — a detected-but-broken rung does not abandon the ones below it — and, when the caller passes `spaces`, lints each written space with that space's own command.
+`docs-style-checker` runs the chain **internally**: the repo's primary linter (Vale, etc.) AND `prose-style-checker` as a complementary semantic / cross-page-consistency pass, merging and deduping both finding sets. The two are complementary, not redundant (Vale: lexical at scale + frontmatter; `prose-style-checker`: engineer jargon, cross-page label consistency, subject-verb agreement, plural/singular label mismatch). The command does NOT invoke `prose-style-checker` separately — the agent already did. It climbs the rungs as a ladder — a detected-but-broken rung does not abandon the ones below it — and, when the caller passes `spaces`, lints each written space with that space's own command.
 
 Invoke `docs-style-checker` on the files written in Phase 6.3:
 
-→ Agent (subagent_type: "dev-workflows:docs-style-checker", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "docs-workflows:docs-style-checker", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Run the style check for this brief:
   >
   > repo_root: [the resolved docs_repo_path (Phase 0)]
@@ -695,13 +695,8 @@ Write the `style_check` ledger row before acting on the return — rewriting the
 `primary_attempts` and `complementary_linter`:
 
 - no file was written in Phase 6.3 → `NOT_APPLICABLE`, `precondition_unmet: "no files written"`.
-- a primary rung succeeded → `RAN`, `mechanism: <primary_linter>` (+ `prose-style-checker` when it ran),
-  `findings:` = the number of merged violations returned.
-- every primary rung failed but `prose-style-checker` ran → `DEGRADED`, `not_run:` one entry per failed
-  rung from `primary_attempts`, `ci_still_checks: "<the repo's own linter> runs on the PR in CI"`, and
-  `findings:` = the number of merged violations returned.
-- `status: NOT_CONFIGURED` (no primary rung detected AND `prose-style` absent) → `UNAVAILABLE`;
-  convert it per `gate-ledger.md` §5 before proceeding.
+- a primary rung succeeded → `RAN`, `mechanism: <primary_linter> + prose-style-checker` (the complementary pass always runs; name `<primary_linter>` alone only when the return carries a `complementary_error`), `findings:` = the number of merged violations returned.
+- no primary rung produced a result — every detected rung failed, or none was ever detected — but `prose-style-checker` ran → `DEGRADED`, `not_run:` one entry per rung from `primary_attempts`, and `findings:` = the number of merged violations returned. `ci_still_checks:` depends on which of those two happened: where a rung was **detected and failed**, write `"<the repo's own linter> runs on the PR in CI"`; where **no rung was ever detected** there is no repo linter to name and CI checks nothing here, so write `"no repo-level linter is configured; the complementary semantic pass was the only coverage"`. §6 makes an empty `ci_still_checks` a BLOCKER, so the field is filled either way — but never by a claim about CI the repository cannot support.
 - `status: ERROR` → `UNAVAILABLE`; convert it per `gate-ledger.md` §5.
 
 Also write the `repo_checklist` row (creating it, or rewriting it in place if one exists): `NOT_APPLICABLE` with
@@ -711,7 +706,6 @@ number of checklist items that failed against the written files.
 
 Then act on the return:
 
-- **`status: NOT_CONFIGURED`** — no primary rung was detected AND `prose-style` is not installed (the agent already climbed the whole ladder). This is a real coverage hole, not a no-op: the ledger row is `UNAVAILABLE` and `gate-ledger.md` §5 converts it before Phase 7. Never proceed on `NOT_CONFIGURED` without that conversion.
 - **`status: OK`** — the chain ran (primary and/or complementary), zero merged violations. Proceed to Phase 7.
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, **check its `Stop condition flag`**: `docs-style-checker` maps a linter's own blocking failure to `BLOCKER` (`agents/docs-style-checker.md`), so this dispatch can return `NEEDS HUMAN` — the fixer deferred a blocking violation it could not safely fix. On `NEEDS HUMAN`, surface each deferred BLOCKER with the fixer's reason and ask the user how to resolve it — fix by hand and re-run, or skip the check. A silent re-run only reports the same violation again. The `style_check` gate row stays open until that answer lands and then records its outcome per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` — `RAN` after a hand fix and re-run, `SKIPPED_BY_USER` with the choice quoted verbatim if skipped. Only on `CLEAR` re-run the linter once:
 
@@ -730,7 +724,7 @@ Then act on the return:
 
   When the re-run completes, rewrite the `style_check` row's `findings:` to the post-fix violation count so the Phase 9 table reports what survived, not what was found.
 
-- **`status: ERROR`** — every primary rung AND the `prose-style-checker` pass failed or were unavailable. Surface the error reason, then STOP: the `style_check` row is `UNAVAILABLE`, and the only prompt the user sees is the `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 conversion list. Do NOT ask an ad-hoc question here — §5 owns this decision, and the "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules` binds it.
+- **`status: ERROR`** — every primary rung failed or was never detected, and the `prose-style-checker` pass also failed. Surface the error reason, then STOP: the `style_check` row is `UNAVAILABLE`, and the only prompt the user sees is the `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 conversion list. Do NOT ask an ad-hoc question here — §5 owns this decision, and the "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules` binds it.
 
 ---
 
@@ -805,7 +799,7 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
 
 Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `review_model`, no dispatch override added). The reviewer is **product-docs-only**; Epic drafts go through `epic-reviewer` in `/epics`.
 
-→ Agent (subagent_type: "dev-workflows:doc-reviewer"):
+→ Agent (subagent_type: "docs-workflows:doc-reviewer"):
   > "Review the written product documentation for this brief:
   >
   > Task description: [one-paragraph summary of the feature and <KEY>]
@@ -1094,13 +1088,13 @@ List each gap (claim, decision) with its own status line — never print the DO-
 [When Phase 8.5 ran: "Branch <name> — squashed to N commit(s); pushed to origin: <yes/no>; PR draft: <pr-draft path>." When Phase 8.5 was skipped (no branch/commits): "Working tree has uncommitted changes. /document (keyed mode) writes but does not commit the docs write target in non-git contexts; this run's $SPECS_PATH session artifacts are committed separately by the terminal step."]
 
 ### Next step
-[Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. Once **all** the PRD's Epics are documented, draft/finalize the release note → `/dev-workflows:release-notes <PRD>` (PRD-level; run once, not per Epic). If the review BLOCKED, resolve that first.]
+[Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. Once **all** the PRD's Epics are documented, draft/finalize the release note → `/docs-workflows:release-notes <PRD>` (PRD-level; run once, not per Epic). If the review BLOCKED, resolve that first.]
 
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase (Phase 11), per `workflows-core:session-hygiene` §1. Then:
 
-- **On to `/dev-workflows:release-notes <PRD>` (still Dev — a spec or design exists by now, so this is the late run)?** → run **`/compact`** — context stays relevant.
+- **On to `/docs-workflows:release-notes <PRD>` (still Dev — a spec or design exists by now, so this is the late run)?** → run **`/compact`** — context stays relevant.
 - Consider **`/rename <PRD-ID>-<slug>-dev`** to relocate this session later.
 
 Guidance only — see `workflows-core:session-hygiene`.
@@ -1218,7 +1212,7 @@ If the argument starts with `@`, treat it as a path to a markdown file. Resolve 
 - the change is small and the content is already in the user's head or the file, **not** scattered across PRD sections and PR diffs
 - no tests, no branch (still true — the specs-repo preflight creates none, `workflows-core:specs-repo-git` §2.2), no code review, and no commit of the doc edit are warranted
 
-For net-new documentation assembled from a PRD folder plus PR diffs, use keyed mode (above). For writing child Epic drafts from a Product Requirements Document, use `/epics`.
+For net-new documentation assembled from a PRD folder plus PR diffs, use keyed mode (above). For writing child Epic drafts from a Product Requirements Document, use `/dev-workflows:epics`.
 
 No model-routing reminder is injected for this command — classification still happens but is always SIMPLE or MODERATE, and Opus is never invoked.
 
@@ -1286,7 +1280,7 @@ Doc edits in this command are always either **SIMPLE** or **MODERATE**:
 
 If your reading of the task lands closer to SIGNIFICANT or HIGH-RISK (multi-repo, net-new feature pages from a PRD folder, published-documentation blast radius that needs a reviewer gate), **stop and redirect the user** to keyed mode or `/epics`:
 ```
-choices: ["Re-run under /dev-workflows:document (keyed mode) (for PRD-sourced feature documentation) (Recommended)", "Re-run under /dev-workflows:epics (for Epic drafting)", "Proceed under direct mode anyway — I accept the simplified flow", "Cancel"]
+choices: ["Re-run under /docs-workflows:document (keyed mode) (for PRD-sourced feature documentation) (Recommended)", "Re-run under /dev-workflows:epics (for Epic drafting)", "Proceed under direct mode anyway — I accept the simplified flow", "Cancel"]
 ```
 
 State the classification and a one-line reason, then proceed to Phase 2A.
@@ -1361,15 +1355,15 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 
 After writing the edits and before Phase 4, dispatch `docs-style-checker` on the changed file(s):
 
-→ Agent (subagent_type: "dev-workflows:docs-style-checker"):
+→ Agent (subagent_type: "docs-workflows:docs-style-checker"):
   > repo_root: [cwd's git root]
   > files:     [the files edited in Phase 3]
 
 - `VIOLATIONS_FOUND` → apply safe fixes via `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`, one fix cycle), then check the fixer's `Stop condition flag`. On `NEEDS HUMAN` it deferred a blocking violation it could not safely fix: surface each deferred BLOCKER with the fixer's reason and ask the user whether to fix it by hand and re-run, or skip the check — direct mode runs no reviewer, so nothing downstream would catch it. Record the `style_check` row from that answer per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` (`RAN` after a hand fix and re-run, `SKIPPED_BY_USER` with the choice quoted verbatim). Only on `CLEAR` re-run once.
 - `OK` → proceed to Phase 4.
-- `NOT_CONFIGURED` / `ERROR` → no primary rung and no complementary pass produced a result, so the gate has no coverage. Record `style_check` as `UNAVAILABLE` and convert it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 before proceeding. Direct mode has no reviewer gate, so this prompt is the only place the gap surfaces — never proceed past it silently.
+- `ERROR` → neither a primary rung nor the `prose-style-checker` pass produced a result, so the gate has no coverage. Record `style_check` as `UNAVAILABLE` and convert it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 before proceeding. Direct mode has no reviewer gate, so this prompt is the only place the gap surfaces — never proceed past it silently.
 
-Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `prose-style-checker` runs as a complementary semantic pass whenever the `prose-style` plugin is installed — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Write the `style_check` ledger row here — rewriting the preflight's pre-seeded row if there is one, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3's one-row-per-gate rule (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), carrying the returned `primary_attempts`: `RAN` when a primary rung succeeded; `DEGRADED` when every rung failed but `prose-style-checker` ran, with `not_run:` one `{mechanism, reason}` entry per failed rung and a `ci_still_checks:` line; `UNAVAILABLE` per the bullets above; `NOT_APPLICABLE` with `precondition_unmet: "no files edited"` when Phase 3 changed nothing.
+Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `prose-style-checker` always runs on top as a complementary semantic pass — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Write the `style_check` ledger row here — rewriting the preflight's pre-seeded row if there is one, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3's one-row-per-gate rule (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), carrying the returned `primary_attempts`: `RAN` when a primary rung succeeded; `DEGRADED` when no primary rung produced a result — every detected rung failed, or none was ever detected — but `prose-style-checker` ran, with `not_run:` one `{mechanism, reason}` entry per rung and a `ci_still_checks:` line — naming the repo's own linter where a rung was detected and failed, and recording that no repo-level linter is configured where none was ever detected, never a CI claim the repository cannot support; `UNAVAILABLE` per the bullets above; `NOT_APPLICABLE` with `precondition_unmet: "no files edited"` when Phase 3 changed nothing.
 
 After the style check, hold the edited files against the `repo_verification_gates` block extracted in Phase 0 (`${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §5) and append the `repo_checklist` ledger row: `RAN` with `findings:` = the number of entries that failed, or `NOT_APPLICABLE` with `precondition_unmet: "the repo publishes no pre-PR checklist"` when the block is empty. Report any failed entry to the user with its `source` citation — direct mode has no reviewer gate, so this is where the repo's own rules surface.
 

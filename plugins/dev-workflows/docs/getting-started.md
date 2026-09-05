@@ -17,7 +17,7 @@ claude plugin install dev-workflows@ihudak-plugins
 claude plugin install prose-style@ihudak-plugins
 ```
 
-`dev-workflows` is the pipeline this documentation covers. `prose-style` is the one other plugin **in this marketplace** it genuinely reaches for: it is the primary style checker for `/epics` and for the Product Requirements Document commands, and a fallback prose linter for `/document` when the target docs repo has none configured. Most commands that use it degrade gracefully when it is absent — `/document` is the exception: there, an absent `prose-style` with no other prose linter configured is a real coverage hole, not a no-op, and `gate-ledger.md` §5 forces an explicit choice — fix by hand, proceed without the check, or cancel the run — before the run continues. It is still *recommended*, not required.
+`dev-workflows` is the pipeline this documentation covers. `prose-style` is the one other plugin **in this marketplace** it genuinely reaches for: it is the primary style checker for `/epics` and for the Product Requirements Document commands. Every command here that uses it degrades gracefully when it is absent, so it is *recommended* rather than required. The companion `docs-workflows` plugin declares it a hard dependency instead, because there an absent prose linter is a real coverage hole rather than a no-op.
 
 **What you also need, and it is not a plugin.** Nothing — the pipeline reads and writes one markdown tree and calls no external service. If you keep your work in a tracker as well, syncing the two is yours to arrange; no command here learns whether one exists.
 
@@ -43,11 +43,11 @@ The **shared, team-visible repository for the AI-authored documents** — the Pr
 
 ### `REPOS_PATH`
 
-Where your code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. Matching depends on how a command finds the repo. Where a command resolves a repo from a pull-request URL — `/document`, `/epics`, `/release-notes` — it is matched by its `git remote get-url origin` slug, **never by directory name**, so a clone renamed on disk is still found as long as its `origin` remote is intact. The commands that instead discover repos to offer you — `/idea`, `/create-ard`, `/design` — list top-level directories under `$REPOS_PATH` and match on their **basenames**, so a repo renamed on disk is *not* found by those three. This is the detail that surprises people, so it is worth saying plainly here.
+Where your code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. Matching depends on how a command finds the repo. Where a command resolves a repo from a pull-request URL — `/epics` here, and the companion plugin's `/docs-workflows:document` and `/docs-workflows:release-notes` — it is matched by its `git remote get-url origin` slug, **never by directory name**, so a clone renamed on disk is still found as long as its `origin` remote is intact. The commands that instead discover repos to offer you — `/idea`, `/create-ard`, `/design` — list top-level directories under `$REPOS_PATH` and match on their **basenames**, so a repo renamed on disk is *not* found by those three. This is the detail that surprises people, so it is worth saying plainly here.
 
 ### `DOCS_PATH`
 
-A **read-only** clone of your shipped product documentation. It matters most to `/document`, which prefers it as a docs-repo discovery hint, and it also grounds nine other commands against what is already published, so a new draft does not contradict or duplicate an existing page. The plugin never writes to `DOCS_PATH`; every miss — unset, missing, or no markdown found — is a silent, non-blocking skip.
+A **read-only** clone of your shipped product documentation. Eight commands here ground against what is already published, so a new draft does not contradict or duplicate an existing page: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake` and `/brd-ground`. The companion `docs-workflows` plugin reads the same variable — `/docs-workflows:document` prefers it as a docs-repo discovery hint. The plugin never writes to `DOCS_PATH`; every miss — unset, missing, or no markdown found — is a silent, non-blocking skip.
 
 ### `GIT_USER_INITIALS`
 

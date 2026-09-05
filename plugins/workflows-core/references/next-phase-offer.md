@@ -14,7 +14,7 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
 3. **Adaptive to outcome** — a clean run points forward; a BLOCK / incomplete / cancelled run
    recommends resolving THAT first, not advancing.
 4. **Mode-aware** — the forward recommendation is a PIPELINE handoff. In a command's direct /
-   ad-hoc mode (no PRD/Epic context — `/dev-workflows:implement` direct, `/dev-workflows:document` doc-edit) it is OMITTED,
+   ad-hoc mode (no PRD/Epic context — `/dev-workflows:implement` direct, `/docs-workflows:document` doc-edit) it is OMITTED,
    not invented.
 5. **Epic fan-out** — a command operating at **Epic scope** offers TWO branches:
    - **Depth** — the next command for the SAME Epic (`/dev-workflows:design <EPIC>` → `/dev-workflows:implement <EPIC>`).
@@ -24,7 +24,7 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
    So a team can go `/dev-workflows:design E1 → /dev-workflows:design E2 → /dev-workflows:implement E1 → /dev-workflows:implement E2` OR
    `/dev-workflows:design E1 → /dev-workflows:implement E1 → /dev-workflows:design E2 …` — their call. Applies to the per-Epic commands
    only: `/dev-workflows:create-ard <EPIC>`, `/dev-workflows:specify <EPIC>`, `/dev-workflows:design <EPIC>`,
-   `/dev-workflows:implement <EPIC>`. `/dev-workflows:document` and `/dev-workflows:release-notes` are PRD-level (whole-feature, run
+   `/dev-workflows:implement <EPIC>`. `/docs-workflows:document` and `/docs-workflows:release-notes` are PRD-level (whole-feature, run
    once after ALL Epics are implemented) and do NOT fan out.
 6. **Fully qualified when printed** — every command name the run PRINTS for the user to invoke is
    written `/dev-workflows:<command>`. A bare `/<command>` can resolve to a Claude Code built-in of
@@ -66,7 +66,7 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
 
 The gate is a floor under the convention, never a substitute for reading it: an offer can satisfy check 11 and still be false.
 
-**The family scope is deliberate, and recorded here so widening is not re-proposed without new evidence.** Adoption is family-wide, as the scope paragraph above says; the gate is not. **Re-measured on the current tree, and the number moved.** Removing the family filter and running check 11 over every command in `dev-workflows` fires on **three** sites and catches **none** of the six offers converted for the paragraph above. All three hits are correct content: `/dev-workflows:document` runs neither `handoff-to-main` nor `require-on-main`, so it declares no `deliverable_paths` and the per-command writer assertion rejects it outright; and `/dev-workflows:implement`'s Phase 0 design-doc open-question guard and `/dev-workflows:specify`'s Phase 2 zero-Epic redirect are refusals rather than offers, both taken long before the offering run reaches its own handoff phase, so there is no §4.1 outcome line for a clause to resolve from. **The fourth hit this paragraph used to name is gone, and its going is evidence rather than tidying**: it was the option scanner reading a report sentence trailing a `choices:` array on one line of `/dev-workflows:idea`, in the relocation branch D7 retired — so the widened check's whole yield fell by a quarter while finding no defect and preventing none. The six real defects stay invisible to the widened check as well, and for two different reasons — only one of which is the extractor. `/dev-workflows:specify`'s and `/dev-workflows:design`'s offers **do** carry the intersection the check looks for: `specification.md` and `design.md` are both backticked in §3.4's rows, and each run declares the file it writes. They are missed solely because they are prose. The three that *are* `choices:` arrays are missed on both relations at once: §3.4 names their gated inputs in prose — "the PRD", "the ARD" — so `targets` is empty for `/dev-workflows:create-ard` and `/dev-workflows:specify` as *offered* commands, and the same prose in each offering command's own `deliverable_paths` = declaration ("the ARD file(s)", "the PRD file") leaves `writers` blind to what it wrote. **`/idea`'s is the sixth and the plainest**: its offer is a prose sentence, so the widened check cannot see it at all — widening would have bought nothing on the one live instance of exactly the failure it targets, found instead by reading. A `choices:` array in `dev-workflows` is a refusal or a mid-run branch point as often as it is an offer, and nothing in the file marks which; a gate that cannot tell them apart blocks correct work, and a gate that blocks correct work gets disabled. Same verdict, and the same reason, as the stop-routing check `scripts/check-docs.sh` records as never shipped. **The measurement is recorded here so widening is not re-proposed without new numbers: three correct sites fired on, zero of six defects caught.**
+**The family scope is deliberate, and recorded here so widening is not re-proposed without new evidence.** Adoption is family-wide, as the scope paragraph above says; the gate is not. **Re-measured on the current tree, and the number moved.** Removing the family filter and running check 11 over every command in `dev-workflows` fires on **three** sites and catches **none** of the six offers converted for the paragraph above. All three hits are correct content: `/docs-workflows:document` runs neither `handoff-to-main` nor `require-on-main`, so it declares no `deliverable_paths` and the per-command writer assertion rejects it outright; and `/dev-workflows:implement`'s Phase 0 design-doc open-question guard and `/dev-workflows:specify`'s Phase 2 zero-Epic redirect are refusals rather than offers, both taken long before the offering run reaches its own handoff phase, so there is no §4.1 outcome line for a clause to resolve from. **The fourth hit this paragraph used to name is gone, and its going is evidence rather than tidying**: it was the option scanner reading a report sentence trailing a `choices:` array on one line of `/dev-workflows:idea`, in the relocation branch D7 retired — so the widened check's whole yield fell by a quarter while finding no defect and preventing none. The six real defects stay invisible to the widened check as well, and for two different reasons — only one of which is the extractor. `/dev-workflows:specify`'s and `/dev-workflows:design`'s offers **do** carry the intersection the check looks for: `specification.md` and `design.md` are both backticked in §3.4's rows, and each run declares the file it writes. They are missed solely because they are prose. The three that *are* `choices:` arrays are missed on both relations at once: §3.4 names their gated inputs in prose — "the PRD", "the ARD" — so `targets` is empty for `/dev-workflows:create-ard` and `/dev-workflows:specify` as *offered* commands, and the same prose in each offering command's own `deliverable_paths` = declaration ("the ARD file(s)", "the PRD file") leaves `writers` blind to what it wrote. **`/idea`'s is the sixth and the plainest**: its offer is a prose sentence, so the widened check cannot see it at all — widening would have bought nothing on the one live instance of exactly the failure it targets, found instead by reading. A `choices:` array in `dev-workflows` is a refusal or a mid-run branch point as often as it is an offer, and nothing in the file marks which; a gate that cannot tell them apart blocks correct work, and a gate that blocks correct work gets disabled. Same verdict, and the same reason, as the stop-routing check `scripts/check-docs.sh` records as never shipped. **The measurement is recorded here so widening is not re-proposed without new numbers: three correct sites fired on, zero of six defects caught.**
 
 **Resolving this placeholder is not a rewording.** The array is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`'s *Choice lists are presented verbatim*, exactly as `<BRD-KEY>` or `<KEY>` is substituted in the same strings. A command that instead told the orchestrator to *adjust the wording* of an option would be contradicting that convention, which is why the variation lives in a placeholder and not in an instruction.
 
@@ -103,12 +103,12 @@ array carries every option.
 - `/dev-workflows:idea` — refined → `/dev-workflows:create-prd <KEY>` (PM); draft → `/dev-workflows:idea @<path> --deep` (PM, refine)
   or `/dev-workflows:create-prd <KEY>` (PM, proceed on a draft — not recommended).
 - `/dev-workflows:create-prd <ADDRESS>`:
-  `/dev-workflows:release-notes <PRD>` (PM — draft the release note; recommended clear next step); hand to PA
+  `/docs-workflows:release-notes <PRD>` (PM — draft the release note; recommended clear next step); hand to PA
   *(optional)* → `/dev-workflows:create-ard <PRD>`; or hand to PE → `/dev-workflows:epics <PRD>` (or `/dev-workflows:specify <PRD>`).
 - `/dev-workflows:update-prd <KEY>` — re-entry, not a linear node: reached when
   `/dev-workflows:create-prd` redirects an existing-PRD call, or when a later phase forces a PRD
   refresh. It offers:
-  `/dev-workflows:release-notes <PRD>` (PM), `/dev-workflows:create-ard <PRD>` (PA, if one exists),
+  `/docs-workflows:release-notes <PRD>` (PM), `/dev-workflows:create-ard <PRD>` (PA, if one exists),
   `/dev-workflows:epics <PRD>` (PE), `/dev-workflows:specify <PRD>` (PE, if one exists).
 
 **PM / PA — the BRD-to-PRD route**
@@ -199,15 +199,15 @@ array carries every option.
   → resolve the named gaps, then re-run `/dev-workflows:ready`. *(Read-only verifier;
   not itself a linear pipeline node — an optional gate before build.)*
 - `/dev-workflows:implement <EPIC>` → finish remaining Epics (breadth); once ALL Epics implemented →
-  `/dev-workflows:document <PRD>` → `/dev-workflows:release-notes <PRD>`. *(Direct mode → no forward offer.)*
-- `/dev-workflows:document <PRD>` (PRD-level, after all Epics) → `/dev-workflows:release-notes <PRD>`. *(Doc-edit mode → no
+  `/docs-workflows:document <PRD>` → `/docs-workflows:release-notes <PRD>`. *(Direct mode → no forward offer.)*
+- `/docs-workflows:document <PRD>` (PRD-level, after all Epics) → `/docs-workflows:release-notes <PRD>`. *(Doc-edit mode → no
   forward offer.)*
-- `/dev-workflows:release-notes <PRD>` (PRD-level) → leaf/closure: release note drafted; continue any pending
+- `/docs-workflows:release-notes <PRD>` (PRD-level) → leaf/closure: release note drafted; continue any pending
   PA/PE phase, else the PRD is fully processed.
 
 ## Not pipeline nodes
 
-`/dev-workflows:vuln`, `/dev-workflows:upgrade`, `/workflows-core:feedback`, `/workflows-core:prompt*`, `/dev-workflows:docs-profile`, `/workflows-core:statusline`, `/workflows-core:frames`, and the reviewer
+`/dev-workflows:vuln`, `/dev-workflows:upgrade`, `/workflows-core:feedback`, `/workflows-core:prompt*`, `/docs-workflows:docs-profile`, `/workflows-core:statusline`, `/workflows-core:frames`, and the reviewer
 commands are NOT part of the linear PRD→docs pipeline and carry no next-phase offer. `/workflows-core:frames`
 repairs a folder's frame-set indexes and advances no phase; it makes the §4.3 handoff offer its
 deliverables require and no next-phase offer at all, so no `<merge-clause>` arises — nothing runs

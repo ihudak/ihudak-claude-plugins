@@ -142,7 +142,7 @@ An updated PRD can invalidate what was derived from it. Where this run can go ne
   • Re-run the spec         — /dev-workflows:specify <KEY> <merge-clause>    (PE, if one exists)
   • Re-run architecture     — /dev-workflows:create-ard <KEY> <merge-clause> (PA, if one exists)
   • Re-run epics            — /dev-workflows:epics <KEY>                     (PE)
-  • Re-draft the release note — /dev-workflows:release-notes <KEY>           (PM)
+  • Re-draft the release note — /docs-workflows:release-notes <KEY>          (PM)
 ```
 
 ```
@@ -157,7 +157,7 @@ that the release-note route is reachable through the free-text option.
 
 **One key appears in that array.** `<ADDRESS>` is what this run was invoked with; it resolves the `$SPECS_PATH` folder Phase 0 step 3 found, and every command offered below resolves that same folder through the same entry point. There is no second identity to keep straight and no import to wait for.
 
-**Two options carry `<merge-clause>` and two do not, and which is which is derived, not stylistic.** `/dev-workflows:create-ard` and `/dev-workflows:specify` both gate this run's PRD on the specs repo's default branch, so both stop where the updated PRD reached a branch; where it reached none, `workflows-core:phase-handoff` §3.4's rows for them apply unchanged — `/create-ard` falls back to the resolved folder, reported, and `/specify` skips the grounding confirmation rather than stopping; `/dev-workflows:epics` gates `<PRD-dir>/specification.md` and `/dev-workflows:release-notes` gates nothing, so neither waits on anything this run wrote. The placeholder is resolved from this run's own `Phase handoff:` outcome line (§4.1) per `workflows-core:next-phase-offer` and is never written as an unconditional "once the pull request above is merged" — a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on. It is a placeholder, not an instruction to reword an option, so the array is still presented verbatim per `workflows-core:escalation-rules`.
+**Two options carry `<merge-clause>` and two do not, and which is which is derived, not stylistic.** `/dev-workflows:create-ard` and `/dev-workflows:specify` both gate this run's PRD on the specs repo's default branch, so both stop where the updated PRD reached a branch; where it reached none, `workflows-core:phase-handoff` §3.4's rows for them apply unchanged — `/create-ard` falls back to the resolved folder, reported, and `/specify` skips the grounding confirmation rather than stopping; `/dev-workflows:epics` gates `<PRD-dir>/specification.md` and `/docs-workflows:release-notes` gates nothing, so neither waits on anything this run wrote. The placeholder is resolved from this run's own `Phase handoff:` outcome line (§4.1) per `workflows-core:next-phase-offer` and is never written as an unconditional "once the pull request above is merged" — a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on. It is a placeholder, not an instruction to reword an option, so the array is still presented verbatim per `workflows-core:escalation-rules`.
 
 ### Context hygiene
 

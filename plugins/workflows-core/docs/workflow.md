@@ -26,7 +26,7 @@ flowchart TD
     repair -.->|a readable frame-set index| pipeline
 ```
 
-The three dashed and solid edges into `a sibling plugin's pipeline command` are the whole point of this plugin: a command in `dev-workflows` reads a reference here, loads the routing skill here, and dispatches an agent here, so the same rules bind every plugin in the family rather than being copied into each.
+The three dashed and solid edges into `a sibling plugin's pipeline command` are the whole point of this plugin: a command in `dev-workflows` or `docs-workflows` reads a reference here, loads the routing skill here, and dispatches an agent here, so the same rules bind every plugin in the family rather than being copied into each.
 
 **`skills/reference` is why the corpus edge goes through a node instead of straight across**, and it is the mechanism the whole split turns on. `${CLAUDE_PLUGIN_ROOT}` resolves to the *reading* plugin, so a sibling cannot open a file in `references/` by path — its own plugin root names itself. It calls `Skill(skill: "workflows-core:reference", args: "<name>")` instead, and the skill resolves the path on the caller's behalf. `skills/model-routing` is the same trick applied to one specific reference, kept separate because a slash-command body cannot expand the variable even inside its own plugin. Both are listed in [References and skills](reference/references.md#skills).
 

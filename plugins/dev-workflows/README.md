@@ -1,6 +1,6 @@
 # dev-workflows
 
-A role-based pipeline of 20 slash commands. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification → design → readiness → implementation → documentation → release notes, with Opus-backed risk planning, code review, and doc/design review gates along the way; around that spine sit CVE remediation and dependency upgrades. The table below is the complete list. The shared foundation every command here draws on — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, the emitters, and the family-meta utility commands — ships in the companion `workflows-core` plugin.
+A role-based pipeline of 17 slash commands. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification → design → readiness → implementation, with Opus-backed risk planning, code review, and design review gates along the way; around that spine sit CVE remediation and dependency upgrades. The table below is the complete list. The shared foundation every command here draws on — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, the emitters, and the family-meta utility commands — ships in the companion `workflows-core` plugin; the documentation tail the spine hands off to — `/docs-workflows:document`, `/docs-workflows:release-notes` and `/docs-workflows:docs-profile` — ships in the companion `docs-workflows` plugin.
 
 > Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites.
 
@@ -10,17 +10,16 @@ Every command owns one role's step in the pipeline and hands a concrete artifact
 
 | Role | Commands | What it does |
 |------|----------|--------------|
-| PM | [`/idea`](docs/commands/idea.md), [`/create-prd`](docs/commands/create-prd.md), [`/update-prd`](docs/commands/update-prd.md), [`/release-notes`](docs/commands/release-notes.md) *(early run)* | Refine a raw idea, author or refresh the Product Requirements Document, and draft an early release-notes note. |
+| PM | [`/idea`](docs/commands/idea.md), [`/create-prd`](docs/commands/create-prd.md), [`/update-prd`](docs/commands/update-prd.md) | Refine a raw idea, then author or refresh the Product Requirements Document. |
 | PM *(BRD route — inventory)* | [`/brd-intake`](docs/commands/brd-intake.md), [`/brd-split`](docs/commands/brd-split.md) | Intake a customer BRD verbatim, extract its requirement inventory, and split it once every row has a recorded fate. |
 | PM *(BRD route — customer loop)* | [`/brd-interview`](docs/commands/brd-interview.md), [`/brd-package`](docs/commands/brd-package.md), [`/brd-reconcile`](docs/commands/brd-reconcile.md) | Decide the BRD's open questions, package what only the customer can settle, then reconcile the review that comes back and sweep what it overturned. |
 | PA *(optional)* | [`/create-ard`](docs/commands/create-ard.md), [`/brd-ground`](docs/commands/brd-ground.md) | Ground an architecture decision, or a BRD's requirement claims, in the mounted implementation code. |
 | PE | [`/epics`](docs/commands/epics.md), [`/specify`](docs/commands/specify.md) | Break a PRD into Epics, then author an org-standard specification through a grill. |
-| Dev | [`/design`](docs/commands/design.md), [`/implement`](docs/commands/implement.md), [`/ready`](docs/commands/ready.md), [`/document`](docs/commands/document.md), `/release-notes` *(final run)* | Design against the spec, implement it under review gates, verify readiness against the artifacts, document the result, and draft the final [`/release-notes`](docs/commands/release-notes.md) note. |
-| Anytime — maintenance | [`/vuln`](docs/commands/vuln.md), [`/upgrade`](docs/commands/upgrade.md), [`/docs-profile`](docs/commands/docs-profile.md) | Remediate a CVE, upgrade a dependency, or profile a docs repo. |
+| Dev | [`/design`](docs/commands/design.md), [`/implement`](docs/commands/implement.md), [`/ready`](docs/commands/ready.md) | Design against the spec, implement it under review gates, and verify readiness against the artifacts. Documenting and release notes moved to `docs-workflows`. |
+| Anytime — maintenance | [`/vuln`](docs/commands/vuln.md), [`/upgrade`](docs/commands/upgrade.md) | Remediate a CVE, or upgrade a dependency. |
 | Anytime — guideline review | Moved to the sibling `guideline-reviewers` plugin | Review an OpenAPI spec or app UI against bundled guidelines. |
 | Anytime — specs-tree repair, status line, plugin feedback | Moved to the sibling `workflows-core` plugin | Index an exported design frame set, install the status line, and log friction or a correction about the plugin itself. |
-
-[`/release-notes`](docs/commands/release-notes.md) is the one command in two rows — the same command run at two points in a Product Requirements Document's life, attributed by inference rather than a fixed role.
+| Dev/PM — documentation & release notes | Moved to the sibling `docs-workflows` plugin | Write product documentation, profile a docs repo, and draft the release note. |
 
 ## Documentation
 

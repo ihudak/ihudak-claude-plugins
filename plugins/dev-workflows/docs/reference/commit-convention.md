@@ -11,7 +11,7 @@ That is the whole rule. Everything below is why it exists and what it buys you.
 
 ## Why it matters
 
-[`/document`](../commands/document.md) and [`/release-notes`](../commands/release-notes.md) ground
+The companion `docs-workflows` plugin's `/docs-workflows:document` and `/docs-workflows:release-notes` ground
 their prose in the diff that actually shipped. They find that diff two ways: from
 `implementation.md`, which [`/implement`](../commands/implement.md) writes for the work it did, and
 from a scan of your repository's commit messages for the key.

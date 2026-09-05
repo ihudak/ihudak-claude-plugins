@@ -1,12 +1,12 @@
 # Workflow overview
 
-This is the dev-workflows pipeline top to bottom — every command shown here, in the order the roles typically hand work to each other. `/idea → /create-prd` opens a Product Requirements Document; `/document` and `/release-notes` close it out. A second route into a PRD exists alongside it: `/brd-intake → /brd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile` turns a customer-supplied BRD into a grounded, allocated, decided and customer-reviewed requirement inventory instead of a PM-authored idea, then hands over to `/create-prd`, `/create-ard` or `/specify` on the BRD route — see [BRD workflow](brd-workflow.md) for its own diagram and parameter table.
+This is the dev-workflows pipeline top to bottom — every command shown here, in the order the roles typically hand work to each other. `/idea → /create-prd` opens a Product Requirements Document; `/implement` is where this plugin's spine ends, and the companion `docs-workflows` plugin closes the PRD out with `/docs-workflows:document` and `/docs-workflows:release-notes`. A second route into a PRD exists alongside it: `/brd-intake → /brd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile` turns a customer-supplied BRD into a grounded, allocated, decided and customer-reviewed requirement inventory instead of a PM-authored idea, then hands over to `/create-prd`, `/create-ard` or `/specify` on the BRD route — see [BRD workflow](brd-workflow.md) for its own diagram and parameter table.
 
 ```mermaid
 flowchart TD
     subgraph PM["PM — ideation & framing"]
         idea["/idea"] --> createvi["/create-prd"]
-        createvi --> rnpm["/dev-workflows:release-notes (early draft)"]
+        createvi --> rnpm["/docs-workflows:release-notes (early draft)"]
         createvi -.->|PRD exists| updatevi["/update-prd"]
         updatevi --> rnpm
     end
@@ -28,13 +28,10 @@ flowchart TD
     end
     subgraph DEV["Dev — build, verify & deliver"]
         design["/design"] --> implement["/implement"]
-        implement --> document["/document"]
-        document --> rndev["/dev-workflows:release-notes (final)"]
         ready["/ready"]
     end
     subgraph ANY["Anytime — standalone maintenance & utilities"]
         maint["/vuln · /dev-workflows:upgrade"]
-        tooling["/docs-profile"]
     end
 
     createvi -->|PRD| createard
@@ -51,6 +48,7 @@ flowchart TD
     brdreconcile -->|slice key + the BRD route — nothing left to re-enter for, fully allocated, one row covered-here| createvi
     brdreconcile -->|slice key + the BRD route — nothing left to re-enter for| createard
     brdreconcile -->|slice key + the BRD route — nothing left to re-enter for| specify
+    implement -.->|documentation & release notes, in docs-workflows| docsplugin["/docs-workflows:document · /docs-workflows:release-notes"]
 ```
 
 The diagram draws the ARD reaching `/epics`, but that is one of five consumers: `/epics`, `/specify`, `/design`, `/implement`, and `/ready` all resolve the applicable ARD once it exists. The edge is drawn once to keep the diagram readable, not because the others do not consult it.
@@ -61,9 +59,11 @@ The `Off-platform` box is the one node in this diagram no command runs. It is th
 
 The two dashed edges leaving `/brd-reconcile` go to different commands on purpose, and are drawn separately rather than merged under one label: a decision the review reopened is settled by another interview round, while a question the customer left unanswered goes back out in the next package. They are the same two edges [BRD workflow](brd-workflow.md) draws, with the same labels — as are the three handover edges above them, and every other BRD edge here: all twelve edges that page draws appear in this diagram unchanged, in style and in label, so this diagram summarises that one and never disagrees with it.
 
+Two nodes in the diagram are not this plugin's commands and are drawn for continuity only: `/docs-workflows:release-notes` as the PM's early draft, and the combined `/docs-workflows:document · /docs-workflows:release-notes` handoff hanging off `/implement`. Both ship in the companion `docs-workflows` plugin and are documented there.
+
 The diagram above shows where each command sits in the pipeline; [Roles and phases](roles-and-phases.md) says what each role is accountable for and what it hands over at each seam.
 
-**Two command names here collide with a Claude Code built-in of the same name: `/release-notes` and `/upgrade`.** Typing the bare form reaches Claude Code's own command instead of the plugin's, so use the qualified form — `/dev-workflows:release-notes` and `/dev-workflows:upgrade` — for both. `/statusline` collides the same way and is qualified `/workflows-core:statusline`, since it ships in the companion plugin. No other command in this plugin is known to collide today, so the rest work either way, and the diagram above spells out the qualified form only where it is required.
+**One command name in this plugin collides with a Claude Code built-in of the same name: `/upgrade`.** Typing the bare form reaches Claude Code's own command instead of the plugin's, so use the qualified `/dev-workflows:upgrade`. `/release-notes`, drawn here for context, collides the same way and is qualified `/docs-workflows:release-notes`; `/statusline` collides too and is qualified `/workflows-core:statusline`. Each ships in a companion plugin. No other command in this plugin is known to collide today, so the rest work either way, and the diagram above spells out the qualified form only where it is required.
 
 ## Parameters at the BRD-to-PRD handoff
 
@@ -83,10 +83,10 @@ The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command'
 
 | Role | Runs | Produces → lands at |
 |---|---|---|
-| **PM** | `/idea`, `/create-prd`, `/update-prd`, and an early `/release-notes` | `idea.md` in the PRD folder, then the PRD in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` |
+| **PM** | `/idea`, `/create-prd`, `/update-prd` (and an early `/docs-workflows:release-notes`) | `idea.md` in the PRD folder, then the PRD in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` |
 | **PA** | `/create-ard` (optional) | the ARD, in the same specs feature folder as the PRD |
 | **PE** | `/epics`, `/specify` | `epic.md` per `EPIC-` folder under the PRD folder; `specification.md` on the specs repo's default branch |
-| **Dev** | `/design`, `/implement`, `/document`, `/ready`, and a final `/release-notes` | `design.md` on the specs repo's default branch; code committed on a branch in `$REPOS_PATH`, pushed with a PR on consent; docs in the docs repo; a read-only readiness verdict that sets no status |
+| **Dev** | `/design`, `/implement`, `/ready` (then `/docs-workflows:document` and a final `/docs-workflows:release-notes`) | `design.md` on the specs repo's default branch; code committed on a branch in `$REPOS_PATH`, pushed with a PR on consent; a read-only readiness verdict that sets no status |
 
 See [Roles and phases](roles-and-phases.md) for what each role owns, consumes, and hands off — this table only shows where the commands sit.
 
@@ -106,5 +106,4 @@ See [Roles and phases](roles-and-phases.md) for what each role owns, consumes, a
 These run outside the role pipeline above, at any time:
 
 - **Standalone maintenance.** `/vuln` (CVE remediation) and `/upgrade` (dependency / runtime upgrades) run on their own, outside the PRD pipeline.
-- **Setup utilities.** `/docs-profile` bootstraps a docs repo's profile.
-- **In the companion plugin.** The status line, the specs-tree frame-set indexer, and the plugin-feedback commands ship in `workflows-core` and run against the same specs tree: `/statusline`, `/frames`, `/feedback`, `/prompt`, `/prompt-brainstorm` and `/prompt-grill-me`.
+- **In the companion plugins.** The status line, the specs-tree frame-set indexer, and the plugin-feedback commands ship in `workflows-core` and run against the same specs tree: `/statusline`, `/frames`, `/feedback`, `/prompt`, `/prompt-brainstorm` and `/prompt-grill-me`. Documentation, the docs-repo profile, and the release note ship in `docs-workflows`: `/docs-workflows:document`, `/docs-workflows:docs-profile` and `/docs-workflows:release-notes`.

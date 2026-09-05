@@ -99,7 +99,7 @@ run — the terminal `commit-artifacts` step skips on it.
   rest of the run's artifacts.
 
 
-- **Style check** (default ON when the `prose-style` plugin is installed):
+- **Style check** (default ON):
   ```
   choices: ["Run prose-style-checker then apply safe fixes (Recommended)", "Run prose-style-checker, report only (no auto-fix)", "Skip style check"]
   ```
@@ -247,7 +247,7 @@ already spans both levels.
 
 This is the same inference `emit-cost` already applies in Phase 11; do not add a question for it.
 
-→ Agent (subagent_type: "dev-workflows:release-notes-writer"):
+→ Agent (subagent_type: "docs-workflows:release-notes-writer"):
   > "Render the release-notes draft for this brief:
   >
   > folder_read: [the Phase 3 handoff — scoped to the focus Epic's subtree when focus_key is set]
@@ -306,13 +306,13 @@ Pass `code_repos` (the Phase-4 resolved map) to the writer when diff-grounding i
 
 ## Phase 7 — Style gate (optional)
 
-If the user chose a style check AND the `prose-style` plugin is installed:
+If the user chose a style check in Phase 1:
 
 → Agent (subagent_type: "prose-style:prose-style-checker") on the `combined_rendered` draft (write it to the destination first when the destination is a file, or pass it inline). If violations are returned and the user chose auto-fix:
 
 → Agent (subagent_type: "prose-style:prose-fixer") to apply safe fixes.
 
-If `prose-style` is not installed, skip this phase and note "style check skipped — prose-style not installed" in the report.
+`prose-style` is a declared dependency of this plugin, so the only thing that skips this phase is the user's own "Skip style check" answer in Phase 1 — never a missing plugin. Record that answer in the report line below.
 
 ---
 
@@ -332,7 +332,7 @@ If `prose-style` is not installed, skip this phase and note "style check skipped
    - Category label: <the value | none — omitted from the draft>
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
-   - Style check: <applied N safe fixes | report only (M findings) | skipped (prose-style absent)>
+   - Style check: <applied N safe fixes | report only (M findings) | skipped — you chose "Skip style check">
    - Reminder: paste this wherever your release notes are published — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
 
    ### Next step

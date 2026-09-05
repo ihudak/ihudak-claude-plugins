@@ -4,7 +4,7 @@ Scans a documentation repository and writes or refreshes its machine-readable `.
 
 ## Who runs it
 
-`/docs-profile` runs outside the role pipeline — no role, no cost-attribution phase (`workflows-core:cost-emission` gives it no attribution row — it appears there only in §7's list of commands with nothing to inherit). [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Setup utilities, beside the companion plugin's `/workflows-core:statusline`. Unlike that command, `/docs-profile` does invoke the [model-routing](../reference/model-routing.md) skill — it classifies itself `SIGNIFICANT`, since a wrong profile steers every later [`/document`](document.md) run.
+`/docs-profile` runs outside the role pipeline — no role, no cost-attribution phase (`workflows-core:cost-emission` gives it no attribution row — it appears there only in §7's list of commands with nothing to inherit). [Workflow overview](../workflow.md) draws it outside the documentation spine, as the setup utility `/document` reads the output of. It is also the one command here that emits no cost entry. It does invoke the `workflows-core:model-routing` skill, though, and classifies itself `SIGNIFICANT`, since a wrong profile steers every later [`/document`](document.md) run.
 
 ## Synopsis
 
@@ -31,7 +31,7 @@ No reviewer agent, and no Opus review gate in the code-review sense — every ch
 ## Example
 
 ```
-/dev-workflows:docs-profile ~/repos/example-docs
+/docs-workflows:docs-profile ~/repos/example-docs
 ```
 
 Detects its content roots, drafts `spaces[]` and `dev_servers` from the Sonnet-tier scan, synthesises the full profile on Opus, asks about any field the synthesis flagged as unconfirmed, writes `.dev-workflows/docs-profile.yml` plus CLAUDE.md additions on a new branch, commits, and prints the branch name and a drafted PR title/body for you to push.
@@ -39,5 +39,5 @@ Detects its content roots, drafts `spaces[]` and `dev_servers` from the Sonnet-t
 ## See also
 
 - [`/document`](document.md) — keyed mode's Phase 0 consumes this profile, and can invoke this command inline (`--inline`) when none exists yet.
-- [Model routing](../reference/model-routing.md) — the `SIGNIFICANT` classification and the Sonnet-detection / Opus-synthesis model split this command applies.
-- [Workflow overview](../workflow.md#cross-cutting-commands) — where this command sits among the setup utilities.
+- `workflows-core:model-routing/classification` — the `SIGNIFICANT` classification and the Sonnet-detection / Opus-synthesis model split this command applies. The reference ships in the companion `workflows-core` plugin and is reached through its `model-routing` skill, never by path.
+- [Workflow overview](../workflow.md) — where this command sits among the setup utilities.

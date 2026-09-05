@@ -4,6 +4,26 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.27.0] — 2026-09-05
+
+### Changed — the documentation half now ships as `docs-workflows`
+
+Run `claude plugin install docs-workflows@ihudak-plugins` — this release moves `/document`, `/docs-profile` and `/release-notes`, their seven agents, fourteen reference files and one bundled skill into a new `docs-workflows` plugin. Unlike `workflows-core`, it is **not** a dependency of `dev-workflows`, and that is deliberate rather than an oversight: no run here loads anything from it. The pipeline commands *offer* `/docs-workflows:document` and `/docs-workflows:release-notes` as next steps and name their references in prose, which is a pointer rather than a load, so a `dev-workflows` run completes whether or not the new plugin is installed. Nothing here installs it for you — if you use those three commands, install it explicitly.
+
+**Three commands ship from `docs-workflows` now, not from here** — `/document`, `/docs-profile` and `/release-notes`. Once the new plugin is installed the bare names keep working; what changes is the namespaced form — `/dev-workflows:document` is now `/docs-workflows:document`, and likewise for the other two.
+
+**Seven agents move with them** — `diff-summarizer`, `doc-location-finder`, `doc-planner`, `doc-reviewer`, `doc-writer`, `docs-style-checker` and `release-notes-writer`. An agent crosses a plugin boundary for free, so every surviving dispatch site simply names `docs-workflows:<agent>`.
+
+**Fourteen reference files and the `docs-frontmatter` skill move too.** Twelve are markdown pages a reader opens — `gate-ledger.md`, `repo-verification-gates.md`, `toolchain-preflight.md`, `release-note-types.md`, `finish-and-handoff.md`, the five `docs-profiles/` guides and the two `handoff/` contracts — and two are data the commands, the skill and a hook read rather than open: `default-owners.txt` and `docs-profile.default.yml`. `docs-frontmatter` was this plugin's only bundled skill; `dev-workflows` now ships none.
+
+**One hook moved whole and one was split.** `changelog-owners-reminder` went with the data it reads — it resolves `default-owners.txt` and `docs-profile.default.yml` under its own `${CLAUDE_PLUGIN_ROOT}`, and after the reference move those paths existed only in the new plugin, where a miss is swallowed and the run exits 0, so leaving it behind would have cost the owners check and the built-in default profile silently. `preload-context.sh` was split instead of moved: this plugin's copy now matches `/implement`, `/epics`, `/vuln` and `/upgrade`, and `docs-workflows` ships its own matching `/document` and `/release-notes`. The two alternations are a disjoint partition of the original six, so no prompt makes both fire.
+
+**One behaviour change, sanctioned and deliberate** (decision S12 of the split design): `prose-style` is a *declared* dependency of `docs-workflows`, and an unsatisfied dependency disables a plugin rather than letting it half-run — so in the moved commands the branches that skipped or degraded the style check when `prose-style` was absent were unreachable, and they are deleted. `docs-style-checker` always runs its complementary `prose-style-checker` pass and can no longer return `NOT_CONFIGURED`; `/release-notes`'s style gate now skips only on the user's own answer. Nothing in `dev-workflows` changes there: `/epics`, `/create-prd` and `/update-prd` still resolve `prose-style` at runtime and still skip their style check gracefully when it is absent.
+
+`dev-workflows` keeps seventeen commands, twenty-four subagents, twenty-four reference files and three hooks.
+
+This is the third increment of the marketplace split designed in `docs/superpowers/specs/2026-09-02-marketplace-split-design.md`; the first extracted `guideline-reviewers`, the second `workflows-core`. Apart from the S12 deletion above it changes no behaviour. `4.0.0` stays reserved for the end state of the split, so this increment is a minor bump like the two before it — no intermediate increment is published on a major version of its own.
+
 ## [3.26.0] — 2026-09-03
 
 ### Changed — the shared foundation now ships as `workflows-core`

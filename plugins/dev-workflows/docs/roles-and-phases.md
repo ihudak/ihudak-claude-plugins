@@ -14,7 +14,7 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 ## PM — product management
 
 - **Owns:** turning a raw prompt, community post, RFE, or existing PRD into a refined idea, then into a well-formed Product Requirements Document, and keeping an existing PRD current.
-- **Runs:** `/idea`, `/create-prd`, `/update-prd`; also the early run of `/release-notes`, before any specification or design exists yet.
+- **Runs:** `/idea`, `/create-prd`, `/update-prd`; also the early run of the companion plugin's `/docs-workflows:release-notes`, before any specification or design exists yet.
 - **Consumes:** a prompt, file, community post, RFE, or existing PRD as its source; then a refined `idea.md` plus a user-supplied address.
 - **Produces:** `idea.md` in the PRD folder the address names, then **prd.md** written to that same folder under `$SPECS_PATH/specifications/`; an early release-notes draft.
 - **Hands over at the seam:** `/idea` writes `idea.md` in its final folder and lands it, and `/create-prd` / `/update-prd` land the PRD, each onto the specs repo's default branch. `/create-ard` and `/specify` each gate on the PRD there — an absent PRD falls back to reading the resolved folder directly instead of stopping (reported, not silent), and the hard stop is an unmerged PRD, never a missing one. `/epics` reads the PRD unconditionally through the folder read, with no PRD gate at all — see PE below for the input it does gate.
@@ -43,11 +43,11 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 ## Dev — build, verify, and deliver
 
 - **Owns:** the engineering design, the implementation, and the documentation of the shipped feature — plus deriving the workflow phase from the artifacts on record — and, with `--claimed`, checking a status you declare against it — which this role checks but never sets.
-- **Runs:** `/design`, `/implement`, `/document`, `/ready`; also the final run of `/release-notes`, once a specification or design already exists.
+- **Runs:** `/design`, `/implement`, `/ready`; also the companion plugin's `/docs-workflows:document`, and the final run of `/docs-workflows:release-notes`, once a specification or design already exists.
 - **Consumes:** the merged `specification.md` (plus the ARD, when one exists), then the merged `design.md`, then the code under `$REPOS_PATH`; `/ready` additionally consumes the artifacts present for the PRD or Epic in question.
 - **Produces:** `design.md`, landed on the specs repo's default branch; code committed on a feature branch in `$REPOS_PATH`, pushed and opened as a pull request where you agree to it; product documentation in the external docs repo; the final release-notes draft; and, from `/ready`, a `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` verdict plus an optional `_readiness.md` snapshot, committed and handed off only behind your consent.
 - **Hands over at the seam:** `/design` is the one hard exception to the optional-input rule above — it stops outright if `specification.md` is not found on the specs repo's default branch. It then lands `design.md` the same way. `/implement` gates its own in-scope `specification.md` / `design.md` the same way `/create-ard` and `/specify` gate the PRD — an unmerged one is a hard stop, but an absent one is not: the run behaves exactly as it did before this gate existed, and a direct-prompt run (which resolves no in-scope spec/design at all) is unaffected either way. `/ready` is the opposite extreme, and the exception named [above](#the-handover-model): it is the sole caller that keeps running past a stop another command would treat as fatal, turning an unmerged or missing artifact into a finding that caps its verdict at `PARTIAL` instead of halting.
-- **Cost phase(s):** `planning` (`/design`), `implementation` (`/implement`), `documenting` (`/document`), `readiness` (`/ready`) — all role `dev`.
+- **Cost phase(s):** `planning` (`/design`), `implementation` (`/implement`), `readiness` (`/ready`), and `documenting` (`/docs-workflows:document`, in the companion plugin) — all role `dev`.
 
 **Why there is no separate verification role.** `/ready` reads a status and reports on it. Its `_readiness.md` is a record rather than a handoff — the one command that reads it, `/implement` at Phase 0.5, only softens a non-blocking recommendation — and it is normally run by the same person who just wrote the design or is about to start the implementation. Giving it a lane of its own would suggest a handover that does not happen — so it sits in `dev`, the role that already owns everything it verifies.
 
@@ -57,7 +57,7 @@ Every cost-emitting command tags its cost line with a `phase` and a `role`. Elev
 
 ### prd-creation
 
-Emitted by `/idea` and `/create-prd`, role `pm`. Being in this phase means the PRD does not yet have a merged specification or design — the work underway is idea refinement or PRD authoring, and Epics may or may not exist yet. `/release-notes` also lands here, by inference, on a run where neither `specification.md` nor `design.md` exists under the PRD's specs directory; so does `/frames`, on a run whose resolved folder is a PRD folder or one of its Epics.
+Emitted by `/idea` and `/create-prd`, role `pm`. Being in this phase means the PRD does not yet have a merged specification or design — the work underway is idea refinement or PRD authoring, and Epics may or may not exist yet. `/docs-workflows:release-notes` also lands here, by inference, on a run where neither `specification.md` nor `design.md` exists under the PRD's specs directory; so does `/frames`, on a run whose resolved folder is a PRD folder or one of its Epics.
 
 ### prd-update
 
@@ -89,7 +89,7 @@ Emitted by `/implement`, role `dev`. Being in this phase means code is actually 
 
 ### documenting
 
-Emitted by `/document`, role `dev`. Being in this phase means product documentation is being written or updated for a shipped feature. `/release-notes` also lands here, by inference, on a run where a `specification.md` or `design.md` already exists for the PRD.
+Emitted by the companion plugin's `/docs-workflows:document`, role `dev`. Being in this phase means product documentation is being written or updated for a shipped feature. `/docs-workflows:release-notes` also lands here, by inference, on a run where a `specification.md` or `design.md` already exists for the PRD.
 
 ### readiness
 

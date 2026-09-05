@@ -341,7 +341,7 @@ yours to supply.
 ## Violation schema
 
 Both `prose-style-checker` and `prose-fixer` use this schema (compatible with
-`docs-style-checker` from `dev-workflows`):
+`docs-style-checker` from `docs-workflows`):
 
 ```yaml
 file:       <absolute path>
@@ -364,7 +364,7 @@ this checker never emits BLOCKER.
 
 ## How it fits with dev-workflows
 
-This plugin is a **fallback** for the `docs-style-checker` agent in `dev-workflows`:
+This plugin is a **fallback** for the `docs-style-checker` agent in `docs-workflows`:
 
 - **`/document`** (Jira mode) Phase 6.4 dispatches `docs-style-checker`, which runs the
   chain **internally**: the repo's primary linter (Vale/markdownlint) **and**, when this

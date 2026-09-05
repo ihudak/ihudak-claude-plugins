@@ -104,12 +104,12 @@ A same-session typo fix on an unrelated page runs direct mode instead — `/docs
 
 ## See also
 
-- Roles and phases — what the `dev` role owns, including why both of this command's modes emit the same fixed `documenting`/`dev` cost attribution; the page that carries that vocabulary ships in the companion `workflows-core` plugin.
+- Roles and phases — what the `dev` role owns, including why both of this command's modes emit the same fixed `documenting`/`dev` cost attribution. The page that defines the `dev` role and the `documenting` phase is `dev-workflows`'s `docs/roles-and-phases.md`; `workflows-core`'s page of the same name covers only the three phases its own commands reach.
 - `/dev-workflows:implement` — the command to use instead for a change that touches both code and docs; it ships in the companion pipeline plugin.
 - `/dev-workflows:epics` — writes child Epic drafts from a PRD; a different output from either mode of this command.
 - [`/release-notes`](release-notes.md) — the recommended next step once a PRD is fully documented, and the sibling command whose own phase/role IS inferred rather than fixed.
 - `workflows-core:model-routing/classification` — the classification rules, and the `doc-planner` / `doc-writer` / `doc-reviewer` Opus pins used in keyed runs only.
-- [Session cost](../reference/session-cost.md) — the terminal bookkeeping both modes emit, at Phase 9–11 in keyed mode and Phase 5–7 in direct mode, alongside session feedback and follow-ups, whose own pages ship in the companion `workflows-core` plugin.
+- [Session cost](../reference/session-cost.md) — the terminal bookkeeping both modes emit, at Phase 9–11 in keyed mode and Phase 5–7 in direct mode. The other two emitters have pages elsewhere: session feedback in `workflows-core`, follow-ups in `dev-workflows`.
 - `workflows-core:finding-triage` — the triage step run between `doc-reviewer` and `doc-fixer` in keyed runs only.
 - [`gate-ledger.md`](../../references/gate-ledger.md) — the six verification-gate outcomes, the full per-mode gate registry, and the reviewer-BLOCKER rule for a missing or unconverted row.
 - `workflows-core:source-truth` — the PRD-vs-spec-vs-code discrepancy-escalation protocol Phase 5.8 runs.

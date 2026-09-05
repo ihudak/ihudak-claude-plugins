@@ -1218,7 +1218,7 @@ If the argument starts with `@`, treat it as a path to a markdown file. Resolve 
 - the change is small and the content is already in the user's head or the file, **not** scattered across PRD sections and PR diffs
 - no tests, no branch (still true — the specs-repo preflight creates none, `workflows-core:specs-repo-git` §2.2), no code review, and no commit of the doc edit are warranted
 
-For net-new documentation assembled from a PRD folder plus PR diffs, use keyed mode (above). For writing child Epic drafts from a Product Requirements Document, use `/epics`.
+For net-new documentation assembled from a PRD folder plus PR diffs, use keyed mode (above). For writing child Epic drafts from a Product Requirements Document, use `/dev-workflows:epics`.
 
 No model-routing reminder is injected for this command — classification still happens but is always SIMPLE or MODERATE, and Opus is never invoked.
 

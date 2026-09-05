@@ -46,7 +46,7 @@ as if the input had not been passed — any dimension or section conditional on 
 already does — and **record the degradation in the output** so the skip is attributed rather than
 silent. This matches `workflows-core:phase-handoff` §3.4 (an absent optional input
 falls back to pre-existing behaviour, never becomes a new prerequisite) and
-`gate-ledger.md` in the companion `docs-workflows` plugin (no skip goes unattributed).
+`docs-workflows:gate-ledger` (no skip goes unattributed).
 
 Which tier an input belongs to is fixed by the consuming agent and stated **where that agent takes the
 input** — its `## Inputs` section, or the `## Process` step that receives the brief for an agent that has

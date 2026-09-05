@@ -28,7 +28,7 @@ Two pages orient you before you touch a command: [Getting started](getting-start
 
 ## Where the rest lives
 
-This plugin is the documentation half of a family. Two companions carry what it does not:
+This plugin is the documentation half of a family. Three sibling plugins matter to it — two it declares as dependencies, and one whose output it reads without depending on:
 
 - **`workflows-core`** — the shared reference corpus every command here loads through the `reference` skill (addressing, the specs-repo git and phase-handoff entry points, model routing, escalation and finding triage, cost/feedback/follow-up emission, docs grounding, doc-structure conventions, the PRD format), plus the `doc-fixer` and `impl-maintenance` agents these commands dispatch. It is a declared dependency, so installing this plugin installs it.
 - **`prose-style`** — the complementary semantic prose pass `docs-style-checker` runs alongside the repo's own linter, and the fallback linter when a repo configures none. Also a declared dependency.

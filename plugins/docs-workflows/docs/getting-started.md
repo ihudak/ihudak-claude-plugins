@@ -48,7 +48,7 @@ A read-only clone of your shipped product documentation, defaulting to `/workspa
 
 ### `GIT_USER_INITIALS`
 
-Your branch identifier, used by the two commands that create a branch in a documentation repository. Branch naming is repo-rule-first: each reads the target repo's own documented convention and follows it as written, and this variable only fills a name-or-initials segment where the convention asks for one.
+Your branch identifier, used by the two runs that create a branch in a documentation repository — `/document` in keyed mode, and `/docs-profile`. Branch naming is repo-rule-first: each reads the target repo's own documented convention and follows it as written, and this variable only fills a name-or-initials segment where the convention asks for one.
 
 ## Your first run
 

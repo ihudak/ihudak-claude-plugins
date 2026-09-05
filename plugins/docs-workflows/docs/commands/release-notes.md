@@ -88,11 +88,11 @@ Byte for byte the same command, and every step above happens the same way. The s
 
 ## See also
 
-- Roles and phases — the `pm` and `dev` roles this command straddles, and what distinguishes the `prd-creation` and `documenting` cost phases; the page that carries that vocabulary ships in the companion `workflows-core` plugin.
+- Roles and phases — the `pm` and `dev` roles this command straddles, and what distinguishes the `prd-creation` and `documenting` cost phases. The page that defines all four is `dev-workflows`'s `docs/roles-and-phases.md`; `workflows-core`'s page of the same name carries `prd-creation` but neither role nor the `documenting` phase.
 - `/dev-workflows:create-prd` — the upstream command that produces the PRD a PM-phase run of `/release-notes` typically drafts from; it ships in the companion pipeline plugin.
 - [`/document`](document.md) — the command whose eventual published page a dev-phase run's documentation link points at; the sibling command whose own phase/role is fixed rather than inferred.
 - `/dev-workflows:epics` — Epic drafting; deliberately excluded from the `/release-notes` phase/role discriminator even though it can run before or after this command.
 - `workflows-core:model-routing/classification` — the classification rules; `/release-notes` is always `MODERATE`.
-- [Session cost](../reference/session-cost.md) — the terminal Phase 9–11 bookkeeping every run emits, alongside session feedback and follow-ups, whose own pages ship in the companion `workflows-core` plugin.
+- [Session cost](../reference/session-cost.md) — the terminal Phase 9–11 bookkeeping every run emits. The other two emitters have pages elsewhere: session feedback in `workflows-core`, follow-ups in `dev-workflows`.
 - [`release-note-types.md`](../../references/release-note-types.md) — the section map, the per-section draft shape and prose rules, and the deprecation-note rule `release-notes-writer` applies.
 - `workflows-core:cost-emission` — §7's full phase/role inference this page's `## Who runs it` section is derived from.

@@ -30,4 +30,4 @@ Produce content from a structured handoff. Neither runs git.
 | `doc-writer` | per routing | Read, Glob, Grep, Write, Edit, Bash, Skill | Writes product documentation from a structured handoff — the `doc-planner` checklist, approved per-page write strategies, discrepancy decisions, snippets, screenshots, frontmatter, links. | `/document` |
 | `release-notes-writer` | per routing | Read, Glob, Grep, Skill | Renders a release-notes draft — exactly one Summary, shaped by its resolved destination; emits no work-item ID, PR link, or internal-note wrapper. Does not write files. | `/release-notes` |
 
-Every one of the seven agents above is dispatched by at least one command. `/docs-profile` dispatches none of them: it scans a documentation repository itself and writes the profile the other two consume.
+Every one of the seven agents above is dispatched by at least one command. `/docs-profile` dispatches none of them: it scans a documentation repository itself and writes the profile `/document` consumes.

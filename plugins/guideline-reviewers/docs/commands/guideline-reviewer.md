@@ -29,7 +29,7 @@ The `guideline-reviewer` subagent's verdict against the mandatory design-system 
 
 ## Deterministic accessibility check
 
-Runs **before** the subagent's review passes, and wraps the target repo's own configuration rather than re-encoding a rule set — the same reasoning the sibling `dev-workflows` plugin's `docs-style-checker` agent applies to a docs repo's Vale. Detection is read-only and follows a fixed order; the first match sets the reported `a11y_check` value.
+Runs **before** the subagent's review passes, and wraps the target repo's own configuration rather than re-encoding a rule set — the same reasoning the sibling `docs-workflows` plugin's `docs-style-checker` agent applies to a docs repo's Vale. Detection is read-only and follows a fixed order; the first match sets the reported `a11y_check` value.
 
 | Order | Detected | What happens | `a11y_check` |
 |---|---|---|---|

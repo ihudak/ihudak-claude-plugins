@@ -22,9 +22,9 @@ flowchart TD
     profile -.->|.dev-workflows/docs-profile.yml| document
 ```
 
-Three nodes are drawn for continuity and are not this plugin's commands: `/dev-workflows:implement` and `/dev-workflows:create-prd` ship in the companion pipeline plugin and are documented there.
+Two nodes are drawn for continuity and are not this plugin's commands: `/dev-workflows:implement` and `/dev-workflows:create-prd` ship in the companion pipeline plugin and are documented there.
 
-**Two of the three command names collide with a Claude Code built-in or another plugin's command of the same name.** Typing the bare `/release-notes` reaches Claude Code's own command instead of this one, so use the qualified `/docs-workflows:release-notes`. `/document` and `/docs-profile` are not known to collide today, so the bare form works for both; the qualified form always works and is what this documentation writes.
+**One command name here collides with a Claude Code built-in of the same name: `/release-notes`.** Typing the bare form reaches Claude Code's own command instead of this one, so use the qualified `/docs-workflows:release-notes`. `/document` and `/docs-profile` are not known to collide today, so the rest work either way, and the diagram above spells out the qualified form throughout because that form always works.
 
 ## The two modes of `/document`
 
@@ -33,7 +33,7 @@ Three nodes are drawn for continuity and are not this plugin's commands: `/dev-w
 | Mode | Selected by | What it does | Gates |
 |---|---|---|---|
 | Keyed | a positional address — a key, or `@<path>` naming a folder in the specs tree | Reads the resolved PRD folder, resolves PR URLs to local clones, summarises the diffs in parallel, locates write targets, plans, writes | Style check, then an Opus `doc-reviewer` review |
-| Direct | no positional address — an `@file`, free text, or a plain directory | A one-shot prose edit on whatever the argument names | Style check only — no reviewer, no branch by default |
+| Direct | no positional address — an `@file`, free text, or a plain directory | A one-shot prose edit on whatever the argument names | Style check only — no reviewer, and Phase 3 creates no branch and no commit of the edit |
 
 A change that touches both code and docs is `/dev-workflows:implement`'s, not either mode of this command.
 

@@ -8,7 +8,7 @@
 
 **Resolution.** Read straight from the shell environment — there is no config file, CLI flag, or derived fallback that feeds it. Every git call against it is `git -C "$SPECS_PATH"`, never a `cd`, so the docs or code repository the run is working in is untouched.
 
-**When unset.** `/document` in keyed mode has no specs tree to resolve its address against and stops; direct mode never needed one. `/release-notes` degrades rather than stopping — it falls back to `run_phase: pm`, which only suppresses the inference that would otherwise read the PRD folder for a `specification.md` or `design.md`. `/docs-profile` does not read it at all.
+**When unset.** `/document` in keyed mode resolves its address through `resolve-address` against `$SPECS_PATH`, so there is nothing left to resolve and the run cannot get past Phase 0; direct mode resolves no address and never needed one. `/release-notes` degrades rather than stopping — it falls back to `run_phase: pm`, which only suppresses the inference that would otherwise read the PRD folder for a `specification.md` or `design.md`. `/docs-profile` never reads the variable at all.
 
 **When it points somewhere unreadable.** The bookkeeping entry point, `specs-preflight`, requires an existing directory, a resolvable git dir, and a **writable** `.git`; a failed gate is a silent no-op, and because the terminal `commit-artifacts` step applies the same writability gate, nothing gets committed either. The deliverable-verification gate, `require-on-main`, needs only a readable git dir, and a failure there returns `unmanaged` — the caller proceeds exactly as it did before that machinery existed.
 
@@ -36,8 +36,8 @@
 
 ## `$GIT_USER_INITIALS`
 
-- **`$GIT_USER_INITIALS`** — your branch identifier; optional, with a three-rung fallback behind it.
+- **`$GIT_USER_INITIALS`** — your branch identifier; optional, and rung 1 of the five-rung ladder `workflows-core:branch-naming` §2 fixes.
 
-**Resolution.** It is rung 1 of the identity ladder the two branch-creating commands here apply — `/document` in both modes and `/docs-profile`. The rungs run in order, stopping at the first non-empty result: `$GIT_USER_INITIALS` (used verbatim, never with a trailing `/`) → `git config user.initials` → inference from existing branch names → a prompt if all three yield nothing.
+**Resolution.** It is rung 1 of the identity ladder the two branch-creating commands here apply — `/document` in keyed mode (direct mode creates no branch and no commit) and `/docs-profile`. The rungs run in order, stopping at the first non-empty result: `$GIT_USER_INITIALS` (used verbatim, never with a trailing `/`) → `git config user.initials` → inference from existing branch names → the per-command fallback prefix → a mandatory prompt if nothing above yields anything.
 
-**When unset.** The ladder falls through to rung 2, then 3, then the prompt — there is no error, only degradation to a less certain source. Branch naming is repo-rule-first: where the target repo's documented convention has no name-or-initials segment at all, the variable is simply unused for that repo regardless of whether it is set.
+**When unset.** The ladder falls through to the rungs below it — there is no error, only degradation to a less certain source. Branch naming is repo-rule-first: where the target repo's documented convention has no name-or-initials segment at all, the variable is simply unused for that repo regardless of whether it is set.

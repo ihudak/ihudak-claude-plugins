@@ -142,7 +142,7 @@ An updated PRD can invalidate what was derived from it. Where this run can go ne
   • Re-run the spec         — /dev-workflows:specify <KEY> <merge-clause>    (PE, if one exists)
   • Re-run architecture     — /dev-workflows:create-ard <KEY> <merge-clause> (PA, if one exists)
   • Re-run epics            — /dev-workflows:epics <KEY>                     (PE)
-  • Re-draft the release note — /docs-workflows:release-notes <KEY>           (PM)
+  • Re-draft the release note — /docs-workflows:release-notes <KEY>          (PM)
 ```
 
 ```

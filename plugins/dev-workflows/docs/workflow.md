@@ -59,7 +59,7 @@ The `Off-platform` box is the one node in this diagram no command runs. It is th
 
 The two dashed edges leaving `/brd-reconcile` go to different commands on purpose, and are drawn separately rather than merged under one label: a decision the review reopened is settled by another interview round, while a question the customer left unanswered goes back out in the next package. They are the same two edges [BRD workflow](brd-workflow.md) draws, with the same labels — as are the three handover edges above them, and every other BRD edge here: all twelve edges that page draws appear in this diagram unchanged, in style and in label, so this diagram summarises that one and never disagrees with it.
 
-Three nodes in the diagram are not this plugin's commands and are drawn for continuity only: `/docs-workflows:release-notes` at both ends of the PRD's life, and the `/docs-workflows:document` handoff off `/implement`. All three ship in the companion `docs-workflows` plugin and are documented there.
+Two nodes in the diagram are not this plugin's commands and are drawn for continuity only: `/docs-workflows:release-notes` as the PM's early draft, and the combined `/docs-workflows:document · /docs-workflows:release-notes` handoff hanging off `/implement`. Both ship in the companion `docs-workflows` plugin and are documented there.
 
 The diagram above shows where each command sits in the pipeline; [Roles and phases](roles-and-phases.md) says what each role is accountable for and what it hands over at each seam.
 

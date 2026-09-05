@@ -12,7 +12,7 @@ Three slash commands for the documentation half of the `dev-workflows` pipeline:
 | PM / Dev | [`/release-notes`](docs/commands/release-notes.md) | Draft the one Summary that announces a change, shaped by the destination it resolves to: breaking change, feature update, or fix. |
 | Anytime — setup | [`/docs-profile`](docs/commands/docs-profile.md) | Scan a documentation repository once and write the reusable profile plus `CLAUDE.md` guidance `/document` reads, as a reviewable pull request. |
 
-Seven agents and 14 reference files carry the docs-repo discovery, PR-diff summarising, doc planning, doc writing and doc review these three commands share, plus the `docs-frontmatter` skill `/docs-profile` points a repository at and two advisory hooks — one injecting specs context on a `/document` or `/release-notes` prompt, one reminding about a docs page's changelog and owners frontmatter.
+Seven agents and twelve reference pages carry the docs-repo discovery, PR-diff summarising, doc planning, doc writing and doc review these three commands share. Those twelve markdown pages plus two bundled data files — `default-owners.txt` and `docs-profile.default.yml`, which the commands, the skill and a hook read as data rather than open as prose — are the **fourteen files** under `references/`; that is the whole of the difference between the page count and the file count, and [References](docs/reference/references.md) does the arithmetic file by file. Alongside them ship the `docs-frontmatter` skill `/docs-profile` points a repository at, and two advisory hooks — one injecting specs context on a `/document` or `/release-notes` prompt, one reminding about a docs page's changelog and owners frontmatter.
 
 ## Documentation
 

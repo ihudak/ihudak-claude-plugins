@@ -4,7 +4,7 @@ Writes or updates product documentation — either a full keyed feature-document
 
 ## Who runs it
 
-`/document` runs in the [dev](../roles-and-phases.md#dev--build-verify-and-deliver) role, cost-attribution phase [documenting](../roles-and-phases.md#documenting) — being in this phase means product documentation is being written or updated for a shipped feature. Both of its modes emit the same fixed `phase: documenting, role: dev` pair to the cost report; unlike [`/release-notes`](release-notes.md), which infers its phase from whether engineering artifacts exist yet, `/document` never has to infer anything — a documentation run is dev-phase work regardless of which mode wrote it.
+`/document` runs in the `dev` role, cost-attribution phase `documenting` — being in this phase means product documentation is being written or updated for a shipped feature. Both of its modes emit the same fixed `phase: documenting, role: dev` pair to the cost report; unlike [`/release-notes`](release-notes.md), which infers its phase from whether engineering artifacts exist yet, `/document` never has to infer anything — a documentation run is dev-phase work regardless of which mode wrote it.
 
 ## Synopsis
 
@@ -20,11 +20,11 @@ Writes or updates product documentation — either a full keyed feature-document
 
 Keyed mode takes the address and nothing else. Where each page is written follows from the page itself: Phase 5.5 resolves every write target against the content roots the resolved profile declares, and Phase 6.3 writes each page into the root that owns it. A repo whose profile declares several content roots is handled the same way — a page is edited where it lives, and the per-root lint, build, and dev-server commands are selected from the root that owns it.
 
-For writing child Epic drafts from a PRD, use [`/epics`](epics.md). For release notes, use [`/release-notes`](release-notes.md) — `/document` never writes release-notes or what's-new pages, since those are generated from the tracker by the docs team's own automation. For a change that touches both code and docs, use [`/implement`](implement.md) instead of either mode of this command.
+For writing child Epic drafts from a PRD, use the pipeline plugin's `/dev-workflows:epics`. For release notes, use [`/release-notes`](release-notes.md) — `/document` never writes release-notes or what's-new pages, since those are generated from the tracker by the docs team's own automation. For a change that touches both code and docs, use `/dev-workflows:implement` instead of either mode of this command.
 
 ## How it runs
 
-`/document` has **34 `## Phase` headings — more than any other command in the plugin** (`/epics`, the next-largest, has 20). Almost all of that comes from running two pipelines under one name: 23 phases belong to keyed mode, 11 to direct mode, each numbered from its own Phase 0. A 37-node diagram would not be a diagram, it would be the file, so the graph below shows the shape a reader actually navigates — the mode split, then each mode's own phases collapsed into the steps a reader experiences as one decision or one unit of work.
+`/document` has **34 `## Phase` headings — more than any other command in the family** (the pipeline plugin's `/dev-workflows:epics`, the next-largest, has 20). Almost all of that comes from running two pipelines under one name: 23 phases belong to keyed mode, 11 to direct mode, each numbered from its own Phase 0. A 37-node diagram would not be a diagram, it would be the file, so the graph below shows the shape a reader actually navigates — the mode split, then each mode's own phases collapsed into the steps a reader experiences as one decision or one unit of work.
 
 ```mermaid
 flowchart TD
@@ -86,7 +86,7 @@ Every gate's outcome is recorded in a run-scoped `gate_ledger` with six possible
 
 **Direct mode registers exactly three of those seven** — `toolchain_preflight`, `repo_checklist`, and `style_check` — and the other four never appear at all, not even as `NOT_APPLICABLE`: direct mode has no Phase 5.8, no Phase 5.6, and no Phase 6.5 to produce them.
 
-**Keyed mode alone gates on `doc-reviewer`** (Phase 7, Opus-pinned by its own frontmatter). Its findings are triaged by the orchestrator — each verified at the location it names, dismissals recorded with a reason — before `doc-fixer` ever sees them (`workflows-core:finding-triage`); `BLOCK` invokes `doc-fixer` for BLOCKER/MAJOR findings and one re-review, capped at one fix cycle plus one re-review. **Direct mode has no `doc-reviewer` gate at all, and therefore no BLOCKER fix cycle, no re-review, and no finding triage in this mode** — a style-linter violation is a deterministic match with nothing to trace, so there is nothing for a triage step to adjudicate. Because nothing downstream would catch a coverage gap, an `UNAVAILABLE` `style_check` row in direct mode is surfaced directly to the user as the gate-ledger §5 conversion prompt — the only place the gap appears, since there is no reviewer to raise it as a BLOCKER instead. Direct mode also runs none of [`/implement`](implement.md)'s code-oriented verification machinery: no `test-baseliner` captures a test baseline, no `test-writer` writes tests, and no `code-review` gate runs at all — direct mode edits prose, not code, so there is nothing for any of the three to do.
+**Keyed mode alone gates on `doc-reviewer`** (Phase 7, Opus-pinned by its own frontmatter). Its findings are triaged by the orchestrator — each verified at the location it names, dismissals recorded with a reason — before `doc-fixer` ever sees them (`workflows-core:finding-triage`); `BLOCK` invokes `doc-fixer` for BLOCKER/MAJOR findings and one re-review, capped at one fix cycle plus one re-review. **Direct mode has no `doc-reviewer` gate at all, and therefore no BLOCKER fix cycle, no re-review, and no finding triage in this mode** — a style-linter violation is a deterministic match with nothing to trace, so there is nothing for a triage step to adjudicate. Because nothing downstream would catch a coverage gap, an `UNAVAILABLE` `style_check` row in direct mode is surfaced directly to the user as the gate-ledger §5 conversion prompt — the only place the gap appears, since there is no reviewer to raise it as a BLOCKER instead. Direct mode also runs none of `/dev-workflows:implement`'s code-oriented verification machinery: no `test-baseliner` captures a test baseline, no `test-writer` writes tests, and no `code-review` gate runs at all — direct mode edits prose, not code, so there is nothing for any of the three to do.
 
 Keyed mode also runs a Phase 5.8 **discrepancy analysis** whenever the PRD narrative, the (optional) spec, and the code disagree — an analysis table is presented and the user decides per claim or in one batch which phrasing to document; nothing is ever auto-resolved. It makes zero direct API calls for PR resolution: GitHub may use the `gh` CLI (which wraps the API), Bitbucket is pure local `git`, and every resolution runs against clones under `$REPOS_PATH` matched by `git remote get-url origin` slug. And its branch policy classifies the **resolved `docs_repo_path`**, not `cwd` — Phase 6.2 branches only when that classification lands on `docs_repo` or a user-confirmed `non_docs_repo`.
 
@@ -95,21 +95,21 @@ Keyed mode also runs a Phase 5.8 **discrepancy analysis** whenever the PRD narra
 Document a shipped PRD once every Epic under it is implemented (keyed mode):
 
 ```
-/dev-workflows:document PRODUCT-1234
+/docs-workflows:document PRODUCT-1234
 ```
 
-The run resolves the docs repo and profile, asks for output path / PR filter / screenshot intent, classifies (typically `SIGNIFICANT`), reads the PRD folder, resolves the PR repos, determines the applicable space(s), summarises the diffs in parallel, locates write targets, reviews images, plans the documentation, resolves any PRD/spec/code discrepancy, writes the pages via `doc-writer`, runs the style check and render verification, gates on `doc-reviewer`, and closes with the four maintenance agents plus the Final Report — recommending `/dev-workflows:release-notes <PRD>` next, once every Epic is documented.
+The run resolves the docs repo and profile, asks for output path / PR filter / screenshot intent, classifies (typically `SIGNIFICANT`), reads the PRD folder, resolves the PR repos, determines the applicable space(s), summarises the diffs in parallel, locates write targets, reviews images, plans the documentation, resolves any PRD/spec/code discrepancy, writes the pages via `doc-writer`, runs the style check and render verification, gates on `doc-reviewer`, and closes with the four maintenance agents plus the Final Report — recommending `/docs-workflows:release-notes <PRD>` next, once every Epic is documented.
 
-A same-session typo fix on an unrelated page runs direct mode instead — `/dev-workflows:document @note.md` or a free-text description — which skips address and PR resolution entirely, explores the target file and its neighbours, plans, edits, runs the mandatory style check, and ends with a report; no branch, no commit, and no reviewer gate.
+A same-session typo fix on an unrelated page runs direct mode instead — `/docs-workflows:document @note.md` or a free-text description — which skips address and PR resolution entirely, explores the target file and its neighbours, plans, edits, runs the mandatory style check, and ends with a report; no branch, no commit, and no reviewer gate.
 
 ## See also
 
-- [Roles and phases](../roles-and-phases.md) — what the `dev` role owns, including why both of this command's modes emit the same fixed `documenting`/`dev` cost attribution.
-- [`/implement`](implement.md) — the command to use instead for a change that touches both code and docs.
-- [`/epics`](epics.md) — writes child Epic drafts from a PRD; a different output from either mode of this command.
+- Roles and phases — what the `dev` role owns, including why both of this command's modes emit the same fixed `documenting`/`dev` cost attribution; the page that carries that vocabulary ships in the companion `workflows-core` plugin.
+- `/dev-workflows:implement` — the command to use instead for a change that touches both code and docs; it ships in the companion pipeline plugin.
+- `/dev-workflows:epics` — writes child Epic drafts from a PRD; a different output from either mode of this command.
 - [`/release-notes`](release-notes.md) — the recommended next step once a PRD is fully documented, and the sibling command whose own phase/role IS inferred rather than fixed.
-- [Model routing](../reference/model-routing.md) — the classification rules, and the `doc-planner` / `doc-writer` / `doc-reviewer` Opus pins used in keyed runs only.
-- [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal bookkeeping both modes emit, at Phase 9–11 in keyed mode and Phase 5–7 in direct mode.
+- `workflows-core:model-routing/classification` — the classification rules, and the `doc-planner` / `doc-writer` / `doc-reviewer` Opus pins used in keyed runs only.
+- [Session cost](../reference/session-cost.md) — the terminal bookkeeping both modes emit, at Phase 9–11 in keyed mode and Phase 5–7 in direct mode, alongside session feedback and follow-ups, whose own pages ship in the companion `workflows-core` plugin.
 - `workflows-core:finding-triage` — the triage step run between `doc-reviewer` and `doc-fixer` in keyed runs only.
 - [`gate-ledger.md`](../../references/gate-ledger.md) — the six verification-gate outcomes, the full per-mode gate registry, and the reviewer-BLOCKER rule for a missing or unconverted row.
 - `workflows-core:source-truth` — the PRD-vs-spec-vs-code discrepancy-escalation protocol Phase 5.8 runs.

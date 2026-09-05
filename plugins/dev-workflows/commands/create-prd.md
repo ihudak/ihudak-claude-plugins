@@ -577,7 +577,7 @@ On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:re
 Offer these — clearly labeling the role handoff:
 
 ```
-choices: ["Draft the release note now — /dev-workflows:release-notes <ADDRESS> (PM) (Recommended)", "Hand to a Product Architect — /dev-workflows:create-ard <ADDRESS> (PA, optional) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE)", "Stop here"]
+choices: ["Draft the release note now — /docs-workflows:release-notes <ADDRESS> (PM) (Recommended)", "Hand to a Product Architect — /dev-workflows:create-ard <ADDRESS> (PA, optional) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE)", "Stop here"]
 ```
 
 **One address appears in that array, and every option takes the same one** — `<ADDRESS>`, this run's
@@ -588,14 +588,14 @@ the address is the `PRD-` slice's own key, which is what `/brd-split` carved and
 refusal leaves standing. (This paragraph once distinguished `<KEY>` from a second positional key and
 carried `--from-brd` into the PA option; D4 retired the pair and D18 retired the flag.)
 
-- **`/dev-workflows:release-notes <ADDRESS>`** (PM) — draft the customer-facing release note now (the cost model's `pm`/`prd-creation` inferred case: no spec/design yet).
+- **`/docs-workflows:release-notes <ADDRESS>`** (PM) — draft the customer-facing release note now (the cost model's `pm`/`prd-creation` inferred case: no spec/design yet).
 - **`/dev-workflows:create-ard <ADDRESS>`** (PA, **optional**) — hand to a Product Architect to author the grounded architecture document. **On the `/idea` route** (on the BRD route, see the PA paragraph below) it gates this PRD on the specs repo's default branch (its own Phase 0), so it stops where this PRD reached a branch and falls back to the resolved folder — reported, never silently — where it reached none. `<merge-clause>` is the placeholder `workflows-core:next-phase-offer` owns, resolved from this run's own `Phase handoff:` outcome line (§4.1) and never written as the unconditional "once the pull request above is merged": a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on. It is a placeholder, not an instruction to reword an option, so the array is still presented verbatim per `workflows-core:escalation-rules`.
 - **`/dev-workflows:epics <ADDRESS>`** (PE) — hand to a Product Engineer to split the PRD into Epics (or author a PRD-level spec → `/dev-workflows:specify <ADDRESS>`, which resolves the same folder through the same entry point).
 
-The other two options carry no clause, and that is checked, not assumed: `/dev-workflows:release-notes` runs no `require-on-main` at all, and `/dev-workflows:epics` gates only `<PRD-dir>/specification.md` — a file this run does not write.
+The other two options carry no clause, and that is checked, not assumed: `/docs-workflows:release-notes` runs no `require-on-main` at all, and `/dev-workflows:epics` gates only `<PRD-dir>/specification.md` — a file this run does not write.
 
 **Every option is presented unconditionally now, and the reason the two used to be withheld is
-gone.** `/dev-workflows:epics` and `/dev-workflows:release-notes` were held back until a key had been minted outside the plugin *and* an export produced against it, because both resolved that export and found nothing without it. Neither reads an export any more: both resolve a folder in the specs tree, which
+gone.** `/dev-workflows:epics` and `/docs-workflows:release-notes` were held back until a key had been minted outside the plugin *and* an export produced against it, because both resolved that export and found nothing without it. Neither reads an export any more: both resolve a folder in the specs tree, which
 this run has just written. So there is no half-done state to report and no `(Recommended)` marker to
 withhold — the offer says what it always meant to say, one phase earlier.
 
@@ -613,7 +613,7 @@ The resume pointer is written in the terminal cost phase (Phase 7), per
 handoff, so it **omits the session-name line**; name the session manually if
 useful. Then:
 
-- **Continuing as PM (`/dev-workflows:release-notes <ADDRESS>`)?** → run **`/compact`**.
+- **Continuing as PM (`/docs-workflows:release-notes <ADDRESS>`)?** → run **`/compact`**.
 - **Handing to PA (`/dev-workflows:create-ard <PRD>`) or PE (`/dev-workflows:epics <PRD>`), even yourself?** → run **`/clear`** for a clean slate.
 
 Guidance only — nothing is auto-run. See `workflows-core:session-hygiene`.

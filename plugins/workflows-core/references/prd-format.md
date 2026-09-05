@@ -114,7 +114,7 @@ reversal.** They were dropdowns set outside the plugin and returned by an import
 forbade authoring them or asking for them — the question bought nothing when the answer already
 existed elsewhere. Nothing supplies them now, so each is authored where it is known and asked for
 where it is not: `change_type` and `release_notes_category` are inferred and confirmed in
-`/release-notes`'s own grill (`dev-workflows:release-note-types` §7), and `release_versions` comes
+`/release-notes`'s own grill (`docs-workflows:release-note-types` §7), and `release_versions` comes
 from that command's `--version` flag or the same grill. **Never invent one** — an unanswered field is
 omitted, not filled.
 

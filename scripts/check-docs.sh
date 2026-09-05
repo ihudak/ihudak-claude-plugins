@@ -67,7 +67,7 @@ NS_MAP_REL="${NS_MAP_REL:-plugins/workflows-core/scripts/command-namespaces.json
 # assert that a plugin holding the CALL SITES is declared. The trigger is the call sites and
 # not the reference file: the corpus extraction separated the two, and a file-presence
 # trigger got both directions wrong at once (see those two functions).
-COST_PLUGIN_RELS="${COST_PLUGIN_RELS:-plugins/dev-workflows plugins/workflows-core}"        # copilot: ""
+COST_PLUGIN_RELS="${COST_PLUGIN_RELS:-plugins/dev-workflows plugins/docs-workflows plugins/workflows-core}"        # copilot: ""
 HANDOFF_PLUGIN_RELS="${HANDOFF_PLUGIN_RELS:-plugins/dev-workflows}"  # copilot: ""
 
 # The plugin that holds the shared reference corpus. Checks 8, 9, 11 and 16 read a reference

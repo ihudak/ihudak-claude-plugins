@@ -16,7 +16,7 @@
 | break a PRD into Epics | [`/epics`](commands/epics.md) |
 | write a specification, then a design | [`/specify`](commands/specify.md), [`/design`](commands/design.md) |
 | build the thing | [`/implement`](commands/implement.md) |
-| document it, then announce it | [`/document`](commands/document.md), [`/release-notes`](commands/release-notes.md) |
+| document it, then announce it | `/docs-workflows:document`, `/docs-workflows:release-notes` — both ship in the companion `docs-workflows` plugin |
 | check whether a ticket is really ready | [`/ready`](commands/ready.md) |
 | fix a CVE or upgrade a dependency | [`/vuln`](commands/vuln.md), [`/upgrade`](commands/upgrade.md) |
 | understand what a run cost | [Session cost](reference/session-cost.md) |
@@ -34,13 +34,10 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [`/create-ard`](commands/create-ard.md) — author an Architecture Requirements/Decision Document for a PRD, or for one Epic inside it, grounded on the mounted code.
 - [`/create-prd`](commands/create-prd.md) — turn a refined idea plus a key into a reviewed Product Requirements Document.
 - [`/design`](commands/design.md) — take over a merged specification and author a reviewed engineering design, grounded strictly in the mounted code.
-- [`/docs-profile`](commands/docs-profile.md) — scan a docs repository and write or refresh the machine-readable profile `/document` consumes.
-- [`/document`](commands/document.md) — write or update product documentation: a one-shot direct edit, or the full keyed feature-documentation workflow.
 - [`/epics`](commands/epics.md) — break a Product Requirements Document into reviewed child Epic drafts.
 - [`/idea`](commands/idea.md) — refine a raw prompt, file, community post, or existing PRD into a one-page idea brief.
 - [`/implement`](commands/implement.md) — classify, plan, implement, test, and review a code change end to end.
 - [`/ready`](commands/ready.md) — derive the workflow phase from the ARD/spec/design record and report what is missing to leave it; `--claimed` checks a status you declare against it.
-- [`/release-notes`](commands/release-notes.md) — draft a release-notes Summary for a ticket, shaped by the destination it resolves to.
 - [`/specify`](commands/specify.md) — author an org-standard specification for one item through a relentless grill.
 - [`/update-prd`](commands/update-prd.md) — refresh an existing Product Requirements Document.
 - [`/upgrade`](commands/upgrade.md) — plan and execute a library, framework, runtime, or build-tool upgrade.
@@ -50,10 +47,10 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 
 - [Agents](reference/agents.md) — the subagent inventory: what each helper agent does and which command calls it.
 - [References](reference/references.md) — the reference-doc inventory under `references/`, grouped by subtree.
-- [Skills](reference/references.md#skills) — the one bundled skills entry that stays here, `docs-frontmatter`: what it is for, and whether it is user-invocable. The `model-routing` skill every pipeline command loads at its classification step ships in `workflows-core` now, alongside the classification reference it resolves.
+- Skills — this plugin ships 0 bundled skills of its own. The `model-routing` skill every pipeline command loads at its classification step ships in `workflows-core`, alongside the classification reference it resolves; `docs-frontmatter`, the one skill that used to ship here, moved to `docs-workflows` with the `docs-profiles/` conventions it applies.
 - [Environment](reference/environment.md) — every environment variable the plugin reads, and what it configures.
 - [Hooks](reference/hooks.md) — the bundled hooks and what each one does.
-- [Commit convention](reference/commit-convention.md) — end your commit subject with `[<key>]`, and what that buys you when `/document` and `/release-notes` look for the diff.
+- [Commit convention](reference/commit-convention.md) — end your commit subject with `[<key>]`, and what that buys you when the companion plugin's `/docs-workflows:document` and `/docs-workflows:release-notes` look for the diff.
 - [Model routing](reference/model-routing.md) — the task-complexity classification and model fallback chain commands apply before acting.
 - [Session cost](reference/session-cost.md) — how a run's dollar cost is computed, attributed, and persisted.
 - [Session feedback](reference/session-feedback.md) — two different signals about the plugin itself: this plugin's own automatic capture, and the companion plugin's `/workflows-core:feedback`, which logs what you tell it, and `/workflows-core:prompt*`, which captures a bad result, your correction, and the good result that came out of it.

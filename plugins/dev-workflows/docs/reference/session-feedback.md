@@ -6,7 +6,7 @@ Session feedback captures two different signals about **the plugin family itself
 
 Two capture paths feed the same file, distinguished by their `origin`:
 
-- **Automatic (`origin: auto`), and this is the path `dev-workflows` itself captures** — the post-run maintenance phase of nineteen of this plugin's twenty commands (every command carrying a `workflows-core:impl-maintenance` phase — which is all of them except `/docs-profile`, the one command with none) reuses that agent's Lessons Learned report and projects the plugin-facing slice out of it: command workflow improvements, new agents or skills the plugin should offer, and gaps in the plugin's own reference docs, plus the key observations that triggered them. Target-project advice — `CLAUDE.md` rule suggestions, hooks for the repo you're working in — is deliberately discarded here; that stays in the in-session maintenance report, since it is for your current repo, not the plugin maintainer. A routine session with nothing plugin-facing to report writes nothing at all — no empty entry, byte-identical to a run where this phase did not exist. There is also a narrower automatic case, `emit-block`, used when a run halts because the plugin itself lacked something it needed (a missing capability, a missing reference doc) — it logs one `origin: auto`, `impact: blocker` entry directly, since no full maintenance report exists yet on an abandoned mid-flight run.
+- **Automatic (`origin: auto`), and this is the path `dev-workflows` itself captures** — the post-run maintenance phase of all seventeen of this plugin's commands (every one of them carries a `workflows-core:impl-maintenance` phase; the one command that had none, `/docs-profile`, ships in the companion `docs-workflows` plugin now) reuses that agent's Lessons Learned report and projects the plugin-facing slice out of it: command workflow improvements, new agents or skills the plugin should offer, and gaps in the plugin's own reference docs, plus the key observations that triggered them. Target-project advice — `CLAUDE.md` rule suggestions, hooks for the repo you're working in — is deliberately discarded here; that stays in the in-session maintenance report, since it is for your current repo, not the plugin maintainer. A routine session with nothing plugin-facing to report writes nothing at all — no empty entry, byte-identical to a run where this phase did not exist. There is also a narrower automatic case, `emit-block`, used when a run halts because the plugin itself lacked something it needed (a missing capability, a missing reference doc) — it logs one `origin: auto`, `impact: blocker` entry directly, since no full maintenance report exists yet on an abandoned mid-flight run.
 - **User-invoked, four commands — all four ship in `workflows-core`, not here.** `/workflows-core:feedback <text>` logs a manual note about the plugin, tied to no other command, with `origin: manual`. `/workflows-core:prompt`, `/workflows-core:prompt-brainstorm`, and `/workflows-core:prompt-grill-me` each capture a corrective interaction — a command produced something wrong and you fixed it — with `origin: prompt`, and act on the correction their own way. `/prompt` is the one that acts first — its Phase 2 applies the fix, and Phase 3 persists the record of it; `/prompt-brainstorm` hands off to a brainstorming skill to redesign it together, and `/prompt-grill-me` interrogates the fix inline with a bounded grill. The other two log first, then act; `/prompt` is the exception named above, and a run that dies inside its Phase 2 has applied the fix without recording it.
 
 ### Why `/prompt*` is the more valuable of the two
@@ -44,12 +44,12 @@ slug: env-ag-update-window
 Each logged entry is a dated heading, a fenced YAML block, and prose — appended chronologically, never modified or deleted once written:
 
 ````markdown
-## 2026-07-09 — /document — missing-capability
+## 2026-07-09 — /epics — missing-capability
 
 ```yaml
-id: PRODUCT-1234-document-image-alt-text
+id: PRODUCT-1234-epics-scope-boundary
 date: 2026-07-09
-command: /document           # controlled: exact command name, or n/a
+command: /epics              # controlled: exact command name, or n/a
 plugin_version: 2.9.0
 origin: auto                 # auto | manual | prompt
 author: you@example.com

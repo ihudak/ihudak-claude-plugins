@@ -6,11 +6,11 @@ Ivan Gudak's open-source Claude Code plugin marketplace.
 
 | Plugin | Description |
 |--------|-------------|
-| [dev-workflows](plugins/dev-workflows/) | Twenty slash commands for the PM → PA → PE → Dev pipeline, with Opus-backed planning and review gates. Needs `workflows-core`. [Docs](plugins/dev-workflows/docs/README.md) |
+| [dev-workflows](plugins/dev-workflows/) | Seventeen slash commands for the PM → PA → PE → Dev pipeline, with Opus-backed planning and review gates. Needs `workflows-core`. [Docs](plugins/dev-workflows/docs/README.md) |
 | [guideline-reviewers](plugins/guideline-reviewers/) | Two standalone commands: `/api-guideline-reviewer` reviews OpenAPI specs against bundled REST/IAM guidance; `/guideline-reviewer` reviews code/UI against bundled design-system and a11y standards. |
 | [workflows-core](plugins/workflows-core/) | Shared foundation for the `dev-workflows` family — addressing, git handoff, model routing, emission — plus six utility commands. [Docs](plugins/workflows-core/docs/README.md) |
 | [docs-workflows](plugins/docs-workflows/) | Documentation pipeline: `/document`, `/docs-profile`, `/release-notes`. Needs `workflows-core` and `prose-style`. [Docs](plugins/docs-workflows/docs/README.md) |
-| [prose-style](plugins/prose-style/) | Pluggable prose style enforcement: `/prose-review-pr`, `/prose-review-docs`, `/prose-style-refresh`, plus sub-agents `dev-workflows` uses for Epics and docs. Vendor-neutral, overridable baseline. |
+| [prose-style](plugins/prose-style/) | Pluggable prose style enforcement: `/prose-review-pr`, `/prose-review-docs`, `/prose-style-refresh`, plus sub-agents `dev-workflows` and `docs-workflows` use. Vendor-neutral, overridable baseline. |
 | [obsidian-llm-wiki](plugins/obsidian-llm-wiki/) | Ten slash commands for compiling Obsidian vault knowledge into a persistent, cross-referenced wiki with task management; supports Claude Code and GitHub Copilot. |
 | [acli](plugins/acli/) | Atlassian CLI (`acli`) skill for Jira and Confluence — search, work items, comments, attachments, boards, sprints, pages. From [pi-skill-acli](https://github.com/ziegenberg/pi-skill-acli) (MIT). |
 
@@ -19,7 +19,7 @@ Ivan Gudak's open-source Claude Code plugin marketplace.
 - **Claude Code** — the plugins install into Claude Code (some `obsidian-llm-wiki` commands also support GitHub Copilot).
 - **`superpowers`** *(recommended)* — the Claude Code plugin `workflows-core` leans on for `/prompt-brainstorm`, and that the whole family uses for its brainstorm → plan → subagent-driven-development flow. No hard dependency; commands degrade gracefully without it.
 - **`gh` + `gh auth login`** *(recommended)* — enables reading GitHub PR diffs (`/document`, `/release-notes`); without it those commands fall back to local-git strategies.
-- **`vale`** *(optional)* — a prose linter for docs; `dev-workflows` falls back to a repo lint script, then the `prose-style` plugin, when `vale` is absent.
+- **`vale`** *(optional)* — a prose linter for docs; `docs-workflows` falls back to a repo lint script, then the `prose-style` plugin, when `vale` is absent.
 - **Recommended environment: [`ihudak/ai-containers`](https://github.com/ihudak/ai-containers)** — mounts every repository and your specs repo under one `/workspace` umbrella (repos at `/workspace/<repo>`, the specs repo at `/workspace/specs`), so the default `$REPOS_PATH` (`/workspace`) and an exported `SPECS_PATH` just work; it also installs `gh` and mounts the host `gh` auth. Outside a container the commands still work — set `$REPOS_PATH` yourself and manage `gh` login.
 
 ## Installation

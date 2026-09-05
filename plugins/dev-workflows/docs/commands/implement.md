@@ -70,13 +70,13 @@ Implement one Epic from a multi-Epic PRD whose specification and design are alre
 /dev-workflows:implement PRODUCT-1234 EPIC-98760
 ```
 
-The run resolves `EPIC-98760` as the focus Epic, gates its in-scope `specification.md`/`design.md` on the specs repo's main branch, classifies the task (typically `SIGNIFICANT` once a merged design is in scope), delegates planning to `risk-planner`, creates a feature branch, captures the test baseline, implements, writes tests, runs the Opus code review and triage, verifies against the baseline, and closes with the four Phase 4 maintenance agents and the Final Report — recommending the next Epic, or `/dev-workflows:document` once every Epic under the PRD is implemented.
+The run resolves `EPIC-98760` as the focus Epic, gates its in-scope `specification.md`/`design.md` on the specs repo's main branch, classifies the task (typically `SIGNIFICANT` once a merged design is in scope), delegates planning to `risk-planner`, creates a feature branch, captures the test baseline, implements, writes tests, runs the Opus code review and triage, verifies against the baseline, and closes with the four Phase 4 maintenance agents and the Final Report — recommending the next Epic, or `/docs-workflows:document` once every Epic under the PRD is implemented.
 
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `dev` role owns, including how an unmerged in-scope spec/design stops the run while an absent one does not.
 - [`/design`](design.md) — the upstream command whose merged `design.md` `/implement` gates on when it's in scope (a resolved `specification.md` with no `design.md` yet is gated the same way, independently).
-- [`/document`](document.md) — the downstream command, run once every Epic under the PRD is implemented.
+- `/docs-workflows:document` — the downstream command, run once every Epic under the PRD is implemented; it ships in the companion `docs-workflows` plugin and is documented there.
 - [Model routing](../reference/model-routing.md) — the classification rules, the multi-source floor, and the Opus fallback chain `risk-planner` and `code-review` resolve against.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal Phase 5–7 bookkeeping every run emits.
 - `workflows-core:finding-triage` — the triage step run between `code-review` and `review-fixer`.

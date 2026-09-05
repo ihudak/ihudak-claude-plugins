@@ -247,7 +247,7 @@ already spans both levels.
 
 This is the same inference `emit-cost` already applies in Phase 11; do not add a question for it.
 
-→ Agent (subagent_type: "dev-workflows:release-notes-writer"):
+→ Agent (subagent_type: "docs-workflows:release-notes-writer"):
   > "Render the release-notes draft for this brief:
   >
   > folder_read: [the Phase 3 handoff — scoped to the focus Epic's subtree when focus_key is set]

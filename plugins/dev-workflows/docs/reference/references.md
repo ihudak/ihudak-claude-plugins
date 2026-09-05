@@ -1,8 +1,8 @@
 # References reference
 
-`dev-workflows` bundles 38 files under `references/` — 19 top-level markdown files and four bundled subtrees. This page enumerates every file a command or agent actually cites by name (the 19 top-level files), grouped by concern below, then counts the four subtrees rather than listing each file inside them. The arithmetic: 19 named individually, plus 7 + 5 + 3 + 2 = 17 markdown pages counted (not enumerated) across the four subtrees — 19 + 17 = 36 accounted for, against 38 files on disk. The remaining two are non-markdown data or templates inside the same subtree, deliberately not listed as reference pages: `docs-profiles/docs-profile.default.yml` and `docs-profiles/default-owners.txt` — a defaults file and an owners list, neither of them prose a reader would open. The 17-file subtree figures below are markdown-page counts specifically; the two files above already sit inside that same subtree and are not part of that count, so nobody should later "correct" a subtree figure by adding them back in.
+`dev-workflows` bundles 24 files under `references/` — 14 top-level markdown files and three bundled subtrees. This page enumerates every file a command or agent actually cites by name (the 14 top-level files), grouped by concern below, then counts the three subtrees rather than listing each file inside them. The arithmetic: 14 named individually, plus 5 + 3 + 2 = 10 markdown pages counted (not enumerated) across the three subtrees — 14 + 10 = 24, which is every file on disk. Nothing here is non-markdown any more: the defaults file and the owners list that used to sit inside `docs-profiles/` left with that subtree, so `*.md` counts and `find <dir> -type f` counts now agree everywhere on this page.
 
-The shared corpus every plugin in this family reads — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, cost/feedback/follow-up emission, the grounding and grilling conventions, and the PRD format — ships in the companion `workflows-core` plugin and is enumerated on its own references page. What is listed here is what `dev-workflows` itself carries.
+The shared corpus every plugin in this family reads — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, cost/feedback/follow-up emission, the grounding and grilling conventions, and the PRD format — ships in the companion `workflows-core` plugin and is enumerated on its own references page. The documentation corpus — the gate ledger, the repo-verification-gate extractor, the toolchain preflight, the docs-repo finish-and-handoff mechanics, the release-note type map, and the `docs-profiles/` authoring conventions — ships in the companion `docs-workflows` plugin, alongside the three commands that read it. What is listed here is what `dev-workflows` itself carries.
 
 ## Authoring formats
 
@@ -18,20 +18,11 @@ The canonical structure each artifact type is authored and reviewed against, plu
 - `ard-format.md` — canonical structure and rules for an Architecture Requirements/Decision Document — **ard.md**, or **ard-\<area\>.md** for an area-scoped one — plus its `kind:`/`key:` frontmatter; `ard-reviewer` reviews against it and `/ready` reads its `grounded_repos:` frontmatter.
 - `specification-format.md` — canonical structure and per-stage rules for a product specification — **specification.md** — plus its `kind:`/`key:` frontmatter; `/specify` authors against it and `spec-reviewer` reviews against it. An embedded snapshot, not a net-new format.
 - `design-format.md` — canonical structure and per-section rules for an engineering design — **design.md** — plus its `kind:`/`key:` frontmatter; `/design` authors against it, `design-reviewer` reviews against it, `interface-designer` reads its `## Seams` categories, and `/ready` reads its repos header.
-- `release-note-types.md` — the release-note section map (`## Breaking changes` / `## Feature updates` / `## Fixes`, all three in one **release-notes.md** under a release-version heading), the per-section draft shape and prose rules, and the deprecation-note rule; consulted by `release-notes-writer`.
-
-## Git and handoff
-
-What is left here after the shared git entry points moved to `workflows-core`: the one handoff mechanic that belongs to a single command rather than to the family.
-
-- `finish-and-handoff.md` — the mechanics `/document` (keyed mode) uses for its inline-profiling-branch handling and its finish-and-handoff step: squash, opt-in push, copy-paste PR draft.
 
 ## Review and triage
 
-The gates a written artifact passes through before it counts as done. The triage discipline itself, and the escalation and pre-lint conventions the gates share, are `workflows-core`'s.
+The gates a written artifact passes through before it counts as done. The triage discipline itself, and the escalation and pre-lint conventions the gates share, are `workflows-core`'s; the verification-gate ledger and the repo-checklist extractor are `docs-workflows`'s.
 
-- `gate-ledger.md` — the six verification-gate outcomes and the rule that no outcome is orchestrator-assignable to mean "I decided not to run this"; consumed by `/document` and the agents whose gates it registers.
-- `repo-verification-gates.md` — how to extract a docs repo's own pre-PR checklist into a structured block a reviewer can check the written files against, augmenting the plugin's own gates rather than overriding them.
 - `workflow-states.md` — maps each workflow phase on the PRD and Epic ladders to its owning role, the command that drives the transition into it, and the artifacts expected to exist at that status; the rubric `readiness-reviewer` applies.
 - `bug-diagnosis.md` — the bug-diagnosis discipline `/implement` follows for a bug-shaped task: a deterministic repro before hypothesizing, ranked falsifiable hypotheses, tagged and cleaned-up instrumentation, a regression test at a correct seam.
 
@@ -42,27 +33,12 @@ The bookkeeping every long-running command emits around its actual work. The emi
 - `code-handoff.md` — the `finish-code-branch` entry point: what a command does with the code it just changed, executed against the **code** repository rather than `$SPECS_PATH`. The commit is prompt-free and only the push and the pull request sit behind a consent choice, because an uncommitted tree is recoverable by nobody while a commit on a branch is recoverable by anyone. Owns the gate (including the check that HEAD is on the branch the caller named — `git commit` writes to HEAD while `git push -u origin <branch>` pushes the ref *named*, so a mismatch reports a push that never happened), the staging carve-outs for a dirty tree and a pushed stash, the commit written through a message **file** rather than `-m` (an inline message command-substitutes `$(…)` and backticks out of free text such as an NVD description), the base-branch ladder whose lower rungs are existence probes rather than name sources, the `gh` capability probe with its existing-pull-request check and no-CLI fallback, the split-call form for a per-unit loop, and the `Code repo:` outcome line. A run whose gates failed is still committed and still offered for push — only its pull request degrades, to a draft carrying a DO-NOT-MERGE banner. It is also the one git reference that stages at repository scope, and §1 says why that divergence from its two siblings is deliberate. Consumed by `/implement`, `/upgrade`, and `/vuln`.
 - `context-management.md` — strategies for an implementation run whose step list is too long to complete in one context window without degrading.
 
-## Environment
-
-What the plugin needs installed or configured around it, independent of any single artifact or command. The companion-plugin conventions and the model-routing classification rules moved to `workflows-core`.
-
-- `toolchain-preflight.md` — the Phase 0 environment check `/document` runs: deriving the required tool set from the resolved profile and the repo's own documented prerequisites, prompting only on a missing tool.
-
 ## Bundled reference sets
 
-Four subtrees carry bundled guidance too large or too domain-specific to enumerate file-by-file; each is counted here instead.
+Three subtrees carry bundled guidance too large or too domain-specific to enumerate file-by-file; each is counted here instead.
 
-- `handoff/` (7) — one input/output document-format contract per agent, usually read by the agent itself rather than by the dispatching command — `handoff/test-baseliner.md` is the exception, read by `vuln-fixer` and `upgrade-executor`, which dispatch it.
-- `docs-profiles/` (5) — docs-profile authoring conventions for the built-in `example-docs` worked example (frontmatter, changelog, anchors, render verification, the docs-profile schema), consulted by `/docs-profile`, `/document`, and the `docs-frontmatter` skill.
+- `handoff/` (5) — one input/output document-format contract per agent, usually read by the agent itself rather than by the dispatching command — `handoff/test-baseliner.md` is the exception, read by `vuln-fixer` and `upgrade-executor`, which dispatch it.
 - `upgrade/` (3) — component-specific upgrade guidance, consulted by `upgrade-planner` and `upgrade-executor`.
 - `fix-vuln/` (2) — CVE-remediation guidance, consulted by `vuln-research` and `vuln-fixer`.
 
-One of these subtrees (`docs-profiles/`) also holds the data or template files named in the introduction above, so its `*.md` count here is smaller than `find <dir> -type f` would report; `handoff/`, `upgrade/`, and `fix-vuln/` are markdown only, and for those the two counts agree.
-
-## Skills
-
-One skill ships under `skills/` — reusable guidance packaged for the `Skill` tool, distinct from a `references/` file that a command or agent reads directly by path. The `model-routing` skill, which every pipeline command still invokes at its classification step, ships in `workflows-core` alongside the classification reference it resolves.
-
-| Skill | Invocable | What it's for |
-|---|---|---|
-| `docs-frontmatter` | Yes | Applies documentation frontmatter conventions — changelog entries, page owners, core metadata fields — when editing a page under any content root the applicable docs profile declares. |
+All three subtrees are markdown only, so each figure above is both its `*.md` count and its `find <dir> -type f` count. The one subtree that held non-markdown data — `docs-profiles/`, with its defaults file and owners list — moved to `docs-workflows` with the commands that read it, and its entry is on that plugin's own references page.

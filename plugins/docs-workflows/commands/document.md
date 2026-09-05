@@ -20,7 +20,7 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 
 `/document` has **two modes**, selected by the first argument token:
 
-- **Keyed mode (Mode A)** — the first token is a **single positional address**: a `<KEY>` matching `workflows-core:addressing` §1's grammar, or an `@<path>` naming a folder in the specs tree. `resolve-address` (§3) turns it into a folder; `ambiguous` is a stop naming every match. **`status: absent` is a stop, not a folder to create** — it surfaces the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`), the same rule Phase 3 surfaces for a folder that exists and holds no PRD, and names what creates a folder this command reads — **all three creators, not one**: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command. Naming only `/create-prd` is wrong on the BRD route, where that command refuses the container above the slice, and wrong for an `EPIC-` address, which it never mints — the same list `/dev-workflows:ready`, `/dev-workflows:release-notes`, `/dev-workflows:epics` and `/dev-workflows:create-ard` each print in their own `absent` stops. It never falls through to direct mode: an address that resolved to nothing is a typo to correct, not a prose prompt to document.
+- **Keyed mode (Mode A)** — the first token is a **single positional address**: a `<KEY>` matching `workflows-core:addressing` §1's grammar, or an `@<path>` naming a folder in the specs tree. `resolve-address` (§3) turns it into a folder; `ambiguous` is a stop naming every match. **`status: absent` is a stop, not a folder to create** — it surfaces the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`), the same rule Phase 3 surfaces for a folder that exists and holds no PRD, and names what creates a folder this command reads — **all three creators, not one**: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command. Naming only `/create-prd` is wrong on the BRD route, where that command refuses the container above the slice, and wrong for an `EPIC-` address, which it never mints — the same list `/dev-workflows:ready`, `/docs-workflows:release-notes`, `/dev-workflows:epics` and `/dev-workflows:create-ard` each print in their own `absent` stops. It never falls through to direct mode: an address that resolved to nothing is a typo to correct, not a prose prompt to document.
 - **Direct mode (Mode B)** — no positional address: a leading `@file` token, free-text prose, or a directory that is not in the specs tree, which Mode B handles via its existing "anything else" path.
 
 **The mode test is the presence of an address**, which is what replaces the retired shared front-end's own mode return. Mode B is unchanged in every other respect — a direct-mode run is byte-identical to before.
@@ -76,7 +76,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 4. **Resolve the profile** (record `profile_source`). The profile steers all later phases' conventions. Resolve in this order:
    - **(a) In-repo profile →** `in-repo`. If `<docs_repo_path>/.dev-workflows/docs-profile.yml` exists, load it. `profile_source: in-repo`.
    - **(b) Built-in default profile →** `built-in`. Else, if `is_known_docs_repo`, load `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile.default.yml`. `profile_source: built-in`.
-   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/docs-profile` flow against `docs_repo_path` (Skill tool, `skill: "dev-workflows:docs-profile"`, with `docs_repo_path --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to write `<docs_repo_path>/.dev-workflows/docs-profile.yml`. Then load that file. `profile_source: generated`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /dev-workflows:docs-profile or switch to a profiled repo.`
+   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/docs-profile` flow against `docs_repo_path` (Skill tool, `skill: "docs-workflows:docs-profile"`, with `docs_repo_path --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to write `<docs_repo_path>/.dev-workflows/docs-profile.yml`. Then load that file. `profile_source: generated`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /docs-workflows:docs-profile or switch to a profiled repo.`
 
    Hold the loaded profile for later phases.
 
@@ -229,7 +229,7 @@ Each subagent dispatch below cites which chain it uses (the §9 role→chain map
 - **`current_model` is on the §2 chain** → no advisory.
 - **`current_model` is NOT on the §2 chain and `opus_available: true`** → the heavy synthesis + writing are already on Opus; the residual risk is the orchestrator's **context window** on a **large multi-repo ticket**. Offer relaunch **only** on such a ticket — that condition gates the prompt, so once the list is shown the recommendation holds unconditionally (per the `(Recommended)`-marker rule in `workflows-core:escalation-rules`):
   ```
-  choices: ["Relaunch /dev-workflows:document under Opus — I'll restart (Recommended)", "Proceed on <current_model>", "Cancel"]
+  choices: ["Relaunch /docs-workflows:document under Opus — I'll restart (Recommended)", "Proceed on <current_model>", "Cancel"]
   ```
   Otherwise proceed without prompting.
 - **`current_model` is NOT on the §2 chain and `opus_available: false`** → `planning_model`, `review_model`, and the **doc-writer** all fall to the Sonnet floor; record the degradation in `notes` and the Phase 9 report; proceed.
@@ -355,7 +355,7 @@ Spawn `diff-summarizer` instances in **batches of up to 4 concurrent agents** pe
 
 For each repo, in the same Agent message:
 
-→ Agent (subagent_type: "dev-workflows:diff-summarizer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "docs-workflows:diff-summarizer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Summarise this repo's PRs for the brief:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 4>
@@ -395,7 +395,7 @@ choices: ["Proceed with PRD-only content (Recommended — writer/planner draw fr
 
 Invoke `doc-location-finder`:
 
-→ Agent (subagent_type: "dev-workflows:doc-location-finder", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "docs-workflows:doc-location-finder", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Find write target(s) for the brief:
   >
   > repo_root:       [the resolved docs_repo_path (Phase 0)]
@@ -505,7 +505,7 @@ The selected add-list paths populate the existing **`screenshots[]`** passed to 
 
 Invoke `doc-planner`:
 
-→ Agent (subagent_type: "dev-workflows:doc-planner", model: `<planning_model — §9 / §2 Opus chain>`):
+→ Agent (subagent_type: "docs-workflows:doc-planner", model: `<planning_model — §9 / §2 Opus chain>`):
   > "Produce the documentation checklist for the brief:
   >
   > folder_read: [paste full YAML from Phase 3; when focus_key is set, restrict linked items to focus_items]
@@ -649,7 +649,7 @@ The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opu
 
 2. **Dispatch the writer:**
 
-→ Agent (subagent_type: "dev-workflows:doc-writer", model: `<planning_model — §9 / §2 Opus chain>`):
+→ Agent (subagent_type: "docs-workflows:doc-writer", model: `<planning_model — §9 / §2 Opus chain>`):
   > "Write the product documentation for this brief.
   >
   > handoff_file: [absolute path of the temp handoff file from step 1]"
@@ -683,7 +683,7 @@ This table governs the **documentation write target only**. Independently of eve
 
 Invoke `docs-style-checker` on the files written in Phase 6.3:
 
-→ Agent (subagent_type: "dev-workflows:docs-style-checker", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "docs-workflows:docs-style-checker", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Run the style check for this brief:
   >
   > repo_root: [the resolved docs_repo_path (Phase 0)]
@@ -805,7 +805,7 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
 
 Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `review_model`, no dispatch override added). The reviewer is **product-docs-only**; Epic drafts go through `epic-reviewer` in `/epics`.
 
-→ Agent (subagent_type: "dev-workflows:doc-reviewer"):
+→ Agent (subagent_type: "docs-workflows:doc-reviewer"):
   > "Review the written product documentation for this brief:
   >
   > Task description: [one-paragraph summary of the feature and <KEY>]
@@ -1094,13 +1094,13 @@ List each gap (claim, decision) with its own status line — never print the DO-
 [When Phase 8.5 ran: "Branch <name> — squashed to N commit(s); pushed to origin: <yes/no>; PR draft: <pr-draft path>." When Phase 8.5 was skipped (no branch/commits): "Working tree has uncommitted changes. /document (keyed mode) writes but does not commit the docs write target in non-git contexts; this run's $SPECS_PATH session artifacts are committed separately by the terminal step."]
 
 ### Next step
-[Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. Once **all** the PRD's Epics are documented, draft/finalize the release note → `/dev-workflows:release-notes <PRD>` (PRD-level; run once, not per Epic). If the review BLOCKED, resolve that first.]
+[Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. Once **all** the PRD's Epics are documented, draft/finalize the release note → `/docs-workflows:release-notes <PRD>` (PRD-level; run once, not per Epic). If the review BLOCKED, resolve that first.]
 
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase (Phase 11), per `workflows-core:session-hygiene` §1. Then:
 
-- **On to `/dev-workflows:release-notes <PRD>` (still Dev — a spec or design exists by now, so this is the late run)?** → run **`/compact`** — context stays relevant.
+- **On to `/docs-workflows:release-notes <PRD>` (still Dev — a spec or design exists by now, so this is the late run)?** → run **`/compact`** — context stays relevant.
 - Consider **`/rename <PRD-ID>-<slug>-dev`** to relocate this session later.
 
 Guidance only — see `workflows-core:session-hygiene`.
@@ -1286,7 +1286,7 @@ Doc edits in this command are always either **SIMPLE** or **MODERATE**:
 
 If your reading of the task lands closer to SIGNIFICANT or HIGH-RISK (multi-repo, net-new feature pages from a PRD folder, published-documentation blast radius that needs a reviewer gate), **stop and redirect the user** to keyed mode or `/epics`:
 ```
-choices: ["Re-run under /dev-workflows:document (keyed mode) (for PRD-sourced feature documentation) (Recommended)", "Re-run under /dev-workflows:epics (for Epic drafting)", "Proceed under direct mode anyway — I accept the simplified flow", "Cancel"]
+choices: ["Re-run under /docs-workflows:document (keyed mode) (for PRD-sourced feature documentation) (Recommended)", "Re-run under /dev-workflows:epics (for Epic drafting)", "Proceed under direct mode anyway — I accept the simplified flow", "Cancel"]
 ```
 
 State the classification and a one-line reason, then proceed to Phase 2A.
@@ -1361,7 +1361,7 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 
 After writing the edits and before Phase 4, dispatch `docs-style-checker` on the changed file(s):
 
-→ Agent (subagent_type: "dev-workflows:docs-style-checker"):
+→ Agent (subagent_type: "docs-workflows:docs-style-checker"):
   > repo_root: [cwd's git root]
   > files:     [the files edited in Phase 3]
 

@@ -9,17 +9,19 @@
     "create-ard",
     "create-prd",
     "design",
-    "docs-profile",
-    "document",
     "epics",
     "idea",
     "implement",
     "ready",
-    "release-notes",
     "specify",
     "update-prd",
     "upgrade",
     "vuln"
+  ],
+  "docs-workflows": [
+    "docs-profile",
+    "document",
+    "release-notes"
   ],
   "guideline-reviewers": [
     "api-guideline-reviewer",

@@ -1,0 +1,24 @@
+{
+  "name": "docs-workflows",
+  "version": "1.0.0",
+  "description": "Three commands for the documentation half of the dev-workflows pipeline: /document (direct mode on any repository, or keyed mode against a resolved PRD folder's PR trail) reads implementation diffs and PRD content, synthesises product documentation, and gates it on a style check plus an Opus doc review; /docs-profile scans a documentation repository once and writes a reusable machine-readable profile plus CLAUDE.md guidance that /document consumes, as a reviewable PR; /release-notes drafts a destination-shaped release-notes entry (breaking change, feature update, or fix) from the same PRD folder, optionally grounded in PR diffs. Seven agents and fourteen reference files carry the docs-repo discovery, PR-diff summarising, doc planning, doc writing, and doc review these three commands share. Depends on the shared workflows-core foundation and on prose-style for its style-check gate.",
+  "author": {
+    "name": "Ivan Gudak",
+    "email": "ihudak@gmail.com"
+  },
+  "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/docs-workflows",
+  "repository": "https://github.com/ihudak/ihudak-claude-plugins",
+  "license": "MIT",
+  "dependencies": [
+    "workflows-core",
+    "prose-style"
+  ],
+  "keywords": [
+    "documentation",
+    "release-notes",
+    "docs-profile",
+    "product-docs",
+    "prd",
+    "style-check"
+  ]
+}

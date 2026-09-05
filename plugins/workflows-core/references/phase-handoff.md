@@ -33,6 +33,10 @@ All of: `$SPECS_PATH` is set and is an existing directory; `git -C "$SPECS_PATH"
 
 Gate fails on path / repo / permission grounds → report that the deliverable is written but not handed off, and stop. Gate fails on `specs_git: blocked` → re-emit that notice. **Never silent** — unlike the bookkeeping steps, silence here would hide the fact that the phase did not complete.
 
+**Then probe for a push target — and do not gate on it.** `git -C "$SPECS_PATH" remote get-url origin`: exit 0 with a non-empty URL sets `remote: origin`, anything else sets `remote: none`. A specs repo with no `origin` is an ordinary state (a tree kept locally, a clone whose remote was removed), and it is deliberately **not** a gate failure: branching and committing there still does the useful half of this entry point, and a deliverable is safer on a local commit than in a working tree. What `remote: none` removes is §2.5's push and §2.6's pull request — both are skipped — so the run says so **before** the choice is presented (§4.3's notice) and reports it afterwards through §4.1's *No remote* row.
+
+**The probe is `origin` specifically, because every later step names `origin` literally** — §2.2's `refs/remotes/origin/<name>`, §2.5's `push -u origin`, §2.6's `OWNER_REPO` derivation, and §3.2's `origin/<default>`. A repository whose only remote is under some other name is therefore `remote: none` for this entry point. **Probing is not optional and no earlier step stands in for it:** §2.1's four existing conditions are all satisfiable on a repository with no remote at all, so without this probe the producer offers — marked `(Recommended)` — a *"push + open PR"* option that cannot succeed, and the operator learns it only from the raw `git push` error §2.5 reports. That is the state this probe was added for, observed live.
+
 ### 2.2 Branch resolution, and the collision rule
 
 Intended name: `<prefix>/<KEY>-<slug>`, where `<prefix>` is the caller's own (§2.9) and `<KEY>-<slug>` come from **the resolved feature folder the deliverable was written into** — never re-derived from the item title. Folder resolution already tolerates a human-adjusted slug and a stray `-`/`_` after the key, and re-deriving would produce a branch name that disagrees with the directory it commits.
@@ -76,7 +80,11 @@ Message `<KEY> <summary>`, matching the specs repo's own `<KEY|NOISSUE> <summary
 
 `git -C "$SPECS_PATH" push -u origin <branch>`. Never force. A non-fast-forward rejection is reported, never resolved by rebasing or forcing mid-run.
 
+**Skipped entirely where §2.1 set `remote: none`**, and §2.6 is skipped with it — a pull request needs a pushed head. The commit §2.4 made still stands; §4.1's *No remote* row reports it, and the phase is described as **not handed off** exactly as §2.8 requires of every other way the push can fail to land.
+
 ### 2.6 Open the pull request
+
+Not reached where §2.1 set `remote: none` — §2.5 pushed nothing, and `gh` has no head branch to open a pull request from.
 
 **First, probe for an existing pull request** — this entry point's §2.2 rule 3 deliberately *reuses* an in-progress branch, and §2.2 says in as many words that collision is normal rather than exceptional, so a branch that already carries a pull request is the ordinary case here:
 
@@ -268,12 +276,13 @@ Exactly one, prefixed `Phase handoff:`.
 | PR already existed | `Phase handoff: <branch> pushed to existing PR #<n> (<url>). <downstream-clause>` |
 | PR not opened | `Phase handoff: <branch> pushed — PR NOT opened (<reason>). Open it manually. <downstream-clause>` |
 | Push failed | `Phase handoff: committed <sha7> on <branch> — push FAILED (<reason>). The phase is NOT handed off.` |
+| No remote | `Phase handoff: committed <sha7> on <branch> — this specs repo has no origin remote, so nothing was pushed and no PR was opened. The phase is NOT handed off.` |
 | Nothing to commit | `Phase handoff: no deliverable changes to commit on <branch>` |
 | Branch name substituted | append `; branch name <intended> was taken, used <actual>` |
 | Declined by the user | `Phase handoff: skipped at your request — <artifact> is written but not on <default>. <next-phase-clause>` |
 | Gate failed | `Phase handoff: NOT handed off — <reason>` |
 
-**`<downstream-clause>` is resolved from §4.0's class, on the same principle as the array.** On a **gated** artifact it is `The next phase runs once it is merged.` — or, on the *PR not opened* row, `The next phase will stop until it is merged.` On an **advisory** one it is `No command waits on this; what reads it reads it as advice.` On an **unread** one it is `Nothing downstream reads it, so no command waits on this.` These are the *success* path, and before this clause existed they asserted a waiting phase unconditionally — so a `/frames` run that handed off cleanly printed "The next phase runs once it is merged." having, in the same phase, just offered the §4.3 array that says nothing reads it. A run must not contradict its own prompt, and the outcome line is the half the operator acts on.
+**`<downstream-clause>` is resolved from §4.0's class, on the same principle as the array.** On a **gated** artifact it is `The next phase runs once it is merged.` — or, on the *PR not opened* row, `The next phase will stop until it is merged.` On an **advisory** one it is `No command waits on this; what reads it reads it as advice.` On an **unread** one it is `Nothing downstream reads it, so no command waits on this.` These are the *success* path, and before this clause existed they asserted a waiting phase unconditionally — so a `/frames` run that handed off cleanly printed "The next phase runs once it is merged." having, in the same phase, just offered the §4.3 array that says nothing reads it. A run must not contradict its own prompt, and the outcome line is the half the operator acts on. The *No remote* and *Push failed* rows carry no clause at all: neither landed the artifact, so the sentence to print about what happens next is the same one the *Declined by the user* row prints, and repeating it beside "The phase is NOT handed off." would say twice what that row already says once.
 
 **`<next-phase-clause>` resolves four ways: §4.0's three classes, with the *gated* one split by §3.4's own column.** Declining writes no branch and no commit, so a gated artifact's next phase reads **row F** — which delegates, and §3.4 records per consumer whether that delegation is a stop or a fallback. The four:
 
@@ -313,6 +322,12 @@ No two of the four are interchangeable, and each wrong pick misleads in its own 
 The second option's parenthetical is load-bearing: it is the only place the user learns what declining costs, and the only reason there are three arrays rather than one. It must agree with the `<next-phase-clause>` §4.1 prints on that same decline — the two are read by the same operator minutes apart, and a run that contradicts its own prompt teaches them to trust neither half. Each wrong pick misleads in its own direction: the gated array promises a refusal the operator will not meet, and the unread array tells them to ignore a phase that is reading the file.
 
 **Select by §4.0's test, never by "has a §3.4 row" alone.** A missing row rules out **gated** and decides nothing between **advisory** and **unread**; the producer settles that by naming the reader, or by naming that there is none. Both halves of the old binary were wrong about `_readiness.md` at once: `/ready` presented the gated array for an artifact no command gates, and the alternate it should have fallen to under the "no §3.4 row" test would have told the operator that nothing downstream reads a file `/implement` Phase 0.5 reads on every keyed run.
+
+**Where §2.1 set `remote: none`, print one line immediately above the array**, then present the array itself unchanged:
+
+    This specs repo has no `origin` remote: the first option will branch and commit locally, and the push and pull request cannot run.
+
+The array is not reworded for this, and that is deliberate rather than lazy. The option text says what the option is *for*; the class parenthetical is already the only thing that varies between the three, and making the option line vary on the remote as well would be three more literal strings for every producer to keep in step — to carry a fact about the *repository*, which every class shares, rather than about the artifact, which is what the class distinguishes. The line above the array is where the operator meets that fact, at the moment they choose, which is exactly what this section's agreement principle asks for; §4.1's *No remote* row then reports the same fact when the run finishes. The first option keeps its `(Recommended)` marker: committing the deliverable locally is still the best of the three, and the notice has already said what it will and will not do.
 
 **What each option means.** Option 1 runs `handoff-to-main` (§2). Options 2 and 3 both decline it: the deliverable stays written and uncommitted, and the producer emits §4.1's "Declined by the user" line either way. They differ only in recorded intent — option 2 states the user will handle git themselves, option 3 states nothing — so a caller must not infer from option 3 that the artifact is unwanted, and must never delete or revert it. **Neither option stops the run's emitter tail**: feedback → follow-ups → cost → `resume.md` → `commit-artifacts` still executes, because that tail commits only `$SPECS_PATH`'s bounded session-artifact paths (`specs-repo-git.md` §2.1), never the deliverable this choice governs.
 

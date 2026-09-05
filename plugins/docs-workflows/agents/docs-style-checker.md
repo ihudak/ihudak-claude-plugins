@@ -1,10 +1,10 @@
 ---
 name: docs-style-checker
-description: Runs the docs repo's project-configured prose linter (e.g. Vale) on files written by `/document` (keyed mode, or direct mode) AND, when the prose-style plugin is installed, also runs prose-style-checker as a complementary semantic / cross-page-consistency pass. Merges and dedupes both finding sets into the doc-reviewer / doc-fixer schema. Detects tooling (Vale, project lint script, markdownlint, remark) from the repo; does not embed any specific style guide. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Runs the docs repo's project-configured prose linter (e.g. Vale) on files written by `/document` (keyed mode, or direct mode) AND also runs prose-style-checker as a complementary semantic / cross-page-consistency pass. Merges and dedupes both finding sets into the doc-reviewer / doc-fixer schema. Detects tooling (Vale, project lint script, markdownlint, remark) from the repo; does not embed any specific style guide. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Bash", "Task"]
 ---
 
-Run the docs repo's project-configured prose linter on a set of files, and ALSO (when available) run `prose-style-checker` as a complementary semantic / cross-page-consistency pass. Merge and dedupe their findings into a single reviewer finding schema.
+Run the docs repo's project-configured prose linter on a set of files, and ALSO run `prose-style-checker` as a complementary semantic / cross-page-consistency pass. Merge and dedupe their findings into a single reviewer finding schema.
 
 Invoked from `/document` (keyed mode, Phase 6.4) and `/document` (direct mode, Phase 3.5), after the files are written and before `doc-reviewer`. Catching corporate-style issues locally frees the doc-reviewer (Opus) to spend its attention budget on correctness and completeness rather than prose policing, and ensures the eventual PR doesn't bounce on CI style checks.
 
@@ -47,7 +47,7 @@ or empty, run the whole-repo detection ladder below unchanged.
 > detected but fails (missing binary, non-zero exit with no parseable output, timeout) is recorded in
 > `primary_attempts` and the ladder moves on. Step 5 (`prose-style-checker`) is reached after steps 1–4
 > have each been tried — never as an escape hatch from the first one. Only return `ERROR` if every
-> primary rung AND `prose-style-checker` fail or are unavailable.
+> primary rung failed or was never detected AND `prose-style-checker` also failed.
 >
 > This matters concretely: `example-docs` has both a `.vale.ini` (step 1) and `pnpm docs:lint`
 > / `pnpm self-hosted:lint` scripts (step 2). When `vale` is not installed, step 2 is the linter CI will
@@ -62,12 +62,12 @@ or empty, run the whole-repo detection ladder below unchanged.
 
 4. **No primary pass succeeded** — either no project-level linter was detected at all, or every rung that was detected has been tried and failed (each recorded in `primary_attempts`). Go to step 5. Which role `prose-style-checker` takes depends on which of those two happened, and step 5's own bullets decide it: SOLE when nothing was ever detected, FALLBACK when rungs were tried and failed. When no rung succeeded, set `primary_linter: none` — that is the only path that produces it.
 
-5. **`prose-style-checker` — role depends on whether steps 1-3 succeeded.**
-   - If steps 1-3 succeeded → run as **COMPLEMENTARY** pass (always, when `prose-style` is installed). Merge findings with the primary pass.
+5. **`prose-style-checker` — always runs; its role depends on whether steps 1-3 succeeded.**
+   - If steps 1-3 succeeded → run as **COMPLEMENTARY** pass. Merge findings with the primary pass.
    - If steps 1-3 errored → run as **FALLBACK** pass. Use as the sole result.
    - If steps 1-4 found no primary linter → run as **SOLE** pass.
 
-   If the `prose-style` plugin is installed (its `prose-style-checker` agent is available), invoke it:
+   `prose-style` is a declared dependency of `docs-workflows`, so its `prose-style-checker` agent is always available — an unsatisfied dependency disables the plugin rather than letting a run reach this step without it. Invoke it:
    - `subagent_type: "prose-style:prose-style-checker"`
    - Input: `files: <the same files list>`, `doc_type: <"product-docs" for docs repos, "general" otherwise>`.
 
@@ -78,8 +78,7 @@ or empty, run the whole-repo detection ladder below unchanged.
 
    The complementary pass NEVER promotes the overall status to ERROR; it only adds findings or notes its own failure in `complementary_error`.
 
-   - **If `prose-style` is NOT installed AND no primary linter ran** → return `status: NOT_CONFIGURED`, `violations: []`. This is the **only** path that yields `NOT_CONFIGURED`. It is NOT a no-op for the caller: `/document` records the `style_check` gate as `UNAVAILABLE` and converts it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 before the reviewer runs.
-   - **If `prose-style` is NOT installed AND a primary linter ran** → proceed with primary findings only; record `complementary_linter: none`.
+   - **When `prose-style-checker` took the SOLE or FALLBACK role** there was no complementary pass beside a primary one: record `complementary_linter: none` and map its violations with `source: primary`, per the merge rules above.
 
 ## Merging primary + complementary findings (deduplication)
 
@@ -127,24 +126,23 @@ The plugin does NOT promote a linter MINOR into BLOCKER. The linter's own severi
 ## Output
 
 ```yaml
-status:                OK | NOT_CONFIGURED | VIOLATIONS_FOUND | ERROR
+status:                OK | VIOLATIONS_FOUND | ERROR
 primary_linter:        vale | per-space:<space id>[+<space id>…] | yarn:<script> | npm:<script> | markdownlint | remark | none
 primary_command:       <exact command line executed for the primary pass, or null>
 primary_attempts:      # every primary rung tried, in ladder order; [] only when step 1 succeeded first try
   - linter: vale | per-space:<space id> | pnpm:<script> | yarn:<script> | npm:<script> | markdownlint | remark
     outcome: succeeded | failed | not_detected
     reason:  <one line; null when outcome == succeeded>
-complementary_linter:  prose-style-checker | none | skipped
+complementary_linter:  prose-style-checker | none   # none = it ran as the SOLE / FALLBACK primary pass
 complementary_command: <exact agent invocation for the complementary pass, or null>
-violations:            [<merged + deduped array of the schema above; empty if status == OK or NOT_CONFIGURED>]
+violations:            [<merged + deduped array of the schema above; empty if status == OK>]
 error:                 <only when status == ERROR: one-line reason; describes the PRIMARY pass failure>
 complementary_error:   <only when the complementary pass failed independently; does NOT promote overall status to ERROR>
 ```
 
 - `status: OK` — at least one pass ran and produced zero merged violations.
-- `status: NOT_CONFIGURED` — no primary linter detected AND `prose-style` not installed.
 - `status: VIOLATIONS_FOUND` — at least one pass produced ≥ 1 violation (after merge + dedupe).
-- `status: ERROR` — every primary rung failed AND the `prose-style-checker` pass also failed or is not installed. This is NOT a licence for the caller to continue unchecked: `/document` records the `style_check` gate as `UNAVAILABLE` and converts it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 — in keyed mode before the reviewer, in direct mode before Phase 4.
+- `status: ERROR` — every primary rung failed or was never detected AND the `prose-style-checker` pass also failed. This is NOT a licence for the caller to continue unchecked: `/document` records the `style_check` gate as `UNAVAILABLE` and converts it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 — in keyed mode before the reviewer, in direct mode before Phase 4.
 
 ## Hard rules
 
@@ -158,5 +156,5 @@ complementary_error:   <only when the complementary pass failed independently; d
 - NEVER output a partially filled violation record (missing `file` or `line`). Drop such records and note the count in `error` if suspicious.
 - Cap each pass at 2 minutes (4 minutes total wall clock). On timeout, kill the pass and record it (`error` if primary, `complementary_error` if complementary).
 - If a primary linter emits warnings about its own configuration (e.g. "Vale: no styles found") rather than content, treat it as a primary-pass failure and fall through to `prose-style-checker`; the complementary pass may still succeed.
-- The complementary `prose-style-checker` pass is OPT-IN by installation: if `prose-style` is not installed, the chain degrades cleanly to the primary pass only (`complementary_linter: none`) — no warning, no error.
+- `prose-style` is a **declared dependency** of `docs-workflows`, so `prose-style-checker` is always available. NEVER branch on whether it is installed, and NEVER return a status meaning "no checker was available" — an unsatisfied dependency disables the plugin outright rather than producing a degraded run here.
 - NEVER dispatch any subagent other than `prose-style:prose-style-checker`. That one dispatch is your entire `Task` authority. **Never dispatch a reviewer of your own.** Review is the caller's to schedule, not yours. Your caller deliberately runs no reviewer on some paths — `/document` direct mode is lightweight by design and has no `doc-reviewer` gate at all — so a reviewer you spawn silently overrides the caller's own gate policy. Its verdict has no standing either: the caller never sees it, and you cannot act on it without exceeding your brief.

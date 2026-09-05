@@ -10,7 +10,7 @@ The gate `/document` runs after writing, plus the planner and the style checker 
 |---|---|---|---|---|
 | `doc-reviewer` | opus | Read, Glob, Grep, Skill | Reviews product documentation written by `/document` for correctness, completeness, and fitness for purpose; product-docs only — Epic drafts go through the pipeline plugin's `epic-reviewer`. | `/document` |
 | `doc-planner` | per routing | Read, Glob, Grep, Skill | Synthesises PRD content, per-repo diff summaries, and confirmed write targets into the documentation checklist the writer follows and the reviewer checks against; writes no content itself. | `/document` |
-| `docs-style-checker` | per routing | Read, Glob, Grep, Bash, Task | Runs the docs repo's configured prose linter and, when the `prose-style` plugin is installed, a complementary prose-style pass; merges both finding sets for `doc-reviewer`/`doc-fixer`. | `/document` |
+| `docs-style-checker` | per routing | Read, Glob, Grep, Bash, Task | Runs the docs repo's configured prose linter and a complementary `prose-style-checker` pass; merges both finding sets for `doc-reviewer`/`doc-fixer`. | `/document` |
 
 ## Readers and scanners
 

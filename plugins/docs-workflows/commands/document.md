@@ -679,7 +679,7 @@ This table governs the **documentation write target only**. Independently of eve
 
 **Mandatory:** the orchestrator MUST dispatch `docs-style-checker` and act on its return — never skip on its own judgement of which linters are installed.
 
-`docs-style-checker` runs the chain **internally**: the repo's primary linter (Vale, etc.) AND — when the `prose-style` plugin is installed — `prose-style-checker` as a complementary semantic / cross-page-consistency pass, merging and deduping both finding sets. The two are complementary, not redundant (Vale: lexical at scale + frontmatter; `prose-style-checker`: engineer jargon, cross-page label consistency, subject-verb agreement, plural/singular label mismatch). The command does NOT invoke `prose-style-checker` separately — the agent already did. It climbs the rungs as a ladder — a detected-but-broken rung does not abandon the ones below it — and, when the caller passes `spaces`, lints each written space with that space's own command.
+`docs-style-checker` runs the chain **internally**: the repo's primary linter (Vale, etc.) AND `prose-style-checker` as a complementary semantic / cross-page-consistency pass, merging and deduping both finding sets. The two are complementary, not redundant (Vale: lexical at scale + frontmatter; `prose-style-checker`: engineer jargon, cross-page label consistency, subject-verb agreement, plural/singular label mismatch). The command does NOT invoke `prose-style-checker` separately — the agent already did. It climbs the rungs as a ladder — a detected-but-broken rung does not abandon the ones below it — and, when the caller passes `spaces`, lints each written space with that space's own command.
 
 Invoke `docs-style-checker` on the files written in Phase 6.3:
 
@@ -695,13 +695,8 @@ Write the `style_check` ledger row before acting on the return — rewriting the
 `primary_attempts` and `complementary_linter`:
 
 - no file was written in Phase 6.3 → `NOT_APPLICABLE`, `precondition_unmet: "no files written"`.
-- a primary rung succeeded → `RAN`, `mechanism: <primary_linter>` (+ `prose-style-checker` when it ran),
-  `findings:` = the number of merged violations returned.
-- every primary rung failed but `prose-style-checker` ran → `DEGRADED`, `not_run:` one entry per failed
-  rung from `primary_attempts`, `ci_still_checks: "<the repo's own linter> runs on the PR in CI"`, and
-  `findings:` = the number of merged violations returned.
-- `status: NOT_CONFIGURED` (no primary rung detected AND `prose-style` absent) → `UNAVAILABLE`;
-  convert it per `gate-ledger.md` §5 before proceeding.
+- a primary rung succeeded → `RAN`, `mechanism: <primary_linter> + prose-style-checker` (the complementary pass always runs; name `<primary_linter>` alone only when the return carries a `complementary_error`), `findings:` = the number of merged violations returned.
+- no primary rung produced a result — every detected rung failed, or none was ever detected — but `prose-style-checker` ran → `DEGRADED`, `not_run:` one entry per rung from `primary_attempts`, `ci_still_checks: "<the repo's own linter> runs on the PR in CI"`, and `findings:` = the number of merged violations returned.
 - `status: ERROR` → `UNAVAILABLE`; convert it per `gate-ledger.md` §5.
 
 Also write the `repo_checklist` row (creating it, or rewriting it in place if one exists): `NOT_APPLICABLE` with
@@ -711,7 +706,6 @@ number of checklist items that failed against the written files.
 
 Then act on the return:
 
-- **`status: NOT_CONFIGURED`** — no primary rung was detected AND `prose-style` is not installed (the agent already climbed the whole ladder). This is a real coverage hole, not a no-op: the ledger row is `UNAVAILABLE` and `gate-ledger.md` §5 converts it before Phase 7. Never proceed on `NOT_CONFIGURED` without that conversion.
 - **`status: OK`** — the chain ran (primary and/or complementary), zero merged violations. Proceed to Phase 7.
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, **check its `Stop condition flag`**: `docs-style-checker` maps a linter's own blocking failure to `BLOCKER` (`agents/docs-style-checker.md`), so this dispatch can return `NEEDS HUMAN` — the fixer deferred a blocking violation it could not safely fix. On `NEEDS HUMAN`, surface each deferred BLOCKER with the fixer's reason and ask the user how to resolve it — fix by hand and re-run, or skip the check. A silent re-run only reports the same violation again. The `style_check` gate row stays open until that answer lands and then records its outcome per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` — `RAN` after a hand fix and re-run, `SKIPPED_BY_USER` with the choice quoted verbatim if skipped. Only on `CLEAR` re-run the linter once:
 
@@ -730,7 +724,7 @@ Then act on the return:
 
   When the re-run completes, rewrite the `style_check` row's `findings:` to the post-fix violation count so the Phase 9 table reports what survived, not what was found.
 
-- **`status: ERROR`** — every primary rung AND the `prose-style-checker` pass failed or were unavailable. Surface the error reason, then STOP: the `style_check` row is `UNAVAILABLE`, and the only prompt the user sees is the `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 conversion list. Do NOT ask an ad-hoc question here — §5 owns this decision, and the "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules` binds it.
+- **`status: ERROR`** — every primary rung failed or was never detected, and the `prose-style-checker` pass also failed. Surface the error reason, then STOP: the `style_check` row is `UNAVAILABLE`, and the only prompt the user sees is the `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 conversion list. Do NOT ask an ad-hoc question here — §5 owns this decision, and the "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules` binds it.
 
 ---
 
@@ -1367,9 +1361,9 @@ After writing the edits and before Phase 4, dispatch `docs-style-checker` on the
 
 - `VIOLATIONS_FOUND` → apply safe fixes via `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`, one fix cycle), then check the fixer's `Stop condition flag`. On `NEEDS HUMAN` it deferred a blocking violation it could not safely fix: surface each deferred BLOCKER with the fixer's reason and ask the user whether to fix it by hand and re-run, or skip the check — direct mode runs no reviewer, so nothing downstream would catch it. Record the `style_check` row from that answer per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` (`RAN` after a hand fix and re-run, `SKIPPED_BY_USER` with the choice quoted verbatim). Only on `CLEAR` re-run once.
 - `OK` → proceed to Phase 4.
-- `NOT_CONFIGURED` / `ERROR` → no primary rung and no complementary pass produced a result, so the gate has no coverage. Record `style_check` as `UNAVAILABLE` and convert it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 before proceeding. Direct mode has no reviewer gate, so this prompt is the only place the gap surfaces — never proceed past it silently.
+- `ERROR` → neither a primary rung nor the `prose-style-checker` pass produced a result, so the gate has no coverage. Record `style_check` as `UNAVAILABLE` and convert it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 before proceeding. Direct mode has no reviewer gate, so this prompt is the only place the gap surfaces — never proceed past it silently.
 
-Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `prose-style-checker` runs as a complementary semantic pass whenever the `prose-style` plugin is installed — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Write the `style_check` ledger row here — rewriting the preflight's pre-seeded row if there is one, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3's one-row-per-gate rule (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), carrying the returned `primary_attempts`: `RAN` when a primary rung succeeded; `DEGRADED` when every rung failed but `prose-style-checker` ran, with `not_run:` one `{mechanism, reason}` entry per failed rung and a `ci_still_checks:` line; `UNAVAILABLE` per the bullets above; `NOT_APPLICABLE` with `precondition_unmet: "no files edited"` when Phase 3 changed nothing.
+Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `prose-style-checker` always runs on top as a complementary semantic pass — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Write the `style_check` ledger row here — rewriting the preflight's pre-seeded row if there is one, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3's one-row-per-gate rule (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), carrying the returned `primary_attempts`: `RAN` when a primary rung succeeded; `DEGRADED` when no primary rung produced a result — every detected rung failed, or none was ever detected — but `prose-style-checker` ran, with `not_run:` one `{mechanism, reason}` entry per rung and a `ci_still_checks:` line; `UNAVAILABLE` per the bullets above; `NOT_APPLICABLE` with `precondition_unmet: "no files edited"` when Phase 3 changed nothing.
 
 After the style check, hold the edited files against the `repo_verification_gates` block extracted in Phase 0 (`${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §5) and append the `repo_checklist` ledger row: `RAN` with `findings:` = the number of entries that failed, or `NOT_APPLICABLE` with `precondition_unmet: "the repo publishes no pre-PR checklist"` when the block is empty. Report any failed entry to the user with its `source` citation — direct mode has no reviewer gate, so this is where the repo's own rules surface.
 

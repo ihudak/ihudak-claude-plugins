@@ -20,7 +20,7 @@ Two other plugins arrive with it, because they are **declared dependencies** rat
 
 **What you do not need.** The companion `dev-workflows` pipeline plugin is not a dependency in either direction. `/document` and `/release-notes` read a folder in a specs tree; whether the plugin that authored that folder is installed on *your* machine makes no difference. Install it if you also author PRDs, specifications and designs.
 
-**What you also need, and it is not a plugin.** A prose linter helps but is not required — `vale`, a repo lint script, `markdownlint` or `remark` are all detected if present, and `prose-style` covers the run when none of them is. The style check is mandatory, so a repository with no linter at all still forces an explicit choice rather than skipping quietly.
+**What you also need, and it is not a plugin.** A prose linter helps but is not required — `vale`, a repo lint script, `markdownlint` or `remark` are all detected if present, and `prose-style` covers the run when none of them is. Because `prose-style` arrives as a declared dependency, a repository with no linter of its own is still style-checked rather than waved through; what a missing `vale` costs you is the lexical pass CI will run on your PR, which is why the Phase 0 toolchain preflight names it.
 
 ## Update
 

@@ -70,7 +70,7 @@ Independent of either mode's own writes, the terminal `commit-artifacts` step co
 
 ## Gates
 
-**`docs-style-checker` is mandatory in both modes** and dispatched unconditionally — the orchestrator never skips it on its own judgement of which linters are installed. It runs the repo's primary linter (Vale or equivalent) and, when the `prose-style` plugin is installed, `prose-style-checker` as a complementary semantic pass, merging both finding sets; violations go to `doc-fixer`.
+**`docs-style-checker` is mandatory in both modes** and dispatched unconditionally — the orchestrator never skips it on its own judgement of which linters are installed. It runs the repo's primary linter (Vale or equivalent) and `prose-style-checker` as a complementary semantic pass, merging both finding sets; violations go to `doc-fixer`. `prose-style` is a declared dependency, so the complementary pass has no absent case — it is also what carries the check on a repository that configures no linter of its own.
 
 Every gate's outcome is recorded in a run-scoped `gate_ledger` with six possible outcomes — `RAN`, `DEGRADED`, `FAILED`, `UNAVAILABLE`, `SKIPPED_BY_USER`, `NOT_APPLICABLE` — and no outcome is orchestrator-assignable to mean "I decided this wasn't necessary": `UNAVAILABLE` must be converted to one of the other five before the run proceeds, `SKIPPED_BY_USER` must carry the user's decision verbatim, and `NOT_APPLICABLE` must name the unmet precondition. **Every gate in the registry appends its row when that gate completes; a missing row, an unconverted `UNAVAILABLE`, or an unattributed skip is a `doc-reviewer` BLOCKER.** keyed mode's registry has seven gate ids:
 

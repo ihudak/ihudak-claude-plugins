@@ -235,6 +235,29 @@ For rows D and E, after §3.2's ref scan finds a carrying branch:
 
 ## 4. Reporting
 
+### 4.0 The three downstream classes
+
+`<downstream-clause>` (§4.1), `<next-phase-clause>` (§4.1) and the consent array (§4.3) all answer one question about the artifact the producer has just written — **what does not landing it cost?** — and all three must answer it the same way. There are **three** answers, not two:
+
+| Class | The test | What declining costs |
+|---|---|---|
+| **gated** | a consumer runs `require-on-main` on it — §3.4's table has a row naming it | that consumer's own §3.4 behaviour: a stop for most rows, a delegated fallback for the rows that preserve one |
+| **advisory** | no §3.4 row, **but** a command reads the artifact and never gates on it | nothing stops. The reader reads the working copy, so it still sees this run's result — the artifact is unshared, not blocking |
+| **unread** | no §3.4 row and no reader at all | nothing |
+
+The classes as the tree stands, each derived from the consumer rather than asserted here:
+
+| Artifact | Class | Derivation |
+|---|---|---|
+| `idea.md`, the PRD, the ARD, `specification.md`, `design.md`, `coverage-ledger.md`, `grounding/code-grounding.md`, `decisions.md`, `customer-review-prompt-<YYYYMMDD>.md` | gated | each is named in a §3.4 row |
+| `_readiness.md` | advisory | `/implement` Phase 0.5 reads a co-located copy and surfaces a one-line advisory on a `NOT-SUPPORTED`/`PARTIAL` verdict, explicitly never blocking. §3.4 names no gate on it |
+| `customer-review-<YYYYMMDD>.md` | advisory | `/brd-reconcile` reads the copy it canonicalised, and a later run of it reads one already on file for its overwrite-refusal test. Neither is a gate, and §3.4's `/brd-reconcile` row targets the *prompt*, not the review |
+| a frame-set `index.md` | unread | nothing runs `require-on-main` on one and nothing reads one. A grounding pass reads the frame set itself, from the working tree |
+
+**A handoff whose `deliverable_paths` set spans classes takes the strongest class in it** — **gated** if any one path is gated, otherwise **advisory** if any one is advisory. One array is presented for one handoff, and it has to state the largest thing declining costs: an operator told "no command stops on this" about a set containing a gated artifact will meet the stop anyway. `/brd-reconcile`'s two handoffs are the live case, and they differ: its first hands off the returned review alone (advisory), its second hands that review off together with `decisions.md` and `coverage-ledger.md`, both gated — so the second is gated even though one path in it is not.
+
+**Classify by naming the reader, never by the absence of a §3.4 row.** A missing row rules out **gated** and settles nothing else: it says the artifact is not *gated*, and says nothing at all about whether it is *read*. Conflating the two is what shipped — §4.3's second array told the operator that nothing downstream reads the artifact it was selected for, while `/implement` Phase 0.5 was reading `_readiness.md` on every keyed run. So: a §3.4 row ⇒ **gated**; no row ⇒ name the command and the phase that reads it, and where one can be named the class is **advisory**, where none can it is **unread**. Adding a reader for an artifact adds its row to the table above; a reader that becomes a gate moves the artifact into §3.4 and out of it.
+
 ### 4.1 `handoff-to-main` outcome line
 
 Exactly one, prefixed `Phase handoff:`.
@@ -250,28 +273,16 @@ Exactly one, prefixed `Phase handoff:`.
 | Declined by the user | `Phase handoff: skipped at your request — <artifact> is written but not on <default>. <next-phase-clause>` |
 | Gate failed | `Phase handoff: NOT handed off — <reason>` |
 
-**`<downstream-clause>` is resolved from §3.4's row too, and on the same principle.** Where §3.4 has
-a row for this artifact, it is `The next phase runs once it is merged.` — or, on the *PR not opened*
-row, `The next phase will stop until it is merged.` Where §3.4 has **no row at all**, it is `Nothing
-downstream reads it, so no command waits on this.` These three lines are the *success* path, and
-before this clause existed they asserted a waiting phase unconditionally — so a `/frames` run that
-handed off cleanly printed "The next phase runs once it is merged." having, in the same phase, just
-offered the §4.3 array that says nothing reads it. A run must not contradict its own prompt, and the
-outcome line is the half the operator acts on.
+**`<downstream-clause>` is resolved from §4.0's class, on the same principle as the array.** On a **gated** artifact it is `The next phase runs once it is merged.` — or, on the *PR not opened* row, `The next phase will stop until it is merged.` On an **advisory** one it is `No command waits on this; what reads it reads it as advice.` On an **unread** one it is `Nothing downstream reads it, so no command waits on this.` These are the *success* path, and before this clause existed they asserted a waiting phase unconditionally — so a `/frames` run that handed off cleanly printed "The next phase runs once it is merged." having, in the same phase, just offered the §4.3 array that says nothing reads it. A run must not contradict its own prompt, and the outcome line is the half the operator acts on.
 
-**`<next-phase-clause>` is resolved from §3.4's row for this artifact, and it is not always a stop.**
-Declining writes no branch and no commit, so the next phase's gate reads **row F** — which delegates.
-Where §3.4's row for that consumer says *stops*, the clause is
-`the next phase will stop until it is.` Where the row preserves a pre-existing absent behaviour — the
-`/create-prd` idea ladder, and the PRD read in `/create-ard` and `/specify` — the clause is
-`the next phase does not stop on that: it reports the artifact as un-landed and proceeds from the
-resolved folder.` Where §3.4 has **no row at all** because nothing downstream consumes the artifact —
-a frame-set index is the case, and `/frames` the producer — the clause is `nothing downstream reads it,
-so no command stops on this.` A missing row is not the same as a row that stops, and neither of the
-first two sentences is true of an artifact with no consumer: one promises a refusal that cannot
-happen, the other reports an un-landing to a phase that was never waiting. Printing the stop clause on
-a seam that does not stop tells the operator to expect a refusal they will not meet, and the three
-sentences cost nothing to tell apart: the producer knows which artifact it just wrote.
+**`<next-phase-clause>` resolves four ways: §4.0's three classes, with the *gated* one split by §3.4's own column.** Declining writes no branch and no commit, so a gated artifact's next phase reads **row F** — which delegates, and §3.4 records per consumer whether that delegation is a stop or a fallback. The four:
+
+- **gated**, where §3.4's row for that consumer says *stops* → `the next phase will stop until it is.`
+- **gated**, where the row preserves a pre-existing absent behaviour — the `/create-prd` idea ladder, and the PRD read in `/create-ard` and `/specify` → `the next phase does not stop on that: it reports the artifact as un-landed and proceeds from the resolved folder.`
+- **advisory** → `nothing stops on this; the phase that reads it reads your working copy, so it still sees this run's result.`
+- **unread** → `nothing downstream reads it, so no command stops on this.`
+
+No two of the four are interchangeable, and each wrong pick misleads in its own direction: the stop clause promises a refusal the operator will not meet, the fallback clause reports an un-landing to a phase that was never waiting, the advisory clause tells them a reader exists where none does, and the unread clause tells them to ignore a phase that is in fact reading the file. Telling them apart costs nothing — the producer knows which artifact it just wrote, and §4.0 says which class it is in.
 
 ### 4.2 The no-`gh` fallback text
 
@@ -279,22 +290,29 @@ sentences cost nothing to tell apart: the producer knows which artifact it just 
     Open one from <branch> into <default> in the web UI, using this title:
       <title>
     The body is at <body-path>.
-    <downstream-clause>   # §4.1 — never the bare "until it is merged" sentence, which is
-                          # false for an artifact nothing downstream consumes.
+    <downstream-clause>   # §4.1, resolved from the artifact's §4.0 class — never the bare
+                          # "until it is merged" sentence, which is false for both the
+                          # advisory and the unread class.
 
 ### 4.3 The consent choice
 
-Every producing command presents this array verbatim — order, wording, and the `(Recommended)` marker are not the caller's to change:
+**One array per §4.0 class.** A producing command presents the array its artifact's class selects, verbatim — order, wording, and the `(Recommended)` marker are not the caller's to change. Only the second option's parenthetical differs between the three; the first and third options are identical in all of them. (Quoting these arrays into a command is sanctioned, and is the one thing §5 rule 4 exempts from its "never restate this reference" rule — an array is user-facing text the harness renders literally, not a rule. That exemption carries one obligation, and it falls on the citing form only: a command that *cites* this array rather than quoting it names the class it cites for.)
+
+**gated** — a consumer runs `require-on-main` on this artifact:
 
     choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 
-The second option's parenthetical is load-bearing: it is the only place the user learns that declining has a downstream cost.
+**advisory** — nothing gates it, but a command reads it. `_readiness.md` is the case, and `/ready` the producer:
 
-**Where the artifact has no §3.4 row, present this array instead** — a frame-set index is the case, and `/frames` the producer:
+    choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (no command stops on this; what reads it reads your working copy)", "Cancel"]
+
+**unread** — nothing gates it and nothing reads it. A frame-set index is the case, and `/frames` the producer:
 
     choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (nothing downstream reads this, so no command stops on it)", "Cancel"]
 
-Only the second option's parenthetical differs, and it differs for the same reason §4.1 resolves `<next-phase-clause>` three ways rather than one: declining costs the operator nothing here, and the array is where they decide. Promising a stop that cannot happen tells them to expect a refusal they will not meet — and the run then contradicts itself, because §4.1's own third clause correctly reports that nothing downstream reads it. The choice and the outcome line must agree, and the producer knows which artifact it just wrote.
+The second option's parenthetical is load-bearing: it is the only place the user learns what declining costs, and the only reason there are three arrays rather than one. It must agree with the `<next-phase-clause>` §4.1 prints on that same decline — the two are read by the same operator minutes apart, and a run that contradicts its own prompt teaches them to trust neither half. Each wrong pick misleads in its own direction: the gated array promises a refusal the operator will not meet, and the unread array tells them to ignore a phase that is reading the file.
+
+**Select by §4.0's test, never by "has a §3.4 row" alone.** A missing row rules out **gated** and decides nothing between **advisory** and **unread**; the producer settles that by naming the reader, or by naming that there is none. Both halves of the old binary were wrong about `_readiness.md` at once: `/ready` presented the gated array for an artifact no command gates, and the alternate it should have fallen to under the "no §3.4 row" test would have told the operator that nothing downstream reads a file `/implement` Phase 0.5 reads on every keyed run.
 
 **What each option means.** Option 1 runs `handoff-to-main` (§2). Options 2 and 3 both decline it: the deliverable stays written and uncommitted, and the producer emits §4.1's "Declined by the user" line either way. They differ only in recorded intent — option 2 states the user will handle git themselves, option 3 states nothing — so a caller must not infer from option 3 that the artifact is unwanted, and must never delete or revert it. **Neither option stops the run's emitter tail**: feedback → follow-ups → cost → `resume.md` → `commit-artifacts` still executes, because that tail commits only `$SPECS_PATH`'s bounded session-artifact paths (`specs-repo-git.md` §2.1), never the deliverable this choice governs.
 
@@ -309,4 +327,4 @@ Four obligations. Omitting any one is a defect, not a style choice.
 1. A command that **produces** a `$SPECS_PATH` deliverable cites and executes `handoff-to-main` (§2) in its Handoff phase, behind §4.3's choice, and emits the §4.1 line exactly once.
 2. A command that **consumes** one cites and executes `require-on-main` (§3) in its Phase 0 — before its first subagent dispatch, code scan, docs-grounding retrieval, or grill question. A gate that fires after a scan has already spent what it was meant to save.
 3. A consumer acts on the returned state, and on `absent` applies its own pre-existing behaviour (§3.4). **No consumer turns an optional input into a prerequisite.** A consumer whose gated input shipped with the consumer itself — so there is no pre-existing behaviour and nothing was ever optional — may map `absent` to a stop, and §3.4's table names each one and why.
-4. **Never restate this reference's rules** — cite the section number. A rule copied into a command is a rule that goes stale.
+4. **Never restate this reference's rules** — cite the section number. A rule copied into a command is a rule that goes stale. **§4.3's choice arrays are the one exception, and they are quoted rather than cited on purpose.** An array is not a rule: it is user-facing text that `AskUserQuestion` renders literally, and `scripts/check-docs.sh` check 12 gates the arity of the arrays it can *see*, so an array a command only cites is an array with no arity gate on it. The exemption is that narrow — the arrays, nothing else — and it carries one obligation in exchange, which falls on the citing form only: **a command that cites the array rather than quoting it names the §4.0 class it cites for**, because with three variants "present §4.3's consent choice verbatim" identifies none of them. A command that quotes needs no such label: the quoted string *is* the claim, and it is greppable. **§4.0 stays the authority on which artifact is in which class.** A command may state the class its own deliverable is in and why — that is a fact about its own output, and stating it is what would have caught the `_readiness.md` defect before it shipped — but §4.0's register is what that statement is checked against, and a command that disagrees with it is the defective half. This exemption is written down because its absence was a defect of exactly the kind `instruction-file-maintenance.md` names: §4.3 said *present this array verbatim* while this rule said *never restate*, both live, both binding, and no reader could follow both.

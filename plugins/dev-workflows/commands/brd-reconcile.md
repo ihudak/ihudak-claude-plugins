@@ -347,9 +347,9 @@ path nobody else can reproduce; the copy is the record.
    claiming the register carries it — the *Confirm every candidate* phase's skip rule keys on
    "an earlier pass over **this same review**", and the only place that mapping exists is the
    record this phase's canonical name feeds into.
-4. **Hand it off.** Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim:
+4. **Hand it off.** Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — the **advisory** array, which is the class §4.0 puts the returned review in: read (by this run's own reader dispatch, and by a later run's step-2 overwrite refusal) and gated by nothing, since §3.4's row for this command targets the *sent prompt* rather than the returned review. That is the same fact the *Declining does not stop the ingest* paragraph below states, and the gated array contradicted it in the operator's own prompt.
    ```
-   choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
+   choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (no command stops on this; what reads it reads your working copy)", "Cancel"]
    ```
    On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's
    table, where `brd` is the prefix every `/brd-*` command shares), `feature_folder` as resolved in

@@ -1,6 +1,6 @@
 # pm-workflows
 
-A role-based pipeline of 12 slash commands for the product-definition side of the `dev-workflows` family. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification, with an Opus-backed review gate behind every authored artifact; alongside it sits a six-command BRD-to-PRD route that grounds a customer's requirements document, settles it with them, and seeds the PRD, ARD and specification the ladder above hands off to. The table below is the complete list. The shared foundation every command here draws on — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, and the emitters — ships in the companion `workflows-core` plugin; the engineering half of the pipeline this hands off to — `/design`, `/implement`, `/ready` — ships in the companion `dev-workflows` plugin.
+A role-based pipeline of 12 slash commands for the product-definition side of the `dev-workflows` family. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification, with an Opus-backed review gate behind every artifact from the PRD onward — `/idea` is gated by its own bounded grill instead; alongside it sits a six-command BRD-to-PRD route that grounds a customer's requirements document, settles it with them, and seeds the PRD, ARD and specification the ladder above hands off to. The table below is the complete list. The shared foundation every command here draws on — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, and the emitters — ships in the companion `workflows-core` plugin; the engineering half of the pipeline this hands off to — `/design`, `/implement`, `/ready` — ships in the companion `dev-workflows` plugin.
 
 > Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites.
 
@@ -9,7 +9,8 @@ A role-based pipeline of 12 slash commands for the product-definition side of th
 | Role | Commands | What it does |
 |------|----------|--------------|
 | PM | `/idea`, `/create-prd`, `/update-prd` | Refine a raw idea, then author or refresh the Product Requirements Document. |
-| PM *(BRD route — inventory)* | `/brd-intake`, `/brd-ground`, `/brd-split` | Intake a customer BRD verbatim, extract its requirement inventory, ground every claim in the mounted code, then split it once each row has a recorded fate — `/brd-split` gates on the grounding. |
+| PM *(BRD route — inventory)* | `/brd-intake`, `/brd-split` | Intake a customer BRD verbatim and extract its requirement inventory (step 1), then split it once each row has a recorded fate (step 3). |
+| PA *(BRD route — grounding)* | `/brd-ground` | Step 2, and mandatory: ground every requirement claim against the mounted code and design repos. PM-initiated, PA/Dev-executed. `/brd-split` gates on its findings. |
 | PM *(BRD route — customer loop)* | `/brd-interview`, `/brd-package`, `/brd-reconcile` | Decide the BRD's open questions, package what only the customer can settle, then reconcile the review that comes back and sweep what it overturned. |
 | PA *(optional)* | `/create-ard` | Author an Architecture Decision Record, grounded in the mounted implementation code. Optional: a PRD can hand straight to `/specify`. |
 | PE | `/epics`, `/specify` | Break a PRD into Epics, then author an org-standard specification through a grill. |

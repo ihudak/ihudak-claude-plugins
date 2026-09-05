@@ -90,6 +90,18 @@
       "category": "documentation",
       "source": "./plugins/docs-workflows",
       "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/docs-workflows"
+    },
+    {
+      "name": "pm-workflows",
+      "version": "1.0.0",
+      "description": "Twelve slash commands for the product-definition half of the dev-workflows pipeline: a six-command BRD-to-PRD route (/brd-intake → /brd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile) that grounds a customer's requirements document, settles it with them, and seeds the PRD, ARD and specification; the idea→PRD→ARD→specification ladder (/idea → /create-prd → /update-prd → /create-ard → /specify); and /epics, which derives phase-appropriate Epics from a PRD. Twelve agents carry the BRD grounding, reconciliation, PRD/ARD/spec review, and Epic writing and review these commands share. Nine reference pages define the BRD, decision-register, coverage-ledger, customer-review, idea, ARD and specification artifact formats. Depends on workflows-core for its shared foundation and phase handoff, and on prose-style, whose prose-style-checker is /epics's primary style-check gate.",
+      "author": {
+        "name": "Ivan Gudak",
+        "email": "ihudak@gmail.com"
+      },
+      "category": "development",
+      "source": "./plugins/pm-workflows",
+      "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/pm-workflows"
     }
   ]
 }

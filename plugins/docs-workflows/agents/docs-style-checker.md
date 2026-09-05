@@ -78,7 +78,7 @@ or empty, run the whole-repo detection ladder below unchanged.
 
    The complementary pass NEVER promotes the overall status to ERROR; it only adds findings or notes its own failure in `complementary_error`.
 
-   - **When `prose-style-checker` took the SOLE or FALLBACK role** there was no complementary pass beside a primary one: record `complementary_linter: none` and map its violations with `source: primary`, per the merge rules.
+   - **When `prose-style-checker` took the SOLE or FALLBACK role** there was no complementary pass beside a primary one: record `complementary_linter: none` and map its violations with `source: primary`, per the merge rules above.
 
 ## Merging primary + complementary findings (deduplication)
 

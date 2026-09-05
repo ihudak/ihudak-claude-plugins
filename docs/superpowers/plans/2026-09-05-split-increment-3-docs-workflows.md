@@ -159,3 +159,20 @@ Skill discovery is session-start-bound, so every check runs in a session started
 3. A two-argument loader call from a moved command executes — the branch increment 2 proved, re-checked from a new plugin.
 4. A moved agent dispatches and returns, confirming Task 3 Step 4's `Skill` grant.
 5. The new hook fires for `/document` with `dev-workflows` **not installed**.
+
+
+---
+
+## Open after increment 3 — the honest list
+
+Everything a review raised was fixed **except** these. None blocks increment 4; all are recorded so none is rediscovered.
+
+**I3-1 — `docs-style-checker` still calls its own pass "complementary" where the role is sometimes primary.** `agents/docs-style-checker.md:3` and `:7` say it runs `prose-style-checker` "as a complementary pass", and `commands/document.md:1366` says it "always runs on top as a complementary semantic pass". Since S12, when the repository configures no linter at all, that pass is the **SOLE** checker — the case the same paragraph goes on to describe two clauses later. A NIT from Task 4's review, left open. `docs/commands/document.md:73` is the model: state the dependency, then name the no-linter case.
+
+**I3-2 — a prefix-qualified `/docs-workflows:document …` is matched by neither hook.** Confirmed live: both `preload-context.sh` scripts emit nothing for it. **Pre-existing** — the pre-split script did not match `/dev-workflows:implement` either — but likelier to be hit now that the namespaced form is the disambiguating one. Deferred to increment 4 deliberately, because the fix means widening two regexes in two plugins *in a coordinated way*: widening them independently is exactly how double-injection returns, which is the failure the split's hook work exists to avoid.
+
+**I3-3 — `notify-done.sh` and `test-notify.sh` are session-wide, not pipeline-specific, and stayed with `dev-workflows`.** A user who installs `docs-workflows` alone therefore gets no completion notification. Duplicating them would double-notify everyone holding both plugins, so leaving them was right for this increment — but the end state probably wants them in `workflows-core`, which every plugin depends on. A question for increment 4, not a defect now.
+
+**I3-4 — file-mode asymmetry.** `dev-workflows/hooks/preload-context.sh` is `100644`, its `docs-workflows` sibling `100755`. Pre-existing on the `dev-workflows` side and harmless, because `hooks.json` invokes both as `bash <path>`. Cosmetic.
+
+**Still open from before, unchanged and deliberately so:** PS1, PS2, PS3, PS10. S18 gates the release on this whole ledger being empty — increments may ship with items open, the release may not.

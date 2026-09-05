@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Fires on every message submission. Matches the two commands this plugin ships
-# that inject context, /document and /release-notes, and routes them:
+# that inject context, /document and /release-notes — bare or prefixed with
+# this plugin's own namespace (e.g. /docs-workflows:document) — and routes
+# them:
 #   • /document                         → specs context iff the argument is an
 #                                         address (e.g. /document PRODUCT-1234);
 #                                         free-text / @file → silent (direct-edit
@@ -15,10 +17,14 @@
 #
 # emit_specs_context surfaces $SPECS_PATH alongside $REPOS_PATH.
 #
-# The companion dev-workflows plugin ships a hook of the same name covering the
-# four commands it still owns (/implement, /epics, /vuln, /upgrade). A
-# UserPromptSubmit hook fires whichever plugin ships it, so both run on every
-# prompt; the two regexes are disjoint, so at most one of them ever emits.
+# Two sibling plugins each ship a hook of this name, one regex apiece:
+# dev-workflows covers /implement, /vuln and /upgrade; pm-workflows covers
+# /epics. A UserPromptSubmit hook fires whichever plugin ships it, so all
+# three run on every prompt. Disjointness holds two ways at once: the three
+# bare-command alternations share no command name across the three plugins,
+# and the optional plugin-name prefix each regex now also accepts is a
+# literal, distinct string per plugin — so no single prompt can match more
+# than one of the three.
 #
 # Exits immediately (near-zero overhead) if the message doesn't match.
 # Always exits 0 — must never block Claude.
@@ -39,12 +45,14 @@ except Exception:
 " 2>/dev/null) || true
 
 # Require at least one non-whitespace, non-flag argument so bare `/document` or
-# `/release-notes --help` doesn't inject noise on every misfire. The first
-# capture group holds the command token (e.g. "document", "release-notes").
-if [[ ! "$prompt" =~ ^/(document|release-notes)[[:space:]]+[^[:space:]-] ]]; then
+# `/release-notes --help` doesn't inject noise on every misfire. The optional
+# first capture group holds this plugin's own namespace prefix when the
+# caller used the qualified form; the second holds the command token (e.g.
+# "document", "release-notes").
+if [[ ! "$prompt" =~ ^/(docs-workflows:)?(document|release-notes)[[:space:]]+[^[:space:]-] ]]; then
     exit 0
 fi
-cmd="${BASH_REMATCH[1]}"
+cmd="${BASH_REMATCH[2]}"
 
 # --- helpers -------------------------------------------------------------
 emit_git_branch_if_repo() {
@@ -69,7 +77,7 @@ case "$cmd" in
     document)
         # Mode-aware: an address argument → specs context; free-text / @file → silent
         # (direct-edit mode owns its own git hygiene and never invokes Opus).
-        if [[ "$prompt" =~ ^/document[[:space:]]+[A-Z][A-Z0-9]+-[0-9]+ ]]; then
+        if [[ "$prompt" =~ ^/(docs-workflows:)?document[[:space:]]+[A-Z][A-Z0-9]+-[0-9]+ ]]; then
             emit_specs_context
         fi
         ;;

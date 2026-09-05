@@ -1,26 +1,29 @@
 #!/usr/bin/env bash
-# Fires on every message submission. Matches /implement, /epics, /vuln,
-# /upgrade and routes per spec §3:
+# Fires on every message submission. Matches /implement, /vuln, /upgrade —
+# bare or prefixed with this plugin's own namespace (e.g.
+# /dev-workflows:implement) — and routes per spec §3:
 #   • /implement, /vuln, /upgrade       → full (model-routing + git status +
 #                                         recent commits + small-repo directory
 #                                         listing); /implement also preloads
 #                                         specs context when its argument is a
-#                                         address (keyed via the shared
-#                                         address resolver)
-#   • /epics                            → $SPECS_PATH + $REPOS_PATH default
-#                                         + git branch only if cwd is inside
-#                                         a git repo (no model-routing, no full
-#                                         status/log, no directory listing). It
-#                                         accepts an address or a specs
-#                                         directory via the shared front-end.
+#                                         address (keyed — /implement resolves
+#                                         its own argument via resolve-address)
+#
+# /epics moved to the companion pm-workflows plugin along with the command
+# itself. Its preload row — specs + repos context, no model-routing, no full
+# status/log, no directory listing — now ships from pm-workflows's own
+# preload-context.sh, carried across intact rather than re-derived.
 #
 # emit_specs_context surfaces $SPECS_PATH alongside $REPOS_PATH.
 #
-# The companion docs-workflows plugin ships a hook of the same name covering the
-# documentation commands it owns (/document, /release-notes; /docs-profile is
-# matched by neither). A UserPromptSubmit hook fires whichever plugin ships it,
-# so both run on every prompt; the two regexes are disjoint, so at most one of
-# them ever emits.
+# Two sibling plugins each ship a hook of this name, one regex apiece:
+# docs-workflows covers /document and /release-notes; pm-workflows covers
+# /epics. A UserPromptSubmit hook fires whichever plugin ships it, so all
+# three run on every prompt. Disjointness holds two ways at once: the three
+# bare-command alternations share no command name across the three plugins,
+# and the optional plugin-name prefix each regex now also accepts is a
+# literal, distinct string per plugin — so no single prompt can match more
+# than one of the three.
 #
 # Exits immediately (near-zero overhead) if the message doesn't match.
 # Always exits 0 — must never block Claude.
@@ -40,14 +43,15 @@ except Exception:
     print('')
 " 2>/dev/null) || true
 
-# Require at least one non-whitespace, non-flag argument so bare `/epics` or
-# `/implement --help` doesn't inject noise on every misfire. The first capture
-# group holds the command token (e.g. "implement", "epics", "upgrade")
-# — see spec §3 "Hook scope" for the normative regex.
-if [[ ! "$prompt" =~ ^/(implement|epics|vuln|upgrade)[[:space:]]+[^[:space:]-] ]]; then
+# Require at least one non-whitespace, non-flag argument so bare `/implement`
+# or `/implement --help` doesn't inject noise on every misfire. The optional
+# first capture group holds this plugin's own namespace prefix when the
+# caller used the qualified form; the second holds the command token (e.g.
+# "implement", "upgrade") — see spec §3 "Hook scope" for the normative regex.
+if [[ ! "$prompt" =~ ^/(dev-workflows:)?(implement|vuln|upgrade)[[:space:]]+[^[:space:]-] ]]; then
     exit 0
 fi
-cmd="${BASH_REMATCH[1]}"
+cmd="${BASH_REMATCH[2]}"
 
 # --- helpers -------------------------------------------------------------
 emit_model_routing() {
@@ -105,14 +109,11 @@ case "$cmd" in
         emit_model_routing
         emit_git_full
         emit_dir_listing_if_small
-        # /implement <address> is keyed — also preload specs context.
-        if [[ "$cmd" == "implement" && "$prompt" =~ ^/implement[[:space:]]+[A-Z][A-Z0-9]+-[0-9]+ ]]; then
+        # /implement <address> is keyed — it resolves its own argument via
+        # resolve-address; also preload specs context here.
+        if [[ "$cmd" == "implement" && "$prompt" =~ ^/(dev-workflows:)?implement[[:space:]]+[A-Z][A-Z0-9]+-[0-9]+ ]]; then
             emit_specs_context
         fi
-        ;;
-    epics)
-        # Keyed, specs + repos context.
-        emit_specs_context
         ;;
     *)
         # Unreachable given the regex; exit silently if the regex is ever widened.

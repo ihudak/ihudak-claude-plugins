@@ -508,9 +508,9 @@ Act on the return:
   the final report.
 - **`ERROR`** — surface the reason and proceed to Phase 4 (non-gating).
 
-If `prose-style-checker` is unavailable (agent not found — the `prose-style`
-plugin is not installed), **skip this phase gracefully** and note
-`SKIPPED (prose-style-checker unavailable)` in the final report.
+`prose-style` is a declared dependency of `pm-workflows`, so this phase has
+no absent case to skip — `prose-style-checker` always runs before the review
+gate.
 
 ---
 
@@ -646,7 +646,7 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git 
 
 ## Final report
 
-Report: the PRD path + profile; US/AC/SM counts + which adapt-in clusters were included; open-question count; the `prd-reviewer` verdict; the prose style-check outcome (`OK` | `N fixed, M remaining` | `SKIPPED`); the `Phase handoff:` outcome line from `handoff-to-main` (`workflows-core:phase-handoff` §4.1); the handoff reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`workflows-core:specs-repo-git` §6), with any guard notice repeated in full; and the next-step recommendations.
+Report: the PRD path + profile; US/AC/SM counts + which adapt-in clusters were included; open-question count; the `prd-reviewer` verdict; the prose style-check outcome (`OK` | `N fixed, M remaining`); the `Phase handoff:` outcome line from `handoff-to-main` (`workflows-core:phase-handoff` §4.1); the handoff reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`workflows-core:specs-repo-git` §6), with any guard notice repeated in full; and the next-step recommendations.
 
 **On the BRD route, additionally:** the `<BRD-KEY>` seeded from and its resolved folder; which of
 `prd-seed.md` and `decisions.md` were present; the frontmatter `brd_key` / `brd_parent` /

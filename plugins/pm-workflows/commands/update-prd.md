@@ -99,7 +99,7 @@ Update the PRD live against `Skill(skill: "workflows-core:reference", args: "prd
 
 ## Phase 3.5 — Prose style check
 
-Run the prose style check on the updated PRD **before** the review gate (quality enhancement, never a gate) — mirror `/create-prd` Phase 3.5 (Agent `prose-style:prose-style-checker`, `doc_type: prd`, `detection_model`); apply MAJOR fixes inline and re-run once; skip gracefully if the agent is unavailable.
+Run the prose style check on the updated PRD **before** the review gate (quality enhancement, never a gate) — mirror `/create-prd` Phase 3.5 (Agent `prose-style:prose-style-checker`, `doc_type: prd`, `detection_model`); apply MAJOR fixes inline and re-run once. `prose-style` is a declared dependency of `pm-workflows`, so this dispatch has no absent case to skip.
 
 ---
 

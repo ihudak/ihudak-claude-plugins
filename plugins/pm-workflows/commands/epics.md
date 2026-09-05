@@ -1,6 +1,6 @@
 ---
 name: epics
-description: keyed Epic-writing workflow. Takes one address and accepts exactly two shapes — a PRD- folder (draft new Epics) or an EPIC- folder that has a PRD above it (re-refine that Epic) — refusing a stand-alone EPIC- folder and a BRD- container, since Epics come from a PRD only and this is the only command that creates an EPIC- folder. Reads the Product Requirements Document and existing Epics from the resolved folder in the specs tree, optionally scans code repos, drafts child Epic definitions, and gates on prose-style-checker and Opus epic-reviewer.
+description: keyed Epic-writing workflow. Takes one address and accepts exactly two shapes — a PRD- folder (draft new Epics) or an EPIC- folder that has a PRD above it (re-refine that Epic) — refusing a stand-alone EPIC- folder and a BRD- container, since Epics come from a PRD only and this is the only command that creates an EPIC- folder. Reads the Product Requirements Document and existing Epics from the resolved folder in the specs tree, optionally scans code repos, drafts child Epic definitions, runs `prose-style-checker` unconditionally as a non-gating quality pass (`prose-style` is a declared dependency of this plugin), and gates on the Opus epic-reviewer.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -592,7 +592,7 @@ Act on the return:
 
 - **`status: ERROR`** — surface the error reason. Proceed to Phase 7 regardless (style check is not a gate for Epics, but a quality enhancement).
 
-If `prose-style-checker` is unavailable (agent file not found), proceed directly to Phase 7. The style check is optional but recommended.
+`prose-style` is a declared dependency of `pm-workflows`, so this dispatch has no absent case — `prose-style-checker` always runs, and whatever it reports, Phase 7 follows (per `status: ERROR` above, the check is a quality pass, never a gate).
 
 ---
 
@@ -793,7 +793,7 @@ MODERATE — Epic drafting for a single PRD
 [verdict + any `- ARD deviation:` lines recorded] — _omit this whole section when Phase 2.5 status was none_
 
 ### Prose style check (Phase 6.2)
-[OK | VIOLATIONS_FOUND (N fixed, M remaining) | ERROR (reason) | SKIPPED (prose-style-checker unavailable)] — [1-line summary]
+[OK | VIOLATIONS_FOUND (N fixed, M remaining) | ERROR (reason)] — [1-line summary]
 
 ### Documentation (Agent 1)
 - [file updated] — [what was added/changed] OR "no update required (reason)"

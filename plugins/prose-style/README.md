@@ -362,9 +362,9 @@ this checker never emits BLOCKER.
 
 ---
 
-## How it fits with dev-workflows
+## How it fits with the dev-workflows family
 
-This plugin is a **fallback** for the `docs-style-checker` agent in `docs-workflows`:
+This plugin supplies the **complementary semantic pass** that the `docs-style-checker` agent in `docs-workflows` always runs alongside a repo's own linter. Fallback is what it becomes in one branch of that ladder — the sole pass, when no primary rung produced a result — not the relationship:
 
 - **`/document`** (keyed mode) Phase 6.4 dispatches `docs-style-checker`, which runs the
   chain **internally**: the repo's primary linter (Vale/markdownlint) **and**

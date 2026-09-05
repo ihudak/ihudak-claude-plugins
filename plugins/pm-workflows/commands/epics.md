@@ -527,7 +527,7 @@ The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1
 
 2. **Dispatch the writer:**
 
-→ Agent (subagent_type: "dev-workflows:epic-writer", model: `<detection_model — §9 / §2.1 Sonnet chain; planning_model (§2 Opus) only if classification is SIGNIFICANT/HIGH-RISK>`):
+→ Agent (subagent_type: "pm-workflows:epic-writer", model: `<detection_model — §9 / §2.1 Sonnet chain; planning_model (§2 Opus) only if classification is SIGNIFICANT/HIGH-RISK>`):
   > "Write the child Epic definitions for this brief.
   >
   > handoff_file: [absolute path of the temp handoff file from step 1]"
@@ -610,7 +610,7 @@ gate.
 
 Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity, acceptance-criteria testability, non-duplication of existing Epics. `docs-style-checker` is NOT used here (no repo linter for specs-tree content); Prose style is handled by the Phase 6.2 `prose-style-checker` step above.
 
-→ Agent (subagent_type: "dev-workflows:epic-reviewer"):
+→ Agent (subagent_type: "pm-workflows:epic-reviewer"):
   > "Review the Epic drafts for this brief:
   >
   > Task description: [one-paragraph: PRD key, PRD goal, number of Epics drafted]

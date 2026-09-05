@@ -234,7 +234,7 @@ this run. This is the mechanical half of that dimension.
 1. Derive candidate repo names from: each in-scope Epic's `implementation.md` entries, where one exists (the repo-name
    segment of each URL, per the PR URL formats `diff-summarizer` accepts); the confirmed-repos line of any `design.md`
    found (`design-format.md`'s header `- **Repos**: <the confirmed implementation repos this design
-   spans>`); and any ARD's `grounded_repos:` frontmatter list (`ard-format.md`). Dedupe.
+   spans>`); and any ARD's `grounded_repos:` frontmatter list (`pm-workflows:ard-format`). Dedupe.
 2. Build the slug→clone map **exactly as `epics.md` Phase 4 does**: for each top-level directory under
    each entry of `${REPOS_PATH:-/workspace}`, run
    `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the

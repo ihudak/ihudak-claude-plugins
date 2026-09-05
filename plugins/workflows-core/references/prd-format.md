@@ -45,14 +45,14 @@ own `brd-link.md`, and are never asked of the PM. **`brd_parent` is present on e
 seed is read (`/dev-workflows:create-prd` Phase 0 step 5a), and a slice always carries a
 `parent:` — so the earlier "omitted when it owns its source document" case describes a PRD the route
 can no longer author. An absent `brd_parent` beside a present `brd_key` is therefore a **finding**,
-not a legitimate omission, and `dev-workflows:prd-reviewer` raises it. **`/update-prd` preserves all three and authors
+not a legitimate omission, and `pm-workflows:prd-reviewer` raises it. **`/update-prd` preserves all three and authors
 none of them** — on a PRD that carries them it copies each through the refresh unchanged, and on a
 PRD that does not it writes none — so the *written only by* rule above still reads exactly as it
 says: carrying an existing value forward mints no new one, and `/update-prd` reads no BRD tree it
 could mint one from. They record, on the PRD itself, the BRD identity and the prerequisites the
 customer committed to — and **no command consumes them yet** — which is a claim about *behaviour*, not about
 every read. Neither `/epics` nor `/ready` reads any of the three, and nothing branches on them. But
-`brd_key` and `brd_parent` do have a reader: `dev-workflows:prd-reviewer`'s review method raises a finding
+`brd_key` and `brd_parent` do have a reader: `pm-workflows:prd-reviewer`'s review method raises a finding
 when one is present without the other, exactly as this file says six lines above. That is an integrity
 check on the pair, not a consumer of what they record, and the distinction matters in both directions —
 an increment scoped on "these have no reader" would be scoped against a check that already ships and
@@ -77,7 +77,7 @@ and the field simply stayed unset — which left a folder whose only `kind:`+`ke
 `brd-link.md` (`kind: brd`) resolving as a BRD rather than a PRD (`references/addressing.md` §4), and
 left `/document` and `/release-notes` grepping commits for an empty key. There is no second identity
 to keep straight: one namespace, one grammar, and the folder's key is the key. **So there is no
-legitimate state in which `brd_key` stands beside an absent `key`** — `dev-workflows:prd-reviewer` raises
+legitimate state in which `brd_key` stands beside an absent `key`** — `pm-workflows:prd-reviewer` raises
 one as a finding on every route.
 
 **`workitem_key` is reserved, documented, and never written by the plugin.**

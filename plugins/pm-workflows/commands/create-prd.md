@@ -527,7 +527,7 @@ proceed to Phase 4 once findings are surfaced. `prd-reviewer` remains the gate.
 
 Dispatch `prd-reviewer` (Opus, frontmatter-pinned; recorded as `review_model`, no override):
 
-→ Agent (subagent_type: "dev-workflows:prd-reviewer", model: `<review_model — §2 Opus chain>`):
+→ Agent (subagent_type: "pm-workflows:prd-reviewer", model: `<review_model — §2 Opus chain>`):
   > "Review the Product Requirements Document:
   >
   > PRD path: [absolute path to prd.md]

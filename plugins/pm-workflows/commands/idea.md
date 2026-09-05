@@ -101,7 +101,7 @@ Show the `docs grounding:` line in the form `workflows-core:docs-grounding` reso
 
 Dispatch `idea-reader` to read the source and return a structured digest:
 
-→ Agent (subagent_type: "dev-workflows:idea-reader", model: `<detection_model — §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "pm-workflows:idea-reader", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Ingest this idea source and return the structured digest:
   >
   > argument:        [the resolved argument]

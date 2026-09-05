@@ -6,12 +6,12 @@ is not, the finding record every `[CG#n]`/`[DG#n]` carries, the six verdicts, th
 design-grounding reconciliation classes, the optional derivation matrix, and the four verification
 outcomes. Design authority: `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §5
 (all subsections) and decision rows D6, D7, D19 in §3. Requirement identifiers (`[BR#n]`) are
-defined once in `dev-workflows:brd-format` — cited here, not restated; the read-only posture for a
+defined once in `pm-workflows:brd-format` — cited here, not restated; the read-only posture for a
 mounted repository is defined once in `references/read-only-repos.md` and applies unchanged to
 every repository grounding reads.
 
 **Consumed by** the three grounding agents that write against the contract fixed here —
-`dev-workflows:code-grounder`, `dev-workflows:design-grounder`, and `dev-workflows:grounding-verifier` — and by
+`pm-workflows:code-grounder`, `pm-workflows:design-grounder`, and `pm-workflows:grounding-verifier` — and by
 the two commands that read what they produce: `/dev-workflows:brd-ground`, which orchestrates all
 three, and `/dev-workflows:brd-split`, whose Phase 0 gate turns on §8's verification outcomes.
 
@@ -56,7 +56,7 @@ what the four classes mean and why the fourth requires a citation; this table fi
 names, where they apply, and when `cites` is required.
 
 **`commit` is the third field whose applicability is not universal, and saying so is load-bearing.**
-§8's verification is fail-closed on exactly this: `dev-workflows:grounding-verifier`'s Inputs table puts
+§8's verification is fail-closed on exactly this: `pm-workflows:grounding-verifier`'s Inputs table puts
 a `[DG#n]` in the design-only row **only** where its `class` positively reads 1, 2 or 3, and demands
 `repo_path` and `commit` everywhere else. A design-only finding that carried a `commit` anyway would
 be honoured — that agent uses a commit it is given rather than ignoring it — and would then be
@@ -194,7 +194,7 @@ them is the one that overturns this particular finding; the finding names that s
 
 Grounding reads only a prerequisite's **frozen** decisions, never speculation, a draft position, or
 an interview answer still open for revision. **"Frozen" is a field, not a judgement: it means
-`status: decided`**, the second of the five statuses `dev-workflows:decision-register-format` §3
+`status: decided`**, the second of the five statuses `pm-workflows:decision-register-format` §3
 fixes, and nothing else qualifies — `open` and `reopened` may not be consumed downstream at all,
 `superseded` and `withdrawn` describe a position no longer held, and an `[AS#n]` never reaches
 `decided` (§7 there). A reader that weighed how settled a record *sounds* instead of reading its
@@ -276,7 +276,7 @@ create or repair, rather than about a finding, which neither makes.
 ### 6.2 The frame-set index
 
 **The format §6.1 makes mandatory is fixed here, once, and every writer cites it.** It lived in
-`dev-workflows:idea-format` while `/idea` was its only author; `/frames` is a
+`pm-workflows:idea-format` while `/idea` was its only author; `/frames` is a
 second author, and one format with two authorities is the defect family this plugin keeps paying for.
 That file now states only what `/idea` contributes to a row and cites this section for everything
 else. It belongs here rather than there because it is the *satisfaction* of §6.1's requirement, and a
@@ -451,7 +451,7 @@ evidence, and returns one of four outcomes, each with its own evidence.
 
 **Which source that is follows from the finding, not from the verifier's convenience.** Which
 finding rests on what, and which anchor inputs are therefore required of a caller, is the table in
-`dev-workflows:grounding-verifier`'s Inputs section — the single owner of that matrix, including its
+`pm-workflows:grounding-verifier`'s Inputs section — the single owner of that matrix, including its
 fail-closed treatment of an absent or unreadable `class`. It is not restated here. What this
 section fixes is the consequence that makes the matrix necessary: demanding a commit of a
 design-only finding would leave it permanently unverifiable, and a finding that can never carry an

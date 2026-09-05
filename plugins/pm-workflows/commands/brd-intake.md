@@ -178,7 +178,7 @@ it.
 
 Dispatch `brd-reader`:
 
-→ Agent (subagent_type: "dev-workflows:brd-reader", model: `<detection_model — frontmatter-pinned to sonnet>`):
+→ Agent (subagent_type: "pm-workflows:brd-reader", model: `<detection_model — frontmatter-pinned to sonnet>`):
   > "source_path: [absolute path to the copied file under `<BRD-dir>/brd/source/`]"
 
 Act on `status`:

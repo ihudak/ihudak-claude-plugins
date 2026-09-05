@@ -113,7 +113,7 @@ Run the deterministic checks in `Skill(skill: "workflows-core:reference", args: 
 
 Dispatch `prd-reviewer` (Opus, frontmatter-pinned; recorded as `review_model`, no override):
 
-→ Agent (subagent_type: "dev-workflows:prd-reviewer", model: `<review_model — §2 Opus chain>`):
+→ Agent (subagent_type: "pm-workflows:prd-reviewer", model: `<review_model — §2 Opus chain>`):
   > "Review the Product Requirements Document:
   >
   > PRD path: [absolute path to the updated prd.md]

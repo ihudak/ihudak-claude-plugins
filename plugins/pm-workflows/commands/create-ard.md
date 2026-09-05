@@ -511,7 +511,7 @@ nobody created.
 ## Phase 5 — Review gate
 Dispatch `ard-reviewer` (Opus, frontmatter-pinned; recorded as `review_model`, no override):
 
-→ Agent (subagent_type: "dev-workflows:ard-reviewer", model: `<review_model — §2 Opus chain>`):
+→ Agent (subagent_type: "pm-workflows:ard-reviewer", model: `<review_model — §2 Opus chain>`):
   > "Review the ARD:
   >
   > ARD path: [absolute path to the ard.md]

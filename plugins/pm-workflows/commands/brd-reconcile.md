@@ -383,7 +383,7 @@ mentioned once, in the record, as where it came from.
 
 Dispatch `customer-review-reader` **once**, at `detection_model`:
 
-→ Agent (subagent_type: "dev-workflows:customer-review-reader", model: `<detection_model>`):
+→ Agent (subagent_type: "pm-workflows:customer-review-reader", model: `<detection_model>`):
   > "brd_key:     [the BRD key]
   > review_path: [absolute path to the canonicalised copy, at the name the *Canonicalise the returned review* phase resolved — customer-review-<YYYYMMDD>.md, or the suffixed form where it took one]
   > package:

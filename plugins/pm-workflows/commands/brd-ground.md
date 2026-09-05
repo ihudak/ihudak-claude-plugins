@@ -430,7 +430,7 @@ starting the next). Each dispatch gets the *whole* claim list (Phase 0 step 8) a
 commit (Phase 3) — a BRD carries no per-repo claim tagging, and a claim that genuinely belongs to a
 different system is exactly what `NOT-PROVABLE` exists to say, not a reason to pre-filter:
 
-→ Agent (subagent_type: "dev-workflows:code-grounder", model: `<detection_model>`):
+→ Agent (subagent_type: "pm-workflows:code-grounder", model: `<detection_model>`):
   > "repo_path: [resolved absolute path from Phase 1]
   > commit:    [Phase 3 pinned commit for this repo]
   > claims:
@@ -462,7 +462,7 @@ why (`--no-design` given, or no `design/` folder exists yet for this BRD). One o
 concurrent discipline, **after** the code-grounder batch above has fully returned — this agent's
 fourth reconciliation class cites a `[CG#n]`, so the findings it needs must already exist:
 
-→ Agent (subagent_type: "dev-workflows:design-grounder", model: `<detection_model>`):
+→ Agent (subagent_type: "pm-workflows:design-grounder", model: `<detection_model>`):
   > "frame_set_dir: [absolute path to this frame set]
   > inventory:
   >   - id:   [BR#n]
@@ -527,7 +527,7 @@ findings, freshly-merged Phase 5 claim findings, and any pre-existing ones a `--
 re-checking — one instance per finding, same ≤4-concurrent batching discipline as Phase 5, pinned
 to the Opus chain (`review_model`, frontmatter-pinned, no override):
 
-→ Agent (subagent_type: "dev-workflows:grounding-verifier", model: `<review_model>`):
+→ Agent (subagent_type: "pm-workflows:grounding-verifier", model: `<review_model>`):
   > "finding:
   >   id:       [CG#n or DG#n]
   >   claim:    [the BR#n premise as the finding recorded it]

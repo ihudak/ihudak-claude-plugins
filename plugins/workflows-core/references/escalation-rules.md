@@ -61,9 +61,9 @@ above … There is no fourth disposition and no 'skip on my own judgement' path 
 | the candidate-confirmation picker | `confirm` / `correct` / `reject` / `ask-the-customer` | `/dev-workflows:brd-reconcile`, *Confirm every candidate* |
 | the missing-reason picker | ask the customer, or freeze `status: open` | `/dev-workflows:brd-reconcile`, *Confirm every candidate* |
 | the propagation-sweep picker | `inherited-unchanged` / `reverted` / `reopened` / `withdrawn` | `/dev-workflows:brd-reconcile`, *The propagation sweep* |
-| the will-change resolution picker | the exactly three resolutions of `dev-workflows:decision-register-format` §6 | `/dev-workflows:brd-interview` |
+| the will-change resolution picker | the exactly three resolutions of `pm-workflows:decision-register-format` §6 | `/dev-workflows:brd-interview` |
 | the `[SR#n]` disposition picker | `fixed` / `accepted-risk` / `escalated-to-customer` / `rejected-with-reason` | `/dev-workflows:brd-package` |
-| the degradation-tier picker | `Full` / `Partial` / `Documents only` — the three rows of `dev-workflows:bundle-packaging` §3 | `/dev-workflows:brd-package` |
+| the degradation-tier picker | `Full` / `Partial` / `Documents only` — the three rows of `pm-workflows:bundle-packaging` §3 | `/dev-workflows:brd-package` |
 
 **The first three are load-bearing beyond tidiness, and the reason is worth carrying.** They are the
 pickers through which a customer's authority enters the decision register, and D14 exists because

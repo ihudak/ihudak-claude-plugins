@@ -748,7 +748,7 @@ the grill/author. **Advisory** — never blocks; proceed to Phase 6 once finding
 
 2. **Dispatch `spec-reviewer`.**
 
-→ Agent (subagent_type: "dev-workflows:spec-reviewer", model: `<review_model — §2 Opus chain; frontmatter-pinned, recorded, no override>`):
+→ Agent (subagent_type: "pm-workflows:spec-reviewer", model: `<review_model — §2 Opus chain; frontmatter-pinned, recorded, no override>`):
   > "Review the specification for this brief:
   >
   > Specification path: [absolute path to specification.md]

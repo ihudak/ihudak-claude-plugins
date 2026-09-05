@@ -297,7 +297,7 @@ mechanically by the field rather than by reading — which is the whole point of
 Dispatch `brd-package-reviewer` once, over the whole package, pinned to the Opus chain
 (`review_model`, frontmatter-pinned, no override):
 
-→ Agent (subagent_type: "dev-workflows:brd-package-reviewer", model: `<review_model>`):
+→ Agent (subagent_type: "pm-workflows:brd-package-reviewer", model: `<review_model>`):
   > "brd_key:    [the BRD key]
   > brd_dir:    [absolute path to the resolved BRD folder]
   > package:

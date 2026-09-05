@@ -8,7 +8,7 @@ defined once rather than reinvented per caller. Design authority:
 **Consumed by every command that addresses a folder in the specs tree.** Each calls `resolve-address`
 (§3) and, where it validates a key before touching the filesystem, `key-valid` (§1). The six `/brd-*`
 commands, the eleven commands in §7's table, and the one shared authority §7 names all reach the
-tree through this file; `dev-workflows:brd-format` and `dev-workflows:coverage-ledger-format` cite it
+tree through this file; `pm-workflows:brd-format` and `pm-workflows:coverage-ledger-format` cite it
 for the key grammar and folder resolution neither of them restates. Read §7's list as a **list**, not
 as a count — it is longer than a reader expects, and summarising it is how an adopter goes missing.
 
@@ -51,7 +51,7 @@ touches no filesystem — a pure string test, safe to call before `$SPECS_PATH` 
    both hold their Epics one level below. **The `BRD-` folder itself is never one of them**: it is a
    container, and `prd.md`, `ard.md` and `specification.md` are authored in the `PRD-` slice folders
    under it, never beside `brd/` and `coverage-ledger.md`
-   (`dev-workflows:coverage-ledger-format` §5).
+   (`pm-workflows:coverage-ledger-format` §5).
 2. **No path holds two folders of the same kind.** Every level is therefore identifiable from its own
    name without reading its parent, and the tree is at most three levels deep.
 
@@ -59,7 +59,7 @@ touches no filesystem — a pure string test, safe to call before `$SPECS_PATH` 
 fixed-name subdirectories that carry no key and are never resolved by one — `brd/`, `grounding/`,
 `interview/`, `dev-workflows/`, `design/` (exported frame sets, one per immediate subdirectory, each
 indexed per `references/grounding-format.md` §6.1–§6.2), and `attachments/` (the text and markdown sources a run copied
-into the folder — `dev-workflows:idea-format`, *Vendored sources*). None matches §3's `*-<KEY>-*` glob,
+into the folder — `pm-workflows:idea-format`, *Vendored sources*). None matches §3's `*-<KEY>-*` glob,
 so resolution passes over them without a rule of its own, and none carries a `brd-link.md`, so
 `/brd-split`'s positive test excludes them by construction rather than by an exclusion list.
 
@@ -220,7 +220,7 @@ specifications/BRD-<KEY>-<slug>/PRD-<KEY>-<slug>/PRD-<KEY>-<slug>/     # never c
 ```
 
 **Why, rather than a second inheritance rule.** A slice inherits `brd/source/` and its defect log from its
-BRD (`dev-workflows:brd-format` §2.1, §4). A slice of a slice would have a parent holding neither: its
+BRD (`pm-workflows:brd-format` §2.1, §4). A slice of a slice would have a parent holding neither: its
 inventory header would name a `source:` path that does not exist, and a `rejected: [DEF#n]` disposition
 taken against it would cite a defect log that is not there. Chasing every inheritance up to the
 source-owning root would fix that, but nothing in practice needs it, and one rule beats two. **Every "its
@@ -230,7 +230,7 @@ document — which is what makes its one live inheritance, the parent's defect l
 
 **The cap is on nesting, never on allocation.** A folder whose ledger could not be walked would keep every
 row `unallocated` forever and could never become PRD-eligible
-(`dev-workflows:coverage-ledger-format` §4, §5) — which would make slicing pointless, since a slice exists
+(`pm-workflows:coverage-ledger-format` §4, §5) — which would make slicing pointless, since a slice exists
 precisely to become a PRD. Refusing a further child, not the walk, is the whole of the cap.
 
 ## 7. The shared fallback for existing commands

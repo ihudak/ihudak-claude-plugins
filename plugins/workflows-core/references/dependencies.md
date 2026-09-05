@@ -19,7 +19,7 @@ A companion outside the family is **convention + runtime-resolve + graceful fall
 | Companion | Used by | Relationship | Fallback when absent |
 |-----------|---------|--------------|----------------------|
 | `superpowers` (skill `brainstorming`) | `/prompt-brainstorm` | Recommended | Embedded technique; no hard dependency. |
-| `prose-style` (a marketplace sibling) | planning-doc style checks in `dev-workflows` | Optional companion there, **declared dependency** of `docs-workflows` | `/epics` skips the style gate entirely if it is absent. `docs-workflows` declares it, so its style checks have no absent case at all. |
+| `prose-style` (a marketplace sibling) | planning-doc style checks in `dev-workflows` | Optional companion there, **declared dependency** of `docs-workflows` | `/epics`, `/create-prd` and `/update-prd` all skip their style gate entirely if it is absent. `docs-workflows` declares it, so its style checks have no absent case at all. |
 
 ## External tools and services
 

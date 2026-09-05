@@ -8,7 +8,7 @@
 | `preload-context` | `UserPromptSubmit` | — | On a matched `/implement`/`/epics`/`/vuln`/`/upgrade` prompt, injects git/model-routing/specs context; a near-instant no-op otherwise. |
 | `test-notify` | `PostToolUse` | `Bash` | Detects a test-runner invocation, parses its pass/fail counts, and raises a desktop notification summarizing the result. |
 
-The companion `docs-workflows` plugin ships its own pair — a `preload-context` covering `/document` and `/release-notes`, and the `changelog-owners-reminder` that warns about a docs page's changelog and owners frontmatter. Both used to live here and moved with the commands and the profile data they read.
+The companion `docs-workflows` plugin ships its own pair — a `preload-context` covering `/document` and `/release-notes`, and the `changelog-owners-reminder` that warns about a docs page's changelog and owners frontmatter. The `changelog-owners-reminder` moved here entire, following the profile data it reads; `preload-context` was **split** rather than moved, so each plugin now preloads for its own commands and this plugin still ships one of its own.
 
 ## What each hook does, in detail
 

@@ -40,7 +40,7 @@ A change that touches both code and docs is `/dev-workflows:implement`'s, not ei
 ## Where each command writes
 
 - **A documentation repository** — `/document` writes pages there and, in keyed mode, finishes on a branch with an opt-in push and a copy-paste pull-request draft. `/docs-profile` writes `.dev-workflows/docs-profile.yml` and complementary `CLAUDE.md` guidance there, as a reviewable pull request; it never pushes or auto-merges.
-- **`$SPECS_PATH`** — session bookkeeping only: the cost, feedback and follow-up entries every run emits, committed by the terminal step bounded to those paths. Neither command writes a pipeline artifact there.
+- **`$SPECS_PATH`** — session bookkeeping only: the cost, feedback and follow-up entries `/document` and `/release-notes` emit, committed by the terminal step bounded to those paths. `/docs-profile` runs no specs-preflight and no terminal commit, so it writes nothing here at all. None of the three writes a pipeline artifact there.
 - **Wherever you keep drafts** — `/release-notes` writes its draft to a persistent destination you choose and commits nothing in a docs or code repository. The draft is the authored body only; the metadata wrapper is the docs automation's.
 
 ## Sources of truth

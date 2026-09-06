@@ -1,20 +1,8 @@
 {
   "dev-workflows": [
-    "brd-ground",
-    "brd-intake",
-    "brd-interview",
-    "brd-package",
-    "brd-reconcile",
-    "brd-split",
-    "create-ard",
-    "create-prd",
     "design",
-    "epics",
-    "idea",
     "implement",
     "ready",
-    "specify",
-    "update-prd",
     "upgrade",
     "vuln"
   ],
@@ -38,6 +26,20 @@
     "wiki-tags-refresh",
     "wiki-task",
     "wiki-tasks-extract"
+  ],
+  "pm-workflows": [
+    "brd-ground",
+    "brd-intake",
+    "brd-interview",
+    "brd-package",
+    "brd-reconcile",
+    "brd-split",
+    "create-ard",
+    "create-prd",
+    "epics",
+    "idea",
+    "specify",
+    "update-prd"
   ],
   "prose-style": [
     "prose-review-docs",

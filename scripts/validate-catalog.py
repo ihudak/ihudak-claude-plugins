@@ -26,6 +26,17 @@ once:
      ``marketplace.json``) passed every gate and shipped to nobody, because
      Claude Code and Copilot CLI both install only what a catalog advertises.
 
+  4. Two plugin manifests declaring the same ``name``. Not a shipped incident
+     but a disproved claim: a plan for this repository's own five-plugin split
+     asserted this was already structurally enforced, and a review built a
+     fixture -- two directories both declaring ``"name": "dupname"`` -- and
+     watched it validate clean. ``manifests[name] = (...)`` was a plain dict
+     assignment, so the second directory silently overwrote the first's entry;
+     ``advertised`` is a ``set[str]``, so a catalog entry naming either
+     directory read as satisfied either way. A ``plugin.json`` copy-pasted
+     from another plugin and never given its own ``name`` would collide
+     invisibly, and nothing would catch it.
+
 Note on what is deliberately NOT checked: the ``description`` in a catalog
 entry and in the matching ``plugin.json`` are not required to be identical.
 They are independently authored in practice -- Copilot's ``prose-style``
@@ -153,6 +164,15 @@ def validate_repo(root: Path) -> tuple[int, int]:
             print(f"  ERROR {manifest_path}: no 'name' field")
             errors += 1
             continue
+        if name in manifests:
+            other_rel = manifests[name][0].relative_to(root)
+            print(
+                f"  ERROR {manifest_path.relative_to(root)}: plugin name "
+                f"{name!r} is already declared by {other_rel} -- plugin "
+                f"names must be unique across the repository"
+            )
+            errors += 1
+            continue
         manifests[name] = (manifest_path, data)
         rel = manifest_path.relative_to(root)
         e, w = check_description(str(rel), data.get("description", ""))
@@ -235,18 +255,36 @@ def _selftest() -> int:
     import tempfile
 
     def build(root: Path, *, version: str = "1.0.0", catalog_version: str | None = None,
-              description: str = "A fixture plugin.", ghost_manifest: bool = False) -> None:
+              description: str = "A fixture plugin.", ghost_manifest: bool = False,
+              second_plugin_name: str | None = None) -> None:
         plugin = root / "plugins" / "fixture" / ".claude-plugin"
         plugin.mkdir(parents=True)
         (plugin / "plugin.json").write_text(json.dumps(
             {"name": "fixture", "version": version, "description": description}), encoding="utf-8")
+        catalog_entries = [{"name": "fixture", "source": "./plugins/fixture",
+                            "version": catalog_version or version,
+                            "description": description}]
+        if second_plugin_name is not None:
+            # A second plugin.json under a DIFFERENT directory, advertised by its own
+            # catalog entry so this exercises only the duplicate-NAME assertion, not
+            # the separate "unadvertised manifest" one. When its declared `name`
+            # collides with the first plugin's ("fixture"), this is the red fixture
+            # check 4 (the uniqueness assertion) exists to catch; when it names
+            # something else, it is the paired green case proving the multi-manifest
+            # code path still passes on correct content.
+            second = root / "plugins" / "fixture-second" / ".claude-plugin"
+            second.mkdir(parents=True)
+            (second / "plugin.json").write_text(json.dumps(
+                {"name": second_plugin_name, "version": "1.0.0",
+                 "description": "A second fixture plugin."}), encoding="utf-8")
+            catalog_entries.append(
+                {"name": second_plugin_name, "source": "./plugins/fixture-second",
+                 "version": "1.0.0", "description": "A second fixture plugin."})
         market = root / ".claude-plugin"
         market.mkdir(parents=True)
         (market / "marketplace.json").write_text(json.dumps({
             "name": "fixture-plugins",
-            "plugins": [{"name": "fixture", "source": "./plugins/fixture",
-                         "version": catalog_version or version,
-                         "description": description}],
+            "plugins": catalog_entries,
         }), encoding="utf-8")
         if ghost_manifest:
             # A valid manifest with no catalog entry anywhere -- the state check 3
@@ -291,6 +329,10 @@ def _selftest() -> int:
          description="x" * (DESCRIPTION_WARN + 1))
     case("a plugin.json with no catalog entry anywhere is rejected", False,
          "is not listed in any marketplace.json", ghost_manifest=True)
+    case("two plugin.json files declaring the same name are rejected", False,
+         "is already declared by", second_plugin_name="fixture")
+    case("two plugin.json files with distinct names both pass", True, "OK",
+         second_plugin_name="fixture-second")
 
     print("SELFTEST PASS" if rc == 0 else "SELFTEST FAIL")
     return rc

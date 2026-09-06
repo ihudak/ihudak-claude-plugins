@@ -153,6 +153,28 @@ listing is the Epic set this command judges, and each folder's `epic.md` supplie
 own `key`. Carry forward:
 
 - `requirements[]` (+ `requirements_source`) — the coverage ground truth for Phase 3(a).
+
+  **An empty `requirements[]` stops this run, and that is not a breach of "never stops".** Phase 3(a)
+  greps one ID token per requirement and rolls the hits into a coverage figure, so with no
+  requirements the roll-up is 0 of 0 — **100%** — and the verdict it feeds can come back
+  **SUPPORTED**, which is the verdict `/implement` is offered on. A run that verified nothing would
+  be reporting the strongest assurance this command can give.
+
+  The command's "never stops" rule is about **the artifacts under verification**: an unmerged
+  `specification.md` is a finding capping the verdict at `PARTIAL`, and a missing one is a recorded
+  coverage gap, because in both cases there is still a claim to judge. An empty requirement
+  inventory is a different thing — it is the absence of the subject the verdict is *about*, so there
+  is no finding to record and nothing to cap. `/epics` refuses the identical emptiness read out of
+  the identical file, naming the identical reason (*"which would let every Epic pass coverage
+  vacuously"*), and two commands reading one file should not disagree about whether it says anything.
+
+  Surface the `key dir not found` rule in `workflows-core:escalation-rules`:
+
+  ```
+  choices: ["Re-enter key", "Cancel"]
+  ```
+
+  `READY_NO_REQUIREMENTS: <KEY>'s prd.md states no requirement IDs, so there is no coverage ground truth to verify against and no readiness verdict this run could honestly render — a 0-of-0 roll-up reads as 100%. Add the requirements to the PRD (/product-workflows:update-prd <KEY>) and re-run, or re-enter the key if this was not the folder you meant.`
 - The per-Epic artifact inventory: for each `EPIC-` folder, whether `specification.md`, `design.md`
   and `implementation.md` exist. **This is what Phase 3(0) derives the phase from**, and it is the
   only status input this command has.

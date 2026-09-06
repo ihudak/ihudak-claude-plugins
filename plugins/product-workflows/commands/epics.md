@@ -20,6 +20,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
 
 ## Phase 0 — Load
 
+0. **Flags.** `--no-docs` — boolean; turns documentation grounding off for this run (Phase 2). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. Strip both, and `--docs`'s value, from `$ARGUMENTS` before step 1 classifies what remains.
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an
    `@<path>` naming a folder or a file inside one — and resolve it with
    `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), **with no `<KIND>`

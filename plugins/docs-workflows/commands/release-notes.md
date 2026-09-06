@@ -17,7 +17,7 @@ release-notes body — a plain **Category:** label + `### title` + prose for the
 wrapper), runs a light style gate, and writes the draft to a persistent destination for the
 user to paste wherever their release notes are published.
 
-Usage: `/release-notes <ADDRESS> [--version <v>] [--no-docs]`, where `<ADDRESS>` is a key or an
+Usage: `/release-notes <ADDRESS> [--version <v>] [--no-docs] [--docs <path>]`. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. Here `<ADDRESS>` is a key or an
 `@<path>` naming a folder in the specs tree.
 
 - **`--version <v>`** (optional) — the release this note belongs to. Absent, the grill asks once;

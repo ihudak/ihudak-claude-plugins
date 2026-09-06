@@ -15,7 +15,7 @@ finding is independently re-derived by a different agent before it counts as evi
 (`workflows-core:grounding-format` §8) — this command's whole job is to make
 that discipline happen, not to ground anything itself.
 
-Usage: `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--rebaseline]`
+Usage: `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--docs <path>] [--rebaseline]`
 
 Runs at either of the two levels `<BRD-KEY>` can name (`workflows-core:addressing`
 §3) — a BRD that owns its source document, or one of its slices — grounding only the requirements
@@ -39,7 +39,7 @@ behaviour, not the behaviour.
 2. **Flags.** `--depends-on <BRD-KEY>` — repeatable, each consuming the next token; validate each
    with `key-valid` and drop (warn, do not stop the run) any that fail shape. `--no-design` —
    boolean, skips Phase 5's `design-grounder` step. `--no-docs` — boolean, turns documentation
-   grounding off for this run (Phase 1 step 0, Phase 4.5). `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
+   grounding off for this run (Phase 1 step 0, Phase 4.5). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
    / `--no-derivation-matrix` — mutually exclusive; absent means "let Phase 8 decide the default".
    `--no-code` — boolean, the **run mode** stated above the phases. Its four refusals are checked
    here, before anything expensive runs:

@@ -6,6 +6,12 @@ Versions follow semver at the plugin level.
 
 ## [4.0.1] — 2026-09-06
 
+### Fixed — `/ready` could return SUPPORTED having verified nothing
+
+`/ready` builds its `requirements[]` coverage ground truth from the PRD and had no non-emptiness test, so a PRD stating no requirement IDs produced a 0-of-0 roll-up — **100%** — and a verdict that could come back `SUPPORTED`, which is the verdict `/implement` is offered on. `/epics` refuses the identical emptiness read out of the identical file, naming the identical reason; two commands reading one file should not disagree about whether it says anything.
+
+It now stops with `READY_NO_REQUIREMENTS`, and `readiness-reviewer` refuses a **non-empty** inventory rather than merely a present one, so the refusal holds even on a dispatch that skipped the caller's stop. This is not a breach of the command's "never stops" rule: that rule governs the artifacts under verification, where an unmerged or missing one still leaves a claim to judge. An empty requirement inventory is the absence of the subject the verdict is about.
+
 ### Fixed — the 4.0.0 entry's own hook count
 
 That entry says `dev-workflows` keeps "three hooks". It keeps **one**: the same increment that wrote the sentence moved `notify-done` and `test-notify` into `workflows-core` (I4-3), where one copy serves every plugin in the family. Corrected in place, since it is a false statement about what 4.0.0 shipped — **and in `plugin.json` and the `marketplace.json` entry, which carried the identical sentence and are the copies a user actually reads at install time.** The first pass corrected the changelog prose alone and claimed the correction was complete; a review found the other two. `CHANGELOG.md` and the two descriptions are all outside `check-docs.sh`'s inventory checks, which is why the tree stayed green with the claim in three places.

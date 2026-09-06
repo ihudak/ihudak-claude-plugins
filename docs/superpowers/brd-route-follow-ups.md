@@ -85,23 +85,35 @@ Three Opus reviewers ran over `7b47f23..ed4334c` on orthogonal dimensions — cl
 
 Per **S18** these gate the release exactly as the BRD-route defects did. None is script-visible: all seven build gates were green with every one of them in the tree.
 
+**Status, 2026-09-06 (later the same day): R-1 through R-5 are all closed.** Each entry below records how. None was script-visible — all seven gates were green with every one of them in the tree, before and after.
+
 ## R-1 — `/ready` has no non-emptiness guard on `requirements[]`, where `/epics` has exactly that guard
+
+**CLOSED** — `/ready` now stops with `READY_NO_REQUIREMENTS`, and `readiness-reviewer` refuses a **non-empty** inventory rather than a present one, so the refusal holds independently of the caller. The stop is not a breach of "never stops": that rule governs the artifacts under verification, where there is still a claim to judge, and an empty requirement inventory is the absence of the subject the verdict is about.
 
 `/epics` refuses an empty ground truth outright, naming the reason: proceeding "would let every Epic pass coverage vacuously". `/ready` builds the same `requirements[]` ground truth from the same PRD and has no such test; `readiness-reviewer` refuses only on the field being *absent*, not empty. A PRD stating no requirement IDs yields a 0/0 = 100% coverage roll-up and can return **SUPPORTED** — the verdict `/implement` is offered on. Same class as BRD-1, same shape as the `/brd-split` and `/brd-interview` gates fixed this week, in two commands that read one file and disagree.
 
 ## R-2 — `/brd-reconcile` never gates on a reader digest that yielded nothing
 
+**CLOSED** — `BRD_RECONCILE_EMPTY_DIGEST`, built on the presence facts the digest already recorded and nothing consumed. It splits the two cases the file kept apart for exactly this purpose: every section `stated-none` is a customer who positively agreed and is recorded as a real outcome; sections `absent`, or present but yielding nothing, is a read that failed and is reported.
+
 `BRD_RECONCILE_UNCONFIRMED`, `UNDISPOSED_CORRECTION` and `UNSWEPT` all count *undisposed* items, so a `customer-review-reader` return with zero decisions, zero `required_changes` and zero challenges satisfies all three vacuously: the run freezes zero `[CD#n]`, sweeps nothing, writes a reconciliation record and reports success. The presence half already exists and is unused — the digest records each of the twelve sections as `present`, `stated-none` or `absent`, "two facts that are never merged", and nothing branches on it.
 
 ## R-3 — `/brd-package` step 7 is vacuous on zero round files
+
+**CLOSED** — `BRD_PACKAGE_NO_ROUNDS`, plus `require-on-main` on each round record. The second half was the larger finding: step 7 stopped on a state it read from the worktree, so the refusal could be satisfied by a record nobody else could see — the same defect as `/brd-split`'s design gate, in the same week, reached by the same inherited implication.
 
 *"Stop unless every question in every round carries either a terminal disposition or the holding state"* is vacuously true with no round files. Largely covered by step 8's `BRD_PACKAGE_NOTHING_TO_REVIEW`, which does test presence — the live hole is a `decisions.md` carrying `[VD#n]` whose round records never merged. Note this rests on the same "one commit stages the siblings" assumption `--no-code` falsified for `/brd-split`; `/brd-reconcile` carries an explicit paragraph qualifying it and `/brd-package` does not.
 
 ## R-4 — `--docs <path>` is declared by the shared reference for nine consumers and parsed by one
 
+**CLOSED** — implemented in the other eight rather than narrowing the contract, each with the rule that the flag and its value are stripped together before any remaining-argument classification. Narrowing would have left an operator whose docs are not at `$DOCS_PATH` able only to turn grounding off, which is BRD-2's shape.
+
 `workflows-core:docs-grounding` §1's *Flags first* rung declares `--docs <path>` for all nine of its consumers. **Only `/idea` parses it.** The other eight take `--no-docs` and nothing else, and several then classify `$ARGUMENTS` "minus every recognised flag" — so `--docs` and its path argument fall through into the address classification. This is BRD-2's shape and slightly worse: the off switch exists everywhere, the point-it-elsewhere switch exists once, and the shared reference documents it as though it existed in all nine. An operator whose docs are not at `$DOCS_PATH` can only turn grounding off.
 
 ## R-5 — `phase-handoff.md` §4.0's register classifies 13 artifacts against a `deliverable_paths` universe of ~30
+
+**CLOSED** — the register is now derived from the `deliverable_paths` declarations rather than from memory, and carries every artifact they name, including the ones with no reader. It also states the rule the last two increments kept re-deriving: **a reader that stops on an artifact gates that artifact**, because a stop is only as reliable as the ref it reads.
 
 §4.0 now says outright that it classifies the artifacts whose class a producer has had to resolve, rather than everything the family hands off, and that an unlisted path is unclassified rather than unread — so a producer is no longer misled. But the gap itself stands: `interview/round-<N>.md`, `brd/brd-inventory.md`, `brd-link.md`, `grounding/baselines.md`, the three altitude seeds, `interview/customer-questions.md`, the `/brd-package` outputs, `reconciliation-<D>.md`, `slices.md`, `/specify`'s and `/design`'s session and glossary files, and `/update-prd`'s archived revision all lack a row, and several have readers that **stop**. Most ride in a set that already contains a gated path and are carried by the strongest-class rule, which is why nothing has misbehaved yet — `/brd-ground --no-code` was the first set containing no classified path at all, and it is what exposed this.
 

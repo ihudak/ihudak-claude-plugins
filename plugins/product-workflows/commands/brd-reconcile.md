@@ -502,6 +502,16 @@ sections with each marked `present`, `stated-none` or `absent` — two facts tha
 unknown; the decisions with their provenance; `unanswered_questions`; `challenges`;
 `required_changes`; `anomalies`; and `notes`.
 
+**Then test the digest for emptiness, because the three later gates cannot.** `BRD_RECONCILE_UNCONFIRMED`, `BRD_RECONCILE_UNDISPOSED_CORRECTION` and `BRD_RECONCILE_UNSWEPT` each count items still *undisposed*, so a digest carrying zero decisions, zero `required_changes` and zero challenges satisfies all three **vacuously**: the run freezes zero `[CD#n]`, sweeps nothing, writes a reconciliation record and reports success over a review nobody read anything out of. A count tests a property of the items that exist; what is wrong here is that none does.
+
+The presence relation this needs is already in the digest and was recorded and never consumed — the twelve sections, each `present`, `stated-none` or `absent`, and the reason those are **two facts that are never merged** is exactly this test:
+
+- **Every substantive section `stated-none`, and the decision/change/challenge sets empty** → the customer positively said there is nothing. That is a real answer and an ordinary outcome: proceed, and say so in the reconciliation record — a review that changes nothing is a review, and refusing it would make "we accept it as it stands" unrecordable.
+- **Sections `absent`, or `present` while every set is empty** → the reader learned nothing, and the difference from the case above is the whole reason the two facts are kept apart. Stop:
+  `BRD_RECONCILE_EMPTY_DIGEST: customer-review-reader returned no decisions, no required changes and no challenges, and <N> of the twelve sections are <absent | present but yielded nothing> — this is a read that failed, not a customer who agreed. The canonicalised review is at <path>; open it, and re-run '/product-workflows:brd-reconcile <KEY> @<review-file>' — adding the operator's own '--free-text' reading where the file is prose the schema pass could not see.`
+
+Note which way this errs. A customer who genuinely accepts everything reaches the first branch and is recorded; a review the reader could not parse reaches the second and is reported. The failure this replaces reported the second as though it were the first.
+
 **Present every anomaly to the operator now, before any candidate is confirmed, and repair none.**
 The agent reports departures from the schema rather than resolving them, and this command does the
 same: a section missing rather than present and saying `none`, a section out of order, a verdict

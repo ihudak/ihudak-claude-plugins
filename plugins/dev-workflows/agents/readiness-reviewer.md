@@ -28,7 +28,7 @@ The caller passes a structured brief:
   (ARD conformance) is skipped entirely (no-regression).
 - **The rubric** (`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`) — the status↔command↔role↔artifact ladder this reviewer applies.
 
-Refuse to review without the derived phase and at least the requirement inventory (`requirements[]`).
+Refuse to review without the derived phase and a **non-empty** requirement inventory (`requirements[]`). Non-empty, not merely present: an empty list satisfies a presence test and then yields a 0-of-0 coverage roll-up that reads as complete, so the verdict would rest on nothing having been checked. The caller stops on this too (`READY_NO_REQUIREMENTS`); this refusal is the independent one, so a dispatch that skipped that stop still cannot get a verdict out of an empty ground truth.
 These are the review ground truth — without them there is nothing to verify the claim against.
 
 ## Review method

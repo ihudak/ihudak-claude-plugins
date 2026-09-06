@@ -22,7 +22,7 @@ invariants the downstream (`/specify`, `/design`, `/implement`) will later inher
   refused (Phase 0 step 1a). One address on every route: a second positional token is refused
   (Phase 0 step 1, `CREATE_ARD_ONE_ADDRESS`).
 
-Usage: `/create-ard <ADDRESS> [--no-docs]`, where `<ADDRESS>` is a key or an `@<path>`.
+Usage: `/create-ard <ADDRESS> [--no-docs] [--docs <path>]`, where `<ADDRESS>` is a key or an `@<path>`. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through.
 
 It authors architecture only — no code writing; grounding is **architect-driven** (there are no PRs at
 this stage). Zero external calls.

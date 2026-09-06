@@ -17,7 +17,7 @@ agent's say-so alone, and writes a coverage ledger in which every requirement st
 `unallocated` — the state `/brd-split`, the route's third command, cannot complete past until each
 row has been given a fate.
 
-Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
+Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [--docs <path>]`
 
 ---
 
@@ -40,7 +40,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    operator's own step, done where they can eyeball the result against the original before handing
    it back to this command.
 4. **Optional flags.** `--sort-existing <dir>` — if present, validate `<dir>` exists and carry it
-   forward to Phase 6. `--no-docs` — boolean; turns documentation grounding off for this run,
+   forward to Phase 6. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. `--no-docs` — boolean; turns documentation grounding off for this run,
    carried to Phase 1's `resolve-docs-grounding` call. Neither changes anything else about Phase 0:
    the BRD source is still required and still gated by step 3.
 5. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the

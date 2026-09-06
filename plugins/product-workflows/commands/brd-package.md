@@ -149,7 +149,34 @@ cannot review, and they will not tell you that — they will review it anyway, b
      landed:
      `BRD_PACKAGE_REGISTER_NOT_HANDED_OFF: <BRD-KEY>'s decision register is written at <path> but is on no branch — its handoff was declined. Commit and merge decisions.md and the interview/ round records to the specs repo's default branch, then re-run; do not re-run /product-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
 7. **Gate on the interview's rounds — and read the precondition the only way that is not a
-   deadlock.** Read every `interview/round-<N>.md`. Stop unless **every question in every round
+   deadlock.** Read every `interview/round-<N>.md`.
+
+   **First, that the round records are on main.** Execute `require-on-main`
+   (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against
+   each `interview/round-<N>.md` before reading it, rather than inheriting step 6's single-commit
+   implication for them. Map the §3.7 return by `stopped` first: any stopping row → stop, naming the
+   branch/PR state; `pass` / `pass_amending` / `unmanaged` → proceed; `absent` (row F) → the stop
+   below. **A stop is only as reliable as the ref it reads**: this step refuses a round holding a
+   deferred question, and reading the worktree would let an operator satisfy it with a record nobody
+   else can see — the same defect `/brd-split`'s design gate had, one command over, and the reason
+   `workflows-core:phase-handoff` §4.0 now says a reader that stops on an artifact gates it.
+
+   **Then, that there is a round to read.** *"Every question in every round"* is a universal, and a
+   universal over an empty set is true — so with no `interview/round-<N>.md` on disk at all this gate
+   passes without inspecting anything. Step 6 gates `decisions.md` on main and infers the round
+   records from *"every deliverable one `handoff-to-main` run stages lands in a single commit"*,
+   which is the same implication `/brd-ground --no-code` falsified for `/brd-split`'s sibling pair:
+   true of the run that produced them, and not a property of the tree. `/brd-reconcile`'s own step 6
+   carries an explicit paragraph saying that implication *"holds for the `handoff-to-main` path and
+   for no other"*, because files landed by hand can land partially. So test it here rather than
+   inherit it — zero round files, while `decisions.md` carries at least one `[VD#n]`, is a register
+   whose rounds never merged:
+   `BRD_PACKAGE_NO_ROUNDS: <BRD-KEY>'s decisions.md is on main and records <N> decisions, but no interview/round-<N>.md is on file — the rounds those decisions came from never merged. Land the interview/ round records on the specs repo's default branch and re-run; do not re-run /product-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
+   A BRD with **no** `[VD#n]` and no rounds has simply not been interviewed, which step 8's
+   `BRD_PACKAGE_NOTHING_TO_REVIEW` already reports in its own words — leave that case to it rather
+   than giving one state two stops.
+
+   Then, over the rounds that exist: stop unless **every question in every round
    carries either a terminal disposition or the holding state *held for the customer*** — the
    vocabulary `/brd-interview`'s *Resolve the round* phase fixes. Any question in the *deferred*,
    *needs grounding* or *untagged* holding state → stop, naming each one, its round, its holding

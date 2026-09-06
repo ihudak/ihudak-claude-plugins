@@ -13,7 +13,7 @@ information, scope tweaks, wording) and the rare obstacle-driven re-do (a human 
 discussed it, and decided the PRD must change). The PRD is **product-level** — what / why /
 for-whom, not how. Zero code scan; no repos.
 
-Usage: `/update-prd <KEY> [@transcript-or-notes ...] [--no-docs]` (`--no-docs` turns off documentation grounding for the run — see Phase 1).
+Usage: `/update-prd <KEY> [@transcript-or-notes ...] [--no-docs] [--docs <path>]` (`--no-docs` turns off documentation grounding for the run — see Phase 1). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through.
 
 ---
 

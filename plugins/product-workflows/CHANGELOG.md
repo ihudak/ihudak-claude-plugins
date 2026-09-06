@@ -6,6 +6,16 @@ Versions follow semver at the plugin level.
 
 ## [1.1.0] — 2026-09-06
 
+### Fixed — three more gates that a count could satisfy with nothing
+
+`/brd-reconcile` froze zero `[CD#n]`, swept nothing and reported success on a digest the reader had failed to parse: its three gates all count *undisposed* items, so an empty digest satisfied them vacuously. `BRD_RECONCILE_EMPTY_DIGEST` now uses the presence facts the digest already carried and nothing consumed, and splits the two cases they were kept apart for — every section `stated-none` is a customer who agreed, and is recorded as the real outcome it is; sections absent, or present but yielding nothing, is a read that failed.
+
+`/brd-package` step 7's *"every question in every round"* is a universal, true over no rounds at all. It now stops with `BRD_PACKAGE_NO_ROUNDS` where `decisions.md` records decisions and no round record is on a ref — and executes `require-on-main` on each round record rather than reading the worktree, because a stop satisfied by an unmerged file protects nobody but the operator who wrote it.
+
+`--docs <path>` was declared by `workflows-core:docs-grounding` for all nine of its consumers and parsed by `/idea` alone; the other eight took `--no-docs` and nothing else, so an operator whose documentation is not at `$DOCS_PATH` could only turn grounding off. Implemented in all eight, each stripping the flag and its value together before classifying what remains.
+
+`/epics` gained the `--no-docs` / `--docs` parsing step it had never declared, and its "Provide manual fix notes" escalation option gained the resolution instruction it never had — every other option in that array had one.
+
 ### Added — `/brd-ground --no-code`, so a missing design pass can be added without re-deriving the code findings
 
 `--no-code` is a run mode, not a step skip: `grounding/code-grounding.md` is read-only for the whole run, the run produces no `[CG#n]`, and every finding already on file keeps its verdict, evidence and verifier outcome — never renumbered, never re-verified, never rewritten. Repositories are still resolved and pinned, because a class-4 `[DG#n]` is pinned to the commit of the `[CG#n]` it cites.

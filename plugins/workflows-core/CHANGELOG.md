@@ -6,6 +6,14 @@ Versions follow semver at the plugin level.
 
 ## [1.1.0] — 2026-09-06
 
+### Fixed — a reader that stops on an artifact now gates it, and the class register is derived rather than remembered
+
+`phase-handoff.md` §4.0 states the rule two increments kept re-deriving: **a stop is only as reliable as the ref it reads.** A command that refuses a state it found in the worktree can be satisfied by a file nobody else can see, so the refusal protects the operator who ran the producer and no one else. Found twice, in `/brd-split`'s design gate and `/brd-package`'s round gate, both of which had inherited a sibling's `require-on-main` through a "one handoff, one commit" implication that `/brd-ground --no-code` had already falsified. Both now gate what they stop on, and both have §3.4 rows.
+
+The register itself is now derived from the tree's `deliverable_paths` declarations instead of from memory, and carries every artifact they name — including the four with no reader found, listed rather than omitted so that absence from the table means *unclassified* and never *unread*. It had twelve rows against roughly thirty declared paths; the gap cost nothing only because most unlisted artifacts rode in a set that already held a gated path, and `--no-code` produced the first set with no classified path in it at all.
+
+`feedback-emission.md` §4's persist predicate said "the dev-workflows plugin itself" — one plugin of four, read literally dropping every signal about the other three — and reached for `${CLAUDE_PLUGIN_ROOT}/references/**` two paragraphs below the note explaining why that variable resolves to the wrong tree here. `/feedback` said the same thing three times in user-facing text.
+
 ### Added — the two session-wide hooks, and a serialisation the grounding artifacts never fixed
 
 `notify-done` and `test-notify` now ship here. Both are session-wide rather than command-scoped, and every plugin in the family declares `workflows-core`, so one copy serves all of them instead of a copy per plugin (I4-3). Install or update `workflows-core` and both hooks arrive with it.

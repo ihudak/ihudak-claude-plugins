@@ -19,7 +19,7 @@ Opus `spec-reviewer` and offers to land the spec on the specs repo's main branch
 Key distinction from `/epics`: `/epics` *splits* a PRD into Epic drafts; `/specify` *authors one
 specification* for a single item (typically an Epic). Run `/epics` first, then `/specify` per Epic.
 
-Usage: `/specify <ADDRESS> [--no-docs]`, where `<ADDRESS>` is a key or an `@<path>`. On the BRD
+Usage: `/specify <ADDRESS> [--no-docs] [--docs <path>]`, where `<ADDRESS>` is a key or an `@<path>`. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. On the BRD
 route the run is seeded from a reconciled BRD and the address is the **`PRD-` slice key**
 `/brd-split` carved; a `BRD-` container is refused (Phase 0 step 0). One address on every route: a
 second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).

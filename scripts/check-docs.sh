@@ -6,11 +6,11 @@
 # in the two restructures this one follows (a sibling managed-plugins repo,
 # ai-containers#78).
 #
-# SIXTEEN checks, numbered 1-16 in the order their functions appear below. The number is
+# SEVENTEEN checks, numbered 1-17 in the order their functions appear below. The number is
 # written here and nowhere else in this file, and nothing gates it -- re-derive it with
 # `grep -oE '\bfail [0-9]+ ' "$0" | awk '{print $2}' | sort -un` -- the numbers a fail() call
 # can actually report -- rather than trusting this sentence, and update it in the commit that
-# adds a check. Counting the banner comments instead gives 15: checks 1 and 2 share one.
+# adds a check. Counting the banner comments instead gives 16: checks 1 and 2 share one.
 #
 # --selftest mutates a copy of the passing fixture once per check and asserts the
 # gate rejects it. Without that, the fixtures are decorative: a gate that cannot
@@ -1703,6 +1703,27 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
   expect_pass_after "a plugin holding next-phase-offer.md with no family command is accepted" \
     "give_two_refs next-phase-offer.md"
 
+  # Check 17 -- agent dispatch authority (PS15). The baseline fixture already carries the
+  # shape both cases below assume: agents/beta.md grants `Task` and carries the exact
+  # NEVER-dispatch rule naming `eta`; agents/eta.md talks about "dispatch" in ordinary prose
+  # and invokes no subagent, but grants no `Task` in its own tool list (it has no tools: line
+  # at all). Each case below mutates exactly one of the two, leaving the other as the
+  # untouched Task-carrier that keeps the vacuity guard from firing alongside the real
+  # assertion -- the same reason check_cost_attribution's reverse direction needs a run-wide
+  # view rather than per-file bookkeeping.
+  expect_fail "an agent granted Task with no NEVER-dispatch rule is rejected" 17 \
+    "sed -i.bak '/NEVER dispatch any subagent other than/d' $PLUGIN_REL/agents/beta.md"
+  expect_fail "an agent carrying the NEVER-dispatch rule without Task is rejected" 17 \
+    "printf -- '\n- NEVER dispatch any subagent other than \`beta\`. That one dispatch is your entire \`Task\` authority.\n' >> $PLUGIN_REL/agents/eta.md"
+  # THE DISCRIMINATOR. This adds a decoy paragraph to eta.md -- which still carries no
+  # tools: line at all -- naming both "dispatch" and a literal quoted \`"Task"\`, the exact
+  # substring the tools array uses. An implementation that greps the whole file for either
+  # token, rather than scoping `has_task` to the frontmatter tools/allowed-tools line, misreads
+  # eta as Task-carrying and then fires the forward-direction failure on a file that grants no
+  # such authority -- which is exactly the loose-grep failure mode this check exists to avoid.
+  expect_pass_after "prose naming dispatch and a quoted \"Task\" grants no authority" \
+    "printf -- '\nA reviewer might dispatch this agent expecting it to \`\"Task\"\` itself out eventually; it never does, and it invokes no subagent either.\n' >> $PLUGIN_REL/agents/eta.md"
+
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
   exit "$rc"
 }
@@ -2273,6 +2294,73 @@ PYEOF
   done <<<"$out"
 }
 
+# ------------------------------------------------------------------ check 17
+# Agent dispatch authority (PS15). A ledger item recorded a live defect: an agent
+# self-disclosed dispatching a stray subagent mid-run, outside its own sanctioned set.
+# A check that verifies RUNTIME behaviour is impossible from a static script -- and a check
+# that merely asserted "the rule exists" would have passed on the very run that misbehaved:
+# MEASURED FIRST, only 3 of the 38 agents under PLUGIN_RELS carry `Task` in their tool list at
+# all (upgrade-executor, vuln-fixer, docs-style-checker), and all three already carried a
+# NEVER-dispatch rule naming their sanctioned subagent, in near-identical wording, when one of
+# them still mis-dispatched. So what is checkable is the STRUCTURAL PRECONDITION, not the
+# behaviour: every agent whose tool list grants `Task` must also carry the rule. That is 3-for-3
+# today -- green on the current tree -- and it fires the moment a fourth agent gains `Task`
+# without the rule, which is the realistic way this decays; it cannot catch a dispatch outside
+# the sanctioned set from an agent that already carries the rule, because that is behaviour.
+#
+# THE ANCHOR PHRASE is quoted from the three live carriers rather than invented: "NEVER dispatch
+# any subagent other than `<name>`. That one dispatch is your entire `Task` authority." A looser
+# match on the word "dispatch" alone would be satisfied by ordinary prose (a reviewer discussing
+# who dispatches what) -- this checks for the exact sentence, backticked name varying, which
+# nothing but the sanctioned-set rule itself can satisfy.
+#
+# BOTH DIRECTIONS. The reverse -- a file carrying the rule but NOT `Task` in its tool list -- is
+# its own defect: it declares a dispatch authority the harness would refuse, which misleads a
+# reader into believing the agent can do what its tool list forbids. Asserted here because it is
+# verified green on the tree today (the same 3 files carry both, and no other file carries the
+# rule alone).
+#
+# VACUITY GUARD, same shape as check_merge_clause's: if the scan finds not one agent anywhere
+# under PLUGIN_RELS carrying `Task`, that is the frontmatter parsing having silently stopped
+# matching, not a tree with nothing to dispatch -- fail loudly rather than pass.
+#
+# SCOPE is agents/ only, one flat directory (`agents/*.md`, no subdirectories in this tree
+# today) under each plugin in PLUGIN_RELS -- commands and skills carry their own
+# `allowed-tools:` frontmatter but are outside PS15's finding, which was about a subagent
+# dispatching a stray subagent. The tool-list key is read as either `tools:` or
+# `allowed-tools:`, whichever the frontmatter uses; every agent in this tree today uses
+# `tools:` on one unwrapped line, so a tools array that wraps across lines is this check's
+# one blind spot, matching the file's own "state what a check cannot see" convention.
+check_dispatch_authority() {
+  local root="$1" rel p f frontmatter toolsline has_task has_rule seen=0 rp
+  local anchor='NEVER dispatch any subagent other than `[^`]+`\. That one dispatch is your entire `Task` authority\.'
+  for rel in $PLUGIN_RELS; do
+    p="$root/$rel/agents"
+    [ -d "$p" ] || continue
+    for f in "$p"/*.md; do
+      [ -e "$f" ] || continue
+      rp="${f#$root/}"
+      frontmatter=$(awk 'NR==1 && $0=="---"{infm=1;next} infm && $0=="---"{exit} infm{print}' "$f")
+      toolsline=$(grep -E '^(tools|allowed-tools):' <<<"$frontmatter" | head -1)
+      has_task=0
+      case "$toolsline" in *'"Task"'*) has_task=1 ;; esac
+      has_rule=0
+      grep -qE -- "$anchor" "$f" && has_rule=1
+
+      if [ "$has_task" = 1 ]; then
+        seen=$((seen + 1))
+        [ "$has_rule" = 1 ] \
+          || fail 17 "$rp carries \`Task\` in its tool list but no NEVER-dispatch rule naming its sanctioned subagent (the anchor sentence: \"NEVER dispatch any subagent other than \`<name>\`. That one dispatch is your entire \`Task\` authority.\") -- a 4th Task-carrying agent with no sanctioned set stated is exactly how PS15's mis-dispatch happened"
+      fi
+      if [ "$has_rule" = 1 ] && [ "$has_task" != 1 ]; then
+        fail 17 "$rp carries a NEVER-dispatch rule naming a sanctioned subagent but its tool list grants no \`Task\` -- it declares a dispatch authority the harness would refuse, which is stale and will mislead a reader"
+      fi
+    done
+  done
+  [ "$seen" -gt 0 ] \
+    || fail 17 "no agent under any PLUGIN_RELS agents/ carries \`Task\` in its tool list -- this check would examine nothing, which means the frontmatter scan has drifted rather than the tree having nothing left to dispatch"
+}
+
 # ---------------------------------------------------------------------- main
 # selftest() runs before the dispatch loop below ever assigns PLUGIN_REL per iteration,
 # and its fixture mutations reference the bare (singular) $PLUGIN_REL directly -- so it
@@ -2321,6 +2409,12 @@ done
 # $CORE_PLUGIN_REL, which is the same set the loop walks plus the corpus when that is not a
 # documented plugin of its own.
 check_loader_contract     "$ROOT"
+
+# Check 17 also sits OUTSIDE the loop, for the same reason: its vacuity guard is a claim
+# about the ENTIRE PLUGIN_RELS tree ("not one agent anywhere carries Task"), which a
+# per-plugin dispatch cannot make without a latch -- the same shape check 16 is here for.
+# It loops $PLUGIN_RELS itself rather than reading the loop variable.
+check_dispatch_authority  "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_RELS" >&2

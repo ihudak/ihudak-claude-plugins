@@ -10,7 +10,7 @@
 
 **When unset.** Every command that needs it stops naming `SPECS_PATH` explicitly and offers to enter a path or cancel — there is no fallback and no silent default, because a PM/PA/PE artifact has nowhere else to live.
 
-**When it points somewhere unreadable.** The bookkeeping entry point, `specs-preflight`, requires an existing directory, a resolvable git dir, and a **writable** `.git`; a failed gate is a silent no-op, and because the terminal `commit-artifacts` step applies the same writability gate, nothing gets committed either. The deliverable-verification gate, `require-on-main`, needs only a readable git dir, and a failure there returns `unmanaged` — the caller proceeds exactly as it did before that machinery existed.
+**When it points somewhere unreadable.** The bookkeeping entry point, `specs-preflight`, requires an existing directory, a resolvable git dir, and a **writable** `.git`; a gate that fails on **writability** is a silent no-op (a read-only specs mount is a normal state here, and there is nothing to fix), while a gate that fails because `$SPECS_PATH` is not a directory or not a git repository at all emits a one-line notice naming the variable and the path — that state is never supported, and it used to be indistinguishable from the read-only one, and because the terminal `commit-artifacts` step applies the same writability gate, nothing gets committed either. The deliverable-verification gate, `require-on-main`, needs only a readable git dir, and a failure there returns `unmanaged` — the caller proceeds exactly as it did before that machinery existed.
 
 ## `$REPOS_PATH`
 

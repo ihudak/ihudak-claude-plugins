@@ -131,7 +131,12 @@ directory is **writable**. Test `.git` specifically, not just the worktree —
 `commit` and `fetch` both write there, and a read-only specs mount is a normal
 state in this container setup.
 
-Gate fails → **silent no-op**. The artifacts are going to a report-only tier the plugin does not manage.
+**A failed gate is not one disposition but two, and conflating them is what made a misconfiguration indistinguishable from a supported state.**
+
+- **`.git` resolves but is not writable → silent no-op**, exactly as before. The artifacts are going to a report-only tier the plugin does not manage, and a read-only specs mount is a normal state in this container setup. Saying nothing is correct here: there is nothing for the operator to fix.
+- **`$SPECS_PATH` is set to a path that is not a directory, or `rev-parse --git-dir` fails there → emit a one-line notice** naming the variable and the path, then continue. This is **never** a supported state: a set-but-not-a-repository `$SPECS_PATH` is a typo, a missing mount, or a path that was right in another container. Under the old blanket silence it looked identical to the read-only case, so a run would write its deliverables, commit nothing, open no pull request, and end on a terminal gate-failed line that named none of it — the operator's first clue being an empty specs tree some time later.
+
+Still **never fatal** (§1): the notice reports and the run continues. What changes is that the condition is now *said*.
 
 ### 3.2 Resolution inputs
 

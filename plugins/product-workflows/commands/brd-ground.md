@@ -53,7 +53,9 @@ behaviour, not the behaviour.
      An explicit `--no-derivation-matrix` is redundant here but harmless; an unset default resolves
      **off** under this mode and is reported rather than left silent.
    - Where there is no verified code grounding to build on. This one needs the resolved folder, so
-     take it immediately after step 5 rather than here: stop when
+     take it immediately after step 5a rather than here — **after**, never before, and only on a
+     slice: step 5a already refused a root whatever flags it carries, so this check never runs
+     against one. Stop when
      `<BRD-dir>/grounding/code-grounding.md` is absent, holds no `[CG#n]`, or holds one carrying no
      verifier `outcome`. The third is the state `/brd-split` itself refuses
      (`workflows-core:grounding-format` §8), so reporting it now costs one read and saves a whole
@@ -77,7 +79,9 @@ behaviour, not the behaviour.
    half the cases, exactly as it is in step 6's `absent` branch below:
    `BRD_GROUND_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent. Do not run /brd-intake on a slice; it has no source document of its own.`
 5a. **The root refusal — grounding happens at the slice and nowhere else.** Take this the moment
-    step 5 returns a resolved folder, before step 6 opens anything. Test the **resolved directory's
+    step 5 returns a resolved folder, before step 6 opens anything and before step 2's deferred
+    `--no-code` check — the level question is answered before any flag-combination question,
+    because a root is refused whatever flags it carries. Test the **resolved directory's
     prefix**: `BRD-` is a root, `PRD-` is a slice — the kind-prefix convention
     `workflows-core:addressing` §2 fixes, read off the resolved folder's own name. **Never test the
     folder's asserted `kind:`** — `/brd-split` writes `kind: brd` into the `brd-link.md` it places

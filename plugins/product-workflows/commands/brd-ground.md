@@ -17,10 +17,11 @@ that discipline happen, not to ground anything itself.
 
 Usage: `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--docs <path>] [--rebaseline]`
 
-Runs at either of the two levels `<BRD-KEY>` can name (`workflows-core:addressing`
-§3) — a BRD that owns its source document, or one of its slices — grounding only the requirements
-that BRD claims. Unlike `/brd-split`, this command refuses neither: a slice is ground exactly as
-its parent is.
+`<BRD-KEY>` still resolves through either of the two levels `resolve-address` searches
+(`workflows-core:addressing` §3) — a BRD that owns its source document, or one of its slices —
+because a root must be resolved before Phase 0 step 5a can refuse it by name. **Only a slice is
+ground: a root BRD is refused, and grounding happens at the slice and nowhere else**, over the
+requirements that slice's own inventory claims.
 
 **Standing rule, stated in full at Phase 4.5 and binding on every phase: documentation is a lead
 and a divergence finding — it is NEVER evidence for a `[CG#n]`.** No finding this run writes may
@@ -75,6 +76,29 @@ behaviour, not the behaviour.
    document or a slice of one. Naming `/brd-intake` unconditionally would be the wrong advice for
    half the cases, exactly as it is in step 6's `absent` branch below:
    `BRD_GROUND_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent. Do not run /brd-intake on a slice; it has no source document of its own.`
+5a. **The root refusal — grounding happens at the slice and nowhere else.** Take this the moment
+    step 5 returns a resolved folder, before step 6 opens anything. Test the **resolved directory's
+    prefix**: `BRD-` is a root, `PRD-` is a slice — the kind-prefix convention
+    `workflows-core:addressing` §2 fixes, read off the resolved folder's own name. **Never test the
+    folder's asserted `kind:`** — `/brd-split` writes `kind: brd` into the `brd-link.md` it places
+    inside the `PRD-` slice folder it carves (`commands/brd-split.md` Phase 3), so a slice
+    **asserts** `brd` while being exactly the folder this refusal must accept; a gate on the
+    asserted kind would refuse every slice and accept nothing.
+
+    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
+    fallback, there is no prefix to test.** Answer the root question by **positive evidence** —
+    `coverage-ledger.md` or `brd/brd-inventory.md` present in the folder, and no `brd-link.md`
+    naming a `parent:` — never by the absence of a file, which would refuse a legacy idea-route PRD
+    folder that carries neither of those two files and is not a BRD at all.
+
+    On a root, look for the root-level artifacts this run would have produced under the retired
+    two-level model — `grounding/code-grounding.md`, `grounding/design-grounding.md`,
+    `grounding/baselines.md` — and name whichever exist in the stop, so an operator whose BRD was
+    ground under that model is told the level moved rather than that their key is wrong. Never
+    delete them; they record work done, and nothing in this run reads them.
+
+    Stop:
+    `BRD_GROUND_ROOT_LEVEL: <BRD-KEY> is a root BRD, and grounding happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-ground <SLICE-KEY>'.<where root-level grounding exists, append:> This BRD carries root-level grounding at <paths> from the earlier two-level model; it is left in place and nothing reads it.`
 6. **Gate this BRD's own inventory and ledger on main.** Execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against the resolved BRD folder's `coverage-ledger.md`. Whichever
    command wrote that ledger wrote the inventory beside it in the same handoff commit
    (`coverage-ledger-format.md` §3's creator table). **That is a fact about the run that wrote them

@@ -16,7 +16,9 @@ Run `claude plugin install pm-workflows@ihudak-plugins` — this release moves t
 
 ### The migration note (S14) — action required
 
-`claude plugin marketplace update` refreshes the catalogue; it does **not** install a plugin newly added to it. If you have `dev-workflows` installed and you update, you:
+**How you update matters for this release.** `claude plugin marketplace update` **from the command line** refreshes the catalogue only: it neither installs a plugin newly added to it nor upgrades one you already have — an installed plugin stays at the version you installed. Updating the marketplace from the **`/plugins` interface** inside Claude Code *does* upgrade installed plugins, and AutoUpdate can be set there per plugin. From the command line, `claude plugin update <plugin>@ihudak-plugins` upgrades one, and requires a restart to apply.
+
+That distinction bites harder here than usual, because this release does not merely add a plugin — it takes twelve commands **out** of `dev-workflows`. A user who refreshes only the catalogue keeps running the old content and sees none of this. If you have `dev-workflows` installed and you update, you:
 
 - **gain** `workflows-core` automatically — it is a declared dependency
 - **keep** `/design`, `/implement`, `/ready`, `/upgrade`, `/vuln`

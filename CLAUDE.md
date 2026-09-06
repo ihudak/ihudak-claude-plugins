@@ -359,6 +359,10 @@ claude plugin update workflows-core@ihudak-plugins
 
 **`claude plugin marketplace update <marketplace>` does NOT update installed plugins.** It refreshes the *catalogue* — what the marketplace advertises — which is what makes a newly added plugin installable. An already-installed plugin stays at the version it was installed at. Measured, not assumed: after a successful `marketplace update`, `claude plugins list` still reported `docs-workflows` at `1.0.0` while the catalogue advertised `1.1.0`. **This file previously claimed the opposite** — that refreshing the marketplace "does the same thing for every plugin installed from it, in one step" — and that claim is retired. Use `claude plugin update` per plugin, or the interactive `/plugins` interface inside Claude Code, which does upgrade what is installed.
 
+**The `/plugins` interface updates installed plugins; the CLI's `marketplace update` does not.** Running `/plugins` inside Claude Code and updating the marketplace from there upgrades what is already installed — verified live, where it took `docs-workflows` from 1.0.0 to 1.1.0 after a CLI `marketplace update` had left it at 1.0.0. **AutoUpdate** is settable per plugin there too, after which nothing above is needed. This is a human step: an agent editing this repo cannot drive that interface, which is why the per-plugin `update` command is what this section leads with.
+
+**A renamed plugin blocks marketplace update entirely** — not just its own, but every plugin from that marketplace. The remedy is to remove the marketplace and its plugins and reinstall from scratch (`claude plugin marketplace remove`, then `add`, then install each plugin). Worth knowing before renaming one: the cost lands on every user, not only on those who wanted the renamed plugin.
+
 **Two other subcommands are worth knowing here**, both verified from `claude plugin --help`:
 
 - `claude plugin validate <path>` — validates a plugin or marketplace manifest, or the skills, agents and commands in a directory. A local pre-flight that is cheaper than a failed install.

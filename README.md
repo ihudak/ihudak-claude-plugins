@@ -86,7 +86,18 @@ claude plugin update workflows-core@ihudak-plugins
 claude plugin update docs-workflows@ihudak-plugins
 ```
 
-**`marketplace update` refreshes the catalogue, not your installed plugins.** It updates what the marketplace advertises — which is what makes a newly added plugin installable — but an already-installed plugin stays at the version you installed. `claude plugin update <plugin>` is what upgrades one, and **it requires restarting Claude Code to apply.** Update only the plugins you actually have; the interactive `/plugins` interface inside Claude Code does the same thing with a picker.
+**The `/plugins` interface is the easiest route, and it does update installed plugins.** Run `/plugins` inside Claude Code and update the marketplace from there: unlike the CLI's `marketplace update`, that path upgrades what you already have. You can also turn on **AutoUpdate** per plugin there, after which they keep themselves current and none of the above is needed.
+
+**If a plugin has been renamed, marketplace update will not update anything** — not that plugin and not the others. The remedy is to remove the marketplace and its plugins and install from scratch:
+
+```bash
+claude plugin marketplace remove ihudak-plugins
+claude plugin marketplace add ihudak/ihudak-claude-plugins
+```
+
+then reinstall the plugins you want, per step 4.
+
+**`marketplace update` from the CLI refreshes the catalogue, not your installed plugins.** It updates what the marketplace advertises — which is what makes a newly added plugin installable — but an already-installed plugin stays at the version you installed. `claude plugin update <plugin>` is what upgrades one from the command line, and **it requires restarting Claude Code to apply.** Update only the plugins you actually have.
 
 This page used to say `marketplace update` alone was enough. It is not, and the symptom is quiet: `claude plugins list` keeps reporting the old version while the catalogue advertises the new one, so the content looks current and is not.
 

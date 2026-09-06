@@ -90,7 +90,7 @@ On a folder resolved through the legacy unprefixed fallback there is no prefix t
 So a root BRD may already carry root-level `grounding/code-grounding.md`, `decisions.md`, round records and a package built under the old model, and after this change no command will read them. **The disposition for that state is an open decision** (§7).
 
 
-## 7. Open decision — what happens to a BRD already ground at root level
+## 7. Decided — what happens to a BRD already ground at root level
 
 The route shipped with the two-level model, so engagements exist whose root BRD carries grounding, a register and possibly a sent package. Three dispositions, and this design does not pick one:
 

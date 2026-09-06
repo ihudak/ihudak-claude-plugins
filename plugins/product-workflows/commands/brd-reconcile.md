@@ -19,11 +19,12 @@ happen, not to restate it.
 
 Usage: `/brd-reconcile <BRD-KEY> @<review-file> [--sent <path>…]`
 
-Runs at either of the two levels `<BRD-KEY>` can name
-(`workflows-core:addressing` §6) — a BRD that owns its source document, or
-one of its slices. It refuses neither and behaves identically at both: a slice holds its own
-register, its own `[C]` question set and its own ledger, and it is reconciled from those and no
-others. Two things a slice does differently are named where they arise, and both follow from
+`<BRD-KEY>` still resolves through either of the two levels `resolve-address` searches
+(`workflows-core:addressing` §3) — a BRD that owns its source document, or one of its slices —
+because a root must be resolved before Phase 0 step 5a can refuse it by name. **Only a slice is
+reconciled: a root BRD is refused, and reconciling happens at the slice and nowhere else** — a slice
+holds its own register, its own `[C]` question set and its own ledger, and it is reconciled from
+those and no others. Two things a slice does differently are named where they arise, and both follow from
 inheritance rather than from level: its defect resolutions land in its **parent's** defect log
 (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1), and the stale cross-reference sweep's root
 is the **parent's** folder, so a sibling slice still asserting a superseded position is reached.
@@ -171,6 +172,30 @@ write would re-ask a question already answered.
    `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it:
    `BRD_RECONCILE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent.`
+5a. **The root refusal — reconciling happens at the slice and nowhere else.** Take this the moment
+    step 5 returns a resolved folder, before step 6 opens anything — the level question is answered
+    before any gate that follows it. Test the **resolved directory's prefix**: `BRD-` is a root,
+    `PRD-` is a slice — the kind-prefix convention `workflows-core:addressing` §2 fixes, read off
+    the resolved folder's own name. **Never test the folder's asserted `kind:`** — `/brd-split`
+    writes `kind: brd` into the `brd-link.md` it places inside the `PRD-` slice folder it carves
+    (`commands/brd-split.md` Phase 3), so a slice **asserts** `brd` while being exactly the folder
+    this refusal must accept; a gate on the asserted kind would refuse every slice and accept
+    nothing.
+
+    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
+    fallback, there is no prefix to test.** Answer the root question by **positive evidence** —
+    `coverage-ledger.md` or `brd/brd-inventory.md` present in the folder, and no `brd-link.md`
+    naming a `parent:` — never by the absence of a file, which would refuse a legacy idea-route PRD
+    folder that carries neither of those two files and is not a BRD at all.
+
+    On a root, look for the root-level artifacts this run would have produced under the retired
+    two-level model — any `customer-review-<YYYYMMDD>.md` or `reconciliation-<YYYYMMDD>.md` already
+    in the folder — and name whichever exist in the stop, so an operator whose BRD was reconciled
+    under that model is told the level moved rather than that their key is wrong. Never delete
+    them; they record work done, and nothing in this run reads them.
+
+    Stop:
+    `BRD_RECONCILE_ROOT_LEVEL: <BRD-KEY> is a root BRD, and reconciling happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-reconcile <SLICE-KEY> @<review-file>'.<where root-level artifacts exist, append:> This BRD carries root-level reconciliation artifacts at <paths> from the earlier two-level model; it is left in place and nothing reads it.`
 6. **Gate the sent package on main — unless `--sent` supplied one.**
 
    **What this gate is actually for, and why `--sent` can satisfy it.** The *Why the gate is the
@@ -1406,8 +1431,8 @@ gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt before
 escalating. One of this command's stops qualifies and is the reason the invariant is named here:
 `BRD_RECONCILE_READER_CONTRACT` is an agent-contract gap — a dispatch this command owns that its own
 agent refused. None of the others do: a missing or malformed key, an unreadable review, an unresolved
-BRD, an ungated or absent package, a review file that already exists under a different content, and
-an unset `$SPECS_PATH` are environment or sequencing halts. `BRD_RECONCILE_UNCONFIRMED`,
+BRD, a resolved root BRD, an ungated or absent package, a review file that already exists under a
+different content, and an unset `$SPECS_PATH` are environment or sequencing halts. `BRD_RECONCILE_UNCONFIRMED`,
 `BRD_RECONCILE_UNDISPOSED_CORRECTION` and `BRD_RECONCILE_UNSWEPT` are not either — they are the gates
 working.
 

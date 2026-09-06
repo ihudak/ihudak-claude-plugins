@@ -17,11 +17,13 @@ happen, not to restate it.
 
 Usage: `/brd-interview <BRD-KEY> [--round N]`
 
-Runs at either of the two levels `<BRD-KEY>` can name
-(`workflows-core:addressing` §6) — a BRD that owns its source document, or
-one of its slices. It refuses neither and behaves identically at both: a slice holds its own
-findings, its own ledger, and its own register, and it reaches its decisions exactly as its parent
-does. The register this run writes is the register of the BRD it was given, and no other.
+`<BRD-KEY>` still resolves through either of the two levels `resolve-address` searches
+(`workflows-core:addressing` §3) — a BRD that owns its source document, or one of its slices —
+because a root must be resolved before Phase 0 step 5a can refuse it by name. **Only a slice is
+interviewed: a root BRD is refused, and deciding happens at the slice and nowhere else** — a slice
+holds its own findings, its own ledger, and its own register, and it reaches its decisions exactly
+as its parent does. The register this run writes is the register of the BRD it was given, and no
+other.
 
 **Standing rule, binding on every phase below.** A `[G]` is answered from the grounding findings and
 is **never put to a human** — not the customer, not the delivery team, not the operator watching the
@@ -124,6 +126,30 @@ and nothing downstream can tell the difference afterwards.
    → stop, without asserting which command would have created it, because nothing on disk says
    whether this key names a BRD with a source document or a slice of one:
    `BRD_INTERVIEW_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent.`
+5a. **The root refusal — deciding happens at the slice and nowhere else.** Take this the moment
+    step 5 returns a resolved folder, before step 6 opens anything — the level question is answered
+    before any gate that follows it. Test the **resolved directory's prefix**: `BRD-` is a root,
+    `PRD-` is a slice — the kind-prefix convention `workflows-core:addressing` §2 fixes, read off
+    the resolved folder's own name. **Never test the folder's asserted `kind:`** — `/brd-split`
+    writes `kind: brd` into the `brd-link.md` it places inside the `PRD-` slice folder it carves
+    (`commands/brd-split.md` Phase 3), so a slice **asserts** `brd` while being exactly the folder
+    this refusal must accept; a gate on the asserted kind would refuse every slice and accept
+    nothing.
+
+    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
+    fallback, there is no prefix to test.** Answer the root question by **positive evidence** —
+    `coverage-ledger.md` or `brd/brd-inventory.md` present in the folder, and no `brd-link.md`
+    naming a `parent:` — never by the absence of a file, which would refuse a legacy idea-route PRD
+    folder that carries neither of those two files and is not a BRD at all.
+
+    On a root, look for the root-level artifacts this run would have produced under the retired
+    two-level model — `decisions.md`, `interview/` — and name whichever exist in the stop, so an
+    operator whose BRD was interviewed under that model is told the level moved rather than that
+    their key is wrong. Never delete them; they record work done, and nothing in this run reads
+    them.
+
+    Stop:
+    `BRD_INTERVIEW_ROOT_LEVEL: <BRD-KEY> is a root BRD, and deciding happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-interview <SLICE-KEY>'.<where root-level artifacts exist, append:> This BRD carries root-level decisions and interview records at <paths> from the earlier two-level model; it is left in place and nothing reads it.`
 6. **Gate the grounding deliverable on main.** This command **consumes** a `$SPECS_PATH` deliverable
    it did not write, so per `workflows-core:phase-handoff` §5 rule 2 it executes
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
@@ -743,11 +769,11 @@ no-new-round path exactly as on any other.
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
 gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt before
 escalating. None of the *Resolve inputs and gate the grounded BRD* stops qualify — a missing or
-malformed key, an unresolved BRD, an ungated or absent grounding deliverable, an inventory carrying
-no claim at all (`BRD_INTERVIEW_EMPTY_INVENTORY`, at either level — a fact about the customer's
-document or about what the parent allocated, never about this plugin), unverified findings, an
-unallocated ledger, and an unset `$SPECS_PATH` are environment / sequencing halts, never a plugin
-capability gap. `BRD_INTERVIEW_NO_SUCH_ROUND` is not one either: it is an argument naming a round
+malformed key, an unresolved BRD, a resolved root BRD, an ungated or absent grounding deliverable,
+an inventory carrying no claim at all (`BRD_INTERVIEW_EMPTY_INVENTORY` — a fact about what the
+parent allocated to this slice, never about this plugin), unverified findings, an unallocated
+ledger, and an unset `$SPECS_PATH` are environment / sequencing halts, never a plugin capability
+gap. `BRD_INTERVIEW_NO_SUCH_ROUND` is not one either: it is an argument naming a round
 that does not exist, and neither is `BRD_INTERVIEW_ALL_DELEGATED` — a BRD that kept no requirement of
 its own is an allocation outcome this command reports correctly, not a capability it lacks.
 

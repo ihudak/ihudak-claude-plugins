@@ -18,11 +18,12 @@ happen, not to restate it.
 
 Usage: `/brd-package <BRD-KEY> [--depends-on <BRD-KEY>…]`
 
-Runs at either of the two levels `<BRD-KEY>` can name
-(`workflows-core:addressing` §6) — a BRD that owns its source document, or
-one of its slices. It refuses neither and behaves identically at both: a slice holds its own
-register, its own `[C]` question set and its own findings, and it is packaged from those and no
-others. The bundle this run builds is the bundle of the BRD it was given.
+`<BRD-KEY>` still resolves through either of the two levels `resolve-address` searches
+(`workflows-core:addressing` §3) — a BRD that owns its source document, or one of its slices —
+because a root must be resolved before Phase 0 step 5a can refuse it by name. **Only a slice is
+packaged: a root BRD is refused, and packaging happens at the slice and nowhere else** — a slice
+holds its own register, its own `[C]` question set and its own findings, and it is packaged from
+those and no others. The bundle this run builds is the bundle of the BRD it was given.
 
 **Standing rule, binding on every phase below.** Nothing that names this plugin, this repository or
 this harness may appear in the rendered prompt, the delivery note, or any document inside the
@@ -124,6 +125,30 @@ cannot review, and they will not tell you that — they will review it anyway, b
    `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it:
    `BRD_PACKAGE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent.`
+5a. **The root refusal — packaging happens at the slice and nowhere else.** Take this the moment
+    step 5 returns a resolved folder, before step 6 opens anything — the level question is answered
+    before any gate that follows it. Test the **resolved directory's prefix**: `BRD-` is a root,
+    `PRD-` is a slice — the kind-prefix convention `workflows-core:addressing` §2 fixes, read off
+    the resolved folder's own name. **Never test the folder's asserted `kind:`** — `/brd-split`
+    writes `kind: brd` into the `brd-link.md` it places inside the `PRD-` slice folder it carves
+    (`commands/brd-split.md` Phase 3), so a slice **asserts** `brd` while being exactly the folder
+    this refusal must accept; a gate on the asserted kind would refuse every slice and accept
+    nothing.
+
+    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
+    fallback, there is no prefix to test.** Answer the root question by **positive evidence** —
+    `coverage-ledger.md` or `brd/brd-inventory.md` present in the folder, and no `brd-link.md`
+    naming a `parent:` — never by the absence of a file, which would refuse a legacy idea-route PRD
+    folder that carries neither of those two files and is not a BRD at all.
+
+    On a root, look for the root-level artifacts this run would have produced under the retired
+    two-level model — any `bundle-<YYYYMMDD>/`, `customer-review-prompt-<YYYYMMDD>.md` or
+    `self-review-<YYYYMMDD>.md` already in the folder — and name whichever exist in the stop, so an
+    operator whose BRD was packaged under that model is told the level moved rather than that their
+    key is wrong. Never delete them; they record work done, and nothing in this run reads them.
+
+    Stop:
+    `BRD_PACKAGE_ROOT_LEVEL: <BRD-KEY> is a root BRD, and packaging happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-package <SLICE-KEY>'.<where root-level artifacts exist, append:> This BRD carries root-level package artifacts at <paths> from the earlier two-level model; it is left in place and nothing reads it.`
 6. **Gate the decision register on main.** This command **consumes** a `$SPECS_PATH` deliverable it
    did not write, so per `workflows-core:phase-handoff` §5 rule 2 it executes
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
@@ -895,9 +920,9 @@ escalating. Two of this command's stops **do** qualify and are the reason the in
 here: `BRD_PACKAGE_SCHEMA_BOUNDARY` and `BRD_PACKAGE_PROMPT_LEAK` are both reference-integrity gaps —
 a rendered authority whose boundary moved, and a package artifact carrying a citation that should
 never have been written into it. None of the others do: a missing or malformed key, an unresolved
-BRD, an ungated or absent register, an unsettled round, a bundle directory that already exists, and
-an unset `$SPECS_PATH` are environment or sequencing halts. `BRD_PACKAGE_UNDISPOSED` is not one
-either — it is the gate working.
+BRD, a resolved root BRD, an ungated or absent register, an unsettled round, a bundle directory that
+already exists, and an unset `$SPECS_PATH` are environment or sequencing halts. `BRD_PACKAGE_UNDISPOSED`
+is not one either — it is the gate working.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-package`; what was produced (the

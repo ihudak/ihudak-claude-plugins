@@ -20,11 +20,11 @@ Writes or updates product documentation — either a full keyed feature-document
 
 Keyed mode takes the address and nothing else. Where each page is written follows from the page itself: Phase 5.5 resolves every write target against the content roots the resolved profile declares, and Phase 6.3 writes each page into the root that owns it. A repo whose profile declares several content roots is handled the same way — a page is edited where it lives, and the per-root lint, build, and dev-server commands are selected from the root that owns it.
 
-For writing child Epic drafts from a PRD, use the pipeline plugin's `/pm-workflows:epics`. For release notes, use [`/release-notes`](release-notes.md) — `/document` never writes release-notes or what's-new pages, since those are generated from the tracker by the docs team's own automation. For a change that touches both code and docs, use `/dev-workflows:implement` instead of either mode of this command.
+For writing child Epic drafts from a PRD, use the pipeline plugin's `/product-workflows:epics`. For release notes, use [`/release-notes`](release-notes.md) — `/document` never writes release-notes or what's-new pages, since those are generated from the tracker by the docs team's own automation. For a change that touches both code and docs, use `/dev-workflows:implement` instead of either mode of this command.
 
 ## How it runs
 
-`/document` has **34 `## Phase` headings — more than any other command in the family** (the pipeline plugin's `/pm-workflows:epics`, the next-largest, has 20). Almost all of that comes from running two pipelines under one name: 23 phases belong to keyed mode, 11 to direct mode, each numbered from its own Phase 0. A 37-node diagram would not be a diagram, it would be the file, so the graph below shows the shape a reader actually navigates — the mode split, then each mode's own phases collapsed into the steps a reader experiences as one decision or one unit of work.
+`/document` has **34 `## Phase` headings — more than any other command in the family** (the pipeline plugin's `/product-workflows:epics`, the next-largest, has 20). Almost all of that comes from running two pipelines under one name: 23 phases belong to keyed mode, 11 to direct mode, each numbered from its own Phase 0. A 37-node diagram would not be a diagram, it would be the file, so the graph below shows the shape a reader actually navigates — the mode split, then each mode's own phases collapsed into the steps a reader experiences as one decision or one unit of work.
 
 ```mermaid
 flowchart TD
@@ -106,7 +106,7 @@ A same-session typo fix on an unrelated page runs direct mode instead — `/docs
 
 - Roles and phases — what the `dev` role owns, including why both of this command's modes emit the same fixed `documenting`/`dev` cost attribution. The page that defines the `dev` role and the `documenting` phase is `dev-workflows`'s `docs/roles-and-phases.md`; `workflows-core`'s page of the same name covers only the three phases its own commands reach.
 - `/dev-workflows:implement` — the command to use instead for a change that touches both code and docs; it ships in the companion pipeline plugin.
-- `/pm-workflows:epics` — writes child Epic drafts from a PRD; a different output from either mode of this command.
+- `/product-workflows:epics` — writes child Epic drafts from a PRD; a different output from either mode of this command.
 - [`/release-notes`](release-notes.md) — the recommended next step once a PRD is fully documented, and the sibling command whose own phase/role IS inferred rather than fixed.
 - `workflows-core:model-routing/classification` — the classification rules, and the `doc-planner` / `doc-writer` / `doc-reviewer` Opus pins used in keyed runs only.
 - [Session cost](../reference/session-cost.md) — the terminal bookkeeping both modes emit, at Phase 9–11 in keyed mode and Phase 5–7 in direct mode. The other two emitters have pages elsewhere: session feedback in `workflows-core`, follow-ups in `dev-workflows`.

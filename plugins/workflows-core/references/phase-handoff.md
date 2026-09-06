@@ -64,7 +64,7 @@ Staging is by enumeration, never by glob — the same discipline as `specs-repo-
 reported path against the declaration, so a directory in the list would leave every file under it
 ambiguous — matched by a reader who expands it, OTHER by one who does not. A caller whose phase writes
 a set of files rather than one (`/idea` vendors its sources into `attachments/` and
-`design/<frame-set>/` — `pm-workflows:idea-format`, *Vendored sources*;
+`design/<frame-set>/` — `product-workflows:idea-format`, *Vendored sources*;
 `/frames` writes one `index.md` per `design/*/` set of the folder it resolved —
 `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.2) enumerates every one of them literally. The consequence of leaving one out is silent and total: it is
 classified OTHER, never staged, and never reaches the default branch, while the deliverable that links

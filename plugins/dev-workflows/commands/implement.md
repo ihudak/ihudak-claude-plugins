@@ -42,7 +42,7 @@ resolved `path`, `kind` and `key`, and `specs` forward.
   directly under it — a directory listing, which is what the linked-item hierarchy has become — and
   run the progress-aware picker below. **There is no third case.** A top-level `EPIC-` folder with no
   PRD above it used to have a branch of its own here, nested — unreachably — inside this one;
-  `/pm-workflows:epics` is the only command that creates an `EPIC-` folder and it writes every one
+  `/product-workflows:epics` is the only command that creates an `EPIC-` folder and it writes every one
   of them under a PRD folder, so an Epic address is always the bullet above.
   - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
   - **PRD with ≥2 Epics** → render the picker per `Skill(skill: "workflows-core:reference", args: "epic-picker")`,
@@ -59,7 +59,7 @@ resolved `path`, `kind` and `key`, and `specs` forward.
     resolve PRD-level). Selecting an Epic sets `focus_key` and proceeds for **that Epic
     only** — there is **no "Next Epic?" loop** (code-writing is heavy and branchy;
     each `/implement` run targets one Epic).
-  - **PRD with 0 Epics** → offer: split with `/pm-workflows:epics` first, or implement one broad
+  - **PRD with 0 Epics** → offer: split with `/product-workflows:epics` first, or implement one broad
     PRD-level slice (`focus_key` stays null). Nothing follows `/epics` before this command sees its Epics — it
     writes into the tree this command reads.
 

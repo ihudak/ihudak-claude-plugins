@@ -50,7 +50,7 @@ Derived from the tree at `52d47ed` by the rule above: dispatch edges are `subage
 
 ### Stays in `dev-workflows` (36 reference files)
 
-**Bound for `pm-workflows` (9):** `ard-format`, `brd-format`, `bundle-packaging`, `coverage-ledger-format`, `customer-review-schema`, `decision-register-format`, `idea-format`, `interview-tagging`, `specification-format`
+**Bound for `product-workflows` (9):** `ard-format`, `brd-format`, `bundle-packaging`, `coverage-ledger-format`, `customer-review-schema`, `decision-register-format`, `idea-format`, `interview-tagging`, `specification-format`
 **Bound for `dev-workflows` (15):** `bug-diagnosis`, `code-handoff`, `context-management`, `design-format`, `workflow-states`, `fix-vuln/build-systems`, `fix-vuln/nvd-api`, `handoff/test-baseliner`, `handoff/upgrade-executor`, `handoff/upgrade-planner`, `handoff/vuln-fixer`, `handoff/vuln-research`, `upgrade/compatibility`, `upgrade/ecosystems`, `upgrade/lts-sources`
 **Bound for `docs-workflows` (12):** `docs-profiles/anchor-conventions`, `docs-profiles/changelog-guidelines`, `docs-profiles/docs-profile-schema`, `docs-profiles/frontmatter-guidelines`, `docs-profiles/render-verification`, `finish-and-handoff`, `gate-ledger`, `handoff/diff-summarizer`, `handoff/release-notes-writer`, `release-note-types`, `repo-verification-gates`, `toolchain-preflight`
 

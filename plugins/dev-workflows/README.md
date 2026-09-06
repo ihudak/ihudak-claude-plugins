@@ -1,6 +1,6 @@
 # dev-workflows
 
-A role-based pipeline of 5 slash commands for the engineering side of the workflow plugin family. Its spine runs design → implementation, with readiness verification alongside it — `/design → /implement`, `/ready` — picking up from the merged `specification.md` that the companion `pm-workflows` plugin's PRD → architecture → Epic breakdown → specification ladder (and its six-command BRD-to-PRD route) hands off, with Opus-backed risk planning, code review, and design review gates along the way; around that spine sit CVE remediation and dependency upgrades. The table below is the complete list. The shared foundation every command here draws on — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, and the emitters — ships in the companion `workflows-core` plugin; the documentation tail `/implement` hands off to — `/docs-workflows:document` and `/docs-workflows:release-notes` — ships in the companion `docs-workflows` plugin.
+A role-based pipeline of 5 slash commands for the engineering side of the workflow plugin family. Its spine runs design → implementation, with readiness verification alongside it — `/design → /implement`, `/ready` — picking up from the merged `specification.md` that the companion `product-workflows` plugin's PRD → architecture → Epic breakdown → specification ladder (and its six-command BRD-to-PRD route) hands off, with Opus-backed risk planning, code review, and design review gates along the way; around that spine sit CVE remediation and dependency upgrades. The table below is the complete list. The shared foundation every command here draws on — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, and the emitters — ships in the companion `workflows-core` plugin; the documentation tail `/implement` hands off to — `/docs-workflows:document` and `/docs-workflows:release-notes` — ships in the companion `docs-workflows` plugin.
 
 > Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites.
 
@@ -10,7 +10,7 @@ Every command owns one role's step in the pipeline and hands a concrete artifact
 
 | Role | Commands | What it does |
 |------|----------|--------------|
-| PM/PA/PE | Moved to the sibling `pm-workflows` plugin | Refine an idea into a PRD, ground an architecture decision or a BRD's requirements, break a PRD into Epics, author a specification, and run the six-command BRD-to-PRD route. |
+| PM/PA/PE | Moved to the sibling `product-workflows` plugin | Refine an idea into a PRD, ground an architecture decision or a BRD's requirements, break a PRD into Epics, author a specification, and run the six-command BRD-to-PRD route. |
 | Dev | [`/design`](docs/commands/design.md), [`/implement`](docs/commands/implement.md), [`/ready`](docs/commands/ready.md) | Design against the spec, implement it under review gates, and verify readiness against the artifacts. Documenting and release notes moved to `docs-workflows`. |
 | Anytime — maintenance | [`/vuln`](docs/commands/vuln.md), [`/upgrade`](docs/commands/upgrade.md) | Remediate a CVE, or upgrade a dependency. |
 | Anytime — guideline review | Moved to the sibling `guideline-reviewers` plugin | Review an OpenAPI spec or app UI against bundled guidelines. |

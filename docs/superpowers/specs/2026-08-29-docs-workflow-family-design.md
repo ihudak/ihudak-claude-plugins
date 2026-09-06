@@ -8,7 +8,7 @@
 
 > ### ⚠ The home plugin is provisional
 >
-> This design places the family in `dev-workflows` (D1). A marketplace restructure is planned ahead of implementation — extracting a shared `workflows-core`, then splitting the remainder into `pm-workflows`, `dev-workflows` and `docs-workflows`. **If that lands first, the family is born in `docs-workflows` instead**, and four things here are re-derived rather than followed: **D1** (which plugin), **§13.3** (every inventory count), **§13.5** (which becomes a record of what was done rather than what is possible), and **§15** (the documentation deliverable, whose paths and counts all assume one plugin).
+> This design places the family in `dev-workflows` (D1). A marketplace restructure is planned ahead of implementation — extracting a shared `workflows-core`, then splitting the remainder into `product-workflows`, `dev-workflows` and `docs-workflows`. **If that lands first, the family is born in `docs-workflows` instead**, and four things here are re-derived rather than followed: **D1** (which plugin), **§13.3** (every inventory count), **§13.5** (which becomes a record of what was done rather than what is possible), and **§15** (the documentation deliverable, whose paths and counts all assume one plugin).
 >
 > **Everything else is independent of the packaging** and stands as written: the coverage model (§5), the four frozen contracts (§8), the visibility model (§9), the per-command designs (§6, §7, §10, §11), and the operating procedure (§14).
 >

@@ -18,7 +18,7 @@
 # emit_specs_context surfaces $SPECS_PATH alongside $REPOS_PATH.
 #
 # Two sibling plugins each ship a hook of this name, one regex apiece:
-# dev-workflows covers /implement, /vuln and /upgrade; pm-workflows covers
+# dev-workflows covers /implement, /vuln and /upgrade; product-workflows covers
 # /epics. A UserPromptSubmit hook fires whichever plugin ships it, so all
 # three run on every prompt. Disjointness holds two ways at once: the three
 # bare-command alternations share no command name across the three plugins,

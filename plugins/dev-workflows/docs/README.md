@@ -5,13 +5,13 @@
 | install this and set it up | [Getting started](getting-started.md) |
 | understand the whole pipeline first | [Workflow overview](workflow.md) |
 | know what my role is responsible for | [Roles and phases](roles-and-phases.md) |
-| write a specification, then a design | `/pm-workflows:specify` — ships in the companion `pm-workflows` plugin — then [`/design`](commands/design.md) |
+| write a specification, then a design | `/product-workflows:specify` — ships in the companion `product-workflows` plugin — then [`/design`](commands/design.md) |
 | build the thing | [`/implement`](commands/implement.md) |
 | document it, then announce it | `/docs-workflows:document`, `/docs-workflows:release-notes` — both ship in the companion `docs-workflows` plugin |
 | check whether a ticket is really ready | [`/ready`](commands/ready.md) |
 | fix a CVE or upgrade a dependency | [`/vuln`](commands/vuln.md), [`/upgrade`](commands/upgrade.md) |
 | understand what a run cost | [Session cost](reference/session-cost.md) |
-| turn a raw idea into a PRD, or work the BRD-to-PRD route | Moved to the sibling `pm-workflows` plugin |
+| turn a raw idea into a PRD, or work the BRD-to-PRD route | Moved to the sibling `product-workflows` plugin |
 
 Three pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets your environment variables; [Workflow overview](workflow.md) shows the whole pipeline as one diagram; [Roles and phases](roles-and-phases.md) says what each role owns and hands off. Every other page below documents one command, one shared subsystem, or — for [Agents](reference/agents.md) and [References](reference/references.md) — one whole inventory.
 
@@ -23,7 +23,7 @@ Three pages orient you before you touch a command: [Getting started](getting-sta
 - [`/upgrade`](commands/upgrade.md) — plan and execute a library, framework, runtime, or build-tool upgrade.
 - [`/vuln`](commands/vuln.md) — research and fix a CVE, one dependency or code change at a time.
 
-The PM/PA/PE commands that used to sit here — `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/epics`, `/specify`, and the six `/brd-*` commands of the BRD-to-PRD route — ship in the companion `pm-workflows` plugin now, alongside the agents and reference files that supported them.
+The PM/PA/PE commands that used to sit here — `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/epics`, `/specify`, and the six `/brd-*` commands of the BRD-to-PRD route — ship in the companion `product-workflows` plugin now, alongside the agents and reference files that supported them.
 
 ## Reference
 

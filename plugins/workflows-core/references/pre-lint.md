@@ -70,7 +70,7 @@ drafts, which are. Catching it at the source is cheaper than catching it downstr
 - **Open-questions header consistency:** the integer in `- **Open questions**: N` must equal the
   count of `- [ ]` items in the file (`grep -cE '^[[:space:]]*- \[ \]' <file>`). Mismatch → MAJOR.
 
-## Epic — per-Epic file (`/epics`; template in `pm-workflows:epic-writer`, NOT a `*-format.md` doc)
+## Epic — per-Epic file (`/epics`; template in `product-workflows:epic-writer`, NOT a `*-format.md` doc)
 
 - Required headings per Epic file: `## Goal`, `## Business value`, `## Scope`, `### In scope`,
   `### Out of scope`, `## Acceptance criteria`, `## Independent Test`, `## Dependencies`, `## Covers`,

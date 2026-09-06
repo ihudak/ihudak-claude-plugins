@@ -9,15 +9,15 @@
 #                                         address (keyed — /implement resolves
 #                                         its own argument via resolve-address)
 #
-# /epics moved to the companion pm-workflows plugin along with the command
+# /epics moved to the companion product-workflows plugin along with the command
 # itself. Its preload row — specs + repos context, no model-routing, no full
-# status/log, no directory listing — now ships from pm-workflows's own
+# status/log, no directory listing — now ships from product-workflows's own
 # preload-context.sh, carried across intact rather than re-derived.
 #
 # emit_specs_context surfaces $SPECS_PATH alongside $REPOS_PATH.
 #
 # Two sibling plugins each ship a hook of this name, one regex apiece:
-# docs-workflows covers /document and /release-notes; pm-workflows covers
+# docs-workflows covers /document and /release-notes; product-workflows covers
 # /epics. A UserPromptSubmit hook fires whichever plugin ships it, so all
 # three run on every prompt. Disjointness holds two ways at once: the three
 # bare-command alternations share no command name across the three plugins,

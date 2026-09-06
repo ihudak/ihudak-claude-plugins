@@ -1,6 +1,6 @@
 # Agents
 
-`workflows-core` bundles five agents under `agents/`, dispatched internally by the invoking command via `subagent_type: "workflows-core:<name>"` — none of them is a user entry point, and each is dispatched by commands in this plugin, in `dev-workflows`, in `pm-workflows`, in `docs-workflows`, or in more than one of them. None carries a `model:` frontmatter pin, so every one is assigned a tier by the dispatching command per the task-complexity classification in `references/model-routing/classification.md`.
+`workflows-core` bundles five agents under `agents/`, dispatched internally by the invoking command via `subagent_type: "workflows-core:<name>"` — none of them is a user entry point, and each is dispatched by commands in this plugin, in `dev-workflows`, in `product-workflows`, in `docs-workflows`, or in more than one of them. None carries a `model:` frontmatter pin, so every one is assigned a tier by the dispatching command per the task-complexity classification in `references/model-routing/classification.md`.
 
 They live here rather than beside any one pipeline because more than one plugin dispatches each of them: a scanner, a fixer and a grounder are the same job whichever pipeline needs it, and a second copy is a second thing to keep true.
 

@@ -388,14 +388,10 @@ the wrong file, or genuinely states no requirement is a judgement about the cust
 only the operator who has read it can take it. Say beside the list which conversion or file this run
 actually read, so that judgement has something to stand on.
 
-`/product-workflows:brd-ground <BRD-KEY>` grounds every `[BR#n]` against the mounted implementation and
-design repos. It will not start reading this BRD's artifacts until they are on the specs repo's
-default branch — its own Phase 0 gates `coverage-ledger.md` on `origin/<default>` and stops with
-`BRD_GROUND_NEEDS_INTAKE` otherwise — so offering it here is the next step, not an instruction to
-run it before that lands. **State the wait as `<merge-clause>` resolves it** from this run's own
-`Phase handoff:` outcome line (`Skill(skill: "workflows-core:reference", args: "next-phase-offer")`): a declined
-handoff opened no pull request, so telling the operator to wait for one would name a thing that does
-not exist. Guidance only — never auto-invokes another command.
+`/product-workflows:brd-ground <BRD-KEY>` refuses any root BRD outright, at its own Phase 0 step 5a,
+with `BRD_GROUND_ROOT_LEVEL` — before it ever reaches the `coverage-ledger.md`-on-`origin/<default>`
+gate this paragraph used to describe as the reason to wait. `<BRD-KEY>` here is always a root: this
+command never writes a slice. Guidance only — never auto-invokes another command.
 Per `workflows-core:next-phase-offer`.
 
 ### Context hygiene

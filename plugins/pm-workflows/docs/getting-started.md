@@ -13,14 +13,7 @@ claude plugin marketplace add ihudak/ihudak-claude-plugins
 ### 2. Install plugins
 
 ```bash
-claude plugin install dev-workflows@ihudak-plugins
 claude plugin install pm-workflows@ihudak-plugins
-claude plugin install prose-style@ihudak-plugins
-claude plugin install obsidian-llm-wiki@ihudak-plugins
-claude plugin install acli@ihudak-plugins
-claude plugin install guideline-reviewers@ihudak-plugins
-claude plugin install workflows-core@ihudak-plugins
-claude plugin install docs-workflows@ihudak-plugins
 ```
 
 `pm-workflows` is the plugin this documentation covers. It declares two hard dependencies, installed automatically alongside it: `workflows-core`, its shared foundation, and `prose-style`, whose `prose-style-checker` is `/epics`'s primary style checker and the unconditional Phase 3.5 pass every PRD-authoring command here runs. Neither is optional here — an absent `prose-style` would leave those commands with no absent case to degrade into, which is why the plugin declares it rather than reaching for it at runtime. The companion `dev-workflows` plugin is not a dependency in either direction: it produces `specification.md`'s downstream consumer (`/dev-workflows:design`), but `pm-workflows` installs and runs without it, against a specs tree someone else's engineering work will eventually fill in.

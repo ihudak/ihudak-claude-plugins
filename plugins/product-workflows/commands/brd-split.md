@@ -1,6 +1,6 @@
 ---
 name: brd-split
-description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent) - optionally seeded by a verbal <instruction> the operator types after the key, which is resolved against this BRD's own rows and grilled (bounded, <=5, and only where one answer places more than one row) before any slice is proposed. A BRD is a container and is never implementable itself, so this command always produces at least one slice; where nothing clusters, the whole BRD becomes one. Each confirmed slice is keyed and nested as a PRD- folder inside this BRD - the folder its PRD will be authored in - carrying its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md. It then walks every unallocated coverage-ledger row one at a time through four resolutions (assign to a named slice, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Where one answer is uniform by construction and there is more than one row to save - exactly one slice standing on a parent, or any run on a slice, and two or more rows still unallocated - Phase 4 first offers to write that single disposition across every remaining row in one confirmation, stating each row it would write and letting any of them be held back to the one-at-a-time walk, which stays the default and is what a declined or unparsed answer falls back to. covered-here is not among them on a parent: a parent builds nothing itself. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers a different four - covered-here replaces covered-by, which on a slice records a provisional claim this command's own walk on the parent withdrew, and the parent writes it. Existing children are enumerated by a positive test - a subdirectory carrying a brd-link.md whose parent: names this BRD - never by a name match. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason. Offers /brd-interview on the BRD just allocated, and /brd-ground on each non-empty slice, as the next steps.
+description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). On a root, proposes candidate slices from a mandatory verbal <instruction> the operator types after the key - a root is never ground, so the instruction is the only grouping signal - resolved against this BRD's own rows and grilled (bounded, <=5, and only where one answer places more than one row) before any slice is proposed. On a slice it gates on every grounding finding carrying a verifier verdict instead, and the same instruction stays optional there, seeding only the walk's per-row recommendation. A BRD is a container and is never implementable itself, so this command always produces at least one slice; where nothing clusters, the whole BRD becomes one. Each confirmed slice is keyed and nested as a PRD- folder inside this BRD - the folder its PRD will be authored in - carrying its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md. It then walks every unallocated coverage-ledger row one at a time through four resolutions (assign to a named slice, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Where one answer is uniform by construction and there is more than one row to save - exactly one slice standing on a parent, or any run on a slice, and two or more rows still unallocated - Phase 4 first offers to write that single disposition across every remaining row in one confirmation, stating each row it would write and letting any of them be held back to the one-at-a-time walk, which stays the default and is what a declined or unparsed answer falls back to. covered-here is not among them on a parent: a parent builds nothing itself. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers a different four - covered-here replaces covered-by, which on a slice records a provisional claim this command's own walk on the parent withdrew, and the parent writes it. Existing children are enumerated by a positive test - a subdirectory carrying a brd-link.md whose parent: names this BRD - never by a name match. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason. Offers /brd-interview on the BRD just allocated, and /brd-ground on each non-empty slice, as the next steps.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -24,8 +24,9 @@ resolves from the folder itself:
   proposed, children are keyed and nested, and the ledger walk offers **four** terminal
   resolutions — `covered-by`, `deferred-to`, `rejected`, `superseded-by`. `covered-here` is not one
   of them: a parent BRD is a container and builds nothing itself.
-An `<instruction>` is honoured in **both** modes, and what it seeds differs: in `full` mode it seeds
-the Phase 2 grouping *and* the Phase 4 walk's per-row recommendation; in `allocate-only`, where
+An `<instruction>` is required in `full` mode and optional in `allocate-only`, and what it seeds
+differs: in `full` mode — where a root is never ground and so carries no findings to group by — it
+seeds the Phase 2 grouping *and* the Phase 4 walk's per-row recommendation; in `allocate-only`, where
 Phase 2 never runs, it seeds the walk alone. That is why a slicing instruction on a slice is a real
 invocation rather than an ignored one — `/product-workflows:brd-split <SLICE-KEY> build the order rows,
 defer the rest` is a sentence this command can act on, and the picker it acts on is still the
@@ -49,11 +50,15 @@ four-resolution one.
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
    (`workflows-core:addressing` §1). If absent or invalid, stop:
    `BRD_SPLIT_NEEDS_KEY: /brd-split needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/product-workflows:brd-split <KEY>'.`
-1a. **`<instruction>` (optional).** Every **non-flag** token after the key, joined verbatim, is a
-   slicing instruction in the operator's own words — `cover orders and measurements in the first
-   iteration`, `slice everything EPIC-008 still holds that no child covers`. Absent → this command
-   behaves exactly as it did before the switch existed, on every path below; nothing in it is
-   conditional on an instruction being given except where a phase says so. This command parses no
+1a. **`<instruction>` (mandatory on a root, optional on a slice).** Every **non-flag** token after
+   the key, joined verbatim, is a slicing instruction in the operator's own words — `cover orders and
+   measurements in the first iteration`, `slice everything EPIC-008 still holds that no child covers`.
+   **On a root the instruction is mandatory.** Phase 2 clusters every unallocated row by the Phase 1.5
+   placement, and a root carries no findings to read, so the grouping comes from the instruction or
+   from nowhere. Absent on a `split_mode: full` run, stop:
+   `BRD_SPLIT_NEEDS_INSTRUCTION: /brd-split on <BRD-KEY> needs a slicing instruction — a root BRD is never ground, so there are no findings to cluster candidate slices from. Re-run '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"' naming the slice you want carved. On a slice the instruction stays optional: its walk takes recommendations from one but does not need it.`
+   Absent on a slice → this command behaves exactly as it did before the switch existed, on every
+   path below; nothing in it is conditional on an instruction being given except where a phase says so. This command parses no
    flags today, so "non-flag tokens after the key" and "everything after the key" currently pick out
    the same string — it is written the first way because the second stops being true the moment a
    flag is added, and `commands/design.md` Phase 0 already strips its own flag before classifying
@@ -94,7 +99,7 @@ four-resolution one.
    walk itself needs — the defect log a `rejected: [DEF#n]` cites — resolves in the parent's log in
    `allocate-only` mode, and that lookup is exactly one hop because the cap makes a slice's parent
    always the source-owning root (`brd-format.md` §4). Phase 4 states it where it is used.
-6. **Gate the grounding deliverable on main.** `/brd-split` **consumes** a `$SPECS_PATH`
+6. **Gate the grounding deliverable on main.** **This step and step 7 run in `split_mode: allocate-only` only.** A root BRD is never ground — grounding and the customer interview happen at the slice and nowhere else — so on a `full` run there is no grounding to gate and both steps are skipped entirely. The `coverage-ledger.md` gate in step 8 still runs in both modes: that ledger is `/brd-intake`'s deliverable and this walk reads it. `/brd-split` **consumes** a `$SPECS_PATH`
    deliverable it did not write (`/brd-ground`'s findings, and — transitively — `/brd-intake`'s
    ledger), so per `workflows-core:phase-handoff` §5 rule 2 it executes `require-on-main` (§3) here in Phase 0,
    before anything else reads a file. Execute it against the resolved BRD folder's
@@ -118,7 +123,7 @@ four-resolution one.
      `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full): <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and nothing to allocate — do not run /product-workflows:brd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
      `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run '/product-workflows:brd-split <PARENT-KEY>': it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason, and it will offer covered-by against it for any row on the parent's ledger that is still unallocated. If the parent's ledger has no unallocated row left, removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
    `unmanaged` → proceed as before this feature.
-7. **Gate on verification — and on there being grounding to verify.** Three tests, in this order.
+7. **Gate on verification — and on there being grounding to verify.** **This step and step 6 run in `split_mode: allocate-only` only.** A root BRD is never ground — grounding and the customer interview happen at the slice and nowhere else — so on a `full` run there is no grounding to gate and both steps are skipped entirely. The `coverage-ledger.md` gate in step 8 still runs in both modes: that ledger is `/brd-intake`'s deliverable and this walk reads it. Three tests, in this order.
    **The order is the fix to a shipped defect and is not incidental:** the third is a *count*, and a
    count is vacuously satisfied by an empty set. This gate shipped as that count alone, so a BRD with
    two indexed frame sets and no design grounding at all passed it — zero findings on file means
@@ -371,44 +376,15 @@ from it, and Phase 5 records it. A `Cancel` here stops the run with nothing writ
 there is nothing to propose and nothing a proposal could be keyed into; go straight to Phase 4,
 whose walk is the whole of an `allocate-only` run. Everything below is `full`-mode only.
 
-Read `<BRD-dir>/brd/brd-inventory.md`, `coverage-ledger.md`, `grounding/code-grounding.md`, and
-`grounding/design-grounding.md`. For every `[BR#n]` still `unallocated`, read its findings'
-`verdict` and `horizon` (`workflows-core:grounding-format` §2–§3, §5): a requirement whose findings are all
-`CONFIRMED`/`AMENDED` at `horizon: current` is **buildable now**; one carrying `REWRITTEN` or
-`FALSE-FRIEND` needs reconsidering before it is buildable at all; one carrying `NOT-PROVABLE` or a
-`will-change` horizon is **blocked** or **dependent** on the named prerequisite decision. Cluster
-requirements along these buildable / blocked / depends-on lines into candidate slices — a
-coherent, independently buildable group of `[BR#n]` rows, never a single row on its own unless
-nothing else clusters with it.
-
-**With a Phase 1.5 placement, the instruction proposes and the grounded picture constrains.** The
-placement decides which rows group together — it is a *business* grouping and it legitimately cuts
-across the buildable / blocked / depends-on axis above, which is the point of typing one. What the
-grounded picture keeps is a veto the operator has to overrule **explicitly**: where a placement puts
-a row carrying `NOT-PROVABLE`, `REWRITTEN`, `FALSE-FRIEND`, or `horizon: will-change` into a group
-whose other rows are buildable now, name **those rows** — each with the verdict or the prerequisite
-decision that makes it not buildable — and settle it before the slice is confirmed:
-
-```
-choices: ["Include them anyway — this slice carries rows that are not buildable yet", "Hold them back — they return to the ledger walk unclustered", "Decide row by row", "Cancel"]
-```
-
-No option carries a `(Recommended)` marker, per the *When no option is safe to recommend* guidance
-in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`: whether a slice should carry a blocked row
-is a delivery judgement about this iteration, and the run has just been told in the operator's own
-words that they want these rows together. **The operator's grouping wins where they confirm it, and
-never wins silently** — a slice that quietly mixed a `NOT-PROVABLE` row in with buildable ones would
-discard the one signal that makes a slice worth carving, and would do it at the moment the operator
-was least able to notice. Rows held back are unclustered, not rejected: Phase 4 walks them like any
-other. Where a placement raises no such conflict, this list is not shown.
-
-**A row Phase 1.5 left unplaced clusters exactly as it always did** — by the grounded lines above.
-An instruction narrows what the run has to guess at; it never turns the rest of the BRD into a
-residue nothing groups.
+Read `<BRD-dir>/brd/brd-inventory.md` and `coverage-ledger.md`. A root carries no grounding findings
+to read (Phase 0 step 1a), so clustering comes from the Phase 1.5 placement alone: group every
+`[BR#n]` still `unallocated` by what the instruction placed it into — a coherent group of `[BR#n]`
+rows, never a single row on its own unless nothing else clusters with it. **A row Phase 1.5 left
+unplaced is not forced into a slice** — that is exactly the fate this rule gives a row nothing
+clusters with, and Phase 4 walks it with no recommendation of its own.
 
 Present the candidate slices (each: a short working name, its `[BR#n]` rows, and the one-line
-rationale that put them together — the buildable/blocked/depends-on reading, or, for a group the
-instruction placed, what in the instruction placed it) and confirm before anything is created:
+rationale — what in the instruction placed it) and confirm before anything is created:
 
 ```
 choices: ["Accept these slices as proposed (Recommended)", "Edit one or more slices (rename, merge, move a row)", "Replace with a different slice list entirely", "Make this whole BRD one slice"]
@@ -945,7 +921,7 @@ of what this phase offers, and the three stops that name it say exactly that.
 Write `<BRD-dir>/slices.md`:
 
 - **One block per slice** confirmed and keyed in Phases 2–3: its key, its folder, and the
-  buildable / blocked / depends-on rationale that put its `[BR#n]` rows together rather than
+  rationale — what in the instruction placed it — that put its `[BR#n]` rows together rather than
   elsewhere or left on this BRD.
 - **One block per row** Phase 4 resolved `deferred-to: <this BRD>`: its `[BR#n]` and the one-line
   rationale collected for it in Phase 4 — why it is a live obligation of this BRD rather than built
@@ -962,8 +938,7 @@ Write `<BRD-dir>/slices.md`:
   how it was read: which `[BR#n]` rows Step A placed directly, which the Step B grill settled and by
   what terminology decision, and which it could not place and left unclustered. Record it whether or
   not it produced a slice: a reading that produced nothing is the one a later reader most needs, and
-  the verbatim text is what lets them see whether the instruction or the reading was wrong. Where the
-  Phase 2 conflict list fired, record which rows it named and which way it went.
+  the verbatim text is what lets them see whether the instruction or the reading was wrong.
 
 - **One line for every frame set Phase 0 step 7b let through as `skipped: --no-design`**, naming the
   set. That is the one route by which a slice this run carves can reach build with a design nobody

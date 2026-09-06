@@ -105,13 +105,14 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
 - **`<BRD-KEY>` and `@<review-file>`** — either absent or malformed stops the run with
   `BRD_RECONCILE_NEEDS_KEY` or `BRD_RECONCILE_NEEDS_REVIEW`.
 - **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the one
-- **A review the reader could read.** Where `customer-review-reader` returns no decisions, no
-  required changes and no challenges, the run distinguishes two states it used to conflate: every
-  one of the twelve sections marked `stated-none` is a customer who positively agreed, recorded as
-  the real outcome it is; a section `absent`, or `present` with content that yielded nothing, is a
-  read that failed and stops with `BRD_RECONCILE_EMPTY_DIGEST`.
   level below it — stops with `BRD_RECONCILE_NOT_FOUND`, which names both ways a folder comes to
   exist rather than asserting one.
+- **A review the reader could read.** Where `customer-review-reader` returns no decisions, no
+  required changes and no challenges, the run reads **section 2's verdict** to tell two states
+  apart: `approved` beside three empty sets is a customer who approved and asked for nothing, and is
+  recorded as the approval it is; any other verdict — or an absent one — beside three empty sets is
+  a review contradicting itself or a parse that failed, and stops with
+  `BRD_RECONCILE_EMPTY_DIGEST`.
 - **A package already handed off to the specs repo's default branch — or `--sent` in its place.**
   `require-on-main` runs against
   the most recent `customer-review-prompt-<date>.md` before anything else is read, and an unmerged

@@ -48,7 +48,9 @@ package:
   prior_reviews:    <paths to earlier self-review-<date>.md, when this is a re-package>
 ```
 
-**Refuse to run without `brd_dir` and at least `package.decisions` and `package.grounding` — and refuse either of those when it is present and empty.** Present-and-empty passes a presence test and then satisfies every dimension vacuously: a package with no decisions has no decision this review can find fault with, which reads as a clean review rather than as nothing having been checked.
+**Refuse to run without `brd_dir` and at least `package.decisions` and `package.grounding`.**
+
+**Presence is the right test here, and an emptiness test would be wrong** — which is worth stating, because three sibling reviewers in this family were changed the other way. A register holding no `[VD#n]` and no `[AS#n]` is a **legitimate** package when every question its rounds asked was customer-facing: `/brd-package` step 8 admits exactly that case, gating on `[C]` **or** open `[AS#n]` **or** `[VD#n]`, and refusing an empty register here would refuse a package that is all `[C]` — the commonest shape on a first round. The vacuity this family guards against is real and is caught one station up, by that step's `BRD_PACKAGE_NOTHING_TO_REVIEW`, which tests the whole review surface rather than one input of it. Test emptiness where the emptiness is the defect, not wherever a field could be empty.
 Return `status: INPUT_MISSING` naming exactly what was absent. A review of a package you were handed
 half of is a review of nothing: the whole method below is cross-reading a decision against the
 finding it claims, and neither half attacks anything on its own.

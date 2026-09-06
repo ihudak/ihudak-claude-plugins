@@ -32,7 +32,9 @@ This command makes **zero external API calls** and **never writes into the docs 
 ## Phase 0 — Load
 
 0. **Flags.** Strip every recognised flag from `$ARGUMENTS` before anything reads a positional
-   token — `--no-docs` (boolean) and `--docs <path>`, **the latter together with its value**. Both
+   token — `--version <v>` and `--docs <path>`, **each together with its value**, and `--no-docs`
+   (boolean). All three, not the docs pair alone: `--version` takes a value too, and an unstripped
+   one puts two stray tokens into the address classification. Both
    are carried to the `resolve-docs-grounding` call and change nothing else. Without this the flag
    is a token like any other and falls into the address classification below: `--docs` becomes the
    address, or its path does. That was the live state — both flags were named in the Usage line and

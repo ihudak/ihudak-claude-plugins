@@ -89,7 +89,7 @@ Per **S18** these gate the release exactly as the BRD-route defects did. None is
 
 ## R-1 — `/ready` has no non-emptiness guard on `requirements[]`, where `/epics` has exactly that guard
 
-**CLOSED** — an empty `requirements[]` now records `coverage: not assessable` instead of a 0-of-0 roll-up that reads as 100%, carries a finding, and **caps the verdict at `NOT-SUPPORTED`**; `readiness-reviewer` applies the same cap independently, so a dispatch that skipped the caller cannot produce a `SUPPORTED` either.
+**CLOSED** — an empty `requirements[]` now takes the Phase 5 report template's own existing alternative for that state (`"derived (coarse) — PRD had no structured requirements"`) instead of a 0-of-0 roll-up that reads as 100%, carries a readiness finding through the cap mechanism the command already had, and settles the verdict at `NOT-SUPPORTED`; `readiness-reviewer` applies the same cap independently, so a dispatch that skipped the caller cannot produce a `SUPPORTED` either.
 
 **The first attempt at this was wrong and is worth recording.** It made the emptiness a hard stop, copied from `/epics`, which refuses it. A review caught that `dev-workflows:workflow-states` has rungs — `Open` (*PRD stub*), `Problem stated` (*PRD with Problem/Goal*) — where a PRD legitimately states no requirements, so the stop would have refused the run on exactly the early-stage PRDs `/ready` exists to report on. The remedy was imported across a boundary that was never checked: refusing is right for an **authoring** command whose output would otherwise contradict nothing, and wrong for a **reporting** one whose contract is to describe what it finds.
 

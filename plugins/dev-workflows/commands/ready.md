@@ -160,11 +160,21 @@ own `key`. Carry forward:
   `SUPPORTED`, which is the verdict `/implement` is offered on. A run that verified nothing would be
   reporting the strongest assurance this command can give.
 
-  So: where `requirements[]` is empty, record `coverage: not assessable` rather than a percentage,
-  carry a readiness finding saying so, and **cap the verdict at `NOT-SUPPORTED`** — there is no
-  evidence of readiness, which is exactly what that verdict means. Say which PRD and offer the
-  repair (`/product-workflows:update-prd <KEY>` to state the requirements), so the report names an
-  action as every other finding here does.
+  So: where `requirements[]` is empty, **take the coverage line's existing alternative** — the Phase 5
+  report template already carries it, `"derived (coarse) — PRD had no structured requirements"` — in
+  place of an `N/M covered (P%)` figure. Do not introduce a second phrase for that state; the
+  template's own wording is the one a reader of these reports already knows, and a percentage is what
+  must not be printed.
+
+  Then **carry a readiness finding, which caps the verdict exactly as an unmerged artifact and an
+  over-claimed `--claimed` phase do** (the mechanism this command already has, three paragraphs
+  below). The finding names the PRD and the repair — `/product-workflows:update-prd <KEY>` to state
+  the requirements — so it reads like every other finding here. **Its cap is to `NOT-SUPPORTED`, and
+  that is a floor rather than a ceiling**: the other two cap *at* `PARTIAL`, meaning "no better than
+  partial", whereas this one settles the verdict outright, because nothing at all was verified. Where
+  this finding and a `PARTIAL` cap both fire, this one wins — the strongest constraint is the one
+  that says no evidence was available, and a `PARTIAL` from a run that checked nothing would claim
+  more than it did.
 
   **Do not refuse the run, and the reason is the rubric.** `dev-workflows:workflow-states` has rungs
   — `Open` (artifact: *PRD stub*) and `Problem stated` (artifact: *PRD with Problem/Goal*) — at which

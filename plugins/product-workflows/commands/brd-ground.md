@@ -83,9 +83,20 @@ behaviour, not the behaviour.
    merged-ness from a sibling's gate). Step 8 stops on that inventory being empty and builds this
    run's whole claim list from it, so the stop and the claim list both depend on reading the one that
    is actually shared; a hand-committed set can land partially, which `/brd-reconcile`'s §3.4 row
-   states outright. Map its return exactly as the ledger's below, and where it is `absent` use the
-   same two-level `BRD_GROUND_EMPTY_INVENTORY` branch step 8 uses, since the remedy is identical and
-   differs only by level. What the single-commit fact still buys is the *rest* of the set: for a BRD with a source document of its own, that was
+   states outright. Map its return exactly as the ledger's below, **except
+   for row F, which needs its own two-branch stop and must not borrow step 8's.** Step 8's
+   `BRD_GROUND_EMPTY_INVENTORY` reports a *content* fact — the inventory holds no `[BR#n]` row — and
+   its root-BRD remedy re-runs `/brd-intake` over the folder. Row F reports a *merge* fact, and
+   sending that operator to `/brd-intake` would rewrite an inventory that is not wrong, discarding
+   every `coverage-ledger.md` disposition already recorded against it. Split it on the same test the
+   ledger's own row F uses — is the file in the folder at all:
+   - **No `brd/brd-inventory.md` in the folder** — never produced, and the producer differs by level
+     (the `parent:` field step 9 carries forward, exactly as step 8 branches):
+     `BRD_GROUND_NO_INVENTORY: <BRD-KEY> has no brd/brd-inventory.md, so there is no claim list to ground. For a BRD with a source document of its own, run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' and merge its handoff; for a slice, run '/product-workflows:brd-split <PARENT-KEY>', which writes the slice's inventory from the rows the parent delegated to it.`
+   - **The inventory is in the folder and on no ref** — produced, handoff declined. Land what is
+     already on disk, and **do not name `/brd-intake`**: re-running it rewrites the inventory and the
+     ledger dispositions recorded against it go with it:
+     `BRD_GROUND_INVENTORY_NOT_HANDED_OFF: <BRD-KEY>'s brd/brd-inventory.md is written at <path> but is on no branch — its handoff was declined. Commit and merge it to the specs repo's default branch and re-run; do not re-run /product-workflows:brd-intake, which would rewrite the inventory and orphan the coverage-ledger dispositions already recorded against it.` What the single-commit fact still buys is the *rest* of the set: for a BRD with a source document of its own, that was
    `/brd-intake`, and `brd/brd-defect-log.md` landed too; for a slice, it was `/brd-split` running
    on the parent, and there is no defect log to land — a slice reads the parent's
    (`brd-format.md` §2.1). Map the §3.7 return by `stopped` first: any stopping row → stop, naming

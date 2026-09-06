@@ -33,8 +33,18 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    then, and it is not a stop. A key that fails §1's grammar stops with
    `CREATE_PRD_NEEDS_KEY: /create-prd needs an address (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. EPIC-008 or the slice EPIC-008-01) — re-run '/product-workflows:create-prd <ADDRESS>'.`
 
-1a. **Documentation-grounding flags.** Strip `--no-docs` (boolean) and `--docs <path>` — **the flag
-   and its value together** — from `$ARGUMENTS` before the address and any `@idea.md` are classified.
+0. **Flags.** Strip every recognised flag from `$ARGUMENTS` before step 1 classifies the address or
+   any `@idea.md`: `--from-prd <PRD-KEY|path>` and `--docs <path>` **each together with the token
+   after it**, plus the booleans `--no-docs` and `--lean` / `--hybrid` / `--full`. Steps 2 and 2a
+   then read the values this step set aside.
+
+   **Every value-taking flag, not only the docs pair.** `--from-prd` takes a `<PRD-KEY|path>`, and
+   an unstripped one puts two stray tokens in front of step 1 — the flag, which is read as the
+   address, and its value, which is read as `@idea.md`. That is the same defect as the docs flags
+   and it was missed once by scoping the sweep to "a flag with no parsing site" rather than to
+   "a value not consumed before positionals are read": step 2a *does* discuss `--from-prd`, so a
+   parsing-site test passes it, and step 2a runs after step 1. It is step **0** and not `1a`: step 1 is what parses the address, so a rung numbered
+   after it runs after the damage.
    Both are carried to Phase 2.5's `resolve-docs-grounding` call and change nothing else. Without
    this rung the flag is a token like any other and lands in that classification: `--docs` is read as
    the address, or its path is read as the `@idea.md` argument. They were named in the Usage line and

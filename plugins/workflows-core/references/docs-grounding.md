@@ -109,10 +109,23 @@ analogous precedents to model after, building-block altitude/permissions).
 **Rank** each `docs_challenges` entry into the command's existing
 Impact × Uncertainty gap list — do **not** append. A docs challenge competes for
 attention and never adds a question — a *question slot* only where the caller's
-grill is capped, which among the six grill-rank consumers is `/idea` alone
-(and there this is what preserves its ≤10-question bound). The other five grill
-to convergence, where ranking decides what is asked **first**, never how much is
-asked. Ranking also never pulls a question ahead of its prerequisites: what is
+grill is capped, which among the grill-rank consumers with a grill is `/idea`
+alone (and there this is what preserves its ≤10-question bound). `/create-prd`,
+`/update-prd`, `/create-ard` and `/specify` grill to convergence, where ranking
+decides what is asked **first**, never how much is asked.
+
+**`/brd-intake` is the one consumer this rule is stated differently for, and it
+is a different shape rather than an exception to be tidied away.** It runs no
+grill: what it puts to a human is Phase 4's walk over the defect candidates
+`brd-reader` returned, and that walk visits every candidate regardless of
+ranking. So ranking there reorders the walk and removes nothing — and that
+command additionally lets a `docs_challenges` entry be **raised** as an
+additional defect candidate, behind the same human confirmation every other
+candidate passes through. Raising is not "adding a question": nothing is asked
+that a person does not confirm, and the ceiling the no-append rule protects is a
+*question budget*, which a walk with no budget does not have. Read the no-append
+rule as binding on a capped or convergent grill, which is what it was written
+for. Ranking also never pulls a question ahead of its prerequisites: what is
 askable now is settled by dependency (`${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md`),
 and rank only orders what is already askable.
 

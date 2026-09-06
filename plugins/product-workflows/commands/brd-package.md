@@ -128,9 +128,14 @@ cannot review, and they will not tell you that — they will review it anyway, b
    did not write, so per `workflows-core:phase-handoff` §5 rule 2 it executes
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
    folder's `decisions.md`. Every deliverable one `handoff-to-main` run stages lands in a single
-   commit (§2.3), so its presence on `origin/<default>` implies the round records and
-   `interview/customer-questions.md` merged with it — the three files `/brd-interview`'s handoff
-   stages together. Map the §3.7 return by `stopped` first: any stopping row → stop, naming the
+   commit (§2.3), so its presence on `origin/<default>` implies
+   `interview/customer-questions.md` merged with it — the files `/brd-interview`'s handoff stages
+   together. **It implies nothing about the round records, and step 7 gates them itself**: that
+   inference is a fact about the run that staged them and not about the tree — a hand-committed set
+   lands partially — and step 7 is what turns it into a check
+   (`workflows-core:phase-handoff` §4.0, never infer an artifact's merged-ness from a sibling's
+   gate). This sentence claimed the round records until step 7 was rebuilt to gate them, at which
+   point the two halves of one phase disagreed. Map the §3.7 return by `stopped` first: any stopping row → stop, naming the
    concrete branch/PR state it reports; `pass` → proceed; `pass_amending` → proceed, printing the
    §3.3 row-B message; `unmanaged` → proceed as before this feature; `absent` (row F — the register
    is on no ref at all) → **split it before stopping**, on a test row F cannot make, exactly as
@@ -152,9 +157,13 @@ cannot review, and they will not tell you that — they will review it anyway, b
    deadlock.** Read every `interview/round-<N>.md`.
 
    **First, derive which rounds must exist, then gate each one.** The set is not "whatever is on
-   disk" — that is the thing being checked. `decisions.md` is already on main (step 6) and every
-   `[VD#n]` in it carries the `round` it was settled in, so the rounds this BRD *has* are the
-   distinct `round` values that register names. For each of them, execute `require-on-main`
+   disk" — that is the thing being checked. `decisions.md` is already on main (step 6) and **every record in it carries the `round` it was
+   recorded in — `[VD#n]` *and* `[AS#n]` alike** (`product-workflows:decision-register-format` §1
+   and §5) — so the rounds this BRD *has* are the distinct `round` values across **both** record
+   kinds. Deriving from `[VD#n]` alone leaves the hole open rather than closing it: a round that
+   produced only assumptions and `[C]` questions names no `[VD#n]`, so a register of nothing but
+   `[AS#n]` and `[C]` yields an empty derived set and the gate passes without checking a thing — the
+   same vacuity one record kind further out. For each of them, execute `require-on-main`
    (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against
    `interview/round-<N>.md`. Map the §3.7 return by `stopped` first: any stopping row → stop, naming
    that round and the branch/PR state; `pass` / `pass_amending` / `unmanaged` → proceed to read it;

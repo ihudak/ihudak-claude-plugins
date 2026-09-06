@@ -1,0 +1,48 @@
+# Model routing reference
+
+Every command here classifies its own task before doing real work, and that classification decides how much grilling depth and authoring rigor the rest of the run applies — and, for one command, whether the session itself must be running on Opus. This page covers the four things a user can observe or influence about that; the full policy — including the mechanics agents don't need restated here — lives in `workflows-core:model-routing/classification`, named again at the end.
+
+## What gets classified
+
+| Class | Plain meaning |
+|---|---|
+| `SIMPLE` | Trivial, mechanical, low blast radius. |
+| `MODERATE` | A localized brief or requirement set, well-understood, no unusual scope. |
+| `SIGNIFICANT` | Multi-repo, cross-cutting, or an unusually large requirement/slice count. |
+| `HIGH-RISK` | Security-, data-, or contract-sensitive — a mistake here misdirects the product itself. |
+
+All twelve commands in this plugin load the `model-routing` skill, run this classification as an early step, and state their class plus a one-line reason: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake`, `/brd-ground`, `/brd-split`, `/brd-interview`, `/brd-package`, and `/brd-reconcile`. Each command has a typical class for its own kind of work (a Product Requirements Document authoring run is typically `MODERATE`; an unusually large BRD requirement count or slice fan-out is typically `SIGNIFICANT`) but escalates when the task in front of it warrants it.
+
+## What classification changes
+
+`SIMPLE` and `MODERATE` continue on whatever model the session is already running, with nothing extra added on their account.
+
+`SIGNIFICANT` and `HIGH-RISK` change different things depending on which command you're running, because two distinct patterns share this classification here:
+
+- **The reviewer-gated authoring commands** — `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-ground`, and `/brd-package` — already run their own reviewer agent on Opus by a fixed frontmatter pin (`prd-reviewer`, `ard-reviewer`, `spec-reviewer`, `epic-reviewer`, `grounding-verifier`, and `brd-package-reviewer` respectively), regardless of classification. What classification changes here is grill depth and authoring rigor, not whether the review runs on Opus — [Agents reference](agents.md) carries the complete list of which agents are pinned and which commands dispatch them.
+- **`/idea` has no reviewer at all** — its bounded grill (`--deep` for relentless) is the gate, and classification affects how relentlessly it walks the design tree rather than which agent gets dispatched.
+- **`/brd-intake`, `/brd-split`, `/brd-interview`, and `/brd-reconcile` dispatch no Opus-pinned reviewer either** — the first is a mechanical Sonnet-tier extraction, and the other three are interactive/interview commands whose only Opus-tier work, where any exists, is a reviewer another command in the route already ran. Classification here governs analysis depth (how thoroughly the defect walk, the allocation walk, or the reconciliation sweep is carried out), not a review gate.
+
+**`/create-ard` adds a further, stricter gate:** at `SIGNIFICANT`/`HIGH-RISK` it will not author against a weaker model — it gates on whether an Opus tier is reachable at all, because its authoring happens inline rather than through a delegated sub-agent. If none is, the run stops and offers to relaunch on Opus, with an explicit override to proceed anyway that gets logged in the final report. `/specify` and `/create-prd` don't gate this way on the same classification — they degrade to the best available model and record the degradation instead of stopping.
+
+## What floors a classification
+
+No command in this plugin has a classification floor the way the companion `dev-workflows` plugin's `/implement` does (multi-source input). A PRD, an Epic, or a BRD is always a single addressed item; the fan-out that varies is how many repositories a grounding pass touches, which is a within-classification detail rather than a floor of its own.
+
+## The fallback chain
+
+Every `SIGNIFICANT`/`HIGH-RISK` Opus step resolves against the same ordered list, taking the first model available in the environment:
+
+1. `claude-opus-5`
+2. `claude-opus-4-8`
+3. `claude-opus-4-7`
+4. `claude-opus-4-6`
+5. `claude-sonnet-5` (fallback only — the report notes that no Opus was available)
+6. `claude-sonnet-4-6` (further fallback)
+7. `claude-sonnet-4-5` (further fallback — the report notes "no Opus or Sonnet 5/4.6 available")
+
+`claude-sonnet-4-5` is the floor. If nothing in the list is available, the run stops and asks how to proceed rather than silently downgrading. You never pick a model for any of this yourself — the orchestrator resolves the chain automatically against what your environment has available, and every downgrade from the top of the chain is announced in the run's own report rather than happening quietly.
+
+---
+
+The full policy — the classification triggers in detail, the `model_routing` handoff block, the mid-tier detection chain used for mechanical steps, and the mandatory Opus code-review checklist — is authoritative in `workflows-core:model-routing/classification`, a reference the companion `workflows-core` plugin ships rather than this one. This page is a summary of it, not a substitute for it.

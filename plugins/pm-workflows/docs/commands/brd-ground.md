@@ -194,7 +194,7 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
 Ground a synthetic customer BRD once its intake pull request has merged:
 
 ```
-/dev-workflows:brd-ground EPIC-008
+/pm-workflows:brd-ground EPIC-008
 ```
 
 The run resolves the BRD, gates its intake artifacts on main, resolves the repositories in scope
@@ -210,6 +210,7 @@ because nesting is capped at one level. `/brd-split` is not where the route ends
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pa` role owns and hands off.
+- [Model routing](../reference/model-routing.md) — the classification rules this command applies.
 - `workflows-core:addressing` — the `<BRD-KEY>` grammar and folder
   resolution this command uses by name (`key-valid`, `resolve-address`), including how a slice
   nests inside its parent.

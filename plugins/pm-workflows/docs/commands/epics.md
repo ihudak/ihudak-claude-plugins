@@ -54,23 +54,23 @@ Six subagents are dispatched: `workflows-core:docs-grounder` (Phase 3.6, read-on
 
 One `EPIC-<PRD-KEY>-NN-<eslug>/` folder per new or refined Epic under the resolved PRD folder, each holding `epic.md`. The key is minted as the next unused two-digit segment, proposed and overridable, validated and re-prompted rather than coerced. `_coverage.md` is PRD-holistic and lands beside `prd.md`, never inside an Epic folder.
 
-**`/epics` never creates a branch.** Its git writes are confined to `$SPECS_PATH`, and only to its bounded session-artifact paths — the Epic drafts themselves are never committed by this command at all; git hygiene of the write target is the user's own responsibility. This is unlike the fifteen commands that do offer a branch + commit + push + pull-request handoff for their own deliverable — [`/idea`](idea.md), [`/create-prd`](create-prd.md), [`/update-prd`](update-prd.md), [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/design`](design.md), [`/implement`](implement.md), [`/ready`](ready.md), `/workflows-core:frames` (which ships in the companion plugin), and the six commands of the BRD-to-PRD route.
+**`/epics` never creates a branch.** Its git writes are confined to `$SPECS_PATH`, and only to its bounded session-artifact paths — the Epic drafts themselves are never committed by this command at all; git hygiene of the write target is the user's own responsibility. This is unlike the fifteen commands that do offer a branch + commit + push + pull-request handoff for their own deliverable — [`/idea`](idea.md), [`/create-prd`](create-prd.md), [`/update-prd`](update-prd.md), [`/create-ard`](create-ard.md), [`/specify`](specify.md), `/dev-workflows:design`, `/dev-workflows:implement`, `/dev-workflows:ready`, `/workflows-core:frames` (which ships in the companion plugin), and the six commands of the BRD-to-PRD route.
 
 ## Gates
 
 Phase 7 dispatches `epic-reviewer`, Opus-pinned, checking goal clarity, acceptance-criteria testability, scope boundaries, and non-duplication with existing Epics under the parent PRD. Findings are triaged by the orchestrator (`workflows-core:finding-triage`) before `doc-fixer` ever sees them — each finding verified at the location it names, every dismissal recorded with a reason, survivors only handed to the fixer. `BLOCK` invokes `doc-fixer` for BLOCKER/MAJOR findings and re-reviews once, passing the fixer's own report back as `claims_file` so the re-review falsifies the fixer's account rather than assuming it; an unresolved BLOCKER after that cycle is escalated individually. `PASS WITH RECOMMENDATIONS` fixes MAJOR findings only; `PASS` proceeds. Cap: one fix cycle plus one re-review.
 
-Ahead of the review, Phase 6.2 runs `prose-style-checker` as the **primary** style checker — not a fallback, since Epic definitions are specs-tree content with no repo-side prose linter to fall back from. It is skipped gracefully, with a note in the final report, when the separate `prose-style` plugin is not installed. Phase 6.3 then runs a structural pre-lint (`workflows-core:pre-lint`) — advisory only, checking required headings, Given/When/Then acceptance criteria, and the `[NEEDS CLARIFICATION]` cap.
+Ahead of the review, Phase 6.2 runs `prose-style-checker` unconditionally as a **non-gating quality pass** — the actual gate on this command is `epic-reviewer` (Opus) alone. It is the **primary** style checker rather than a fallback, since Epic definitions are specs-tree content with no repo-side prose linter to fall back from, and `prose-style` is a declared dependency of `pm-workflows`, so there is no absent case to skip. Phase 6.3 then runs a structural pre-lint (`workflows-core:pre-lint`) — advisory only, checking required headings, Given/When/Then acceptance criteria, and the `[NEEDS CLARIFICATION]` cap.
 
 ## Example
 
 Split a PRD with two existing Epics not yet covering all its scope:
 
 ```
-/dev-workflows:epics PRODUCT-1234
+/pm-workflows:epics PRODUCT-1234
 ```
 
-The run resolves the PRD, asks for the output directory and whether to scan code (default on, repos auto-derived from sibling Epics' PR links), resolves any PRD-level ARD and specification, reads the PRD folder at `prd-plus-epics` depth, scans the confirmed repos in batches of up to 4, delegates the drafting to `epic-writer`, runs the Prose style check and structural pre-lint, then `epic-reviewer`. On a passing verdict it reports the Epics written and `_coverage.md`'s gap list, and recommends `/dev-workflows:specify <EPIC>` per drafted Epic as the next step — one address, the Epic's own — Epic drafting itself was never committed, so publishing the Epics to a tracker remains a manual step.
+The run resolves the PRD, asks for the output directory and whether to scan code (default on, repos auto-derived from sibling Epics' PR links), resolves any PRD-level ARD and specification, reads the PRD folder at `prd-plus-epics` depth, scans the confirmed repos in batches of up to 4, delegates the drafting to `epic-writer`, runs the Prose style check and structural pre-lint, then `epic-reviewer`. On a passing verdict it reports the Epics written and `_coverage.md`'s gap list, and recommends `/pm-workflows:specify <EPIC>` per drafted Epic as the next step — one address, the Epic's own — Epic drafting itself was never committed, so publishing the Epics to a tracker remains a manual step.
 
 ## See also
 
@@ -78,6 +78,6 @@ The run resolves the PRD, asks for the output directory and whether to scan code
 - [`/create-prd`](create-prd.md) and [`/create-ard`](create-ard.md) — the upstream commands whose PRD and (optional) ARD `/epics` reads.
 - [`/specify`](specify.md) — the downstream command normally run once per drafted Epic; a PRD with 0 Epics that reaches `/specify` first is itself offered a link back to `/epics`, but nothing gates the order.
 - [Model routing](../reference/model-routing.md) — the classification rules and the `epic-reviewer` Opus pin.
-- [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal Phase 9–11 bookkeeping every run emits.
+- [Session cost](../reference/session-cost.md) and [Session feedback](../reference/session-feedback.md) — the terminal Phase 9–11 bookkeeping every run emits. Follow-ups are the third emitter in that same tail; the page describing them ships in `dev-workflows`.
 - `workflows-core:ard-resolution` — how the optional PRD-level ARD is resolved and inherited.
 - `workflows-core:finding-triage` — the triage step run between `epic-reviewer` and `doc-fixer`.

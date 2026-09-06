@@ -63,7 +63,7 @@ With the BRD route the run is seeded by a BRD instead of a PRD, and what it need
 
 **On the BRD route** the ARD is **ard.md**, written into the resolved `PRD-` slice folder beside the artifacts it was derived from, on a `ard/<SLICE-KEY>-<slug>` branch. Its `prd:`/`epic:` frontmatter carries the same pair the ARD resolver is given — the parent BRD's key with the slice's own as `epic:` — and `derived_from` names the PRD in that folder when there is one, else the `ard-seed.md` the ARD was actually authored from. That run also writes `consumed_by: ARD` onto the architecture-altitude decisions and the verified findings the ARD drew on — the only writes it makes into any BRD file — and commits `decisions.md` and the two `grounding/` files alongside the ARD, since an uncommitted consumption record is one no later run can read. `ard-seed.md` is read but never written: `consumed_by` is a field of a decision or finding *record*, and the seed holds neither, so its consumption is reported at file granularity instead.
 
-**`[AD#N]` decisions bind six downstream commands** once the ARD is merged, each resolving it via `workflows-core:ard-resolution`: `/create-ard` itself (an Epic-level run inheriting its PRD-level ARD), [`/design`](design.md), [`/implement`](implement.md), [`/specify`](specify.md), [`/epics`](epics.md), and [`/ready`](ready.md). An `[AD#N]` `Rule` violated downstream without a recorded "ARD deviation" is a reviewer BLOCKER in whichever of those commands hit it.
+**`[AD#N]` decisions bind six downstream commands** once the ARD is merged, each resolving it via `workflows-core:ard-resolution`: `/create-ard` itself (an Epic-level run inheriting its PRD-level ARD), `/dev-workflows:design`, `/dev-workflows:implement`, [`/specify`](specify.md), [`/epics`](epics.md), and `/dev-workflows:ready`. An `[AD#N]` `Rule` violated downstream without a recorded "ARD deviation" is a reviewer BLOCKER in whichever of those commands hit it.
 
 ## Gates
 
@@ -76,25 +76,25 @@ Before the review, Phase 4.5 runs a structural pre-lint (`workflows-core:pre-lin
 Author a PRD-level ARD, grounding on the two repos the PRD's themes point at:
 
 ```
-/dev-workflows:create-ard PRODUCT-1234
+/pm-workflows:create-ard PRODUCT-1234
 ```
 
-The run resolves the PRD from the merged PRD file where present, lists top-level directories under `$REPOS_PATH`, proposes a theme-to-repo mapping and asks you to confirm it, scans the confirmed repos with `code-scanner`, grills you relentlessly through Context, Grounding findings, Architecture decisions, Cross-repo approach, Stack & invariants, Edge cases & risks, and Open questions, runs the structural pre-lint, then `ard-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request, then offers the adaptive next step — `/dev-workflows:epics PRODUCT-1234` if the PRD has no Epics yet, or `/dev-workflows:specify PRODUCT-1234` otherwise.
+The run resolves the PRD from the merged PRD file where present, lists top-level directories under `$REPOS_PATH`, proposes a theme-to-repo mapping and asks you to confirm it, scans the confirmed repos with `code-scanner`, grills you relentlessly through Context, Grounding findings, Architecture decisions, Cross-repo approach, Stack & invariants, Edge cases & risks, and Open questions, runs the structural pre-lint, then `ard-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request, then offers the adaptive next step — `/pm-workflows:epics PRODUCT-1234` if the PRD has no Epics yet, or `/pm-workflows:specify PRODUCT-1234` otherwise.
 
 Author the ARD for a reconciled BRD slice instead:
 
 ```
-/dev-workflows:create-ard EPIC-008-01
+/pm-workflows:create-ard EPIC-008-01
 ```
 
-The run resolves `EPIC-008-01`'s folder one level under `specifications/`, reads `ard-seed.md`, the register and the verified findings, inherits the parent BRD's ARD if one is merged, proposes the repositories `grounding/baselines.md` already pinned, and grills **only the gaps** — every `[VD#n]` and `[CD#n]` the register holds as decided is an input the interview never reopens, because the customer signed it. Its next-step offer names `/dev-workflows:specify EPIC-008-01`; the second option is `/dev-workflows:epics EPIC-008-01` **only where the slice already holds an authored `prd.md`**. Where it does not, the replacement is resolved from the slice's own coverage ledger, because [`/create-prd`](create-prd.md) refuses three shapes and this run has cleared only the container one: `/dev-workflows:create-prd EPIC-008-01` where no claimed row is `unallocated` and at least one is `covered-here`; [`/brd-split`](brd-split.md) on the slice where a row is still `unallocated`; `/brd-split` on the parent where the slice claims nothing; and **no second option at all** where the slice is fully allocated with no `covered-here` row, since `/create-prd`'s own branch for that state names no command either. [`/epics`](epics.md) partitions a PRD and refuses a folder that holds none, and this route does not require one — `/create-prd` is not a prerequisite for `/create-ard` on it — so a slice carrying an ARD and no PRD is an ordinary state, not an error.
+The run resolves `EPIC-008-01`'s folder one level under `specifications/`, reads `ard-seed.md`, the register and the verified findings, inherits the parent BRD's ARD if one is merged, proposes the repositories `grounding/baselines.md` already pinned, and grills **only the gaps** — every `[VD#n]` and `[CD#n]` the register holds as decided is an input the interview never reopens, because the customer signed it. Its next-step offer names `/pm-workflows:specify EPIC-008-01`; the second option is `/pm-workflows:epics EPIC-008-01` **only where the slice already holds an authored `prd.md`**. Where it does not, the replacement is resolved from the slice's own coverage ledger, because [`/create-prd`](create-prd.md) refuses three shapes and this run has cleared only the container one: `/pm-workflows:create-prd EPIC-008-01` where no claimed row is `unallocated` and at least one is `covered-here`; [`/brd-split`](brd-split.md) on the slice where a row is still `unallocated`; `/brd-split` on the parent where the slice claims nothing; and **no second option at all** where the slice is fully allocated with no `covered-here` row, since `/create-prd`'s own branch for that state names no command either. [`/epics`](epics.md) partitions a PRD and refuses a folder that holds none, and this route does not require one — `/create-prd` is not a prerequisite for `/create-ard` on it — so a slice carrying an ARD and no PRD is an ordinary state, not an error.
 
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pa` role owns, an optional phase in the pipeline.
 - [`/create-prd`](create-prd.md) — the upstream command that authors the PRD `/create-ard` reads.
-- [`/epics`](epics.md), [`/specify`](specify.md), and [`/design`](design.md) — the downstream commands `/create-ard`'s Phase 7 offers, each of which consults the merged ARD once it lands.
-- [`/ready`](ready.md) and [`/implement`](implement.md) — the two remaining consumers of `[AD#N]` invariants via `workflows-core:ard-resolution`.
+- [`/epics`](epics.md), [`/specify`](specify.md), and `/dev-workflows:design` — the downstream commands `/create-ard`'s Phase 7 offers, each of which consults the merged ARD once it lands.
+- `/dev-workflows:ready` and `/dev-workflows:implement` — the two remaining consumers of `[AD#N]` invariants via `workflows-core:ard-resolution`.
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `ard-reviewer` runs under, plus the tiered hard model gate `/create-ard` applies for `SIGNIFICANT`/`HIGH-RISK` runs.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 8 bookkeeping every run emits.
 - [`ard-format.md`](../../references/ard-format.md) — the canonical structure the ARD is authored and reviewed against.

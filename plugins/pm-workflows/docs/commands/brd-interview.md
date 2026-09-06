@@ -201,7 +201,7 @@ against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` 
 Work the first round of a synthetic customer BRD, once its split has merged:
 
 ```
-/dev-workflows:brd-interview EPIC-008
+/pm-workflows:brd-interview EPIC-008
 ```
 
 The run gates on the grounding being merged and verified and the ledger being fully allocated, opens
@@ -220,12 +220,13 @@ no-op. Re-opening a closed round
 later, with its cause recorded:
 
 ```
-/dev-workflows:brd-interview EPIC-008 --round 1
+/pm-workflows:brd-interview EPIC-008 --round 1
 ```
 
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off.
+- [Model routing](../reference/model-routing.md) — the classification rules this command applies.
 - [`interview-tagging.md`](../../references/interview-tagging.md) — the authority for the three tags,
   who may answer each, re-tagging and its recorded cause, the split that fixes an untaggable
   question, and how a round opens and closes.

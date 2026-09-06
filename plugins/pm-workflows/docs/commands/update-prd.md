@@ -32,7 +32,7 @@ flowchart TD
     p6 --> p7["Phase 7 — Session maintenance, feedback & cost"]
 ```
 
-Three subagents are dispatched: `workflows-core:docs-grounder` (Phase 2, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `prd-reviewer` (Phase 4, Opus-pinned), and `workflows-core:impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. A fourth agent, `prose-style:prose-style-checker`, runs in Phase 3.5 exactly as it does in [`/create-prd`](create-prd.md) — a non-gating quality pass from an optional plugin that may not be installed, and so not counted in the dispatch total above. The count is of dispatches, not of shipping plugins: two of the three above ship in the companion `workflows-core` plugin, which is a hard prerequisite rather than an optional one.
+Four subagents are dispatched, unconditionally: `workflows-core:docs-grounder` (Phase 2, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `prose-style:prose-style-checker` (Phase 3.5, a non-gating quality pass, exactly as in [`/create-prd`](create-prd.md)), `prd-reviewer` (Phase 4, Opus-pinned), and `workflows-core:impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. `prose-style` is a declared dependency of `pm-workflows`, so Phase 3.5 has no absent case to skip.
 
 ## What it needs
 
@@ -47,14 +47,14 @@ Three subagents are dispatched: `workflows-core:docs-grounder` (Phase 2, read-on
 
 ## What it produces
 
-- The **canonical** PRD, overwritten in place at the feature folder's **prd.md**, with `revision_of` (the archived snapshot's path) and `built_from_date` (the date the update was built from) added to its frontmatter. Everything already there that records where the PRD came from is carried through unchanged — `sources`, `derived_from`, `seeded_from_prd`, and, on a PRD [`/create-prd`](create-prd.md) authored on the BRD route, `brd_key`, `brd_parent` and `depends_on`. Those three are preserved, never authored: this command reads no BRD tree, so it mints none of them and adds none to a PRD that arrived without them — and **no command consumes them yet** — neither [`/epics`](epics.md) nor [`/ready`](ready.md) reads any of the three. They are preserved because provenance that survives an update is the precondition for any future consumer: this command reads no BRD tree, so dropping them at the first refresh would leave a slice's PRD indistinguishable from an ordinary one with nothing left to restore it from.
+- The **canonical** PRD, overwritten in place at the feature folder's **prd.md**, with `revision_of` (the archived snapshot's path) and `built_from_date` (the date the update was built from) added to its frontmatter. Everything already there that records where the PRD came from is carried through unchanged — `sources`, `derived_from`, `seeded_from_prd`, and, on a PRD [`/create-prd`](create-prd.md) authored on the BRD route, `brd_key`, `brd_parent` and `depends_on`. Those three are preserved, never authored: this command reads no BRD tree, so it mints none of them and adds none to a PRD that arrived without them — and **no command consumes them yet** — neither [`/epics`](epics.md) nor `/dev-workflows:ready` reads any of the three. They are preserved because provenance that survives an update is the precondition for any future consumer: this command reads no BRD tree, so dropping them at the first refresh would leave a slice's PRD indistinguishable from an ordinary one with nothing left to restore it from.
 - An **archived snapshot** of the prior canonical PRD, written first, before the overwrite, to `<feature-folder>/revisions/<KEY>_<slug>_<YYYYMMDD>.md` (a same-day second revision is suffixed `-2`, `-3`, …).
 - Behind Phase 5's consent choice, both files are committed, pushed, and a pull request opened against the specs repo's default branch.
 - *(The run used to end with a manual reminder to copy the updated body back into a tracker and refresh the export it read from. Neither step exists: the PRD is where every downstream command reads it.)*
 
 ## Gates
 
-- **Phase 3.5 — Prose style check**, mirroring [`/create-prd`](create-prd.md) exactly: `prose-style:prose-style-checker` applies MAJOR fixes inline and re-runs once; a non-gating quality pass, skipped gracefully when the `prose-style` plugin is not installed.
+- **Phase 3.5 — Prose style check**, mirroring [`/create-prd`](create-prd.md) exactly: `prose-style:prose-style-checker` (unconditional — `prose-style` is a declared dependency of `pm-workflows`) applies MAJOR fixes inline and re-runs once; a non-gating quality pass.
 - **Phase 3.6 — Structural pre-lint** (`workflows-core:pre-lint`), advisory only — mechanical findings fixed inline, content gaps left for the grill.
 - **Phase 4 — `prd-reviewer`**, Opus-pinned by frontmatter (`model: opus`, no override), reviewing the whole updated PRD against `workflows-core:prd-format`. `PASS` / `PASS WITH RECOMMENDATIONS` proceeds. `BLOCK` triggers one inline fix cycle and one re-review; a persistent `BLOCK` is escalated per `workflows-core:escalation-rules`'s "Review verdict BLOCK" choices, exactly as in [`/create-prd`](create-prd.md).
 
@@ -63,7 +63,7 @@ Three subagents are dispatched: `workflows-core:docs-grounder` (Phase 2, read-on
 Refresh a PRD with new call notes, after the specs draft has already been reviewed once:
 
 ```
-/dev-workflows:update-prd PRODUCT-1234 @call-notes.md
+/pm-workflows:update-prd PRODUCT-1234 @call-notes.md
 ```
 
 The run resolves the feature folder, reads its `prd.md` as the base, grills the changes against it, and rewrites the canonical file while archiving the prior revision.

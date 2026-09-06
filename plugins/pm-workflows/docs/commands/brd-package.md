@@ -233,7 +233,7 @@ attack.
 Package a synthetic customer BRD once its interview round has settled, declaring one prerequisite:
 
 ```
-/dev-workflows:brd-package EPIC-008 --depends-on EPIC-014
+/pm-workflows:brd-package EPIC-008 --depends-on EPIC-014
 ```
 
 The run gates on `decisions.md` being merged and on every question carrying a terminal disposition or
@@ -246,6 +246,7 @@ archive command with an absolute path, the repo→SHA table, and the ledger line
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off.
+- [Model routing](../reference/model-routing.md) — the classification rules this command applies.
 - [`bundle-packaging.md`](../../references/bundle-packaging.md) — the authority for plugin-free
   construction, the de-Obsidianising pass, the three degradation tiers, the delivery note's ceiling,
   and where the bundle lands.

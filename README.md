@@ -7,6 +7,7 @@ Ivan Gudak's open-source Claude Code plugin marketplace.
 | Plugin | Description |
 |--------|-------------|
 | [dev-workflows](plugins/dev-workflows/) | Seventeen slash commands for the PM → PA → PE → Dev pipeline, with Opus-backed planning and review gates. Needs `workflows-core`. [Docs](plugins/dev-workflows/docs/README.md) |
+| [pm-workflows](plugins/pm-workflows/) | Twelve slash commands for idea → PRD → ARD → specification, plus the six-command BRD-to-PRD route. Needs `workflows-core` and `prose-style`. [Docs](plugins/pm-workflows/docs/README.md) |
 | [guideline-reviewers](plugins/guideline-reviewers/) | Two standalone commands: `/api-guideline-reviewer` reviews OpenAPI specs against bundled REST/IAM guidance; `/guideline-reviewer` reviews code/UI against bundled design-system and a11y standards. |
 | [workflows-core](plugins/workflows-core/) | Shared foundation for the `dev-workflows` family — addressing, git handoff, model routing, emission — plus six utility commands. [Docs](plugins/workflows-core/docs/README.md) |
 | [docs-workflows](plugins/docs-workflows/) | Documentation pipeline: `/document`, `/docs-profile`, `/release-notes`. Needs `workflows-core` and `prose-style`. [Docs](plugins/docs-workflows/docs/README.md) |
@@ -34,6 +35,7 @@ claude plugin marketplace add ihudak/ihudak-claude-plugins
 
 ```bash
 claude plugin install dev-workflows@ihudak-plugins
+claude plugin install pm-workflows@ihudak-plugins
 claude plugin install prose-style@ihudak-plugins
 claude plugin install obsidian-llm-wiki@ihudak-plugins
 claude plugin install acli@ihudak-plugins

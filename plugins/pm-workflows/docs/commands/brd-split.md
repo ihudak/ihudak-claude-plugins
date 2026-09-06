@@ -152,7 +152,7 @@ reads was already independently verified by `/brd-ground`'s own agents.
 - **Every finding verified.** A finding with no recorded verifier outcome (`agree` / `extend` /
   `contradict` / `unprovable`) is not evidence this command may act on. Any such finding on file
   stops the run with `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run
-  /dev-workflows:brd-ground first.`
+  /pm-workflows:brd-ground first.`
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
 
 ## What it produces
@@ -263,13 +263,13 @@ with a "nothing to commit" report on the no-op path.
 Split a synthetic customer BRD once its grounding pull request has merged:
 
 ```
-/dev-workflows:brd-split EPIC-008
+/pm-workflows:brd-split EPIC-008
 ```
 
 Or with a slicing instruction, which is the same run with Phase 1.5 in front of it:
 
 ```
-/dev-workflows:brd-split EPIC-008 cover orders and measurements in the first iteration
+/pm-workflows:brd-split EPIC-008 cover orders and measurements in the first iteration
 ```
 
 Step A places the rows whose text names an order or a measurement; Step B asks at most five
@@ -278,7 +278,7 @@ and for a compliance artifact; which is meant in these six?* Phase 2 then propos
 `orders-and-measurements` as a slice, naming any row in it that grounding left `NOT-PROVABLE` or
 `will-change` and asking whether to carry it anyway. Phase 4 walks each row with
 `(Recommended — your instruction grouped this as an order)` on `covered-by`. A second run,
-`/dev-workflows:brd-split EPIC-008 slice everything no child covers`, resolves entirely in Step A and
+`/pm-workflows:brd-split EPIC-008 slice everything no child covers`, resolves entirely in Step A and
 asks nothing.
 
 The run resolves the BRD, confirms every finding carries a verifier verdict, proposes candidate
@@ -292,6 +292,7 @@ this run's deliverables reach the specs repo's default branch — stated in the 
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off.
+- [Model routing](../reference/model-routing.md) — the classification rules this command applies.
 - `workflows-core:addressing` — the `<BRD-KEY>` grammar and folder
   resolution this command uses by name (`key-valid`, `resolve-address`), including how a slice
   nests inside its parent and why that nesting — and only the nesting — is capped at one level

@@ -343,7 +343,7 @@ Reconcile the review that came back for a synthetic customer BRD, from wherever 
 saved:
 
 ```
-/dev-workflows:brd-reconcile EPIC-008 "@~/Downloads/EPIC-008 Customer Review 20260422.md"
+/pm-workflows:brd-reconcile EPIC-008 "@~/Downloads/EPIC-008 Customer Review 20260422.md"
 ```
 
 The `@<review-file>` token is **quoted**, because the command parses its arguments positionally and
@@ -372,7 +372,7 @@ slices under it, one PRD, one ARD and one specification each, and all three of t
 a `BRD-` folder. What this run offers is therefore:
 
 ```
-/dev-workflows:brd-ground EPIC-008-01     # once per non-empty slice
+/pm-workflows:brd-ground EPIC-008-01     # once per non-empty slice
 ```
 
 Run against the slice instead, all three exits are offered off that one key once its own
@@ -380,9 +380,9 @@ reconciliation leaves nothing to re-enter for and its own ledger leaves no row `
 least one `covered-here`:
 
 ```
-/dev-workflows:create-prd EPIC-008-01
-/dev-workflows:create-ard EPIC-008-01
-/dev-workflows:specify EPIC-008-01
+/pm-workflows:create-prd EPIC-008-01
+/pm-workflows:create-ard EPIC-008-01
+/pm-workflows:specify EPIC-008-01
 ```
 
 Had that slice run left a row `unallocated`, or left none `covered-here`, the first line would be
@@ -392,6 +392,7 @@ offered.
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off.
+- [Model routing](../reference/model-routing.md) — the classification rules this command applies.
 - [`customer-review-schema.md`](../../references/customer-review-schema.md) — the twelve sections the
   returned review carries, and the one-new-file rule that makes section 12 the only channel for a
   change to a package document.

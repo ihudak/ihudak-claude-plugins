@@ -121,7 +121,7 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
 Intake a synthetic customer BRD for a new BRD key:
 
 ```
-/dev-workflows:brd-intake ACME-001 @customer-brd.md
+/pm-workflows:brd-intake ACME-001 @customer-brd.md
 ```
 
 The run resolves or creates the BRD folder, copies `customer-brd.md` verbatim into `brd/source/`,
@@ -132,6 +132,7 @@ commit, push, and open a pull request.
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off.
+- [Model routing](../reference/model-routing.md) — the classification rules this command applies.
 - `workflows-core:addressing` — the `<BRD-KEY>` grammar and folder
   resolution this command uses by name (`key-valid`, `resolve-address`).
 - [`brd-format.md`](../../references/brd-format.md) — the `[BR#n]` row shape, the immutability rule,

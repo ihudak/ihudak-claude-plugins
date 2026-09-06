@@ -9,7 +9,7 @@ Refines one raw source — a prompt, a file, a community post, or a saved file �
 ## Synopsis
 
 ```
-/idea <PRD-KEY> [<prompt> | @<file>] [--deep] [--ground-code [<repo>,…]] [--no-docs]
+/idea <PRD-KEY> [<prompt> | @<file>] [--deep] [--ground-code [<repo>,…]] [--no-docs] [--docs <path>]
 ```
 
 The single positional argument is classified into one of **two** source forms (Phase 1), by precedence:
@@ -148,7 +148,7 @@ that was read, `design/idea-sources/<name>` for each image that was opened, and
 Refine an inline prompt, grounding it against the mounted frontend repo:
 
 ```
-/dev-workflows:idea PRODUCT-1234 "Add a dark-mode toggle to the settings page" --ground-code frontend
+/pm-workflows:idea PRODUCT-1234 "Add a dark-mode toggle to the settings page" --ground-code frontend
 ```
 
 The run validates the key, classifies the argument as a prompt, ingests it via `idea-reader`, grounds it against the documentation when `$DOCS_PATH` resolves, grills it, and writes `idea.md` into the resolved folder. The key is not optional — without it the run stops before Phase 1.
@@ -156,7 +156,7 @@ The run validates the key, classifies the argument as a prompt, ingests it via `
 Refine a note that links a mockup and a couple of related pages:
 
 ```
-/dev-workflows:idea PRODUCT-1234 @notes/dark-mode.md
+/pm-workflows:idea PRODUCT-1234 @notes/dark-mode.md
 ```
 
 Here the reader walks that note's links two levels out, opens the images it links, and hands the grill both the prose and what the frames show — then reports anything the twelve-file or six-image cap left behind.

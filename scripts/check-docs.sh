@@ -36,7 +36,7 @@ set -uo pipefail
 # check function below is unchanged and still reads a single PLUGIN_REL. A one-element
 # list behaves exactly as the old scalar did, which is what keeps this body portable to
 # editions that ship one plugin.
-PLUGIN_RELS="${PLUGIN_RELS:-plugins/dev-workflows plugins/guideline-reviewers plugins/workflows-core plugins/docs-workflows}"   # copilot: dev-workflows
+PLUGIN_RELS="${PLUGIN_RELS:-plugins/dev-workflows plugins/guideline-reviewers plugins/workflows-core plugins/docs-workflows plugins/pm-workflows}"   # copilot: dev-workflows
 CMD_DIR="commands"                   # copilot: skills
 CMD_SUFFIX=".md"                     # copilot: /SKILL.md
 CMD_EXCLUDE=""                       # copilot: _shared
@@ -67,8 +67,8 @@ NS_MAP_REL="${NS_MAP_REL:-plugins/workflows-core/scripts/command-namespaces.json
 # assert that a plugin holding the CALL SITES is declared. The trigger is the call sites and
 # not the reference file: the corpus extraction separated the two, and a file-presence
 # trigger got both directions wrong at once (see those two functions).
-COST_PLUGIN_RELS="${COST_PLUGIN_RELS:-plugins/dev-workflows plugins/docs-workflows plugins/workflows-core}"        # copilot: ""
-HANDOFF_PLUGIN_RELS="${HANDOFF_PLUGIN_RELS:-plugins/dev-workflows}"  # copilot: ""
+COST_PLUGIN_RELS="${COST_PLUGIN_RELS:-plugins/dev-workflows plugins/docs-workflows plugins/workflows-core plugins/pm-workflows}"        # copilot: ""
+HANDOFF_PLUGIN_RELS="${HANDOFF_PLUGIN_RELS:-plugins/pm-workflows}"  # copilot: ""
 
 # The plugin that holds the shared reference corpus. Checks 8, 9, 11 and 16 read a reference
 # from HERE and their call sites from $PLUGIN_REL -- the corpus now lives in its own plugin,
@@ -1954,7 +1954,7 @@ check_foreign_identity() {
 # THE THREE SURFACES, and why the diagram is asserted separately from the page: the prose
 # below a diagram is where a command lands when someone adds it in a hurry, so asserting
 # only "appears in workflow.md" would have passed the very defect this check was written
-# for. A node may be written bare (`/idea`) or namespaced (`/dev-workflows:release-notes`),
+# for. A node may be written bare (`/idea`) or namespaced (`/docs-workflows:release-notes`),
 # so both forms count.
 check_index_membership() {
   local root="$1" p="$1/$PLUGIN_REL" n f diagram

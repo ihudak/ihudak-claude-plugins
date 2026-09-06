@@ -4,6 +4,16 @@ All notable changes to the **docs-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.1.0] — 2026-09-06
+
+### Fixed — the plugin-qualified form now preloads context, where before it matched no hook
+
+`hooks/preload-context.sh` matched `^/(document|release-notes)` only, so `/docs-workflows:document <KEY>` — the disambiguating form, and the form this plugin's own documentation teaches — injected nothing. It now matches an optional `docs-workflows:` prefix as well, and `/docs-workflows:document PRODUCT-1234` preloads specs context exactly as `/document PRODUCT-1234` does.
+
+This matters more than a convenience for `/release-notes`: its bare form resolves to a Claude Code built-in of the same name, so the qualified form is the only one that reaches this plugin — and until now that form matched no hook at all.
+
+The widening was made in one coordinated change across every plugin in the family that ships a `UserPromptSubmit` hook, because widening them independently is how double-injection returns. Each script accepts only its **own** plugin's name as the optional prefix, and the three command sets are disjoint, so no single prompt can match two plugins' hooks.
+
 ## [1.0.0] — 2026-09-05
 
 ### Added — the documentation half of `dev-workflows`, extracted into its own plugin

@@ -1,6 +1,6 @@
 # Getting started
 
-This page takes you from zero to your first successful run — install the plugin, set the environment variables it reads, install the status line, and run `/idea` end to end. Once you have done this once, [Workflow overview](workflow.md) shows the whole pipeline and [Roles and phases](roles-and-phases.md) says what your role owns at each step.
+This page takes you from zero to your first successful run — install the plugin, set the environment variables it reads, install the status line, and run `/design` end to end. Once you have done this once, [Workflow overview](workflow.md) shows the whole pipeline and [Roles and phases](roles-and-phases.md) says what your role owns at each step.
 
 ## Install
 
@@ -14,16 +14,15 @@ claude plugin marketplace add ihudak/ihudak-claude-plugins
 
 ```bash
 claude plugin install dev-workflows@ihudak-plugins
-claude plugin install prose-style@ihudak-plugins
 ```
 
-`dev-workflows` is the pipeline this documentation covers. `prose-style` is the one other plugin **in this marketplace** it genuinely reaches for: it is the primary style checker for `/epics` and for the Product Requirements Document commands. Every command here that uses it degrades gracefully when it is absent, so it is *recommended* rather than required. The companion `docs-workflows` plugin declares it a hard dependency instead, because there an absent prose linter is a real coverage hole rather than a no-op.
+`dev-workflows` declares one hard dependency, installed automatically alongside it: `workflows-core`, its shared foundation — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, and the emitters. The companion `pm-workflows` plugin is not a dependency in either direction: `/design` consumes the `specification.md` it produces, but `dev-workflows` installs and runs without it, against a specification someone else's product work already landed on the specs repo's default branch. The companion `docs-workflows` plugin is likewise independent: `/implement` hands off to its `/docs-workflows:document` and `/docs-workflows:release-notes`, but neither is required for this plugin's own five commands to run.
 
-**What you also need, and it is not a plugin.** Nothing — the pipeline reads and writes one markdown tree and calls no external service. If you keep your work in a tracker as well, syncing the two is yours to arrange; no command here learns whether one exists.
+**What you also need, and it is not a plugin.** Nothing beyond `gh`, when present, for pull-request metadata — the pipeline otherwise reads and writes one markdown tree plus the mounted code repositories, and calls no external service. If you keep your work in a tracker as well, syncing the two is yours to arrange; no command here learns whether one exists.
 
-**One more that is not in this marketplace.** [`superpowers`](https://github.com/obra/superpowers) is a separate Claude Code plugin, recommended rather than required: `/prompt-brainstorm` cedes its Phase 3 to `superpowers:brainstorming`, and the brainstorm → plan → subagent-driven-development flow this plugin's own development uses comes from it. Without it that one hand-off has nowhere to go; everything else degrades gracefully. Note that *grilling* is **not** an external dependency — the relentless-interrogation technique the authoring commands run is bundled here, in `workflows-core:grilling-technique`.
+**One more that is not in this marketplace.** [`superpowers`](https://github.com/obra/superpowers) is a separate Claude Code plugin, recommended rather than required: the companion `workflows-core` plugin's `/prompt-brainstorm` cedes its Phase 3 to `superpowers:brainstorming`, and the brainstorm → plan → subagent-driven-development flow this plugin's own development uses comes from it. Without it that one hand-off has nowhere to go; everything else degrades gracefully. Note that *grilling* is **not** an external dependency — the relentless-interrogation technique `/design`'s own embedded interview runs is bundled here, in `workflows-core:grilling-technique`.
 
-**What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki` (compiling a vault into a cross-referenced wiki) and `acli` (an Atlassian CLI reference skill) <!-- vendor-token-ok: names the subject of a sibling plugin this one does not use -->. Neither is used by `dev-workflows` — `acli` is referenced nowhere in it, and `workflows-core:followup-emission` states outright that it has no dependency on it — runtime or editorial. It used to mirror that plugin's task conventions, because follow-ups landed in a vault; they land in the specs tree now, as plain markdown. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
+**What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki` (compiling a vault into a cross-referenced wiki), `acli` (an Atlassian CLI reference skill) <!-- vendor-token-ok: names the subject of a sibling plugin this one does not use -->, and `prose-style` (the prose linter the companion `pm-workflows` and `docs-workflows` plugins depend on). None of the three is used by `dev-workflows` today: none of its five remaining commands dispatches a prose-style checker, and `acli` is referenced nowhere in it. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
 
 ## Update
 
@@ -43,11 +42,11 @@ The **shared, team-visible repository for the AI-authored documents** — the Pr
 
 ### `REPOS_PATH`
 
-Where your code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. Matching depends on how a command finds the repo. Where a command resolves a repo from a pull-request URL — `/epics` here, and the companion plugin's `/docs-workflows:document` and `/docs-workflows:release-notes` — it is matched by its `git remote get-url origin` slug, **never by directory name**, so a clone renamed on disk is still found as long as its `origin` remote is intact. The commands that instead discover repos to offer you — `/idea`, `/create-ard`, `/design` — list top-level directories under `$REPOS_PATH` and match on their **basenames**, so a repo renamed on disk is *not* found by those three. This is the detail that surprises people, so it is worth saying plainly here.
+Where your code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. `/design` lists top-level directories under `$REPOS_PATH` and matches on their **basenames**, so a repo renamed on disk is *not* found unless the rename is also reflected there; `/implement`, `/upgrade`, and `/vuln` work directly in the code repository they are run against.
 
 ### `DOCS_PATH`
 
-A **read-only** clone of your shipped product documentation. Eight commands here ground against what is already published, so a new draft does not contradict or duplicate an existing page: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake` and `/brd-ground`. The companion `docs-workflows` plugin reads the same variable — `/docs-workflows:document` prefers it as a docs-repo discovery hint. The plugin never writes to `DOCS_PATH`; every miss — unset, missing, or no markdown found — is a silent, non-blocking skip.
+A **read-only** clone of your shipped product documentation. None of this plugin's own five commands grounds against it — the eight that do and ship from `pm-workflows` (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake`, and `/brd-ground`) ship in the companion `pm-workflows` plugin now, and `/docs-workflows:document` prefers this variable as a docs-repo discovery hint in the companion `docs-workflows` plugin. It is documented here only because [`code-handoff.md`](reference/references.md)'s git finish states plainly that it never touches this path either — a boundary statement, not a consumer. The plugin never writes to `DOCS_PATH`.
 
 ### `GIT_USER_INITIALS`
 
@@ -71,18 +70,18 @@ Claude Code ships its own built-in `/statusline` command, so typing the bare for
 
 ## Your first run
 
-`/idea` is the pipeline's entry point. It takes **one argument you choose yourself** — the key that names the folder this idea will live in — because there is nowhere keyless to write: the brief lands in its final folder on the first write and is never moved afterwards. Point it at whatever you already have in mind: an inline prompt, or a markdown file with `@path`.
+`/design` is where this plugin's spine picks up, once the companion `pm-workflows` plugin's `/pm-workflows:specify` has landed a `specification.md` on the specs repo's default branch. It takes the same address that named the specification.
 
 ```
-/idea ACME-77 a lightweight way for on-call engineers to silence a noisy alert for one hour without editing the alerting rule
+/design EPIC-98760
 ```
 
-`ACME-77` is yours to invent — nothing looks it up, and no tracker is read. It only has to match `^[A-Z][A-Z0-9_]*(-\d+)+$`.
+`EPIC-98760` resolves the Epic within its PRD, the same key `/pm-workflows:specify` used to land `specification.md`. Nothing looks it up beyond the specs tree, and no tracker is read.
 
 Here is what to expect:
 
-1. **A bounded grill.** `/idea` asks you up to ten questions, one at a time, to sharpen the idea before writing anything — scope, who it is for, what "done" looks like. Answer as best you can; a question you cannot answer yet becomes a logged `[NEEDS CLARIFICATION]` marker rather than a blocker. (`--deep` drops the cap and grills to convergence instead.)
-2. **A written brief.** It writes `idea.md` — a lean one-page brief — into `$SPECS_PATH/specifications/PRD-ACME-77-<slug>/`, creating that folder if it does not exist. If `DOCS_PATH` is set and readable, the idea is also checked against what is already documented.
-3. **A handoff.** At the end it offers to commit the brief, push it, and open a pull request against the specs repo's default branch. Once that lands, `/create-prd ACME-77` finds `idea.md` in the same folder and takes over.
+1. **A gate.** `/design` refuses to start if `specification.md` is not found on the specs repo's default branch — the one hard exception to the "absent input falls back" rule the rest of the pipeline follows.
+2. **Grounding and a grill.** It resolves any applicable ARD, derives and confirms the implementation repos under `$REPOS_PATH`, hard-stops if none is mounted, scans the confirmed set, then grills you through challenging the spec and designing the implementation.
+3. **A written design.** It writes `design.md` into the same specs feature folder, then offers to commit, push, and open a pull request against the specs repo's default branch. Once that lands, `/implement EPIC-98760` picks up the design and starts the code change.
 
-From here, [Workflow overview](workflow.md) shows where every other command sits relative to `/idea`, and [Roles and phases](roles-and-phases.md) says what happens at each handoff along the way.
+From here, [Workflow overview](workflow.md) shows where every other command sits relative to `/design`, and [Roles and phases](roles-and-phases.md) says what happens at each handoff along the way — including where `pm-workflows`'s own PRD → architecture → Epic breakdown → specification ladder hands off into this one.

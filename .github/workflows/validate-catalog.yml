@@ -20,8 +20,9 @@ name: Validate plugin catalog
 # someone's memory is how the description-length rule regressed three times.
 #
 # It also runs scripts/check-docs.sh, which guards each plugin named in its
-# PLUGIN_RELS list (currently dev-workflows, guideline-reviewers and
-# workflows-core) against drift from its own shipped tree (links/anchors, orphan
+# PLUGIN_RELS list -- read the list from that script's own definition rather
+# than from a copy here, which went stale across two increments of the
+# marketplace split before anyone noticed -- against drift from its own shipped tree (links/anchors, orphan
 # pages, command/agent/reference/hook inventories in both directions, env-var
 # docs, table-cell width, and the getting-started.md install-block /
 # identity-quarantine pin). Its command inventory also gates the namespace

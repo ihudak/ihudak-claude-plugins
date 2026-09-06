@@ -33,7 +33,7 @@ This command makes **zero external API calls** and **never writes into the docs 
 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Carry the resolved `path`, `kind` and
-   `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command.
+   `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/pm-workflows:idea <KEY>` or `/pm-workflows:create-prd <KEY>` on the idea route and from `/pm-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/pm-workflows:epics <PRD-ADDRESS>` and from no other command.
 
    With no positional address, stop with
    `RELEASE_NOTES_NEEDS_KEY: /release-notes needs a PRD or Epic address — a key, or an @<path> to its folder.` —
@@ -336,14 +336,14 @@ If the user chose a style check in Phase 1:
    - Reminder: paste this wherever your release notes are published — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
 
    ### Next step
-   [leaf/closure per `workflows-core:next-phase-offer` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/dev-workflows:create-ard <PRD>` or PE → `/dev-workflows:epics <PRD>`; if the change is already built and documented, the PRD is fully processed.]
+   [leaf/closure per `workflows-core:next-phase-offer` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/pm-workflows:create-ard <PRD>` or PE → `/pm-workflows:epics <PRD>`; if the change is already built and documented, the PRD is fully processed.]
 
    ### Context hygiene
 
    The resume pointer is written in the terminal cost phase (Phase 11), per `workflows-core:session-hygiene` §1. Then:
 
    - **Release note drafted and the PRD fully processed?** → nothing to suggest — you're done.
-   - **A PA/PE phase still pending for this PRD (e.g. `/dev-workflows:create-ard`, `/dev-workflows:epics`), even yourself?** → run **`/clear`** before switching roles.
+   - **A PA/PE phase still pending for this PRD (e.g. `/pm-workflows:create-ard`, `/pm-workflows:epics`), even yourself?** → run **`/clear`** before switching roles.
    - Consider **`/rename <PRD-ID>-<slug>-<role>`** to relocate this session later — `<role>` is this run's inferred lane (`pm` on the early run, `dev` once a spec or design exists).
 
    Guidance only — see `workflows-core:session-hygiene`.

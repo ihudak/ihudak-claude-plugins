@@ -19,7 +19,7 @@ A companion outside the family is **convention + runtime-resolve + graceful fall
 | Companion | Used by | Relationship | Fallback when absent |
 |-----------|---------|--------------|----------------------|
 | `superpowers` (skill `brainstorming`) | `/prompt-brainstorm` | Recommended | Embedded technique; no hard dependency. |
-| `prose-style` (a marketplace sibling) | planning-doc style checks in `dev-workflows` | Optional companion there, **declared dependency** of `docs-workflows` | `/epics`, `/create-prd` and `/update-prd` all skip their style gate entirely if it is absent. `docs-workflows` declares it, so its style checks have no absent case at all. |
+| `prose-style` (a marketplace sibling) | planning-doc style checks in `pm-workflows`, documentation style checks in `docs-workflows` | **Declared dependency** of both | Neither has an absent case: an unsatisfied dependency disables the plugin. `dev-workflows` has no tie to it at all since `/epics`, `/create-prd` and `/update-prd` moved out. |
 
 ## External tools and services
 
@@ -33,11 +33,11 @@ A companion outside the family is **convention + runtime-resolve + graceful fall
 
 ## Marketplace siblings (independent plugins, same marketplace)
 
-**The family is three plugins** — `dev-workflows`, `docs-workflows` and `workflows-core` — and four more ship alongside it in the same marketplace. Each of the four is versioned independently and declares no dependency on anything here. A plugin extracted *out of* the family stays in it while it still depends on `workflows-core`; `guideline-reviewers` is a sibling rather than a family member because its extraction cut that tie, and `docs-workflows` is a family member because its extraction kept it.
+**The family is four plugins** — `dev-workflows`, `pm-workflows`, `docs-workflows` and `workflows-core` — and four more ship alongside it in the same marketplace. Each of the four is versioned independently and declares no dependency on anything here. A plugin extracted *out of* the family stays in it while it still depends on `workflows-core`; `guideline-reviewers` is a sibling rather than a family member because its extraction cut that tie, and `docs-workflows` is a family member because its extraction kept it.
 
 | Sibling | What it is | Its tie to this family |
 |---|---|---|
-| `prose-style` | a pluggable prose style checker | Two ties, one sibling: a **declared dependency** of `docs-workflows`, host-resolved at install, and an optional companion `dev-workflows` resolves **at runtime** and skips when absent. |
+| `prose-style` | a pluggable prose style checker | Two ties, both **declared dependencies** host-resolved at install: `pm-workflows`, where `prose-style-checker` is primary, and `docs-workflows`, where it is the fallback below the repo's own linter. Nothing resolves it at runtime now. |
 | `obsidian-llm-wiki` | the LLM Wiki pattern for an active Obsidian vault | None at runtime. |
 | `guideline-reviewers` | the two guideline-review commands, extracted out of `dev-workflows` | None at runtime — the extraction kept no tie in either direction. |
 | `acli` | a reference skill for a vendor CLI | None at runtime. It ships a skill and no commands, which is why it is the one sibling absent from the manifest below. |

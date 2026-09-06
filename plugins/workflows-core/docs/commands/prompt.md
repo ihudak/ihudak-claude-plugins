@@ -1,6 +1,6 @@
 # /prompt
 
-Logs a corrective interaction — a dev-workflows command produced something wrong and you're fixing it — then performs the correction directly.
+Logs a corrective interaction — a command anywhere in the plugin family produced something wrong and you're fixing it — then performs the correction directly.
 
 ## Who runs it
 

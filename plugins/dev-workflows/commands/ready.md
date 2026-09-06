@@ -30,7 +30,7 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). `status: found` → carry its `path`, `kind`
-   and `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command.
+   and `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/pm-workflows:idea <KEY>` or `/pm-workflows:create-prd <KEY>` on the idea route and from `/pm-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/pm-workflows:epics <PRD-ADDRESS>` and from no other command.
 
    **The kind decides the altitude, replacing the two-key grammar.** A `PRD-` folder is a PRD-level
    run (`<EPIC>` is `null`); an `EPIC-` folder is an Epic-level run, and its PRD folder is its
@@ -234,7 +234,7 @@ this run. This is the mechanical half of that dimension.
 1. Derive candidate repo names from: each in-scope Epic's `implementation.md` entries, where one exists (the repo-name
    segment of each URL, per the PR URL formats `diff-summarizer` accepts); the confirmed-repos line of any `design.md`
    found (`design-format.md`'s header `- **Repos**: <the confirmed implementation repos this design
-   spans>`); and any ARD's `grounded_repos:` frontmatter list (`ard-format.md`). Dedupe.
+   spans>`); and any ARD's `grounded_repos:` frontmatter list (`pm-workflows:ard-format`). Dedupe.
 2. Build the slug→clone map **exactly as `epics.md` Phase 4 does**: for each top-level directory under
    each entry of `${REPOS_PATH:-/workspace}`, run
    `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the

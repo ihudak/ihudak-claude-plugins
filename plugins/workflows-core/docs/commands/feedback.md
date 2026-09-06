@@ -1,6 +1,6 @@
 # /feedback
 
-Logs a manual note about the dev-workflows plugin itself — friction you hit, or an improvement you want — for the maintainer to aggregate across engineers.
+Logs a manual note about the plugin family itself — friction you hit, or an improvement you want, in any of its plugins — for the maintainer to aggregate across engineers.
 
 ## Who runs it
 

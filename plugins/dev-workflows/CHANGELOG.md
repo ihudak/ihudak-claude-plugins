@@ -4,6 +4,33 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [4.0.0] — 2026-09-06
+
+### Changed — the product-definition half now ships as `pm-workflows`, and this is the split's last increment
+
+Run `claude plugin install pm-workflows@ihudak-plugins` — this release moves the idea→PRD→ARD→specification ladder (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`), `/epics`, and the six-command BRD-to-PRD route (`/brd-intake`, `/brd-ground`, `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile`) — twelve commands in all — into a new `pm-workflows` plugin, along with their twelve agents (`ard-reviewer`, `brd-package-reviewer`, `brd-reader`, `code-grounder`, `customer-review-reader`, `design-grounder`, `epic-reviewer`, `epic-writer`, `grounding-verifier`, `idea-reader`, `prd-reviewer`, `spec-reviewer`) and nine reference files (`idea-format.md`, `decision-register-format.md`, `bundle-packaging.md`, `brd-format.md`, `coverage-ledger-format.md`, `specification-format.md`, `ard-format.md`, `customer-review-schema.md`, `interview-tagging.md`).
+
+`dev-workflows` keeps five commands — `/design`, `/implement`, `/ready`, `/upgrade`, `/vuln` — twelve agents, fifteen reference files, and three hooks. It depends only on `workflows-core`; it never used `prose-style`, and the one command that did (`/epics`) has moved out with the rest.
+
+**Major version, not another minor one, and this is the increment that means it.** Every prior increment since 3.25.0 moved commands out behind a minor bump (S17 of the split design): none of those intermediate versions was ever separately consumed, so no user upgraded through one. This release is where every accumulated move lands at once, and `4.0.0` marks the end state the split was building toward, not one more step in it.
+
+### The migration note (S14) — action required
+
+`claude plugin marketplace update` refreshes the catalogue; it does **not** install a plugin newly added to it. If you have `dev-workflows` installed and you update, you:
+
+- **gain** `workflows-core` automatically — it is a declared dependency
+- **keep** `/design`, `/implement`, `/ready`, `/upgrade`, `/vuln`
+- **lose**, until you install the plugin that now holds it:
+  - `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake`, `/brd-ground`, `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile` — run `claude plugin install pm-workflows@ihudak-plugins`
+  - `/document`, `/docs-profile`, `/release-notes` — run `claude plugin install docs-workflows@ihudak-plugins`
+  - `/api-guideline-reviewer`, `/guideline-reviewer` — run `claude plugin install guideline-reviewers@ihudak-plugins`
+
+**Bare command names are unaffected** — `/idea` still resolves once `pm-workflows` is installed. Only the namespaced form moves: `/dev-workflows:idea` is now `/pm-workflows:idea`, and likewise for the other eleven. The five family-meta commands already living in `workflows-core` (`/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`) plus `/frames` need no separate install of their own — `workflows-core` arrives automatically as `dev-workflows`'s declared dependency.
+
+This is the fourth and final increment of the marketplace split designed in `docs/superpowers/specs/2026-09-02-marketplace-split-design.md`; the first extracted `guideline-reviewers`, the second `workflows-core`, the third `docs-workflows`. It changes **one** behaviour of its own beyond the moves: `hooks/preload-context.sh` now also matches the plugin-qualified form, so `/dev-workflows:implement`, `/dev-workflows:vuln` and `/dev-workflows:upgrade` preload context where previously only the bare form did. That matters most for `/upgrade`, whose bare form resolves to a Claude Code built-in — so the qualified form is the only one that reaches this plugin, and until now it matched no hook at all. `/epics` left the pattern with the command. Everything else changes no behaviour beyond what each of those entries already recorded on its own account.
+
+**S18 gates the release on the follow-up ledger, not on the increments being done, and the ledger is not empty as this is written.** Open: PS1, PS2, PS3, PS11 (subsumed by PS13), PS13, PS14, PS15, I3-1, I3-2, I3-3, I3-4, I3-5, I4-3, I4-5 (I4-1, I4-2 and I4-4 closed during this increment). This entry records what changed in the tree; it is not a release announcement, and nothing here is tagged.
+
 ## [3.27.0] — 2026-09-05
 
 ### Changed — the documentation half now ships as `docs-workflows`

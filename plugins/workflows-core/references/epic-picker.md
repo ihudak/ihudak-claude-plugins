@@ -23,7 +23,7 @@ Given a resolved `PRD-` folder (`references/addressing.md` §3) and no Epic in t
 - **Two or more** → render the picker, one row per Epic: its marker, its `key` (read from the
   folder's frontmatter per §4, never parsed from the directory name) and its title — **capped at four
   options, see *The cap* below**.
-- **None** → the command's own no-Epics policy — typically: split with `/dev-workflows:epics` first,
+- **None** → the command's own no-Epics policy — typically: split with `/pm-workflows:epics` first,
   or author one broad PRD-level artifact.
 
 ## The marker, and where it comes from

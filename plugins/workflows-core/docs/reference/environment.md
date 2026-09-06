@@ -2,7 +2,7 @@
 
 [Getting started](../getting-started.md) says what each variable is *for* and what to export before your first use of this plugin. This page says what each variable **is** — its default, what happens when it is unset, and what happens when it points somewhere unreadable. The plugin reads five user-settable variables. The rest of the names its own inventory check encounters while scanning for `$VAR` reads are never user-settable and stay out of scope here: `CLAUDE_PLUGIN_ROOT` and `ARGUMENTS` are runtime plumbing Claude Code itself sets for every plugin invocation, and `OSTYPE`, `BASH_SOURCE`, `BASH_REMATCH`, `ROOT` and `OWNER_REPO` are shell built-ins or internal template names, not plugin configuration.
 
-Every one of the five is read by a reference this plugin ships rather than by a command of its own, which is why the set is identical to the pipeline plugin's plus the price-table override: the corpus is where the reads live, and the corpus is here.
+Every one of the five is read by a reference this plugin ships rather than by a command of its own — the corpus is where the reads live, and the corpus is here. The set is the union of what any downstream plugin needs, plus the price-table override: `dev-workflows` and `docs-workflows` each read all four of the others (`$GIT_USER_INITIALS` included, since each branches a repository somewhere); `pm-workflows` reads three of the four — it never creates a branch in a code or docs repo, so `$GIT_USER_INITIALS` is not among the variables its own commands or references touch.
 
 ## `$SPECS_PATH`
 

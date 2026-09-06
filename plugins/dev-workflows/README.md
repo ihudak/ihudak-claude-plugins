@@ -1,6 +1,6 @@
 # dev-workflows
 
-A role-based pipeline of 17 slash commands. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification → design → readiness → implementation, with Opus-backed risk planning, code review, and design review gates along the way; around that spine sit CVE remediation and dependency upgrades. The table below is the complete list. The shared foundation every command here draws on — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, the emitters, and the family-meta utility commands — ships in the companion `workflows-core` plugin; the documentation tail the spine hands off to — `/docs-workflows:document`, `/docs-workflows:release-notes` and `/docs-workflows:docs-profile` — ships in the companion `docs-workflows` plugin.
+A role-based pipeline of 5 slash commands for the engineering side of the workflow plugin family. Its spine runs design → implementation, with readiness verification alongside it — `/design → /implement`, `/ready` — picking up from the merged `specification.md` that the companion `pm-workflows` plugin's PRD → architecture → Epic breakdown → specification ladder (and its six-command BRD-to-PRD route) hands off, with Opus-backed risk planning, code review, and design review gates along the way; around that spine sit CVE remediation and dependency upgrades. The table below is the complete list. The shared foundation every command here draws on — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, and the emitters — ships in the companion `workflows-core` plugin; the documentation tail `/implement` hands off to — `/docs-workflows:document` and `/docs-workflows:release-notes` — ships in the companion `docs-workflows` plugin.
 
 > Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites.
 
@@ -10,11 +10,7 @@ Every command owns one role's step in the pipeline and hands a concrete artifact
 
 | Role | Commands | What it does |
 |------|----------|--------------|
-| PM | [`/idea`](docs/commands/idea.md), [`/create-prd`](docs/commands/create-prd.md), [`/update-prd`](docs/commands/update-prd.md) | Refine a raw idea, then author or refresh the Product Requirements Document. |
-| PM *(BRD route — inventory)* | [`/brd-intake`](docs/commands/brd-intake.md), [`/brd-split`](docs/commands/brd-split.md) | Intake a customer BRD verbatim, extract its requirement inventory, and split it once every row has a recorded fate. |
-| PM *(BRD route — customer loop)* | [`/brd-interview`](docs/commands/brd-interview.md), [`/brd-package`](docs/commands/brd-package.md), [`/brd-reconcile`](docs/commands/brd-reconcile.md) | Decide the BRD's open questions, package what only the customer can settle, then reconcile the review that comes back and sweep what it overturned. |
-| PA *(optional)* | [`/create-ard`](docs/commands/create-ard.md), [`/brd-ground`](docs/commands/brd-ground.md) | Ground an architecture decision, or a BRD's requirement claims, in the mounted implementation code. |
-| PE | [`/epics`](docs/commands/epics.md), [`/specify`](docs/commands/specify.md) | Break a PRD into Epics, then author an org-standard specification through a grill. |
+| PM/PA/PE | Moved to the sibling `pm-workflows` plugin | Refine an idea into a PRD, ground an architecture decision or a BRD's requirements, break a PRD into Epics, author a specification, and run the six-command BRD-to-PRD route. |
 | Dev | [`/design`](docs/commands/design.md), [`/implement`](docs/commands/implement.md), [`/ready`](docs/commands/ready.md) | Design against the spec, implement it under review gates, and verify readiness against the artifacts. Documenting and release notes moved to `docs-workflows`. |
 | Anytime — maintenance | [`/vuln`](docs/commands/vuln.md), [`/upgrade`](docs/commands/upgrade.md) | Remediate a CVE, or upgrade a dependency. |
 | Anytime — guideline review | Moved to the sibling `guideline-reviewers` plugin | Review an OpenAPI spec or app UI against bundled guidelines. |
@@ -26,7 +22,7 @@ Every command owns one role's step in the pipeline and hands a concrete artifact
 | Page | What's there |
 |------|--------------|
 | [Documentation index](docs/README.md) | The full "I want to…" lookup table, plus the command and reference inventories. |
-| [Getting started](docs/getting-started.md) | Install, environment variables, status line, your first `/idea` run. |
+| [Getting started](docs/getting-started.md) | Install, environment variables, status line, your first `/design` run. |
 | [Workflow overview](docs/workflow.md) | The whole pipeline as one diagram. |
 | [Roles and phases](docs/roles-and-phases.md) | What each role owns and hands off. |
 | [Agents](docs/reference/agents.md) | The subagent inventory the commands dispatch internally. |

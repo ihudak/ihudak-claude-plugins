@@ -228,6 +228,51 @@ git commit   # subject: docs(handoff): §3.4's four BRD rows describe a slice ru
 
 ---
 
+### Task 4.5: Sweep the root-branches the refusals made unreachable
+
+Added mid-flight. Task 2 surfaced that refusing a root leaves every downstream "this BRD owns its source document" branch unreachable — 8 sites in `brd-ground.md` alone — and Task 3 creates the same condition in three more files. Swept once here rather than four times inside the tasks that caused it.
+
+**Files:**
+- Modify: `plugins/product-workflows/commands/brd-{ground,interview,package,reconcile}.md`
+- Modify: `plugins/product-workflows/references/coverage-ledger-format.md`
+
+**Interfaces:**
+- Consumes: the refusals from Tasks 2–3, and both implementers' reported lists of dead branches.
+- Produces: a tree where no command carries a branch only a refused root could reach.
+
+- [ ] **Step 1: Collect the reported sites**
+
+Read the dead-branch lists in `task-2-report.md` and `task-3-report.md`, then re-derive rather than trust them:
+
+```bash
+grep -n 'owns its source document\|a BRD with a source document of its own' plugins/product-workflows/commands/brd-{ground,interview,package,reconcile}.md
+```
+
+- [ ] **Step 2: Rule on each site, one of three dispositions**
+
+Each site is either **dead** (only a refused root reaches it — delete, or fold into the refusal), **still live** (a slice reaches it too — leave, and say why in the report), or **the refusal itself** (leave). Do not delete a branch without establishing which it is; a slice legitimately reads its parent's source document in places.
+
+- [ ] **Step 3: Give the prefix/legacy-fallback test one authority**
+
+The four refusals each state the directory-prefix test and the legacy positive-evidence rule inline. `coverage-ledger-format.md` §5.1 already owns that test for its existing consumers. Update §5.1's consumer set to include the four refusing commands, and repoint the four at it — replacing the inline restatement with a citation. Verify §5.1's stated consumer count against the tree before writing it; do not add a fifth consumer to a section that names four without correcting the number.
+
+- [ ] **Step 4: Verify**
+
+```bash
+python3 scripts/validate-catalog.py . && ./scripts/check-id-grammar.sh --root . && ./scripts/check-docs.sh --root .
+grep -c 'asserted .kind:' plugins/product-workflows/commands/brd-{ground,interview,package,reconcile}.md
+```
+
+- [ ] **Step 5: Concept sweep, then commit**
+
+```bash
+for c in 'owns its source document' 'positive evidence that it is a root'; do echo "== $c"; grep -rln "$c" plugins/ docs/ CLAUDE.md | grep -v CHANGELOG; done
+git add plugins/product-workflows/commands/ plugins/product-workflows/references/coverage-ledger-format.md
+git commit   # subject: fix(brd): retire the root-branches the refusals made unreachable
+```
+
+---
+
 ### Task 5: Retire the two-level model from every documentation surface
 
 **Files:**

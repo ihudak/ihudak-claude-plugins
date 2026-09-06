@@ -14,7 +14,7 @@ authors a high-quality **Product Requirements Document** that feeds the downstre
 (a PRD): what / why / for-whom, not how. Zero external calls — the PRD is authored as markdown in the specs
 repo, which is where every downstream command reads it from.
 
-Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs] [--docs <path>]` (default `--hybrid`, or `--full` on the BRD route — Phase 0 step 2; the one `--no-*` switch turns off the one grounding source — see Phase 1). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. (.
+Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs] [--docs <path>]` (default `--hybrid`, or `--full` on the BRD route — Phase 0 step 2; the one `--no-*` switch turns off the one grounding source — see Phase 1). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through.
 
 ---
 

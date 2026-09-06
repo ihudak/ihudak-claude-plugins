@@ -151,30 +151,37 @@ cannot review, and they will not tell you that — they will review it anyway, b
 7. **Gate on the interview's rounds — and read the precondition the only way that is not a
    deadlock.** Read every `interview/round-<N>.md`.
 
-   **First, that the round records are on main.** Execute `require-on-main`
+   **First, derive which rounds must exist, then gate each one.** The set is not "whatever is on
+   disk" — that is the thing being checked. `decisions.md` is already on main (step 6) and every
+   `[VD#n]` in it carries the `round` it was settled in, so the rounds this BRD *has* are the
+   distinct `round` values that register names. For each of them, execute `require-on-main`
    (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against
-   each `interview/round-<N>.md` before reading it, rather than inheriting step 6's single-commit
-   implication for them. Map the §3.7 return by `stopped` first: any stopping row → stop, naming the
-   branch/PR state; `pass` / `pass_amending` / `unmanaged` → proceed; `absent` (row F) → the stop
-   below. **A stop is only as reliable as the ref it reads**: this step refuses a round holding a
-   deferred question, and reading the worktree would let an operator satisfy it with a record nobody
-   else can see — the same defect `/brd-split`'s design gate had, one command over, and the reason
-   `workflows-core:phase-handoff` §4.0 now says a reader that stops on an artifact gates it.
+   `interview/round-<N>.md`. Map the §3.7 return by `stopped` first: any stopping row → stop, naming
+   that round and the branch/PR state; `pass` / `pass_amending` / `unmanaged` → proceed to read it;
+   `absent` (row F) → collect it, and stop **once** at the end of the loop naming **every** round
+   that came back absent:
+   `BRD_PACKAGE_ROUNDS_NOT_ON_MAIN: <BRD-KEY>'s decisions.md is on main and settles rounds <list>, but <these> have no interview/round-<N>.md on any ref — the records those decisions came from never merged. Land them on the specs repo's default branch and re-run; do not re-run /product-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
 
-   **Then, that there is a round to read.** *"Every question in every round"* is a universal, and a
-   universal over an empty set is true — so with no `interview/round-<N>.md` on disk at all this gate
-   passes without inspecting anything. Step 6 gates `decisions.md` on main and infers the round
-   records from *"every deliverable one `handoff-to-main` run stages lands in a single commit"*,
-   which is the same implication `/brd-ground --no-code` falsified for `/brd-split`'s sibling pair:
-   true of the run that produced them, and not a property of the tree. `/brd-reconcile`'s own step 6
-   carries an explicit paragraph saying that implication *"holds for the `handoff-to-main` path and
-   for no other"*, because files landed by hand can land partially. So test it here rather than
-   inherit it — zero round files, while `decisions.md` carries at least one `[VD#n]`, is a register
-   whose rounds never merged:
-   `BRD_PACKAGE_NO_ROUNDS: <BRD-KEY>'s decisions.md is on main and records <N> decisions, but no interview/round-<N>.md is on file — the rounds those decisions came from never merged. Land the interview/ round records on the specs repo's default branch and re-run; do not re-run /product-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
-   A BRD with **no** `[VD#n]` and no rounds has simply not been interviewed, which step 8's
-   `BRD_PACKAGE_NOTHING_TO_REVIEW` already reports in its own words — leave that case to it rather
-   than giving one state two stops.
+   **Deriving the set from `decisions.md` is what makes the partial case visible**, and the partial
+   case is the one this gate exists for: rounds 1 and 2 merged, round 3 left on a branch. A check
+   that enumerated the directory would find rounds 1 and 2, iterate them happily, and never learn
+   that a third was owed — reporting a clean set instead of a missing record. Naming every absent
+   round in one message rather than stopping at the first also matters: an operator who lands one
+   record and re-runs, only to be told about the next, learns the state one round at a time.
+
+   **This gates rather than inheriting step 6's implication**, per `workflows-core:phase-handoff`
+   §4.0: never infer an artifact's merged-ness from a sibling's gate. Step 6 gates `decisions.md`
+   and the round records rode with it in the run that wrote them, which is a fact about that run and
+   not about the tree — a hand-committed set lands partially, which is exactly the case above.
+
+   **A register with no `[VD#n]` names no rounds, and this gate is silent on it** — the derived set
+   is empty and there is nothing to require. That state reaches step 8's
+   `BRD_PACKAGE_NOTHING_TO_REVIEW`, which reads it as a **finished** BRD ("every question its rounds
+   asked was settled from verified findings"). That reading is right for a BRD that was interviewed
+   and settled, and wrong for one that was never interviewed at all — the two are indistinguishable
+   from the register alone, and the difference is whether `interview/` holds anything. Step 8 says
+   which of the two it is by testing that directory, so the message does not congratulate an
+   operator on finishing work nobody started.
 
    Then, over the rounds that exist: stop unless **every question in every round
    carries either a terminal disposition or the holding state *held for the customer*** — the
@@ -197,6 +204,14 @@ cannot review, and they will not tell you that — they will review it anyway, b
    step.** A package with **no** `[C]` question, **no** open `[AS#n]`, and **no** `[VD#n]` in the
    register has nothing for a customer to confirm, correct or attack. Stop rather than sending it:
    `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — every question its rounds asked was settled from verified findings, so there is nothing for a customer to confirm, correct or attack. This is a finished state, not a missing step: the delivery team owes the customer no decision here, and a package built from it would ask for a review of nothing. Re-running /product-workflows:brd-interview <BRD-KEY> is NOT the fix — it opens a new round only when the findings or the decisions have moved, so on an unchanged BRD it reports that nothing is askable and asks nothing. What makes a round askable again is new evidence or a moved position: '/product-workflows:brd-ground <BRD-KEY> --rebaseline' re-derives the findings against current commits, and a decision reopened or superseded in decisions.md has the same effect. Absent either, this BRD is decided and needs no customer review.`
+   **Before printing that, test `interview/` and branch the message.** A BRD holding no `[VD#n]`
+   *and* no `interview/` directory was never interviewed, and telling that operator their questions
+   "were settled from verified findings" congratulates them on work nobody did and names no next
+   step. Where `interview/` is absent or empty, say so and name the command that starts the
+   interview instead:
+   `BRD_PACKAGE_NOT_INTERVIEWED: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n], and no interview/ round record — this BRD has not been interviewed, so there is nothing yet to put in front of a customer. Run '/product-workflows:brd-interview <BRD-KEY>' first.`
+   The finished-state message stays exactly as it is for the case it was written for: an
+   `interview/` that holds rounds whose every question a verified finding settled.
 
    **Why the message names grounding rather than another interview round.** The register is reached
    through `/brd-interview`, so naming it is the reflex — but its *Resolve the round* phase opens a

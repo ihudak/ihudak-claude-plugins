@@ -154,27 +154,27 @@ own `key`. Carry forward:
 
 - `requirements[]` (+ `requirements_source`) — the coverage ground truth for Phase 3(a).
 
-  **An empty `requirements[]` stops this run, and that is not a breach of "never stops".** Phase 3(a)
-  greps one ID token per requirement and rolls the hits into a coverage figure, so with no
-  requirements the roll-up is 0 of 0 — **100%** — and the verdict it feeds can come back
-  **SUPPORTED**, which is the verdict `/implement` is offered on. A run that verified nothing would
-  be reporting the strongest assurance this command can give.
+  **An empty `requirements[]` makes coverage unassessable, and caps the verdict — it never stops the
+  run.** Phase 3(a) greps one ID token per requirement and rolls the hits into a coverage figure, so
+  with no requirements the roll-up is 0 of 0 — **100%** — and the verdict it feeds can come back
+  `SUPPORTED`, which is the verdict `/implement` is offered on. A run that verified nothing would be
+  reporting the strongest assurance this command can give.
 
-  The command's "never stops" rule is about **the artifacts under verification**: an unmerged
-  `specification.md` is a finding capping the verdict at `PARTIAL`, and a missing one is a recorded
-  coverage gap, because in both cases there is still a claim to judge. An empty requirement
-  inventory is a different thing — it is the absence of the subject the verdict is *about*, so there
-  is no finding to record and nothing to cap. `/epics` refuses the identical emptiness read out of
-  the identical file, naming the identical reason (*"which would let every Epic pass coverage
-  vacuously"*), and two commands reading one file should not disagree about whether it says anything.
+  So: where `requirements[]` is empty, record `coverage: not assessable` rather than a percentage,
+  carry a readiness finding saying so, and **cap the verdict at `NOT-SUPPORTED`** — there is no
+  evidence of readiness, which is exactly what that verdict means. Say which PRD and offer the
+  repair (`/product-workflows:update-prd <KEY>` to state the requirements), so the report names an
+  action as every other finding here does.
 
-  Surface the `key dir not found` rule in `workflows-core:escalation-rules`:
-
-  ```
-  choices: ["Re-enter key", "Cancel"]
-  ```
-
-  `READY_NO_REQUIREMENTS: <KEY>'s prd.md states no requirement IDs, so there is no coverage ground truth to verify against and no readiness verdict this run could honestly render — a 0-of-0 roll-up reads as 100%. Add the requirements to the PRD (/product-workflows:update-prd <KEY>) and re-run, or re-enter the key if this was not the folder you meant.`
+  **Do not refuse the run, and the reason is the rubric.** `dev-workflows:workflow-states` has rungs
+  — `Open` (artifact: *PRD stub*) and `Problem stated` (artifact: *PRD with Problem/Goal*) — at which
+  a PRD legitimately states no requirements yet, and reporting accurately on an early-stage PRD is
+  this command's job rather than an error case. `/epics` **does** refuse the identical emptiness read
+  out of the identical file, and copying that refusal here would be wrong: `/epics` is an authoring
+  command that would otherwise write Epics against a ground truth that cannot contradict them, while
+  this one is read-only about status and its whole contract is to describe what it finds. Two
+  commands may read one file and disagree about what to *do* about it, as long as neither disagrees
+  about what it says.
 - The per-Epic artifact inventory: for each `EPIC-` folder, whether `specification.md`, `design.md`
   and `implementation.md` exist. **This is what Phase 3(0) derives the phase from**, and it is the
   only status input this command has.

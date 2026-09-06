@@ -29,7 +29,7 @@ The caller passes a structured brief:
 - **Code repos** — the `code_repos: [{slug, path}]` array (the clones resolved for `diff-summarizer`), for the Source-code accuracy dimension. May be empty.
 - **`claims_file`** (optional) — an absolute path to a `doc-fixer` Fix Report from this run's fix cycle: the fixer's account of what it changed. **DO NOT read this file when you read the brief.** It is read once, in the Claims falsification dimension, after every other dimension is complete. Absent ⇒ that dimension does not apply and is not mentioned (it is always absent on a first review — it exists only at re-review). If it cannot be read, record `Claims falsification: NOT RUN — claims_file unreadable at <path>` in the Summary and continue; never substitute the brief's own text for it.
 
-Refuse to review without the written file paths, the `doc-planner` checklist, and the diff summaries. These three are the review ground truth.
+Refuse to review without the written file paths, the `doc-planner` checklist, and the diff summaries — and refuse a checklist that is present and empty, which satisfies every coverage dimension vacuously rather than reporting that nothing was checked. These three are the review ground truth.
 
 ## Review method
 

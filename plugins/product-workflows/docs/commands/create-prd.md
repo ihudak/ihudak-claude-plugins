@@ -9,7 +9,7 @@ Turns a refined `idea.md` — or a reconciled BRD's product-altitude seed, on th
 ## Synopsis
 
 ```
-/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs]
+/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs] [--docs <path>]
 ```
 
 - **`<ADDRESS>`** (mandatory) — a key you choose, or an `@<path>` naming a folder in the specs tree. A key is validated against **the one grammar**, `^[A-Z][A-Z0-9_]*(-\d+)+$` ([`workflows-core:addressing`](../reference/references.md) §1), which fixes no depth: `ACME-77` and the slice key `EPIC-008-01` are equally valid. Shape only — nothing is looked up anywhere, because there is no tracker to look it up in.
@@ -19,6 +19,7 @@ Turns a refined `idea.md` — or a reconciled BRD's product-altitude seed, on th
 - **The BRD route** — detected, never declared: where the resolved folder carries a `brd-link.md`, the run seeds the PRD from that BRD's `prd-seed.md` and `decisions.md`. There is no flag; a flag that could disagree with the folder it names is one more disagreement to have.
 - **`[--lean|--hybrid|--full]`** — the profile controlling which adapt-in clusters are available; default `--hybrid`, or `--full` on the BRD route. `--full` is required for `[FR#N]` Functional Requirements; `--hybrid`/`--full` for `[UC#N]` Use Cases. An explicit flag always wins over the BRD route default — and when that flag is `--lean` while the BRD's register still holds open decisions or assumptions, the run offers to switch rather than dropping them, because `--lean` is spine-only and has no `## Assumptions & open questions` for them to land in.
 - **`[--no-docs]`** — turns off documentation grounding (Phase 2.5).
+- **`[--docs <path>]`** — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`. The flag and its value are stripped together before the address is parsed.
 
 ## How it runs
 

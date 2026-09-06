@@ -89,7 +89,9 @@ Per **S18** these gate the release exactly as the BRD-route defects did. None is
 
 ## R-1 — `/ready` has no non-emptiness guard on `requirements[]`, where `/epics` has exactly that guard
 
-**CLOSED** — `/ready` now stops with `READY_NO_REQUIREMENTS`, and `readiness-reviewer` refuses a **non-empty** inventory rather than a present one, so the refusal holds independently of the caller. The stop is not a breach of "never stops": that rule governs the artifacts under verification, where there is still a claim to judge, and an empty requirement inventory is the absence of the subject the verdict is about.
+**CLOSED** — an empty `requirements[]` now records `coverage: not assessable` instead of a 0-of-0 roll-up that reads as 100%, carries a finding, and **caps the verdict at `NOT-SUPPORTED`**; `readiness-reviewer` applies the same cap independently, so a dispatch that skipped the caller cannot produce a `SUPPORTED` either.
+
+**The first attempt at this was wrong and is worth recording.** It made the emptiness a hard stop, copied from `/epics`, which refuses it. A review caught that `dev-workflows:workflow-states` has rungs — `Open` (*PRD stub*), `Problem stated` (*PRD with Problem/Goal*) — where a PRD legitimately states no requirements, so the stop would have refused the run on exactly the early-stage PRDs `/ready` exists to report on. The remedy was imported across a boundary that was never checked: refusing is right for an **authoring** command whose output would otherwise contradict nothing, and wrong for a **reporting** one whose contract is to describe what it finds.
 
 `/epics` refuses an empty ground truth outright, naming the reason: proceeding "would let every Epic pass coverage vacuously". `/ready` builds the same `requirements[]` ground truth from the same PRD and has no such test; `readiness-reviewer` refuses only on the field being *absent*, not empty. A PRD stating no requirement IDs yields a 0/0 = 100% coverage roll-up and can return **SUPPORTED** — the verdict `/implement` is offered on. Same class as BRD-1, same shape as the `/brd-split` and `/brd-interview` gates fixed this week, in two commands that read one file and disagree.
 
@@ -101,7 +103,9 @@ Per **S18** these gate the release exactly as the BRD-route defects did. None is
 
 ## R-3 — `/brd-package` step 7 is vacuous on zero round files
 
-**CLOSED** — `BRD_PACKAGE_NO_ROUNDS`, plus `require-on-main` on each round record. The second half was the larger finding: step 7 stopped on a state it read from the worktree, so the refusal could be satisfied by a record nobody else could see — the same defect as `/brd-split`'s design gate, in the same week, reached by the same inherited implication.
+**CLOSED** — `BRD_PACKAGE_ROUNDS_NOT_ON_MAIN`, with the round set **derived from `decisions.md`'s `round` fields** rather than from the `interview/` listing, and `require-on-main` per round. Deriving the set is what makes a partial merge visible: enumerating the directory finds the rounds that landed and never learns a third was owed, which is the case the gate exists for. A first attempt tested only *zero* round files and enumerated the directory — it would have passed the partial merge it was written to catch.
+
+Step 8's `BRD_PACKAGE_NOTHING_TO_REVIEW` gained a sibling too: it read a BRD with no `[VD#n]` as **finished** ("every question its rounds asked was settled from verified findings"), which is right for a BRD that was interviewed and wrong for one that never was. It now tests `interview/` and names `/brd-interview` where the directory is empty.
 
 *"Stop unless every question in every round carries either a terminal disposition or the holding state"* is vacuously true with no round files. Largely covered by step 8's `BRD_PACKAGE_NOTHING_TO_REVIEW`, which does test presence — the live hole is a `decisions.md` carrying `[VD#n]` whose round records never merged. Note this rests on the same "one commit stages the siblings" assumption `--no-code` falsified for `/brd-split`; `/brd-reconcile` carries an explicit paragraph qualifying it and `/brd-package` does not.
 

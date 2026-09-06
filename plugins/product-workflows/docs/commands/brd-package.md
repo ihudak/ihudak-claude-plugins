@@ -89,6 +89,15 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   (`BRD_PACKAGE_REGISTER_NOT_HANDED_OFF`, land the files that are already on disk). The second must
   **not** send the operator back to `/brd-interview`: on an unchanged BRD that command opens no new
   round, stages nothing, and opens no pull request.
+- **Every round the register names, on the default branch.** The rounds this BRD has are the distinct
+  `round` values `decisions.md` records, and each one's **interview/round-`<N>`.md** is gated with
+  `require-on-main`; any on no ref stop the run together with `BRD_PACKAGE_ROUNDS_NOT_ON_MAIN`. The
+  set is derived from the register rather than from the **interview/** listing, which is what makes a
+  partial merge visible — enumerating the directory finds the rounds that landed and never learns a
+  third was owed.
+- **An interview that happened at all.** A BRD with no `[VD#n]` and no **interview/** directory stops
+  with `BRD_PACKAGE_NOT_INTERVIEWED`, naming `/brd-interview`, rather than being reported as a
+  finished state it never reached.
 - **Every interview question settled, or held for the customer.** Any question still *deferred*,
   *needs grounding* or *untagged* stops with `BRD_PACKAGE_ROUND_UNSETTLED` — see
   [Gates](#gates) for why *held for the customer* is the one holding state this command admits.

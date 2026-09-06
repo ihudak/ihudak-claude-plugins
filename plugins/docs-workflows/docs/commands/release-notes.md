@@ -13,7 +13,7 @@ Drafts a customer-facing release-notes summary for a resolved Product Requiremen
 ## Synopsis
 
 ```
-/release-notes <ADDRESS> [--version <v>] [--no-docs]
+/release-notes <ADDRESS> [--version <v>] [--no-docs] [--docs <path>]
 ```
 
 `/release-notes` is **address-required** — there is no free-text or `@file` input; a prompt with no positional address stops with `RELEASE_NOTES_NEEDS_KEY`. The address is a `<KEY>`, or an `@<path>` naming a folder in the specs tree; `workflows-core:addressing` §3 resolves either.

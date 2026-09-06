@@ -48,7 +48,7 @@ package:
   prior_reviews:    <paths to earlier self-review-<date>.md, when this is a re-package>
 ```
 
-**Refuse to run without `brd_dir` and at least `package.decisions` and `package.grounding`.**
+**Refuse to run without `brd_dir` and at least `package.decisions` and `package.grounding` — and refuse either of those when it is present and empty.** Present-and-empty passes a presence test and then satisfies every dimension vacuously: a package with no decisions has no decision this review can find fault with, which reads as a clean review rather than as nothing having been checked.
 Return `status: INPUT_MISSING` naming exactly what was absent. A review of a package you were handed
 half of is a review of nothing: the whole method below is cross-reading a decision against the
 finding it claims, and neither half attacks anything on its own.

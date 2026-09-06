@@ -103,7 +103,7 @@ On `status: EMPTY`, proceed as today; the digest simply adds nothing.
 
 ## Consumption
 
-**`grill-rank`** (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`):
+**`grill-rank`** (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/brd-intake`):
 Feed `docs_references` to the grill as positive grounding (facts to build on,
 analogous precedents to model after, building-block altitude/permissions).
 **Rank** each `docs_challenges` entry into the command's existing

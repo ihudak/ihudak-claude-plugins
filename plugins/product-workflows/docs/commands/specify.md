@@ -9,7 +9,7 @@ Reads the resolved Epic or PRD folder, lightly grounds in code, and authors an o
 ## Synopsis
 
 ```
-/specify <ADDRESS> [--no-docs]
+/specify <ADDRESS> [--no-docs] [--docs <path>]
 ```
 
 **The BRD route** — where the resolved folder carries a `brd-link.md`, the run authors the specification for a reconciled BRD slice. A `BRD-` container is refused (`SPECIFY_BRD_NOT_SLICED`). Detected, not a path**: the positional token is then a **BRD key**, validated against `^[A-Z][A-Z0-9_]*(-\d+)+$` (so a three-segment slice key such as `EPIC-008-01` is as valid as `EPIC-008`) and resolved to a folder at either level under `specifications/`, so a path is only for a BRD folder outside the normal layout. It takes **one address**, like every other route: a second positional token stops the run (`SPECIFY_ONE_ADDRESS`), because a key encodes its own ancestry and no command takes a chain (D4). Everything in the paragraphs below about pickers, Epic counts and the resolved folder describes the keyed route only — BRD-route runs none of it.
@@ -54,7 +54,7 @@ Four subagents are dispatched: `workflows-core:docs-grounder` (Phase 4, read-onl
 - **`$SPECS_PATH`** (required) — `/specify` writes under `$SPECS_PATH/specifications/`, the specs repo; unset stops the run naming `SPECS_PATH`, with no fallback.
 - **An optional ARD** for this item (Phase 2.5), resolved via `workflows-core:ard-resolution` with the PRD and the resolved focus Epic. `status: none` skips silently; `status: unmerged` stops, naming the branch and any pull request; `status: found` keeps the spec's user stories and scope consistent with its `[AD#N]` invariants during the grill, passed to `spec-reviewer` as `applicable_ard`.
 - **Mounted repos under `$REPOS_PATH`** — candidates are auto-derived from the PRD's capability themes and linked PR URLs. An *unresolved* repo slug (zero or ambiguous matches) hard-escalates before Phase 4 runs at all. A resolved-but-unmounted repo, by contrast, only **soft-gates**: it becomes an open question in `_session.md` and the run proceeds with the remaining mounted repos — the specification just can't cite the ungrounded one until it's mounted and the run is re-invoked.
-- **`$DOCS_PATH`** (optional, default `/workspace/docs`) — consumed with grill-rank ranking in Phase 4. Missing, unreadable, or empty is a silent, non-blocking skip. Turned off with `--no-docs`.
+- **`$DOCS_PATH`** (optional, default `/workspace/docs`) — consumed with grill-rank ranking in Phase 4. Turned off for a run with `--no-docs`, or pointed at another root with `--docs <path>`. Missing, unreadable, or empty is a silent, non-blocking skip. Turned off with `--no-docs`.
 - **A prior `_session.md`** (optional) — if one exists in the resolved feature folder, Phase 1 offers resume-vs-fresh; on resume, Phase 5 begins at the first unsettled stage instead of the header.
 
 ### The BRD route

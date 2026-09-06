@@ -9,7 +9,7 @@ Reads a Product Requirements Document from the resolved folder in the specs tree
 ## Synopsis
 
 ```
-/epics <ADDRESS> [--no-docs]
+/epics <ADDRESS> [--no-docs] [--docs <path>]
 ```
 
 The positional input is a **single address** — a `<KEY>`, or an `@<path>` naming a folder in the specs tree — resolved by `workflows-core:addressing` §3.

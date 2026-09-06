@@ -77,8 +77,15 @@ behaviour, not the behaviour.
    `BRD_GROUND_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent. Do not run /brd-intake on a slice; it has no source document of its own.`
 6. **Gate this BRD's own inventory and ledger on main.** Execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against the resolved BRD folder's `coverage-ledger.md`. Whichever
    command wrote that ledger wrote the inventory beside it in the same handoff commit
-   (`coverage-ledger-format.md` §3's creator table), so its presence on `origin/<default>` implies
-   `brd/brd-inventory.md` landed with it: for a BRD with a source document of its own, that was
+   (`coverage-ledger-format.md` §3's creator table). **That is a fact about the run that wrote them
+   and not about the tree, so execute `require-on-main` against `brd/brd-inventory.md` as well
+   rather than inferring it** (`workflows-core:phase-handoff` §4.0 — never infer an artifact's
+   merged-ness from a sibling's gate). Step 8 stops on that inventory being empty and builds this
+   run's whole claim list from it, so the stop and the claim list both depend on reading the one that
+   is actually shared; a hand-committed set can land partially, which `/brd-reconcile`'s §3.4 row
+   states outright. Map its return exactly as the ledger's below, and where it is `absent` use the
+   same two-level `BRD_GROUND_EMPTY_INVENTORY` branch step 8 uses, since the remedy is identical and
+   differs only by level. What the single-commit fact still buys is the *rest* of the set: for a BRD with a source document of its own, that was
    `/brd-intake`, and `brd/brd-defect-log.md` landed too; for a slice, it was `/brd-split` running
    on the parent, and there is no defect log to land — a slice reads the parent's
    (`brd-format.md` §2.1). Map the §3.7 return by `stopped` first: any stopping row → stop, naming

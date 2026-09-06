@@ -16,7 +16,7 @@ is the second command of that route, after [`/brd-intake`](brd-intake.md) and be
 ## Synopsis
 
 ```
-/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--rebaseline]
+/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--docs <path>] [--rebaseline]
 ```
 
 - **`<BRD-KEY>`** (mandatory) — the BRD (or slice) to ground. Resolved via `resolve-address`, so a
@@ -54,6 +54,7 @@ is the second command of that route, after [`/brd-intake`](brd-intake.md) and be
   frame shows (`workflows-core:grounding-format` §6.1). No **design/**
   folder means the pass is skipped and the run says so.
 - **`--no-docs`** (optional) — turn documentation grounding off for this run.
+- **`--docs <path>`** (optional) — point documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`. The flag and its value are stripped together before the address is parsed.
 - **`--rebaseline`** (optional) — re-run grounding against code that has moved since the last
   pass. Supersedes the affected findings by id rather than renumbering them, so a citation into an
   already-sent package still resolves.

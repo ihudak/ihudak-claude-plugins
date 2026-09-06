@@ -10,7 +10,9 @@ Versions follow semver at the plugin level.
 
 `/ready` builds its `requirements[]` coverage ground truth from the PRD and had no non-emptiness test, so a PRD stating no requirement IDs produced a 0-of-0 roll-up — **100%** — and a verdict that could come back `SUPPORTED`, which is the verdict `/implement` is offered on. `/epics` refuses the identical emptiness read out of the identical file, naming the identical reason; two commands reading one file should not disagree about whether it says anything.
 
-It now stops with `READY_NO_REQUIREMENTS`, and `readiness-reviewer` refuses a **non-empty** inventory rather than merely a present one, so the refusal holds even on a dispatch that skipped the caller's stop. This is not a breach of the command's "never stops" rule: that rule governs the artifacts under verification, where an unmerged or missing one still leaves a claim to judge. An empty requirement inventory is the absence of the subject the verdict is about.
+An empty inventory now records `coverage: not assessable` rather than a percentage, carries a readiness finding naming the PRD and the repair, and **caps the verdict at `NOT-SUPPORTED`** — no evidence of readiness was available to check. `readiness-reviewer` applies the same cap independently, so a dispatch that skipped the caller's path cannot return `SUPPORTED` either.
+
+It is a cap and not a stop, and the distinction is the rubric's: `workflow-states` has rungs — `Open` (*PRD stub*), `Problem stated` (*PRD with Problem/Goal*) — where a PRD legitimately states no requirements, and reporting accurately on an early-stage PRD is this command's job rather than an error case. `/epics` refuses the identical emptiness from the identical file because it is an **authoring** command; `/ready` is read-only about status. Two commands may read one file and disagree about what to do about it.
 
 ### Fixed — the 4.0.0 entry's own hook count
 

@@ -17,7 +17,7 @@ pm except `/brd-ground`, which runs as
 ## Synopsis
 
 ```
-/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]
+/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [--docs <path>]
 ```
 
 - **`<BRD-KEY>`** (mandatory) — a short stable identifier for the BRD. Format-validated only
@@ -29,6 +29,7 @@ pm except `/brd-ground`, which runs as
   at `<dir>` into seed files. The source is still required and still gated (Phase 0) — this never
   replaces the extraction, it only adds Phase 6 on top of it.
 - **`[--no-docs]`** (optional) — turn documentation grounding off for this run.
+- **`[--docs <path>]`** — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`. The flag and its value are stripped together before the address is parsed.
 
 ## How it runs
 

@@ -110,7 +110,17 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
      re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Name those decisions —
      saying only that the dispositions are replaced is not the disclosure.
 
-1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`,
+1. **Resolve the address.**
+
+   **Strip recognised flags before anything counts positional tokens.** `--no-docs` (boolean) and
+   `--docs <path>` (which consumes the token after it) are removed from `$ARGUMENTS` first, together
+   with `--docs`'s value; what remains is the positional address, and the one-address refusal below
+   applies to that remainder alone. **Without this rung the flags this command documents do not
+   work** — a flag is a token, so `--no-docs` reaches the refusal as a second positional and stops
+   the run, and `--docs <path>` supplies two. That was the live state: both were named in the Usage
+   line and neither was ever parsed.
+
+   Parse the **single positional address** from what remains — a `<KEY>`,
    or an `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Carry forward:
    - `<PRD>` — the resolved **PRD folder's** `key`: the folder itself when the address named a
      `PRD-` folder, its parent when it named an `EPIC-` folder.

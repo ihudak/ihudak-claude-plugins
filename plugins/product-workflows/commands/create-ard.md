@@ -32,6 +32,15 @@ this stage). Zero external calls.
 ## Phase 0 — Resolve input
 1. **Resolve the address.**
 
+   **Strip recognised flags before anything counts positional tokens.** `--no-docs` (boolean) and
+   `--docs <path>` (which consumes the token after it) are removed from `$ARGUMENTS` first, together
+   with `--docs`'s value; what remains is the positional address, and the one-address refusal below
+   applies to that remainder alone. **Without this rung the flags this command documents do not
+   work** — a flag is a token, so `--no-docs` reaches the refusal as a second positional and stops
+   the run, and `--docs <path>` supplies two. That was the live state: both flags were named in the
+   Usage line and neither was ever parsed, which is the shape `workflows-core:docs-grounding` §1
+   declares for all nine of its consumers and only `/idea` had implemented.
+
    **One resolution, both routes.** Parse the **single positional address** from `$ARGUMENTS` — a
    `<KEY>`, or an `@<path>` naming a folder — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). A key that fails §1's grammar stops with
    `CREATE_ARD_NEEDS_KEY: /create-ard needs an address (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. EPIC-008 or the slice EPIC-008-01) — re-run '/product-workflows:create-ard <ADDRESS>'.`

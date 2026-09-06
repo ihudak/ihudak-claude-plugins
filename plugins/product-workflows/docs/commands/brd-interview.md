@@ -107,7 +107,10 @@ command reads was already independently re-derived by `/brd-ground`'s own verifi
   slice).
 - **Every finding verified.** A finding with no recorded verifier outcome is not evidence, and a
   decision's `evidence` list is a list of findings — so any such finding on file stops the run with
-  `BRD_INTERVIEW_UNVERIFIED`.
+  `BRD_INTERVIEW_UNVERIFIED`. A `code-grounding.md` that is on the default branch and records **no**
+  `[CG#n]` at all stops first, with `BRD_INTERVIEW_NO_FINDINGS`: the outcome count is satisfied by an
+  empty finding set, and every `[G]` this command answers is answered from the findings and from
+  nothing else.
 - **A fully-allocated coverage ledger.** Any row still `unallocated` stops the run with
   `BRD_INTERVIEW_UNALLOCATED`, naming `/brd-split` as the fix.
 - **At least one row this BRD is answerable for.** A BRD whose every ledger row reads `covered-by`

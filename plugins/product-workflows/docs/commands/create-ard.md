@@ -9,7 +9,7 @@ Grounds on the mounted implementation repos it discovers and authors an Architec
 ## Synopsis
 
 ```
-/create-ard <ADDRESS> [--no-docs]
+/create-ard <ADDRESS> [--no-docs] [--docs <path>]
 ```
 
 `/create-ard <PRD-KEY>` authors a **PRD-level** ARD. `/create-ard <EPIC-KEY>` authors an **Epic-level** ARD, which inherits the PRD-level ARD read-only and layers its own `[AD#N]` decisions on top (an Epic/area decision wins on conflict — a real contradiction is caught by `ard-reviewer` at authoring time, not left for a downstream consumer to resolve). A bare `<Epic-KEY>` also resolves, auto-finding its parent PRD. `--no-docs` turns off the optional Phase 3 documentation-grounding pass.
@@ -40,7 +40,7 @@ Four subagents are dispatched: `workflows-core:docs-grounder` (Phase 3, read-onl
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH` and offers to enter a path or cancel.
 - **A prior PRD-level ARD**, when the run is Epic-level — resolved via `workflows-core:ard-resolution`. `status: found` inherits its `[AD#N]` invariants read-only; `status: unmerged` stops, naming the branch and any pull request; `status: none` (the common case for a first ARD) proceeds unchanged.
 - **Mounted repos under `$REPOS_PATH`** — `/create-ard`'s repo discovery (Phase 3) is **mandatory**, not opt-in: it always lists top-level directories under `$REPOS_PATH`, proposes a theme-to-repo mapping from the PRD/Epic's capability themes, and asks the architect to confirm, correct, or add to it. [`/idea`](idea.md)'s `--ground-code` runs the same cheap-discovery-then-propose-then-gate mechanism, but only behind that opt-in flag. A theme that maps to no obvious repo is asked about outright. A repo the architect can't mount is neither invented nor silently dropped — it is escalated (`choices: ["Mount now & re-scan", "Ground only the confirmed-mounted set (record the rest as open questions)", "Specify an absolute path for this repo", "Cancel"]`) and, if descoped, recorded as an open question in the ARD rather than disappearing.
-- **`$DOCS_PATH`** (optional, default `/workspace/docs`) — documentation grounding, consumed with grill-rank ranking. Missing, unreadable, or carrying no markdown file is a silent, non-blocking skip. Turned off explicitly with `--no-docs`.
+- **`$DOCS_PATH`** (optional, default `/workspace/docs`) — documentation grounding, consumed with grill-rank ranking. Turned off for a run with `--no-docs`, or pointed at another root with `--docs <path>`. Missing, unreadable, or carrying no markdown file is a silent, non-blocking skip. Turned off explicitly with `--no-docs`.
 
 `/create-ard` never reads a pull request — there are no PRs yet at architecture time. It authors architecture only; it never writes code.
 

@@ -588,8 +588,13 @@ written `unresolved`, it is never offered by any picker, and it never blocks §4
 `unresolved` is a prompt to look at the named BRD, not a defect in this BRD's allocation.
 
 **The line mixes two provenances, and a reader should know which term came from where.** The ledger
-being reported on is gated wherever a gate exists — `/brd-ground` and `/brd-split` each run
-`require-on-main` over it in their Phase 0 step 6 — while the ledgers resolved into it are
+being reported on is gated wherever a gate exists — but only `/brd-ground` gates **this file**, in
+its Phase 0 step 6. `/brd-split` and `/brd-interview` each gate `grounding/code-grounding.md` there
+and then read the ledger from the working tree, `/brd-interview` stopping on it twice
+(`BRD_INTERVIEW_UNALLOCATED`, `BRD_INTERVIEW_ALL_DELEGATED`). That is sanctioned — a command may
+read the worktree and refuse what it finds; what it may not do is *claim* the file is merged because
+a sibling's gate passed (`workflows-core:phase-handoff` §4.0) — but it does mean this line's
+guarantee is `/brd-ground`'s alone. Meanwhile the ledgers resolved into it are
 read from the working tree and gated by nothing. So a `covered` this line reports for a delegated row can rest
 on another BRD's decision that has not merged and could still change, and an `unresolved` can mean nothing
 worse than a pull request still open. That asymmetry is the price of reporting what the run can

@@ -110,4 +110,19 @@ Under this design a slice is carved before it is ground, so "this slice is large
 
 What is available without new mechanism is **deferral, not division**: the slice's own walk sends the rows it will not build now to `deferred-to: <this slice>`, they stay its live obligation, and the PRD authored from the slice covers the `covered-here` rows alone. That achieves "build less now" and does *not* achieve "two independently deliverable slices".
 
-Whether that is enough is the open question. Deferral keeps one PRD and one customer conversation for work that may want two. Supporting division would mean either lifting the nesting cap or sanctioning one narrow return-to-`unallocated` path — both of which touch invariants stated deliberately, so neither should be chosen without its own brainstorm.
+Whether that is enough is the open question. Deferral keeps one PRD and one customer conversation for work that may want two.
+
+**The wanted shape is a sibling slice, not a sub-slice** — carve a second slice under the same parent and move the deferred part to it. That is not supported today: the orphan-row redirection that looks like it would serve happens entirely *within* a single `/brd-split` run on the parent, at provisional-claim-withdrawal time, and nothing moves a row after both walks have committed.
+
+**Recommended change, and it is narrower than it first appears.** Let the parent's walk **re-point** a `covered-by: <SLICE-A>` row to `covered-by: <SLICE-B>` where, and only where, SLICE-A's own ledger records that row `deferred-to: <SLICE-A>`. Then Phase 3 seeds the row `unallocated` on the new sibling as it does for any claim, the sibling's walk takes it `covered-here`, and the sibling is ground in its own right. SLICE-A's row moves from `deferred-to` to `covered-by: <SLICE-B>`.
+
+Four properties make this the right shape rather than a loophole:
+
+- **No row returns to `unallocated`.** The invariant that matters — never reopening a satisfied gate — is untouched. What relaxes is the weaker "never re-allocates a row that already carries a fate", and only for a row whose current owner has positively recorded that it is not building it.
+- **The evidence is already on file.** `deferred-to` is the slice's own recorded decision, so the parent re-points against a written statement rather than overriding a live commitment.
+- **It reuses the walk and the existing disposition** rather than adding either.
+- **It gives `covered-by: <SIBLING-KEY>` its real producer.** The format already defines that disposition for a slice, and today its only producer is the orphan row — a record of a claim withdrawn. This is the case the vocabulary was shaped for.
+
+The one-level nesting cap is untouched: this creates a sibling, never a child, so nothing about the cap needs revisiting. That is worth stating because "split a slice" and "carve a sibling for part of a slice" sound alike and only the second is reachable without touching a deliberate invariant.
+
+**Still an open decision, not part of this design.** It changes an allocation rule three commands read, so it wants its own brainstorm and its own spec — but it is the cheap path, and §8 exists so that the next person does not reach for the nesting cap first.

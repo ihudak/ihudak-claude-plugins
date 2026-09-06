@@ -311,7 +311,7 @@ Key invariants for `$DOCS_PATH` docs grounding:
 
 - Read-only; never writes into `$DOCS_PATH`; advisory only — never a gate or reviewer BLOCKER
 - Default ON when `$DOCS_PATH` (`:-/workspace/docs`) is a readable dir with ≥1 markdown file; `--no-docs` off, `--docs <path>` override (declared by the shared reference for all nine consumers and now parsed by all nine; `/idea` was the only implementation until the other eight were given a flag-stripping rung, four of which had none at all and would have read the flag as a positional token); `/brd-ground` additionally forces it off under `--no-code`, as a caller-side override rather than a rung in the shared procedure; every miss is a silent non-blocking skip
-- Grill commands rank challenges into the Impact × Uncertainty gap list (never append — preserves `/idea`'s ≤10 bound); writer commands attach the digest
+- Grill commands rank challenges into the Impact × Uncertainty gap list (never append — preserves `/idea`'s ≤10 bound); `/brd-intake` runs a walk rather than a grill, so ranking reorders it and a challenge may be raised as a further defect candidate behind the same human confirmation; writer commands attach the digest
 - `docs-grounder` retrieves via `qmd` CLI (no skill installed) but only ever **probes** the index — it never builds or refreshes one; index building and refreshing happen only in `resolve-docs-grounding` step 3.5, gated on user consent — with keyword + `git log --grep` fallback; the one write root `SPECS_PATH` stays strict (no default)
 
 Key invariants for specs-repo git (`workflows-core:specs-repo-git`):

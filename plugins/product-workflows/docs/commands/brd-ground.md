@@ -169,7 +169,7 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
 
 ## Gates
 
-- **Phase 0 — `require-on-main` on this BRD's inventory and ledger.** No grounding starts until
+- **Phase 0 — `require-on-main` on this BRD's inventory and on its ledger, separately.** Each is gated in its own right rather than one being inferred from the other's commit; the inventory's own stops name whether it is missing from the folder or merely unmerged, because re-running the producer on the second would rewrite it. No grounding starts until
   whichever command wrote them has merged its output — `/brd-intake` for a BRD with a source
   document of its own, `/brd-split` on the parent for a slice; see "What it needs" above for the
   exact stop conditions.

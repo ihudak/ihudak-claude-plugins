@@ -23,7 +23,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
 
 ## Phase 0 — Resolve inputs
 
-1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate it with `key-valid`
+1. **`<BRD-KEY>` (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--sort-existing` and `--docs` each consume the token after them (step 4), and a value skipped as "non-flag" would be read as the key; validate it with `key-valid`
    (`workflows-core:addressing` §1's `key-valid` — shape only,
    never checked against a tracker). If absent or invalid, **stop gracefully**:
    `BRD_INTAKE_NEEDS_KEY: /brd-intake needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-001) — pick a short stable identifier for this business requirements document, then re-run '/product-workflows:brd-intake <KEY> @<brd-file>'.`

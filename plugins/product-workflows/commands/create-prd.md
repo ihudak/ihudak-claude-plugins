@@ -20,19 +20,6 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 
 ## Phase 0 — Resolve inputs
 
-1. **The address (mandatory).** Parse the first non-flag token and validate it with `key-valid` (`workflows-core:addressing` §1). If absent or malformed, **stop gracefully** with the one `CREATE_PRD_NEEDS_KEY` text below — there is one stop for this code, not two. (Shape only, and never checked against anything: the key is the operator's own and names a folder in `$SPECS_PATH`; nothing mints it and nothing verifies it.)
-
-   **The BRD route is detected, not declared.** A folder carrying `brd-link.md` was produced by
-   `/brd-split` and holds the seeds this command reads; the operator restates nothing on the command
-   line, and there is no flag that could disagree with the folder it names. **Detection therefore
-   waits on resolution.** The address is resolved once, with `resolve-address` (step 5), and that
-   resolution is taken as soon as step 2b has settled `$SPECS_PATH` — ahead of step 2's profile
-   default and step 3's ladder, both of which read the route. Print which route the run entered at
-   that point, before any other work. Where the address resolves to nothing there is no folder and
-   no `brd-link.md` to read one off, so the run is on the **idea route**; step 5 says what happens
-   then, and it is not a stop. A key that fails §1's grammar stops with
-   `CREATE_PRD_NEEDS_KEY: /create-prd needs an address (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. EPIC-008 or the slice EPIC-008-01) — re-run '/product-workflows:create-prd <ADDRESS>'.`
-
 0. **Flags.** Strip every recognised flag from `$ARGUMENTS` before step 1 classifies the address or
    any `@idea.md`: `--from-prd <PRD-KEY|path>` and `--docs <path>` **each together with the token
    after it**, plus the booleans `--no-docs` and `--lean` / `--hybrid` / `--full`. Steps 2 and 2a
@@ -49,6 +36,19 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    this rung the flag is a token like any other and lands in that classification: `--docs` is read as
    the address, or its path is read as the `@idea.md` argument. They were named in the Usage line and
    parsed nowhere, the same defect `/create-ard`, `/specify` and `/release-notes` were found to have.
+1. **The address (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--from-prd` and `--docs` each consume the token after them (step 0), and a value skipped as "non-flag" would be read as the key and validate it with `key-valid` (`workflows-core:addressing` §1). If absent or malformed, **stop gracefully** with the one `CREATE_PRD_NEEDS_KEY` text below — there is one stop for this code, not two. (Shape only, and never checked against anything: the key is the operator's own and names a folder in `$SPECS_PATH`; nothing mints it and nothing verifies it.)
+
+   **The BRD route is detected, not declared.** A folder carrying `brd-link.md` was produced by
+   `/brd-split` and holds the seeds this command reads; the operator restates nothing on the command
+   line, and there is no flag that could disagree with the folder it names. **Detection therefore
+   waits on resolution.** The address is resolved once, with `resolve-address` (step 5), and that
+   resolution is taken as soon as step 2b has settled `$SPECS_PATH` — ahead of step 2's profile
+   default and step 3's ladder, both of which read the route. Print which route the run entered at
+   that point, before any other work. Where the address resolves to nothing there is no folder and
+   no `brd-link.md` to read one off, so the run is on the **idea route**; step 5 says what happens
+   then, and it is not a stop. A key that fails §1's grammar stops with
+   `CREATE_PRD_NEEDS_KEY: /create-prd needs an address (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. EPIC-008 or the slice EPIC-008-01) — re-run '/product-workflows:create-prd <ADDRESS>'.`
+
 2. **Profile.** `--lean | --hybrid | --full`; default `--hybrid` — **or `--full` when the BRD route is present** and no profile flag was given, per the design's *Profile default* section (§7.4): that profile is the one carrying `## Functional requirements` (`[FR#N]`), `## API specification`, `## UX prototype / UI mockups` and the full `## Assumptions & open questions` Contradictions Log, so considerably more BRD-derived content has a legitimate **product-altitude** home than `--hybrid` allows. An explicit `--lean`/`--hybrid` still wins: the default is a default, not an override.
 2a. **`--from-prd <PRD-KEY|path>` (optional seed).** When present, this run authors a **new** PRD (the
     positional `<KEY>`) seeded read-only by another PRD. Resolve the seed via

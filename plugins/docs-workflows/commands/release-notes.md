@@ -31,16 +31,11 @@ This command makes **zero external API calls** and **never writes into the docs 
 
 ## Phase 0 — Load
 
-0. **Flags.** Strip every recognised flag from `$ARGUMENTS` before anything reads a positional
-   token — `--version <v>` and `--docs <path>`, **each together with its value**, and `--no-docs`
-   (boolean). All three, not the docs pair alone: `--version` takes a value too, and an unstripped
-   one puts two stray tokens into the address classification. Both
-   are carried to the `resolve-docs-grounding` call and change nothing else. Without this the flag
-   is a token like any other and falls into the address classification below: `--docs` becomes the
-   address, or its path does. That was the live state — both flags were named in the Usage line and
-   parsed nowhere — and it is the same defect `/create-ard` and `/specify` were found to have
-   (`workflows-core:docs-grounding` §1 declares these flags for all nine consumers; only `/idea` had
-   ever implemented them).
+0. **Flags.** Strip every recognised flag from `$ARGUMENTS` before step 1 reads a positional token —
+   `--version <v>` and `--docs <path>`, **each together with the token after it**, and `--no-docs`
+   (boolean). Unstripped, a flag is a token like any other: `--docs` is read as the address, or its
+   path is. `--docs` and `--no-docs` are carried to the `resolve-docs-grounding` call; `--version` is
+   consumed where the version is needed.
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Carry the resolved `path`, `kind` and
    `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command.

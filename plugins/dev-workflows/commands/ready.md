@@ -160,15 +160,14 @@ own `key`. Carry forward:
   `SUPPORTED`, which is the verdict `/implement` is offered on. A run that verified nothing would be
   reporting the strongest assurance this command can give.
 
-  So: where `requirements[]` is empty, **take the coverage line's existing alternative** — the Phase 5
-  report template already carries it, `"derived (coarse) — PRD had no structured requirements"` — in
-  place of an `N/M covered (P%)` figure. Do not introduce a second phrase for that state; the
-  template's own wording is the one a reader of these reports already knows, and a percentage is what
-  must not be printed.
+  So: where `requirements[]` is empty, print `not assessed — PRD states no requirements` in place of an
+  `N/M covered (P%)` figure, and use that phrase at both stations. The Phase 5 template's existing
+  alternative, `"derived (coarse) — PRD had no structured requirements"`, is for a PRD whose
+  requirements were *derived* coarsely; nothing derives anything here, so reusing it would assert a
+  derivation that never ran. Update the template to carry both.
 
   Then **carry a readiness finding, which caps the verdict exactly as an unmerged artifact and an
-  over-claimed `--claimed` phase do** (the mechanism this command already has, three paragraphs
-  below). The finding names the PRD and the repair — `/product-workflows:update-prd <KEY>` to state
+  over-claimed `--claimed` phase do**, through the mechanism this command already has for those. The finding names the PRD and the repair — `/product-workflows:update-prd <KEY>` to state
   the requirements — so it reads like every other finding here. **Its cap is to `NOT-SUPPORTED`, and
   that is a floor rather than a ceiling**: the other two cap *at* `PARTIAL`, meaning "no better than
   partial", whereas this one settles the verdict outright, because nothing at all was verified. Where
@@ -390,7 +389,7 @@ plugin-gap halt (see Invariants).
    [SUPPORTED | PARTIAL | NOT-SUPPORTED]
 
    ### Requirement coverage
-   [N/M covered (P%); list each ❌ gap requirement ID] — _or_ "derived (coarse) — PRD had no structured requirements"
+   [N/M covered (P%); list each ❌ gap requirement ID] — _or_ "derived (coarse) — PRD had no structured requirements" — _or_ "not assessed — PRD states no requirements"
 
    ### Findings
    [readiness-reviewer's Findings section, by dimension]

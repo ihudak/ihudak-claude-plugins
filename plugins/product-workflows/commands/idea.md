@@ -23,7 +23,7 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
 
 ## Phase 0 — Resolve the address + model routing
 
-1. **The address (mandatory).** Parse the first non-flag token and validate it with `key-valid`
+1. **The address (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--docs` and `--ground-code` each consume the token after them (the flag list below), and a value skipped as "non-flag" would be read as the key and validate it with `key-valid`
    (`workflows-core:addressing` §1). Absent or malformed → stop:
    `IDEA_NEEDS_KEY: /idea needs a PRD key (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-77) — it names the folder this idea will live in. Re-run '/product-workflows:idea <PRD-KEY> [<prompt>|@<file>]'.`
 

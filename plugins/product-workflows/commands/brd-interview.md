@@ -100,7 +100,7 @@ and nothing downstream can tell the difference afterwards.
 
 ## Phase 0 — Resolve inputs and gate the grounded BRD
 
-1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
+1. **`<BRD-KEY>` (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--round` each consume the token after them (step 2), and a value skipped as "non-flag" would be read as the key; validate with `key-valid`
    (`workflows-core:addressing` §1). If absent or invalid, stop:
    `BRD_INTERVIEW_NEEDS_KEY: /brd-interview needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/product-workflows:brd-interview <KEY>'.`
 2. **`--round N`.** Optional, consuming the next token, which must be a positive integer. Malformed

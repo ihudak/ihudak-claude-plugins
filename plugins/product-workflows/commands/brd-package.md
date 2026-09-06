@@ -99,7 +99,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
 
 ## Phase 0 — Resolve inputs and gate the decided BRD
 
-1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
+1. **`<BRD-KEY>` (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--depends-on` each consume the token after them (step 2), and a value skipped as "non-flag" would be read as the key; validate with `key-valid`
    (`workflows-core:addressing` §1). If absent or invalid, stop:
    `BRD_PACKAGE_NEEDS_KEY: /brd-package needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/product-workflows:brd-package <KEY>'.`
 2. **`--depends-on <BRD-KEY>`.** Repeatable, each consuming the next token; validate each with
@@ -159,7 +159,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
    **First, derive which rounds must exist, then gate each one.** The set is not "whatever is on
    disk" — that is the thing being checked. `decisions.md` is already on main (step 6) and **every record in it carries the `round` it was
    recorded in — `[VD#n]` *and* `[AS#n]` alike** (`product-workflows:decision-register-format` §1
-   and §5) — so the rounds this BRD *has* are the distinct `round` values across **both** record
+   and §7) — so the rounds this BRD *has* are the distinct `round` values across **both** record
    kinds. Deriving from `[VD#n]` alone leaves the hole open rather than closing it: a round that
    produced only assumptions and `[C]` questions names no `[VD#n]`, so a register of nothing but
    `[AS#n]` and `[C]` yields an empty derived set and the gate passes without checking a thing — the
@@ -183,8 +183,8 @@ cannot review, and they will not tell you that — they will review it anyway, b
    and the round records rode with it in the run that wrote them, which is a fact about that run and
    not about the tree — a hand-committed set lands partially, which is exactly the case above.
 
-   **A register with no `[VD#n]` names no rounds, and this gate is silent on it** — the derived set
-   is empty and there is nothing to require. That state reaches step 8's
+   **A register with no `[VD#n]` and no `[AS#n]` names no rounds, and this gate is silent on it** — the
+   derived set is empty and there is nothing to require. That state reaches step 8's
    `BRD_PACKAGE_NOTHING_TO_REVIEW`, which reads it as a **finished** BRD ("every question its rounds
    asked was settled from verified findings"). That reading is right for a BRD that was interviewed
    and settled, and wrong for one that was never interviewed at all — the two are indistinguishable

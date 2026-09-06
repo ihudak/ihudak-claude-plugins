@@ -33,7 +33,7 @@ behaviour, not the behaviour.
 
 ## Phase 0 — Resolve inputs and gate on main
 
-1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
+1. **`<BRD-KEY>` (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--depends-on` and `--docs` each consume the token after them (step 2), and a value skipped as "non-flag" would be read as the key; validate with `key-valid`
    (`workflows-core:addressing` §1). If absent or invalid, stop:
    `BRD_GROUND_NEEDS_KEY: /brd-ground needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/product-workflows:brd-ground <KEY>'.`
 2. **Flags.** `--depends-on <BRD-KEY>` — repeatable, each consuming the next token; validate each
@@ -91,7 +91,7 @@ behaviour, not the behaviour.
    every `coverage-ledger.md` disposition already recorded against it. Split it on the same test the
    ledger's own row F uses — is the file in the folder at all:
    - **No `brd/brd-inventory.md` in the folder** — never produced, and the producer differs by level
-     (the `parent:` field step 9 carries forward, exactly as step 8 branches):
+     (the `parent:` field read from `brd-link.md` in the worktree, exactly as step 8 branches):
      `BRD_GROUND_NO_INVENTORY: <BRD-KEY> has no brd/brd-inventory.md, so there is no claim list to ground. For a BRD with a source document of its own, run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' and merge its handoff; for a slice, run '/product-workflows:brd-split <PARENT-KEY>', which writes the slice's inventory from the rows the parent delegated to it.`
    - **The inventory is in the folder and on no ref** — produced, handoff declined. Land what is
      already on disk, and **do not name `/brd-intake`**: re-running it rewrites the inventory and the
@@ -126,8 +126,8 @@ behaviour, not the behaviour.
 
    **(b) `coverage-ledger.md` is in the folder, and on no ref — it was produced and its handoff was
    declined.** The files exist; what is missing is a commit. **Say so, and name landing them as the
-   action** — one stop code at both levels, because the remedy does not differ:
-   `BRD_GROUND_NOT_HANDED_OFF: <BRD-KEY>'s inventory and ledger are written at <BRD-dir> but are on no branch — their handoff was declined, so nothing is missing but the commit. Commit brd/brd-inventory.md and coverage-ledger.md (and, on a BRD that owns its source document, brd/source/ and brd/brd-defect-log.md beside them) to the specs repo's default branch, then re-run '/product-workflows:brd-ground <BRD-KEY>'. <the level clause below>`
+   action** — one stop code at both levels, because the remedy does not differ. **It speaks for the ledger only**: the inventory has its own gate above, with its own two stops, and this message must not report a merge state it did not test:
+   `BRD_GROUND_NOT_HANDED_OFF: <BRD-KEY>'s coverage-ledger.md is written at <BRD-dir> but is on no branch — their handoff was declined, so nothing is missing but the commit. Commit brd/brd-inventory.md and coverage-ledger.md (and, on a BRD that owns its source document, brd/source/ and brd/brd-defect-log.md beside them) to the specs repo's default branch, then re-run '/product-workflows:brd-ground <BRD-KEY>'. <the level clause below>`
 
    **Whether the producing command is also a way out differs by level, so name it only where it
    is one:**
@@ -891,7 +891,7 @@ Terminal phase — runs after Phase 10, NEVER interrupts an earlier phase.
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command /
 reference gap, `emit-block` (`workflows-core:feedback-emission`) fires at
 that halt before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD,
-an inventory or ledger not yet on main (`BRD_GROUND_NEEDS_INTAKE` or, for a slice,
+an inventory or ledger not yet on main (`BRD_GROUND_NO_INVENTORY`, `BRD_GROUND_INVENTORY_NOT_HANDED_OFF`, `BRD_GROUND_NEEDS_INTAKE` or, for a slice,
 `BRD_GROUND_NEEDS_SPLIT`; `BRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off),
 an inventory carrying no claim at all
 (`BRD_GROUND_EMPTY_INVENTORY`, which is a fact about the customer's document or about what the

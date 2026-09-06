@@ -118,9 +118,8 @@ four-resolution one.
      `BRD_SPLIT_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /product-workflows:brd-ground <BRD-KEY> first.`
    - **Zero rows** — there is nothing to ground, so `/brd-ground` stops with
      `BRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants. Naming it here
-     would be the loop, so name the upstream fix instead, by the `split_mode` step 5 already
-     resolved — `full` means this BRD owns its source document, `allocate-only` means it is a slice:
-     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full): <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and nothing to allocate — do not run /product-workflows:brd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
+     would be the loop, so name the upstream fix instead — this step now runs only in
+     `split_mode: allocate-only`, so the fix is always the parent:
      `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run '/product-workflows:brd-split <PARENT-KEY>': it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason, and it will offer covered-by against it for any row on the parent's ledger that is still unallocated. If the parent's ledger has no unallocated row left, removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
    `unmanaged` → proceed as before this feature.
 7. **Gate on verification — and on there being grounding to verify.** **This step and step 6 run in `split_mode: allocate-only` only.** A root BRD is never ground — grounding and the customer interview happen at the slice and nowhere else — so on a `full` run there is no grounding to gate and both steps are skipped entirely. The `coverage-ledger.md` gate in step 8 still runs in both modes: that ledger is `/brd-intake`'s deliverable and this walk reads it. Three tests, in this order.
@@ -191,7 +190,12 @@ four-resolution one.
    never propose a slice or offer `covered-here` against a claim nobody has actually verified.
    Count every finding on file carrying no recorded `outcome`. Any count `N` greater than zero →
    stop: `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run /product-workflows:brd-ground first.`
-8. **Read the ledger; check for the no-op case.** Read `<BRD-dir>/coverage-ledger.md` and compute
+8. **Read the ledger; check for the no-op case.** **On a `full` run, first check the inventory
+   itself is non-empty** — step 6 no longer reaches a root, so this is where a root whose intake
+   produced zero `[BR#n]` rows is caught. Read `<BRD-dir>/brd/brd-inventory.md` and count its
+   `[BR#n]` rows; zero → stop:
+   `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full): <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and nothing to allocate — do not run /product-workflows:brd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
+   On a slice, step 6 already covers this before this step is ever reached. Read `<BRD-dir>/coverage-ledger.md` and compute
    its disposition counts (`coverage-ledger-format.md` §3) — **this BRD's own rows, as written, with
    no child ledger consulted.** The no-op test and the §4 gate are both about `unallocated` on
    *this* ledger; what a child did with a row this BRD already delegated cannot make that row
@@ -1105,8 +1109,9 @@ no-op path step 10 decides exactly as on any other, in either run mode, and on t
 gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt
 before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD, an ungated
 or missing grounding deliverable, an inventory carrying no claim at all
-(`BRD_SPLIT_EMPTY_INVENTORY`, in either mode — a fact about the customer's document or about what
-the parent allocated, never about this plugin), unverified findings, and an unset `$SPECS_PATH` are
+(`BRD_SPLIT_EMPTY_INVENTORY` — step 8's own check on a root, step 6's row-F branch on a slice — a
+fact about the customer's document or about what the parent allocated, never about this plugin),
+unverified findings, and an unset `$SPECS_PATH` are
 environment / sequencing halts, never a plugin capability gap. `BRD_SPLIT_ON_SLICE` is not in that list because it
 is **not a stop**: it is the Phase 0 step 5 notice that this run is `allocate-only`, and the run
 continues through it. Neither is anything in Phase 1.5 — an instruction that placed no row, a grill

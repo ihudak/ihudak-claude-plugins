@@ -1,10 +1,10 @@
 ---
 name: docs-style-checker
-description: Runs the docs repo's project-configured prose linter (e.g. Vale) on files written by `/document` (keyed mode, or direct mode) AND also runs prose-style-checker as a complementary semantic / cross-page-consistency pass. Merges and dedupes both finding sets into the doc-reviewer / doc-fixer schema. Detects tooling (Vale, project lint script, markdownlint, remark) from the repo; does not embed any specific style guide. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Runs the docs repo's project-configured prose linter (e.g. Vale) on files written by `/document` (keyed mode, or direct mode) AND also runs prose-style-checker — a complementary semantic / cross-page-consistency pass beside a primary linter, and the SOLE check on a repository that configures none. Merges and dedupes both finding sets into the doc-reviewer / doc-fixer schema. Detects tooling (Vale, project lint script, markdownlint, remark) from the repo; does not embed any specific style guide. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Bash", "Task"]
 ---
 
-Run the docs repo's project-configured prose linter on a set of files, and ALSO run `prose-style-checker` as a complementary semantic / cross-page-consistency pass. Merge and dedupe their findings into a single reviewer finding schema.
+Run the docs repo's project-configured prose linter on a set of files, and ALSO run `prose-style-checker`: a complementary semantic / cross-page-consistency pass where a primary linter produced a result, and the SOLE check where every rung failed or the repository configures none. The merge rules below turn on which of those two roles it took. Merge and dedupe their findings into a single reviewer finding schema.
 
 Invoked from `/document` (keyed mode, Phase 6.4) and `/document` (direct mode, Phase 3.5), after the files are written and before `doc-reviewer`. Catching corporate-style issues locally frees the doc-reviewer (Opus) to spend its attention budget on correctness and completeness rather than prose policing, and ensures the eventual PR doesn't bounce on CI style checks.
 

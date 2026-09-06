@@ -1,0 +1,26 @@
+{
+  "description": "workflows-core plugin hooks — session-wide completion and test-run notification, shared by every plugin that depends on this one",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/notify-done.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/test-notify.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

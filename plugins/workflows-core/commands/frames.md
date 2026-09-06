@@ -138,11 +138,18 @@ step skips on it.
    into a set learns it will never be grounded, instead of inferring it from a row count. `index.md`
    itself is excluded: it is this format's own file, not an un-indexed frame.
 
-4. **Read the index already there, where there is one.** `index.md` is the name every writer writes
-   (§6.2). An index found under **another** name — a manifest, a captions file, a README — is
-   reported and left byte-for-byte alone: this command did not fix that file's shape and will not
-   rewrite it. It writes `index.md` beside it, and the report says both files are now present so the
-   operator can retire the older one deliberately.
+4. **Read the index already there, where there is one — including one under another name.** `index.md` is the name every writer writes
+   (§6.2), and this command writes that name. But an index found under **another** name — a manifest, a captions file, a README —
+   is **read and adopted**, not merely reported: `grounding-format.md` §6.1 has always let a *reader* accept whatever name a
+   frame-set convention used, and this command is the participant that had been declining that permission. Adopt every row whose
+   image resolves to a file in this set's own listing, preserving its description **verbatim** — the same rule §6.2 step 2 applies
+   to a row in a real `index.md`. Report, and do not adopt, a row naming an image the listing does not hold: the frame it describes
+   is not in this set. If the file cannot be parsed into rows at all, report that and adopt nothing from it — **never a partial guess**.
+
+   **The original is left byte-for-byte alone either way.** This command did not fix that file's shape and will not rewrite it; it
+   writes `index.md` beside it and the report names both, so the operator can retire the older one deliberately. What changed is
+   only that the descriptions in it are no longer thrown away — a set that already carried a hand-written manifest used to come out
+   of an indexing run *worse*, with every frame re-emitted as `_no description on record_`.
 
 ---
 
@@ -162,8 +169,8 @@ For each frame set, in directory order:
    - **has a row whose description is real** → §6.2 step 2 preserves it **verbatim** — the frame, its
      `Linked from`, and its description exactly as they stand. This command never rewrites a
      description it did not produce, and never re-describes a frame that already has a row in
-     `index.md` — an index under some other name is reported and never read, so it neither preserves
-     nor contradicts what that file happens to say.
+     `index.md` — nor one whose row was **adopted** from an index under another name (step 4), since
+     an adopted description is preserved on exactly the same terms as one already in `index.md`.
    - **has a row whose description is the literal `_no description on record_`** → §6.2 step 2's one
      exception. That row holds no description to preserve and this command *can* obtain one, so the
      frame joins the describe set. **This is what makes a capped run recoverable**, and it is why the
@@ -361,7 +368,7 @@ each (`cap`, `missing`, `not_an_image`, `unreadable`, `not_a_frame`, or the agen
 stopped the set); every row **dropped** because its image is no longer in the directory; a set
 skipped for holding no image; **each file in the set that is not a frame**, named once so it is
 visibly not indexed rather than invisibly missing (§6.2 step 1); and an index found under a name
-other than `index.md`, with the fact that `index.md` now sits beside it. Report, too, any images
+other than `index.md`, with the fact that `index.md` now sits beside it — and **how many of its rows were adopted, how many were not, and why not** (an image the set's listing does not hold, or a file that could not be parsed into rows at all). An operator retiring the older file needs to know what carried across before deleting it. Report, too, any images
 sitting directly in `design/` outside every set (Phase 1 step 2a).
 
 **Report the cap explicitly whenever it bit** — how many frames were described, how many were left,

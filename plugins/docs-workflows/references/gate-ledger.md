@@ -57,8 +57,12 @@ gate_ledger:
     ci_still_checks: <one line>                     # DEGRADED only, non-empty
     precondition_unmet: <the named precondition>    # NOT_APPLICABLE only, non-empty
     user_decision: "<the user's choice, verbatim>"  # SKIPPED_BY_USER only, non-empty
-    findings: <count>                               # RAN / DEGRADED / FAILED
+    findings: <count>                               # RAN / DEGRADED / FAILED -- see below
 ```
+
+**`findings` records what this run saw; it is not a reproducible property of the files.** For a gate whose ladder is entirely deterministic — `toolchain_preflight`'s `command -v` probes, a repo linter with a pinned config — the count is a measurement and re-running it returns the same number. For a gate with an LLM in its ladder it is a **sample**. `style_check` is the live case: two `docs-style-checker` runs in one session against byte-identical files returned 2 findings and then 3, and the same defect came back under two different rule ids. That is expected of a semantic checker and is not a fault in it.
+
+So: **read a `findings` count as "what this run reported", never as "how many defects the files contain"**, and never compare two runs' counts to conclude that something changed. A reviewer checking that a gate ran should look at the `outcome` and the `mechanism`, which are stable, rather than at a number that is not. The count stays in the ledger because it is a faithful record of the run — dropping it would lose that — but a consumer treating it as reproducible is reading it wrong.
 
 ## 4. The `/document` gate registry
 

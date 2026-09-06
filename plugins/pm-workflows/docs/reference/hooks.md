@@ -1,6 +1,6 @@
 # Hooks reference
 
-`pm-workflows` declares one hooks.json entry, installed automatically with the plugin — there is nothing to opt into separately: a single `UserPromptSubmit` hook, `preload-context`. The hook is advisory: **it never blocks Claude.** The script ends in an unconditional `exit 0` regardless of what it detects or whether its own logic errors out, by contract — a hook exists to notify or remind, never to gate a tool call.
+`pm-workflows` bundles one hook, declared in `hooks/hooks.json` and installed automatically with the plugin — there is nothing to opt into separately: a single `UserPromptSubmit` hook, `preload-context`. The hook is advisory: **it never blocks Claude.** The script ends in an unconditional `exit 0` regardless of what it detects or whether its own logic errors out, by contract — a hook exists to notify or remind, never to gate a tool call.
 
 | Hook | Event | Matcher | What it does |
 |---|---|---|---|

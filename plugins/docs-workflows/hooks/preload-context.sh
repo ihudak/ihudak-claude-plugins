@@ -49,7 +49,17 @@ except Exception:
 # first capture group holds this plugin's own namespace prefix when the
 # caller used the qualified form; the second holds the command token (e.g.
 # "document", "release-notes").
-if [[ ! "$prompt" =~ ^/(docs-workflows:)?(document|release-notes)[[:space:]]+[^[:space:]-] ]]; then
+# `release-notes` is matched in the QUALIFIED form only, and that is not an
+# oversight. Claude Code ships its own built-in /release-notes, and the built-in
+# wins: a bare `/release-notes` never reaches this plugin, so preloading for it
+# would inject specs context into a run that is not ours. `/document` has no
+# built-in of the same name, so both forms reach us and both are matched. Group 2
+# holds the command token in either branch -- keep that true if you edit these.
+if [[ "$prompt" =~ ^/(docs-workflows:)?(document)[[:space:]]+[^[:space:]-] ]]; then
+    :
+elif [[ "$prompt" =~ ^/(docs-workflows:)(release-notes)[[:space:]]+[^[:space:]-] ]]; then
+    :
+else
     exit 0
 fi
 cmd="${BASH_REMATCH[2]}"

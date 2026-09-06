@@ -8,10 +8,10 @@ ledger where every requirement starts `unallocated`.
 
 `/brd-intake` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution
 phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route, the way `/idea` and
-`/create-prd` share `prd-creation`. It is the first command of that route, before
-[`/brd-ground`](brd-ground.md), [`/brd-split`](brd-split.md), [`/brd-interview`](brd-interview.md),
-[`/brd-package`](brd-package.md) and [`/brd-reconcile`](brd-reconcile.md). Every one of them runs as
-pm except `/brd-ground`, which runs as
+`/create-prd` share `prd-creation`. It is the route's entry point: nothing else in the route reads a
+customer-supplied source document, and every downstream `/brd-*` command gates on the inventory and
+ledger this one writes. Every one of them runs as pm except
+[`/brd-ground`](brd-ground.md), which runs as
 [pa](../roles-and-phases.md#pa--product-architecture).
 
 ## Synopsis
@@ -115,7 +115,7 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   `[DEF#n]` id. A rejected candidate is dropped, not recorded.
 - **Phase 5 — the ledger gate downstream.** `/brd-intake` itself never blocks on the ledger — it
   only ever writes `unallocated` rows. The gate that gates on them (no `unallocated` row may
-  survive) belongs to [`/brd-split`](brd-split.md), the route's third command.
+  survive) belongs to [`/brd-split`](brd-split.md), which walks it on both the root and each slice.
 
 ## Example
 

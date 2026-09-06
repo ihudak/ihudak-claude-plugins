@@ -9,9 +9,10 @@ horizon against declared prerequisite BRDs.
 
 `/brd-ground` runs in the [pa](../roles-and-phases.md#pa--product-architecture) role,
 cost-attribution phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route. It
-is the second command of that route, after [`/brd-intake`](brd-intake.md) and before
-[`/brd-split`](brd-split.md), and it is the only one of the six that does not run as
-[pm](../roles-and-phases.md#pm--product-management).
+is the only one of the six that does not run as
+[pm](../roles-and-phases.md#pm--product-management): a slice reaches it already carved by
+[`/brd-split`](brd-split.md), which is also what its own findings hand back to, for that same
+slice's ledger to be allocated.
 
 ## Synopsis
 
@@ -19,10 +20,12 @@ is the second command of that route, after [`/brd-intake`](brd-intake.md) and be
 /brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--docs <path>] [--rebaseline]
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the BRD (or slice) to ground. Resolved via `resolve-address`, so a
-  key at either of either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it works; format-validated only, never
-  checked against a tracker. Unlike [`/brd-split`](brd-split.md), this command refuses neither
-  level.
+- **`<BRD-KEY>`** (mandatory) — the slice to ground. `resolve-address` still searches both levels a
+  `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a
+  slice inside it — because a root has to resolve before it can be refused by name;
+  format-validated only, never checked against a tracker. **Only a slice is ground**: a resolved
+  root stops with `BRD_GROUND_ROOT_LEVEL`, naming [`/brd-split`](brd-split.md) as the way to carve
+  one.
 - **`--depends-on <BRD-KEY>`** (optional, repeatable) — declares a prerequisite BRD. Persisted to
   `brd-link.md` additively across runs; the file may also be edited by hand. A prerequisite
   contributes a `will-change` horizon only through its **frozen** decisions, and frozen is a field
@@ -88,6 +91,12 @@ Phase 11, for session lessons-learned.
 ## What it needs
 
 - **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_GROUND_NEEDS_KEY`.
+- **A slice, not a root.** The moment the folder resolves, its prefix is tested — `BRD-` is a root,
+  `PRD-` is a slice — never the folder's asserted `kind:`, since a slice's own `brd-link.md` asserts
+  `kind: brd` while being exactly the folder this command must accept. A resolved root stops with
+  `BRD_GROUND_ROOT_LEVEL`, naming `/brd-split <BRD-KEY> "<how to cut it>"` to carve a slice and then
+  `/brd-ground <SLICE-KEY>` on it; where the root already carries grounding written under the
+  earlier two-level model, the stop names those files and leaves them in place, unread.
 - **An inventory with at least one `[BR#n]` row.** A BRD whose inventory holds none has nothing to
   ground, so this command writes no finding and hands nothing off — and every downstream command on
   the route gates on that handoff. Rather than reporting a quiet success that leaves `/brd-split`
@@ -169,6 +178,9 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
 
 ## Gates
 
+- **Phase 0 — the root refusal, tested the moment the folder resolves.** A resolved `BRD-` root
+  stops with `BRD_GROUND_ROOT_LEVEL` before any other gate runs: grounding happens at the slice and
+  nowhere else.
 - **Phase 0 — `require-on-main` on this BRD's inventory and on its ledger, separately.** Each is gated in its own right rather than one being inferred from the other's commit; the inventory's own stops name whether it is missing from the folder or merely unmerged, because re-running the producer on the second would rewrite it. No grounding starts until
   whichever command wrote them has merged its output — `/brd-intake` for a BRD with a source
   document of its own, `/brd-split` on the parent for a slice; see "What it needs" above for the
@@ -211,21 +223,20 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
 
 ## Example
 
-Ground a synthetic customer BRD once its intake pull request has merged:
+Ground a slice once its parent's `/brd-split` has carved it and that pull request has merged:
 
 ```
-/product-workflows:brd-ground EPIC-008
+/product-workflows:brd-ground EPIC-008-01
 ```
 
-The run resolves the BRD, gates its intake artifacts on main, resolves the repositories in scope
-and the documentation root, pins and proves each repository clean, grounds every `[BR#n]` claim
-against code and any exported design frames, independently re-derives every finding on Opus,
+The run resolves the slice, gates its inventory and ledger on main, resolves the repositories in
+scope and the documentation root, pins and proves each repository clean, grounds every `[BR#n]`
+claim against code and any exported design frames, independently re-derives every finding on Opus,
 assigns horizons against any declared prerequisites, writes the findings, and offers to branch,
-commit, push, and open a pull request. Its next-step offer branches on level, and names the mode
-[`/brd-split`](brd-split.md) will run in: a BRD that owns its source document gets the full split; a
-**slice** gets `allocate-only` — its ledger is walked to a recorded fate, but no child is created,
-because nesting is capped at one level. `/brd-split` is not where the route ends: it hands on to
-[`/brd-interview`](brd-interview.md).
+commit, push, and open a pull request. Its next-step offer always names
+[`/brd-split`](brd-split.md) running in `allocate-only` mode: this slice's ledger is walked to a
+recorded fate, but no child is created, because nesting is capped at one level. `/brd-split` is not
+where the route ends: it hands on to [`/brd-interview`](brd-interview.md).
 
 ## See also
 

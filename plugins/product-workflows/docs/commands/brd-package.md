@@ -10,8 +10,8 @@ the delivery note, and the dated bundle.
 
 `/brd-package` runs in the [pm](../roles-and-phases.md#pm--product-management) role,
 cost-attribution phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route. It
-is the fifth command of that route, after `/brd-intake`, `/brd-ground`, `/brd-split` and
-`/brd-interview`.
+runs once the slice's own `/brd-interview` round has settled — that register, and the `[C]`
+questions it held, are what this command gates on and packages.
 
 ## Synopsis
 
@@ -19,9 +19,11 @@ is the fifth command of that route, after `/brd-intake`, `/brd-ground`, `/brd-sp
 /brd-package <BRD-KEY> [--depends-on <BRD-KEY>…]
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the BRD this run packages. A key naming either level a `<BRD-KEY>` can reach
-  folder can occupy works, and both behave identically. Resolved via `resolve-address`;
-  format-validated only, never checked against a tracker.
+- **`<BRD-KEY>`** (mandatory) — the slice this run packages. `resolve-address` still searches both
+  levels a `<BRD-KEY>` can name, because a root has to resolve before it can be refused by name;
+  format-validated only, never checked against a tracker. **Only a slice is packaged**: a resolved
+  root stops with `BRD_PACKAGE_ROOT_LEVEL`, naming [`/brd-split`](brd-split.md) as the way to carve
+  one.
 - **`--depends-on <BRD-KEY>`** (optional, repeatable) — declares a prerequisite BRD. Persisted
   additively to `brd-link.md`, never replacing what is already there. Any key at any level is
   admissible, so a slice depending on another BRD and a BRD depending on a sibling express
@@ -76,6 +78,11 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
 ## What it needs
 
 - **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_PACKAGE_NEEDS_KEY`.
+- **A slice, not a root.** The moment the folder resolves, its prefix is tested — `BRD-` is a root,
+  `PRD-` is a slice — never the folder's asserted `kind:`. A resolved root stops with
+  `BRD_PACKAGE_ROOT_LEVEL`, naming `/brd-split <BRD-KEY> "<how to cut it>"` to carve a slice and
+  then `/brd-package <SLICE-KEY>` on it; where the root already carries package artifacts written
+  under the earlier two-level model, the stop names those files and leaves them in place, unread.
 - **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the one
   level below it — stops with `BRD_PACKAGE_NOT_FOUND`, which names both ways a folder comes to exist
   rather than asserting one.
@@ -176,6 +183,9 @@ attack.
 
 ## Gates
 
+- **Phase 0 — the root refusal, tested the moment the folder resolves.** A resolved `BRD-` root
+  stops with `BRD_PACKAGE_ROOT_LEVEL` before any other gate runs: packaging happens at the slice and
+  nowhere else.
 - **Phase 0 — the register merged, the rounds settled, something to review.** All three run before
   anything else is read. The rounds gate admits exactly one holding state, *held for the customer*,
   and refuses the other three. That reading is forced: a round holding a `[C]` stays open **until the

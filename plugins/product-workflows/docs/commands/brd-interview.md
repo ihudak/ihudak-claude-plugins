@@ -10,7 +10,8 @@ round's own record, and the `[C]` question set.
 
 `/brd-interview` runs in the [pm](../roles-and-phases.md#pm--product-management) role,
 cost-attribution phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route. It
-is the fourth command of that route, after `/brd-intake`, `/brd-ground` and `/brd-split`.
+takes over once `/brd-ground` and `/brd-split` have both run on the same slice: a verified finding
+set and a fully-allocated ledger are what its Phase 0 gates on.
 
 ## Synopsis
 
@@ -18,9 +19,11 @@ is the fourth command of that route, after `/brd-intake`, `/brd-ground` and `/br
 /brd-interview <BRD-KEY> [--round N]
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the BRD whose questions this run decides. A key at either of the two
-  levels a BRD folder can occupy works, and both behave identically. Resolved via `resolve-address`;
-  format-validated only, never checked against a tracker.
+- **`<BRD-KEY>`** (mandatory) — the slice whose questions this run decides. `resolve-address` still
+  searches both levels a BRD folder can occupy, because a root has to resolve before it can be
+  refused by name; format-validated only, never checked against a tracker. **Only a slice is
+  interviewed**: a resolved root stops with `BRD_INTERVIEW_ROOT_LEVEL`, naming
+  [`/brd-split`](brd-split.md) as the way to carve one.
 - **`--round N`** (optional) — target one round: resume it if it is open, or re-open it if it is
   closed, recorded as a re-open with its cause. With no flag the run continues at the first round
   still holding a question without a terminal disposition, and proposes a new one only if findings
@@ -94,6 +97,12 @@ command reads was already independently re-derived by `/brd-ground`'s own verifi
 - **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_INTERVIEW_NEEDS_KEY`. A
   malformed `--round` value stops with `BRD_INTERVIEW_BAD_ROUND` rather than quietly running a
   different round from the one asked for.
+- **A slice, not a root.** The moment the folder resolves, its prefix is tested — `BRD-` is a root,
+  `PRD-` is a slice — never the folder's asserted `kind:`. A resolved root stops with
+  `BRD_INTERVIEW_ROOT_LEVEL`, naming `/brd-split <BRD-KEY> "<how to cut it>"` to carve a slice and
+  then `/brd-interview <SLICE-KEY>` on it; where the root already carries decisions or interview
+  records written under the earlier two-level model, the stop names those files and leaves them in
+  place, unread.
 - **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the one
   level below it — stops the run with `BRD_INTERVIEW_NOT_FOUND`, which names both ways a folder comes
   to exist rather than asserting one.
@@ -153,6 +162,9 @@ against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` 
 
 ## Gates
 
+- **Phase 0 — the root refusal, tested the moment the folder resolves.** A resolved `BRD-` root
+  stops with `BRD_INTERVIEW_ROOT_LEVEL` before any other gate runs: deciding happens at the slice
+  and nowhere else.
 - **Phase 0 — grounding merged, findings verified, ledger allocated.** All three run before anything
   else is read. The allocation gate reads the **dispositions in the ledger file**, never the ledger
   line: the line's `unallocated` term is a resolved count that follows every `covered-by` row into

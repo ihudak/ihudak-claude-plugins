@@ -145,9 +145,13 @@ then strip the `refs/remotes/origin/` prefix. If unset, fall back to `main`,
 then `master`, then the current branch — in which case no branch switching
 occurs at all.
 
+**Default ref — which ref *represents* that branch.** The name above is a branch name; every ancestry and presence test needs a ref. Probe `git -C "$SPECS_PATH" remote get-url origin`: exit 0 with a non-empty URL → `<default-ref>` is `origin/<default>`; anything else → `<default-ref>` is the local `refs/heads/<default>`.
+
+**The two cases are not one weakened into the other.** With a remote configured, its tracking ref is the only trustworthy record of what merged — the local branch can be stale or ahead, so testing against it would assert something the shared history does not support. With **no remote at all** there is no remote state to be uncertain about: the local default branch *is* the default branch, and testing against it is the correct application of the check rather than a relaxation of it. The producer side has always worked this way — §2.1's push-target probe is explicitly *"a capability probe, never a gate failure"* — and this makes the consumer side agree. **Every test below, and `phase-handoff.md` §3's, uses `<default-ref>`; none names `origin/<default>` literally.**
+
 **Freshness:** best-effort `git -C "$SPECS_PATH" fetch origin <default>` before
-the ancestry test. On failure (offline, auth), use the existing local
-`origin/<default>` ref and note `offline — ancestry checked against the
+the ancestry test, skipped entirely when there is no remote. On failure (offline, auth), use the existing local
+`<default-ref>` and note `offline — ancestry checked against the
 last-fetched ref`. Never fatal.
 
 **Run key set:** every key the run is scoped to — the identity each of this run's
@@ -241,7 +245,7 @@ First matching row applies.
 | # | State | Action |
 |---|---|---|
 | B1 | On the default branch | Nothing further. |
-| B2 | Plugin branch, and `git -C "$SPECS_PATH" merge-base --is-ancestor HEAD origin/<default>` succeeds (already merged upstream) | Switch to default, `git -C "$SPECS_PATH" pull --ff-only`, `git -C "$SPECS_PATH" branch -d <branch>`. If `-d` fails, report and skip — **never `-D`**. If `pull --ff-only` fails (the local default branch has diverged), report and continue on default **without** pulling — never merge, rebase, or reset. |
+| B2 | Plugin branch, and `git -C "$SPECS_PATH" merge-base --is-ancestor HEAD <default-ref>` succeeds (already merged upstream) | Switch to default, `git -C "$SPECS_PATH" pull --ff-only`, `git -C "$SPECS_PATH" branch -d <branch>`. If `-d` fails, report and skip — **never `-D`**. If `pull --ff-only` fails (the local default branch has diverged), report and continue on default **without** pulling — never merge, rebase, or reset. |
 | B3 | Plugin branch, unmerged, `branch-key` (below) resolves the branch to **any** key in the run key set (§3.2) | **Stay on it.** See §3.6. |
 | B4 | Plugin branch, unmerged, `branch-key` resolves the branch to **no** key in the set, or the set is empty (keyless run) | Switch to default, `git -C "$SPECS_PATH" pull --ff-only`. **Leave the branch and its pull request alone.** Report the branch name. |
 

@@ -72,9 +72,23 @@ After installing, run `/workflows-core:statusline` once. The command ships in `w
 
 ### 5. Update after new releases
 
+Two steps, and the second is the one that actually changes what runs:
+
 ```bash
 claude plugin marketplace update ihudak-plugins
+claude plugin update dev-workflows@ihudak-plugins
+claude plugin update pm-workflows@ihudak-plugins
+claude plugin update prose-style@ihudak-plugins
+claude plugin update obsidian-llm-wiki@ihudak-plugins
+claude plugin update acli@ihudak-plugins
+claude plugin update guideline-reviewers@ihudak-plugins
+claude plugin update workflows-core@ihudak-plugins
+claude plugin update docs-workflows@ihudak-plugins
 ```
+
+**`marketplace update` refreshes the catalogue, not your installed plugins.** It updates what the marketplace advertises — which is what makes a newly added plugin installable — but an already-installed plugin stays at the version you installed. `claude plugin update <plugin>` is what upgrades one, and **it requires restarting Claude Code to apply.** Update only the plugins you actually have; the interactive `/plugins` interface inside Claude Code does the same thing with a picker.
+
+This page used to say `marketplace update` alone was enough. It is not, and the symptom is quiet: `claude plugins list` keeps reporting the old version while the catalogue advertises the new one, so the content looks current and is not.
 
 ## Directory structure
 

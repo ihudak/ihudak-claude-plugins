@@ -46,8 +46,8 @@ REF_FLAT_EXTRA="model-routing"       # canonical: references/model-routing/*.md 
                                      # model-routing.md is a flat file in _shared)
 DOC_CMD_DIR="commands"               # copilot: skills
 CLI="claude"                         # copilot: copilot
-CLI_VERBS="marketplace add|marketplace update|install|reinstall"   # copilot: marketplace add|install|update
-CLI_REQUIRED="marketplace add|marketplace update"   # copilot: marketplace add|update -- the verb
+CLI_VERBS="marketplace add|marketplace update|install|update"   # copilot: marketplace add|install|update
+CLI_REQUIRED="marketplace add|marketplace update|update"   # copilot: marketplace add|update -- the verb
                                      # phrases getting-started.md must carry inline. A subset
                                      # of CLI_VERBS; differs per edition because Copilot
                                      # updates with `plugin update --all`, not a marketplace verb.

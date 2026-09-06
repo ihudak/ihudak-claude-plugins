@@ -11,7 +11,10 @@ To pick up later changes:
 
 ```bash
 claude plugin marketplace update ihudak-plugins
+claude plugin update workflows-core@ihudak-plugins
 ```
+
+**Both steps are needed, and the second is the one that changes what runs.** `marketplace update` refreshes the catalogue — what the marketplace advertises — while an already-installed plugin stays at the version you installed. `claude plugin update` upgrades it, and **requires restarting Claude Code to apply.** The interactive `/plugins` interface does the same with a picker. This page used to say the first line alone was enough; it is not, and the symptom is quiet — `claude plugins list` keeps reporting the old version while the catalogue advertises the new one.
 
 ## What this plugin is
 

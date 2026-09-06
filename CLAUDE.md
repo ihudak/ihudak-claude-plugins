@@ -340,20 +340,29 @@ workflow is considered complete.
 
 ## Updating installed plugins after editing
 
-After editing files in this repo and pushing, reinstall the affected plugin on
+After editing files in this repo and pushing, update the affected plugin on
 each machine so Claude Code picks up the new command, agent, hook, and
 reference content:
 
 ```bash
-claude plugin reinstall dev-workflows@ihudak-plugins
-claude plugin reinstall pm-workflows@ihudak-plugins
-claude plugin reinstall docs-workflows@ihudak-plugins
-claude plugin reinstall workflows-core@ihudak-plugins
+claude plugin update dev-workflows@ihudak-plugins
+claude plugin update pm-workflows@ihudak-plugins
+claude plugin update docs-workflows@ihudak-plugins
+claude plugin update workflows-core@ihudak-plugins
 ```
 
-**Reinstall the plugin that holds the file you edited — not the one whose workflow you were thinking about.** A reinstall re-fetches exactly one plugin, so `dev-workflows` alone brings back none of the shared reference corpus, the five shared agents or the six utility commands (those are `workflows-core`'s); none of the twelve product-definition commands, their twelve agents or their nine references (those are `pm-workflows`'s); and none of the documentation commands, their seven agents or their fourteen references (those are `docs-workflows`'s). The symptom is the same either way and is the reason this is worth stating: the run picks up the old content and the change looks like it did not land. Use the same pattern for any other plugin in this marketplace.
+**`claude plugin update` requires a restart to apply** — the CLI says so itself. An edit that "did not land" is very often a session that has not restarted since the update.
 
-Refreshing the whole marketplace does the same thing for every plugin installed from it, in one step — `claude plugin marketplace update ihudak-plugins` (see [Getting started](plugins/dev-workflows/docs/getting-started.md)). Reinstalling a single plugin, as above, is still the right call when only one plugin needs picking up.
+**There is no `claude plugin reinstall`.** This section named one for a long time, in four places, and it does not exist: the CLI answers `error: unknown command 'reinstall'` and offers `install` and `uninstall`. The verb is `update`. Verify a command against `claude plugin --help` before writing it here — this file is read by agents that will run what it says, and a command that does not exist fails in a way that looks like a broken plugin.
+
+**Update the plugin that holds the file you edited — not the one whose workflow you were thinking about.** An update re-fetches exactly one plugin, so `dev-workflows` alone brings back none of the shared reference corpus, the five shared agents or the six utility commands (those are `workflows-core`'s), none of the product-definition commands, their twelve agents or their nine references (those are `pm-workflows`'s), and none of the documentation commands (those are `docs-workflows`'s). The symptom is the same either way and is the reason this is worth stating: the run picks up the old content and the change looks like it did not land.
+
+**`claude plugin marketplace update <marketplace>` does NOT update installed plugins.** It refreshes the *catalogue* — what the marketplace advertises — which is what makes a newly added plugin installable. An already-installed plugin stays at the version it was installed at. Measured, not assumed: after a successful `marketplace update`, `claude plugins list` still reported `docs-workflows` at `1.0.0` while the catalogue advertised `1.1.0`. **This file previously claimed the opposite** — that refreshing the marketplace "does the same thing for every plugin installed from it, in one step" — and that claim is retired. Use `claude plugin update` per plugin, or the interactive `/plugins` interface inside Claude Code, which does upgrade what is installed.
+
+**Two other subcommands are worth knowing here**, both verified from `claude plugin --help`:
+
+- `claude plugin validate <path>` — validates a plugin or marketplace manifest, or the skills, agents and commands in a directory. A local pre-flight that is cheaper than a failed install.
+- `claude plugin tag [path]` — creates a `{name}--v{version}` git tag for a plugin release, **validating that `plugin.json` and any enclosing marketplace entry agree**. That agreement is exactly what `scripts/validate-catalog.py` also asserts, so a disagreement should never reach it — but the tag step refusing is the last place to catch one.
 
 ## Behavioral guardrails (Karpathy) — marketplace-specific notes
 

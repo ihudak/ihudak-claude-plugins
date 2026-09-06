@@ -26,9 +26,10 @@ Two other plugins arrive with it, because they are **declared dependencies** rat
 
 ```bash
 claude plugin marketplace update ihudak-plugins
+claude plugin update docs-workflows@ihudak-plugins
 ```
 
-Run this whenever you want the latest command, agent, and reference content — Claude Code does not pick up marketplace changes on its own.
+**Both steps are needed, and the second is the one that changes what runs.** `marketplace update` refreshes the catalogue — what the marketplace advertises — while an already-installed plugin stays at the version you installed. `claude plugin update` upgrades it, and **requires restarting Claude Code to apply.** The interactive `/plugins` interface does the same with a picker. This page used to say the first line alone was enough; it is not, and the symptom is quiet — `claude plugins list` keeps reporting the old version while the catalogue advertises the new one.
 
 ## What you set on your machine
 

@@ -32,7 +32,7 @@ ${CLAUDE_PLUGIN_ROOT}/references/
 This is also the path `/prose-style-refresh` asks this skill to resolve on its behalf,
 because `${CLAUDE_PLUGIN_ROOT}` does not expand in a slash-command body. When a caller
 asks for the baseline directory, hand back this expanded absolute path. It is read-only:
-nothing ever writes into it, because a plugin reinstall replaces it.
+nothing ever writes into it, because a plugin update replaces it.
 
 **Overlay (read the first that resolves, then stop):**
 

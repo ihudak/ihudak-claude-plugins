@@ -137,10 +137,9 @@ and nothing downstream can tell the difference afterwards.
     nothing.
 
     **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
-    fallback, there is no prefix to test.** Answer the root question by **positive evidence** —
-    `coverage-ledger.md` or `brd/brd-inventory.md` present in the folder, and no `brd-link.md`
-    naming a `parent:` — never by the absence of a file, which would refuse a legacy idea-route PRD
-    folder that carries neither of those two files and is not a BRD at all.
+    fallback, there is no prefix to test.** Answer the root question by **positive evidence, never
+    by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1,
+    the shared authority every consumer of this test takes it from, and not restated here.
 
     On a root, look for the root-level artifacts this run would have produced under the retired
     two-level model — `decisions.md`, `interview/` — and name whichever exist in the stop, so an
@@ -168,10 +167,9 @@ and nothing downstream can tell the difference afterwards.
      `BRD_INTERVIEW_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /product-workflows:brd-ground <BRD-KEY> first.`
    - **Zero rows** — there is nothing to ground, so `/brd-ground` stops with
      `BRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants, and naming it
-     here would be the loop. The fix is upstream and differs by level, so read the resolved folder's
-     `brd-link.md` from the worktree and branch on its `parent:` field, exactly as the grounding and
-     split gates do:
-     `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and no question this command could ask about it — do not run /product-workflows:brd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
+     here would be the loop. The fix is upstream — step 5a already established this run stands on a
+     slice, so read `<PARENT-KEY>` from the resolved folder's `brd-link.md` `parent:` field, exactly
+     as the grounding and split gates do:
      `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to decide. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run '/product-workflows:brd-split <PARENT-KEY>': it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason, and it will offer covered-by against it for any row on the parent's ledger that is still unallocated. If the parent's ledger has no unallocated row left, removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
 7. **Gate on verification — and on there being grounding to verify.** Two tests, in this order,
    because **the second is a count and a count is vacuously satisfied by an empty set**. This gate
@@ -351,12 +349,12 @@ round asks about it, and a question raised at both levels reaches the customer t
 `${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` §5 names as an invitation to two
 contradictory answers one `[CD#n]` cannot hold.
 
-**Read the `disposition` column, not the inventory and not `claims:`.** The inventory is the right
-set on a **slice** — its rows are exactly what it claims (`brd-format.md` §2.1) — and the wrong set
-on a **split parent**, whose inventory still holds every delegated `[BR#n]`. Generating from the
-inventory alone is therefore correct at one level and silently over-broad at the other. And `claims:`
-is not the test either: a BRD that owns its source document carries no such field, so intersecting
-with it would put nothing in scope at all (`coverage-ledger-format.md` §5). Report the scope in the
+**Read the `disposition` column, not the inventory and not `claims:`.** This slice's own inventory
+already excludes every orphan row `/brd-split`'s parent walk withdrew — the `claims:` entry and the
+copied inventory row are withdrawn together (`coverage-ledger-format.md` §2) — so reading the
+`disposition` column is what keeps that true rather than assuming it: a stale inventory or a
+`claims:` list edited out of step with the ledger would otherwise put a withdrawn row back in scope.
+Report the scope in the
 round record and the final report — how many rows this round covers and how many were left to the
 BRDs that own them, named — so a short round reads as scoped rather than as thin.
 
@@ -830,8 +828,8 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 
 `/brd-interview` never changes a ledger disposition — the line simply reports where allocation
 stands. **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree
-via `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD
-that owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot
+via `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — this run always stands on a slice
+(step 5a already refused a root), so that is always a sibling or the parent (§3); a ledger that cannot
 be read there contributes `unresolved`, never `covered` (§6.2). This adds no precondition and no
 gate: the allocation gate in *Resolve inputs and gate the grounded BRD* is decided on this BRD's own
 rows before any of this, and a non-zero `unallocated` term in the line — a row this BRD delegated to

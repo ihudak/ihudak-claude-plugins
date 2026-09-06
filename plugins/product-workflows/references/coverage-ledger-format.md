@@ -416,20 +416,24 @@ root BRD carries both; requiring both would let a folder left half-written by an
 pass the test and take a PRD authored into it. One of them is already evidence that the BRD route
 touched this folder, which is the only question this test asks.
 
-**It reads no PRD artifact, and that is what lets all four consumers share one rule.** The four are
-`/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a), `/specify` (step s0) and `/epics`
-(step 1a) — read that as a list, not as a count, and re-derive it against the tree rather than
-adjusting it. `/create-prd` cannot test for `prd.md` — it is the run that is about to write it — so
-a test keyed off the PRD's presence would have to be worded differently in `/create-prd` than in the
-other three, and four copies of one rule is the drift this file exists to prevent.
+**It reads no PRD artifact, and that is what lets all eight consumers share one rule.** The eight
+are `/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a), `/specify` (step s0), `/epics`
+(step 1a), `/brd-ground` (step 5a), `/brd-interview` (step 5a), `/brd-package` (step 5a) and
+`/brd-reconcile` (step 5a) — read that as a list, not as a count, and re-derive it against the tree
+rather than adjusting it. `/create-prd` cannot test for `prd.md` — it is the run that is about to
+write it — so a test keyed off the PRD's presence would have to be worded differently in
+`/create-prd` than in the other seven, and eight copies of one rule is the drift this file exists to
+prevent. The four `/brd-*` commands take this test for a different consequence than the first four —
+they refuse to *run at all* against a root, rather than refusing to *author into* one — but the test
+itself, the positive evidence of BRD-ness, is the one this section fixes and is unchanged either way.
 
 **`/epics` is a consumer even though it *can* read `prd.md`, and that is the point.** Its step 1b
 gates on `prd.md`'s own `kind: prd`, which an unprefixed container fails for holding no `prd.md` —
 so an absence test looks sufficient. It is not, because 1b's stop names `/create-prd` as the remedy
 and `/create-prd` takes this test and refuses the same folder as a container: a stop whose remedy
 stops. The container refusal must therefore be taken one step earlier, at 1a, on the same evidence
-the other three use. A rule stated as covering three consumers while a fourth needed it is how that
-dead end shipped.
+`/create-prd`, `/create-ard` and `/specify` use. A rule stated as covering three consumers while a
+fourth needed it is how that dead end shipped.
 
 A prefixed tree never reaches this test at all, exactly as it never reaches `workflows-core:addressing` §5.
 

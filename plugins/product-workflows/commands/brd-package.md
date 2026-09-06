@@ -136,10 +136,9 @@ cannot review, and they will not tell you that — they will review it anyway, b
     nothing.
 
     **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
-    fallback, there is no prefix to test.** Answer the root question by **positive evidence** —
-    `coverage-ledger.md` or `brd/brd-inventory.md` present in the folder, and no `brd-link.md`
-    naming a `parent:` — never by the absence of a file, which would refuse a legacy idea-route PRD
-    folder that carries neither of those two files and is not a BRD at all.
+    fallback, there is no prefix to test.** Answer the root question by **positive evidence, never
+    by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1,
+    the shared authority every consumer of this test takes it from, and not restated here.
 
     On a root, look for the root-level artifacts this run would have produced under the retired
     two-level model — any `bundle-<YYYYMMDD>/`, `customer-review-prompt-<YYYYMMDD>.md` or
@@ -560,7 +559,7 @@ cannot be obtained after all — *review the documents and record in your sectio
 was independently verified; do not skip the review*; and, once, the rule that governs the whole
 session: **read the bundle, write exactly one new file, and modify nothing in the package** (D13).
 
-**Part 6 — Review scope, which is narrower than the inventory on a split parent.** State what this
+**Part 6 — Review scope.** State what this
 BRD is answerable for and what it is not, from `coverage-ledger.md`'s `disposition` column: the rows
 reading `covered-here`, `deferred-to`, `rejected` or `superseded-by` are this package's scope, and a
 row reading `covered-by: <OTHER-KEY>` is **out of it** —
@@ -572,12 +571,6 @@ take and the most expensive one to correct later; putting them in for review get
 requirement answered twice, in two packages, by the same person — the contradiction one `[CD#n]`
 record cannot hold (`${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` §5). Naming them as
 somebody else's is the only reading that is both complete and true.
-
-**Read the `disposition` column, never the inventory alone.** On a **slice** the two agree — its
-inventory is exactly the rows it claims — so the error is invisible there and appears only on a
-**split parent**, whose inventory still holds every row its own walk delegated. And never `claims:`:
-a BRD that owns its source document has no such field, so intersecting with it would report an empty
-scope (`coverage-ledger-format.md` §5).
 
 **Part 4 — Code baselines and the verification procedure.** One row per repository: the repository,
 the commit it is pinned to, and how that pin was verified. Then the three `baseline-integrity`
@@ -988,8 +981,8 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 
 `/brd-package` never changes a ledger disposition — the line simply reports where allocation stands.
 **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
-owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot be
+`resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — this run always stands on a slice
+(step 5a already refused a root), so that is always a sibling or the parent (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). A slice does **not** always reach this with
 nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
 names a sibling under the same parent or that parent and marks an **orphan row** — a provisional

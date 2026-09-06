@@ -4,6 +4,12 @@ Reported by the operator after running the BRD route against a real customer eng
 
 Per **S18**, nothing releases while any of these is open.
 
+**Three design gates, sequenced, all blocking the release under S18:**
+
+1. **Slice-first grounding and interviewing** — `docs/superpowers/specs/2026-09-06-slice-first-grounding-design.md`. Spec approved; implementation plan next. Closes BRD-5 and the per-slice interview package request.
+2. **The sibling re-cut** — that spec's §8. A slice grounding shows is too big hands its deferred rows to a new sibling, by re-pointing `covered-by` against the owner's own `deferred-to`. Own spec, after (1) ships.
+3. **Idea-route grounding** — that spec's §5. Verified `[CG#n]` findings for a PRD folder authored from an idea, which needs a claim source chosen deliberately since there is no `[BR#n]` inventory. Own spec, after (2).
+
 **Status, 2026-09-06.** BRD-1, BRD-2, BRD-3, BRD-4 and BRD-6 are **closed** — see each entry. BRD-5 and the feature request are open and merged into one brainstorm, on the operator's ruling below.
 
 ## BRD-1 — `/brd-split` passes silently when a BRD has indexed frame sets and no design grounding

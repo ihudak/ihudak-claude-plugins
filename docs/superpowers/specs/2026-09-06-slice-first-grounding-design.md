@@ -1,6 +1,6 @@
 # Slice-first grounding and interviewing — design
 
-**Status:** approved in brainstorming, not yet implemented.
+**Status:** approved in brainstorming, not yet implemented. First of three sequenced release gates — this design, then §8's sibling re-cut, then idea-route grounding (§5). Each gets its own spec; all three block the release under S18.
 **Supersedes:** the BRD-5 entry and the per-slice-interview-packages feature request in `docs/superpowers/brd-route-follow-ups.md`. Both are closed by this design rather than by a patch.
 
 ## 1. The problem, restated correctly
@@ -77,7 +77,7 @@ On a folder resolved through the legacy unprefixed fallback there is no prefix t
 
 **Closed by construction.** The per-slice customer interview package request needs nothing built: packages are per-slice because that is the only level, and its "BRD-level should become optional or question-capped" half dissolves. BRD-5's inheritance half likewise disappears — with no root pass there is nothing to inherit, and the operator confirmed they would not return to ground a root after grounding a slice.
 
-**Out of scope, and worth its own spec.** Extending verified grounding to the idea route — so that a PRD folder authored from an idea gets the same `[CG#n]` foundation a slice gets — was raised in the same brainstorming and deliberately excluded. `/brd-ground` builds its claim list from `brd/brd-inventory.md`'s `[BR#n]` rows, and an idea-route folder has none; giving that route grounding means choosing a new claim source, which is a design decision rather than a clause. The two routes are today unequal in exactly this way and it is worth fixing next.
+**Sequenced third, and gating the release.** Extending verified grounding to the idea route — so that a PRD folder authored from an idea gets the same `[CG#n]` foundation a slice gets — was raised in the same brainstorming and deliberately excluded. `/brd-ground` builds its claim list from `brd/brd-inventory.md`'s `[BR#n]` rows, and an idea-route folder has none; giving that route grounding means choosing a new claim source, which is a design decision rather than a clause. The two routes are today unequal in exactly this way. It gets its own brainstorm and spec after §8's, and **gates the release** under S18 alongside them.
 
 ## 6. Risks
 
@@ -100,7 +100,7 @@ The route shipped with the two-level model, so engagements exist whose root BRD 
 
 **Decided: the second.** The four refusals detect root-level artifacts where they exist and say the level moved rather than reporting the key as wrong; the root's findings are abandoned in place and never deleted, since they record work done.
 
-## 8. Open decision — a slice that grounding shows is too big
+## 8. Release gate, sequenced second — a slice that grounding shows is too big
 
 Under this design a slice is carved before it is ground, so "this slice is larger than one deliverable" becomes a **normal** discovery rather than an edge case. The route has no answer to it today, and three separate rules each independently block the obvious one:
 
@@ -125,4 +125,4 @@ Four properties make this the right shape rather than a loophole:
 
 The one-level nesting cap is untouched: this creates a sibling, never a child, so nothing about the cap needs revisiting. That is worth stating because "split a slice" and "carve a sibling for part of a slice" sound alike and only the second is reachable without touching a deliberate invariant.
 
-**Still an open decision, not part of this design.** It changes an allocation rule three commands read, so it wants its own brainstorm and its own spec — but it is the cheap path, and §8 exists so that the next person does not reach for the nesting cap first.
+**Not part of this design, and not optional.** It changes an allocation rule three commands read, so it gets its own spec — brainstormed and written after this one is implemented, and **gating the release** under S18 exactly as the defect ledger does. It is the cheap path, and this section exists so that whoever picks it up does not reach for the nesting cap first.

@@ -631,6 +631,11 @@ Act on the verdict (same shape as `/document` keyed mode Phase 7):
   ```
   choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run"]
   ```
+  "Manual fix notes" → take free-text from the user, then apply it via `doc-fixer`
+  (`subagent_type: "workflows-core:doc-fixer"`) in a bounded one-shot pass, with no further
+  re-review cycle — the same resolution `/document`'s identical option takes. Stating it is not
+  redundant: every other option in this array has a resolution line and this one had none, so an
+  operator who picked it reached undefined behaviour.
   For `/epics`, "Defer" means the finding goes into an Epic-refinement note in the draft itself (appended as a `## Refinement notes` section) in addition to the Phase 9 report.
 
 - **PASS WITH RECOMMENDATIONS** — invoke `doc-fixer` for MAJOR findings only:

@@ -144,11 +144,11 @@ each of those three also has a keyed form that this route never uses.
 | Command | Required | Optional | Notes |
 |---|---|---|---|
 | `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>`, `--no-docs` | Source must already be markdown — a PDF or similar is rejected, never converted. `<BRD-KEY>` names a folder, never a tracker ticket |
-| `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-design`, `--no-docs` | Runs at either level — a BRD with a source document, or a slice. Needs `$REPOS_PATH` mounted; read-only against every repository it touches |
+| `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-code`, `--no-design`, `--no-docs` | Runs at either level — a BRD with a source document, or a slice. Needs `$REPOS_PATH` mounted; read-only against every repository it touches |
 | `/brd-split` | `<BRD-KEY> [<instruction>]` | — | No flags. The optional trailing prose seeds the grouping and the walk's recommendation; it decides nothing. Walks every unallocated row to a fate at either level; on a slice, allocate-only |
 | `/brd-interview` | `<BRD-KEY>` | `--round N` | Rounds are numbered, permanent and resumable. No flag continues at the first question with no terminal disposition; `--round N` resumes an open round, or re-opens a closed one with its cause recorded |
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Repeatable, and any key at either level is admissible; a mistyped one is warned and dropped, never fatal. Each prerequisite's own package is copied into the bundle, marked *not for re-review* |
-| `/brd-reconcile` | `<BRD-KEY> @<review-file>` | — | The review is taken at whatever path it arrived on, inside `$SPECS_PATH` or not, and is never searched for: the operator names the file, because one this command picked is one nobody submitted |
+| `/brd-reconcile` | `<BRD-KEY> @<review-file>` | `--sent <path>…` | The review is taken at whatever path it arrived on, inside `$SPECS_PATH` or not, and is never searched for: the operator names the file, because one this command picked is one nobody submitted |
 | `/create-prd` | `<SLICE-KEY>` | `--lean`/`--hybrid`/`--full`, `--no-docs`, `@<idea.md>` | A `BRD-` container is refused. Otherwise offered only where the slice's own claimed rows leave none `unallocated` and one `covered-here`. Profile defaults to `--full`; `--from-prd` accepted |
 | `/create-ard` | `<SLICE-KEY>` | `--no-docs` | A `BRD-` container is refused. Otherwise offered on any advancing slice run: it gates the slice's `prd.md` as the idea route does, reads no ledger. One address (`CREATE_ARD_ONE_ADDRESS`) |
 | `/specify` | `<SLICE-KEY>` | `--no-docs` | A `BRD-` container is refused. Otherwise offered on the same terms as `/create-ard`. One address; a second token stops it (`SPECIFY_ONE_ADDRESS`) |
@@ -195,7 +195,7 @@ specifications/BRD-<BRD-KEY>-<slug>/
 ├── grounding/
 │   ├── baselines.md             # one dated entry per pinned repository, /brd-ground
 │   ├── code-grounding.md        # [CG#n] findings, /brd-ground
-│   └── design-grounding.md      # [DG#n] findings, /brd-ground (skipped or noted with --no-design)
+│   └── design-grounding.md      # [DG#n] + ## Frame sets covered, /brd-ground (always written)
 ├── design/                      # exported frame sets — one subdirectory each, images + an index
 │   └── <frame-set>/             # what /brd-ground Phase 5 reads; no index means it is not read
 ├── brd-link.md                  # depends-on / parent-child links, /brd-ground, /brd-split, /brd-package
@@ -209,6 +209,7 @@ specifications/BRD-<BRD-KEY>-<slug>/
 ├── customer-delivery-note-<date>.md   # the covering letter — the email, not a bundle document, /brd-package
 ├── bundle-<date>/               # the de-Obsidianised bundle actually sent, /brd-package
 ├── customer-review-<date>.md    # the returned review, copied in byte for byte, /brd-reconcile
+├── customer-sent-<date>/        # what the customer was sent, --sent runs only, /brd-reconcile
 ├── reconciliation-<date>.md     # what the review changed and what still needs a human, /brd-reconcile
 ├── dev-workflows/                # session bookkeeping: resume pointer, feedback, cost entries
 └── PRD-<CHILD-KEY>-<child-slug>/ # a slice /brd-split confirmed — where its PRD, ARD and spec are authored

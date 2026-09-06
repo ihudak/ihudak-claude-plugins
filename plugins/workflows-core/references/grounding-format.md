@@ -48,7 +48,8 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 | `altitude` | one of `product \| architecture \| implementation` |
 | `horizon` | one of `current \| will-change` (§5), naming the prerequisite decision when `will-change` |
 | `class` | *(design-grounding only)* one of the four `[DG#n]` reconciliation classes defined in §6; absent on a `[CG#n]` |
-| `cites` | *(design-grounding only)* a `[CG#n]` id; required when `class` is the fourth (§6) and empty otherwise; absent on a `[CG#n]` |
+| `cites` | *(design-grounding only)* a `[CG#n]` id; required when `class` is the fourth (§6), **omitted** on a `[DG#n]` of class 1, 2 or 3 (§2.1 — never written empty), absent on a `[CG#n]` |
+| `prerequisite` | the prerequisite decision this finding's horizon turns on; **required when `horizon` is `will-change`, omitted otherwise** (§5). Both grounder agents emit it, so it is a field of the record rather than a phrase inside `horizon`'s |
 | `consumed_by` | one of `PRD \| ARD \| specification \| none` — which downstream artifact has actually drawn on this finding; `none` until something has |
 
 `class` and `cites` apply only to `[DG#n]` findings — a `[CG#n]` finding carries neither. See §6 for
@@ -94,8 +95,11 @@ So, canonically:
   indentation, and no blank line inside a block. `outcome` (§8) and any verifier `notes` follow the
   §2 fields, in that order, where the run that wrote the block had them.
 - **A field that does not apply is omitted, never written empty** — `class` and `cites` on a
-  `[CG#n]`, `commit` on a `[DG#n]` of class 1, 2 or 3. An empty value asserts that the field applies
-  and its value is unknown, which is a different claim from the field not applying.
+  `[CG#n]`, `cites` on a `[DG#n]` of class 1, 2 or 3, `commit` on a `[DG#n]` of class 1, 2 or 3, and
+  `prerequisite` on any finding whose `horizon` is `current`. An empty value asserts that the field
+  applies and its value is unknown, which is a different claim from the field not applying. §2's
+  `cites` row said "empty otherwise" until this section was written; the two rules met head-on for
+  forty-five lines, and §2 was the one corrected.
 
 ```
 - id: [CG#12]
@@ -110,6 +114,14 @@ So, canonically:
   consumed_by: none
   outcome: agree
 ```
+
+**A relation over these records fails when either side comes up empty.** A reader that resolves
+findings against something else — an inventory, a directory listing, a section of another file — and
+finds nothing on one side has learned that its read failed, not that the tree is clean. Report it as
+a failure. This is the same rule `check-docs.sh` states for its own build-time checks, and it is
+stated here because the runtime gates over these artifacts need it and had nowhere to cite: a gate
+that counts findings is satisfied by zero findings, which is how a BRD with no design grounding at
+all once passed `/brd-split`.
 
 **The reading rule does not go away once the writer is fixed.** Findings already on file were
 written before this section existed, and a hand-edited artifact is sanctioned everywhere else on

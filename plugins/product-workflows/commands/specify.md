@@ -530,7 +530,7 @@ folder does hold. Then:
 
 **Absence is reported, never a stop, and the seed's absence is the ordinary case.** Nothing on the
 normal route writes a seed file at all (above), so a reconciled BRD routinely holds none; and a BRD
-ground with `--no-design` holds no `design-grounding.md`. Say which of the four were absent — a reader cannot tell an unwritten file from
+ground with `--no-design` still holds a `design-grounding.md` — `/brd-ground` Phase 8 writes it on every run, carrying a note saying the pass was skipped and why, plus a `## Frame sets covered` census of the `design/` subdirectories on disk. Absent means the file is not there at all, never that design grounding was declined. Say which of the four were absent — a reader cannot tell an unwritten file from
 an unread one — and carry what is there.
 
 **No `idea.md` is written on this route.** Step B writes one as pre-spec provenance derived from the

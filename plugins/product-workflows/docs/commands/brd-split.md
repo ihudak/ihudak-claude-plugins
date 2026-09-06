@@ -153,7 +153,10 @@ reads was already independently verified by `/brd-ground`'s own agents.
   is vacuously satisfied by an empty set and this gate once shipped as the count alone — a BRD with
   two indexed frame sets and no design grounding at all passed it, and its slices could reach build
   with their designs never reconciled. A `code-grounding.md` that is on main but records no `[CG#n]`
-  stops with `BRD_SPLIT_NO_FINDINGS`. A **design/** subdirectory that no entry in
+  stops with `BRD_SPLIT_NO_FINDINGS`. Where the folder's **design/** holds any frame set, `design-grounding.md` must itself be on the
+  default branch — the run executes `require-on-main` against it rather than trusting the code
+  gate's single-commit implication, which `/brd-ground --no-code` breaks by design. A **design/**
+  subdirectory that no entry in
   `design-grounding.md`'s frame-set list covers — absent from it, or listed as having no index —
   stops with `BRD_SPLIT_DESIGN_NOT_GROUND`, which names `/brd-ground <KEY> --no-code` as the repair
   so the missing design pass can be added without re-deriving verified code findings. A set the

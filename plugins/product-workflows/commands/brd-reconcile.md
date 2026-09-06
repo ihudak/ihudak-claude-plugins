@@ -192,8 +192,14 @@ write would re-ask a question already answered.
      where it would have passed, stop rather than admitting a second answer to "what did the
      customer see":
      `BRD_RECONCILE_SENT_REDUNDANT: <BRD-KEY> already has a handed-off customer package (customer-review-prompt-<YYYYMMDD>.md on <default-ref>) — drop --sent and re-run '/product-workflows:brd-reconcile <KEY> @<review-file>', which reconciles against the package that was built.`
-     Where the ordinary gate would have stopped — either row-F state, or any stopping row of §3.7 —
-     `--sent` proceeds instead of stopping. That is the whole of what it overrides.
+     **"Would have passed" means §3.7 returned `pass` or `pass_amending`, and nothing else.** Those
+     two are the states in which a package genuinely reached the default branch, which is what makes
+     `--sent` redundant. `unmanaged` does **not** count: it is the hand-committed path this step's own
+     sibling-verification paragraph singles out as the one whose implication does not hold, so a
+     prompt found there proves less than the flag supplies and the two are not interchangeable —
+     proceed with `--sent`, and record both facts. Where the ordinary gate would have stopped —
+     either row-F state, or any stopping row of §3.7 — `--sent` proceeds instead of stopping. That is
+     the whole of what it overrides.
    - **The admission is recorded, never silent.** Carry it into the *Write the reconciliation
      record* phase and the final report: this run reconciled against operator-supplied sent
      material, named path by path, not against a package this plugin built and handed off. A reader
@@ -251,14 +257,24 @@ write would re-ask a question already answered.
    `${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` §5 already own, and the copies would
    eventually disagree. Where the ledger is read at all, the **dispositions in the file** are read
    and never the ledger line, for the reason that section gives.
-8. **Read the inputs the rest of the run works from**, all from the gated folder: `decisions.md`
+8. **Read the inputs the rest of the run works from**, from the resolved folder — **"the gated
+   folder" on the ordinary path; on a `--sent` run the folder was never gated, and step 6 says what
+   stood in for that**: `decisions.md`
    (every `[VD#n]` and `[AS#n]` with its `status`, `evidence`, `argumentation`, `conditional_on`,
    `altitude` and `round`); `interview/customer-questions.md` and every `interview/round-<N>.md`, so
    each `[C]` is addressed by the round and position that identify it
    (`interview-tagging.md` §5 — a question mints no identifier of its own); the most recent
    `self-review-<YYYYMMDD>.md`, for the `[SR#n]` ids an `escalated-to-customer` disposition put in
    front of the customer; `customer-review-prompt-<YYYYMMDD>.md` and the manifest of
-   `bundle-<YYYYMMDD>/`, so a review's document reference resolves to what was actually sent;
+   `bundle-<YYYYMMDD>/`, so a review's document reference resolves to what was actually sent —
+   **or, on a `--sent` run, the files under `customer-sent-<YYYYMMDD>/` in their place**, read here by
+   name exactly as the bundle manifest is. They are what was actually sent on that path, and
+   resolving a returned quotation against them is the entire reason the flag commits them; without
+   this substitution the material would be committed and then handed to nothing. **A `--sent` run has
+   no `self-review-<YYYYMMDD>.md` and no `customer-review-prompt-<YYYYMMDD>.md`**, so it resolves no
+   `[SR#n]` and matches no prompt: record both absences as limits on what this run could check the
+   review against — the same treatment a missing sibling gets on the ordinary path — and stop on
+   neither;
    `brd/brd-inventory.md`'s `[BR#n]` rows; `coverage-ledger.md`; `brd-link.md`; every verified
    `[CG#n]`/`[DG#n]` with its `horizon`; and, when this is not the first reconciliation, every
    earlier `reconciliation-<YYYYMMDD>.md` and every earlier canonicalised review. Every one of those
@@ -390,34 +406,8 @@ path nobody else can reproduce; the copy is the record.
    claiming the register carries it — the *Confirm every candidate* phase's skip rule keys on
    "an earlier pass over **this same review**", and the only place that mapping exists is the
    record this phase's canonical name feeds into.
-4. **Hand it off.** Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — the **advisory** array, which is the class §4.0 puts the returned review in: read (by this run's own reader dispatch, and by a later run's step-2 overwrite refusal) and gated by nothing, since §3.4's row for this command targets the *sent prompt* rather than the returned review. That is the same fact the *Declining does not stop the ingest* paragraph below states, and the gated array contradicted it in the operator's own prompt.
-   ```
-   choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (no command stops on this; what reads it reads your working copy)", "Cancel"]
-   ```
-   On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's
-   table, where `brd` is the prefix every `/brd-*` command shares), `feature_folder` as resolved in
-   the *Resolve inputs and gate the sent package* phase, `deliverable_paths` = the canonicalised
-   review at the name step 2 resolved, plus `customer-sent-<YYYYMMDD>/` where step 5 wrote one, and
-   `title: <BRD-KEY> Record the returned customer review <YYYYMMDD>`. Emit its
-   §4.1 outcome line in the final report, labelled as the review's handoff so it is not confused with
-   the run's own.
-
-   **This is the first of two `handoff-to-main` calls in this run, and they are two different
-   questions.** This one hands off **the customer's document**; the *Handoff* phase near the end
-   hands off **what this run decided about it**. The second reuses the branch this one created —
-   §2.2's rule 3 resolves an in-progress branch of the caller's own prefix by reusing it rather than
-   colliding with it, and §3.3's row B names a branch "created earlier in the same invocation via
-   this caller's own `handoff-to-main`" as an anticipated state.
-
-   **Declining does not stop the ingest.** Options 2 and 3 both decline the handoff (§4.3), the copy
-   stays written, and the run proceeds — the copy-before-ingest ordering this phase exists for is
-   satisfied by the copy, and what a decline costs is the push, which the run's own handoff offers
-   again with this file still first in `deliverable_paths`. Refusing to ingest here would leave an
-   operator holding a review this plugin will not process until they run git themselves, which is
-   precisely the wrong place to put a wall in a workflow whose whole shape is a human in the loop.
-
-5. **Copy the `--sent` material, where the flag was given** — under the same ordering rule and into
-   the same commit, because it is the other half of the pair and is admissible only as a committed
+4. **Copy the `--sent` material, where the flag was given** — **before** the handoff below, under the
+   same ordering rule and into the same commit, because it is the other half of the pair and is admissible only as a committed
    copy (the *Resolve inputs and gate the sent package* phase says why). Ask the operator, in plain
    text, for the date this material was sent — nothing on disk asserts it, exactly as nothing
    asserted the review's date at step 1's third rung — then copy every `--sent` path **verbatim**
@@ -439,6 +429,36 @@ path nobody else can reproduce; the copy is the record.
    equal or precede the review's date; it is not checked against it, because a send that predates
    the plugin has no record to check against and inventing one would be the failure this whole
    admission exists to avoid.
+
+5. **Hand it off.** Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — the **advisory** array, which is the class §4.0 puts the returned review in: read (by this run's own reader dispatch, and by a later run's step-2 overwrite refusal) and gated by nothing, since §3.4's row for this command targets the *sent prompt* rather than the returned review. That is the same fact the *Declining does not stop the ingest* paragraph below states, and the gated array contradicted it in the operator's own prompt.
+   ```
+   choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (no command stops on this; what reads it reads your working copy)", "Cancel"]
+   ```
+   On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's
+   table, where `brd` is the prefix every `/brd-*` command shares), `feature_folder` as resolved in
+   the *Resolve inputs and gate the sent package* phase, `deliverable_paths` = the canonicalised
+   review at the name step 2 resolved, plus — where step 4 wrote any — **every file beneath
+   `customer-sent-<YYYYMMDD>/`, one literal repo-relative path each, never the directory**. §2.3
+   stages by enumeration and classifies anything it was not handed as OTHER, so a declaration naming
+   the folder looks complete and ships nothing; `/brd-intake`'s handoff spells out the same trap.
+   Step 4 held that list as it copied — pass it unchanged. Then
+   `title: <BRD-KEY> Record the returned customer review <YYYYMMDD>`. Emit its
+   §4.1 outcome line in the final report, labelled as the review's handoff so it is not confused with
+   the run's own.
+
+   **This is the first of two `handoff-to-main` calls in this run, and they are two different
+   questions.** This one hands off **the customer's document**; the *Handoff* phase near the end
+   hands off **what this run decided about it**. The second reuses the branch this one created —
+   §2.2's rule 3 resolves an in-progress branch of the caller's own prefix by reusing it rather than
+   colliding with it, and §3.3's row B names a branch "created earlier in the same invocation via
+   this caller's own `handoff-to-main`" as an anticipated state.
+
+   **Declining does not stop the ingest.** Options 2 and 3 both decline the handoff (§4.3), the copy
+   stays written, and the run proceeds — the copy-before-ingest ordering this phase exists for is
+   satisfied by the copy, and what a decline costs is the push, which the run's own handoff offers
+   again with this file still first in `deliverable_paths`. Refusing to ingest here would leave an
+   operator holding a review this plugin will not process until they run git themselves, which is
+   precisely the wrong place to put a wall in a workflow whose whole shape is a human in the loop.
 
 **Everything below reads the canonicalised copy and never the supplied path.** The agent is given
 the copy, the register cites the copy, and the reconciliation record names the copy. The original is
@@ -764,7 +784,8 @@ Any row still undisposed when this phase would end → stop:
    authority behind it, so it is the one more likely to be exercised and the worse one to leave open.
 2. **A dated snapshot** — `self-review-<YYYYMMDD>.md`, `customer-review-prompt-<YYYYMMDD>.md`,
    `customer-delivery-note-<YYYYMMDD>.md`, `interview/round-<N>.md`, anything under
-   `bundle-<YYYYMMDD>/`, an earlier `reconciliation-<YYYYMMDD>.md`. **Never rewritten.** The next
+   `bundle-<YYYYMMDD>/` or under `customer-sent-<YYYYMMDD>/`, an earlier
+   `reconciliation-<YYYYMMDD>.md`. **Never rewritten.** The next
    phase says what happens instead and why.
 3. **`brd/source/`** — the customer's own document. **Never touched at all** (D11). A correction to
    the source is a defect resolution beside it, which the *Resolve the defects the review settled*

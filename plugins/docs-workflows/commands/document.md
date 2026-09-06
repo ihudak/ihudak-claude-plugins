@@ -34,7 +34,7 @@ is clean and on its default branch. If a guard fires, emit its §5 notice;
 if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
 run — the terminal `commit-artifacts` step skips on it.
 
-Echo the detected mode, then proceed to that mode's phases. The two modes share the same two fixing agents — `docs-workflows:docs-style-checker` and `workflows-core:doc-fixer`, which ship from different plugins and are dispatched by their qualified `subagent_type` everywhere below; only Keyed mode also runs `doc-reviewer` (each mode emits its own final report).
+Echo the detected mode, then proceed to that mode's phases. The two modes share the same style pass and the same fixer — `docs-workflows:docs-style-checker`, which reports and never modifies a file, and `workflows-core:doc-fixer`, which applies what it reports; the two ship from different plugins and are dispatched by their qualified `subagent_type` everywhere below; only Keyed mode also runs `doc-reviewer` (each mode emits its own final report).
 
 ---
 

@@ -104,18 +104,27 @@ repo:   <short repo name — the basename of repo_path>
 repo_path: <absolute path as received>
 commit: <the resolved commit this run grounded against>
 findings:
-  - id:       CG#<n>
-    claim:    <BR#n> — <the claim text as given>
-    verdict:  CONFIRMED | AMENDED | REWRITTEN | FALSE-FRIEND | NOT-PROVABLE | SUPERSEDED
+  - id: CG#<n>
+    claim: <BR#n> — <the claim text as given>
+    verdict: CONFIRMED | AMENDED | REWRITTEN | FALSE-FRIEND | NOT-PROVABLE | SUPERSEDED
     evidence:
-      - path:  <relative to repo_path>
+      - path: <relative to repo_path>
         lines: [<1-based line numbers>]   # omit only when the evidence is a whole-file read
-        note:  <what this line actually shows, and how it bears on the claim>
-    commit:    <same resolved commit as above — every finding is pinned individually>
-    altitude:  product | architecture | implementation
-    horizon:   current | will-change
-    prerequisite: <named prerequisite decision — only present when horizon is will-change>
+        note: <what this line actually shows, and how it bears on the claim>
+    commit: <same resolved commit as above — every finding is pinned individually>
+    altitude: product | architecture | implementation
+    horizon: current | will-change
+    prerequisite: <the prerequisite decision the horizon turns on — omit entirely when horizon is current>
     consumed_by: none
+```
+
+**Emit the key/value shape above exactly** — one space after every colon, never alignment
+padding, keys in this order, and an inapplicable field omitted rather than written empty. That is
+`workflows-core:grounding-format` §2.1, and it is the caller's on-disk contract as well as this
+agent's: a run that aligned one batch's keys and not the next produced a `code-grounding.md` whose
+scan reported 140 findings missing that were on the page.
+
+```yaml
 notes: |
   <optional — anything the caller should know: a claim that touched a false-friend name,
   a claim whose search budget was exhausted, an ambiguity in how a claim was interpreted>

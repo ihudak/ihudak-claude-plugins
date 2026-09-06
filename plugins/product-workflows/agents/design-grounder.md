@@ -118,28 +118,31 @@ status: OK | INPUT_MISSING | FRAME_SET_MISSING | NO_INDEX | STALE_INDEX
 frame_set_dir: <absolute path as received>
 index_file: <relative path to the index file found>
 findings:
-  - id:      DG#<n>
-    class:   1 | 2 | 3 | 4
-    claim:   <BR#n> — <the requirement text>, or "none — frame-only" for a class-1 finding with
-             no corresponding requirement
+  - id: DG#<n>
+    claim: <BR#n> — <the requirement text>, or "none — frame-only" for a class-1 finding with no corresponding requirement
     verdict: CONFIRMED | AMENDED | REWRITTEN | FALSE-FRIEND | NOT-PROVABLE | SUPERSEDED
     evidence:
       - path: <relative path to the frame image, per the index>
         note: <what the frame actually shows, and how it diverges from the BRD text>
-    cites:     <CG#n>          # shape and when-required fixed by grounding-format.md §2 — never
-                                # spelled out here
-    commit:    <per grounding-format.md §2 — class 4 only, and it is the cited [CG#n]'s own.
-                                # OMIT the field entirely on a class-1/2/3 finding: it is settled
-                                # from the frame set and the BRD text and is pinned to no commit,
-                                # and a commit supplied here sends it down the verifier's code row>
-    altitude:  product | architecture | implementation
-    horizon:   current | will-change
-    prerequisite: <named prerequisite decision — only present when horizon is will-change>
+    commit: <class 4 only, and it is the cited [CG#n]'s own. OMIT the field entirely on a class-1/2/3 finding: it is settled from the frame set and the BRD text, is pinned to no commit, and a commit supplied here sends it down the verifier's code row>
+    altitude: product | architecture | implementation
+    horizon: current | will-change
+    class: 1 | 2 | 3 | 4
+    cites: <CG#n — class 4 only; OMIT entirely on class 1, 2 or 3, never write it empty>
+    prerequisite: <the prerequisite decision the horizon turns on — omit entirely when horizon is current>
     consumed_by: none
 notes: |
   <class-4 gaps deferred for lack of a settling [CG#n]; ambiguous index entries; anything else
   the caller should know>
 ```
+
+**Emit the key/value shape above exactly** — one space after every colon, never alignment padding,
+**keys in this order**, and an inapplicable field omitted rather than written empty. That order is
+`workflows-core:grounding-format` §2's table, and the shape is its §2.1: the caller transcribes what
+this agent returns straight into `design-grounding.md`, so a template that aligns some keys and not
+others is what produces a file whose scan reports findings missing that are on the page. `class` and
+`cites` sit after `horizon` for that reason and not for emphasis — they were first in this template,
+which put every `[DG#n]` on disk in a different key order from every `[CG#n]` beside it.
 
 - `status: OK` — the frame set was indexed and every requirement/frame was reconciled, including a
   run that produced zero findings because everything agreed.

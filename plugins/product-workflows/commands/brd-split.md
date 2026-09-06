@@ -100,7 +100,7 @@ four-resolution one.
    before anything else reads a file. Execute it against the resolved BRD folder's
    `grounding/code-grounding.md` — every deliverable a `handoff-to-main` run stages lands in one
    commit (§2.3), so this file's presence on `origin/<default>` implies `grounding/design-grounding.md`
-   and `brd-link.md` merged with it; and since `/brd-ground` Phase 0 step 6 already required
+   and `brd-link.md` merged with it; **That implication holds for a full `/brd-ground` run and not for a `--no-code` one**, whose `deliverable_paths` is `grounding/design-grounding.md` alone and lands in its own later commit — so a BRD can legitimately have `code-grounding.md` merged and `design-grounding.md` on no ref at all. Anything reading the design findings gates them separately rather than inheriting this sentence. and since `/brd-ground` Phase 0 step 6 already required
    `coverage-ledger.md` on `origin/<default>` before grounding itself would run, it also implies
    `/brd-intake`'s ledger was on main before this BRD was ever grounded. Map the §3.7 return by
    `stopped` first: any stopping row → stop, naming the concrete branch/PR state it reports;
@@ -134,26 +134,50 @@ four-resolution one.
       same state one commit later:
       `BRD_SPLIT_NO_FINDINGS: <BRD-KEY>'s grounding/code-grounding.md is on main but records no [CG#n] finding — re-run '/product-workflows:brd-ground <BRD-KEY>' and merge its handoff before splitting.`
 
-   b. **Design grounding covers every frame set on disk.** List every immediate subdirectory of
-      `<BRD-dir>/design/` — the reserved location (`workflows-core:grounding-format` §6.1). **None,
-      or no `design/` folder → this test is satisfied**, and says so in the final report rather than
-      passing silently. One or more → read `grounding/design-grounding.md`'s `## Frame sets covered`
-      section (`/brd-ground` Phase 8 writes one entry per subdirectory on disk, covered or not) and
-      resolve each subdirectory against the names it records:
-      - **The file is absent, or its `## Frame sets covered` section is** → stop. This is the
-        reported state: designs on disk, nothing reconciled against them.
-      - **The section is present and records no set, while `design/` holds one** → stop with the
-        same message, naming the parse. An empty relation here is a read that learned nothing, not a
-        clean tree — §2.1's reading rule, applied to a runtime gate.
+   b. **Design grounding covers every frame set on disk, and is on main.** List every immediate
+      subdirectory of `<BRD-dir>/design/` in the worktree — the reserved location
+      (`workflows-core:grounding-format` §6.1). **None, or no `design/` folder → this test is
+      satisfied**, and says so in the final report rather than passing silently. **That emptiness is
+      the whole of the condition**: a BRD with no exported frame set has no design grounding to
+      require, which is what keeps this test inside `workflows-core:phase-handoff` §5 rule 3 (a gate
+      may not promote an optional input into a prerequisite) — see §3.4's conditional `/brd-split`
+      row, which declares the promotion for the case where frame sets do exist.
+
+      One or more subdirectories → **execute `require-on-main`** (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3)
+      against `<BRD-dir>/grounding/design-grounding.md` before reading it. **Step 6's implication
+      does not reach this file and must not be borrowed for it.** Step 6 gates `code-grounding.md`
+      and infers its siblings from "every deliverable a `handoff-to-main` run stages lands in one
+      commit" — true of a full `/brd-ground` run and **false of a `--no-code` one**, whose
+      `deliverable_paths` is `design-grounding.md` alone, handed off in its own later commit. Without
+      this gate the repair this very test recommends would produce the state the test exists to
+      catch: an operator runs `--no-code`, declines the handoff, and the split reads their working
+      copy and passes. Map the §3.7 return by `stopped` first: any stopping row → stop, naming the
+      branch/PR state; `pass` → proceed; `pass_amending` → proceed, printing the §3.3 row-B message;
+      `unmanaged` → proceed; `absent` (row F) → stop with the message below.
+
+      Then read that merged file's `## Frame sets covered` section (`/brd-ground` Phase 8 writes one
+      entry per subdirectory on disk, covered or not) and resolve each subdirectory against it:
+      - **The file is absent, or `require-on-main` returned row F** → stop. Designs on disk, and
+        nothing reconciling them on main.
+      - **The file is present and carries no `## Frame sets covered` section at all** → this BRD was
+        ground **before that section existed**, not left unground. Do not stop: if the file records
+        at least one `[DG#n]`, or a note saying design grounding was skipped and why, pass — and
+        record in the final report that per-set coverage could not be checked for this BRD, naming
+        why. If it records neither, stop with the message below. Stopping every BRD ground before
+        this release would send each of them into a `--no-code` re-run that re-derives design
+        grounding they already hold.
+      - **The section is present and records no set, while `design/` holds one** → stop with the same
+        message, naming the parse. An empty relation fails rather than passes
+        (`workflows-core:grounding-format` §2.1) — a read that learned nothing is not a clean tree.
       - **A subdirectory is absent from the recorded set, or recorded `skipped: no index`** → stop,
         naming each such set. The second is a set `/brd-ground` could not reconcile, which is
         unreconciled by a different route to the same place.
-      - **Recorded `ground`, or `skipped: --no-design`** → passes. The second is an operator
-        decision taken per run, not an inability, so it is honoured — but it is carried into the
-        final report and into `slices.md` as a recorded limit on what this split was able to check,
-        because it is the one way a slice can still reach build with a frame set unreconciled.
+      - **Recorded `ground`, or `skipped: --no-design`** → passes. The second is an operator decision
+        taken per run, not an inability, so it is honoured — but it is carried into the final report
+        and into `slices.md` as a recorded limit on what this split was able to check, because it is
+        the one way a slice can still reach build with a frame set unreconciled.
 
-      `BRD_SPLIT_DESIGN_NOT_GROUND: <BRD-KEY> has frame sets on disk that no design grounding covers (<names>) — re-run '/product-workflows:brd-ground <BRD-KEY> --no-code' to ground them without re-deriving the code findings already on file. Where a set is listed as having no index, run '/workflows-core:frames <BRD-KEY>' first, which writes the index that lets the set be reconciled at all.`
+      `BRD_SPLIT_DESIGN_NOT_GROUND: <BRD-KEY> has frame sets on disk that no design grounding on main covers (<names>) — re-run '/product-workflows:brd-ground <BRD-KEY> --no-code' to ground them without re-deriving the code findings already on file, and accept its handoff. Where a set is listed as having no index, run '/workflows-core:frames <BRD-KEY>' first, which writes the index that lets the set be reconciled at all.`
 
    c. **Every finding carries a verifier outcome.** Every `[CG#n]`/`[DG#n]` finding carries one (of
    the four in `workflows-core:grounding-format` §8 — `agree`, `extend`,

@@ -171,7 +171,7 @@ An input that is not required is still honoured when given; it is never silently
 ## Output
 
 ```yaml
-status:  OK | INPUT_MISSING | REPO_MISSING | FRAME_SET_MISSING | NO_INDEX | COMMIT_MISMATCH
+status:  OK | INPUT_MISSING | REPO_MISSING | FRAME_SET_MISSING | NO_INDEX | STALE_INDEX | COMMIT_MISMATCH
 finding_id: <CG#n> | <DG#n>
 outcome: agree | extend | contradict | unprovable
 own_verdict: CONFIRMED | AMENDED | REWRITTEN | FALSE-FRIEND | NOT-PROVABLE | SUPERSEDED
@@ -196,6 +196,16 @@ notes: |
 - `status: NO_INDEX` — `frame_set_dir` held no index file; no re-derivation performed. The caller
   decides whether to export or name one — this agent never guesses at frame identity, exactly as
   `design-grounder` does not.
+- `status: STALE_INDEX` — an index was present but not one of its rows named a frame still in the
+  directory; no re-derivation performed. Re-deriving a `[DG#n]` against an index whose frames are all
+  gone would settle the claim against nothing while looking like a completed check, which is the one
+  outcome worse than refusing. This is the same state `product-workflows:design-grounder` reports
+  under the same name, met from the other side: that agent finds it while building the finding, this
+  one while re-deriving it, and a frame set can go stale in between. **The caller's remedy differs
+  from `NO_INDEX`'s and the difference matters** — here the index and its descriptions are intact and
+  the *frames* are missing, so re-running `/workflows-core:frames` writes nothing
+  (`workflows-core:grounding-format` §6.2 step 6 forbids it) and naming it would send the operator to
+  a no-op. Name the missing frames instead.
 - `status: COMMIT_MISMATCH` — `HEAD` did not resolve to `finding.commit`; no re-derivation
   performed. The caller decides whether to re-pin and retry — this agent never moves the repository.
 

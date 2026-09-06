@@ -107,7 +107,8 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
 - **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the one
   level below it — stops with `BRD_RECONCILE_NOT_FOUND`, which names both ways a folder comes to
   exist rather than asserting one.
-- **A package already handed off to the specs repo's default branch.** `require-on-main` runs against
+- **A package already handed off to the specs repo's default branch — or `--sent` in its place.**
+  `require-on-main` runs against
   the most recent `customer-review-prompt-<date>.md` before anything else is read, and an unmerged
   pull request stops the run naming the branch/PR state. The gate is the prompt rather than the
   register because the committed package is what makes a quotation in the returned review checkable
@@ -174,8 +175,8 @@ unmatched row can be told apart from a question set nobody passed.
 
 ## Gates
 
-- **Phase 0 — the package merged.** Reconciling against a package that exists only in a working tree
-  would freeze customer authority against a document nobody can produce later. Allocation and the
+- **Phase 0 — the package merged, or `--sent` supplying it.** Reconciling against a package that exists only in a working tree
+  would freeze customer authority against a document nobody can produce later. `--sent` meets that same requirement from the other direction, by committing the material the customer was actually sent into the folder beside the review; it is refused where a handed-off package already exists. Allocation and the
   interview rounds are **not** re-gated: both were gated upstream, and a second differently-worded
   copy of either rule would eventually disagree with the first.
 - **Phase 2 — the date is derived from the review, not from the package.** The ladder reads the
@@ -376,7 +377,7 @@ The date in the name is the reviewer's own — `EPIC-008` was **packaged** on 15
 came back finished on the 22nd — which is what makes the filename rung usable here. Had the reviewer
 returned the file still carrying the packaging date, the run would have rejected that rung and asked.
 
-The run gates on the package being merged, copies the file to `customer-review-20260422.md` and
+The run gates on the package being merged — the ordinary path, where a review answering a hand-authored package takes `--sent` instead — copies the file to `customer-review-20260422.md` and
 offers to commit it, dispatches `customer-review-reader`, surfaces every schema anomaly before
 anything is confirmed, walks each candidate against its verbatim quotation, freezes the confirmed
 answers as `[CD#n]` and closes their `[C]` questions, applies the review's required changes, banners

@@ -45,7 +45,7 @@ Where your mounted implementation and design code clones live — one directory,
 
 ### `DOCS_PATH`
 
-A **read-only** clone of your shipped product documentation. Eight of this plugin's commands ground against what is already published, so a new draft does not contradict or duplicate an existing page: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake`, and `/brd-ground`. The plugin never writes to `DOCS_PATH`; every miss — unset, missing, or no markdown found — is a silent, non-blocking skip. Disable per-run with `--no-docs`, or override the root with `--docs <path>` (where the command accepts it).
+A **read-only** clone of your shipped product documentation. Eight of this plugin's commands ground against what is already published, so a new draft does not contradict or duplicate an existing page: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake`, and `/brd-ground`. The plugin never writes to `DOCS_PATH`; every miss — unset, missing, or no markdown found — is a silent, non-blocking skip. Disable per-run with `--no-docs` — and, in `/brd-ground`, also with `--no-code` — or override the root with `--docs <path>`, which today only `/idea` parses.
 
 ## Your first run
 

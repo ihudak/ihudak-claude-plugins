@@ -16,7 +16,7 @@ Versions follow semver at the plugin level.
 
 `phase-handoff.md` §4.0's class register said a frame-set `index.md` was **unread**. It is not: `product-workflows:design-grounder` refuses to run on a frame set holding no index, and `grounding-verifier` returns `NO_INDEX`/`STALE_INDEX` on one. The index is **advisory** — read from the working tree, gated by nothing — and `/frames` now presents the advisory consent array. Until this fix it presented the unread array, telling the operator that nothing downstream reads a file `/brd-ground` refuses a frame set without, three lines above its own paragraph saying the set stays `NO_INDEX` for everybody else.
 
-The register was verified against the tree rather than carried forward, which is how this surfaced: the gated row is an exact two-way match with §3.4's Input column (nine artifacts), and each advisory row was re-derived by opening the reader it names. The **unread** class now has no member — every artifact this family hands off turned out to have a reader once one was looked for.
+The register was verified against the tree rather than carried forward, which is how this surfaced: the gated row is a two-way match with §3.4's Input column, and each advisory row was re-derived by opening the reader it names. The **unread** class now has no member *in the register*, which is not the same as no artifact being unread — `slices.md` is handed off and no reader was found for it. §4.0 now says outright that it classifies the artifacts whose class a producer has had to resolve rather than everything the family hands off, and that an unlisted path is unclassified rather than unread.
 
 ### Fixed — the rest of the release-gating ledger
 

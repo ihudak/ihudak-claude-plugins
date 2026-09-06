@@ -8,7 +8,7 @@ Versions follow semver at the plugin level.
 
 ### Fixed — the 4.0.0 entry's own hook count
 
-That entry says `dev-workflows` keeps "three hooks". It keeps **one**: the same increment that wrote the sentence moved `notify-done` and `test-notify` into `workflows-core` (I4-3), where one copy serves every plugin in the family. Corrected in place, since it is a false statement about what 4.0.0 shipped. The `CHANGELOG.md` is outside `check-docs.sh`'s inventory checks, which is why the tree stayed green with the claim in it.
+That entry says `dev-workflows` keeps "three hooks". It keeps **one**: the same increment that wrote the sentence moved `notify-done` and `test-notify` into `workflows-core` (I4-3), where one copy serves every plugin in the family. Corrected in place, since it is a false statement about what 4.0.0 shipped — **and in `plugin.json` and the `marketplace.json` entry, which carried the identical sentence and are the copies a user actually reads at install time.** The first pass corrected the changelog prose alone and claimed the correction was complete; a review found the other two. `CHANGELOG.md` and the two descriptions are all outside `check-docs.sh`'s inventory checks, which is why the tree stayed green with the claim in three places.
 
 ### Documentation
 

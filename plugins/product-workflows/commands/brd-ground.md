@@ -1,6 +1,6 @@
 ---
 name: brd-ground
-description: BRD-grounding workflow (PA phase, second of the BRD-to-PRD route). Pins every mounted repository to a verified commit, grounds every [BR#n] claim against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and assigns each finding a current/will-change horizon against declared prerequisite BRDs. Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (--no-docs off) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. Optional --depends-on persists prerequisites to brd-link.md; --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split as the next step.
+description: BRD-grounding workflow (PA phase, second of the BRD-to-PRD route). Pins every mounted repository to a verified commit, grounds every [BR#n] claim against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and assigns each finding a current/will-change horizon against declared prerequisite BRDs. Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (off with --no-docs, and under --no-code) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. Optional --depends-on persists prerequisites to brd-link.md; --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split as the next step.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -206,10 +206,15 @@ the manual path:
    `resolve-docs-grounding brd-ground` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` and
    surface the `docs grounding:` line it returns — `ON <root> (retrieval: …)` or `OFF (<reason>)` —
    **verbatim**, including any index-build, staleness, or shadowing clause it carries (off switch:
-   --no-docs), alongside the repo prompt below. **`--no-code` turns it off too**, with that reason
-   in the `OFF` clause: a divergence has nowhere to be written, because Phase 8 appends the
-   `## Documentation divergences` section into `grounding/code-grounding.md` and this mode holds
-   that file read-only. It runs **exactly once per run**, here; Phase 4.5
+   --no-docs), alongside the repo prompt below. **Under `--no-code` this command overrides the
+   returned value to `OFF`** and surfaces that, rather than the procedure's own line: a divergence has
+   nowhere to be written, because Phase 8 appends the `## Documentation divergences` section into
+   `grounding/code-grounding.md` and this mode holds that file read-only. Say it as an override —
+   `docs grounding: OFF (--no-code: divergences are written into code-grounding.md, which this run
+   does not write)` — and not as something `resolve-docs-grounding` decided. That procedure's
+   *Flags first* rung knows `--no-docs` and `--docs` only, is shared by nine commands of which one
+   has `--no-code`, and executed as written on this run it returns `ON`. Teaching it a flag that
+   exists in a single caller would put that caller's vocabulary in everybody's procedure. It runs **exactly once per run**, here; Phase 4.5
    consumes the cached result and never re-resolves. Resolving at the phase that prompts is what
    puts the only consent-bearing step (an index build, or a refresh that breached its cap) in front
    of the operator at the moment they are already answering a question, rather than mid-fan-out.
@@ -285,6 +290,8 @@ git -C "<repo>" status --porcelain
 2. `diff --ignore-cr-at-eol --stat` must be empty. Any output → **non-empty content diff, stop**:
    `BRD_GROUND_DIRTY_TREE: <repo> has content changes at <sha> — grounding it would cite an unidentifiable snapshot. Settle that repository's working tree and re-run '/product-workflows:brd-ground <BRD-KEY>': commit the changes, stash them, or check out a clean copy — the plugin will not do it for you, because these are your files in a code repository this route never writes to. If the changes are what you want grounded, commit them first and re-run with --rebaseline so the new commit becomes the recorded pin.`
 
+   **Under `--no-code`, drop the final sentence and name the re-run without the flag instead** — `--rebaseline` is refused in that mode (Phase 0 step 2), so a message ending in it sends the operator into a second stop: `… commit them first and re-run '/product-workflows:brd-ground <BRD-KEY> --rebaseline' without --no-code, so the new commit becomes the recorded pin.`
+
    **Every other stop on this route names a command or an action, and this one must too.** The
    remedy is the operator's, not the plugin's — `/brd-ground` mounts code repositories read-only and
    commits to none of them — but "settle the tree, three ways, then re-run this command" is still an
@@ -344,7 +351,7 @@ remedy the message names changes: `--rebaseline` is unavailable under this mode,
 **without** `--no-code`. Adding design grounding on top of a code grounding that no longer describes
 the tree would pin new findings to a commit the repository has left.
 
-Append (never overwrite) one dated entry per repository to `<BRD-dir>/grounding/baselines.md`:
+Append (never overwrite) one dated entry per repository to `<BRD-dir>/grounding/baselines.md` — **except under `--no-code`, which writes no baseline entry at all** (stated in full above; repeated here because this is the instruction it excepts, and a reader who arrives at an unconditional imperative does not go looking for its exception):
 the repo, the pinned commit, the verification result, and the `[CG#n]` id assigned above — the same
 three commands are what the customer's own reviewer re-runs later against their own checkout.
 
@@ -652,6 +659,7 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
 - **`OK`** — act on `outcome`, below.
 - **`COMMIT_MISMATCH`** — the repository moved between Phase 3's pin and this dispatch. Stop:
   `BRD_GROUND_VERIFY_COMMIT_MISMATCH: <finding-id> could not be verified — <repo> is at <resolved-HEAD>, not the pinned <commit>. Re-run '/product-workflows:brd-ground <BRD-KEY> --rebaseline' from a clean tree.`
+  **Under `--no-code` the same message names the re-run without the mode** — `'/product-workflows:brd-ground <BRD-KEY> --rebaseline'`, no `--no-code` — since that mode refuses the flag the remedy requires, and the finding that failed here is pinned to a repository the design pass cannot re-pin on its own.
   The same repair as Phase 5's own `COMMIT_MISMATCH`: re-run from Phase 3, which re-pins and
   re-grounds. **`--rebaseline` is part of the remedy, not an optional extra**, and the message says
   so: Phase 3 already appended this repository's pin to `grounding/baselines.md` before dispatching
@@ -659,7 +667,8 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
   `BRD_GROUND_NEEDS_REBASELINE` unless the flag is given. "Re-run from a clean tree" on its own
   would send the operator straight into that second stop.
 - **`INPUT_MISSING`** — this orchestrator's dispatch was malformed (most often a `[DG#n]` sent
-  without its `class` or its `frame_set_dir`). Stop, quoting the field and row the agent named, and
+  without its `inventory`, its `class` or its `frame_set_dir` — `inventory` first, because it is the
+  newest requirement and the one whose omission made a class-1 finding permanently unverifiable). Stop, quoting the field and row the agent named, and
   fire `emit-block` per Phase 11's capture-at-block invariant — a dispatch this command controls
   getting the contract wrong is a plugin gap, unlike Phase 0's environment halts.
 - **`REPO_MISSING` / `FRAME_SET_MISSING` / `NO_INDEX` / `STALE_INDEX`** — the source this finding rests on is gone
@@ -720,13 +729,31 @@ below (resolved off, or refused outright in Phase 0 when it was asked for explic
 verified are appended after any already on file, continuing the sequence rather than replacing the
 file's contents.
 
-**`design-grounding.md` names every frame set on disk, covered or not.** Append a
-`## Frame sets covered` section listing **every** immediate subdirectory of `<BRD-dir>/design/` this
-run saw — not only the ones it ground — each against exactly one disposition:
+**`design-grounding.md` names every frame set on disk, covered or not.** Write a
+`## Frame sets covered` section — **replacing any section of that name already in the file, never
+appending a second one.** It is a census of the tree as this run left it, not a log: two sections
+would leave `/brd-split`'s gate reading "the" section with no rule for which, and the older one
+records a state that has since changed.
+
+**Enumerate `<BRD-dir>/design/` here, in this phase, rather than reusing what Phase 5 saw.** Phase 5's
+listing sits behind `--no-design`, so on a run carrying that flag it never happens — and a section
+built from "what this run saw" would then be empty, no `skipped: --no-design` row could ever be
+written, and `/brd-split` would stop a run whose flag it is supposed to honour. The census must be of
+the directory, not of the run. List **every** immediate subdirectory, each against exactly one
+disposition:
 
 - `ground` — with the `[DG#n]` ids this run reconciled against that set.
 - `skipped: --no-design` — the operator turned the pass off for this run.
 - `skipped: no index` — Phase 5 got `NO_INDEX` for that set and could not reconcile it.
+
+**A set this run re-ground supersedes its own prior findings, and the mode that makes that ordinary
+is `--no-code`.** Where this run wrote `[DG#n]` for a frame set that already had them on file, mark
+every superseded one `verdict: SUPERSEDED`, id retained, exactly as a `--rebaseline` pass does for
+`[CG#n]` — never delete or renumber, so an existing citation still resolves. Without this rule a
+second `--no-code` run over a changed frame set appends a whole new finding set beside the stale one,
+both unmarked, and `/brd-split` sees the set recorded `ground` and passes. `--rebaseline` cannot be
+the answer here: it is a code-pin concept and `--no-code` refuses it outright, so the supersession
+that mode needs has to be its own rule rather than a flag.
 
 A run with no `design/` folder, or an empty one, writes the section with an explicit "no frame sets
 on disk" line rather than omitting it. **The section is what makes design coverage checkable at
@@ -760,11 +787,13 @@ rather than as a new file, since it is not in this command's produced-artifact s
 
 ## Phase 9 — Handoff
 
-Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim:
+Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — the **gated** variant (§4.0), **in every mode including `--no-code`**:
 
 ```
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
+
+**Why the same array under `--no-code`, where `code-grounding.md` is not in the set.** §4.0's rule is that a handoff spanning classes takes the strongest class in it, and both artifacts a `--no-code` run hands off are classed: `grounding/design-grounding.md` is **gated** — §3.4 carries a conditional `/brd-split` row for it, and that command executes `require-on-main` against it wherever the BRD has frame sets on disk. So the promised stop is real in both modes, and the operator who declines will meet it. This array was hardcoded here before `design-grounding.md` was classified at all, which made it right by luck on a full run (`code-grounding.md` rode in the set) and wrong on a `--no-code` one; it is now right for the stated reason in both.
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (shared
 by every `/brd-*` command, per `brd-intake.md`'s own precedent), `feature_folder` as resolved
@@ -784,10 +813,20 @@ prerequisite-readiness block; emit its §4.1 outcome line in the final report.
 from `brd-link.md` — offering a command that would refuse the very key just ground is worse than
 offering nothing.
 
+**That rule now has a second test, and this run holds the answer to it.** `/brd-split`'s Phase 0
+step 7b stops on any `design/` subdirectory this run recorded `skipped: no index`, and on any it could
+not cover. So where Phase 8's `## Frame sets covered` section carries such a row, **do not offer
+`/brd-split` as Recommended** — it would refuse the key just ground. Offer the repair the stop itself
+names, in the same position: `/workflows-core:frames <BRD-KEY>` to write the missing index, then a
+`--no-code` re-run. The offer's wording is deliberately "its grounding is complete and verified"
+rather than the older "now that every finding carries a verifier outcome": the outcome count is one
+of three tests that command applies, and naming one of them as though it were the precondition is how
+this offer came to promise a pass it cannot deliver.
+
 **No `parent:` — this BRD owns its source document:**
 
 ```
-choices: ["Split the BRD now that every finding carries a verifier outcome — /product-workflows:brd-split <BRD-KEY> (Recommended) <merge-clause>", "Ground another declared prerequisite first", "Stop here"]
+choices: ["Split the BRD now that its grounding is complete and verified — /product-workflows:brd-split <BRD-KEY> (Recommended) <merge-clause>", "Ground another declared prerequisite first", "Stop here"]
 ```
 
 `/product-workflows:brd-split <BRD-KEY>` is the third command of the BRD-to-PRD route, and the last

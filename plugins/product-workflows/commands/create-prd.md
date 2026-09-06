@@ -14,7 +14,7 @@ authors a high-quality **Product Requirements Document** that feeds the downstre
 (a PRD): what / why / for-whom, not how. Zero external calls — the PRD is authored as markdown in the specs
 repo, which is where every downstream command reads it from.
 
-Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs]` (default `--hybrid`, or `--full` on the BRD route — Phase 0 step 2; the two `--no-*` switches each turn off one grounding source — see Phase 1).
+Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs]` (default `--hybrid`, or `--full` on the BRD route — Phase 0 step 2; the one `--no-*` switch each turn off one grounding source — see Phase 1).
 
 ---
 

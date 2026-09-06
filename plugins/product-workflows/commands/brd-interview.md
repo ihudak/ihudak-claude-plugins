@@ -129,7 +129,7 @@ and nothing downstream can tell the difference afterwards.
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
    folder's `grounding/code-grounding.md` — the same file `/brd-split` gates, and for the same reason:
    every deliverable one `handoff-to-main` run stages lands in a single commit (§2.3), so its presence
-   on `origin/<default>` implies `grounding/design-grounding.md` and `brd-link.md` merged with it, and
+   on `origin/<default>` implies `grounding/design-grounding.md` and `brd-link.md` merged with it — **That implication holds for a full `/brd-ground` run and not for a `--no-code` one**, whose `deliverable_paths` is `grounding/design-grounding.md` alone and lands in its own later commit — so a BRD can legitimately have `code-grounding.md` merged and `design-grounding.md` on no ref at all. Anything reading the design findings gates them separately rather than inheriting this sentence. And
    `/brd-ground`'s own gate on `coverage-ledger.md` had already run before those findings existed at
    all. Map the §3.7 return by `stopped` first: any stopping row → stop, naming the concrete branch/PR
    state it reports; `pass` → proceed; `pass_amending` → proceed, printing the §3.3 row-B message;
@@ -147,10 +147,33 @@ and nothing downstream can tell the difference afterwards.
      split gates do:
      `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and no question this command could ask about it — do not run /product-workflows:brd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
      `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to decide. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run '/product-workflows:brd-split <PARENT-KEY>': it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason, and it will offer covered-by against it for any row on the parent's ledger that is still unallocated. If the parent's ledger has no unallocated row left, removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
-7. **Gate on verification.** Read every `[CG#n]` and `[DG#n]` on file and count those carrying no
-   recorded verifier `outcome` (one of the four in
-   `workflows-core:grounding-format` §8). Any count `N` greater than zero →
-   stop: `BRD_INTERVIEW_UNVERIFIED: N findings have no verifier verdict — run /product-workflows:brd-ground first.`
+7. **Gate on verification — and on there being grounding to verify.** Two tests, in this order,
+   because **the second is a count and a count is vacuously satisfied by an empty set**. This gate
+   shipped as the count alone, exactly as `/brd-split`'s did: zero findings on file means zero
+   findings missing an outcome, so a BRD with no grounding at all passed it. **It matters more here
+   than there**, by this step's own reasoning below: with zero findings the run answers every `[G]`
+   from an empty evidence set and freezes `[VD#n]` against nothing, which is strictly worse than the
+   unverified case the count does catch. And the state is reachable without anyone being careless —
+   a slice whose ledger rows the parent's `/brd-split` set to `covered-here` passes step 8 without
+   `/brd-split` ever having run **on the slice**, so the slice never meets that command's own
+   presence relations.
+
+   a. **There is code grounding.** Read `<BRD-dir>/grounding/code-grounding.md` from the worktree —
+      step 6 already proved it is on `origin/<default>` — and count its `[CG#n]` blocks, parsed per
+      `workflows-core:grounding-format` §2.1. Zero → stop. Step 6's row-F branch catches the file
+      being on no ref; nothing until now caught it being on main and holding nothing:
+      `BRD_INTERVIEW_NO_FINDINGS: <BRD-KEY>'s grounding/code-grounding.md is on main but records no [CG#n] finding — re-run '/product-workflows:brd-ground <BRD-KEY>' and merge its handoff before interviewing. Every [G] is answered from the findings and from nothing else.`
+   b. **Every finding carries a verifier outcome.** Read every `[CG#n]` and `[DG#n]` on file and
+      count those carrying no recorded verifier `outcome` (one of the four in
+      `workflows-core:grounding-format` §8). Any count `N` greater than zero →
+      stop: `BRD_INTERVIEW_UNVERIFIED: N findings have no verifier verdict — run /product-workflows:brd-ground first.`
+
+   **No design-presence relation here, and that is deliberate rather than an omission.**
+   `/brd-split`'s third test exists because allocating a requirement to a slice that will be built
+   commits to a design nobody reconciled. This command answers questions from findings; a frame set
+   with no `[DG#n]` yields no `[G]` to answer wrongly, and `/brd-split` gates the same BRD before any
+   slice reaches build. Adding it here would refuse an interview that is not the thing at risk.
+
    This gate is not borrowed ceremony. A finding without an outcome "is not evidence"
    (`workflows-core:grounding-format` §8), and a decision's `evidence` list is a list of findings
    (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1) — so a `[G]` answered from an

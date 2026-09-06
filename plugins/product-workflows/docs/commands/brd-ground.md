@@ -121,7 +121,8 @@ Phase 11, for session lessons-learned.
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — documentation grounding, resolved once
   in Phase 1 alongside the repo prompt and consumed **lead-only** in Phase 4.5. Missing,
   unreadable, or carrying no markdown file is a silent, non-blocking skip. Turned off with
-  `--no-docs`. **A document is never evidence for a `[CG#n]`** — see the Phase 4.5 gate below.
+  `--no-docs`, and also off under `--no-code` — a divergence is written into `code-grounding.md`,
+  which that mode does not write. **A document is never evidence for a `[CG#n]`** — see the Phase 4.5 gate below.
 - **A clean working tree per resolved repository.** The Phase 3 baseline-integrity gate runs
   `rev-parse HEAD`, a `diff --ignore-cr-at-eol --stat`, and a line-count check on anything
   `status --porcelain` reports, **before any finding is written**. Any non-empty content diff stops
@@ -154,7 +155,12 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   when documentation grounding ran, a `## Documentation divergences` section: one identifier-free
   prose entry per page that contradicts a verified `[CG#n]`, naming that finding by id.
 - `grounding/design-grounding.md` — every `[DG#n]` finding, or a note explaining why design
-  grounding did not run.
+  grounding did not run, **plus a `## Frame sets covered` section listing every subdirectory of the
+  folder's design/ with its disposition** — `ground`, `skipped: --no-design`, or `skipped: no index`.
+  That census is written on every run, including one that ground no designs at all, and it is what
+  `/brd-split`'s design gate reads. **Under `--no-code` this is the only file the run writes**:
+  `code-grounding.md` and `baselines.md` are held read-only and stand exactly as the run that wrote
+  them left them.
 - `brd-link.md` — the `depends-on:` list, merged additively across runs.
 
 Behind Phase 9's consent choice, these are committed, pushed, and a pull request opened against

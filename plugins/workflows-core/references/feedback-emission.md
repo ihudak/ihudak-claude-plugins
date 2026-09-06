@@ -132,12 +132,12 @@ mount / permission) drops to the next tier with the same notice.
 
 ## 4. Plugin-facing predicate — what persists
 
-Persist **only** signals about the dev-workflows plugin itself:
+Persist **only** signals about **this plugin family** itself — `workflows-core` and every plugin that declares it, currently `dev-workflows`, `product-workflows` and `docs-workflows`. This line said "the dev-workflows plugin" until the family spanned four, and read literally it dropped every signal about the other three:
 
 - Command workflow improvements (a command should behave differently — e.g. the
   `cloud|self-hosted` scoping case).
 - New agents / skills the plugin should offer.
-- Gaps in the plugin's own reference docs (`${CLAUDE_PLUGIN_ROOT}/references/**`).
+- Gaps in the reference docs of **whichever family plugin the signal is about** — `plugins/<that plugin>/references/**`, resolved from the running command's own plugin, and **not** `${CLAUDE_PLUGIN_ROOT}/references/**`. Written in this file that variable resolves to the plugin that *ships this reference* (`workflows-core`), so a `/brd-ground` run classifying a gap in `product-workflows`'s `brd-format.md` would test it against the wrong tree — the same hazard §3's `plugin_version` paragraph states, met one section later.
 - Corrective interactions captured by `/prompt*` (any command output the user
   had to fix).
 

@@ -26,7 +26,7 @@
 
 - **`$DOCS_PATH`** — a read-only clone of your shipped product documentation; defaults to `/workspace/docs` when unset.
 
-**Resolution.** Resolved per the shared `workflows-core:docs-grounding` gate, consumed by every command here except `/brd-split`, `/brd-interview`, `/brd-package`, and `/brd-reconcile` (each of which resolves no docs grounding at all, for a reason its own body states) — grill-rank in the authoring/interview commands, lead-only in `/brd-ground`. Overridable with `--docs <path>`; turned off with `--no-docs`.
+**Resolution.** Resolved per the shared `workflows-core:docs-grounding` gate, consumed by every command here except `/brd-split`, `/brd-interview`, `/brd-package`, and `/brd-reconcile` (each of which resolves no docs grounding at all, for a reason its own body states) — grill-rank in the authoring/interview commands, lead-only in `/brd-ground`. Overridable with `--docs <path>` where the command parses it — today `/idea` alone, though the shared gate declares it for every consumer; turned off with `--no-docs` everywhere, and additionally by `--no-code` in `/brd-ground`.
 
 **When unset.** The `/workspace/docs` default is probed; on a host where that path does not exist, the resolution simply reports `OFF` and the run continues.
 

@@ -306,8 +306,9 @@ what the frame shows — **context, not evidence**: what somebody drew, not what
 **`index.md` is the name a *writer* writes.** §6.1 lets a *reader* accept whatever name the frame-set
 convention used, because a set exported elsewhere may already carry a manifest under another name. A
 writer has no such excuse, and picks one name so that two writers never leave two indexes disagreeing
-in one directory. A run that finds an index under another name reports it and writes `index.md`
-beside it rather than editing a file whose shape it never fixed.
+in one directory. A run that finds an index under another name **reads it as §6.1 already permits any reader to, adopts every row it can resolve into the `index.md` it writes, and still never edits the original.** The two halves are separable and both matter: a writer that rewrote that file would be fixing a shape it never defined, which is what this rule has always forbidden — but a writer that *ignored* it threw away an operator's curated descriptions and re-emitted every frame as `_no description on record_`, so a set that already had a hand-written manifest came out worse for being indexed. Adoption is not a new tolerance; it is the reader tolerance §6.1 already grants, finally used by the one participant that had been declining it.
+
+**What adoption carries, and what it does not.** A row is adopted when its image resolves to a file in the set's own listing and it carries a description; that description is preserved **verbatim**, under the same rule §6.2 step 2 applies to a row in a real `index.md` — a writer preserves what it did not produce and does not judge it. A row naming an image the listing does not hold is **not** adopted and is reported, because the frame it describes is not in this set. A file the run cannot parse into rows at all is reported and nothing is adopted from it — never a partial guess. The original stays byte-for-byte as it was, and the report names both files so the operator can retire the older one deliberately.
 
 **`key` is read, never parsed** — `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4, the same rule
 every resolver follows. **`written_by` names the command that last wrote the file**, so it changes when

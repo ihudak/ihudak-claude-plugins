@@ -1046,7 +1046,7 @@ this run's pull request. Grounding a child is possible only once that pull reque
 `/brd-intake` is never the answer for a child at any point:
 
 ```
-choices: ["Ground each non-empty child created above, one run per child — /product-workflows:brd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Decide this BRD's open questions — /product-workflows:brd-interview <BRD-KEY> <merge-clause>", "Stop here — this BRD's own allocation is complete"]
+choices: ["Ground each non-empty child created above, one run per child — /product-workflows:brd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Stop here — this BRD's own allocation is complete"]
 ```
 
 **Every merge clause in this phase is the `<merge-clause>` placeholder**, resolved per
@@ -1067,36 +1067,27 @@ ground would have nothing to check a claim against. No children remain at all th
 as empty) → the child-grounding choice is the one that does not apply, stated plainly rather than
 omitted. Guidance only — never auto-invokes another command.
 
-**This BRD's own next step is `/product-workflows:brd-interview <BRD-KEY>`, and it is offered on both
-paths.** `/brd-split` is **not** the last command of this route: the walk above just left this
-BRD's ledger with no row `unallocated`, which is the one precondition `/brd-interview` refuses to
-start without, so a fully-allocated BRD — split or not — goes on to have its open questions decided
-rather than stopping. It will not start until this BRD's artifacts are on the specs repo's default
-branch, and **exactly which words say so are `<merge-clause>`'s to supply** — this sentence is one of
-the mentions that rule governs, not an exception to it. Recording
-decisions is `/product-workflows:brd-interview`, preparing the customer package is
-`/product-workflows:brd-package`, and freezing the returned review is `/product-workflows:brd-reconcile`;
-only the first of those three is the step *after this one*, so only it is offered here. Naming a
-child's grounding and this BRD's interview in one list is deliberate — they are different keys, and
-an operator who created children has both to do. The BRD route on `/create-prd`, `/create-ard` and
-`/specify` all **ships**, and none of the three is offered on either path — for the same reason
-`/product-workflows:brd-package` and `/product-workflows:brd-reconcile` are not, that they sit further down
-the route than the step after this one. All three read an altitude seed and this BRD's decision
-register out of its folder, `/product-workflows:brd-interview` is the command that writes that register,
-and an `open` or `reopened` record may not be consumed downstream while it is open
-(`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §3) — which is what the interview and
-then the customer loop exist to close. `/product-workflows:brd-reconcile`'s next-step phase is where the
-three are offered, each under the precondition its own Phase 0 enforces.
+**This BRD's own next step is nothing.** Every row this walk resolved is `covered-by` (a named
+child's to decide), `deferred-to`, `rejected` or `superseded-by` — terminal dispositions this
+ledger itself now records, not open questions — and a root is never ground, so it carries no
+finding of its own for `/product-workflows:brd-interview` to read either way.
+`/product-workflows:brd-interview <BRD-KEY>` refuses any root outright, at its own Phase 0 step 5a,
+with `BRD_INTERVIEW_ROOT_LEVEL` — offering it here is exactly the failure `/brd-ground`'s own
+Phase 10 names as worse than offering nothing, so it is not offered. Grounding each non-empty child
+is the one real next step this phase has on the `full` path: each child continues its own route pass
+and reaches this same phase in its own right, where `/product-workflows:brd-interview <CHILD-KEY>` is
+then the real offer, on that child's own key. The BRD route on `/create-prd`, `/create-ard`,
+`/specify`, `/product-workflows:brd-package` and `/product-workflows:brd-reconcile` is likewise a
+child's route to reach, never this BRD's own.
 
 ### Context hygiene
 
 Per `workflows-core:session-hygiene`, the resume pointer is written in the
-terminal cost phase (Phase 8), after the cost entry and before the commit step. **The offer above
-spans both roles, so both branches are printed** (§2's *Next options span both* bullet): grounding a
-child created above is a hand to PA, even when the same person does it → run **`/clear`**;
-continuing as PM into `/product-workflows:brd-interview <BRD-KEY>` on this same BRD keeps the context
-relevant → run **`/compact`**. An `allocate-only` run created no child, so only the second branch
-applies to it. Guidance only — nothing is auto-run.
+terminal cost phase (Phase 8), after the cost entry and before the commit step. On `full`,
+grounding a child created above is a hand to PA → run **`/clear`**; this BRD's own key has no
+further step, so no `/compact` branch applies here. On `allocate-only`, continuing as PM into
+`/product-workflows:brd-interview <BRD-KEY>` on this same slice keeps the context relevant → run
+**`/compact`**. Guidance only — nothing is auto-run.
 
 ---
 

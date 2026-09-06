@@ -113,16 +113,19 @@ array carries every option.
 
 **PM / PA — the BRD-to-PRD route**
 
-- `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` — the route's entry point → hand to PA →
-  `/product-workflows:brd-ground <BRD-KEY>` (PA).
-- `/product-workflows:brd-ground <BRD-KEY>` → `/product-workflows:brd-split <BRD-KEY>` (PM). On a slice
-  (`brd-link.md` carries a `parent:`), the same command runs allocate-only and creates no child.
-- `/product-workflows:brd-split <BRD-KEY>` — **depth** → `/product-workflows:brd-interview <BRD-KEY>` (PM);
-  **breadth** → `/product-workflows:brd-ground <CHILD-KEY>` (PA) once per **non-empty** child the run
-  created, each such child re-entering the route at grounding. A child whose `claims:` list is
-  empty — including one the parent's walk emptied by withdrawing every provisional claim, leaving
-  it holding only orphan rows — is a standing empty child (`/product-workflows:brd-split` Phase 7), and
-  grounding it stops at `BRD_GROUND_EMPTY_INVENTORY`, so it is not offered.
+- `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` — the route's entry point → hand to PM →
+  `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` (PM; the instruction is mandatory on a
+  root, since a root is never ground and carries no finding to cluster by).
+- `/product-workflows:brd-split <BRD-KEY>` on a root (`split_mode: full`) →
+  `/product-workflows:brd-ground <CHILD-KEY>` (PA) once per **non-empty** child the run created, each
+  such child re-entering the route at grounding. A child whose `claims:` list is empty — including
+  one the parent's walk emptied by withdrawing every provisional claim, leaving it holding only
+  orphan rows — is a standing empty child (`/product-workflows:brd-split` Phase 7), and grounding it
+  stops at `BRD_GROUND_EMPTY_INVENTORY`, so it is not offered. The root's own key is offered no
+  further: `/product-workflows:brd-interview` refuses any root outright.
+- `/product-workflows:brd-ground <CHILD-KEY>` (PA) → `/product-workflows:brd-split <CHILD-KEY>` (PM),
+  which always runs `allocate-only` here (`/product-workflows:brd-ground` never resolves a root) and
+  creates no further child → `/product-workflows:brd-interview <CHILD-KEY>` (PM).
 - `/product-workflows:brd-interview <BRD-KEY>` → `/product-workflows:brd-package <BRD-KEY>` (PM), offered
   only where this run's own state is one `/product-workflows:brd-package` would accept
   (`/product-workflows:brd-package` Phase 0 owns that test); otherwise → another
@@ -135,19 +138,16 @@ array carries every option.
   pipeline, and its own re-entry. **Re-entry:** another `/product-workflows:brd-interview <BRD-KEY>`
   round where this run reopened a decision, `/product-workflows:brd-package <BRD-KEY>` where questions
   remain for the customer, or `/product-workflows:brd-ground <BRD-KEY> --rebaseline` where the review
-  challenged a code claim. **Advance, and the first condition is the level.** the BRD route on
-  `/product-workflows:create-prd`, `/product-workflows:create-ard` and `/product-workflows:specify` all ship, and
-  that command's next-step phase offers all three off **a slice key** — never off a root BRD key. A
-  BRD is a container and each of the three refuses a `BRD-` folder in its own Phase 0
+  challenged a code claim. **Advance is offered off the slice key this run reconciled** —
+  `/product-workflows:brd-reconcile` itself never resolves a root, so there is no level of its own
+  left to test here. The BRD route on `/product-workflows:create-prd`, `/product-workflows:create-ard`
+  and `/product-workflows:specify` all ship, and that command's next-step phase offers all three off
+  that key. Each of the three still refuses a `BRD-` folder in its own Phase 0
   (`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`, `SPECIFY_BRD_NOT_SLICED`;
-  `product-workflows:coverage-ledger-format` §5), so naming one against a root hands over a run that
-  stops on its first phase. **A root's advance is its slices instead** — `/product-workflows:brd-ground
-  <SLICE-KEY>` once per non-empty slice, each re-entering the route in its own right and reaching
-  this same hand-over on its own key. That one **does** carry `<merge-clause>`, because
-  `/product-workflows:brd-ground` gates `coverage-ledger.md` on the default branch and the reconciliation
-  wrote to a ledger.
-  **On a slice, and only on a slice, the three are offered — but only on a run that left nothing to
-  re-enter for.** Advance and re-entry are separate arrays there, not one: where that run reopened a
+  `product-workflows:coverage-ledger-format` §5) — a defense this offer never needs to invoke, since
+  the key it hands over is always the slice `/product-workflows:brd-reconcile` was given.
+  **The three are offered only on a run that left nothing to re-enter for.** Advance and re-entry are
+  separate arrays, not one: where that run reopened a
   decision, left a `[C]` held for the customer, left a finding for a `--rebaseline` pass, or could
   only record a dependent's sweep, all three advance options are dropped, because a `reopened` record
   may not be consumed downstream (`product-workflows:decision-register-format` §3) and all three consume

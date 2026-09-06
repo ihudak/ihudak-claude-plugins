@@ -51,6 +51,10 @@ repo_path:     <absolute path to the repository the finding is pinned against �
                 finding that rests on code, see the table below>
 frame_set_dir: <absolute path to the exported frame set the [DG#n] was reconciled against —
                 required for every [DG#n], see the table below>
+inventory:     <every [BR#n] the BRD claims, id and text — required for every [DG#n], see the
+                table below. This is the same list design-grounder was handed; a [DG#n] is a
+                reconciliation between the frame set and this inventory, and cannot be
+                re-derived against only one side of it>
 provenance: own-run | inherited     # own-run: produced earlier in this same workflow run;
                                      # inherited: carried over from another team's report or an
                                      # earlier run of this workflow
@@ -68,8 +72,22 @@ never become evidence (§8).
 | Finding | Rests on | Required beyond `finding.id` and `finding.claim` |
 |---|---|---|
 | any `[CG#n]` | code | `repo_path` **and** `finding.commit` |
-| `[DG#n]`, `class: 4` | design **and** code | `frame_set_dir`, `repo_path`, **and** `finding.commit` |
-| `[DG#n]`, `class: 1`, `2`, or `3` | design only | `frame_set_dir` |
+| `[DG#n]`, `class: 4` | design **and** code | `frame_set_dir`, `inventory`, `repo_path`, **and** `finding.commit` |
+| `[DG#n]`, `class: 1`, `2`, or `3` | design only | `frame_set_dir` **and** `inventory` |
+
+**`inventory` is required for every `[DG#n]`, and a class-1 finding is why.** A class-1 finding
+asserts *"this frame shows a field the BRD never requires"* — a **negative over the whole
+requirement set** — and `design-grounder` writes its `claim` as the literal `none — frame-only`,
+because there is no `[BR#n]` to name. Handed the frames and that claim and nothing else, this agent
+cannot re-derive the assertion at all: it can see the field on the frame and has no set to establish
+the absence against. It correctly returns `NOT-PROVABLE` and says why, which is the contract working
+— but the finding is then permanently unverifiable, and a finding that can never carry an outcome
+can never become evidence (`workflows-core:grounding-format` §8). The dispatch was short an input,
+not the agent short a capability. It is required on classes 2, 3 and 4 as well rather than on class 1
+alone: `design-grounder` already refuses to produce **any** `[DG#n]` without it, so a caller holding
+one necessarily holds the inventory, and a per-class conditional here is one more thing to get wrong
+in the direction this table exists to prevent. Where it is given on a `[CG#n]` it is honoured, never
+ignored.
 
 **Refuse to run when a required input for that row is missing**, returning `status: INPUT_MISSING`
 naming exactly what was absent and which row was applied. `finding.id` and `finding.claim` are

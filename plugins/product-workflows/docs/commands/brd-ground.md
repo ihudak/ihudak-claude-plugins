@@ -16,7 +16,7 @@ is the second command of that route, after [`/brd-intake`](brd-intake.md) and be
 ## Synopsis
 
 ```
-/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-design] [--no-docs] [--rebaseline]
+/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--rebaseline]
 ```
 
 - **`<BRD-KEY>`** (mandatory) — the BRD (or slice) to ground. Resolved via `resolve-address`, so a
@@ -34,6 +34,19 @@ is the second command of that route, after [`/brd-intake`](brd-intake.md) and be
 - **`--derivation-matrix` / `--no-derivation-matrix`** (optional, mutually exclusive) — force the
   implementation-altitude data-source matrix on or off. Left unset, the command defaults it on for
   a BRD whose requirements read as reporting- or data-centric, and off otherwise.
+- **`--no-code`** (optional) — add design grounding over a code grounding that is already on file
+  and already verified, without re-deriving it. This is a **run mode**, not a step skip:
+  `grounding/code-grounding.md` is read-only for the whole run, this run produces no `[CG#n]` at
+  all, and every finding already in that file keeps its verdict, its evidence and its verifier
+  outcome — it is neither re-derived nor re-verified. It is the flag to reach for when a BRD turns
+  out to have exported frame sets and no design grounding: without it, the only way to add the
+  missing pass is a full re-run that puts every verified code finding back through derivation. The
+  repositories are still resolved and still pinned, because a design finding that reconciles
+  against code is pinned to the commit of the code finding it cites. Documentation grounding and the
+  derivation matrix are off under this mode — both are written into the file it holds read-only —
+  and the run refuses outright when combined with `--no-design` (nothing left to ground), with
+  `--rebaseline` (which rewrites code findings by id), with an explicit `--derivation-matrix`, or
+  against a BRD with no verified code grounding to build on.
 - **`--no-design`** (optional) — skip the `design-grounder` pass even when an exported frame set
   is present. Frame sets live in the resolved folder's reserved **design/** subdirectory, one
   subdirectory per set — images plus an index file naming what each frame depicts, which

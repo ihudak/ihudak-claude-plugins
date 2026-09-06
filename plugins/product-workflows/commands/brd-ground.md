@@ -1,6 +1,6 @@
 ---
 name: brd-ground
-description: BRD-grounding workflow (PA phase, second of the BRD-to-PRD route). Pins every mounted repository to a verified commit, grounds every [BR#n] claim against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and assigns each finding a current/will-change horizon against declared prerequisite BRDs. Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (--no-docs off) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. Optional --depends-on persists prerequisites to brd-link.md; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split as the next step.
+description: BRD-grounding workflow (PA phase, second of the BRD-to-PRD route). Pins every mounted repository to a verified commit, grounds every [BR#n] claim against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and assigns each finding a current/will-change horizon against declared prerequisite BRDs. Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (--no-docs off) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. Optional --depends-on persists prerequisites to brd-link.md; --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split as the next step.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -15,7 +15,7 @@ finding is independently re-derived by a different agent before it counts as evi
 (`workflows-core:grounding-format` §8) — this command's whole job is to make
 that discipline happen, not to ground anything itself.
 
-Usage: `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-design] [--no-docs] [--rebaseline]`
+Usage: `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--rebaseline]`
 
 Runs at either of the two levels `<BRD-KEY>` can name (`workflows-core:addressing`
 §3) — a BRD that owns its source document, or one of its slices — grounding only the requirements
@@ -26,6 +26,8 @@ its parent is.
 and a divergence finding — it is NEVER evidence for a `[CG#n]`.** No finding this run writes may
 cite a documentation page in its `evidence`, under any verdict. A document is a claim *about*
 behaviour, not the behaviour.
+
+**`--no-code` is a run mode, not a step skip.** It exists so a BRD whose code grounding is already verified can gain the design grounding it is missing — the state `/brd-split`'s design-presence gate reports — without re-deriving what is already on file. Under it, **`<BRD-dir>/grounding/code-grounding.md` is read-only for the whole run**: this invocation produces no `[CG#n]` at all, its finding set is the new `[DG#n]` only, and every `[CG#n]` already on file keeps the verdict, evidence and verifier outcome it carries — never renumbered by Phase 5, never re-dispatched by Phase 7, never rewritten by Phase 8. Phases 1 and 3 still run in full, because a class-4 `[DG#n]` is pinned to the commit of the `[CG#n]` it cites and Phase 7 re-derives it against that repository. Documentation grounding is off for this run, and so is the derivation matrix: Phase 8 appends both into that same read-only file. Four flag states are refused rather than reconciled, all in Phase 0 step 2.
 
 ---
 
@@ -39,6 +41,23 @@ behaviour, not the behaviour.
    boolean, skips Phase 5's `design-grounder` step. `--no-docs` — boolean, turns documentation
    grounding off for this run (Phase 1 step 0, Phase 4.5). `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
    / `--no-derivation-matrix` — mutually exclusive; absent means "let Phase 8 decide the default".
+   `--no-code` — boolean, the **run mode** stated above the phases. Its four refusals are checked
+   here, before anything expensive runs:
+   - With `--no-design`, nothing is left to ground:
+     `BRD_GROUND_NOTHING_TO_GROUND: --no-code and --no-design together leave this run nothing to ground — drop one and re-run '/product-workflows:brd-ground <BRD-KEY>'.`
+   - With `--rebaseline`, which supersedes `[CG#n]` findings by id — a write this mode forbids:
+     `BRD_GROUND_NO_CODE_REBASELINE: --rebaseline supersedes [CG#n] findings by id, which --no-code forbids — re-run '/product-workflows:brd-ground <BRD-KEY> --rebaseline' without --no-code to re-ground the moved code, or drop --rebaseline to add design grounding over what is already on file.`
+   - With an **explicit** `--derivation-matrix`, which Phase 8 appends into `code-grounding.md`:
+     `BRD_GROUND_NO_CODE_MATRIX: the derivation matrix is appended to grounding/code-grounding.md, which --no-code forbids writing — re-run '/product-workflows:brd-ground <BRD-KEY> --derivation-matrix' without --no-code.`
+     An explicit `--no-derivation-matrix` is redundant here but harmless; an unset default resolves
+     **off** under this mode and is reported rather than left silent.
+   - Where there is no verified code grounding to build on. This one needs the resolved folder, so
+     take it immediately after step 5 rather than here: stop when
+     `<BRD-dir>/grounding/code-grounding.md` is absent, holds no `[CG#n]`, or holds one carrying no
+     verifier `outcome`. The third is the state `/brd-split` itself refuses
+     (`workflows-core:grounding-format` §8), so reporting it now costs one read and saves a whole
+     design pass that still could not split:
+     `BRD_GROUND_NO_CODE_UNGROUNDED: --no-code adds design grounding over an existing code grounding, and <BRD-KEY> has <no code grounding on file | no [CG#n] findings | N of M [CG#n] findings carrying no verifier outcome> — re-run '/product-workflows:brd-ground <BRD-KEY>' without --no-code.`
 3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
    `Required path environment variable unset` rule in `workflows-core:escalation-rules`:
    ```
@@ -187,7 +206,10 @@ the manual path:
    `resolve-docs-grounding brd-ground` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` and
    surface the `docs grounding:` line it returns — `ON <root> (retrieval: …)` or `OFF (<reason>)` —
    **verbatim**, including any index-build, staleness, or shadowing clause it carries (off switch:
-   --no-docs), alongside the repo prompt below. It runs **exactly once per run**, here; Phase 4.5
+   --no-docs), alongside the repo prompt below. **`--no-code` turns it off too**, with that reason
+   in the `OFF` clause: a divergence has nowhere to be written, because Phase 8 appends the
+   `## Documentation divergences` section into `grounding/code-grounding.md` and this mode holds
+   that file read-only. It runs **exactly once per run**, here; Phase 4.5
    consumes the cached result and never re-resolves. Resolving at the phase that prompts is what
    puts the only consent-bearing step (an index build, or a refresh that breached its cap) in front
    of the operator at the moment they are already answering a question, rather than mid-fan-out.
@@ -312,6 +334,16 @@ it. Phase 7 verifies these findings the same as any other — `grounding-verifie
 step 1 already re-runs `baseline-integrity` for whatever finding it is handed, so re-checking a
 baseline finding is exactly that re-run.
 
+**Under `--no-code` this gate still runs in full** — every check, every stop — and writes nothing.
+No baseline `[CG#n]` is assigned and no entry is appended to `grounding/baselines.md`: both would be
+this invocation producing a `[CG#n]`, which the mode forbids. The pins it verifies are still
+load-bearing, which is why the gate is not skipped along with the writes — a class-4 `[DG#n]` is
+pinned to the commit of the `[CG#n]` it cites, and Phase 7 re-derives it against that repository at
+that commit. A repository whose `HEAD` has moved stops here exactly as it always does, but the
+remedy the message names changes: `--rebaseline` is unavailable under this mode, so name the re-run
+**without** `--no-code`. Adding design grounding on top of a code grounding that no longer describes
+the tree would pin new findings to a commit the repository has left.
+
 Append (never overwrite) one dated entry per repository to `<BRD-dir>/grounding/baselines.md`:
 the repo, the pinned commit, the verification result, and the `[CG#n]` id assigned above — the same
 three commands are what the customer's own reviewer re-runs later against their own checkout.
@@ -425,6 +457,13 @@ formality.
 
 ## Phase 5 — Fan out grounding
 
+**Under `--no-code`, skip this phase's `code-grounder` fan-out and its renumbering entirely**, and
+read the `[CG#n]` set from `<BRD-dir>/grounding/code-grounding.md` instead — every finding on file,
+with the `id`, `claim`, `verdict`, `evidence` and `commit` Phase 8 wrote there. Those findings are
+this run's **input, never its output**: not renumbered here, not re-verified in Phase 7, not
+rewritten in Phase 8. The `[DG#n]` sequence still continues from the highest already on file, the
+same as on any other re-run.
+
 **`code-grounder`, one per repository, ≤4 concurrent per Agent message** (wait for a batch before
 starting the next). Each dispatch gets the *whole* claim list (Phase 0 step 8) and its own pinned
 commit (Phase 3) — a BRD carries no per-repo claim tagging, and a claim that genuinely belongs to a
@@ -460,7 +499,10 @@ subdirectory is a candidate exported frame set. The location and the index requi
 whether this run stands on a BRD folder or on the PRD folder a slice is. None found → skip, reporting
 why (`--no-design` given, or no `design/` folder exists yet for this BRD). One or more found → dispatch one instance per frame set, same ≤4
 concurrent discipline, **after** the code-grounder batch above has fully returned — this agent's
-fourth reconciliation class cites a `[CG#n]`, so the findings it needs must already exist:
+fourth reconciliation class cites a `[CG#n]`, so the findings it needs must already exist. Under
+`--no-code` there is no batch to wait for and that precondition is already met: the `[CG#n]` set
+read from file is what `cg_findings` carries, which is the whole reason the mode can add design
+grounding at all:
 
 → Agent (subagent_type: "product-workflows:design-grounder", model: `<detection_model>`):
   > "frame_set_dir: [absolute path to this frame set]
@@ -542,6 +584,8 @@ to the Opus chain (`review_model`, frontmatter-pinned, no override):
   >                 class-1/2/3 DG#n]
   > frame_set_dir: [every DG#n — the Phase 5 frame set this finding was reconciled against; omit
   >                 for a CG#n]
+  > inventory:     [every DG#n — the Phase 0 step 8 claim list, id and text, exactly as
+  >                 design-grounder was handed it; omit for a CG#n]
   > provenance: [own-run | inherited — see below]"
 
 Supply the finding **exactly as the agent's own Inputs contract declares it** — including
@@ -562,6 +606,23 @@ that could drift from it. Two consequences for this dispatch:
   frame set, so every `[DG#n]` on file traces back to exactly one directory; carry that association
   forward from Phase 5 rather than re-deriving it here. A class-4 `[DG#n]` gets both it and the
   code pair — it is the one finding with a foot in each source.
+- **Always pass `inventory` for a `[DG#n]`** — the same Phase 0 step 8 claim list Phase 5 handed
+  `design-grounder`, unchanged. A `[DG#n]` is a reconciliation between the frame set and the
+  inventory, so handing over only the frames gives the verifier one side of the comparison. A
+  **class-1** finding cannot be re-derived at all without it: it asserts that no requirement asks
+  for what the frame shows — a negative over the whole set — and its `claim` is the literal
+  `none — frame-only`, so there is no `[BR#n]` in the record to stand in for the set. The verifier
+  correctly returns `NOT-PROVABLE`, and the finding is then permanently unverifiable and can never
+  become evidence (`workflows-core:grounding-format` §8). This dispatch omitted the field, which is
+  where that dead end came from.
+
+**Under `--no-code`, "every finding this run holds" is the new `[DG#n]` set and nothing else.**
+Every `[CG#n]` on file was neither produced nor reproduced by this invocation and already carries
+the outcome from the run that did produce it. Re-dispatching them would spend one Opus verification
+per finding to re-decide a settled one, and a single `contradict` would rewrite a finding into a
+file this mode holds read-only — which is precisely the exposure the mode exists to remove. The
+`[CG#n]` a class-4 `[DG#n]` cites is still checked in passing: the verifier re-runs
+`baseline-integrity` against the pin it is handed, as its own Process step 1.
 
 **`provenance` is set per finding, by origin — never by which phase produced it, and never
 blanket.** `own-run` for any finding **this invocation itself produced**, regardless of which
@@ -639,13 +700,40 @@ a raw finding and one a downstream command may cite.
 
 Write `<BRD-dir>/grounding/code-grounding.md` (every `[CG#n]`) and
 `<BRD-dir>/grounding/design-grounding.md` (every `[DG#n]`, or a short note when Phase 5 skipped
-design grounding and why) — one block per finding, carrying every field
+design grounding and why) — one block per finding, **serialised exactly as
+`workflows-core:grounding-format` §2.1 fixes it**: one space after every colon, never alignment
+padding, keys in the §2 table's order, and an inapplicable field omitted rather than written empty.
+That section is not a style note — a writer that aligns one section's keys and not the next produces
+a file whose readers report findings as missing that are on the page. Each block carries every field
 `workflows-core:grounding-format` §2 defines (`id`, `claim`, `verdict`, `evidence`, `altitude`, `horizon`,
 `consumed_by: none`, plus `class`/`cites` on a `[DG#n]` and `commit` on everything **except** a
 `[DG#n]` of class 1, 2 or 3 — those are settled from the frame set alone and are pinned to no commit,
 per §2's applicability note) plus this run's verifier `outcome` **and any `notes` the verifier returned**. Its contract calls those *"anything the caller should know before recording this outcome"*, so they are read before the outcome is written, not after — a verdict recorded without them is recorded against a caveat the verifier raised and nothing carried.
 A `--rebaseline` run appends its new findings after the existing ones and marks any finding it
 superseded with `verdict: SUPERSEDED`, id retained, rather than deleting or renumbering it.
+
+**Under `--no-code` this phase writes `design-grounding.md` and nothing else.**
+`code-grounding.md` is not opened for writing at all — not for findings, not for the documentation
+divergences below (documentation grounding is off for the run), and not for the derivation matrix
+below (resolved off, or refused outright in Phase 0 when it was asked for explicitly). Every
+`[CG#n]` on file stands byte-for-byte as the run that wrote it left it. The `[DG#n]` this run
+verified are appended after any already on file, continuing the sequence rather than replacing the
+file's contents.
+
+**`design-grounding.md` names every frame set on disk, covered or not.** Append a
+`## Frame sets covered` section listing **every** immediate subdirectory of `<BRD-dir>/design/` this
+run saw — not only the ones it ground — each against exactly one disposition:
+
+- `ground` — with the `[DG#n]` ids this run reconciled against that set.
+- `skipped: --no-design` — the operator turned the pass off for this run.
+- `skipped: no index` — Phase 5 got `NO_INDEX` for that set and could not reconcile it.
+
+A run with no `design/` folder, or an empty one, writes the section with an explicit "no frame sets
+on disk" line rather than omitting it. **The section is what makes design coverage checkable at
+all**: `/brd-split`'s design-presence gate compares the subdirectories on disk against the names
+recorded here, and a relation with nothing on one side fails rather than passing
+(`workflows-core:grounding-format` §2.1's reading rule). Omitting a set because it was skipped is
+what would make that gate report a clean tree it never read.
 
 **Documentation divergences (only when Phase 4.5 ran).** Append a `## Documentation divergences`
 section to `<BRD-dir>/grounding/code-grounding.md` — appended there, like the derivation matrix
@@ -682,7 +770,9 @@ On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:re
 by every `/brd-*` command, per `brd-intake.md`'s own precedent), `feature_folder` as resolved
 in Phase 0, `deliverable_paths` = every file this run wrote or updated under `<BRD-dir>`
 (`grounding/baselines.md`, `grounding/code-grounding.md`, `grounding/design-grounding.md`,
-`brd-link.md`), `title: <BRD-KEY> Ground requirements against code and design`, and `body_facts` =
+`brd-link.md`) — **under `--no-code` that set is `grounding/design-grounding.md` and, where Phase 4
+persisted a prerequisite, `brd-link.md`**: the other two are untouched, and naming an unchanged path
+in a handoff is how a commit comes to claim work it did not do — `title: <BRD-KEY> Ground requirements against code and design`, and `body_facts` =
 the finding counts by verdict, the verifier agreement/extend/contradict/unprovable tally, and the
 prerequisite-readiness block; emit its §4.1 outcome line in the final report.
 

@@ -71,6 +71,54 @@ what was searched and where it was expected — "no route under `api/` handles t
 actually cites the finding — this file fixes only that the field exists and what its values mean,
 not when a caller updates it.
 
+### 2.1 How a finding is serialised, and why exactly one spelling is canonical
+
+The table above fixes the field **names**. This section fixes the **bytes**, because a writer free to
+choose between two renderings produces an artifact whose readers are wrong in a way that looks like
+data.
+
+That is not hypothetical. A live run wrote `- id:       [CG#1]` in one section of a
+`code-grounding.md` and `- id: [CG#12]` in the next — column-aligned where a block's other keys
+happened to be long, unpadded where they were not. Both are valid YAML, both read identically to a
+person, and a `^  - id: \[CG#` scan matched only the second. It reported **140 findings as missing
+that were on the page**: a false absence, which is the one class of wrong answer a grounding
+artifact must never produce, because everything downstream treats an absent finding as a gap to be
+filled rather than a record to be read.
+
+So, canonically:
+
+- **One space after every key's colon — never padding, never alignment**, whatever the longest key
+  in that block happens to be. Alignment is a rendering choice made per block, which makes the
+  bytes of a record a property of its neighbours.
+- **One block per finding**, keys in the §2 table's order, every key of a block at the same
+  indentation, and no blank line inside a block. `outcome` (§8) and any verifier `notes` follow the
+  §2 fields, in that order, where the run that wrote the block had them.
+- **A field that does not apply is omitted, never written empty** — `class` and `cites` on a
+  `[CG#n]`, `commit` on a `[DG#n]` of class 1, 2 or 3. An empty value asserts that the field applies
+  and its value is unknown, which is a different claim from the field not applying.
+
+```
+- id: [CG#12]
+  claim: [BR#7] — the nightly export runs at 02:00 UTC
+  verdict: CONFIRMED
+  evidence:
+    - scheduler/jobs.py:88
+    - scheduler/config/nightly.yaml:12
+  commit: 4f1c9ab
+  altitude: implementation
+  horizon: current
+  consumed_by: none
+  outcome: agree
+```
+
+**The reading rule does not go away once the writer is fixed.** Findings already on file were
+written before this section existed, and a hand-edited artifact is sanctioned everywhere else on
+this route — so a reader still resolves an id **against the finding set it has parsed**, never by
+matching a fixed column or a fixed run of leading spaces. That is this repo's "resolve against a
+known set, never parse one out of free text" rule met at the one place the free text is an artifact
+this family wrote itself. A count that disagrees with the file is reported as a parse failure, never
+as an absence: a scan that cannot read a block has learned nothing about whether the finding exists.
+
 ## 3. Verdicts
 
 Exactly six:
@@ -277,7 +325,7 @@ create or repair, rather than about a finding, which neither makes.
 
 **The format §6.1 makes mandatory is fixed here, once, and every writer cites it.** It lived in
 `product-workflows:idea-format` while `/idea` was its only author; `/frames` is a
-second author, and one format with two authorities is the defect family this plugin keeps paying for.
+second author, and one format with two authorities is the defect family this plugin family keeps paying for.
 That file now states only what `/idea` contributes to a row and cites this section for everything
 else. It belongs here rather than there because it is the *satisfaction* of §6.1's requirement, and a
 requirement and its satisfaction drift apart the moment they live in different files.

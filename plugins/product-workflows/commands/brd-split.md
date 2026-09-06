@@ -118,7 +118,44 @@ four-resolution one.
      `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full): <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and nothing to allocate — do not run /product-workflows:brd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
      `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run '/product-workflows:brd-split <PARENT-KEY>': it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason, and it will offer covered-by against it for any row on the parent's ledger that is still unallocated. If the parent's ledger has no unallocated row left, removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
    `unmanaged` → proceed as before this feature.
-7. **Gate on verification.** Every `[CG#n]`/`[DG#n]` finding carries a verifier `outcome` (one of
+7. **Gate on verification — and on there being grounding to verify.** Three tests, in this order.
+   **The order is the fix to a shipped defect and is not incidental:** the third is a *count*, and a
+   count is vacuously satisfied by an empty set. This gate shipped as that count alone, so a BRD with
+   two indexed frame sets and no design grounding at all passed it — zero findings on file means
+   zero findings missing an outcome — and its slices could reach build with their designs never
+   reconciled. A count tests a property of the records that exist; what was wrong was the records
+   that did not. Tests **a** and **b** are presence relations, and each fails when its own side
+   comes up empty rather than passing.
+
+   a. **There is code grounding.** Read `<BRD-dir>/grounding/code-grounding.md` from the worktree —
+      step 6 already proved it is on `origin/<default>` — and count its `[CG#n]` blocks, parsed per
+      `workflows-core:grounding-format` §2.1. Zero → stop. Step 6's row-F branch catches the file
+      being on no ref; nothing until now caught it being on main and holding nothing, which is the
+      same state one commit later:
+      `BRD_SPLIT_NO_FINDINGS: <BRD-KEY>'s grounding/code-grounding.md is on main but records no [CG#n] finding — re-run '/product-workflows:brd-ground <BRD-KEY>' and merge its handoff before splitting.`
+
+   b. **Design grounding covers every frame set on disk.** List every immediate subdirectory of
+      `<BRD-dir>/design/` — the reserved location (`workflows-core:grounding-format` §6.1). **None,
+      or no `design/` folder → this test is satisfied**, and says so in the final report rather than
+      passing silently. One or more → read `grounding/design-grounding.md`'s `## Frame sets covered`
+      section (`/brd-ground` Phase 8 writes one entry per subdirectory on disk, covered or not) and
+      resolve each subdirectory against the names it records:
+      - **The file is absent, or its `## Frame sets covered` section is** → stop. This is the
+        reported state: designs on disk, nothing reconciled against them.
+      - **The section is present and records no set, while `design/` holds one** → stop with the
+        same message, naming the parse. An empty relation here is a read that learned nothing, not a
+        clean tree — §2.1's reading rule, applied to a runtime gate.
+      - **A subdirectory is absent from the recorded set, or recorded `skipped: no index`** → stop,
+        naming each such set. The second is a set `/brd-ground` could not reconcile, which is
+        unreconciled by a different route to the same place.
+      - **Recorded `ground`, or `skipped: --no-design`** → passes. The second is an operator
+        decision taken per run, not an inability, so it is honoured — but it is carried into the
+        final report and into `slices.md` as a recorded limit on what this split was able to check,
+        because it is the one way a slice can still reach build with a frame set unreconciled.
+
+      `BRD_SPLIT_DESIGN_NOT_GROUND: <BRD-KEY> has frame sets on disk that no design grounding covers (<names>) — re-run '/product-workflows:brd-ground <BRD-KEY> --no-code' to ground them without re-deriving the code findings already on file. Where a set is listed as having no index, run '/workflows-core:frames <BRD-KEY>' first, which writes the index that lets the set be reconciled at all.`
+
+   c. **Every finding carries a verifier outcome.** Every `[CG#n]`/`[DG#n]` finding carries one (of
    the four in `workflows-core:grounding-format` §8 — `agree`, `extend`,
    `contradict`, `unprovable`) once `/brd-ground` Phase 7 has run over it; a finding without one
    "is not evidence and cannot be recorded as `consumed_by` anything" (§8), and this command must
@@ -903,6 +940,12 @@ Write `<BRD-dir>/slices.md`:
   not it produced a slice: a reading that produced nothing is the one a later reader most needs, and
   the verbatim text is what lets them see whether the instruction or the reading was wrong. Where the
   Phase 2 conflict list fired, record which rows it named and which way it went.
+
+- **One line for every frame set Phase 0 step 7b let through as `skipped: --no-design`**, naming the
+  set. That is the one route by which a slice this run carves can reach build with a design nobody
+  reconciled, and the operator who chose it per-run is not the reader who will meet the slice later.
+  Where step 7b found nothing to record — no `design/` folder, or every set ground — write nothing
+  here rather than a "none" line: this block exists to carry an exception.
 
 A run that proposed zero slices still writes `slices.md`, with an explicit note that no slice was
 proposed and why, plus every deferral this run recorded — the file is never skipped just because

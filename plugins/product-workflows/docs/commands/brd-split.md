@@ -149,6 +149,16 @@ reads was already independently verified by `/brd-ground`'s own agents.
   same folder with a corrected source in `full` mode, `/brd-split` on the parent in `allocate-only`.
   This transitively also proves `/brd-intake`'s ledger reached main, since `/brd-ground` gates on it
   the same way before it will run.
+- **There is grounding to verify.** Two presence tests run before the count below, because a count
+  is vacuously satisfied by an empty set and this gate once shipped as the count alone — a BRD with
+  two indexed frame sets and no design grounding at all passed it, and its slices could reach build
+  with their designs never reconciled. A `code-grounding.md` that is on main but records no `[CG#n]`
+  stops with `BRD_SPLIT_NO_FINDINGS`. A **design/** subdirectory that no entry in
+  `design-grounding.md`'s frame-set list covers — absent from it, or listed as having no index —
+  stops with `BRD_SPLIT_DESIGN_NOT_GROUND`, which names `/brd-ground <KEY> --no-code` as the repair
+  so the missing design pass can be added without re-deriving verified code findings. A set the
+  operator explicitly skipped with `--no-design` passes, and is recorded in `slices.md` as a limit
+  on what the split could check.
 - **Every finding verified.** A finding with no recorded verifier outcome (`agree` / `extend` /
   `contradict` / `unprovable`) is not evidence this command may act on. Any such finding on file
   stops the run with `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run

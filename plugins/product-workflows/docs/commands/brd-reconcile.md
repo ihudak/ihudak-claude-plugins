@@ -15,7 +15,7 @@ is the sixth and last command of that route, after `/brd-intake`, `/brd-ground`,
 ## Synopsis
 
 ```
-/brd-reconcile <BRD-KEY> @<review-file>
+/brd-reconcile <BRD-KEY> @<review-file> [--sent <path>…]
 ```
 
 - **`<BRD-KEY>`** (mandatory) — the BRD this review answers. A key naming either level a `<BRD-KEY>` can reach
@@ -25,6 +25,26 @@ is the sixth and last command of that route, after `/brd-intake`, `/brd-ground`,
   on**. It does not have to be inside `$SPECS_PATH`, and it is never searched for: the operator says
   which file is the review, because a file the command picked is a file nobody submitted as the
   customer's answer.
+- **`--sent <path>`** (optional, repeatable) — the material the customer was *actually* sent, for a
+  review that answers a package this plugin did not build: one authored by hand before the route
+  existed, or sent out of band. Each path may be a file or a directory and may sit anywhere. The
+  run copies every path verbatim into the BRD folder's **customer-sent-`<YYYYMMDD>`/** and commits
+  it beside the review, before anything reads either.
+
+  Without it, such a review cannot be reconciled at all. The ordinary gate requires a
+  `customer-review-prompt-<YYYYMMDD>.md` that `/brd-package` built and handed off, and there is no
+  way to produce one after the fact — re-running `/brd-package` today builds a *different* document
+  from the one the customer answered. What the gate is really protecting is that a quotation can be
+  checked against a committed copy of the document it came from; `--sent` supplies that copy from
+  the other direction, so the invariant holds and only its provenance changes. The run records
+  which of the two it worked from, in the reconciliation record and in the final report, because
+  operator-supplied material was not assembled under the packaging rules and a later reader needs
+  to know that.
+
+  It replaces the package gate and nothing else. Every other input is still read, so a folder that
+  never reached `/brd-interview` still has no `decisions.md` for a `[CD#n]` to be frozen against.
+  The run refuses the flag where a handed-off package already exists, rather than admitting a
+  second answer to what the customer saw.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).

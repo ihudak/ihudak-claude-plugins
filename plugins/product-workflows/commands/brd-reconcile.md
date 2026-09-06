@@ -1,6 +1,6 @@
 ---
 name: brd-reconcile
-description: BRD reconciliation workflow (PM phase, sixth and last command of the BRD-to-PRD route). Takes the customer's returned review from anywhere, copies it into the BRD folder under the canonical name and commits it before anything reads it, then dispatches customer-review-reader in schema or free-text mode. Confirms every free-text candidate with the operator one at a time against its verbatim quotation before it can become a [CD#n], and never widens the reader's mode. Freezes the confirmed answers as [CD#n], closes each [C] question with the terminal disposition answered by the customer, applies the review's required corrections, banners superseded dated snapshots instead of rewriting them, writes customer-amended and withdrawn resolutions to the defect log, and moves coverage-ledger rows without touching allocation. Then sweeps every dependent BRD — conditional_on positions first — to inherited-unchanged, reverted, reopened or withdrawn, and sweeps every artifact under the parent for the changed ids and for prose still asserting a superseded position. Writes reconciliation-<YYYYMMDD>.md. Takes no --no-docs and does no documentation grounding.
+description: BRD reconciliation workflow (PM phase, sixth and last command of the BRD-to-PRD route). Takes the customer's returned review at whatever path it arrived on, copies it into the BRD folder under the canonical name and commits it before anything reads it, then dispatches customer-review-reader in schema or free-text mode. Confirms every free-text candidate with the operator one at a time against its verbatim quotation before it can become a [CD#n], and never widens the reader's mode. Freezes the confirmed answers as [CD#n], closes each [C] question with the terminal disposition answered by the customer, applies the review's required corrections, banners superseded dated snapshots instead of rewriting them, writes customer-amended and withdrawn resolutions to the defect log, and moves coverage-ledger rows without touching allocation. Then sweeps every dependent BRD — conditional_on positions first — to inherited-unchanged, reverted, reopened or withdrawn, and sweeps every artifact under the parent for the changed ids and for prose still asserting a superseded position. Writes reconciliation-<YYYYMMDD>.md. Normally gates on the package /brd-package built and handed off; --sent admits a review of a hand-authored or out-of-band package instead, by taking the material the customer was actually sent and committing it beside the review. Takes no --no-docs and does no documentation grounding.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -17,7 +17,7 @@ the customer answered and an operator confirmed the answer** (D14,
 `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1). This command exists to make that
 happen, not to restate it.
 
-Usage: `/brd-reconcile <BRD-KEY> @<review-file>`
+Usage: `/brd-reconcile <BRD-KEY> @<review-file> [--sent <path>…]`
 
 Runs at either of the two levels `<BRD-KEY>` can name
 (`workflows-core:addressing` §6) — a BRD that owns its source document, or
@@ -143,6 +143,19 @@ write would re-ask a question already answered.
    is the review, because a file this command picked is a file nobody submitted as the customer's
    answer. Absent, or not a readable file → stop:
    `BRD_RECONCILE_NEEDS_REVIEW: /brd-reconcile needs the returned review file — re-run '/product-workflows:brd-reconcile <KEY> @<review-file>' with the path the customer's file actually sits at.`
+
+   **`--sent <path>` (optional, repeatable), each consuming the next token.** The material the
+   customer was *actually sent* — the other half of the pair this command reconciles. It is for a
+   review that answers a package this plugin did not build: one authored by hand before the route
+   existed, or sent out of band. Each path may be a file or a directory and, like the review, may
+   sit anywhere. Every path must resolve to something readable, or stop before the flag is allowed
+   to replace anything:
+   `BRD_RECONCILE_SENT_NOT_READABLE: --sent <path> is not a readable file or directory — re-run '/product-workflows:brd-reconcile <KEY> @<review-file> --sent <path>' with the path the sent material actually sits at.`
+   The flag replaces step 6's package gate and **nothing else**: every other input step 8 reads is
+   still read, and a folder that never reached `/brd-interview` still has no `decisions.md` for a
+   `[CD#n]` to be frozen against. This admits a hand-authored **package**; it does not make the
+   route's earlier phases optional. `/brd-intake --sort-existing` is the same accommodation made
+   at the other end of the route, and this is its counterpart at this one.
 3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
    `Required path environment variable unset` rule in
    `workflows-core:escalation-rules`:
@@ -158,7 +171,36 @@ write would re-ask a question already answered.
    `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it:
    `BRD_RECONCILE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent.`
-6. **Gate the sent package on main.** This command **consumes** `$SPECS_PATH` deliverables it did not
+6. **Gate the sent package on main — unless `--sent` supplied one.**
+
+   **What this gate is actually for, and why `--sent` can satisfy it.** The *Why the gate is the
+   prompt and not the register* note below states the reason: a returned review quotes sentences,
+   and a quotation is only checkable against a committed copy of the document it came from, at the
+   version the customer received. That reason is about **a committed copy existing**, not about
+   which command produced it. A review of a hand-authored package fails this gate today and can
+   never be reconciled by any route — the operator cannot conjure a `/brd-package` run for a
+   package sent before the route existed, and re-running `/brd-package` today would build a
+   *different* document from the one the customer answered. `--sent` closes that by supplying the
+   copy from the other direction: the operator names what was sent, and the *Canonicalise the
+   returned review* phase commits it into the folder beside the review, in the same handoff, before
+   anything reads either. The invariant is kept; only its provenance changes.
+
+   **Where `--sent` was given, this gate is replaced by three checks and the phases below are
+   unchanged:**
+   - Step 2 already proved every `--sent` path readable.
+   - **A plugin-built package must not also be on main.** Run the ordinary gate below first, and
+     where it would have passed, stop rather than admitting a second answer to "what did the
+     customer see":
+     `BRD_RECONCILE_SENT_REDUNDANT: <BRD-KEY> already has a handed-off customer package (customer-review-prompt-<YYYYMMDD>.md on <default-ref>) — drop --sent and re-run '/product-workflows:brd-reconcile <KEY> @<review-file>', which reconciles against the package that was built.`
+     Where the ordinary gate would have stopped — either row-F state, or any stopping row of §3.7 —
+     `--sent` proceeds instead of stopping. That is the whole of what it overrides.
+   - **The admission is recorded, never silent.** Carry it into the *Write the reconciliation
+     record* phase and the final report: this run reconciled against operator-supplied sent
+     material, named path by path, not against a package this plugin built and handed off. A reader
+     of the record must be able to tell the two apart, because only one of them was assembled under
+     `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md`'s rules.
+
+   **The ordinary gate, where `--sent` was not given.** This command **consumes** `$SPECS_PATH` deliverables it did not
    write, so per `workflows-core:phase-handoff` §5 rule 2 it executes
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
    folder's **most recent `customer-review-prompt-<YYYYMMDD>.md`** — the artifact whose presence
@@ -185,13 +227,14 @@ write would re-ask a question already answered.
    states, and sending the wrong message for the second one walks the operator into a wall:
 
    - **No `customer-review-prompt-<YYYYMMDD>.md` in the folder at all** — no package was ever built.
-     `BRD_RECONCILE_NEEDS_PACKAGE: no customer package on file for <BRD-KEY> — run /product-workflows:brd-package <BRD-KEY> first, and reconcile the review that comes back from it.`
+     `BRD_RECONCILE_NEEDS_PACKAGE: no customer package on file for <BRD-KEY> — run /product-workflows:brd-package <BRD-KEY> first, and reconcile the review that comes back from it. If this review answers a package sent before the route existed, re-run with --sent <path> naming what the customer was actually sent.`
    - **A prompt is in the folder, and on no ref** — the package was built and its handoff was
      declined. **Do not send the operator back to `/brd-package`**: that command refuses to rewrite a
      dated bundle, so re-running it today stops outright and re-running it on another date builds a
      *different* package from the one the customer was actually sent. What is needed is the package
      already on disk, landed:
      `BRD_RECONCILE_PACKAGE_NOT_HANDED_OFF: <BRD-KEY>'s package is written at <path> but is on no branch — its handoff was declined. Commit and merge the package's files to the specs repo's default branch, then re-run; do not re-run /product-workflows:brd-package, which will not rewrite a dated bundle.`
+     This is the state `--sent` is **not** for: the package exists and is the right one, so landing it is the fix. Admitting a copy of it under `--sent` would put the same document in the folder twice under two names.
 
    **Why the gate is the prompt and not the register.** The committed package is what makes a
    returned review checkable at all: when the review quotes a sentence, there has to be a committed
@@ -354,7 +397,7 @@ path nobody else can reproduce; the copy is the record.
    On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's
    table, where `brd` is the prefix every `/brd-*` command shares), `feature_folder` as resolved in
    the *Resolve inputs and gate the sent package* phase, `deliverable_paths` = the canonicalised
-   review alone, at the name step 2 resolved, and
+   review at the name step 2 resolved, plus `customer-sent-<YYYYMMDD>/` where step 5 wrote one, and
    `title: <BRD-KEY> Record the returned customer review <YYYYMMDD>`. Emit its
    §4.1 outcome line in the final report, labelled as the review's handoff so it is not confused with
    the run's own.
@@ -373,9 +416,35 @@ path nobody else can reproduce; the copy is the record.
    operator holding a review this plugin will not process until they run git themselves, which is
    precisely the wrong place to put a wall in a workflow whose whole shape is a human in the loop.
 
+5. **Copy the `--sent` material, where the flag was given** — under the same ordering rule and into
+   the same commit, because it is the other half of the pair and is admissible only as a committed
+   copy (the *Resolve inputs and gate the sent package* phase says why). Ask the operator, in plain
+   text, for the date this material was sent — nothing on disk asserts it, exactly as nothing
+   asserted the review's date at step 1's third rung — then copy every `--sent` path **verbatim**
+   into:
+
+   ```
+   <BRD-dir>/customer-sent-<YYYYMMDD>/
+   ```
+
+   preserving each path's own basename, and recursively for a directory. The folder is named
+   `customer-sent-` and not `bundle-` deliberately: a `bundle-<YYYYMMDD>/` is what
+   `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` builds under its own rules, and a later
+   `/brd-package` run reading this folder must not mistake hand-authored material for one of its
+   own. Resolve collisions by the same three tests step 2 uses — free, byte-identical (a resumed
+   run), or differing (prompt for a suffix) — and **never overwrite a differing file**: this is the
+   customer's record as much as the review is.
+
+   The sent date is the customer's send, not this run's and not the review's. It may legitimately
+   equal or precede the review's date; it is not checked against it, because a send that predates
+   the plugin has no record to check against and inventing one would be the failure this whole
+   admission exists to avoid.
+
 **Everything below reads the canonicalised copy and never the supplied path.** The agent is given
 the copy, the register cites the copy, and the reconciliation record names the copy. The original is
-mentioned once, in the record, as where it came from.
+mentioned once, in the record, as where it came from. The same holds for the `--sent` material: what
+is quoted against is the committed copy under `customer-sent-<YYYYMMDD>/`, never the path it was
+supplied from.
 
 ---
 
@@ -1008,6 +1077,12 @@ would license exactly the write two other rules forbid.
 Write `<BRD-dir>/reconciliation-<YYYYMMDD>.md`, stamped with **this run's** date. It says what
 changed, why, which ids, and what still needs a human:
 
+- **What the review was reconciled against** — a package `/brd-package` built and handed off, or,
+  where `--sent` was given, operator-supplied sent material admitted under the *Resolve inputs and
+  gate the sent package* phase. On the second, name every admitted path as it was supplied and as it
+  was committed under `customer-sent-<YYYYMMDD>/`, and say plainly that this material was not
+  assembled under `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md`'s rules — a later reader
+  weighing what a quotation was checkable against needs to know which of the two they are holding.
 - **The review** — the canonicalised copy by path, the original path it arrived on, the mode the
   reader worked in and what decided it, the verdict, the readiness statement **quoted verbatim** (it
   is one sentence long precisely so it can be quoted without being softened), the twelve sections'
@@ -1047,12 +1122,15 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's
 table), `feature_folder` as resolved in the *Resolve inputs and gate the sent package* phase,
-`deliverable_paths` = the canonicalised review at its resolved name (still listed, so a run whose
-first handoff was declined lands it here), `decisions.md`, `interview/round-<N>.md` and
+`deliverable_paths` = the canonicalised review at its resolved name and, where `--sent` was given,
+`customer-sent-<YYYYMMDD>/` (both still listed, so a run whose
+first handoff was declined lands them here), `decisions.md`, `interview/round-<N>.md` and
 `interview/customer-questions.md`, `coverage-ledger.md`, the defect log's path (**the parent's**, on
 a slice), every dated artifact this run bannered, `reconciliation-<YYYYMMDD>.md`, every dependent
 BRD's `decisions.md` the sweep wrote, and every artifact the stale-reference sweep updated;
-`title: <BRD-KEY> Reconcile the returned customer review <YYYYMMDD>`; and `body_facts` = the mode the
+`title: <BRD-KEY> Reconcile the returned customer review <YYYYMMDD>`; and `body_facts` = what the
+review was reconciled against (a handed-off package, or `--sent` material with its committed path);
+the mode the
 review was read in; the `[CD#n]` ids frozen and the count of candidates rejected or sent back; the
 `[C]` questions closed and any still open; the corrections by disposition; the banners added; the
 defect resolutions; the ledger rows moved; every dependent BRD swept, with its dispositions and any

@@ -210,18 +210,50 @@ def load_namespace_map(path):
     return ns_map or None
 
 
-def command_marker(obj, ns_map):
-    """The command name if obj is a transcript record for a slash-command
-    invocation of a command KNOWN to this marketplace, else None.
+# `/compact` is Claude Code's own built-in context-compaction operation. It is a
+# well-formed envelope by every structural test command_envelope applies below --
+# and it is STILL excluded, by NAME, from cutting a window. A cost window exists
+# to attribute spend to the thing that CAUSED it; /compact does not start a new
+# unit of work, it is housekeeping Claude Code performs on the conversation that
+# is ALREADY running, mid-task and often automatic. Cutting there would not
+# attribute its own tokens to /compact -- nothing ever claims it, since it has no
+# namespace and claimable_command rejects every bare name -- it would sever the
+# window of whatever command WAS already open, stranding the rest of THAT
+# command's own spend in the remainder instead of in its rightful claim. That is
+# the very misattribution section 8.7 exists to prevent, just aimed inward at the
+# window's own command instead of outward at a sibling's.
+#
+# This is a DECISION, not a derivation, and it does not fall out of "any
+# well-formed envelope cuts" by itself -- it is the one deliberate exception,
+# named here rather than inferred from shape. Bare-vs-namespaced is explicitly
+# NOT the test: a bare `/upgrade` built-in DOES cut (see command_envelope), and
+# for the opposite reason /compact does not -- /upgrade represents the user
+# doing something genuinely separate (a subscription action), /compact does not.
+# A held ONE-ELEMENT set, tested by membership, not parsed -- the same
+# discipline every other name test in this file uses.
+NON_CUTTING_BUILTINS = frozenset({"compact"})
 
-    Two disciplines, both deliberate. The marker must START the message content:
-    the same `<command-name>` text appears inside quoted file content elsewhere in
-    a transcript, and an unanchored search matches that too. And BOTH halves of the
-    name are RESOLVED against a held set, never parsed -- a marker records what the
-    user typed, which may be bare (`/implement`) or namespaced
-    (`/dev-workflows:implement`), and only the map can say which reading is real.
-    A name outside the map (`/compact`, `/login`, a plugin from another
-    marketplace) returns None, so it never becomes a cost boundary."""
+
+def command_envelope(obj):
+    """The typed command text (e.g. "workflows-core:prompt-grill-me", or the
+    bare built-in "upgrade") if obj is a transcript record for ANY well-formed
+    slash-command invocation, else None. Decides WHERE TO CUT a window.
+
+    Deliberately independent of any manifest -- a namespace, a bare built-in
+    name, or a command from a marketplace this one has never heard of all
+    qualify equally. 2026-09-02-marketplace-split-design.md section 8.7 found
+    that resolving THIS question against the manifest was itself the defect: a
+    boundary this test cannot see is swallowed whole into whichever claim's
+    segment it falls inside (section 13.3 gives a claim the segment up to the
+    next boundary OF ANY KIND), and a foreign marketplace's command is exactly
+    such an invisible boundary. The manifest still governs the SEPARATE
+    question of what a claim may MATCH -- see claimable_command.
+
+    Two disciplines survive the split intact. The marker must START the
+    message content: the same `<command-name>` text appears inside quoted file
+    content elsewhere in a transcript, and an unanchored search matches that
+    too. And exactly one name is excluded, by deliberate decision rather than
+    by parsed shape -- see NON_CUTTING_BUILTINS."""
     if not isinstance(obj, dict) or obj.get("type") != "user":
         return None
     msg = obj.get("message")
@@ -256,27 +288,33 @@ def command_marker(obj, ns_map):
     if not raw.startswith("/"):
         return None
     typed = raw[1:].strip()
-    if not typed or not ns_map:
+    if not typed or typed in NON_CUTTING_BUILTINS:
         return None
-    # The namespace is REQUIRED, and that is a deliberate asymmetry with how a
-    # user thinks about these commands. Two facts force it. Claude Code's own
-    # built-ins are always written bare, and one of them -- `/upgrade` -- collides
-    # with a command name this marketplace also ships, so accepting a bare name
-    # mints a boundary from a subscription command no plugin here ever ran
-    # (observed on real transcripts). And a namespace is resolved, never discarded:
-    # stripping it would read another marketplace's `/superpowers:implement` as
-    # this family's `/implement`.
-    #
-    # What WIDENED is which namespaces are accepted, and nothing else. It used to be
-    # `<this plugin>:<this plugin's command>`, which made every SIBLING plugin's
-    # invocation invisible -- and section 13.3 gives a claim the segment up to the
-    # next boundary OF ANY KIND, so an invisible sibling boundary is swallowed whole
-    # into the claim. It is now `<any plugin of this marketplace>:<that plugin's own
-    # command>`: both halves still resolve against a held set, so both safety
-    # properties survive intact. It errs safe either way -- an invocation missed
-    # becomes an unmatched claim, reported and dropped (section 13.4), where a
-    # phantom one silently files one command's spend under another's phase.
-    if ":" not in typed:
+    return typed
+
+
+def claimable_command(typed, ns_map):
+    """The bare command name if `typed` (command_envelope's return value)
+    names a command KNOWN to this marketplace's manifest, else None. Decides
+    WHERE A CLAIM MAY MATCH -- unlike command_envelope, a namespace is
+    REQUIRED here, and that is a deliberate asymmetry with how a user thinks
+    about these commands. Two facts force it. Claude Code's own built-ins are
+    always written bare, and one of them -- `/upgrade` -- collides with a
+    command name this marketplace also ships: accepting a bare name here would
+    let that subscription command masquerade as a claimable invocation of ours
+    (it still CUTS -- command_envelope does not require a namespace -- only
+    claimability is refused here). And a namespace is resolved, never
+    discarded: stripping it would read another marketplace's
+    `/superpowers:implement` as this family's `/implement`.
+
+    BOTH halves are resolved against a held set, never parsed: `typed` may be
+    namespaced (`workflows-core:prompt-grill-me`) or bare (`upgrade`), and only
+    the map can say which namespace:name pair is real. A pair outside the map
+    -- a bare name, a real namespace paired with a command that plugin does
+    not itself ship, or a plugin from another marketplace entirely -- returns
+    None, so it never becomes claimable, even where command_envelope already
+    let it cut the window."""
+    if not typed or not ns_map or ":" not in typed:
         return None
     ns, rest = typed.split(":", 1)
     names = ns_map.get(ns)
@@ -315,16 +353,27 @@ def scan_main(path, line_offset, ns_map):
             except (ValueError, TypeError):
                 continue
             ts = parse_ts(obj.get("timestamp") if isinstance(obj, dict) else None)
-            name = command_marker(obj, ns_map)
-            if name is not None and ts is not None:
+            typed = command_envelope(obj)
+            if typed is not None and ts is not None:
                 # The raw stamp is kept, not iso_z's whole-second form: segment
                 # edges are compared against record timestamps, and flooring the
                 # edge moves up to a second of one run's records into another's.
                 # A marker with no usable timestamp is not a boundary -- there is
                 # nothing to cut the window at, and iso_z(None) used to raise here
                 # and fail a run whose contract is that it never does.
+                claim_name = claimable_command(typed, ns_map)
+                # `command` is the CLAIMABLE bare name when there is one, because
+                # that is exactly what a caller's `--claim` names
+                # (cost-emission.md section 13.1's deferred record is always a
+                # bare command). A cut that is NOT claimable reports its full
+                # typed text instead -- namespaced when it had one, bare
+                # otherwise -- which can never collide with a bare claimable
+                # name. `claimable` is not merely informational: match_claims
+                # trusts it rather than re-deriving it from `command`'s shape.
                 boundaries.append(
-                    {"command": "/" + name,
+                    {"command": ("/" + claim_name) if claim_name is not None
+                                else ("/" + typed),
+                     "claimable": claim_name is not None,
                      "ts": obj.get("timestamp"),
                      "line_offset": i}
                 )
@@ -495,16 +544,21 @@ def _st_rows():
 
     Each row exists for a defect, not for coverage: a MESSAGE-FIRST plugin
     envelope (anchoring on <command-name> alone made the feature inert); a bare
-    built-in `/upgrade`, whose name a plugin of this marketplace ships (accepting bare names
-    minted boundaries from a subscription command); a `/vuln` boundary between the
-    ceding run and the replaying one (positional pairing filed its spend under a
-    PRD phase); a FOREIGN namespace over a shared bare name; the SAME command
-    ceding twice (a cursor that does not advance pairs both claims to one
-    boundary); SUB-SECOND boundary and record stamps (flooring the edge moves
-    records between runs); records sitting exactly ON a boundary (edge
-    inclusivity); a usage record with no timestamp at all; and TWO PLUGINS'
-    namespaces in one window (a single-plugin detector sees only its own, and the
-    ceding command and the run that replays it ship from different plugins)."""
+    built-in `/upgrade`, whose name a plugin of this marketplace ships (must
+    NEVER become claimable -- and, since section 8.7's split, DOES cut the
+    window, proving cut and claimable are independent tests rather than one);
+    a `/vuln` boundary between the ceding run and the replaying one (positional
+    pairing filed its spend under a PRD phase); a FOREIGN namespace over a
+    shared bare name (never claimable, but now cuts too -- the section 8.7
+    defect this file exists to fix); `/compact`, the one deliberate exception
+    that does NOT cut despite being just as well-formed an envelope as every
+    other built-in (see NON_CUTTING_BUILTINS); the SAME command ceding twice (a
+    cursor that does not advance pairs both claims to one boundary); SUB-SECOND
+    boundary and record stamps (flooring the edge moves records between runs);
+    records sitting exactly ON a boundary (edge inclusivity); a usage record
+    with no timestamp at all; and TWO PLUGINS' namespaces in one window (a
+    single-plugin detector sees only its own, and the ceding command and the
+    run that replays it ship from different plugins)."""
     asst, builtin, plugin_cmd = _st_asst, _st_builtin, _st_plugin_cmd
 
     # The ceding command is namespaced to the plugin that actually ships it, which is
@@ -517,18 +571,18 @@ def _st_rows():
     G = "/workflows-core:prompt-grill-me"
     return [
         asst("2026-09-01T10:00:00.000Z", 1000),          # prior activity
-        builtin("2026-09-01T10:00:30.000Z", "/upgrade"),  # BARE built-in, name we ship
+        builtin("2026-09-01T10:00:30.000Z", "/upgrade"),  # BARE, cuts, never claimable
         plugin_cmd("2026-09-01T10:01:00.000Z", "/dev-workflows:vuln"),   # emits no cost
         asst("2026-09-01T10:01:30.000Z", 4000),          # /vuln's spend
         plugin_cmd("2026-09-01T10:02:00.000Z", G),       # cede #1
         asst("2026-09-01T10:02:00.000Z", 500),           # exactly ON the boundary
         asst("2026-09-01T10:02:00.500Z", 500),           # sub-second, inside cede #1
         asst(None, 700),                                 # no timestamp -> remainder
-        plugin_cmd("2026-09-01T10:02:30.000Z", "/superpowers:implement"),  # FOREIGN
+        plugin_cmd("2026-09-01T10:02:30.000Z", "/superpowers:implement"),  # FOREIGN, cuts, never claimable
         {"type": "user", "timestamp": "2026-09-01T10:02:40.000Z",
          "message": {"role": "user", "content": "a doc quoting " + MARKER_OPEN +
                      "/dev-workflows:implement" + MARKER_CLOSE + " inline"}},
-        builtin("2026-09-01T10:02:50.000Z", "/compact"),
+        builtin("2026-09-01T10:02:50.000Z", "/compact"),  # the ONE deliberate non-cut
         asst("2026-09-01T10:03:00.200Z", 300),           # still cede #1 (before edge)
         plugin_cmd("2026-09-01T10:03:00.500Z", G),       # cede #2 -- SAME name
         asst("2026-09-01T10:03:00.500Z", 100),           # exactly ON cede #1's END
@@ -551,32 +605,41 @@ def _st_split_rows():
     It carries BOTH safety rows too, because the widening is what could plausibly
     have broken them: a bare `/upgrade` (a Claude Code built-in whose name a plugin
     of this marketplace also ships) and a `/superpowers:implement` (a real namespace,
-    but from another marketplace, over a bare name this one ships). Neither may mint
-    a boundary, and an implementation that widens the accepted NAMESPACES without
-    widening the per-namespace NAME sets passes exactly this pair while failing the
-    segment numbers above -- which is why the two travel together.
+    but from another marketplace, over a bare name this one ships). Neither may EVER
+    become claimable, and an implementation that widens the accepted NAMESPACES
+    without widening the per-namespace NAME sets passes exactly this pair while
+    failing the segment numbers above -- which is why the two travel together.
+    Section 8.7 changes what these two rows ALSO prove: since neither is
+    `/compact`, both are now CUT boundaries too (`command_envelope` never consults
+    the manifest), so this fixture is where "cuts, but never claimable" is
+    exercised for real -- right after the pair that used to be this file's whole
+    answer to them.
 
-    A THIRD degradation has its own row: a map read as one FLAT set of every plugin's
-    names, so that `/workflows-core:vuln` -- a real namespace paired with another
-    plugin's command -- is accepted. Nothing else here pairs the two that way, and an
-    implementation reading the map that way passes every other assertion in this
-    file."""
+    A THIRD degradation has its own row: a map read as one FLAT set of every
+    plugin's names, so that `/workflows-core:vuln` -- a real namespace paired
+    with another plugin's command -- is accepted AS CLAIMABLE. It still cuts
+    the window regardless (`command_envelope` does not care whose command it
+    is), so the defect this row now pins is no longer "does it appear in the
+    boundary list" -- it always does -- but "is it ever marked `claimable`":
+    only a flat-set implementation marks it so, and nothing else here pairs the
+    two that way."""
     asst, builtin, plugin_cmd = _st_asst, _st_builtin, _st_plugin_cmd
     return [
         plugin_cmd("2026-09-01T10:00:00.000Z", "/workflows-core:prompt-grill-me"),
         asst("2026-09-01T10:00:30.000Z", 5000),          # the ceded run's own spend
         plugin_cmd("2026-09-01T10:01:00.000Z", "/dev-workflows:vuln"),  # SIBLING
         asst("2026-09-01T10:01:30.000Z", 4000),          # /vuln's spend -- remainder
-        builtin("2026-09-01T10:02:00.000Z", "/upgrade"),                # safety
-        plugin_cmd("2026-09-01T10:02:10.000Z", "/superpowers:implement"),  # safety
+        builtin("2026-09-01T10:02:00.000Z", "/upgrade"),                # safety; cuts, never claimable
+        plugin_cmd("2026-09-01T10:02:10.000Z", "/superpowers:implement"),  # safety; cuts, never claimable
         plugin_cmd("2026-09-01T10:02:30.000Z", "/workflows-core:prompt"),  # replays
         asst("2026-09-01T10:03:00.000Z", 800),           # the replaying run's spend
         # A KNOWN namespace paired with a command belonging to a DIFFERENT plugin. This
-        # row pins the `<that plugin's OWN command>` half of the rule: without it, a map
-        # read as one FLAT set of every plugin's names -- namespace checked, name checked
-        # against the union -- passes every other case in this file. It carries no usage
-        # and closes no segment, so it moves no figure above; only an implementation that
-        # mints it turns the boundary list red.
+        # row pins the `<that plugin's OWN command>` half of the claimability rule:
+        # without it, a map read as one FLAT set of every plugin's names -- namespace
+        # checked, name checked against the union -- marks it claimable, which nothing
+        # else here does. It cuts the window either way (command_envelope does not
+        # consult the manifest), so it moves no figure above and is told apart only by
+        # its `claimable` flag, never by whether it appears in the boundary list.
         plugin_cmd("2026-09-01T10:03:30.000Z", "/workflows-core:vuln"),
     ]
 
@@ -684,24 +747,45 @@ def selftest():
     whole = run()
     if whole is None:
         print("SELFTEST FAIL"); return 1
-    names = [b["command"] for b in whole["command_boundaries"]]
-    check(names == ["/vuln", "/prompt-grill-me", "/prompt-grill-me", "/implement"],
-          "boundaries are the four plugin invocations, in order (got %r)" % (names,))
-    check("/upgrade" not in names,
-          "a BARE built-in is not a boundary, even when a plugin of this "
-          "marketplace ships that name")
-    check("/compact" not in names, "/compact is not a boundary")
+    boundaries = whole["command_boundaries"]
+    names = [b["command"] for b in boundaries]
+    claimable_names = [b["command"] for b in boundaries if b["claimable"]]
+    # Section 8.7's fix: cutting no longer needs the manifest, so /upgrade and
+    # /superpowers:implement now cut too -- they just never appear in the
+    # CLAIMABLE view, which is the one the four un-split assertions below used
+    # to be written against wholesale.
+    check(claimable_names == ["/vuln", "/prompt-grill-me", "/prompt-grill-me", "/implement"],
+          "the CLAIMABLE boundaries are exactly the four plugin invocations "
+          "this marketplace's own manifest resolves, in order (got %r)"
+          % (claimable_names,))
+    check("/upgrade" in names and not boundaries[names.index("/upgrade")]["claimable"],
+          "a BARE built-in now cuts the window (section 8.7), even though a "
+          "plugin of this marketplace ships that name -- but it is never "
+          "marked claimable")
+    check("/compact" not in names,
+          "/compact is not a boundary at all -- the one deliberate exception "
+          "to 'every well-formed envelope cuts' (NON_CUTTING_BUILTINS)")
     check(names.count("/implement") == 1,
-          "a FOREIGN namespace (/superpowers:implement) is not a boundary")
-    check(len(names) == 4,
-          "a marker quoted mid-message is not a boundary (anchored match)")
-    check([b["line_offset"] for b in whole["command_boundaries"]] == [2, 4, 12, 15],
+          "a FOREIGN namespace (/superpowers:implement) is never resolved down "
+          "to this marketplace's bare /implement")
+    check("/superpowers:implement" in names
+          and not boundaries[names.index("/superpowers:implement")]["claimable"],
+          "...and it appears in the boundary list under its own full text, "
+          "cutting the window (section 8.7) without ever being claimable")
+    check(len(names) == 6,
+          "a marker quoted mid-message is still not a boundary (anchored "
+          "match) -- 6 cuts total, up from 4 before the split added /upgrade "
+          "and /superpowers:implement as non-claimable cuts")
+    check([b["line_offset"] for b in boundaries] == [1, 2, 4, 8, 12, 15],
           "each boundary reports the transcript line it was found on")
     check(whole["namespaces"] == ["dev-workflows", "workflows-core"],
-          "the accepted namespaces come from the manifest -- EVERY plugin of this "
-          "marketplace, not the one plugin that happens to be reading")
+          "the accepted CLAIM namespaces come from the manifest -- EVERY "
+          "plugin of this marketplace, not the one plugin that happens to be "
+          "reading -- and cutting needs no namespace list at all")
     check(tokens(whole["models"]) == 11500,
-          "unclaimed, the window is 11500 tok (out-of-window subagents excluded)")
+          "unclaimed, the window is 11500 tok (out-of-window subagents "
+          "excluded) -- unaffected by which envelopes cut, since nothing is "
+          "claimed")
     check(abs(whole["cost_computed_usd"] - 0.2875) < 1e-9,
           "...priced at $0.2875")
     check(whole["cost_statusline_usd"] == 0.9,
@@ -713,17 +797,30 @@ def selftest():
     check(len(two["claims"]) == 2 and two["unmatched_claims"] == [],
           "two cedes of the SAME command match two DIFFERENT boundaries")
     c1, c2 = (two["claims"] + [None, None])[:2]
-    check(c1 and abs(c1["cost_computed_usd"] - 0.0425) < 1e-9,
-          "cede #1 gets its own segment ($0.0425) -- not /vuln's, which positional "
-          "pairing would have taken")
+    # Cede #1's segment now ends at 10:02:30 -- the FOREIGN /superpowers:implement,
+    # the next envelope of ANY kind -- not at 10:03:00.500 (cede #2's own start),
+    # which is what it swallowed before section 8.7's fix (was $0.0425 / 1700 tok /
+    # 60s; a foreign command's spend in between was silently folded into it). Cede
+    # #2 is untouched: nothing new cuts between its own start and the replay.
+    check(c1 and abs(c1["cost_computed_usd"] - 0.035) < 1e-9,
+          "cede #1's segment now ends at the next envelope of ANY kind (the "
+          "foreign /superpowers:implement, $0.035) rather than running all "
+          "the way to cede #2 -- and still resolves by NAME, not position, "
+          "so it is not /vuln's segment either")
     check(c2 and abs(c2["cost_computed_usd"] - 0.0275) < 1e-9,
-          "cede #2 gets its own segment ($0.0275)")
-    check(c1 and tokens(c1["models"]) == 1700 and c2 and tokens(c2["models"]) == 1100,
+          "cede #2 gets its own segment ($0.0275) -- unaffected, since nothing "
+          "newly cuts between its start and the replay")
+    check(c1 and tokens(c1["models"]) == 1400 and c2 and tokens(c2["models"]) == 1100,
           "a segment is half-open [start, end): a record exactly ON a boundary "
           "opens the new segment and does not also close the old one, and a "
-          "sub-second record before the edge stays where it ran")
-    check(c1 and c1["duration_s"] == 60 and c2 and c2["duration_s"] == 59,
-          "each claim's duration spans its own segment, not the whole window")
+          "sub-second record before the edge stays where it ran -- cede #1 is "
+          "1400 tok now (500+500+400 subagent), down from 1700, because the "
+          "foreign command's cut moves the 300-tok record after it into the "
+          "remainder instead of into this claim")
+    check(c1 and c1["duration_s"] == 30 and c2 and c2["duration_s"] == 59,
+          "each claim's duration spans its own segment, not the whole window "
+          "-- cede #1 is 30s now (10:02:00 to the foreign cut at 10:02:30), "
+          "down from 60s")
     check(tokens(two["models"]) + tokens(c1["models"]) + tokens(c2["models"])
           == tokens(whole["models"]),
           "claims + remainder are token-exact against the unsplit window")
@@ -743,12 +840,28 @@ def selftest():
           "an unmatched claim carves out nothing -- no spend is lost")
 
     nosub = run("--claim", "/prompt-grill-me", subagents=False)
-    check(nosub is not None and abs(nosub["claims"][0]["cost_computed_usd"] - 0.0325) < 1e-9,
-          "subagent spend lands in the segment it ran in, not elsewhere")
+    # Same cut (foreign /superpowers:implement at 10:02:30) as the `two` test's cede
+    # #1, minus the subagent's 400: 500+500=1000 tok, $0.025 -- down from $0.0325
+    # (1300 tok), which is what this segment wrongly ran to (10:03:00.500) before
+    # the foreign command was a cut at all.
+    check(nosub is not None and abs(nosub["claims"][0]["cost_computed_usd"] - 0.025) < 1e-9,
+          "subagent spend lands in the segment it ran in, not elsewhere -- and "
+          "the claim itself is correctly shortened by the foreign command's "
+          "new cut, from $0.0325 to $0.025")
 
     bare = run(namespaces=False)
-    check(bare is not None and bare["command_boundaries"] == [],
-          "with no manifest resolved, no boundary is reported (nothing is guessed)")
+    # command_envelope never consults ns_map -- cutting is structural, so all 6
+    # envelopes (everything but /compact) still cut with no manifest resolved at
+    # all. claimable_command DOES require ns_map, so every one of them comes back
+    # unclaimable: nothing is guessed onto a match, but the window is still
+    # segmented correctly if a caller ever claims against it.
+    check(bare is not None and len(bare["command_boundaries"]) == 6
+          and all(not b["claimable"] for b in bare["command_boundaries"]),
+          "with no manifest resolved, cuts still apply structurally (6, same "
+          "as with the manifest) but NOTHING is claimable -- nothing "
+          "claimable is guessed, which is what 'nothing is guessed' now means")
+    check(bare is not None and bare["namespaces"] == [],
+          "with no manifest resolved, there is no namespace to claim against")
     check(bare is not None and tokens(bare["models"]) == tokens(whole["models"]),
           "boundary detection never changes the cost figure")
 
@@ -757,14 +870,24 @@ def selftest():
     # timestamps inside these windows too, and would silently move the token figures
     # these cases exist to pin.
     seg = run("--claim", "/prompt-grill-me", transcript=t2path, subagents=False)
-    segn = [b["command"] for b in seg["command_boundaries"]] if seg else []
-    check(segn == ["/prompt-grill-me", "/vuln", "/prompt"],
-          "a SIBLING plugin's /vuln is a boundary in a window whose other two "
-          "boundaries belong to this one (got %r)" % (segn,))
+    seg_boundaries = seg["command_boundaries"] if seg else []
+    segn = [b["command"] for b in seg_boundaries]
+    seg_claimable = {b["command"]: b["claimable"] for b in seg_boundaries}
+    check(segn == ["/prompt-grill-me", "/vuln", "/upgrade", "/superpowers:implement",
+                   "/prompt", "/workflows-core:vuln"],
+          "every well-formed envelope cuts now, whatever its namespace or "
+          "claimability (got %r)" % (segn,))
     check(segn.count("/vuln") == 1,
-          "a command resolves against ITS OWN plugin's names: /workflows-core:vuln "
-          "pairs a real namespace with a real command of the marketplace that is not "
-          "that namespace's, and mints nothing")
+          "a command resolves CLAIMABLE against ITS OWN plugin's names: "
+          "/workflows-core:vuln pairs a real namespace with a real command of "
+          "the marketplace that is not that namespace's, and is reported "
+          "under its own full text rather than colliding with the bare /vuln")
+    check(seg_claimable.get("/workflows-core:vuln") is False,
+          "...and it cuts the window regardless (command_envelope does not "
+          "consult the manifest) but is never claimable -- a map read as one "
+          "FLAT set of every plugin's names would mark it claimable, which is "
+          "what this pins now that structural cutting no longer depends on "
+          "manifest resolution at all")
     check(seg is not None and seg["unmatched_claims"] == [] and len(seg["claims"]) == 1
           and tokens(seg["claims"][0]["models"]) == 5000,
           "the claim gets 5000 -- its own segment, ending at the SIBLING's boundary, "
@@ -772,12 +895,17 @@ def selftest():
     check(seg is not None and tokens(seg["models"]) == 4800,
           "the remainder keeps /vuln's 4000 and the replaying run's 800 (4800), "
           "not the 800 a swallowed sibling segment leaves behind")
-    check("/upgrade" not in segn,
-          "widening the namespaces does not admit a BARE built-in whose name a "
-          "plugin of this marketplace ships")
+    check(seg_claimable.get("/upgrade") is False,
+          "a BARE built-in whose name a plugin of this marketplace ships now "
+          "cuts the window (section 8.7's fix) but widening the namespaces "
+          "accepted for CLAIMING never admits it")
+    check(seg_claimable.get("/superpowers:implement") is False,
+          "a FOREIGN marketplace's command now cuts the window too (section "
+          "8.7's fix) but is never admitted as claimable")
     check("/implement" not in segn,
-          "widening the namespaces does not admit /superpowers:implement -- a real "
-          "namespace, but not one of this marketplace's")
+          "...and it is reported under its own full namespaced text, never "
+          "stripped down to a bare /implement this marketplace's claims "
+          "could match")
 
     xp = run("--claim", "/prompt-brainstorm", transcript=t3path, subagents=False)
     check(xp is not None and xp["unmatched_claims"] == [] and len(xp["claims"]) == 1
@@ -807,13 +935,21 @@ def match_claims(claim_names, boundaries):
 
     Returns (matched, unmatched). Each matched entry carries the half-open
     segment [start, end) that belongs to that claim; end is None for the final
-    segment, meaning "to the end of the window"."""
+    segment, meaning "to the end of the window".
+
+    A candidate boundary must be `claimable` -- `boundaries` now also holds
+    CUT-only entries (command_envelope's, never resolved against the
+    manifest), and those must never be mistaken for a match even where their
+    `command` text happens to coincide with a claim name. The segment's END,
+    below, deliberately does NOT carry the same restriction: it is the very
+    next boundary of ANY kind, claimable or not -- a foreign or otherwise
+    non-claimable command genuinely closes the window it interrupts."""
     matched, unmatched = [], []
     cursor = 0
     for name in claim_names:
         hit = None
         for i in range(cursor, len(boundaries)):
-            if boundaries[i]["command"] == name:
+            if boundaries[i].get("claimable") and boundaries[i]["command"] == name:
                 hit = i
                 break
         if hit is None:
@@ -921,11 +1057,12 @@ def main():
 
     notes = []
     if args.claim and ns_map is None:
-        notes.append("no command-namespace manifest resolved at %r: boundary "
-                     "detection is off, so every claim is unmatched" % (args.namespaces,))
-    elif args.claim and not boundaries:
-        notes.append("no command boundary found in this window (namespaces "
-                     "known: %s)" % (", ".join(sorted(ns_map)),))
+        notes.append("no command-namespace manifest resolved at %r: no "
+                     "invocation can be claimed (window cuts still apply "
+                     "structurally, independent of any manifest)" % (args.namespaces,))
+    elif args.claim and not any(b.get("claimable") for b in boundaries):
+        notes.append("no claimable command boundary found in this window "
+                     "(namespaces known: %s)" % (", ".join(sorted(ns_map)),))
 
     # Partition every buffered record into exactly one bucket: a claimed segment,
     # or the remainder that stays with this run. Disjoint by construction, and

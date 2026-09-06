@@ -66,7 +66,7 @@ No reviewer, and nothing to review — an index states what a directory holds. T
 
 ## What it is not
 
-**Indexing makes frames readable; grounding makes them `[DG#n]` findings.** `/frames` dispatches no `design-grounder`, produces no finding, cites no requirement, and never reaches `grounding-verifier` — both of those agents ship in the sibling `dev-workflows` plugin and are dispatched only by its `/brd-ground`. Design grounding on the `/idea` route remains deliberately unbuilt — §6.1 says so, and this command keeps it true. The one command that grounds a frame set is `/brd-ground`, on the BRD route.
+**Indexing makes frames readable; grounding makes them `[DG#n]` findings.** `/frames` dispatches no `design-grounder`, produces no finding, cites no requirement, and never reaches `grounding-verifier` — both of those agents ship in the sibling `pm-workflows` plugin and are dispatched only by its `/pm-workflows:brd-ground`. Design grounding on the `/pm-workflows:idea` route remains deliberately unbuilt — §6.1 says so, and this command keeps it true. The one command that grounds a frame set is `/pm-workflows:brd-ground`, on the BRD route.
 
 It is also not `/design-index`, deliberately. `/dev-workflows:design` is the engineering-design workflow, and a name adjacent to it would send an operator who wanted an index into the wrong command. *Frame set* and *frame* are §6.1's own vocabulary.
 
@@ -81,7 +81,7 @@ Resolves `PRD-ACME-77-<slug>/`, finds `design/checkout-flow/` holding eleven PNG
 ## See also
 
 - [`grounding-format.md`](../../references/grounding-format.md) — §6.1 reserves `design/` and makes each set's index mandatory; §6.2 is the index format and the reconciliation contract both writers execute.
-- `/idea` (in the `dev-workflows` plugin) — the other writer: it indexes the images it vendors into `design/idea-sources/`, and leaves a `_no description on record_` row for any frame it cannot speak for.
-- `/brd-ground` (in the `dev-workflows` plugin) — the one command that *reads* a frame set as evidence, through `design-grounder`.
+- `/idea` (in the `pm-workflows` plugin) — the other writer: it indexes the images it vendors into `design/idea-sources/`, and leaves a `_no description on record_` row for any frame it cannot speak for.
+- `/brd-ground` (in the `pm-workflows` plugin) — the one command that *reads* a frame set as evidence, through `design-grounder`.
 - [Agents](../reference/agents.md) — `frame-describer`, the bounded read this command dispatches once per set.
 - [`addressing.md`](../../references/addressing.md) — the resolver that turns one address into a folder of any kind.

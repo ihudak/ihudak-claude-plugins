@@ -6,7 +6,7 @@ Installs the plugin's multi-line status line into your Claude Code settings, ena
 
 `/statusline` runs outside the role pipeline — no role, no cost-attribution phase. [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Setup, and recommends running it first: install it once, right after installing the plugin, so the cost snapshot it enables is already in place before your first pipeline command runs.
 
-**Claude Code ships its own built-in `/statusline` command** (backed by its own `statusline-setup` agent). The bare `/statusline` always resolves to that built-in, never to this one — **always type the qualified form, `/workflows-core:statusline`.** Two commands in the companion `dev-workflows` plugin collide with a Claude Code built-in the same way — `/release-notes` and `/upgrade` — and are qualified there for the same reason. No other command in this plugin is known to collide.
+**Claude Code ships its own built-in `/statusline` command** (backed by its own `statusline-setup` agent). The bare `/statusline` always resolves to that built-in, never to this one — **always type the qualified form, `/workflows-core:statusline`.** Two other commands in this family collide with a Claude Code built-in the same way — the companion `dev-workflows` plugin's `/upgrade` and the companion `docs-workflows` plugin's `/release-notes` — and are qualified there for the same reason. No other command in this plugin is known to collide.
 
 ## Synopsis
 

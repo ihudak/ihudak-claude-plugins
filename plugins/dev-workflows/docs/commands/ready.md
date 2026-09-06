@@ -73,7 +73,7 @@ The run resolves `EPIC-98760` with `resolve-address`; its folder's own `kind: ep
 
 - [Roles and phases](../roles-and-phases.md) — what the `dev` role owns, including the handover-model exception `/ready` gets: the sole caller allowed to keep going past a stop every other command treats as fatal, and why verification is not a lane of its own.
 - [`/design`](design.md) — the opposite extreme on the same gate: `/design` stops outright when its `specification.md` is absent, the only gated input in the pipeline that does, while `/ready` reads that same class of artifacts and never stops on any of them.
-- [`/create-ard`](create-ard.md) and [`/specify`](specify.md) — the upstream commands whose ARD and `specification.md` `/ready` verifies (via `design.md`, whose upstream is `/design`, in the same chain).
+- `/pm-workflows:create-ard` and `/pm-workflows:specify` — the upstream commands, shipped in the companion `pm-workflows` plugin, whose ARD and `specification.md` `/ready` verifies (via `design.md`, whose upstream is `/design`, in the same chain).
 - [Model routing](../reference/model-routing.md) — the classification rules and the `readiness-reviewer` Opus pin, including its Sonnet-floor fallback.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal Phase 6–8 bookkeeping every run emits.
 - `workflows-core:phase-handoff` and `workflows-core:ard-resolution` — the gates `/ready` reads but is the one caller that never stops on.

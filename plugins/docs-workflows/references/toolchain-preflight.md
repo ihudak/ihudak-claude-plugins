@@ -49,8 +49,8 @@ de-duplicate by binary name.
    Best-effort: extract named tools and minimum versions where stated. Nothing found ⇒ contribute
    nothing. Never fail the preflight on an unparseable Prerequisites section.
 
-**Direct mode has no profile.** `/document` Mode B resolves `repo_root` as cwd's git root and uses
-sources **2 and 3 only**. Source 1 contributes nothing there. `/document` direct mode reads the same guidance files again in the same pass for `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §2 — do both in one read, not two.
+**Direct mode has no profile.** `/document` Mode B resolves `repo_root` from **the edit target** — the directory it was given, or an `@file`'s directory — falling back to cwd only where the input names no path at all, and uses
+sources **2 and 3 only**. It anchored on cwd unconditionally until a live run showed the consequence: invoked against one repository from inside another, the preflight read the repo it was standing in while the style check ran against the repo it was editing. Source 1 contributes nothing there. `/document` direct mode reads the same guidance files again in the same pass for `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §2 — do both in one read, not two.
 
 ## 3. Checking
 

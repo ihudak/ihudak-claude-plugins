@@ -1224,8 +1224,15 @@ No model-routing reminder is injected for this command — classification still 
 
 2. **Initialize the ledger.** Create the run's `gate_ledger` block per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3 — unconditionally, before the git-tree check below. Direct mode registers three gates (`gate-ledger.md` §4); each needs a row even when this run cannot lint anything.
 
-3. **Toolchain preflight.** Resolve `repo_root` = `git rev-parse --show-toplevel` from cwd. Then execute
-   `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against it. Direct mode has no profile, so
+3. **Resolve the edit target, then the toolchain.** Direct mode edits files, and **the repo it edits is not necessarily the one you are standing in**: `/document /workspace/docs` and `/document @/workspace/docs/guides/page.md` both name a tree that may differ from cwd. Resolve the target first — a directory argument is the target; an `@file`'s directory is the target; free-text prose naming no path leaves cwd as the only anchor available, which is legitimate because there is nothing else to resolve. Then
+
+   `repo_root` = `git -C <target> rev-parse --show-toplevel`
+
+   — **never `git rev-parse --show-toplevel` from cwd.** Anchoring on cwd is how a run derives its toolchain and its checklist from one repository while writing into another, which is exactly what it did when invoked as `/docs-workflows:document /workspace/docs` from a different clone: the preflight read the repo it was standing in and the style check ran against the repo it was editing.
+
+   **Confirm writeable.** Run `test -w <repo_root>`. If it fails, stop with the named error `REPO_NOT_WRITEABLE: <repo_root> is not writeable.` — the same stop Mode A raises in its own Phase 0, for the same reason. Direct mode writes files, so a read-only mount otherwise surfaces as a raw `EROFS` from the editor in Phase 3, **after** the exploration and the plan have already been paid for, naming a temp file rather than the condition.
+
+   Then execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against it. Direct mode has no profile, so
    use **sources 2 and 3 only** (repo config signals and the repo's documented `Prerequisites`); the
    only gate in scope is `style_check`, so `required_by` never names `build_check` or
    `render_smoke_check`.
@@ -1233,14 +1240,14 @@ No model-routing reminder is injected for this command — classification still 
    Append the `toolchain_preflight` row per
    `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3. Present the §5 prompt verbatim only when a
    required tool is missing; on "Cancel", stop with `TOOLCHAIN_UNAVAILABLE: <missing tools> not
-   available in this environment.` When cwd is not a git tree there is no repo to lint: record `toolchain_preflight` as `RAN` with `mechanism: "no repo to check — cwd is not a git repository"` and `findings: 0` (its precondition is "always", so it is never `NOT_APPLICABLE`), record `style_check` and `repo_checklist` as `NOT_APPLICABLE` with `precondition_unmet: "cwd is not a git repository"`, then skip the rest of this step and the checklist extraction below and proceed — the ledger is complete and Phase 3.5 runs no gates.
+   available in this environment.` When the resolved target is not a git tree there is no repo to lint: record `toolchain_preflight` as `RAN` with `mechanism: "no repo to check — the resolved target is not a git repository"` and `findings: 0` (its precondition is "always", so it is never `NOT_APPLICABLE`), record `style_check` and `repo_checklist` as `NOT_APPLICABLE` with `precondition_unmet: "the resolved target is not a git repository"`, then skip the rest of this step and the checklist extraction below and proceed — the ledger is complete and Phase 3.5 runs no gates.
 
 4. **Extract the repo's pre-PR checklist.** Direct mode has no `doc-planner`, so the orchestrator does
    this itself. In the **same pass** that read the repo's guidance files for step 3's `Prerequisites`,
    follow `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §2–§4 and build the
    `repo_verification_gates` block. Carry it to Phase 3.5, which checks the edited files against it and
    records the `repo_checklist` ledger row. An empty block is normal — record it and move on. Skip this
-   step entirely when cwd is not a git tree (step 3 already skipped for the same reason).
+   step entirely when the resolved target is not a git tree (step 3 already skipped for the same reason).
 
 **Specs-repo preflight.** Already run — the shared `## Mode detection` section executed
 `specs-preflight` (`workflows-core:specs-repo-git` §3) before dispatching to

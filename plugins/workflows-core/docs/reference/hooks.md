@@ -1,0 +1,26 @@
+# Hooks reference
+
+`workflows-core` bundles two hooks, declared in `hooks/hooks.json` and installed automatically with the plugin — there is nothing to opt into separately. Both are advisory: **a hook never blocks Claude.** Each script ends in an unconditional `exit 0` regardless of what it detects or whether its own logic errors out, by contract — a hook exists to notify or remind, never to gate a tool call.
+
+| Hook | Event | Matcher | What it does |
+|---|---|---|---|
+| `notify-done` | `Stop` | — | Raises a cross-platform desktop notification, "Claude Code finished", at the end of every turn. |
+| `test-notify` | `PostToolUse` | `Bash` | Detects a test-runner invocation, parses its pass/fail counts, and raises a desktop notification summarizing the result. |
+
+**Both are session-wide, and that is why they live here.** Neither is scoped to a command: `notify-done` fires on every `Stop` event and `test-notify` on every `Bash` tool call, whatever ran. They shipped from `dev-workflows` until the marketplace split finished, which meant a user who installed one of the sibling plugins without it got no completion notification at all. Every plugin in the family declares `workflows-core` as a dependency, so shipping them here gives every user exactly one copy — the alternative, duplicating them per plugin, would double-notify anyone holding two.
+
+The pipeline plugins each ship a `preload-context` hook of their own instead, matched to their own commands. This plugin ships none: its six utility commands take no address and need no injected context.
+
+## What each hook does, in detail
+
+### `notify-done` (`hooks/notify-done.sh`)
+
+Runs on every `Stop` event with no matcher, so it fires at the end of every turn regardless of what happened during it. It builds one fixed message, `"Claude Code finished"`, and dispatches it through the first notification mechanism available for the host: `osascript` when `$OSTYPE` starts with `darwin`, `wsl-notify-send` or a PowerShell balloon-tip fallback when `/proc/version` mentions Microsoft (WSL), and `notify-send` — falling back to a plain terminal bell (`echo -e '\a'`) if that binary is missing — everywhere else. Every branch degrades to a fallback rather than propagating a failure: the darwin branch is explicitly suffixed `|| true`, while the WSL and default branches fall through to the terminal bell when their own notifier command fails. The actual never-fails guarantee comes from the unconditional `exit 0` on the script's last line, regardless of which branch ran.
+
+### `test-notify` (`hooks/test-notify.sh`)
+
+Runs on every `PostToolUse` event matched to the `Bash` tool. It reads the tool-call payload from stdin, extracting the executed command and its captured output (checking both the nested `tool_input`/`tool_response` shape and top-level fallback keys for older payload versions). If the command does not match one of `mvn test`, `gradlew test`, `gradle test`, `npm test`, `yarn test`, `pytest`, or `make test`, it exits immediately. For a match, a small embedded Python script parses tool-specific pass/fail counts out of the output — `Tests run:`/`Failures:`/`Errors:` for Maven, `N tests completed, N failed` for Gradle, `N passed, N failed` for pytest, and a `Tests: … passed … failed` line for npm/yarn — falling back to the literal string `"tests completed"` when no pattern matches, and raises a desktop notification (the same cross-platform dispatch as `notify-done`) reading `"Test run: <summary>"`.
+
+## Why none of this blocks you
+
+Both scripts end `exit 0` unconditionally — the exit code is never derived from what the hook found, so a missing notifier binary or an unparsed test-output format never stops a tool call, a turn, or the run itself. `test-notify` also guards on `command -v python3` up front and exits 0 immediately when it is absent, degrading to silence rather than failing; `notify-done` carries no such guard because it never calls `python3` at all.

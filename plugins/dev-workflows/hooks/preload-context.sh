@@ -48,7 +48,17 @@ except Exception:
 # first capture group holds this plugin's own namespace prefix when the
 # caller used the qualified form; the second holds the command token (e.g.
 # "implement", "upgrade") — see spec §3 "Hook scope" for the normative regex.
-if [[ ! "$prompt" =~ ^/(dev-workflows:)?(implement|vuln|upgrade)[[:space:]]+[^[:space:]-] ]]; then
+# `upgrade` is matched in the QUALIFIED form only, and that is not an oversight.
+# Claude Code ships its own built-in /upgrade, and the built-in wins: a bare
+# `/upgrade` never reaches this plugin, so preloading for it would inject a repo
+# scan into a run that is not ours. `/implement` and `/vuln` have no built-in of
+# the same name, so both forms reach us and both are matched. Group 2 holds the
+# command token in either branch -- keep that true if you edit these.
+if [[ "$prompt" =~ ^/(dev-workflows:)?(implement|vuln)[[:space:]]+[^[:space:]-] ]]; then
+    :
+elif [[ "$prompt" =~ ^/(dev-workflows:)(upgrade)[[:space:]]+[^[:space:]-] ]]; then
+    :
+else
     exit 0
 fi
 cmd="${BASH_REMATCH[2]}"

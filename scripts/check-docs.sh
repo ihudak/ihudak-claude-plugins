@@ -1954,7 +1954,7 @@ check_foreign_identity() {
 # THE THREE SURFACES, and why the diagram is asserted separately from the page: the prose
 # below a diagram is where a command lands when someone adds it in a hurry, so asserting
 # only "appears in workflow.md" would have passed the very defect this check was written
-# for. A node may be written bare (`/idea`) or namespaced (`/dev-workflows:release-notes`),
+# for. A node may be written bare (`/idea`) or namespaced (`/docs-workflows:release-notes`),
 # so both forms count.
 check_index_membership() {
   local root="$1" p="$1/$PLUGIN_REL" n f diagram

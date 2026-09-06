@@ -46,7 +46,7 @@ claude plugin install docs-workflows@ihudak-plugins
 
 ### 3. Configure environment variables
 
-`dev-workflows` resolves its inputs and outputs through three core environment variables — plus an optional, read-only `DOCS_PATH` for documentation grounding. Export them in your shell profile (or rely on the AI-Container defaults):
+The workflow plugins resolve their inputs and outputs through three core environment variables — plus an optional, read-only `DOCS_PATH` for documentation grounding. Export them in your shell profile (or rely on the AI-Container defaults):
 
 ```bash
 export SPECS_PATH="/workspace/specs"   # shared store: specifications, designs, ARDs

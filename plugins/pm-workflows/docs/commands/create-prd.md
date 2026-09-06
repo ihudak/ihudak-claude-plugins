@@ -37,7 +37,7 @@ flowchart TD
     p6 --> p7["Phase 7 — Session maintenance, feedback & cost"]
 ```
 
-Four subagents are dispatched, unconditionally: `workflows-core:docs-grounder` (Phase 2.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `prose-style:prose-style-checker` (Phase 3.5, a non-gating quality pass on the drafted PRD), `prd-reviewer` (Phase 4, Opus-pinned), and `workflows-core:impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. `prose-style` is a declared dependency of `pm-workflows`, so Phase 3.5 has no absent case to skip — installing this plugin installs it.
+Four subagents are dispatched — three of them unconditionally, `docs-grounder` only when documentation grounding resolves: `workflows-core:docs-grounder` (Phase 2.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `prose-style:prose-style-checker` (Phase 3.5, a non-gating quality pass on the drafted PRD), `prd-reviewer` (Phase 4, Opus-pinned), and `workflows-core:impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. `prose-style` is a declared dependency of `pm-workflows`, so Phase 3.5 has no absent case to skip — installing this plugin installs it.
 
 ## What it needs
 

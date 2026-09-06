@@ -26,6 +26,8 @@ Two details there are doing real work. The ceded run is found **by name**, not b
 
 The replaying run may be in **another plugin**, and usually is: the deferred claim is resolved from whichever cost-emitting command runs next in the session, wherever it ships from.
 
+**But only from a command of this family, and that boundary is the point.** A claim is matched against a manifest of the family's own `<plugin>:<command>` names, and a command from any other marketplace matches nothing in it. Such a command still **ends** the open window — its spend is its own and is never absorbed into somebody else's figure — while remaining unclaimable, so a deferred claim it interrupts is reported as unmatched and dropped rather than attached to it. The discipline errs the safe way in both directions: the worst outcome is a claim you can see was not resolved, never one command's spend quietly filed under another's phase. Before the manifest existed the rule was `<this plugin>:<this plugin's command>`, resolved against a single plugin — which, once the family spanned four, made a *sibling's* run between a cede and its replay invisible and let the claim swallow it whole.
+
 ## Where cost files land
 
 Cost writes to a `cost/` subdirectory with one file per session — `<PRD-dir>/dev-workflows/cost/<sid8>.md`, named after the first eight characters of the session id — so no two engineers' commands can collide in one file. Where no folder resolves, the entry goes to a pending file under `$SPECS_PATH` and is offered for relocation once a real key is known; where nothing resolves at all, it stays in the run's printed output. The plugin never writes into your current working directory, since it may be a code repository.

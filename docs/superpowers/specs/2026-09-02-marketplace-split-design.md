@@ -205,6 +205,16 @@ The justification is narrower than first stated. Because the argument arrives as
 
 **Two refusals were re-measured rather than inherited.** Check 11's widening was refused again on post-split evidence (2 sites, both correct content, zero real defects), and the two copies of that census which had drifted apart were reconciled by **replacing the duplicate with a citation** — the rule that would have prevented the divergence, applied rather than restated.
 
+### What closing the ledger and the BRD-route follow-ups added
+
+**A sweep fixes the instances it matched, never the class.** An earlier commit namespaced two bare `doc-fixer` dispatches in `document.md`. Two more of the same shape survived it *in that same file*, and a third lived in `/epics`. What all three shared is that they carry the dispatch instruction in **prose** — "invoke `doc-fixer` with …" — rather than in a `→ Agent (subagent_type: …)` block, so a scan over dispatch blocks cannot see them and a scan over the agent's name returns nine hits of which seven are correct. The class was closed only by reading every hit and asking, per hit, whether it was an instruction to dispatch.
+
+**A register that says it is derived is asserting, not deriving.** `phase-handoff.md` §4.0's class table opens "each derived from the consumer rather than asserted here". Verifying it cost one two-way comparison against §3.4 and one file open per remaining row — and falsified a third of it: the frame-set index was classed **unread** while `design-grounder` refuses to run on a frame set without one. That wrong row had `/frames` telling every operator that nothing downstream reads the file it had just written, three lines above its own paragraph saying the set stays `NO_INDEX` for everybody else. **The mechanically checkable half was exact; the half that needed reading was wrong.** That is the general shape: what a script can check tends to be right, because something checks it.
+
+**A gate that counts is satisfied by an empty set — and that rule had only ever been written down for the build gates.** `check-docs.sh` states it for its own checks ("every one of those relations coming up empty failing rather than passing"), and `/brd-split`'s runtime gate counted findings carrying no verifier outcome, so a BRD with no design grounding at all passed vacuously. Nobody had carried the rule across from build gates to runtime gates. When a gate's failure mode is *records that do not exist*, a presence relation is the only shape that reaches it.
+
+**A flag that exists in one direction and not the other is not a symmetry gap.** `/brd-ground` had `--no-design` and no `--no-code`, which made a discovered defect unrepairable rather than merely awkward: the only route to the missing design pass was a full re-run that would re-derive 278 verified findings. Two of the six reported defects were one defect and its blocked repair, and closing them needed both.
+
 ---
 
 ## 7. Build order

@@ -4,6 +4,18 @@ All notable changes to the **docs-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.1.1] — 2026-09-06
+
+### Fixed — two more bare `doc-fixer` dispatches in `document.md`
+
+`doc-fixer` ships from `workflows-core`, so an unqualified name resolves to nothing. An earlier sweep namespaced two dispatch sites in this file; **two of the same shape survived it** — the **BLOCK** branch and the "Manual fix notes" one-shot pass — because both carry their instruction in prose rather than in a dispatch block, where the qualified `subagent_type` lives. Both now name `workflows-core:doc-fixer`. The same shape was found and fixed in `product-workflows`'s `/epics`.
+
+The sentence introducing the two modes also claimed they "share the same `docs-style-checker` / `doc-fixer` agents", which reads as one plugin's pair. They ship from different plugins, and it now says so.
+
+### Documentation
+
+`docs/reference/session-cost.md` now states the claim-namespace discipline: a deferred claim resolves only onto a command of this family, matched against a manifest of its own `<plugin>:<command>` names, and a command from another marketplace ends the open window without ever being claimable. No page in any plugin had said this.
+
 ## [1.1.0] — 2026-09-06
 
 ### Fixed — the plugin-qualified form now preloads context, where before it matched no hook

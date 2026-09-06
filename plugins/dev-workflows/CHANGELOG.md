@@ -4,13 +4,23 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [4.0.1] — 2026-09-06
+
+### Fixed — the 4.0.0 entry's own hook count
+
+That entry says `dev-workflows` keeps "three hooks". It keeps **one**: the same increment that wrote the sentence moved `notify-done` and `test-notify` into `workflows-core` (I4-3), where one copy serves every plugin in the family. Corrected in place, since it is a false statement about what 4.0.0 shipped. The `CHANGELOG.md` is outside `check-docs.sh`'s inventory checks, which is why the tree stayed green with the claim in it.
+
+### Documentation
+
+`docs/reference/session-cost.md` now states the claim-namespace discipline: a deferred claim resolves only onto a command of this family, matched against a manifest of its own `<plugin>:<command>` names, and a command from another marketplace ends the open window without ever being claimable.
+
 ## [4.0.0] — 2026-09-06
 
 ### Changed — the product-definition half now ships as `product-workflows`, and this is the split's last increment
 
 Run `claude plugin install product-workflows@ihudak-plugins` — this release moves the idea→PRD→ARD→specification ladder (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`), `/epics`, and the six-command BRD-to-PRD route (`/brd-intake`, `/brd-ground`, `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile`) — twelve commands in all — into a new `product-workflows` plugin, along with their twelve agents (`ard-reviewer`, `brd-package-reviewer`, `brd-reader`, `code-grounder`, `customer-review-reader`, `design-grounder`, `epic-reviewer`, `epic-writer`, `grounding-verifier`, `idea-reader`, `prd-reviewer`, `spec-reviewer`) and nine reference files (`idea-format.md`, `decision-register-format.md`, `bundle-packaging.md`, `brd-format.md`, `coverage-ledger-format.md`, `specification-format.md`, `ard-format.md`, `customer-review-schema.md`, `interview-tagging.md`).
 
-`dev-workflows` keeps five commands — `/design`, `/implement`, `/ready`, `/upgrade`, `/vuln` — twelve agents, fifteen reference files, and three hooks. It depends only on `workflows-core`; it never used `prose-style`, and the one command that did (`/epics`) has moved out with the rest.
+`dev-workflows` keeps five commands — `/design`, `/implement`, `/ready`, `/upgrade`, `/vuln` — twelve agents, fifteen reference files, and one hook (this sentence said "three hooks" when 4.0.0 shipped; the same increment moved `notify-done` and `test-notify` into `workflows-core`, and the count was not re-derived — corrected in 4.0.1). It depends only on `workflows-core`; it never used `prose-style`, and the one command that did (`/epics`) has moved out with the rest.
 
 **Major version, not another minor one, and this is the increment that means it.** Every prior increment since 3.25.0 moved commands out behind a minor bump (S17 of the split design): none of those intermediate versions was ever separately consumed, so no user upgraded through one. This release is where every accumulated move lands at once, and `4.0.0` marks the end state the split was building toward, not one more step in it.
 

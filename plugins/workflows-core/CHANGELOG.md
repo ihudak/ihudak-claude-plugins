@@ -4,6 +4,28 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.1.0] — 2026-09-06
+
+### Added — the two session-wide hooks, and a serialisation the grounding artifacts never fixed
+
+`notify-done` and `test-notify` now ship here. Both are session-wide rather than command-scoped, and every plugin in the family declares `workflows-core`, so one copy serves all of them instead of a copy per plugin (I4-3). Install or update `workflows-core` and both hooks arrive with it.
+
+`grounding-format.md` gains §2.1, which fixes how a `[CG#n]`/`[DG#n]` finding is written to disk — one space after every key's colon, never alignment padding, keys in §2's order, an inapplicable field omitted rather than left empty. Nothing had fixed it, so a writer aligned one section of a `code-grounding.md` and not the next; a scan of that file then reported **140 findings as missing that were on the page**. §2.1 also states the reading rule that outlives the fix: resolve an id against the finding set you parsed, never by matching a column, and report a disagreeing count as a parse failure rather than as an absence.
+
+### Fixed — a frame-set index is read, and every producer had been told it was not
+
+`phase-handoff.md` §4.0's class register said a frame-set `index.md` was **unread**. It is not: `product-workflows:design-grounder` refuses to run on a frame set holding no index, and `grounding-verifier` returns `NO_INDEX`/`STALE_INDEX` on one. The index is **advisory** — read from the working tree, gated by nothing — and `/frames` now presents the advisory consent array. Until this fix it presented the unread array, telling the operator that nothing downstream reads a file `/brd-ground` refuses a frame set without, three lines above its own paragraph saying the set stays `NO_INDEX` for everybody else.
+
+The register was verified against the tree rather than carried forward, which is how this surfaced: the gated row is an exact two-way match with §3.4's Input column (nine artifacts), and each advisory row was re-derived by opening the reader it names. The **unread** class now has no member — every artifact this family hands off turned out to have a reader once one was looked for.
+
+### Fixed — the rest of the release-gating ledger
+
+- **PS1** — an unwritable `.git` and a `$SPECS_PATH` that is not a repository are different states. The first is a silent no-op; the second now emits a named notice. Neither is ever fatal.
+- **PS2** — `/frames` adopts a frame-set index kept under another name instead of refusing the set.
+- **PS3** — the cost-boundary detector's *cut* test is now separate from its *claim* test. A command from outside this marketplace ends the open window without being claimable; before the split its spend was absorbed into somebody else's claim.
+- **I4-6 / I4-7** — `<default-ref>` is resolved by probing for an `origin` remote and is owned by `specs-repo-git.md` §3.2, which `phase-handoff.md` now cites rather than redefining. Three git calls outside `require-on-main` had hardcoded `origin/<default>` too.
+- **"this plugin" named the wrong plugin** in `cost-emission.md`, `feedback-emission.md` and `phase-handoff.md` §3.4. Each now names `workflows-core` outright, or says "the family" where the referent is family-wide — §3.4's row-F paragraph in particular, where the gate routinely runs across a plugin boundary and a one-plugin reading would stop the route at each one.
+
 ## [1.0.0] — 2026-09-03
 
 ### Added — the shared foundation of the `dev-workflows` plugin family

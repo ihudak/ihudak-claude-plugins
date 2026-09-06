@@ -54,9 +54,12 @@ behaviour, not the behaviour.
      An explicit `--no-derivation-matrix` is redundant here but harmless; an unset default resolves
      **off** under this mode and is reported rather than left silent.
    - Where there is no verified code grounding to build on. This one needs the resolved folder, so
-     take it immediately after step 5a rather than here — **after**, never before, and only on a
-     slice: step 5a already refused a root whatever flags it carries, so this check never runs
-     against one. Stop when
+     take it immediately after step 5a rather than here — **after**, never before. **Not only on a
+     slice, though**: step 5a refuses every root it can identify as one, but the interrupted-intake
+     folder passes it unrefused (`coverage-ledger-format.md` §5.1) and reaches this check too, before
+     step 6 would otherwise name it properly. It fails here the same way an under-grounded slice
+     does, and the redirect it gives still lands on step 6's own stop for that folder on the next
+     run. Stop when
      `<BRD-dir>/grounding/code-grounding.md` is absent, holds no `[CG#n]`, or holds one carrying no
      verifier `outcome`. The third is the state `/brd-split` itself refuses
      (`workflows-core:grounding-format` §8), so reporting it now costs one read and saves a whole
@@ -229,9 +232,11 @@ behaviour, not the behaviour.
 9. **Read `brd-link.md`, if present**, and carry **both** of its fields for the rest of the run:
    - `depends-on:` — any prerequisite already recorded by an earlier run. Phase 4 merges this run's
      `--depends-on` into it additively, never replacing it.
-   - `parent:` — always present, since step 5a already established this run stands on a slice, and
-     `/brd-split` always writes it. Carried forward for the messages elsewhere in this run that name
-     `<PARENT-KEY>` (steps 6 and 8's stops, when reached).
+   - `parent:` — always present: by this step, step 6's gates have already guaranteed
+     `coverage-ledger.md` and `brd/brd-inventory.md` are both on main — positive evidence 5a's
+     legacy-fallback test would have refused had this BRD been a root — and `/brd-split` always
+     writes `parent:` into a genuine slice. Carried forward for the messages elsewhere in this run
+     that name `<PARENT-KEY>` (steps 6 and 8's stops, when reached).
 
 ---
 
@@ -847,9 +852,11 @@ prerequisite-readiness block; emit its §4.1 outcome line in the final report.
 
 ## Phase 10 — Next steps
 
-**This run always stands on a slice** — step 5a already refused a root, so there is no level branch
-to take here. `/product-workflows:brd-split <BRD-KEY>` is always offered, unless the test below
-withholds it.
+**This run always stands on a slice** — by the time Phase 10 runs, step 6's gates have already
+guaranteed `coverage-ledger.md` and `brd/brd-inventory.md` are both on main, which is positive
+evidence 5a's legacy-fallback test would have refused had this BRD been a root — so there is no
+level branch to take here. `/product-workflows:brd-split <BRD-KEY>` is always offered, unless the
+test below withholds it.
 
 **That offer still carries one qualifying test, and this run holds the answer to it.** `/brd-split`'s
 Phase 0 step 7b stops on any `design/` subdirectory this run recorded `skipped: no index`, and on any
@@ -966,8 +973,10 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 going into `/brd-split`.
 
 **Reporting it now reads one ledger per `covered-by` row.** §6 counts a delegated row through the
-BRD it names — this run always stands on a slice (step 5a already refused a root), so that is
-always a sibling or the parent (`coverage-ledger-format.md` §3) — so this report resolves each
+BRD it names — this run always stands on a slice (by Final-report time, step 6's gates have long
+since guaranteed `coverage-ledger.md` and `brd/brd-inventory.md` are both on main, positive evidence
+5a would have refused had this BRD been a root), so that is always a sibling or the parent
+(`coverage-ledger-format.md` §3) — so this report resolves each
 `covered-by: <BRD-KEY>` row one hop
 into that BRD's own `coverage-ledger.md`, resolved from the
 working tree by `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). **This adds

@@ -838,7 +838,9 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 `/brd-interview` never changes a ledger disposition — the line simply reports where allocation
 stands. **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree
 via `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — this run always stands on a slice
-(step 5a already refused a root), so that is always a sibling or the parent (§3); a ledger that cannot
+(step 6 already confirmed `grounding/code-grounding.md` is on main, and that file is written
+exclusively by `/brd-ground`, which itself refuses to run on a root), so that is always a sibling or
+the parent (§3); a ledger that cannot
 be read there contributes `unresolved`, never `covered` (§6.2). This adds no precondition and no
 gate: the allocation gate in *Resolve inputs and gate the grounded BRD* is decided on this BRD's own
 rows before any of this, and a non-zero `unallocated` term in the line — a row this BRD delegated to

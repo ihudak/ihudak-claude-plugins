@@ -9,10 +9,12 @@ Split the grounded BRD into slices and allocate every requirement: $ARGUMENTS
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
 `/brd-split` is the **BRD-to-PRD route's allocation step** (PM phase) — on a root it carves the
-slices `/brd-ground` will later verify each of, and on a slice it takes the findings `/brd-ground`
-already verified and forces every `[BR#n]` in this BRD's coverage ledger
-to a recorded fate: built here, built by a named child, deferred, rejected, or superseded. This is
-the only place that fate is ever decided (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
+slices `/brd-ground` will later verify each of, and forces every `[BR#n]` in this BRD's own coverage
+ledger to a recorded fate: built by a named child, deferred, rejected, or superseded. On a slice it
+carves nothing and instead takes the findings `/brd-ground` already verified, forcing every `[BR#n]`
+in its own ledger to a recorded fate through the same four-way choice — with `covered-here` standing
+in `covered-by`'s place: built here, deferred, rejected, or superseded. This is
+the only place either BRD's fate is ever decided (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
 §1) — without this command's gate, a long BRD split across several children could have every child
 quietly wave a requirement past, and nothing would notice.
 
@@ -1047,7 +1049,7 @@ this run's pull request. Grounding a child is possible only once that pull reque
 `/brd-intake` is never the answer for a child at any point:
 
 ```
-choices: ["Ground each non-empty child created above, one run per child — /product-workflows:brd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Stop here — this BRD's own allocation is complete", "Split another BRD or slice"]
+choices: ["Ground each non-empty child created above, one run per child — /product-workflows:brd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Stop here — this BRD's own allocation is complete", "Split another BRD"]
 ```
 
 **Every merge clause in this phase is the `<merge-clause>` placeholder**, resolved per
@@ -1067,9 +1069,13 @@ for claiming nothing (Phase 4.5) is never offered here — grounding a BRD with 
 ground would have nothing to check a claim against. No children remain at all this run (none were created, or every one created was removed
 as empty) → the child-grounding choice is the one that does not apply, stated plainly rather than
 omitted — and is dropped from the array, not merely annotated, so that reaching for it does nothing.
-**"Split another BRD or slice" is always in the array for exactly this reason**: dropping the
+**"Split another BRD" is always in the array for exactly this reason**: dropping the
 child-grounding choice in that state would otherwise leave only "Stop here", one option short of
-what `AskUserQuestion` accepts. Guidance only — never auto-invokes another command.
+what `AskUserQuestion` accepts. **Naming no key, and never "or slice"**: this run's own children,
+where any exist, are unground — `/brd-split <CHILD-KEY>` on one of them refuses outright with
+`BRD_SPLIT_NEEDS_GROUNDING` until `/brd-ground` has run — so the option points only at a BRD
+this run did not just create, never at the child it is discussing in the same breath. Guidance
+only — never auto-invokes another command.
 
 **This BRD's own next step is nothing.** Every row this walk resolved is `covered-by` (a named
 child's to decide), `deferred-to`, `rejected` or `superseded-by` — terminal dispositions this

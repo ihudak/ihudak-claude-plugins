@@ -982,7 +982,9 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 `/brd-package` never changes a ledger disposition — the line simply reports where allocation stands.
 **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
 `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — this run always stands on a slice
-(step 5a already refused a root), so that is always a sibling or the parent (§3); a ledger that cannot be
+(step 6 already confirmed `decisions.md` is on main, and that file is written exclusively by
+`/brd-interview`, which itself refuses to run on a root), so that is always a sibling or the parent
+(§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). A slice does **not** always reach this with
 nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
 names a sibling under the same parent or that parent and marks an **orphan row** — a provisional

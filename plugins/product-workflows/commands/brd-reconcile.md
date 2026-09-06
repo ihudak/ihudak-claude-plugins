@@ -940,7 +940,9 @@ defect log, or a fresh source document through `/product-workflows:brd-intake`.
 
 **The roll-up, and what this phase must not do with it** (D23, `coverage-ledger-format.md` §6.1).
 The ledger line resolves every `covered-by: <BRD-KEY>` row **one hop** through the named BRD's
-own ledger — this run always stands on a slice (step 5a already refused a root), so that is always
+own ledger — this run always stands on a slice (on the ordinary path, step 6 already confirmed a
+`customer-review-prompt-<YYYYMMDD>.md` is on main, and that file is written exclusively by
+`/brd-package`, which itself refuses to run on a root), so that is always
 the named sibling or parent (`coverage-ledger-format.md` §3) — and every term in it is a *resolved*
 count rather than a census of what the file says.
 Two consequences bind this phase:
@@ -1204,7 +1206,9 @@ under the parent checked for a position the answer overturned. That is the state
 route's exit was waiting for, and **all three BRD routes ship** — so this phase offers them,
 each under the precondition the offered command actually enforces rather than under an assumed one:
 
-**This run always stands on a slice** — step 5a already refused a root, so there is no level branch
+**This run always stands on a slice** — on the ordinary path, step 6 already confirmed a
+`customer-review-prompt-<YYYYMMDD>.md` is on main, and that file is written exclusively by
+`/brd-package`, which itself refuses to run on a root — so there is no level branch
 to take here, and none of the three commands' own container refusals
 (`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`, `SPECIFY_BRD_NOT_SLICED`;
 `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5) can fire against the `<SLICE-KEY>`
@@ -1451,7 +1455,9 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 
 **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
 `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — this run always stands on a slice
-(step 5a already refused a root), so that is always a sibling or the parent (§3); a ledger that cannot be
+(on the ordinary path, step 6 already confirmed a `customer-review-prompt-<YYYYMMDD>.md` is on main,
+and that file is written exclusively by `/brd-package`, which itself refuses to run on a root), so
+that is always a sibling or the parent (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). Every term is a **resolved** count, and
 the `unallocated` term does not track the allocation gate — a non-zero one here is a row this BRD
 delegated to a BRD that has not walked it yet, which is the resolution working and never this run

@@ -1,6 +1,6 @@
 ---
 name: brd-package
-description: BRD customer-package workflow (PM phase, fifth command of the BRD-to-PRD route). Gates on the BRD's decisions being merged and on every interview question carrying a terminal disposition or the held-for-the-customer holding state, then runs an adversarial self-review through brd-package-reviewer and refuses to build a bundle while any [SR#n] is undisposed. Renders a self-contained customer prompt in the fixed eleven-part order with the customer-review schema inlined from section 2 onward at build time, surfaces every open [AS#n] and every accepted-risk [SR#n] under "where to attack us hardest" and every not-yet-customer-reviewed prerequisite under "what could still move", renders a delivery note under a 200-word ceiling, and assembles a de-Obsidianised bundle of plain markdown plus images with any dependency package copied in and marked not for re-review. Assigns the degradation tier from what was shippable, scans the rendered prompt for anything plugin-internal, and emits the repo-to-SHA table. Takes no --no-docs and does no documentation grounding.
+description: BRD customer-package workflow (PM phase, the BRD-to-PRD route's customer-packaging step, run once per slice after its own `/brd-interview` round settles). Gates on the BRD's decisions being merged and on every interview question carrying a terminal disposition or the held-for-the-customer holding state, then runs an adversarial self-review through brd-package-reviewer and refuses to build a bundle while any [SR#n] is undisposed. Renders a self-contained customer prompt in the fixed eleven-part order with the customer-review schema inlined from section 2 onward at build time, surfaces every open [AS#n] and every accepted-risk [SR#n] under "where to attack us hardest" and every not-yet-customer-reviewed prerequisite under "what could still move", renders a delivery note under a 200-word ceiling, and assembles a de-Obsidianised bundle of plain markdown plus images with any dependency package copied in and marked not for re-review. Assigns the degradation tier from what was shippable, scans the rendered prompt for anything plugin-internal, and emits the repo-to-SHA table. Takes no --no-docs and does no documentation grounding.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -8,7 +8,7 @@ Turn the decided BRD into a package a customer can actually review: $ARGUMENTS
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
-`/brd-package` is the **fifth command of the BRD-to-PRD flow** (PM phase) — it takes the register
+`/brd-package` is the **BRD-to-PRD route's customer-packaging step** (PM phase) — it takes the register
 `/brd-interview` wrote and the `[C]` questions it held, attacks the package before the customer
 does, and renders a bundle for a reviewer with **a vanilla agent and nothing installed**. Its whole
 discipline is one rule: **everything this command emits is read by somebody outside the delivery

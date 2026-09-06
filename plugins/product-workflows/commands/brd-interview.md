@@ -1,6 +1,6 @@
 ---
 name: brd-interview
-description: BRD decision workflow (PM phase, fourth command of the BRD-to-PRD route). Gates on the BRD's grounding being merged, every finding carrying a verifier outcome, and its coverage ledger fully allocated, then generates the round's question set and tags every question [G]/[V]/[C] before a single one is asked. Answers every [G] from the grounding findings and never puts one to a human; puts each [V] to the operator one at a time via AskUserQuestion with mandatory argumentation; holds every [C] for the customer. Re-tags a [G] only against a named NOT-PROVABLE finding, splits any question carrying more than one tag, and refuses to close a decision resting solely on a will-change finding. Writes decisions.md ([VD#n] and [AS#n]), the round record, and the [C] question set. --round N resumes an open round or re-opens a closed one, recorded with its cause. Takes no --no-docs and does no documentation grounding.
+description: BRD decision workflow (PM phase, the BRD-to-PRD route's decision step, run once per slice once `/brd-ground` and `/brd-split` have both run on it). Gates on the BRD's grounding being merged, every finding carrying a verifier outcome, and its coverage ledger fully allocated, then generates the round's question set and tags every question [G]/[V]/[C] before a single one is asked. Answers every [G] from the grounding findings and never puts one to a human; puts each [V] to the operator one at a time via AskUserQuestion with mandatory argumentation; holds every [C] for the customer. Re-tags a [G] only against a named NOT-PROVABLE finding, splits any question carrying more than one tag, and refuses to close a decision resting solely on a will-change finding. Writes decisions.md ([VD#n] and [AS#n]), the round record, and the [C] question set. --round N resumes an open round or re-opens a closed one, recorded with its cause. Takes no --no-docs and does no documentation grounding.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -8,7 +8,7 @@ Turn the grounded BRD into a decided one, one round at a time: $ARGUMENTS
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
-`/brd-interview` is the **fourth command of the BRD-to-PRD flow** (PM phase) — it takes the verified
+`/brd-interview` is the **BRD-to-PRD route's decision step** (PM phase) — it takes the verified
 findings `/brd-ground` produced and the fully-allocated ledger `/brd-split` left behind, and works
 the BRD's open questions to recorded decisions. Its whole discipline is one rule: **every question
 is tagged before it is asked, and the tag decides who may answer it**
@@ -167,10 +167,18 @@ and nothing downstream can tell the difference afterwards.
      `BRD_INTERVIEW_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /product-workflows:brd-ground <BRD-KEY> first.`
    - **Zero rows** — there is nothing to ground, so `/brd-ground` stops with
      `BRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants, and naming it
-     here would be the loop. The fix is upstream — step 5a already established this run stands on a
-     slice, so read `<PARENT-KEY>` from the resolved folder's `brd-link.md` `parent:` field, exactly
-     as the grounding and split gates do:
-     `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to decide. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run '/product-workflows:brd-split <PARENT-KEY>': it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason, and it will offer covered-by against it for any row on the parent's ledger that is still unallocated. If the parent's ledger has no unallocated row left, removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
+     here would be the loop. The fix is upstream, so read the resolved folder's `brd-link.md` and
+     branch on its `parent:` field: this read is a bare worktree read with no gate ahead of it, and
+     an absent `brd/brd-inventory.md` counts as zero rows here just as a present-but-empty one
+     does — 5a's own legacy-fallback test lets a folder carrying **neither**
+     `coverage-ledger.md` **nor** `brd/brd-inventory.md` through unrefused
+     (`coverage-ledger-format.md` §5.1), so a folder reaching this branch is not always the slice
+     step 5a would otherwise guarantee — it may be a legacy root BRD whose intake was interrupted
+     before the inventory was ever written:
+     - **No `brd-link.md`, or one with no `parent:`** —
+       `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and no question this command could ask about it — do not run /product-workflows:brd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
+     - **`parent: <PARENT-KEY>` present** — this is a slice:
+       `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to decide. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run '/product-workflows:brd-split <PARENT-KEY>': it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason, and it will offer covered-by against it for any row on the parent's ledger that is still unallocated. If the parent's ledger has no unallocated row left, removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
 7. **Gate on verification — and on there being grounding to verify.** Two tests, in this order,
    because **the second is a count and a count is vacuously satisfied by an empty set**. This gate
    shipped as the count alone, exactly as `/brd-split`'s did: zero findings on file means zero
@@ -769,7 +777,8 @@ gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt before
 escalating. None of the *Resolve inputs and gate the grounded BRD* stops qualify — a missing or
 malformed key, an unresolved BRD, a resolved root BRD, an ungated or absent grounding deliverable,
 an inventory carrying no claim at all (`BRD_INTERVIEW_EMPTY_INVENTORY` — a fact about what the
-parent allocated to this slice, never about this plugin), unverified findings, an unallocated
+parent allocated to this slice, or about an interrupted intake's own source document, never about
+this plugin), unverified findings, an unallocated
 ledger, and an unset `$SPECS_PATH` are environment / sequencing halts, never a plugin capability
 gap. `BRD_INTERVIEW_NO_SUCH_ROUND` is not one either: it is an argument naming a round
 that does not exist, and neither is `BRD_INTERVIEW_ALL_DELEGATED` — a BRD that kept no requirement of

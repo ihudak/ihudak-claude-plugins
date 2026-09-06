@@ -417,7 +417,7 @@ pass the test and take a PRD authored into it. One of them is already evidence t
 touched this folder, which is the only question this test asks.
 
 **It reads no PRD artifact, and that is what lets all eight consumers share one rule.** The eight
-are `/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a), `/specify` (step s0), `/epics`
+are `/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a), `/specify` (step 0), `/epics`
 (step 1a), `/brd-ground` (step 5a), `/brd-interview` (step 5a), `/brd-package` (step 5a) and
 `/brd-reconcile` (step 5a) — read that as a list, not as a count, and re-derive it against the tree
 rather than adjusting it. `/create-prd` cannot test for `prd.md` — it is the run that is about to

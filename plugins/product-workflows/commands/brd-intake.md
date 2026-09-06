@@ -14,7 +14,7 @@ contradictory customer BRD into requirements a PRD can be built from. It copies 
 source into the specs repo **verbatim and immutably**, extracts a `[BR#n]` requirement inventory
 via the `brd-reader` agent, classifies the document's defects **with a human** rather than on the
 agent's say-so alone, and writes a coverage ledger in which every requirement starts life
-`unallocated` — the state `/brd-split`, the route's third command, cannot complete past until each
+`unallocated` — the state `/brd-split`, the route's allocation step, cannot complete past until each
 row has been given a fate.
 
 Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [--docs <path>]`
@@ -333,10 +333,13 @@ grounding has actually run. When `--sort-existing` was not given, this phase is 
 
 ## Phase 7 — Handoff
 
-Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim:
+Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — the **advisory** array: `/product-workflows:brd-split` on a root reads this
+handoff's artifacts with a plain worktree read at its own step 8, never a `require-on-main` gate
+(steps 6 and 7 run only in `split_mode: allocate-only`), so nothing downstream gates any of them any
+more:
 
 ```
-choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
+choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (no command stops on this; what reads it reads your working copy)", "Cancel"]
 ```
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = every file
@@ -371,7 +374,7 @@ downstream command on the route, so offering one here would name a run that stop
 **One or more `[BR#n]` rows — the ordinary case:**
 
 ```
-choices: ["Carve slices — /product-workflows:brd-split <BRD-KEY>, naming how to cut it (Recommended) <merge-clause>", "Stop here"]
+choices: ["Carve slices — /product-workflows:brd-split <BRD-KEY> \"<how to cut it>\" (Recommended)", "Stop here"]
 ```
 
 **Zero `[BR#n]` rows (a Phase 3 `EMPTY` read) — `/product-workflows:brd-split` is left out rather than
@@ -393,8 +396,10 @@ actually read, so that judgement has something to stand on.
 and refused. `<BRD-KEY>` here is always a root: this command never writes a slice, and
 `/product-workflows:brd-ground <BRD-KEY>` is never the fix for one — it refuses any root BRD
 outright, at its own Phase 0 step 5a, with `BRD_GROUND_ROOT_LEVEL`, before it ever reaches a
-merge-state gate; grounding now happens only at the slice `/brd-split` carves. Guidance only — never
-auto-invokes another command.
+merge-state gate; grounding now happens only at the slice `/brd-split` carves. **The offer above
+carries no `<merge-clause>`**, and that is derived, not an oversight: `/brd-split` on a root reads
+this handoff's artifacts with a plain worktree read at its own step 8, gating none of them, so there
+is no wait to state. Guidance only — never auto-invokes another command.
 Per `workflows-core:next-phase-offer`.
 
 ### Context hygiene

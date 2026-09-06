@@ -583,6 +583,14 @@ Moving commands out breaks every `/dev-workflows:<cmd>` invocation, which is a m
 
 Bare command names are unaffected — `/idea` still resolves once its plugin is installed. **Only the namespaced form moves.** List every moved command against its new plugin, and name the one-line install for each.
 
+- [ ] **Step 2b: Update the repo-root `README.md` — the third cross-plugin file to be found stale by someone other than its owner**
+
+`README.md:9` still says **"Seventeen slash commands"**. `dev-workflows` ships **five**. Task 6 already added `pm-workflows`'s table row and install line (required by check 7), so the table is current and only the prose is stale — re-derive every count on the page rather than only that one.
+
+**Nothing gates this.** The root README is outside check 10's `docs/` scope; check 6 reaches its table cells and check 7 pins its install block as a superset, but **no check reads its prose counts**.
+
+**This is the third time this increment a cross-plugin file has been found stale by a reviewer or a neighbouring task rather than by its owner** — after `workflows-core/references/dependencies.md` and `workflows-core/docs/`. The Ownership note below was written after the first instance and did not list this file, which is the point: naming three files was necessary and not sufficient. **The rule is the shape, not the list** — if a file describes more than one plugin, no plugin-scoped task will look at it.
+
 - [ ] **Step 3: Update `CLAUDE.md`**
 
 Its "Active plugins" section, its workflow map, and its per-plugin inventory numbers all describe a four-plugin tree. **Nothing gates any number written in `CLAUDE.md`** — some have a counterpart sentence check 9 does gate, and the documentation-page totals, the check count and the `id-grammar-ok` tally have no counterpart anywhere. Re-derive all of them against the tree, and prefer a citation to a count wherever one will do.
@@ -613,6 +621,8 @@ Three of this increment's findings landed on files that no task claimed, and one
 | `plugins/workflows-core/references/dependencies.md` | the family's plugin count, every dependency tie, and every "resolves at runtime / skips when absent" claim | **whichever task changes a dependency** — increment 4: Task 1 (declared them) and Task 3 (retired the absent case) |
 | `plugins/workflows-core/references/next-phase-offer.md` | the family glob, the offer inventory, and the widening census | Task 2 (citations), Task 5 (glob + census) |
 | `CLAUDE.md` | every inventory count, the workflow map, the reinstall list | Task 8 |
+| `README.md` (repo root) | the per-plugin command counts in its prose; its plugin table and install block | Task 8 |
+| `plugins/*/docs/` for any plugin a task did not itself create | anything naming a moved command, or counting the family | Task 7 |
 
 The recurring cause is not carelessness about this file; it is that a **per-plugin task scope cannot see a cross-plugin file**. So the check has to be a step, not a habit.
 

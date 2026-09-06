@@ -39,7 +39,9 @@ Three reasons carried the decision:
 8. /create-prd    <SLICE> → /create-ard → /specify → /epics → /design → /ready
 ```
 
-**Why `/brd-split` appears twice, and why grounding sits between the two.** The root's walk decides where a row *goes*: it writes the slice's `claims:` entry, copies the inventory row across, and seeds one `unallocated` ledger row per claimed `[BR#n]` on the slice. The slice's own walk then decides whether the slice *builds* it — `covered-here`, or `covered-by` a sibling or the parent, or `deferred-to`, `rejected` or `superseded-by`. Those are two different decisions and the second is the slice's to make.
+**Why `/brd-split` appears twice, and why grounding sits between the two.** The root's walk decides where a row *goes*: it writes the slice's `claims:` entry, copies the inventory row across, and seeds one `unallocated` ledger row per claimed `[BR#n]` on the slice. The slice's own walk then decides whether the slice *builds* it, from four dispositions that are the exact mirror of the parent's: **`covered-here`, `deferred-to`, `rejected`, `superseded-by` — `covered-by` is absent from a slice's picker.** `covered-here` is unconditionally the recommended answer, because every row the slice's walk stands on is a row the parent allocated *here*. Those are two different decisions and the second is the slice's to make.
+
+**A `covered-by` row on a slice exists but is not the slice's choice.** It is an *orphan row*: the parent's walk provisionally claimed a `[BR#n]` for this slice, then settled it elsewhere, and withdrew the claim — the ledger row stays as the record that a claim was made and withdrawn, dispositioned to whoever actually got it. It is written by the parent's walk at withdrawal time, never by the slice. So a slice has no way to hand a row back.
 
 The ordering is not incidental and it is already enforced: `/brd-split` gates the **resolved** folder's `grounding/code-grounding.md`, which on a slice run is the slice's own, so step 3 must precede step 4. The consequence is the reason to prefer this design rather than a cost of it — the operator commits row by row **with the findings in hand**, so a requirement grounding shows to be blocked takes `deferred-to` or `rejected` at the moment of commitment, before anything downstream reads it. A brainstorming objection that a mis-cut slice could not be corrected was raised against this design and retracted on that ground.
 
@@ -96,4 +98,16 @@ The route shipped with the two-level model, so engagements exist whose root BRD 
 - **Refuse, but name the state.** The four stops detect root-level artifacts where they exist and say the level moved, rather than reporting the key as wrong. The operator re-enters through `/brd-split` and the root's findings are abandoned in place — never deleted, since they are a record of work done.
 - **Read-only compatibility.** Root-level artifacts already on disk stay readable by the commands that consume them, while no command ever produces new ones. Gentlest for in-flight work, and the one option in tension with §2: it keeps a second level alive in the reading direction.
 
-The second is the recommendation. It honours the protocol without silently orphaning an operator's committed work, and it costs one detection test per refusal rather than a compatibility path through four commands.
+**Decided: the second.** The four refusals detect root-level artifacts where they exist and say the level moved rather than reporting the key as wrong; the root's findings are abandoned in place and never deleted, since they record work done.
+
+## 8. Open decision — a slice that grounding shows is too big
+
+Under this design a slice is carved before it is ground, so "this slice is larger than one deliverable" becomes a **normal** discovery rather than an edge case. The route has no answer to it today, and three separate rules each independently block the obvious one:
+
+- **The one-level nesting cap.** A slice can hold no child, so it cannot be subdivided.
+- **No command returns a row to `unallocated`**, which the ledger format states as a rule with no exception: returning a row there would reopen a gate already satisfied.
+- **`/brd-split` walks only `unallocated` rows**, so a row carrying a fate is terminal and the parent cannot re-allocate it to a new slice.
+
+What is available without new mechanism is **deferral, not division**: the slice's own walk sends the rows it will not build now to `deferred-to: <this slice>`, they stay its live obligation, and the PRD authored from the slice covers the `covered-here` rows alone. That achieves "build less now" and does *not* achieve "two independently deliverable slices".
+
+Whether that is enough is the open question. Deferral keeps one PRD and one customer conversation for work that may want two. Supporting division would mean either lifting the nesting cap or sanctioning one narrow return-to-`unallocated` path — both of which touch invariants stated deliberately, so neither should be chosen without its own brainstorm.

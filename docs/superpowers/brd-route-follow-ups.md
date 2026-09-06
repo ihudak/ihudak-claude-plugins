@@ -48,10 +48,10 @@ A slice's inventory is a **byte-copy** of the parent's rows against the same pin
 
 So the question to settle is not "what may a slice inherit" but **"what is the BRD level still for once the slice carries the work"** — and the two open items below fall out of it rather than standing alone:
 
-- **The route's own gates assume the BRD level ran.** `/brd-split` and `/brd-interview` each `require-on-main: grounding/code-grounding.md`, and `/brd-package` gates on `decisions.md`. Under the ruling those are gates on an artifact that legitimately never exists, which makes the normal path the blocked one. Whatever replaces them is the substance of this item.
+- **That claim was wrong, and triage against the tree found it wrong.** `/brd-interview` and `/brd-package` gate the **resolved** folder's own artifacts, and a slice holds its own findings, ledger, register and `[C]` set — so those two already work slice-first. The single forcing gate is `/brd-split` on a **root**, which requires that root's grounding before any slice can exist.
 - **Inheritance survives as the smaller half.** Where a BRD-level pass *was* run, re-deriving 258 identical findings is still waste — but it is now an optimisation over an optional input, not the mechanism the route depends on.
 
-**Merged with the feature request below**, which is the same reframing seen from the customer side: per-slice interview packages are the valuable form and the BRD-level round becomes optional. One brainstorm settles both.
+**SETTLED 2026-09-06 by brainstorming — see `docs/superpowers/specs/2026-09-06-slice-first-grounding-design.md`.** Grounding and the customer interview happen at the slice and nowhere else; the root keeps intake and the ledger and gives up both entirely, enforced by refusal rather than offered as a choice. The inheritance half disappears with it — there is no root pass to inherit. The feature request below is closed by the same design, by construction rather than by a patch. The design is written and awaiting review; nothing is implemented yet.
 
 ## BRD-6 — the `[CG#n]` id key is written two ways in one file
 
@@ -75,7 +75,7 @@ Today the customer loop is BRD-level. The request, in priority order:
 
 Not a defect. Recorded here because it changes `/brd-package` and `/brd-interview`'s addressing model — a slice is already a first-class folder, so the addressing exists; what does not is the decision about where a round lives and how the two levels compose.
 
-**This is BRD-5 seen from the customer side**, and the operator's ruling there settles the priority question here: the slice level is primary and the BRD level optional, in grounding and in the customer loop alike. Brainstorm the two together.
+**SETTLED 2026-09-06 by the same design.** Packages are per-slice because the slice is the only level, so this needs nothing built: the "BRD-level optional or question-capped" half dissolves rather than being implemented.
 
 ---
 

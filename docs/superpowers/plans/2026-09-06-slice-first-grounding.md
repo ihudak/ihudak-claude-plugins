@@ -242,11 +242,13 @@ Added mid-flight. Task 2 surfaced that refusing a root leaves every downstream "
 
 - [ ] **Step 1: Collect the reported sites**
 
-Read the dead-branch lists in `task-2-report.md` and `task-3-report.md`, then re-derive rather than trust them:
+Read the dead-branch lists in `task-2-report.md` and `task-3-report.md`, then re-derive rather than trust them. **The phrase grep is a starting point and not the sweep** — Task 2's review found an active defect that used none of that phrasing, so a phrase-scoped collection certifies files it never checked:
 
 ```bash
 grep -n 'owns its source document\|a BRD with a source document of its own' plugins/product-workflows/commands/brd-{ground,interview,package,reconcile}.md
 ```
+
+Then, for each of the four commands: read its Phase 0 in full, and grep every `BRD_*` stop-ID the file defines, asking of each whether the refusal changed when or whether it fires. A stop whose reachability moved, or two steps that claim the same slot in the ordering, are both in scope here and neither carries the phrase above.
 
 - [ ] **Step 2: Rule on each site, one of three dispositions**
 

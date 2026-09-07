@@ -126,7 +126,13 @@ command reads was already independently re-derived by `/brd-ground`'s own verifi
   delegated all of its requirements and kept none, so it has nothing of its own to decide and stops
   with `BRD_INTERVIEW_ALL_DELEGATED`. That is a finished state, not a missing step — the same BRD
   holds no PRD of its own either — and its inventory is *not* empty, which is why the
-  empty-inventory gate above never sees it.
+  empty-inventory gate above never sees it. The stop says what can and cannot change it, because a
+  bare [`/brd-split`](brd-split.md) re-run moves nothing here: it walks only `unallocated` rows and
+  this ledger has none. An instruction on that same run can re-point a delegated row onto another
+  child that has not been interviewed — one already standing, or a slice that run carves — but only
+  where the child now holding it has recorded `deferred-to` against it in its own ledger, which is
+  that child writing down that it will not build it. A row its holder is still committed to is moved
+  by no command; un-delegating that one is a decision taken with the customer.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
 - **No repository, and no `$REPOS_PATH`.** Every `file:line` this command reads was already pinned
   and verified by `/brd-ground`, so nothing here opens a repository, and there is no baseline gate or

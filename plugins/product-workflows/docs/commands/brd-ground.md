@@ -103,9 +103,16 @@ Phase 11, for session lessons-learned.
   and `/brd-interview` refusing the BRD and naming this command as the fix, the run stops with
   `BRD_GROUND_EMPTY_INVENTORY` and names the upstream fix by level: re-running `/brd-intake` over
   the same folder with a corrected source for a BRD that owns its document, or `/brd-split` on the
-  parent for a slice that was allocated nothing. Where the parent's ledger has no `unallocated` row
-  left, removal is the only thing that can change that slice's state — `/brd-split` never
-  re-allocates a row that already carries a fate.
+  parent for a slice that was allocated nothing. Which form of that run to type depends on the
+  parent's own ledger, and the stop says so. Where the parent still holds an `unallocated` row the
+  run walks it too and can offer `covered-by` against this slice — and a run with rows still to place
+  needs a slicing instruction to group them. Where none is left, the **bare** run offers to remove
+  this slice or to keep it against a recorded reason, and that is the whole of what it offers; adding
+  an instruction to that same run can additionally **re-cut** onto this slice a row the parent
+  delegated to a sibling that has since recorded `deferred-to` against it — the one case in which
+  `/brd-split` re-allocates a row already carrying a fate. That third outcome is not guaranteed to be
+  on offer: it needs such a row to exist and it needs this slice never to have been interviewed, so a
+  slice emptied after its own interview can only be removed or kept.
 - **This BRD's own inventory and ledger already on the specs repo's main branch.** `/brd-ground`
   gates `coverage-ledger.md` on `origin/<default>` via `require-on-main` before reading anything
   else; an unmerged pull request stops the run naming the branch/PR state. Where the gate reports
@@ -120,12 +127,18 @@ Phase 11, for session lessons-learned.
   [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3). A ledger **in** the
   folder and on no ref means it was produced and its handoff was declined, and stops with
   `BRD_GROUND_NOT_HANDED_OFF`, whose action is to commit and merge the files already on disk. It
-  names the producing command only where re-running it would actually stage them: never
-  `/brd-split` — which on a fully-allocated parent with no standing empty child is a no-op that
-  stages nothing and opens no pull request, and which, where this slice claims nothing, is a live
-  run that resolves the empty child but stages that decision rather than this slice's inventory and
-  ledger; and `/brd-intake`, on a BRD that owns its source document, as a slower second route,
-  since it re-extracts the inventory and rewrites the ledger before handing it off.
+  names the producing command only where re-running it would actually stage them, and the clause it
+  carries is read off this slice's own `claims:` list. Where this slice **claims rows**, a **bare**
+  `/brd-split` on a fully-allocated parent is a no-op that stages nothing and opens no pull request —
+  but an instruction typed after the key can still make it a live run, where the parent holds a row a
+  child has recorded it will not build; that run stages what its own walk moved, never these files as
+  they stand. Where this slice **claims nothing** the parent re-run is not a no-op at all: the bare
+  form resolves the empty child and stages that decision rather than this slice's inventory and
+  ledger, while an **instructed** run that re-cuts a row onto this slice does declare all three and
+  lands them as its own walk leaves them. Committing what is already on disk stays the direct route to
+  landing them as they stand. `/brd-intake` is named only on a BRD that owns its source document, as a
+  slower second route, since it re-extracts the inventory and rewrites the ledger before handing it
+  off.
 - **`$REPOS_PATH`** — required; resolved as one directory or a colon-separated list. No resolvable
   entry stops the run naming `REPOS_PATH`.
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — documentation grounding, resolved once

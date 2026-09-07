@@ -670,7 +670,7 @@ resolves a slice and a slice always has a `parent:` (naming `depends_on` if omit
 neither parses nor prints (Phase 0 step 7); every `[VD#n]`/`[CD#n]`/`[AS#n]` carried in as a gap
 rather than an input, by id and status; every contradiction Phase 3 recorded rather than decided,
 with the reopening route named for each; every product-altitude item still `consumed_by: none`, by
-id, per the design's *Consumption tracking* section (§7.3); and any sub-product-altitude content the
+id, per the design's *Consumption tracking* section (§7.3) — **the set here is `decisions.md`'s records and nothing else**, because Phase 2 reads exactly `prd-seed.md` and `decisions.md` and no `grounding/` file, so no `[CG#n]`/`[DG#n]` is in it and neither finding exclusion the architecture and implementation altitudes apply has a subject at this one: not the baseline findings, and not the findings a re-cut leaves behind on a slice whose own `coverage-ledger.md` now shows their `[BR#n]` as `covered-by` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.1, §3.2) — say that, so an empty list reads as an empty set rather than as an unrun check; a decision this slice took about a row it has since given up is **not** excluded either, because it records this slice's own refusal to build it, which the re-cut leaves standing (§3.2), so it is reported like any other; and any sub-product-altitude content the
 grill surfaced and left for `/product-workflows:create-ard` or `/product-workflows:specify` instead of the
 PRD (D4) — naming the command, never a seed file, since the register those runs will read that
 content out of is the one this run already read.

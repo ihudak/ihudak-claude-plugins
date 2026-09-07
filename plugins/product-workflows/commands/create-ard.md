@@ -707,7 +707,7 @@ architecture-altitude item still `consumed_by: none`, by id, per the design's *C
 section (§7.3) — **excluding the baseline `[CG#n]` findings**, which are never `consumed_by` anything
 and whose `none` therefore reports no gap
 (`workflows-core:grounding-format` §4.1); say that they are excluded, so a
-reader can tell an empty list from an unrun check; `ard-seed.md`'s consumption at file granularity; and any product- or
+reader can tell an empty list from an unrun check; **and excluding every `[CG#n]`/`[DG#n]` whose `claim` cites a `[BR#n]` this slice's own `coverage-ledger.md` now shows as `covered-by`**, read off that file's `disposition` column and never off `claims:` or the inventory (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.1's trap, named there from the other side) — the BRD that row names *owns* the requirement (§3.1), so nothing this run authors can consume a finding about it and its `none` reports no gap either; that is the state a re-cut leaves on the slice that gave the row up (§3.2) — say how many were excluded on this count too, for the same reason as the first, and note that this is a **report exclusion only**, no finding edited, renumbered, moved or marked and no `consumed_by` value changed anywhere; `ard-seed.md`'s consumption at file granularity; and any product- or
 implementation-altitude content the grill surfaced and left for the command that authors at that
 altitude instead of the ARD (D5) — naming the command, never a seed file, since the register it will
 read that content out of is the one this run already read. Say plainly whether `/product-workflows:epics` was offered and, when it was not, **why**: the resolved

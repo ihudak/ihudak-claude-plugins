@@ -16,3 +16,6 @@ __pycache__/
 
 # subagent-driven-development scratch (ledger, briefs, review packages)
 .superpowers/
+
+# git worktrees (isolated workspaces for subagent-driven development)
+/.worktrees/

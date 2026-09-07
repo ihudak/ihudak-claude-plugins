@@ -69,12 +69,13 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
      every slice and offer `/product-workflows:specify <SLICE-KEY>` once per slice. Do **not** name
      `/product-workflows:brd-split <BRD-KEY>`: the slices exist, and on a parent whose ledger is fully
      allocated that run is a no-op (`commands/brd-split.md` Phase 0 step 10).
-   - **No slice at all** — `/product-workflows:brd-split <BRD-KEY>` is the run that carves one, walking
-     every row still `unallocated` and always confirming at least one slice (its Phase 2). **Two
-     conditions travel with that offer**, in its own text, because this command holds neither
-     answer: its Phase 0 gates on this BRD's grounding findings each carrying a verifier verdict and
-     stops naming `/product-workflows:brd-ground <BRD-KEY>` when they do not; and **where this BRD's
-     ledger leaves no row `unallocated` that run is a no-op** (its Phase 0 step 10) and carves
+   - **No slice at all** — `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` is the run that
+     carves one, walking every row still `unallocated` and always confirming at least one slice (its
+     Phase 2). **Two conditions travel with that offer**, in its own text, because this command holds
+     neither answer: the slicing instruction is not optional there — a root is never ground, so that
+     run has no findings to cluster candidate slices from and stops with
+     `BRD_SPLIT_NEEDS_INSTRUCTION` where it has rows to place and was given none; and **where this
+     BRD's ledger leaves no row `unallocated` that run is a no-op** (its Phase 0 step 10) and carves
      nothing, since nothing in this plugin moves a terminal row back to `unallocated`
      (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). Say what the operator does
      then rather than leaving the offer to fail silently. There are two ways to reach it and **both
@@ -86,7 +87,8 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
      decision — and say, rather than implying the state is sealed, that once it is taken it is
      carried out by the same two repairs the other way below names, in the same order: hand-edit the
      one row that is now to be built back to `unallocated`, after which
-     `/product-workflows:brd-split <BRD-KEY>` has a row to walk and carves the slice; or re-run
+     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has a row to walk and carves the slice;
+     or re-run
      `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which reopens **every** row and discards
      every deferral and rejection recorded here. Or the ledger
      records a fate a container can no longer hold — a **root** row `covered-here`, which only a
@@ -104,8 +106,9 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
      re-run second, and only where the whole inventory is to be re-taken:** re-running
      `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather than
      a refusal (its Phase 0 step 7 warns and confirms before the first write) and rewrites the
-     ledger with **every** row `unallocated`, after which `/product-workflows:brd-split <BRD-KEY>` has
-     rows to walk. It also **discards every disposition this ledger records**: each `deferred-to`,
+     ledger with **every** row `unallocated`, after which
+     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. It also **discards
+     every disposition this ledger records**: each `deferred-to`,
      `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and must be
      re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Name those decisions —
      saying only that the dispositions are replaced is not the disclosure.

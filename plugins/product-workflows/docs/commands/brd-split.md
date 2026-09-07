@@ -31,12 +31,14 @@ a recorded fate and hand on to [`/brd-interview`](brd-interview.md).
 - **`<BRD-KEY>`** (mandatory) — the BRD to split and allocate. A key naming either level a
   BRD folder can occupy works, and the level decides the run mode (below). Resolved via
   `resolve-address`; format-validated only, never checked against a tracker.
-- **`<instruction>`** (**mandatory on a root, optional on a slice**) — every non-flag token after
+- **`<instruction>`** (**mandatory on a root that still has a row to place, optional on a slice**) — every non-flag token after
   the key, joined verbatim: a slicing instruction in your own words, such as `cover orders and
   measurements in the first iteration` or `slice everything this BRD still holds that no child
-  covers`. **On a root it cannot be omitted**: a root is never ground, so it carries no findings to
-  cluster candidate slices from, and the instruction is the only grouping signal there is — absent,
-  the run stops with `BRD_SPLIT_NEEDS_INSTRUCTION`. On a slice it stays optional and seeds only the
+  covers`. **On a root with a row still `unallocated` it cannot be omitted**: a root is never ground,
+  so it carries no findings to cluster candidate slices from, and the instruction is the only
+  grouping signal there is — absent, the run stops with `BRD_SPLIT_NEEDS_INSTRUCTION`. A root run
+  that proposes nothing needs none and does not stop: on a fully allocated ledger there is nothing
+  to group, whether the run is a no-op or is there to resolve a standing empty child. On a slice it stays optional and seeds only the
   walk's per-row recommendation; omitted there, the command behaves exactly as it did before the
   argument existed. It is prose and is never validated against anything — what it means is settled
   against this BRD's own rows in Phase 1.5.
@@ -121,7 +123,7 @@ flowchart TD
 ```
 
 A BRD whose ledger has no `unallocated` row when Phase 0 reads it is a no-op **only if it also
-holds no child standing empty** — a two-part test taken in Phase 0's last step, in both run modes: the run then skips straight from Phase 0 to Phase 6, which reports
+holds no child standing empty** — a two-part test Phase 0 takes once it has read both the ledger and the child set, in both run modes: the run then skips straight from Phase 0 to Phase 6, which reports
 nothing to commit. Holding one, it is not a no-op — Phase 0 skips the walk it has no rows for and
 runs Phase 4.5 alone, which is what keeps a child kept empty by an earlier run reachable by the one
 command that can remove it. Deciding the no-op on the ledger alone made that child unreachable in
@@ -132,9 +134,11 @@ reads was already independently verified by `/brd-ground`'s own agents.
 ## What it needs
 
 - **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_SPLIT_NEEDS_KEY`.
-- **`<instruction>`, on a root.** A root is never ground, so it has no findings to cluster candidate
-  slices from; an absent instruction on a `split_mode: full` run stops with
-  `BRD_SPLIT_NEEDS_INSTRUCTION`, naming the same run again with one. A slice needs no instruction at
+- **`<instruction>`, on a root that still has a row to place.** A root is never ground, so it has no
+  findings to cluster candidate slices from; an absent instruction on a `split_mode: full` run whose
+  ledger still holds an `unallocated` row stops with `BRD_SPLIT_NEEDS_INSTRUCTION`, naming the same
+  run again with one. Where nothing is `unallocated` the run groups nothing, so it needs no
+  instruction and does not stop. A slice needs no instruction at
   all — its walk takes recommendations from one but does not require it.
 - **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the
   the levels below it that `resolve-address` searches — stops the run with `BRD_SPLIT_NOT_FOUND`. That stop names both ways a folder
@@ -299,8 +303,8 @@ instruction a root cannot omit:
 /product-workflows:brd-split EPIC-008 cover orders and measurements in the first iteration
 ```
 
-A root is never ground, so the instruction is the only grouping signal there is; an invocation
-without one stops with `BRD_SPLIT_NEEDS_INSTRUCTION`.
+A root is never ground, so the instruction is the only grouping signal there is; with rows still to
+place, an invocation without one stops with `BRD_SPLIT_NEEDS_INSTRUCTION`.
 
 Step A places the rows whose text names an order or a measurement; Step B asks at most five
 questions, and only where one answer moves several rows — *the BRD writes "form" for an order record

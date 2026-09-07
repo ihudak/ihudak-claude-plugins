@@ -18,7 +18,7 @@ Twelve documentation files, including both of the route's mermaid diagrams, were
 
 ### Changed — `/brd-split` on a root now requires a slicing instruction
 
-A root is never ground, so nothing exists yet to cluster candidate slices from. The `<instruction>` argument, previously optional at both levels, is now **mandatory on a root** — `BRD_SPLIT_NEEDS_INSTRUCTION` if absent — and stays optional on a slice, where it only seeds the allocation walk's per-row recommendation.
+A root is never ground, so nothing exists yet to cluster candidate slices from. The `<instruction>` argument, previously optional at both levels, is now **mandatory on a root whose ledger still holds an `unallocated` row** — `BRD_SPLIT_NEEDS_INSTRUCTION` if absent — and stays optional on a slice, where it only seeds the allocation walk's per-row recommendation. The stop is taken late in Phase 0, once the ledger has been read, so a root run that proposes nothing still runs without one: that is the run three other stops on this route name as the way to resolve a child left standing while claiming nothing, and it carves no slice.
 
 The route now runs intake → split (root, instruction required) → ground (slice) → split (the same slice, `allocate-only`) → interview → package → reconcile. `/brd-split` runs twice, with grounding sitting between the two runs rather than before the first. Route ordinals ("the second command...") were removed from all six command bodies and from the surrounding documentation, since counting a fixed position stopped meaning anything once a command occupies two different steps of its own route.
 

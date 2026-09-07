@@ -132,7 +132,7 @@ behaviour, not the behaviour.
        slice with a `<PARENT-KEY>` to read. Stop:
        `BRD_GROUND_NO_INVENTORY: <BRD-KEY> has no brd/brd-inventory.md and no brd-link.md naming a parent — this reads as an interrupted intake, not a slice. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' to complete it (an existing BRD folder is a re-run, not a refusal).`
      - **`parent: <PARENT-KEY>` present** — this is a slice. Stop:
-       `BRD_GROUND_NO_INVENTORY: <BRD-KEY> has no brd/brd-inventory.md, so there is no claim list to ground. Run '/product-workflows:brd-split <PARENT-KEY>', which writes the slice's inventory from the rows the parent delegated to it.`
+       `BRD_GROUND_NO_INVENTORY: <BRD-KEY> has no brd/brd-inventory.md, so there is no claim list to ground. Run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', which writes the slice's inventory from the rows the parent delegated to it.`
    - **The inventory is in the folder and on no ref** — produced, handoff declined. Land what is
      already on disk, and **do not name `/brd-intake`**: re-running it rewrites the inventory and the
      ledger dispositions recorded against it go with it:
@@ -163,7 +163,7 @@ behaviour, not the behaviour.
      slice has no document of its own to intake (`brd-format.md` §2.1), and the command that writes
      a slice's ledger and inventory is `/brd-split` on the parent
      (`coverage-ledger-format.md` §3). Stop:
-     `BRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger exist on no ref and in no folder — where <PARENT-KEY>'s ledger still holds unallocated rows, run /product-workflows:brd-split <PARENT-KEY> and merge the pull request first. Where the parent is already fully allocated and this slice claims rows, that run is a no-op that stages nothing: the slice's files were lost after they were written, and no command re-creates them — restore them from the ref that carried them, or report it. Do not run /brd-intake on a slice; it has no source document of its own.`
+     `BRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger exist on no ref and in no folder — where <PARENT-KEY>'s ledger still holds unallocated rows, run /product-workflows:brd-split <PARENT-KEY> "<how to cut it>" and merge the pull request first. Where the parent is already fully allocated and this slice claims rows, that run is a no-op that stages nothing: the slice's files were lost after they were written, and no command re-creates them — restore them from the ref that carried them, or report it. Do not run /brd-intake on a slice; it has no source document of its own.`
 
      **The condition qualifies the remedy, and both branches must carry it.** The sibling rule thirty lines below already says not to name `/brd-split` for a fully-allocated parent, because re-running it there stages nothing and opens no pull request. Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
 
@@ -912,7 +912,7 @@ Terminal phase — runs after Phase 10, NEVER interrupts an earlier phase.
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command /
 reference gap, `emit-block` (`workflows-core:feedback-emission`) fires at
 that halt before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD,
-an inventory or ledger not yet on main (`BRD_GROUND_NO_INVENTORY`, `BRD_GROUND_INVENTORY_NOT_HANDED_OFF`,
+a resolved root BRD, an inventory or ledger not yet on main (`BRD_GROUND_NO_INVENTORY`, `BRD_GROUND_INVENTORY_NOT_HANDED_OFF`,
 `BRD_GROUND_NEEDS_INTAKE` or, for a slice, `BRD_GROUND_NEEDS_SPLIT`; `BRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off),
 an inventory carrying no claim at all
 (`BRD_GROUND_EMPTY_INVENTORY`, which is a fact about what the

@@ -12,7 +12,7 @@ every repository grounding reads.
 
 **Consumed by** the three grounding agents that write against the contract fixed here —
 `product-workflows:code-grounder`, `product-workflows:design-grounder`, and `product-workflows:grounding-verifier` — and by
-the two commands that read what they produce: `/product-workflows:brd-ground`, which orchestrates all
+the two commands that read what they produce: `/product-workflows:prd-ground`, which orchestrates all
 three, and `/product-workflows:brd-split`, whose Phase 0 gate turns on §8's verification outcomes.
 
 ## 1. What grounding is, and is not
@@ -310,7 +310,7 @@ hand-export it fires on is the ordinary way a frame set arrives.
 be a second copy of a path rule, which is how the copies drift.
 
 **Defining the location is not the same as consuming it.** `design-grounder` is dispatched by
-`/brd-ground` and by nothing else, so today only the BRD route *reads* a `design/` folder as a frame
+`/prd-ground` and by nothing else, so today only the BRD route *reads* a `design/` folder as a frame
 set. A PRD folder on the `/idea` route holds one whenever that idea's source linked an image the reader
 could open, and nothing reconciles it yet; that is a known and deliberate state, not a gap in this
 section.
@@ -329,7 +329,7 @@ writer dispatches `design-grounder`, produces a `[DG#n]`, consults an index, or 
 The index makes the frame set *readable* — it does not make anything read it. **`/frames` is not that
 capability and must not be read as it having arrived**: it describes frames so that a set *can* be
 read, and reconciles nothing against any requirement. Indexing makes frames readable; grounding makes
-them `[DG#n]` findings, and only `/brd-ground` does the second. That capability remains deliberately
+them `[DG#n]` findings, and only `/prd-ground` does the second. That capability remains deliberately
 unbuilt on every other route and is a decision of its own, and this paragraph exists to foreclose the
 mistake of reading `idea-reader`'s image support, `frame-describer`'s descriptions, or either writer's
 index as that decision having been reversed.

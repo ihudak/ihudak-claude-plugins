@@ -12,7 +12,7 @@ including the design-grounding-only `class` and `cites` fields fixed in §2 — 
 this agent applies. Follow that reference; do not restate it here.
 
 Reconcile a customer-supplied BRD's requirements against an exported design frame set — screen or
-report images plus an index file describing what each frame is. The caller — `/brd-ground` —
+report images plus an index file describing what each frame is. The caller — `/prd-ground` —
 dispatches this agent once per frame set.
 
 **Distinction from `code-grounder`.** That agent checks a BRD claim against a code repository at a

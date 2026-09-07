@@ -24,7 +24,7 @@ returns. Follow that reference; do not restate it here. Invoke `Skill(skill: "wo
 repository when re-derivation requires reading one.
 
 Independently re-derive one `[CG#n]` or `[DG#n]` finding's claim and return an outcome from the
-closed set in `workflows-core:grounding-format` §8. The caller — `/brd-ground` — dispatches this agent as the
+closed set in `workflows-core:grounding-format` §8. The caller — `/prd-ground` — dispatches this agent as the
 gate every finding passes through before it is treated as evidence; on a different agent from
 whichever wrote the finding, per §8.
 

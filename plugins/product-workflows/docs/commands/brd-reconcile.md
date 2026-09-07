@@ -96,7 +96,7 @@ flowchart TD
     p14 -.->|"advance_ready + no unallocated row and one covered-here"| prd["/create-prd (PM)"]
     p14 -.->|"advance_ready"| ard["/create-ard (PA, optional)"]
     p14 -.->|"advance_ready"| spec["/specify (PE)"]
-    p14 -.->|"advance_ready: no — reopened decision, held customer question, unre-derived finding, or an unswept dependent"| reentry["/brd-interview, /brd-package, or /brd-ground --rebaseline, on this same &lt;BRD-KEY&gt; (PM/PA)"]
+    p14 -.->|"advance_ready: no — reopened decision, held customer question, unre-derived finding, or an unswept dependent"| reentry["/brd-interview, /brd-package, or /prd-ground --rebaseline, on this same &lt;BRD-KEY&gt; (PM/PA)"]
 ```
 
 `customer-review-reader` is dispatched once, on the detection chain. `workflows-core:impl-maintenance` runs in the
@@ -135,7 +135,7 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   any other date.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
 - **No repository, and no `$REPOS_PATH`.** Every finding this run reads was pinned and independently
-  re-derived by `/brd-ground`.
+  re-derived by `/prd-ground`.
 
 ## What it produces
 
@@ -292,14 +292,14 @@ markdown file under the parent, which is exactly why the carve-out has to be wri
 
 ## What it does not do
 
-- **No documentation grounding, and no `--no-docs` flag.** `/brd-intake` and `/brd-ground` already
+- **No documentation grounding, and no `--no-docs` flag.** `/brd-intake` and `/prd-ground` already
   ground this BRD against the shipped product documentation when `$DOCS_PATH` resolves. The whole
   content of this run is what the **customer** said; a documentation page is a claim about behaviour
   written by the delivery organisation, so consulting one here could only produce a sentence
   contradicting the one party whose authority the run is recording. There is nothing to switch off,
   so no flag exists to switch it.
 - **It writes no finding.** A customer challenge to a code or design claim is recorded verbatim and
-  named as needing a `/brd-ground` pass — a finding is not evidence until independently re-derived
+  named as needing a `/prd-ground` pass — a finding is not evidence until independently re-derived
   by a different agent, and this command re-derives nothing.
 - **It never supersedes a `will-change` finding.** One whose prerequisite decision this run froze is
   named with `--rebaseline` as the fix; a supersession written here would have nothing on the other
@@ -420,7 +420,7 @@ Had this ledger left a row `unallocated`, or left none `covered-here`, the first
 dropped from the offer and the stop would say which test failed; the other two would still be
 offered. Had the run instead reopened a decision or left a question held for the customer,
 `advance_ready` would be `no`, and Phase 14 would offer the re-entry the trigger names — another
-`/brd-interview` round, a re-package, or a `/brd-ground --rebaseline` pass — never the three above.
+`/brd-interview` round, a re-package, or a `/prd-ground --rebaseline` pass — never the three above.
 
 ## See also
 

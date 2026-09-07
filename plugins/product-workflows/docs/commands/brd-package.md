@@ -113,11 +113,11 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   missing step, since every question was settled from verified findings and there is nothing to ask
   a customer. The stop says outright that another interview round is not the fix (it opens one only
   on a changed finding or a moved decision) and names the action that can change it:
-  `/brd-ground <BRD-KEY> --rebaseline`, or a decision reopened or superseded in the register. A
+  `/prd-ground <BRD-KEY> --rebaseline`, or a decision reopened or superseded in the register. A
   package carrying `[VD#n]` positions and no `[C]` question is legitimate and is packaged.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
 - **No repository, and no `$REPOS_PATH`.** Every commit this package cites was pinned and proven
-  clean by `/brd-ground`; the repo→SHA table is read from that run's `baselines.md`, and the three
+  clean by `/prd-ground`; the repo→SHA table is read from that run's `baselines.md`, and the three
   pin-verification commands are handed to the customer's reviewer to run rather than re-run here.
 
 ## What it produces
@@ -232,7 +232,7 @@ attack.
 
 ## What it does not do
 
-- **No documentation grounding, and no `--no-docs` flag.** `/brd-intake` and `/brd-ground` already
+- **No documentation grounding, and no `--no-docs` flag.** `/brd-intake` and `/prd-ground` already
   ground this BRD against the shipped product documentation when `$DOCS_PATH` resolves. This command
   establishes no claim of its own at all — it renders what other commands recorded — so a
   documentation page could only introduce an ungrounded sentence into a bundle whose whole value is

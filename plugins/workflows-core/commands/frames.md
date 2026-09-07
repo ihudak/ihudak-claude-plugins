@@ -21,7 +21,7 @@ resolved folder.
 *readable*; grounding makes them `[DG#n]` findings. This command dispatches no `design-grounder`,
 produces no finding, cites no `[BR#n]` or `[CG#n]`, and never reaches `grounding-verifier`.
 `/idea`-route design grounding remains deliberately unbuilt, §6.1 says so, and this command keeps
-that true. The one command that grounds a frame set is `/brd-ground`, on the BRD route.
+that true. The one command that grounds a frame set is `/prd-ground`, on the BRD route.
 
 **The name.** `design/` and *frame set* are §6.1's own vocabulary, so `/frames` names what it acts on.
 It is deliberately not `/design-index`: `/design` is the engineering-design workflow, and a name
@@ -248,7 +248,7 @@ Hold also **each file in the set that is not a frame at all** (Phase 1 step 3), 
 and must still be named, and **any `notes` the describer returned** — a frame illegible at the
 resolution supplied, or a set that is plainly several unrelated exports. `frame-describer` documents
 `notes` as output and nothing read it, so the observation it exists to surface was discarded; it is
-reported, never acted on, exactly as `/brd-ground` consumes `design-grounder`'s. Carry the literal list of index paths written into Phase 3.
+reported, never acted on, exactly as `/prd-ground` consumes `design-grounder`'s. Carry the literal list of index paths written into Phase 3.
 
 **The bookkeeping steps do not stage any of this.**
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1 classifies `design/**` as OTHER, so
@@ -264,7 +264,7 @@ set empty — has no deliverable, offers no handoff, and says so; offering one w
 request for nothing.
 
 Report what each set now holds, then present
-`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim — the **advisory** variant (§4.0), whose second option says no command stops on this and that what reads it reads your working copy. **Nothing gates a frame-set index, but something reads one**: `product-workflows:design-grounder` refuses to run on a frame set holding no index at all, and `product-workflows:grounding-verifier` returns `NO_INDEX`/`STALE_INDEX` on one — both from the working tree, neither off a ref. The **gated** variant would promise a stop no consumer makes, and the **unread** variant — which this phase presented until §4.0's register was verified against the tree — told the operator to ignore a file `/brd-ground` refuses a frame set without, three lines above a paragraph of this same phase saying the set stays `NO_INDEX` for everybody else. That contradiction is the reason §4.3 asks a producer to name its reader rather than infer the class from the absence of a §3.4 row. On the first
+`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim — the **advisory** variant (§4.0), whose second option says no command stops on this and that what reads it reads your working copy. **Nothing gates a frame-set index, but something reads one**: `product-workflows:design-grounder` refuses to run on a frame set holding no index at all, and `product-workflows:grounding-verifier` returns `NO_INDEX`/`STALE_INDEX` on one — both from the working tree, neither off a ref. The **gated** variant would promise a stop no consumer makes, and the **unread** variant — which this phase presented until §4.0's register was verified against the tree — told the operator to ignore a file `/prd-ground` refuses a frame set without, three lines above a paragraph of this same phase saying the set stays `NO_INDEX` for everybody else. That contradiction is the reason §4.3 asks a producer to name its reader rather than infer the class from the absence of a §3.4 row. On the first
 option, execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: frames`;
 `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = **every `index.md` this run
 wrote, one literal path each, repo-relative as Phase 2 held them**; `title: <KEY> Index design frame sets`; and

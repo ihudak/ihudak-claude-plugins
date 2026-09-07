@@ -33,7 +33,7 @@ Every next-step option a command offers already carries a role label — see [Ro
 - **The next step could go either way** (`/create-prd` → PM `/docs-workflows:release-notes`, or handing off to PA/PE) → both branches are named explicitly: continuing as the same role suggests `/compact`, handing off — even to yourself — suggests `/clear`.
 - **You're done, or ending the session** → no suggestion at all.
 
-`/brd-ground` is the one command on this route with a role transition inside its own name — PM-initiated, PA/Dev-executed — but the suggestion follows what the *next* command's role is, not this one's, exactly as every other transition does.
+`/prd-ground` is the one command on this route with a role transition inside its own name — PM-initiated, PA/Dev-executed — but the suggestion follows what the *next* command's role is, not this one's, exactly as every other transition does.
 
 ## The `/rename` aid
 

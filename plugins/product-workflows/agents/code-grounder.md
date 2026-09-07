@@ -12,7 +12,7 @@ restate it here. Invoke `Skill(skill: "workflows-core:reference", args: "read-on
 posture toward a mounted repository.
 
 Ground a list of specific `[BR#n]` claims against one code repository, pinned to one commit. The
-caller — `/brd-ground` — dispatches one instance per repository, up to 4 concurrent.
+caller — `/prd-ground` — dispatches one instance per repository, up to 4 concurrent.
 
 **Distinction from `code-scanner`.** That agent answers *what capability exists for this theme?* —
 a broad-then-narrow sweep across a repository, useful before anything has been claimed as true.

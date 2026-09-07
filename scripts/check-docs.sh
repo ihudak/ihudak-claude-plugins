@@ -1364,7 +1364,7 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
   # The PER-COMMAND coverage guard. Rewording one family command's handoff sentence empties its
   # writer set alone, and every offer that command makes stops being checked while the run-wide
   # assertions stay satisfied by the other family commands -- green, and quietly covering less.
-  # This mutation is the one a review demonstrated against the live tree on brd-ground.md.
+  # This mutation is the one a review demonstrated against the live tree on prd-ground.md.
   expect_fail "a family command whose handoff declares no path is rejected" 11 \
     "sed -i.bak 's|\`deliverable_paths\` = |\`deliverable_paths\` lists |' $(cmd_file $PLUGIN_REL alpha)"
   # The three vacuity guards rewrite through a temp file OUTSIDE the reference dir rather than

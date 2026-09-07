@@ -56,20 +56,9 @@ A row's `id` is permanent for the same reason its inventory counterpart is (`brd
 once a ledger row exists for a `[BR#n]`, it is never deleted and never renumbered, even after the
 row reaches a terminal disposition.
 
-**On a slice, `claims:` may therefore name fewer rows than the ledger holds.** `/brd-split` Phase 3
-writes a child's `claims:` list **provisionally** and seeds one `unallocated` ledger row per claimed
-`[BR#n]`; Phase 4's walk on the **parent's** ledger is what actually allocates, and it may settle a
-provisionally-claimed `[BR#n]` somewhere other than that child. When it does, the `claims:` entry
-and the copied `brd/brd-inventory.md` row are withdrawn together — a slice's inventory is defined
-over `claims:` (`brd-format.md` §2.1) — and **the ledger row stays**, because the rule above admits
-no exception and because deleting it would erase the one record that a claim was made and
-withdrawn. Such a row is called an **orphan row** below.
+**On a slice, `claims:` may therefore name fewer rows than the ledger holds.** A row in that gap is called an **orphan row** throughout this file, and the term is defined by what the row *is* rather than by how it got there: a ledger row for a `[BR#n]` this slice no longer claims. **Two routes reach it, and both are the parent's Phase 4 walk withdrawing a claim the slice had.** The first withdraws a claim that was never more than provisional — `/brd-split` Phase 3 writes a child's `claims:` list **provisionally** and seeds one `unallocated` ledger row per claimed `[BR#n]`, and Phase 4's walk on the **parent's** ledger is what actually allocates, so it may settle a provisionally-claimed `[BR#n]` somewhere other than that child. The second withdraws a claim the slice had committed to and then recorded that it would not build: the re-cut of §3.2, where that same walk moves the row to a sibling. Either way the `claims:` entry and the copied `brd/brd-inventory.md` row are withdrawn together — a slice's inventory is defined over `claims:` (`brd-format.md` §2.1) — and **the ledger row stays**, because the rule above admits no exception and because deleting it would erase the one record that a claim was made and withdrawn.
 
-An orphan row is never left `unallocated`: the same step that withdraws the claim writes it to the
-terminal disposition that walk settled (§3), so it never blocks §4 and the slice can still complete
-its own split. Its `text` and `defects` are the ones already copied into it, which is why it stays
-readable with no inventory row beside it; its `evidence` stays empty, because `/brd-ground` grounds
-a slice's *inventory* and an orphan row is not in one.
+**An orphan row is never left `unallocated`**, and that guarantee is about the row, never about how many steps wrote it: the row goes straight from the disposition it held to the terminal disposition that walk settled (§3), so it never blocks §4 and the slice can still complete its own split. **The step count is what differs by route.** On the provisional route the single step that withdraws the claim writes the disposition with it. On a re-cut (§3.2) the disposition is written first and the claim withdrawn after it (`commands/brd-split.md` Phase 4), so the row moves from `deferred-to: <this BRD>` to `covered-by: <the receiving sibling's key>` with no moment in between at which it reads `unallocated` — which is the whole of what §4 needs, and it holds identically on both routes. Its `text` and `defects` are the ones already copied into it, which is why it stays readable with no inventory row beside it; its `evidence` stays empty, because `/brd-ground` grounds a slice's *inventory* and an orphan row is not in one.
 
 ## 3. Dispositions
 
@@ -128,7 +117,7 @@ never a child at either level below the root: nesting is capped at one level
 (`workflows-core:addressing` §6), so **no child can exist below a slice** and no key a slice
 writes could name one.
 
-**The slice form exists for exactly two states — an orphan row (§2), and the re-cut of §3.2 — and for no other.** Both are written by the **parent's** walk at the moment it withdraws the slice's claim, and both land on the table below; §3.2 states what a re-cut additionally requires before that walk may move a row that already carries a fate. A slice's `covered-by` row is in both cases a claim the parent's walk withdrew — still provisional in the first, committed by an earlier run and then deferred by the slice itself in the second — and the key it carries is whichever BRD that same walk allocated the requirement to:
+**The slice form exists for exactly two states — an orphan row (§2), and the re-cut of §3.2 — and for no other.** Both are written by the **parent's** walk in the same run that withdraws the slice's claim, and both land on the table below; §3.2 states what a re-cut additionally requires before that walk may move a row that already carries a fate. A slice's `covered-by` row is in both cases a claim the parent's walk withdrew — still provisional in the first, committed by an earlier run and then deferred by the slice itself in the second — and the key it carries is whichever BRD that same walk allocated the requirement to:
 
 | The parent's walk settled the withdrawn row | The withdrawn slice's orphan row reads |
 |---|---|
@@ -155,7 +144,7 @@ sibling one level under `specifications/` and the parent at the top level
 slice's walk visits is a row that slice `claims:` — a row the parent's ledger allocated *here*.
 Delegating one onward from inside the slice would contradict the parent's ledger about which BRD
 owns it, and would point at a sibling whose own inventory holds no row for that `[BR#n]` at all. So
-the slice form is confined to rows the parent withdrew, which the parent writes at the moment it
+the slice form is confined to rows the parent withdrew, which the parent writes in the same walk that
 withdraws them (`commands/brd-split.md` Phase 4) and which are therefore never `unallocated` when
 the slice's walk runs. §4's disclaimer about the command owning its own interaction flow is
 unchanged: which resolutions a picker offers stays `commands/brd-split.md`'s to state.
@@ -209,7 +198,7 @@ the ledger's job is to record a requirement's fate, not to force every requireme
 
 **Two rows change, and the parent's is written first.** The parent's row takes `covered-by: <B-KEY>` for the receiving sibling B, and A's row takes `covered-by: <B-KEY>` in the same step; B's own ledger row for that `[BR#n]` is seeded `unallocated`, as every row of every ledger is when it is first written (§3), and B's walk takes it from there. **The order is not a tidiness question, and the reason is recorded here because a later edit will otherwise swap the two writes as a clean-up.** Parent-first leaves an interrupted run with the parent pointing one hop at B — resolved `unallocated` by §6.1 where B's seeded row is readable, `unresolved` by §6.2 where B's ledger is not on the tree yet — and leaves A exactly as it stood: two accurate readings, neither of which hides a requirement. Child-first leaves the parent naming A while A names B, which is a **second hop** under a resolution §6.1 requires to terminate in one, and it falsifies §6.1's own argument for why one hop is exhaustive for as long as the run stays interrupted.
 
-**What A keeps.** A's `claims:` entry and its copied `brd/brd-inventory.md` row are withdrawn together, exactly as for any row a walk moves off `covered-by: <A>` — that is `commands/brd-split.md` Phase 4 Step 3's existing behaviour and needs no new rule here, and it is the ordinary route by which A's row becomes an **orphan row** (§2). **A's ledger row is never deleted** (§2). **A's grounding findings and its decision register are not touched.** A ground the row before deferring it, so a `[CG#n]` or `[DG#n]` in A's grounding files may cite a `[BR#n]` A no longer owns. Those findings cannot move — a finding's id is contiguous within its prefix and is assigned once — and they cannot be inherited either, because `workflows-core:grounding-format` §8 holds a finding carried in from an earlier run to be unverified by definition. So B re-derives against the same pins rather than inheriting, at the cost of one row's grounding. A's decisions stay, and stay true, for the same reason: a `[VD#n]` or a frozen `[CD#n]` taken about deferring this row records *A's refusal to build it*, which the re-cut does not disturb. What a run surfaces about those decisions is `commands/brd-split.md`'s to state; what this file fixes is that neither file is edited.
+**What A keeps.** A's `claims:` entry and its copied `brd/brd-inventory.md` row are withdrawn together, exactly as for any row a walk moves off `covered-by: <A>` — that is `commands/brd-split.md` Phase 4 Step 3's existing behaviour and needs no new rule here, and it is what makes A's row an **orphan row** — the second of the two routes §2 names. **A's ledger row is never deleted** (§2). **A's grounding findings and its decision register are not touched.** A ground the row before deferring it, so a `[CG#n]` or `[DG#n]` in A's grounding files may cite a `[BR#n]` A no longer owns. Those findings cannot move — a finding's id is contiguous within its prefix and is assigned once — and they cannot be inherited either, because `workflows-core:grounding-format` §8 holds a finding carried in from an earlier run to be unverified by definition. So B re-derives against the same pins rather than inheriting, at the cost of one row's grounding. A's decisions stay, and stay true, for the same reason: a `[VD#n]` or a frozen `[CD#n]` taken about deferring this row records *A's refusal to build it*, which the re-cut does not disturb. What a run surfaces about those decisions is `commands/brd-split.md`'s to state; what this file fixes is that neither file is edited.
 
 **The receiver has not been interviewed.** B is a sibling under the same parent — never a child of A, and never A itself — that holds no `decisions.md` carrying a `[VD#n]` or `[CD#n]` record and no `interview/round-*.md` on disk. `references/decision-register-format.md` §4 admits exactly two causes for reopening a decision, a new grounding finding or an incoming customer decision, and adding scope to a slice is neither; a register that exists and holds decisions is therefore closed to this, and the two-part test is the cheapest honest reading of "the customer conversation about B has not started". **This eligibility test is the re-cut's alone.** It says nothing about which children an ordinary walk may write `covered-by` against, and widening it there is out of scope: that walk allocates rows carrying no fate yet, which is a different act from moving one that already carries a fate, and the eligibility test exists only to license the second.
 
@@ -226,8 +215,8 @@ construction, the command may instead offer a single confirmation that settles a
 offer it states in full and the operator may refuse row by row. **The paths available are
 not the same set at both levels**, and the difference is no longer a disposition §3 withholds from
 a slice: §3 makes `covered-by` legal at both. It is a difference of **writer and of row**. The slice form of
-`covered-by` records an orphan row (§2) and is written by the *parent's* walk at the moment that
-walk withdraws the claim, so it is already terminal before a slice's own walk ever reads the
+`covered-by` records an orphan row (§2) and is written by the *parent's* walk in the same run that
+withdraws the claim, so it is already terminal before a slice's own walk ever reads the
 ledger — a slice's walk never stands on a row it could write, and therefore never offers it.
 **No number is written here**, for the same reason the paragraph below refuses to re-enumerate the
 picker: a level-general count is wrong at one of the two levels the moment it is written, and a
@@ -651,7 +640,7 @@ Every delegated row lands in exactly one of three places, so
 clause is indistinguishable from a check that never ran, and the whole point of §6.1 is that this
 resolution is visible rather than assumed. A BRD with no `covered-by` row at all reports
 `0 unresolved (0 delegated, 0 not built)` and says so plainly. That is the ordinary shape of a BRD
-nobody split, and of a slice whose parent's walk withdrew none of its provisional claims — but it
+nobody split, and of a slice whose parent's walk withdrew none of its claims — but it
 is **not** a property of being a slice. A slice holding orphan rows (§2) reports them as delegated,
 resolved one hop through the sibling or parent each names, exactly as §6.1 resolves any other
 `covered-by` row.

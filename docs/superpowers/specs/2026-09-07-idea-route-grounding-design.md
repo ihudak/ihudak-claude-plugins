@@ -211,7 +211,58 @@ the stamp, every PRD-altitude finding stays `none` for the life of the folder an
 report cannot distinguish *nobody acted* from *acted, never recorded* — which is the ambiguity the
 field exists to remove.
 
-## 8. The handoff
+## 8. How grounding directs the downstream scans
+
+**`/create-ard` and `/specify` each run their own `code-scanner` fan-out, and neither is replaced.**
+The two answer different questions and the plugin already treats that difference as load-bearing:
+`code-scanner` answers *what capability exists for this theme?*, grounding answers *is this claim true
+of this commit?*, and `/create-ard` rests a whole refusal on the distinction — it may not reopen a
+`[VD#n]` because "the architect-driven scan in Phase 3 is `code-scanner` output, which
+`workflows-core:grounding-format` §1 says is a capability inventory and explicitly **not** a finding."
+
+**What changes is where those two derive their themes from when verified grounding is present.**
+On the BRD route `/specify` already does this: it extracts capability themes from `spec-seed.md`, the
+implementation-altitude `decided` statements and the derivation-matrix rows, and those feed its repo
+derivation and its `code-scanner` dispatches **in place of** the PRD-derived themes. An idea-route
+folder has no seed files, so without a rule here both commands would read the `[CG#n]` set and then
+scan as though it did not exist — two agents re-deriving, on a cheaper model and with no verifier,
+what a verified corpus already settled.
+
+**The rule: where the resolved folder holds verified grounding, each command seeds its theme set from
+the findings before falling back to its own derivation.** A `[CG#n]` whose verdict says a capability is
+absent is a theme worth scanning — that is where the work is. One whose verdict says it is present,
+verified, names the code that already implements it, so the scan is directed at it rather than
+searching for it. The fallback is unchanged and is what runs when no grounding is present, which stays
+the ordinary idea-route case.
+
+**This is the shipped pattern, not a new one.** `workflows-core:model-routing/classification` §8.5's
+seeded second round already establishes that a scan narrowed by verified anchors beats a scan run
+again from scratch, and `/specify`'s own BRD-route theme extraction is the same move from the same
+inputs. Neither command's scan becomes conditional and neither gains a flag: the seeding is an input
+change, so a folder with no grounding behaves exactly as it does today.
+
+## 9. When it is worth running, stated because optional is not the same as always
+
+Grounding on this route is optional and nothing gates on it, so the design owes an operator the signal
+rather than leaving them to discover it after paying.
+
+**It earns its cost where the PRD describes an existing product being extended.** There, the
+high-value outcome is common: an `[AC#n]` the code already satisfies is scope that does not need
+building, and a premise the code contradicts is a requirement that would have been built on sand.
+Both are found before an architecture is authored against them.
+
+**It earns little on a greenfield PRD.** Where nothing described exists yet, every finding is a
+verified absence — true, and low-information — and each one still costs an independent Opus
+re-derivation. The operator's own BRD-route corpora ran to 142 findings in a single slice; the same
+volume of confirmed absences buys almost nothing.
+
+**The run says so rather than only reporting.** Where every claim comes back a verified absence, the
+final report says that outright — that this PRD is greenfield against the repositories resolved, which
+is itself a finding worth having once — instead of presenting a wall of absences as though they were
+a mixed result. A second run over the same greenfield folder is the one this guidance exists to
+prevent.
+
+## 10. The handoff
 
 **The branch prefix is `prd/` on the idea route and `brd/` on the BRD route**, chosen at the call
 site, which already passes `prefix:` explicitly. The eight-prefix branch authority in
@@ -230,9 +281,9 @@ On the BRD route the offer is `/brd-split` as today. On the idea route it is `/c
 any claim came back `SUPPORTED`, since a PRD asking for something the code already does is worth
 revising before an architecture is authored against it. Every one of those offers names a command
 whose `require-on-main` gate targets a path this run writes, which is exactly the relation the
-placeholder exists for and exactly what check 11 gates — see §11.
+placeholder exists for and exactly what check 11 gates — see §13.
 
-## 9. Out of scope, stated so a reader does not reintroduce them
+## 11. Out of scope, stated so a reader does not reintroduce them
 
 - **The BRD route's grounding position, claim source and gates.** Settled in §2 against a cycle, not a
   preference.
@@ -247,8 +298,12 @@ placeholder exists for and exactly what check 11 gates — see §11.
 - **Grounding becoming mandatory on the idea route.** Nothing gates on it; `/create-ard` and
   `/specify` keep their absent branches unchanged.
 - **Renaming any other `/brd-*` command**, per §4's rule.
+- **Replacing `/create-ard`'s or `/specify`'s `code-scanner` fan-out with grounding.** §8 seeds their
+  themes from the findings; it does not make either scan conditional, optional or removable. The two
+  answer different questions, and a command that stopped scoping because something else adjudicated
+  would cover only what the PRD's rows happened to claim.
 
-## 10. The sweep
+## 12. The sweep
 
 Three kinds, and per `CLAUDE.md`'s own bullet the sweep is scoped to `plugins/` rather than to the
 shipping plugin, backed by an end-to-end read of every phase the change touches, run with an
@@ -278,9 +333,13 @@ nothing itself, because it is the one that fixes what "consuming" means. Each is
 what ships, read out of its own phase rather than assumed — and a sentence that named the absence as
 its *reason* for something needs a new reason, not a deletion.
 
-**(c) The route-gated reads.** `/create-ard` and `/specify` gate their grounding reads on the BRD
-route in their Phase 0 confirm lines, their Phase 2 reads, their `consumed_by` stamping and their
-`deliverable_paths` staging alike. Each becomes "wherever the folder holds `grounding/`". The
+**(c) The route-gated reads, and the theme derivation beside them.** `/create-ard` and `/specify` gate
+their grounding reads on the BRD route in their Phase 0 confirm lines, their Phase 2 reads, their
+`consumed_by` stamping and their `deliverable_paths` staging alike. Each becomes "wherever the folder
+holds `grounding/`". §8's seeding lands in the same two files but in a different phase — `/specify`'s
+theme extraction and `/create-ard`'s Phase 3 scan scoping — so it is swept for separately rather than
+assumed to travel with the read: the read and the derivation are adjacent in the file and independent
+in effect, which is exactly the adjacency a phrase sweep walks past. The
 BRD-route-specific exclusions those two apply — the baseline findings, and the findings a re-cut
 leaves behind on a slice whose ledger now shows the row `covered-by` — are unchanged: the first
 applies on both routes, the second has no subject on the idea route and is reported as an empty set
@@ -291,7 +350,7 @@ subgraph into one of its own, reached from both routes with the claim source on 
 solid from `/brd-split (root)` because grounding is required before the `allocate-only` walk, dotted
 from `/create-prd` because it is optional on the idea route.
 
-## 11. Risks
+## 13. Risks
 
 **The rename takes a gate with it, silently.** `check-docs.sh` check 11 derives the command family
 from a single `product-workflows:brd-*` glob in `next-phase-offer.md`'s scope paragraph, and checks

@@ -119,9 +119,10 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   is walked one class at a time, in the fixed order [`brd-format.md`](../../references/brd-format.md)
   §3 lists its six classes, via `AskUserQuestion`, and only a confirmed candidate is assigned a
   `[DEF#n]` id. A rejected candidate is dropped, not recorded.
-- **Phase 5 — the ledger gate downstream.** `/brd-intake` itself never blocks on the ledger — it
-  only ever writes `unallocated` rows. The gate that gates on them (no `unallocated` row may
-  survive) belongs to [`/brd-split`](brd-split.md), which walks it on both the root and each slice.
+- **Phase 5 — the allocation gate downstream.** `/brd-intake` itself never blocks on the ledger — it
+  only ever writes `unallocated` rows. The gate that gates on them is the **allocation** gate (no
+  `unallocated` row may survive), not a merge-state one, and it belongs to
+  [`/brd-split`](brd-split.md), which walks it on both the root and each slice.
 
 ## Example
 

@@ -6,7 +6,7 @@ Per **S18**, nothing releases while any of these is open.
 
 **Three design gates, sequenced, all blocking the release under S18:**
 
-1. **Slice-first grounding and interviewing** — `docs/superpowers/specs/2026-09-06-slice-first-grounding-design.md`. Spec approved; implementation plan next. Closes BRD-5 and the per-slice interview package request.
+1. **Slice-first grounding and interviewing** — `docs/superpowers/specs/2026-09-06-slice-first-grounding-design.md`. **Shipped in `product-workflows` 1.2.0.** Closed BRD-5 and the per-slice interview package request.
 2. **The sibling re-cut** — that spec's §8. A slice grounding shows is too big hands its deferred rows to a new sibling, by re-pointing `covered-by` against the owner's own `deferred-to`. Own spec, after (1) ships.
 3. **Idea-route grounding** — that spec's §5. Verified `[CG#n]` findings for a PRD folder authored from an idea, which needs a claim source chosen deliberately since there is no `[BR#n]` inventory. Own spec, after (2).
 

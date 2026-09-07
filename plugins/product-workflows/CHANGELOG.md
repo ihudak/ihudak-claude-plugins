@@ -4,6 +4,26 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.2.0] — 2026-09-07
+
+### Changed — grounding, the interview, packaging and reconciliation move to the slice; a root now refuses all four
+
+`/brd-ground`, `/brd-interview`, `/brd-package` and `/brd-reconcile` used to accept a BRD key at either level. They now refuse a resolved root outright, in Phase 0 before any other gate — `BRD_GROUND_ROOT_LEVEL`, `BRD_INTERVIEW_ROOT_LEVEL`, `BRD_PACKAGE_ROOT_LEVEL`, `BRD_RECONCILE_ROOT_LEVEL` — each naming `/brd-split <BRD-KEY> "<how to cut it>"` as the remedy.
+
+**This breaks the route for anyone running it at root level.** The six `/brd-*` commands carried this two-level model since they shipped in `dev-workflows` at `v3.24.1`, an ancestor of this release, so the model has been in users' hands the whole time the route has existed; a run that worked against a root in 1.1.0 now stops at the first gate. The design's decision was to refuse and detect rather than offer a compatibility path: where root-level grounding, decisions, interview records, package artifacts or a reconciliation record already exist from the earlier model, the refusal names their exact paths and says plainly that they are **left in place and read by nothing** — nothing migrates them and nothing deletes them.
+
+Twelve documentation files, including both of the route's mermaid diagrams, were brought into line with the same fact, and the level-conditional branches only a refused root could still reach — "at either level," offers that fanned a root out into its slices, a next-step offer recommending a command that would now refuse the key it was handed — were removed rather than left as dead prose a future reader would have to re-verify is dead.
+
+### Changed — `/brd-split` on a root now requires a slicing instruction
+
+A root is never ground, so nothing exists yet to cluster candidate slices from. The `<instruction>` argument, previously optional at both levels, is now **mandatory on a root** — `BRD_SPLIT_NEEDS_INSTRUCTION` if absent — and stays optional on a slice, where it only seeds the allocation walk's per-row recommendation.
+
+The route now runs intake → split (root, instruction required) → ground (slice) → split (the same slice, `allocate-only`) → interview → package → reconcile. `/brd-split` runs twice, with grounding sitting between the two runs rather than before the first. Route ordinals ("the second command...") were removed from all six command bodies and from the surrounding documentation, since counting a fixed position stopped meaning anything once a command occupies two different steps of its own route.
+
+### Fixed — the PRD-eligibility test's consumer list undercounted itself by half
+
+`coverage-ledger-format.md` §5.1's positive test for "this unprefixed folder is a BRD container" is the same test `/create-prd`, `/create-ard`, `/specify` and `/epics` already shared. The four newly-refusing `/brd-*` commands cite it too now, rather than each restating the rule inline — which is what keeps a fifth divergent copy from shipping the way a fourth once did. §5.1's own consumer list grew from four to eight to say so.
+
 ## [1.1.0] — 2026-09-06
 
 ### Fixed — three more gates that a count could satisfy with nothing

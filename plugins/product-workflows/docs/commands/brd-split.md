@@ -12,7 +12,8 @@ parent, or any run on a slice — the walk first offers to write that single dis
 remaining row in one confirmation, stating each row it would write and letting any of them be held
 back to the one-at-a-time walk. Run on a **slice** it allocates but does not slice: the proposal and
 child-creation phases are skipped and the walk offers its own four resolutions — the same count as `full` mode, a different set.
-Run again on a **fully allocated root with an instruction**, it performs the **sibling re-cut**: a row this BRD
+Run again on a **fully allocated root with an instruction**, and finding at least one row it can move, it performs the
+**sibling re-cut**: a row this BRD
 delegated to a child whose own ledger now records `deferred-to` against it is re-pointed onto a sibling that has not
 been interviewed — the one case in which this command re-allocates a row that already carries a fate, taken against
 the owner's own written refusal and needing no flag.
@@ -85,8 +86,8 @@ recommendation in Phase 4 — the same fate a row nothing clusters with already 
 picker a run with no instruction has always shown. `slices.md` records the instruction verbatim
 alongside how it was read.
 
-**On a `full` run whose ledger is already fully allocated it seeds a third thing, and that thing is the
-run: the sibling re-cut.** There the argument is otherwise free — Phase 1.5 places `unallocated` rows and
+**On a `full` run whose ledger is already fully allocated, and which finds at least one row it can move, it
+seeds a third thing — and that thing is the run: the sibling re-cut.** There the argument is otherwise free — Phase 1.5 places `unallocated` rows and
 there are none — so the command gives it a meaning there instead of taking a flag for it. Phase 0 step 9a
 builds a **re-cut candidate set** out of the rows two ledgers already agree nobody is building: this BRD's
 row for a `[BR#n]` reads `covered-by: <A>`, and A's own row for that same `[BR#n]` reads `deferred-to: <A>`.
@@ -151,7 +152,7 @@ declaration.
 | Phase 4 Step 2R — the re-cut walk | runs **in place of** the walk above on a fully allocated ledger an instruction found a re-cuttable row on | never — the candidate set is built in `full` mode only |
 | Phase 4.5 — resolve standing empty children | runs | skipped — a slice has no children |
 | `rejected: [DEF#n]` resolves in | this BRD's own defect log | the **parent's** log, one hop ([`brd-format.md`](../../references/brd-format.md) §4) |
-| Phase 7 — next steps | ground each **non-empty** child | **the route does not end here** — [`/brd-interview`](brd-interview.md) on this slice, Recommended; *Stop here* is the other option, not the only one |
+| Phase 7 — next steps | ground each child that **gained a row this run**, never every non-empty one | **the route does not end here** — [`/brd-interview`](brd-interview.md) on this slice, Recommended; *Stop here* is the other option, not the only one |
 | Announced? | no — the ordinary case | yes, `BRD_SPLIT_ON_SLICE`, a **notice, not a stop**, at Phase 0 and again in the final report |
 
 A slice's walk offers no `covered-by`, and the reason is about **who writes** it, not about whether
@@ -198,8 +199,10 @@ allocated ledger satisfies the front of two of them and only one is the run the 
   5, 6 and 7 run as usual — so a parent holding both a re-cuttable row and a standing empty child
   resolves both in the same run.
 - **The no-op** — no row `unallocated`, no child standing empty, and no re-cuttable row: the run
-  skips straight from Phase 0 to Phase 6, which reports nothing to commit. A **bare** re-run on a
-  fully allocated parent is always this one, because it builds no candidate set at all.
+  skips straight from Phase 0 to Phase 6, which reports nothing to commit. A **bare** re-run builds
+  no candidate set at all, so on a fully allocated parent it is this path **where no child is
+  standing empty** — where one is, it takes the third path below, which is exactly what keeps a bare
+  run the reachable fix the three stops naming it promise.
 - **Phase 4.5 alone** — no row `unallocated`, but a child standing empty. Not a no-op: the walk it
   has no rows for is skipped and the empty-child resolution runs on its own, which is what keeps a
   child kept empty by an earlier run reachable by the one command that can remove it.
@@ -381,7 +384,10 @@ with a "nothing to commit" report on the no-op path.
 
   Three things keep it an offer rather than a mode. It **states what it will write** before you
   answer — the disposition spelled out, the count, every `[BR#n]` with the first line of its text,
-  and the `brd-link.md` `claims:` entries it adds alongside. It is **refusable per row**: the second
+  and, on an ordinary run, the `brd-link.md` `claims:` entries it adds alongside. On the re-cut path
+  it states a different second write and touches no `claims:` list at all: the donor's ledger row,
+  taking `covered-by: <B-KEY>` after the parent's — the `claims:` entries are the reconcile's there,
+  withdrawn from the donor and added to the receiver a step later. It is **refusable per row**: the second
   option takes a list of `[BR#n]` ids to hold back and walks exactly those one at a time, so three
   exceptions out of forty cost one offer, one naming prompt and three row prompts — **5**, not 40.
   And the **third option is the ordinary walk**, which is where *every* answer the run cannot use
@@ -502,7 +508,7 @@ its findings, so no finding on file was derived against it, and a finding carrie
 run is unverified by definition. A child that gained nothing is not in the set and nothing is offered
 for it, a donor that gained no row included. **This BRD's own next step is nothing**: a root is never ground, so
 [`/brd-interview`](brd-interview.md) refuses it outright (`BRD_INTERVIEW_ROOT_LEVEL`) and is not
-offered here. It is each non-empty child's own re-entry at `/brd-ground` and then, in
+offered here. It is each such child's own re-entry at `/brd-ground` and then, in
 `allocate-only` mode, `/brd-split` again that carries the route forward — and that second
 `/brd-split` run is what offers `/brd-interview` next, on the child's own key.
 

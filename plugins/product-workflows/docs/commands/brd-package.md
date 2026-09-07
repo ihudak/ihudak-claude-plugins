@@ -244,8 +244,13 @@ attack.
   [`/brd-reconcile`](brd-reconcile.md) is what turns a returned answer into a confirmed customer
   decision, so the round holding each `[C]` stays open until that run records it.
 - **It changes no ledger disposition.** The final report's ledger line reports where allocation
-  stands; allocation itself is `/brd-split`'s walk, and a row moves afterwards only when
-  `/brd-reconcile` freezes a customer decision that settles it differently.
+  stands; allocation itself is `/brd-split`'s walk. Two other runs may move a row afterwards, and
+  neither is this one: [`/brd-reconcile`](brd-reconcile.md) freezes a customer decision that settles
+  it differently, and a [`/brd-split`](brd-split.md) **re-cut** on the parent re-points a row this
+  BRD's own walk sent to `deferred-to: <itself>` onto a sibling that will build it — writing
+  `covered-by` on this BRD's row for it. Being interviewed disqualifies a re-cut's *receiver* and
+  never its *donor*, so a BRD that has reached this command is an ordinary donor
+  ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3.2).
 
 ## Example
 

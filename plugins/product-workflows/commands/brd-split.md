@@ -1,6 +1,6 @@
 ---
 name: brd-split
-description: BRD-splitting workflow (PM phase, the BRD-to-PRD route's allocation step — run once on a root to carve slices, then again on each slice to allocate it). On a root, proposes candidate slices from a verbal <instruction> the operator types after the key - mandatory wherever the run still has a row to place, since a root is never ground and the instruction is the only grouping signal there is - resolved against this BRD's own rows and grilled (bounded, <=5, and only where one answer places more than one row) before any slice is proposed. On a slice it gates on every grounding finding carrying a verifier verdict instead, and the same instruction stays optional there, seeding only the walk's per-row recommendation. A BRD is a container and is never implementable itself, so this command always produces at least one slice; where nothing clusters, the whole BRD becomes one. Each confirmed slice is keyed and nested as a PRD- folder inside this BRD - the folder its PRD will be authored in - carrying its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md. It then walks every unallocated coverage-ledger row one at a time through four resolutions (assign to a named slice, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Where one answer is uniform by construction and there is more than one row to save - exactly one slice standing on a parent, or any run on a slice, with two or more rows still unallocated, or, on a re-cut, two or more placed candidates carrying one confirmed receiver between them - Phase 4 first offers to write that single disposition across every remaining row in one confirmation, stating each row it would write and letting any of them be held back to the one-at-a-time walk, which stays the default and is what a declined or unparsed answer falls back to. covered-here is not among them on a parent: a parent builds nothing itself. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers a different four - covered-here replaces covered-by, which on a slice records a claim this command's own walk on the parent withdrew - provisional on the ordinary route, committed and then deferred by the slice itself where a re-cut moved it - and the parent writes it. Existing children are enumerated by a positive test - a subdirectory carrying a brd-link.md whose parent: names this BRD - never by a name match. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing AND no row is re-cuttable under an instruction this run was given; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason, and so does a re-cuttable row. On a fully-allocated parent the instruction is otherwise free, and there it means the sibling re-cut: a row this BRD delegated to a child whose own ledger now records deferred-to against it may be re-pointed onto a sibling that has not been interviewed - the one case in which this command re-allocates a row already carrying a fate, taken against the owner's own written refusal and never over a live commitment, and it needs no flag. Removing a standing empty child first re-points every row still delegating to it - on this BRD's own ledger and on any other child's - onto this BRD, rather than leaving the key dangling. On a root, offers /brd-ground on each child that gained a row this run - a first run for a slice just keyed and for a standing child nobody ever ground, a re-run for a standing child that is already ground, whose grounding no longer covers everything it claims - as the next step (this BRD's own key has no further step: /brd-interview refuses any root outright). On a slice, offers /brd-interview on the slice just allocated.
+description: BRD-splitting workflow (PM phase, the BRD-to-PRD route's allocation step — run once on a root to carve slices, then again on each slice to allocate it). On a root, proposes candidate slices from a verbal <instruction> the operator types after the key - mandatory wherever the run still has a row to place, since a root is never ground and the instruction is the only grouping signal there is - resolved against this BRD's own rows and grilled (bounded, <=5, and only where one answer places more than one row) before any slice is proposed. On a slice it gates on every grounding finding carrying a verifier verdict instead, and the same instruction stays optional there, seeding only the walk's per-row recommendation. A BRD is a container and is never implementable itself, so this command always produces at least one slice; where nothing clusters, the whole BRD becomes one. Each confirmed slice is keyed and nested as a PRD- folder inside this BRD - the folder its PRD will be authored in - carrying its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md. It then walks every unallocated coverage-ledger row one at a time through four resolutions (assign to a named slice, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Where one answer is uniform by construction and there is more than one row to save - exactly one slice standing on a parent, or any run on a slice, with two or more rows still unallocated, or, on a re-cut, two or more placed candidates carrying one confirmed receiver between them - Phase 4 first offers to write that single disposition across every remaining row in one confirmation, stating each row it would write and letting any of them be held back to the one-at-a-time walk, which stays the default and is what a declined or unparsed answer falls back to. covered-here is not among them on a parent: a parent builds nothing itself. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers a different four - covered-here replaces covered-by, which on a slice records a claim this command's own walk on the parent withdrew - provisional on the ordinary route, committed and then deferred by the slice itself where a re-cut moved it - and the parent writes it. Existing children are enumerated by a positive test - a subdirectory carrying a brd-link.md whose parent: names this BRD - never by a name match. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing AND no row is re-cuttable under an instruction this run was given; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason, and so does a re-cuttable row. On a fully-allocated parent the instruction is otherwise free, and there it means the sibling re-cut: a row this BRD delegated to a child whose own ledger now records deferred-to against it may be re-pointed onto a sibling that has not been interviewed - the one case in which this command re-allocates a row already carrying a fate, taken against the owner's own written refusal and never over a live commitment, and it needs no flag. Removing a standing empty child first re-points every row still delegating to it - on this BRD's own ledger and on any other child's - onto this BRD, rather than leaving the key dangling. On a root, offers /prd-ground on each child that gained a row this run - a first run for a slice just keyed and for a standing child nobody ever ground, a re-run for a standing child that is already ground, whose grounding no longer covers everything it claims - as the next step (this BRD's own key has no further step: /brd-interview refuses any root outright). On a slice, offers /brd-interview on the slice just allocated.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -9,9 +9,9 @@ Split the grounded BRD into slices and allocate every requirement: $ARGUMENTS
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
 `/brd-split` is the **BRD-to-PRD route's allocation step** (PM phase) — on a root it carves the
-slices `/brd-ground` will later verify each of, and forces every `[BR#n]` in this BRD's own coverage
+slices `/prd-ground` will later verify each of, and forces every `[BR#n]` in this BRD's own coverage
 ledger to a recorded fate: built by a named child, deferred, rejected, or superseded. On a slice it
-carves nothing and instead takes the findings `/brd-ground` already verified, forcing every `[BR#n]`
+carves nothing and instead takes the findings `/prd-ground` already verified, forcing every `[BR#n]`
 in its own ledger to a recorded fate through the same four-way choice — with `covered-here` standing
 in `covered-by`'s place: built here, deferred, rejected, or superseded. This is
 the only place either BRD's fate is ever decided (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
@@ -62,7 +62,7 @@ four-resolution one.
    **Parse it here and carry it; its absence is stopped on in step 11, never here.** Phase 2 clusters by the Phase 1.5 placement — every `unallocated` row on an ordinary run, and every row in the **re-cut candidate set** on the re-cut path step 10 selects — and a root carries no findings to read, so the grouping comes from the instruction or from nowhere; but that is a statement about a run that *has* something to cluster, and whether this one does is not known until step 8 reads the ledger and step 9a builds that candidate set.
    Stopping on the absence here made the instruction mandatory on every `full` run, including the one
    on which Phase 2 never runs at all: a parent whose walk is complete and whose only remaining work
-   is a standing empty child. Three stops on this route — `/brd-ground`'s and `/brd-interview`'s
+   is a standing empty child. Three stops on this route — `/prd-ground`'s and `/brd-interview`'s
    empty-inventory stops, and this command's own on a slice — send the operator to exactly that run,
    which Phase 4.5 exists to serve, and the operator taking it wants to carve nothing.
    Absent on a slice → this command behaves exactly as it did before the switch existed, on every
@@ -86,7 +86,7 @@ four-resolution one.
    says whether this key names a BRD with a source document or a slice of one:
    `BRD_SPLIT_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent.`
 5. **Resolve the run mode.** Read the resolved folder's `brd-link.md` and branch on its `parent:`
-   field — the same signal `/brd-ground` Phase 0 uses to tell a slice from a root, and the only
+   field — the same signal `/prd-ground` Phase 0 uses to tell a slice from a root, and the only
    reliable one: a key's segment count is a naming convention, never a depth declaration
    (`workflows-core:addressing` §1).
    - **No `brd-link.md`, or one with no `parent:`** → this BRD owns its source document. Set
@@ -108,12 +108,12 @@ four-resolution one.
    `allocate-only` mode, and that lookup is exactly one hop because the cap makes a slice's parent
    always the source-owning root (`brd-format.md` §4). Phase 4 states it where it is used.
 6. **Gate the grounding deliverable on main.** **This step and step 7 run in `split_mode: allocate-only` only.** A root BRD is never ground — grounding and the customer interview happen at the slice and nowhere else — so on a `full` run there is no grounding to gate and both steps are skipped entirely. There is no `coverage-ledger.md` gate to keep: step 8 reads that ledger in both modes with a plain worktree read, never a `require-on-main` gate, which is why `workflows-core:phase-handoff` §4.0 classes it — and `brd/brd-inventory.md` beside it — **advisory** at a root. `/brd-split` **consumes** a `$SPECS_PATH`
-   deliverable it did not write (`/brd-ground`'s findings, and — transitively — `/brd-intake`'s
+   deliverable it did not write (`/prd-ground`'s findings, and — transitively — `/brd-intake`'s
    ledger), so per `workflows-core:phase-handoff` §5 rule 2 it executes `require-on-main` (§3) here in Phase 0,
    before anything else reads a file. Execute it against the resolved BRD folder's
    `grounding/code-grounding.md` — every deliverable a `handoff-to-main` run stages lands in one
    commit (§2.3), so this file's presence on `origin/<default>` implies `grounding/design-grounding.md`
-   and `brd-link.md` merged with it; **That implication holds for a full `/brd-ground` run and not for a `--no-code` one**, whose `deliverable_paths` is `grounding/design-grounding.md` alone and lands in its own later commit — so a BRD can legitimately have `code-grounding.md` merged and `design-grounding.md` on no ref at all. Anything reading the design findings gates them separately rather than inheriting this sentence. and since `/brd-ground` Phase 0 step 6 already required
+   and `brd-link.md` merged with it; **That implication holds for a full `/prd-ground` run and not for a `--no-code` one**, whose `deliverable_paths` is `grounding/design-grounding.md` alone and lands in its own later commit — so a BRD can legitimately have `code-grounding.md` merged and `design-grounding.md` on no ref at all. Anything reading the design findings gates them separately rather than inheriting this sentence. and since `/prd-ground` Phase 0 step 6 already required
    `coverage-ledger.md` on `origin/<default>` before grounding itself would run, it also implies
    `/brd-intake`'s ledger was on main before this BRD was ever grounded. Map the §3.7 return by
    `stopped` first: any stopping row → stop, naming the concrete branch/PR state it reports;
@@ -123,12 +123,12 @@ four-resolution one.
    message for the second one must not name a command that stops on the same emptiness. Read
    `<BRD-dir>/brd/brd-inventory.md` from the worktree and count its `[BR#n]` rows:
    - **One or more rows** — grounding simply has not run yet, and running it is the fix:
-     `BRD_SPLIT_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /product-workflows:brd-ground <BRD-KEY> first.`
-   - **Zero rows** — there is nothing to ground, so `/brd-ground` stops with
-     `BRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants. Naming it here
+     `BRD_SPLIT_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /product-workflows:prd-ground <BRD-KEY> first.`
+   - **Zero rows** — there is nothing to ground, so `/prd-ground` stops with
+     `PRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants. Naming it here
      would be the loop, so name the upstream fix instead — this step now runs only in
      `split_mode: allocate-only`, so the fix is always the parent:
-     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
+     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /product-workflows:prd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
    `unmanaged` → proceed as before this feature.
 7. **Gate on verification — and on there being grounding to verify.** **This step and step 6 run in `split_mode: allocate-only` only.** A root BRD is never ground — grounding and the customer interview happen at the slice and nowhere else — so on a `full` run there is no grounding to gate and both steps are skipped entirely. There is no `coverage-ledger.md` gate to keep: step 8 reads that ledger in both modes with a plain worktree read, never a `require-on-main` gate, which is why `workflows-core:phase-handoff` §4.0 classes it — and `brd/brd-inventory.md` beside it — **advisory** at a root. Four tests, in this order.
    **The order is the fix to a shipped defect and is not incidental:** the third is a *count*, and a
@@ -144,7 +144,7 @@ four-resolution one.
       `workflows-core:grounding-format` §2.1. Zero → stop. Step 6's row-F branch catches the file
       being on no ref; nothing until now caught it being on main and holding nothing, which is the
       same state one commit later:
-      `BRD_SPLIT_NO_FINDINGS: <BRD-KEY>'s grounding/code-grounding.md is on main but records no [CG#n] finding — re-run '/product-workflows:brd-ground <BRD-KEY>' and merge its handoff before splitting.`
+      `BRD_SPLIT_NO_FINDINGS: <BRD-KEY>'s grounding/code-grounding.md is on main but records no [CG#n] finding — re-run '/product-workflows:prd-ground <BRD-KEY>' and merge its handoff before splitting.`
 
    b. **Design grounding covers every frame set on disk, and is on main.** List every immediate
       subdirectory of `<BRD-dir>/design/` in the worktree — the reserved location
@@ -159,7 +159,7 @@ four-resolution one.
       against `<BRD-dir>/grounding/design-grounding.md` before reading it. **Step 6's implication
       does not reach this file and must not be borrowed for it.** Step 6 gates `code-grounding.md`
       and infers its siblings from "every deliverable a `handoff-to-main` run stages lands in one
-      commit" — true of a full `/brd-ground` run and **false of a `--no-code` one**, whose
+      commit" — true of a full `/prd-ground` run and **false of a `--no-code` one**, whose
       `deliverable_paths` is `design-grounding.md` alone, handed off in its own later commit. Without
       this gate the repair this very test recommends would produce the state the test exists to
       catch: an operator runs `--no-code`, declines the handoff, and the split reads their working
@@ -167,7 +167,7 @@ four-resolution one.
       branch/PR state; `pass` → proceed; `pass_amending` → proceed, printing the §3.3 row-B message;
       `unmanaged` → proceed; `absent` (row F) → stop with the message below.
 
-      Then read that merged file's `## Frame sets covered` section (`/brd-ground` Phase 8 writes one
+      Then read that merged file's `## Frame sets covered` section (`/prd-ground` Phase 8 writes one
       entry per subdirectory on disk, covered or not) and resolve each subdirectory against it:
       - **The file is absent, or `require-on-main` returned row F** → stop. Designs on disk, and
         nothing reconciling them on main.
@@ -182,22 +182,22 @@ four-resolution one.
         message, naming the parse. An empty relation fails rather than passes
         (`workflows-core:grounding-format` §2.1) — a read that learned nothing is not a clean tree.
       - **A subdirectory is absent from the recorded set, or recorded `skipped: no index`** → stop,
-        naming each such set. The second is a set `/brd-ground` could not reconcile, which is
+        naming each such set. The second is a set `/prd-ground` could not reconcile, which is
         unreconciled by a different route to the same place.
       - **Recorded `ground`, or `skipped: --no-design`** → passes. The second is an operator decision
         taken per run, not an inability, so it is honoured — but it is carried into the final report
         and into `slices.md` as a recorded limit on what this split was able to check, because it is
         the one way a slice can still reach build with a frame set unreconciled.
 
-      `BRD_SPLIT_DESIGN_NOT_GROUND: <BRD-KEY> has frame sets on disk that no design grounding on main covers (<names>) — re-run '/product-workflows:brd-ground <BRD-KEY> --no-code' to ground them without re-deriving the code findings already on file, and accept its handoff. Where a set is listed as having no index, run '/workflows-core:frames <BRD-KEY>' first, which writes the index that lets the set be reconciled at all.`
+      `BRD_SPLIT_DESIGN_NOT_GROUND: <BRD-KEY> has frame sets on disk that no design grounding on main covers (<names>) — re-run '/product-workflows:prd-ground <BRD-KEY> --no-code' to ground them without re-deriving the code findings already on file, and accept its handoff. Where a set is listed as having no index, run '/workflows-core:frames <BRD-KEY>' first, which writes the index that lets the set be reconciled at all.`
 
    c. **Every finding carries a verifier outcome.** Every `[CG#n]`/`[DG#n]` finding carries one (of
    the four in `workflows-core:grounding-format` §8 — `agree`, `extend`,
-   `contradict`, `unprovable`) once `/brd-ground` Phase 7 has run over it; a finding without one
+   `contradict`, `unprovable`) once `/prd-ground` Phase 7 has run over it; a finding without one
    "is not evidence and cannot be recorded as `consumed_by` anything" (§8), and this command must
    never propose a slice or offer `covered-here` against a claim nobody has actually verified.
    Count every finding on file carrying no recorded `outcome`. Any count `N` greater than zero →
-   stop: `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run /product-workflows:brd-ground first.`
+   stop: `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run /product-workflows:prd-ground first.`
 
    d. **No finding block carries a field the record's format does not define.** Parse every
    `[CG#n]`/`[DG#n]` block per `workflows-core:grounding-format` §2.1 and test each key against that
@@ -209,12 +209,12 @@ four-resolution one.
    unexamined — which is why this is a relation of its own rather than a stricter count, the same
    shape as the design-presence test above. Name every offending finding and key, and name the
    repair as the hand edit it is:
-   stop: `BRD_SPLIT_MALFORMED_FINDING: N finding blocks carry a key workflows-core:grounding-format §2.1 does not define (<finding-id>: <key>, …) — the record's field set is closed to §2's fields plus outcome and notes. A block carrying own_verdict beside verdict states two verdicts at once, and nothing downstream can tell which one is the finding's. Remove the offending key from each block by hand in <path>, leaving every other key untouched, and re-run. Do not re-run '/product-workflows:brd-ground <BRD-KEY> --rebaseline' for this: it re-derives every finding against current commits to delete a line no command should have written, and supersedes the verified corpus in the process.`
+   stop: `BRD_SPLIT_MALFORMED_FINDING: N finding blocks carry a key workflows-core:grounding-format §2.1 does not define (<finding-id>: <key>, …) — the record's field set is closed to §2's fields plus outcome and notes. A block carrying own_verdict beside verdict states two verdicts at once, and nothing downstream can tell which one is the finding's. Remove the offending key from each block by hand in <path>, leaving every other key untouched, and re-run. Do not re-run '/product-workflows:prd-ground <BRD-KEY> --rebaseline' for this: it re-derives every finding against current commits to delete a line no command should have written, and supersedes the verified corpus in the process.`
 8. **Read the ledger; check for the no-op case.** **On a `full` run, first check the inventory
    itself is non-empty** — step 6 no longer reaches a root, so this is where a root whose intake
    produced zero `[BR#n]` rows is caught. Read `<BRD-dir>/brd/brd-inventory.md` and count its
    `[BR#n]` rows; zero → stop:
-   `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full): <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and nothing to allocate — do not run /product-workflows:brd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
+   `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full): <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and nothing to allocate — do not run /product-workflows:prd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
    On a slice, step 6 already covers this before this step is ever reached. Read `<BRD-dir>/coverage-ledger.md` and compute
    its disposition counts (`coverage-ledger-format.md` §3) — **this BRD's own rows, as written, with
    no child ledger consulted for this count.** The no-op test and the §4 gate are both about `unallocated` on
@@ -330,7 +330,7 @@ model_routing:
 ```
 
 `/brd-split` dispatches no grounding or review agent of its own — every finding it reads was
-already independently verified by `/brd-ground`'s `grounding-verifier` pass (`brd-ground.md` Phase 7) — so
+already independently verified by `/prd-ground`'s `grounding-verifier` pass (`prd-ground.md` Phase 7) — so
 `detection_model` here exists only for the terminal `impl-maintenance` dispatch. **The grilling
 technique's fetch-a-fact clause does not change that here**, and the reason is what the clause is
 bounded to: it fires where a fact needs *more than a read*, and every fact Phase 1.5 needs — a row's
@@ -542,7 +542,7 @@ For every slice Phase 2 confirmed:
    derived against this BRD's claim list, not the child's.
 
 Steps 4 and 5 are what let the child **re-enter the route** at Phase 7's recommendation:
-`/brd-ground`'s own Phase 0 gates on the child's `coverage-ledger.md` and reads the child's
+`/prd-ground`'s own Phase 0 gates on the child's `coverage-ledger.md` and reads the child's
 `brd/brd-inventory.md`, and `/brd-intake` — the only other command that writes either file — is
 never run on a slice, because a slice has no document to intake. This command is the only place
 those two files can come from, so it writes them at the same moment it writes `brd-link.md`, not
@@ -1002,7 +1002,7 @@ that section's routes to an orphan row reach this set — a child Phase 3 create
 proposed row the walk then resolved elsewhere, and a pre-existing child whose every committed claim a
 re-cut moved to a sibling. Those
 rows change nothing here — the emptiness this phase acts on is the **claims** list, which is what
-`/brd-ground`, `/brd-split` and `/brd-interview` each stop on, and all three of those stops name
+`/prd-ground`, `/brd-split` and `/brd-interview` each stop on, and all three of those stops name
 **this phase** as the fix, so this phase has to be reachable whenever such a child exists.
 
 **The set is every child standing now, not only the ones this run created.** Three things put a child
@@ -1136,7 +1136,7 @@ in Phase 0, `deliverable_paths` = every file this run wrote, updated, or removed
 `slices.md`, because Phase 3 never ran** —
 (this BRD's own `coverage-ledger.md`, `slices.md`; in `full` mode additionally, for every slice
 still standing after Phase 4.5, the three files this run wrote into it — `brd-link.md`,
-`brd/brd-inventory.md`, and its own `coverage-ledger.md`, the two that `/brd-ground` will gate and
+`brd/brd-inventory.md`, and its own `coverage-ledger.md`, the two that `/prd-ground` will gate and
 read when the child re-enters the route — **which on the re-cut path includes a child whose only
 changed file is its `coverage-ledger.md`**: the donor, whose row Step 2R re-pointed, and any other
 standing child whose orphan row Step 2R's sweep re-pointed with it. Declare the file that changed,
@@ -1205,26 +1205,26 @@ choices: ["Decide this slice's open questions — /product-workflows:brd-intervi
 **`split_mode: full`** — everything below. Every child folder Phase 3 created, still claiming at
 least one `[BR#n]` after Phase 4.5, **re-enters the route at grounding** — a slice is graded on its own claimed
 requirements exactly as any BRD is, and nothing about being a slice exempts it from that. It can:
-Phase 3 gave it the two files `/brd-ground` Phase 0 needs — a `coverage-ledger.md` to gate on and a
+Phase 3 gave it the two files `/prd-ground` Phase 0 needs — a `coverage-ledger.md` to gate on and a
 `brd/brd-inventory.md` to read — and Phase 6 staged both, so they reach `origin/<default>` with
 this run's pull request. Grounding a child is possible only once that pull request has merged, and
 `/brd-intake` is never the answer for a child at any point.
 
 **The set is wider than that, and the offer means a different thing for each of three cases. Grounding is what separates them, and it is not what made any of these children eligible to receive a row.** Receiver eligibility is *not interviewed* — no `decisions.md` holding a `[VD#n]` or `[CD#n]`, no `interview/round-*.md` (Phase 0 step 9a) — and it says nothing about grounding, so **do not infer that a standing receiver has been ground**: a child an earlier run left standing and nobody ever ground is uninterviewed by construction, since `/brd-interview` gates on the grounding it does not have. Read each offered child's own state and say which case it is:
 
-- **A slice Phase 3 keyed this run** — never ground, `/brd-ground <CHILD-KEY>` is its first pass. This is the case above, unchanged.
+- **A slice Phase 3 keyed this run** — never ground, `/prd-ground <CHILD-KEY>` is its first pass. This is the case above, unchanged.
 - **A standing child that has never been ground** — also a first pass, for the same reason and with nothing extra to explain. Its inventory simply grew by a row before it ever ran.
-- **A standing child that is already ground** — the only re-run of the three. Its grounding no longer covers everything it claims: the row arrived after it, so no `[CG#n]` on file was derived against it, and the honest next step is `/product-workflows:brd-ground <B-KEY>` **again**. That re-run re-derives rather than inherits, which is `workflows-core:grounding-format` §8 working as designed and not an inconvenience to route around — a finding carried in from an earlier run is unverified by definition, so the donor's findings about this row cannot move to the receiver and the receiver's own earlier findings cannot vouch for a row they never saw. The cost is one row's re-derivation against the same pins.
+- **A standing child that is already ground** — the only re-run of the three. Its grounding no longer covers everything it claims: the row arrived after it, so no `[CG#n]` on file was derived against it, and the honest next step is `/product-workflows:prd-ground <B-KEY>` **again**. That re-run re-derives rather than inherits, which is `workflows-core:grounding-format` §8 working as designed and not an inconvenience to route around — a finding carried in from an earlier run is unverified by definition, so the donor's findings about this row cannot move to the receiver and the receiver's own earlier findings cannot vouch for a row they never saw. The cost is one row's re-derivation against the same pins.
 
 **Say which case each offered child is when presenting the option.** Only the third is a re-run, and it is the one that needs its reason stated: the operator is being told to re-run a command on a slice they have already run it on, and a re-run whose reason is not stated reads as a mistake. Telling an operator their never-ground slice has stale grounding is the mirror of that mistake, which is why the case is read off the child rather than assumed from the fact that it was standing.
 
 **So the option's set is every child that gained a row this run** — the slices Phase 3 keyed and still claiming at least one `[BR#n]` after Phase 4.5, and any standing child the walk newly resolved a row to, on the re-cut path or on an ordinary one. A child that gained nothing is not in it and nothing is offered for it:
 
 ```
-choices: ["Ground each child that gained a row this run, one run per child — /product-workflows:brd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Stop here — this BRD's own allocation is complete", "Split another BRD"]
+choices: ["Ground each child that gained a row this run, one run per child — /product-workflows:prd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Stop here — this BRD's own allocation is complete", "Split another BRD"]
 ```
 
-**A donor that gained no row is not in that set and is not offered anything here — and that is the condition, not "being a donor".** It lost a row and gained none, so its remaining findings still cover everything it still claims, and the findings it holds about the row it gave up stay on file as a record of what it saw (`workflows-core:grounding-format` §8) — they are not stale grounding to repair, and re-running `/brd-ground` on it would re-derive work nothing asked for. **A donor that also gained a row is in the set like any other receiver**, which is reachable whenever two donors are involved: A's row lands on C while C's own row goes elsewhere, and C is then a child that gained a row and needs its grounding re-derived for it. Stating the rule as "a donor is never offered" would drop C out of the offer on the strength of a label. A donor left claiming nothing at all was resolved in Phase 4.5 and is not here either.
+**A donor that gained no row is not in that set and is not offered anything here — and that is the condition, not "being a donor".** It lost a row and gained none, so its remaining findings still cover everything it still claims, and the findings it holds about the row it gave up stay on file as a record of what it saw (`workflows-core:grounding-format` §8) — they are not stale grounding to repair, and re-running `/prd-ground` on it would re-derive work nothing asked for. **A donor that also gained a row is in the set like any other receiver**, which is reachable whenever two donors are involved: A's row lands on C while C's own row goes elsewhere, and C is then a child that gained a row and needs its grounding re-derived for it. Stating the rule as "a donor is never offered" would drop C out of the offer on the strength of a label. A donor left claiming nothing at all was resolved in Phase 4.5 and is not here either.
 
 **Every merge clause in this phase is the `<merge-clause>` placeholder**, resolved per
 `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`'s *A next-step offer that names a downstream
@@ -1235,9 +1235,9 @@ Phase 4.5-only path where a standing empty child was kept unchanged, and a decli
 placeholder and not an instruction to reword an option, so the arrays are still presented verbatim
 per `workflows-core:escalation-rules`.
 
-**Say what the child's own route looks like when offering it**: after `/brd-ground <CHILD-KEY>`,
+**Say what the child's own route looks like when offering it**: after `/prd-ground <CHILD-KEY>`,
 `/brd-split <CHILD-KEY>` runs in `allocate-only` mode (Phase 0 step 5) — it allocates that child's
-ledger through its own four resolutions — the same count as `full`, a different set — and creates nothing below it. `/brd-ground`'s own
+ledger through its own four resolutions — the same count as `full`, a different set — and creates nothing below it. `/prd-ground`'s own
 Phase 10 offers exactly that. A child removed, or kept empty with a recorded reason,
 for claiming nothing (Phase 4.5) is never offered here — grounding a BRD with no requirement to
 ground would have nothing to check a claim against. No child gained a row this run (none were created and none stood to receive one, every one created was removed
@@ -1247,7 +1247,7 @@ omitted — and is dropped from the array, not merely annotated, so that reachin
 child-grounding choice in that state would otherwise leave only "Stop here", one option short of
 what `AskUserQuestion` accepts. **Naming no key, and never "or slice"**: this run's own children,
 where any exist, are unground — `/brd-split <CHILD-KEY>` on one of them refuses outright with
-`BRD_SPLIT_NEEDS_GROUNDING` until `/brd-ground` has run — so the option points only at a BRD
+`BRD_SPLIT_NEEDS_GROUNDING` until `/prd-ground` has run — so the option points only at a BRD
 this run did not just create, never at the child it is discussing in the same breath. **A standing receiver is not an exception to that, on either of its two states.** Where it has never been ground, `/brd-split <B-KEY>` refuses it outright with `BRD_SPLIT_NEEDS_GROUNDING` exactly as a new child does. Where it *is* ground the refusal does not fire — but the row it just gained is one no finding on file was derived against, so splitting it before the run offered above would allocate against grounding that does not cover it. Neither state is what this option points at. Guidance
 only — never auto-invokes another command.
 
@@ -1256,7 +1256,7 @@ child's to decide), `deferred-to`, `rejected` or `superseded-by` — terminal di
 ledger itself now records, not open questions. **A row Step 2R re-cut is `covered-by` too**, and lands in that same first case for the same reason: the move changes **which** BRD answers for the row — the receiving sibling's to decide now, the donor's no longer — and never whether this one does. So the re-cut leaves this BRD exactly where the ordinary walk leaves it, with nothing of its own left open, and it is named here rather than left out so that a reader does not read its absence as an oversight. And a root is never ground, so it carries no
 finding of its own for `/product-workflows:brd-interview` to read either way.
 `/product-workflows:brd-interview <BRD-KEY>` refuses any root outright, at its own Phase 0 step 5a,
-with `BRD_INTERVIEW_ROOT_LEVEL` — offering it here is exactly the failure `/brd-ground`'s own
+with `BRD_INTERVIEW_ROOT_LEVEL` — offering it here is exactly the failure `/prd-ground`'s own
 Phase 10 names as worse than offering nothing, so it is not offered. Grounding each child that gained a row
 is the one real next step this phase has on the `full` path: each child continues its own route pass
 and reaches this same phase in its own right, where `/product-workflows:brd-interview <CHILD-KEY>` is

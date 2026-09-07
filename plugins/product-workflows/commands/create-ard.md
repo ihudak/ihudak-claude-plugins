@@ -77,7 +77,7 @@ this stage). Zero external calls.
    A `BRD-` folder is **not** a fourth altitude, and this command used to route one onto the BRD
    route. **This test is not part of the BRD-route branch and must not be folded into it**: that
    route is detected from a `brd-link.md`, and a root BRD folder need not carry one — `/brd-intake`
-   writes none, and only `/brd-ground`, `/brd-split` and `/brd-package` ever do — so a
+   writes none, and only `/prd-ground`, `/brd-split` and `/brd-package` ever do — so a
    route-conditioned refusal would let `/create-ard <ROOT-BRD-KEY>` fall through and author an ARD
    into the container. It is a container: the design's §4.1 tree places `ard.md`
    only inside a PRD folder, while a `BRD-` folder holds `brd/`, `grounding/`, `interview/`,
@@ -329,7 +329,7 @@ the whole of the divergence this route is entitled to. Read exactly these, and n
 
 **Absence is reported, never a stop, and the seed's absence is the ordinary case.** Nothing on the
 normal route writes a seed file at all (above), so a reconciled BRD routinely holds none; and a BRD
-ground with `--no-design` still holds a `design-grounding.md` — `/brd-ground` Phase 8 writes it on every run, carrying a note saying the pass was skipped and why, plus a `## Frame sets covered` census of the `design/` subdirectories on disk. Absent means the file is not there at all, never that design grounding was declined. Say which of the four were absent — a reader cannot tell an unwritten
+ground with `--no-design` still holds a `design-grounding.md` — `/prd-ground` Phase 8 writes it on every run, carrying a note saying the pass was skipped and why, plus a `## Frame sets covered` census of the `design/` subdirectories on disk. Absent means the file is not there at all, never that design grounding was declined. Say which of the four were absent — a reader cannot tell an unwritten
 file from an unread one — and carry what is there.
 
 **Partition the register before the grill starts, because the partition is what freezes it.** The
@@ -388,7 +388,7 @@ There are no PRs at ARD time, so repos are **architect-driven**, not PR-derived:
 
    **On the BRD route the proposal additionally starts from the slice folder's
    `grounding/baselines.md`**, which already records repository → pinned commit for every repo
-   `/product-workflows:brd-ground` read. That is joined to the themes above, not substituted for them: the
+   `/product-workflows:prd-ground` read. That is joined to the themes above, not substituted for them: the
    PRD read in Phase 2 runs on this route too, so where the slice holds a `prd.md` its themes are in
    hand and a pinned repo set corroborates them; where it holds none — the ordinary BRD-route state —
    `baselines.md` and the register's decisions are the whole of the starting set, and that is still a
@@ -471,7 +471,7 @@ useful information, not something to suppress. Do not decide it and do not softe
 prose. Record it under `## Open questions`, naming the `[VD#n]` or `[CD#n]` it contradicts and what
 this run believes contradicts it, and name the route that may act on it. **Neither route is this
 command**, and both are exactly §4's two causes rather than a third invented here: a `[VD#n]` needs a
-new grounding finding, which only `/product-workflows:brd-ground <BRD-KEY> --rebaseline` mints and
+new grounding finding, which only `/product-workflows:prd-ground <BRD-KEY> --rebaseline` mints and
 `/product-workflows:brd-interview <BRD-KEY>` then re-decides against; a `[CD#n]` needs the customer,
 through `/product-workflows:brd-package <BRD-KEY>` and then
 `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>`. This is not the `## ARD deviations`

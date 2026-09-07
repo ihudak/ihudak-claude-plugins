@@ -1,4 +1,4 @@
-# /brd-ground
+# /prd-ground
 
 Pins every mounted repository to a verified commit, grounds every `[BR#n]` claim against code
 (`code-grounder`) and an exported design frame set (`design-grounder`), independently re-derives
@@ -7,7 +7,7 @@ horizon against declared prerequisite BRDs.
 
 ## Who runs it
 
-`/brd-ground` runs in the [pa](../roles-and-phases.md#pa--product-architecture) role,
+`/prd-ground` runs in the [pa](../roles-and-phases.md#pa--product-architecture) role,
 cost-attribution phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route. It
 is the only one of the six that does not run as
 [pm](../roles-and-phases.md#pm--product-management): a slice reaches it already carved by
@@ -17,14 +17,14 @@ slice's ledger to be allocated.
 ## Synopsis
 
 ```
-/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--docs <path>] [--rebaseline]
+/prd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--docs <path>] [--rebaseline]
 ```
 
 - **`<BRD-KEY>`** (mandatory) — the slice to ground. `resolve-address` still searches both levels a
   `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a
   slice inside it — because a root has to resolve before it can be refused by name;
   format-validated only, never checked against a tracker. **Only a slice is ground**: a resolved
-  root stops with `BRD_GROUND_ROOT_LEVEL`, naming [`/brd-split`](brd-split.md) as the way to carve
+  root stops with `PRD_GROUND_ROOT_LEVEL`, naming [`/brd-split`](brd-split.md) as the way to carve
   one.
 - **`--depends-on <BRD-KEY>`** (optional, repeatable) — declares a prerequisite BRD. Persisted to
   `brd-link.md` additively across runs; the file may also be edited by hand. A prerequisite
@@ -90,18 +90,18 @@ Phase 11, for session lessons-learned.
 
 ## What it needs
 
-- **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_GROUND_NEEDS_KEY`.
+- **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `PRD_GROUND_NEEDS_KEY`.
 - **A slice, not a root.** The moment the folder resolves, its prefix is tested — `BRD-` is a root,
   `PRD-` is a slice — never the folder's asserted `kind:`, since a slice's own `brd-link.md` asserts
   `kind: brd` while being exactly the folder this command must accept. A resolved root stops with
-  `BRD_GROUND_ROOT_LEVEL`, naming `/brd-split <BRD-KEY> "<how to cut it>"` to carve a slice and then
-  `/brd-ground <SLICE-KEY>` on it; where the root already carries grounding written under the
+  `PRD_GROUND_ROOT_LEVEL`, naming `/brd-split <BRD-KEY> "<how to cut it>"` to carve a slice and then
+  `/prd-ground <SLICE-KEY>` on it; where the root already carries grounding written under the
   earlier two-level model, the stop names those files and leaves them in place, unread.
 - **An inventory with at least one `[BR#n]` row.** A BRD whose inventory holds none has nothing to
   ground, so this command writes no finding and hands nothing off — and every downstream command on
   the route gates on that handoff. Rather than reporting a quiet success that leaves `/brd-split`
   and `/brd-interview` refusing the BRD and naming this command as the fix, the run stops with
-  `BRD_GROUND_EMPTY_INVENTORY` and names the upstream fix by level: re-running `/brd-intake` over
+  `PRD_GROUND_EMPTY_INVENTORY` and names the upstream fix by level: re-running `/brd-intake` over
   the same folder with a corrected source for a BRD that owns its document, or `/brd-split` on the
   parent for a slice that was allocated nothing. Which form of that run to type depends on the
   parent's own ledger, and the stop says so. Where the parent still holds an `unallocated` row the
@@ -113,20 +113,20 @@ Phase 11, for session lessons-learned.
   `/brd-split` re-allocates a row already carrying a fate. That third outcome is not guaranteed to be
   on offer: it needs such a row to exist and it needs this slice never to have been interviewed, so a
   slice emptied after its own interview can only be removed or kept.
-- **This BRD's own inventory and ledger already on the specs repo's main branch.** `/brd-ground`
+- **This BRD's own inventory and ledger already on the specs repo's main branch.** `/prd-ground`
   gates `coverage-ledger.md` on `origin/<default>` via `require-on-main` before reading anything
   else; an unmerged pull request stops the run naming the branch/PR state. Where the gate reports
   the ledger is on no ref at all, the run **splits a state the gate cannot**, exactly as
   [`/brd-reconcile`](brd-reconcile.md) does on its own row F. No `coverage-ledger.md` in the folder
   means it was never produced, and the stop names the producing run by level: a BRD with a source
-  document of its own stops with `BRD_GROUND_NEEDS_INTAKE`, naming [`/brd-intake`](brd-intake.md); a
+  document of its own stops with `PRD_GROUND_NEEDS_INTAKE`, naming [`/brd-intake`](brd-intake.md); a
   **slice** — recognised by the `parent:` field in its `brd-link.md` — stops with
-  `BRD_GROUND_NEEDS_SPLIT`, naming [`/brd-split`](brd-split.md) on the parent, because a slice has no
+  `PRD_GROUND_NEEDS_SPLIT`, naming [`/brd-split`](brd-split.md) on the parent, because a slice has no
   source document of its own to intake and its ledger and inventory are written by the parent's split
   ([`brd-format.md`](../../references/brd-format.md) §2.1,
   [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3). A ledger **in** the
   folder and on no ref means it was produced and its handoff was declined, and stops with
-  `BRD_GROUND_NOT_HANDED_OFF`, whose action is to commit and merge the files already on disk. It
+  `PRD_GROUND_NOT_HANDED_OFF`, whose action is to commit and merge the files already on disk. It
   names the producing command only where re-running it would actually stage them, and the clause it
   carries is read off this slice's own `claims:` list. Where this slice **claims rows**, a **bare**
   `/brd-split` on a fully-allocated parent is a no-op that stages nothing and opens no pull request —
@@ -149,21 +149,21 @@ Phase 11, for session lessons-learned.
 - **A clean working tree per resolved repository.** The Phase 3 baseline-integrity gate runs
   `rev-parse HEAD`, a `diff --ignore-cr-at-eol --stat`, and a line-count check on anything
   `status --porcelain` reports, **before any finding is written**. Any non-empty content diff stops
-  the run with `BRD_GROUND_DIRTY_TREE` — grounding a dirty tree would cite an unidentifiable
+  the run with `PRD_GROUND_DIRTY_TREE` — grounding a dirty tree would cite an unidentifiable
   snapshot. The stop names the repository, the commit, and the remedy: settle that working tree
   (commit, stash, or check out a clean copy) and re-run, or commit the changes and re-run with
   `--rebaseline` if they are what you meant to ground. The plugin never settles it for you — it
   mounts code repositories read-only and writes to none of them.
 - **`--rebaseline` when code has moved.** If a repository's `HEAD` has moved since the last
-  recorded pin and `--rebaseline` was not given, the run stops with `BRD_GROUND_NEEDS_REBASELINE`
+  recorded pin and `--rebaseline` was not given, the run stops with `PRD_GROUND_NEEDS_REBASELINE`
   rather than silently grounding against a snapshot the last package never saw.
 - **A repository that stays put for the whole run.** If a resolved repository's `HEAD` moves
   *after* Phase 3 pinned it, the verifier refuses rather than verifying and the run stops with
-  `BRD_GROUND_VERIFY_COMMIT_MISMATCH`, naming the finding, the pinned commit, and the `HEAD` it
+  `PRD_GROUND_VERIFY_COMMIT_MISMATCH`, naming the finding, the pinned commit, and the `HEAD` it
   actually found. The remedy is a re-run from a clean tree **with `--rebaseline`**: Phase 3 appended
   that repository's pin to `grounding/baselines.md` before dispatching anything, so a plain re-run
   would find a recorded pin its `HEAD` no longer matches and stop again, this time with
-  `BRD_GROUND_NEEDS_REBASELINE`. The same applies to a `code-grounder` dispatch that reports a
+  `PRD_GROUND_NEEDS_REBASELINE`. The same applies to a `code-grounder` dispatch that reports a
   moved `HEAD` in Phase 5.
 
 ## What it produces
@@ -192,7 +192,7 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
 ## Gates
 
 - **Phase 0 — the root refusal, tested the moment the folder resolves.** A resolved `BRD-` root
-  stops with `BRD_GROUND_ROOT_LEVEL` before any other gate runs: grounding happens at the slice and
+  stops with `PRD_GROUND_ROOT_LEVEL` before any other gate runs: grounding happens at the slice and
   nowhere else.
 - **Phase 0 — `require-on-main` on this BRD's inventory and on its ledger, separately.** Each is gated in its own right rather than one being inferred from the other's commit; the inventory's own stops name whether it is missing from the folder or merely unmerged, because re-running the producer on the second would rewrite it. No grounding starts until
   whichever command wrote them has merged its output — `/brd-intake` for a BRD with a source
@@ -246,7 +246,7 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
 Ground a slice once its parent's `/brd-split` has carved it and that pull request has merged:
 
 ```
-/product-workflows:brd-ground EPIC-008-01
+/product-workflows:prd-ground EPIC-008-01
 ```
 
 The run resolves the slice, gates its inventory and ledger on main, resolves the repositories in

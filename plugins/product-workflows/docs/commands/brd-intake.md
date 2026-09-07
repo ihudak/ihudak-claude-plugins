@@ -17,7 +17,7 @@ command after that gates on a later hop (`/brd-ground` on the slice's own ledger
 `/brd-ground`'s findings, `/brd-interview` on that ledger and those findings, `/brd-package` on
 `/brd-interview`'s register, and `/brd-reconcile` on `/brd-package`'s sent prompt). Every one of
 them runs as pm except
-[`/brd-ground`](brd-ground.md), which runs as
+[`/prd-ground`](prd-ground.md), which runs as
 [pa](../roles-and-phases.md#pa--product-architecture).
 
 ## Synopsis

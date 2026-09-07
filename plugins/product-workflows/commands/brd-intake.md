@@ -109,7 +109,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
 `/brd-intake` is the **first command of the BRD-to-PRD route** — unlike every downstream `/brd-*`
 command, it consumes no prior phase's deliverable, so it runs no `require-on-main` gate here. It is
 cwd-agnostic and needs no repos mounted (no `$REPOS_PATH`); grounding against code and design is
-`/brd-ground`'s job, not this one's.
+`/prd-ground`'s job, not this one's.
 
 ---
 
@@ -210,7 +210,7 @@ Act on `status`:
   final report's ledger line reads
   `ledger: 0 requirements — 0 covered, 0 deferred, 0 rejected, 0 unallocated, 0 unresolved (0 delegated, 0 not built)`.
   **Say plainly, here and in the final report, that the route stops on this BRD until the inventory
-  has a row.** `/brd-ground` has nothing to ground, and it stops with `BRD_GROUND_EMPTY_INVENTORY`
+  has a row.** `/prd-ground` has nothing to ground, and it stops with `PRD_GROUND_EMPTY_INVENTORY`
   rather than reporting a quiet success; `/brd-split` and `/brd-interview` stop the same way. Phase 8
   offers the one thing that changes it — re-running this command over this same folder with a source
   whose requirements `brd-reader` can identify — and does **not** offer grounding, because offering a
@@ -250,11 +250,11 @@ them landing on the row only through Phase 4's existing human confirmation:
 
 **`docs_references` — what the product already ships and documents — is reported, never written.**
 It is genuinely useful here: a requirement the
-docs describe as already shipped is one `/brd-ground` should check against code first. But it is
+docs describe as already shipped is one `/prd-ground` should check against code first. But it is
 not a defect and it has no field on an inventory or ledger row, so it goes into the final report and
 nowhere else. Nothing docs-derived is ever written into `evidence` — that column stays empty until
 grounding runs (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), and grounding
-does not accept a document as evidence either (`commands/brd-ground.md` Phase 4.5).
+does not accept a document as evidence either (`commands/prd-ground.md` Phase 4.5).
 
 ---
 
@@ -291,7 +291,7 @@ for every affected row with its confirmed `[DEF#n]` ids.
 
 Write `<BRD-dir>/coverage-ledger.md` per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
 §2: one row per `[BR#n]` from the (now defect-annotated) inventory — `id`, `text`, `defects`
-mirrored from the inventory, `evidence` empty (grounding has not run yet — that is `/brd-ground`'s
+mirrored from the inventory, `evidence` empty (grounding has not run yet — that is `/prd-ground`'s
 job), and **`disposition: unallocated` on every row**, per §3: "the initial state; the only one of
 the six that blocks §4." No row is ever written in any other disposition here.
 
@@ -326,7 +326,7 @@ and never read by any command.
 State plainly in the run's output that
 this is **the migration path for work already done by hand**, before this workflow existed — and
 that it **writes seeds only, never findings**: no `[CG#n]`/`[DG#n]` grounding, no ledger
-disposition, comes out of this phase. Those are `/brd-ground`'s and `/brd-split`'s to produce, once
+disposition, comes out of this phase. Those are `/prd-ground`'s and `/brd-split`'s to produce, once
 grounding has actually run. When `--sort-existing` was not given, this phase is skipped silently.
 
 ---
@@ -394,8 +394,8 @@ actually read, so that judgement has something to stand on.
 `/product-workflows:brd-split <BRD-KEY>` refuses this same emptiness on a root —
 `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full)` — which is why it is left out here rather than offered
 and refused. `<BRD-KEY>` here is always a root: this command never writes a slice, and
-`/product-workflows:brd-ground <BRD-KEY>` is never the fix for one — it refuses any root BRD
-outright, at its own Phase 0 step 5a, with `BRD_GROUND_ROOT_LEVEL`, before it ever reaches a
+`/product-workflows:prd-ground <BRD-KEY>` is never the fix for one — it refuses any root BRD
+outright, at its own Phase 0 step 5a, with `PRD_GROUND_ROOT_LEVEL`, before it ever reaches a
 merge-state gate; grounding now happens only at the slice `/brd-split` carves. **The offer above
 carries no `<merge-clause>`**, and that is derived, not an oversight: `/brd-split` on a root reads
 this handoff's artifacts with a plain worktree read at its own step 8, gating none of them, so there
@@ -455,7 +455,7 @@ Report: the BRD folder + source path; the requirement count; the confirmed-defec
 (and how many candidates were rejected, and how many of the confirmed ones were raised from
 documentation rather than by `brd-reader`); the `docs grounding:` line from Phase 1 verbatim, and —
 when it was ON — the `docs_references` list of requirements the shipped documentation describes as
-already built, flagged for `/brd-ground` to check against code; whether Phase 6 wrote seeds and
+already built, flagged for `/prd-ground` to check against code; whether Phase 6 wrote seeds and
 which; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Phase handoff:` outcome line from
 `handoff-to-main` (`workflows-core:phase-handoff` §4.1), including the `brd`
 prefix note; the `Specs repo:` outcome line from `commit-artifacts`

@@ -1,6 +1,6 @@
 ---
 name: specify
-description: Specification-authoring workflow (PE phase). Reads the resolved PRD or Epic folder, lightly grounds in code, and authors an org-standard specification.md through a relentless one-question-at-a-time grill; gates on the Opus spec-reviewer and lands the spec on the specs repo's main branch via branch + PR for the /design dev take-over. the BRD route seeds the run from a reconciled BRD instead of a resolved folder: it resolves the BRD-route PRD- slice folder (the folder carrying brd-link.md) and refuses a BRD- container outright, since a BRD is a container and holds no specification; it reads that slice folder's implementation-altitude spec-seed.md, the implementation decisions in decisions.md, the verified [CG#n]/[DG#n] findings and the derivation matrix /brd-ground appended to code-grounding.md, runs the same PRD gate and the same folder read as the idea route, freezes every [VD#n]/[CD#n] against the grill, and marks each consumed item consumed_by: specification.
+description: Specification-authoring workflow (PE phase). Reads the resolved PRD or Epic folder, lightly grounds in code, and authors an org-standard specification.md through a relentless one-question-at-a-time grill; gates on the Opus spec-reviewer and lands the spec on the specs repo's main branch via branch + PR for the /design dev take-over. the BRD route seeds the run from a reconciled BRD instead of a resolved folder: it resolves the BRD-route PRD- slice folder (the folder carrying brd-link.md) and refuses a BRD- container outright, since a BRD is a container and holds no specification; it reads that slice folder's implementation-altitude spec-seed.md, the implementation decisions in decisions.md, the verified [CG#n]/[DG#n] findings and the derivation matrix /prd-ground appended to code-grounding.md, runs the same PRD gate and the same folder read as the idea route, freezes every [VD#n]/[CD#n] against the grill, and marks each consumed item consumed_by: specification.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -39,7 +39,7 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
    **A `BRD-` container is refused, on either route.** Take this on the folder **step 1 resolves**,
    the moment that resolution returns `status: found` and ahead of every read this command makes —
    and **not** as part of the BRD-route branch. The BRD route is detected from a `brd-link.md`, and a
-   root BRD folder need not carry one: `/brd-intake` writes none, and only `/brd-ground`,
+   root BRD folder need not carry one: `/brd-intake` writes none, and only `/prd-ground`,
    `/brd-split` and `/brd-package` ever do. A refusal conditioned on the detected route would let
    `/specify <ROOT-BRD-KEY>` fall through to the keyed route and author a specification into the
    container. A BRD is a container: its requirements are built by the `PRD-`
@@ -522,11 +522,11 @@ folder does hold. Then:
 - **`grounding/code-grounding.md`** and **`grounding/design-grounding.md`** — the `[CG#n]` and
   `[DG#n]` finding records, per `workflows-core:grounding-format` §2 — **and, in
   the first of the two, the derivation matrix.** The matrix is not a file of its own and is not inside
-  `spec-seed.md`: `/product-workflows:brd-ground` appends its rows to the slice folder's `grounding/code-grounding.md`
+  `spec-seed.md`: `/product-workflows:prd-ground` appends its rows to the slice folder's `grounding/code-grounding.md`
   (that command's Phase 8), classed per `workflows-core:grounding-format` §7
   (`EXISTS | DERIVED | NEW-CAPTURE | NEW-CONFIG | PARTNER | DEFERRED | DEPENDENCY`). It is
   implementation-altitude by construction, which is why this command is the one that reads it — and
-  an absent matrix is ordinary, since `/product-workflows:brd-ground` runs it only on a reporting- or
+  an absent matrix is ordinary, since `/product-workflows:prd-ground` runs it only on a reporting- or
   data-centric BRD or under an explicit `--derivation-matrix`.
 - **`brd-link.md`** — for `parent:` and `depends-on:` only. This run reads no `claims:` list and no
   coverage ledger **as an authoring input**: PRD eligibility and the allocation gate are
@@ -543,7 +543,7 @@ folder does hold. Then:
 
 **Absence is reported, never a stop, and the seed's absence is the ordinary case.** Nothing on the
 normal route writes a seed file at all (above), so a reconciled BRD routinely holds none; and a BRD
-ground with `--no-design` still holds a `design-grounding.md` — `/brd-ground` Phase 8 writes it on every run, carrying a note saying the pass was skipped and why, plus a `## Frame sets covered` census of the `design/` subdirectories on disk. Absent means the file is not there at all, never that design grounding was declined. Say which of the four were absent — a reader cannot tell an unwritten file from
+ground with `--no-design` still holds a `design-grounding.md` — `/prd-ground` Phase 8 writes it on every run, carrying a note saying the pass was skipped and why, plus a `## Frame sets covered` census of the `design/` subdirectories on disk. Absent means the file is not there at all, never that design grounding was declined. Say which of the four were absent — a reader cannot tell an unwritten file from
 an unread one — and carry what is there.
 
 **No `idea.md` is written on this route.** Step B writes one as pre-spec provenance derived from the
@@ -599,7 +599,7 @@ Resolve any ARD for this item by invoking `Skill(skill: "workflows-core:referenc
    reads a tracker or a pull-request API. **Under
    the BRD route there is no implementation record either; derive the list from the resolved slice
    folder's `grounding/baselines.md` instead**, which already records repository → pinned commit for
-   every repo `/product-workflows:brd-ground` read, plus the Phase 2 themes. That is a stronger starting
+   every repo `/product-workflows:prd-ground` read, plus the Phase 2 themes. That is a stronger starting
    set than a theme guess, and the rest of this phase treats it identically — step 3 resolves each
    entry against the slug map and step 4's soft gate handles one that is not mounted. A finding's
    evidence stays cited at the commit that finding is pinned to
@@ -735,7 +735,7 @@ decide it and do not soften it into the spec's prose. Record it as a `- [ ]` ope
 `[VD#n]` or `[CD#n]` it contradicts and what this run believes contradicts it, and name the route that
 may act on it. **Neither route is this command**, and both are exactly §4's two causes rather than a
 third invented here: a `[VD#n]` needs a new grounding finding, which only
-`/product-workflows:brd-ground <BRD-KEY> --rebaseline` mints and `/product-workflows:brd-interview <BRD-KEY>`
+`/product-workflows:prd-ground <BRD-KEY> --rebaseline` mints and `/product-workflows:brd-interview <BRD-KEY>`
 then re-decides against; a `[CD#n]` needs the customer, through
 `/product-workflows:brd-package <BRD-KEY>` and then
 `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>`. A contradiction with an `AD#N` is a different

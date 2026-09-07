@@ -24,7 +24,7 @@ the owner's own written refusal and needing no flag.
 cost-attribution phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route. It
 is the only command of the route that runs more than once: once on the root, right after
 [`/brd-intake`](brd-intake.md), to carve slices from a slicing instruction; and once more on each
-slice it carved, after [`/brd-ground`](brd-ground.md) has grounded that slice, to walk its ledger to
+slice it carved, after [`/prd-ground`](prd-ground.md) has grounded that slice, to walk its ledger to
 a recorded fate and hand on to [`/brd-interview`](brd-interview.md). There is a **third** occasion,
 and it is a re-run on the **parent**: once a grounded slice's own walk has recorded `deferred-to`
 against a row that parent delegated to it, an instruction typed against the parent's now
@@ -523,7 +523,7 @@ slice — and declining every proposal is an answer, after which each row simply
 The run resolves the BRD, confirms an instruction was given, proposes candidate slices from it,
 keys and nests a folder per confirmed slice, walks every remaining ledger row to one of the four
 resolutions, writes `slices.md`, and offers to branch, commit, push, and open a pull request. Its
-next-step offer names [`/brd-ground`](brd-ground.md) on **each child that gained a row this run** —
+next-step offer names [`/prd-ground`](prd-ground.md) on **each child that gained a row this run** —
 the slices this run keyed and still claiming a row after the empty-child phase, and any child that
 already stood which the walk newly resolved a row to — once
 this run's deliverables reach the specs repo's default branch — the `<merge-clause>` placeholder

@@ -116,7 +116,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    Take this the moment step 5 returns `status: found`, **before `coverage-ledger.md` is opened at
    all** and before step 6 reads a prior PRD. **It is not part of the BRD gate below and must not be
    folded into it**: the BRD route is detected from a `brd-link.md`, and a root BRD folder need not
-   carry one — `/brd-intake` writes none, and only `/brd-ground`, `/brd-split` and `/brd-package`
+   carry one — `/brd-intake` writes none, and only `/prd-ground`, `/brd-split` and `/brd-package`
    ever do. A container refusal that ran only on the detected BRD route would therefore let
    `/create-prd <ROOT-BRD-KEY>` fall through to the **idea** route, find no `idea.md`, grill a PRD
    from scratch and write it into the container — the exact state this refusal exists to prevent.
@@ -219,7 +219,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    the command whose walk exists to move exactly these rows off `unallocated`, and on a slice it runs
    allocate-only — one fewer resolution, and no child created. It
    is not, however, unconditionally *startable*: its own Phase 0 gates on this slice's grounding
-   findings each carrying a verifier verdict, and stops naming `/product-workflows:brd-ground <SLICE-KEY>`
+   findings each carrying a verifier verdict, and stops naming `/product-workflows:prd-ground <SLICE-KEY>`
    when they do not. Say so beside the offer, so an operator whose slice has only been carved is not
    sent into a second stop to learn the same thing.
 
@@ -488,7 +488,7 @@ cluster does not exist, in the final report alone — naming the `[VD#n]` or `[C
 what the run believes contradicts it, and say which of the two routes may act on it. **Neither route
 is this command**, and both are exactly `decision-register-format.md` §4's two causes rather than a
 third one invented here: a `[VD#n]` needs a **new grounding finding** first, which only
-`/product-workflows:brd-ground <BRD-KEY> --rebaseline` mints and `/product-workflows:brd-interview <BRD-KEY>`
+`/product-workflows:prd-ground <BRD-KEY> --rebaseline` mints and `/product-workflows:brd-interview <BRD-KEY>`
 then re-decides against; a `[CD#n]` needs the **customer**, through
 `/product-workflows:brd-package <BRD-KEY>` and then `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>`.
 Naming the route is what keeps the contradiction actionable without this command taking the decision.

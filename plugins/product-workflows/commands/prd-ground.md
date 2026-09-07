@@ -1,5 +1,5 @@
 ---
-name: brd-ground
+name: prd-ground
 description: BRD-grounding workflow (PA phase of the BRD-to-PRD route, run once per slice `/brd-split` carves, and again on an already-ground slice a later re-cut gives a new row). Pins every mounted repository to a verified commit, grounds every [BR#n] claim against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and assigns each finding a current/will-change horizon against declared prerequisite BRDs. Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (off with --no-docs, and under --no-code) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. Optional --depends-on persists prerequisites to brd-link.md; --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split as the next step.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
@@ -8,7 +8,7 @@ Ground the BRD's requirement inventory against code and design: $ARGUMENTS
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
-`/brd-ground` is the **BRD-to-PRD route's grounding step** (PA phase), run once per slice
+`/prd-ground` is the **BRD-to-PRD route's grounding step** (PA phase), run once per slice
 `/brd-split` carves — and **again on an already-ground slice a later re-cut gave a new row**, the third of the three cases `commands/brd-split.md` Phase 7 distinguishes when it offers this command, because no `[CG#n]` on file was derived against a row that arrived after them — it takes the `[BR#n]` inventory that slice's own `brd/brd-inventory.md`
 holds and checks its premises against real code and real design assets, at pinned commits, rather
 than letting a plausible-sounding claim stand unverified. Every
@@ -16,7 +16,7 @@ finding is independently re-derived by a different agent before it counts as evi
 (`workflows-core:grounding-format` §8) — this command's whole job is to make
 that discipline happen, not to ground anything itself.
 
-Usage: `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--docs <path>] [--rebaseline]`
+Usage: `/prd-ground <KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--docs <path>] [--rebaseline]`
 
 `<BRD-KEY>` still resolves through either of the two levels `resolve-address` searches
 (`workflows-core:addressing` §3) — a BRD that owns its source document, or one of its slices —
@@ -37,7 +37,7 @@ behaviour, not the behaviour.
 
 1. **`<BRD-KEY>` (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--depends-on` and `--docs` each consume the token after them (step 2), and a value skipped as "non-flag" would be read as the key; validate with `key-valid`
    (`workflows-core:addressing` §1). If absent or invalid, stop:
-   `BRD_GROUND_NEEDS_KEY: /brd-ground needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/product-workflows:brd-ground <KEY>'.`
+   `PRD_GROUND_NEEDS_KEY: /prd-ground needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/product-workflows:prd-ground <KEY>'.`
 2. **Flags.** `--depends-on <BRD-KEY>` — repeatable, each consuming the next token; validate each
    with `key-valid` and drop (warn, do not stop the run) any that fail shape. `--no-design` —
    boolean, skips Phase 5's `design-grounder` step. `--no-docs` — boolean, turns documentation
@@ -46,11 +46,11 @@ behaviour, not the behaviour.
    `--no-code` — boolean, the **run mode** stated above the phases. Its four refusals are checked
    here, before anything expensive runs:
    - With `--no-design`, nothing is left to ground:
-     `BRD_GROUND_NOTHING_TO_GROUND: --no-code and --no-design together leave this run nothing to ground — drop one and re-run '/product-workflows:brd-ground <BRD-KEY>'.`
+     `PRD_GROUND_NOTHING_TO_GROUND: --no-code and --no-design together leave this run nothing to ground — drop one and re-run '/product-workflows:prd-ground <BRD-KEY>'.`
    - With `--rebaseline`, which supersedes `[CG#n]` findings by id — a write this mode forbids:
-     `BRD_GROUND_NO_CODE_REBASELINE: --rebaseline supersedes [CG#n] findings by id, which --no-code forbids — re-run '/product-workflows:brd-ground <BRD-KEY> --rebaseline' without --no-code to re-ground the moved code, or drop --rebaseline to add design grounding over what is already on file.`
+     `PRD_GROUND_NO_CODE_REBASELINE: --rebaseline supersedes [CG#n] findings by id, which --no-code forbids — re-run '/product-workflows:prd-ground <BRD-KEY> --rebaseline' without --no-code to re-ground the moved code, or drop --rebaseline to add design grounding over what is already on file.`
    - With an **explicit** `--derivation-matrix`, which Phase 8 appends into `code-grounding.md`:
-     `BRD_GROUND_NO_CODE_MATRIX: the derivation matrix is appended to grounding/code-grounding.md, which --no-code forbids writing — re-run '/product-workflows:brd-ground <BRD-KEY> --derivation-matrix' without --no-code.`
+     `PRD_GROUND_NO_CODE_MATRIX: the derivation matrix is appended to grounding/code-grounding.md, which --no-code forbids writing — re-run '/product-workflows:prd-ground <BRD-KEY> --derivation-matrix' without --no-code.`
      An explicit `--no-derivation-matrix` is redundant here but harmless; an unset default resolves
      **off** under this mode and is reported rather than left silent.
    - Where there is no verified code grounding to build on. This one needs the resolved folder, so
@@ -64,7 +64,7 @@ behaviour, not the behaviour.
      verifier `outcome`. The third is the state `/brd-split` itself refuses
      (`workflows-core:grounding-format` §8), so reporting it now costs one read and saves a whole
      design pass that still could not split:
-     `BRD_GROUND_NO_CODE_UNGROUNDED: --no-code adds design grounding over an existing code grounding, and <BRD-KEY> has <no code grounding on file | no [CG#n] findings | N of M [CG#n] findings carrying no verifier outcome> — re-run '/product-workflows:brd-ground <BRD-KEY>' without --no-code.`
+     `PRD_GROUND_NO_CODE_UNGROUNDED: --no-code adds design grounding over an existing code grounding, and <BRD-KEY> has <no code grounding on file | no [CG#n] findings | N of M [CG#n] findings carrying no verifier outcome> — re-run '/product-workflows:prd-ground <BRD-KEY>' without --no-code.`
 3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
    `Required path environment variable unset` rule in `workflows-core:escalation-rules`:
    ```
@@ -81,7 +81,7 @@ behaviour, not the behaviour.
    `brd-link.md` exists either, and nothing on disk says whether this key names a BRD with a source
    document or a slice of one. Naming `/brd-intake` unconditionally would be the wrong advice for
    half the cases, exactly as it is in step 6's `absent` branch below:
-   `BRD_GROUND_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent. Do not run /brd-intake on a slice; it has no source document of its own.`
+   `PRD_GROUND_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent. Do not run /brd-intake on a slice; it has no source document of its own.`
 5a. **The root refusal — grounding happens at the slice and nowhere else.** Take this the moment
     step 5 returns a resolved folder, before step 6 opens anything and before step 2's deferred
     `--no-code` check — the level question is answered before any flag-combination question,
@@ -105,7 +105,7 @@ behaviour, not the behaviour.
     delete them; they record work done, and nothing in this run reads them.
 
     Stop:
-    `BRD_GROUND_ROOT_LEVEL: <BRD-KEY> is a root BRD, and grounding happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-ground <SLICE-KEY>'.<where root-level grounding exists, append:> This BRD carries root-level grounding at <paths> from the earlier two-level model; it is left in place and nothing reads it.`
+    `PRD_GROUND_ROOT_LEVEL: <BRD-KEY> is a root BRD, and grounding happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:prd-ground <SLICE-KEY>'.<where root-level grounding exists, append:> This BRD carries root-level grounding at <paths> from the earlier two-level model; it is left in place and nothing reads it.`
 6. **Gate this BRD's own inventory and ledger on main.** Execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against the resolved BRD folder's `coverage-ledger.md`. Whichever
    command wrote that ledger wrote the inventory beside it in the same handoff commit
    (`coverage-ledger-format.md` §3's creator table). **That is a fact about the run that wrote them
@@ -116,7 +116,7 @@ behaviour, not the behaviour.
    is actually shared; a hand-committed set can land partially, which `/brd-reconcile`'s §3.4 row
    states outright. Map its return exactly as the ledger's below, **except
    for row F, which needs its own two-branch stop and must not borrow step 8's.** Step 8's
-   `BRD_GROUND_EMPTY_INVENTORY` reports a *content* fact — the inventory holds no `[BR#n]` row — and
+   `PRD_GROUND_EMPTY_INVENTORY` reports a *content* fact — the inventory holds no `[BR#n]` row — and
    its remedy re-runs `/brd-split <PARENT-KEY>` to resolve the standing empty child. Row F reports a
    *merge* fact, and sending that operator to `/brd-split` on the parent risks the same no-op the
    next split below refuses to name unconditionally — a fully-allocated parent stages nothing on a **bare** re-run.
@@ -130,13 +130,13 @@ behaviour, not the behaviour.
      after `brd/source/` was copied and before Phase 3/5 ever wrote the inventory and ledger.
      - **No `brd-link.md`, or one with no `parent:`** — this reads as an interrupted intake, not a
        slice with a `<PARENT-KEY>` to read. Stop:
-       `BRD_GROUND_NO_INVENTORY: <BRD-KEY> has no brd/brd-inventory.md and no brd-link.md naming a parent — this reads as an interrupted intake, not a slice. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' to complete it (an existing BRD folder is a re-run, not a refusal).`
+       `PRD_GROUND_NO_INVENTORY: <BRD-KEY> has no brd/brd-inventory.md and no brd-link.md naming a parent — this reads as an interrupted intake, not a slice. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' to complete it (an existing BRD folder is a re-run, not a refusal).`
      - **`parent: <PARENT-KEY>` present** — this is a slice. Stop:
-       `BRD_GROUND_NO_INVENTORY: <BRD-KEY> has no brd/brd-inventory.md, so there is no claim list to ground. Run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', which writes the slice's inventory from the rows the parent delegated to it.`
+       `PRD_GROUND_NO_INVENTORY: <BRD-KEY> has no brd/brd-inventory.md, so there is no claim list to ground. Run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', which writes the slice's inventory from the rows the parent delegated to it.`
    - **The inventory is in the folder and on no ref** — produced, handoff declined. Land what is
      already on disk, and **do not name `/brd-intake`**: re-running it rewrites the inventory and the
      ledger dispositions recorded against it go with it:
-     `BRD_GROUND_INVENTORY_NOT_HANDED_OFF: <BRD-KEY>'s brd/brd-inventory.md is written at <path> but is on no branch — its handoff was declined. Commit and merge it to the specs repo's default branch and re-run; do not re-run /product-workflows:brd-intake, which would rewrite the inventory and orphan the coverage-ledger dispositions already recorded against it.` What the single-commit fact still buys is the *rest* of the set: it was
+     `PRD_GROUND_INVENTORY_NOT_HANDED_OFF: <BRD-KEY>'s brd/brd-inventory.md is written at <path> but is on no branch — its handoff was declined. Commit and merge it to the specs repo's default branch and re-run; do not re-run /product-workflows:brd-intake, which would rewrite the inventory and orphan the coverage-ledger dispositions already recorded against it.` What the single-commit fact still buys is the *rest* of the set: it was
    `/brd-split` running on the parent, and there is no defect log to land — a slice reads the parent's
    (`brd-format.md` §2.1). Map the §3.7 return by `stopped` first: any stopping row → stop, naming
    the concrete branch/PR state it reports; `pass` → proceed; `pass_amending` → proceed, printing
@@ -158,19 +158,19 @@ behaviour, not the behaviour.
    step 5a would otherwise guarantee — it may be a legacy root BRD whose intake was interrupted
    after `brd/source/` was copied and before Phase 3/5 ever wrote the inventory and ledger.
    - **No `brd-link.md`, or one with no `parent:`** — this reads as an interrupted intake. Stop:
-     `BRD_GROUND_NEEDS_INTAKE: no intake artifacts on main for <BRD-KEY>, and none in the folder either — run /product-workflows:brd-intake <BRD-KEY> @<brd-file> for it and merge the pull request first.`
+     `PRD_GROUND_NEEDS_INTAKE: no intake artifacts on main for <BRD-KEY>, and none in the folder either — run /product-workflows:brd-intake <BRD-KEY> @<brd-file> for it and merge the pull request first.`
    - **`parent: <PARENT-KEY>` present** — this is a slice, and `/brd-intake` is not the fix: a
      slice has no document of its own to intake (`brd-format.md` §2.1), and the command that writes
      a slice's ledger and inventory is `/brd-split` on the parent
      (`coverage-ledger-format.md` §3). Stop:
-     `BRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger exist on no ref and in no folder — where <PARENT-KEY>'s ledger still holds unallocated rows, run /product-workflows:brd-split <PARENT-KEY> "<how to cut it>" and merge the pull request first. Where the parent is already fully allocated and this slice claims rows, that run carves nothing — with no row left unallocated there is nothing for the instruction to group — and where that parent holds no re-cuttable row it is a no-op that stages nothing: the slice's files were lost after they were written, and no command re-creates the rows they held — restore them from the ref that carried them, or report it. Do not run /brd-intake on a slice; it has no source document of its own.`
+     `PRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger exist on no ref and in no folder — where <PARENT-KEY>'s ledger still holds unallocated rows, run /product-workflows:brd-split <PARENT-KEY> "<how to cut it>" and merge the pull request first. Where the parent is already fully allocated and this slice claims rows, that run carves nothing — with no row left unallocated there is nothing for the instruction to group — and where that parent holds no re-cuttable row it is a no-op that stages nothing: the slice's files were lost after they were written, and no command re-creates the rows they held — restore them from the ref that carried them, or report it. Do not run /brd-intake on a slice; it has no source document of its own.`
 
      **The condition qualifies the remedy, and both branches must carry it.** The sibling rule thirty lines below already says not to name `/brd-split` for a fully-allocated parent, because re-running it **bare** there stages nothing and opens no pull request. Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
 
    **(b) `coverage-ledger.md` is in the folder, and on no ref — it was produced and its handoff was
    declined.** The files exist; what is missing is a commit. **Say so, and name landing them as the
    action** — one stop code, because the remedy does not differ. **It speaks for the ledger only**: the inventory has its own gate above, with its own two stops, and this message must not report a merge state it did not test:
-   `BRD_GROUND_NOT_HANDED_OFF: <BRD-KEY>'s coverage-ledger.md is written at <BRD-dir> but is on no branch — their handoff was declined, so nothing is missing but the commit. Commit brd/brd-inventory.md and coverage-ledger.md to the specs repo's default branch, then re-run '/product-workflows:brd-ground <BRD-KEY>'. <the clause below>`
+   `PRD_GROUND_NOT_HANDED_OFF: <BRD-KEY>'s coverage-ledger.md is written at <BRD-dir> but is on no branch — their handoff was declined, so nothing is missing but the commit. Commit brd/brd-inventory.md and coverage-ledger.md to the specs repo's default branch, then re-run '/product-workflows:prd-ground <BRD-KEY>'. <the clause below>`
 
    **`/brd-split` is not a way out here, so do not name it.** Re-running it **bare** on a parent whose ledger is fully
      allocated and whose children are non-empty is a no-op by its own Phase 0
@@ -225,7 +225,7 @@ behaviour, not the behaviour.
    `<PARENT-KEY>` from the resolved folder's `brd-link.md` `parent:` field. A slice reaches this
    state only as the empty child `/brd-split`'s empty-child check offered to keep with a recorded
    reason:
-     `BRD_GROUND_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground. Do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
+     `PRD_GROUND_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground. Do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
 
    **Why a stop rather than an empty handoff.** Writing an empty `grounding/code-grounding.md` and
    handing it off would let both downstream gates pass, but it would assert that grounding ran over
@@ -250,7 +250,7 @@ BRDs carry no PR links to auto-derive a repo list from (unlike `/epics`), so thi
 the manual path:
 
 0. **Resolve documentation grounding, once, before prompting.** Run
-   `resolve-docs-grounding brd-ground` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` and
+   `resolve-docs-grounding prd-ground` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` and
    surface the `docs grounding:` line it returns — `ON <root> (retrieval: …)` or `OFF (<reason>)` —
    **verbatim**, including any index-build, staleness, or shadowing clause it carries (off switch:
    --no-docs), alongside the repo prompt below. **Under `--no-code` this command overrides the
@@ -279,13 +279,13 @@ the manual path:
    assume a `<base>/<slug>` directory name** — resolution is always by remote slug.
 3. Resolve each named repo against the map: one match → use it; multiple matches → auto-prefer
    basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last (show candidates before
-   proceeding); zero matches → escalate per the `Repo unresolved (zero matches) — /brd-ground` rule
+   proceeding); zero matches → escalate per the `Repo unresolved (zero matches) — /prd-ground` rule
    in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`:
    ```
    choices: ["Skip and continue without this repo", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
    ```
 4. Empty final list (every repo skipped or missing) → escalate per the `No repos derivable — /epics`
-   rule in `workflows-core:escalation-rules`, whose `/brd-ground` variant
+   rule in `workflows-core:escalation-rules`, whose `/prd-ground` variant
    this is:
    ```
    choices: ["List repos to check manually", "Cancel"]
@@ -335,12 +335,12 @@ git -C "<repo>" status --porcelain
 
 1. Record `rev-parse HEAD` as the repo's pinned commit.
 2. `diff --ignore-cr-at-eol --stat` must be empty. Any output → **non-empty content diff, stop**:
-   `BRD_GROUND_DIRTY_TREE: <repo> has content changes at <sha> — grounding it would cite an unidentifiable snapshot. Settle that repository's working tree and re-run '/product-workflows:brd-ground <BRD-KEY>': commit the changes, stash them, or check out a clean copy — the plugin will not do it for you, because these are your files in a code repository this route never writes to. If the changes are what you want grounded, commit them first and re-run with --rebaseline so the new commit becomes the recorded pin.`
+   `PRD_GROUND_DIRTY_TREE: <repo> has content changes at <sha> — grounding it would cite an unidentifiable snapshot. Settle that repository's working tree and re-run '/product-workflows:prd-ground <BRD-KEY>': commit the changes, stash them, or check out a clean copy — the plugin will not do it for you, because these are your files in a code repository this route never writes to. If the changes are what you want grounded, commit them first and re-run with --rebaseline so the new commit becomes the recorded pin.`
 
-   **Under `--no-code`, drop the final sentence and name the re-run without the flag instead** — `--rebaseline` is refused in that mode (Phase 0 step 2), so a message ending in it sends the operator into a second stop: `… commit them first and re-run '/product-workflows:brd-ground <BRD-KEY> --rebaseline' without --no-code, so the new commit becomes the recorded pin.`
+   **Under `--no-code`, drop the final sentence and name the re-run without the flag instead** — `--rebaseline` is refused in that mode (Phase 0 step 2), so a message ending in it sends the operator into a second stop: `… commit them first and re-run '/product-workflows:prd-ground <BRD-KEY> --rebaseline' without --no-code, so the new commit becomes the recorded pin.`
 
    **Every other stop on this route names a command or an action, and this one must too.** The
-   remedy is the operator's, not the plugin's — `/brd-ground` mounts code repositories read-only and
+   remedy is the operator's, not the plugin's — `/prd-ground` mounts code repositories read-only and
    commits to none of them — but "settle the tree, three ways, then re-run this command" is still an
    action a reader can take, and naming which repository and which commit is what makes it one. Both
    named re-runs resolve in the state being reported: the BRD folder and its ledger are already
@@ -363,7 +363,7 @@ already records a pin for a repository:
   re-grounding claims this repository already answered (Phase 5) unless a new `--depends-on` was
   added this run (Phase 6 still reassesses horizons against it).
 - **Its `HEAD` has moved, and `--rebaseline` was NOT given** → stop:
-  `BRD_GROUND_NEEDS_REBASELINE: <repo> moved since the last grounding pin (<old-sha> -> <new-sha>) — re-run with --rebaseline to supersede the affected findings by ID.`
+  `PRD_GROUND_NEEDS_REBASELINE: <repo> moved since the last grounding pin (<old-sha> -> <new-sha>) — re-run with --rebaseline to supersede the affected findings by ID.`
 - **Its `HEAD` has moved, and `--rebaseline` WAS given** → proceed; Phase 5 re-grounds every claim
   against the new pin, and Phase 8 supersedes the old findings by ID rather than renumbering them
   (grounding-format.md §3, `SUPERSEDED`) — a citation into an already-sent package still resolves.
@@ -455,7 +455,7 @@ report; Phase 6 also uses it to decide which findings get `horizon: will-change`
 
 ## Phase 4.5 — Documentation leads (optional)
 
-Consume the `resolve-docs-grounding brd-ground` result cached in Phase 1 step 0 — never re-run it.
+Consume the `resolve-docs-grounding prd-ground` result cached in Phase 1 step 0 — never re-run it.
 `docs_grounding: OFF` → skip silently, reporting the `OFF` line once. `docs_grounding: ON` →
 `dispatch-docs-grounder` (`workflows-core:docs-grounding`) with
 `feature_summary` = two to four sentences built from the Phase 0 step 8 claim list (what this BRD
@@ -536,8 +536,8 @@ different system is exactly what `NOT-PROVABLE` exists to say, not a reason to p
 Handle `status`: `OK` → collect `findings`, **and collect `notes`** — a claim that touched a false-friend name, a claim whose search budget was exhausted. Report them with the findings: without them a `NOT-PROVABLE` `[CG#n]` whose search ran out is indistinguishable from one the code genuinely refutes, and only the first is worth another pass. `INPUT_MISSING` / `REPO_MISSING` → should not occur
 (Phases 0/1/3 already checked); if it does, stop and name the gap. `COMMIT_MISMATCH` → the tree
 moved between Phase 3 and this dispatch — stop and re-run from Phase 3 **with `--rebaseline`**, for
-the reason Phase 7's `BRD_GROUND_VERIFY_COMMIT_MISMATCH` row states: this run already recorded a
-pin, so a plain re-run stops with `BRD_GROUND_NEEDS_REBASELINE`.
+the reason Phase 7's `PRD_GROUND_VERIFY_COMMIT_MISMATCH` row states: this run already recorded a
+pin, so a plain re-run stops with `PRD_GROUND_NEEDS_REBASELINE`.
 
 **Renumber into one BRD-wide sequence.** Each `code-grounder` instance numbers its own output from
 `CG#1` (its own contract, per dispatch) — this is per-instance, not global. Merge every batch's
@@ -705,13 +705,13 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
 
 - **`OK`** — act on `outcome`, below.
 - **`COMMIT_MISMATCH`** — the repository moved between Phase 3's pin and this dispatch. Stop:
-  `BRD_GROUND_VERIFY_COMMIT_MISMATCH: <finding-id> could not be verified — <repo> is at <resolved-HEAD>, not the pinned <commit>. Re-run '/product-workflows:brd-ground <BRD-KEY> --rebaseline' from a clean tree.`
-  **Under `--no-code` the same message names the re-run without the mode** — `'/product-workflows:brd-ground <BRD-KEY> --rebaseline'`, no `--no-code` — since that mode refuses the flag the remedy requires, and the finding that failed here is pinned to a repository the design pass cannot re-pin on its own.
+  `PRD_GROUND_VERIFY_COMMIT_MISMATCH: <finding-id> could not be verified — <repo> is at <resolved-HEAD>, not the pinned <commit>. Re-run '/product-workflows:prd-ground <BRD-KEY> --rebaseline' from a clean tree.`
+  **Under `--no-code` the same message names the re-run without the mode** — `'/product-workflows:prd-ground <BRD-KEY> --rebaseline'`, no `--no-code` — since that mode refuses the flag the remedy requires, and the finding that failed here is pinned to a repository the design pass cannot re-pin on its own.
   The same repair as Phase 5's own `COMMIT_MISMATCH`: re-run from Phase 3, which re-pins and
   re-grounds. **`--rebaseline` is part of the remedy, not an optional extra**, and the message says
   so: Phase 3 already appended this repository's pin to `grounding/baselines.md` before dispatching
   anything, so the re-run finds a recorded pin its `HEAD` no longer matches and stops with
-  `BRD_GROUND_NEEDS_REBASELINE` unless the flag is given. "Re-run from a clean tree" on its own
+  `PRD_GROUND_NEEDS_REBASELINE` unless the flag is given. "Re-run from a clean tree" on its own
   would send the operator straight into that second stop.
 - **`INPUT_MISSING`** — this orchestrator's dispatch was malformed (most often a `[DG#n]` sent
   without its `inventory`, its `class` or its `frame_set_dir` — `inventory` first, because it is the
@@ -937,34 +937,34 @@ Terminal phase — runs after Phase 10, NEVER interrupts an earlier phase.
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command /
 reference gap, `emit-block` (`workflows-core:feedback-emission`) fires at
 that halt before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD,
-a resolved root BRD, an inventory or ledger not yet on main (`BRD_GROUND_NO_INVENTORY`, `BRD_GROUND_INVENTORY_NOT_HANDED_OFF`,
-`BRD_GROUND_NEEDS_INTAKE` or, for a slice, `BRD_GROUND_NEEDS_SPLIT`; `BRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off),
+a resolved root BRD, an inventory or ledger not yet on main (`PRD_GROUND_NO_INVENTORY`, `PRD_GROUND_INVENTORY_NOT_HANDED_OFF`,
+`PRD_GROUND_NEEDS_INTAKE` or, for a slice, `PRD_GROUND_NEEDS_SPLIT`; `PRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off),
 an inventory carrying no claim at all
-(`BRD_GROUND_EMPTY_INVENTORY`, which is a fact about what the
+(`PRD_GROUND_EMPTY_INVENTORY`, which is a fact about what the
 parent allocated, not about this plugin), and an unset `$REPOS_PATH` are environment / sequencing
-halts, never a plugin capability gap. `BRD_GROUND_DIRTY_TREE`, `BRD_GROUND_NEEDS_REBASELINE`, and Phase 7's
-`BRD_GROUND_VERIFY_COMMIT_MISMATCH` are repository state, not a plugin gap, either — unlike Phase
+halts, never a plugin capability gap. `PRD_GROUND_DIRTY_TREE`, `PRD_GROUND_NEEDS_REBASELINE`, and Phase 7's
+`PRD_GROUND_VERIFY_COMMIT_MISMATCH` are repository state, not a plugin gap, either — unlike Phase
 7's `INPUT_MISSING`, which is this command getting its own dispatch contract wrong and does fire
 `emit-block`.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
-   `<detection_model>`) with a compact handoff: command `/brd-ground`; what was produced (baselines,
+   `<detection_model>`) with a compact handoff: command `/prd-ground`; what was produced (baselines,
    code/design findings, verifier tally, prerequisite readiness, documentation divergences); key
    events (a dirty-tree stop, a rebaseline, a skipped design pass, an unresolved repo, docs
    grounding OFF or a lead that added a repository — or "none"); workarounds; test result
    N/A; project root = the BRD folder.
-2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /brd-ground`,
+2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /prd-ground`,
    the run's `key` (the `<BRD-KEY>`), `source`, and `plugin_version` (read from
    `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no
    plugin-facing signal — nothing persisted").
-3. **Session cost (ALWAYS runs).** Invoke `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and call its `emit-cost` entry point with `command: /brd-ground`, `phase: brd-to-prd`, `role: pa`,
+3. **Session cost (ALWAYS runs).** Invoke `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and call its `emit-cost` entry point with `command: /prd-ground`, `phase: brd-to-prd`, `role: pa`,
    the run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the
    report-only notice).
 4. **Write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` and, per its §1, write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry, before the
    commit step below. Redact per §1. Silent.
 5. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. Stages
    ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
-   `<BRD-KEY> Add dev-workflows session artifacts (/brd-ground)` with no `Co-Authored-By` trailer,
+   `<BRD-KEY> Add dev-workflows session artifacts (/prd-ground)` with no `Co-Authored-By` trailer,
    and pushes to the branch Phase 9's handoff created. NEVER touches a code repo, or the current working directory; NEVER force-pushes; NEVER fails the run; skips entirely when the run
    carries `specs_git: blocked`, re-emitting that notice. Hold its §6 outcome line for the final
    report.
@@ -996,7 +996,7 @@ recommendation; and end with the ledger line, read fresh from the (unmodified-by
 ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)
 ```
 
-`/brd-ground` never changes a ledger disposition — that line simply reports where allocation stands
+`/prd-ground` never changes a ledger disposition — that line simply reports where allocation stands
 going into `/brd-split`.
 
 **Reporting it now reads one ledger per `covered-by` row.** §6 counts a delegated row through the

@@ -358,7 +358,7 @@ so each option states its own condition in its own text.
 
 The same phase also offers the route's **re-entries** — another [`/brd-interview`](brd-interview.md)
 round where this run reopened a decision, [`/brd-package`](brd-package.md) where questions remain for
-the customer, [`/brd-ground --rebaseline`](brd-ground.md) where the review challenged a code claim,
+the customer, [`/prd-ground --rebaseline`](prd-ground.md) where the review challenged a code claim,
 and a second `/brd-reconcile` pass on this same review once a dependent recorded-not-written has its
 own register on the default branch.
 

@@ -9,8 +9,8 @@ It is the command that closes the customer loop: the `[C]` questions `/brd-inter
 
 `/brd-reconcile` runs in the [pm](../roles-and-phases.md#pm--product-management) role,
 cost-attribution phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route. It
-is the sixth and last command of that route, after `/brd-intake`, `/brd-ground`, `/brd-split`,
-`/brd-interview` and `/brd-package`.
+is the route's last command: nothing in the route runs after it, though it may itself run again on
+a reopened decision or an unanswered question.
 
 ## Synopsis
 
@@ -18,9 +18,11 @@ is the sixth and last command of that route, after `/brd-intake`, `/brd-ground`,
 /brd-reconcile <BRD-KEY> @<review-file> [--sent <path>…]
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the BRD this review answers. A key naming either level a `<BRD-KEY>` can reach
-  folder can occupy works, and both behave identically. Resolved via `resolve-address`;
-  format-validated only, never checked against a tracker.
+- **`<BRD-KEY>`** (mandatory) — the slice this review answers. `resolve-address` still searches both
+  levels a `<BRD-KEY>` can name, because a root has to resolve before it can be refused by name;
+  format-validated only, never checked against a tracker. **Only a slice is reconciled**: a resolved
+  root stops with `BRD_RECONCILE_ROOT_LEVEL`, naming [`/brd-split`](brd-split.md) as the way to
+  carve one.
 - **`@<review-file>`** (mandatory) — the file the customer sent back, **at whatever path it arrived
   on**. It does not have to be inside `$SPECS_PATH`, and it is never searched for: the operator says
   which file is the review, because a file the command picked is a file nobody submitted as the
@@ -91,10 +93,10 @@ flowchart TD
     p12 --> p13["Phase 13 — Handoff"]
     p13 --> p14["Phase 14 — Next steps"]
     p14 --> p15["Phase 15 — Session maintenance, feedback & cost"]
-    p14 -.->|"on a slice + advance_ready + no unallocated row and one covered-here"| prd["/create-prd (PM)"]
-    p14 -.->|"on a slice + advance_ready"| ard["/create-ard (PA, optional)"]
-    p14 -.->|"on a slice + advance_ready"| spec["/specify (PE)"]
-    p14 -.->|"on a root BRD — its slices advance instead"| grd["/brd-ground &lt;SLICE-KEY&gt; (PA)"]
+    p14 -.->|"advance_ready + no unallocated row and one covered-here"| prd["/create-prd (PM)"]
+    p14 -.->|"advance_ready"| ard["/create-ard (PA, optional)"]
+    p14 -.->|"advance_ready"| spec["/specify (PE)"]
+    p14 -.->|"advance_ready: no — reopened decision, held customer question, unre-derived finding, or an unswept dependent"| reentry["/brd-interview, /brd-package, or /brd-ground --rebaseline, on this same &lt;BRD-KEY&gt; (PM/PA)"]
 ```
 
 `customer-review-reader` is dispatched once, on the detection chain. `workflows-core:impl-maintenance` runs in the
@@ -104,6 +106,12 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
 
 - **`<BRD-KEY>` and `@<review-file>`** — either absent or malformed stops the run with
   `BRD_RECONCILE_NEEDS_KEY` or `BRD_RECONCILE_NEEDS_REVIEW`.
+- **A slice, not a root.** The moment the folder resolves, its prefix is tested — `BRD-` is a root,
+  `PRD-` is a slice — never the folder's asserted `kind:`. A resolved root stops with
+  `BRD_RECONCILE_ROOT_LEVEL`, naming `/brd-split <BRD-KEY> "<how to cut it>"` to carve a slice and
+  then `/brd-reconcile <SLICE-KEY> @<review-file>` on it; where the root already carries
+  reconciliation artifacts written under the earlier two-level model, the stop names those files and
+  leaves them in place, unread.
 - **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the one
   level below it — stops with `BRD_RECONCILE_NOT_FOUND`, which names both ways a folder comes to
   exist rather than asserting one.
@@ -181,6 +189,9 @@ unmatched row can be told apart from a question set nobody passed.
 
 ## Gates
 
+- **Phase 0 — the root refusal, tested the moment the folder resolves.** A resolved `BRD-` root
+  stops with `BRD_RECONCILE_ROOT_LEVEL` before any other gate runs: reconciling happens at the slice
+  and nowhere else.
 - **Phase 0 — the package merged, or `--sent` supplying it.** Reconciling against a package that exists only in a working tree
   would freeze customer authority against a document nobody can produce later. `--sent` meets that same requirement from the other direction, by committing the material the customer was actually sent into the folder beside the review; it is refused where a handed-off package already exists. Allocation and the
   interview rounds are **not** re-gated: both were gated upstream, and a second differently-worded
@@ -321,14 +332,13 @@ precondition the offered command actually enforces:
 | [`/create-ard <SLICE-KEY>`](create-ard.md) (PA, optional) | **On a slice**, with no further condition | Reads only the specs tree; the PRD gate runs on every route but its `absent` branch proceeds, so no wait on a PRD that has not been authored; and it reads neither `claims:` nor the ledger |
 | [`/specify <SLICE-KEY>`](specify.md) (PE) | **On a slice**, with no further condition | The same reasons, read out of its own Phase 0 rather than assumed symmetric with `/create-prd`'s |
 
-**The level test comes first, and on a root BRD all three are dropped.** A BRD is a container:
-`prd.md`, `ard.md` and `specification.md` are authored in the `PRD-` slice folders under it, one of
-each per slice, and every one of the three refuses a `BRD-` folder in its own Phase 0
-(`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`, `SPECIFY_BRD_NOT_SLICED`). Reconciling a
-root therefore advances into its slices instead — [`/brd-ground <SLICE-KEY>`](brd-ground.md) once per
-non-empty slice, each re-entering the route on its own key and reaching this same hand-over in its
-own right. That one offer carries `<merge-clause>`, unlike the three above, because `/brd-ground`
-gates `coverage-ledger.md` on the default branch and this run wrote to a ledger.
+**A root BRD never reaches this phase.** `/brd-reconcile` refuses one at its own Phase 0, with
+`BRD_RECONCILE_ROOT_LEVEL`, naming `/brd-split <BRD-KEY> "<how to cut it>"` as the way to carve a
+slice first. `prd.md`, `ard.md` and `specification.md` are authored in the `PRD-` slice folders
+under a BRD, one of each per slice, and every one of the three also refuses a `BRD-` folder in its
+own Phase 0 (`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`, `SPECIFY_BRD_NOT_SLICED`) —
+so by the time Phase 14 makes this offer, the level question has already been settled twice over,
+once by this command's own Phase 0 and once by each command it offers.
 
 Both `/create-prd` tests are read over the slice's **own claimed ledger rows** — narrowed by
 `brd-link.md`'s `claims:` — and
@@ -366,11 +376,11 @@ short and every option on it names something this run genuinely left.
 
 ## Example
 
-Reconcile the review that came back for a synthetic customer BRD, from wherever the attachment was
-saved:
+Reconcile the review that came back for a synthetic customer BRD's slice, from wherever the
+attachment was saved:
 
 ```
-/product-workflows:brd-reconcile EPIC-008 "@~/Downloads/EPIC-008 Customer Review 20260422.md"
+/product-workflows:brd-reconcile EPIC-008-01 "@~/Downloads/EPIC-008-01 Customer Review 20260422.md"
 ```
 
 The `@<review-file>` token is **quoted**, because the command parses its arguments positionally and
@@ -379,32 +389,26 @@ a returned review routinely arrives under a name with spaces in it — the same 
 send back. Unquoted, `Customer`, `Review` and `20260422.md` are three further positional tokens and
 the path the run resolves is not the file the customer sent.
 
-The date in the name is the reviewer's own — `EPIC-008` was **packaged** on 15 April and the review
-came back finished on the 22nd — which is what makes the filename rung usable here. Had the reviewer
-returned the file still carrying the packaging date, the run would have rejected that rung and asked.
+The date in the name is the reviewer's own — `EPIC-008-01` was **packaged** on 15 April and the
+review came back finished on the 22nd — which is what makes the filename rung usable here. Had the
+reviewer returned the file still carrying the packaging date, the run would have rejected that rung
+and asked.
 
-The run gates on the package being merged — the ordinary path, where a review answering a hand-authored package takes `--sent` instead — copies the file to `customer-review-20260422.md` and
+The run gates on the package being merged — the ordinary path, where a review answering a
+hand-authored package takes `--sent` instead — copies the file to `customer-review-20260422.md` and
 offers to commit it, dispatches `customer-review-reader`, surfaces every schema anomaly before
 anything is confirmed, walks each candidate against its verbatim quotation, freezes the confirmed
 answers as `[CD#n]` and closes their `[C]` questions, applies the review's required changes, banners
 the dated prompt and self-review the answers overturned, writes `customer-amended 20260422` and
 `withdrawn` rows to the defect log, moves the ledger rows the decisions settled, sweeps `EPIC-014`
 and every other dependent starting with its `conditional_on` positions, sweeps every artifact under
-the parent for the changed ids and for prose still asserting the old position, and writes
-`reconciliation-<date>.md`.
+`EPIC-008` — this slice's parent — for the changed ids and for prose still asserting the old
+position, and writes `reconciliation-<date>.md`.
 
-Phase 14 then hands the route over — **and `EPIC-008` is a root BRD, so the hand-over is into its
-slices, not into the PRD pipeline.** A BRD is a container: its requirements are built by the `PRD-`
-slices under it, one PRD, one ARD and one specification each, and all three of those commands refuse
-a `BRD-` folder. What this run offers is therefore:
-
-```
-/product-workflows:brd-ground EPIC-008-01     # once per non-empty slice
-```
-
-Run against the slice instead, all three exits are offered off that one key once its own
-reconciliation leaves nothing to re-enter for and its own ledger leaves no row `unallocated` and at
-least one `covered-here`:
+Phase 14 then hands the route over. Nothing this run left behind reopened a decision, held a `[C]`
+for the customer, left a finding to re-derive, or left a dependent only recorded — so
+`advance_ready` is `yes` — and this slice's ledger leaves no row `unallocated` and at least one
+`covered-here`, so all three exits are offered off the same key:
 
 ```
 /product-workflows:create-prd EPIC-008-01
@@ -412,9 +416,11 @@ least one `covered-here`:
 /product-workflows:specify EPIC-008-01
 ```
 
-Had that slice run left a row `unallocated`, or left none `covered-here`, the first line would be
+Had this ledger left a row `unallocated`, or left none `covered-here`, the first line would be
 dropped from the offer and the stop would say which test failed; the other two would still be
-offered.
+offered. Had the run instead reopened a decision or left a question held for the customer,
+`advance_ready` would be `no`, and Phase 14 would offer the re-entry the trigger names — another
+`/brd-interview` round, a re-package, or a `/brd-ground --rebaseline` pass — never the three above.
 
 ## See also
 

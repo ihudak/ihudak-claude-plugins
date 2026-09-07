@@ -305,7 +305,7 @@ that carves the slices.
 
   | How every row left `covered-here` | What the consumer says |
   |---|---|
-  | **The folder is a `BRD-` container** — decided on the folder, before a row is read | Every row of a root's ledger ends `covered-by`, `deferred-to`, `rejected` or `superseded-by`; `covered-here` is not among them, and a root row carrying one is a ledger written before a BRD became a container, or edited by hand. Refuse on the level and name the `PRD-` slices under the container, one PRD each — enumerated by `/brd-split` Phase 0 step 9's positive test (an immediate subdirectory whose `brd-link.md` `parent:` names this BRD), never by a name match. Where the container holds no slice at all, the run that carves one is `/brd-split` on it — which is a **no-op** on a ledger with no `unallocated` row (§4), so a consumer naming it must say what the operator does then rather than leaving the offer to fail silently |
+  | **The folder is a `BRD-` container** — decided on the folder, before a row is read | Every row of a root's ledger ends `covered-by`, `deferred-to`, `rejected` or `superseded-by`; `covered-here` is not among them, and a root row carrying one is a ledger written before a BRD became a container, or edited by hand. Refuse on the level and name the `PRD-` slices under the container, one PRD each — enumerated by `/brd-split` Phase 0 step 9's positive test (an immediate subdirectory whose `brd-link.md` `parent:` names this BRD), never by a name match. Where the container holds no slice at all, the run that carves one is `/brd-split <BRD-KEY> "<how to cut it>"` — a run with rows still to place has no findings to group them by and refuses without the instruction — and it is a **no-op** on a ledger with no `unallocated` row (§4), so a consumer naming it must say what the operator does then rather than leaving the offer to fail silently |
   | Some rows are `covered-by: <SLICE-KEY>` — the ordinary shape on a parent | Name those slices — and, per §6.1, which of them did not build the row delegated to it. A slice that deferred, rejected or has not allocated it is not somewhere to send the reader |
   | No row is `covered-by` | Name no slice, because none holds one of these rows — and say what the rows *did* resolve to rather than calling them all obligations. The three remaining dispositions say different things: a `deferred-to` row is a live obligation of this folder, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. This is also the only shape a **slice** reaches, for the reason the paragraph below gives: no row of the set eligibility is read over on a slice can be `covered-by`. On a slice, add that a PRD needs one row resolved `covered-here` first |
 
@@ -416,20 +416,24 @@ root BRD carries both; requiring both would let a folder left half-written by an
 pass the test and take a PRD authored into it. One of them is already evidence that the BRD route
 touched this folder, which is the only question this test asks.
 
-**It reads no PRD artifact, and that is what lets all four consumers share one rule.** The four are
-`/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a), `/specify` (step s0) and `/epics`
-(step 1a) — read that as a list, not as a count, and re-derive it against the tree rather than
-adjusting it. `/create-prd` cannot test for `prd.md` — it is the run that is about to write it — so
-a test keyed off the PRD's presence would have to be worded differently in `/create-prd` than in the
-other three, and four copies of one rule is the drift this file exists to prevent.
+**It reads no PRD artifact, and that is what lets all eight consumers share one rule.** The eight
+are `/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a), `/specify` (step 0), `/epics`
+(step 1a), `/brd-ground` (step 5a), `/brd-interview` (step 5a), `/brd-package` (step 5a) and
+`/brd-reconcile` (step 5a) — read that as a list, not as a count, and re-derive it against the tree
+rather than adjusting it. `/create-prd` cannot test for `prd.md` — it is the run that is about to
+write it — so a test keyed off the PRD's presence would have to be worded differently in
+`/create-prd` than in the other seven, and eight copies of one rule is the drift this file exists to
+prevent. The four `/brd-*` commands take this test for a different consequence than the first four —
+they refuse to *run at all* against a root, rather than refusing to *author into* one — but the test
+itself, the positive evidence of BRD-ness, is the one this section fixes and is unchanged either way.
 
 **`/epics` is a consumer even though it *can* read `prd.md`, and that is the point.** Its step 1b
 gates on `prd.md`'s own `kind: prd`, which an unprefixed container fails for holding no `prd.md` —
 so an absence test looks sufficient. It is not, because 1b's stop names `/create-prd` as the remedy
 and `/create-prd` takes this test and refuses the same folder as a container: a stop whose remedy
 stops. The container refusal must therefore be taken one step earlier, at 1a, on the same evidence
-the other three use. A rule stated as covering three consumers while a fourth needed it is how that
-dead end shipped.
+`/create-prd`, `/create-ard` and `/specify` use. A rule stated as covering three consumers while a
+fourth needed it is how that dead end shipped.
 
 A prefixed tree never reaches this test at all, exactly as it never reaches `workflows-core:addressing` §5.
 
@@ -442,7 +446,7 @@ resolved slice's own ledger (`commands/create-prd.md` Phase 0 step 7):
 
 | Tested on | Fires when | What `/create-prd` then names |
 |---|---|---|
-| the resolved folder's kind (§5, §5.1) | it is a `BRD-` container | `CREATE_PRD_BRD_NOT_SLICED` — the `PRD-` slices under it, or `/brd-split` where there are none |
+| the resolved folder's kind (§5, §5.1) | it is a `BRD-` container | `CREATE_PRD_BRD_NOT_SLICED` — the `PRD-` slices under it, or `/brd-split <BRD-KEY> "<how to cut it>"` where there are none |
 | the gate set | a row is still `unallocated` | `CREATE_PRD_BRD_UNALLOCATED` — `/brd-split <SLICE-KEY>`, whose walk moves exactly those rows |
 | the gate set | no row is `covered-here` | `CREATE_PRD_BRD_NOT_ELIGIBLE` — `/brd-split <PARENT-KEY>` where the gate set is **empty** (a standing empty child), and **no command at all** where it is non-empty |
 

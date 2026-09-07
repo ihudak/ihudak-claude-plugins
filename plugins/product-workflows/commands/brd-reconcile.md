@@ -1,6 +1,6 @@
 ---
 name: brd-reconcile
-description: BRD reconciliation workflow (PM phase, sixth and last command of the BRD-to-PRD route). Takes the customer's returned review at whatever path it arrived on, copies it into the BRD folder under the canonical name and commits it before anything reads it, then dispatches customer-review-reader in schema or free-text mode. Confirms every free-text candidate with the operator one at a time against its verbatim quotation before it can become a [CD#n], and never widens the reader's mode. Freezes the confirmed answers as [CD#n], closes each [C] question with the terminal disposition answered by the customer, applies the review's required corrections, banners superseded dated snapshots instead of rewriting them, writes customer-amended and withdrawn resolutions to the defect log, and moves coverage-ledger rows without touching allocation. Then sweeps every dependent BRD — conditional_on positions first — to inherited-unchanged, reverted, reopened or withdrawn, and sweeps every artifact under the parent for the changed ids and for prose still asserting a superseded position. Writes reconciliation-<YYYYMMDD>.md. Normally gates on the package /brd-package built and handed off; --sent admits a review of a hand-authored or out-of-band package instead, by taking the material the customer was actually sent and committing it beside the review. Takes no --no-docs and does no documentation grounding.
+description: BRD reconciliation workflow (PM phase, the BRD-to-PRD route's last command). Takes the customer's returned review at whatever path it arrived on, copies it into the BRD folder under the canonical name and commits it before anything reads it, then dispatches customer-review-reader in schema or free-text mode. Confirms every free-text candidate with the operator one at a time against its verbatim quotation before it can become a [CD#n], and never widens the reader's mode. Freezes the confirmed answers as [CD#n], closes each [C] question with the terminal disposition answered by the customer, applies the review's required corrections, banners superseded dated snapshots instead of rewriting them, writes customer-amended and withdrawn resolutions to the defect log, and moves coverage-ledger rows without touching allocation. Then sweeps every dependent BRD — conditional_on positions first — to inherited-unchanged, reverted, reopened or withdrawn, and sweeps every artifact under the parent for the changed ids and for prose still asserting a superseded position. Writes reconciliation-<YYYYMMDD>.md. Normally gates on the package /brd-package built and handed off; --sent admits a review of a hand-authored or out-of-band package instead, by taking the material the customer was actually sent and committing it beside the review. Takes no --no-docs and does no documentation grounding.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -9,7 +9,7 @@ asserting a position it overturned: $ARGUMENTS
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
-`/brd-reconcile` is the **sixth and last command of the BRD-to-PRD flow** (PM phase) — it takes the
+`/brd-reconcile` is the **BRD-to-PRD route's last command** (PM phase) — it takes the
 file that came back from the package `/brd-package` sent, freezes what the customer actually decided,
 and then goes looking for everything the delivery organisation still believes that their answer has
 made false. Its whole discipline is one rule: **a customer decision enters the register only when
@@ -19,12 +19,13 @@ happen, not to restate it.
 
 Usage: `/brd-reconcile <BRD-KEY> @<review-file> [--sent <path>…]`
 
-Runs at either of the two levels `<BRD-KEY>` can name
-(`workflows-core:addressing` §6) — a BRD that owns its source document, or
-one of its slices. It refuses neither and behaves identically at both: a slice holds its own
-register, its own `[C]` question set and its own ledger, and it is reconciled from those and no
-others. Two things a slice does differently are named where they arise, and both follow from
-inheritance rather than from level: its defect resolutions land in its **parent's** defect log
+`<BRD-KEY>` still resolves through either of the two levels `resolve-address` searches
+(`workflows-core:addressing` §3) — a BRD that owns its source document, or one of its slices —
+because a root must be resolved before Phase 0 step 5a can refuse it by name. **Only a slice is
+reconciled: a root BRD is refused, and reconciling happens at the slice and nowhere else** — a slice
+holds its own register, its own `[C]` question set and its own ledger, and it is reconciled from
+those and no others. Two things follow from inheritance and are named where they arise: its defect
+resolutions land in its **parent's** defect log
 (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1), and the stale cross-reference sweep's root
 is the **parent's** folder, so a sibling slice still asserting a superseded position is reached.
 
@@ -171,6 +172,29 @@ write would re-ask a question already answered.
    `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it:
    `BRD_RECONCILE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent.`
+5a. **The root refusal — reconciling happens at the slice and nowhere else.** Take this the moment
+    step 5 returns a resolved folder, before step 6 opens anything — the level question is answered
+    before any gate that follows it. Test the **resolved directory's prefix**: `BRD-` is a root,
+    `PRD-` is a slice — the kind-prefix convention `workflows-core:addressing` §2 fixes, read off
+    the resolved folder's own name. **Never test the folder's asserted `kind:`** — `/brd-split`
+    writes `kind: brd` into the `brd-link.md` it places inside the `PRD-` slice folder it carves
+    (`commands/brd-split.md` Phase 3), so a slice **asserts** `brd` while being exactly the folder
+    this refusal must accept; a gate on the asserted kind would refuse every slice and accept
+    nothing.
+
+    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
+    fallback, there is no prefix to test.** Answer the root question by **positive evidence, never
+    by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1,
+    the shared authority every consumer of this test takes it from, and not restated here.
+
+    On a root, look for the root-level artifacts this run would have produced under the retired
+    two-level model — any `customer-review-<YYYYMMDD>.md` or `reconciliation-<YYYYMMDD>.md` already
+    in the folder — and name whichever exist in the stop, so an operator whose BRD was reconciled
+    under that model is told the level moved rather than that their key is wrong. Never delete
+    them; they record work done, and nothing in this run reads them.
+
+    Stop:
+    `BRD_RECONCILE_ROOT_LEVEL: <BRD-KEY> is a root BRD, and reconciling happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-reconcile <SLICE-KEY> @<review-file>'.<where root-level artifacts exist, append:> This BRD carries root-level reconciliation artifacts at <paths> from the earlier two-level model; it is left in place and nothing reads it.`
 6. **Gate the sent package on main — unless `--sent` supplied one.**
 
    **What this gate is actually for, and why `--sent` can satisfy it.** The *Why the gate is the
@@ -880,8 +904,7 @@ Because the log belongs to another BRD, **the cross-BRD write guard applies here
 `require-on-main` against the parent's `brd/brd-defect-log.md` first, and on any stopping row record
 the resolutions rather than writing them, naming the parent's branch/PR state. A parent whose defect
 log is mid-review is a parent somebody is editing, and a resolution written over it is a defect
-classification lost without trace. On a source-owning BRD the log is this run's own and the guard does
-not fire.
+classification lost without trace.
 
 ---
 
@@ -917,9 +940,11 @@ defect log, or a fresh source document through `/product-workflows:brd-intake`.
 
 **The roll-up, and what this phase must not do with it** (D23, `coverage-ledger-format.md` §6.1).
 The ledger line resolves every `covered-by: <BRD-KEY>` row **one hop** through the named BRD's
-own ledger — the named child on a BRD that owns its source document, the named sibling or parent on
-a slice (`coverage-ledger-format.md` §3) — and every term in it is a *resolved* count rather than a
-census of what the file says.
+own ledger — this run always stands on a slice (on the ordinary path, step 6 already confirmed a
+`customer-review-prompt-<YYYYMMDD>.md` is on main, and that file is written exclusively by
+`/brd-package`, which itself refuses to run on a root), so that is always
+the named sibling or parent (`coverage-ledger-format.md` §3) — and every term in it is a *resolved*
+count rather than a census of what the file says.
 Two consequences bind this phase:
 
 - **Decisions about this ledger read the dispositions written in this file, never the line.** The
@@ -1043,9 +1068,8 @@ re-run that skipped it would silently refuse to.
 ## Phase 11 — The stale cross-reference sweep
 
 **The sweep is not optional, and it is not a grep.** Its root is the **parent's** folder — the
-source-owning BRD's directory and every slice inside it — so that when this run stands on a slice, a
-*sibling* slice still asserting a superseded position is reached. Standing on a source-owning BRD,
-the root is that BRD's own folder, which is the same set. Every markdown file under it is in scope:
+source-owning BRD's directory and every slice inside it — so that a *sibling* slice still asserting a
+superseded position is reached. Every markdown file under it is in scope:
 the seeds, `slices.md`, the inventory, the ledger, the grounding files, every register, every round
 record, and every dated snapshot.
 
@@ -1182,21 +1206,16 @@ under the parent checked for a position the answer overturned. That is the state
 route's exit was waiting for, and **all three BRD routes ship** — so this phase offers them,
 each under the precondition the offered command actually enforces rather than under an assumed one:
 
-**All three are conditioned on the level first, and on a root BRD all three are dropped.** A BRD is a
-container: `prd.md`, `ard.md` and `specification.md` are authored in the `PRD-` slice folders under it,
-one of each per slice, and every one of the three commands refuses a `BRD-` folder in its own Phase 0
+**This run always stands on a slice** — on the ordinary path, step 6 already confirmed a
+`customer-review-prompt-<YYYYMMDD>.md` is on main, and that file is written exclusively by
+`/brd-package`, which itself refuses to run on a root — so there is no level branch
+to take here, and none of the three commands' own container refusals
 (`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`, `SPECIFY_BRD_NOT_SLICED`;
-`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5). Read the level off this run's own
-`brd-link.md` `parent:`, exactly as the rest of this file does — `parent:` present is a slice, absent
-is a root. Naming any of the three against a root key would hand the operator a run that stops on its
-first phase, which is the same defect the eligibility condition below exists to avoid, one level up.
-**On a root the advance list is the slices instead**, named by `/brd-split` Phase 0 step 9's positive
-test (an immediate subdirectory whose `brd-link.md` `parent:` names this BRD) — see the
-`advance_ready: yes` arrays below, of which there are two: one for a slice and one for a root.
+`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5) can fire against the `<SLICE-KEY>`
+this phase offers.
 
-- **`/product-workflows:create-prd <SLICE-KEY>` is offered only where this run stands on a slice and
-  that slice is PRD-eligible** — the level test above, then two more, both read off
-  `coverage-ledger.md` as this run left it and both owned by
+- **`/product-workflows:create-prd <SLICE-KEY>` is offered only where this slice is PRD-eligible** —
+  two tests, both read off `coverage-ledger.md` as this run left it and both owned by
   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5: **no** row of
   this slice's ledger is still `unallocated`, and **at least one** of them is `covered-here`.
   **The rows are this slice's ledger rows, narrowed by its `brd-link.md` `claims:`.** This
@@ -1206,10 +1225,9 @@ test (an immediate subdirectory whose `brd-link.md` `parent:` names this BRD) �
   wrote to a terminal disposition (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2,
   §3). `claims:` names none of them, and an orphan row is never `covered-here` and never
   `unallocated`, so it can neither add the option nor withhold it however it is read.
-  Those two tests are exactly the two *data* refusals that command's own Phase 0 raises
-  (`CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE`), and the level test above is its
-  third (`CREATE_PRD_BRD_NOT_SLICED`) — so naming the option where any of the three
-  fails would hand the operator a run that stops on its first phase. **Read the dispositions off the
+  These two tests are exactly the two *data* refusals that command's own Phase 0 raises
+  (`CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE`) — so naming the option where
+  either fails would hand the operator a run that stops on its first phase. **Read the dispositions off the
   ledger file, never off a `ledger:` line** — that line's `unallocated` term is a *resolved* count
   that also holds rows the BRD they name has not walked yet (§6.1), so keying the offer to it would
   withhold the option from a slice whose own gate is fully satisfied. Where either test fails, **drop the option
@@ -1220,8 +1238,8 @@ test (an immediate subdirectory whose `brd-link.md` `parent:` names this BRD) �
   here and not inconsistent with the in-text conditions the other options carry: those name a state
   the reader can judge for themselves, while this one names a hard refusal in another command's
   Phase 0.
-- **`/product-workflows:create-ard <SLICE-KEY>` and `/product-workflows:specify <SLICE-KEY>` are offered on
-  the level test alone**, with no further condition of their own, and
+- **`/product-workflows:create-ard <SLICE-KEY>` and `/product-workflows:specify <SLICE-KEY>` are always
+  offered**, with no condition of their own, and
   that is read out of their own Phase
   0s rather than assumed symmetric with `/create-prd`'s. Neither reads outside the specs tree, so neither
   needs anything outside the specs tree; both run the PRD gate — on every route, as of increment E —
@@ -1258,7 +1276,7 @@ None true → `advance_ready: yes`. Each re-entry option below is **also** condi
 trigger and dropped where that trigger did not fire, exactly as the `/create-prd` option is dropped
 on a failed eligibility test — so the second array is typically two or three options long, not six.
 
-**`advance_ready: yes` on a slice — the route is finished with this slice and crosses into the PRD
+**`advance_ready: yes` — the route is finished with this slice and crosses into the PRD
 pipeline.** Print the full list as prose first, per
 `workflows-core:next-phase-offer`'s
 overflow rule — five routes do not fit in four slots, and the prose is what carries all of them:
@@ -1279,35 +1297,6 @@ choices: ["Stop here — the decisions are frozen and both sweeps are recorded",
 among four forward ones and this run has just finished the slice it was given. Say so in the line
 under the prompt: the list above is longer than the options, and anything on it is reachable through
 the free-text option.
-
-**`advance_ready: yes` on a root BRD — the route is finished with the container and hands over to its
-slices, not to the PRD pipeline.** All three PRD-pipeline options are dropped, and the stop says why
-rather than going quiet: a BRD is a container, and each of the three refuses a `BRD-` folder in its
-own Phase 0. What advances is each `PRD-` slice under this BRD, on its own route pass — a slice
-re-enters at `/product-workflows:brd-ground <SLICE-KEY>`, runs `/product-workflows:brd-split <SLICE-KEY>`
-allocate-only on its own ledger, and reaches this same phase in its own right, where the three
-options above are then real. Enumerate the slices by `/brd-split` Phase 0 step 9's positive test and
-name each one; a slice whose `claims:` list is empty is a **standing empty child** and is named as a
-fact and offered as nothing, because `/product-workflows:brd-ground` stops on it at
-`BRD_GROUND_EMPTY_INVENTORY` (`workflows-core:next-phase-offer`). **That offer
-carries `<merge-clause>`** — unlike the three PRD-pipeline options, which wait on nothing this run
-wrote — because `/product-workflows:brd-ground`'s own Phase 0 gates `coverage-ledger.md` on
-`origin/<default>`, and this run wrote to a coverage ledger.
-
-```
-Where this run can go next:
-  • Ground a slice                  — /product-workflows:brd-ground <SLICE-KEY> <merge-clause>  (PA), once per non-empty slice
-  • Reconcile another BRD or slice  — /product-workflows:brd-reconcile <KEY> @<review-file>
-```
-
-```
-choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Ground a slice — /product-workflows:brd-ground <SLICE-KEY> <merge-clause> (PA), once per non-empty slice", "Reconcile a slice — /product-workflows:brd-reconcile <SLICE-KEY> @<review-file> (PM)"]
-```
-
-**A root whose every slice has already been ground, split, interviewed, packaged and reconciled has
-nothing left here, and the stop says that plainly** rather than naming a run that would report
-nothing new. The PRD, the ARD and the specification are then authored against the slice keys, one
-folder each, and this container's own key never appears in any of the three.
 
 **`advance_ready: no` — the three the BRD route options are left out rather than offered and
 consumed against an unsettled register**, and each remaining option appears only where its own
@@ -1335,7 +1324,7 @@ and the array carries `Stop here` plus the three whose triggers this run's own o
 pressing — say in one line that the list is longer than the options and that the fourth is reachable
 through the free-text option.
 
-**"Reconcile another BRD or slice" is on both `advance_ready: yes` lists and not on the third**, and the omission is
+**"Reconcile another BRD or slice" is on the `advance_ready: yes` list and not on the `advance_ready: no` one**, and the omission is
 the point rather than an oversight: it names work on a *different* key, and offering it to an
 operator whose current BRD has an unsettled register is how a reopened decision gets left standing
 while attention moves elsewhere. The harness's free-text option still reaches it for anyone who means it.
@@ -1406,8 +1395,8 @@ gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt before
 escalating. One of this command's stops qualifies and is the reason the invariant is named here:
 `BRD_RECONCILE_READER_CONTRACT` is an agent-contract gap — a dispatch this command owns that its own
 agent refused. None of the others do: a missing or malformed key, an unreadable review, an unresolved
-BRD, an ungated or absent package, a review file that already exists under a different content, and
-an unset `$SPECS_PATH` are environment or sequencing halts. `BRD_RECONCILE_UNCONFIRMED`,
+BRD, a resolved root BRD, an ungated or absent package, a review file that already exists under a
+different content, and an unset `$SPECS_PATH` are environment or sequencing halts. `BRD_RECONCILE_UNCONFIRMED`,
 `BRD_RECONCILE_UNDISPOSED_CORRECTION` and `BRD_RECONCILE_UNSWEPT` are not either — they are the gates
 working.
 
@@ -1465,8 +1454,10 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 ```
 
 **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
-owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot be
+`resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — this run always stands on a slice
+(on the ordinary path, step 6 already confirmed a `customer-review-prompt-<YYYYMMDD>.md` is on main,
+and that file is written exclusively by `/brd-package`, which itself refuses to run on a root), so
+that is always a sibling or the parent (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). Every term is a **resolved** count, and
 the `unallocated` term does not track the allocation gate — a non-zero one here is a row this BRD
 delegated to a BRD that has not walked it yet, which is the resolution working and never this run

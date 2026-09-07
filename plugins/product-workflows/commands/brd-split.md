@@ -128,7 +128,7 @@ four-resolution one.
      `BRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants. Naming it here
      would be the loop, so name the upstream fix instead — this step now runs only in
      `split_mode: allocate-only`, so the fix is always the parent:
-     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
+     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removal — or keeping this slice against a recorded reason — is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it: the one case in which this command re-allocates a row already carrying a fate, and the only way other than removal that this slice's state can change.`
    `unmanaged` → proceed as before this feature.
 7. **Gate on verification — and on there being grounding to verify.** **This step and step 6 run in `split_mode: allocate-only` only.** A root BRD is never ground — grounding and the customer interview happen at the slice and nowhere else — so on a `full` run there is no grounding to gate and both steps are skipped entirely. There is no `coverage-ledger.md` gate to keep: step 8 reads that ledger in both modes with a plain worktree read, never a `require-on-main` gate, which is why `workflows-core:phase-handoff` §4.0 classes it — and `brd/brd-inventory.md` beside it — **advisory** at a root. Three tests, in this order.
    **The order is the fix to a shipped defect and is not incidental:** the third is a *count*, and a
@@ -211,15 +211,17 @@ four-resolution one.
    walk, not here. Child ledgers are read once, in the Final Report, and only to count the line
    (`coverage-ledger-format.md` §6.1). **Zero rows are `unallocated`** → set `unallocated_zero: true`.
 
-   **That is only half the no-op test, and the missing half was a dead end.** A run is a no-op only
+   **That is one part of the no-op test and not the whole of it, and the first missing part was a dead end.** A run is a no-op only
    when there is nothing left for *any* phase to do, and Phase 4.5 has work of its own that the
    ledger cannot see: a child left standing while claiming nothing. Deciding the no-op on the ledger
    alone made that child unreachable — the ledger of a parent whose walk completed has zero
    `unallocated` rows **by construction**, so every later run no-op'd, Phase 4.5 never ran, and the
    only command that can remove an empty child never offered to. Three stops elsewhere on this route
    name this command as the fix for exactly that child, so the no-op has to account for it. The
-   second half needs step 9's enumeration, so **the no-op decision is taken in step 10**, never
-   here.
+   other two parts need step 9's enumeration and step 9a's candidate set, so **the no-op decision is
+   taken in step 10**, never here.
+
+   **A re-cuttable row is the other thing this count cannot see, and it is a second reason a fully-allocated ledger does not settle the question.** A row this BRD delegated to a child that has since recorded, in its own ledger, that it will not build it reads `covered-by: <A>` here and `deferred-to: <A>` there — two terminal dispositions, so the count is zero, and yet nobody is building the requirement (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2). Step 9a builds that set and step 10 tests it before the no-op, so the run that can move such a row is reached instead of being swallowed by the no-op it would otherwise look identical to.
 
    **Step 10 and not step 9, because step 9 does not run in every mode.** Step 9 is `full` only, so
    a decision taken inside it is never taken at all on a fully-allocated slice — the run would fall
@@ -253,15 +255,30 @@ four-resolution one.
    no-op test in step 10 needs. **Carry the marked set forward even when it is empty** — step 10
    reads it in both modes, and in `allocate-only`, where this step never ran, it is empty by
    construction because no child exists or can be created below a slice.
+9a. **Build the re-cut candidate set — `split_mode: full`, an instruction, and a fully-allocated ledger.** This step runs only where **all three** hold: `split_mode: full`, step 1a parsed an `<instruction>`, and step 8 set `unallocated_zero: true`. On any other run it does not run at all and the **re-cut candidate set** is empty. Step 10 tests that set first and sets `recut_mode: true` where it is non-empty. **The third condition is what keeps one argument from meaning two things in one run.** Where any row is still `unallocated` the instruction already means *group those rows*, and Phase 1.5 spends it against them; reading the same sentence a second time as *peel this off a sibling* would put two interpretations of one string into one run with nothing to choose between them. A parent whose ledger is fully allocated is the only run on which that sentence is otherwise free, which is why the re-cut needs no flag of its own and takes none.
+
+   **What a candidate is** (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2, the authority for every rule this step executes rather than restates). A row is re-cuttable only where two ledgers already agree that nobody is building it: this BRD's row for a `[BR#n]` reads `covered-by: <A>`, and A's own row for that same `[BR#n]` reads `deferred-to: <A>`. For each child enumerated in step 9, in the worktree:
+   - Read that child's `coverage-ledger.md` and take every row whose `disposition` is `deferred-to: <that child's key>`.
+   - Take this BRD's own rows whose `disposition` is `covered-by: <that child's key>`.
+   - **Intersect the two by `[BR#n]`.** Each `[BR#n]` in the intersection joins the re-cut candidate set as `{ [BR#n], donor key, the donor's ledger row }` — the donor being the child whose two rows made the pair.
+
+   **Read the `disposition` column at both levels — never `claims:`, and never either inventory.** §3.1 names that trap from the other side, for the interview's scope test, and it is the same trap here: a child still `claims:` a row it has deferred, and a source-owning BRD's inventory holds every `[BR#n]` whatever its fate, so either would put rows in the candidate set that neither ledger says are movable.
+
+   **A child whose `coverage-ledger.md` cannot be read is not a donor, and that is reported rather than skipped silently.** An unreadable ledger is `unresolved`, never `covered` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6.2). Name the child and the read failure here and again in the final report; never infer an empty `deferred-to` set from a read that failed.
+
+   **Then compute the eligible receiver set**, executing §3.2's not-interviewed test rather than restating it. A child from step 9 is **ineligible** where its folder holds a `decisions.md` carrying at least one `[VD#n]` or `[CD#n]` record, **or** where any `interview/round-*.md` exists in it. Every other child is eligible, and so is every child Phase 3 keys on this run, which has neither by construction. **Read the worktree, not a ref** — an interview that happened is an interview that happened whether or not its record has merged, and a receiver cleared against a ref that has not caught up is one whose customer conversation has already started. **Being interviewed disqualifies a receiver, never a donor**: A holding a `[VD#n]` about deferring the row is the ordinary case, and that decision records A's refusal to build it, which the re-cut leaves standing.
+
+   **Report both sets before anything else runs**: how many rows are re-cuttable and from which donors, which children are eligible receivers, and — where the candidate set is empty while children exist — **which of the two reasons made it empty**, no child holding a `deferred-to` row of its own, or every such row being one this BRD did not delegate to that child. An operator who typed an instruction on a fully-allocated parent and got a no-op needs to see which it was: "nothing to re-cut" without the reason is indistinguishable from an instruction the command failed to parse.
+
+   **No stop is taken here, and the one a reader will look for here cannot arise here.** A non-empty candidate set with no eligible child standing is not a stop: Phase 3 can key a new slice, and a slice this run creates is eligible by construction. The state that would be a stop — a non-empty candidate set, no eligible child, **and** a parent that cannot take a new one — is unreachable, because a parent can always take a new child. What is reachable is a walk left with nothing to offer: every receiver it proposed declined, and no eligible child standing. That state is `BRD_SPLIT_RECUT_NO_RECEIVER`, and **Phase 4's Step 2R owns it and states it** — the only phase that can reach it. This step names it so that a reader looking for the no-receiver case in Phase 0 is sent to where it actually lives.
 10. **Take the no-op decision — both modes, always.** This step runs whether or not step 9 did, which
     is the whole reason it is its own step: the decision must be reached on a slice exactly as on a
-    parent.
+    parent. **The branches below are tested in the order they are written, and the first that matches is the run's path** — the re-cut is tested before the no-op because a fully-allocated ledger satisfies the front of both conditions and only one of them is the run the operator asked for.
+    - `unallocated_zero` (step 8) **and** the re-cut candidate set from step 9a is non-empty → **the re-cut run**. Set `recut_mode: true` and carry it for the whole run; every later phase branches on `recut_mode` by name. Phase 1.5 runs over the candidate set rather than over an empty unallocated set, Phase 2 proposes from that placement, Phase 3 keys what it confirms, Phase 4 runs its Step 2R re-cut walk in place of Step 2, and Phases 4.5, 5, 6 and 7 run as usual. **This is the path on which an instruction typed against a fully-allocated parent means something** — the one run where the argument this route already made mandatory for carving a root is otherwise free, which is what the re-cut is invoked by instead of a flag. **A standing empty child alongside it changes nothing**: Phase 4.5 runs on this path exactly as it runs on the ordinary one, so a parent holding both a re-cuttable row and an empty child resolves both in the same run rather than taking the Phase 4.5-only path below.
     - `unallocated_zero` (step 8) **and** no standing empty child (step 9, empty by construction in
-      `allocate-only`) → this run is a **no-op** (§4): nothing in Phases 2–5 and nothing in Phase 4.5
+      `allocate-only`), the branch above having not fired → this run is a **no-op** (§4): nothing in Phases 2–5 and nothing in Phase 4.5
       has anything left to do, so skip straight to Phase 6 (Handoff), which will report nothing to
-      commit, and the Final Report's ledger line. **A slicing instruction does not make this run
-      not-a-no-op**, and it is not a reason to walk a row that already carries a fate: Phase 1.5
-      skips on an empty unallocated set and reports the instruction unused, naming this path. This is the path a fully-allocated slice takes, and
+      commit, and the Final Report's ledger line. **A slicing instruction makes this run not-a-no-op exactly where step 9a found a re-cuttable row, and nowhere else**: where it found none the run is still a no-op, and an instruction is still not a reason to walk a row that already carries a fate. Phase 1.5 skips on an empty unallocated set and an empty candidate set alike and reports the instruction unused, naming this path and, from step 9a's report, why nothing was re-cuttable. This is the path a fully-allocated slice takes, and
       the one Phase 7 tells a slice to expect.
     - `unallocated_zero` **but at least one standing empty child** (`full` only — a slice can have
       none) → **not a no-op**: skip Phases 2, 3 and 4, which have no row to walk and no slice to
@@ -275,12 +292,12 @@ four-resolution one.
     was given, `split_mode: full`, **and step 10 chose the ordinary run** — at least one row is still
     `unallocated`, so Phase 2 has rows to cluster and no findings to cluster them by → stop:
     `BRD_SPLIT_NEEDS_INSTRUCTION: /brd-split on <BRD-KEY> needs a slicing instruction — a root BRD is never ground, so there are no findings to cluster candidate slices from. Re-run '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"' naming the slice you want carved. On a slice the instruction stays optional: its walk takes recommendations from one but does not need it.`
-    On step 10's other two paths the ledger has no `unallocated` row, so Phase 2 proposes nothing and
+    On step 10's other **three** paths this stop cannot fire, and for two different reasons. On the no-op path and the Phase 4.5-only path the ledger has no `unallocated` row, so Phase 2 proposes nothing and
     there is nothing for an instruction to group: the run continues without one. That is what keeps
     the **Phase 4.5-only path reachable on a bare `/product-workflows:brd-split <BRD-KEY>`**, which it
     has to be — the stops that name this run as the fix for a standing empty child are asking for a
     child to be resolved, not for a slice to be carved, and Phase 1.5 discards an instruction on a
-    run with no row to place. In `allocate-only` the instruction is optional on every path and this
+    run that has neither a row to place nor a re-cuttable one. On the **re-cut path** the stop is unreachable by construction: step 9a runs only where step 1a parsed an instruction, so a run that reached that branch has one, and this step's own condition — no instruction given — can never hold there. In `allocate-only` the instruction is optional on every path and this
     step never fires.
 
 ---

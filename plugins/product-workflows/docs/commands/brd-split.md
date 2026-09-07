@@ -112,9 +112,24 @@ that may reopen a decision ([`decision-register-format.md`](../../references/dec
 §4) — or a slice this same run carves, which has neither by construction. Being interviewed disqualifies a
 **receiver** and never a **donor**, so an uninterviewed donor stays eligible for every other row; what
 excludes it is a per-row clause instead — **a row's own donor is never that row's receiver**, so a standing
-child donating any row in a group cannot be that group's target. Phase 0 step 9a reports both sets before
-anything else runs, names the children it excluded and why, and — where the candidate set is empty while
-children exist — says which of the two reasons emptied it, so "nothing to re-cut" is never
+child donating any row in a group cannot be that group's target.
+
+**A second per-row clause sits beside that one: a child already holding a ledger row for that `[BR#n]` is
+not a receiver for that row.** The seeded row on a receiver is a **new** row born in the initial state, and
+where a row for that id already exists there is no new row to be born: writing `unallocated` over it would
+return a terminal row to the initial state, which no command may do, and leaving it would have the receiver
+claim a requirement its own ledger says somebody else owns — a row its `allocate-only` walk never visits,
+since that walk visits only `unallocated` rows, so it could never reach `covered-here`. The state is
+ordinary rather than exotic: a child whose provisional claim on that same `[BR#n]` an earlier walk withdrew
+holds exactly one orphan row for it and stays standing on its other claims, which is often the very child
+you would name. Where the requirement is genuinely that child's to build, the two routes that work are
+Phase 4.5's removal repair, which returns the requirement to the parent's own live obligations, and a
+**new sibling**, which holds no row for anything and is eligible for every candidate by construction.
+
+Phase 0 step 9a reports both sets before
+anything else runs, names the children it excluded and why — including, per candidate row, which of the two
+per-row clauses excluded which child — and, where the candidate set is empty while
+children exist, says which of the two reasons emptied it, so "nothing to re-cut" is never
 indistinguishable from an instruction the command failed to parse.
 
 **Nothing travels with the row.** The donor ground it before deferring it, so a `[CG#n]` or `[DG#n]` in the
@@ -350,8 +365,13 @@ with a "nothing to commit" report on the no-op path.
 ## Gates
 
 - **Phase 0 — the instruction gate, on a root.** `split_mode: full` cannot propose a slice with
-  nothing to group by, so an absent `<instruction>` stops the run before anything else is read. A
-  slice needs none: its walk's per-row recommendation is the only thing an instruction seeds there.
+  nothing to group by, so an absent `<instruction>` on a run whose ledger still holds an
+  `unallocated` row stops it. The stop fires **late in Phase 0**, after the ledger has been read,
+  the existing children enumerated and the re-cut candidate set built, because only then is it known
+  whether this run proposes anything at all: where nothing is `unallocated` the run groups nothing
+  and needs no instruction, and one supplied there is the sibling re-cut's invocation rather than a
+  missing input (see [What it needs](#what-it-needs)). A slice needs none either: its walk's per-row
+  recommendation is the only thing an instruction seeds there.
 - **Phase 0 — grounding merged to main, on a slice only.** `split_mode: allocate-only` only — a root
   is never ground, so this gate is skipped entirely there and a root's own gate is the inventory
   count above. On a slice, `require-on-main` against `grounding/code-grounding.md` runs before
@@ -523,7 +543,8 @@ offered here. It is each such child's own re-entry at `/brd-ground` and then, in
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the authority for
   the ledger row shape, the six dispositions, the allocation gate this command enforces, the
   PRD-eligibility rule a slice's `covered-here` rows satisfy, and §3.2's re-cut: what makes a row
-  movable, what the two writes are, who may receive one, and what the mechanism does not relax.
+  movable, which rows change and in what order, who may receive one, and what the mechanism does not
+  relax.
 - [`decision-register-format.md`](../../references/decision-register-format.md) — §4's two causes for
   reopening a decision, which is why a sibling holding decisions cannot receive a re-pointed row.
 - `workflows-core:grounding-format` — §8's four verification outcomes,

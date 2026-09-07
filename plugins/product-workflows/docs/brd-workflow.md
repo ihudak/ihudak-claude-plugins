@@ -92,8 +92,10 @@ narrow way to move it. Where a slice's own ledger records `deferred-to` against 
 delegated to it — two ledgers already agreeing that nobody is building the requirement — an
 instruction typed against the parent's fully-allocated ledger, `/brd-split <PARENT-KEY> "<what to
 peel off>"`, re-points that row onto a **sibling under the same parent that has not been
-interviewed**: one already standing, or one that same run carves. The receiving slice's own ledger
-seeds the row `unallocated`, so it re-enters at `/brd-ground` — with a row no finding on file was
+interviewed and does not already hold a ledger row for that requirement**: one already standing, or
+one that same run carves. The receiving slice's own ledger
+seeds the row `unallocated` — a **new** row, which is why a sibling already holding one for that
+requirement is not its receiver — so it re-enters at `/brd-ground` — with a row no finding on file was
 derived against — and its own `allocate-only` walk then takes the row to `covered-here`. **The
 precondition carries the whole mechanism**: `deferred-to` is the owner writing down that it is not
 building this, so the parent re-points against a refusal on record and never over a live commitment.

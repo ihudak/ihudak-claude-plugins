@@ -145,8 +145,8 @@ behaviour, not the behaviour.
    **`absent` (row F) — nothing for this BRD is on any ref — is split twice before it is reported.**
    Row F conflates two states: *never produced* and *produced, handoff declined*. Reported as one,
    the message tells an operator whose files are already written to go and produce them — and on a
-   slice it names `/brd-split`, which in that state is a no-op that stages nothing and can never land
-   those files at all. Split row F **first on whether `coverage-ledger.md` exists in the worktree**,
+   slice it names `/brd-split`, which **re-run bare** in that state is a no-op that stages nothing and
+   does not land those files. Split row F **first on whether `coverage-ledger.md` exists in the worktree**,
    then by level — reading the resolved folder's `brd-link.md` from the worktree (it is there whether
    or not anything reached main) and branching on its `parent:` field, because a slice must never be
    told to run a command that would refuse it.

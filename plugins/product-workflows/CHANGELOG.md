@@ -4,13 +4,15 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
-## [1.2.0] — 2026-09-07
+## [2.0.0] — 2026-09-07
 
 ### Changed — grounding, the interview, packaging and reconciliation move to the slice; a root now refuses all four
 
 `/brd-ground`, `/brd-interview`, `/brd-package` and `/brd-reconcile` used to accept a BRD key at either level. They now refuse a resolved root outright, in Phase 0 before any other gate — `BRD_GROUND_ROOT_LEVEL`, `BRD_INTERVIEW_ROOT_LEVEL`, `BRD_PACKAGE_ROOT_LEVEL`, `BRD_RECONCILE_ROOT_LEVEL` — each naming `/brd-split <BRD-KEY> "<how to cut it>"` as the remedy.
 
 **This breaks the route for anyone running it at root level.** The six `/brd-*` commands carried this two-level model since they shipped in `dev-workflows` at `v3.24.1`, an ancestor of this release, so the model has been in users' hands the whole time the route has existed; a run that worked against a root in 1.1.0 now stops at the first gate. The design's decision was to refuse and detect rather than offer a compatibility path: where root-level grounding, decisions, interview records, package artifacts or a reconciliation record already exist from the earlier model, the refusal names their exact paths and says plainly that they are **left in place and read by nothing** — nothing migrates them and nothing deletes them.
+
+**Major version, not another minor one.** `product-workflows` 1.0.0 and 1.1.0 both shipped this route as an installable plugin someone could pin against, unlike an internal step of a multi-part split — so unlike a case where no intermediate version was ever separately consumed, a run that worked against a root in either of those versions is exactly what this stops. Semver's own contract is that an incompatible change is a major version, not a minor one carrying a bold warning in its own prose; `2.0.0` is the number that tells an installer what this entry would otherwise have to say by hand.
 
 Twelve documentation files, including both of the route's mermaid diagrams, were brought into line with the same fact, and the level-conditional branches only a refused root could still reach — "at either level," offers that fanned a root out into its slices, a next-step offer recommending a command that would now refuse the key it was handed — were removed rather than left as dead prose a future reader would have to re-verify is dead.
 

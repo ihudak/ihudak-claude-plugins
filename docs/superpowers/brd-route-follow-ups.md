@@ -4,13 +4,13 @@ Reported by the operator after running the BRD route against a real customer eng
 
 Per **S18**, nothing releases while any of these is open.
 
-**Three design gates, sequenced, all blocking the release under S18:**
+**Three design gates, sequenced; gate 1 has shipped, gates 2 and 3 still block the release under S18:**
 
-1. **Slice-first grounding and interviewing** — `docs/superpowers/specs/2026-09-06-slice-first-grounding-design.md`. **Shipped in `product-workflows` 1.2.0.** Closed BRD-5 and the per-slice interview package request.
+1. **Slice-first grounding and interviewing** — `docs/superpowers/specs/2026-09-06-slice-first-grounding-design.md`. **Shipped in `product-workflows` 2.0.0.** Closed BRD-5 and the per-slice interview package request.
 2. **The sibling re-cut** — that spec's §8. A slice grounding shows is too big hands its deferred rows to a new sibling, by re-pointing `covered-by` against the owner's own `deferred-to`. Own spec, after (1) ships.
 3. **Idea-route grounding** — that spec's §5. Verified `[CG#n]` findings for a PRD folder authored from an idea, which needs a claim source chosen deliberately since there is no `[BR#n]` inventory. Own spec, after (2).
 
-**Status, 2026-09-06.** BRD-1, BRD-2, BRD-3, BRD-4 and BRD-6 are **closed** — see each entry. BRD-5 and the feature request are open and merged into one brainstorm, on the operator's ruling below.
+**Status, 2026-09-06 (BRD-5 updated 2026-09-07).** BRD-1, BRD-2, BRD-3, BRD-4 and BRD-6 are **closed** — see each entry. BRD-5's design question was settled the same day by brainstorming, merged with the feature request into one design; that design shipped in `product-workflows` 2.0.0, closing both.
 
 ## BRD-1 — `/brd-split` passes silently when a BRD has indexed frame sets and no design grounding
 
@@ -54,10 +54,10 @@ A slice's inventory is a **byte-copy** of the parent's rows against the same pin
 
 So the question to settle is not "what may a slice inherit" but **"what is the BRD level still for once the slice carries the work"** — and the two open items below fall out of it rather than standing alone:
 
-- **That claim was wrong, and triage against the tree found it wrong.** `/brd-interview` and `/brd-package` gate the **resolved** folder's own artifacts, and a slice holds its own findings, ledger, register and `[C]` set — so those two already work slice-first. The single forcing gate is `/brd-split` on a **root**, which requires that root's grounding before any slice can exist.
+- **That claim was wrong, and triage against the tree found it wrong.** `/brd-interview` and `/brd-package` gate the **resolved** folder's own artifacts, and a slice holds its own findings, ledger, register and `[C]` set — so those two already work slice-first. As shipped, `/brd-split` on a root requires no grounding at all — its forcing gate is a mandatory slicing instruction (`BRD_SPLIT_NEEDS_INSTRUCTION`), because a root is never ground and has no findings to cluster candidate slices from; grounding only happens once a slice exists, at `/brd-ground`.
 - **Inheritance survives as the smaller half.** Where a BRD-level pass *was* run, re-deriving 258 identical findings is still waste — but it is now an optimisation over an optional input, not the mechanism the route depends on.
 
-**SETTLED 2026-09-06 by brainstorming — see `docs/superpowers/specs/2026-09-06-slice-first-grounding-design.md`.** Grounding and the customer interview happen at the slice and nowhere else; the root keeps intake and the ledger and gives up both entirely, enforced by refusal rather than offered as a choice. The inheritance half disappears with it — there is no root pass to inherit. The feature request below is closed by the same design, by construction rather than by a patch. The design is written and awaiting review; nothing is implemented yet.
+**SETTLED 2026-09-06 by brainstorming, shipped in `product-workflows` 2.0.0 — see `docs/superpowers/specs/2026-09-06-slice-first-grounding-design.md`.** Grounding and the customer interview happen at the slice and nowhere else; the root keeps intake and the ledger and gives up both entirely, enforced by refusal rather than offered as a choice. The inheritance half disappears with it — there is no root pass to inherit. The feature request below is closed by the same design, by construction rather than by a patch.
 
 ## BRD-6 — the `[CG#n]` id key is written two ways in one file
 

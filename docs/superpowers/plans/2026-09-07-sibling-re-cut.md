@@ -10,6 +10,24 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-07-sibling-re-cut-design.md` — read it in full before Task 1. It is the binding authority; this plan argues from it.
 
+## Corrections applied during execution — read these before the tasks
+
+This plan was executed on 2026-09-07 and shipped as `product-workflows` 2.1.0. **Four of its instructions were wrong and were overridden by controller ruling during execution.** They are left in place below rather than rewritten, because the tasks argue from them; these corrections govern.
+
+1. **`BRD_SPLIT_RECUT_NO_RECEIVER` was retired and never shipped.** Task 2's step 5 reasoned correctly that the genuinely-stuck state is unreachable (a parent can always take a new child) and then Task 4 was told to define the stop anyway — an inconsistency in this plan. The state it named ("every receiver proposed was declined") is an **operator decision, not an error**, the same call this route already makes for `BRD_INTERVIEW_ALL_DELEGATED`. The shipped behaviour leaves each candidate with its donor and reports it. **Ignore every mention of this stop below** (Task 2's Produces block, Task 2 step 5, Task 4's Produces block, Task 4's Step 2R stop text, Task 7 step 1).
+
+2. **The citation convention in Global Constraints was wrong for reference files.** `${CLAUDE_PLUGIN_ROOT}/references/<name>.md` is the form a **command or agent** body uses for its own plugin's reference. A **reference** citing a sibling reference in the same plugin uses the bare backticked `` `references/<name>.md` `` form. Both appear in this change; use the right one per file kind.
+
+3. **The seventh gate's path is stale.** `python3 scripts/session-cost.py --selftest` 404s — the script lives at `plugins/workflows-core/scripts/session-cost.py`, and CI deliberately *discovers* it (`find plugins -type f -name session-cost.py`, requiring exactly one match) because the cost subsystem moves between plugins as the marketplace is split. Discover it; do not hardcode either path.
+
+4. **Task 4's Step 1 edit was larger than stated, and Task 3's receiver contract wider.** Step 1's firing condition must count **distinct confirmed targets over the placed candidates**, not standing eligible folders — counting folders leaves the bulk offer unreachable in the design's canonical shape, because Phase 0 deliberately puts an uninterviewed *donor* in the eligible receiver set. And a receiver may be a **standing eligible child**, not only a slice Phase 3 keyed, so Phase 2's proposal carries a target per group and Step 2R offers what Phase 2 fixed rather than choosing.
+
+**Two things this plan did not anticipate and the implementation added:** a standing empty child that has not been interviewed is an **eligible receiver**, so Phase 4.5 must recompute emptiness *after* the walk rather than trust Phase 0's marking; and spec §4's unconsumed-item exclusion belongs at two altitude consumers, not three — `/create-prd` reads no grounding file, so the clause there would be inert and would falsely imply it does.
+
+The full decision record, including every ruling and what each costs if wrong, is in the execution ledger for this plan.
+
+---
+
 ## Global Constraints
 
 Every task's requirements implicitly include all of these.

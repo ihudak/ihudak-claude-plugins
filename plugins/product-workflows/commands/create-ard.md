@@ -590,7 +590,7 @@ is reachable there on the `prd.md` test alone. Where the folder is a **slice**, 
 | No row `unallocated`, and at least one `covered-here` | `/product-workflows:create-prd <SLICE-KEY>` — all three refusals cleared |
 | A row still `unallocated` | `/product-workflows:brd-split <SLICE-KEY>` instead: `/create-prd` would raise `CREATE_PRD_BRD_UNALLOCATED`, and that walk is what moves those rows (allocate-only on a slice). Its own Phase 0 gates on this slice's grounding findings carrying a verifier verdict, so say so beside the offer |
 | No row `covered-here`, gate set **empty** | `/product-workflows:brd-split <PARENT-KEY>` instead — the keep-or-remove run for a standing empty child, and not a no-op there |
-| No row `covered-here`, gate set **non-empty** | **Drop the option and name nothing in its place.** `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE`, whose non-empty branch names no command at all by design; say instead what the gate-set rows resolved to and that nothing in the plugin moves a terminal row back |
+| No row `covered-here`, gate set **non-empty** | **Drop the option and name nothing in its place.** `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE`, whose non-empty branch names no command at all by design; say instead what the gate-set rows resolved to and that nothing in the plugin moves a terminal row back to `unallocated` |
 
 **Dropping rather than annotating follows `commands/brd-reconcile.md` Phase 14**, which runs these
 same two data tests before offering `/product-workflows:create-prd <SLICE-KEY>` and drops the option on

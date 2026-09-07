@@ -987,7 +987,6 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). A slice does **not** always reach this with
 nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
-names a sibling under the same parent or that parent and marks an **orphan row** — a provisional
-claim the parent's walk withdrew (§2). Those rows are resolved one hop exactly like a parent's
+names a sibling under the same parent or that parent and marks an **orphan row** — a ledger row for a `[BR#n]` this slice no longer claims, reached by either of §2's two routes: the parent's walk withdrawing a claim that was never more than provisional, or a re-cut moving a claim the slice had committed to and then recorded it would not build (§3.2). Those rows are resolved one hop exactly like a parent's
 delegated rows, so a slice reports zero delegated only when its parent withdrew none of its
 claims.

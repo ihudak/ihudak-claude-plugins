@@ -4,10 +4,10 @@ Reported by the operator after running the BRD route against a real customer eng
 
 Per **S18**, nothing releases while any of these is open.
 
-**Three design gates, sequenced; gate 1 has shipped, gates 2 and 3 still block the release under S18:**
+**Three design gates, sequenced; gates 1 and 2 have shipped, gate 3 still blocks the release under S18:**
 
 1. **Slice-first grounding and interviewing** — `docs/superpowers/specs/2026-09-06-slice-first-grounding-design.md`. **Shipped in `product-workflows` 2.0.0.** Closed BRD-5 and the per-slice interview package request.
-2. **The sibling re-cut** — that spec's §8. A slice grounding shows is too big hands its deferred rows to a new sibling, by re-pointing `covered-by` against the owner's own `deferred-to`. Own spec, after (1) ships.
+2. **The sibling re-cut** — that spec's §8, settled in `docs/superpowers/specs/2026-09-07-sibling-re-cut-design.md`. A slice grounding shows is too big hands its deferred rows to a new sibling, by re-pointing `covered-by` against the owner's own `deferred-to`. **Shipped in `product-workflows` 2.1.0.**
 3. **Idea-route grounding** — that spec's §5. Verified `[CG#n]` findings for a PRD folder authored from an idea, which needs a claim source chosen deliberately since there is no `[BR#n]` inventory. Own spec, after (2).
 
 **Status, 2026-09-06 (BRD-5 updated 2026-09-07).** BRD-1, BRD-2, BRD-3, BRD-4 and BRD-6 are **closed** — see each entry. BRD-5's design question was settled the same day by brainstorming, merged with the feature request into one design; that design shipped in `product-workflows` 2.0.0, closing both.

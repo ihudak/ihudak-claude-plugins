@@ -1,6 +1,6 @@
 ---
 name: brd-split
-description: BRD-splitting workflow (PM phase, the BRD-to-PRD route's allocation step — run once on a root to carve slices, then again on each slice to allocate it). On a root, proposes candidate slices from a verbal <instruction> the operator types after the key - mandatory wherever the run still has a row to place, since a root is never ground and the instruction is the only grouping signal there is - resolved against this BRD's own rows and grilled (bounded, <=5, and only where one answer places more than one row) before any slice is proposed. On a slice it gates on every grounding finding carrying a verifier verdict instead, and the same instruction stays optional there, seeding only the walk's per-row recommendation. A BRD is a container and is never implementable itself, so this command always produces at least one slice; where nothing clusters, the whole BRD becomes one. Each confirmed slice is keyed and nested as a PRD- folder inside this BRD - the folder its PRD will be authored in - carrying its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md. It then walks every unallocated coverage-ledger row one at a time through four resolutions (assign to a named slice, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Where one answer is uniform by construction and there is more than one row to save - exactly one slice standing on a parent, or any run on a slice, and two or more rows still unallocated - Phase 4 first offers to write that single disposition across every remaining row in one confirmation, stating each row it would write and letting any of them be held back to the one-at-a-time walk, which stays the default and is what a declined or unparsed answer falls back to. covered-here is not among them on a parent: a parent builds nothing itself. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers a different four - covered-here replaces covered-by, which on a slice records a provisional claim this command's own walk on the parent withdrew, and the parent writes it. Existing children are enumerated by a positive test - a subdirectory carrying a brd-link.md whose parent: names this BRD - never by a name match. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason. On a root, offers /brd-ground on each non-empty child as the next step (this BRD's own key has no further step: /brd-interview refuses any root outright). On a slice, offers /brd-interview on the slice just allocated.
+description: BRD-splitting workflow (PM phase, the BRD-to-PRD route's allocation step — run once on a root to carve slices, then again on each slice to allocate it). On a root, proposes candidate slices from a verbal <instruction> the operator types after the key - mandatory wherever the run still has a row to place, since a root is never ground and the instruction is the only grouping signal there is - resolved against this BRD's own rows and grilled (bounded, <=5, and only where one answer places more than one row) before any slice is proposed. On a slice it gates on every grounding finding carrying a verifier verdict instead, and the same instruction stays optional there, seeding only the walk's per-row recommendation. A BRD is a container and is never implementable itself, so this command always produces at least one slice; where nothing clusters, the whole BRD becomes one. Each confirmed slice is keyed and nested as a PRD- folder inside this BRD - the folder its PRD will be authored in - carrying its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md. It then walks every unallocated coverage-ledger row one at a time through four resolutions (assign to a named slice, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Where one answer is uniform by construction and there is more than one row to save - exactly one slice standing on a parent, or any run on a slice, with two or more rows still unallocated, or, on a re-cut, two or more placed candidates carrying one confirmed receiver between them - Phase 4 first offers to write that single disposition across every remaining row in one confirmation, stating each row it would write and letting any of them be held back to the one-at-a-time walk, which stays the default and is what a declined or unparsed answer falls back to. covered-here is not among them on a parent: a parent builds nothing itself. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers a different four - covered-here replaces covered-by, which on a slice records a claim this command's own walk on the parent withdrew - provisional on the ordinary route, committed and then deferred by the slice itself where a re-cut moved it - and the parent writes it. Existing children are enumerated by a positive test - a subdirectory carrying a brd-link.md whose parent: names this BRD - never by a name match. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing AND no row is re-cuttable under an instruction this run was given; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason, and so does a re-cuttable row. On a fully-allocated parent the instruction is otherwise free, and there it means the sibling re-cut: a row this BRD delegated to a child whose own ledger now records deferred-to against it may be re-pointed onto a sibling that has not been interviewed - the one case in which this command re-allocates a row already carrying a fate, taken against the owner's own written refusal and never over a live commitment, and it needs no flag. Removing a standing empty child first re-points every row still delegating to it - on this BRD's own ledger and on any other child's - onto this BRD, rather than leaving the key dangling. On a root, offers /brd-ground on each child that gained a row this run - a first run for a slice just keyed and for a standing child nobody ever ground, a re-run for a standing child that is already ground, whose grounding no longer covers everything it claims - as the next step (this BRD's own key has no further step: /brd-interview refuses any root outright). On a slice, offers /brd-interview on the slice just allocated.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -34,13 +34,16 @@ Phase 2 never runs, it seeds the walk alone. That is why a slicing instruction o
 invocation rather than an ignored one — `/product-workflows:brd-split <SLICE-KEY> build the order rows,
 defer the rest` is a sentence this command can act on, and the picker it acts on is still the
 four-resolution one.
+**On a `full` run whose ledger is already fully allocated the instruction seeds a third thing, and it is the thing that run is invoked by: the sibling re-cut.** That is the one run on which the argument this route already made mandatory for carving a root is otherwise free — Phase 1.5 would place `unallocated` rows and there are none — so it is given a meaning there instead of a flag being added for it (Phase 0 step 9a, step 10). What it seeds is the same three-phase reading as any other instruction, over a different set: Phase 0 step 9a builds the **re-cut candidate set** — a row this BRD delegated to a child whose own ledger records `deferred-to` against it, two ledgers already agreeing that nobody is building it — Phase 1.5 places that set, Phase 2 fixes a receiver per group, and Phase 4's Step 2R offers each move one row at a time. It is the one case in which this command re-allocates a row that already carries a fate, it does so only against the owner's own recorded refusal, and it is bounded by that refusal and by nothing else (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2).
 
 - **`split_mode: allocate-only`** — a slice. Nesting is capped at one level
   (`workflows-core:addressing` §6), so **no child may be created below a
   slice**: Phases 2 and 3 are skipped entirely and the walk offers **four** resolutions, without
   `covered-by`. That last part is about **who writes** the disposition, not about whether a slice
-  may carry it: a slice's `covered-by` names a sibling or the parent and records a provisional
-  claim the *parent's* walk withdrew, so it is already terminal before this walk reads the ledger
+  may carry it: a slice's `covered-by` names a sibling or the parent and records a claim the
+  *parent's* walk withdrew — still provisional on the ordinary route, committed by an earlier run
+  and then deferred by this slice itself where a re-cut moved it (§3.2) — so it is already terminal
+  before this walk reads the ledger
   (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2, §3). The cap is on nesting, not
   on allocation — a slice whose rows could never leave `unallocated` could never become PRD-eligible
   (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5), which would make slicing
@@ -56,10 +59,7 @@ four-resolution one.
 1a. **`<instruction>` (mandatory on a root that still has a row to place, optional on a slice).** Every **non-flag** token after
    the key, joined verbatim, is a slicing instruction in the operator's own words — `cover orders and
    measurements in the first iteration`, `slice everything EPIC-008 still holds that no child covers`.
-   **Parse it here and carry it; its absence is stopped on in step 11, never here.** Phase 2 clusters
-   every unallocated row by the Phase 1.5 placement, and a root carries no findings to read, so the
-   grouping comes from the instruction or from nowhere — but that is a statement about a run that
-   *has* rows to cluster, and whether this one does is not known until step 8 reads the ledger.
+   **Parse it here and carry it; its absence is stopped on in step 11, never here.** Phase 2 clusters by the Phase 1.5 placement — every `unallocated` row on an ordinary run, and every row in the **re-cut candidate set** on the re-cut path step 10 selects — and a root carries no findings to read, so the grouping comes from the instruction or from nowhere; but that is a statement about a run that *has* something to cluster, and whether this one does is not known until step 8 reads the ledger and step 9a builds that candidate set.
    Stopping on the absence here made the instruction mandatory on every `full` run, including the one
    on which Phase 2 never runs at all: a parent whose walk is complete and whose only remaining work
    is a standing empty child. Three stops on this route — `/brd-ground`'s and `/brd-interview`'s
@@ -96,7 +96,7 @@ four-resolution one.
      it for the whole run, and **emit this notice now, and again in the final report** — a run that
      silently skips two phases and drops a resolution from its own picker is worse than one that
      says so:
-     `BRD_SPLIT_ON_SLICE (notice, not a stop): <BRD-KEY> is a slice of <PARENT-KEY>. This run allocates <BRD-KEY>'s ledger but creates no children: nesting is capped at one level, so Phases 2-3 are skipped and no child BRD can exist below a slice. The Phase 4 walk offers its own four resolutions — the same count as full mode, a different set: covered-by is not one this walk can choose — on a slice it names a sibling or the parent, records a provisional claim the parent's own walk withdrew, and is written by that walk, so every row carrying it is already terminal here.`
+     `BRD_SPLIT_ON_SLICE (notice, not a stop): <BRD-KEY> is a slice of <PARENT-KEY>. This run allocates <BRD-KEY>'s ledger but creates no children: nesting is capped at one level, so Phases 2-3 are skipped and no child BRD can exist below a slice. The Phase 4 walk offers its own four resolutions — the same count as full mode, a different set: covered-by is not one this walk can choose — on a slice it names a sibling or the parent, records a claim the parent's own walk withdrew — still provisional on the ordinary route, committed by an earlier run and then deferred by this slice itself where a re-cut moved it — and is written by that walk, so every row carrying it is already terminal here.`
    **This is a cap on nesting, not on allocation.** A grandchild would inherit `brd/source/` and a
    defect log from a parent that holds neither, so its inventory header would name a path that does
    not exist (`workflows-core:addressing` §6, `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — that
@@ -128,7 +128,7 @@ four-resolution one.
      `BRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants. Naming it here
      would be the loop, so name the upstream fix instead — this step now runs only in
      `split_mode: allocate-only`, so the fix is always the parent:
-     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
+     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
    `unmanaged` → proceed as before this feature.
 7. **Gate on verification — and on there being grounding to verify.** **This step and step 6 run in `split_mode: allocate-only` only.** A root BRD is never ground — grounding and the customer interview happen at the slice and nowhere else — so on a `full` run there is no grounding to gate and both steps are skipped entirely. There is no `coverage-ledger.md` gate to keep: step 8 reads that ledger in both modes with a plain worktree read, never a `require-on-main` gate, which is why `workflows-core:phase-handoff` §4.0 classes it — and `brd/brd-inventory.md` beside it — **advisory** at a root. Three tests, in this order.
    **The order is the fix to a shipped defect and is not incidental:** the third is a *count*, and a
@@ -205,21 +205,21 @@ four-resolution one.
    `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full): <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and nothing to allocate — do not run /product-workflows:brd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
    On a slice, step 6 already covers this before this step is ever reached. Read `<BRD-dir>/coverage-ledger.md` and compute
    its disposition counts (`coverage-ledger-format.md` §3) — **this BRD's own rows, as written, with
-   no child ledger consulted.** The no-op test and the §4 gate are both about `unallocated` on
+   no child ledger consulted for this count.** The no-op test and the §4 gate are both about `unallocated` on
    *this* ledger; what a child did with a row this BRD already delegated cannot make that row
-   `unallocated` again, and the remedy for a child that is not building it lives in the child's own
-   walk, not here. Child ledgers are read once, in the Final Report, and only to count the line
-   (`coverage-ledger-format.md` §6.1). **Zero rows are `unallocated`** → set `unallocated_zero: true`.
+   `unallocated` again. **That bounds the count, not the phase, and the two sentences that used to make it bound the phase are retracted rather than qualified**: this step once said that the remedy for a child that is not building a row lives in that child's own walk and not here, and that child ledgers are read once, in the Final Report, only to count the line (`coverage-ledger-format.md` §6.1). Neither holds. **Step 9a reads every child's `coverage-ledger.md` in this same phase**, and where a child's own row records `deferred-to: <itself>` against a row this BRD delegated to it, the remedy is precisely here — a sibling may take it (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2). What survives is the narrow rule this step needs: no child ledger changes the number counted **here**. **Zero rows are `unallocated`** → set `unallocated_zero: true`.
 
-   **That is only half the no-op test, and the missing half was a dead end.** A run is a no-op only
+   **That is one part of the no-op test and not the whole of it, and the first missing part was a dead end.** A run is a no-op only
    when there is nothing left for *any* phase to do, and Phase 4.5 has work of its own that the
    ledger cannot see: a child left standing while claiming nothing. Deciding the no-op on the ledger
    alone made that child unreachable — the ledger of a parent whose walk completed has zero
    `unallocated` rows **by construction**, so every later run no-op'd, Phase 4.5 never ran, and the
    only command that can remove an empty child never offered to. Three stops elsewhere on this route
    name this command as the fix for exactly that child, so the no-op has to account for it. The
-   second half needs step 9's enumeration, so **the no-op decision is taken in step 10**, never
-   here.
+   other two parts need step 9's enumeration and step 9a's candidate set, so **the no-op decision is
+   taken in step 10**, never here.
+
+   **A re-cuttable row is the other thing this count cannot see, and it is a second reason a fully-allocated ledger does not settle the question.** A row this BRD delegated to a child that has since recorded, in its own ledger, that it will not build it reads `covered-by: <A>` here and `deferred-to: <A>` there — two terminal dispositions, so the count is zero, and yet nobody is building the requirement (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2). Step 9a builds that set and step 10 tests it before the no-op, so a run that can move such a row — one carrying the `<instruction>` step 9a requires — is reached instead of being swallowed by the no-op it would otherwise look identical to. A bare `/product-workflows:brd-split <PARENT-KEY>` builds no candidate set and is still the no-op.
 
    **Step 10 and not step 9, because step 9 does not run in every mode.** Step 9 is `full` only, so
    a decision taken inside it is never taken at all on a fully-allocated slice — the run would fall
@@ -227,7 +227,7 @@ four-resolution one.
    own Phase 7 promises a slice the opposite. Step 10 runs in both modes, which is what keeps the
    no-op **mode-independent**: it is decided by the ledger and the tree, not by the level, so a
    fully-allocated slice reaches it exactly as a fully-allocated parent does. `allocate-only` simply
-   satisfies the second half by construction — no child exists or can be created below a slice — and
+   satisfies **both of the other two parts** by construction — no child exists or can be created below a slice, so none can be left standing; and step 9a is `full` only, so a slice's re-cut candidate set is empty and the re-cut path is unreachable there — and
    it had two fewer phases to skip. The step 5 notice is still emitted and still reported.
 9. **Enumerate existing children — `split_mode: full` only.** In `allocate-only` mode there are no
    children and none can be created, so this step is skipped — and with no child to enumerate there
@@ -253,15 +253,32 @@ four-resolution one.
    no-op test in step 10 needs. **Carry the marked set forward even when it is empty** — step 10
    reads it in both modes, and in `allocate-only`, where this step never ran, it is empty by
    construction because no child exists or can be created below a slice.
+9a. **Build the re-cut candidate set — `split_mode: full`, an instruction, and a fully-allocated ledger.** This step runs only where **all three** hold: `split_mode: full`, step 1a parsed an `<instruction>`, and step 8 set `unallocated_zero: true`. On any other run it does not run at all and the **re-cut candidate set** is empty. Step 10 tests that set first and sets `recut_mode: true` where it is non-empty. **The third condition is what keeps one argument from meaning two things in one run.** Where any row is still `unallocated` the instruction already means *group those rows*, and Phase 1.5 spends it against them; reading the same sentence a second time as *peel this off a sibling* would put two interpretations of one string into one run with nothing to choose between them. A parent whose ledger is fully allocated is the only run on which that sentence is otherwise free, which is why the re-cut needs no flag of its own and takes none.
+
+   **What a candidate is** (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2, the authority for every rule this step executes rather than restates). A row is re-cuttable only where two ledgers already agree that nobody is building it: this BRD's row for a `[BR#n]` reads `covered-by: <A>`, and A's own row for that same `[BR#n]` reads `deferred-to: <A>`. For each child enumerated in step 9, in the worktree:
+   - Read that child's `coverage-ledger.md` and take every row whose `disposition` is `deferred-to: <that child's key>`.
+   - Take this BRD's own rows whose `disposition` is `covered-by: <that child's key>`.
+   - **Intersect the two by `[BR#n]`.** Each `[BR#n]` in the intersection joins the re-cut candidate set as `{ [BR#n], donor key, the donor's ledger row }` — the donor being the child whose two rows made the pair.
+
+   **Read the `disposition` column at both levels — never `claims:`, and never either inventory.** §3.1 names that trap from the other side, for the interview's scope test, and it is the same trap here: a child still `claims:` a row it has deferred, and a source-owning BRD's inventory holds every `[BR#n]` whatever its fate, so either would put rows in the candidate set that neither ledger says are movable.
+
+   **A child whose `coverage-ledger.md` cannot be read is not a donor, and that is reported rather than skipped silently.** An unreadable ledger is `unresolved`, never `covered` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6.2). Name the child and the read failure here and again in the final report; never infer an empty `deferred-to` set from a read that failed.
+
+   **Then compute the eligible receiver set**, executing §3.2's **two-part** receiver test rather than restating it. A child from step 9 is **ineligible** where its folder holds a `decisions.md` carrying at least one `[VD#n]` or `[CD#n]` record, **or** where any `interview/round-*.md` exists in it. Every other child is eligible, and so is every child Phase 3 keys on this run, which has neither by construction. **The rest of §3.2's test is per row and therefore travels as a clause on this set, never as a membership rule, and there are two such clauses — the first is that a row's own donor is never among that row's receivers.** §3.2's receiver is *a sibling under the same parent — never a child of A, and never A itself*; the first of those is satisfied by construction, since the one-level nesting cap means no child of A can exist (`workflows-core:addressing` §6), and the second cannot be taken out of the set, because the set is shared by every candidate row while the donor differs per row. **This is the ordinary case, not an edge.** A slice defers rows in its own `allocate-only` walk, which runs **before** `/brd-interview`, so an uninterviewed A holding `deferred-to: <A>` is exactly the state the re-cut exists for; A therefore passes the interview half, and a walk handed the set without this clause could propose re-pointing a row from A onto A — leaving this BRD's row unchanged and writing A's own row `covered-by: <A>`, a self-naming `covered-by` §3's orphan table has no row for. **Read the worktree, not a ref** — an interview that happened is an interview that happened whether or not its record has merged, and a receiver cleared against a ref that has not caught up is one whose customer conversation has already started. **Being interviewed disqualifies a receiver, never a donor**: A holding a `[VD#n]` about deferring the row is the ordinary case, and that decision records A's refusal to build it, which the re-cut leaves standing.
+
+   **A second per-row clause sits beside that one, and it is what keeps a receiver's seeded row a new row: a child already holding a ledger row for that `[BR#n]` is not a receiver for that row** (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2). It is per row for the same reason the donor clause is — the set is shared by every candidate while the row differs — and it is not a membership rule: such a child stays a perfectly good receiver for a different `[BR#n]` it holds no row for, and is named as excluded per row rather than struck from the set. **The reason is the invariant the whole re-cut rests on.** A receiver's row for the moved `[BR#n]` reads `unallocated` because it is a **new** row born in the initial state (Phase 3 step 3, Phase 4 Step 3), and where a row for that id already exists there is no new row to be born: writing `unallocated` onto the row it has would return a terminal row to the initial state, which no command may ever do (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3), and leaving that row as it stands strands the requirement — the child would `claims:` a `[BR#n]` whose own ledger row names somebody else, and its `allocate-only` walk visits only `unallocated` rows, so that row could never reach `covered-here`. Every §4 gate in the tree would read satisfied with nobody building the requirement, which is `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §1's own named failure arriving inside the mechanism built to prevent it, and it falsifies two of that file's guarantees outright — §5's *`claims:` names none of them* over a slice's `covered-by` rows, and §6.1's classification of such a row as malformed and permanently `unresolved`. **The state is ordinary, which is why this is a clause and not a remark**: a child B whose provisional claim on that same `[BR#n]` an earlier run's walk withdrew holds exactly one orphan row for it (Phase 4 Step 3's table) and stays standing on its other claims, so a later re-cut of that `[BR#n]` off its donor would name B as the natural receiver — the child the operator wanted it in first. **Say where the requirement goes instead, rather than leaving the operator with nowhere.** Two routes already work and neither needs anything new: where B is standing empty, Phase 4.5's removal repair is the exit — removing B re-points every row naming it, this BRD's own and every other child's, onto this BRD, so the requirement returns to this BRD as its own live obligation instead of sitting behind a key nobody builds; and where the requirement is to be built now, the receiver is a **new sibling** Phase 3 keys on this run, which holds no ledger row for anything and is therefore eligible for every candidate by construction. That second one is the answer Phase 2 already owes an operator whose preferred target is missing from the target list.
+
+   **Report both sets before anything else runs**: how many rows are re-cuttable and from which donors, which children are eligible receivers, **which of those the two per-row clauses exclude for which candidate row and on which clause** — a target list that is silently short for one row and not for another reads as a bug in the enumeration — and — where the candidate set is empty while children exist — **which of the two reasons made it empty**, no child holding a `deferred-to` row of its own, or every such row being one this BRD did not delegate to that child. An operator who typed an instruction on a fully-allocated parent and got a no-op needs to see which it was: "nothing to re-cut" without the reason is indistinguishable from an instruction the command failed to parse.
+
+   **No stop is taken here, and no no-receiver stop exists anywhere in this command.** A non-empty candidate set with no eligible child standing is not a stop: Phase 3 can key a new slice, and a slice this run creates is eligible by construction. The state that would be a stop — a non-empty candidate set, no eligible child, **and** a parent that cannot take a new one — is unreachable, because a parent can always take a new child. What *is* reachable is a run left with nothing to offer: every target it proposed declined, and no eligible child standing. **That is an operator decision, not an error, and this route already refuses to call one a failure.** An operator who read a proposal naming each row's donor and declined it has answered the question the run asked; `/brd-interview` says as much of its own version of this state — `BRD_INTERVIEW_ALL_DELEGATED` is "a finished state, not a missing step". So nothing stops: Phase 2 states the outcome instead — every candidate is left with its donor and reported — and Phase 4's Step 2R has nothing to offer for any of them. A reader looking for a no-receiver stop should stop looking; there is none to find.
 10. **Take the no-op decision — both modes, always.** This step runs whether or not step 9 did, which
     is the whole reason it is its own step: the decision must be reached on a slice exactly as on a
-    parent.
+    parent. **The branches below are tested in the order they are written, and the first that matches is the run's path** — the re-cut is tested before the no-op because a fully-allocated ledger satisfies the front of both conditions and only one of them is the run the operator asked for.
+    - `unallocated_zero` (step 8) **and** the re-cut candidate set from step 9a is non-empty → **the re-cut run**. Set `recut_mode: true` and carry it for the whole run. **Every later phase that behaves differently on this path says so where it does, and not all of them name the flag** — read each phase for what it does rather than expecting a flag test in it. **The partition is by whether the phase names the flag, and it is exhaustive.** Phase 1.5, Phase 2, Phase 4's Step 1 and Step 2R, Phase 5, Phase 6's `body_facts` and the Final Report test `recut_mode` **by name**. Phase 3 step 3, Phase 4's Step 3, Phase 6's `deliverable_paths` clause, Phase 7 and Phase 8's `key events` branch on *the re-cut path* **in prose**, over this same condition and naming no flag. Phase 4.5 names the flag only to say its recomputation is deliberately **not** conditional on it, running identically on every path (Phase 4.5). Nothing outside those three groups behaves differently. Phase 1.5 runs over the candidate set rather than over an empty unallocated set, Phase 2 proposes from that placement, Phase 3 keys what it confirms, Phase 4 runs its Step 2R re-cut walk in place of Step 2 **and widens Step 3's input set to reach the rows Step 2R moved** — a re-cut row was never `unallocated` when step 8 read the ledger, and Step 3's withdrawal of the donor's `claims:` entry and inherited inventory row is what makes that row an orphan row (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2); left unwidened, that reference's §5 eligibility argument, §6.1 roll-up and §6.4 are each false on this path. **Phases 4.5, 5, 6 and 7 are none of them skipped on this path** — which is the whole of what they have in common with an ordinary run, and the reason to say so is that the two branches below each skip some of them. Three of the four also do extra work here, per the partition above: Phase 5 writes the re-cut block, Phase 6 carries the re-cut facts and the donor's changed ledger, and Phase 7 reads each offered child's own state to say which of its three grounding cases it is. Phase 4.5 alone takes no branch of its own: its recomputation is what makes a donor emptied by this walk visible to it without one. **This is the path on which an instruction typed against a fully-allocated parent means something** — the one run where the argument this route already made mandatory for carving a root is otherwise free, which is what the re-cut is invoked by instead of a flag. **A standing empty child alongside it changes nothing**: Phase 4.5 runs on this path exactly as it runs on the ordinary one, so a parent holding both a re-cuttable row and an empty child resolves both in the same run rather than taking the Phase 4.5-only path below.
     - `unallocated_zero` (step 8) **and** no standing empty child (step 9, empty by construction in
-      `allocate-only`) → this run is a **no-op** (§4): nothing in Phases 2–5 and nothing in Phase 4.5
+      `allocate-only`), the branch above having not fired → this run is a **no-op** (§4): nothing in Phases 2–5 and nothing in Phase 4.5
       has anything left to do, so skip straight to Phase 6 (Handoff), which will report nothing to
-      commit, and the Final Report's ledger line. **A slicing instruction does not make this run
-      not-a-no-op**, and it is not a reason to walk a row that already carries a fate: Phase 1.5
-      skips on an empty unallocated set and reports the instruction unused, naming this path. This is the path a fully-allocated slice takes, and
+      commit, and the Final Report's ledger line. **A slicing instruction makes this run not-a-no-op exactly where step 9a found a re-cuttable row, and nowhere else**: where it found none the run is still a no-op, and an instruction is still not a reason to walk a row that already carries a fate. Phase 1.5 skips on an empty unallocated set and an empty candidate set alike and reports the instruction unused, naming this path — and **on a `full` run only**, adding from step 9a's report why nothing was re-cuttable. On a slice there is no such report and none is owed: step 9a is `full` only, so the re-cut is unreachable in `allocate-only` by construction and there is no reason to give. This is the path a fully-allocated slice takes, and
       the one Phase 7 tells a slice to expect.
     - `unallocated_zero` **but at least one standing empty child** (`full` only — a slice can have
       none) → **not a no-op**: skip Phases 2, 3 and 4, which have no row to walk and no slice to
@@ -275,12 +292,12 @@ four-resolution one.
     was given, `split_mode: full`, **and step 10 chose the ordinary run** — at least one row is still
     `unallocated`, so Phase 2 has rows to cluster and no findings to cluster them by → stop:
     `BRD_SPLIT_NEEDS_INSTRUCTION: /brd-split on <BRD-KEY> needs a slicing instruction — a root BRD is never ground, so there are no findings to cluster candidate slices from. Re-run '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"' naming the slice you want carved. On a slice the instruction stays optional: its walk takes recommendations from one but does not need it.`
-    On step 10's other two paths the ledger has no `unallocated` row, so Phase 2 proposes nothing and
+    On step 10's other **three** paths this stop cannot fire, and for two different reasons. On the no-op path and the Phase 4.5-only path the ledger has no `unallocated` row, so Phase 2 proposes nothing and
     there is nothing for an instruction to group: the run continues without one. That is what keeps
     the **Phase 4.5-only path reachable on a bare `/product-workflows:brd-split <BRD-KEY>`**, which it
     has to be — the stops that name this run as the fix for a standing empty child are asking for a
     child to be resolved, not for a slice to be carved, and Phase 1.5 discards an instruction on a
-    run with no row to place. In `allocate-only` the instruction is optional on every path and this
+    run that has neither a row to place nor a re-cuttable one. On the **re-cut path** the stop is unreachable by construction: step 9a runs only where step 1a parsed an instruction, so a run that reached that branch has one, and this step's own condition — no instruction given — can never hold there. In `allocate-only` the instruction is optional on every path and this
     step never fires.
 
 ---
@@ -328,18 +345,11 @@ slice has no children to propose, but its walk takes recommendations from an ins
 parent's does (Phase 4), which is what makes `/product-workflows:brd-split <SLICE-KEY> <instruction>` a
 real invocation rather than an ignored one.
 
-**Also skipped where no row is `unallocated`**, whatever Phase 0 step 10 decided — the no-op path and
-the Phase 4.5-only path both reach here with nothing to place, since this phase places unallocated
-rows and only those. Report the instruction as **unused, naming which path swallowed it**, rather
-than running a grill over an empty residue: an instruction typed and then silently discarded is
-indistinguishable from one the command failed to parse, and on the Phase 4.5-only path the operator
-has every reason to expect it did something. Neither path is an error, and neither becomes one for
-having been given an instruction.
+**Also skipped where no row is `unallocated` and `recut_mode` is false** — the two conditions are one condition, and the second half is what this phase gained with the re-cut. Whatever Phase 0 step 10 decided, the no-op path and the Phase 4.5-only path both reach here with nothing to place, since on those two paths this phase places `unallocated` rows and there are none. Report the instruction as **unused, naming which path swallowed it**, rather than running a grill over an empty residue: an instruction typed and then silently discarded is indistinguishable from one the command failed to parse, and on the Phase 4.5-only path the operator has every reason to expect it did something. Neither path is an error, and neither becomes one for having been given an instruction.
 
-This phase produces one thing: a **placement** — for each `[BR#n]` still `unallocated`, either what
-the instruction puts it in (a **group** in `full` mode, where groups become slices; a **disposition**
-in `allocate-only`, where there is nothing to group into) or nothing. Everything downstream reads
-that placement and never re-reads the instruction, so an instruction is interpreted exactly once.
+**On the re-cut path (`recut_mode: true`, Phase 0 step 10) this phase runs**, and what it runs over is the **re-cut candidate set** step 9a built, in place of the `unallocated` set — which is empty there by construction, since `recut_mode` is only ever set on a fully-allocated ledger. Nothing else about the phase changes: Step A places what the instruction determines, Step B grills the residue under the same value test and the same cap, and a placement is the one thing produced. **The reason for the report above carries over and binds harder here**: on the two skipping paths the operator supplied an instruction the run had no use for, while on this one the instruction is the argument that *selected* the path — so a candidate this reading leaves unplaced is named in the report rather than passed over quietly, for exactly the reason a discarded instruction is reported at all.
+
+This phase produces one thing: a **placement** — for each `[BR#n]` in the set it runs over, every row still `unallocated`, **or**, on the re-cut path, every row in the re-cut candidate set — either what the instruction puts it in (a **group** in `full` mode, where groups become slices; a **disposition** in `allocate-only`, where there is nothing to group into) or nothing. Everything downstream reads that placement and never re-reads the instruction, so an instruction is interpreted exactly once. **The re-cut path is `full` by construction** — step 9a runs in `full` mode only — so a candidate is placed into a **group** like every other row here, and Phase 2 proposes a **target** for that group: either the new slice it will key in Phase 3, or a named standing child from the eligible receiver set. The operator's confirmation there is what **fixes** the receiver; Phase 4's Step 2R offers the receiver this reading and that confirmation settled, and chooses none of its own. A candidate no confirmed group carries is unplaced, and Phase 4 does not walk it. **"Unplaced" is used in two senses in this phase, and this is the one Phase 4 consumes**: unplaced *after Phase 2's confirmation*, meaning no group with a target carries the row. Steps A and B below use the narrower sense — a row this phase's own reading could not place — which is a residue Phase 2 may still cluster, so a row unplaced there is not yet unplaced here.
 
 ### Step A — resolve what the instruction determines, asking nothing
 
@@ -349,26 +359,17 @@ row the instruction plainly determines. **This step raises no prompt of any kind
 grill rather than inside it: a question answerable from the artifact is not a question, and a row
 whose text names what the instruction names is placed, not asked about.
 
+**On the re-cut path the same read serves, over the re-cut candidate set**: each candidate's `text` and `source_anchor` come from this BRD's own `brd/brd-inventory.md`, the same file and the same two fields. A BRD that owns its source document holds **every** `[BR#n]` in that inventory whatever fate its own walk gave it, delegated rows included (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.1), so a delegated row is already in the file this step has open and no new read is needed. **Never read the donor's copied inventory for this** — that is the obvious wrong implementation, and it is wrong twice: what it would find is a subset of what is already open, and Phase 4's reconcile is about to withdraw the very row it would be read from.
+
 An instruction that is a **set operation over the ledger** — *everything no child covers*, *the rest*,
 *what is left* — resolves entirely here, against `coverage-ledger.md`'s `disposition` column, and
-Step B then asks nothing at all. Say so in the report rather than leaving a silent grill looking like
-a skipped one.
+Step B then asks nothing at all. Say so in the report rather than leaving a silent grill looking like a skipped one. **On the re-cut path that resolution runs against the candidate set rather than the unallocated set**, and it is the shape this path most expects: *peel off everything PRD-X deferred* is a set operation over the donors step 9a already named, resolves here in full, and again leaves Step B nothing to ask.
 
 ### Step B — grill only the residue, and only where an answer places more than one row
 
-The residue is every unallocated row Step A could not place. Put questions to the operator from it
-one at a time, each with a recommended answer, per that reference's mechanics — which are cited, not
-restated here. This command's **depth is bounded**, and the bound has two parts:
+The residue is every row of the set this phase runs over that Step A could not place — every unallocated row on an ordinary run, every candidate on the re-cut path. Put questions to the operator from it one at a time, each with a recommended answer, per that reference's mechanics — which are cited, not restated here. This command's **depth is bounded**, and the bound has two parts:
 
-1. **The value test, which is the real gate: ask only where one answer places more than one row.**
-   A question that disambiguates a single row is worse than useless here. Phase 4 resolves every
-   unallocated row regardless — one at a time in its Step 2 walk, or inside the Step 1 offer where
-   that fires — so the row is already going to be settled, at a cost of one prompt or of none;
-   spending a turn now to save at most that is a pure cost, and it is paid before the operator has
-   seen any output at all. What earns a question is a **terminology decision that moves several rows at
-   once**: *the BRD uses "form" for an order record and for a compliance artifact — which is meant
-   in these six rows?* That is the reference's *force terminology precision* rule, and it is the
-   whole reason this grill exists.
+1. **The value test, which is the real gate: ask only where one answer places more than one row.** A question that disambiguates a single row is worse than useless here. Phase 4 resolves every unallocated row regardless — one at a time in its Step 2 walk, or inside the Step 1 offer where that fires — so the row is already going to be settled, at a cost of one prompt or of none; spending a turn now to save at most that is a pure cost, and it is paid before the operator has seen any output at all. **On the re-cut path the same test holds for a stronger reason**: a candidate is not a row waiting to be settled but one already settled at both levels, so a question that moves a single one of them buys a move the operator can decline for nothing. What earns a question is a **terminology decision that moves several rows at once**: *the BRD uses "form" for an order record and for a compliance artifact — which is meant in these six rows?* That is the reference's *force terminology precision* rule, and it is the whole reason this grill exists.
 2. **A hard cap of five questions**, after which the phase stops whatever remains. The cap is
    stated because `workflows-core:grilling-technique` defines bounded depth as "a capped set … then stop", so a
    caller declaring bounded owes a number; and it is **five** rather than ten because the residue
@@ -382,7 +383,9 @@ by hand in Phase 2's own edit/merge/move picker. Two downstream channels catch t
 so past the first few questions the grill is the most expensive of the three ways to place a row and
 the only one that runs before anything is visible.
 
-**A row still unplaced when this phase ends is left unclustered**, and that is a resolution rather
+**The cap sizes correctly on the re-cut path for the same free-fallback reason, not by assumption.** A candidate this phase leaves unplaced is **not walked**: Phase 4's Step 2R passes over it and leaves it with its donor, the final report names it, and Phase 5 records it. That is a resolution — the row keeps the fate two ledgers had already agreed on — and not a hole in a deliverable, so the residue here costs even less than the ordinary path's does and five is if anything generous.
+
+**A row still unplaced when this phase ends is left unclustered — on an ordinary run; the paragraph below is the re-cut path's version**, and that is a resolution rather
 than a failure: it is exactly the fate Phase 2 already gives a row nothing clusters with, and Phase 4
 settles it with no recommendation of its own — walked on a blank picker, or carried in the Step 1
 offer's set like any other row this reading did not place elsewhere — which is this command's
@@ -390,6 +393,8 @@ behaviour on every run that was given no instruction at all. **No new marker, no
 `[NEEDS CLARIFICATION]`-style marker for it would put a token into a ledger and an inventory whose
 field sets are fixed elsewhere (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2,
 `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2).
+
+**On the re-cut path an unplaced candidate is not walked at all**, and that too is a resolution rather than a failure — a different one, because the row is in a different state. It already carries a fate at both levels, `covered-by: <A>` here and `deferred-to: <A>` on A, so there is no picker that could leave it where it is more cheaply than not showing it: the ordinary path's unplaced row still has to be settled by somebody, and this one is settled already. It stays `covered-by: <A>`, Phase 4's Step 2R passes over it, the final report names it, and Phase 5 records it as a candidate this run did not move — **those are three roles, not three reporters**: Step 2R declines to walk it, the report names it to the operator, and `slices.md` is where it is written down.
 
 **Nothing in this phase writes.** It settles a reading; Phase 2 proposes from it, Phase 4 recommends
 from it, and Phase 5 records it. A `Cancel` here stops the run with nothing written, exactly as a
@@ -403,25 +408,31 @@ from it, and Phase 5 records it. A `Cancel` here stops the run with nothing writ
 there is nothing to propose and nothing a proposal could be keyed into; go straight to Phase 4,
 whose walk is the whole of an `allocate-only` run. Everything below is `full`-mode only.
 
-Read `<BRD-dir>/brd/brd-inventory.md` and `coverage-ledger.md`. A root carries no grounding findings
-to read (Phase 0 step 1a), so clustering comes from the Phase 1.5 placement alone: group every
-`[BR#n]` still `unallocated` by what the instruction placed it into — a coherent group of `[BR#n]`
-rows, never a single row on its own unless nothing else clusters with it. **A row Phase 1.5 left
-unplaced is not forced into a slice** — that is exactly the fate this rule gives a row nothing
-clusters with, and Phase 4 walks it with no recommendation of its own.
+Read `<BRD-dir>/brd/brd-inventory.md` and `coverage-ledger.md`. A root carries no grounding findings to read (Phase 0 step 1a), so clustering comes from the Phase 1.5 placement alone: group every `[BR#n]` still `unallocated` — **or, on the re-cut path (`recut_mode: true`), every `[BR#n]` in the re-cut candidate set** — by what the instruction placed it into, a coherent group of `[BR#n]` rows, never a single row on its own unless nothing else clusters with it. **A row Phase 1.5 left unplaced is not forced into a slice** — that is exactly the fate this rule gives a row nothing clusters with, and Phase 4 walks it with no recommendation of its own. On the re-cut path an unplaced candidate is not forced into one either, and there it is not walked at all: Phase 4's Step 2R passes over it and leaves it with its donor, and the run reports it (Phase 1.5).
 
-Present the candidate slices (each: a short working name, its `[BR#n]` rows, and the one-line
-rationale — what in the instruction placed it) and confirm before anything is created:
+Present the candidate slices — each: a short working name, its `[BR#n]` rows, and the one-line rationale, what in the instruction placed it.
+
+**On the re-cut path each proposed group also carries a target** — the child its rows would move to. A target is one of two things and never a third: the **new slice** the group proposes, named by its working name and keyed in Phase 3, or a **named standing child** from the eligible receiver set (Phase 0 step 9a). **This phase's confirmation is what fixes the receiver**; Phase 4's Step 2R offers what was fixed here and chooses none of its own, which is why the target belongs in the proposal the operator confirms rather than in a picker they meet later. Changing a target is what the *"Edit one or more slices (rename, merge, move a row)"* answer below is for — moving a row between groups moves it between targets — and no option is added for it.
+
+**The two per-row clauses constrain which standing children may be proposed as a target, and this consequence is not obvious.** The eligible receiver set is global while both exclusions are per row, and a group carries several rows — so **a standing child cannot be a group's target where it is the donor of any row in that group, or where it already holds a ledger row for any `[BR#n]` in it** (Phase 0 step 9a), even though it is eligible and even though it may be a legitimate target for a different group. Where an instruction clusters rows from several donors together, or clusters a row some standing child already holds a row for, either the group takes a new slice as its target — which is nobody's donor and holds no row for anything, by construction — or it is split until no group is aimed at a child either clause excludes for one of its own rows. Propose it that way rather than presenting a target the confirmation would have to refuse.
+
+**On the re-cut path every `[BR#n]` in that presentation also names its donor**: the donor's key, and the fact that the donor's own ledger records `deferred-to` against that row. Phase 0 step 9a built exactly that pair, and it is the pair — this BRD's `covered-by: <A>` beside A's own `deferred-to: <A>` — that makes the row movable at all (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2). So the operator sees which slice is giving each row up before confirming anything; a proposal that hides the donor asks them to approve a transfer they cannot see. **The donor is a property of the row, never of the proposed slice** — one candidate slice may take rows from several siblings — so it is named per row and never once per group.
+
+**One of the four answers below has no re-cut meaning of its own, and it is stated here rather than left to a guess.** *"Make this whole BRD one slice"* answers the degenerate case of a **first** split — nothing clusters, so the whole BRD becomes the one slice — and on the re-cut path there is nothing for it to make: every row already carries a fate, and at least one slice already stands, since `recut_mode` is set only where some child's own ledger defers a row this BRD delegated to it (Phase 0 step 9a, step 10). So on that path **it is unavailable, and an operator who picks it is read as declining** — the same outcome as confirming no group: nothing is created, nothing moves, every candidate is left with its donor and reported, and the run continues to Phase 4 where Step 2R has nothing to offer. Say that when it is chosen, rather than acting on it or asking again. **The array is unchanged and nothing is added or removed for this** — `AskUserQuestion` renders two to four options and this one is presented verbatim like every other (`workflows-core:escalation-rules`); what this paragraph fixes is what that answer *means* here, which is the one thing an agent would otherwise have to invent, and every invention writes something.
+
+Confirm before anything is created:
 
 ```
 choices: ["Accept these slices as proposed (Recommended)", "Edit one or more slices (rename, merge, move a row)", "Replace with a different slice list entirely", "Make this whole BRD one slice"]
 ```
 
-**Zero confirmed slices is not an outcome this phase can reach.** A BRD is a container, never
+**Zero confirmed slices is not an outcome this phase can reach on an ordinary run.** A BRD is a container, never
 something implementable in its own right, so **this command always produces at least one slice** —
 and the degenerate case has an honest answer rather than an escape valve: where nothing clusters,
 the whole BRD becomes one slice, which is what *"Make this whole BRD one slice"* selects. Editing
 the list down to nothing re-asks this question rather than proceeding.
+
+**On the re-cut path zero confirmed slices is reachable, and it is a real outcome of a real run rather than a degenerate one.** An operator can read the proposal — which names each row's donor — and decide the rows should stay where they are; putting that judgement to them is what this phase is for on this path, and *no* is one of its answers. Nothing is forced in its place, and **nothing stops** — no no-receiver stop exists in this command, because declining a proposal is an answer rather than an error (Phase 0 step 9a). The run continues to Phase 4, Step 2R has no receiver to offer for any candidate, every candidate is reported left with its donor, and Phases 4.5, 5, 6 and 7 run as usual. So on this path editing the list down to nothing **proceeds** rather than re-asking. **Confirming no new slice is not the same as confirming no receiver**, and the difference is what decides whether anything moves: a confirmed group whose **target is a standing child** (the exception below) places its rows and fixes that child as their receiver, and Step 2R then offers it — the choice was made here, not there. **The guarantee above is untouched, and not by exception**: `recut_mode` is set only where some child's own ledger already records `deferred-to` against a row this BRD delegated to it (Phase 0 step 9a), so a slice already stands on every run that reaches this phase in that mode, and the requirements still land somewhere a PRD can be written whether or not this run adds another.
 
 **One exception, and Phase 0 step 9 already states it: a parent that already has children.** There the
 run's job may be to allocate rows to slices that exist rather than to carve new ones — step 9 says an
@@ -432,7 +443,12 @@ there. Without it the operator must confirm a slice they do not want, watch the 
 and then accept Phase 4.5's offer to remove the folder Phase 3 just created — cancelling mid-key-taking
 to get the slice dropped is a workaround, not a stated behaviour. The rule that a BRD always yields at
 least one slice is unchanged: on a **first** split there are no children, so the degenerate case still
-resolves to *"Make this whole BRD one slice"*.
+resolves to *"Make this whole BRD one slice"*. **Where a slice already stands the guarantee is met
+without that answer, and the answer means less than it did** — on an ordinary run it proposes a
+single slice carrying the rows still to place, nothing more, and on the re-cut path, where there are
+no rows to place at all, it is read as a decline (above).
+
+**On the re-cut path that exception carries the receiving half of the proposal, and the target list is not every standing child.** The **eligible receiver set** Phase 0 step 9a computed is exactly which of them may be **proposed as a group's target** here — this phase makes that choice and its confirmation fixes it, and Phase 4 offers what was fixed rather than picking again — and that set travels with **two** per-row clauses this phase applies rather than restates: a row's own donor is never a receiver for that row, and neither is a child that already holds a ledger row for that row's `[BR#n]` — so a standing child cannot be a group's target where it donates any row in the group or already holds a row for one. **Name the children the set excludes, with the reason, and the reasons are not one reason** — a child excluded from the set has been interviewed, so the customer conversation about it has started and a register that exists and holds decisions is closed to added scope; a child excluded by either per-row clause is excluded **for those rows only** and is still a target for a group of others, which is a different thing to be told and a different thing to do about it (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2, `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §4). An operator who expected to send a row to a slice that no longer accepts it is owed that reason; a target list that is silently short reads as a bug in the enumeration, and the answer to it — carve a new sibling, which is eligible by construction — is one they can only reach if they know why the one they wanted is missing.
 
 **Why a container, rather than letting a BRD hold its own PRD** — the namespace argument now lives
 in `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5, the authority every PRD-eligibility
@@ -493,6 +509,8 @@ For every slice Phase 2 confirmed:
    requirement to another child of this BRD. Deleting it instead would erase the only record that a
    claim was made and withdrawn; leaving it `unallocated` would block that slice's own §4 gate
    forever, and with it every command that gates on the slice being fully allocated.
+
+   **On the re-cut path all of that is unchanged and still exactly true.** Phase 4's walk is still the step that actually moves a row's disposition — there it is Step 2R — so a slice this run keys as a receiver holds a provisional `claims:` entry until that walk writes the row, exactly as any other confirmed slice does. **The seeding does not change either, and this is the sentence a reader will get wrong.** Step 5 still writes one `unallocated` ledger row per claimed `[BR#n]`, and that row is `unallocated` because it is **a new row born in the initial state — never an existing row returned to it**, which no command may write (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). **State it in that general form and not as "a new row on a new ledger"**, because the receiver need not be a slice this phase keys: where the confirmed target is a **standing** child, this phase writes nothing for it at all and the new `unallocated` row is written onto that child's **existing** ledger by Phase 4's reconcile step instead. Both are rows that did not exist before, and neither is a row moved backwards, which is the whole reason the re-cut leaves §4's gate intact: the donor's row moves from one terminal disposition to another, and the receiver's row is born in the state every ledger row is born in. **That first half is a guarantee bought in Phase 0 and not an assumption made here**, which is worth saying because a standing child's ledger is exactly where a row for that `[BR#n]` could already be: step 9a's second per-row clause makes a child already holding a ledger row for a candidate's `[BR#n]` ineligible as that row's receiver, so the row this step or Step 3 seeds onto a standing receiver is always the first row that ledger has ever held for that id (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2). Without that clause the sentence above would be false on an ordinary tree, and the alternatives are the two the clause exists to forbid — `unallocated` written over a terminal row, or a claim added to a row that names somebody else.
 4. **Write the child's `brd/brd-inventory.md`** — the subset of *this* BRD's inventory rows the
    `claims:` list above names, copied row-for-row (`id`, `text`, `source_anchor`, `defects`
    verbatim), under the `parent:`/`source:` header
@@ -518,9 +536,7 @@ never run on a slice, because a slice has no document to intake. This command is
 those two files can come from, so it writes them at the same moment it writes `brd-link.md`, not
 later.
 
-A slice confirmed in Phase 2 but never given a folder here (the operator cancelled mid-key-taking)
-is dropped — it never becomes a `covered-by` target, and its rows return to the ledger walk
-unclustered.
+A slice confirmed in Phase 2 but never given a folder here (the operator cancelled mid-key-taking) is dropped — it never becomes a `covered-by` target. **What becomes of its rows depends on the path.** On an ordinary run they return to the ledger walk unclustered, as they always have. **On the re-cut path they return to nothing**, because they never left: each already carries `covered-by: <A>` here and `deferred-to: <A>` on its donor, and a candidate whose target is gone is not walked — it is left with its donor and reported, exactly as a candidate no confirmed group carried is. A dropped slice on that path therefore costs the run nothing but the move it was going to make.
 
 **About the child's key.** The default proposed in step 1 — the parent's key plus the next unused
 two-digit segment — is a naming convention that keeps sibling slices distinguishable and reads as
@@ -537,14 +553,18 @@ child sliceable — no key shape lifts the one-level cap (§3).
 **This phase runs in both modes** — it is the allocation walk, and allocation is not what the
 one-level cap restricts. What differs is the size of the picker.
 
-**Three steps, in this order:** the uniform-answer offer (Step 1 — conditional, and skipped on most
-runs), the walk itself (Step 2 — the default, and the reason this phase exists), and the reconcile
-that follows it (Step 3 — `split_mode: full` only).
+**Four steps, in this order:** the uniform-answer offer (Step 1 — conditional, and skipped on most
+runs), the walk itself (Step 2 — the default, and the reason this phase exists), the re-cut walk
+(Step 2R — `recut_mode: true` only, which re-points each candidate row from the sibling that
+deferred it onto the receiver Phase 2 fixed), and the reconcile that follows whichever walk ran
+(Step 3 — `split_mode: full` only).
+
+**Step 2 and Step 2R never both run, and that is by construction rather than by an exclusion rule.** Step 2 walks rows that are still `unallocated` when it opens, and on the re-cut path there are none: `recut_mode` is set only where Phase 0 step 8 found the ledger fully allocated (step 10). So each run takes exactly one of the two walks, and every sentence below that names one of them is about that run's own walk.
 
 ### Step 1 — the uniform-answer offer, taken once before the first row
 
-**Skipped unless the firing condition below holds. Where it is skipped, nothing in Step 2 changes,
-and where it is declined, nothing is written by it.**
+**Skipped unless the firing condition below holds. Where it is skipped, nothing in Step 2 or
+Step 2R changes, and where it is declined, nothing is written by it.**
 
 **Why it exists.** A BRD is a container, so this command always produces at least one slice
 (Phase 2) — and the whole of a BRD becoming *one* slice is the ordinary shape of this route rather
@@ -561,7 +581,8 @@ convenient.** Both conditions in its row must hold:
 
 | Mode | Fires when |
 |---|---|
-| `full` | **exactly one** slice stands as a `covered-by` target — the union of the children Phase 3 keyed this run and the children Phase 0 step 9 enumerated is a single folder — **and** two or more rows are still `unallocated` |
+| `full`, `recut_mode` false | **exactly one** slice stands as a `covered-by` target — the union of the children Phase 3 keyed this run and the children Phase 0 step 9 enumerated is a single folder — **and** two or more rows are still `unallocated` |
+| `full`, `recut_mode: true` | **two or more rows are in the re-cut candidate set carrying a placement** — a placement being what fixes a row's receiver (Phase 2) — **and those placed rows carry exactly one distinct target between them.** Counting the raw candidate set instead repeats the `allocate-only` row's own defect one path over: a candidate Phase 2 gave no target is one Step 2R does not walk at all, so it is not a row this offer could write. **Count confirmed targets over the placed rows, never standing folders**, and the difference is the whole of whether this offer ever fires: Phase 0 step 9a puts an **uninterviewed donor in the eligible receiver set by design** — being interviewed disqualifies a receiver, never a donor — so in this design's ordinary shape, one uninterviewed donor and one new slice keyed in Phase 3, the standing-folder count is two and a folder-counting condition would fire only where every donor happened to have been interviewed already, which is the opposite of the case step 9a calls ordinary. The per-row donor clause is why the two counts differ at all: the donor stands, and is eligible, and is a receiver for none of these rows |
 | `allocate-only` | **two or more rows are in the set this step would actually offer** — every row still `unallocated`, *minus* any row Phase 1.5's reading already placed on a different disposition. Counting the raw `unallocated` set instead fires the offer on a set of one or zero: an instruction like *"defer everything except the login flow"* leaves five rows `unallocated` while Phase 1.5 places four of them on `deferred-to`, so the condition saw five and the step rendered *"Write `covered-here` on all 1 rows now"* — the degenerate prompt the rule below says is skipped |
 
 **Why each condition is the condition.** With one standing slice, `covered-by` has exactly one legal
@@ -577,12 +598,15 @@ shows; the offer is that same recommendation made once instead of N times, not a
 below two rows there is nothing to save — one offer replacing one prompt — so the step is skipped
 rather than shown, by the same *When a choice list fires* rule.
 
-**Its vocabulary is two dispositions, and that is structural rather than a preference.** The offer
+**On the re-cut path the same reasoning holds over a different uniformity, which is why this offer is reused rather than duplicated.** Where every placed candidate carries the same confirmed target, the `<B-KEY>` the offer names is already each of those rows' own receiver, so it picks no receiver on anyone's behalf — Phase 2's confirmation fixed one per group, and this condition is just those confirmations agreeing. What stays per-row is the judgement Step 2R exists to take: whether *this* row is one to move at all. So the offer is refusable per row here for exactly the reason it is on the ordinary path. **Where the placed rows carry two or more distinct targets it does not fire**, and the reason is narrower than the `full` row's: the confirmations are already made, so nothing is being judged for the operator — what a single list cannot do is *say* what it would write, because its one `<B-KEY>` would stand for two destinations and the rows going to each would be invisible in it. That is the same *When a choice list fires* problem the whole step exists to avoid, arriving from the other side.
+
+**Its vocabulary is two dispositions on the two ordinary paths and three counting the re-cut, and that is structural rather than a preference.** The offer
 writes `covered-by: <CHILD-KEY>` (`full`) or `covered-here` (`allocate-only`) and nothing else. The
 other three each need a per-row fact it cannot supply and must not invent: `deferred-to` needs the
 one-line rationale Phase 5 writes into `slices.md`, `rejected` needs the `[DEF#n]` that justifies
 it, and `superseded-by` needs the `[BR#n]` that replaced it. A bulk form of any of the three would
 either skip a prompt that carries content or copy one row's reason onto rows that do not share it.
+**The third is the re-point**, `covered-by: <B-KEY>` written on the parent's row, then on the donor's, then on every *other* standing child's row that named the donor for that `[BR#n]` — Step 2R's three writes in Step 2R's order, and for the reasons it states there. It is a bulk form of the one write in this command that needs no per-row fact the run does not already hold: the donor came from Phase 0 step 9a's candidate set, the receiver from Phase 2's confirmation, and neither is a sentence the operator has to type. **The reason the other three cannot be bulk-written is unchanged and is not re-argued for this path** — each still needs the rationale, the `[DEF#n]` or the `[BR#n]` it always needed, and the re-cut adds none of them to what a bulk answer can supply.
 
 **The set it offers to write.** Every row still `unallocated`, **minus** any row Phase 1.5's reading
 placed on a *different* disposition. Those keep the recommendation the instruction earned them (the
@@ -590,30 +614,35 @@ placed on a *different* disposition. Those keep the recommendation the instructi
 not something a shortcut may quietly overrule, so the offer **names** those rows and what the
 instruction placed each on, rather than absorbing them.
 
+**On the re-cut path the set is every row in the re-cut candidate set carrying a placement** — the same set Step 2R would walk, defined there and not re-derived here, and in particular carrying the **post-Phase-2** sense of "placed" that step states. A candidate the placement left unplaced is **not** in it and is not held back to a walk either: it is not walked at all, it keeps the fate two ledgers already agreed on, and the offer names it as such rather than absorbing it or promising to return to it (Phase 1.5). There is no *"minus what the reading placed elsewhere"* term here, and its absence is the point: on this path the placement's job is to fix a receiver, not to name a disposition, so a placed row and an offered row are the same row.
+
 **What the offer states before anything is written**, in the prose beside the list:
 
-1. the disposition it will write, spelled out — `covered-by: <CHILD-KEY>` with the key filled in, or
-   `covered-here`;
+1. the disposition it will write, spelled out — `covered-by: <CHILD-KEY>` with the key filled in,
+   `covered-here`, or, on the re-cut path, `covered-by: <B-KEY>` with the receiver filled in;
 2. the count, and every `[BR#n]` in the set with the first line of its `text`, so a row that does
    not belong is visible without opening the ledger;
-3. in `full` mode, that it also adds each of those `[BR#n]` to `<CHILD-KEY>`'s `brd-link.md`
+3. in `full` mode with `recut_mode` false, that it also adds each of those `[BR#n]` to `<CHILD-KEY>`'s `brd-link.md`
    `claims:` list — the same second write Step 2's **Assign to a named slice** bullet performs, not
-   an extra one;
+   an extra one. **On the re-cut path the writes after the parent's are different ones and are stated as such**: the *donor's* ledger row takes `covered-by: <B-KEY>` second, and any *other* standing child's row naming the donor for the same `[BR#n]` takes it third, in that order (Step 2R) — and no `claims:` list is touched here at all — the donor's entry is withdrawn and the receiver's added by Step 3's reconcile, on this path exactly as on any other;
 4. every row it will **not** write, and why — each row Phase 1.5 placed elsewhere, named with its
-   placement;
+   placement; **on the re-cut path that is instead every candidate the placement left unplaced**, named with the donor it stays with and the fact that nothing will walk it;
 5. that Step 3's reconcile, Phase 4.5 and Phase 6 all run exactly as they would after a
    one-at-a-time walk, over the same files;
-6. that it settles nothing beyond those N rows: a bulk write is Step 2's per-row write taken N times
+6. that it settles nothing beyond those N rows: a bulk write is the per-row write of the walk this
+   run would otherwise take — Step 2's, or Step 2R's on the re-cut path — taken N times
    behind one confirmation — the same disposition vocabulary
-   (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3) and the same gate (§4), with no
-   row reaching a terminal disposition by a route that file does not already own.
+   (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3, and §3.2 for the re-point's
+   writes) and the same gate (§4), with no
+   row reaching a terminal disposition by a route that file does not already own;
+7. **on the re-cut path only, for each row in the set: its donor's key, and every decision in that donor's `decisions.md` whose `evidence` touches the row** — the same report Step 2R makes per row, made once here instead, because a bulk answer is the operator's one chance to see it. **Resolving "touches" is two hops and neither is a guess**: a decision's `evidence` list holds `[CG#n]`/`[DG#n]` ids (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1), and a finding's `claim` is the `[BR#n]` premise it was derived against (`workflows-core:grounding-format` §2), so a decision touches this row where any finding in its `evidence` list carries this `[BR#n]` as its claim — resolved against the donor's own grounding files. Report each by `id` and `statement`. **It is advisory, and nothing here edits a decision**: those decisions record the donor's refusal to build the row, which the move leaves standing (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2). A donor with no such decision is named as having none, rather than omitted — an operator who cannot tell "nothing was decided about this row" from "the report skipped it" is not being shown anything.
 
-**The list.** `<N>`, `<CHILD-KEY>` and the disposition are substituted exactly as `<BRD-KEY>` and
+**The list.** `<N>`, `<CHILD-KEY>`, `<B-KEY>` and the disposition are substituted exactly as `<BRD-KEY>` and
 `<recommended>` are substituted elsewhere in this phase; the array is otherwise presented verbatim
-(`workflows-core:escalation-rules`, *Choice lists are presented verbatim*), and it is three options, inside §0's
+(`workflows-core:escalation-rules`, *Choice lists are presented verbatim*), and each of the three below is three options, inside §0's
 two-to-four cap, with the free-text answer the harness supplies handled below.
 
-**`split_mode: full`:**
+**`split_mode: full`, `recut_mode` false:**
 
 ```
 choices: ["Write covered-by: <CHILD-KEY> on all <N> rows now", "Write it on all but the rows I name — I'll walk those one at a time", "Walk every remaining row one at a time — decide each row"]
@@ -625,7 +654,13 @@ choices: ["Write covered-by: <CHILD-KEY> on all <N> rows now", "Write it on all 
 choices: ["Write covered-here on all <N> rows now (Recommended — every row this walk stands on is a row the parent allocated here, which is the marker the per-row picker carries on each of them, made once)", "Write it on all but the rows I name — I'll walk those one at a time", "Walk every remaining row one at a time — decide each row"]
 ```
 
-**Why one list carries a marker and the other does not** — the same rule both times, applied to what
+**`split_mode: full`, `recut_mode: true`:**
+
+```
+choices: ["Re-point all <N> rows to <B-KEY> now — each was deferred by the slice that holds it", "Re-point all but the rows I name — I'll walk those one at a time", "Walk every candidate one at a time — decide each row"]
+```
+
+**Why one list carries a marker and the other two do not** — the same rule all three times, applied to what
 each picker already says. The `allocate-only` picker recommends `covered-here` on every row it
 shows, unconditionally and for a reason no instruction changes, so recommending it once here is that
 marker printed once: a reason annotation, honoured verbatim, of the kind `workflows-core:escalation-rules`
@@ -636,7 +671,11 @@ list: *no option here is recommended — this run knows which slice a delegated 
 whether this row is one to delegate.* That is `workflows-core:escalation-rules`'s *When no option is safe to
 recommend*, not an omission.
 
+**The re-cut offer carries no marker either, for the same reason and not a new one.** Say beside its list: *no option here is recommended — this run knows which sibling a re-pointed row would go to, not whether this row is one to move.* Phase 2's confirmation fixed the receiver, so the `<B-KEY>` is settled and the offer asserts nothing by naming it; what is not settled is whether the operator, having now seen each row's donor and what that donor decided about it, still wants it moved. That is a fact about the row in front of them, so *When no option is safe to recommend* applies here exactly as it does to the `full` offer. **That Step 2R's own per-row picker does carry a marker is the same asymmetry this step already lives with on the ordinary path, not a contradiction of this paragraph**: there the marker is a reason annotation naming what in the instruction placed *that* row, and one confirmation recommending the same write across a whole set is a different and larger claim — which is exactly why the `full` picker may carry one while the `full` offer may not.
+
 **Answering.**
+
+**Read every mention of Step 2 below as Step 2R on the re-cut path** — that run's walk is Step 2R, Step 2 does not run on it, and nothing else in this sub-section changes: option 2's naming prompt, its validation, its single re-prompt and the fall-through rule all apply exactly as written. **The fall-through direction on the re-cut path is the walk as well**, at both prompts, for the reason it is everywhere else here: an answer this step cannot read must never take the maximal write, and here the maximal write moves rows off a fate two ledgers had agreed on.
 
 - **Option 1** — write the whole set (below), then continue into Step 2 with only the excluded rows
   left to walk, if there are any.
@@ -667,10 +706,14 @@ writes — `disposition: covered-by: <CHILD-KEY>` plus the `claims:` entry, or
 about a row changes. Then report the rows written, under the one disposition, and the rows held back
 with why each was held back — named by the operator, or placed elsewhere by the instruction.
 
+**On the re-cut path, write exactly what Step 2R writes, in Step 2R's order, one row at a time.** That is the parent's ledger row first, the donor's second, and the sweep of every *other* standing child's row naming the donor for that `[BR#n]` third, per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2 — and the order carries the same reasons under a bulk answer that it carries under the walk, so it is not the offer's to simplify: an interruption between the first two must leave the parent pointing one hop at the receiver, never a second hop through the donor, and the sweep is last because until the donor's row has moved there is nothing for another child's row to point at that is not a claim about the receiver made before it was true. **Take all three writes for one row before starting the next**, which is what makes "row by row in the file" mean the same thing here as above: an interrupted bulk answer then leaves each row either wholly re-pointed or wholly untouched. Report the rows re-pointed, the receiver they went to, each row's donor, every other child's row the sweep re-pointed with it — or that the sweep found none — and every candidate not written, held back by the operator or left unplaced by the placement and therefore never in the set.
+
 **A row held back is walked, not dropped.** It is still `unallocated`, and §4's gate still blocks
 this command until Step 2 gives it a terminal disposition. A `Cancel` during that walk stops the run
 naming how many rows remain, and every row this step already wrote stays written — exactly as a row
 resolved early in a one-at-a-time walk does.
+
+**On the re-cut path a held-back row is walked too, and it is §4's gate that does not apply.** A candidate already carries a terminal disposition on both ledgers, so nothing blocks this command on its account and a run that ends with every candidate held back and then left with its donor is a complete run rather than a stalled one. What holds is the rest: Step 2R walks each held-back candidate one at a time, a `Cancel` stops the run naming how many are unwalked, and every re-point this step already wrote stays written.
 
 ### Step 2 — the walk
 
@@ -720,8 +763,9 @@ State once, before the first row of an `allocate-only` walk: *"`covered-by` is n
 On this slice it would name a sibling under the same parent, or that parent — never a child, since
 nesting is capped at one level and no child can exist below a slice — only its Epics
 (`workflows-core:addressing` §6). It is written by the **parent's** walk,
-on a provisional claim that walk withdrew, and every row carrying it is terminal before this run
-opens the file (`coverage-ledger-format.md` §2, §3). Every row this walk stands on is a row this
+on a claim that walk withdrew — provisional on the ordinary route, committed and then deferred by
+this slice itself where a re-cut moved it onward (§3.2) — and every row carrying it is terminal
+before this run opens the file (`coverage-ledger-format.md` §2, §3). Every row this walk stands on is a row this
 slice claims — a row the parent allocated **here** — so there is nothing for this picker to
 delegate. The other four are unchanged, and `covered-here` is what makes this slice PRD-eligible
 (§5)."* The remaining four are a strict subset: nothing about them is redefined for a slice.
@@ -732,13 +776,9 @@ row while this slice says the sibling does — the two authorities disagreeing a
 requirement, which is the failure the ledger exists to make impossible
 (`coverage-ledger-format.md` §1). It would also point at a sibling whose own inventory holds no row
 for that `[BR#n]` at all, and it would put a second hop under the parent's roll-up, which
-`coverage-ledger-format.md` §6.1 requires to terminate in one. **No command is named as the way to
-re-allocate instead, because none exists**: allocation is this walk and nothing else
-(`coverage-ledger-format.md` §3), the walk visits only rows still `unallocated`, and no command
-moves a row off a terminal disposition — so re-running `/brd-split` on the parent would find that
-row already allocated and report the no-op. The honest answer for an operator who wants the sibling
-to own a claimed row is that the allocation stands as the parent's walk recorded it, and the slice
-records what it decides to do with it.
+`coverage-ledger-format.md` §6.1 requires to terminate in one.
+
+**There is now one route by which such a row can reach a sibling, and it is not this walk — so naming it here is the honest answer rather than a widening of this picker.** This walk still allocates only rows that are `unallocated` on this slice's own ledger, and nothing in it moves a row off a terminal disposition. What changed is at the level above: where this slice records `deferred-to: <this slice>` on a row — a decision this picker's second option makes, and a refusal written in this slice's own ledger — the **parent's** own `/brd-split` run, given a slicing instruction, may re-point its `covered-by: <this slice>` row onto a sibling that has not been interviewed (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2, and this command's Phase 4 Step 2R). **That route avoids all three objections above rather than accepting them**: the parent writes both ledger rows in one step, so the two authorities never disagree; the receiving sibling gains its inventory row from the parent's own reconcile; and the parent's row points one hop at the receiver, never two. The honest answer for an operator who wants the sibling to own a claimed row is therefore: this walk cannot give it away, so record here what this slice will actually do with it — and where that is a deferral, the parent's run is where the sibling can take it. Two things are still needed for that and neither is this walk's to arrange: an instruction typed on the parent, and a sibling whose customer conversation has not started.
 
 **`<recommended>` is a placeholder this run resolves per row, and resolving it is not a rewording.**
 It is substituted in the option strings exactly as `<BRD-KEY>` and `<merge-clause>` are, so the array
@@ -832,23 +872,73 @@ wrote; nothing already decided is rolled back.
 - **Mark superseded** → prompt for the replacing `[BR#n]`; it must already exist in
   `brd/brd-inventory.md`. Write `disposition: superseded-by: [BR#n]`.
 
+### Step 2R — the re-cut walk
+
+**Runs only when `recut_mode: true`** (Phase 0 step 10), and it runs **in place of Step 2**, never beside it: on this path no row is `unallocated`, so Step 2's own opening set is empty and the two walks cannot both have work. Everything below is the re-cut path.
+
+**The set it walks.** Every row in the **re-cut candidate set** (Phase 0 step 9a) that a group Phase 2 confirmed **with a target** carries when Phase 2 ends — the target being a slice Phase 3 keyed this run, or a standing child from the eligible receiver set — **minus** any row Step 1's offer already wrote. That target is the row's receiver, and this step **offers it rather than choosing it**: Phase 1.5 read the instruction and Phase 2's confirmation fixed the target per group, so by the time this walk opens the receiver is settled and the only open question is whether this row moves at all.
+
+**"Placed" here is the post-Phase-2 sense, and taking the narrower one silently discards an operator's own edit.** Phase 1.5 states that the word carries two senses and that this phase consumes the later one: a row that phase's own reading could not place is a residue **Phase 2 may still cluster**, and Phase 2's *"Edit one or more slices (rename, merge, move a row)"* answer is exactly how the operator moves such a row into a confirmed group. A set defined as *what Phase 1.5's reading placed* would drop that row and leave it with its donor — undoing an explicit instruction the operator gave two phases ago, silently, and reporting it as a candidate nothing could place. So membership is decided by the confirmed groups as they stand at the end of Phase 2, however each row reached one.
+
+**A candidate the placement left unplaced is not in this set, and is not walked.** Nor is one whose confirmed target no longer stands — a slice dropped when the operator cancelled mid-key-taking in Phase 3. **Say why, so no later edit "completes" the walk by showing them:** such a row already carries a fate at both levels, `covered-by: <A-KEY>` on this BRD and `deferred-to: <A-KEY>` on A, so a picker shown for it would be a prompt whose only available answer is *leave it* — a blank picker has nothing to resolve a row to that the row does not already have. It stays with its donor, this step passes over it, the final report names it, and Phase 5 records it. **Those are three roles and not three reporters** (Phase 1.5): this step's part is to decline to walk it and to carry it into what this step hands on, deciding nothing about it — the naming to the operator is the final report's and the writing down is `slices.md`'s.
+
+**Where the set is empty this step offers nothing, and that is an outcome rather than a failure.** Several causes reach it and they are not reported alike; the list below is what has been identified, not a proof that nothing else can empty this set. A run reaches it by every proposed target having been declined, or by no group having been confirmed at all (Phase 2) — an operator who read a proposal naming each row's donor and said no has answered the question the run asked; report every candidate as left with its donor, and continue. It reaches it the same way where **every confirmed target was dropped in Phase 3**, the operator having cancelled mid-key-taking: nothing was created, so nothing can receive, and each candidate is again left with its donor. Or it reaches it because **Step 1's offer already wrote every placed candidate**, which is not that outcome at all: report it as the completed bulk write it is, over the rows Step 1 named. In every case **no stop is taken here, and this command has no no-receiver stop to take** (Phase 0 step 9a). Phase 3 can always key a new slice, so the state in which nothing could ever receive these rows is not one this command can be in.
+
+**Per row, one `AskUserQuestion`, never batched**, quoting:
+
+- the row's `id` and `text` from **this BRD's own** `brd/brd-inventory.md` — the file that holds every `[BR#n]` whatever fate this BRD's walk gave it (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.1), never the donor's copied inventory, which Step 3 is about to withdraw the row from;
+- **the donor's key**, and the two dispositions that make the row movable at all, **quoted from the two ledgers rather than asserted**: this BRD's row reads `covered-by: <A-KEY>`, and A's own row for that `[BR#n]` reads `deferred-to: <A-KEY>`. Phase 0 step 9a read both to build the candidate set; showing them is what lets the operator see the refusal the move is made against (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2);
+- **the receiver `<B-KEY>`** the Phase 2 confirmation fixed for this row's group, and whether it is a slice this run keyed or a child that already stood;
+- **every decision in the donor's `decisions.md` whose `evidence` list touches this row**, by `id` and `statement`. **"Touches" resolves in two hops and neither is a guess**: a decision's `evidence` holds `[CG#n]`/`[DG#n]` ids (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1), and a finding's `claim` is the `[BR#n]` premise it was derived against (`workflows-core:grounding-format` §2), so a decision touches this row where any finding in its `evidence` list carries this `[BR#n]` as its claim — resolved against the donor's own grounding files. **In the shape Phase 0 step 9a calls ordinary the donor has not been interviewed, so its `decisions.md` does not exist at all** — `/product-workflows:brd-interview` is what writes one — and an **absent** register is the same outcome as a present one matching nothing: report the donor as holding no decision touching this row. It is **not** a read failure of the kind step 9a requires reporting for an unreadable ledger, and must not be reported as one. A donor holding no such decision either way is reported as holding none, never omitted.
+
+**That report is advisory, and nothing in this step edits a decision.** The decisions it surfaces record the donor's refusal to build this row, and the move does not disturb that refusal — it acts on it. `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §4 admits exactly two causes for reopening a decision, a new grounding finding or an incoming customer decision, and a re-cut is neither; `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2 fixes that the donor's register and its grounding files are untouched by all of this. What the report buys is the operator's judgement: they see what the donor said about a row it is giving up and decide whether the move is still right.
+
+**The picker**, one per row, two options:
+
+```
+choices: ["Re-point to <B-KEY> — <A-KEY> deferred it and <B-KEY> will build it<recommended>", "Leave it with <A-KEY> — its deferred-to stands"]
+```
+
+`<A-KEY>` is this row's donor, `<B-KEY>` the receiver the placement fixed for it, and `<recommended>` takes the form the first row of Step 2's table already defines — ` (Recommended — <what in the instruction placed it>)` on the re-point option and the empty string on the other. **That table's third row does have a case here, and it is the case a fabricated annotation would ruin.** A candidate reaches a confirmed group either because Phase 1.5's reading placed it there or because the operator moved it there by hand in Phase 2 — and for the second, **nothing in the instruction placed the row**, so `<recommended>` resolves to the **empty string on both options**, exactly as that row prescribes. Never write ` (Recommended — <what in the instruction placed it>)` over a row the instruction did not place: the annotation's whole value is that the operator can disagree with a reason they can see, and an invented one is worse than none. **The receiver need not be a slice Phase 3 keyed**, which is the one way this differs from that row's wording: where Phase 2 fixed a standing child as the target, an annotation the instruction does earn still names what in it placed the row, because that is what the annotation is for. All three are **placeholders substituted per row**, which is what keeps the array presented verbatim (`workflows-core:escalation-rules`, *Choice lists are presented verbatim*) — the same point Step 2 makes for its own picker, and the reason the variation lives in a placeholder rather than in an instruction to reword an option.
+
+**A free-text or otherwise unusable answer falls to the second option — leave it with the donor.** The fall-through must always be the answer that writes least, which is the rule Step 1 applies at both of its own prompts, and here the least-writing answer is also the one that changes nothing: the row keeps a fate two ledgers already agree on.
+
+**The writes, per row, once the operator chooses to re-point — in this order:**
+
+1. **The parent's ledger row** (this BRD's own `coverage-ledger.md`) → `disposition: covered-by: <B-KEY>`.
+2. **The donor's ledger row** (A's `coverage-ledger.md`) → `disposition: covered-by: <B-KEY>`.
+3. **Every *other* standing child's ledger row for this same `[BR#n]` whose `disposition` names the donor** → `disposition: covered-by: <B-KEY>`.
+
+`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2 is the authority for the first two writes and for the precondition behind them, which is not restated here; it also fixes the outcome the third write exists for — that no ledger is left naming the donor for a row the donor no longer holds — and leaves which ledgers are read, in what order, and how the sweep is reported to this step. **The order of the first two is stated at the point of use because it is not a tidiness question and a later edit will otherwise swap them as a clean-up.** Parent-first leaves a run interrupted between them with the parent pointing **one hop** at the receiver and the donor exactly as it stood — two accurate readings, neither hiding a requirement. Donor-first leaves the parent naming A while A names B, a **second hop** under a roll-up §6.1 requires to terminate in one, which falsifies that section's own argument for as long as the run stays interrupted. Nothing else about either row changes, and ids are the parent's throughout.
+
+**The third write is a sweep, and it is the sweep Phase 4.5 already specifies rather than a new one.** A single `[BR#n]` can be named by `covered-by` on **more than one** child's ledger: a child D whose provisional claim on that row an earlier run's walk withdrew holds an orphan row `covered-by: <A-KEY>` for it (Step 3's table), so the donor is named by D as well as by this BRD. Re-pointing only the two rows above leaves D naming A while A names B — a **second hop** under a roll-up §6.1 requires to terminate in one, landing on a row that no longer claims the requirement, which is the reading that section counts `unresolved` rather than follows. So read **every other standing child's** `coverage-ledger.md` for a row whose `disposition` is `covered-by: <A-KEY>` for this same `[BR#n]` and write `covered-by: <B-KEY>` on it. **That is the same read Phase 4.5 performs before a removal, over the same set of ledgers and for the same reason — a `covered-by` key about to go stale**, and it is reused rather than restated: read the `disposition` column, never a `claims:` list or an inventory, because the row that would dangle is an orphan row and a `claims:` list by definition does not name one. Where the read finds no such row anywhere, nothing extra is written — which is every re-cut of a row no earlier walk ever withdrew a provisional claim on, and it is reported as a sweep that re-pointed no row rather than left unsaid.
+
+**The receiver is excluded from that sweep by construction, not by an exclusion rule** — and this is where the two Phase 0 clauses pay for each other. Step 9a's second per-row clause makes a child already holding a ledger row for this `[BR#n]` ineligible as its receiver, so B holds no row for it at all and the sweep can never write a self-naming `covered-by: <B-KEY>` onto B's own ledger — the mirror of the self-naming write the donor clause prevents. Nor can it reach the donor's row twice: that row is written by the second write above and is not *another* child's.
+
+**The sweep runs third, after both rows above, and the reason is the same interruption argument.** Interrupted between the donor's write and the sweep, D's row resolves one hop onto A's row, reads a `covered-by` there, and is counted `unresolved` (§6.1) — visible as something to look at, and hiding no requirement, which is the whole of the claim. **It is not self-healing**, and saying so would be wrong twice: a later re-cut cannot reach it, because this BRD's row now reads `covered-by: <B-KEY>` and B is not `deferred-to: <B-KEY>`, so step 9a's candidate test fails on it; and a removal repairs D's row only where the child removed happens to be the donor. The repair is re-running the interrupted write, and that is what the visibility buys. Sweeping first would leave D naming a receiver that nothing had yet given the row to, while the parent and A both still said A owned it: a positive claim about B made before it was true, which is the one shape this route treats as worse than an unresolved count.
+
+**What this step does not write, stated because each is somewhere an implementer would reasonably reach.** It does not touch the donor's `brd-link.md` `claims:` list or its copied inventory row — **Step 3 withdraws those**, exactly as it does for any row a walk moved off `covered-by: <that child>`. It does not touch the receiver's `claims:` list, its copied inventory row, or the `unallocated` ledger row seeded for it — **Step 3 settles those**, on this path as on any other, which is *adding* them where the receiver is a standing child and *reconciling* them where it is a slice Phase 3 keyed this run, since Phase 3 steps 3–5 already wrote all three for that one provisionally. And it touches **no grounding file and no decision register**, at either level. **The sweep above is not an exception to any of that**: it writes a `disposition` on another child's *ledger* row, which is the same kind of write as the two above it, and it leaves that child's `claims:` list and inventory alone — a child holding an orphan row for this `[BR#n]` does not claim it, so there is nothing there to withdraw.
+
+**Report, per row walked:** the `[BR#n]`, the donor, and either the receiver it was re-pointed to or that it was left with its donor, plus the decisions surfaced for it, plus **every other child's ledger row the sweep re-pointed for it**, named by that child's key — or that the sweep found none to re-point. Add every candidate this step passed over — unplaced, or its target dropped — named with the donor it stays with. Phase 5 writes the same record into `slices.md`.
+
 ### Step 3 — reconcile each surviving child
 
-**Once every row is resolved — by Step 1, by Step 2, or by both — bring each surviving child's three
+**Once every row is resolved — by Step 1, by Step 2, by Step 2R, or by a combination — bring each surviving child's three
 files back into agreement (`split_mode: full` only — an `allocate-only` run has no child to
 reconcile and finishes at the last row).** The
 walk is what actually allocates, so a child's `claims:` list, its `brd/brd-inventory.md`, and its
 `coverage-ledger.md` are all provisional until this point. For every child still standing — created
-this run in Phase 3, or found already nested in Phase 0 step 9 and given a row by this walk —
+this run in Phase 3, or found already nested in Phase 0 step 9 and **either given a row by this walk
+or had a row moved off it by this walk** —
 re-derive all three from the rows this walk ended up resolving `covered-by: <that child>`: the
 `claims:` list, the copied inventory rows (`brd-format.md` §2.1), and one `unallocated` ledger row
-per claim. **"Re-derive" means reconcile, not rebuild from scratch.** This walk visits only rows
-that were `unallocated` when Phase 0 step 8 read the ledger, so the rows a pre-existing child was
-already given by an earlier run are not revisited here and must not be dropped: the set each child
+per claim. **"Re-derive" means reconcile, not rebuild from scratch.** This walk visits **two** kinds of row and no others: rows that were `unallocated` when Phase 0 step 8 read the ledger, and — on the re-cut path — the candidate rows Step 2R re-pointed, which were never `unallocated` this run and reach this step already carrying `covered-by: <B-KEY>` at both levels. Everything else a pre-existing child was given by an earlier run is not revisited here and must not be dropped: the set each child
 ends with is the union of the rows it already claimed and the rows this walk newly resolved to it,
 minus only the rows this walk moved off `covered-by: <that child>` to something else. A rebuild
-from this walk's resolutions alone would silently strip every earlier claim. A row added to a child
-here gains its inventory and ledger rows here.
+from this walk's resolutions alone would silently strip every earlier claim. **That conclusion is unchanged by the widening and is what the widening is for**: a re-pointed row is one this walk newly resolved to the receiver and one it moved off `covered-by: <the donor>`, so both halves of the union reach it — the receiver gains the claim and the donor loses it — where a set defined by `unallocated` alone would have left the receiver claiming nothing it was given and the donor claiming a row it no longer holds. A row added to a child
+here gains its inventory and ledger rows here, the receiver on the re-cut path included, whether that receiver is a slice Phase 3 keyed this run or a child that already stood (Phase 3 step 3).
+
+**The second half of that selector is what puts the re-cut's donor in this step's set, and without it the donor is never visited.** A donor is a pre-existing child this walk took a row *from* and gave none *to*, so a selector reading only *"given a row by this walk"* skips it — and the withdrawal below would then never run against the one child that most needs it, leaving a `claims:` entry and a copied inventory row for a `[BR#n]` whose own ledger row reads `covered-by: <B-KEY>`. Nothing detects that afterwards: a slice's inventory is defined as the subset its `claims:` list names (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1), so the two stale files agree with each other and disagree only with a ledger nobody re-reads. It surfaces later as a slice claiming work it does not own. The relation the selector names is the same one this paragraph already turns on — *the rows this walk moved off `covered-by: <that child>`* — so the two halves cover the two directions a row can travel, and the ordinary path's withdrawn-claim children were always in the set by the first half.
 
 **A row proposed for a child in Phase 3 but resolved elsewhere loses two of the three, never all
 three.** Its `claims:` entry and its copied inventory row are withdrawn together — a slice's
@@ -882,6 +972,10 @@ removes `claims:` entries and inventory rows, it **never removes a ledger row**,
 rewrites a disposition another run recorded. The orphan rows it writes are only ever rows this run
 seeded `unallocated` in Phase 3 step 5 moments earlier, so the two rules never collide.
 
+**On the re-cut path this step writes one further row, and it collides with neither rule either — but only because Phase 0 bought that.** Where the receiver is a **standing** child, the `unallocated` ledger row for the re-pointed `[BR#n]` is written **here**, onto a ledger that already existed, since Phase 3 wrote nothing for a child it did not key (Phase 3 step 3). That is a **new** row on an old ledger, not a row moved backwards: step 9a's second per-row clause makes a child already holding a ledger row for a candidate's `[BR#n]` ineligible as that row's receiver, so this write can never land on an existing row and can never return one to `unallocated` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2, §3). **The rule above is therefore left-alone-as-it-stands and not leave-every-pre-existing-row-alone**, and the difference is exactly where the strandable state used to be: a receiver holding a terminal row for the moved `[BR#n]` would gain a `claims:` entry here while its own row named somebody else, its `allocate-only` walk would never visit that row, and nothing anywhere would fail. It is unreachable because the receiver set excludes it, never because this step declines to write.
+
+**On the re-cut path the donor's ledger row is the row a reader will expect this step to write, and it does not: Step 2R already wrote it, so this step leaves it alone.** The withdrawal Step 2R described is still performed here — the donor's `claims:` entry and its copied inventory row go, together, exactly as for any row this walk moved off `covered-by: <that child>` — but its **ledger row is not written a second time**. It already reads `covered-by: <B-KEY>`, which is what the orphan table's first row above prescribes for a row this walk resolved to another child of this BRD, so nothing here would change it and nothing disagrees. **That is also what keeps "never rewrites a disposition another run recorded" intact**: the disposition on that row was written by *this* run, one step earlier, and this step declining to touch it is the reason no earlier run's record is ever at stake. So on this path the donor's work in this step is the `claims:` entry and the copied inventory row only.
+
 ---
 
 ## Phase 4.5 — Resolve every standing empty child
@@ -890,21 +984,25 @@ seeded `unallocated` in Phase 3 step 5 moments earlier, so the two rules never c
 
 **A child claiming nothing is a folder nothing on this route can act on.** It has an empty
 `brd-link.md` `claims:` list and, beside it, an empty `brd/brd-inventory.md`. **Its
-`coverage-ledger.md` is not necessarily empty**: a child Phase 3 created this run whose every
-proposed row the walk then resolved elsewhere keeps one orphan row per withdrawn claim
-(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), each already terminal. Those
+`coverage-ledger.md` is not necessarily empty**: a child keeps one orphan row per withdrawn claim
+(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), each already terminal, and both of
+that section's routes to an orphan row reach this set — a child Phase 3 created this run whose every
+proposed row the walk then resolved elsewhere, and a pre-existing child whose every committed claim a
+re-cut moved to a sibling. Those
 rows change nothing here — the emptiness this phase acts on is the **claims** list, which is what
 `/brd-ground`, `/brd-split` and `/brd-interview` each stop on, and all three of those stops name
 **this phase** as the fix, so this phase has to be reachable whenever such a child exists.
 
-**The set is every child standing now, not only the ones this run created.** Two things put a child
+**The set is every child standing now, not only the ones this run created.** Three things put a child
 in it: a slice keyed and folder-created in Phase 3 whose every proposed `[BR#n]` row ended this walk
 resolved to something other than `covered-by: <that child>` — rejected, deferred, superseded, or
-reassigned — and a child an *earlier* run left standing, which Phase 0 step 9 marked. **Scoping this
+reassigned; a child an *earlier* run left standing, which Phase 0 step 9 marked; and — on the re-cut path — a **donor** whose last remaining claim Step 2R moved to a sibling, which step 9 did not mark and could not have, since it still claimed a row when that step read it. **Scoping this
 to children created this run was a dead end**: an earlier run's kept-empty child was never in any
 later run's set, so the removal option existed only in the single run that created it and never
 again. (The Phase 3 cancelled-mid-keying case is distinct and is not in this set — that slice never
 got a folder at all.)
+
+**Emptiness is recomputed here, after the walk, and Phase 0 step 9's marking is never the set this phase acts on.** Read each standing child's `brd-link.md` `claims:` list **as Phase 4's Step 3 reconcile left it**, and take only the children whose list is empty then. Step 9's marking is an input to the step 10 no-op decision and nothing more, and on the re-cut path it goes stale inside the same run: a child from the **eligible receiver set** is eligible precisely because it has not been interviewed, and an **uninterviewed** standing empty child is one of those — an interviewed one is not, which is why Phase 0 step 6's own stop tells such a slice it can only be removed or kept — so Phase 2 may fix an uninterviewed one as a group's target and Step 2R may give it a row — after which Step 3 writes it a `claims:` entry, an inventory row and an `unallocated` ledger row, and it is not empty any more. Trusting step 9's marking there would offer to delete a folder this run has just given work to, taking the row's new ledger row with it. **The recomputation costs nothing on the other paths and is not conditional on `recut_mode`**: on an ordinary run Step 3 reconciles every child the walk touched and the recomputed list is what that step left, and on the Phase 4.5-only path no walk ran at all, so the list read here is the same list step 9 read and the two agree. The reverse direction holds too and is the reason this is a recomputation rather than a subtraction: a child step 9 did **not** mark can end the walk empty — every row it claimed moved off `covered-by: <that child>`, which is exactly what a donor whose last claim was re-cut looks like — and it belongs in this phase's set on the strength of the list, not of the marking.
 
 **Two pickers, because a child kept by a decision is not the same as one nobody has looked at.**
 Read the child's `brd-link.md` for a `reason:` field:
@@ -917,7 +1015,8 @@ choices: ["Remove the empty child folder — it claims nothing (Recommended)", "
 
 **A `reason:` already recorded** — an earlier run asked this question and the operator answered it.
 Do not re-ask it as though it were open, and do not recommend undoing a decision on the strength of
-a state that decision deliberately created. Print the recorded reason verbatim beside the list:
+a state that decision deliberately created. Print the recorded reason verbatim beside the list.
+**A recorded reason can be stale in one specific way, and where it is, say so beside it rather than presenting it as a standing answer.** A child kept empty against a reason is uninterviewed, so it is an eligible receiver: a later run may fix it as a target and Step 2R may give it a row, at which point the recomputation above correctly drops it from this phase's set and its `reason:` — which describes a folder claiming nothing — is left describing a state it is no longer in. Nothing rewrites it there, because keeping the operator's own words is the point of the field. If that child later empties again and reaches this picker, the reason on file was answered about a different situation: print it with the note that the child has since been given a row and emptied again, so the recommendation to keep is read for what it is rather than as the earlier decision still standing:
 
 ```
 choices: ["Keep it — the recorded reason still stands (Recommended)", "Remove it now — it claims nothing, and nothing on the route can act on it", "Update the recorded reason"]
@@ -925,21 +1024,33 @@ choices: ["Keep it — the recorded reason still stands (Recommended)", "Remove 
 
 Removing deletes the child's folder — `brd-link.md`, `brd/brd-inventory.md`, and
 `coverage-ledger.md` with it — and drops it from any later run's Phase 0 step 9 enumeration.
-**Removing one can never leave a `covered-by` key pointing at nothing**, at either level: a child
-this walk gave a row to claims that row and is therefore not in this phase's set, so no ledger
-anywhere names a child this phase can remove. Removal is the one place a ledger goes away, and it
+Removal is the one place a ledger goes away, and it
 takes the whole BRD with it rather than deleting a row from a ledger that survives — which is why
-it does not contradict `coverage-ledger-format.md` §2. Keeping it, meanwhile, writes or leaves a
+it does not contradict `coverage-ledger-format.md` §2.
+
+**A removal can now leave a `covered-by` key pointing at nothing, and the re-cut is what made that state reachable.** This phase used to assert the opposite and reason it from the walk: a child this walk gave a row to claims that row and is therefore not in this phase's set, so no ledger anywhere could name a child this phase can remove. **That reasoning held only for as long as no row could be moved off a terminal disposition**, and the re-cut moves one. The route to the dangling key is four runs long and every step of it is ordinary: a child B takes a row this walk resolved `covered-by: <B>`, some earlier child A having had its provisional claim on that row withdrawn and its own ledger row written `covered-by: <B>` (Step 3's orphan table); B's own `allocate-only` walk later records `deferred-to: <B>` against it; a later run re-cuts it onward to a sibling, which rewrites this BRD's row and B's row and withdraws B's claim (Step 2R, Step 3); B now claims nothing, is in this phase's set on the recomputation above, and **A's ledger still reads `covered-by: <B>`**. Removing B without more would leave A naming a folder that is not there — an `unresolved` row for every later reader of A's ledger line (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6.2), on a BRD that did nothing wrong.
+
+**The second route reaches this BRD's own ledger, and it is stated because the obvious reading says it cannot be reached.** That reading is that Step 3 keeps a child's `claims:` list in step with the rows this BRD's ledger allocates to it, so a child claiming nothing implies no row of this ledger names it — and it holds only for a run that **reaches Step 3**. The re-cut moved the receiver's `claims:` write out of the walk and into that step, and a `Cancel` mid-walk is sanctioned between the two (Step 2, Step 2R): a run can re-point one candidate onto an uninterviewed standing empty child B, write `covered-by: <B>` on this BRD's row and on the donor's, and then be cancelled on the next candidate before Step 3 ever gives B its `claims:` entry. **The rows Step 2R already wrote stay written**, which is that Cancel's own stated behaviour. B still claims nothing, and this BRD's ledger now names it. The next bare run finds a fully-allocated ledger and a standing empty child, takes the Phase 4.5-only path, and offers to remove B with **this BRD's own row pointing at it** — and removing it without the write below would leave that row `unresolved` on this BRD's own ledger line, which is the same failure the other-child repair exists to prevent, one level up.
+
+**So read before removing, at both levels — and both levels are live.** Before deleting the folder, read this BRD's own `coverage-ledger.md` for rows whose `disposition` is `covered-by: <that child's key>`, and read **every other standing child's** `coverage-ledger.md` for rows carrying the same key. Read the `disposition` column, never a `claims:` list or an inventory — the row that dangles is a row, and on another child it is an orphan row its `claims:` list by definition does not name.
+
+**Where any such row exists, name it in the removal confirmation before the removal is taken**, with its `[BR#n]`, the ledger it sits on, and what that row will be rewritten to. The two pickers above are unchanged and no option is added: this is prose beside the list, printed exactly where a recorded `reason:` is already printed, because the operator answering *remove* is being told that removing this folder rewrites rows on ledgers other than its own — which nothing in either list implies.
+
+**On removal, write, and take both mappings from `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3's orphan table rather than restating them here** (§3.2 quotes that table for exactly this edge): each such row of **this BRD's own** ledger takes `deferred-to: <PARENT-KEY>` — this BRD's own key, which on its own ledger is §3's `deferred-to: <this BRD>`, a live obligation kept and not built now — and each such row of **another child's** ledger takes `covered-by: <PARENT-KEY>`. **Not back to the child that donated the row**, which recorded that it will not build it, and **not `unallocated`**, which no command may write (§3), so §4's gate is never reopened by a removal. Nothing else on any ledger changes and no ledger row is deleted.
+
+**Every one of those writes lands before the folder is deleted, and the order is stated at the point of use for the same reason Step 2R states its own: an interrupted run must not be left hiding a requirement, and a later edit will otherwise reorder these as a clean-up.** Delete-first, interrupted before the writes, leaves exactly the dangling state this repair exists to remove — a key naming a folder that is not there, with nothing left on the tree to say which folder it was. **Writes-first, interrupted before the deletion**, leaves every affected row already re-pointed at this BRD and an empty child folder still on disk: every reading is accurate, nothing is hidden, and the next run enumerates that folder in Phase 0 step 9, finds it claiming nothing, and offers the removal again — with the read above now finding no row to re-point, which is the "nothing found, nothing written" case below. That run is self-healing where the other order's is not.
+
+**Where no such row exists anywhere, the original claim still holds for that removal and nothing extra is written** — which is every removal on a tree no re-cut has ever touched, and not "every removal on an ordinary run": both routes above run their course across several runs, so the run that meets the dangling key is rarely the run that created it. That is the reason this repair is stated as conditional rather than as a new unconditional step: a read that finds nothing writes nothing, and reporting it as a removal that re-pointed no row is the honest form of the guarantee this phase used to assert outright.
+
+Keeping it, meanwhile, writes or leaves a
 one-line `reason:` field in its `brd-link.md` beside the empty
 `claims:` list, and leaves the empty inventory and the ledger — orphan rows and all — in place, so
 the folder is still a well-formed BRD rather than a half-built one. Either way, Phase 7's next-step recommendation never
 offers to ground a child still claiming nothing.
 
-**What this phase cannot do, said plainly so no stop promises it.** It does not give a child rows.
-`covered-by: <child>` is assigned in Phase 4's walk and only against a row that is `unallocated` on
-this BRD's ledger, and this command never re-allocates a row that already carries a fate. So on a
-parent whose ledger has no `unallocated` row left, removal — or keeping it, knowingly — is the whole
-of what this phase offers, and the three stops that name it say exactly that.
+**What this phase cannot do, said plainly so no stop promises it — and the boundary is narrower than it once was.** **This phase gives no child a row.** `covered-by: <child>` is written by Phase 4's walk and by nothing else, in one of two places: **Step 2**, against a row that is `unallocated` on this BRD's ledger, and — since the re-cut — **Step 2R**, against a row the child holding it has recorded `deferred-to` against in its own ledger (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2). Both are the walk's, both run before this phase opens, and neither is reachable from a picker here.
+
+**What that changes is the sentence about a fully-allocated parent, and it is a claim about this phase rather than about the run.** Removal, or keeping the child knowingly, is the whole of what **this phase** offers — that is unchanged and is what the stops elsewhere on this route are asking for. It is **no longer** the whole of what a **run** on a fully-allocated parent can do: an instruction typed on that run selects the re-cut (Phase 0 step 9a, step 10), and a row moved there can land on a standing child this phase would otherwise have offered to remove — which is why the set above is recomputed after the walk rather than taken from step 9. A stop that promises a slice only removal-or-keep is promising less than the command does; a stop that promises the re-cut owes the two conditions it depends on, that such a row exists and that this slice has never been interviewed. This command's own such stop (Phase 0 step 6) says both.
 
 ---
 
@@ -961,11 +1072,16 @@ Write `<BRD-dir>/slices.md`:
   the rows read identically either way. Where the offer fired and was declined, record that in one
   line too — a decision to walk is a decision.
 
+- **One block for the re-cut, when `recut_mode` was true** — one entry per row in the re-cut candidate set Phase 0 step 9a built, carrying its `[BR#n]`, the **donor** it stood on, and either the **receiver** it was re-pointed to — with whether that receiver is a slice this run keyed or a child that already stood, and whether the write came from Step 2R's per-row picker or from Step 1's bulk offer — or the fact that it was **left with its donor**, with the reason. **The reasons are five, and the fifth is not a stage failure**: declined at Step 2R's picker; held back from Step 1's bulk offer and then declined; left unplaced by Phase 1.5's reading; placed into a group whose target Phase 3 then dropped; and — the fifth — **placed by Phase 1.5 into a group Phase 2 confirmed nothing of**, the operator having read a proposal naming each row's donor and declined it, or having edited the list down to nothing. Phase 2 calls that "a real outcome of a real run rather than a degenerate one" and Step 2R names it among the causes that empty its set, so it is recorded as the answer it is and never force-fitted into one of the four stage-based reasons, none of which describes it: nothing failed to place the row and nothing dropped its target — there was never a target to drop. **Every candidate appears, and a candidate this run did not move appears as exactly that** — a row nothing walked, whose fate two ledgers already agreed on — never as an omission and never as a gap. Record beside each the decisions the run reported for it, **by `id`**, from the donor's `decisions.md`, with the note that they were reported and not touched (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §4, `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2), and a donor holding none named as holding none. Record beside each re-pointed row **every other child's ledger row the sweep re-pointed with it** (Step 2R's third write), by that child's key and `[BR#n]`, or that the sweep re-pointed none — the same argument as the removal block below: afterwards that row reads `covered-by: <B-KEY>` like any other orphan row, and nothing in the tree records that it was rewritten because the requirement changed hands. **The reason this block exists is the reason every other block here exists: the ledger cannot say it.** A row re-pointed to a slice and a row this BRD allocated to that same slice on its first pass read identically on both ledgers afterwards — `covered-by: <B-KEY>` and nothing else — so nothing in the tree records that a requirement changed hands, which slice gave it up, or what that slice had already decided about it. A later reader meeting B's inventory needs all three, and this file is where they are.
+
+- **One block per child Phase 4.5 removed, on every path a removal can happen on** — its key, that it was removed for claiming nothing, and **every row the removal re-pointed onto this BRD**, by `[BR#n]` and by the ledger it sits on, **this BRD's own included**; or, where the read found none, that the removal re-pointed nothing. Same argument as every other block here: the ledger cannot say it. A row this repair moved reads `deferred-to: <this BRD>`, or `covered-by: <PARENT-KEY>` on another child, and both are dispositions an ordinary walk writes for ordinary reasons — so once the folder is gone nothing in the tree records that this row was written because a folder went away, or which folder it was. **The Phase 4.5-only path is not the only path a removal happens on**: an ordinary run and a re-cut run both reach Phase 4.5, and on those two this block is the only durable record of the re-pointing, the rest being terminal output nobody keeps.
+
 - **One block for the instruction, when this run was given one** — the instruction **verbatim**, and
   how it was read: which `[BR#n]` rows Step A placed directly, which the Step B grill settled and by
   what terminology decision, and which it could not place and left unclustered. Record it whether or
   not it produced a slice: a reading that produced nothing is the one a later reader most needs, and
   the verbatim text is what lets them see whether the instruction or the reading was wrong.
+  **On the re-cut path this same block records that same reading over the re-cut candidate set**, which is the set Phase 1.5 ran over there — no second instruction block is written, and none is needed: one instruction was read once, and only the set it was read against differs.
 
 - **One line for every frame set Phase 0 step 7b let through as `skipped: --no-design`**, naming the
   set. That is the one route by which a slice this run carves can reach build with a design nobody
@@ -987,8 +1103,9 @@ Skipped entirely on the no-op path step 10 decides — nothing was walked, so th
 rationalize. **Not skipped on the Phase 4.5-only path**, where the ledger had no `unallocated` row
 but a standing empty child was resolved: a removal there takes a slice out of the tree, and a
 `slices.md` still listing it would be the stale-record failure this route fixes everywhere else. On
-that path this phase rewrites only what the removal changed — the removed slice's block goes, with a
-one-line note naming the run that removed it — and touches no other block.
+that path this phase rewrites only what the removal changed — the removed slice's block goes, and the *"One block per child Phase 4.5 removed"* block in the list above is written in its place — and touches no other block.
+
+**The re-cut path is not the no-op path, and this file is written on it in full.** Both start from a fully-allocated ledger and step 10 tells them apart on the candidate set, so the resemblance is exactly the trap: a re-cut run walked rows, may have keyed a slice, moved requirements between siblings, and resolved standing empty children, and every one of those is something a later reader needs the rationale for. Write every block that applies — slices, deferrals, the bulk resolution, the re-cut block above, the instruction — rather than the removal-only rewrite the Phase 4.5-only path takes.
 
 ---
 
@@ -1008,7 +1125,10 @@ in Phase 0, `deliverable_paths` = every file this run wrote, updated, or removed
 (this BRD's own `coverage-ledger.md`, `slices.md`; in `full` mode additionally, for every slice
 still standing after Phase 4.5, the three files this run wrote into it — `brd-link.md`,
 `brd/brd-inventory.md`, and its own `coverage-ledger.md`, the two that `/brd-ground` will gate and
-read when the child re-enters the route; and, for a child Phase 4.5 removed as empty, **those same
+read when the child re-enters the route — **which on the re-cut path includes a child whose only
+changed file is its `coverage-ledger.md`**: the donor, whose row Step 2R re-pointed, and any other
+standing child whose orphan row Step 2R's sweep re-pointed with it. Declare the file that changed,
+not all three, and never the folder; and, for a child Phase 4.5 removed as empty, **those same
 three paths again, named individually** —
 
 **Name files, never the folder.** §2.9 requires one literal repo-relative path each and §2.3 classifies
@@ -1024,10 +1144,17 @@ the slice count and keys (`full` only), the walk's resolution tally by dispositi
 Step 1 offer fired and — where it was taken — how many rows it wrote in one confirmation and how many
 were held back to the walk, every standing
 empty child Phase 4.5 resolved and how, whether this run was given a slicing instruction and — when
-it was — how many rows its reading placed, settled by grill, and left unplaced, and whether this run
+it was — how many rows its reading placed, settled by grill, and left unplaced, **whether this run
+was the re-cut (`recut_mode`) and — when it was — how many rows were re-cuttable and from which
+donors, how many were re-pointed and to which receivers, how many were left with their donor, and
+how many other children's ledger rows the sweep re-pointed with them**, and whether this run
 was the no-op; emit its §4.1 outcome
 line in the final report. The no-op path reaches this phase with nothing staged, so it reports the
-`nothing to commit` line rather than opening a pull request. **The Phase 4.5-only path is not that
+`nothing to commit` line rather than opening a pull request.
+
+**Why the re-cut facts are in that list, when `slices.md` already carries the same record.** The two are not alternatives. `slices.md` is inside the diff this pull request proposes, and the body is what a specs-repo reviewer reads *before* opening it — a re-cut moves requirements between siblings and rewrites `disposition` rows on ledgers the title does not name, so a body enumerating the offer that fired, the empty children resolved and the instruction's reading while saying nothing about a transfer between two BRDs describes the smallest change in the diff and omits the largest. It is also the only path on which a standing child's `coverage-ledger.md` appears in `deliverable_paths` because a row was taken **off** it: Phase 4.5's removal repair rewrites another standing child's orphan row on the ordinary and Phase 4.5-only paths too, but that write always accompanies a folder this run is deleting and the removal block reports it, whereas here a donor's ledger changes with nothing added to it and no folder gone — which reads as a stray edit to anyone who has not been told a requirement moved.
+
+**The Phase 4.5-only path is not that
 path**: a removal there stages a folder deletion and the rewritten `slices.md`, and a "keep" that
 wrote or updated a `reason:` stages that child's `brd-link.md`, so it opens a pull request like any
 other run. A "keep" that changed nothing stages nothing and reports the same `nothing to commit`
@@ -1069,11 +1196,23 @@ requirements exactly as any BRD is, and nothing about being a slice exempts it f
 Phase 3 gave it the two files `/brd-ground` Phase 0 needs — a `coverage-ledger.md` to gate on and a
 `brd/brd-inventory.md` to read — and Phase 6 staged both, so they reach `origin/<default>` with
 this run's pull request. Grounding a child is possible only once that pull request has merged, and
-`/brd-intake` is never the answer for a child at any point:
+`/brd-intake` is never the answer for a child at any point.
+
+**The set is wider than that, and the offer means a different thing for each of three cases. Grounding is what separates them, and it is not what made any of these children eligible to receive a row.** Receiver eligibility is *not interviewed* — no `decisions.md` holding a `[VD#n]` or `[CD#n]`, no `interview/round-*.md` (Phase 0 step 9a) — and it says nothing about grounding, so **do not infer that a standing receiver has been ground**: a child an earlier run left standing and nobody ever ground is uninterviewed by construction, since `/brd-interview` gates on the grounding it does not have. Read each offered child's own state and say which case it is:
+
+- **A slice Phase 3 keyed this run** — never ground, `/brd-ground <CHILD-KEY>` is its first pass. This is the case above, unchanged.
+- **A standing child that has never been ground** — also a first pass, for the same reason and with nothing extra to explain. Its inventory simply grew by a row before it ever ran.
+- **A standing child that is already ground** — the only re-run of the three. Its grounding no longer covers everything it claims: the row arrived after it, so no `[CG#n]` on file was derived against it, and the honest next step is `/product-workflows:brd-ground <B-KEY>` **again**. That re-run re-derives rather than inherits, which is `workflows-core:grounding-format` §8 working as designed and not an inconvenience to route around — a finding carried in from an earlier run is unverified by definition, so the donor's findings about this row cannot move to the receiver and the receiver's own earlier findings cannot vouch for a row they never saw. The cost is one row's re-derivation against the same pins.
+
+**Say which case each offered child is when presenting the option.** Only the third is a re-run, and it is the one that needs its reason stated: the operator is being told to re-run a command on a slice they have already run it on, and a re-run whose reason is not stated reads as a mistake. Telling an operator their never-ground slice has stale grounding is the mirror of that mistake, which is why the case is read off the child rather than assumed from the fact that it was standing.
+
+**So the option's set is every child that gained a row this run** — the slices Phase 3 keyed and still claiming at least one `[BR#n]` after Phase 4.5, and any standing child the walk newly resolved a row to, on the re-cut path or on an ordinary one. A child that gained nothing is not in it and nothing is offered for it:
 
 ```
-choices: ["Ground each non-empty child created above, one run per child — /product-workflows:brd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Stop here — this BRD's own allocation is complete", "Split another BRD"]
+choices: ["Ground each child that gained a row this run, one run per child — /product-workflows:brd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Stop here — this BRD's own allocation is complete", "Split another BRD"]
 ```
+
+**A donor that gained no row is not in that set and is not offered anything here — and that is the condition, not "being a donor".** It lost a row and gained none, so its remaining findings still cover everything it still claims, and the findings it holds about the row it gave up stay on file as a record of what it saw (`workflows-core:grounding-format` §8) — they are not stale grounding to repair, and re-running `/brd-ground` on it would re-derive work nothing asked for. **A donor that also gained a row is in the set like any other receiver**, which is reachable whenever two donors are involved: A's row lands on C while C's own row goes elsewhere, and C is then a child that gained a row and needs its grounding re-derived for it. Stating the rule as "a donor is never offered" would drop C out of the offer on the strength of a label. A donor left claiming nothing at all was resolved in Phase 4.5 and is not here either.
 
 **Every merge clause in this phase is the `<merge-clause>` placeholder**, resolved per
 `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`'s *A next-step offer that names a downstream
@@ -1089,24 +1228,24 @@ per `workflows-core:escalation-rules`.
 ledger through its own four resolutions — the same count as `full`, a different set — and creates nothing below it. `/brd-ground`'s own
 Phase 10 offers exactly that. A child removed, or kept empty with a recorded reason,
 for claiming nothing (Phase 4.5) is never offered here — grounding a BRD with no requirement to
-ground would have nothing to check a claim against. No children remain at all this run (none were created, or every one created was removed
-as empty) → the child-grounding choice is the one that does not apply, stated plainly rather than
+ground would have nothing to check a claim against. No child gained a row this run (none were created and none stood to receive one, every one created was removed
+as empty, or — on the re-cut path — every proposed move was declined) → the child-grounding choice is the one that does not apply, stated plainly rather than
 omitted — and is dropped from the array, not merely annotated, so that reaching for it does nothing.
 **"Split another BRD" is always in the array for exactly this reason**: dropping the
 child-grounding choice in that state would otherwise leave only "Stop here", one option short of
 what `AskUserQuestion` accepts. **Naming no key, and never "or slice"**: this run's own children,
 where any exist, are unground — `/brd-split <CHILD-KEY>` on one of them refuses outright with
 `BRD_SPLIT_NEEDS_GROUNDING` until `/brd-ground` has run — so the option points only at a BRD
-this run did not just create, never at the child it is discussing in the same breath. Guidance
+this run did not just create, never at the child it is discussing in the same breath. **A standing receiver is not an exception to that, on either of its two states.** Where it has never been ground, `/brd-split <B-KEY>` refuses it outright with `BRD_SPLIT_NEEDS_GROUNDING` exactly as a new child does. Where it *is* ground the refusal does not fire — but the row it just gained is one no finding on file was derived against, so splitting it before the run offered above would allocate against grounding that does not cover it. Neither state is what this option points at. Guidance
 only — never auto-invokes another command.
 
 **This BRD's own next step is nothing.** Every row this walk resolved is `covered-by` (a named
 child's to decide), `deferred-to`, `rejected` or `superseded-by` — terminal dispositions this
-ledger itself now records, not open questions — and a root is never ground, so it carries no
+ledger itself now records, not open questions. **A row Step 2R re-cut is `covered-by` too**, and lands in that same first case for the same reason: the move changes **which** BRD answers for the row — the receiving sibling's to decide now, the donor's no longer — and never whether this one does. So the re-cut leaves this BRD exactly where the ordinary walk leaves it, with nothing of its own left open, and it is named here rather than left out so that a reader does not read its absence as an oversight. And a root is never ground, so it carries no
 finding of its own for `/product-workflows:brd-interview` to read either way.
 `/product-workflows:brd-interview <BRD-KEY>` refuses any root outright, at its own Phase 0 step 5a,
 with `BRD_INTERVIEW_ROOT_LEVEL` — offering it here is exactly the failure `/brd-ground`'s own
-Phase 10 names as worse than offering nothing, so it is not offered. Grounding each non-empty child
+Phase 10 names as worse than offering nothing, so it is not offered. Grounding each child that gained a row
 is the one real next step this phase has on the `full` path: each child continues its own route pass
 and reaches this same phase in its own right, where `/product-workflows:brd-interview <CHILD-KEY>` is
 then the real offer, on that child's own key. The BRD route on `/create-prd`, `/create-ard`,
@@ -1145,7 +1284,8 @@ never a capability this plugin lacks.
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-split`; what was produced (slices
    confirmed and keyed, the ledger walk's tally, `slices.md`); key events (the run mode, the no-op
-   path, a cancelled walk with N rows left, a rejected `covered-by` key — or "none"); workarounds; test
+   path, the re-cut path with how many rows were re-pointed and how many left with their donor, a
+   cancelled walk with N rows left, a rejected `covered-by` key — or "none"); workarounds; test
    result N/A; project root = the BRD folder.
 2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6)
    with the Lessons Learned report, `command: /brd-split`, the run's `key` (the `<BRD-KEY>`),
@@ -1176,20 +1316,19 @@ Report: the BRD folder; **the slicing instruction verbatim when one was given, a
 was given; where an instruction was given but nothing consumed it, say which path swallowed it (the
 no-op, the Phase 4.5-only path, or an `allocate-only` run whose walk found every row already
 terminal), because an instruction that changed nothing and is not reported reads as one the command
-ignored; **the run mode from Phase
+ignored — and on a `full` run naming the path is not the whole answer, since the re-cut is the one thing that instruction could still have meant there, so the step 9a reason below is reported beside it; **the run mode from Phase
 0 step 5, and in `allocate-only` the
 `BRD_SPLIT_ON_SLICE` notice repeated in full** — a notice shown once at Phase 0 of a long
 interactive walk is one the operator has scrolled past by the end; whether Phase 0 found this
 run a no-op (fully allocated already) or
-whether it actually split and/or walked the ledger; the classification and model routing (+ any
+whether it actually split and/or walked the ledger — **a fully-allocated ledger is not on its own the no-op**, since the re-cut path and the Phase 4.5-only path both start from one, so name the branch step 10 took rather than the ledger state it read; the classification and model routing (+ any
 Opus degradation); every slice proposed, keyed, and its folder (or that none were proposed and
 why — in `allocate-only` that reason is the cap, not an operator choice); any child removed or
-kept-with-reason for claiming nothing (Phase 4.5) — including any an earlier run left standing and this run resolved — and which; the ledger
+kept-with-reason for claiming nothing (Phase 4.5) — including any an earlier run left standing and this run resolved — and which, **and for a removal, every row it re-pointed onto this BRD** — by `[BR#n]` and by the ledger it sits on, **this BRD's own ledger included, not only another child's** — or that the removal re-pointed none; the ledger
 walk's resolution tally by disposition, with every new `covered-by` key and every
-`rejected`/`superseded-by` citation named; **every provisional claim this run withdrew** — the
-`[BR#n]`, the child it was withdrawn from, and the terminal disposition its orphan row now carries
-(Phase 4's reconcile step), so a withdrawal is reported rather than only visible by re-reading two
-files; the `slices.md` path (or that it was skipped on the
+`rejected`/`superseded-by` citation named; **every claim this run withdrew, named by the route it was withdrawn on** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2 distinguishes the two and this report does not collapse them: a **provisional** claim, one Phase 3 wrote and this walk settled somewhere else, whose orphan row Phase 4's **reconcile step** wrote the terminal disposition onto; or a **committed** claim, one an earlier run gave the child and the child's own walk then recorded `deferred-to` against, which this run's re-cut moved — and whose orphan row reads `covered-by: <B-KEY>` because **Step 2R** wrote it one step earlier, the reconcile step deliberately leaving it alone. Report each with its
+`[BR#n]`, the child it was withdrawn from, and the disposition its orphan row now carries, so a withdrawal is reported rather than only visible by re-reading two
+files, and so that a re-cut withdrawal is never reported as a provisional claim the walk happened to settle elsewhere; **on the re-cut path (`recut_mode: true`) the whole of that path's own record**: how many rows were re-cuttable and from which donors (Phase 0 step 9a), how many were re-pointed and to which receivers, how many were left with their donor **and why each**, over the same five reasons `slices.md` records — declined at Step 2R's picker, held back from Step 1's bulk offer and then declined, left unplaced by Phase 1.5's reading, placed into a group whose target Phase 3 dropped, or placed into a group Phase 2 confirmed nothing of, which is an answer rather than a failure and is reported as one — every decision the run reported out of a donor's register, **by `id`**, with the note that they were reported and **not touched**, and **any child whose `coverage-ledger.md` step 9a could not read**, named with the read failure, since an unreadable ledger is `unresolved` and never an empty `deferred-to` set (§6.2); **and where step 9a found no candidate at all on a `full` run that was given an instruction, which of its two causes applied** — no child holding a `deferred-to` row of its own, or every such row being one this BRD did not delegate to that child. That last sentence is the one an operator who typed an instruction and got a no-op needs, and without it "nothing to re-cut" is indistinguishable from an instruction the command failed to parse; the `slices.md` path (or that it was skipped on the
 no-op path); the feedback + cost paths; the `Phase handoff:` outcome line from `handoff-to-main`
 (`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line from `commit-artifacts`
 (`workflows-core:specs-repo-git` §6); the next-step recommendation; and end with the ledger line, exactly per
@@ -1206,13 +1345,14 @@ in Phase 0 step 9; in `allocate-only` they are the siblings and the parent this 
 name (`coverage-ledger-format.md` §3), each of which `resolve-address` finds at its own level.
 A ledger that cannot be read there contributes `unresolved`, never `covered`
 (`coverage-ledger-format.md` §6.2). **This changes no gate and no precondition of this command**:
-Phase 0's stops, the two-part no-op test step 10 decides, and §4's allocation gate are all decided on this
-BRD's own rows, before any of this. **In `allocate-only` mode there may still be rows to resolve,
+Phase 0's stops and §4's allocation gate are decided on this BRD's own rows, before any of this, and step 10's
+no-op decision is taken before it too. **Step 10 is no longer decided on this BRD's own rows alone, and the distinction is worth keeping straight**: its three parts are this ledger's `unallocated` count (step 8), step 9's child enumeration, and step 9a's re-cut candidate set — and the last of those does read a child's ledger, one `disposition` column at a time for the `covered-by`/`deferred-to` pair that makes a row movable. That is a different read from this one and feeds nothing into it: no gate, no stop and no no-op branch turns on this line's arithmetic, which is computed here and reported and nowhere consulted. **In `allocate-only` mode there may still be rows to resolve,
 and the hop lands elsewhere.** This walk offers no `covered-by`, so it adds none — but a slice can
 already hold **orphan rows** its parent's walk wrote (`coverage-ledger-format.md` §2), each naming
 a sibling under the same parent or that parent, and §6.1 resolves those exactly as it resolves a
 parent's delegated rows. So a slice's line reports zero delegated only when its parent withdrew
-none of its provisional claims — never as a property of being a slice.
+none of its claims — provisional or committed, both routes to an orphan row (§2) landing on the same
+`covered-by` key — never as a property of being a slice.
 
 `/brd-split` is the only `/brd-*` command that can ever change this line's `unallocated` term as
 written on this ledger — a completed run always leaves **its own** rows with none
@@ -1222,5 +1362,4 @@ reads the ledger and records that, and step 10 is where it becomes the no-op dec
 this BRD delegated to a child the child has not yet allocated is counted `unallocated` in the line
 (`coverage-ledger-format.md` §6.1) while this BRD's own gate stands satisfied. Report it as what it
 is — a child with work left, named by the `<CHILD-KEY>` the row delegates to — never as this run
-having failed to complete, and never by re-opening the walk over a row that already carries a
-terminal disposition.
+having failed to complete, and never by re-opening the walk over one of these rows. **The re-cut is not the exception it looks like, and stating why is what keeps this rule usable.** A re-cut moves a row that already carries a fate, so the flat form of this sentence — *never re-open a row carrying a terminal disposition* — is no longer true of the command. What is still true, and is what this term needs, is narrower: a row counted `unallocated` here is one the named child has **not yet allocated**, and a re-cut requires that child to have allocated it to `deferred-to: <itself>` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2). The two sets are disjoint by construction, so no row this term reports is ever re-cuttable and the answer to a non-zero count is still the child's own walk, never a re-run of this one.

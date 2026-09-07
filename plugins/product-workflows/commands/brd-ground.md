@@ -1,6 +1,6 @@
 ---
 name: brd-ground
-description: BRD-grounding workflow (PA phase of the BRD-to-PRD route, run once per slice `/brd-split` carves). Pins every mounted repository to a verified commit, grounds every [BR#n] claim against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and assigns each finding a current/will-change horizon against declared prerequisite BRDs. Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (off with --no-docs, and under --no-code) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. Optional --depends-on persists prerequisites to brd-link.md; --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split as the next step.
+description: BRD-grounding workflow (PA phase of the BRD-to-PRD route, run once per slice `/brd-split` carves, and again on an already-ground slice a later re-cut gives a new row). Pins every mounted repository to a verified commit, grounds every [BR#n] claim against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and assigns each finding a current/will-change horizon against declared prerequisite BRDs. Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (off with --no-docs, and under --no-code) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. Optional --depends-on persists prerequisites to brd-link.md; --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split as the next step.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -9,7 +9,7 @@ Ground the BRD's requirement inventory against code and design: $ARGUMENTS
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
 `/brd-ground` is the **BRD-to-PRD route's grounding step** (PA phase), run once per slice
-`/brd-split` carves — it takes the `[BR#n]` inventory that slice's own `brd/brd-inventory.md`
+`/brd-split` carves — and **again on an already-ground slice a later re-cut gave a new row**, the third of the three cases `commands/brd-split.md` Phase 7 distinguishes when it offers this command, because no `[CG#n]` on file was derived against a row that arrived after them — it takes the `[BR#n]` inventory that slice's own `brd/brd-inventory.md`
 holds and checks its premises against real code and real design assets, at pinned commits, rather
 than letting a plausible-sounding claim stand unverified. Every
 finding is independently re-derived by a different agent before it counts as evidence
@@ -119,7 +119,7 @@ behaviour, not the behaviour.
    `BRD_GROUND_EMPTY_INVENTORY` reports a *content* fact — the inventory holds no `[BR#n]` row — and
    its remedy re-runs `/brd-split <PARENT-KEY>` to resolve the standing empty child. Row F reports a
    *merge* fact, and sending that operator to `/brd-split` on the parent risks the same no-op the
-   next split below refuses to name unconditionally — a fully-allocated parent stages nothing.
+   next split below refuses to name unconditionally — a fully-allocated parent stages nothing on a **bare** re-run.
    Split it on the same test the
    ledger's own row F uses — is the file in the folder at all:
    - **No `brd/brd-inventory.md` in the folder** — never produced. Read the resolved folder's
@@ -145,8 +145,8 @@ behaviour, not the behaviour.
    **`absent` (row F) — nothing for this BRD is on any ref — is split twice before it is reported.**
    Row F conflates two states: *never produced* and *produced, handoff declined*. Reported as one,
    the message tells an operator whose files are already written to go and produce them — and on a
-   slice it names `/brd-split`, which in that state is a no-op that stages nothing and can never land
-   those files at all. Split row F **first on whether `coverage-ledger.md` exists in the worktree**,
+   slice it names `/brd-split`, which **re-run bare** in that state is a no-op that stages nothing and
+   does not land those files. Split row F **first on whether `coverage-ledger.md` exists in the worktree**,
    then by level — reading the resolved folder's `brd-link.md` from the worktree (it is there whether
    or not anything reached main) and branching on its `parent:` field, because a slice must never be
    told to run a command that would refuse it.
@@ -163,16 +163,16 @@ behaviour, not the behaviour.
      slice has no document of its own to intake (`brd-format.md` §2.1), and the command that writes
      a slice's ledger and inventory is `/brd-split` on the parent
      (`coverage-ledger-format.md` §3). Stop:
-     `BRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger exist on no ref and in no folder — where <PARENT-KEY>'s ledger still holds unallocated rows, run /product-workflows:brd-split <PARENT-KEY> "<how to cut it>" and merge the pull request first. Where the parent is already fully allocated and this slice claims rows, that run is a no-op that stages nothing: the slice's files were lost after they were written, and no command re-creates them — restore them from the ref that carried them, or report it. Do not run /brd-intake on a slice; it has no source document of its own.`
+     `BRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger exist on no ref and in no folder — where <PARENT-KEY>'s ledger still holds unallocated rows, run /product-workflows:brd-split <PARENT-KEY> "<how to cut it>" and merge the pull request first. Where the parent is already fully allocated and this slice claims rows, that run carves nothing — with no row left unallocated there is nothing for the instruction to group — and where that parent holds no re-cuttable row it is a no-op that stages nothing: the slice's files were lost after they were written, and no command re-creates the rows they held — restore them from the ref that carried them, or report it. Do not run /brd-intake on a slice; it has no source document of its own.`
 
-     **The condition qualifies the remedy, and both branches must carry it.** The sibling rule thirty lines below already says not to name `/brd-split` for a fully-allocated parent, because re-running it there stages nothing and opens no pull request. Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
+     **The condition qualifies the remedy, and both branches must carry it.** The sibling rule thirty lines below already says not to name `/brd-split` for a fully-allocated parent, because re-running it **bare** there stages nothing and opens no pull request. Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
 
    **(b) `coverage-ledger.md` is in the folder, and on no ref — it was produced and its handoff was
    declined.** The files exist; what is missing is a commit. **Say so, and name landing them as the
    action** — one stop code, because the remedy does not differ. **It speaks for the ledger only**: the inventory has its own gate above, with its own two stops, and this message must not report a merge state it did not test:
    `BRD_GROUND_NOT_HANDED_OFF: <BRD-KEY>'s coverage-ledger.md is written at <BRD-dir> but is on no branch — their handoff was declined, so nothing is missing but the commit. Commit brd/brd-inventory.md and coverage-ledger.md to the specs repo's default branch, then re-run '/product-workflows:brd-ground <BRD-KEY>'. <the clause below>`
 
-   **`/brd-split` is not a way out here, so do not name it.** Re-running it on a parent whose ledger is fully
+   **`/brd-split` is not a way out here, so do not name it.** Re-running it **bare** on a parent whose ledger is fully
      allocated and whose children are non-empty is a no-op by its own Phase 0
      (`coverage-ledger-format.md` §4): it stages nothing, reports `nothing to commit` and opens no
      pull request. `handoff-to-main` stages only the paths *that* run declared, so the slice's
@@ -180,18 +180,22 @@ behaviour, not the behaviour.
      (`workflows-core:phase-handoff` §2.3) and can never reach main by that
      route.
 
-     **Both halves of that condition matter, so the clause carries both.** A parent re-run is a
+     **Every part of that condition matters, so the clause carries all of it.** A parent re-run is a
      no-op only where its ledger is fully allocated **and** no child is left standing while claiming
-     nothing; a standing empty child keeps that run alive through its empty-child phase, which does
-     stage a `brd-link.md` it writes a `reason:` into. Read the `claims:` list of the `brd-link.md`
+     nothing **and** no row is re-cuttable under an instruction the run was given
+     (`commands/brd-split.md` Phase 0 step 10); a standing empty child keeps that run alive through its empty-child phase, which does
+     stage a `brd-link.md` it writes a `reason:` into, and a re-cuttable row keeps it alive through its
+     walk, which stages the receiving child's three files. Read the `claims:` list of the `brd-link.md`
      step 6 already opened for its `parent:` and branch on it, because the two states take different
      clauses and asserting the first over the second would tell an operator a live run does nothing:
-     - **This slice claims at least one `[BR#n]`** — the ordinary case, and the parent re-run is a
-       genuine no-op: `Re-running /product-workflows:brd-split <PARENT-KEY> will not land them — with this slice claiming rows and the parent's ledger fully allocated, that run is a no-op: it stages nothing and opens no pull request.`
+     - **This slice claims at least one `[BR#n]`** — the ordinary case, and the bare parent re-run is a
+       genuine no-op: `Re-running the bare /product-workflows:brd-split <PARENT-KEY> will not land them — with this slice claiming rows and the parent's ledger fully allocated, that run is a no-op: it stages nothing and opens no pull request. An instruction typed after the key can still make it a live run, where the parent holds a row a child has recorded it will not build; that run stages what its own walk moved, never these files as they stand.`
      - **This slice claims nothing** — it is a standing empty child, so the parent re-run is not a
-       no-op, but it still will not land *these* files: it declares that child's `brd-link.md`, not
-       its inventory and ledger. Say both, so the operator is neither sent to a no-op nor told a
-       live run is one: `Re-running /product-workflows:brd-split <PARENT-KEY> is not a no-op — this slice claims nothing, so that run resolves it, offering to remove it or keep it against a recorded reason. It still will not land these files: it stages that decision, not this slice's inventory and ledger. Committing what is already on disk remains the direct route.`
+       no-op, but a bare one still will not land *these* files: it declares that child's `brd-link.md`, not
+       its inventory and ledger. An **instructed** run that re-cuts a row onto this slice is the one form that
+       does declare all three, and it lands them as its own walk leaves them rather than as they stand here.
+       Say all of it, so the operator is neither sent to a no-op, nor told a
+       live run is one, nor left believing no form of that run reaches these files: `Re-running /product-workflows:brd-split <PARENT-KEY> is not a no-op — this slice claims nothing, so that run resolves it. The bare form offers to remove it or to keep it against a recorded reason, and it will not land these files: it stages that decision, not this slice's inventory and ledger. Adding an instruction, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can instead re-cut onto this slice a row a sibling has recorded it will not build — where such a row exists and this slice has never been interviewed — and that run does stage this slice's inventory and ledger, with the re-cut row added to them. Committing what is already on disk remains the direct route to landing them as they stand.`
 
    This is the same split `/product-workflows:brd-reconcile` makes on its own row F
    (`BRD_RECONCILE_NEEDS_PACKAGE` versus `BRD_RECONCILE_PACKAGE_NOT_HANDED_OFF`), for the same
@@ -221,7 +225,7 @@ behaviour, not the behaviour.
    `<PARENT-KEY>` from the resolved folder's `brd-link.md` `parent:` field. A slice reaches this
    state only as the empty child `/brd-split`'s empty-child check offered to keep with a recorded
    reason:
-     `BRD_GROUND_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground. Do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
+     `BRD_GROUND_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground. Do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
 
    **Why a stop rather than an empty handoff.** Writing an empty `grounding/code-grounding.md` and
    handing it off would let both downstream gates pass, but it would assert that grounding ran over
@@ -986,7 +990,6 @@ grounding this BRD does not depend on any child, and a run must never stop, degr
 findings because a child could not be read. Phase 0's `require-on-main` gates stay exactly as they
 are, on this BRD's own inventory and ledger. A slice does **not** always reach this with
 nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
-names a sibling under the same parent or that parent and marks an **orphan row** — a provisional
-claim the parent's walk withdrew (§2). Those rows are resolved one hop exactly like a parent's
+names a sibling under the same parent or that parent and marks an **orphan row** — a ledger row for a `[BR#n]` this slice no longer claims, reached by either of §2's two routes: the parent's walk withdrawing a claim that was never more than provisional, or a re-cut moving a claim the slice had committed to and then recorded it would not build (§3.2). Those rows are resolved one hop exactly like a parent's
 delegated rows, so a slice reports zero delegated only when its parent withdrew none of its
 claims.

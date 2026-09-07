@@ -143,6 +143,8 @@ The rule's purpose is not ceremony. A register that can be reopened freely is a 
 something that can drift underneath them. Bounding reopening to two external causes is what makes
 "decided" a claim about the world rather than about the moment.
 
+**A worked consequence — a sibling that holds decisions cannot receive a re-pointed row.** `references/coverage-ledger-format.md` §3.2 lets a parent's walk move a requirement its owner recorded `deferred-to` against onto a sibling BRD that has not been interviewed, and *has not been interviewed* is this rule read from the other end: giving that sibling new scope would put a requirement in front of a register that decided its scope without it, and neither cause above has arrived — no new grounding finding, and no incoming customer decision. So a folder holding a `decisions.md` with a `[VD#n]` or `[CD#n]` in it is closed to a re-cut. **The converse does not follow and is not stated here**: §3.2's eligibility test is broader than this clause — it also refuses a folder holding an `interview/round-*.md`, which is a customer conversation that has started whether or not it froze a record — so eligibility is never inferred from the absence of a decision record alone. This file states the rule; §3.2 executes it, and the test a run actually applies is that section's to fix.
+
 ## 5. `conditional_on`
 
 `conditional_on: <BRD-KEY>/<decision-id>` records that **this decision is correct only while a named

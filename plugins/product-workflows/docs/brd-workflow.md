@@ -66,7 +66,7 @@ boundary, the package has to physically reach a customer and the customer has to
 why `/brd-reconcile` takes the returned file as an argument rather than looking for it: the route
 resumes when somebody says *this file is the answer*, and not before.
 
-**`/brd-split` runs twice, and grounding sits between the two runs.** The first run stands on the
+**`/brd-split` runs at least twice, and grounding sits between the first two runs.** The first run stands on the
 root: a root is never ground, so it carves candidate slices from a mandatory slicing instruction
 instead, and forces every row of the root's own ledger to a recorded fate — assigning it to a named
 slice, deferring it, rejecting it against a logged defect, or marking it superseded. Each confirmed
@@ -75,11 +75,41 @@ slice re-enters at `/brd-ground`, and the second `/brd-split` run — on that sa
 offering a different four: `covered-here` in place of `covered-by`, since nothing can exist below a
 slice but its Epics. That second run is what hands on to `/brd-interview`; the root's own key has no
 further step of its own, and every one of `/brd-ground`, `/brd-interview`, `/brd-package` and
-`/brd-reconcile` refuses a resolved root outright. So a requirement is allocated at most twice —
+`/brd-reconcile` refuses a resolved root outright. So a requirement ordinarily reaches a fate twice —
 once by the root's walk, once by the slice's — before it either has a home to be built in or a
 recorded reason it does not. The two dashed edges leaving `/brd-reconcile` are different in kind:
 they are not capped, because a review can legitimately reopen a decision or leave a question the
 customer did not answer, and either state is settled by running the command that owns it again.
+
+**There is a third occasion, and it is a re-run on the parent: the sibling re-cut.** The route carves a
+slice before it is ground, so *"this slice is larger than one deliverable"* is a normal discovery,
+and the route's first answer to it is deferral — the slice's own walk sends the rows it will not
+build to `deferred-to: <itself>`, where they stay its live obligation. That is enough for *build less
+now* and not enough for *two independently deliverable slices*, because the blocker sits on the
+**parent**: its row for the delegated requirement reads `covered-by: <that slice>`, the walk visits
+only `unallocated` rows, and no command returns a row to `unallocated`. So the parent is given one
+narrow way to move it. Where a slice's own ledger records `deferred-to` against a row its parent
+delegated to it — two ledgers already agreeing that nobody is building the requirement — an
+instruction typed against the parent's fully-allocated ledger, `/brd-split <PARENT-KEY> "<what to
+peel off>"`, re-points that row onto a **sibling under the same parent that has not been
+interviewed and does not already hold a ledger row for that requirement**: one already standing, or
+one that same run carves. The receiving slice's own ledger
+seeds the row `unallocated` — a **new** row, which is why a sibling already holding one for that
+requirement is not its receiver — so it re-enters at `/brd-ground` — with a row no finding on file was
+derived against — and its own `allocate-only` walk then takes the row to `covered-here`. **The
+precondition carries the whole mechanism**: `deferred-to` is the owner writing down that it is not
+building this, so the parent re-points against a refusal on record and never over a live commitment.
+The invariant that matters is untouched — no row returns to `unallocated`, so no satisfied gate
+reopens — and nothing is inherited with the row: the findings and decisions stay with the slice that
+gave it up, and the receiver re-derives against the same pins.
+
+**Two mechanisms split work on this route, and the line between them is not size.** [`/epics`](commands/epics.md)
+carves a PRD into `EPIC-` folders, and `/dev-workflows:design`, [`/specify`](commands/specify.md) and
+`/dev-workflows:ready` all work per Epic. But Epics sit **downstream of the customer loop**, which runs at slice level before
+[`/create-prd`](commands/create-prd.md): an Epic split is invisible to the customer, and a slice
+split is visible to them. **That is the line.** A slice too large for one delivery, whose split need
+not reach the customer, is an Epics problem and stays one. A slice whose split must reach the
+customer — a separate package, a separate conversation — is what the re-cut is for.
 
 `/brd-intake` copies the customer's document in verbatim and immutably, extracts a `[BR#n]`
 requirement inventory, confirms candidate defects with a human, and writes a coverage ledger with
@@ -97,9 +127,12 @@ re-derived before it counts as evidence — the pass a root never gets, since a 
 `/brd-split` then runs a second time, on that same slice, in **allocate-only** mode: it offers a
 different four and creates nothing, because nothing can exist below a slice but its Epics.
 `covered-by` is the resolution it does not offer — not because a slice may not carry one,
-but because the one a slice carries is written by the parent's own walk: when that walk settles a
-provisionally-claimed requirement on a different slice, the claim is withdrawn, the ledger row stays
-(a ledger row is never deleted), and it records the sibling — or the parent — that took it. The cap
+but because the one a slice carries is written by the parent's own walk: when that walk withdraws a
+claim, the claim and the copied inventory row go, the ledger row stays (a ledger row is never
+deleted), and it records the sibling — or the parent — that took it. **Two routes reach that one
+state**: a claim that was never more than provisional, settled on a different slice by the same walk
+that proposed it; and a claim this slice had committed to and then recorded `deferred-to` against,
+which a later re-cut moved to a sibling. The cap
 is on nesting, not on allocation: a slice's rows must reach a fate too, or the slice could never
 become a PRD of its own.
 
@@ -155,7 +188,7 @@ each of those three also has a keyed form that this route never uses.
 |---|---|---|---|
 | `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>`, `--no-docs` | Source must already be markdown — a PDF or similar is rejected, never converted. `<BRD-KEY>` names a folder, never a tracker ticket |
 | `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-code`, `--no-design`, `--no-docs` | Only a slice is ground — a root stops with `BRD_GROUND_ROOT_LEVEL`. Needs `$REPOS_PATH` mounted; read-only against every repository it touches |
-| `/brd-split` | `<BRD-KEY> [<instruction>]` | — | No flags. The instruction is mandatory on a root with a row still unallocated (`BRD_SPLIT_NEEDS_INSTRUCTION`), optional on a slice; it seeds grouping and recommendations. Allocate-only on a slice |
+| `/brd-split` | `<BRD-KEY> [<instruction>]` | — | No flags. Mandatory on a root still holding an unallocated row (`BRD_SPLIT_NEEDS_INSTRUCTION`), optional on a slice (allocate-only there), and on a fully allocated root it means the sibling re-cut |
 | `/brd-interview` | `<BRD-KEY>` | `--round N` | Only a slice is interviewed — a root stops with `BRD_INTERVIEW_ROOT_LEVEL`. No flag continues at the first open question; `--round N` resumes or re-opens one, cause recorded |
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Only a slice is packaged — a root stops with `BRD_PACKAGE_ROOT_LEVEL`. `--depends-on` is repeatable at either level; a mistyped key is warned and dropped, never fatal |
 | `/brd-reconcile` | `<BRD-KEY> @<review-file>` | `--sent <path>…` | Only a slice is reconciled — a root stops with `BRD_RECONCILE_ROOT_LEVEL`. The review is taken at whatever path it arrived on and is never searched for |

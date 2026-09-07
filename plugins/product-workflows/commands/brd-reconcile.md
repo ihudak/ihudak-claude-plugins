@@ -1221,9 +1221,7 @@ this phase offers.
   **The rows are this slice's ledger rows, narrowed by its `brd-link.md` `claims:`.** This
   is the same gate set `/product-workflows:create-prd`'s Phase 0 step 7 defines, read the same way — and
   the narrowing drops something real, without changing either verdict: a slice's
-  ledger may hold **orphan rows**, provisional claims `/brd-split`'s walk on the parent withdrew and
-  wrote to a terminal disposition (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2,
-  §3). `claims:` names none of them, and an orphan row is never `covered-here` and never
+  ledger may hold **orphan rows** — ledger rows for `[BR#n]`s it no longer claims, whose claim `/brd-split`'s walk on the parent withdrew and wrote to a terminal disposition, whether that claim was still provisional or was one this slice had committed to and then recorded it would not build, which a re-cut then moved to a sibling (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2, §3, §3.2). `claims:` names none of them, and an orphan row is never `covered-here` and never
   `unallocated`, so it can neither add the option nor withhold it however it is read.
   These two tests are exactly the two *data* refusals that command's own Phase 0 raises
   (`CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE`) — so naming the option where
@@ -1463,7 +1461,6 @@ the `unallocated` term does not track the allocation gate — a non-zero one her
 delegated to a BRD that has not walked it yet, which is the resolution working and never this run
 having left something undone. A slice does **not** always reach this with
 nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
-names a sibling under the same parent or that parent and marks an **orphan row** — a provisional
-claim the parent's walk withdrew (§2). Those rows are resolved one hop exactly like a parent's
+names a sibling under the same parent or that parent and marks an **orphan row** — a ledger row for a `[BR#n]` this slice no longer claims, reached by either of §2's two routes: the parent's walk withdrawing a claim that was never more than provisional, or a re-cut moving a claim the slice had committed to and then recorded it would not build (§3.2). Those rows are resolved one hop exactly like a parent's
 delegated rows, so a slice reports zero delegated only when its parent withdrew none of its
 claims.

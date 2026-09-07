@@ -126,7 +126,13 @@ command reads was already independently re-derived by `/brd-ground`'s own verifi
   delegated all of its requirements and kept none, so it has nothing of its own to decide and stops
   with `BRD_INTERVIEW_ALL_DELEGATED`. That is a finished state, not a missing step — the same BRD
   holds no PRD of its own either — and its inventory is *not* empty, which is why the
-  empty-inventory gate above never sees it.
+  empty-inventory gate above never sees it. The stop says what can and cannot change it, because a
+  bare [`/brd-split`](brd-split.md) re-run moves nothing here: it walks only `unallocated` rows and
+  this ledger has none. An instruction on that same run can re-point a delegated row onto another
+  child that has not been interviewed — one already standing, or a slice that run carves — but only
+  where the child now holding it has recorded `deferred-to` against it in its own ledger, which is
+  that child writing down that it will not build it. A row its holder is still committed to is moved
+  by no command; un-delegating that one is a decision taken with the customer.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
 - **No repository, and no `$REPOS_PATH`.** Every `file:line` this command reads was already pinned
   and verified by `/brd-ground`, so nothing here opens a repository, and there is no baseline gate or
@@ -208,8 +214,13 @@ against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` 
   a `[C]` stays open across both, because holding a question is not the customer answering it and the
   customer answering it is not the register recording an answer.
 - **It changes no ledger disposition.** The final report's ledger line reports where allocation
-  stands; allocation itself is `/brd-split`'s walk, and a row moves afterwards only when
-  `/brd-reconcile` freezes a customer decision that settles it differently.
+  stands; allocation itself is `/brd-split`'s walk. Two other runs may move a row afterwards, and
+  neither is this one: [`/brd-reconcile`](brd-reconcile.md) freezes a customer decision that settles
+  it differently, and a [`/brd-split`](brd-split.md) **re-cut** on the parent re-points a row this
+  BRD's own walk sent to `deferred-to: <itself>` onto a sibling that will build it — writing
+  `covered-by` on this BRD's row for it. Being interviewed disqualifies a re-cut's *receiver* and
+  never its *donor*, so a BRD that has reached this command is an ordinary donor
+  ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3.2).
 
 ## Example
 

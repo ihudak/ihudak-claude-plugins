@@ -116,13 +116,7 @@ array carries every option.
 - `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` — the route's entry point → hand to PM →
   `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` (PM; the instruction is mandatory on a
   root, since a root is never ground and carries no finding to cluster by).
-- `/product-workflows:brd-split <BRD-KEY>` on a root (`split_mode: full`) →
-  `/product-workflows:brd-ground <CHILD-KEY>` (PA) once per **non-empty** child the run created, each
-  such child re-entering the route at grounding. A child whose `claims:` list is empty — including
-  one the parent's walk emptied by withdrawing every provisional claim, leaving it holding only
-  orphan rows — is a standing empty child (`/product-workflows:brd-split` Phase 7), and grounding it
-  stops at `BRD_GROUND_EMPTY_INVENTORY`, so it is not offered. The root's own key is offered no
-  further: `/product-workflows:brd-interview` refuses any root outright.
+- `/product-workflows:brd-split <BRD-KEY>` on a root (`split_mode: full`) → `/product-workflows:brd-ground <CHILD-KEY>` (PA) once per child that **gained a row this run** — the slices the run keyed and still claiming at least one `[BR#n]`, plus any standing child its walk newly resolved a row to — each such child re-entering the route at grounding. **The set is what the run did, never what the tree looks like afterwards**, and both directions of that matter: a non-empty child that gained nothing has grounding that still covers everything it claims, so offering a re-run for it asks an operator to re-derive work nothing needs; and a **standing receiver** — a child that already stood and has just been given a row, the one whose grounding demonstrably no longer covers what it claims — is the child that most needs the offer and is exactly what a set defined over emptiness would miss. A child whose `claims:` list is empty — including one the parent's walk emptied by withdrawing a claim, **provisional or committed**, leaving it holding only orphan rows — is a standing empty child (`/product-workflows:brd-split` Phase 7), and grounding it stops at `BRD_GROUND_EMPTY_INVENTORY`, so it is not offered either. The root's own key is offered no further: `/product-workflows:brd-interview` refuses any root outright.
 - `/product-workflows:brd-ground <CHILD-KEY>` (PA) → `/product-workflows:brd-split <CHILD-KEY>` (PM),
   which always runs `allocate-only` here (`/product-workflows:brd-ground` never resolves a root) and
   creates no further child → `/product-workflows:brd-interview <CHILD-KEY>` (PM).

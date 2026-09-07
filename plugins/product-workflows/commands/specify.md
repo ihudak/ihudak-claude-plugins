@@ -949,7 +949,7 @@ rather than decided, with the reopening route named for each; every implementati
 `consumed_by: none`, by id, per the design's *Consumption tracking* section (§7.3) — **excluding
 the baseline `[CG#n]` findings**, which are never `consumed_by` anything and whose `none` therefore
 reports no gap (`workflows-core:grounding-format` §4.1); say that they are
-excluded, so a reader can tell an empty list from an unrun check; `spec-seed.md`'s
+excluded, so a reader can tell an empty list from an unrun check; **and excluding every `[CG#n]`/`[DG#n]` whose `claim` cites a `[BR#n]` this slice's own `coverage-ledger.md` now shows as `covered-by`**, read off that file's `disposition` column and never off `claims:` or the inventory (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.1's trap, named there from the other side) — the BRD that row names *owns* the requirement (§3.1), so nothing this run authors can consume a finding about it and its `none` reports no gap either; that is the state a re-cut leaves on the slice that gave the row up (§3.2) — say how many were excluded on this count too, for the same reason as the first, and note that this is a **report exclusion only**, no finding edited, renumbered, moved or marked and no `consumed_by` value changed anywhere; `spec-seed.md`'s
 consumption at file granularity, and the derivation matrix's the same way; and any product- or
 architecture-altitude content the grill surfaced and left for the command that authors at that
 altitude instead of the spec (D5) — naming the command, never a seed file, since the register it will
@@ -985,7 +985,7 @@ carries a `brd-link.md`; an idea-route PRD folder has no gate set, so `/product-
 | No row `unallocated`, and at least one `covered-here` | `/product-workflows:create-prd <SLICE-KEY>` — all three refusals cleared |
 | A row still `unallocated` | `/product-workflows:brd-split <SLICE-KEY>` instead: `/create-prd` would raise `CREATE_PRD_BRD_UNALLOCATED`, and that walk is what moves those rows (allocate-only on a slice). Its own Phase 0 gates on this slice's grounding findings carrying a verifier verdict, so say so beside the offer |
 | No row `covered-here`, gate set **empty** | `/product-workflows:brd-split <PARENT-KEY>` instead — the keep-or-remove run for a standing empty child, and not a no-op there |
-| No row `covered-here`, gate set **non-empty** | **Name neither `/create-prd` nor `/epics`.** `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE`, whose non-empty branch names no command at all by design; say instead what the gate-set rows resolved to and that nothing in the plugin moves a terminal row back. `/dev-workflows:design <ADDRESS>` is unaffected and is still recommended — it takes over the specification this run just wrote and needs no PRD |
+| No row `covered-here`, gate set **non-empty** | **Name neither `/create-prd` nor `/epics`.** `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE`, whose non-empty branch names no command at all by design; say instead what the gate-set rows resolved to and that nothing in the plugin moves a terminal row back to `unallocated`. `/dev-workflows:design <ADDRESS>` is unaffected and is still recommended — it takes over the specification this run just wrote and needs no PRD |
 
 **Dropping rather than annotating follows `commands/brd-reconcile.md` Phase 14**, which runs these
 same two data tests before offering `/product-workflows:create-prd <SLICE-KEY>` and drops the option on

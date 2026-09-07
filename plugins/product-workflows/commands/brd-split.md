@@ -1087,7 +1087,7 @@ Skipped entirely on the no-op path step 10 decides — nothing was walked, so th
 rationalize. **Not skipped on the Phase 4.5-only path**, where the ledger had no `unallocated` row
 but a standing empty child was resolved: a removal there takes a slice out of the tree, and a
 `slices.md` still listing it would be the stale-record failure this route fixes everywhere else. On
-that path this phase rewrites only what the removal changed — the removed slice's block goes, and the removal block below is written in its place — and touches no other block.
+that path this phase rewrites only what the removal changed — the removed slice's block goes, and the *"One block per child Phase 4.5 removed"* block in the list above is written in its place — and touches no other block.
 
 **The re-cut path is not the no-op path, and this file is written on it in full.** Both start from a fully-allocated ledger and step 10 tells them apart on the candidate set, so the resemblance is exactly the trap: a re-cut run walked rows, may have keyed a slice, moved requirements between siblings, and resolved standing empty children, and every one of those is something a later reader needs the rationale for. Write every block that applies — slices, deferrals, the bulk resolution, the re-cut block above, the instruction — rather than the removal-only rewrite the Phase 4.5-only path takes.
 

@@ -255,7 +255,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    changes nothing (§4), `/product-workflows:brd-reconcile` never allocates, and no row is ever moved
    back to `unallocated` (§3) — so nothing in this plugin turns a `deferred-to` row into a
    `covered-here` one. Un-deferring a requirement is a decision the operator takes with the customer,
-   not a command; naming one here would send the reader into a run that does nothing. Per the
+   not a command — and the re-cut does not weaken that, because it acts **on** such a decision already written down, moving a row a *sibling* recorded `deferred-to` against onto a slice that will build it, never reversing one this slice is still committed to (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2); naming a command here would send the reader into a run that does nothing. Per the
    *When no option is safe to recommend* guidance in
    `Skill(skill: "workflows-core:reference", args: "escalation-rules")`, nothing on that stop is marked
    `(Recommended)`.

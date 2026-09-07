@@ -116,7 +116,7 @@ would stay `unallocated` forever and no slice could ever satisfy §5, which is t
 deadlock §1 exists to prevent, reached from the other direction. The same requirement therefore
 carries a fate twice, at two levels, and the two say different things: `covered-by: <CHILD-KEY>` on
 the parent's ledger records **which** BRD owns it, and the slice's own row records **what that BRD
-decided to do with it**. A requirement whose provisional claim was withdrawn carries it a third
+decided to do with it**. A requirement whose claim a parent's walk withdrew carries it a third
 time, on the slice that no longer claims it — an **orphan row** (§2), which records neither of
 those but the fact that this slice claimed it and does not any more, naming the BRD that took it.
 
@@ -128,9 +128,9 @@ never a child at either level below the root: nesting is capped at one level
 (`workflows-core:addressing` §6), so **no child can exist below a slice** and no key a slice
 writes could name one.
 
-**The slice form exists for exactly two states — an orphan row (§2), and the re-cut of §3.2 — and for no other.** Both are written by the **parent's** walk at the moment it withdraws the slice's claim, and both land on the table below; §3.2 states what a re-cut additionally requires before that walk may move a row that already carries a fate. A slice's `covered-by` row is a provisional claim the parent's walk withdrew, and the key it carries is whichever BRD that same walk allocated the requirement to:
+**The slice form exists for exactly two states — an orphan row (§2), and the re-cut of §3.2 — and for no other.** Both are written by the **parent's** walk at the moment it withdraws the slice's claim, and both land on the table below; §3.2 states what a re-cut additionally requires before that walk may move a row that already carries a fate. A slice's `covered-by` row is in both cases a claim the parent's walk withdrew — still provisional in the first, committed by an earlier run and then deferred by the slice itself in the second — and the key it carries is whichever BRD that same walk allocated the requirement to:
 
-| The parent's walk settled the provisionally-claimed row | The withdrawn slice's orphan row reads |
+| The parent's walk settled the withdrawn row | The withdrawn slice's orphan row reads |
 |---|---|
 | `covered-by: <SIBLING-KEY>` — another child builds it | `covered-by: <SIBLING-KEY>` |
 | `covered-here` — the parent builds it | `covered-by: <PARENT-KEY>` |
@@ -359,7 +359,7 @@ that carves the slices.
 ledger. The one difference is which rows the rule is read over, and it is why a slice still reaches
 the "not eligible" case entirely through `deferred-to`, `rejected` and `superseded-by`, in any mix,
 and never through a row pointing at another BRD. A slice's `covered-by` rows exist (§3) but are
-exactly its **orphan rows** (§2) — provisional claims the parent's walk withdrew — and `claims:`
+exactly its **orphan rows** (§2) — claims the parent's walk withdrew — and `claims:`
 names none of them, so none is in the set eligibility is read over. Every row that *is* in that set
 is a row this slice claims, and a claimed row is settled by this slice's own walk, which never
 writes `covered-by`. There is still no child below a slice for any row to point at.

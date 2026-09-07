@@ -9,8 +9,13 @@ ledger where every requirement starts `unallocated`.
 `/brd-intake` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution
 phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route, the way `/idea` and
 `/create-prd` share `prd-creation`. It is the route's entry point: nothing else in the route reads a
-customer-supplied source document, and every downstream `/brd-*` command gates on the inventory and
-ledger this one writes. Every one of them runs as pm except
+customer-supplied source document. Downstream, each `/brd-*` command gates on whatever the command
+immediately before it in the chain produced, not on this one directly — only `/brd-split`, run on
+the root, gates on this command's own inventory and ledger; every command after that gates on a
+later hop (`/brd-ground` on the slice's own ledger `/brd-split` copied, `/brd-split` again on
+`/brd-ground`'s findings, `/brd-interview` on that ledger and those findings, `/brd-package` on
+`/brd-interview`'s register, and `/brd-reconcile` on `/brd-package`'s sent prompt). Every one of
+them runs as pm except
 [`/brd-ground`](brd-ground.md), which runs as
 [pa](../roles-and-phases.md#pa--product-architecture).
 

@@ -223,10 +223,17 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
   prefix would sit permanently unverified in a namespace where an unverified id blocks
   [`/brd-split`](brd-split.md) (`workflows-core:grounding-format` §8).
 - **Phase 7 — `grounding-verifier` over every finding, pinned to Opus.** A finding without a
-  verifier outcome is never treated as evidence. A `contradict` outcome rewrites the finding
+  verifier outcome is never treated as evidence. **The outcome is first reconciled against the verdict
+  the verifier re-derived**, which it returns on every outcome: `agree` means *the same verdict* and
+  `extend` means *the claim holds*, so either arriving with a differing verdict is a return that
+  contradicts itself, and the outcome is normalised to `contradict` and reported. `unprovable` is
+  never normalised — its verdict differs by definition, and the outcome means only that the
+  verifier's own search settled nothing. A `contradict` outcome rewrites the finding
   in place — same id, replaced verdict and evidence — so an existing citation keeps resolving; an
   `agree`/`extend`/`unprovable` outcome is recorded alongside the finding unchanged (`extend` also
-  appends the additional evidence the verifier's own search turned up). Which anchor each finding
+  appends the additional evidence the verifier's own search turned up). None of the verifier's own
+  return fields reaches the record: what is written is the settled `verdict`, the `outcome` and any
+  `notes`, and nothing else. Which anchor each finding
   is verified against depends on what it rests on: a `[CG#n]` and a class-4 `[DG#n]` are re-derived
   against the pinned repository, a class-1/2/3 `[DG#n]` against the frame set it was reconciled
   from — see `workflows-core:grounding-format` §8. A verifier that

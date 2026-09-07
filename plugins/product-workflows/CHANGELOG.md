@@ -4,6 +4,22 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.2.0] — 2026-09-07
+
+### Fixed — `/brd-ground` never checked a verifier's outcome against the verdict it re-derived
+
+Phase 7 now reconciles the two before acting on either. `grounding-verifier` returns `own_verdict` on every outcome, and an `agree` or `extend` carrying a verdict that differs from the finding's is a return contradicting itself — the outcome is normalised to `contradict`, the finding is rewritten to the re-derivation as that branch already does, and the normalisation is recorded and reported in the Final report's verifier tally, with an explicit "none" where nothing was normalised so a clean run reads as checked rather than as unchecked. `unprovable` is never normalised.
+
+### Fixed — Phase 8 could write the verifier's return fields into the finding record
+
+Phase 8 now writes §2's fields plus `outcome` and `notes` **and nothing else**, per `workflows-core:grounding-format` §2.1's newly-closed field set. `own_verdict`, `own_evidence` and the verifier's re-derivation `commit` are return fields Phase 7 has already acted on; a block carrying `own_verdict` beside `verdict` states two verdicts at once and every downstream reader is free to quote whichever half suits.
+
+### Added — `/brd-split` and `/brd-interview` refuse a malformed finding block
+
+A fourth test in `/brd-split` Phase 0 step 7 (`BRD_SPLIT_MALFORMED_FINDING`) and a third in `/brd-interview` Phase 0 step 7 (`BRD_INTERVIEW_MALFORMED_FINDING`): every `[CG#n]`/`[DG#n]` block's keys are tested against the closed field set, and any other key stops the run naming the finding, the key, and the hand repair. **The existing outcome test cannot see this** — such a block carries an `outcome`, so it passes on presence while the disagreement travels into a slice's allocation, or into a `[VD#n]` frozen against whichever half the run read and then put in front of a customer. That is the same "a relation testing a property of what exists cannot catch what should not exist" shape as BRD-1, and the reason this is a relation of its own rather than a stricter count.
+
+The stop names the hand edit rather than `--rebaseline`, which would re-derive an entire verified corpus to delete a line no command should have written. `/brd-package` gains nothing: it has no findings gate at all, and a `--rebaseline` that moves the findings forces a new interview round through the check above.
+
 ## [2.1.0] — 2026-09-07
 
 ### Added — the sibling re-cut: a slice may hand a row it has refused to build to a sibling

@@ -188,6 +188,15 @@ notes: |
 
 - `status: OK` — the finding was fully re-derived, whatever the outcome. `unprovable` is a
   legitimate `status: OK` result, not a failure to complete the check.
+- **`own_verdict` is returned on every outcome, `agree` included, and is a return field rather than a
+  record field.** Return it always: an outcome the caller cannot check against a verdict is one it
+  has to take on trust, and removing that trust from the chain is this agent's whole purpose — the
+  caller reconciles the two (`workflows-core:grounding-format` §8) and writes `verdict`, never both.
+  A caller that transcribed `own_verdict` into the finding block would produce a record stating two
+  verdicts at once, which `workflows-core:grounding-format` §2.1 forbids by naming the record's field
+  set closed. **Report `agree` only where the re-derived verdict really is the same one** — an
+  `agree` carrying a differing `own_verdict` contradicts itself, and the caller will normalise it to
+  `contradict` rather than believe the label over the verdict.
 - `status: INPUT_MISSING` — a field required by this finding's row in the Inputs table was absent;
   no re-derivation performed. Name the field and the row.
 - `status: REPO_MISSING` — `repo_path` did not resolve to a directory; no re-derivation performed.

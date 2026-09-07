@@ -130,7 +130,7 @@ four-resolution one.
      `split_mode: allocate-only`, so the fix is always the parent:
      `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
    `unmanaged` → proceed as before this feature.
-7. **Gate on verification — and on there being grounding to verify.** **This step and step 6 run in `split_mode: allocate-only` only.** A root BRD is never ground — grounding and the customer interview happen at the slice and nowhere else — so on a `full` run there is no grounding to gate and both steps are skipped entirely. There is no `coverage-ledger.md` gate to keep: step 8 reads that ledger in both modes with a plain worktree read, never a `require-on-main` gate, which is why `workflows-core:phase-handoff` §4.0 classes it — and `brd/brd-inventory.md` beside it — **advisory** at a root. Three tests, in this order.
+7. **Gate on verification — and on there being grounding to verify.** **This step and step 6 run in `split_mode: allocate-only` only.** A root BRD is never ground — grounding and the customer interview happen at the slice and nowhere else — so on a `full` run there is no grounding to gate and both steps are skipped entirely. There is no `coverage-ledger.md` gate to keep: step 8 reads that ledger in both modes with a plain worktree read, never a `require-on-main` gate, which is why `workflows-core:phase-handoff` §4.0 classes it — and `brd/brd-inventory.md` beside it — **advisory** at a root. Four tests, in this order.
    **The order is the fix to a shipped defect and is not incidental:** the third is a *count*, and a
    count is vacuously satisfied by an empty set. This gate shipped as that count alone, so a BRD with
    two indexed frame sets and no design grounding at all passed it — zero findings on file means
@@ -198,6 +198,18 @@ four-resolution one.
    never propose a slice or offer `covered-here` against a claim nobody has actually verified.
    Count every finding on file carrying no recorded `outcome`. Any count `N` greater than zero →
    stop: `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run /product-workflows:brd-ground first.`
+
+   d. **No finding block carries a field the record's format does not define.** Parse every
+   `[CG#n]`/`[DG#n]` block per `workflows-core:grounding-format` §2.1 and test each key against that
+   section's **closed** field set — §2's fields, plus `outcome` and `notes`. Any other key fails. The
+   one that actually occurs is `own_verdict`, a verifier **return** field transcribed into the
+   record, which leaves the block stating two verdicts at once while `verdict` is the one this
+   command and every other consumer reads. **Test c. cannot see it**: such a block carries an
+   `outcome`, so it passes on presence and the disagreement travels into a slice's allocation
+   unexamined — which is why this is a relation of its own rather than a stricter count, the same
+   shape as the design-presence test above. Name every offending finding and key, and name the
+   repair as the hand edit it is:
+   stop: `BRD_SPLIT_MALFORMED_FINDING: N finding blocks carry a key workflows-core:grounding-format §2.1 does not define (<finding-id>: <key>, …) — the record's field set is closed to §2's fields plus outcome and notes. A block carrying own_verdict beside verdict states two verdicts at once, and nothing downstream can tell which one is the finding's. Remove the offending key from each block by hand in <path>, leaving every other key untouched, and re-run. Do not re-run '/product-workflows:brd-ground <BRD-KEY> --rebaseline' for this: it re-derives every finding against current commits to delete a line no command should have written, and supersedes the verified corpus in the process.`
 8. **Read the ledger; check for the no-op case.** **On a `full` run, first check the inventory
    itself is non-empty** — step 6 no longer reaches a root, so this is where a root whose intake
    produced zero `[BR#n]` rows is caught. Read `<BRD-dir>/brd/brd-inventory.md` and count its

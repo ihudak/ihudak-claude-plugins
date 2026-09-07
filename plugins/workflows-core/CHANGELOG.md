@@ -4,6 +4,18 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.1.1] — 2026-09-07
+
+### Fixed — two shared authorities carried claims `product-workflows` 2.1.0 falsified
+
+`product-workflows` 2.1.0 shipped the **sibling re-cut**: on a fully-allocated parent BRD, a row the parent delegated to one slice — and that slice's own ledger records `deferred-to: <itself>` for — can be re-pointed onto a sibling that has not been interviewed. Two sentences here described the world before it.
+
+`next-phase-offer.md`'s `/brd-split` row offered grounding *"once per **non-empty** child the run created"* and described a child emptied *"by withdrawing every **provisional** claim"*. Both are now wrong in both directions: the offered set is every child that **gained a row this run**, so the old wording would offer a re-run for a non-empty child that gained nothing — the re-derivation `/brd-split` Phase 7 explicitly forbids — and would omit a standing receiver, the child whose grounding demonstrably no longer covers what it claims; and a re-cut empties a donor by withdrawing a **committed** claim, the eighth site of an appositive whose seven siblings were widened with the feature.
+
+`phase-handoff.md` §3.4's `BRD_GROUND_NOT_HANDED_OFF` row said `/brd-split` is never a way out *"on a fully-allocated parent"*. It is, when that run is **instructed**: the re-cut stages the receiving slice's three files. The row now says **bare**, matching the qualification `/brd-ground` carries at every other site of the same claim.
+
+**Why they were missed.** The feature's own consumer sweep was scoped to `plugins/product-workflows/commands/brd-*.md`, and nothing in this plugin was touched by that branch — so the recipe that found the seven other sites could not see either of these, even though `CLAUDE.md` names this plugin's `next-phase-offer.md` as the authority for the whole `/brd-*` offer convention and for `check-docs.sh` check 11's family derivation. A rule relaxed in one plugin is a claim re-opened in every plugin that documents it.
+
 ## [1.1.0] — 2026-09-06
 
 ### Fixed — a reader that stops on an artifact now gates it, and the class register is derived rather than remembered

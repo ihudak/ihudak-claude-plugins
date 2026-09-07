@@ -8,7 +8,9 @@ Per **S18**, nothing releases while any of these is open.
 
 1. **Slice-first grounding and interviewing** — `docs/superpowers/specs/2026-09-06-slice-first-grounding-design.md`. **Shipped in `product-workflows` 2.0.0.** Closed BRD-5 and the per-slice interview package request.
 2. **The sibling re-cut** — that spec's §8, settled in `docs/superpowers/specs/2026-09-07-sibling-re-cut-design.md`. A slice grounding shows is too big hands its deferred rows to a new sibling, by re-pointing `covered-by` against the owner's own `deferred-to`. **Shipped in `product-workflows` 2.1.0.**
-3. **Idea-route grounding** — that spec's §5. Verified `[CG#n]` findings for a PRD folder authored from an idea, which needs a claim source chosen deliberately since there is no `[BR#n]` inventory. Own spec, after (2).
+3. **Idea-route grounding** — that spec's §5. Verified `[CG#n]` findings for a PRD folder authored from an idea, which needs a claim source chosen deliberately since there is no `[BR#n]` inventory. **Spec written 2026-09-07** — `docs/superpowers/specs/2026-09-07-idea-route-grounding-design.md`. It also renames `/brd-ground` to `/prd-ground`, which makes the increment `product-workflows` 3.0.0.
+
+**The release-gating set is no longer only the gates.** Three further defects were reported on 2026-09-07 by an operator running the route on a second live engagement, recorded below as E-1, E-2 and E-3. Per S18 they gate the release exactly as the gates do. **Sequenced: E-1, then gate 3, then E-2 and E-3.** E-1 goes first because it is in the verification phase, which is route-agnostic — ship gate 3 first and the idea route inherits it, and the fix then has two routes' worth of surface. E-2 and E-3 both live where gate 3 does not go: E-2 is entirely inside `/brd-package`, and E-3 is additive in a route-agnostic phase with nothing for the new route to inherit, so designing it after gate 3 means designing it once with both routes visible rather than for one and re-checking on two.
 
 **Status, 2026-09-06 (BRD-5 updated 2026-09-07).** BRD-1, BRD-2, BRD-3, BRD-4 and BRD-6 are **closed** — see each entry. BRD-5's design question was settled the same day by brainstorming, merged with the feature request into one design; that design shipped in `product-workflows` 2.0.0, closing both.
 
@@ -133,3 +135,144 @@ Step 8's `BRD_PACKAGE_NOTHING_TO_REVIEW` gained a sibling too: it read a BRD wit
 
 - The three reviewers each independently confirmed the `/frames` consent-array contradiction, which is the strongest signal in the set that the dimensions were genuinely orthogonal rather than three passes at the same reading.
 - `grounding-verifier` gained `STALE_INDEX` rather than having the claim deleted from three files: `/brd-ground` Phase 7 already handled that status with a well-reasoned remedy the agent could never trigger, so the contract was the half that was wrong.
+
+
+---
+
+# Engagement ledger — opened 2026-09-07 from a second live engagement
+
+Reported by an operator running the BRD route against a live customer engagement, on the **published
+pre-split** plugin. Each entry records what was reported, what triage against the tree at `702e066`
+actually found — **two of the three reports were partly misdiagnosed, and the corrections change the
+fix** — and where it sits relative to gate 3.
+
+Per **S18** these gate the release exactly as the BRD-route and review defects did. None is
+script-visible: all seven build gates are green with every one of them in the tree.
+
+## E-1 — a verifier outcome is never checked against the verdict the verifier re-derived
+
+**Bounded fix, sequenced BEFORE gate 3.**
+
+**Reported as:** `/brd-ground` never reconciles a finding's `verdict:` with its verifier's verdict, so
+every `contradict` leaves the record stating two verdicts at once. Three corpora were counted by hand
+— 62 findings in a parent BRD's code grounding, 19 of 44 in a slice's design grounding, 51 of 142 in
+a slice's freshly-ground code grounding.
+
+**Triage: the central claim is false, and two real defects sit underneath it.** Phase 7's `contradict`
+branch already does exactly what the report proposes as the fix — *"the finding is rewritten, and the
+rewrite retains the same id. Replace the finding's `verdict` and `evidence` with the verifier's
+`own_verdict` and `own_evidence`, and keep a one-line note of the pre-rewrite verdict"* — and has done
+since `/brd-ground` was first added (`e7aac79`). The report's "withhold `SUPERSEDED`" point is
+likewise already honoured: that branch never uses it.
+
+**(a) Phase 7 never validates `outcome` against `own_verdict`.** `grounding-verifier` returns
+`own_verdict` **unconditionally**, on all four outcomes. §8 defines `agree` as *"reaches the same
+verdict"* and `extend` as *"the claim holds, but…"*, so either arriving with a differing `own_verdict`
+is the agent violating its own contract — and Phase 7's `agree` and `extend` branches both say *keep
+the finding's verdict* with no check. Nothing detects it, and the written record shows only
+`outcome: agree`. **The disagreement leaves no trace**, which is worse than the reported symptom
+because it is invisible rather than visibly contradictory.
+
+**The report's remedy is wrong on one branch and must not be applied blanket.** Normalising *any*
+disagreeing outcome to `contradict` would break `unprovable`, where `own_verdict: NOT-PROVABLE`
+differs from the finding's verdict **by definition** and Phase 7 deliberately keeps the finding's
+verdict — *"the verifier's own search settling nothing either way is not the same as it being
+wrong."* The normalisation belongs to `agree` and `extend` only.
+
+**(b) Nothing validates a written finding block against the format it must match.**
+`workflows-core:grounding-format` §2.1 **does** fix the serialisation — `outcome` and any verifier
+`notes` follow §2's keys, and `own_verdict` is not among the fields to write. So a corpus carrying a
+`verifier:` block with a second verdict is a writer emitting a field the format does not define. The
+format is right; nothing enforces it. That is BRD-6's family one level up, and BRD-6's own lesson
+applies — fixing the file's writer without fixing the agent template the model actually copies leaves
+the defect one hop upstream.
+
+**The best idea in the report is its cheap extension.** `/brd-split`, `/brd-interview` and
+`/brd-package` all gate on *"every finding carries a verifier outcome"*, which a finding stating two
+verdicts satisfies, because an outcome is present. Extending it to *"and no finding's outcome
+disagrees with its own verifier"* is BRD-1's presence-relation lesson applied again, and would have
+caught all three corpora at the next command instead of at customer-package time.
+
+## E-2 — the bundle is never checked for whether an identifier citation resolves
+
+**Bounded fix, sequenced after gate 3.**
+
+**Reported as:** `/brd-package` runs a plugin-free scan and a de-Obsidianising pass, and correctly
+exempts identifiers from the scan because `[BR#n]`/`[CG#n]`/`[DG#n]` are how a returned review cites
+the package. Nothing then checks that they land. Three failures were observed in shipped bundles: 16
+of 17 class-4 `cites` resolving to a finding about a *different* requirement; 11 references naming ids
+above the highest the corpus contains; and a guaranteed dead reference, because
+`bundle-packaging.md` §1.1 excludes the self-review while bundle documents name it in prose, which
+§2's rule 2 does not govern.
+
+**Triage: real as reported.** There is no citation-resolution check anywhere in `/brd-package` or
+`bundle-packaging.md`. `workflows-core:grounding-format` §6.3 requires a class-4 `cites` to be
+**present** — *"A `[DG#n]` of this class carrying no `[CG#n]` citation is incomplete"* — and nothing
+requires it to be **correct**. The report's four checks are sound, and its own points 3 and 4 are
+rules the plugin already states and nothing enforces. The single highest-value test is its point 2:
+for a class-4 `cites`, require the cited finding's `claim` to name the same `[BR#n]` as the citing
+finding. Both values are already in the records being copied.
+
+**One severity correction: the mechanism that produced the worst failure is retired.** The 16-of-17
+case had a slice carrying its **parent's** design findings, which requires the parent to have been
+ground. Slice-first grounding removed root grounding entirely — a root is never ground, so there are
+no parent findings for a slice to carry — and the sibling re-cut explicitly moves no findings. That
+corpus came from the documented hand deviation recorded in BRD-5, on a pre-split tree. The defect
+stays real: existing bundles carry it, and a bundle check must catch a broken citation however it got
+there. It is not a live regression source.
+
+**Recorded as a separate gap, not folded in:** the plugin has no supported mechanism for narrowing a
+parent's verified findings to a slice's claimed subset. Under slice-first that operation should no
+longer be needed; if a live route still reaches it, that is its own entry rather than part of this
+one.
+
+## E-3 — the route has nowhere to record a defect in the code
+
+**Architectural; own brainstorm and spec, sequenced after gate 3.**
+
+**Reported as:** `/brd-ground` spends its whole effort reading code at pinned commits and routinely
+establishes that the code is broken — an active regression, a missing index the code assumes, a write
+path that never sets a column. `brd-format.md` §4's `[DEF#n]` log is for **requirement** defects, and
+Phase 8 writes findings, the derivation matrix and documentation divergences, none of which is a
+defect record. So a code defect lands in a decision's `argumentation` as prose, where nothing consumes
+it: two instances in one register, both asserting the defect *"is recorded"* when nothing held one,
+both surviving drafting, the round record and a first adversarial review.
+
+**Triage: real and correctly diagnosed.** `brd-format` §4's resolutions are every one of them about
+the requirement or the document — `customer-amended`, `withdrawn`, `resolved-by: [CG#n]`, `open` —
+and note that third one's direction: a grounding finding can **settle** a requirement defect, so
+findings already flow *into* that log and nothing flows out. A grep for any code-defect record across
+`plugins/product-workflows/` returns nothing. `decision-register-format` §2 makes `argumentation`
+mandatory free prose, which is exactly where the fact goes when there is nowhere else.
+
+**Two separable items, and the order matters.**
+
+- **E-3a, the capability gap** — no code-defect record exists. A new artifact, an id namespace, a
+  writer, a resolution vocabulary, and consumers that treat an entry as work.
+- **E-3b, the correctness bug** — a decision's argumentation can assert a defect *is recorded* while
+  nothing holds one, after which the register reads as handled. This is the half that makes it a
+  defect rather than a feature request, and the half that can reach a customer, since the register's
+  content feeds the bundle.
+
+**The proposed gate is the right idea in the wrong order.** It treats the symptom: the operator wrote
+prose because there was nowhere else to write. Build E-3a and the pressure the report itself names
+("one register field removes that pressure") is gone, after which the gate guards against regression
+rather than standing alone. Shipping the gate first is a refusal with no destination — the dead-end
+shape `workflows-core:grounding-format` §6.1 already forbids for `NO_INDEX`.
+
+**Measure the gate's trigger before building it.** `CLAUDE.md` records a measured rejection of a
+prose-proxy check (stop routing), where every proxy tried either fired on correct content or caught
+none of the real defects. **This one is not that class, and the difference is the reason it is worth
+building:** it tests an assertion against a checkable artifact, which is the shape of checks 8, 11, 15
+and 16 that all shipped. Only the trigger phrase is prose-fragile — *"recorded as a defect against
+it"* against *"recorded as such"* — so the candidate pattern is measured against the tree first, as
+this repo requires of any widening.
+
+**A requirement on E-3a, carried from the report's second-order point:** the record needs a field for
+a **scope condition that cannot be settled yet** — "whether the new surface renders this is a property
+of code nobody has written". Without one, a decision is forced to assert the repair is in scope and
+contradict its own stated boundary, which is what happened. That is a requirement, not a
+nice-to-have.
+
+**Recorded because it is the strongest argument for the gate:** this defect was found because the
+register created to fix it contained the same unrecorded claim.

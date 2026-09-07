@@ -318,7 +318,7 @@ Fixed per-command labels, with six inferred exceptions:
 | `/create-ard` | architecture | pa |
 | `/frames` | **inferred** | **inferred** |
 | `/brd-intake` | brd-to-prd | pm |
-| `/brd-ground` | brd-to-prd | pa |
+| `/prd-ground` | brd-to-prd | pa |
 | `/brd-split` | brd-to-prd | pm |
 | `/brd-interview` | brd-to-prd | pm |
 | `/brd-package` | brd-to-prd | pm |
@@ -345,7 +345,7 @@ order to address it at all — re-derivable from disk, like `/release-notes`'s a
 unlike the `target_command` one below:
 
 - **`kind: brd` -> `phase: brd-to-prd`, `role: pm`.** A frame set under a BRD
-  folder is on the BRD-to-PRD route, where `/brd-ground` is the command that
+  folder is on the BRD-to-PRD route, where `/prd-ground` is the command that
   reconciles it; spend preparing it belongs to that route's phase.
 - **`kind: prd` or `kind: epic` -> `phase: prd-creation`, `role: pm`.** A frame
   set under a PRD folder or one of its Epics is the PRD's own design record —

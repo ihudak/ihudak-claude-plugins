@@ -120,6 +120,13 @@ command reads was already independently re-derived by `/brd-ground`'s own verifi
   `[CG#n]` at all stops first, with `BRD_INTERVIEW_NO_FINDINGS`: the outcome count is satisfied by an
   empty finding set, and every `[G]` this command answers is answered from the findings and from
   nothing else.
+- **Every finding block is well-formed.** The record's field set is closed to the ones
+  `workflows-core:grounding-format` §2 defines plus `outcome` and `notes`; a block carrying any other
+  key stops the run with `BRD_INTERVIEW_MALFORMED_FINDING`. The key that occurs is `own_verdict`, a
+  verifier **return** field, and a block carrying it states two verdicts at once. That matters more
+  here than anywhere else on the route: every `[G]` is answered from the findings and from nothing
+  else, so such a finding freezes a `[VD#n]` against whichever half the run happened to read, and
+  [`/brd-package`](brd-package.md) then puts that decision in front of the customer.
 - **A fully-allocated coverage ledger.** Any row still `unallocated` stops the run with
   `BRD_INTERVIEW_UNALLOCATED`, naming `/brd-split` as the fix.
 - **At least one row this BRD is answerable for.** A BRD whose every ledger row reads `covered-by`

@@ -734,6 +734,27 @@ run stands untouched until a clean run replaces it. This is the invariant `/brd-
 gate depends on — it counts findings carrying no outcome and refuses to split while any exists, so
 a run that wrote one would deadlock the route rather than merely leave a gap.
 
+**Reconcile `outcome` against `own_verdict` before acting on either.** The agent returns its
+re-derived verdict on **every** outcome, and `workflows-core:grounding-format` §8 defines `agree` as
+reaching *the same* verdict and `extend` as the claim *holding* — so either arriving with an
+`own_verdict` that differs from the finding's `verdict` is a return whose two halves contradict each
+other, and the label is the half to disbelieve. **Normalise the outcome to `contradict`** and act on
+that branch below, the one that believes the re-derivation. **Never normalise `unprovable`**: its
+`own_verdict` is `NOT-PROVABLE`, so it differs from the finding's by definition, while the outcome
+means only that the verifier's own search settled nothing — normalising it would rewrite every
+inconclusive finding into a contradiction nobody reached. `contradict` already disagrees and is left
+alone.
+
+**Record every normalisation and report the count** — the finding id, the outcome as returned, and
+both verdicts — in the Final report's verifier tally. A normalisation that happens silently is
+indistinguishable from an agent that never disagreed, which is the state this step exists to make
+visible.
+
+**None of the verifier's own fields reaches the record.** `own_verdict`, `own_evidence` and the
+verifier's re-derivation `commit` are return fields
+(`workflows-core:grounding-format` §2.1's closed field set). What Phase 8 writes is the `verdict`
+this step settles, plus `outcome` and any `notes` — never a second verdict beside the first.
+
 Act on `outcome`:
 - **`agree`** — keep the finding as written; record the outcome alongside it.
 - **`extend`** — keep the finding's verdict; append the verifier's additional evidence to the
@@ -764,7 +785,7 @@ a file whose readers report findings as missing that are on the page. Each block
 `workflows-core:grounding-format` §2 defines (`id`, `claim`, `verdict`, `evidence`, `altitude`, `horizon`,
 `consumed_by: none`, plus `class`/`cites` on a `[DG#n]` and `commit` on everything **except** a
 `[DG#n]` of class 1, 2 or 3 — those are settled from the frame set alone and are pinned to no commit,
-per §2's applicability note) plus this run's verifier `outcome` **and any `notes` the verifier returned**. Its contract calls those *"anything the caller should know before recording this outcome"*, so they are read before the outcome is written, not after — a verdict recorded without them is recorded against a caveat the verifier raised and nothing carried.
+per §2's applicability note) plus this run's verifier `outcome` **and any `notes` the verifier returned** — **and nothing else.** §2.1 makes the field set closed: `own_verdict`, `own_evidence` and the verifier's re-derivation `commit` are return fields Phase 7 has already acted on, and a block carrying `own_verdict` beside `verdict` states two verdicts at once, leaving every downstream reader free to quote whichever half suits. That is the state `/brd-split` step 7 and `/brd-interview` step 7 now refuse, so writing it here deadlocks the route rather than merely muddying the record. Its contract calls those *"anything the caller should know before recording this outcome"*, so they are read before the outcome is written, not after — a verdict recorded without them is recorded against a caveat the verifier raised and nothing carried.
 A `--rebaseline` run appends its new findings after the existing ones and marks any finding it
 superseded with `verdict: SUPERSEDED`, id retained, rather than deleting or renumbering it.
 
@@ -869,7 +890,7 @@ offer `/brd-split` as Recommended** — it would refuse the key just ground. Off
 itself names, in the same position: `/workflows-core:frames <BRD-KEY>` to write the missing index,
 then a `--no-code` re-run. The offer's wording is deliberately "its grounding is complete and
 verified" rather than the older "now that every finding carries a verifier outcome": the outcome
-count is one of three tests that command applies, and naming one of them as though it were the
+count is one of four tests that command applies, and naming one of them as though it were the
 precondition is how this offer came to promise a pass it cannot deliver.
 
 `/product-workflows:brd-split <BRD-KEY>` allocates this slice's own ledger, and it is the last step
@@ -961,7 +982,9 @@ and model routing (+ any Opus degradation); the prerequisite-readiness block fro
 in the two-column form Phase 4 step 3 fixes; finding counts by verdict for `[CG#n]` and `[DG#n]`
 separately, and the verifier
 tally (`agree` / `extend` / `contradict` / `unprovable`) with every `contradict` rewrite named by
-id; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Phase 4.5 lead added,
+id — **and, separately, every outcome Phase 7 normalised**, each named by finding id with the outcome
+as returned and both verdicts, or an explicit "none" where the verifier and the findings agreed
+throughout, so a clean run reads as checked rather than as unchecked; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Phase 4.5 lead added,
 and the count of documentation divergences recorded (each named by the `[CG#n]` it diverges from —
 never by an identifier of its own, because it has none); whether the derivation matrix ran and why; any `design-grounder` class-4 gap deferred for want
 of a settling `[CG#n]`; the feedback + cost paths; the `Phase handoff:` outcome line

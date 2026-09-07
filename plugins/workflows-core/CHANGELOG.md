@@ -4,6 +4,18 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.2.0] — 2026-09-07
+
+### Fixed — a verifier could disagree with a finding and nothing noticed
+
+`grounding-verifier` returns its own re-derived verdict alongside **every** outcome. §8 defines `agree` as reaching *the same* verdict and `extend` as the claim *holding*, so either arriving with a differing `own_verdict` is a return whose two halves contradict each other — and nothing reconciled them. §8 now states the rule: such an outcome is **normalised to `contradict`** and the caller acts on the branch that believes the re-derivation, recorded rather than silent. **`unprovable` is never normalised** — its verdict is `NOT-PROVABLE` and differs from the finding's by definition, while the outcome means only that the verifier's own search settled nothing, so normalising it would rewrite every inconclusive finding into a contradiction nobody reached.
+
+### Fixed — the finding record's field set was open, so a second verdict could be written beside the first
+
+§2.1 fixed the *bytes* of a finding block and left its *field set* unstated. A writer holding the verifier's return therefore had nothing forbidding it from transcribing `own_verdict` into the record, producing a block that states two verdicts at once while `verdict` is what every downstream consumer reads — so a decision citing that finding could quote whichever half suited. Three corpora from a live engagement were counted by hand in this state. §2.1 now names the field set **closed** — §2's fields plus `outcome` and `notes`, and nothing else — and `product-workflows:grounding-verifier` says the same from the emitting end, because fixing the file's writer without fixing the agent whose output the model copies leaves the defect one hop upstream. That is BRD-6's lesson, and this is the same family met at the field set rather than at the bytes.
+
+**Why the existing handling did not cover it.** §8's `contradict` branch has rewritten the finding to the verifier's verdict since `/brd-ground` first shipped. The gap was never that branch — it was that `agree` and `extend` never reached it, and that nothing bounded what a writer could add to the block.
+
 ## [1.1.1] — 2026-09-07
 
 ### Fixed — two shared authorities carried claims `product-workflows` 2.1.0 falsified

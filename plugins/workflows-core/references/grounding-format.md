@@ -94,6 +94,17 @@ So, canonically:
 - **One block per finding**, keys in the §2 table's order, every key of a block at the same
   indentation, and no blank line inside a block. `outcome` (§8) and any verifier `notes` follow the
   §2 fields, in that order, where the run that wrote the block had them.
+- **The field set is closed: §2's fields, `outcome` and `notes`, and nothing else.** A verifier
+  returns more than the record keeps — `own_verdict`, `own_evidence` and its own re-derivation
+  `commit` are how it reports to the caller, which **acts** on them (§8) rather than transcribing
+  them. **`own_verdict` in particular is never a record field**, and writing it is not a harmless
+  extra: `verdict` is what every downstream consumer reads, so a block carrying both states two
+  verdicts at once and a reader can quote whichever half suits. Where a re-derivation moved the
+  verdict, §8's `contradict` handling has already replaced `verdict` and left a one-line note of what
+  it was — so a correct record carries exactly one verdict plus its history, never a live
+  disagreement. This is the same failure §2.1 exists to prevent, met at the field set rather than at
+  the bytes: a writer free to add a field produces an artifact whose readers disagree about which
+  value is the finding's.
 - **A field that does not apply is omitted, never written empty** — `class` and `cites` on a
   `[CG#n]`, `cites` on a `[DG#n]` of class 1, 2 or 3, `commit` on a `[DG#n]` of class 1, 2 or 3, and
   `prerequisite` on any finding whose `horizon` is `current`. An empty value asserts that the field
@@ -524,6 +535,18 @@ outcome can never become evidence by the rule below.
 | `extend` | The claim holds, but the verifier's own search surfaces evidence the original finding missed |
 | `contradict` | Independent re-derivation reaches a different verdict |
 | `unprovable` | The verifier could not settle the claim either way, independent of what the original finding concluded |
+
+**`agree` and `extend` both assert the verdict holds, so a differing re-derived verdict falsifies the
+outcome rather than qualifying it.** The verifier returns its own re-derived verdict alongside every
+outcome, `agree` included. Where that verdict differs from the finding's while the outcome reads
+`agree` or `extend`, the two halves of the return contradict each other — this table defines `agree`
+as reaching *the same verdict* and `extend` as the claim *holding* — and the caller **normalises the
+outcome to `contradict`** and acts on that branch, which is the one that believes the re-derivation.
+The normalisation is recorded, never silent. **`unprovable` is never normalised**: its re-derived
+verdict is `NOT-PROVABLE` and therefore differs from the finding's by definition, while the outcome
+means only that the verifier's own search settled nothing — which is not the same as the finding
+being wrong, and normalising it would rewrite every inconclusive finding into a contradiction nobody
+reached.
 
 A finding without a verifier outcome is not evidence and cannot be recorded as `consumed_by`
 anything. **Findings inherited from another team's report, or from an earlier run of this

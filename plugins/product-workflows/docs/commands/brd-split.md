@@ -284,6 +284,13 @@ reads was already independently verified by `/brd-ground`'s own agents.
   `extend` / `contradict` / `unprovable`) is not evidence this command may act on. Any such finding
   on file stops the run with `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run
   /product-workflows:brd-ground first.`
+- **On a slice: every finding block is well-formed.** The finding record's field set is closed to
+  the ones `workflows-core:grounding-format` §2 defines plus `outcome` and `notes`. A block carrying
+  any other key stops the run with `BRD_SPLIT_MALFORMED_FINDING`, naming each finding and key. The
+  key that actually occurs is `own_verdict` — a field the verifier *returns* to its caller, which
+  leaves a block that carries it stating two verdicts at once while `verdict` is the one every
+  consumer reads. The verified-outcome test above cannot catch it, because such a block does carry
+  an outcome; the repair is to remove the offending key by hand, not to re-derive the corpus.
 - **On a root: the inventory is non-empty.** A root is never ground, so there is no grounding gate
   here at all — `/brd-intake`'s inventory is what this mode reads. Zero `[BR#n]` rows stops with
   `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full)`, naming a corrected `/brd-intake` re-run over the

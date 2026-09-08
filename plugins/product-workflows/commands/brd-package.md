@@ -819,6 +819,30 @@ self-review is free of them while being the most internal document this command 
 7. **Run the plugin-free scan over every document in the finished bundle**, and stop on any hit. The
    scan runs here as well as over the prompt because a leak can arrive through a copied document as
    easily as through a rendered part, and this is the last point at which anything is still ours.
+8. **Run the citation-resolution check over every document in the finished bundle**, per
+   `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6, and stop on any hit. It runs here and
+   nowhere earlier because both of its inputs — the identifier corpus and the set of bundle
+   filenames — are facts about the *assembled* bundle; the rendered prompt is covered because the
+   prompt is itself a bundle document. It is a second pass rather than a widening of rule 7's scan:
+   that scan hunts tokens a reader **cannot resolve**, and this one hunts tokens a reader **resolves
+   to the wrong thing**, which is the worse failure and needs the bundle's own corpus to detect.
+
+   A reference that resolves to nothing — an unresolved id or filename (§6.2 relations 1 and 3), or
+   a bundle document whose filename carries no `<BRD-KEY>` and therefore has no partition at all
+   (§6.1) — stops with:
+   `BRD_PACKAGE_DEAD_CITATION: <id-or-filename> in <bundle document> resolves to nothing — <what it was resolved against>. A reference the reviewer cannot follow is not fixed by deleting it: some sentence in the package assumed that id or that file, and the sentence is what has to change.`
+
+   A class-4 `[DG#n]` whose `cites` resolves but names a different requirement than the citing
+   finding's own claim (§6.2 relation 2) stops with:
+   `BRD_PACKAGE_CITATION_MISMATCH: <DG-id> is class 4 and cites <CG-id>, whose claim names <requirement-a> where the citing finding's claim names <requirement-b> — the citation resolves, to a finding about a different requirement, which is the one failure a reviewer cannot detect by following it.`
+
+   A corpus file present and non-empty that parses to zero ids of its class (§6.1) stops with:
+   `BRD_PACKAGE_CORPUS_UNREADABLE: <corpus file> is present and non-empty but parsed to zero <class> ids — that is a parse failure, not an empty corpus, and reporting it as an absence would report every reference in the bundle as dead (workflows-core:grounding-format §2.1).`
+
+   **A hit inside `brd/source/<basename>` reports rather than stops** — the same treatment the
+   plugin-free scan gives it above, and for the identical reason (§6.3): the customer's own document
+   is immutable by rule, and the one repair the rule allows is not editing the file. Every other
+   document's hit stays a hard stop.
 
 **The bundle is committed** (D18), through the handoff below. That serves both delivery routes with
 one artifact: a customer with repository access pulls it and needs nothing else, and everybody else
@@ -948,19 +972,22 @@ working directory; no user name is ever written.
 
 ## Final report
 
-Report: the BRD folder and which level it sits at; the classification and model routing
-(+ any Opus degradation, named again here because a self-review that ran on a weaker model is a
-weaker gate); **the degradation tier**, and the sentence it obliges the customer's own review to
-carry; **every `[SR#n]` with its disposition**, grouped by disposition, with the `accepted-risk` ones
-listed in full because those are the ones the customer will read; whether a second reviewer pass ran
-after a `fixed` correction and what it added; the counts the prompt carries — `[C]` questions, open
+Report: the BRD folder and which level it sits at; the classification and model routing (+ any Opus
+degradation, named again here because a self-review that ran on a weaker model is a weaker gate);
+**the degradation tier**, and the sentence it obliges the customer's own review to carry; **every
+`[SR#n]` with its disposition**, grouped by disposition, with the `accepted-risk` ones listed in
+full because those are the ones the customer will read; whether a second reviewer pass ran after a
+`fixed` correction and what it added; the counts the prompt carries — `[C]` questions, open
 `[AS#n]`, `escalated-to-customer` findings; **every prerequisite named under *what could still
 move***, with whether it resolved, whether its decisions are customer-reviewed, and whether a
-package of its own was copied in; the four artifacts written, by path; **the delivery note, printed
-in full**; the archive command, with an absolute path; the feedback + cost paths; the
-`Phase handoff:` outcome line (`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line
-(`workflows-core:specs-repo-git` §6); the next-step recommendation; and — before the ledger line — the
-**repo→SHA table**:
+package of its own was copied in; the four artifacts written, by path; **the citation check's
+outcome** — how many identifier references resolved, across how many source packages, how many
+carried an owning BRD key, and every hit inside the customer's own source document that the operator
+was asked to rule on, **or an explicit "none"**; **the delivery note, printed in full**; the archive
+command, with an absolute path; the feedback + cost paths; the `Phase handoff:` outcome line
+(`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line
+(`workflows-core:specs-repo-git` §6); the next-step recommendation; and — before the ledger line —
+the **repo→SHA table**:
 
 ```
 baselines: <repo> @ <commit> (<how it was verified>)

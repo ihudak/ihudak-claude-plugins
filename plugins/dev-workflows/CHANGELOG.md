@@ -4,6 +4,14 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [4.0.2] — 2026-09-08
+
+### Fixed — `docs/reference/environment.md` dropped `/prd-ground` from the unset-`SPECS_PATH` enumeration
+
+The page listed the commands that stop and offer `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]` on an unset `$SPECS_PATH` as `product-workflows`'s `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, *"and every `/brd-*` command"*. `/prd-ground` Phase 0 step 3 stops identically with the same array, but it left that glob the day its rename shipped, so the sentence quietly lost a member. It now names `/prd-ground` alongside the glob.
+
+This is the glob-coverage regression class the rename produced: prose deriving an obligation from a glob the rename shrank, invisible to a search for the old command name because the sentence never contained it. The sweep for this class was re-run across `plugins/` and this was its last instance — every other surviving `/brd-*` mention concerns the shared `brd` **branch prefix**, which `/prd-ground` does still carry on the BRD route.
+
 ## [4.0.1] — 2026-09-06
 
 ### Fixed — `/ready` could return SUPPORTED having verified nothing

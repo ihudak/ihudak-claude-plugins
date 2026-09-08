@@ -4,6 +4,18 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.3.1] — 2026-09-08
+
+### Fixed — `phase-handoff.md` §3.4's PRD rows named their gate target in prose, so `check-docs.sh` check 11 could not see it
+
+Check 11 gates the `<merge-clause>` placeholder by intersecting an offering run's declared `deliverable_paths` with the offered command's `require-on-main` target, and it reads that target out of §3.4's row-F table — specifically, the backticked `*.md` in the Input column. The `/create-ard` and `/specify` rows both read simply *"the PRD"*, so the extractor found no filename, skipped both rows, and the relation never fired for either command anywhere in the tree. Nothing shipped was wrong; those offers were held by review alone.
+
+Both rows now read ``the PRD (`prd.md`)``. That is the name `/create-ard`'s own Phase 0 resolves on the ref — falling back to the legacy `<KEY>_*.md` form — rather than one inferred from convention, because the row states what the gate targets and a row-F cell that misnames it would be worse than one that says nothing.
+
+**The widening was measured before it was taken, and fires on nothing**: the writer set was extracted afresh for all six commands inside check 11's family globs and none declares `prd.md`. That measurement corrected an earlier estimate — that naming the file would "newly gate every offer of `/create-ard` and `/specify` across the tree" — which had been the reason for parking this. Check 11 only ever examines in-family commands, so `/create-prd` and `/update-prd` were never reachable by it.
+
+Three rows of that table still name their target in prose and are deliberately unchanged: the ARD row and the `/ready` row. Both measured zero-fire too, but an ARD may be split per area and `/ready`'s row covers three artifacts with three resolution rules, so naming a single filename in either would assert something the gate does not.
+
 ## [1.3.0] — 2026-09-08
 
 ### Changed — `grounding-format.md`'s finding contract widened to a route-neutral claim, not only a `[BR#n]`

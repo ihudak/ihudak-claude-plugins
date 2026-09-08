@@ -42,6 +42,23 @@ if [ "${1:-}" = "--selftest" ]; then
          "[US-n]" "[AC-x]" "[AC-X]" "[SM-Cx]" "bare SM-Cx"
   expect "hash forms and real keys are accepted" 0 "$here/fixtures/prd-good.md"
   expect "a nonexistent root is an error"       2 "$here/fixtures/no-such-file.md"
+  # EXCLUDED_SUBTREES, tested as a PAIR on DIRECTORY roots -- the only shape that
+  # reaches that variable at all, since a file root takes the other branch of the scan
+  # entirely and the four cases above are all files. Only the pair discriminates: an
+  # unanchored exclusion (a bare `worktrees` name-match at any depth, which is what
+  # --exclude-dir would give) passes the green case and fails the red one, and an
+  # implementation that excluded too much passes green and fails red the same way.
+  wtroot=$(mktemp -d)
+  trap 'rm -rf "$wtroot"' EXIT
+  mkdir -p "$wtroot/green/.worktrees/copy/scripts/fixtures" "$wtroot/red/nested/worktrees/copy"
+  printf '# a worktree copy of this gate own negative fixtures\n\n[AC-1] and [SM-1]\n' \
+    > "$wtroot/green/.worktrees/copy/scripts/fixtures/prd-bad.md"
+  printf '# compliant\n\n[AC#1] and [SM#1]\n' > "$wtroot/green/kept.md"
+  printf '# not a root-level worktree\n\n[AC-1] and [SM-1]\n' \
+    > "$wtroot/red/nested/worktrees/copy/prd-bad.md"
+  expect "a worktree copy at the scan root is not walked"  0 "$wtroot/green"
+  expect "a \`worktrees\` directory below the scan root is still walked" 1 "$wtroot/red" \
+         "[AC-1]" "[SM-1]"
   if [ "$rc" -eq 0 ]; then
     echo "SELFTEST PASS"
   else
@@ -91,8 +108,17 @@ PATTERN="\[(US|AC|SM|SMC|UC|FR|AD)-${NUM}+\]|\[SM-C${NUM}+\]|(^|[^[:alnum:]_[])(
 #   docs/            -- this repo's plans and specs, which quote the old form
 #   .remember/       -- session history, untracked
 #   .superpowers/    -- SDD workspace, untracked
+#   .worktrees/      -- git worktrees: a SECOND FULL COPY of the tree, git-ignored,
+#     worktrees/        never what this gate was asked about. Walking into one reaches
+#                       the copy's own scripts/fixtures/, whose deliberate dash-form
+#                       negative controls are then reported as live violations -- the
+#                       gate goes red on the main checkout for a reason that has nothing
+#                       to do with the tree being checked, and it does so during the
+#                       merged-result run, the last check before a branch lands. Both
+#                       names are excluded because both are what the worktree tooling
+#                       creates; only `.worktrees` is in this repo's .gitignore today.
 #   scripts/fixtures -- this gate's own negative-control fixtures
-EXCLUDED_SUBTREES='^\./(docs|\.remember|\.superpowers|scripts/fixtures)/'
+EXCLUDED_SUBTREES='^\./(docs|\.remember|\.superpowers|\.worktrees|worktrees|scripts/fixtures)/'
 
 # CHANGELOG.md is history and keeps the dash form (spec Global Constraints).
 # A line carrying the marker `id-grammar-ok:` is documenting the legacy form on

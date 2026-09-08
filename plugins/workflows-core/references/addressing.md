@@ -193,7 +193,18 @@ and reports it **once per run** as deprecated. `@<path>` bypasses it along with 
 
 **No migration command ships.** A user's specs repo is theirs, it is a git repository they review, and a
 renaming script that cannot be tested against their tree is a liability. Renaming a folder is one
-`git mv`, and the fallback means they need never do it.
+`git mv`, and the fallback above means they need never do it.
+
+**The fallback covers the folder name and nothing inside it, which is a narrowing of what this
+paragraph used to claim.** It said the fallback meant a user need never rename, unqualified — and that
+covered filenames it never reached. Every command resolves an artifact by its **current** name and none
+carries a fallback of its own, so a folder written before the artifact filenames lost their keys still
+needs its `<KEY>_<slug>.md` renamed to `prd.md` and its `<KEY>_ARD.md` to `ard.md`. Two more `git mv`s,
+and unlike the folder nothing resolves them for you: a command meeting the old filename reports the
+artifact absent and stops on that, with a remedy written for a folder that never had one. **The
+unqualified claim was load-bearing in the wrong direction** — a resolver for the legacy artifact names
+is derivable from it, and was derived in full, before anyone measured how many trees it would serve.
+State the boundary here so the derivation stops at this paragraph.
 
 ## 6. Nesting
 

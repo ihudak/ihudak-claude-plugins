@@ -328,6 +328,18 @@ register created to fix it contained the same unrecorded claim.
 
 ## E-6 — `/prd-ground` is the one PRD-reading command that does not know the legacy PRD filename, and it stops the operator with a remedy they cannot perform
 
+**RETIRED 2026-09-08 without implementing the resolver — the operator's call, on reachability, and the reasoning is recorded so it is not re-derived.** Every finding below is reachable only on a specs repo written before the artifact filenames lost their keys and never renamed since. Traced per finding rather than assumed as a class: the `/update-prd` ↔ `/create-prd` loop needs `/create-prd` to *find* a PRD in order to redirect, and on a current tree with no `prd.md` it finds nothing and authors one; the `<KEY>_*.md` glob collision sits in a fallback that fires only where the ref carries no `prd.md`, and on a current tree that glob then matches nothing. So the population is exactly the set of un-renamed pre-rename trees, which the operator — the only party known to have held one — reports is empty and would in any case fix by hand, with a brainstorm, against the tree in front of them.
+
+**What was taken instead, because the alternative was leaving a false promise standing.** `addressing` §5 said the fallback meant a user "need never" rename, unqualified — and **this entire spec is derivable from that sentence**, which is how it was derived. §5 now states the boundary: the fallback covers the folder name and nothing inside it, and a pre-rename tree renames its own artifacts. Shipped in `workflows-core` 1.3.4. Three commands contradicted the narrowed rule and moved with it (`product-workflows` 3.3.1): `/create-ard` and `/specify` dropped the key-globbed PRD fallback at their `require-on-main` gates — a fallback that matched nothing on a current tree and, on the one tree it was written for, also matched that tree's `<KEY>_ARD.md` — and `/create-prd` step 6 dropped its claim that a pre-rename file is identified by `kind: prd`, a field the same change introduced. **The live defect the investigation surfaced was therefore fixed; only the legacy tolerance was declined.**
+
+**Kept for its archaeology, not for its plan:** `docs/superpowers/specs/2026-09-08-legacy-artifact-resolution-design.md`, marked not-implemented. Its §1 records how a rule that existed, and was deliberately kept by `75029fe`, was deleted by `469c656` under the judgement that *"Duplicating those is not the drift risk that duplicating a key grammar was"* — and what the duplication then cost. That is worth keeping whether or not the resolver is ever built.
+
+**The reachability lesson, stated plainly because this session paid for it twice.** G3-4 asked a reachability question and the answer closed it. E-6 was opened out of that same investigation and was *not* asked the same question — the design was measured, specified and approved before anyone counted the trees it would serve. Ask it first.
+
+---
+
+### The original entry, as filed
+
 **Found 2026-09-08 while settling G3-4's reachability question**, which asked about a different half of the same split and turned out to be unreachable.
 
 **The defect.** `/prd-ground`'s legacy-fallback split (Phase 0, the `route:` resolution) decides between the idea route and the interrupted-intake branch on **`prd.md` being present and asserting `kind: prd`**. A genuine legacy idea-route folder — `specifications/<KEY>-<slug>/` written before `1da7480` (2026-08-31) — holds `idea.md` and **`<KEY>_<slug>.md`**, because that commit renamed the artifact at the same time as it introduced `kind:`. So `prd.md` is **absent**, the split takes the interrupted-intake branch, and the run stops with:

@@ -4,6 +4,18 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.3.4] — 2026-09-08
+
+### Changed
+
+- **`addressing` §5's legacy fallback is stated as covering the folder name and nothing inside it.** The
+  paragraph previously said the fallback meant a user "need never" rename, unqualified, and that claim
+  covered artifact filenames it never reached. A tree written before the artifact filenames lost their
+  keys still renames its own `<KEY>_<slug>.md` to `prd.md` and `<KEY>_ARD.md` to `ard.md`; no command
+  resolves those for it. Recorded as a narrowing rather than a clarification: a resolver for the legacy
+  artifact names is derivable from the unqualified claim, and was derived in full before the population
+  it would serve was measured.
+
 ## [1.3.3] — 2026-09-08
 
 ### Added — `phase-handoff.md` §4.0 classifies `code-defect-log.md`

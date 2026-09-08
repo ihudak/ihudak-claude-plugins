@@ -4,6 +4,19 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.3.1] — 2026-09-08
+
+### Fixed
+
+- **`/create-ard` and `/specify` no longer fall back to a key-globbed PRD filename at the `require-on-main`
+  gate.** The fallback matched nothing on a current tree, and on the pre-rename tree it was written for it
+  also matched that tree's ARD (`<KEY>_ARD.md`), so the PRD gate could gate the wrong artifact. Both now
+  gate `prd.md`, the only name the plugin writes — correct on a current tree, and `absent` on a pre-rename
+  one, which is what `workflows-core:addressing` §5 now tells that operator to fix.
+- **`/create-prd` step 6 no longer claims a pre-rename `<KEY>_<slug>.md` is identified by `kind: prd`.**
+  That field arrived in the same change as the rename, so no pre-rename file can carry it and the branch
+  could never recognise the file it had found.
+
 ## [3.3.0] — 2026-09-08
 
 ### Added — `code-defect-log.md`, a route-local register for what `/prd-ground` finds broken in the code

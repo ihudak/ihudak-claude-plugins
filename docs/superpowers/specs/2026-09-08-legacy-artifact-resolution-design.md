@@ -2,7 +2,7 @@
 
 **Ledger item:** E-6, widened. Filed as a `/prd-ground` defect; the measurement found the class covers ten commands, three disagreeing implementations and five absences.
 
-**Status:** design approved 2026-09-08. Blocks release under S18.
+**Status: NOT IMPLEMENTED — retired 2026-09-08, deliberately.** The design was approved, then the operator asked the question nobody had asked: how many trees does it serve? Every defect below is reachable only on a pre-rename specs repo that was never renamed, and that population is empty. What shipped instead was the narrowing this spec is derivable from — `workflows-core:addressing` §5 now states that its legacy fallback covers the folder name and nothing inside it — plus the three command edits that narrowing required (`workflows-core` 1.3.4, `product-workflows` 3.3.1). **This file is kept for §1**, which records how the rule existed, was deliberately kept, and was then deleted; §2 onward describes a resolver that was not built and should not be built without new evidence about the trees it would serve. See `docs/superpowers/brd-route-follow-ups.md` § E-6.
 
 ---
 

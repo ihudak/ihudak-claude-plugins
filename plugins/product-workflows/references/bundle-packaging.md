@@ -12,19 +12,21 @@ Neighbouring rules are owned elsewhere and cited, not restated: the twelve secti
 review carries, and the constraint that governs the one file rendered verbatim into the customer's
 prompt, belong to `references/customer-review-schema.md`; the finding record and the
 `baseline-integrity` procedure whose three commands the prompt hands the reviewer to re-run belong
-to `workflows-core:grounding-format` §2 and §4; the `[CD#n]`/`[AS#n]` record shape, `conditional_on`,
-and the rule that every open `[AS#n]` reaches the customer belong to
-`references/decision-register-format.md` §1, §5 and §7; the coverage ledger's dispositions belong to
-`references/coverage-ledger-format.md` §3; the `<BRD-KEY>` grammar and BRD-folder resolution belong
-to `workflows-core:addressing` §1 and §3; the commit entry point every bookkeeping write into the
-specs repo runs through belongs to `workflows-core:specs-repo-git`.
+to `workflows-core:grounding-format` §2 and §4, and its reading rule and its class-4
+citation-correctness rule, both of which §6 cites rather than restates, belong to §2.1 and §6.3 of
+the same file; the `[CD#n]`/`[AS#n]` record shape, `conditional_on`, and the rule that every open
+`[AS#n]` reaches the customer belong to `references/decision-register-format.md` §1, §5 and §7; the
+coverage ledger's dispositions belong to `references/coverage-ledger-format.md` §3; the `<BRD-KEY>`
+grammar and BRD-folder resolution belong to `workflows-core:addressing` §1 and §3; the commit entry
+point every bookkeeping write into the specs repo runs through belongs to
+`workflows-core:specs-repo-git`.
 
 **Consumed by `commands/brd-package.md`**, which builds a bundle against this contract — its
-plugin-free rules, its §1.1 content allow-list, its de-Obsidianising pass, its degradation tiers, its
-delivery-note ceiling and its committed dated directory — and cited by `agents/brd-package-reviewer.md` for what the customer
-will actually be able to open. `commands/brd-reconcile.md` reads a review returned against a bundle
-built this way, and cites §5 for why nothing inside that committed directory is ever bannered or
-rewritten afterwards.
+plugin-free rules, its §1.1 content allow-list, its de-Obsidianising pass, its degradation tiers,
+its delivery-note ceiling, its committed dated directory and its §6 citation-resolution check — and
+cited by `agents/brd-package-reviewer.md` for what the customer will actually be able to open.
+`commands/brd-reconcile.md` reads a review returned against a bundle built this way, and cites §5
+for why nothing inside that committed directory is ever bannered or rewritten afterwards.
 
 ## 1. Plugin-free by construction (D12)
 
@@ -135,6 +137,13 @@ Three cases the rewrite has to get right:
   looks resolvable, the reviewer searches for it, finds nothing, and cannot tell whether the file
   was forgotten, withheld, or renamed. Such a link becomes a plain description of the target and an
   explicit statement that it is not included.
+
+**The three cases above are about rewritten links, and the rule does not stop there.** A bundle
+document that names a file **in prose** — not as a link — makes the identical promise to the
+reviewer and breaks it the same way. That is not hypothetical: a shipped bundle named
+`self-review-<YYYYMMDD>.md`, which §1.1 excludes by rule, in ordinary prose, and named three
+grounding files by their working filenames after this pass had renamed them. Both survived
+everything, because a rewrite rule inspects links. §6's relation 3 covers prose and links alike.
 
 ### 2.1 The customer's own source document is copied byte for byte, never rendered
 
@@ -275,3 +284,111 @@ re-points at a document they never saw.
 rendered copies of documents the repository already holds, and each package adds another dated
 directory. That is deliberate. A derived duplicate that is never rewritten is a cheap price for a
 record that is still true when somebody re-opens the argument a year later.
+
+## 6. Citation resolution
+
+**`citation-resolution`** is a check over the assembled bundle that the plugin-free scan (§1) does
+not perform. That scan deliberately exempts identifiers — `[BR#n]`, `[CG#n]`, `[DG#n]`, `[VD#n]`,
+`[AS#n]` and `[SR#n]` are how a returned review cites the package's own claims without minting
+identifiers of its own, and a prompt that hid them would get back a review nothing could be matched
+to. **Nothing then checks that they land.** Three failures were observed in shipped bundles: a
+class-4 design finding whose `[CG#n]` citation resolved, inside the customer's own bundle, to a
+real finding about a different requirement; a reference naming an id above the highest its own
+corpus contains — one of them the sole `evidence` on a decision record; and a reference, in prose
+rather than a link, to a document §1.1 excludes by rule or has already renamed on the way in. Design
+authority: `docs/superpowers/specs/2026-09-08-bundle-citation-resolution-design.md` §3–§7.
+
+### 6.1 The corpus is built per source package, and never crossed
+
+A prerequisite package is copied into the bundle wholesale (§1.1), carrying its own grounding
+files, its own inventory and its own register — each numbered from 1 in its own corpus. So one
+bundle can hold two different `[CG#7]`s. Bundle documents therefore **partition by provenance**:
+this package's own documents, and each copied prerequisite package's subtree. Each partition parses
+its own corpus from its own files:
+
+| Class | Corpus file, within the partition |
+|---|---|
+| `[BR#n]` | `brd/brd-inventory.md` |
+| `[DEF#n]` | `brd/brd-defect-log.md` (the parent's on a slice, one hop — `references/brd-format.md` §4) |
+| `[CG#n]`, `[DG#n]` | `grounding/code-grounding.md`, `grounding/design-grounding.md` |
+| `[VD#n]`, `[CD#n]`, `[AS#n]` | `decisions.md` (`references/decision-register-format.md` §1 and §7) |
+| `[SR#n]` | **none — exempt entirely, §6.3** |
+
+**Every corpus is parsed, never assumed.** An identifier reference is resolved against the set of
+ids actually parsed out of its corpus file, never by matching a fixed column or a fixed run of
+leading spaces (`workflows-core:grounding-format` §2.1). That section's own precedent is why: a
+column-anchored scan once reported 140 findings as missing that were on the page, because one block
+in a `code-grounding.md` padded its `id:` colon for alignment and the next did not. The identical
+scan run here, over a bundle's copied corpus files, would report every reference in the bundle as
+dead. A corpus file that is present and non-empty but parses to zero ids is not read as an absence
+either — it stops the run with `BRD_PACKAGE_CORPUS_UNREADABLE`, naming the file and the partition,
+because a scan that cannot read a block has learned nothing about whether the ids it names exist.
+
+### 6.2 The three relations
+
+**Relation 1 — every identifier reference resolves inside its own partition's corpus for that
+class, unless it carries the owning BRD key at the point of use.** The qualified form is
+`<BRD-KEY> [CG#7]` — the key immediately before the bracketed id — and it is **one spelling only**:
+`workflows-core:grounding-format` §2.1's whole argument is that a writer free to choose between two
+renderings produces an artifact whose readers are wrong in a way that looks like data, and a
+qualified citation is exactly such a rendering choice. This also repairs a live ambiguity the check
+merely surfaces: today a reviewer reading a copied prerequisite's grounding file meets `[CG#7]` with
+nothing telling them whose numbering it is.
+
+**Relation 2 — for every `[DG#n]` whose `class` is 4, its `cites` resolves within the same
+partition, and the cited `[CG#n]`'s `claim` names the same requirement id as the citing finding's
+`claim`.** The rule itself belongs to `workflows-core:grounding-format` §6.3, which requires the
+citation and requires it correct; §6 is its first enforcer. **The test is that the claim names the
+id, not that it opens with it:** §2.1's own canonical example does open with the id —
+`claim: [BR#7] — the nightly export runs at 02:00 UTC` — but that same section sanctions a
+hand-edited artifact everywhere else on this route, so a claim reading "the nightly export, per
+`[BR#7]`, runs at 02:00" is correct content that a position test would refuse. **Where a claim names
+more than one requirement id, §6 reports the ambiguity rather than picking one** — a silent pick is
+a guess.
+
+**Relation 3 — a bare `<name>.md` token, carrying no path separator, must name a document that is
+in the bundle, and only when it is one of two shapes.** Either it carries the `<BRD-KEY>-` prefix
+that `commands/brd-package.md`'s *Assemble the bundle* rule 1 gives every bundle document, or it
+exactly matches the **working** filename of a document §1.1 admits or excludes by name — **derived
+from §1.1's own table each time this relation runs, never copied into a second list here**, because
+a document added to §1.1 without a matching entry here would be invisible to exactly the check that
+exists to catch it. The scoping is what keeps the relation off correct content: a grounding
+finding's `evidence` field is a repository `file:line` list, and a repository that documents itself
+in markdown puts a bare `docs/api.md:12` into a finding that is entirely correct — an unscoped rule
+would refuse the whole bundle over it.
+
+Relations 1 and 3 fail the same way — a reference that resolves to nothing — and stop the run with
+`BRD_PACKAGE_DEAD_CITATION`, naming the id or filename, the document it sits in, and the corpus or
+bundle it failed to resolve against; the remedy is to fix or qualify the reference. Relation 2 fails
+differently — the reference resolves, to a finding about a different requirement — and stops with
+`BRD_PACKAGE_CITATION_MISMATCH`, naming both `claim`s; the remedy is to re-derive the finding, and
+the reference itself may be untouched. The two stay separate codes because the two remedies repair
+different things.
+
+### 6.3 Two exemptions
+
+**`[SR#n]` is exempt entirely.** `self-review-<YYYYMMDD>.md` is excluded from the bundle by §1.1's
+one exclusion that is a *rule* rather than a consequence of the allow-list, while the `[SR#n]`
+content the customer may see reaches them **filtered** — through the prompt's parts 7 and 9, cited
+by id, never the file itself. So an `[SR#n]` reference is correct content that resolves to nothing
+in the bundle, **by design**, and a check without this exemption fires on every package. The
+distinction a reader needs: naming the self-review *file* is dead — relation 3 catches it — while
+naming an `[SR#n]` id is the filter working as intended, and relation 1 must not catch it.
+
+**`brd/source/<basename>` reports rather than stops.** The customer's own document is copied byte
+for byte and is immutable by rule (§2.1, `references/brd-format.md` §1). It inherits the
+plugin-free scan's existing treatment verbatim, and for the identical reason: stopping outright
+would make that BRD permanently unpackageable, since the one repair the rule allows is not editing
+the file. Every other document's hit stays a hard stop.
+
+### 6.4 What §6 cannot see
+
+Stated because a green check here is otherwise read as a clean bundle:
+
+- **A reference that *describes* a bundle document where rule 1 requires it to *name* one.** No
+  pattern separates a deliberate description from a missing filename.
+- **A citation that resolves to the right id and is wrong in a way relation 2 does not test** — a
+  `[CG#n]` about the right requirement but the wrong claim within it.
+- **An identifier class shipping without a row in §6.1's table.** The table is a closed list; the
+  reverse case — a row whose file is not in the bundle — is `BRD_PACKAGE_CORPUS_UNREADABLE`, never
+  a silent skip.

@@ -4,6 +4,48 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.1.0] — 2026-09-08
+
+### Added — `bundle-packaging.md` §6, a citation-resolution check over the assembled bundle
+
+The plugin-free scan (§1) deliberately exempts identifiers — `[BR#n]`, `[CG#n]`, `[DG#n]`,
+`[VD#n]`, `[AS#n]` and `[SR#n]` are how a returned review cites the package's own claims without
+minting identifiers of its own — but nothing then checked that they land. `/brd-package` Phase 8
+now runs a second pass over every document in the finished bundle, testing three relations: every
+identifier reference resolves inside its own source package's corpus for its class, unless it
+carries the owning BRD key at the point of use; a class-4 `[DG#n]`'s `cites` resolves within the
+same partition and names the same requirement as the citing finding's own `claim` (the correctness
+half of `workflows-core:grounding-format` §6.3's rule, added there in 1.3.2); and a bare
+`<name>.md` token names a document actually present in the bundle.
+
+Two exemptions, both principled rather than convenient. `[SR#n]` is exempt entirely — the
+self-review file it would resolve against is excluded from the bundle by rule, and the `[SR#n]`
+content a customer may see reaches them filtered through the prompt, never through the file
+itself, so without this exemption the check would fire on every package the command ever builds.
+And a hit inside the customer's own source document reports rather than stops, for the identical
+reason the plugin-free scan already treats that file that way: it is copied byte for byte and
+immutable by rule, so a hard stop would make that BRD permanently unpackageable.
+
+Three stops: `BRD_PACKAGE_DEAD_CITATION` for a reference that resolves to nothing;
+`BRD_PACKAGE_CITATION_MISMATCH` for one that resolves, but to a finding about the wrong
+requirement; and `BRD_PACKAGE_CORPUS_UNREADABLE` for a corpus file present and non-empty but
+parsed to zero ids, so a parse failure is never reported as an absence.
+
+**The honest consequence: relation 2 will refuse bundles that ship today.** A parent BRD's
+verified findings, hand-narrowed onto a slice, is common enough that the first run against an
+existing slice may stop on a mismatched `[CG#n]` citation. The repair is by hand, because the
+plugin has no supported mechanism for narrowing a parent's findings to a slice's claimed subset —
+that gap is a separate, already-tracked item, and this check catches a broken citation regardless
+of how it got there, which is the point of checking at delivery rather than at authoring.
+
+**One limit the design accepted.** An unkeyed bundle document — one that reached the bundle
+without the `<BRD-KEY>`-carrying filename `commands/brd-package.md` rule 1 requires — is reported
+rather than guessed at: §6 has no partition to place it in, so it names the document and stops
+with `BRD_PACKAGE_DEAD_CITATION` rather than assigning it to a corpus by inference.
+
+This is a minor bump, not a patch: the check can refuse a bundle a 3.0.0 run would have shipped,
+which is a behaviour change a user will meet.
+
 ## [3.0.0] — 2026-09-08
 
 ### Changed (breaking) — `/brd-ground` renamed to `/prd-ground`

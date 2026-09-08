@@ -4,6 +4,29 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.3.2] — 2026-09-08
+
+### Changed — `grounding-format.md` §6.3's class-4 reconciliation rule gained a correctness half
+
+A class-4 `[DG#n]` already had to carry a `[CG#n]` citation — completeness was checked, correctness
+was not. §6.3 now also requires that the cited finding's `claim` name the same requirement id as
+the citing `[DG#n]`'s own `claim`: an absent citation is visibly incomplete and a reader stops, but
+a citation that resolves sends the reader to a real finding about a different requirement, which
+they have no way to detect by reading — the worse of the two failures. The rule is route-neutral,
+like the rest of §6: it reads `claim` off both records the same way whether the requirement id in
+front of it is a BRD's `[BR#n]` or a PRD's `[AC#n]`/`[FR#n]`/`[US#n]`, so it needs no route-specific
+branch.
+
+`product-workflows:bundle-packaging` §6 is the first enforcer, added in the same release
+(`product-workflows` 3.1.0): its citation-resolution check's relation 2 traces this rule over an
+assembled bundle's copied corpus files. This release adds the rule and its record shape only —
+`grounding-format.md` states no way to run the check itself, since it has no bundle of its own to
+check.
+
+This is a patch, not a change of behaviour on its own: §6.3 already required a class-4 finding to
+carry a `[CG#n]`; this widens what "carry" requires without altering `design-grounder`'s output
+template or any field the format did not already mandate be present.
+
 ## [1.3.1] — 2026-09-08
 
 ### Fixed — `phase-handoff.md` §3.4's PRD rows named their gate target in prose, so `check-docs.sh` check 11 could not see it

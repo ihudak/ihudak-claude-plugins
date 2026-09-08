@@ -30,6 +30,7 @@ flowchart TD
     end
     subgraph EST["PM — effort proposals (optional, gates nothing)"]
         prdproposal["/prd-proposal"]
+        brdproposal["/brd-proposal"]
     end
     subgraph DEV["Dev — build, verify & deliver (dev-workflows)"]
         design["/dev-workflows:design"] --> implement["/dev-workflows:implement"]
@@ -47,6 +48,7 @@ flowchart TD
     prdground -->|verified [CG#n]/[DG#n] — required before the walk| brdsplitslice
     createvi -.->|optional — claims are the PRD's own [AC#n]/[FR#n]| prdground
     createvi -.->|optional — priced from whatever readiness the folder has reached| prdproposal
+    prdproposal -->|each included slice's proposal.md| brdproposal
     prdground -.->|verified [CG#n]/[DG#n]| createard
     prdground -.->|verified [CG#n]/[DG#n]| specify
     brdpackage -->|bundle sent| brdreview
@@ -71,7 +73,7 @@ Five nodes in the diagram are not this plugin's commands and are drawn for conti
 
 The diagram above shows where each command sits in the pipeline; [Roles and phases](roles-and-phases.md) says what each role is accountable for and what it hands over at each seam.
 
-**None of this plugin's own thirteen commands is known to collide with a Claude Code built-in today**, so every one of them works either way, bare or `product-workflows:`-qualified. The one cross-plugin command this diagram draws for continuity that does collide, `/docs-workflows:release-notes`, is qualified for that reason; it ships in the companion `docs-workflows` plugin.
+**None of this plugin's own fourteen commands is known to collide with a Claude Code built-in today**, so every one of them works either way, bare or `product-workflows:`-qualified. The one cross-plugin command this diagram draws for continuity that does collide, `/docs-workflows:release-notes`, is qualified for that reason; it ships in the companion `docs-workflows` plugin.
 
 ## Parameters at the BRD-to-PRD handoff
 
@@ -91,7 +93,8 @@ The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command'
 
 | Role | Runs | Produces → lands at |
 |---|---|---|
-| **PM** | `/idea`, `/create-prd`, `/update-prd`, `/prd-proposal` (and an early `/docs-workflows:release-notes`); also `/brd-intake`, `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile` | `idea.md`, then the PRD, in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/`; on the BRD route, the inventory, ledger, decision register, customer package and reconciliation record |
+| **PM** | `/idea`, `/create-prd`, `/update-prd` (and an early `/docs-workflows:release-notes`); also `/brd-intake`, `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile` | `idea.md`, then the PRD, in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/`; on the BRD route, the inventory, ledger, decision register, customer package and reconciliation record |
+| **PM** *(effort proposals — optional, gates nothing)* | `/prd-proposal`, `/brd-proposal` | `proposal.md` and its rationale brief: in the `PRD-` slice folder for one slice, and in the `BRD-` container above a set of priced slices for the programme umbrella |
 | **PA** | `/create-ard` (optional); also `/prd-ground` (PM-initiated, PA/Dev-executed, either route) | the ARD, in the same specs feature folder as the PRD; `[CG#n]`/`[DG#n]` grounding findings in the resolved folder — a BRD slice's on the BRD route, a PRD's on the idea route |
 | **PE** | `/epics`, `/specify` | `epic.md` per `EPIC-` folder under the PRD folder; `specification.md` on the specs repo's default branch |
 

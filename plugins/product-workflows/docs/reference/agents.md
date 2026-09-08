@@ -13,7 +13,7 @@ Opus-gated quality gates, plus the one Sonnet-tier verifier that re-derives evid
 | `epic-reviewer` | opus | Read, Glob, Grep | Reviews Epic drafts for goal clarity, testable acceptance criteria, scope boundaries, and non-duplication with existing Epics under the parent PRD. | `/epics` |
 | `grounding-verifier` | opus | Read, Glob, Grep, Bash, Skill | Re-derives a `[CG#n]`/`[DG#n]` from its source — the pinned repo, or the frame set for a design-only one — without first reading `evidence`; returns agree / extend / contradict / unprovable. | `/prd-ground` |
 | `prd-reviewer` | opus | Read, Glob, Grep, Skill | Reviews a Product Requirements Document for goal crispness, testable stories/criteria, internal consistency, measurable metrics, and product-level purity (no implementation detail). | `/create-prd`, `/update-prd` |
-| `proposal-reviewer` | opus | Read, Glob, Grep, Skill | Attacks an effort proposal before a customer sees it — re-adds the hours, resolves driver citations, checks the tier and brief against the evidence; returns PASS / PASS WITH RECOMMENDATIONS / BLOCK. | `/prd-proposal` |
+| `proposal-reviewer` | opus | Read, Glob, Grep, Skill | Attacks an effort proposal before a customer sees it — re-adds the hours, resolves driver citations, checks the tier and brief against the evidence; returns PASS / PASS WITH RECOMMENDATIONS / BLOCK. | `/prd-proposal`, `/brd-proposal` |
 | `spec-reviewer` | opus | Read, Glob, Grep | Reviews a specification for per-stage quality, cross-stage consistency, coverage, and identifier integrity. | `/specify` |
 
 ## Readers and scanners
@@ -36,4 +36,4 @@ Produce artifact content from a structured handoff. Does not run git.
 |---|---|---|---|---|
 | `epic-writer` | per routing | Read, Glob, Grep, Write, Edit, Skill | Writes one file per child Epic from a structured handoff, traceable to the PRD it partitions and `code-scanner` evidence; write-only, never commits. | `/epics` |
 
-Every one of the 13 agents above is dispatched by at least one command. There is no maintenance section here: `workflows-core:impl-maintenance`, dispatched by all 13 commands, ships in `workflows-core`. `workflows-core:docs-grounder` is the one agent no command here dispatches by writing a `subagent_type:` inline — its callers invoke a named procedure defined in its own governing reference file instead.
+Every one of the 13 agents above is dispatched by at least one command. There is no maintenance section here: `workflows-core:impl-maintenance`, dispatched by all 14 commands, ships in `workflows-core`. `workflows-core:docs-grounder` is the one agent no command here dispatches by writing a `subagent_type:` inline — its callers invoke a named procedure defined in its own governing reference file instead.

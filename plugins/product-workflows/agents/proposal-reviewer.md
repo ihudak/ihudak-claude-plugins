@@ -54,8 +54,9 @@ Anchor revision: <absolute path to the archived prior revision, or 'none — fir
 separately, because none is handed. From there, `Glob` for what the checks below need:
 `grounding/code-grounding.md`, `grounding/design-grounding.md`, `decisions.md`, `code-defect-log.md`
 (optional — a package whose decisions turn on no code defect legitimately has none), `prd.md`, and
-`coverage-ledger.md` at the folder's own root — present only in a `BRD-` umbrella folder, and its
-presence is what tells check 9 it applies.
+`coverage-ledger.md` at the folder's own root, which check 9 reads. **The ledger's presence is not
+what tells check 9 it applies** — a `PRD-` slice carries one of its own, written by `/brd-split` — so
+check 9's own applicability test is the folder's name, stated there.
 
 **Refuse to run without a readable `proposal.md` at the given path.** Return `status: INPUT_MISSING`
 naming exactly what is absent — a review of a proposal you cannot open is a review of nothing. The
@@ -106,8 +107,8 @@ Re-derive, against §4 section 6's `[WP#n]` × role grid:
   weeks against an FTE figure — is exactly where an unchecked figure hides; multiply it out rather
   than reading it as consistent because it sits nearby.
 - *(Umbrella runs only — the same folder-kind test as check 9.)* **The umbrella's own totals
-  reconcile to its included slice rows plus its own named adjustments** — never a bare sum of the
-  slice rows. The umbrella carries one row per included slice (hours, range, tier, confidence) plus
+  reconcile to its included slice rows plus its own named adjustments** (§14) — never a bare sum of
+  the slice rows. The umbrella carries one row per included slice (hours, range, tier, confidence) plus
   whatever it names as an adjustment on top of them; a total that merely sums the slice rows has
   silently dropped an adjustment.
 
@@ -168,12 +169,18 @@ open may be missing from it. An open item on record but absent from section 13 i
 
 ## 9. Coverage
 
-*(Umbrella runs only.)* Applies where the reviewed folder is a `BRD-` container — the folder
-`coverage-ledger.md` at its root identifies — never on a `PRD-` slice's own proposal; where that file
-is absent this check is `N/A`. Read the root ledger and independently classify every row exactly as
-the umbrella's own readiness walk does: `covered-by` an included slice, `covered-by` an excluded
-slice, still `unallocated`, or terminal
-(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). Reconcile the umbrella's own
+*(Umbrella runs only.)* Applies where the reviewed folder is a `BRD-` container, and the test is
+the **directory prefix** of the folder resolved in Inputs — `BRD-` is a container, `PRD-` is a slice.
+**Never the presence of `coverage-ledger.md`, and never the folder's asserted `kind:`**: a slice
+carries a ledger of its own and a slice's `brd-link.md` asserts `kind: brd`, so either test would run
+this check on every BRD-route slice proposal and file BLOCKERs against a coverage statement a slice
+proposal never carries. Where the folder resolved without a prefix, answer it by the positive-evidence
+test in `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1. On a `PRD-` slice this check
+is `N/A`, and so it is where a container holds no ledger at all. Read the root ledger and
+independently classify every row into the four classes
+`${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §14 fixes, over the six dispositions
+`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3 defines: `covered-by` an included
+slice, `covered-by` an excluded slice, still `unallocated`, or terminal. Reconcile the umbrella's own
 coverage statement against that independent classification, and confirm every excluded slice's
 requirements are enumerated by identifier rather than by slice name alone. A coverage statement the
 ledger does not support, or an excluded slice's requirements left unenumerated, is a **BLOCKER**.

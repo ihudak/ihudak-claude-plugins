@@ -33,6 +33,7 @@
     "brd-intake",
     "brd-interview",
     "brd-package",
+    "brd-proposal",
     "brd-reconcile",
     "brd-split",
     "create-ard",

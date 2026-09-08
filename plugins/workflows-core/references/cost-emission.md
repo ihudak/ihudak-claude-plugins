@@ -324,6 +324,7 @@ Fixed per-command labels, with six inferred exceptions:
 | `/brd-package` | brd-to-prd | pm |
 | `/brd-reconcile` | brd-to-prd | pm |
 | `/prd-proposal` | proposal | pm |
+| `/brd-proposal` | proposal | pm |
 | `/prompt` | **inferred** | **inferred** |
 | `/feedback` | **inferred** | **inferred** |
 | `/prompt-brainstorm` | **inferred** | **inferred** |

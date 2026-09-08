@@ -1,6 +1,6 @@
 # product-workflows
 
-A role-based pipeline of 13 slash commands for the product-definition side of the workflow plugin family. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification, with an Opus-backed review gate behind every artifact from the PRD onward — `/idea` is gated by its own bounded grill instead; alongside it sits a six-command BRD-to-PRD route that grounds a customer's requirements document, settles it with them, and seeds the PRD, ARD and specification the ladder above hands off to — its grounding step, `/prd-ground`, also runs optionally on the idea route's own PRD, after `/create-prd`. The table below is the complete list. The shared foundation every command here draws on — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, and the emitters — ships in the companion `workflows-core` plugin; the engineering half of the pipeline this hands off to — `/design`, `/implement`, `/ready` — ships in the companion `dev-workflows` plugin.
+A role-based pipeline of 14 slash commands for the product-definition side of the workflow plugin family. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification, with an Opus-backed review gate behind every artifact from the PRD onward — `/idea` is gated by its own bounded grill instead; alongside it sits a six-command BRD-to-PRD route that grounds a customer's requirements document, settles it with them, and seeds the PRD, ARD and specification the ladder above hands off to — its grounding step, `/prd-ground`, also runs optionally on the idea route's own PRD, after `/create-prd`. The table below is the complete list. The shared foundation every command here draws on — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, and the emitters — ships in the companion `workflows-core` plugin; the engineering half of the pipeline this hands off to — `/design`, `/implement`, `/ready` — ships in the companion `dev-workflows` plugin.
 
 > Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites.
 
@@ -15,6 +15,7 @@ A role-based pipeline of 13 slash commands for the product-definition side of th
 | PA *(optional)* | [`/create-ard`](docs/commands/create-ard.md) | Author an Architecture Requirements/Decision Document, grounded in the mounted implementation code. Optional: a PRD can hand straight to `/specify`. |
 | PE | [`/epics`](docs/commands/epics.md), [`/specify`](docs/commands/specify.md) | Break a PRD into Epics, then author an org-standard specification through a grill. |
 | PM *(effort proposal — optional, gates nothing)* | [`/prd-proposal`](docs/commands/prd-proposal.md) | Price one PRD folder: work packages, hours by role, a range from per-package confidence, every driver evidenced. Graded by readiness rather than gated on an ARD or a specification. |
+| PM *(effort proposal — optional, gates nothing)* | [`/brd-proposal`](docs/commands/brd-proposal.md) | Roll a BRD container's priced slices into one programme umbrella: one row per included slice, the cross-slice effort no slice holds, and coverage from the root ledger. Not a sum. |
 
 Thirteen agents (see [Agents](docs/reference/agents.md)) carry the BRD grounding and reconciliation, PRD/ARD/spec/proposal review, and Epic writing and review these commands share. Eleven reference pages (see [References](docs/reference/references.md)) define the BRD, code-defect-log, decision-register, coverage-ledger, customer-review, idea, ARD, specification and effort-proposal artifact formats.
 
@@ -24,7 +25,7 @@ Thirteen agents (see [Agents](docs/reference/agents.md)) carry the BRD grounding
 |------|--------------|
 | [Documentation index](docs/README.md) | The full "I want to…" lookup table, plus the command, agent, and reference inventories. |
 | [Getting started](docs/getting-started.md) | Install, environment variables, and your first `/idea` run. |
-| [Workflow overview](docs/workflow.md) | The thirteen commands as one diagram. |
+| [Workflow overview](docs/workflow.md) | The fourteen commands as one diagram. |
 | [Roles and phases](docs/roles-and-phases.md) | What PM, PA, and PE each own and hand off. |
 | [BRD workflow](docs/brd-workflow.md) | The six-command BRD-to-PRD route as its own diagram, with its parameter table. |
 | [Agents](docs/reference/agents.md) | The subagent inventory the commands dispatch internally. |

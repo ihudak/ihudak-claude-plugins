@@ -4,8 +4,8 @@
 
 The canonical shape of the two artifacts `/prd-proposal` and `/brd-proposal` write: the section set
 each carries, the two identifier namespaces they mint, the readiness tiers that cap confidence, the
-confidence grades that fix the range, the closed set of evidence classes a cost driver may cite, and
-the rules a reviewer checks. Design authority:
+confidence grades that fix the range, the closed set of evidence classes a cost driver may cite, the
+rules a reviewer checks, and — in §14 — what an umbrella run adds over a slice's own proposal. Design authority:
 `docs/superpowers/specs/2026-09-08-proposal-commands-design.md`.
 
 **Written by `commands/prd-proposal.md` and `commands/brd-proposal.md`; reviewed against by
@@ -100,8 +100,10 @@ tier, and a section with nothing to say says so rather than being omitted.
 
 ## 5. Readiness tiers, and the ceiling each puts on confidence
 
-The tier is **graded, never gated**. The only hard refusal on readiness is the absence of `prd.md`,
-which the caller's `require-on-main` already performs.
+The tier is **graded, never gated**, and this section adds no refusal of its own. The only hard
+refusal on readiness is the absence of the caller's own gated input, which that caller's
+`require-on-main` already performs — `prd.md` for `/prd-proposal`, each included slice's
+`proposal.md` for `/brd-proposal`.
 
 | Tier | Reached when the resolved folder holds | What the tier changes |
 |---|---|---|
@@ -117,6 +119,11 @@ outcome is not evidence. *A settled register* means every interview round is set
 
 **The tier caps confidence; it never sets it.** Range width is computed bottom-up from per-package
 confidence (§6). The tier is a ceiling: evidence can only push a package lower.
+
+**Both tables above are read over a `PRD-` folder.** A `BRD-` container holds no `prd.md`, `ard.md`
+or `specification.md` of its own — those are authored in the slices under it — so an umbrella's tier
+is not graded off this ladder at all: it is the minimum of its included slices' tiers (§14), and the
+ceiling that minimum sets is then the ceiling in the second table.
 
 | Tier | Highest grade any package may carry |
 |---|---|
@@ -333,3 +340,71 @@ umbrella run detects shared work only where two slices cite the **same** finding
 shared work described from two different findings is not detected and the umbrella overstates. And a
 productivity basis captured once and never revisited silently mis-scales every later proposal, which is
 why the profile is shown back for confirmation on every run rather than read silently.
+
+## 14. The umbrella — what `/brd-proposal` adds over a slice's own proposal
+
+Everything above governs both artifacts at both altitudes. This section states the additions, and it
+adds only: `commands/brd-proposal.md` renders §4's same twenty-three-row section set and mints from
+§3's same two namespaces, at programme altitude.
+
+**The umbrella carries one row per included slice — hours, range, tier and confidence — read out of
+that slice's own `proposal.md` and never re-derived.** Detail stays in the slice proposals: the
+umbrella does not restate a slice's `[ED#n]` driver table, does not re-cluster its `[WP#n]`s, and does
+not recompute its hours from the requirement set. A figure an umbrella run cannot read out of a slice
+proposal is a defect in that proposal, to be reported and re-run there. What the umbrella adds around
+the rows is its own — aggregated roles, one team, one schedule, the cross-slice dependency graph, and
+the coverage statement below — plus the three adjustments.
+
+**The roll-up is not a sum, and each adjustment is named in the document rather than absorbed into a
+total.** A programme total a reader cannot decompose into the slice rows plus a named adjustment is a
+total nobody can check, and an unnamed adjustment is indistinguishable from an arithmetic error.
+
+1. **Umbrella effort that exists in no slice** — programme management across slices, cross-slice
+   integration, one release and one acceptance campaign rather than one per slice. It takes its own
+   `[WP#n]`s in the umbrella's own contiguous series and its own `[ED#n]`s under §8's closed evidence
+   set, and it is an addition to the row-set total, stated as one.
+2. **De-duplication, which is mechanically detectable.** Two slices that priced the same discovery
+   activity or the same shared component **cite the same verified finding identifier** in their driver
+   tables. Every finding identifier claimed by more than one included slice is flagged, and the
+   operator rules on whether it is genuinely two pieces of work; where it is not, the deduction is a
+   named adjustment and never an edit to a slice's own figures. **The limit of the check is disclosed
+   in the document itself**, not merely known to the operator: shared work described from two
+   different findings is not detected, and the umbrella then overstates (§13).
+3. **Sequencing.** Slices sharing a team do not add their FTE figures; peak concurrency is computed
+   from the programme schedule, which is §4 section 11's rule applied across slices rather than within
+   one. Slice order comes from `depends_on` in each slice's PRD frontmatter; a slice whose PRD records
+   none contributes no edge, and the document says so rather than inferring one from folder order.
+
+**§7's two fixed packages are read at programme altitude, and its defect sweep is not repeated.** The
+discovery-and-design package is the cross-slice one, and the test/UAT/release package is the single
+campaign the first adjustment above names — both are the umbrella's own, not a sum of the slices'.
+The defect sweep, though, has already run in every slice that was priced, and each confirmed defect
+is inside that slice's row: an umbrella that swept a slice's sources again would price the same
+repair twice, so it sweeps only what the container itself holds and reports what it found there.
+
+**The umbrella's tier is the minimum of its included slices' tiers, and it prints the mix.** A
+programme cannot claim to be specified because three of its five slices are. §5's ceiling for that
+minimum tier then caps every package the umbrella mints of its own, and §5's brief floor is read
+against that same minimum — so one tier-1 slice withholds `proposal-brief.md` for the whole programme.
+
+**Ranges are summed, and stated as summed**, carrying §6's caveat that low and high are not
+simultaneous outcomes. A statistical roll-up would be narrower and unexplainable in the meeting this
+document exists to survive; that trade is refused here and recorded so it is not proposed later.
+
+**The coverage statement is computed from the resolved container's own `coverage-ledger.md` and never
+asserted.** Every row of that ledger falls into one of four classes, over the six dispositions
+`coverage-ledger-format.md` §3 defines: `covered-by` an **included** slice, and therefore priced;
+`covered-by` an **excluded** slice; still `unallocated`, meaning never sliced and therefore never
+estimated; or terminal (`deferred-to`, `rejected`, `superseded-by`), disclosed with the reason the
+ledger records. The umbrella states what proportion of the container's requirements it covers **and
+enumerates the remainder by identifier** — in the form §11 fixes, which is the customer's own — because
+"two slices were excluded" tells that customer nothing about which of their requirements are unpriced.
+It is recomputed on every run, so it cannot go stale, and where no ledger is on disk the document says
+so and claims no proportion rather than substituting the union of the slices' own ledgers, which would
+measure coverage of what was sliced rather than of what the customer asked for.
+
+**Two sections read differently at this altitude, and neither is optional.** §4 section 15 (what the
+range does not cover) additionally carries the de-duplication limit above and every slice-level
+condition that would move the programme band; §4 section 22 never renders, because `/brd-proposal`
+takes no `--baseline` — a prior estimate reconciles against the slice that was estimated, not against
+the umbrella over it.

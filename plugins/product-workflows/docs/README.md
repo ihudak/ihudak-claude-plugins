@@ -17,6 +17,7 @@
 | break a PRD into Epics | [`/epics`](commands/epics.md) |
 | write a specification | [`/specify`](commands/specify.md) |
 | price a requirement set — work packages, hours by role, a range with its evidence | [`/prd-proposal`](commands/prd-proposal.md) |
+| roll a BRD's priced slices into one programme proposal, with its coverage computed from the ledger | [`/brd-proposal`](commands/brd-proposal.md) |
 | understand what a run cost | [Session cost](reference/session-cost.md) |
 
 Four pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets your environment variables; [Workflow overview](workflow.md) shows the whole pipeline as one diagram; [BRD workflow](brd-workflow.md) shows the second route into a PRD — from a customer-supplied BRD to a grounded, allocated, decided inventory, back out through a customer review the plugin waits on, and on into the PRD pipeline through the BRD route — as its own diagram; [Roles and phases](roles-and-phases.md) says what each role owns and hands off. Every other page below documents one command, one shared subsystem, or — for [Agents](reference/agents.md) and [References](reference/references.md) — one whole inventory.
@@ -27,6 +28,7 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [`/brd-intake`](commands/brd-intake.md) — intake a customer BRD verbatim, extract its requirement inventory, and write a coverage ledger with every row unallocated.
 - [`/brd-interview`](commands/brd-interview.md) — tag every open question `[G]`/`[V]`/`[C]` before it is asked, answer the `[G]`s from the findings, and record the delivery team's decisions.
 - [`/brd-package`](commands/brd-package.md) — attack the decided package, then render a plugin-free customer prompt and a de-Obsidianised bundle for a reviewer with nothing installed.
+- [`/brd-proposal`](commands/brd-proposal.md) — roll a BRD container's slice proposals into one programme umbrella: one row per included slice, the cross-slice effort that exists in no slice, and coverage computed from the root ledger.
 - [`/brd-reconcile`](commands/brd-reconcile.md) — freeze the customer's returned answers as `[CD#n]` once an operator confirms each one, then sweep every dependent BRD and every stale cross-reference.
 - [`/brd-split`](commands/brd-split.md) — on a root, propose and key slices from a mandatory slicing instruction; on a slice, walk every ledger row to a recorded fate.
 - [`/create-ard`](commands/create-ard.md) — author an Architecture Requirements/Decision Document for a PRD, or for one Epic inside it, grounded on the mounted code.

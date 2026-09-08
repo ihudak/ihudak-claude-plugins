@@ -11,7 +11,7 @@ Every command here classifies its own task before doing real work, and that clas
 | `SIGNIFICANT` | Multi-repo, cross-cutting, or an unusually large requirement/slice count. |
 | `HIGH-RISK` | Security-, data-, or contract-sensitive — a mistake here misdirects the product itself. |
 
-All thirteen commands in this plugin load the `model-routing` skill, run this classification as an early step, and state their class plus a one-line reason: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake`, `/prd-ground`, `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile`, and `/prd-proposal`. Each command has a typical class for its own kind of work (a Product Requirements Document authoring run is typically `MODERATE`; an unusually large BRD requirement count or slice fan-out is typically `SIGNIFICANT`) but escalates when the task in front of it warrants it.
+All fourteen commands in this plugin load the `model-routing` skill, run this classification as an early step, and state their class plus a one-line reason: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake`, `/prd-ground`, `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile`, `/prd-proposal`, and `/brd-proposal`. Each command has a typical class for its own kind of work (a Product Requirements Document authoring run is typically `MODERATE`; an unusually large BRD requirement count or slice fan-out is typically `SIGNIFICANT`) but escalates when the task in front of it warrants it.
 
 ## What classification changes
 

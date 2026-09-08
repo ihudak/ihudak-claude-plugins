@@ -289,6 +289,11 @@ nice-to-have.
 **Recorded because it is the strongest argument for the gate:** this defect was found because the
 register created to fix it contained the same unrecorded claim.
 
+**Two constraints to settle early, noted 2026-09-08 before the brainstorm and not obvious from the entry above.**
+
+- **The `product-workflows` blurb is the binding constraint on this increment specifically.** It stands at 988 of 1024 characters and warns on every `validate-catalog.py` run (G3-4). E-2 and E-4 were a gate and a wording change and needed no blurb text; **E-3a is a capability** — a new artifact with its own id namespace — which is exactly the kind of change a `description` is expected to mention. With 36 characters left, that edit must **trim**, not append. Decide what comes out at design time, not at the version bump, or the increment stalls at its last step.
+- **E-3a may want to be designed alongside the narrowing gap, not after it.** E-2 shipped a check that refuses a bundle whose class-4 citations name the wrong requirement, and the repair is by hand because the plugin has no supported way to narrow a parent's verified findings to a slice's claimed subset — its own open entry. If E-3a gives the route a place to record code-level findings with a resolution vocabulary, the two problems touch the same records. Worth one question at the start of the brainstorm rather than a discovery in the middle of it.
+
 
 ---
 

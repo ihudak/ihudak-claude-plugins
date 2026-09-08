@@ -69,7 +69,7 @@
     },
     {
       "name": "workflows-core",
-      "version": "1.3.1",
+      "version": "1.3.2",
       "description": "Shared foundation for the dev-workflows plugin family: the addressing grammar and specs-repo git entry points, phase handoff, model routing, escalation and finding-triage rules, cost/feedback/follow-up emission, and the reference loader skill that lets a dependent plugin read them. Also carries the family-meta utility commands — /feedback, /prompt, /prompt-brainstorm, /prompt-grill-me, /statusline — and /frames for indexing design frame sets.",
       "author": {
         "name": "Ivan Gudak",
@@ -93,7 +93,7 @@
     },
     {
       "name": "product-workflows",
-      "version": "3.0.0",
+      "version": "3.1.0",
       "description": "Twelve slash commands for the product-definition half of the dev-workflows pipeline: a six-command BRD-to-PRD route (/brd-intake → /brd-split → /prd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile) that grounds a customer's requirements document, settles it with them, and seeds the PRD, ARD and specification; the idea→PRD→ARD→specification ladder (/idea → /create-prd → /update-prd → /create-ard → /specify), where /prd-ground now also optionally grounds the PRD itself, feeding /create-ard and /specify; and /epics, deriving phase-appropriate Epics from a PRD. Twelve agents carry the grounding, reconciliation, PRD/ARD/spec/Epic review, and Epic writing these commands share. Nine reference pages define the BRD, decision-register, coverage-ledger, customer-review, idea, ARD and specification artifact formats. Depends on workflows-core for its shared foundation and phase handoff, and on prose-style, whose prose-style-checker is /epics's primary style checker.",
       "author": {
         "name": "Ivan Gudak",

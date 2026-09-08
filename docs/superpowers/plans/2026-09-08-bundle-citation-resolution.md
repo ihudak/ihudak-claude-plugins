@@ -16,7 +16,7 @@
 - **Prose is never hard-wrapped** as a paragraph — but these files are already hard-wrapped at ~100 columns in their source, and `workflows-core:prose-formatting` governs the prose a *run* writes, not this repository's own instruction files. **Match the wrap of the file you are editing**, exactly as its neighbouring paragraphs do.
 - **`brd-` names the route, not the folder kind.** `/brd-package` is one of the four route commands that refuse a root outright (`BRD_PACKAGE_ROOT_LEVEL`); every rule written here describes a **slice** run.
 - **Never restate a rule another file owns — cite it.** `bundle-packaging.md` §6 derives its working-filename list from §1.1's own table rather than copying it; the spec's §9 names that as the risk this avoids.
-- **A relation that comes up empty is a failure, never a pass** (`workflows-core:grounding-format` §2.1). A corpus file present and non-empty that parses to zero ids is `BRD_PACKAGE_CORPUS_UNREADABLE`, never "no references to check".
+- **A relation that comes up empty is a failure, never a pass** (`workflows-core:grounding-format` §2.1). A corpus file holding record-shaped content that parses to zero ids is `BRD_PACKAGE_CORPUS_UNREADABLE`, never "no references to check" — while a corpus holding no record-shaped content at all is legitimately empty and passes, the distinction the whole-branch review required so a skipped-design-grounding note and an entryless defect log do not stop correct packages.
 - **The check stops; it never sanitises.** The plugin-free scan's own sentence states the reason, and §6 must not contradict it.
 - **Plugin `description` hard cap 1024 characters**, warning at 900. `product-workflows` is at **988** — 36 characters of headroom. If this work touches the blurb at all, it **trims**; it never appends. Prefer not touching it: this ships a gate, not a capability a user selects.
 - **`.claude-plugin/marketplace.json` must not be reformatted** — edit only the `version` value of the entry being bumped.
@@ -150,7 +150,7 @@ The section must contain all of the following, in this order. Wrap to match the 
 
 1. **A one-paragraph statement of what §6 is for**, naming the gap: the plugin-free scan (§1) deliberately exempts identifiers because they are how a returned review cites the package, and nothing then checks that they land. Name the three observed failures compactly and cite the spec.
 
-2. **`### 6.1 The corpus is built per source package, and never crossed`** — a prerequisite package is copied in wholesale (§1.1) with its own corpus numbered from 1, so one bundle can hold two different `[CG#7]`s. Bundle documents partition by provenance: this package's documents, and each copied prerequisite's subtree. Then this table, verbatim:
+2. **`### 6.1 The corpus is built per source package, and never crossed`** — a prerequisite package is copied in wholesale (§1.1) with its own corpus numbered from 1, so one bundle can hold two different `[CG#7]`s. Bundle documents partition on the `<BRD-KEY>` each one's own filename carries — never by subtree, which the spec amendment at `09e7127` refuted: a path-keyed boundary inside a bundle whose whole addressing convention is path-free would make the boundary a property of where a document sits, so a later change that flattened the bundle would resolve every id against one corpus and pass. Then this table, verbatim:
 
 ```markdown
 | Class | Corpus file, within the partition |
@@ -166,8 +166,8 @@ Follow it with the parsing rule: every corpus is **parsed**, and an id is resolv
 
 3. **`### 6.2 The three relations`** — each stated as a rule with its own reason:
 
-   - **Relation 1**: every identifier reference resolves inside its own partition's corpus for that class, unless it carries the owning BRD key at the point of use. **The qualified form is `<BRD-KEY> [CG#7]`, one spelling only** — the key immediately before the bracketed id — and say why one spelling: §2.1's argument that two renderings produce readers who are wrong in a way that looks like data. Add that this also repairs a live ambiguity: today a reviewer reading a copied prerequisite's grounding file sees `[CG#7]` with nothing saying whose numbering it is.
-   - **Relation 2**: for every `[DG#n]` whose `class` is 4, its `cites` resolves within the same partition **and** the cited `[CG#n]`'s `claim` names the same requirement id as the citing finding's `claim`. Cite `workflows-core:grounding-format` §6.3 as the owner of the rule; §6 enforces it.
+   - **Relation 1**: every identifier reference resolves inside its own partition's corpus for that class, unless it carries the owning BRD key at the point of use. **The qualified prose form is `<BRD-KEY> [CG#7]`, one spelling only** — the key immediately before the bracketed id — and say why one spelling: §2.1's argument that two renderings produce readers who are wrong in a way that looks like data. **Amended after the whole-branch review**, which found this step's original *the qualified form* — unqualified, and so covering every rendering — produced a check that stopped correct packages on structured fields the operator cannot legally repair, `decision-register-format.md` §5's `conditional_on: <BRD-KEY>/<decision-id>` among them: hence **prose** above, and the admission of `conditional_on` as a second, already-shipped qualified form. **Amended again after the fix-wave re-review**, which found that admission written as an *instance* rather than as the rule its own reasoning licensed, leaving relation 1 still stopping on four more fields of the same kind (`prerequisite`, `resolved-by`, the parent defect log's `[BR#n]` references, `superseded-by` and an orphan row's `id`): so state the general rule — a reference carried by a structured field whose format another authority fixes is qualified wherever that authority defines the field to name another BRD's record — with the fields **derived from those authorities** rather than listed in §6, and a new such field the authority's to declare. Add that this also repairs a live ambiguity: today a reviewer reading a copied prerequisite's grounding file sees `[CG#7]` with nothing saying whose numbering it is.
+   - **Relation 2**: for every `[DG#n]` whose `class` is 4, its `cites` resolves within the same partition **and** the cited `[CG#n]`'s `claim` names the same requirement id as the citing finding's `claim`. Cite `workflows-core:grounding-format` §6.3 as the owner of the rule; §6 enforces it. **State why the test is "names" and not "opens with"** — §2.1's canonical example opens with the id, but that same section sanctions hand-edited artifacts on this route, so a claim reading *"the nightly export, per `[BR#7]`, runs at 02:00"* is correct content a position test would refuse. **And state the disposition that looser test needs:** where a claim names more than one requirement id, §6 **reports the ambiguity** rather than picking one, because a silent pick is a guess.
    - **Relation 3**: a bare `<name>.md` token — **no path separator** — must name a document in the bundle when it is one of two shapes: it carries the `<BRD-KEY>-` prefix `commands/brd-package.md`'s *Assemble the bundle* rule 1 gives every bundle document, **or** it matches the working filename of a document §1.1 admits or excludes by name. **Derive that second list from §1.1's own table rather than restating it here**, and say so in one clause, because a document added to §1.1 without a matching entry would be invisible to exactly the check that exists to catch it. State the false positive this scoping avoids: a grounding finding's `evidence` is a repository `file:line` list, so an unscoped rule refuses a bundle over a correct `docs/api.md:12`.
 
 4. **`### 6.3 Two exemptions`**:
@@ -178,6 +178,20 @@ Follow it with the parsing rule: every corpus is **parsed**, and an id is resolv
    - a reference that **describes** a bundle document where rule 1 requires it to **name** one — no pattern separates a deliberate description from a missing filename;
    - a citation that resolves to the right id and is wrong in a way relation 2 does not test;
    - an identifier class shipping without a row in §6.1's table. The table is a closed list; the reverse case — a row whose file is not in the bundle — is `BRD_PACKAGE_CORPUS_UNREADABLE`, never a silent skip.
+
+- [ ] **Step 2b: Repair this file's own preamble, which §6 falsifies in two places**
+
+Found by the pre-flight scan, not by the sweep at the end, and both are the enumeration-goes-stale class that cost the previous increment the most — neither sentence contains any word this change introduces, so no search for "citation" finds them.
+
+- The preamble's **"Consumed by `commands/brd-package.md`, which builds a bundle against this contract — its plugin-free rules, its §1.1 content allow-list, its de-Obsidianising pass, its degradation tiers, its delivery-note ceiling and its committed dated directory"** enumerates six things the command builds against. §6 is a seventh. Add it in the same voice; do not append a trailing clause.
+- The preamble's **"the finding record and the `baseline-integrity` procedure … belong to `workflows-core:grounding-format` §2 and §4"** names the sections of that file this one cites. §6 cites **§2.1** (the reading rule) and **§6.3** (the class-4 correctness rule) as well. Extend the section list.
+
+Verify both:
+
+```bash
+grep -c 'its committed dated directory' plugins/product-workflows/references/bundle-packaging.md   # expect 1, and read the sentence
+grep -n 'workflows-core:grounding-format` §' plugins/product-workflows/references/bundle-packaging.md
+```
 
 - [ ] **Step 3: Verify the section's structure and its non-restatement**
 
@@ -252,8 +266,10 @@ Each on the model of `BRD_PACKAGE_PROMPT_LEAK` — the identifier, a colon, then
 
 `BRD_PACKAGE_CITATION_MISMATCH: <DG-id> is class 4 and cites <CG-id>, whose claim names <requirement-a> where the citing finding's claim names <requirement-b> — the citation resolves, to a finding about a different requirement, which is the one failure a reviewer cannot detect by following it.`
 
-`BRD_PACKAGE_CORPUS_UNREADABLE: <corpus file> is present and non-empty but parsed to zero <class> ids — that is a parse failure, not an empty corpus, and reporting it as an absence would report every reference in the bundle as dead (workflows-core:grounding-format §2.1).`
+`BRD_PACKAGE_CORPUS_UNREADABLE: <corpus file> holds record-shaped content but parsed to zero <class> ids — that is a parse failure, not an empty corpus, and reporting it as an absence would report every reference in the bundle as dead (workflows-core:grounding-format §2.1).`
 ```
+
+**Amended after the whole-branch review:** the `BRD_PACKAGE_CORPUS_UNREADABLE` string above originally read *is present and non-empty but parsed to zero ids*, which names a state that is ordinary and correct — a `design-grounding.md` written as a short note, an entryless defect log — and told the operator to repair a parse failure that had not occurred. The trigger it now names is **record-shaped content**, the distinction the Global Constraints above were amended to fix.
 
 **The `BRD_PACKAGE_CITATION_MISMATCH` message must name both requirement ids.** The spec's §9 risk is that the first run against an existing hand-narrowed BRD stops and the repair is by hand; a stop that says only "something disagrees" makes that repair guesswork.
 
@@ -298,7 +314,8 @@ Subject: `feat(brd-package): check that shipped citations resolve inside the bun
 ### Task 4: Docs page, versions, changelogs
 
 **Files:**
-- Modify: `plugins/product-workflows/docs/commands/brd-package.md` — the `## Gates` section
+- Modify: `plugins/product-workflows/docs/commands/brd-package.md` — the `## Gates` section, the identifiers sentence in the plugin-free-scan bullet, and the `bundle-packaging.md` See-also description
+- Modify: `plugins/product-workflows/docs/reference/references.md` — the `bundle-packaging.md` entry
 - Modify: `plugins/product-workflows/.claude-plugin/plugin.json` → `3.1.0`; `plugins/workflows-core/.claude-plugin/plugin.json` → `1.3.2`
 - Modify: `.claude-plugin/marketplace.json` — the two matching `version` values, **and nothing else in the file**
 - Modify: `plugins/product-workflows/CHANGELOG.md`, `plugins/workflows-core/CHANGELOG.md`
@@ -309,6 +326,14 @@ Subject: `feat(brd-package): check that shipped citations resolve inside the bun
 - [ ] **Step 1: Add the docs-page gate bullet**
 
 In `## Gates`, immediately after the `**Phases 6, 7 and 8 — the plugin-free scan.**` bullet, add a bullet of the same shape. It must state: where it runs (Phase 8, over the assembled bundle); the three relations in one sentence each; the two exemptions; and the three stop names. **Derive each claim by reading `commands/brd-package.md` rule 8 and `references/bundle-packaging.md` §6** — the retired-README rule applies to every page here: a docs page is a source of topics, never of facts.
+
+- [ ] **Step 1b: Repair the three documentation sentences §6 falsifies**
+
+All three found by the pre-flight scan. Each is an enumeration of what `bundle-packaging.md` covers, and each silently loses a member when §6 lands — the same class as Task 2's step 2b, on the documentation side.
+
+- **`docs/reference/references.md`, the `bundle-packaging.md` entry.** Its description runs through the plugin-free rules, the de-Obsidianising pass, the three tiers, the allow-list, the delivery note's ceiling and the dated directory. Add the citation check in the same voice and at the same altitude — what it checks and why, not how.
+- **`docs/commands/brd-package.md`, the See-also entry** — *"the authority for plugin-free construction, the de-Obsidianising pass, the three degradation tiers, the delivery note's ceiling, and where the bundle lands"*. Five members; add the sixth.
+- **`docs/commands/brd-package.md`, the plugin-free-scan Gates bullet's last sentence** — *"identifiers are **not** in the scan's classes and are meant to travel — they are how the returned review cites the package without minting identifiers of its own."* **This sentence is correct and stays**: §6 checks that identifiers *land*, it does not stop them travelling. But it is the page's only statement about identifiers, and left alone it now reads as "and nothing checks them". Add the companion clause pointing at the new bullet. Do not delete or weaken the existing sentence — a sweep that removes it has misread the change.
 
 - [ ] **Step 2: Bump both versions**
 
@@ -349,6 +374,8 @@ Subject: `docs(brd-package): document the citation check; product-workflows 3.1.
 ## Whole-branch sweep, before the final review
 
 Run these from the repository root and read every hit. They are not optional: gate 3's signature defect was prose that derived an obligation from a glob a rename had shrunk, invisible to a search for the renamed thing.
+
+**Four sites were already found and repaired at pre-flight** — two in `bundle-packaging.md`'s preamble (Task 2 step 2b) and three across the documentation (Task 4 step 1b). The sweep below is still run in full: it is the second pass, and on the previous increment the second pass is what found the instance the first had walked past.
 
 - [ ] **Exclusivity probe.** The claim *"the plugin-free scan is the only pass over the finished bundle"* — or any sentence of that shape — is now false.
 

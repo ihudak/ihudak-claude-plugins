@@ -82,9 +82,12 @@ them is.
    copy from which a later package could be rendered correctly.
 
 4. **The plugin-free scan runs over the finished text, not over the templates.** It is the last
-   thing the *Render the customer prompt*, *Render the delivery note* and *Assemble the bundle*
-   phases each do, and it inspects what will actually be sent. A scan over the templates would pass
-   on a prompt whose leak arrived through an interpolated document title.
+   thing the *Render the customer prompt* phase does; in *Render the delivery note* nothing follows
+   it but the instruction to print the finished note; and in *Assemble the bundle* it is the last
+   thing rule 7 does, immediately followed by rule 8's citation-resolution check
+   (`bundle-packaging.md` §6) as that phase's own last pass. It inspects what will actually be sent,
+   wherever it sits: a scan over the templates would pass on a prompt whose leak arrived through an
+   interpolated document title.
 
 5. **A scan hit stops the run; it never sanitises.** The command does not strip the offending token
    and continue. A citation that reached the prompt reached it because some part of the package
@@ -707,8 +710,10 @@ committed — it is the customer having written the token themselves, most plaus
 told what tooling the delivery team uses. Report it, name the file and the token, and **let the
 operator decide** whether to ship: stopping outright would make that BRD permanently unpackageable,
 since the one repair the rule allows is not editing the file, and every other document's hit stays a
-hard stop exactly as above. This is the only exemption, and it exists because the alternatives are a
-deadlock or an edit to the customer's own document.
+hard stop exactly as above. **This is the plugin-free scan's only exemption** — the
+citation-resolution check (Phase 8 rule 8, `bundle-packaging.md` §6) carries a second exemption of
+the identical shape for this same file, and a third of a different shape for `[SR#n]` (§6.3) — and
+it exists because the alternatives are a deadlock or an edit to the customer's own document.
 
 Identifiers are **not** in the scan's classes and are meant to travel: `[BR#n]`, `[CG#n]`, `[DG#n]`,
 `[VD#n]`, `[AS#n]` and `[SR#n]` are how the returned review cites the package's own claims without
@@ -786,7 +791,14 @@ self-review is free of them while being the most internal document this command 
    and the bundle will be extracted, renamed, re-zipped and mailed on. So each document's bundle
    filename carries the `<BRD-KEY>` and is unique within the bundle, and every reference from one
    bundle document to another, and every instruction in the prompt that sends the reviewer to a
-   document, names that filename and tells them to search for it.
+   document, names that filename and tells them to search for it. **The `<BRD-KEY>` is the key of
+   the package the document belongs to, not this run's key applied uniformly:** a prerequisite
+   package copied in under rule 5 arrives already named from the packaging run that built it, and
+   those keyed filenames are kept on the way in — nothing renames them. That is what keeps one
+   bundle's two `[CG#7]`s apart, because it is the same key rule 8's check partitions the corpus on
+   (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.1); re-prefixing every document with
+   this run's key would collapse the corpus to one partition and let a cross-package citation
+   resolve to the wrong finding while the check went green.
 2. **De-Obsidianise every copied document — except the customer's own source, which is copied byte
    for byte** (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §2.1). Every `[BR#n]` anchors
    into that file by a heading path or a line range, so a rendered copy breaks the traceability the
@@ -818,7 +830,45 @@ self-review is free of them while being the most internal document this command 
    for re-review*. The manifest is a bundle document; the delivery note is not.
 7. **Run the plugin-free scan over every document in the finished bundle**, and stop on any hit. The
    scan runs here as well as over the prompt because a leak can arrive through a copied document as
-   easily as through a rendered part, and this is the last point at which anything is still ours.
+   easily as through a rendered part, and together with rule 8's citation-resolution check, this
+   pair is the last point at which anything is still ours.
+8. **Run the citation-resolution check over every document in the finished bundle**, per
+   `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6, and stop on any hit. It runs here and
+   nowhere earlier because both of its inputs — the identifier corpus and the set of bundle
+   filenames — are facts about the *assembled* bundle; the rendered prompt is covered because the
+   prompt is itself a bundle document. It is a second pass rather than a widening of rule 7's scan:
+   that scan hunts tokens a reader **cannot resolve**, and this one hunts tokens a reader **resolves
+   to the wrong thing**, which is the worse failure and needs the bundle's own corpus to detect.
+
+   A reference that resolves to nothing — an unresolved id or filename (§6.2 relations 1 and 3), a
+   bundle document whose filename carries no `<BRD-KEY>` and therefore has no partition at all, or a
+   prerequisite key **whose package this run copied in** that no partition in the bundle answers to,
+   which is what a collapsed set of filenames looks like from the key set (§6.1) — stops with:
+   `BRD_PACKAGE_DEAD_CITATION: <id-or-filename> in <bundle document> resolves to nothing — <what it was resolved against>. A reference the reviewer cannot follow is not fixed by deleting it: some sentence in the package assumed that id or that file, and the sentence is what has to change.`
+
+   **A prerequisite Phase 2 carried with no package to copy in is not a hit**, and the discriminator
+   is Phase 2's own carry — *whether a package of its own was found*. Its *BRD not found* and *no
+   package on file; nothing to copy in* branches both leave a key that correctly answers to no
+   partition, and both are ordinary; the guard is about a package that **is** in the bundle under
+   flattened names. A reference naming such a prerequisite's own record is not a hit either — §6.2's
+   relation 1 discharges a structured field another authority formats as a qualified cross-package
+   reference, exactly because no partition could ever hold it.
+
+   A class-4 `[DG#n]` whose `cites` resolves but names a different requirement than the citing
+   finding's own claim (§6.2 relation 2) stops with:
+   `BRD_PACKAGE_CITATION_MISMATCH: <DG-id> is class 4 and cites <CG-id>, whose claim names <requirement-a> where the citing finding's claim names <requirement-b> — the citation resolves, to a finding about a different requirement, which is the one failure a reviewer cannot detect by following it.`
+
+   A corpus file holding record-shaped content that parses to zero ids of its class (§6.1) stops
+   with the message below — and **only** such a file. One holding no record-shaped content at all is
+   a legitimately empty corpus and passes: that is the ordinary state of a `design-grounding.md`
+   written as a short note because design grounding was skipped, and of a defect log whose walk
+   confirmed nothing.
+   `BRD_PACKAGE_CORPUS_UNREADABLE: <corpus file> holds record-shaped content but parsed to zero <class> ids — that is a parse failure, not an empty corpus, and reporting it as an absence would report every reference in the bundle as dead (workflows-core:grounding-format §2.1).`
+
+   **A hit inside `brd/source/<basename>` reports rather than stops** — the same treatment the
+   plugin-free scan gives it above, and for the identical reason (§6.3): the customer's own document
+   is immutable by rule, and the one repair the rule allows is not editing the file. Every other
+   document's hit stays a hard stop.
 
 **The bundle is committed** (D18), through the handoff below. That serves both delivery routes with
 one artifact: a customer with repository access pulls it and needs nothing else, and everybody else
@@ -948,19 +998,22 @@ working directory; no user name is ever written.
 
 ## Final report
 
-Report: the BRD folder and which level it sits at; the classification and model routing
-(+ any Opus degradation, named again here because a self-review that ran on a weaker model is a
-weaker gate); **the degradation tier**, and the sentence it obliges the customer's own review to
-carry; **every `[SR#n]` with its disposition**, grouped by disposition, with the `accepted-risk` ones
-listed in full because those are the ones the customer will read; whether a second reviewer pass ran
-after a `fixed` correction and what it added; the counts the prompt carries — `[C]` questions, open
+Report: the BRD folder and which level it sits at; the classification and model routing (+ any Opus
+degradation, named again here because a self-review that ran on a weaker model is a weaker gate);
+**the degradation tier**, and the sentence it obliges the customer's own review to carry; **every
+`[SR#n]` with its disposition**, grouped by disposition, with the `accepted-risk` ones listed in
+full because those are the ones the customer will read; whether a second reviewer pass ran after a
+`fixed` correction and what it added; the counts the prompt carries — `[C]` questions, open
 `[AS#n]`, `escalated-to-customer` findings; **every prerequisite named under *what could still
 move***, with whether it resolved, whether its decisions are customer-reviewed, and whether a
-package of its own was copied in; the four artifacts written, by path; **the delivery note, printed
-in full**; the archive command, with an absolute path; the feedback + cost paths; the
-`Phase handoff:` outcome line (`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line
-(`workflows-core:specs-repo-git` §6); the next-step recommendation; and — before the ledger line — the
-**repo→SHA table**:
+package of its own was copied in; the four artifacts written, by path; **the citation check's
+outcome** — how many identifier references resolved, across how many source packages, how many
+carried an owning BRD key, and every hit inside the customer's own source document that the operator
+was asked to rule on, **or an explicit "none"**; **the delivery note, printed in full**; the archive
+command, with an absolute path; the feedback + cost paths; the `Phase handoff:` outcome line
+(`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line
+(`workflows-core:specs-repo-git` §6); the next-step recommendation; and — before the ledger line —
+the **repo→SHA table**:
 
 ```
 baselines: <repo> @ <commit> (<how it was verified>)

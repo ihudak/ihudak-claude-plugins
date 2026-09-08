@@ -150,8 +150,12 @@ stays.
 
 Behind the handoff phase's consent choice, these are committed, pushed, and a pull request opened
 against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix. The
-committed bundle serves both delivery routes: a customer with repository access pulls it, and
-everyone else gets one archive command printed with an absolute path at the end of the run.
+committed bundle serves both delivery routes, and the run settles which one at the delivery note:
+where the handoff was accepted it asks, recommending that the customer pull the committed bundle;
+where it was declined there is nothing to pull, so it takes the archive route without asking and
+says so. The archive command is printed only on the archive route. **The prompt itself names no
+route** — it is handed on to a reader the run cannot see, and a path is correct exactly once, so
+only the delivery note names where the bundle is.
 
 ## The prompt's eleven parts
 
@@ -159,7 +163,7 @@ Assembled from the package, never hand-written, in a fixed order that is not re-
 
 | # | Part | Filled from |
 |---|---|---|
-| 1 | Setup | the tier, the archive command, the assumed capability set, the OS note, and the one-new-file rule |
+| 1 | Setup | the tier, the assumed capability set, the route-neutral locating instruction, the OS note, and the one-new-file rule |
 | 2 | What each package in the bundle is for | this BRD, plus each prerequisite package, marked *not for re-review* |
 | 3 | Documents to review | the manifest, by filename |
 | 4 | Code baselines and the verification procedure | `baselines.md`, with the three pin commands written out |
@@ -285,7 +289,9 @@ being held for the customer, dispatches the adversarial reviewer, walks each `[S
 disposition, asks which tier the customer can be given, renders the prompt and the note, assembles
 `bundle-<date>/` with the prerequisite's package copied in and marked *not for re-review*, and offers
 to branch, commit, push and open a pull request. The report prints the delivery note in full, the
-archive command with an absolute path, the repo→SHA table, and the ledger line.
+delivery route and why — the archive command with an absolute path on the archive route, or a line
+saying none was produced because the customer pulls the committed bundle — the repo→SHA table, and
+the ledger line.
 
 ## See also
 

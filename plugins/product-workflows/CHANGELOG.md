@@ -4,6 +4,22 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.2.0] — 2026-09-08
+
+### Fixed — the package told every reviewer to extract an archive, including the ones who pull the repository
+
+`bundle-packaging.md` §5 has always said the committed bundle serves **both** delivery routes — a customer with repository access pulls it, everyone else gets an archive command. Nothing recorded which route a given package was taking, so every other site assumed the archive — across the command, the reference and the documentation. Two of them were not statements about delivery at all but *justifications* that happened to name an attachment: rule 4's argument for filenames over paths, and the delivery note's 200-word ceiling. Both rules are right on either route; only their reasons were half-stated, and rule 4's mattered — naming only the archive case read as though a committed bundle could safely be addressed by path, which is the one reading that breaks rule 1 for the route now recommended.
+
+The sharpest was in the customer's own prompt. Part 1's input table listed *the archive command* among what the prompt is filled from, and its OS note opened *"extract the archive to a real folder before pointing anything at it"* — so a customer who pulled the specs repository received a shell command for an archive nobody sent them, and an instruction naming a file they did not have, in the one document whose entire job is to be followable by somebody with no context and no plugin. That is the failure the de-Obsidianising pass exists to prevent — an instruction that looks actionable, is not, and gives the reader no way to tell which — reached by a different route.
+
+**The prompt now names no delivery route at all, and the delivery note names the actual one.** The two have different readers, and that is what settles which may assume anything. The note is a covering letter to a named customer whose situation the operator knows; the prompt is handed on — to a colleague, to an agent, to whoever actually does the review — so a prompt that names a route is wrong for some of its readers about the first thing it tells them. The archive command is gone from the prompt entirely: assembling an archive is a delivery-team action, and a reviewer who was sent one has already had it done for them.
+
+**The route is settled once, at the delivery note, and half of it is derived rather than asked.** The repository route exists only where the *Handoff* phase's consent choice was accepted — a bundle on no ref is a bundle nobody can pull — so where the handoff was declined the run takes the archive route without asking and says why. Where it was accepted the run asks, recommending the repository route. On that route no archive command is produced, and the note carries the repository, the committed `bundle-<YYYYMMDD>/` directory by path, and the instruction to open the prompt there and paste it.
+
+**One constraint that survives the change and is worth stating, because it looks like an inconsistency:** even on the repository route the *prompt* must not name the specs-repo path. `bundle-packaging.md`'s own rule 1 holds that a path is correct exactly once, in the directory layout one machine had — so the note carries the path and the prompt carries filename search. The note tells the reviewer where to stand; the prompt works once they are standing there.
+
+The Final report now names the route and why, on both branches, so a reader cannot mistake an absent archive command for a step that failed.
+
 ## [3.1.0] — 2026-09-08
 
 ### Added — `bundle-packaging.md` §6, a citation-resolution check over the assembled bundle

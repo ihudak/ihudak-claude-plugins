@@ -197,6 +197,16 @@ caught all three corpora at the next command instead of at customer-package time
 
 ## E-2 — the bundle is never checked for whether an identifier citation resolves
 
+**CLOSED 2026-09-08** — shipped in `product-workflows` 3.1.0 and `workflows-core` 1.3.2. `bundle-packaging.md` §6 owns a citation-resolution check that `/brd-package` Phase 8 rule 8 runs over the assembled bundle beside the plugin-free scan; `grounding-format` §6.3 gained the correctness half of the class-4 citation rule. Three relations — every identifier reference resolves inside its own source package's corpus; a class-4 `[DG#n]` cites a `[CG#n]` about the same requirement; every bundle-referencing markdown filename token names a document that is in the bundle. Three stops: `BRD_PACKAGE_DEAD_CITATION`, `BRD_PACKAGE_CITATION_MISMATCH`, `BRD_PACKAGE_CORPUS_UNREADABLE`.
+
+**Four things the report could not have known, each found by reading the tree and each changing what was built.** `[SR#n]` had to be exempt entirely — the self-review is excluded by rule while its content reaches the customer *filtered* by id, so a check without the exemption fires on every package. A prerequisite package is copied in wholesale with its own corpus numbered from 1, so the resolution set partitions **on the `<BRD-KEY>` each bundle document's filename carries** — chosen over partitioning by subtree because the discriminator then travels with the document and a flattened bundle partitions identically, where a subtree test would resolve every id against one corpus **and pass**. Relation 3 had to be scoped to tokens that actually claim to be bundle references, or a correct `docs/api.md:12` in a finding's `evidence` refuses the bundle. And `design-grounding.md` is legitimately written as *"a short note when design grounding was skipped"*, so a present, non-empty, zero-id corpus is ordinary — the parse-failure stop is drawn on **record-shaped content**, not on a zero count.
+
+**The report's checks 3 and 4 collapsed into one relation.** A working filename is not in the bundle, so it fails the same test a dead one does, and one mechanism cannot drift from itself.
+
+**What it deliberately cannot see, stated in §6.4:** a reference that *describes* a bundle document where rule 1 requires it to *name* one; a citation resolving to the right id but wrong in a way relation 2 does not test; an identifier class with no corpus row; the delivery note, which is not a bundle document; and a corpus whose records are *all* malformed identically, which reads as empty — the run still stops, as dead citations.
+
+**Known consequence, recorded because it is not a defect:** relation 2 will refuse bundles that ship today, and the repair is by hand, because the plugin still has no supported mechanism for narrowing a parent's verified findings to a slice's claimed subset. That gap remains its own entry below.
+
 **Bounded fix, sequenced after gate 3.**
 
 **Reported as:** `/brd-package` runs a plugin-free scan and a de-Obsidianising pass, and correctly
@@ -282,7 +292,7 @@ register created to fix it contained the same unrecorded claim.
 
 ---
 
-# Open after gate 3 — G3-1, G3-2 and G3-3 closed 2026-09-08; G3-4 stands as constraints; E-4 raised
+# Open after gate 3 — G3-1, G3-2, G3-3 and E-2 closed 2026-09-08; G3-4 stands as constraints; E-4 raised
 
 ## E-4 — the package tells every reviewer to extract an archive, including the ones who pull the repository
 

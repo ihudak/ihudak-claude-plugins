@@ -295,16 +295,31 @@ to. **Nothing then checks that they land.** Three failures were observed in ship
 class-4 design finding whose `[CG#n]` citation resolved, inside the customer's own bundle, to a
 real finding about a different requirement; a reference naming an id above the highest its own
 corpus contains — one of them the sole `evidence` on a decision record; and a reference, in prose
-rather than a link, to a document §1.1 excludes by rule or has already renamed on the way in. Design
-authority: `docs/superpowers/specs/2026-09-08-bundle-citation-resolution-design.md` §3–§7.
+rather than a link, to a document §1.1 excludes by rule or has already renamed on the way in. Three
+stops carry it: `BRD_PACKAGE_DEAD_CITATION` for a reference that resolves to nothing (§6.1's
+unkeyed-document case, §6.2's relations 1 and 3), `BRD_PACKAGE_CITATION_MISMATCH` for one that
+resolves to the wrong requirement (§6.2's relation 2), and `BRD_PACKAGE_CORPUS_UNREADABLE` for a
+corpus that cannot be parsed (§6.1). Design authority:
+`docs/superpowers/specs/2026-09-08-bundle-citation-resolution-design.md` §3–§7.
 
 ### 6.1 The corpus is built per source package, and never crossed
 
-A prerequisite package is copied into the bundle wholesale (§1.1), carrying its own grounding
-files, its own inventory and its own register — each numbered from 1 in its own corpus. So one
-bundle can hold two different `[CG#7]`s. Bundle documents therefore **partition by provenance**:
-this package's own documents, and each copied prerequisite package's subtree. Each partition parses
-its own corpus from its own files:
+A prerequisite package is copied into the bundle wholesale (§1.1), carrying its own grounding files,
+its own inventory and its own register — each numbered from 1 in its own corpus. So one bundle can
+hold two different `[CG#7]`s. Bundle documents therefore **partition on the `<BRD-KEY>` each one's
+own filename carries**: `commands/brd-package.md`'s *Assemble the bundle* rule 1 gives every bundle
+document a filename carrying its `<BRD-KEY>`, unique within the bundle, precisely so documents are
+located by **filename search, never by path** (§1 rule 4) — and that same guarantee draws the
+partition boundary. Partitioning by subtree instead would tell an executor to use a path inside a
+bundle whose whole addressing convention is path-free, and would make the boundary a property of
+where a document sits rather than of what it says: a later change that flattened the bundle would
+then silently resolve every id against one corpus and **pass**. Keying on the filename removes that
+failure rather than mitigating it — a flattened, renamed or re-archived bundle partitions
+identically, because the discriminator travels with the document.
+
+Each partition parses its own corpus, and **each corpus file is located by filename search within
+the partition, never at the working path named below.** The working names identify *which* document
+each corpus is; inside the bundle that document carries its `<BRD-KEY>-` prefixed name:
 
 | Class | Corpus file, within the partition |
 |---|---|
@@ -323,6 +338,13 @@ scan run here, over a bundle's copied corpus files, would report every reference
 dead. A corpus file that is present and non-empty but parses to zero ids is not read as an absence
 either — it stops the run with `BRD_PACKAGE_CORPUS_UNREADABLE`, naming the file and the partition,
 because a scan that cannot read a block has learned nothing about whether the ids it names exist.
+
+**The partition depends on rule 1 holding.** The boundary is the `<BRD-KEY>` in each document's
+filename, so it survives flattening, renaming and re-archiving — but a bundle document that reached
+the bundle without its key-carrying name has no partition, and relation 1 cannot place it. That is a
+rule-1 violation before it is a §6 problem, so §6 reports it rather than guessing a partition: an
+unkeyed bundle document stops the run with `BRD_PACKAGE_DEAD_CITATION`, naming the document, because
+every id inside it is unresolvable by construction.
 
 ### 6.2 The three relations
 
@@ -346,16 +368,17 @@ hand-edited artifact everywhere else on this route, so a claim reading "the nigh
 more than one requirement id, §6 reports the ambiguity rather than picking one** — a silent pick is
 a guess.
 
-**Relation 3 — a bare `<name>.md` token, carrying no path separator, must name a document that is
-in the bundle, and only when it is one of two shapes.** Either it carries the `<BRD-KEY>-` prefix
-that `commands/brd-package.md`'s *Assemble the bundle* rule 1 gives every bundle document, or it
-exactly matches the **working** filename of a document §1.1 admits or excludes by name — **derived
-from §1.1's own table each time this relation runs, never copied into a second list here**, because
-a document added to §1.1 without a matching entry here would be invisible to exactly the check that
-exists to catch it. The scoping is what keeps the relation off correct content: a grounding
-finding's `evidence` field is a repository `file:line` list, and a repository that documents itself
-in markdown puts a bare `docs/api.md:12` into a finding that is entirely correct — an unscoped rule
-would refuse the whole bundle over it.
+**Relation 3 — a bare `<name>.md` token, carrying no path separator, must name a document that is in
+the bundle, and only when it is one of two shapes.** Either it carries the `<BRD-KEY>-` prefix that
+`commands/brd-package.md`'s *Assemble the bundle* rule 1 gives every bundle document, or it exactly
+matches the **working** filename of a document §1.1 admits or excludes by name — **derived from
+§1.1's own table each time this relation runs, never copied into a second list here**, because a
+document added to §1.1 without a matching entry here would be invisible to exactly the check that
+exists to catch it. A working filename carrying a `<YYYYMMDD>` placeholder resolves against the
+run's own date, never matched as literal text. The scoping is what keeps the relation off correct
+content: a grounding finding's `evidence` field is a repository `file:line` list, and a repository
+that documents itself in markdown puts a bare `docs/api.md:12` into a finding that is entirely
+correct — an unscoped rule would refuse the whole bundle over it.
 
 Relations 1 and 3 fail the same way — a reference that resolves to nothing — and stop the run with
 `BRD_PACKAGE_DEAD_CITATION`, naming the id or filename, the document it sits in, and the corpus or

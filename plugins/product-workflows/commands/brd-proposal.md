@@ -19,10 +19,10 @@ restates it.
 
 Usage: `/brd-proposal <ADDRESS> [--no-brief] [--profile] [--redo]`
 
-**`/brd-proposal`'s natural altitude is the root**, joining `/brd-intake` and `/brd-split` — the seven
-other BRD-route commands refuse a container and demand a slice, and this one inverts that. It takes no
-`--baseline`: a prior estimate reconciles against the slice that was estimated, not against the
-umbrella over it.
+**`/brd-proposal`'s natural altitude is the root**, joining `/brd-intake` and `/brd-split` — the
+route's other four commands, `/prd-ground`, `/brd-interview`, `/brd-package` and `/brd-reconcile`,
+each refuse a container and demand a slice, and this one inverts that. It takes no `--baseline`: a
+prior estimate reconciles against the slice that was estimated, not against the umbrella over it.
 
 `<ADDRESS>` resolves through `workflows-core:addressing` §3 `resolve-address`, taken **after**
 `$SPECS_PATH` is settled — a resolution taken before the variable is known returns `absent` for a
@@ -213,6 +213,15 @@ run cannot honour. The recommendation printed beside it is what tells the two ro
 choices: ["Price the slice first — /product-workflows:prd-proposal <SLICE-KEY>, then re-run the umbrella", "Exclude it, and disclose the exclusion in the coverage statement"]
 ```
 
+**"Price the slice first" ends the run.** It is the one answer in this walk that is not a membership
+decision, so it must not be recorded as one: finish the walk so the operator sees the whole picture,
+then end before Phase 4, naming **every** slice still to price and writing no artifact at all — no
+`proposal.md`, no brief, no archive, no handoff. Nothing is excluded by it. This is an operator's
+finished decision rather than a refusal, so it carries no stop id and runs the emitter tail (Phase 13)
+on the way out, exactly as a completed run does; the final report says which slices it is waiting on. Treating it as an exclusion would produce the understated umbrella this
+row's **Stop** recommendation exists to prevent, and would record the operator as having chosen an
+exclusion they did not choose.
+
 Neither array's wording is adjusted per slice: `<SLICE-KEY>` is a substitution, and the row's own
 recommendation is printed beside the array (`workflows-core:escalation-rules`, *Choice lists are
 presented verbatim*). An operator who excludes a slice the walk recommended pricing is making a
@@ -291,30 +300,45 @@ the value is not read.
 ## Phase 6 — The roll-up and its three adjustments
 
 Execute `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §14, which owns the umbrella's row set,
-its three adjustments, the tier rule, the range rule and the de-duplication check with its disclosed
-limit. This phase performs them; it does not re-express them.
+**how §7's two always-present packages and its defect sweep read at programme altitude**, the three
+adjustments, the tier rule, the range rule and the de-duplication check with its disclosed limit.
+This phase performs all of them; it does not re-express any of them.
 
 1. **Build the row set** — one row per included slice, carrying that slice's hours, its range, its
    tier and its confidence, read from that slice's own `proposal.md` and **never re-derived** (§14).
    A figure this run cannot read out of a slice proposal is a stop-shaped defect in that proposal,
    not a number to reconstruct: report it and exclude the slice, or send the operator back to
    `/product-workflows:prd-proposal <SLICE-KEY>`.
-2. **Umbrella effort** — §14's first adjustment. Mint its `[WP#n]`s in the umbrella's own contiguous
-   series (§3), grade each one's confidence per §6 with a stated reason, and carry the drivers behind
-   them as the umbrella's own `[ED#n]`s under §8's closed evidence set.
-3. **De-duplication** — §14's second, and the one adjustment with an operator decision in it. Read
+2. **The umbrella's own work packages** — §7's two always-present packages read at programme altitude
+   (§14), and §14's first adjustment, the umbrella effort, beside them. §14 fixes which is which;
+   this step mints all of their `[WP#n]`s in the umbrella's own contiguous series (§3), grades each
+   one's confidence per §6 with a stated reason, and carries the drivers behind them as the
+   umbrella's own `[ED#n]`s under §8's closed evidence set. **A discovery-and-design package is
+   present here as it is in every proposal** (§7), and rendering §4 section 6 without one is the
+   defect this step exists to prevent.
+3. **The defect sweep, over the container and no further** (§14, §7). Sweep §7's three sources as
+   they exist at *this* level — the container's own records — and confirm each candidate §7 marks as
+   needing it, one at a time, quoting the record's own text so the operator rules on it rather than
+   on a summary:
+   `choices: ["Confirm — an unrepaired code defect this engagement would repair", "Reject — already repaired, or not the vendor's to repair"]`
+   A confirmed defect takes its own `[WP#n]` and never renders in §4's section 18 (§7). **A slice's
+   sources are not swept again** — §14 says why, and each slice's confirmed defects are already
+   priced inside its row. **Report what the sweep found either way**, including that it found
+   nothing, which is the ordinary outcome: a container normally holds no `grounding/`, no
+   `code-defect-log.md` and no packaged self-review, because all three are slice-level artifacts.
+4. **De-duplication** — §14's second adjustment, and the one with an operator decision in it. Read
    every included slice's `[ED#n]` table, index the evidence identifiers it cites, and flag every
    identifier claimed by more than one included slice. Present each flag with both slices' driver rows
    quoted verbatim, so the operator rules on the record rather than on a summary of it:
    `choices: ["Genuinely two pieces of work — keep both", "One piece of work priced twice — deduct it, and name the deduction"]`
    §14 fixes what a deduction is and what the document must disclose about the check's own limit;
    render both.
-4. **Sequencing** — §14's third. Compute peak concurrency from the programme schedule, taking slice
-   order from `depends_on` in each slice's PRD frontmatter.
-5. **The umbrella's tier** is §14's minimum-and-print-the-mix rule; where the umbrella mints packages
-   of its own (step 2), §5's ceiling for that minimum tier caps their confidence too.
-6. **Sum the ranges and state them as summed** (§14).
-7. **Apply §8's stability rule** on a re-run, against the prior revision Phase 0 noted; §12's
+5. **Sequencing** — §14's third adjustment. Compute peak concurrency from the programme schedule,
+   taking slice order from `depends_on` in each slice's PRD frontmatter.
+6. **The umbrella's tier** is §14's minimum-and-print-the-mix rule; every package this phase minted
+   of its own (steps 2 and 3) is capped by §5's ceiling for that minimum tier.
+7. **Sum the ranges and state them as summed** (§14).
+8. **Apply §8's stability rule** on a re-run, against the prior revision Phase 0 noted; §12's
    changelog then names the cause of every figure that moved — including a figure that moved only
    because a slice was re-priced beneath it, which is a cause and is named as one. **`--redo`
    discards the anchor** — say so in the report when it was given, because a run that discarded the
@@ -543,9 +567,9 @@ not a capability this plugin lacks. A review BLOCK is not one either: that is th
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/brd-proposal`; what was
    produced (the umbrella, the brief or the reason there is none, the archived prior); key events (the
-   slices included and excluded with the walk's recommendation for each, de-duplication flags and how
-   the operator resolved them, the umbrella tier and the slice that set it, BLOCK reviews — or
-   'none'); workarounds; the `proposal-reviewer` verdict; test result N/A; project root = the resolved
+   slices included and excluded with the walk's recommendation for each, what the container-level defect
+   sweep found, de-duplication flags and how the operator resolved them, the umbrella tier and the
+   slice that set it, BLOCK reviews — or 'none'); workarounds; the `proposal-reviewer` verdict; test result N/A; project root = the resolved
    folder.
 2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")`
    and call its `emit-auto` entry point (§6) with the report, `command: /brd-proposal`, the run's
@@ -583,13 +607,18 @@ user name is ever written.
 
 Report: the resolved folder and the `BRD-` key; **every slice Phase 2 enumerated, with the walk's
 computed recommendation and the operator's decision for each** — included, excluded, or left for
-re-pricing — so an inclusion taken against a **Stop** recommendation is visible rather than implied;
+re-pricing — so an inclusion taken against a **Stop** recommendation is visible rather than implied.
+**On a run the walk ended** — the operator answered "Price the slice first" — the report is that walk
+plus the list of slices still to price, and it says plainly that no artifact was written and nothing
+was excluded; the rest of this list describes a run that reached Phase 8. Otherwise:
 the `require-on-main` return for each included slice; **the umbrella's readiness tier, the slice that
 set it, and the full tier mix**, with the confidence ceiling that tier sets; the row set's totals and
 **the programme's expected hours with its summed low and high** (hours, never money), each named
 adjustment shown separately rather than absorbed — umbrella effort, every de-duplication deduction
 with the finding identifier that produced it, and the sequencing result with its peak concurrency;
-every de-duplication flag the operator kept as two pieces of work, with the reason; **the coverage
+every de-duplication flag the operator kept as two pieces of work, with the reason; **what the
+container-level defect sweep found** — every candidate confirmed and every one rejected, or that it
+found nothing, which is the ordinary outcome; **the coverage
 proportion and the count of requirements the umbrella does not cover, by class** — excluded slice,
 still `unallocated`, or terminal — with the enumeration itself in §4's coverage statement; whether the
 resolved folder held a root ledger at all, and, where it did not, that no proportion is claimed; the

@@ -297,7 +297,29 @@ register created to fix it contained the same unrecorded claim.
 
 ---
 
-# Open after gate 3 — G3-1, G3-2, G3-3 and E-2 closed 2026-09-08; G3-4 stands as constraints; E-4 closed
+**CLOSED 2026-09-08** — both halves, on branch `iv-gu/code-defect-record`. `product-workflows` 3.3.0, `workflows-core` 1.3.3. Spec `docs/superpowers/specs/2026-09-08-code-defect-record-design.md`, plan `docs/superpowers/plans/2026-09-08-code-defect-record.md`.
+
+**What shipped.** `references/code-defect-log-format.md` defines `[CDF#n]` in `<BRD-dir>/code-defect-log.md` — slice-owned, unlike the parent-owned `[DEF#n]` requirement log. Each entry cites one verified `[CG#n]` for the behaviour and names its **intent basis separately**, because `workflows-core:grounding-format` §1 makes grounding adjudicate a claim and gives it no authority over the code's own intent. Five dispositions, no `fixed` one. `/brd-interview` is the only writer: Phase 6 offers to raise an entry on a **structural** trigger — the decision's own `evidence` holding a `REWRITTEN`, `AMENDED` or `FALSE-FRIEND` finding — and a later round may re-disposition an entry already on file. `decision-register-format` §1 gained a twelfth field, `defects`, deliberately not in `evidence`, which §6's will-change rule inspects. E-3b's backstop is `brd-package-reviewer`'s sixth hunt class.
+
+**The design reversed itself once, on the operator's argument, and the reversal is the important part.** An earlier draft excluded the log from the customer bundle as delivery-side bookkeeping, and paid for it with a §6.3 exemption plus an inverse stop-the-run rule. A defect disposed `in-scope` **is** the delivery boundary — the repair has to happen inside the PRD's scope or the feature cannot ship — so the customer agreeing to that scope must be able to see it. The log ships (parts 6, 8 and 11 of the prompt), `[CDF#n]` is an ordinary ninth citation class with an ordinary corpus, and **both special cases were deleted**. E-4's repo-first route had already made the concealment illusory: a customer who pulls the specs repository sees the folder anyway, so the rule held on one delivery route and failed silently on the other.
+
+**The prose-trigger gate this entry anticipated was measured and NOT built.** The tree holds two `argumentation:` examples in total and no corpus of real registers, so the measurement that justified checks 8, 11, 15 and 16 cannot be produced for it. Do not re-propose it without a corpus.
+
+**Cost, recorded because it is the reason this class keeps recurring.** Roughly two dozen glob-coverage defects were fixed across the branch — prose deriving an obligation from an enumeration the change grew. Three were functional rather than cosmetic: the reviewer's Output schema would have **rejected** its own new class; `/brd-package` never handed the reviewer the log at all while its own text demanded it supply the contract exactly; and two sweep-scope tables would have let a write reach a disposition the operator owns.
+
+---
+
+## E-5 — a `[CDF#n]`'s `blocked_on` is outside `/brd-reconcile`'s propagation sweep
+
+**Parked deliberately during E-3, not a slip.** `code-defect-log-format.md` §5 gives `blocked_on` the same `<BRD-KEY>/<decision-id>` shape as `conditional_on`, but `/brd-reconcile` Phase 10's propagation sweep walks only records carrying `conditional_on`. So a `[CDF#n]` blocked on another BRD's decision goes stale invisibly when that decision moves — verbatim the failure `decision-register-format` §5 argues `conditional_on` exists to prevent.
+
+**Why it was not folded into E-3.** A sweep that *finds* a stale `blocked_on` needs a writer for it in `/brd-reconcile`, and E-3 closed that command against unilateral writes to the log precisely because the operator owns every disposition and the customer channel must not reach one. So the fix is a design question — who re-settles a scope condition when its prerequisite moves, and through which channel — not a wording change. It needs its own brainstorm.
+
+**Blocks release under S18.** It is a known defect in shipped behaviour.
+
+---
+
+# Open after gate 3 — G3-1, G3-2, G3-3, E-2, E-3 and E-4 closed 2026-09-08; G3-4 stands as constraints; E-5 opened
 
 ## E-4 — the package tells every reviewer to extract an archive, including the ones who pull the repository
 

@@ -326,7 +326,27 @@ register created to fix it contained the same unrecorded claim.
 
 ---
 
-# Open after gate 3 — G3-1, G3-2, G3-3, E-2, E-3 and E-4 closed 2026-09-08; G3-4 stands as constraints; E-5 opened
+## E-6 — `/prd-ground` is the one PRD-reading command that does not know the legacy PRD filename, and it stops the operator with a remedy they cannot perform
+
+**Found 2026-09-08 while settling G3-4's reachability question**, which asked about a different half of the same split and turned out to be unreachable.
+
+**The defect.** `/prd-ground`'s legacy-fallback split (Phase 0, the `route:` resolution) decides between the idea route and the interrupted-intake branch on **`prd.md` being present and asserting `kind: prd`**. A genuine legacy idea-route folder — `specifications/<KEY>-<slug>/` written before `1da7480` (2026-08-31) — holds `idea.md` and **`<KEY>_<slug>.md`**, because that commit renamed the artifact at the same time as it introduced `kind:`. So `prd.md` is **absent**, the split takes the interrupted-intake branch, and the run stops with:
+
+`PRD_GROUND_NO_INVENTORY: <BRD-KEY> has no brd/brd-inventory.md and no brd-link.md naming a parent — this reads as an interrupted intake, not a slice. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' to complete it`
+
+That operator has an idea-route PRD folder. There is no `<brd-file>`; there never was one. **The remedy names a command whose required argument the addressee cannot supply** — the same family as E-4 (a package telling repo-pullers to unzip an archive) and E-3b (an argumentation citing a record nothing holds).
+
+**Measured, not assumed: `/prd-ground` is the only one of five.** `grep -rln '<KEY>_<slug>' plugins/ --include=*.md | grep -v CHANGELOG` returns `create-prd.md`, `specify.md`, `create-ard.md`, `update-prd.md` and its docs page. `/prd-ground` returns **zero** hits. Every other command that reads a PRD already handles both filenames; `/create-prd` step 6 is the worked example — *"A specs repo written before the rename holds `<KEY>_<slug>.md` instead"*.
+
+**Scope, so severity is not overstated.** `/prd-ground` on the idea route is optional and ungated, so nothing on the BRD route is affected and no gated artifact is involved. It misroutes an idea-route operator working on a pre-rename tree, and `workflows-core:addressing` §5 exists precisely so those trees keep working (*"the fallback means they need never do it"* — rename their folders).
+
+**The fix is a widening with existing precedent, not a new rule**: the split tests for the PRD **either way**, exactly as the other four commands do. What needs care is the `kind:` half — a pre-rename file predates `kind:` too, so a test demanding `kind: prd` of the legacy name would refuse the very artifact it just learned to find.
+
+**Blocks release under S18.** A known defect in shipped behaviour.
+
+---
+
+# Open after gate 3 — G3-1, G3-2, G3-3, E-2, E-3 and E-4 closed 2026-09-08; G3-4 stands as constraints; E-5 and E-6 opened
 
 ## E-4 — the package tells every reviewer to extract an archive, including the ones who pull the repository
 
@@ -405,4 +425,4 @@ Neither is a bug; both are written down because S18 is a promise about *known* s
 
 - **CLOSED 2026-09-08 by E-3.** ~~The `product-workflows` manifest `description` is 988 of its 1024 characters, tripping `validate-catalog.py`'s 900-char warning.~~ E-3's own capability forced the trim this bullet demanded: the closing dependency sentence came out — roughly 150 characters restating `plugin.json`'s machine-readable `dependencies` field, which is where a host actually reads it — and the blurb now stands at **852** in both editions, byte-identical. `validate-catalog.py .` reports **0 errors, 0 warnings**, where it had reported two since this bullet was written. **The rule the bullet stated survives its own closure**: a capability replaces wording, it never appends, and what comes out is decided at design time rather than at the version bump.
 - **`workflows-core:grounding-format` §1** has an em-dash clause butting against a pre-existing parenthetical. Cosmetic, reads clunkily, no reader is misled.
-- **Open question, reachability unproven:** `/prd-ground`'s legacy-fallback branch routes a folder whose `prd.md` is *present but does not assert `kind: prd`* to the interrupted-intake stop, which names `/brd-intake <KEY> @<brd-file>` — a BRD source document that operator does not have. This is what the design specified, and no `prd.md` without `kind:` has been shown to exist (`prd-format`'s history records `key` having been unset for a period, not `kind`). Recorded as a question so it is not rediscovered as a defect.
+- **ANSWERED 2026-09-08, and the answer moved: the case asked about is unreachable, and the investigation found an adjacent one that is not.** ~~Open question, reachability unproven: `/prd-ground`'s legacy-fallback branch routes a folder whose `prd.md` is present but does not assert `kind: prd` to the interrupted-intake stop.~~ **Unreachable as asked.** `kind:` frontmatter arrived in `1da7480` (2026-08-31), and that same commit renamed the artifact: before it, the PRD file was `<KEY>_<slug>.md` and carried no `kind:`; after it, `prd.md` carries `kind: prd` and `product-workflows:prd-reviewer` verifies the field on every `/create-prd` and `/update-prd` run. So a `prd.md` **present without** `kind: prd` is producible only by hand-renaming a pre-2026-08-31 file without touching its frontmatter. The ledger's original reading was right, and for the right reason. **But the *absent* half of that same split is reachable, and it is a defect — see E-6.**

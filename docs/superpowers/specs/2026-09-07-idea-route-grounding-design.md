@@ -228,12 +228,18 @@ of this commit?*, and `/create-ard` rests a whole refusal on the distinction —
 `workflows-core:grounding-format` §1 says is a capability inventory and explicitly **not** a finding."
 
 **What changes is where those two derive their themes from when verified grounding is present.**
-On the BRD route `/specify` already does this: it extracts capability themes from `spec-seed.md`, the
-implementation-altitude `decided` statements and the derivation-matrix rows, and those feed its repo
-derivation and its `code-scanner` dispatches **in place of** the PRD-derived themes. An idea-route
-folder has no seed files, so without a rule here both commands would read the `[CG#n]` set and then
-scan as though it did not exist — two agents re-deriving, on a cheaper model and with no verifier,
-what a verified corpus already settled.
+The nearest existing precedent is `/specify`'s BRD-route theme extraction, which replaces the
+PRD-derived themes with ones drawn from `spec-seed.md`, the implementation-altitude `decided`
+statements and the derivation-matrix rows — so the *shape* of "derive themes from the route's own
+material instead of the PRD's" already ships. **It is a precedent for the shape and not for the
+source, and an earlier draft of this section overstated it as "`/specify` already does this."** None
+of those three sources is a `[CG#n]`/`[DG#n]` finding: a matrix row lives inside
+`code-grounding.md` but is not a finding, and seeds and decisions are neither. **So seeding themes
+from verified findings is new on both routes, deliberately** — the rule below is written
+route-neutrally and applies wherever a folder holds grounding, rather than extending an idea-route
+gap to match something the BRD route was already doing. Without it, both commands would read the
+`[CG#n]` set and then scan as though it did not exist — two agents re-deriving, on a cheaper model
+and with no verifier, what a verified corpus already settled.
 
 **The rule: where the resolved folder holds verified grounding, each command seeds its theme set from
 the findings before falling back to its own derivation.** A `[CG#n]` whose verdict says a capability is

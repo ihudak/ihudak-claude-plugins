@@ -317,6 +317,13 @@ register created to fix it contained the same unrecorded claim.
 
 **Blocks release under S18.** It is a known defect in shipped behaviour.
 
+**Four things noted 2026-09-08 immediately after E-3 merged, none of them derivable from the entry above.**
+
+- **There are now TWO closed channels, not one, and the brainstorm must open by naming both.** E-3 closed `/brd-reconcile` twice over: its section-12 correction table gained a `refused-with-reason` row so a *customer's* correction against a `[CDF#n]` is surfaced to the operator rather than applied in place, and Phase 11's structured-record carve-out gained a fourth row so the propagation sweep's own `updated` outcome cannot write a disposition either. Both were deliberate and both are right. So "let the sweep write it" is not a small widening — it reopens the hole two separate rules were just written to close.
+- **The strongest candidate answer already exists in the tree and should be the brainstorm's starting point rather than a mid-session discovery.** E-3 taught `/brd-interview` to **re-disposition** an existing `[CDF#n]` in a later round (`disposition` and `blocked_on` only; `id`, `statement`, `behaviour`, `intent`, `intent_basis` and `round` are immovable). So the shape that fits the existing writer model is: the sweep **reports** a stale `blocked_on` and writes nothing, and the operator re-settles it in the next `/brd-interview` round. That preserves "one writer" and needs no new channel. Test it against the case where no further round is planned before packaging — that is where it may fail.
+- **Measure whether this is live before designing for it, the way E-2's severity correction had to be.** A `[CDF#n]` reaches the sweep only where its `blocked_on` carries the **qualified** `<BRD-KEY>/<decision-id>` form; `code-defect-log-format.md` §5's other sanctioned spelling is prose naming no bracketed identifier, which has nothing to sweep and never goes stale in this way. So the defect's whole surface is qualified-form entries under a prerequisite BRD whose decisions can move — the same precondition `conditional_on` already has. It may be narrower than the entry above implies.
+- **Settle G3-4's remaining open question first.** Its `/prd-ground` legacy-fallback bullet is marked *reachability unproven*: a folder whose `prd.md` is present but does not assert what the branch expects. If it proves reachable it is another blocker, and it is bounded work. Knowing that before E-5 is planned beats discovering it mid-increment — the same argument this ledger already makes for measuring a gate's trigger before building it.
+
 ---
 
 # Open after gate 3 — G3-1, G3-2, G3-3, E-2, E-3 and E-4 closed 2026-09-08; G3-4 stands as constraints; E-5 opened

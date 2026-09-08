@@ -4,8 +4,8 @@ Turns a grounded, fully-allocated BRD into a **decided** one. It generates a rou
 tags every one of them `[G]`, `[V]` or `[C]` **before a single one is asked**, answers every `[G]`
 from the grounding findings without asking anybody, puts each `[V]` to the operator one at a time
 with mandatory argumentation, and holds every `[C]` for the customer. It writes `decisions.md`, the
-round's own record, the `[C]` question set, and — where a decision turns on a defect in the code —
-the code-defect log.
+round's own record, the `[C]` question set, and — where a decision raises a defect in the code or
+re-dispositions one already on file — the code-defect log.
 
 ## Who runs it
 

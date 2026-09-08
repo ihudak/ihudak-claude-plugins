@@ -61,10 +61,10 @@ half of is a review of nothing: the method below cross-reads a decision against 
 claims, and neither half attacks anything on its own. **That is about a missing input, not an empty
 one** — a register holding no decision at all is reviewable, and the paragraph above says why.
 **And `package.defects` is the one input above that is optional**, so it is never among the things
-that return names: `commands/brd-interview.md` writes the log only where a round raised a `[CDF#n]`,
-so a package whose decisions turn on no code defect legitimately has none — and class 6 below is
-precisely the check that a package which *claims* one has it, which an input gate could not
-perform.
+that return names: `commands/brd-interview.md` writes the log only where a round raised a `[CDF#n]`
+or re-dispositioned one already on file, so a package whose decisions turn on no code defect
+legitimately has none — and class 6 below is precisely the check that a package which *claims* one
+has it, which an input gate could not perform.
 
 ## What you are hunting
 

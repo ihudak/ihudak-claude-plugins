@@ -743,9 +743,9 @@ Identifiers are **not** in the scan's classes and are meant to travel: the class
 `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.1's table enumerates are how the returned
 review cites the package's own claims without minting identifiers of its own, and a prompt that hid
 them would get back a review nothing could be matched to. **Cited rather than re-listed, and that is
-the fix rather than the style**: this sentence carried its own copy of the list, fell behind the
-table by one class the first time a register gained one, and there is no reason a second copy would
-fare better.
+the fix rather than the style**: this sentence carried its own copy of the list, six classes against
+a table that already held eight before this branch added its own ninth, and there is no reason a
+second copy would fare better.
 
 ---
 

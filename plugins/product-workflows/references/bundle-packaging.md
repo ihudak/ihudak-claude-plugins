@@ -425,11 +425,12 @@ firing on correct content.
 
 **A `[CDF#n]` corpus that is absent altogether is the third ordinary state, and it is not the
 unreadable one.** `commands/brd-interview.md` writes `code-defect-log.md` only where a round raised
-an entry, so a package whose decisions turn on no code defect ships no log at all — and §1.1's row
-for it is conditional for that reason. An absent corpus file is not a corpus holding record-shaped
-content that parsed to zero, so it never reaches `BRD_PACKAGE_CORPUS_UNREADABLE`; a `defects` field
-naming a `[CDF#n]` with no log in the bundle fails relation 1 as an ordinary dead citation, which is
-the correct outcome and needs no stop of its own.
+an entry or re-dispositioned one already on file, so a package whose decisions turn on no code
+defect ships no log at all — and §1.1's row for it is conditional for that reason. An absent corpus
+file is not a corpus holding record-shaped content that parsed to zero, so it never reaches
+`BRD_PACKAGE_CORPUS_UNREADABLE`; a `defects` field naming a `[CDF#n]` with no log in the bundle
+fails relation 1 as an ordinary dead citation, which is the correct outcome and needs no stop of
+its own.
 
 **The distinction is drawn on record-shaped content because of what the failure actually is.** What
 `workflows-core:grounding-format` §2.1 warns about is a **reader** that cannot see records that are

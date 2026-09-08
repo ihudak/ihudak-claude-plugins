@@ -711,11 +711,11 @@ here because it is one of this run's deliverables.
 **`<BRD-dir>/code-defect-log.md`** — every `[CDF#n]` this round raised, appended after any already on
 file, each carrying every field `${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §2
 defines. Ids are contiguous, assigned once, never renumbered and never reused: a re-run continues the
-sequence from the highest id on file. **A round that raised none writes nothing** — the file is
-absent until there is an entry, and its absence is an ordinary state that no later gate reads as a
-failure. Every entry's `behaviour` names a `[CG#n]` that is on file in this BRD's own
-`grounding/code-grounding.md` and carries a verifier outcome; an entry citing anything else is not
-written, because the packaging run will refuse the bundle over it
+sequence from the highest id on file. **The file is written where this round raised an entry or
+re-dispositioned one already on file, and is absent only where it did neither** — that absence is
+an ordinary state that no later gate reads as a failure. Every entry's `behaviour` names a `[CG#n]`
+that is on file in this BRD's own `grounding/code-grounding.md` and carries a verifier outcome; an
+entry citing anything else is not written, because the packaging run will refuse the bundle over it
 (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.2 relation 1).
 
 **Plus every re-disposition the *Put each `[V]` to the operator* phase took on an entry already on
@@ -870,8 +870,8 @@ its own is an allocation outcome this command reports correctly, not a capabilit
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-interview`; what was produced (the round
-   worked, the register entries written, the code-defect log when this round raised one, the `[C]`
-   set held); key events (a re-opened round and its
+   worked, the register entries written, the code-defect log when this round raised or
+   re-dispositioned an entry, the `[C]` set held); key events (a re-opened round and its
    cause, a question that needed grounding, a will-change resolution, a cancelled `[V]` queue, the
    no-new-round path — or "none"); workarounds; test result N/A; project root = the BRD folder.
 2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6)

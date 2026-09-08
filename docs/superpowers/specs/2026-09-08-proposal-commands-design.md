@@ -195,11 +195,51 @@ Findings are triaged and verified by the caller under `workflows-core:finding-tr
 
 ## 12. Pipeline integration
 
-The standard shape, with nothing novel: `specs-preflight` (`workflows-core:specs-repo-git` §3) as early as `$SPECS_PATH` is known; `handoff-to-main` for both artifacts and, on a revision, the archived prior; `impl-maintenance`; and `commit-artifacts` as the last action, skipped on `specs_git: blocked`. Both commands emit a session-cost entry under `workflows-core:cost-emission` and are eligible for `feedback-emission` and `followup-emission` like every other command.
+### 12.1 The shared machinery both commands run
+
+Nothing here is novel; it is enumerated rather than gestured at, because "the standard shape" is not a specification and an implementer cannot build from it.
+
+- **`specs-preflight`** (`workflows-core:specs-repo-git` §3), as early as `$SPECS_PATH` is known. A `specs_git: blocked` return is carried for the whole run and skips the terminal commit.
+- **`workflows-core:escalation-rules`** for every prompt either command raises — the profile grill (§9) and the readiness walk (§7). Choices arrays of two to four options, and **never an authored "Other"**: §0 is explicit that the harness supplies the free-text escape itself.
+- **`workflows-core:grilling-technique`** governs the profile grill.
+- **`workflows-core:prose-formatting`** governs both artifacts. They are prose documents; prose is never hard-wrapped, one unbroken line per paragraph.
+- **`workflows-core:pre-lint`** before the review gate, as `/create-prd` runs it — a cheap pass ahead of an expensive Opus one.
+- **`handoff-to-main`** (`workflows-core:phase-handoff` §4.3) for `proposal.md`, `proposal-brief.md` and, on a revision, the archived prior.
+- **`impl-maintenance`**, whose Lessons Learned report feeds **`emit-auto`** (`workflows-core:feedback-emission`, the automatic caller of the three named entry points).
+- **`emit-cost`** (`workflows-core:cost-emission` §11), supplying `command`, `phase`, `role`, `key`, `source` and `plugin_version` like the other twenty measuring commands. This entry records **model spend in USD** and has no relationship whatever to the human hours the artifacts contain (§2).
+- **`followup-emission`** §8's caller contract, with the end-of-run batch preview.
+- **`next-phase-offer`**, with **`session-hygiene`** co-firing on the same role labels — §12.2.
+- **`commit-artifacts`** as the last action, skipped on `specs_git: blocked`.
 
 **Neither command takes documentation grounding, and neither carries `--no-docs`.** This is a decision, not an omission: `docs-grounder` retrieves existing product-documentation pages, which bear on how a feature is described and not at all on what it costs to build. The inputs to an estimate are the specs tree and the profile. Adding the switch would buy a consent prompt and a retrieval round for a digest nothing in either artifact could consume.
 
-Both are added to the workflow map in the repository `CLAUDE.md`, to `product-workflows/README.md`, to its `docs/` tree with a page each, and to the plugin's `CHANGELOG.md`. The `product-workflows` blurb in both `plugin.json` and `marketplace.json` must be **re-worded rather than appended to**, and must stay inside the 1024-character catalogue limit that `scripts/validate-catalog.py` enforces for the whole marketplace.
+### 12.2 The workflow edges — and they run in both directions
+
+Adding a command adds edges to the routing graph, and `CLAUDE.md`'s Surgical Changes rule makes the reverse direction mandatory rather than optional: a node nothing offers is a node nobody finds.
+
+**Role label: PM.** The proposal is authored from PM-altitude artifacts and is commercially owned. Every printed command name is fully qualified per rule 6.
+
+**Offers out of `/prd-proposal`,** on a clean run, following rule 5's depth-and-breadth shape with the slice standing where an Epic stands:
+
+- **Depth** — `/product-workflows:brd-proposal <BRD-KEY>`, where the folder has a parent BRD, so the slice's proposal rolls into the umbrella.
+- **Breadth** — `/product-workflows:prd-proposal <SIBLING-SLICE-KEY>`, for the next sibling holding no current proposal.
+- **And, below tier 4, the command that would raise the tier** — `/product-workflows:create-ard` at tier 2, `/product-workflows:specify` at tier 3 — named together with the plain statement that re-running the proposal afterwards narrows the range. This is the one offer that tells the operator the document they just received is improvable, which is worth more than a forward pointer.
+
+**Offers out of `/brd-proposal`:** no forward advance — the umbrella is the end of this branch, not a phase in the build ladder. It offers re-runs: `/product-workflows:prd-proposal <SLICE-KEY>` for each slice the readiness walk found stale or excluded, and itself afterwards.
+
+**Offers into the new commands, added to exactly three existing commands** — the three at which the tier actually changes, and no others, so the offer is never noise:
+
+| Add an offer of `/product-workflows:prd-proposal <KEY>` to | Because that run takes the slice to |
+| --- | --- |
+| `/brd-reconcile` | tier 2 — the register settles, and the slice becomes sendable |
+| `/create-ard` | tier 3 |
+| `/specify` | tier 4 |
+
+**One interaction the implementer must check rather than assume.** This repository's build gates include a check that enforces a `<merge-clause>` on any offer of `/create-ard` or `/specify` within the command-family globs. `/prd-proposal` offers both of those commands under the tier-raising rule above, so it may fall inside that check's scope the moment it is added. Run the repository's own gate checks after wiring the offers, and satisfy the clause rather than exempting the command from the check.
+
+### 12.3 Documentation and catalogue
+
+Both commands are added to the workflow map in the repository `CLAUDE.md`, to `product-workflows/README.md`, to its `docs/` tree with a page each in the shape the existing per-command pages take, and to the plugin's `CHANGELOG.md`. `next-phase-offer.md`'s routing graph gains both nodes. The `product-workflows` blurb in **both** `plugin.json` and `marketplace.json` must be **re-worded rather than appended to**, and must stay inside the 1024-character catalogue limit `scripts/validate-catalog.py` enforces — the limit is Copilot CLI's and it rejects the whole catalogue, so one over-long blurb breaks installation for every plugin in the marketplace.
 
 ## 13. Vendor neutrality — a hard constraint on the implementation
 
@@ -243,10 +283,11 @@ Pricing in money, rate cards and any commercial term. Contract or SOW generation
 
 ## 17. Implementation sequencing
 
-Three deliverables in strict order, because each is the previous one's consumer.
+Four deliverables in strict order, because each is the previous one's consumer.
 
 1. **`proposal-format.md`, then `/prd-proposal`, then `proposal-reviewer`** — the format fixes the section set and the two namespaces; the command authors against it; the agent checks against it. The reviewer is not optional and not a later increment: its arithmetic check (§11.2) is the highest-yield check in the design, and shipping the author without it ships an unchecked hours table to a customer.
 2. **`/brd-proposal`** — it reads `proposal.md` files, so it cannot be specified against a format that does not exist yet, and its de-duplication check (§8) depends on the driver citations the first command writes.
-3. **Documentation and catalogue** — the workflow map in `CLAUDE.md`, the `product-workflows` README and `docs/` pages, `CHANGELOG.md`, and the re-worded blurb inside the 1024-character limit.
+3. **The workflow edges** (§12.2) — the offers out of both new commands, the offers into them added to `/brd-reconcile`, `/create-ard` and `/specify`, and both nodes added to `next-phase-offer.md`'s routing graph. Then run the repository's own build gates, because the tier-raising offer may bring `/prd-proposal` inside the `<merge-clause>` check.
+4. **Documentation and catalogue** — the workflow map in `CLAUDE.md`, the `product-workflows` README and `docs/` pages, `CHANGELOG.md`, and the re-worded blurb inside the 1024-character limit.
 
 A useful first milestone is `/prd-proposal` at tier 4 against a folder that already holds a PRD, an ARD, a specification, a settled register and verified grounding: it exercises every branch that matters, and the lower tiers are subtractions from it rather than separate paths.

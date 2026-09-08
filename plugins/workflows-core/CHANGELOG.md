@@ -4,6 +4,16 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.3.6] — 2026-09-08
+
+### Fixed
+
+- **`grounding-format` §1 reads as it was meant to.** The sentence defining what a finding answers put
+  an em-dash clause immediately after a closing parenthesis, so *checked against a pinned revision*
+  appeared to qualify the parenthetical rather than the clause it belongs to. The requirement-row list
+  is now bracketed by a matched pair of em-dashes and the design-grounding case is its own sentence.
+  No rule moved.
+
 ## [1.3.5] — 2026-09-08
 
 ### Removed

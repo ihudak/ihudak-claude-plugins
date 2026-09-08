@@ -1,6 +1,6 @@
 ---
 name: brd-interview
-description: BRD decision workflow (PM phase, the BRD-to-PRD route's decision step, run once per slice once `/prd-ground` and `/brd-split` have both run on it). Gates on the BRD's grounding being merged, every finding carrying a verifier outcome, and its coverage ledger fully allocated, then generates the round's question set and tags every question [G]/[V]/[C] before a single one is asked. Answers every [G] from the grounding findings and never puts one to a human; puts each [V] to the operator one at a time via AskUserQuestion with mandatory argumentation; holds every [C] for the customer. Re-tags a [G] only against a named NOT-PROVABLE finding, splits any question carrying more than one tag, and refuses to close a decision resting solely on a will-change finding. Writes decisions.md ([VD#n] and [AS#n]), the round record, and the [C] question set. --round N resumes an open round or re-opens a closed one, recorded with its cause. Takes no --no-docs and does no documentation grounding.
+description: BRD decision workflow (PM phase, the BRD-to-PRD route's decision step, run once per slice once `/prd-ground` and `/brd-split` have both run on it). Gates on the BRD's grounding being merged, every finding carrying a verifier outcome, and its coverage ledger fully allocated, then generates the round's question set and tags every question [G]/[V]/[C] before a single one is asked. Answers every [G] from the grounding findings and never puts one to a human; puts each [V] to the operator one at a time via AskUserQuestion with mandatory argumentation; holds every [C] for the customer. Re-tags a [G] only against a named NOT-PROVABLE finding, splits any question carrying more than one tag, and refuses to close a decision resting solely on a will-change finding. Writes decisions.md ([VD#n] and [AS#n]), the round record, and the [C] question set, plus the code-defect log where a decision turns on one. --round N resumes an open round or re-opens a closed one, recorded with its cause. Takes no --no-docs and does no documentation grounding.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -528,6 +528,30 @@ section's: **adequate when a reader who was not in the room can say what would h
 answer to change.** A reason that survives being read back a month later names the constraint, not
 the preference.
 
+**Then, on exactly one condition, offer to record a code defect.** Where this decision's `evidence`
+list holds at least one finding whose `verdict` is `REWRITTEN`, `AMENDED` or `FALSE-FRIEND` — the
+three verdicts that mean grounding established the code does something other than what was claimed
+(`workflows-core:grounding-format` §3) — ask the operator whether the position turns on a defect in
+the code, and where it does, take a `[CDF#n]` against
+`${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §2 and put its id in this decision's
+`defects` list. **The trigger is read off the record, never out of prose**: there is no phrase this
+command matches, and none is wanted — the tree carries no corpus of real registers to measure a
+candidate pattern against, which is the evidence this repository requires before a prose proxy ships.
+
+```
+choices: ["No — this position does not turn on a code defect (Recommended)", "Yes — record a defect and cite it here"]
+```
+
+**The offer is a convenience, not the gate.** An operator may raise a `[CDF#n]` at any point in this
+phase without being asked, and a decision whose evidence holds only `CONFIRMED` findings gets no
+offer and may still need one. What catches the residue is `agents/brd-package-reviewer.md`, which
+raises a finding where an `argumentation` asserts a recorded defect that no `defects` field names.
+
+**A `[CDF#n]` is customer-visible.** The log ships in the review package
+(`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1), so take `statement`, `intent` and any
+`operator-judgment` reasoning to the same standard this phase already applies to `argumentation`, and
+refuse an entry that does not meet it.
+
 Record each answered question as **terminally disposed** *decided*, with a `[VD#n]` held for the
 register phase, carrying every field
 `decision-register-format.md` §1 defines — including `evidence` (the findings this position rests
@@ -656,6 +680,16 @@ in the same words, that *Resolve the round* resumes on.
 **`<BRD-dir>/interview/customer-questions.md`** — written by the *Hold every `[C]`* phase; listed
 here because it is one of this run's deliverables.
 
+**`<BRD-dir>/code-defect-log.md`** — every `[CDF#n]` this round raised, appended after any already on
+file, each carrying every field `${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §2
+defines. Ids are contiguous, assigned once, never renumbered and never reused: a re-run continues the
+sequence from the highest id on file. **A round that raised none writes nothing** — the file is
+absent until there is an entry, and its absence is an ordinary state that no later gate reads as a
+failure. Every entry's `behaviour` names a `[CG#n]` that is on file in this BRD's own
+`grounding/code-grounding.md` and carries a verifier outcome; an entry citing anything else is not
+written, because the packaging run will refuse the bundle over it
+(`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.2 relation 1).
+
 **Round closure is decided here, and only by the record.** The round closes when every question in
 it carries a **terminal** disposition, and not before. **Any** of the four holding states keeps it
 open — so a round is not closed because the interesting questions are answered, because the
@@ -674,15 +708,16 @@ Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and pre
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's
-table, where `brd` is the prefix the `/brd-*` commands share), `feature_folder` as resolved in the
-*Resolve inputs and gate the grounded BRD* phase, `deliverable_paths` = every file this run wrote or
-updated under `<BRD-dir>` (`decisions.md`, `interview/round-<N>.md`, and
-`interview/customer-questions.md` when this round held a `[C]`), `title: <BRD-KEY> Record round <N>
-interview decisions`, and `body_facts` = the round number and whether it opened, resumed or re-opened;
-the question counts by tag; the `[G]` answers and the re-tags with their causes; the `[VD#n]` and
-`[AS#n]` ids written; the `[C]` count held; and every will-change resolution taken. Emit its §4.1
-outcome line in the final report.
+On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args:
+"phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's table, where `brd` is the prefix
+the `/brd-*` commands share), `feature_folder` as resolved in the *Resolve inputs and gate the
+grounded BRD* phase, `deliverable_paths` = every file this run wrote or updated under `<BRD-dir>`
+(`decisions.md`, `interview/round-<N>.md`, `interview/customer-questions.md` when this round held a
+`[C]`, and `code-defect-log.md` when this round raised a `[CDF#n]`), `title: <BRD-KEY> Record round
+<N> interview decisions`, and `body_facts` = the round number and whether it opened, resumed or
+re-opened; the question counts by tag; the `[G]` answers and the re-tags with their causes; the
+`[VD#n]`, `[AS#n]` and `[CDF#n]` ids written; the `[C]` count held; and every will-change resolution
+taken. Emit its §4.1 outcome line in the final report.
 
 The no-new-round path in *Resolve the round* reaches this phase with nothing staged, so it reports
 the `nothing to commit` line rather than opening a pull request.

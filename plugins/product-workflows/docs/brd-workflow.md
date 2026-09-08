@@ -247,6 +247,7 @@ specifications/BRD-<BRD-KEY>-<slug>/
 ├── brd-link.md                  # depends-on / parent-child links, /prd-ground, /brd-split, /brd-package
 ├── slices.md                    # slice rationale and deferral notes, /brd-split
 ├── decisions.md                 # the register: [VD#n] and [AS#n] from /brd-interview, [CD#n] from /brd-reconcile
+├── code-defect-log.md           # [CDF#n] code defects a decision turns on, from /brd-interview
 ├── interview/
 │   ├── round-<N>.md             # one append-only record per round, /brd-interview
 │   └── customer-questions.md    # the [C] questions held for the customer, /brd-interview

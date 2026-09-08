@@ -4,7 +4,8 @@ Turns a grounded, fully-allocated BRD into a **decided** one. It generates a rou
 tags every one of them `[G]`, `[V]` or `[C]` **before a single one is asked**, answers every `[G]`
 from the grounding findings without asking anybody, puts each `[V]` to the operator one at a time
 with mandatory argumentation, and holds every `[C]` for the customer. It writes `decisions.md`, the
-round's own record, and the `[C]` question set.
+round's own record, the `[C]` question set, and — where a decision turns on a defect in the code —
+the code-defect log.
 
 ## Who runs it
 
@@ -152,7 +153,7 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
 ([addressing](../reference/references.md) §2, §6):
 
 - `decisions.md` — the decision register: one block per `[VD#n]` delivery-team decision and per
-  `[AS#n]` assumption, each carrying the eleven fields
+  `[AS#n]` assumption, each carrying the twelve fields
   [`decision-register-format.md`](../../references/decision-register-format.md) §1 defines, with §7's
   account of which of them mean something different on an assumption. Ids are contiguous within their
   own prefix, assigned once, never renumbered, and never reused after a terminal status.
@@ -165,6 +166,12 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   restarting the round.
 - `interview/customer-questions.md` — the `[C]` questions held for the customer, each with the
   findings that bear on it and any `[G]` answer that already narrowed it.
+- `code-defect-log.md` — the code-defect log: one `[CDF#n]` per defect in the code that a decision
+  turns on, each citing the verified `[CG#n]` that established the behaviour and naming separately
+  what the code is supposed to do and what says so. Written only where a round raised one, and
+  shipped to the customer in the review package, because a defect disposed `in-scope` is part of the
+  delivery boundary rather than delivery-side bookkeeping. Format:
+  [`code-defect-log-format.md`](../../references/code-defect-log-format.md).
 
 **No `[CD#n]` is ever written by this command.** A customer decision enters the register only once
 the customer has actually answered and an operator has confirmed the answer; the customer answering

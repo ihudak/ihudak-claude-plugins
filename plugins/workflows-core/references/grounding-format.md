@@ -498,6 +498,13 @@ reconciles it against the requirement inventory it was handed — a BRD's `[BR#n
    perform the capture is a code-grounding question, and `design-grounder` answers it by pointing
    at the finding that settled it, never by re-deriving the code answer itself. A `[DG#n]` of this
    class carrying no `[CG#n]` citation is incomplete.
+   **A citation that is present and wrong is worse than one that is absent, so the requirement is
+   not only that a `[CG#n]` is named but that it is the right one: the cited finding's `claim`
+   names the same requirement id as the citing `[DG#n]`'s own `claim`.** An absent citation is
+   visibly incomplete and a reader stops; a citation that resolves sends the reader to a real
+   finding about a different requirement, which they have no way to detect. Both values sit in
+   the two records, so this is checkable wherever both are on hand — `product-workflows:bundle-packaging`
+   §6 is the first consumer to check it, at the point the findings are copied in front of a customer.
 
 ## 7. The derivation matrix
 

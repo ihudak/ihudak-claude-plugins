@@ -8,7 +8,7 @@ Per **S18**, nothing releases while any of these is open.
 
 1. **Slice-first grounding and interviewing** — `docs/superpowers/specs/2026-09-06-slice-first-grounding-design.md`. **Shipped in `product-workflows` 2.0.0.** Closed BRD-5 and the per-slice interview package request.
 2. **The sibling re-cut** — that spec's §8, settled in `docs/superpowers/specs/2026-09-07-sibling-re-cut-design.md`. A slice grounding shows is too big hands its deferred rows to a new sibling, by re-pointing `covered-by` against the owner's own `deferred-to`. **Shipped in `product-workflows` 2.1.0.**
-3. **Idea-route grounding** — that spec's §5. Verified `[CG#n]` findings for a PRD folder authored from an idea, which needs a claim source chosen deliberately since there is no `[BR#n]` inventory. **Spec written 2026-09-07** — `docs/superpowers/specs/2026-09-07-idea-route-grounding-design.md`. It also renames `/brd-ground` to `/prd-ground`, which makes the increment `product-workflows` 3.0.0.
+3. **Idea-route grounding** — **SHIPPED** in `product-workflows` 3.0.0 / `workflows-core` 1.3.0, which also renames `/brd-ground` to `/prd-ground`. That spec's §5. Verified `[CG#n]` findings for a PRD folder authored from an idea, which needs a claim source chosen deliberately since there is no `[BR#n]` inventory. **Spec written 2026-09-07** — `docs/superpowers/specs/2026-09-07-idea-route-grounding-design.md`. It also renames `/brd-ground` to `/prd-ground`, which makes the increment `product-workflows` 3.0.0.
 
 **The release-gating set is no longer only the gates.** Three further defects were reported on 2026-09-07 by an operator running the route on a second live engagement, recorded below as E-1, E-2 and E-3. Per S18 they gate the release exactly as the gates do. **Sequenced: E-1 (closed 2026-09-07), then gate 3, then E-2 and E-3.** E-1 goes first because it is in the verification phase, which is route-agnostic — ship gate 3 first and the idea route inherits it, and the fix then has two routes' worth of surface. E-2 and E-3 both live where gate 3 does not go: E-2 is entirely inside `/brd-package`, and E-3 is additive in a route-agnostic phase with nothing for the new route to inherit, so designing it after gate 3 means designing it once with both routes visible rather than for one and re-checking on two.
 
@@ -278,3 +278,18 @@ nice-to-have.
 
 **Recorded because it is the strongest argument for the gate:** this defect was found because the
 register created to fix it contained the same unrecorded claim.
+
+
+---
+
+# Open after gate 3 — one residual, recorded so S18 catches it
+
+## G3-1 — `dev-workflows/docs/reference/environment.md:11` lost `/prd-ground` from an enumeration
+
+**Small, documentation-only, and an instance of gate 3's own signature defect class**, which is why it is recorded rather than waved through.
+
+The line reads *"The same gate applies to the companion `product-workflows` plugin's `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, and **every `/brd-*` command**"*, describing the stop-and-offer behaviour on an unset `SPECS_PATH`. `/prd-ground` Phase 0 step 3 stops identically, with the same `choices:` array — verified — but it is named nowhere, and the `/brd-*` glob stopped reaching it the day the rename shipped.
+
+**This is the glob-coverage regression class**: prose that derives an obligation from a glob the rename shrank, invisible to `grep -r 'brd-ground'` because the sentence never contained that string. Gate 3 found and fixed **fifteen** instances of it across three plugins; this one survived because the file was opened by neither the literal-name sweep nor the class sweep that followed. Found by the final whole-branch review's own re-run of the class sweep, after the fix wave — which is the argument for running that sweep again at the end rather than trusting the fix list.
+
+Fix is one line: name `/prd-ground` alongside the glob. Nothing about a run misbehaves; a reader is simply told the gate applies to five commands where it applies to six.

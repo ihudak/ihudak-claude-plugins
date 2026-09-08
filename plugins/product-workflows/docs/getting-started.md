@@ -41,11 +41,11 @@ The **shared, team-visible repository for the AI-authored documents** — the id
 
 ### `REPOS_PATH`
 
-Where your mounted implementation and design code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. `/create-ard` and `/idea` (with `--ground-code`) list top-level directories under `$REPOS_PATH` and match on their **basenames**, so a repo renamed on disk is not found by those two unless the rename is also reflected there. `/brd-ground` instead grounds against the repositories `grounding/baselines.md` pins by commit.
+Where your mounted implementation and design code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. `/create-ard` and `/idea` (with `--ground-code`) list top-level directories under `$REPOS_PATH` and match on their **basenames**, so a repo renamed on disk is not found by those two unless the rename is also reflected there. `/prd-ground` instead grounds against the repositories `grounding/baselines.md` pins by commit.
 
 ### `DOCS_PATH`
 
-A **read-only** clone of your shipped product documentation. Eight of this plugin's commands ground against what is already published, so a new draft does not contradict or duplicate an existing page: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake`, and `/brd-ground`. The plugin never writes to `DOCS_PATH`; every miss — unset, missing, or no markdown found — is a silent, non-blocking skip. Disable per-run with `--no-docs` — and, in `/brd-ground`, also with `--no-code` — or override the root with `--docs <path>`, which today only `/idea` parses.
+A **read-only** clone of your shipped product documentation. Eight of this plugin's commands ground against what is already published, so a new draft does not contradict or duplicate an existing page: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake`, and `/prd-ground`. The plugin never writes to `DOCS_PATH`; every miss — unset, missing, or no markdown found — is a silent, non-blocking skip. Disable per-run with `--no-docs` — and, in `/prd-ground`, also with `--no-code` — or override the root with `--docs <path>`, which today only `/idea` parses.
 
 ## Your first run
 

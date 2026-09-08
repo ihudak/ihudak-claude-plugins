@@ -6,7 +6,8 @@
 | understand the whole pipeline first | [Workflow overview](workflow.md) |
 | know what my role is responsible for | [Roles and phases](roles-and-phases.md) |
 | see all six commands of the BRD-to-PRD route as one diagram, plus the three edges it hands over on, with a parameter table | [BRD workflow](brd-workflow.md) |
-| turn a customer BRD into a grounded inventory with every requirement allocated | [`/brd-intake`](commands/brd-intake.md), [`/brd-ground`](commands/brd-ground.md), [`/brd-split`](commands/brd-split.md) |
+| turn a customer BRD into a grounded inventory with every requirement allocated | [`/brd-intake`](commands/brd-intake.md), [`/prd-ground`](commands/prd-ground.md), [`/brd-split`](commands/brd-split.md) |
+| ground an idea-route PRD's own requirements against code and design before architecting it | [`/prd-ground`](commands/prd-ground.md) |
 | decide an allocated BRD's open questions without asking the wrong party | [`/brd-interview`](commands/brd-interview.md) |
 | package a decided BRD for a customer whose reviewer has nothing installed | [`/brd-package`](commands/brd-package.md) |
 | freeze a returned customer review into decisions and sweep what it overturned | [`/brd-reconcile`](commands/brd-reconcile.md) |
@@ -21,7 +22,7 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 
 ## Commands
 
-- [`/brd-ground`](commands/brd-ground.md) — pin every mounted repository, ground the BRD's requirements against code and design, and independently re-derive every finding on Opus.
+- [`/prd-ground`](commands/prd-ground.md) — pin every mounted repository, ground a slice's `[BR#n]` requirements on the BRD route or a PRD's own `[AC#n]`/`[FR#n]` rows on the idea route (optional and ungated there), and independently re-derive every finding on Opus.
 - [`/brd-intake`](commands/brd-intake.md) — intake a customer BRD verbatim, extract its requirement inventory, and write a coverage ledger with every row unallocated.
 - [`/brd-interview`](commands/brd-interview.md) — tag every open question `[G]`/`[V]`/`[C]` before it is asked, answer the `[G]`s from the findings, and record the delivery team's decisions.
 - [`/brd-package`](commands/brd-package.md) — attack the decided package, then render a plugin-free customer prompt and a de-Obsidianised bundle for a reviewer with nothing installed.

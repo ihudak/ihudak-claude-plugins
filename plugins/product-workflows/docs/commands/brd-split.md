@@ -24,7 +24,7 @@ the owner's own written refusal and needing no flag.
 cost-attribution phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route. It
 is the only command of the route that runs more than once: once on the root, right after
 [`/brd-intake`](brd-intake.md), to carve slices from a slicing instruction; and once more on each
-slice it carved, after [`/brd-ground`](brd-ground.md) has grounded that slice, to walk its ledger to
+slice it carved, after [`/prd-ground`](prd-ground.md) has grounded that slice, to walk its ledger to
 a recorded fate and hand on to [`/brd-interview`](brd-interview.md). There is a **third** occasion,
 and it is a re-run on the **parent**: once a grounded slice's own walk has recorded `deferred-to`
 against a row that parent delegated to it, an instruction typed against the parent's now
@@ -231,7 +231,7 @@ slice reaches it exactly as a parent does — `allocate-only` simply satisfies t
 construction, since no child exists or can be created below a slice and the candidate set is built in
 `full` mode only. `workflows-core:impl-maintenance` runs in
 Phase 8 for session lessons-learned; no other subagent is dispatched — every finding this command
-reads was already independently verified by `/brd-ground`'s own agents.
+reads was already independently verified by `/prd-ground`'s own agents.
 
 ## What it needs
 
@@ -256,15 +256,15 @@ reads was already independently verified by `/brd-ground`'s own agents.
   (`workflows-core:addressing` §6): a slice of a slice would inherit
   `brd/source/` and a defect log from a parent that holds neither, so its inventory header would
   name a path that does not exist.
-- **On a slice: `/brd-ground`'s findings already merged to the specs repo's default branch.**
+- **On a slice: `/prd-ground`'s findings already merged to the specs repo's default branch.**
   `split_mode: allocate-only` only — a root is never ground, so this gate and the next two do not
   run there at all; a root's own inventory-only check is stated separately below. Phase 0 gates
   `grounding/code-grounding.md` on `origin/<default>` via `require-on-main` before reading
   anything else — an open, unmerged grounding pull request stops the run naming the branch/PR
   state, and a BRD that has never been grounded at all stops naming the fix — but which fix depends
   on why no findings exist. With at least one `[BR#n]` row in the inventory, grounding simply has
-  not run: `BRD_SPLIT_NEEDS_GROUNDING`, naming `/brd-ground`. With **no** row, there is nothing to
-  ground and `/brd-ground` would stop on the same emptiness, so naming it would be a loop:
+  not run: `BRD_SPLIT_NEEDS_GROUNDING`, naming `/prd-ground`. With **no** row, there is nothing to
+  ground and `/prd-ground` would stop on the same emptiness, so naming it would be a loop:
   `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only)` instead, naming `/brd-split` on the
   parent.
 - **On a slice: there is grounding to verify.** Two presence tests run before the count below,
@@ -274,16 +274,16 @@ reads was already independently verified by `/brd-ground`'s own agents.
   main but records no `[CG#n]` stops with `BRD_SPLIT_NO_FINDINGS`. Where the folder's **design/**
   holds any frame set, `design-grounding.md` must itself be on the default branch — the run
   executes `require-on-main` against it rather than trusting the code gate's single-commit
-  implication, which `/brd-ground --no-code` breaks by design. A **design/** subdirectory that no
+  implication, which `/prd-ground --no-code` breaks by design. A **design/** subdirectory that no
   entry in `design-grounding.md`'s frame-set list covers — absent from it, or listed as having no
-  index — stops with `BRD_SPLIT_DESIGN_NOT_GROUND`, which names `/brd-ground <KEY> --no-code` as
+  index — stops with `BRD_SPLIT_DESIGN_NOT_GROUND`, which names `/prd-ground <KEY> --no-code` as
   the repair so the missing design pass can be added without re-deriving verified code findings. A
   set the operator explicitly skipped with `--no-design` passes, and is recorded in `slices.md` as
   a limit on what the split could check.
 - **On a slice: every finding verified.** A finding with no recorded verifier outcome (`agree` /
   `extend` / `contradict` / `unprovable`) is not evidence this command may act on. Any such finding
   on file stops the run with `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run
-  /product-workflows:brd-ground first.`
+  /product-workflows:prd-ground first.`
 - **On a slice: every finding block is well-formed.** The finding record's field set is closed to
   the ones `workflows-core:grounding-format` §2 defines plus `outcome` and `notes`. A block carrying
   any other key stops the run with `BRD_SPLIT_MALFORMED_FINDING`, naming each finding and key. The
@@ -294,7 +294,7 @@ reads was already independently verified by `/brd-ground`'s own agents.
 - **On a root: the inventory is non-empty.** A root is never ground, so there is no grounding gate
   here at all — `/brd-intake`'s inventory is what this mode reads. Zero `[BR#n]` rows stops with
   `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full)`, naming a corrected `/brd-intake` re-run over the
-  same folder rather than `/brd-ground`, which would stop on the same emptiness.
+  same folder rather than `/prd-ground`, which would stop on the same emptiness.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
 
 ## What it produces
@@ -354,7 +354,7 @@ so no child folder is created.
   `claims:` entry, a copied inventory row and one `unallocated` ledger row of its own, whether it is
   a slice this run keyed or a child that already stood.
 
-  Those last two files are what let the child re-enter the route: `/brd-ground`
+  Those last two files are what let the child re-enter the route: `/prd-ground`
   gates on the child's ledger and reads the child's inventory, and `/brd-intake` — the only other
   command that writes either — never runs on a slice, which has no document to intake. Those rows
   are then allocated by `/brd-split` run on the child itself, in `allocate-only` mode, which is what
@@ -516,26 +516,26 @@ candidate set instead: the measurement rows, which read `covered-by: EPIC-008-01
 `EPIC-008-01` as each row's donor; Step 2R offers each move one row at a time, showing what
 `EPIC-008-01` decided about the row before you answer. Each accepted row takes `covered-by` for the
 new slice on **both** ledgers, `EPIC-008-01` gives up the claim and the copied inventory row, and the
-new slice re-enters at `/brd-ground` with a row nobody has yet ground for it. Had every child able to
+new slice re-enters at `/prd-ground` with a row nobody has yet ground for it. Had every child able to
 take those rows already been interviewed, the run would still not stop — Phase 3 can always key a new
 slice — and declining every proposal is an answer, after which each row simply stays where it was.
 
 The run resolves the BRD, confirms an instruction was given, proposes candidate slices from it,
 keys and nests a folder per confirmed slice, walks every remaining ledger row to one of the four
 resolutions, writes `slices.md`, and offers to branch, commit, push, and open a pull request. Its
-next-step offer names [`/brd-ground`](brd-ground.md) on **each child that gained a row this run** —
+next-step offer names [`/prd-ground`](prd-ground.md) on **each child that gained a row this run** —
 the slices this run keyed and still claiming a row after the empty-child phase, and any child that
 already stood which the walk newly resolved a row to — once
 this run's deliverables reach the specs repo's default branch — the `<merge-clause>` placeholder
 (`workflows-core:next-phase-offer`) resolves that, since a no-op run and a declined handoff open no
 pull request to wait on. The offer says which of three cases each child is, because only one of them
 is a re-run: a slice keyed this run and a standing child nobody ever ground are each a first pass,
-while a standing child that is **already** ground needs `/brd-ground` again — the row arrived after
+while a standing child that is **already** ground needs `/prd-ground` again — the row arrived after
 its findings, so no finding on file was derived against it, and a finding carried in from an earlier
 run is unverified by definition. A child that gained nothing is not in the set and nothing is offered
 for it, a donor that gained no row included. **This BRD's own next step is nothing**: a root is never ground, so
 [`/brd-interview`](brd-interview.md) refuses it outright (`BRD_INTERVIEW_ROOT_LEVEL`) and is not
-offered here. It is each such child's own re-entry at `/brd-ground` and then, in
+offered here. It is each such child's own re-entry at `/prd-ground` and then, in
 `allocate-only` mode, `/brd-split` again that carries the route forward — and that second
 `/brd-split` run is what offers `/brd-interview` next, on the child's own key.
 

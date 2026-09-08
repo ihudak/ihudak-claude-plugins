@@ -36,7 +36,7 @@ words beside every row they are asked to confirm. The section *How no inferred d
 `[CD#n]`* below states the ordering that makes this structural rather than aspirational.
 
 **This command takes no `--no-docs`, and it does no documentation grounding at all. That is a
-decision, not an omission.** `/brd-intake` and `/brd-ground` already ground this BRD against the
+decision, not an omission.** `/brd-intake` and `/prd-ground` already ground this BRD against the
 shipped product documentation when `$DOCS_PATH` resolves (D22,
 `workflows-core:docs-grounding`), and `/brd-interview` and `/brd-package`
 deliberately do none for the same reason this command does none: it works on **decisions already
@@ -49,7 +49,7 @@ lose the argument to it. So there is no flag to turn off, no `resolve-docs-groun
 unwritten is exactly how the gap it forecloses gets shipped.
 
 **No repository is opened, at any point.** Every finding this run reads was pinned, written and
-independently re-derived by `/brd-ground`, so there is no baseline gate here, no dirty-tree stop, and
+independently re-derived by `/prd-ground`, so there is no baseline gate here, no dirty-tree stop, and
 no `$REPOS_PATH` requirement. That has one consequence this command states rather than works around:
 a customer challenge in the review's section 5 or 6, and a `will-change` finding whose named
 prerequisite decision this run has just frozen, are both **named as needing a grounding pass** and
@@ -831,9 +831,9 @@ Any row still undisposed when this phase would end → stop:
 **A correction that would change a `[CG#n]` or a `[DG#n]` is not applied here.** The review's
 sections 5 and 6 challenge code and design claims, and the delivery side re-adjudicates them
 (`customer-review-schema.md` §5) — but re-adjudication means an independent re-derivation, which only
-`/brd-ground` performs. Every such challenge is recorded verbatim, in the reviewer's own words, and
+`/prd-ground` performs. Every such challenge is recorded verbatim, in the reviewer's own words, and
 named in the reconciliation record with the concrete next step: a
-`/product-workflows:brd-ground <BRD-KEY>` run, with `--rebaseline` where the repository has moved since
+`/product-workflows:prd-ground <BRD-KEY>` run, with `--rebaseline` where the repository has moved since
 the pin.
 
 ---
@@ -1048,8 +1048,8 @@ into it**. It is never a stop of the whole run, for the reason that section give
 **Findings are named, not superseded.** A `[CG#n]` or `[DG#n]` carrying `horizon: will-change` whose
 named prerequisite decision this run has just frozen is exactly the shape the horizon exists to make
 visible (`workflows-core:grounding-format` §5) — but a `will-change` finding is never deleted and is superseded
-only by a *later finding at a later commit*, which only a `/brd-ground` run produces. Every one the
-sweep reaches is recorded with the concrete fix — `/product-workflows:brd-ground <BRD-KEY> --rebaseline`
+only by a *later finding at a later commit*, which only a `/prd-ground` run produces. Every one the
+sweep reaches is recorded with the concrete fix — `/product-workflows:prd-ground <BRD-KEY> --rebaseline`
 — and carried into *what still needs a human*. A finding this command marked `SUPERSEDED` would be a
 supersession with nothing on the other side of it.
 
@@ -1154,7 +1154,7 @@ changed, why, which ids, and what still needs a human:
 - **What still needs a human** — every question the review did not answer, in **all three** of the
   id shapes the package put to it, so an escalated `[SR#n]` the customer passed over is not lost
   behind the `[C]` questions that were; every candidate not frozen;
-  every correction deferred or refused; every code and design challenge, with `/brd-ground` as the
+  every correction deferred or refused; every code and design challenge, with `/prd-ground` as the
   fix; every `will-change` finding needing a rebaseline; every dependent recorded-not-written, with a
   re-run of `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>` on this same review as the fix,
   once that dependent's register is on the default branch; every
@@ -1307,12 +1307,12 @@ List every re-entry whose trigger fired as prose, each beside the trigger that f
 Where this run can go next:
   • Work another round      — /product-workflows:brd-interview <BRD-KEY>        (<trigger, with the id>)
   • Package again           — /product-workflows:brd-package <BRD-KEY> <merge-clause>   (<trigger, with the id>)
-  • Re-ground a moved claim — /product-workflows:brd-ground <BRD-KEY> --rebaseline <merge-clause>  (<trigger, with the id>)
+  • Re-ground a moved claim — /product-workflows:prd-ground <BRD-KEY> --rebaseline <merge-clause>  (<trigger, with the id>)
   • Sweep a dependent       — /product-workflows:brd-reconcile <BRD-KEY> @<review-file>  (<trigger, with the id>)
 ```
 
 ```
-choices: ["Stop here — this run's changes are recorded; the route resumes when the items named above are settled", "Work another round — /product-workflows:brd-interview <BRD-KEY>, for the decision this run reopened or the question it left askable", "Package again — /product-workflows:brd-package <BRD-KEY> <merge-clause>, for the questions still held for the customer", "Re-ground a moved claim — /product-workflows:brd-ground <BRD-KEY> --rebaseline <merge-clause>"]
+choices: ["Stop here — this run's changes are recorded; the route resumes when the items named above are settled", "Work another round — /product-workflows:brd-interview <BRD-KEY>, for the decision this run reopened or the question it left askable", "Package again — /product-workflows:brd-package <BRD-KEY> <merge-clause>, for the questions still held for the customer", "Re-ground a moved claim — /product-workflows:prd-ground <BRD-KEY> --rebaseline <merge-clause>"]
 ```
 
 **The trigger filter runs first and the four-option cap applies to what survives it**

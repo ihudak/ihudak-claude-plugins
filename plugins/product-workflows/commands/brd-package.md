@@ -34,7 +34,7 @@ plugin-internal reaches the customer* below states the ordering and the scan tha
 structural rather than aspirational.
 
 **This command takes no `--no-docs`, and it does no documentation grounding at all. That is a
-decision, not an omission.** `/brd-intake` and `/brd-ground` already ground this BRD against the
+decision, not an omission.** `/brd-intake` and `/prd-ground` already ground this BRD against the
 shipped product documentation when `$DOCS_PATH` resolves (D22,
 `workflows-core:docs-grounding`), and `/brd-interview` deliberately does none
 for the same reason this command does none: it works on **decisions already taken**. This command
@@ -47,7 +47,7 @@ The sentence is written here because leaving it unwritten is exactly how the gap
 shipped.
 
 **No repository is opened, at any point.** Every commit this package cites was pinned and proven
-clean by `/brd-ground`, and the repo→SHA table is read from that run's `grounding/baselines.md`. So
+clean by `/prd-ground`, and the repo→SHA table is read from that run's `grounding/baselines.md`. So
 there is no baseline gate here, no dirty-tree stop, and no `$REPOS_PATH` requirement. The three
 `baseline-integrity` commands are not re-run by this command — they are **handed to the customer's
 reviewer**, written out with the repository and the commit substituted, so the customer re-derives
@@ -105,7 +105,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
    `BRD_PACKAGE_NEEDS_KEY: /brd-package needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/product-workflows:brd-package <KEY>'.`
 2. **`--depends-on <BRD-KEY>`.** Repeatable, each consuming the next token; validate each with
    `key-valid` and drop (warn, do not stop the run) any that fail shape — the same handling
-   `/brd-ground` Phase 0 gives the same flag, because the flag means the same thing here and a
+   `/prd-ground` Phase 0 gives the same flag, because the flag means the same thing here and a
    mistyped prerequisite must not cost the operator the whole run. Any key at any level is
    admissible (D17), so a slice depending on another BRD and a BRD depending on a sibling express
    identically. What the flag then does is the *Resolve prerequisites and their packages* phase's
@@ -221,7 +221,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
    vocabulary `/brd-interview`'s *Resolve the round* phase fixes. Any question in the *deferred*,
    *needs grounding* or *untagged* holding state → stop, naming each one, its round, its holding
    state and the concrete fix:
-   `BRD_PACKAGE_ROUND_UNSETTLED: N questions in <BRD-KEY>'s rounds are still deferred, needs-grounding or untagged — run /product-workflows:brd-interview <BRD-KEY> (a needs-grounding question is answered by /product-workflows:brd-ground <BRD-KEY> first).`
+   `BRD_PACKAGE_ROUND_UNSETTLED: N questions in <BRD-KEY>'s rounds are still deferred, needs-grounding or untagged — run /product-workflows:brd-interview <BRD-KEY> (a needs-grounding question is answered by /product-workflows:prd-ground <BRD-KEY> first).`
 
    **Why *held for the customer* is admitted and the other three are not.** The design's
    precondition for this command is that the interview's open rounds are closed, and read literally
@@ -236,7 +236,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
 8. **Gate on there being something to review — and report it as a finished state, not a missing
    step.** A package with **no** `[C]` question, **no** open `[AS#n]`, and **no** `[VD#n]` in the
    register has nothing for a customer to confirm, correct or attack. Stop rather than sending it:
-   `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — every question its rounds asked was settled from verified findings, so there is nothing for a customer to confirm, correct or attack. This is a finished state, not a missing step: the delivery team owes the customer no decision here, and a package built from it would ask for a review of nothing. Re-running /product-workflows:brd-interview <BRD-KEY> is NOT the fix — it opens a new round only when the findings or the decisions have moved, so on an unchanged BRD it reports that nothing is askable and asks nothing. What makes a round askable again is new evidence or a moved position: '/product-workflows:brd-ground <BRD-KEY> --rebaseline' re-derives the findings against current commits, and a decision reopened or superseded in decisions.md has the same effect. Absent either, this BRD is decided and needs no customer review.`
+   `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — every question its rounds asked was settled from verified findings, so there is nothing for a customer to confirm, correct or attack. This is a finished state, not a missing step: the delivery team owes the customer no decision here, and a package built from it would ask for a review of nothing. Re-running /product-workflows:brd-interview <BRD-KEY> is NOT the fix — it opens a new round only when the findings or the decisions have moved, so on an unchanged BRD it reports that nothing is askable and asks nothing. What makes a round askable again is new evidence or a moved position: '/product-workflows:prd-ground <BRD-KEY> --rebaseline' re-derives the findings against current commits, and a decision reopened or superseded in decisions.md has the same effect. Absent either, this BRD is decided and needs no customer review.`
    **Before printing that, test `interview/` and branch the message.** A BRD holding no `[VD#n]`
    *and* no `interview/` directory was never interviewed, and telling that operator their questions
    "were settled from verified findings" congratulates them on work nobody did and names no next
@@ -313,7 +313,7 @@ model_routing:
 ```
 
 `brd-package-reviewer` keeps its frontmatter Opus pin regardless of classification, the same way
-`grounding-verifier` does in `/brd-ground` — `review_model` is recorded, never used to override the
+`grounding-verifier` does in `/prd-ground` — `review_model` is recorded, never used to override the
 pin. **The classification floors at `SIGNIFICANT`** because of what this run produces rather than how
 much of it there is: a self-review that finds nothing is a rubber stamp, and a rendered prompt is
 the one artifact in this plugin that a person outside the organisation reads without anyone
@@ -330,7 +330,7 @@ Persist every `--depends-on` key the *Resolve inputs and gate the decided BRD* p
 `<BRD-dir>/brd-link.md` under a `depends-on:` list —
 **additive only**: merge into whatever the file already carries (including a `parent:` or `claims:`
 field another command wrote), never drop an existing prerequisite, and never touch any field but
-`depends-on:`. This is the same additive merge `/brd-ground` Phase 4 performs on the same field, and
+`depends-on:`. This is the same additive merge `/prd-ground` Phase 4 performs on the same field, and
 it is additive for the same reason: the file is also edited by hand between runs, and a run that
 replaced the list would silently drop a prerequisite nobody re-declared.
 

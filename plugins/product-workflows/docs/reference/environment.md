@@ -16,7 +16,7 @@
 
 - **`$REPOS_PATH`** — where your mounted implementation and code clones live; defaults to `/workspace` when unset.
 
-**Resolution.** `${REPOS_PATH:-/workspace}`, read fresh by each run that grounds against code — `/create-ard`'s mandatory repo discovery, `/idea`'s optional `--ground-code`, `/specify`'s light feasibility scan, `/epics`'s optional code scan, and `/brd-ground`'s pinned-commit grounding. It may be a single directory or a colon-separated list; a repo is a top-level directory carrying a `.git` entry directly under it.
+**Resolution.** `${REPOS_PATH:-/workspace}`, read fresh by each run that grounds against code — `/create-ard`'s mandatory repo discovery, `/idea`'s optional `--ground-code`, `/specify`'s light feasibility scan, `/epics`'s optional code scan, and `/prd-ground`'s pinned-commit grounding. It may be a single directory or a colon-separated list; a repo is a top-level directory carrying a `.git` entry directly under it.
 
 **When unset.** The `/workspace` default takes over silently — safe, because this is only ever a read/scan base, so a wrong or empty default finds nothing to scan rather than writing anywhere unexpected.
 
@@ -26,7 +26,7 @@
 
 - **`$DOCS_PATH`** — a read-only clone of your shipped product documentation; defaults to `/workspace/docs` when unset.
 
-**Resolution.** Resolved per the shared `workflows-core:docs-grounding` gate, consumed by every command here except `/brd-split`, `/brd-interview`, `/brd-package`, and `/brd-reconcile` (each of which resolves no docs grounding at all, for a reason its own body states) — grill-rank in the authoring/interview commands, lead-only in `/brd-ground`. Overridable with `--docs <path>` where the command parses it — today `/idea` alone, though the shared gate declares it for every consumer; turned off with `--no-docs` everywhere, and additionally by `--no-code` in `/brd-ground`.
+**Resolution.** Resolved per the shared `workflows-core:docs-grounding` gate, consumed by every command here except `/brd-split`, `/brd-interview`, `/brd-package`, and `/brd-reconcile` (each of which resolves no docs grounding at all, for a reason its own body states) — grill-rank in the authoring/interview commands, lead-only in `/prd-ground`. Overridable with `--docs <path>` where the command parses it — today `/idea` alone, though the shared gate declares it for every consumer; turned off with `--no-docs` everywhere, and additionally by `--no-code` in `/prd-ground`.
 
 **When unset.** The `/workspace/docs` default is probed; on a host where that path does not exist, the resolution simply reports `OFF` and the run continues.
 

@@ -28,7 +28,7 @@
     "wiki-tasks-extract"
   ],
   "product-workflows": [
-    "brd-ground",
+    "prd-ground",
     "brd-intake",
     "brd-interview",
     "brd-package",

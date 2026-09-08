@@ -47,7 +47,7 @@ Where your code clones live — one directory, or a colon-separated list of them
 
 ### `DOCS_PATH`
 
-A **read-only** clone of your shipped product documentation. None of this plugin's own five commands grounds against it — the eight that do and ship from `product-workflows` (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake`, and `/brd-ground`) ship in the companion `product-workflows` plugin now, and `/docs-workflows:document` prefers this variable as a docs-repo discovery hint in the companion `docs-workflows` plugin. It is documented here only because [`code-handoff.md`](reference/references.md)'s git finish states plainly that it never touches this path either — a boundary statement, not a consumer. The plugin never writes to `DOCS_PATH`.
+A **read-only** clone of your shipped product documentation. None of this plugin's own five commands grounds against it — the eight that do and ship from `product-workflows` (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake`, and `/prd-ground`) ship in the companion `product-workflows` plugin now, and `/docs-workflows:document` prefers this variable as a docs-repo discovery hint in the companion `docs-workflows` plugin. It is documented here only because [`code-handoff.md`](reference/references.md)'s git finish states plainly that it never touches this path either — a boundary statement, not a consumer. The plugin never writes to `DOCS_PATH`.
 
 ### `GIT_USER_INITIALS`
 

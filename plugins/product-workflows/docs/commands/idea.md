@@ -117,8 +117,10 @@ branch with it rather than sitting on one machine.
 grounding contract reserves, and its index is mandatory there — a frame set without one is refused
 outright, so writing the images without it would leave a directory nothing could ever read. Writing an
 index makes the frame set readable; it does not make anything read it. No design-grounding finding,
-index consultation, or verifier pass exists on this route, and that capability remains deliberately
-unbuilt.
+index consultation, or verifier pass happens on **this** run — but the set this phase writes is read
+later: [`/prd-ground`](prd-ground.md), run on the same PRD folder whenever an operator chooses to,
+grounds it against this same PRD's own `[AC#n]`/`[FR#n]`/`[US#n]` rows. Writing the index is what
+makes that later pass possible; it is not that pass itself.
 
 ## What it needs
 
@@ -171,3 +173,4 @@ Here the reader walks that note's links two levels out, opens the images it link
 - `workflows-core:grounding-format` — §6.1 reserves `design/` for exported frame sets and makes each set's index mandatory, which is why `/idea` writes one for the images it vendors; §6.2 is that index's format and the reconciliation contract both writers execute.
 - `/workflows-core:frames` — the other writer of that index, and the way to fill any row `/idea` had to leave as `_no description on record_`. It ships in the companion `workflows-core` plugin.
 - `workflows-core:docs-grounding` — the documentation-grounding resolution gate and how a grill command consumes its digest.
+- [`/prd-ground`](prd-ground.md) — the optional, ungated run, on the same PRD folder, that later grounds this command's vendored `design/idea-sources/` frame set and PRD-level rows against code and design — the verified pass `--ground-code`'s scoping sweep is not.

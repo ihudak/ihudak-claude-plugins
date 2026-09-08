@@ -13,7 +13,7 @@ never `emit-block`.
 
 Consumers: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`,
 `/brd-intake` (grill-rank consumption); `/epics`, `/release-notes`
-(writer-attach consumption); `/brd-ground` (lead-only consumption).
+(writer-attach consumption); `/prd-ground` (lead-only consumption).
 `/document` does **not** consume this file — it only uses `$DOCS_PATH` as a
 write-target discovery hint (see its Phase 0). `/brd-split` deliberately does
 **not** consume it either: it allocates requirements to a recorded fate, and
@@ -134,7 +134,7 @@ and rank only orders what is already askable.
 `docs_grounding`. The writer uses references for consistency and treats
 challenges as authoring cautions.
 
-**`lead-only`** (`/brd-ground`): The digest steers **where to look** and may be
+**`lead-only`** (`/prd-ground`): The digest steers **where to look** and may be
 recorded as a **divergence from what the code shows**. It is never evidence, and
 it is never passed into a grounding agent's input contract. A document is a
 *claim about* behaviour, not the behaviour; a confident, stale page cited as

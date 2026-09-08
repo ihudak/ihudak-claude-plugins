@@ -1,6 +1,6 @@
 # Workflow overview
 
-This is the `product-workflows` pipeline top to bottom — every command shown here, in the order the roles typically hand work to each other. `/idea → /create-prd` opens a Product Requirements Document; `/specify` is where this plugin's spine ends, handing `specification.md` to the companion `dev-workflows` plugin's `/dev-workflows:design`, which carries the pipeline the rest of the way to shipped code and, through the companion `docs-workflows` plugin, product documentation and release notes. A second route into a PRD exists alongside it: `/brd-intake → /brd-split → /brd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile` — the second `/brd-split` running on each slice the first carved — turns a customer-supplied BRD into a grounded, allocated, decided and customer-reviewed requirement inventory instead of a PM-authored idea, then hands over to `/create-prd`, `/create-ard` or `/specify` on the BRD route — see [BRD workflow](brd-workflow.md) for its own diagram and parameter table.
+This is the `product-workflows` pipeline top to bottom — every command shown here, in the order the roles typically hand work to each other. `/idea → /create-prd` opens a Product Requirements Document; `/specify` is where this plugin's spine ends, handing `specification.md` to the companion `dev-workflows` plugin's `/dev-workflows:design`, which carries the pipeline the rest of the way to shipped code and, through the companion `docs-workflows` plugin, product documentation and release notes. A second route into a PRD exists alongside it: `/brd-intake → /brd-split → /prd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile` — the second `/brd-split` running on each slice the first carved — turns a customer-supplied BRD into a grounded, allocated, decided and customer-reviewed requirement inventory instead of a PM-authored idea, then hands over to `/create-prd`, `/create-ard` or `/specify` on the BRD route — see [BRD workflow](brd-workflow.md) for its own diagram and parameter table. `/prd-ground` is one command serving both routes, its own subgraph reached with a solid edge from `/brd-split (root)` — grounding is required there before the allocation walk — and a dashed edge from `/create-prd`, where it is optional: run against a PRD's own `[AC#n]`/`[FR#n]` rows, it seeds `/create-ard` and `/specify` with verified findings the same way it seeds `/brd-split`'s slice with them on the other route.
 
 ```mermaid
 flowchart TD
@@ -12,13 +12,14 @@ flowchart TD
     end
     subgraph BRD["PM/PA/Dev — BRD-to-PRD route (alt. entry)"]
         brdintake["/brd-intake"] --> brdsplitroot["/brd-split (root)"]
-        brdsplitroot -->|each confirmed slice, a PRD- folder| brdground["/brd-ground"]
-        brdground --> brdsplitslice["/brd-split (slice)"]
-        brdsplitslice --> brdinterview["/brd-interview"] --> brdpackage["/brd-package"]
+        brdsplitslice["/brd-split (slice)"] --> brdinterview["/brd-interview"] --> brdpackage["/brd-package"]
         brdreconcile["/brd-reconcile"]
     end
     subgraph CUST["Off-platform — the customer, nothing installed"]
         brdreview["the customer reviews the bundle"]
+    end
+    subgraph GR["PA — grounding (one command, both routes)"]
+        prdground["/prd-ground"]
     end
     subgraph PA["PA — architecture (optional)"]
         createard["/create-ard"]
@@ -39,6 +40,11 @@ flowchart TD
     createvi -->|PRD-level spec| specify
     specify -->|specification.md| design
     ready -. verifies ARD/spec/design .-> implement
+    brdsplitroot -->|each confirmed slice — claims are its [BR#n] rows| prdground
+    prdground -->|verified [CG#n]/[DG#n] — required before the walk| brdsplitslice
+    createvi -.->|optional — claims are the PRD's own [AC#n]/[FR#n]| prdground
+    prdground -.->|verified [CG#n]/[DG#n]| createard
+    prdground -.->|verified [CG#n]/[DG#n]| specify
     brdpackage -->|bundle sent| brdreview
     brdreview -->|answers come back as one file| brdreconcile
     brdreconcile -.->|a decision reopened, or a question askable again| brdinterview
@@ -65,7 +71,7 @@ The diagram above shows where each command sits in the pipeline; [Roles and phas
 
 ## Parameters at the BRD-to-PRD handoff
 
-The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command's own argument parsing defines them. [BRD workflow](brd-workflow.md#parameters) carries the same table for the six `/brd-*` commands upstream of them.
+The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command's own argument parsing defines them. [BRD workflow](brd-workflow.md#parameters) carries the same table for the six BRD-to-PRD route commands upstream of them.
 
 | Command | Required | Optional | Offered from `/brd-reconcile` |
 |---|---|---|---|
@@ -82,7 +88,7 @@ The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command'
 | Role | Runs | Produces → lands at |
 |---|---|---|
 | **PM** | `/idea`, `/create-prd`, `/update-prd` (and an early `/docs-workflows:release-notes`); also `/brd-intake`, `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile` | `idea.md`, then the PRD, in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/`; on the BRD route, the inventory, ledger, decision register, customer package and reconciliation record |
-| **PA** | `/create-ard` (optional); also `/brd-ground` (PM-initiated, PA/Dev-executed) | the ARD, in the same specs feature folder as the PRD; `[CG#n]`/`[DG#n]` grounding findings in the BRD's own folder |
+| **PA** | `/create-ard` (optional); also `/prd-ground` (PM-initiated, PA/Dev-executed, either route) | the ARD, in the same specs feature folder as the PRD; `[CG#n]`/`[DG#n]` grounding findings in the resolved folder — a BRD slice's on the BRD route, a PRD's on the idea route |
 | **PE** | `/epics`, `/specify` | `epic.md` per `EPIC-` folder under the PRD folder; `specification.md` on the specs repo's default branch |
 
 See [Roles and phases](roles-and-phases.md) for what each role owns, consumes, and hands off — this table only shows where the commands sit. The Dev role, downstream of this plugin's spine, is documented on the companion `dev-workflows` plugin's own Roles and phases page.

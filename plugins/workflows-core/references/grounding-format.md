@@ -5,21 +5,23 @@ is not, the finding record every `[CG#n]`/`[DG#n]` carries, the six verdicts, th
 `baseline-integrity` procedure that gates every run, the two horizons a finding can carry, the four
 design-grounding reconciliation classes, the optional derivation matrix, and the four verification
 outcomes. Design authority: `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §5
-(all subsections) and decision rows D6, D7, D19 in §3. Requirement identifiers (`[BR#n]`) are
-defined once in `product-workflows:brd-format` — cited here, not restated; the read-only posture for a
+(all subsections) and decision rows D6, D7, D19 in §3. Requirement identifiers are defined once
+each and cited here, not restated: `[BR#n]` in `product-workflows:brd-format` for the BRD route,
+`[AC#n]`/`[FR#n]`/`[US#n]` in `references/prd-format.md` for the idea route. The read-only posture for a
 mounted repository is defined once in `references/read-only-repos.md` and applies unchanged to
 every repository grounding reads.
 
 **Consumed by** the three grounding agents that write against the contract fixed here —
 `product-workflows:code-grounder`, `product-workflows:design-grounder`, and `product-workflows:grounding-verifier` — and by
-the two commands that read what they produce: `/product-workflows:brd-ground`, which orchestrates all
+the two commands that read what they produce: `/product-workflows:prd-ground`, which orchestrates all
 three, and `/product-workflows:brd-split`, whose Phase 0 gate turns on §8's verification outcomes.
 
 ## 1. What grounding is, and is not
 
 Grounding answers one question: **is this specific claim true of this specific commit?** A
-`[CG#n]`/`[DG#n]` finding is always an answer to a premise stated by one `[BR#n]` (or, for design
-grounding, one BRD requirement reconciled against one exported frame), checked against a pinned
+`[CG#n]`/`[DG#n]` finding is always an answer to a premise stated by one requirement row — a BRD's
+`[BR#n]` on the BRD route, a PRD's `[AC#n]`, `[FR#n]` or `[US#n]` on the idea route (or, for design
+grounding, one such requirement reconciled against one exported frame) — checked against a pinned
 revision of a real repository.
 
 This is a narrower question than `code-scanner` answers. `code-scanner` answers **what capability
@@ -41,10 +43,10 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 | Field | Meaning |
 |---|---|
 | `id` | `[CG#1]`, `[DG#1]`, … — contiguous within its own prefix, assigned once, never renumbered |
-| `claim` | the `[BR#n]` premise under test, quoted or closely paraphrased |
+| `claim` | the requirement premise under test — a `[BR#n]` on the BRD route, an `[AC#n]`/`[FR#n]`/`[US#n]` on the idea route — quoted or closely paraphrased |
 | `verdict` | exactly one of the six values in §3 |
 | `evidence` | a `file:line` list, or — when the verdict is `NOT-PROVABLE` or the finding asserts an absence — an explicit statement of why no evidence exists rather than an empty field |
-| `commit` | the pinned commit SHA the finding was checked against (`baseline-integrity`, §4); **absent on a `[DG#n]` of class 1, 2 or 3**, which is settled from the frame set and the BRD text alone (§6) and is pinned to no commit. A class-4 `[DG#n]` carries the cited `[CG#n]`'s own |
+| `commit` | the pinned commit SHA the finding was checked against (`baseline-integrity`, §4); **absent on a `[DG#n]` of class 1, 2 or 3**, which is settled from the frame set and the requirement text alone (§6) and is pinned to no commit. A class-4 `[DG#n]` carries the cited `[CG#n]`'s own |
 | `altitude` | one of `product \| architecture \| implementation` |
 | `horizon` | one of `current \| will-change` (§5), naming the prerequisite decision when `will-change` |
 | `class` | *(design-grounding only)* one of the four `[DG#n]` reconciliation classes defined in §6; absent on a `[CG#n]` |
@@ -225,10 +227,11 @@ pin.
 ### 4.1 A baseline finding differs from a claim finding in three ways, and each has a consequence
 
 Sharing the `[CG#n]` prefix is deliberate (above), but a baseline finding is an answer about a
-**repository**, not about a `[BR#n]`. Three rules follow, so that a consumer written against §2's
+**repository**, not about a requirement row. Three rules follow, so that a consumer written against §2's
 record does not treat it as one:
 
-1. **Its `claim` is not a `[BR#n]` premise.** It reads "baseline integrity: `<repo>` is pinned at a
+1. **Its `claim` is not a requirement premise** — not a `[BR#n]`, and not an `[AC#n]`/`[FR#n]`/`[US#n]`
+   either. It reads "baseline integrity: `<repo>` is pinned at a
    verified, unmodified commit". Anything that resolves a finding back to the requirement it answers
    finds none, and that is correct rather than a missing link.
 2. **Its `evidence` carries command output, not `file:line`.** The three commands' results *are* the
@@ -310,10 +313,13 @@ hand-export it fires on is the ordinary way a frame set arrives.
 be a second copy of a path rule, which is how the copies drift.
 
 **Defining the location is not the same as consuming it.** `design-grounder` is dispatched by
-`/brd-ground` and by nothing else, so today only the BRD route *reads* a `design/` folder as a frame
-set. A PRD folder on the `/idea` route holds one whenever that idea's source linked an image the reader
-could open, and nothing reconciles it yet; that is a known and deliberate state, not a gap in this
-section.
+`/prd-ground` and by nothing else — `/frames` indexes a set on any route; it never reconciles one.
+`/prd-ground` now reads a `design/` folder as a frame set on both routes: the BRD route's `[BR#n]`
+inventory, and — in this same increment — the idea route's PRD-level `[AC#n]`/`[FR#n]`/`[US#n]`
+inventory. A PRD folder on the `/idea` route holds one whenever that idea's source linked an image the
+reader could open. Grounding it is optional on that route — nothing gates on it — so a set
+`/prd-ground` has not yet been run against is not a gap in this section: it is a run nobody has asked
+for yet, which `/prd-ground` settles the moment an operator invokes it.
 
 **Two commands WRITE a frame set's index, and §6.2 is the one format both write.** `/idea` Phase 4.5
 copies the images it actually read into `<PRD-folder>/design/idea-sources/` and indexes that set;
@@ -324,15 +330,17 @@ be a directory `design-grounder` refuses on sight. That is also the state a huma
 exporting frames and dropping the folder in, and it is exactly what `/frames` exists to repair — the
 requirement above is strict *and*, until that command, had no recovery but hand-authoring an index.
 
-**Writing an index is not consuming one, and `/idea`-route design grounding has NOT shipped.** Neither
-writer dispatches `design-grounder`, produces a `[DG#n]`, consults an index, or reaches a verifier.
-The index makes the frame set *readable* — it does not make anything read it. **`/frames` is not that
-capability and must not be read as it having arrived**: it describes frames so that a set *can* be
-read, and reconciles nothing against any requirement. Indexing makes frames readable; grounding makes
-them `[DG#n]` findings, and only `/brd-ground` does the second. That capability remains deliberately
-unbuilt on every other route and is a decision of its own, and this paragraph exists to foreclose the
-mistake of reading `idea-reader`'s image support, `frame-describer`'s descriptions, or either writer's
-index as that decision having been reversed.
+**Writing an index is not consuming one, on either route.** Neither writer dispatches
+`design-grounder`, produces a `[DG#n]`, consults an index, or reaches a verifier — `/idea` Phase 4.5
+stops at the index exactly as `/frames` does. The index makes the frame set *readable* — it does not
+make anything read it. **`/frames` is not that capability and must not be read as it having
+arrived**: it describes frames so that a set *can* be read, and reconciles nothing against any
+requirement. Indexing makes frames readable; grounding makes them `[DG#n]` findings, and only
+`/prd-ground` does the second — on both routes now, since it takes its inventory from a BRD's
+`[BR#n]` rows or, on the idea route, a PRD's `[AC#n]`/`[FR#n]`/`[US#n]` rows. This paragraph exists to
+foreclose the mistake of reading `idea-reader`'s image support, `frame-describer`'s descriptions, or
+either writer's index as itself being that reconciliation: a frame set becomes evidence only once
+`/prd-ground` grounds it, never at the moment it is written or indexed.
 
 **Reading a picture is not design grounding, and both writers do the first without doing the second.**
 `idea-reader` reads the images an idea source links; `frame-describer` reads the frames of a set being
@@ -474,15 +482,16 @@ either. Both land on step 4, and both are reported.
 ### 6.3 The four reconciliation classes
 
 `design-grounder` reads an exported frame set — screen or report images plus an index — and
-reconciles it against the BRD's requirements in exactly four classes:
+reconciles it against the requirement inventory it was handed — a BRD's `[BR#n]` rows, or a PRD's
+`[AC#n]`/`[FR#n]`/`[US#n]` rows — in exactly four classes:
 
-1. **A frame shows a field the BRD never requires.** The design carries more than the customer
-   asked for; the finding names the field and the frame.
-2. **The BRD requires a field no frame shows.** The customer asked for something the design never
-   surfaces; the finding names the `[BR#n]` and the frame set that was checked.
-3. **A frame contradicts BRD text.** The design and the requirement disagree about the same
-   behaviour — for instance, a synthetic BRD requiring a single combined status column while the
-   exported frame shows the same information split across two separate columns.
+1. **A frame shows a field no requirement ever asks for.** The design carries more than the
+   requirement asked for; the finding names the field and the frame.
+2. **A requirement asks for a field no frame shows.** The inventory names something the design
+   never surfaces; the finding names the requirement id and the frame set that was checked.
+3. **A frame contradicts the requirement text.** The design and the requirement disagree about the
+   same behaviour — for instance, a synthetic BRD requiring a single combined status column while
+   the exported frame shows the same information split across two separate columns.
 4. **A frame implies a capture the code cannot perform.** This class is why design grounding
    exists: it is where "the report shows who approved this record" meets "no write path in the
    pinned commit records an actor." **This class always cites a `[CG#n]`** — whether the code can
@@ -518,8 +527,9 @@ runs as a separate pass, on a different agent from whichever wrote the finding i
 **The verifier does not check citations.** Confirming that a cited `file:line` exists and contains
 what the finding says proves only that the citation is real — it does not prove the citation
 answers the claim. Instead, `grounding-verifier` independently re-derives the claim **from whatever
-source the finding rests on**, starting from the `[BR#n]` premise rather than from the finding's
-evidence, and returns one of four outcomes, each with its own evidence.
+source the finding rests on**, starting from the requirement premise — a `[BR#n]` on the BRD route,
+an `[AC#n]`/`[FR#n]`/`[US#n]` on the idea route — rather than from the finding's evidence, and
+returns one of four outcomes, each with its own evidence.
 
 **Which source that is follows from the finding, not from the verifier's convenience.** Which
 finding rests on what, and which anchor inputs are therefore required of a caller, is the table in

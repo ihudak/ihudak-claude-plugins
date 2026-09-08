@@ -127,8 +127,9 @@ which it is forbidden to do.
 deep**, in either syntax, under one total-file cap and **reads** the images the source links, returning a
 `description` of what each frame shows rather than a bare path. Both are **context**: they inform the
 grill and the prose Phase 4 writes. Neither is grounded evidence — an image here is never a `[DG#n]`
-finding and gets no verifier pass (`workflows-core:grounding-format`
-§6 governs *that*, and this route does not enter it). Phase 4.5 does write the index its vendored
+finding and gets no verifier pass here (`workflows-core:grounding-format` §6 governs *that*; this
+run never reaches it — `/prd-ground` is what later grounds this same vendored frame set against the
+PRD's own rows, on its own pass, not this one). Phase 4.5 does write the index its vendored
 frame set requires — §6.1 makes that mandatory for any set — but an index makes a set **readable**,
 which is not the same as reconciling it into evidence. Treat a described frame the way you treat a
 sentence in the source file: something the operator handed over, to be put back to them as a question,
@@ -293,10 +294,11 @@ repairs where `idea.md` points.
    (byte-identical content already at the destination) is not a new frame and gets no second row; the
    row already describing it stands. **The index is not optional**:
    `workflows-core:grounding-format` §6.1 makes its absence unrecoverable, so images
-   written without one would be a frame set nothing can ever read. **Writing it does not mean `/idea`
-   design grounding has shipped** — nothing here dispatches `design-grounder`, produces a `[DG#n]`, or
-   reaches a verifier, and that capability remains deliberately unbuilt (§6.1 says so; this phase keeps
-   it true). A set left with rows the run could not describe is repaired by
+   written without one would be a frame set nothing can ever read. **Writing it is still not
+   grounding it** — nothing here dispatches `design-grounder`, produces a `[DG#n]`, or reaches a
+   verifier, and this phase keeps that true. What changes is that the set this phase writes is read
+   later: `/prd-ground` grounds it against this same PRD's `[AC#n]`/`[FR#n]`/`[US#n]` rows, whenever an
+   operator runs it (§6.1 says so). A set left with rows the run could not describe is repaired by
    `/workflows-core:frames <KEY>`, which reads the frames themselves and fills exactly those rows.
 4. **Rewrite `idea.md`'s links onto the copies** — `[[wikilinks]]`, `![[embeds]]`, `[text](path)` and
    `![alt](path)`, absolute and relative alike — replacing the target, preserving the display text, and

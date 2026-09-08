@@ -4,7 +4,7 @@
 
 **Goal:** Give a PRD folder authored from an idea the same verified `[CG#n]`/`[DG#n]` foundation a BRD-route slice gets, from one command renamed `/prd-ground` that serves both routes.
 
-**Architecture:** One command, one engine. Only Phase 0 forks: a folder carrying `brd-link.md` is the BRD route and takes its claims from `brd/brd-inventory.md`'s `[BR#n]` rows exactly as today; a `PRD-` folder without one is the idea route and takes them from `prd.md`'s `[AC#n]` and `[FR#n]`. Phases 1–11 — repo resolution, commit pinning, the grounder fan-out, `grounding-verifier`, horizons, the write and the handoff — are unchanged and route-agnostic. Downstream, `/create-ard` and `/specify` stop gating their grounding reads on the BRD route and seed their `code-scanner` themes from the findings, and `/update-prd` gains the first writer `consumed_by: PRD` has ever had.
+**Architecture:** One command, one engine. Only Phase 0 forks: a folder carrying `brd-link.md` is the BRD route and takes its claims from `brd/brd-inventory.md`'s `[BR#n]` rows exactly as today; a `PRD-` folder without one is the idea route and takes them from `prd.md`'s `[AC#n]` and `[FR#n]`. Phases 1–11 — repo resolution, commit pinning, the grounder fan-out, `grounding-verifier`, horizons, the write and the handoff — are unchanged and route-agnostic. Downstream, `/create-ard` and `/specify` stop gating their grounding reads on the BRD route and seed their `code-scanner` themes from the findings, and `/update-prd` becomes the first thing to write `consumed_by: PRD` onto a grounding finding record — `/create-prd` already writes that value, but only onto a `decisions.md` record.
 
 **Tech Stack:** Markdown instruction files (slash commands, agent system prompts, shared references), `bash`/`python3` build gates under `scripts/`, JSON plugin manifests. No application code.
 
@@ -580,7 +580,7 @@ git commit -m "feat(grounding): ground a requirement row, not only a [BR#n]"
 
 **Interfaces:**
 - Consumes: the `grounding/code-grounding.md` and `grounding/design-grounding.md` Task 4 writes.
-- Produces: the first `consumed_by: PRD` value written anywhere in the tree.
+- Produces: the first `consumed_by: PRD` value written **onto a grounding finding record**. (`/create-prd` already writes that value onto a `decisions.md` record — `consumed_by` is one field, declared identical in `product-workflows:decision-register-format` §1 and `workflows-core:grounding-format` §2. An earlier draft of this plan and of spec §7 claimed the value had no writer at all; that was false and is corrected in both.)
 
 - [ ] **Step 1: Discover the grounding files as secondary grounding, ungated**
 
@@ -623,7 +623,7 @@ whose findings went unconsumed.
 ```bash
 ./scripts/check-docs.sh --root . && ./scripts/check-id-grammar.sh --root .
 git add plugins/product-workflows/commands/update-prd.md
-git commit -m "feat(update-prd): read grounding and give consumed_by: PRD its first writer"
+git commit -m "feat(update-prd): stamp consumed_by: PRD on the findings an update drew on"
 ```
 
 ---
@@ -662,11 +662,12 @@ otherwise either drops a live exclusion or invents a ledger read on a route that
 
 This is the composition rule and the reason grounding and the scan are not alternatives.
 
-`/specify` already does this on the BRD route: it extracts capability themes from `spec-seed.md`, the
-implementation-altitude `decided` statements and the derivation-matrix rows, and those feed Phase 3's repo
-derivation and Phase 4's `code-scanner` dispatches **in place of** the PRD-derived themes. An idea-route
-folder has no seed files, so without this step both commands read the `[CG#n]` set and then scan as though
-it did not exist.
+`/specify`'s BRD-route theme extraction — which replaces the PRD-derived themes with ones drawn from
+`spec-seed.md`, the implementation-altitude `decided` statements and the derivation-matrix rows — is a
+precedent for the *shape* of this step, not for the *source*: none of those three is a `[CG#n]`/`[DG#n]`
+finding (a matrix row lives inside `code-grounding.md` but is not one), so seeding the theme set from
+verified findings is new on **both** routes, deliberately. Without this step, both commands read the
+`[CG#n]` set and then scan as though it did not exist.
 
 The rule for both commands: **where the resolved folder holds verified grounding, seed the theme set from
 the findings before falling back to the command's own derivation.** A finding whose verdict says a

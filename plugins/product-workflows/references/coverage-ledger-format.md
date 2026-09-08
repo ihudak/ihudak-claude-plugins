@@ -58,7 +58,7 @@ row reaches a terminal disposition.
 
 **On a slice, `claims:` may therefore name fewer rows than the ledger holds.** A row in that gap is called an **orphan row** throughout this file, and the term is defined by what the row *is* rather than by how it got there: a ledger row for a `[BR#n]` this slice no longer claims. **Two routes reach it, and both are the parent's Phase 4 walk withdrawing a claim the slice had.** The first withdraws a claim that was never more than provisional — `/brd-split` Phase 3 writes a child's `claims:` list **provisionally** and seeds one `unallocated` ledger row per claimed `[BR#n]`, and Phase 4's walk on the **parent's** ledger is what actually allocates, so it may settle a provisionally-claimed `[BR#n]` somewhere other than that child. The second withdraws a claim the slice had committed to and then recorded that it would not build: the re-cut of §3.2, where that same walk moves the row to a sibling. Either way the `claims:` entry and the copied `brd/brd-inventory.md` row are withdrawn together — a slice's inventory is defined over `claims:` (`brd-format.md` §2.1) — and **the ledger row stays**, because the rule above admits no exception and because deleting it would erase the one record that a claim was made and withdrawn.
 
-**An orphan row is never left `unallocated`**, and that guarantee is about the row, never about how many steps wrote it: the row goes straight from the disposition it held to the terminal disposition that walk settled (§3), so it never blocks §4 and the slice can still complete its own split. **The step count is what differs by route.** On the provisional route the single step that withdraws the claim writes the disposition with it. On a re-cut (§3.2) the disposition is written first and the claim withdrawn after it (`commands/brd-split.md` Phase 4), so the row moves from `deferred-to: <this BRD>` to `covered-by: <the receiving sibling's key>` with no moment in between at which it reads `unallocated` — which is the whole of what §4 needs, and it holds identically on both routes. Its `text` and `defects` are the ones already copied into it, which is why it stays readable with no inventory row beside it; its `evidence` stays empty, because `/brd-ground` grounds a slice's *inventory* and an orphan row is not in one.
+**An orphan row is never left `unallocated`**, and that guarantee is about the row, never about how many steps wrote it: the row goes straight from the disposition it held to the terminal disposition that walk settled (§3), so it never blocks §4 and the slice can still complete its own split. **The step count is what differs by route.** On the provisional route the single step that withdraws the claim writes the disposition with it. On a re-cut (§3.2) the disposition is written first and the claim withdrawn after it (`commands/brd-split.md` Phase 4), so the row moves from `deferred-to: <this BRD>` to `covered-by: <the receiving sibling's key>` with no moment in between at which it reads `unallocated` — which is the whole of what §4 needs, and it holds identically on both routes. Its `text` and `defects` are the ones already copied into it, which is why it stays readable with no inventory row beside it; its `evidence` stays empty, because `/prd-ground` grounds a slice's *inventory* and an orphan row is not in one.
 
 ## 3. Dispositions
 
@@ -85,7 +85,7 @@ starts in any other disposition.
 
 `/brd-intake` never runs on a slice — a slice has no document to intake (`brd-format.md` §2.1) — so
 if `/brd-split` did not write the slice's ledger at the moment it created the slice's folder,
-nothing ever would, and the slice could never be ground in its own right: `/brd-ground` Phase 0
+nothing ever would, and the slice could never be ground in its own right: `/prd-ground` Phase 0
 gates on that ledger. `/brd-split` is also the only command holding both the parent's rows and the
 allocation that says which of them the slice claims.
 
@@ -397,7 +397,7 @@ shapes and only one of them is a container:
 - a legacy **idea-route PRD folder**, `specifications/<KEY>-<slug>/` holding `idea.md` and `prd.md`,
   written before the kind prefixes shipped.
 
-**Neither carries a `brd-link.md`.** `/brd-intake` writes none — only `/brd-ground`, `/brd-split`
+**Neither carries a `brd-link.md`.** `/brd-intake` writes none — only `/prd-ground`, `/brd-split`
 and `/brd-package` ever do, and the first and third write one carrying `depends-on:` and no
 `parent:` — and the idea route has never written one at all. So "no `brd-link.md`, or one carrying
 no `parent:`", which is the correct test for **root versus slice** *once a folder is known to be on
@@ -426,12 +426,13 @@ touched this folder, which is the only question this test asks.
 
 **It reads no PRD artifact, and that is what lets all eight consumers share one rule.** The eight
 are `/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a), `/specify` (step 0), `/epics`
-(step 1a), `/brd-ground` (step 5a), `/brd-interview` (step 5a), `/brd-package` (step 5a) and
+(step 1a), `/prd-ground` (step 5a), `/brd-interview` (step 5a), `/brd-package` (step 5a) and
 `/brd-reconcile` (step 5a) — read that as a list, not as a count, and re-derive it against the tree
 rather than adjusting it. `/create-prd` cannot test for `prd.md` — it is the run that is about to
 write it — so a test keyed off the PRD's presence would have to be worded differently in
 `/create-prd` than in the other seven, and eight copies of one rule is the drift this file exists to
-prevent. The four `/brd-*` commands take this test for a different consequence than the first four —
+prevent. The last four in the list above — `/prd-ground`, `/brd-interview`, `/brd-package` and
+`/brd-reconcile` — take this test for a different consequence than the first four —
 they refuse to *run at all* against a root, rather than refusing to *author into* one — but the test
 itself, the positive evidence of BRD-ness, is the one this section fixes and is unchanged either way.
 
@@ -501,7 +502,8 @@ nothing in this plugin moves a `deferred-to`, `rejected` or `superseded-by` row 
 
 ## 6. The ledger line
 
-Every `/brd-*` command's final report ends with exactly one line, so the ledger's state is visible
+Every `/brd-*` command's final report ends with exactly one line — as does `/prd-ground`'s, on
+`route: brd`, which cites this section for the format — so the ledger's state is visible
 without opening the file or running anything else:
 
 ```
@@ -600,13 +602,13 @@ written `unresolved`, it is never offered by any picker, and it never blocks §4
 `unresolved` is a prompt to look at the named BRD, not a defect in this BRD's allocation.
 
 **The line mixes two provenances, and a reader should know which term came from where.** The ledger
-being reported on is gated wherever a gate exists — but only `/brd-ground` gates **this file**, in
+being reported on is gated wherever a gate exists — but only `/prd-ground` gates **this file**, in
 its Phase 0 step 6. `/brd-split` and `/brd-interview` each gate `grounding/code-grounding.md` there
 and then read the ledger from the working tree, `/brd-interview` stopping on it twice
 (`BRD_INTERVIEW_UNALLOCATED`, `BRD_INTERVIEW_ALL_DELEGATED`). That is sanctioned — a command may
 read the worktree and refuse what it finds; what it may not do is *claim* the file is merged because
 a sibling's gate passed (`workflows-core:phase-handoff` §4.0) — but it does mean this line's
-guarantee is `/brd-ground`'s alone. Meanwhile the ledgers resolved into it are
+guarantee is `/prd-ground`'s alone. Meanwhile the ledgers resolved into it are
 read from the working tree and gated by nothing. So a `covered` this line reports for a delegated row can rest
 on another BRD's decision that has not merged and could still change, and an `unresolved` can mean nothing
 worse than a pull request still open. That asymmetry is the price of reporting what the run can

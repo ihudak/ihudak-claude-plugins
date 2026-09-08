@@ -10,7 +10,7 @@ round's own record, and the `[C]` question set.
 
 `/brd-interview` runs in the [pm](../roles-and-phases.md#pm--product-management) role,
 cost-attribution phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route. It
-takes over once `/brd-ground` and `/brd-split` have both run on the same slice: a verified finding
+takes over once `/prd-ground` and `/brd-split` have both run on the same slice: a verified finding
 set and a fully-allocated ledger are what its Phase 0 gates on.
 
 ## Synopsis
@@ -90,7 +90,7 @@ flowchart TD
 A run that finds every round closed and nothing changed since the last one proposes no new round: it
 reports that plainly and reaches the handoff with nothing to commit. `workflows-core:impl-maintenance` runs in the
 terminal phase for session lessons-learned; no other subagent is dispatched — every finding this
-command reads was already independently re-derived by `/brd-ground`'s own verifier pass.
+command reads was already independently re-derived by `/prd-ground`'s own verifier pass.
 
 ## What it needs
 
@@ -106,12 +106,12 @@ command reads was already independently re-derived by `/brd-ground`'s own verifi
 - **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the one
   level below it — stops the run with `BRD_INTERVIEW_NOT_FOUND`, which names both ways a folder comes
   to exist rather than asserting one.
-- **`/brd-ground`'s findings already merged to the specs repo's default branch.** `require-on-main`
+- **`/prd-ground`'s findings already merged to the specs repo's default branch.** `require-on-main`
   runs against `grounding/code-grounding.md` before anything else is read; an unmerged grounding pull
   request stops the run naming the branch/PR state, and a BRD never grounded at all stops naming the
   fix that actually applies: `BRD_INTERVIEW_NEEDS_GROUNDING` when the inventory holds at least one
   `[BR#n]` row and grounding has simply not run, and `BRD_INTERVIEW_EMPTY_INVENTORY` when it holds
-  none — because then `/brd-ground` has nothing to ground and would stop on the same emptiness, so
+  none — because then `/prd-ground` has nothing to ground and would stop on the same emptiness, so
   the fix is upstream (re-intake with a corrected source, or `/brd-split` on the parent for a
   slice).
 - **Every finding verified.** A finding with no recorded verifier outcome is not evidence, and a
@@ -142,7 +142,7 @@ command reads was already independently re-derived by `/brd-ground`'s own verifi
   by no command; un-delegating that one is a decision taken with the customer.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
 - **No repository, and no `$REPOS_PATH`.** Every `file:line` this command reads was already pinned
-  and verified by `/brd-ground`, so nothing here opens a repository, and there is no baseline gate or
+  and verified by `/prd-ground`, so nothing here opens a repository, and there is no baseline gate or
   dirty-tree stop.
 
 ## What it produces
@@ -190,7 +190,7 @@ against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` 
   state.
 - **Phase 5 — a re-tag needs a cause.** A `[G]` grounding cannot settle is re-tagged only against a
   named `NOT-PROVABLE` finding or an `unprovable` verifier outcome. A `[G]` no finding bears on at
-  all is recorded as *needs grounding* and answered by a `/brd-ground` re-run — it is neither
+  all is recorded as *needs grounding* and answered by a `/prd-ground` re-run — it is neither
   re-tagged nor asked, because a re-tag with no finding to name would manufacture the trail from "we
   asked the code" to "we asked a person" instead of recording its absence.
 - **Phase 6 — argumentation is mandatory.** No `[VD#n]` is written without a reason that is not a
@@ -211,7 +211,7 @@ against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` 
 
 ## What it does not do
 
-- **No documentation grounding, and no `--no-docs` flag.** `/brd-intake` and `/brd-ground` already
+- **No documentation grounding, and no `--no-docs` flag.** `/brd-intake` and `/prd-ground` already
   ground this BRD against the shipped product documentation when `$DOCS_PATH` resolves; this command
   operates on decisions, and a documentation page settles none of them — it is a claim *about*
   behaviour, not the behaviour. There is nothing to switch off, so no flag exists to switch it.

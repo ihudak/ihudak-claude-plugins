@@ -1,6 +1,6 @@
 ---
 name: brd-interview
-description: BRD decision workflow (PM phase, the BRD-to-PRD route's decision step, run once per slice once `/brd-ground` and `/brd-split` have both run on it). Gates on the BRD's grounding being merged, every finding carrying a verifier outcome, and its coverage ledger fully allocated, then generates the round's question set and tags every question [G]/[V]/[C] before a single one is asked. Answers every [G] from the grounding findings and never puts one to a human; puts each [V] to the operator one at a time via AskUserQuestion with mandatory argumentation; holds every [C] for the customer. Re-tags a [G] only against a named NOT-PROVABLE finding, splits any question carrying more than one tag, and refuses to close a decision resting solely on a will-change finding. Writes decisions.md ([VD#n] and [AS#n]), the round record, and the [C] question set. --round N resumes an open round or re-opens a closed one, recorded with its cause. Takes no --no-docs and does no documentation grounding.
+description: BRD decision workflow (PM phase, the BRD-to-PRD route's decision step, run once per slice once `/prd-ground` and `/brd-split` have both run on it). Gates on the BRD's grounding being merged, every finding carrying a verifier outcome, and its coverage ledger fully allocated, then generates the round's question set and tags every question [G]/[V]/[C] before a single one is asked. Answers every [G] from the grounding findings and never puts one to a human; puts each [V] to the operator one at a time via AskUserQuestion with mandatory argumentation; holds every [C] for the customer. Re-tags a [G] only against a named NOT-PROVABLE finding, splits any question carrying more than one tag, and refuses to close a decision resting solely on a will-change finding. Writes decisions.md ([VD#n] and [AS#n]), the round record, and the [C] question set. --round N resumes an open round or re-opens a closed one, recorded with its cause. Takes no --no-docs and does no documentation grounding.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -9,7 +9,7 @@ Turn the grounded BRD into a decided one, one round at a time: $ARGUMENTS
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
 `/brd-interview` is the **BRD-to-PRD route's decision step** (PM phase) — it takes the verified
-findings `/brd-ground` produced and the fully-allocated ledger `/brd-split` left behind, and works
+findings `/prd-ground` produced and the fully-allocated ledger `/brd-split` left behind, and works
 the BRD's open questions to recorded decisions. Its whole discipline is one rule: **every question
 is tagged before it is asked, and the tag decides who may answer it**
 (`${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` §1). This command exists to make that
@@ -33,19 +33,19 @@ is **never routed to the customer** as a business question (§1, D9). A `[C]` is
 rather than aspirational.
 
 **This command takes no `--no-docs`, and it does no documentation grounding at all. That is a
-decision, not an omission.** `/brd-intake` and `/brd-ground` already ground this BRD against the
+decision, not an omission.** `/brd-intake` and `/prd-ground` already ground this BRD against the
 shipped product documentation when `$DOCS_PATH` resolves (D22,
 `workflows-core:docs-grounding`), and their run is the one that had the
 requirement text and the code in front of it. This command operates on **decisions** — on findings
 that have already been verified and on choices the delivery team and the customer own — and a
 documentation page settles none of those: it is a claim *about* behaviour, not the behaviour, which
-is why `/brd-ground` already forbids one as evidence for a `[CG#n]`. So there is no flag to turn
+is why `/prd-ground` already forbids one as evidence for a `[CG#n]`. So there is no flag to turn
 off, no `resolve-docs-grounding` call, and no `docs grounding:` line in this command's report. The
 sentence is written here because leaving it unwritten is exactly how the gap it forecloses gets
 shipped.
 
 **No repository is opened, at any point.** Every `file:line` this command reads has already been
-pinned and verified by `/brd-ground`, so there is no baseline gate here, no dirty-tree stop, and no
+pinned and verified by `/prd-ground`, so there is no baseline gate here, no dirty-tree stop, and no
 `$REPOS_PATH` requirement. A question that would need a repository opened to answer it is a question
 this command cannot settle, and the *Answer every `[G]` from the findings* phase says what happens
 to it — which is never "ask somebody instead".
@@ -118,7 +118,7 @@ and nothing downstream can tell the difference afterwards.
    ```
 4. **Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline, **before** the gate below — `require-on-main`
    performs no fetch of its own (`workflows-core:phase-handoff` §3.2) and relies on this step's best-effort one,
-   the same ordering `/brd-ground` uses and for the same reason. Prompt-free and silent when the
+   the same ordering `/prd-ground` uses and for the same reason. Prompt-free and silent when the
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
 5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
@@ -154,8 +154,8 @@ and nothing downstream can tell the difference afterwards.
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
    folder's `grounding/code-grounding.md` — the same file `/brd-split` gates, and for the same reason:
    every deliverable one `handoff-to-main` run stages lands in a single commit (§2.3), so its presence
-   on `origin/<default>` implies `grounding/design-grounding.md` and `brd-link.md` merged with it — **That implication holds for a full `/brd-ground` run and not for a `--no-code` one**, whose `deliverable_paths` is `grounding/design-grounding.md` alone and lands in its own later commit — so a BRD can legitimately have `code-grounding.md` merged and `design-grounding.md` on no ref at all. Anything reading the design findings gates them separately rather than inheriting this sentence. And
-   `/brd-ground`'s own gate on `coverage-ledger.md` had already run before those findings existed at
+   on `origin/<default>` implies `grounding/design-grounding.md` and `brd-link.md` merged with it — **That implication holds for a full `/prd-ground` run and not for a `--no-code` one**, whose `deliverable_paths` is `grounding/design-grounding.md` alone and lands in its own later commit — so a BRD can legitimately have `code-grounding.md` merged and `design-grounding.md` on no ref at all. Anything reading the design findings gates them separately rather than inheriting this sentence. And
+   `/prd-ground`'s own gate on `coverage-ledger.md` had already run before those findings existed at
    all. Map the §3.7 return by `stopped` first: any stopping row → stop, naming the concrete branch/PR
    state it reports; `pass` → proceed; `pass_amending` → proceed, printing the §3.3 row-B message;
    `unmanaged` → proceed as before this feature; `absent` (row F — grounding findings are on no ref at
@@ -164,9 +164,9 @@ and nothing downstream can tell the difference afterwards.
    command that stops on the same emptiness. Read `<BRD-dir>/brd/brd-inventory.md` from the worktree
    and count its `[BR#n]` rows:
    - **One or more rows** — grounding simply has not run yet, and running it is the fix:
-     `BRD_INTERVIEW_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /product-workflows:brd-ground <BRD-KEY> first.`
-   - **Zero rows** — there is nothing to ground, so `/brd-ground` stops with
-     `BRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants, and naming it
+     `BRD_INTERVIEW_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /product-workflows:prd-ground <BRD-KEY> first.`
+   - **Zero rows** — there is nothing to ground, so `/prd-ground` stops with
+     `PRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants, and naming it
      here would be the loop. The fix is upstream, so read the resolved folder's `brd-link.md` and
      branch on its `parent:` field: this read is a bare worktree read with no gate ahead of it, and
      an absent `brd/brd-inventory.md` counts as zero rows here just as a present-but-empty one
@@ -176,9 +176,9 @@ and nothing downstream can tell the difference afterwards.
      step 5a would otherwise guarantee — it may be a legacy root BRD whose intake was interrupted
      before the inventory was ever written:
      - **No `brd-link.md`, or one with no `parent:`** —
-       `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and no question this command could ask about it — do not run /product-workflows:brd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
+       `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and no question this command could ask about it — do not run /product-workflows:prd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
      - **`parent: <PARENT-KEY>` present** — this is a slice:
-       `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to decide. Do not run /product-workflows:brd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
+       `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to decide. Do not run /product-workflows:prd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
 7. **Gate on verification — and on there being grounding to verify.** Three tests, in this order,
    because **the second is a count and a count is vacuously satisfied by an empty set**. This gate
    shipped as the count alone, exactly as `/brd-split`'s did: zero findings on file means zero
@@ -194,11 +194,11 @@ and nothing downstream can tell the difference afterwards.
       step 6 already proved it is on `origin/<default>` — and count its `[CG#n]` blocks, parsed per
       `workflows-core:grounding-format` §2.1. Zero → stop. Step 6's row-F branch catches the file
       being on no ref; nothing until now caught it being on main and holding nothing:
-      `BRD_INTERVIEW_NO_FINDINGS: <BRD-KEY>'s grounding/code-grounding.md is on main but records no [CG#n] finding — re-run '/product-workflows:brd-ground <BRD-KEY>' and merge its handoff before interviewing. Every [G] is answered from the findings and from nothing else.`
+      `BRD_INTERVIEW_NO_FINDINGS: <BRD-KEY>'s grounding/code-grounding.md is on main but records no [CG#n] finding — re-run '/product-workflows:prd-ground <BRD-KEY>' and merge its handoff before interviewing. Every [G] is answered from the findings and from nothing else.`
    b. **Every finding carries a verifier outcome.** Read every `[CG#n]` and `[DG#n]` on file and
       count those carrying no recorded verifier `outcome` (one of the four in
       `workflows-core:grounding-format` §8). Any count `N` greater than zero →
-      stop: `BRD_INTERVIEW_UNVERIFIED: N findings have no verifier verdict — run /product-workflows:brd-ground first.`
+      stop: `BRD_INTERVIEW_UNVERIFIED: N findings have no verifier verdict — run /product-workflows:prd-ground first.`
    c. **No finding block carries a field the record's format does not define.** Parse every
       `[CG#n]`/`[DG#n]` block per `workflows-core:grounding-format` §2.1 and test each key against
       that section's **closed** field set — §2's fields, plus `outcome` and `notes`. Any other key
@@ -208,7 +208,7 @@ and nothing downstream can tell the difference afterwards.
       than anywhere else on the route — every `[G]` question is answered from the findings and from
       nothing else, so a finding with two verdicts is a `[VD#n]` frozen against whichever half the
       run happened to read, and `/brd-package` puts that decision in front of the customer.
-      stop: `BRD_INTERVIEW_MALFORMED_FINDING: N finding blocks carry a key workflows-core:grounding-format §2.1 does not define (<finding-id>: <key>, …) — the record's field set is closed to §2's fields plus outcome and notes. A block carrying own_verdict beside verdict states two verdicts at once, and every [G] answered from it is answered from whichever half was read. Remove the offending key from each block by hand in <path>, leaving every other key untouched, and re-run. Do not re-run '/product-workflows:brd-ground <BRD-KEY> --rebaseline' for this: it re-derives every finding against current commits to delete a line no command should have written.`
+      stop: `BRD_INTERVIEW_MALFORMED_FINDING: N finding blocks carry a key workflows-core:grounding-format §2.1 does not define (<finding-id>: <key>, …) — the record's field set is closed to §2's fields plus outcome and notes. A block carrying own_verdict beside verdict states two verdicts at once, and every [G] answered from it is answered from whichever half was read. Remove the offending key from each block by hand in <path>, leaving every other key untouched, and re-run. Do not re-run '/product-workflows:prd-ground <BRD-KEY> --rebaseline' for this: it re-derives every finding against current commits to delete a line no command should have written.`
 
    **No design-presence relation here, and that is deliberate rather than an omission.**
    `/brd-split`'s third test exists because allocating a requirement to a slice that will be built
@@ -259,7 +259,7 @@ model_routing:
 ```
 
 `/brd-interview` dispatches no grounding or review agent of its own — every finding it reads was
-already independently re-derived by `/brd-ground`'s `grounding-verifier` pass, and re-deriving it
+already independently re-derived by `/prd-ground`'s `grounding-verifier` pass, and re-deriving it
 here would be a second unverified opinion, not a second check. `detection_model` therefore exists
 only for the terminal `impl-maintenance` dispatch. If no Opus resolves for `current_model`, degrade
 to best-available, record it in `notes` and in the final report, and never hard-block.
@@ -297,7 +297,7 @@ and a holding state keeps the round open:
 |---|---|
 | *held for the customer* | a `[C]` is written and waiting; **holding it is not the customer answering it** |
 | *deferred* | recorded as not answerable yet, with why; it stays in this round and is returned to |
-| *needs grounding* | no finding bears on a `[G]` yet; only a `/brd-ground` run can move it |
+| *needs grounding* | no finding bears on a `[G]` yet; only a `/prd-ground` run can move it |
 | *untagged* | the §2 test could not resolve it into exactly one tag; what is wrong with it is recorded and it is rewritten before it is asked |
 
 **Why the distinction is load-bearing rather than tidy.** Both rules that read a question's state —
@@ -480,11 +480,11 @@ already refused the run if any lacked one). Three outcomes:
 3. **No finding bears on it at all.** Then grounding has not been asked this question yet, and **the
    answer is a grounding pass, not a person.** Record the **holding state** *needs grounding*, which
    is not a disposition and so keeps the round open, and name it in the final report with the concrete fix — a
-   `/product-workflows:brd-ground <BRD-KEY>` run (with `--rebaseline` when the repository has moved since
+   `/product-workflows:prd-ground <BRD-KEY>` run (with `--rebaseline` when the repository has moved since
    the pin) to produce the finding, after which this round resumes at exactly this question. **It is
    not re-tagged**: a re-tag needs a finding to name, and there is none, so promoting it to `[V]`
    here would manufacture the missing trail rather than record its absence. And it is not asked: this
-   command writes no findings — only `/brd-ground` does, and only through the independent
+   command writes no findings — only `/prd-ground` does, and only through the independent
    re-derivation `workflows-core:grounding-format` §8 requires — so there is no route by which this run could
    turn its own guess into evidence.
 
@@ -728,7 +728,7 @@ choices: ["Stop here — this round's decisions are recorded", "Package this BRD
 refused:**
 
 ```
-choices: ["Stop here — this round's decisions are recorded", "Work another round now — /product-workflows:brd-interview <BRD-KEY> (the questions named above are still in a holding state the packaging step refuses)", "Re-ground a question no finding bears on yet — /product-workflows:brd-ground <BRD-KEY>", "Interview another BRD or slice"]
+choices: ["Stop here — this round's decisions are recorded", "Work another round now — /product-workflows:brd-interview <BRD-KEY> (the questions named above are still in a holding state the packaging step refuses)", "Re-ground a question no finding bears on yet — /product-workflows:prd-ground <BRD-KEY>", "Interview another BRD or slice"]
 ```
 
 **`package_offerable: nothing-to-review` — say plainly that this BRD is decided, and do not offer
@@ -738,7 +738,7 @@ findings or the decisions have moved, which nothing here has done. What can move
 grounding pass, so that is what the list carries:
 
 ```
-choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-derive the findings against current commits — /product-workflows:brd-ground <BRD-KEY> --rebaseline (a changed finding is what makes a new round askable)", "Interview another BRD or slice"]
+choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-derive the findings against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what makes a new round askable)", "Interview another BRD or slice"]
 ```
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
@@ -755,8 +755,8 @@ imply this BRD is unfinished when it is not.
 resolves from this run's own `Phase handoff:` outcome line; it is never written as an unconditional
 "once the pull request above is merged", because the no-new-round path reaches the handoff with
 nothing to commit and opens no pull request. **The other two lists name
-`/product-workflows:brd-ground <BRD-KEY>` with no clause at all, and that asymmetry is deliberate:** that
-command gates on `coverage-ledger.md` (`commands/brd-ground.md` Phase 0 step 6), which this run never
+`/product-workflows:prd-ground <BRD-KEY>` with no clause at all, and that asymmetry is deliberate:** that
+command gates on `coverage-ledger.md` (`commands/prd-ground.md` Phase 0 step 6), which this run never
 writes, so no handoff of this run's can hold it up and there is no wait to state.
 
 Say plainly what remains, per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — names only,
@@ -764,7 +764,7 @@ never behaviour a command of its own owns: a round still holding a `[C]` stays o
 answer arrives through a package and is recorded by `/product-workflows:brd-reconcile` once it comes
 back. A
 question in the *needs grounding* holding state — the one the *Resolve the round* phase defines as
-movable only by a grounding run — is answered by re-running `/product-workflows:brd-ground <BRD-KEY>`
+movable only by a grounding run — is answered by re-running `/product-workflows:prd-ground <BRD-KEY>`
 and returning to this round, which is a real next step and is named as one.
 
 ### Context hygiene
@@ -830,7 +830,7 @@ re-opened it with the cause recorded; **the question counts by tag**, `[G]` / `[
 every split, with the parts each original became; the `[G]` answers, each naming the
 `[CG#n]`/`[DG#n]` that settled it; **every re-tag, with the `NOT-PROVABLE` finding that caused it** —
 never a re-tag reported without its cause; every question recorded *needs grounding*, named, with
-`/product-workflows:brd-ground <BRD-KEY>` as the fix; the `[VD#n]` decided this run and any deferred; the
+`/product-workflows:prd-ground <BRD-KEY>` as the fix; the `[VD#n]` decided this run and any deferred; the
 `[AS#n]` recorded; the `[C]` count held and the file holding them, stated together with the fact that
 `/product-workflows:brd-package` is the command that carries them to the customer and
 `/product-workflows:brd-reconcile` the one that records the answer; every will-change resolution taken and how it was
@@ -849,7 +849,7 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 stands. **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree
 via `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — this run always stands on a slice
 (step 6 already confirmed `grounding/code-grounding.md` is on main, and that file is written
-exclusively by `/brd-ground`, which itself refuses to run on a root), so that is always a sibling or
+exclusively by `/prd-ground`, which itself refuses to run on a root), so that is always a sibling or
 the parent (§3); a ledger that cannot
 be read there contributes `unresolved`, never `covered` (§6.2). This adds no precondition and no
 gate: the allocation gate in *Resolve inputs and gate the grounded BRD* is decided on this BRD's own

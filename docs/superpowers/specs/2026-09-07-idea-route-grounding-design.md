@@ -204,12 +204,19 @@ strictly-formatted artifact. And the BRD route already answers the same question
 decides with the operator. Grounding adjudicates a claim; it never decides what to do about it.
 
 **`/update-prd` learns to read `grounding/` and to stamp `consumed_by: PRD`** on the findings it drew
-on, exactly as `/create-ard` and `/specify` already stamp theirs. This gives that enum value its first
-writer anywhere in the tree: `consumed_by` has always admitted `PRD | ARD | specification | none`, and
-`/create-prd` reads no `grounding/` file on either route, so nothing has ever written `PRD`. Without
-the stamp, every PRD-altitude finding stays `none` for the life of the folder and the unconsumed
-report cannot distinguish *nobody acted* from *acted, never recorded* — which is the ambiguity the
-field exists to remove.
+on, exactly as `/create-ard` and `/specify` already stamp theirs. This gives that value its first
+writer **onto a grounding finding record**: `/create-ard` writes `ARD` and `/specify` writes
+`specification` onto findings, while `/create-prd` already writes `PRD` — but only onto a
+`decisions.md` record, never inside `grounding/*.md`, because it reads no `grounding/` file on either
+route. **An earlier draft of this section claimed `PRD` had no writer anywhere in the tree, and that
+was false**: `product-workflows:decision-register-format` §1 declares `consumed_by` to be "the same
+field, values, and starting-at-`none` rule as `workflows-core:grounding-format` §2, applied to a
+decision instead of a finding", so the two are one field by declaration rather than by coincidence,
+and `/create-prd` has written that value since the BRD route shipped. The correction is recorded here
+rather than silently made, because the narrow claim is the one that carries the design and the broad
+one was load-bearing nowhere. Without the stamp, every PRD-altitude finding stays `none` for the life
+of the folder and the unconsumed report cannot distinguish *nobody acted* from *acted, never
+recorded* — which is the ambiguity the field exists to remove.
 
 ## 8. How grounding directs the downstream scans
 
@@ -221,12 +228,18 @@ of this commit?*, and `/create-ard` rests a whole refusal on the distinction —
 `workflows-core:grounding-format` §1 says is a capability inventory and explicitly **not** a finding."
 
 **What changes is where those two derive their themes from when verified grounding is present.**
-On the BRD route `/specify` already does this: it extracts capability themes from `spec-seed.md`, the
-implementation-altitude `decided` statements and the derivation-matrix rows, and those feed its repo
-derivation and its `code-scanner` dispatches **in place of** the PRD-derived themes. An idea-route
-folder has no seed files, so without a rule here both commands would read the `[CG#n]` set and then
-scan as though it did not exist — two agents re-deriving, on a cheaper model and with no verifier,
-what a verified corpus already settled.
+The nearest existing precedent is `/specify`'s BRD-route theme extraction, which replaces the
+PRD-derived themes with ones drawn from `spec-seed.md`, the implementation-altitude `decided`
+statements and the derivation-matrix rows — so the *shape* of "derive themes from the route's own
+material instead of the PRD's" already ships. **It is a precedent for the shape and not for the
+source, and an earlier draft of this section overstated it as "`/specify` already does this."** None
+of those three sources is a `[CG#n]`/`[DG#n]` finding: a matrix row lives inside
+`code-grounding.md` but is not a finding, and seeds and decisions are neither. **So seeding themes
+from verified findings is new on both routes, deliberately** — the rule below is written
+route-neutrally and applies wherever a folder holds grounding, rather than extending an idea-route
+gap to match something the BRD route was already doing. Without it, both commands would read the
+`[CG#n]` set and then scan as though it did not exist — two agents re-deriving, on a cheaper model
+and with no verifier, what a verified corpus already settled.
 
 **The rule: where the resolved folder holds verified grounding, each command seeds its theme set from
 the findings before falling back to its own derivation.** A `[CG#n]` whose verdict says a capability is

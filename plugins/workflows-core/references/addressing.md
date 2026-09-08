@@ -6,11 +6,12 @@ defined once rather than reinvented per caller. Design authority:
 `docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` §§4–5.
 
 **Consumed by every command that addresses a folder in the specs tree.** Each calls `resolve-address`
-(§3) and, where it validates a key before touching the filesystem, `key-valid` (§1). The six `/brd-*`
-commands, the eleven commands in §7's table, and the one shared authority §7 names all reach the
-tree through this file; `product-workflows:brd-format` and `product-workflows:coverage-ledger-format` cite it
-for the key grammar and folder resolution neither of them restates. Read §7's list as a **list**, not
-as a count — it is longer than a reader expects, and summarising it is how an adopter goes missing.
+(§3) and, where it validates a key before touching the filesystem, `key-valid` (§1). The five
+`/brd-*` commands and `/prd-ground`, the eleven commands in §7's table, and the one shared authority
+§7 names all reach the tree through this file; `product-workflows:brd-format` and
+`product-workflows:coverage-ledger-format` cite it for the key grammar and folder resolution neither
+of them restates. Read §7's list as a **list**, not as a count — it is longer than a reader expects,
+and summarising it is how an adopter goes missing.
 
 ## 1. Key grammar
 
@@ -113,7 +114,7 @@ the kind is frequently what decides the run's mode.
    `BRD-ACME-90-billing-intake/` with children `PRD-ACME-90-01-invoicing/` and
    `PRD-ACME-90-02-dunning/`, the bare glob returns **three** matches for `ACME-90` — and step 4 would
    hard-stop as `ambiguous` on a tree that is entirely correct, making the parent unaddressable by all
-   six `/brd-*` commands from the moment its first child exists. Exactly one of those three asserts
+   five `/brd-*` commands and `/prd-ground` from the moment its first child exists. Exactly one of those three asserts
    `key: ACME-90`.
 3. **Exactly one surviving candidate** → `status: found`.
 4. **No surviving candidate** → apply §5's legacy fallback. Still nothing → `status: absent`. The
@@ -235,7 +236,7 @@ precisely to become a PRD. Refusing a further child, not the walk, is the whole 
 
 ## 7. The shared fallback for existing commands
 
-Every command outside the `/brd-*` family that addresses a PRD directory resolved it as the flat form
+Every command outside the `/brd-*` family and `/prd-ground` that addresses a PRD directory resolved it as the flat form
 `specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD (`/create-prd` on the BRD
 route authors into the `PRD-` slice folder one level inside a BRD). All of them therefore reach the tree through `resolve-address`, which searches
 every level §3 bounds and carries §5's fallback. One shared rule, defined here once rather than reinvented
@@ -269,7 +270,7 @@ to, which is why the adopter count and the command count differ:
 **Twelve files, twelve commands** — and the two matching is a coincidence of this moment, not a rule.
 One command adopts it purely **by delegation** and appears nowhere in the table: `/implement`, which
 reaches an ARD solely by citing `ard-resolution.md`. It is not in the table for the same reason the
-`/brd-*` commands are not — it resolves its own single positional address with `resolve-address` (§3),
+`/brd-*` commands and `/prd-ground` are not — it resolves its own single positional address with `resolve-address` (§3),
 which already searches every level, so §5's fallback is reached without adopting anything. (It once
 resolved no folder of its own, and this sentence still said so after that changed; the delegation half
 was always the real reason it appears nowhere here.) Counting
@@ -292,7 +293,7 @@ first write and **never relocating it afterwards** (D7). A redirect, or a first 
 command with a narrower resolution then has to find again, is a dead-end handoff, which is why those
 two are in the table rather than deferred as low-risk.
 
-**Not adopters, and correctly so.** The `/brd-*` commands resolve a folder with `resolve-address` (§3)
+**Not adopters, and correctly so.** The `/brd-*` commands and `/prd-ground` resolve a folder with `resolve-address` (§3)
 directly, which already searches every level — the fallback here is §5's rule restated for callers that
 were never wired to it. `/implement` is covered by delegation as above.
 

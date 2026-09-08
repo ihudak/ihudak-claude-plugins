@@ -23,7 +23,7 @@ Three pages orient you before you touch a command: [Getting started](getting-sta
 - [`/upgrade`](commands/upgrade.md) — plan and execute a library, framework, runtime, or build-tool upgrade.
 - [`/vuln`](commands/vuln.md) — research and fix a CVE, one dependency or code change at a time.
 
-The PM/PA/PE commands that used to sit here — `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/epics`, `/specify`, and the six `/brd-*` commands of the BRD-to-PRD route — ship in the companion `product-workflows` plugin now, alongside the agents and reference files that supported them.
+The PM/PA/PE commands that used to sit here — `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/epics`, `/specify`, and the six-command BRD-to-PRD route (`/brd-intake`, `/brd-split`, `/prd-ground`, `/brd-interview`, `/brd-package`, `/brd-reconcile`) — ship in the companion `product-workflows` plugin now, alongside the agents and reference files that supported them.
 
 ## Reference
 

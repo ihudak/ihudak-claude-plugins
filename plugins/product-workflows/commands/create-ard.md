@@ -77,7 +77,7 @@ this stage). Zero external calls.
    A `BRD-` folder is **not** a fourth altitude, and this command used to route one onto the BRD
    route. **This test is not part of the BRD-route branch and must not be folded into it**: that
    route is detected from a `brd-link.md`, and a root BRD folder need not carry one — `/brd-intake`
-   writes none, and only `/brd-ground`, `/brd-split` and `/brd-package` ever do — so a
+   writes none, and only `/prd-ground`, `/brd-split` and `/brd-package` ever do — so a
    route-conditioned refusal would let `/create-ard <ROOT-BRD-KEY>` fall through and author an ARD
    into the container. It is a container: the design's §4.1 tree places `ard.md`
    only inside a PRD folder, while a `BRD-` folder holds `brd/`, `grounding/`, `interview/`,
@@ -231,7 +231,7 @@ artifact. It says nothing about the PRD, which is authored by `/product-workflow
 
 ## Phase 1 — Configure
 Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`Skill(skill: "workflows-core:reference", args: "escalation-rules")` §0).
-1. **Confirm** the scope (PRD-level vs Epic-level) and the feature folder — and, on every route, whether an authored `prd.md` was found there (the Phase 0 gate's result), so the operator sees which content this run has before it starts. **On the BRD route**, confirm **in addition** a `from BRD:` line naming `<SLICE-KEY>` and the `parent:` its `brd-link.md` records — a run on this route is always slice-level, since step 1a refuses the container — its `depends-on:` if any, and which of `ard-seed.md`, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md` are present — a stat, not a read; the read is Phase 2.
+1. **Confirm** the scope (PRD-level vs Epic-level) and the feature folder — and, on every route, whether an authored `prd.md` was found there (the Phase 0 gate's result), so the operator sees which content this run has before it starts. **Wherever the resolved folder holds `grounding/`, on either route**, confirm in addition which of `grounding/code-grounding.md` and `grounding/design-grounding.md` are present — a stat, not a read; the read is Phase 2. **On the BRD route**, confirm **further** a `from BRD:` line naming `<SLICE-KEY>` and the `parent:` its `brd-link.md` records — a run on this route is always slice-level, since step 1a refuses the container — its `depends-on:` if any, and which of `ard-seed.md` and `decisions.md` are present — also a stat.
    - Show the `docs grounding:` line in the form `workflows-core:docs-grounding` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 2. **Refine vs fresh** (only if a prior `ard.md` exists): `choices: ["Refine the existing ARD (Recommended)", "Start fresh — overwrite", "Cancel"]`.
 3. **Repos search base (`$REPOS_PATH`).** Read `${REPOS_PATH:-/workspace}` (may be colon-separated): `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]`.
@@ -293,12 +293,14 @@ For an **Epic-level** run always dispatch the folder read this way (`depth: full
 
 Extract the problem/goal/scope frame + capability themes — the raw material for grounding + the grill.
 
-### the BRD route — read the architecture-altitude seed, the register, and the verified findings
+### the BRD route — read the architecture-altitude seed and the register
 
 On the BRD route this phase **additionally** reads the `PRD-` slice folder Phase 0 step 3 resolved —
 additionally, because the PRD read above already ran against that same folder and found a `prd.md` or
-reported its absence. These are what a slice carries and an idea-route PRD folder does not, and they are
-the whole of the divergence this route is entitled to. Read exactly these, and no other seed:
+reported its absence. `ard-seed.md`, `decisions.md` and `brd-link.md` are what a slice carries and an
+idea-route PRD folder does not, and they are the whole of the divergence this route is entitled to
+beyond grounding — which the paragraphs after this list read wherever the resolved folder holds it, on
+either route. Read exactly these, and no other seed:
 
 - **`ard-seed.md`** — architecture-altitude content, when the folder holds any. **Where to look, and it is two places.** The resolved slice first. Then, when the slice holds none, the **parent BRD folder** named by `brd-link.md`'s `parent:` — that is where `--sort-existing` actually writes all three seeds, because slices do not exist when intake runs. A seed found there is BRD-wide content, not slice-scoped: read it as context for this slice, say which folder it came from, and never treat it as though it were written for this slice alone. Finding neither remains the ordinary case. **No `/brd-*` command writes this file on the normal route** — the one writer is
   `/product-workflows:brd-intake --sort-existing`, a one-time migration path for a package authored
@@ -312,8 +314,6 @@ the whole of the divergence this route is entitled to. Read exactly these, and n
   `${CLAUDE_PLUGIN_ROOT}/references/ard-format.md`'s quality rules forbid from opposite directions.
 - **`decisions.md`** — the register, per
   `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1.
-- **`grounding/code-grounding.md`** and **`grounding/design-grounding.md`** — the `[CG#n]` and
-  `[DG#n]` finding records, per `workflows-core:grounding-format` §2.
 - **`brd-link.md`** — for `parent:` and `depends-on:` only. This run reads no `claims:` list and no
   coverage ledger **as an authoring input**: PRD eligibility and the allocation gate are
   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5's rule about authoring a **PRD**,
@@ -328,9 +328,9 @@ the whole of the divergence this route is entitled to. Read exactly these, and n
   avoid offering a run that stops on arrival is not the same as gating this run on it.
 
 **Absence is reported, never a stop, and the seed's absence is the ordinary case.** Nothing on the
-normal route writes a seed file at all (above), so a reconciled BRD routinely holds none; and a BRD
-ground with `--no-design` still holds a `design-grounding.md` — `/brd-ground` Phase 8 writes it on every run, carrying a note saying the pass was skipped and why, plus a `## Frame sets covered` census of the `design/` subdirectories on disk. Absent means the file is not there at all, never that design grounding was declined. Say which of the four were absent — a reader cannot tell an unwritten
-file from an unread one — and carry what is there.
+normal route writes `ard-seed.md` at all (above), so a reconciled BRD routinely holds none. Say which
+of `ard-seed.md` and `decisions.md` were absent — a reader cannot tell an unwritten file from an
+unread one — and carry what is there.
 
 **Partition the register before the grill starts, because the partition is what freezes it.** The
 five states and their treatment are `decision-register-format.md` §3's, applied here exactly as
@@ -349,17 +349,32 @@ this phase does, so a decision skipped here is picked up there from the file it 
 existed — so naming a seed as the thing that carries it would send a reader after a file that is not
 there.
 
+### grounding — read wherever the resolved folder holds it, on either route
+
+Where the resolved folder carries `grounding/code-grounding.md` and/or `grounding/design-grounding.md`
+— the idea-route PRD folder as readily as the BRD-route slice, since `/product-workflows:prd-ground`
+now writes both from either — read the `[CG#n]` and `[DG#n]` finding records, per
+`workflows-core:grounding-format` §2. A BRD ground with `--no-design` still holds a
+`design-grounding.md` — `/prd-ground` Phase 8 writes it on every run, carrying a note saying the pass
+was skipped and why, plus a `## Frame sets covered` census of the `design/` subdirectories on disk.
+Absent means the file is not there at all, never that design grounding was declined. Say which of the
+two files were absent — a reader cannot tell an unwritten file from an unread one — and carry what is
+there. Where the resolved folder holds neither file, report that and proceed exactly as this command
+did before this feature — grounding on this route is optional and nothing gates on it.
+
 **A finding with no verifier outcome is not evidence** (`workflows-core:grounding-format` §8) and may neither
 seed `## Grounding findings (architecture as-is)` nor be marked `consumed_by` anything. Carry only
 findings that hold one, keep each one's `[CG#n]`/`[DG#n]` id and its pinned `commit` where it is
-cited, and name any finding the seed offered that was dropped for want of an outcome.
+cited, and name any finding offered that was dropped for want of an outcome.
 
-**A `will-change` finding names a prerequisite decision that overturns it** (`workflows-core:grounding-format`
-§5), and a `decided` record may carry a `conditional_on: <BRD-KEY>/<decision-id>`
-(`decision-register-format.md` §5). Both are architecture the ARD must not state as settled: record
-each under `## Open questions` — or `## Deferred` where the prerequisite is what defers it — naming
-the prerequisite BRD and the specific decision, alongside the `depends-on:` list `brd-link.md`
-carries.
+**A `will-change` finding names a prerequisite decision that overturns it, where one is recorded**
+(`workflows-core:grounding-format` §5). Record it under `## Open questions` — or `## Deferred` where
+the prerequisite is what defers it. **On the BRD route only**, a `decided` record may carry a
+`conditional_on: <BRD-KEY>/<decision-id>` (`decision-register-format.md` §5), which is architecture
+the ARD must not state as settled either: name the prerequisite BRD and the specific decision
+alongside the `depends-on:` list `brd-link.md` carries. An idea-route folder holds no `decisions.md`
+and so records no `conditional_on` — a `will-change` finding there still gets the `## Open questions` /
+`## Deferred` treatment on its own account, naming only the finding.
 
 **Inheritance on the BRD route uses `brd-link.md`'s `parent:`, never a segment count.** Resolve any
 inherited ARD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and
@@ -384,11 +399,24 @@ that ordering. A reader who arrives here has the load in front of them and needs
 ## Phase 3 — Architect-driven grounding (no PRs)
 There are no PRs at ARD time, so repos are **architect-driven**, not PR-derived:
 1. **Cheap discovery.** List the top-level directories under each `$REPOS_PATH` entry (`ls`). Optionally attach each dir's one-line identity — `timeout 5 git -C <dir> remote get-url origin 2>/dev/null` (slug) or its README first heading. Do **not** deep-scan to guess relevance.
-2. **Propose + ask.** From the PRD/Epic themes, propose a `theme → repo` mapping against those dirs, and **ask the architect to confirm / correct / add**. For any requirement that maps to no obvious repo, **ask outright**: "which repo covers `<X>`?"
+2. **Propose + ask.** **Where the resolved folder holds verified `[CG#n]`/`[DG#n]` grounding, seed the
+   theme set from those findings before falling back to the PRD/Epic-derived themes** — the same
+   composition `workflows-core:model-routing/classification` §8.5's seeded second round already
+   establishes for a scan narrowed by verified anchors, applied here to a folder's own grounding corpus
+   rather than to a prior scan round. A finding whose verdict says a capability is absent is a theme
+   worth scanning, since that is where the work still needs doing; one whose verdict says it is present
+   names the code that already implements the capability, so the scan is directed at it rather than
+   searching blind for it. This does not replace the scan below — `workflows-core:grounding-format` §1
+   draws that line: `code-scanner` output is a capability inventory, not a finding — so the seeding only
+   changes where the themes come from; a folder with no grounding derives its themes exactly as this
+   command always has, and this scan is never skipped, made conditional, or put behind a flag. From the
+   PRD/Epic themes — seeded from grounding where it is present, derived as before where it is not —
+   propose a `theme → repo` mapping against those dirs, and **ask the architect to confirm / correct /
+   add**. For any requirement that maps to no obvious repo, **ask outright**: "which repo covers `<X>`?"
 
    **On the BRD route the proposal additionally starts from the slice folder's
    `grounding/baselines.md`**, which already records repository → pinned commit for every repo
-   `/product-workflows:brd-ground` read. That is joined to the themes above, not substituted for them: the
+   `/product-workflows:prd-ground` read. That is joined to the themes above, not substituted for them: the
    PRD read in Phase 2 runs on this route too, so where the slice holds a `prd.md` its themes are in
    hand and a pinned repo set corroborates them; where it holds none — the ordinary BRD-route state —
    `baselines.md` and the register's decisions are the whole of the starting set, and that is still a
@@ -471,7 +499,7 @@ useful information, not something to suppress. Do not decide it and do not softe
 prose. Record it under `## Open questions`, naming the `[VD#n]` or `[CD#n]` it contradicts and what
 this run believes contradicts it, and name the route that may act on it. **Neither route is this
 command**, and both are exactly §4's two causes rather than a third invented here: a `[VD#n]` needs a
-new grounding finding, which only `/product-workflows:brd-ground <BRD-KEY> --rebaseline` mints and
+new grounding finding, which only `/product-workflows:prd-ground <BRD-KEY> --rebaseline` mints and
 `/product-workflows:brd-interview <BRD-KEY>` then re-decides against; a `[CD#n]` needs the customer,
 through `/product-workflows:brd-package <BRD-KEY>` and then
 `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>`. This is not the `## ARD deviations`
@@ -536,17 +564,18 @@ On `BLOCK`, fix the BLOCKER findings inline (the orchestrator/grill edits the AR
 ## Phase 6 — Handoff
 Write the ARD file(s) into the feature folder.
 
-**On the BRD route, also close the consumption loop before the offer.** The design's *Consumption
-tracking* section (§7.3) has every finding and decision record a `consumed_by`, so that "nothing was
-lost" is checkable rather than hoped for. Set `consumed_by: ARD` on each architecture-altitude
-`decided` record in `decisions.md` and on each `[CG#n]`/`[DG#n]` finding in
-`grounding/code-grounding.md` / `grounding/design-grounding.md` **this ARD actually drew on** — and on
-nothing else: a record read for context and not used is still `none`, and marking it consumed would
-report a routing that never happened. A finding with no verifier outcome is never marked, whatever the
-ARD did with the claim, because it was never evidence (`workflows-core:grounding-format` §8). These are the
-**only** writes this command makes into any BRD file, and none of them is a `status` change or any
-other field (Phase 4). Everything at architecture altitude still `none` afterwards goes in the final
-report by id, per §7.3.
+**Wherever the resolved folder holds `grounding/`, on either route, close the consumption loop before
+the offer.** The design's *Consumption tracking* section (§7.3) has every finding and decision record
+a `consumed_by`, so that "nothing was lost" is checkable rather than hoped for. Set `consumed_by: ARD`
+on each `[CG#n]`/`[DG#n]` finding in `grounding/code-grounding.md` / `grounding/design-grounding.md`
+**this ARD actually drew on** — and on nothing else: a record read for context and not used is still
+`none`, and marking it consumed would report a routing that never happened. A finding with no verifier
+outcome is never marked, whatever the ARD did with the claim, because it was never evidence
+(`workflows-core:grounding-format` §8). **On the BRD route, additionally**, set `consumed_by: ARD` on
+each architecture-altitude `decided` record in `decisions.md` this ARD actually drew on, under the same
+exclusion. These are the **only** writes this command makes into a grounding file or, on the BRD route,
+into `decisions.md`, and none of them is a `status` change or any other field (Phase 4). Everything at
+architecture altitude still `none` afterwards goes in the final report by id, per §7.3.
 
 **`ard-seed.md` is reported, not stamped**, for the reason the field's own authorities give:
 `consumed_by` is a field of a *record* — defined on a decision by
@@ -556,7 +585,7 @@ no per-item field to write and inventing one would mint a format this command al
 seed's consumption is reported at **file** granularity in the final report (consumed, or consumed in
 part with what was left over).
 
-Then **offer** (commit-when-asked — never automatic), invoking `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and presenting its §4.3 choice array verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: ard`; `feature_folder` as resolved in Phase 0 (the PRD dir for a PRD-level ARD, the Epic subfolder for an Epic-level ARD — §2.2 derives `ard/<PRD>-<vslug>` or `ard/<EPIC>-<eslug>` from it, matching today's branch names); `deliverable_paths` = the ARD file(s) — **plus, on the BRD route, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md`**, because the `consumed_by` writes above land in those three and an uncommitted consumption record is one no later run can read; `ard-seed.md` is not staged, because this run does not write to it; `title: <PRD|EPIC> Add architecture requirements document`; and `body_facts` = the ARD scope (PRD/Epic, any per-area split), the grounded/descoped repos, the `AD#N` count, the open-question count, and the `ard-reviewer` verdict — and, on the BRD route, the `<SLICE-KEY>` this ARD was seeded from and how many items were marked `consumed_by: ARD`. Emit its §4.1 outcome line in the Final report.
+Then **offer** (commit-when-asked — never automatic), invoking `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and presenting its §4.3 choice array verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: ard`; `feature_folder` as resolved in Phase 0 (the PRD dir for a PRD-level ARD, the Epic subfolder for an Epic-level ARD — §2.2 derives `ard/<PRD>-<vslug>` or `ard/<EPIC>-<eslug>` from it, matching today's branch names); `deliverable_paths` = the ARD file(s) — **plus, wherever the resolved folder holds `grounding/`, `grounding/code-grounding.md` and `grounding/design-grounding.md`, and, additionally on the BRD route, `decisions.md`**, because the `consumed_by` writes above land in those files and an uncommitted consumption record is one no later run can read; `ard-seed.md` is not staged, because this run does not write to it; `title: <PRD|EPIC> Add architecture requirements document`; and `body_facts` = the ARD scope (PRD/Epic, any per-area split), the grounded/descoped repos, the `AD#N` count, the open-question count, the `ard-reviewer` verdict, and how many items were marked `consumed_by: ARD` — and, on the BRD route, the `<SLICE-KEY>` this ARD was seeded from. Emit its §4.1 outcome line in the Final report.
 
 **On the BRD route the feature folder is the resolved `PRD-` slice folder**, so §2.2 derives the
 branch `ard/<SLICE-KEY>-<slug>` from its own basename, not from a re-derived title. That name collides with neither the `prd/` branch `/product-workflows:create-prd` derives on the BRD route for the same key, nor the `spec/` one `/product-workflows:specify` derives on the BRD route, nor the
@@ -693,21 +722,35 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git 
 ## Final report
 Report: the ARD path(s) + scope (PRD/Epic, any per-area split); **the PRD gate's return value and whether an authored `prd.md` was read from the resolved folder** — the same two lines on every route, so a reader can tell an `absent` PRD from an unrun gate; the grounded repos + any descoped/ungrounded ones; `AD#N` count; open-question count; the `ard-reviewer` verdict; the `Phase handoff:` outcome line from `handoff-to-main` (`workflows-core:phase-handoff` §4.1); resolved model routing (+ any Opus gate/degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`workflows-core:specs-repo-git` §6), with any guard notice repeated in full; and the adaptive next-step recommendation.
 
+**Wherever the resolved folder holds `grounding/`, on either route, additionally:** which of
+`grounding/code-grounding.md` and `grounding/design-grounding.md` were present; every `[CG#n]`/`[DG#n]`
+dropped for want of a verifier outcome, by id; every architecture-altitude item still `consumed_by:
+none`, by id, per the design's *Consumption tracking* section (§7.3) — **excluding the baseline
+`[CG#n]` findings**, which are never `consumed_by` anything and whose `none` therefore reports no gap
+(`workflows-core:grounding-format` §4.1); say that they are excluded, so a reader can tell an empty
+list from an unrun check. **Where the resolved folder carries `brd-link.md`, additionally exclude every
+`[CG#n]`/`[DG#n]` whose `claim` cites a `[BR#n]` that folder's own `coverage-ledger.md` now shows as
+`covered-by`**, read off that file's `disposition` column and never off `claims:` or the inventory
+(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.1's trap, named there from the other
+side) — the BRD that row names *owns* the requirement (§3.1), so nothing this run authors can consume a
+finding about it and its `none` reports no gap either; that is the state a re-cut leaves on the slice
+that gave the row up (§3.2) — say how many were excluded on this count too, for the same reason as the
+first, and note that this is a **report exclusion only**, no finding edited, renumbered, moved or
+marked and no `consumed_by` value changed anywhere. On a folder with no `brd-link.md` — the ordinary
+idea-route case — this second exclusion has no subject: its claims are `[AC#n]`/`[FR#n]`/`[US#n]`,
+never a `[BR#n]`, and there is no `coverage-ledger.md` in the folder to read, so report zero excluded
+under it rather than omitting the count.
+
 **On the BRD route, additionally:** the `<SLICE-KEY>` seeded from and its resolved folder; the
 `parent:` key its `brd-link.md` records — every run of this route is slice-level — and whether the
-parent's ARD was inherited (`found`) or absent (`none`); which of `ard-seed.md`, `decisions.md`,
-`grounding/code-grounding.md` and `grounding/design-grounding.md` were present; the frontmatter
+parent's ARD was inherited (`found`) or absent (`none`); which of `ard-seed.md` and `decisions.md`
+were present; the frontmatter
 `scope` / `prd` / `epic` / `inherits` / `derived_from` as written, naming which of the two
-`derived_from` sources was used and why; every `[CG#n]`/`[DG#n]` dropped for want of a verifier
-outcome, by id; every `[VD#n]`/`[CD#n]`/`[AS#n]` carried in as a gap rather than an input, by id and
-status; every architecture-altitude `decided` record that did **not** become an `[AD#N]` and where its
-content went instead; every `will-change` finding and `conditional_on` decision recorded as a
-prerequisite rather than as settled architecture, with the prerequisite decision named; every
-architecture-altitude item still `consumed_by: none`, by id, per the design's *Consumption tracking*
-section (§7.3) — **excluding the baseline `[CG#n]` findings**, which are never `consumed_by` anything
-and whose `none` therefore reports no gap
-(`workflows-core:grounding-format` §4.1); say that they are excluded, so a
-reader can tell an empty list from an unrun check; **and excluding every `[CG#n]`/`[DG#n]` whose `claim` cites a `[BR#n]` this slice's own `coverage-ledger.md` now shows as `covered-by`**, read off that file's `disposition` column and never off `claims:` or the inventory (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.1's trap, named there from the other side) — the BRD that row names *owns* the requirement (§3.1), so nothing this run authors can consume a finding about it and its `none` reports no gap either; that is the state a re-cut leaves on the slice that gave the row up (§3.2) — say how many were excluded on this count too, for the same reason as the first, and note that this is a **report exclusion only**, no finding edited, renumbered, moved or marked and no `consumed_by` value changed anywhere; `ard-seed.md`'s consumption at file granularity; and any product- or
+`derived_from` sources was used and why; every `[VD#n]`/`[CD#n]`/`[AS#n]` carried in as a gap rather
+than an input, by id and status; every architecture-altitude `decided` record that did **not** become
+an `[AD#N]` and where its content went instead; every `will-change` finding and `conditional_on`
+decision recorded as a prerequisite rather than as settled architecture, with the prerequisite decision
+named; `ard-seed.md`'s consumption at file granularity; and any product- or
 implementation-altitude content the grill surfaced and left for the command that authors at that
 altitude instead of the ARD (D5) — naming the command, never a seed file, since the register it will
 read that content out of is the one this run already read. Say plainly whether `/product-workflows:epics` was offered and, when it was not, **why**: the resolved

@@ -293,3 +293,19 @@ The line reads *"The same gate applies to the companion `product-workflows` plug
 **This is the glob-coverage regression class**: prose that derives an obligation from a glob the rename shrank, invisible to `grep -r 'brd-ground'` because the sentence never contained that string. Gate 3 found and fixed **fifteen** instances of it across three plugins; this one survived because the file was opened by neither the literal-name sweep nor the class sweep that followed. Found by the final whole-branch review's own re-run of the class sweep, after the fix wave — which is the argument for running that sweep again at the end rather than trusting the fix list.
 
 Fix is one line: name `/prd-ground` alongside the glob. Nothing about a run misbehaves; a reader is simply told the gate applies to five commands where it applies to six.
+
+
+## G3-2 — two build gates fail from the main checkout whenever a worktree exists under `.worktrees/`
+
+**Found during gate 3's merge, by the merged-result verification the finishing discipline mandates.** Not a defect the branch introduced, and invisible until someone uses a worktree.
+
+`scripts/validate-catalog.py .` and `scripts/check-id-grammar.sh --root .` both walk the filesystem from the repo root **without excluding gitignored directories**. A git worktree at `.worktrees/<name>/` is a second full copy of the tree, so:
+
+- `validate-catalog.py` reports **one ERROR per plugin** — *"plugin name '<x>' is already declared by .worktrees/…"* — because every plugin name now appears twice, plus a duplicate description WARN. Measured: 10 errors, 3 warnings on a tree with one worktree present.
+- `check-id-grammar.sh` walks into `.worktrees/…/scripts/fixtures/`, whose **negative test fixtures deliberately contain dash-form IDs** (`[AC-2]`, `[SM-1]`), and reports them as live violations.
+
+`check-docs.sh` is unaffected — it iterates its own `PLUGIN_RELS` list rather than walking the tree, which is exactly why it stayed green while the other two went red.
+
+**Why it matters beyond the annoyance:** the merged-result gate run is the last check before a branch lands, and it runs from the main checkout while the worktree is still on disk — so the two gates fail for a reason that has nothing to do with the merge, at the precise moment someone is deciding whether the merge was sound. The correct reading is "remove the worktree, re-run", and nothing says so. On gate 3 the sequence was: merge → 10 errors → investigate → confirm the merge was identical to the verified branch tip → remove worktree → all seven green.
+
+**Fix:** have both scripts skip gitignored paths, or at minimum skip a `.worktrees/`/`worktrees/` directory at the repo root. `check-docs.sh`'s list-driven approach is the shape that already works.

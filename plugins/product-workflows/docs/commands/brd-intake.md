@@ -80,7 +80,7 @@ shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never 
   and design is `/prd-ground`'s job, run later.
 - **No prior `/brd-*` deliverable.** `/brd-intake` is the entry point of the route: it consumes no
   earlier phase's artifact, so it runs no `require-on-main` gate in Phase 0, unlike every
-  downstream `/brd-*` command.
+  downstream command on this route, including `/prd-ground`.
 
 ## What it produces
 

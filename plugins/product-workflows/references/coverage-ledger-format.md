@@ -431,7 +431,8 @@ are `/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a), `/specify` (step 0
 rather than adjusting it. `/create-prd` cannot test for `prd.md` — it is the run that is about to
 write it — so a test keyed off the PRD's presence would have to be worded differently in
 `/create-prd` than in the other seven, and eight copies of one rule is the drift this file exists to
-prevent. The four `/brd-*` commands take this test for a different consequence than the first four —
+prevent. The last four in the list above — `/prd-ground`, `/brd-interview`, `/brd-package` and
+`/brd-reconcile` — take this test for a different consequence than the first four —
 they refuse to *run at all* against a root, rather than refusing to *author into* one — but the test
 itself, the positive evidence of BRD-ness, is the one this section fixes and is unchanged either way.
 
@@ -501,7 +502,8 @@ nothing in this plugin moves a `deferred-to`, `rejected` or `superseded-by` row 
 
 ## 6. The ledger line
 
-Every `/brd-*` command's final report ends with exactly one line, so the ledger's state is visible
+Every `/brd-*` command's final report ends with exactly one line — as does `/prd-ground`'s, on
+`route: brd`, which cites this section for the format — so the ledger's state is visible
 without opening the file or running anything else:
 
 ```

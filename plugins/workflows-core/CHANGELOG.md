@@ -49,6 +49,20 @@ designed.
 `/prd-ground` now uses `prefix: prd` on the idea route, which the parenthetical did not name. Fixed
 to read "shared by `/create-prd`, `/update-prd` and, on the idea route, `/prd-ground`."
 
+### Fixed — `specs-repo-git.md` §4.1's branch-opener enumeration silently dropped `/prd-ground` after the rename
+
+`/prd-ground` still opens on the shared `brd` prefix on the BRD route, exactly as `/brd-ground` did
+before it — but "every `/brd-*` command" stopped matching it the day the rename shipped, and a sweep
+that greps for the literal string `/brd-ground` cannot catch this: the sentence never contained it.
+The enumeration named nine commands plus "every `/brd-*`" and totalled fifteen only while the glob
+still reached the command that is now `/prd-ground`; after the rename the glob matches five, so the
+sentence silently named fourteen producers where `phase-handoff.md` still recorded fifteen. Added
+`/prd-ground` back in by name, restated the total, and explained why it is named separately from the
+glob rather than folded back into it — it left the `/brd-*` glob, not the branch-opening behavior, and
+on the idea route it opens on the shared `prd` prefix instead. This is the defect class the rest of
+this fix round exists to name: a command that leaves a `/brd-*`-shaped glob without leaving the route
+it still serves, invisible to any sweep keyed on the old command name.
+
 ### Changed — renamed citations swept through the shared reference corpus
 
 `docs-grounding.md`'s consumer list, `phase-handoff.md`'s branch-prefix and producer/consumer tables,

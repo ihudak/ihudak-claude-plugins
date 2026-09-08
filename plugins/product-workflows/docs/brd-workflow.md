@@ -52,8 +52,8 @@ flowchart TD
 
 **The right-hand box is not part of the route.** Its three nodes are the PRD pipeline's own
 commands, drawn here because `/brd-reconcile` is where this route hands over to them and a reader
-following the diagram needs somewhere to go next. The route itself is still the six `/brd-*`
-commands: nothing in that box extracts a requirement, allocates a ledger row or opens a question —
+following the diagram needs somewhere to go next. The route itself is still the six commands above —
+five `/brd-*` commands and `/prd-ground`: nothing in that box extracts a requirement, allocates a ledger row or opens a question —
 each of the three only reads what this route already wrote, at its own altitude, and stamps
 `consumed_by` on what it took.
 

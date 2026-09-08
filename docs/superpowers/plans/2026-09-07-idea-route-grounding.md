@@ -662,11 +662,12 @@ otherwise either drops a live exclusion or invents a ledger read on a route that
 
 This is the composition rule and the reason grounding and the scan are not alternatives.
 
-`/specify` already does this on the BRD route: it extracts capability themes from `spec-seed.md`, the
-implementation-altitude `decided` statements and the derivation-matrix rows, and those feed Phase 3's repo
-derivation and Phase 4's `code-scanner` dispatches **in place of** the PRD-derived themes. An idea-route
-folder has no seed files, so without this step both commands read the `[CG#n]` set and then scan as though
-it did not exist.
+`/specify`'s BRD-route theme extraction — which replaces the PRD-derived themes with ones drawn from
+`spec-seed.md`, the implementation-altitude `decided` statements and the derivation-matrix rows — is a
+precedent for the *shape* of this step, not for the *source*: none of those three is a `[CG#n]`/`[DG#n]`
+finding (a matrix row lives inside `code-grounding.md` but is not one), so seeding the theme set from
+verified findings is new on **both** routes, deliberately. Without this step, both commands read the
+`[CG#n]` set and then scan as though it did not exist.
 
 The rule for both commands: **where the resolved folder holds verified grounding, seed the theme set from
 the findings before falling back to the command's own derivation.** A finding whose verdict says a

@@ -71,7 +71,7 @@ The diagram above shows where each command sits in the pipeline; [Roles and phas
 
 ## Parameters at the BRD-to-PRD handoff
 
-The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command's own argument parsing defines them. [BRD workflow](brd-workflow.md#parameters) carries the same table for the six `/brd-*` commands upstream of them.
+The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command's own argument parsing defines them. [BRD workflow](brd-workflow.md#parameters) carries the same table for the six BRD-to-PRD route commands upstream of them.
 
 | Command | Required | Optional | Offered from `/brd-reconcile` |
 |---|---|---|---|

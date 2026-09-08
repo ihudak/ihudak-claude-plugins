@@ -37,7 +37,7 @@ behaviour, not the behaviour.
 
 1. **`<BRD-KEY>` (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--depends-on` and `--docs` each consume the token after them (step 2), and a value skipped as "non-flag" would be read as the key; validate with `key-valid`
    (`workflows-core:addressing` §1). If absent or invalid, stop:
-   `PRD_GROUND_NEEDS_KEY: /prd-ground needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/product-workflows:prd-ground <KEY>'.`
+   `PRD_GROUND_NEEDS_KEY: /prd-ground needs a key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/product-workflows:prd-ground <KEY>'.`
 2. **Flags.** `--depends-on <BRD-KEY>` — repeatable, each consuming the next token; validate each
    with `key-valid` and drop (warn, do not stop the run) any that fail shape. **Refused outright on
    `route: idea`** — deferred to immediately after step 5a resolves the route, for the same reason
@@ -55,11 +55,11 @@ behaviour, not the behaviour.
    `--no-code` — boolean, the **run mode** stated above the phases. Its four refusals are checked
    here, before anything expensive runs:
    - With `--no-design`, nothing is left to ground:
-     `PRD_GROUND_NOTHING_TO_GROUND: --no-code and --no-design together leave this run nothing to ground — drop one and re-run '/product-workflows:prd-ground <BRD-KEY>'.`
+     `PRD_GROUND_NOTHING_TO_GROUND: --no-code and --no-design together leave this run nothing to ground — drop one and re-run '/product-workflows:prd-ground <KEY>'.`
    - With `--rebaseline`, which supersedes `[CG#n]` findings by id — a write this mode forbids:
-     `PRD_GROUND_NO_CODE_REBASELINE: --rebaseline supersedes [CG#n] findings by id, which --no-code forbids — re-run '/product-workflows:prd-ground <BRD-KEY> --rebaseline' without --no-code to re-ground the moved code, or drop --rebaseline to add design grounding over what is already on file.`
+     `PRD_GROUND_NO_CODE_REBASELINE: --rebaseline supersedes [CG#n] findings by id, which --no-code forbids — re-run '/product-workflows:prd-ground <KEY> --rebaseline' without --no-code to re-ground the moved code, or drop --rebaseline to add design grounding over what is already on file.`
    - With an **explicit** `--derivation-matrix`, which Phase 8 appends into `code-grounding.md`:
-     `PRD_GROUND_NO_CODE_MATRIX: the derivation matrix is appended to grounding/code-grounding.md, which --no-code forbids writing — re-run '/product-workflows:prd-ground <BRD-KEY> --derivation-matrix' without --no-code.`
+     `PRD_GROUND_NO_CODE_MATRIX: the derivation matrix is appended to grounding/code-grounding.md, which --no-code forbids writing — re-run '/product-workflows:prd-ground <KEY> --derivation-matrix' without --no-code.`
      An explicit `--no-derivation-matrix` is redundant here but harmless; an unset default resolves
      **off** under this mode and is reported rather than left silent.
    - Where there is no verified code grounding to build on. This one needs the resolved folder, so
@@ -73,7 +73,7 @@ behaviour, not the behaviour.
      verifier `outcome`. The third is the state `/brd-split` itself refuses
      (`workflows-core:grounding-format` §8), so reporting it now costs one read and saves a whole
      design pass that still could not split:
-     `PRD_GROUND_NO_CODE_UNGROUNDED: --no-code adds design grounding over an existing code grounding, and <BRD-KEY> has <no code grounding on file | no [CG#n] findings | N of M [CG#n] findings carrying no verifier outcome> — re-run '/product-workflows:prd-ground <BRD-KEY>' without --no-code.`
+     `PRD_GROUND_NO_CODE_UNGROUNDED: --no-code adds design grounding over an existing code grounding, and <KEY> has <no code grounding on file | no [CG#n] findings | N of M [CG#n] findings carrying no verifier outcome> — re-run '/product-workflows:prd-ground <KEY>' without --no-code.`
 
    **Every other flag carries over unchanged, on either route, including every refusal combination
    above** — stated here rather than left for a reader to infer from silence. `--no-design`,
@@ -84,9 +84,9 @@ behaviour, not the behaviour.
    correctly so — it reads `<BRD-dir>/grounding/code-grounding.md`, which
    `workflows-core:grounding-format` already treats as route-neutral, and
    `PRD_GROUND_NO_CODE_UNGROUNDED`'s own text names no ledger, no inventory, and no `brd-link.md`;
-   `<BRD-KEY>` there is this step's running placeholder for whichever key resolved, on either route,
-   not a claim that the folder is a BRD. It sits among ledger-shaped neighbours only because of
-   where the level question happens to fall in this file, not because of anything it tests.
+   `<KEY>` there is this step's running placeholder for whichever key resolved, on either route. It
+   sits among ledger-shaped neighbours only because of where the level question happens to fall in
+   this file, not because of anything it tests.
 3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
    `Required path environment variable unset` rule in `workflows-core:escalation-rules`:
    ```
@@ -101,9 +101,10 @@ behaviour, not the behaviour.
    `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it.
    Absent → stop, without asserting which command would create it: no folder exists, so no
    `brd-link.md` exists either, and nothing on disk says whether this key names a BRD with a source
-   document or a slice of one. Naming `/brd-intake` unconditionally would be the wrong advice for
-   half the cases, exactly as it is in step 6's `absent` branch below:
-   `PRD_GROUND_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent. Do not run /brd-intake on a slice; it has no source document of its own.`
+   document, a slice of one, or an idea-route PRD folder never authored. Naming `/brd-intake`
+   unconditionally would be the wrong advice for two of those three cases, exactly as it is in step
+   6's `absent` branch below:
+   `PRD_GROUND_NOT_FOUND: no folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent; an idea-route PRD folder is created by /product-workflows:create-prd <KEY>. Do not run /brd-intake on a slice or on an idea-route PRD key; neither has a source document of its own.`
 5a. **The level refusals, and the route fork — grounding happens at the slice and nowhere else,
     and a slice's own claim source forks by which route produced it.** Take this the moment step 5
     returns a resolved folder, before step 6 opens anything and before step 2's deferred `--no-code`
@@ -480,9 +481,9 @@ git -C "<repo>" status --porcelain
 
 1. Record `rev-parse HEAD` as the repo's pinned commit.
 2. `diff --ignore-cr-at-eol --stat` must be empty. Any output → **non-empty content diff, stop**:
-   `PRD_GROUND_DIRTY_TREE: <repo> has content changes at <sha> — grounding it would cite an unidentifiable snapshot. Settle that repository's working tree and re-run '/product-workflows:prd-ground <BRD-KEY>': commit the changes, stash them, or check out a clean copy — the plugin will not do it for you, because these are your files in a code repository this route never writes to. If the changes are what you want grounded, commit them first and re-run with --rebaseline so the new commit becomes the recorded pin.`
+   `PRD_GROUND_DIRTY_TREE: <repo> has content changes at <sha> — grounding it would cite an unidentifiable snapshot. Settle that repository's working tree and re-run '/product-workflows:prd-ground <KEY>': commit the changes, stash them, or check out a clean copy — the plugin will not do it for you, because these are your files in a code repository this route never writes to. If the changes are what you want grounded, commit them first and re-run with --rebaseline so the new commit becomes the recorded pin.`
 
-   **Under `--no-code`, drop the final sentence and name the re-run without the flag instead** — `--rebaseline` is refused in that mode (Phase 0 step 2), so a message ending in it sends the operator into a second stop: `… commit them first and re-run '/product-workflows:prd-ground <BRD-KEY> --rebaseline' without --no-code, so the new commit becomes the recorded pin.`
+   **Under `--no-code`, drop the final sentence and name the re-run without the flag instead** — `--rebaseline` is refused in that mode (Phase 0 step 2), so a message ending in it sends the operator into a second stop: `… commit them first and re-run '/product-workflows:prd-ground <KEY> --rebaseline' without --no-code, so the new commit becomes the recorded pin.`
 
    **Every other stop on this route names a command or an action, and this one must too.** The
    remedy is the operator's, not the plugin's — `/prd-ground` mounts code repositories read-only and
@@ -854,8 +855,8 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
 
 - **`OK`** — act on `outcome`, below.
 - **`COMMIT_MISMATCH`** — the repository moved between Phase 3's pin and this dispatch. Stop:
-  `PRD_GROUND_VERIFY_COMMIT_MISMATCH: <finding-id> could not be verified — <repo> is at <resolved-HEAD>, not the pinned <commit>. Re-run '/product-workflows:prd-ground <BRD-KEY> --rebaseline' from a clean tree.`
-  **Under `--no-code` the same message names the re-run without the mode** — `'/product-workflows:prd-ground <BRD-KEY> --rebaseline'`, no `--no-code` — since that mode refuses the flag the remedy requires, and the finding that failed here is pinned to a repository the design pass cannot re-pin on its own.
+  `PRD_GROUND_VERIFY_COMMIT_MISMATCH: <finding-id> could not be verified — <repo> is at <resolved-HEAD>, not the pinned <commit>. Re-run '/product-workflows:prd-ground <KEY> --rebaseline' from a clean tree.`
+  **Under `--no-code` the same message names the re-run without the mode** — `'/product-workflows:prd-ground <KEY> --rebaseline'`, no `--no-code` — since that mode refuses the flag the remedy requires, and the finding that failed here is pinned to a repository the design pass cannot re-pin on its own.
   The same repair as Phase 5's own `COMMIT_MISMATCH`: re-run from Phase 3, which re-pins and
   re-grounds. **`--rebaseline` is part of the remedy, not an optional extra**, and the message says
   so: Phase 3 already appended this repository's pin to `grounding/baselines.md` before dispatching

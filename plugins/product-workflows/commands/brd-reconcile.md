@@ -24,8 +24,8 @@ Usage: `/brd-reconcile <BRD-KEY> @<review-file> [--sent <path>…]`
 because a root must be resolved before Phase 0 step 5a can refuse it by name. **Only a slice is
 reconciled: a root BRD is refused, and reconciling happens at the slice and nowhere else** — a slice
 holds its own register, its own `[C]` question set and its own ledger, and it is reconciled from
-those and no others. Two things follow from inheritance and are named where they arise: its defect
-resolutions land in its **parent's** defect log
+those and no others. Two things follow from inheritance and are named where they arise: its
+**requirement** defect resolutions land in its **parent's** `brd/brd-defect-log.md`
 (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1), and the stale cross-reference sweep's root
 is the **parent's** folder, so a sibling slice still asserting a superseded position is reached.
 
@@ -284,8 +284,12 @@ write would re-ask a question already answered.
 8. **Read the inputs the rest of the run works from**, from the resolved folder — **"the gated
    folder" on the ordinary path; on a `--sent` run the folder was never gated, and step 6 says what
    stood in for that**: `decisions.md`
-   (every `[VD#n]` and `[AS#n]` with its `status`, `evidence`, `argumentation`, `conditional_on`,
-   `altitude` and `round`); `interview/customer-questions.md` and every `interview/round-<N>.md`, so
+   (every `[VD#n]` and `[AS#n]` with its `status`, `evidence`, `defects`, `argumentation`,
+   `conditional_on`, `altitude` and `round`); `code-defect-log.md`, **when it exists** — every
+   `[CDF#n]` with its `disposition`, `statement`, `intent` and `blocked_on`, so a record's `defects`
+   list and a review row naming an entry both resolve to something rather than to a bare id; the file
+   is absent on a BRD whose rounds raised no code defect, and that absence is an ordinary state and
+   never a gate; `interview/customer-questions.md` and every `interview/round-<N>.md`, so
    each `[C]` is addressed by the round and position that identify it
    (`interview-tagging.md` §5 — a question mints no identifier of its own); the most recent
    `self-review-<YYYYMMDD>.md`, for the `[SR#n]` ids an `escalated-to-customer` disposition put in
@@ -694,6 +698,7 @@ about a genuinely new record, and each carries every field `decision-register-fo
 | `chosen` | the customer's answer, one member of `options_considered` |
 | `argumentation` | **the customer's own reason, quoted**, never paraphrased and never supplied |
 | `evidence` | the `[CG#n]`/`[DG#n]` the question was put against, as the question set recorded them |
+| `defects` | the `[CDF#n]` the answered position turns on, as the `[C]` question, the `[AS#n]` or the escalated `[SR#n]` recorded them; omitted when none. Never in `evidence` (§1), and **never minted here** — `${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` makes `/product-workflows:brd-interview` the log's only writer, so this phase carries an existing id forward and writes no entry |
 | `altitude` | the altitude the question carried |
 | `conditional_on` | written only where the customer's answer is itself correct only while a named prerequisite decision holds, and named as `<BRD-KEY>/<decision-id>` (§5) — for instance `conditional_on: EPIC-014/[CD#2]` |
 | `status` | `decided`, or `open` where the reason is absent and the *Confirm every candidate* phase took that resolution |
@@ -794,7 +799,7 @@ Any row still undisposed when this phase would end → stop:
 **Three classes of target, and they are not treated alike:**
 
 1. **A live working document.** Corrected in place — these are the documents the route works on,
-   and they are supposed to move. **But "live" is not "unowned", and four of them carry fields
+   and they are supposed to move. **But "live" is not "unowned", and five of them carry fields
    another rule fixes.** A section-12 row is the customer instructing an edit; it is not a licence to
    write a field this command may not write, and the customer cannot know which those are. Split the
    class:
@@ -805,13 +810,15 @@ Any row still undisposed when this phase would end → stop:
    | `coverage-ledger.md` — a row's `disposition` | **`refused-with-reason`**, naming the ledger phase as where a `[CD#n]` may move a row and `/product-workflows:brd-split` as the only allocator (`coverage-ledger-format.md` §3, §4). A customer asking for a row to be built here is asking for an allocation, and this command writes exactly three dispositions and never `covered-here` or `covered-by` |
    | `brd/brd-inventory.md` — a row's `id`, `text` or `source_anchor` | **`refused-with-reason`**, for the reason class 3 gives about `brd/source/` itself: `text` is the requirement **verbatim** from the immutable source and `source_anchor` locates it there (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, §2), so rewriting the row edits the customer's document in the one place it is mirrored. The amendment is a `customer-amended` defect resolution, which the *Resolve the defects the review settled* phase writes |
    | `decisions.md` — a record's `status`, `chosen`, `evidence` or `argumentation` | **`refused-with-reason`** where the row asks for a direct edit. Those move only through this command's own freeze, §4's two reopening causes, or the propagation sweep's four dispositions. A customer who wants a decision changed has already changed it: their answer is a `[CD#n]`, frozen in the *Freeze the customer decisions* phase, which reopens what it contradicts |
+   | `code-defect-log.md` — a `[CDF#n]`'s `disposition` or `blocked_on`, **and its `statement`/`intent` prose too** | **`refused-with-reason`**, and alone among the rows here its prose is not corrected in place either: every disposition on this log is the **operator's** (`${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §4), and `/product-workflows:brd-interview` is its only writer. The customer sees every entry because the log ships in the bundle (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1) — seeing is not deciding. Surface the row to the operator naming the entry and what was asked, so a later interview round settles it on the record rather than the customer's channel writing a disposition nobody on the delivery side took |
    | `brd-link.md` — `parent:` or `claims:` | **`refused-with-reason`**. Both are written by `/product-workflows:brd-split`, and `claims:` disagreeing with the ledger is the state the whole allocation gate exists to prevent. `depends-on:` is prose-adjacent and merged additively by two other commands; a row asking to add one is `applied` |
 
    **A refusal here is not a refusal of the customer's point.** In every row above the substance
    reaches the register through the channel that owns it — a `[CD#n]`, a defect resolution, a
-   `/brd-split` walk — and the refusal says which, so the next package shows the customer their point
-   landed rather than that it was declined. What is refused is the *edit*, not the *change*. Saying
-   so is the difference between a refusal the customer accepts and one they re-request next round.
+   `/brd-split` walk, a later `/brd-interview` round — and the refusal says which, so the next
+   package shows the customer their point landed rather than that it was declined. What is refused
+   is the *edit*, not the *change*. Saying so is the difference between a refusal the customer
+   accepts and one they re-request next round.
 
    **This is the same carve-out the stale cross-reference sweep carries**, and it is written twice
    deliberately: that sweep reaches these files by a text match this command made, while this phase
@@ -1070,8 +1077,8 @@ re-run that skipped it would silently refuse to.
 **The sweep is not optional, and it is not a grep.** Its root is the **parent's** folder — the
 source-owning BRD's directory and every slice inside it — so that a *sibling* slice still asserting a
 superseded position is reached. Every markdown file under it is in scope:
-the seeds, `slices.md`, the inventory, the ledger, the grounding files, every register, every round
-record, and every dated snapshot.
+the seeds, `slices.md`, the inventory, the ledger, the grounding files, every register, the
+code-defect log, every round record, and every dated snapshot.
 
 **Two searches, and the second is the one that matters.**
 
@@ -1108,7 +1115,7 @@ snapshots* phase where that phase's rules reach it, and inside `bundle-<YYYYMMDD
 edited nor bannered — it is recorded, for the byte-identical reason that phase gives.
 
 **Nor is a hit inside a structured record ever `updated`.** The scope above is deliberately every
-markdown file under the parent, which is what reaches a sibling's seed — but three of the file kinds
+markdown file under the parent, which is what reaches a sibling's seed — but four of the file kinds
 it names carry content another rule already fixes, and `updated` on one of them would contradict that
 rule rather than correct a stale sentence:
 
@@ -1117,6 +1124,7 @@ rule rather than correct a stale sentence:
 | a `coverage-ledger.md` `disposition` — **any** ledger's, this BRD's included | `needs-a-human`. Allocation is `/product-workflows:brd-split`'s walk and nothing else's, and the *Update the coverage ledger* phase writes only the three `[CD#n]`-driven dispositions onto **this** ledger and never reaches one hop down or across (`coverage-ledger-format.md` §3, §4) |
 | a `brd/brd-inventory.md` row's `id`, `text` or `source_anchor` | `needs-a-human`. `text` is the requirement verbatim from an immutable source and `source_anchor` locates it there; an id is assigned once and never renumbered (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, §2). A sweep that reflowed one would edit the record of what the customer actually wrote |
 | a `decisions.md` record's `status`, `chosen` or `evidence` | `needs-a-human` unless it is this run's own propagation-sweep write. Those three move only through the four dispositions the previous phase fixes, or through §4's two reopening causes — never because a sentence nearby went stale |
+| a `code-defect-log.md` entry — **any field of it, its `statement` and `intent` prose included** | `needs-a-human`. Every disposition on that log is the operator's and `/product-workflows:brd-interview` is its only writer (`${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §4), so there is no field of a `[CDF#n]` this sweep may write — which is why this row, alone in this table, covers prose too |
 
 **What `updated` is for is prose**, and only prose: a sentence in a seed, a rationale in `slices.md`,
 a summary in a round record, an `argumentation` paragraph that still argues the old position. Those
@@ -1181,8 +1189,9 @@ table), `feature_folder` as resolved in the *Resolve inputs and gate the sent pa
 `deliverable_paths` = the canonicalised review at its resolved name and, where `--sent` was given,
 `customer-sent-<YYYYMMDD>/` (both still listed, so a run whose
 first handoff was declined lands them here), `decisions.md`, `interview/round-<N>.md` and
-`interview/customer-questions.md`, `coverage-ledger.md`, the defect log's path (**the parent's**, on
-a slice), every dated artifact this run bannered, `reconciliation-<YYYYMMDD>.md`, every dependent
+`interview/customer-questions.md`, `coverage-ledger.md`, the requirement defect log's path
+(**the parent's**, on a slice — the slice-owned `code-defect-log.md` is written by nothing here),
+every dated artifact this run bannered, `reconciliation-<YYYYMMDD>.md`, every dependent
 BRD's `decisions.md` the sweep wrote, and every artifact the stale-reference sweep updated;
 `title: <BRD-KEY> Reconcile the returned customer review <YYYYMMDD>`; and `body_facts` = what the
 review was reconciled against (a handed-off package, or `--sent` material with its committed path);

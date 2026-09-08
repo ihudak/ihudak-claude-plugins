@@ -254,8 +254,8 @@ reads was already independently verified by `/prd-ground`'s own agents.
   sets `allocate-only` (see "Two modes" above) and emits the `BRD_SPLIT_ON_SLICE` notice. What the
   one-level cap forbids is creating anything below a slice but its Epics
   (`workflows-core:addressing` §6): a slice of a slice would inherit
-  `brd/source/` and a defect log from a parent that holds neither, so its inventory header would
-  name a path that does not exist.
+  `brd/source/` and a requirement defect log from a parent that holds neither, so its inventory
+  header would name a path that does not exist.
 - **On a slice: `/prd-ground`'s findings already merged to the specs repo's default branch.**
   `split_mode: allocate-only` only — a root is never ground, so this gate and the next two do not
   run there at all; a root's own inventory-only check is stated separately below. Phase 0 gates

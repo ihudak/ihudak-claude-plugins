@@ -151,8 +151,9 @@ challenged*, *no repository was available so no code claim was confirmed* — be
 sentences mean very different things and an absent section means neither.
 
 **The review cites identifiers; it does not mint them.** Every row that answers something names the
-package's own identifier for it, copied exactly as it appears — a requirement id, an assumption id,
-a grounding-finding id, a numbered question. The review never assigns identifiers of its own in
+package's own identifier for it, copied exactly as it appears — every identifier the package uses is
+bracketed, like `[BR#4]` or `[CG#12]`, whatever kind of record it names, and a question is cited by
+the round and position that identify it. The review never assigns identifiers of its own in
 those namespaces: the registers on the delivery-team side own that numbering, and an identifier
 whose origin is ambiguous is worse than no identifier. Plain list numbers inside a review section
 are local to the review and are not identifiers.

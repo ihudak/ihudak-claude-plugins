@@ -4,6 +4,30 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.3.3] — 2026-09-08
+
+### Added — `phase-handoff.md` §4.0 classifies `code-defect-log.md`
+
+`product-workflows`'s `/brd-interview` now declares `<BRD-dir>/code-defect-log.md` in its
+`deliverable_paths`, and §4.0 states four times over that the class table is derived from the tree's
+`deliverable_paths` declarations, that an unlisted path is **unclassified rather than unread**, and
+that *"a producer adding a deliverable adds its row here in the same change"*. This is that row.
+
+The class is **advisory**: two commands read the file and neither gates on it — `/brd-package`
+Phase 0 step 10 reads every `[CDF#n]` in it with its `disposition`, `statement`, `intent` and
+`blocked_on`, and `product-workflows:brd-package-reviewer`'s sixth hunt class reads it to settle
+whether an `argumentation` claiming a recorded defect actually has one. §3.4 names no `require-on-main`
+gate on it, which rules out **gated**, and a named reader rules out **unread** — the two halves §4.0
+requires before an array is picked. The row also records that the file's absence is an ordinary state
+rather than a declined handoff, since `/brd-interview` writes it only where a round raised an entry.
+
+### Changed — `addressing.md`'s slice-inheritance sentence says *which* defect log it means
+
+§6's nesting-cap rationale said a slice *"inherits `brd/source/` and its defect log"* from its BRD. That
+was unambiguous while the route had one defect log; it now has two, and only one of them inherits — the
+requirement log is the parent's, the code-defect log is the slice's own. The sentence is qualified, and
+names the other so a reader does not conclude the wrong one is reached one hop up. No rule changes.
+
 ## [1.3.2] — 2026-09-08
 
 ### Changed — `grounding-format.md` §6.3's class-4 reconciliation rule gained a correctness half

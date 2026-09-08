@@ -220,8 +220,9 @@ path it forbids:
 specifications/BRD-<KEY>-<slug>/PRD-<KEY>-<slug>/PRD-<KEY>-<slug>/     # never created
 ```
 
-**Why, rather than a second inheritance rule.** A slice inherits `brd/source/` and its defect log from its
-BRD (`product-workflows:brd-format` §2.1, §4). A slice of a slice would have a parent holding neither: its
+**Why, rather than a second inheritance rule.** A slice inherits `brd/source/` and its **requirement**
+defect log from its BRD (`product-workflows:brd-format` §2.1, §4 — the route's separate code-defect log is
+slice-owned and inherits nothing). A slice of a slice would have a parent holding neither: its
 inventory header would name a `source:` path that does not exist, and a `rejected: [DEF#n]` disposition
 taken against it would cite a defect log that is not there. Chasing every inheritance up to the
 source-owning root would fix that, but nothing in practice needs it, and one rule beats two. **Every "its

@@ -228,10 +228,11 @@ attack.
   the render verifies by requiring the extracted body to contain no `§` at all.
 - **Phases 6, 7 and 8 — the plugin-free scan.** Run over the finished prompt, the finished note and
   every bundle document. A hit stops the run with `BRD_PACKAGE_PROMPT_LEAK`, naming the token, the
-  part it landed in and the artifact it came from. Requirement, finding, decision and assumption
-  identifiers are **not** in the scan's classes and are meant to travel — they are how the returned
-  review cites the package without minting identifiers of its own; whether each one actually lands
-  is what the citation-resolution check below verifies.
+  part it landed in and the artifact it came from. The identifiers the package's own registers, logs
+  and grounding files mint are **not** in the scan's classes and are meant to travel — the classes
+  are enumerated once, in `bundle-packaging.md` §6.1's table, rather than restated here. They are how
+  the returned review cites the package without minting identifiers of its own; whether each one
+  actually lands is what the citation-resolution check below verifies.
 - **Phase 7 — the delivery note's 200-word ceiling.** A ceiling, not a target. Over it, the note is
   shortened and re-rendered; the two facts that are never trimmed are which file is the prompt and
   which file comes back.

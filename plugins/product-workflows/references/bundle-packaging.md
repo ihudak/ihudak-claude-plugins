@@ -479,6 +479,7 @@ moment it does. Those that exist today:
 | Field | Authority | What that authority defines it to name |
 |---|---|---|
 | `conditional_on: <BRD-KEY>/<decision-id>` | `references/decision-register-format.md` §5 | one specific decision in a named prerequisite's own register |
+| `blocked_on: <BRD-KEY>/<decision-id>` | `references/code-defect-log-format.md` §5 | one specific decision in a named prerequisite's own register — the decision that would settle a `conditional` `[CDF#n]`'s scope question. Its other spelling is prose naming no bracketed identifier, which no relation ever meets |
 | `prerequisite` | `workflows-core:grounding-format` §2, §5 | the prerequisite BRD's decision a `will-change` finding's horizon turns on |
 | `resolved-by: [CG#n]` | `references/brd-format.md` §4 | the grounding finding that settled a defect; grounding is slice-only, so it is whichever slice settled it |
 | the `[BR#n]` a defect entry is raised against, and a `conflict` / `duplicate` entry's counterpart `[BR#n]` | `references/brd-format.md` §3 | a requirement in the log-owning BRD's inventory — the parent's on a slice |

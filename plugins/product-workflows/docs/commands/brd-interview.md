@@ -168,9 +168,13 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   findings that bear on it and any `[G]` answer that already narrowed it.
 - `code-defect-log.md` — the code-defect log: one `[CDF#n]` per defect in the code that a decision
   turns on, each citing the verified `[CG#n]` that established the behaviour and naming separately
-  what the code is supposed to do and what says so. Written only where a round raised one, and
-  shipped to the customer in the review package, because a defect disposed `in-scope` is part of the
-  delivery boundary rather than delivery-side bookkeeping. Format:
+  what the code is supposed to do and what says so. Written where a round raised one **or
+  re-dispositioned one already on file** — a later round may change an entry's `disposition`, and add
+  or drop its `blocked_on` with it, which is the only way `open` and `conditional` are ever left;
+  `id`, `statement`, `behaviour`, `intent` and `intent_basis` never move, because they record what was
+  true of the pinned commit the cited finding names. Shipped to the customer in the review package,
+  because a defect disposed `in-scope` is part of the delivery boundary rather than delivery-side
+  bookkeeping. Format:
   [`code-defect-log-format.md`](../../references/code-defect-log-format.md).
 
 **No `[CD#n]` is ever written by this command.** A customer decision enters the register only once

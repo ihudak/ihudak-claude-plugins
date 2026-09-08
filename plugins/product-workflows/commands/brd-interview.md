@@ -241,7 +241,13 @@ and nothing downstream can tell the difference afterwards.
    `brd-link.md` (its `parent:` and any `depends-on:`); and, when they already exist, `decisions.md`,
    every `interview/round-<N>.md`, and `code-defect-log.md`. A previous run's register, round
    records and code-defect log are inputs, never scratch: nothing below deletes, renumbers or
-   rewrites a record another run wrote.
+   rewrites a record another run wrote. **Exactly one field is the admitted exception, and naming it
+   here is what keeps this sentence and the re-disposition rule below from having to be refereed by a
+   reader**: a `[CDF#n]`'s `disposition` — with `blocked_on` added or dropped as the new disposition
+   requires — may be re-taken by the *Put each `[V]` to the operator* phase and written by the *Write
+   the register and the round record* phase, because `open` and `conditional` are holding states that
+   would otherwise have no exit at all. Nothing else on that record moves, and no other record here
+   carries an exception.
 
 ---
 
@@ -554,6 +560,26 @@ raises a finding where an `argumentation` asserts a recorded defect that no `def
 `operator-judgment` reasoning to the same standard this phase already applies to `argumentation`, and
 refuse an entry that does not meet it.
 
+**A later round may re-disposition an entry already on file, and this is the only exit `open` and
+`conditional` have.** Where an entry read in from `code-defect-log.md` still carries `open`, or
+carries `conditional` on a `blocked_on` this round has settled, put its disposition to the operator
+once, against the same five values
+`${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §4 fixes for a first raise. Two things
+bound it, and neither is a matter of taste. **What may move is `disposition`, and `blocked_on` with
+it** — added when the new disposition is `conditional`, dropped when it is not (§2). **What may not
+move is `id`, `statement`, `behaviour`, `intent` and `intent_basis`**: those record what was true of
+the pinned commit the cited `[CG#n]` names, and rewriting them would make the log report that an
+earlier round found something it did not. `round` does not move either — §2 defines it as the round
+that **raised** the defect, not the round that last touched it, and the re-disposition is reported in
+this run's round record instead.
+
+**This is the one carve-out from the standing rule that a previous run's records are inputs, never
+scratch** (*Resolve inputs and gate the grounded BRD*, step 9, which states the rule and names this
+exception beside it). The two are not in tension: a re-disposition writes one field of one record
+and deletes, renumbers and rewrites nothing. **There is still no `fixed` disposition** — nothing on
+this route builds anything and no command here can observe a repair, so a defect that was fixed
+keeps whatever disposition it had (§4).
+
 Record each answered question as **terminally disposed** *decided*, with a `[VD#n]` held for the
 register phase, carrying every field
 `decision-register-format.md` §1 defines — including `evidence` (the findings this position rests
@@ -692,6 +718,14 @@ failure. Every entry's `behaviour` names a `[CG#n]` that is on file in this BRD'
 written, because the packaging run will refuse the bundle over it
 (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.2 relation 1).
 
+**Plus every re-disposition the *Put each `[V]` to the operator* phase took on an entry already on
+file.** That entry is rewritten **in place, in its own position**, never appended as a second record
+and never renumbered: `disposition` takes the new value, and `blocked_on` is added or dropped as that
+value requires (§2). Every other field of it is written back byte for byte — `id`, `statement`,
+`behaviour`, `intent`, `intent_basis` and `round` — so the log continues to say what the round that
+raised the entry established. A re-disposition changes the entry count not at all, which is what
+distinguishes it in the round record from a raise.
+
 **Round closure is decided here, and only by the record.** The round closes when every question in
 it carries a **terminal** disposition, and not before. **Any** of the four holding states keeps it
 open — so a round is not closed because the interesting questions are answered, because the
@@ -715,10 +749,13 @@ On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:re
 the `/brd-*` commands share), `feature_folder` as resolved in the *Resolve inputs and gate the
 grounded BRD* phase, `deliverable_paths` = every file this run wrote or updated under `<BRD-dir>`
 (`decisions.md`, `interview/round-<N>.md`, `interview/customer-questions.md` when this round held a
-`[C]`, and `code-defect-log.md` when this round raised a `[CDF#n]`), `title: <BRD-KEY> Record round
+`[C]`, and `code-defect-log.md` when this round raised a `[CDF#n]` **or re-dispositioned one already
+on file** — a run that only re-dispositioned still wrote the file, and leaving it out of the set would
+hand off a register naming a disposition no ref carries), `title: <BRD-KEY> Record round
 <N> interview decisions`, and `body_facts` = the round number and whether it opened, resumed or
 re-opened; the question counts by tag; the `[G]` answers and the re-tags with their causes; the
-`[VD#n]`, `[AS#n]` and `[CDF#n]` ids written; the `[C]` count held; and every will-change resolution
+`[VD#n]`, `[AS#n]` and `[CDF#n]` ids written and every `[CDF#n]` re-dispositioned, each with its old
+and new disposition; the `[C]` count held; and every will-change resolution
 taken. Emit its §4.1 outcome line in the final report.
 
 The no-new-round path in *Resolve the round* reaches this phase with nothing staged, so it reports
@@ -869,7 +906,8 @@ every split, with the parts each original became; the `[G]` answers, each naming
 `[CG#n]`/`[DG#n]` that settled it; **every re-tag, with the `NOT-PROVABLE` finding that caused it** —
 never a re-tag reported without its cause; every question recorded *needs grounding*, named, with
 `/product-workflows:prd-ground <BRD-KEY>` as the fix; the `[VD#n]` decided this run and any deferred;
-the `[AS#n]` recorded; the `[CDF#n]` raised this round, when any; the `[C]` count held and the file
+the `[AS#n]` recorded; the `[CDF#n]` raised this round and the `[CDF#n]` re-dispositioned, each with
+its old and new disposition, when any; the `[C]` count held and the file
 holding them, stated together with the fact that
 `/product-workflows:brd-package` is the command that carries them to the customer and
 `/product-workflows:brd-reconcile` the one that records the answer; every will-change resolution taken and how it was

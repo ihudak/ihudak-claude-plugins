@@ -386,6 +386,7 @@ Dispatch `brd-package-reviewer` once, over the whole package, pinned to the Opus
   >   grounding:      [paths to grounding/code-grounding.md and grounding/design-grounding.md]
   >   seeds:          [paths to prd-seed.md / ard-seed.md / spec-seed.md, as they exist]
   >   ledger:         [path to coverage-ledger.md]
+  >   defects:        [path to code-defect-log.md, or omit when the folder holds none]
   >   questions:      [path to interview/customer-questions.md]
   >   prior_reviews:  [paths to every earlier self-review-<YYYYMMDD>.md, or omit when none]"
 
@@ -738,10 +739,13 @@ citation-resolution check (Phase 8 rule 8, `bundle-packaging.md` §6) carries a 
 the identical shape for this same file, and a third of a different shape for `[SR#n]` (§6.3) — and
 it exists because the alternatives are a deadlock or an edit to the customer's own document.
 
-Identifiers are **not** in the scan's classes and are meant to travel: `[BR#n]`, `[CG#n]`, `[DG#n]`,
-`[VD#n]`, `[AS#n]` and `[SR#n]` are how the returned review cites the package's own claims without
-minting identifiers of its own, and a prompt that hid them would get back a review nothing could be
-matched to.
+Identifiers are **not** in the scan's classes and are meant to travel: the classes
+`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.1's table enumerates are how the returned
+review cites the package's own claims without minting identifiers of its own, and a prompt that hid
+them would get back a review nothing could be matched to. **Cited rather than re-listed, and that is
+the fix rather than the style**: this sentence carried its own copy of the list, fell behind the
+table by one class the first time a register gained one, and there is no reason a second copy would
+fare better.
 
 ---
 
@@ -901,8 +905,8 @@ self-review is free of them while being the most internal document this command 
    A corpus file holding record-shaped content that parses to zero ids of its class (§6.1) stops
    with the message below — and **only** such a file. One holding no record-shaped content at all is
    a legitimately empty corpus and passes: that is the ordinary state of a `design-grounding.md`
-   written as a short note because design grounding was skipped, and of a defect log whose walk
-   confirmed nothing.
+   written as a short note because design grounding was skipped, and of a requirement defect log whose
+   walk confirmed nothing.
    `BRD_PACKAGE_CORPUS_UNREADABLE: <corpus file> holds record-shaped content but parsed to zero <class> ids — that is a parse failure, not an empty corpus, and reporting it as an absence would report every reference in the bundle as dead (workflows-core:grounding-format §2.1).`
 
    **A hit inside `brd/source/<basename>` reports rather than stops** — the same treatment the
@@ -1047,8 +1051,9 @@ degradation, named again here because a self-review that ran on a weaker model i
 `[SR#n]` with its disposition**, grouped by disposition, with the `accepted-risk` ones listed in
 full because those are the ones the customer will read; whether a second reviewer pass ran after a
 `fixed` correction and what it added; the counts the prompt carries — `[C]` questions, open
-`[AS#n]`, `escalated-to-customer` findings; **every prerequisite named under *what could still
-move***, with whether it resolved, whether its decisions are customer-reviewed, and whether a
+`[AS#n]`, `escalated-to-customer` findings, and the `[CDF#n]` counts parts 6, 8 and 11 each carry,
+`in-scope`, `conditional` and `out-of-scope` respectively; **every prerequisite named under *what
+could still move***, with whether it resolved, whether its decisions are customer-reviewed, and whether a
 package of its own was copied in; the four artifacts written, by path; **the citation check's
 outcome** — how many identifier references resolved, across how many source packages, how many
 carried an owning BRD key, and every hit inside the customer's own source document that the operator

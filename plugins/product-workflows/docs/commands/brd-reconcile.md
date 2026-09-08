@@ -211,12 +211,15 @@ unmatched row can be told apart from a question set nobody passed.
   record a date the review does not carry. Only declining to name a suffix stops the run
   (`BRD_RECONCILE_REVIEW_EXISTS`).
 - **Phase 6 — a section-12 row instructs an edit; it does not authorise a field this command may
-  not write.** Prose, `slices.md` and the seed files are corrected in place. A row asking to change a
+  not write.** Prose, `slices.md` and the seed files are corrected in place — `code-defect-log.md` is
+  the one exception, whose prose is not corrected in place either. A row asking to change a
   coverage-ledger `disposition`, an inventory row's `id`/`text`/`source_anchor`, a register record's
-  `status`/`chosen`/`evidence`, or `brd-link.md`'s `parent:`/`claims:` is
-  **`refused-with-reason`** — each is fixed by a rule this command does not own, and the customer
-  cannot be expected to know which. The refusal names the channel that *does* carry the substance: a
-  `[CD#n]`, a `customer-amended` defect resolution, or a [`/brd-split`](brd-split.md) walk. **What is
+  `status`/`chosen`/`evidence`, `brd-link.md`'s `parent:`/`claims:`, or any field of a `[CDF#n]` in
+  the code-defect log is **`refused-with-reason`** — each is fixed by a rule this command does not
+  own, and the customer cannot be expected to know which. The refusal names the channel that *does*
+  carry the substance: a `[CD#n]`, a `customer-amended` defect resolution, a
+  [`/brd-split`](brd-split.md) walk, or a later [`/brd-interview`](brd-interview.md) round, whose
+  operator owns every code-defect disposition. **What is
   refused is the edit, not the change** — and saying so is the difference between a refusal the
   customer accepts and one they re-request next round.
 - **Phase 4 — the confirmation gate.** No `[CD#n]` is written while any decision the reader returned

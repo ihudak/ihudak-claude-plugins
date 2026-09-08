@@ -22,8 +22,12 @@ answering it in the same breath ("minor, we accept this") takes the gate's decis
 command that owns it, so state the attack and stop.
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` for the `[VD#n]`/`[CD#n]` record
-and its `evidence`, `argumentation`, `conditional_on` and status rules, and for the `[AS#n]`
-assumption record. Read `${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` for the
+and its `evidence`, `defects`, `argumentation`, `conditional_on` and status rules, and for the
+`[AS#n]` assumption record. Read `${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` for the
+`[CDF#n]` record a `defects` entry resolves to — its five dispositions, the rule that every entry
+cites a verified `[CG#n]` for the behaviour and names its intent basis separately, and the two
+spellings `blocked_on` takes — which is the record class 6 below checks a claimed defect against.
+Read `${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` for the
 `[G]`/`[V]`/`[C]` tag, who may answer each, and the test to apply to an ambiguous question. Invoke `Skill(skill: "workflows-core:reference", args: "grounding-format")` and read it for the `[CG#n]`/`[DG#n]` finding record, the
 six verdicts and the horizons, and `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` for what
 the customer will actually be able to open. Follow those references; do not restate them here, and
@@ -52,14 +56,15 @@ package:
 **Refuse to run without `brd_dir` and at least `package.decisions` and `package.grounding`.**
 
 **Presence is the right test here, and an emptiness test would be wrong** — which is worth stating, because three sibling reviewers in this family were changed the other way. A register holding no `[VD#n]` and no `[AS#n]` is a **legitimate** package when every question its rounds asked was customer-facing: `/brd-package` step 8 admits exactly that case, gating on `[C]` **or** open `[AS#n]` **or** `[VD#n]`, and refusing an empty register here would refuse a package that is all `[C]` — the commonest shape on a first round. The vacuity this family guards against is real and is caught one station up, by that step's `BRD_PACKAGE_NOTHING_TO_REVIEW`, which tests the whole review surface rather than one input of it. Test emptiness where the emptiness is the defect, not wherever a field could be empty.
-**`package.defects` is optional and its absence is never `INPUT_MISSING`.** `commands/brd-interview.md`
-writes the log only where a round raised a `[CDF#n]`, so a package whose decisions turn on no code
-defect legitimately has none — and class 6 below is precisely the check that a package which *claims*
-one has it, which an input gate could not perform.
 Return `status: INPUT_MISSING` naming exactly what was absent. A review of a package you were handed
 half of is a review of nothing: the method below cross-reads a decision against the finding it
 claims, and neither half attacks anything on its own. **That is about a missing input, not an empty
 one** — a register holding no decision at all is reviewable, and the paragraph above says why.
+**And `package.defects` is the one input above that is optional**, so it is never among the things
+that return names: `commands/brd-interview.md` writes the log only where a round raised a `[CDF#n]`,
+so a package whose decisions turn on no code defect legitimately has none — and class 6 below is
+precisely the check that a package which *claims* one has it, which an input gate could not
+perform.
 
 ## What you are hunting
 
@@ -127,8 +132,10 @@ deliberately, in this order, and record the class on every finding.
 ## Process
 
 1. **Read the whole package before filing anything.** Decisions, assumptions, grounding findings,
-   seeds, ledger and the `[C]` question set. A finding filed from a single document is a finding
-   about a sentence; the failures worth catching live between documents.
+   seeds, ledger, the code-defect log where `package.defects` was supplied, and the `[C]` question
+   set. A finding filed from a single document is a finding about a sentence; the failures worth
+   catching live between documents — and class 6 cannot resolve a cited `[CDF#n]` from a log nobody
+   opened.
 
 2. **Work the six classes in order**, each as its own deliberate pass. Do not attempt them in one
    read: the classes look for different things, and a single pass finds whichever the reader was

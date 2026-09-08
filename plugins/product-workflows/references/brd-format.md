@@ -122,8 +122,12 @@ of these resolutions:
 | `resolved-by: [CG#n]` | a code- or design-grounding finding settled the defect (typically closing an `unsourced` entry) |
 | `open` | none of the above has happened yet |
 
-There is exactly one defect log per source document, held by the BRD that owns that document; a
-slice reads its parent's rather than keeping one of its own (§2.1). A consumer that must reach a
+There is exactly one **requirement** defect log per source document, held by the BRD that owns that
+document; a slice reads its parent's rather than keeping one of its own (§2.1). That is a statement
+about `brd/brd-defect-log.md` and about `[DEF#n]` only: the route's **code**-defect log,
+`code-defect-log.md`, is a different register with a different owner —
+`references/code-defect-log-format.md` §6 — and a slice keeps its own, because a code defect belongs
+to the slice's own grounding and grounding is slice-only. A consumer that must reach a
 `[DEF#n]` while standing on a slice — `/brd-split`'s `rejected: [DEF#n]` resolution when it walks a
 slice's ledger (`commands/brd-split.md` Phase 4), `/brd-reconcile` writing the `customer-amended` and
 `withdrawn` resolutions a returned customer review settles

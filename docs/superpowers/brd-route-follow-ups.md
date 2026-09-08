@@ -292,9 +292,17 @@ register created to fix it contained the same unrecorded claim.
 
 ---
 
-# Open after gate 3 — G3-1, G3-2, G3-3 and E-2 closed 2026-09-08; G3-4 stands as constraints; E-4 raised
+# Open after gate 3 — G3-1, G3-2, G3-3 and E-2 closed 2026-09-08; G3-4 stands as constraints; E-4 closed
 
 ## E-4 — the package tells every reviewer to extract an archive, including the ones who pull the repository
+
+**CLOSED 2026-09-08** — shipped in `product-workflows` 3.2.0. **The prompt now names no delivery route; the delivery note names the actual one.** They have different readers, and that is what settles which may assume anything: the note is a covering letter to a named customer whose situation the operator knows, while the prompt is handed on to a colleague, an agent, or whoever actually reviews — so a prompt naming a route is wrong for some of its readers about the first thing it tells them. The archive command left the prompt entirely; assembling an archive is a delivery-team action.
+
+**The route is settled once, at the delivery note, and half of it is derived rather than asked** — the operator's refinement on the original entry, and better than what this entry proposed. The repository route exists only where the handoff's consent choice was **accepted**: a bundle on no ref is a bundle nobody can pull. So a declined handoff takes the archive route without asking and says why; an accepted one asks, recommending the repository. On that route **no archive is produced at all**, and the note carries the repository, the committed `bundle-<YYYYMMDD>/` by path, and the instruction to open the prompt there.
+
+**The constraint that survived, and looks like an inconsistency until you see why:** even on the repository route the *prompt* must not name the specs-repo path. Rule 1 holds that a path is correct exactly once, in the directory layout one machine had. The note carries the path, the prompt carries filename search — the note says where to stand, the prompt works once you are standing there.
+
+**This entry under-counted its own sites, twice.** It recorded three; there were nine, and the sweep after implementation found two more — rule 4's argument for filenames over paths, and the 200-word ceiling's, both *justifications* naming an attachment rather than statements about delivery. Rule 4's mattered: naming only the archive case read as though a committed bundle could be addressed by path, which is the one reading that breaks rule 1 for the route now recommended. **The pattern across this session is consistent — an enumeration written from memory is short, and only a sweep run against the tree is a count.**
 
 **Raised by the operator 2026-09-08 while approving E-2. Recorded rather than folded in:** E-2's relations are mechanical checks over identifiers and filenames; this one needs an input the run does not have, and that is a design decision, not a check.
 

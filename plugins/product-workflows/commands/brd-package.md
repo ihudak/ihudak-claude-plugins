@@ -538,7 +538,7 @@ do.
 
 | # | Part | Filled from |
 |---|---|---|
-| 1 | Setup | the tier; the archive command; the fixed capability line and OS note below |
+| 1 | Setup | the tier; the fixed capability line, locating instruction and OS note below |
 | 2 | What each package in the bundle is for | this BRD, plus each prerequisite package copied in, marked *not for re-review* |
 | 3 | Documents to review | the bundle manifest, by filename |
 | 4 | Code baselines and the verification procedure | `grounding/baselines.md`, with the three commands written out |
@@ -553,11 +553,13 @@ do.
 **Part 1 — Setup.** States, in this order: the one-line capability set the prompt assumes — *this
 prompt assumes an agent that can read files in a folder and search for a file by name; the pin check
 in part 4 additionally needs a terminal, and a reviewer whose tool has none says so in their section
-1 and skips it*; what to put on the machine (the extracted bundle, and the repositories if the tier
-gives them any); **the OS note** — *extract the archive to a real folder before pointing anything at
-it: a file browser will show you the contents of a `.zip` without extracting it and a tool that
-opens files by name will find nothing there, macOS puts the documents one level down inside a folder
-of the same name, and filenames contain spaces, so quote them*; what to do if the repositories
+1 and skips it*; what to put on the machine — *the bundle: a folder of markdown files and images.
+Point your tool at the folder you were given access to; if it arrived as an archive, extract it to a
+real folder first* — and the repositories if the tier gives them any; **the OS note**, written so
+each clause names the reader it applies to — *if you extracted an archive: a file browser will show
+you the contents of a `.zip` without extracting it and a tool that opens files by name will find
+nothing there, and macOS puts the documents one level down inside a folder of the same name. Either
+way, filenames contain spaces, so quote them*; what to do if the repositories
 cannot be obtained after all — *review the documents and record in your section 1 that no code claim
 was independently verified; do not skip the review*; and, once, the rule that governs the whole
 session: **read the bundle, write exactly one new file, and modify nothing in the package** (D13).
@@ -724,12 +726,28 @@ matched to.
 
 ## Phase 7 — Render the delivery note
 
+**First, settle the delivery route — this is the only phase that may know it.** The repository route
+is available only where the *Handoff* phase's §4.3 consent choice was **accepted**: a declined
+handoff leaves the bundle on no ref, so there is nothing for a customer to pull and the archive is
+the only route there is. Do not ask a question whose answer the run already holds.
+
+- **Handoff accepted** → ask, once:
+
+  ```
+  choices: ["They pull the specs repository (Recommended)", "Send them an archive"]
+  ```
+
+  The recommendation stands because a bundle that is committed is already where a customer with
+  repository access can reach it, and the archive is then a copy of a thing they have.
+- **Handoff declined, or `$SPECS_PATH` unmanaged** → do not ask. Take the archive route and say why
+  in the Final report: the bundle was not handed off, so there is nowhere to pull it from.
+
 Write `<BRD-dir>/customer-delivery-note-<YYYYMMDD>.md` — the covering letter that goes in the email
 body. **It is not part of the bundle** (`bundle-packaging.md` §4): it is the email, not a package
 document, and a copy of it inside the bundle would be a second, divergent statement of what was
 sent. The *Assemble the bundle* phase does not copy it in, and the manifest does not list it.
 
-It states only: which BRD this is; what is attached; which repositories, at which commits; **which
+It states only: which BRD this is; **how the customer gets the bundle**, shaped by the route just settled (`bundle-packaging.md` §4) — on the **repository** route, the repository to pull, the committed `bundle-<YYYYMMDD>/` directory by path, and the instruction to open the prompt file there and paste it; on the **archive** route, what is attached. This is the one document that names a delivery route, and the only one that may: it is written to a customer whose situation the operator knows, where the prompt is handed on to a reader the run cannot see (§5); which repositories, at which commits; **which
 file is the prompt** — the one file to paste; **which file comes back** — the one file to send,
 named exactly; any prerequisite whose decisions are still provisional and that positions resting on
 it could move (D20); and anything else that must not sit buried inside a document. The two bolded
@@ -872,7 +890,10 @@ self-review is free of them while being the most internal document this command 
 
 **The bundle is committed** (D18), through the handoff below. That serves both delivery routes with
 one artifact: a customer with repository access pulls it and needs nothing else, and everybody else
-gets **one archive command**, printed at the end of the run with an absolute path:
+gets **one archive command**. **It is printed only where the archive is the route Phase 7 settled**
+— on the repository route the customer already has the bundle, and printing a command to build them
+a copy of it is the same defect this increment removed from the prompt, one document further out.
+On the archive route, print it at the end of the run with an absolute path:
 
 ```
 cd "<BRD-dir>" && zip -r "<BRD-KEY>-bundle-<YYYYMMDD>.zip" "bundle-<YYYYMMDD>"
@@ -927,7 +948,7 @@ on `/create-ard` and `/specify`, which read the architecture- and implementation
 alongside the same register. So the honest offer is the state this run actually leaves behind:
 
 ```
-choices: ["Stop here — the package is written and, if you handed it off, committed", "Send it — the delivery note is printed above and the archive command is in the report", "Reconcile the review once it comes back — /product-workflows:brd-reconcile <BRD-KEY> @<review-file> <merge-clause>", "Package another BRD or slice"]
+choices: ["Stop here — the package is written and, if you handed it off, committed", "Send it — the delivery note is printed above, shaped for the route you chose", "Reconcile the review once it comes back — /product-workflows:brd-reconcile <BRD-KEY> @<review-file> <merge-clause>", "Package another BRD or slice"]
 ```
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
@@ -1009,8 +1030,11 @@ move***, with whether it resolved, whether its decisions are customer-reviewed, 
 package of its own was copied in; the four artifacts written, by path; **the citation check's
 outcome** — how many identifier references resolved, across how many source packages, how many
 carried an owning BRD key, and every hit inside the customer's own source document that the operator
-was asked to rule on, **or an explicit "none"**; **the delivery note, printed in full**; the archive
-command, with an absolute path; the feedback + cost paths; the `Phase handoff:` outcome line
+was asked to rule on, **or an explicit "none"**; **the delivery note, printed in full**; **the delivery
+route settled in Phase 7 and why** — naming the archive command with an absolute path on the archive
+route, and on the repository route saying that none was produced because the customer pulls the
+committed bundle, so a reader of this report cannot mistake its absence for a step that failed; the
+feedback + cost paths; the `Phase handoff:` outcome line
 (`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line
 (`workflows-core:specs-repo-git` §6); the next-step recommendation; and — before the ledger line —
 the **repo→SHA table**:

@@ -50,10 +50,13 @@ bundle may assume of the machine it lands on.
    document to another, and every instruction in the prompt that sends the reviewer to a document,
    names a **filename** and tells the reviewer to search for it.
 
-**Why filenames and not paths.** Paths drift the moment a bundle is extracted and renamed — and it
-will be renamed, because it arrives as an attachment and lands in whatever directory the reviewer
-keeps attachments in. A path is correct exactly once, in the directory layout the packaging machine
-had; a filename survives extraction, renaming, re-zipping, being mailed on to a colleague, and being
+**Why filenames and not paths.** A path is correct exactly once, in the directory layout the
+packaging machine had, and **both delivery routes break it**. On the archive route the bundle is
+extracted and renamed, landing in whatever directory the reviewer keeps attachments in. On the
+repository route it is not renamed at all — and the path is wrong anyway, because the reviewer's
+checkout is not the packaging machine's. Naming only the archive case here read as though a
+committed bundle could safely be addressed by path, which is the one reading that would break rule 1
+for the route this plugin now recommends; a filename survives extraction, renaming, re-zipping, being mailed on to a colleague, and being
 dropped into a different tool. The cost is that filenames must then be distinctive enough to search
 for, which is a constraint on how bundle documents are named, not a reason to fall back to paths.
 
@@ -216,13 +219,13 @@ bundle would be a second, divergent statement of what was sent.
 
 **Hard length rule: 200 words.** Not a target, a ceiling. Past roughly that length the note stops
 being a covering letter and becomes a document, and a document is precisely what nobody reads before
-clicking into the attachment — which puts the two facts that must not be missed back inside the
-thing they were lifted out of.
+clicking into the attachment — or, on the repository route, before pulling and opening the folder —
+which puts the two facts that must not be missed back inside the thing they were lifted out of.
 
 It states only:
 
 - which BRD this is
-- what is attached
+- **how the customer gets the bundle** — what is attached, or where it is committed and how to reach it. This is the one document that names a delivery route, and it can, because it is written to a specific customer whose situation the operator knows
 - which repositories, at which commits
 - **which file is the prompt** — the one file to paste
 - **which file comes back** — the one file to send, named exactly
@@ -262,12 +265,25 @@ achieves, not something this file can assert of every run.
 For a synthetic BRD `EPIC-008` packaged on 15 April 2026, that is `bundle-20260415/` beside the
 package's other dated artifacts.
 
+**The prompt names no delivery route; the delivery note names the actual one.** They have different
+readers, and that is what settles which may assume anything. The note is a covering letter to a
+named customer, so the operator writing it knows whether they will pull the repository or receive an
+archive, and §4 requires the note to say which. The prompt is handed on — to a colleague, to an
+agent, to whoever actually does the review — and the run has no way to know who that is or how the
+bundle reached them, so a prompt that names a route is a prompt that is wrong for some of its
+readers about the first thing it tells them. Its locating instruction is therefore written to be
+true either way, and the **archive command never appears in it at all**: assembling an archive is a
+delivery-team action, not a reviewer's, and a reviewer who was sent one has already had it done for
+them.
+
 **Committing it serves both delivery routes with one artifact.** A customer with access to the
 repository pulls the bundle directly and needs nothing else. Everyone else gets **one archive
-command** — printed at the end of the run with an absolute path, producing a single archive of the
-whole dated directory, in a format the customer can open without installing anything. One command,
-because the population that cannot pull the repository is exactly the population that will not
-assemble an archive command themselves.
+command** — producing a single archive of the whole dated directory, in a format the customer can
+open without installing anything. One command, because the population that cannot pull the
+repository is exactly the population that will not assemble an archive command themselves.
+**It is produced only where the archive is the route actually being used**, which the calling
+command settles once, at the delivery note, and only where the handoff was accepted is the
+repository route available at all — a bundle on no ref is a bundle nobody can pull.
 
 **The committed copy is the permanent record of exactly what was sent.** This is the point of D18
 and the reason the cost is worth paying: it is what makes the byte-identical property behind the

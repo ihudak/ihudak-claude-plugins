@@ -580,7 +580,7 @@ git commit -m "feat(grounding): ground a requirement row, not only a [BR#n]"
 
 **Interfaces:**
 - Consumes: the `grounding/code-grounding.md` and `grounding/design-grounding.md` Task 4 writes.
-- Produces: the first `consumed_by: PRD` value written anywhere in the tree.
+- Produces: the first `consumed_by: PRD` value written **onto a grounding finding record**. (`/create-prd` already writes that value onto a `decisions.md` record — `consumed_by` is one field, declared identical in `product-workflows:decision-register-format` §1 and `workflows-core:grounding-format` §2. An earlier draft of this plan and of spec §7 claimed the value had no writer at all; that was false and is corrected in both.)
 
 - [ ] **Step 1: Discover the grounding files as secondary grounding, ungated**
 
@@ -623,7 +623,7 @@ whose findings went unconsumed.
 ```bash
 ./scripts/check-docs.sh --root . && ./scripts/check-id-grammar.sh --root .
 git add plugins/product-workflows/commands/update-prd.md
-git commit -m "feat(update-prd): read grounding and give consumed_by: PRD its first writer"
+git commit -m "feat(update-prd): stamp consumed_by: PRD on the findings an update drew on"
 ```
 
 ---

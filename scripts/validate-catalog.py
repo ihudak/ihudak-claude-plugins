@@ -95,7 +95,23 @@ SKIP_DIRS = {".git", "node_modules", ".superpowers", ".idea"}
 # directory named `fixtures` anywhere in the tree, including a real plugin's own test
 # corpus, from BOTH directions of the advertisement check. Anchored here instead, it
 # excludes exactly the one directory it was written for.
-SKIP_PREFIXES = (("scripts", "fixtures"),)
+# A git worktree at `.worktrees/<name>/` (or `worktrees/<name>/`) is a SECOND FULL COPY
+# of the tree, so every plugin name in it appears twice and the uniqueness assertion
+# below reports one ERROR per plugin -- measured at 10 errors and 3 warnings on a tree
+# with one worktree present. The copy is git-ignored (`/.worktrees/` in .gitignore) and
+# is never what this gate is asked about. It matters beyond the annoyance: the
+# merged-result gate run is the last check before a branch lands, it runs from the main
+# checkout while the worktree is still on disk, and it fails there for a reason that has
+# nothing to do with the merge -- at the precise moment someone is deciding whether the
+# merge was sound. Both names are excluded because both are what the worktree tooling
+# creates; only `.worktrees` is in this repo's .gitignore today.
+#
+# Root-anchored for exactly the reason the `fixtures` exclusion above is: `worktrees` is
+# an ordinary word, and a bare name-match at any depth would hide a real manifest nested
+# under any directory that happened to be called that. The selftest pins the anchoring
+# with a pair -- a copy under the root's own `.worktrees/` passes, an identical one under
+# a `worktrees` directory further down is still rejected.
+SKIP_PREFIXES = (("scripts", "fixtures"), (".worktrees",), ("worktrees",))
 
 
 def find_files(root: Path, name: str) -> list[Path]:
@@ -256,7 +272,8 @@ def _selftest() -> int:
 
     def build(root: Path, *, version: str = "1.0.0", catalog_version: str | None = None,
               description: str = "A fixture plugin.", ghost_manifest: bool = False,
-              second_plugin_name: str | None = None) -> None:
+              second_plugin_name: str | None = None,
+              duplicate_at: str | None = None) -> None:
         plugin = root / "plugins" / "fixture" / ".claude-plugin"
         plugin.mkdir(parents=True)
         (plugin / "plugin.json").write_text(json.dumps(
@@ -293,6 +310,15 @@ def _selftest() -> int:
             ghost.mkdir(parents=True)
             (ghost / "plugin.json").write_text(json.dumps(
                 {"name": "ghost", "version": "1.0.0", "description": "An unadvertised fixture plugin."}),
+                encoding="utf-8")
+        if duplicate_at is not None:
+            # A verbatim second copy of the fixture plugin, planted at a caller-chosen
+            # path. This is exactly what a git worktree looks like to a walk of the
+            # tree: every declared name, one more time, under one extra directory.
+            copy = root.joinpath(*duplicate_at.split("/")) / "plugins" / "fixture" / ".claude-plugin"
+            copy.mkdir(parents=True)
+            (copy / "plugin.json").write_text(json.dumps(
+                {"name": "fixture", "version": version, "description": description}),
                 encoding="utf-8")
 
     rc = 0
@@ -333,6 +359,15 @@ def _selftest() -> int:
          "is already declared by", second_plugin_name="fixture")
     case("two plugin.json files with distinct names both pass", True, "OK",
          second_plugin_name="fixture-second")
+    # SKIP_PREFIXES' worktree exclusion, as a PAIR. Only the pair discriminates: an
+    # unanchored exclusion -- a bare `worktrees` name-match at any depth, the shape the
+    # SKIP_PREFIXES comment exists to keep out -- passes the green case and fails the red
+    # one, while an implementation that simply stopped asserting uniqueness passes green
+    # and fails red too.
+    case("a worktree copy at the repo root is not walked", True, "OK",
+         duplicate_at=".worktrees/wt")
+    case("a duplicate under a `worktrees` directory below the root is still rejected",
+         False, "is already declared by", duplicate_at="nested/worktrees/wt")
 
     print("SELFTEST PASS" if rc == 0 else "SELFTEST FAIL")
     return rc

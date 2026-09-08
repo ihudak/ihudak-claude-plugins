@@ -82,9 +82,10 @@ them is.
 5. **Every prompt this command raises is enumerated, and only one of them carries a question from
    the question set.** They are: the `SPECS_PATH` escalation in *Resolve inputs and gate the grounded
    BRD*; the round re-open cause prompt in *Resolve the round*; the `[V]` queue and the argumentation
-   prompt that follows each of its answers; the will-change resolution picker; the handoff choice;
-   and the next-step offer. Only the third carries a question from the set — and the argumentation
-   prompt inside it asks why the answer just given was given, never a question of its own.
+   prompt that follows each of its answers; the code-defect offer that follows it; the will-change
+   resolution picker; the handoff choice; and the next-step offer. Only the third carries a question
+   from the set — and the argumentation prompt inside it asks why the answer just given was given,
+   never a question of its own.
 
    **Two further prompts can appear, raised inside shared entry points this command executes rather
    than by the command itself, and neither can carry a question from the set** — because neither
@@ -237,9 +238,10 @@ and nothing downstream can tell the difference afterwards.
 9. **Read the inputs the rest of the run works from**, all from the gated folder: every verified
    `[CG#n]`/`[DG#n]` with its `verdict`, `evidence`, `horizon` and verifier `outcome`
    (`workflows-core:grounding-format` §2, §3, §5); `brd/brd-inventory.md`'s `[BR#n]` rows; `coverage-ledger.md`;
-   `brd-link.md` (its `parent:` and any `depends-on:`); and, when they already exist, `decisions.md`
-   and every `interview/round-<N>.md`. A previous run's register and round records are inputs, never
-   scratch: nothing below deletes, renumbers or rewrites a record another run wrote.
+   `brd-link.md` (its `parent:` and any `depends-on:`); and, when they already exist, `decisions.md`,
+   every `interview/round-<N>.md`, and `code-defect-log.md`. A previous run's register, round
+   records and code-defect log are inputs, never scratch: nothing below deletes, renumbers or
+   rewrites a record another run wrote.
 
 ---
 
@@ -652,7 +654,7 @@ horizons of findings in an `evidence` list and an assumption's list holds none.
 ## Phase 9 — Write the register and the round record
 
 **`<BRD-dir>/decisions.md`** — one block per `[VD#n]` and per `[AS#n]`, each carrying every field
-`decision-register-format.md` §1 defines, with §7's account of which of the eleven apply differently
+`decision-register-format.md` §1 defines, with §7's account of which of the twelve apply differently
 on an assumption. Ids are contiguous within their own prefix, assigned once, **never renumbered and
 never reused after a terminal status** (§1) — a re-run continues the sequence from the highest id on
 file and never restarts it. A run that reopens a decision writes `status: reopened` with its cause
@@ -831,7 +833,8 @@ its own is an allocation outcome this command reports correctly, not a capabilit
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-interview`; what was produced (the round
-   worked, the register entries written, the `[C]` set held); key events (a re-opened round and its
+   worked, the register entries written, the code-defect log when this round raised one, the `[C]`
+   set held); key events (a re-opened round and its
    cause, a question that needed grounding, a will-change resolution, a cancelled `[V]` queue, the
    no-new-round path — or "none"); workarounds; test result N/A; project root = the BRD folder.
 2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6)
@@ -865,8 +868,9 @@ re-opened it with the cause recorded; **the question counts by tag**, `[G]` / `[
 every split, with the parts each original became; the `[G]` answers, each naming the
 `[CG#n]`/`[DG#n]` that settled it; **every re-tag, with the `NOT-PROVABLE` finding that caused it** —
 never a re-tag reported without its cause; every question recorded *needs grounding*, named, with
-`/product-workflows:prd-ground <BRD-KEY>` as the fix; the `[VD#n]` decided this run and any deferred; the
-`[AS#n]` recorded; the `[C]` count held and the file holding them, stated together with the fact that
+`/product-workflows:prd-ground <BRD-KEY>` as the fix; the `[VD#n]` decided this run and any deferred;
+the `[AS#n]` recorded; the `[CDF#n]` raised this round, when any; the `[C]` count held and the file
+holding them, stated together with the fact that
 `/product-workflows:brd-package` is the command that carries them to the customer and
 `/product-workflows:brd-reconcile` the one that records the answer; every will-change resolution taken and how it was
 recorded; the count of decisions and assumptions still `consumed_by: none`

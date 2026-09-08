@@ -44,6 +44,7 @@ package:
   grounding:        <paths to code-grounding.md / design-grounding.md>
   seeds:            <paths to prd-seed.md / ard-seed.md / spec-seed.md, as they exist>
   ledger:           <path to coverage-ledger.md>
+  defects:          <path to code-defect-log.md, when the folder holds one>
   questions:        <path to the [C] question set held for the customer>
   prior_reviews:    <paths to earlier self-review-<date>.md, when this is a re-package>
 ```
@@ -51,6 +52,10 @@ package:
 **Refuse to run without `brd_dir` and at least `package.decisions` and `package.grounding`.**
 
 **Presence is the right test here, and an emptiness test would be wrong** — which is worth stating, because three sibling reviewers in this family were changed the other way. A register holding no `[VD#n]` and no `[AS#n]` is a **legitimate** package when every question its rounds asked was customer-facing: `/brd-package` step 8 admits exactly that case, gating on `[C]` **or** open `[AS#n]` **or** `[VD#n]`, and refusing an empty register here would refuse a package that is all `[C]` — the commonest shape on a first round. The vacuity this family guards against is real and is caught one station up, by that step's `BRD_PACKAGE_NOTHING_TO_REVIEW`, which tests the whole review surface rather than one input of it. Test emptiness where the emptiness is the defect, not wherever a field could be empty.
+**`package.defects` is optional and its absence is never `INPUT_MISSING`.** `commands/brd-interview.md`
+writes the log only where a round raised a `[CDF#n]`, so a package whose decisions turn on no code
+defect legitimately has none — and class 6 below is precisely the check that a package which *claims*
+one has it, which an input gate could not perform.
 Return `status: INPUT_MISSING` naming exactly what was absent. A review of a package you were handed
 half of is a review of nothing: the method below cross-reads a decision against the finding it
 claims, and neither half attacks anything on its own. **That is about a missing input, not an empty
@@ -58,7 +63,7 @@ one** — a register holding no decision at all is reviewable, and the paragraph
 
 ## What you are hunting
 
-"Be adversarial" is not an instruction anybody can act on. These five classes are. Work them
+"Be adversarial" is not an instruction anybody can act on. These six classes are. Work them
 deliberately, in this order, and record the class on every finding.
 
 1. **A decision resting on a finding that does not actually support it.** For every `[VD#n]`, open
@@ -106,13 +111,26 @@ deliberately, in this order, and record the class on every finding.
    package is defending. A position that reads as arbitrary loses the argument whether or not it was
    right, and it is far cheaper to lose it here.
 
+6. **An argumentation that asserts a defect nothing holds.** For every `[VD#n]`, `[CD#n]` and
+   `[AS#n]`, read the `argumentation` for a claim that a defect in the code **is recorded**, has been
+   **raised**, or is **known** — and then check the record's own `defects` list. Where the prose
+   makes such a claim and `defects` is empty, or names a `[CDF#n]` that is not in
+   `code-defect-log.md`, that is a finding. **This is a claim about the package's own artifacts
+   rather than about the code**, which is what separates it from class 4: the prose is not asserting
+   more than a finding establishes, it is asserting that a record exists. The characteristic damage
+   is that the register then reads as handled — a reader who meets *"the defect is recorded against
+   it"* stops looking, and the defect reaches the customer as a settled matter with nothing behind
+   it. Two live instances in one shipped register survived drafting, the round record and a first
+   adversarial review, which is why this class is here rather than left to a pattern: the judgment
+   is yours, and no static check in this repository can make it.
+
 ## Process
 
 1. **Read the whole package before filing anything.** Decisions, assumptions, grounding findings,
    seeds, ledger and the `[C]` question set. A finding filed from a single document is a finding
    about a sentence; the failures worth catching live between documents.
 
-2. **Work the five classes in order**, each as its own deliberate pass. Do not attempt them in one
+2. **Work the six classes in order**, each as its own deliberate pass. Do not attempt them in one
    read: the classes look for different things, and a single pass finds whichever the reader was
    already primed for.
 
@@ -131,7 +149,7 @@ deliberately, in this order, and record the class on every finding.
 
 6. **An empty findings list is a result you must argue for.** It is legitimate — a small, tightly
    grounded package can genuinely survive — but it is the same output an agent produces when it read
-   nothing, so it comes with an account of what each of the five passes actually examined. Do not
+   nothing, so it comes with an account of what each of the six passes actually examined. Do not
    pad the list to avoid this; do not return it without the account.
 
 ## Output
@@ -142,7 +160,7 @@ brd_key: <BRD-KEY>
 findings:
   - id:       SR#<n>
     class:    unsupported-decision | mis-tagged-question | assumption-as-fact |
-              overclaimed-grounding | will-not-survive-review
+              overclaimed-grounding | will-not-survive-review | unrecorded-defect-claim
     target:   <the exact thing attacked — a [VD#n], an [AS#n], a [C] question, or a
                document and the sentence or section inside it>
     attack: |
@@ -157,6 +175,7 @@ passes:
   assumption-as-fact:     <...>
   overclaimed-grounding:  <...>
   will-not-survive-review: <...>
+  unrecorded-defect-claim: <...>
 notes: |
   <optional — anything the caller should know before dispositioning: a document that could not be
   read, a pass whose coverage was partial and why>

@@ -282,9 +282,11 @@ register created to fix it contained the same unrecorded claim.
 
 ---
 
-# Open after gate 3 — one residual, recorded so S18 catches it
+# Open after gate 3 — G3-1, G3-2 and G3-3 closed 2026-09-08; G3-4 stands as constraints
 
 ## G3-1 — `dev-workflows/docs/reference/environment.md:11` lost `/prd-ground` from an enumeration
+
+**CLOSED 2026-09-08** — the line now names `/prd-ground` alongside the glob. The class sweep was re-run across `plugins/` before the fix rather than after it, and this remained the only instance: every other surviving `/brd-*` mention is about the shared `brd` **prefix** — which `/prd-ground` does still carry on the BRD route — and each of those either names the command explicitly already or is correct as a statement about the route. That distinction is the durable one: the rename shrank the command **glob** and left the **prefix** sharing intact, so a sweep that treats the two as the same thing over-fires as readily as one that misses.
 
 **Small, documentation-only, and an instance of gate 3's own signature defect class**, which is why it is recorded rather than waved through.
 
@@ -296,6 +298,10 @@ Fix is one line: name `/prd-ground` alongside the glob. Nothing about a run misb
 
 
 ## G3-2 — two build gates fail from the main checkout whenever a worktree exists under `.worktrees/`
+
+**CLOSED 2026-09-08** — both scripts now exclude a `.worktrees/`/`worktrees/` directory **at the scan root**, each through the root-anchored mechanism it already had (`validate-catalog.py`'s `SKIP_PREFIXES`, `check-id-grammar.sh`'s `EXCLUDED_SUBTREES`). Anchoring is the whole of it: `worktrees` is an ordinary word, and a bare name-match at any depth would hide a real manifest or a real violation nested under any directory called that — the identical argument `SKIP_PREFIXES` already carried for `fixtures`. Each script gained a **paired** selftest case, and both pairs were proven to discriminate by running degraded implementations: with the exclusion removed the green case fails, and with the exclusion rewritten as an unanchored name-match the red case fails. Verified end to end by creating a worktree and re-running the three tree-walking gates from the main checkout — **0 errors where this entry measured 10**.
+
+A general "skip everything gitignored" was considered and not taken: it would make two build gates depend on `git` being available and on the scan root being a work tree, which neither selftest's temporary fixture tree is. The named-directory exclusion covers the only way this state arises and adds no failure mode.
 
 **Found during gate 3's merge, by the merged-result verification the finishing discipline mandates.** Not a defect the branch introduced, and invisible until someone uses a worktree.
 
@@ -312,6 +318,10 @@ Fix is one line: name `/prd-ground` alongside the glob. Nothing about a run misb
 
 
 ## G3-3 — check 11 cannot enforce `<merge-clause>` on any offer of `/create-ard` or `/specify`, anywhere in the tree
+
+**CLOSED 2026-09-08** — `phase-handoff.md` §3.4's `/create-ard` and `/specify` rows now read ``the PRD (`prd.md`)``, and check 11's target extractor picks both up. **Re-measured rather than trusted, as this entry instructed:** the writer set was extracted afresh for all six in-family commands (`/brd-intake`, `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile`, `/prd-ground`) and none declares `prd.md`, so the widening fires on nothing — the final review's correction confirmed by measurement, not by re-reading the paragraph that made it. `prd.md` is the right name to write because `/create-ard`'s own Phase 0 resolves exactly it on the ref, falling back to the legacy `<KEY>_*.md` form; the row states the gate target, so it had to be checked against the gate rather than assumed from the filename convention.
+
+**Three rows of that table still name their target in prose, and were deliberately left**: the ARD row (`/specify` `/design` `/implement` `/epics` `/ready`) and the `/ready` row (`ARD / spec / design`). Both were measured the same way and would **also** fire on nothing — no in-family command declares `ard.md`, `specification.md` or `design.md`. They were not batched in for a reason that is not scope timidity: unlike the PRD, whose gate resolves a single known filename, an ARD may be **split per area** (`/create-ard` hands off "the ARD file(s)"), and `/ready`'s row covers three artifacts with three resolution rules. Naming one filename in either row would put a claim in the row-F table that the gate does not make. Each needs its own consumer read first; the zero-fire measurement is done and is not the blocker.
 
 **Pre-existing, parked during gate 3 on reasoning the final review then corrected. It is ready to take.**
 

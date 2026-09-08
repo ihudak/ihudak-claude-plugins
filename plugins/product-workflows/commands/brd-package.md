@@ -395,7 +395,7 @@ that agent refuses to run without `brd_dir`, `package.decisions` and `package.gr
 this dispatch, not in the package, and proceeding past it would build a bundle on a review of
 nothing.
 
-**One dispatch, not one per document.** The five classes that agent works are cross-document by
+**One dispatch, not one per document.** The six classes that agent works are cross-document by
 construction — a decision read against the finding it cites, a `[C]` question read against the test
 that says who may answer it — and an agent handed one document at a time can only find things about
 sentences.
@@ -407,7 +407,7 @@ and nothing below waits for one: the gate is the next phase, and a run that look
 would sit forever on an agent designed never to emit one.
 
 **An empty findings list is accepted only with its account.** The agent owes a per-pass statement of
-what each of the five passes examined; an empty list arriving without it is the same output an agent
+what each of the six passes examined; an empty list arriving without it is the same output an agent
 produces when it read nothing. Missing account → re-dispatch once, naming the omission; still
 missing → stop rather than package against a review that may not have happened:
 `BRD_PACKAGE_REVIEW_UNACCOUNTED: brd-package-reviewer returned no findings and no per-pass account — the review cannot be distinguished from a run that read nothing.`

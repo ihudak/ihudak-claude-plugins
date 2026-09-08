@@ -422,7 +422,7 @@ path nobody else can reproduce; the copy is the record.
    copy, cites that copy, and names that copy — including the suffix, where one was taken.
 
    **Which review a `[CD#n]` was frozen from is recorded in the reconciliation record, not on the
-   record itself.** `decision-register-format.md` §1 fixes eleven fields and none of them names a
+   record itself.** `decision-register-format.md` §1 fixes twelve fields and none of them names a
    source document, so `decisions.md` read alone cannot distinguish an answer frozen from a
    corrected resend from one frozen from the file it replaced. What distinguishes them is the
    *Write the reconciliation record* phase: each pass sits under its own heading naming the review

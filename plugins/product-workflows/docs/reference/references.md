@@ -1,6 +1,6 @@
 # References reference
 
-`product-workflows` bundles ten files under `references/`, all top-level markdown, no bundled subtrees. This page enumerates every one, grouped by concern below.
+`product-workflows` bundles 11 files under `references/`, all top-level markdown, no bundled subtrees. This page enumerates every one, grouped by concern below.
 
 The shared corpus every plugin in this family reads — the addressing grammar, the git and phase-handoff entry points, model routing, escalation and triage, cost/feedback/follow-up emission, the grounding and grilling conventions, and the PRD format — ships in the companion `workflows-core` plugin and is enumerated on its own references page, reached through the loader skill rather than by path. What is listed here is what `product-workflows` itself carries.
 
@@ -24,4 +24,10 @@ The canonical structure each artifact of the idea → PRD → ARD → specificat
 - `ard-format.md` — canonical structure and rules for an Architecture Requirements/Decision Document — **ard.md**, or **ard-\<area\>.md** for an area-scoped one — plus its `kind:`/`key:` frontmatter; `ard-reviewer` reviews against it and `dev-workflows:ready` reads its `grounded_repos:` frontmatter.
 - `specification-format.md` — canonical structure and per-stage rules for a product specification — **specification.md** — plus its `kind:`/`key:` frontmatter; `/specify` authors against it and `spec-reviewer` reviews against it. An embedded snapshot, not a net-new format.
 
-Every one of the ten files above is cited by at least one command or agent. The engineering-design counterpart one altitude down — the format an implementation design is authored against — ships in the companion `dev-workflows` plugin and is not part of this one.
+## Effort-proposal format
+
+The canonical structure of the two customer-facing estimate artifacts, and the rules a reviewer checks them against.
+
+- `proposal-format.md` — the section set of **proposal.md** and its derived **proposal-brief.md**, the `[WP#n]` work-package and `[ED#n]` estimate-driver namespaces, the four readiness tiers and the ceiling each puts on per-package confidence, the three confidence grades with their default ranges and the tiered severity of a deviation from one, the closed three-class set of evidence a cost driver may cite, the rule that a defect-remediation package is never a scope lever, the range's own exclusions as a section distinct from exclusions-from-scope, the rule that a requirement is cited in the form its source artifact carries it — and why that puts these two artifacts deliberately outside `workflows-core:pre-lint`'s auto-link collision check — and the correction-versus-re-estimate classification a revision's changelog computes. `/prd-proposal` and `/brd-proposal` author against it and `proposal-reviewer` reviews against it.
+
+Every one of the 11 files above is cited by at least one command or agent. The engineering-design counterpart one altitude down — the format an implementation design is authored against — ships in the companion `dev-workflows` plugin and is not part of this one.

@@ -15,7 +15,7 @@ A role-based pipeline of 12 slash commands for the product-definition side of th
 | PA *(optional)* | [`/create-ard`](docs/commands/create-ard.md) | Author an Architecture Requirements/Decision Document, grounded in the mounted implementation code. Optional: a PRD can hand straight to `/specify`. |
 | PE | [`/epics`](docs/commands/epics.md), [`/specify`](docs/commands/specify.md) | Break a PRD into Epics, then author an org-standard specification through a grill. |
 
-Twelve agents (see [Agents](docs/reference/agents.md)) carry the BRD grounding and reconciliation, PRD/ARD/spec review, and Epic writing and review these commands share. Ten reference pages (see [References](docs/reference/references.md)) define the BRD, code-defect-log, decision-register, coverage-ledger, customer-review, idea, ARD and specification artifact formats.
+Twelve agents (see [Agents](docs/reference/agents.md)) carry the BRD grounding and reconciliation, PRD/ARD/spec review, and Epic writing and review these commands share. Eleven reference pages (see [References](docs/reference/references.md)) define the BRD, code-defect-log, decision-register, coverage-ledger, customer-review, idea, ARD, specification and effort-proposal artifact formats.
 
 ## Documentation
 

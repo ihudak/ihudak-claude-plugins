@@ -204,8 +204,10 @@ behaviour, not the behaviour.
      already on disk, and **do not name `/brd-intake`**: re-running it rewrites the inventory and the
      ledger dispositions recorded against it go with it:
      `PRD_GROUND_INVENTORY_NOT_HANDED_OFF: <BRD-KEY>'s brd/brd-inventory.md is written at <path> but is on no branch — its handoff was declined. Commit and merge it to the specs repo's default branch and re-run; do not re-run /product-workflows:brd-intake, which would rewrite the inventory and orphan the coverage-ledger dispositions already recorded against it.` What the single-commit fact still buys is the *rest* of the set: it was
-   `/brd-split` running on the parent, and there is no defect log to land — a slice reads the parent's
-   (`brd-format.md` §2.1). Map the §3.7 return by `stopped` first: any stopping row → stop, naming
+   `/brd-split` running on the parent, and there is no *requirement* defect log to land — a slice
+   reads the parent's `brd/brd-defect-log.md` (`brd-format.md` §2.1), and the slice-owned
+   `code-defect-log.md` is a different register this phase's set never held.
+   Map the §3.7 return by `stopped` first: any stopping row → stop, naming
    the concrete branch/PR state it reports; `pass` → proceed; `pass_amending` → proceed, printing
    the §3.3 row-B message; `unmanaged` → proceed as before this feature.
 

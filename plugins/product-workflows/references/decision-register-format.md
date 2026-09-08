@@ -37,6 +37,7 @@ chosen: <option>
 argumentation: |
   <why — mandatory>
 evidence: [[CG#12], [DG#3]]
+defects: [[CDF#2]]                        # omitted unless the decision turns on a recorded code defect
 altitude: product | architecture | implementation
 conditional_on: <BRD-KEY>/<decision-id>   # omitted unless the decision depends on a prerequisite
 status: open | decided | reopened | superseded | withdrawn
@@ -52,6 +53,7 @@ round: 2
 | `chosen` | exactly one member of `options_considered` |
 | `argumentation` | why — **mandatory**, §2 |
 | `evidence` | the `[CG#n]`/`[DG#n]` findings the decision rests on, per `workflows-core:grounding-format` §2; the list is what §6 inspects |
+| `defects` | the `[CDF#n]` code-defect entries this record turns on, per `references/code-defect-log-format.md`; omitted when absent. **Never in `evidence`** — §6's will-change rule inspects that list, and a non-finding id in it would silently change what D19 fires on |
 | `altitude` | which level the decision sits at, so the spec's §7 altitude routing can send it to the right downstream artifact |
 | `conditional_on` | omitted unless the decision depends on a prerequisite — §5 |
 | `status` | one of the five in §3 |
@@ -65,8 +67,15 @@ the customer later nodded at it, and a customer answer captured in free text doe
 `[CD#n]` at all until an operator confirms it (D14) — the register records confirmed decisions, and
 normalising prose into one is inference, not authority.
 
+**`defects` is not `evidence`, and the separation is load-bearing rather than tidy.** `evidence`
+holds `[CG#n]`/`[DG#n]` findings and §6 **inspects that list** — the will-change rule fires when
+every finding in it carries `horizon: will-change`. A `[CDF#n]` placed there would change what D19
+fires on, in the one rule whose whole purpose is that a decision resting on ground that is about to
+move says so. The two fields also answer different questions: `evidence` says what established the
+premise, and `defects` says what has to be repaired before the position can be delivered.
+
 `options_considered` and `chosen` do not apply to an `[AS#n]`, which is not a choice; §7 accounts
-for all eleven of these fields on an assumption record, one by one.
+for all twelve of these fields on an assumption record, one by one.
 
 ## 2. `argumentation` is mandatory
 
@@ -199,9 +208,9 @@ firing rests on exactly what it rested on before, minus the record of it.
 ## 7. Assumptions — `[AS#n]`
 
 An `[AS#n]` records **something the package asserts without evidence.** It is not a decision: nothing
-was chosen, so nothing was weighed. It uses the same eleven fields as §1, and because `/brd-package`
+was chosen, so nothing was weighed. It uses the same twelve fields as §1, and because `/brd-package`
 puts every open one of them in front of the customer (below), which fields apply is not a
-detail an author may settle for themselves. All eleven are accounted for here.
+detail an author may settle for themselves. All twelve are accounted for here.
 
 | §1 field | On an `[AS#n]` |
 |---|---|
@@ -213,6 +222,7 @@ detail an author may settle for themselves. All eleven are accounted for here.
 | `evidence` | **Different meaning**, still never blank: it holds **no** `[CG#n]`/`[DG#n]` ids, and instead carries the explicit statement of **why no evidence exists** — see below |
 | `altitude` | **As-is**: an assumption sits at a level like anything else, and the spec's §7 routing needs it for the same reason |
 | `conditional_on` | **As-is**, and omitted when absent: an assumption can rest on a prerequisite's decision exactly as a position can, and §5's sweep must be able to reach it for exactly the same reason |
+| `defects` | **As-is**, and omitted when absent: an assumption can turn on a known code defect exactly as a position can, and the customer who reads the assumption needs the same access to what would have to be repaired |
 | `status` | **Narrowed vocabulary**, from §3's five: an `[AS#n]` reaches `open`, `superseded` and `withdrawn` only. `decided` cannot apply — an assumption is never settled by being chosen; when the customer confirms it, the confirmation is a `[CD#n]` and the assumption is `superseded` by it (below). `reopened` follows `decided`, so it is unreachable too |
 | `consumed_by` | **As-is**, with the same starting-at-`none` rule |
 | `round` | **As-is**: the interview round the assumption was recorded in |

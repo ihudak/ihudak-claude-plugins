@@ -9,7 +9,7 @@ Opus-gated quality gates, plus the one Sonnet-tier verifier that re-derives evid
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
 | `ard-reviewer` | opus | Read, Glob, Grep, Skill | Reviews an ARD for grounding integrity, well-formed `AD#N` rules, non-contradiction with inherited PRD-level invariants, and altitude purity; returns PASS / PASS WITH RECOMMENDATIONS / BLOCK. | `/create-ard` |
-| `brd-package-reviewer` | opus | Read, Glob, Grep, Skill | Attacks a BRD package before it reaches the customer instead of summarising it — unsupported decisions, a `[C]` that is really a `[V]`, assumptions as facts, overclaims; returns `[SR#n]`. | `/brd-package` |
+| `brd-package-reviewer` | opus | Read, Glob, Grep, Skill | Attacks a BRD package before it reaches the customer — unsupported decisions, a `[C]` that is really a `[V]`, assumptions as facts, overclaims, a defect claim nothing holds; returns `[SR#n]`. | `/brd-package` |
 | `epic-reviewer` | opus | Read, Glob, Grep | Reviews Epic drafts for goal clarity, testable acceptance criteria, scope boundaries, and non-duplication with existing Epics under the parent PRD. | `/epics` |
 | `grounding-verifier` | opus | Read, Glob, Grep, Bash, Skill | Re-derives a `[CG#n]`/`[DG#n]` from its source — the pinned repo, or the frame set for a design-only one — without first reading `evidence`; returns agree / extend / contradict / unprovable. | `/prd-ground` |
 | `prd-reviewer` | opus | Read, Glob, Grep, Skill | Reviews a Product Requirements Document for goal crispness, testable stories/criteria, internal consistency, measurable metrics, and product-level purity (no implementation detail). | `/create-prd`, `/update-prd` |

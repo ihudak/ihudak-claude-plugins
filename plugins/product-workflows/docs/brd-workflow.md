@@ -247,6 +247,7 @@ specifications/BRD-<BRD-KEY>-<slug>/
 ├── brd-link.md                  # depends-on / parent-child links, /prd-ground, /brd-split, /brd-package
 ├── slices.md                    # slice rationale and deferral notes, /brd-split
 ├── decisions.md                 # the register: [VD#n] and [AS#n] from /brd-interview, [CD#n] from /brd-reconcile
+├── code-defect-log.md           # [CDF#n] code defects a decision turns on, from /brd-interview
 ├── interview/
 │   ├── round-<N>.md             # one append-only record per round, /brd-interview
 │   └── customer-questions.md    # the [C] questions held for the customer, /brd-interview
@@ -286,11 +287,15 @@ the root's `/brd-split` into `/prd-ground` above is: `/prd-ground` needs a ledge
 inventory to read, `/brd-intake` never runs on a slice — there is no separate document to intake —
 and `/brd-split` is the only command holding both the parent's rows and the allocation that says
 which of them the slice claims.
-The slice keeps no `brd/` source or defect log of its own and reaches for its parent's, and that
-reach is always exactly one hop: with nesting capped at one level, a slice's parent is always the
-BRD that owns the customer's document. That one hop is live rather than theoretical — it is how a
-`rejected: [DEF#n]` is resolved when `/brd-split` walks the slice's own ledger, and it is where a
-slice's `/brd-reconcile` writes the defect resolutions its customer review settled.
+The slice keeps no `brd/source/` and no `brd/brd-defect-log.md` of its own and reaches for its
+parent's, and that reach is always exactly one hop: with nesting capped at one level, a slice's
+parent is always the BRD that owns the customer's document. That one hop is live rather than
+theoretical — it is how a `rejected: [DEF#n]` is resolved when `/brd-split` walks the slice's own
+ledger, and it is where a slice's `/brd-reconcile` writes the defect resolutions its customer review
+settled. **Both of those
+are the `[DEF#n]` requirement defect log**; `code-defect-log.md` in the tree above is a different
+register and is the slice's own, because a code defect belongs to the slice's own grounding and
+grounding is slice-only. There is no hop for it.
 
 Everything else a slice produces is its own. It holds its own register, its own `[C]` question set,
 its own bundle and its own reconciliation record — and it is the only level any of the last three

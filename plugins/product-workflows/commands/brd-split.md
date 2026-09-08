@@ -98,8 +98,9 @@ four-resolution one.
      says so:
      `BRD_SPLIT_ON_SLICE (notice, not a stop): <BRD-KEY> is a slice of <PARENT-KEY>. This run allocates <BRD-KEY>'s ledger but creates no children: nesting is capped at one level, so Phases 2-3 are skipped and no child BRD can exist below a slice. The Phase 4 walk offers its own four resolutions — the same count as full mode, a different set: covered-by is not one this walk can choose — on a slice it names a sibling or the parent, records a claim the parent's own walk withdrew — still provisional on the ordinary route, committed by an earlier run and then deferred by this slice itself where a re-cut moved it — and is written by that walk, so every row carrying it is already terminal here.`
    **This is a cap on nesting, not on allocation.** A grandchild would inherit `brd/source/` and a
-   defect log from a parent that holds neither, so its inventory header would name a path that does
-   not exist (`workflows-core:addressing` §6, `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — that
+   requirement defect log from a parent that holds neither, so its inventory header would name a
+   path that does not exist (`workflows-core:addressing` §6,
+   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — that
    is what child creation is refused for. A slice's own ledger has no such problem: its rows are
    this BRD's to allocate, and refusing to walk them would leave every one of them `unallocated`
    forever, which is the allocation deadlock this command exists to prevent
@@ -875,8 +876,10 @@ wrote; nothing already decided is rolled back.
 - **Reject** → prompt for the `[DEF#n]` that justifies it; it must already exist in the defect log
   that governs this BRD, which is the one place the two modes differ on inheritance: in
   `split_mode: full` that is this BRD's own `brd/brd-defect-log.md`; in `allocate-only` it is the
-  **parent's**, because a slice holds no defect log of its own and inherits it
-  (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4). Resolve it there via the `parent:`
+  **parent's**, because a slice holds no *requirement* defect log of its own and inherits it
+  (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4 — the route's separate code-defect log
+  is slice-owned and holds no `[DEF#n]`, so it is never what this resolution reaches for). Resolve
+  it there via the `parent:`
   key Phase 0 step 5 already read — **one hop, never a chase**, because the one-level cap makes a
   slice's parent always the BRD that owns the source document. A row with no qualifying defect is
   not rejected this way; resolve or raise the defect first. Write

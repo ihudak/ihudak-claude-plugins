@@ -4,6 +4,28 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.3.0] — 2026-09-08
+
+### Added — `code-defect-log.md`, a route-local register for what `/prd-ground` finds broken in the code
+
+`/prd-ground` spends its whole effort reading code at pinned commits, and routinely establishes that the code is broken — an active regression, a missing index the code assumes, a write path that never sets a column — and the route had nowhere to put that. `references/brd-format.md` §4's `[DEF#n]` log is for **requirement** defects only, so the fact landed in a decision's `argumentation`, and two instances in one shipped register asserted a defect *"is recorded"* while nothing held one, surviving drafting, the round record, and a first adversarial review.
+
+The new `references/code-defect-log-format.md` fixes the `[CDF#n]` record: `id`, `statement`, `behaviour` (exactly one **verified** `[CG#n]` in this BRD's own `grounding/code-grounding.md`), `intent`, `intent_basis` (a `file:line`/document pointer, or the literal `operator-judgment` followed by the reasoning), `disposition`, and `blocked_on` (required only when `disposition: conditional`). Five dispositions, mirroring `decision-register-format` §3: `open`, `in-scope`, `out-of-scope`, `conditional`, `withdrawn`. **There is no `fixed` disposition** — nothing on the BRD-to-PRD route builds anything and no command can observe a repair; `withdrawn` means the intent basis turned out to be wrong, not that the bug got fixed, and using it for a repaired defect would put a false statement in the log.
+
+`/brd-interview` is the **only** writer, at two points that already exist — Phase 6 raises an entry, held for the register phase exactly as a `[VD#n]` is; Phase 9 writes `code-defect-log.md` alongside `decisions.md` and the round record; Phase 10 adds the path to `deliverable_paths`. `/prd-ground`, which does the actual code reading, is deliberately **not** a writer, for a cost reason rather than a preference: its Phase 7 verifies every finding through `grounding-verifier`, and a defect entry emitted there would need its own verification contract and a change to the `code-grounder` agent; an entry raised at interview time cites a finding that is already verified and adds only the intent basis, which is the operator's judgment either way.
+
+### Added — `defects:`, a twelfth field on the decision register
+
+`decision-register-format.md` §1 gains `defects:`, listing the `[CDF#n]` ids a `[VD#n]`, `[CD#n]` or `[AS#n]` turns on, omitted when absent. It is deliberately **not** `evidence`: §6's will-change rule inspects the `evidence` list alone, firing when every finding in it carries `horizon: will-change`, and a `[CDF#n]` mixed into that list would silently change what the rule fires on. §7's per-field accounting grows from eleven rows to twelve to match, so a twelfth field is never one an author has to settle for themselves.
+
+### Added — the log ships in the customer bundle
+
+`bundle-packaging.md` §1.1's allow-list gains `code-defect-log.md`, and three dispositions map onto three prompt parts that already exist — `in-scope` to part 6 *Review scope*, because a defect disposed `in-scope` **is** the delivery boundary: the repair has to happen inside this PRD's scope or the feature cannot be delivered; `conditional` to part 8 *What could still move*, beside the `conditional_on` positions that part already carries; `out-of-scope` to part 11 *What this session cannot settle*. Shipping it also buys §3's evidence rule a mechanical check for free: `behaviour: [CG#12]` now sits in a bundle document, so it resolves against the partition's own shipped `grounding/code-grounding.md`, and an entry citing a finding that does not exist stops the packaging run with `BRD_PACKAGE_DEAD_CITATION`. Every entry ships, including `out-of-scope` and `withdrawn` ones — but seeing is not deciding: the operator settles every disposition exactly as before, a code defect never becomes an `interview-tagging.md` `[V]` or `[C]` question, and a customer who disagrees with one pushes back through the returned review, which `/brd-reconcile` already reads.
+
+### Added — `brd-package-reviewer`'s sixth hunt class
+
+Class 6, *"an argumentation that asserts a defect nothing holds"*: for every `[VD#n]`, `[CD#n]` and `[AS#n]`, the reviewer reads `argumentation` for a claim that a code defect is recorded, raised, or known, and checks the record's own `defects` list — a claim with nothing behind it is a finding. This is the class that catches the exact failure the design started from. It stands in for the prose-trigger check the design's §8 considered and **deliberately did not build**: the tree carries no corpus of real registers to measure a phrase-matching check against — the two `argumentation:` examples in the whole tree are both illustrative, both inside `decision-register-format.md` itself — so an unmeasurable pattern was left to the reviewer's judgment instead of shipped as a static check. What did ship at write time is a structural offer rather than a pattern: `/brd-interview` Phase 6 offers to raise a `[CDF#n]` exactly when a decision's `evidence` holds a `REWRITTEN`, `AMENDED` or `FALSE-FRIEND` finding — the three verdicts meaning grounding found the code does something other than claimed — reading the trigger off the record rather than out of prose.
+
 ## [3.2.0] — 2026-09-08
 
 ### Fixed — the package told every reviewer to extract an archive, including the ones who pull the repository

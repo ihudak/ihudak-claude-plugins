@@ -143,8 +143,9 @@ make*. Shipping the file would defeat that filter and hand the customer an inter
 referee. What the bundle *does* hold is an allow-list, not a deny-list, and
 [`bundle-packaging.md`](../../references/bundle-packaging.md) §1.1 is its authority: the prompt; the
 customer's own source document and defect log (the parent's on a slice); the inventory; the coverage
-ledger; the three grounding files; the decision register; the `[C]` question set; each prerequisite
-package; the images those reference; and the manifest. A document reaches the bundle only where a
+ledger; the three grounding files; the decision register; the code-defect log where the folder holds
+one; the `[C]` question set; each prerequisite package; the images those reference; and the
+manifest. A document reaches the bundle only where a
 part of the prompt sends the reviewer to it — everything else in the folder is a working record and
 stays.
 
@@ -168,12 +169,12 @@ Assembled from the package, never hand-written, in a fixed order that is not re-
 | 3 | Documents to review | the manifest, by filename |
 | 4 | Code baselines and the verification procedure | `baselines.md`, with the three pin commands written out |
 | 5 | The single most important claim to verify first | the finding the most decisions rest on — exactly one |
-| 6 | Review scope | the coverage ledger's dispositions — the rows this BRD is answerable for, with every `covered-by` row named as another BRD's and explicitly not for review here |
+| 6 | Review scope | the coverage ledger's dispositions — the rows this BRD is answerable for, with every `covered-by` row named as another BRD's and explicitly not for review here — plus every `in-scope` `[CDF#n]` |
 | 7 | The decisions the customer must make | the `[C]` question set, every open `[AS#n]`, every escalated `[SR#n]` |
-| 8 | What could still move | prerequisites not yet customer-reviewed, and every `conditional_on` position |
+| 8 | What could still move | prerequisites not yet customer-reviewed, every `conditional_on` position, and every `conditional` `[CDF#n]` |
 | 9 | Where to attack us hardest | every open `[AS#n]`, and every `accepted-risk` `[SR#n]` |
 | 10 | The required output file, its exact name, and the inlined schema | the one-new-file rule, and the rendered schema |
-| 11 | What this session cannot settle | the ledger, the prerequisites, and the review's own limits |
+| 11 | What this session cannot settle | the ledger, the prerequisites, the review's own limits, and every `out-of-scope` `[CDF#n]` |
 
 **Parts 8 and 9 are the two that are easy to lose and expensive to omit.** A package that names its
 own weak points gets a review worth having; one that does not gets a rubber stamp. And a customer
@@ -227,10 +228,11 @@ attack.
   the render verifies by requiring the extracted body to contain no `§` at all.
 - **Phases 6, 7 and 8 — the plugin-free scan.** Run over the finished prompt, the finished note and
   every bundle document. A hit stops the run with `BRD_PACKAGE_PROMPT_LEAK`, naming the token, the
-  part it landed in and the artifact it came from. Requirement, finding, decision and assumption
-  identifiers are **not** in the scan's classes and are meant to travel — they are how the returned
-  review cites the package without minting identifiers of its own; whether each one actually lands
-  is what the citation-resolution check below verifies.
+  part it landed in and the artifact it came from. The identifiers the package's own registers, logs
+  and grounding files mint are **not** in the scan's classes and are meant to travel — the classes
+  are enumerated once, in `bundle-packaging.md` §6.1's table, rather than restated here. They are how
+  the returned review cites the package without minting identifiers of its own; whether each one
+  actually lands is what the citation-resolution check below verifies.
 - **Phase 7 — the delivery note's 200-word ceiling.** A ceiling, not a target. Over it, the note is
   shortened and re-rendered; the two facts that are never trimmed are which file is the prompt and
   which file comes back.

@@ -271,14 +271,17 @@ cannot review, and they will not tell you that — they will review it anyway, b
    `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6.1 already owns, and the two would
    eventually disagree. Where the ledger is read at all, the **dispositions in the file** are read
    and never the ledger line, for the reason that section gives.
-10. **Read the inputs the rest of the run works from**, all from the gated folder: `decisions.md`
-    (every `[VD#n]` and `[AS#n]` with its `status`, `evidence`, `argumentation`, `conditional_on`,
-    `altitude` and `round`); every verified `[CG#n]`/`[DG#n]` with its `verdict`, `evidence`,
-    `horizon` and verifier `outcome`; `grounding/baselines.md`; `brd/brd-inventory.md`'s `[BR#n]`
-    rows; `coverage-ledger.md`; `brd-link.md`; `interview/customer-questions.md`; every
-    `interview/round-<N>.md`; and, when this is a re-package, every earlier
-    `self-review-<YYYYMMDD>.md`. A previous package's artifacts are inputs, never scratch: nothing
-    below deletes, renames or rewrites a dated artifact another run wrote.
+10. **Read the inputs the rest of the run works from**, all from the gated folder:
+    `decisions.md` (every `[VD#n]` and `[AS#n]` with its `status`, `evidence`, `argumentation`,
+    `conditional_on`, `altitude` and `round`); every verified `[CG#n]`/`[DG#n]` with its `verdict`,
+    `evidence`, `horizon` and verifier `outcome`; `grounding/baselines.md`; `brd/brd-inventory.md`'s
+    `[BR#n]` rows; `coverage-ledger.md`; every `[CDF#n]` in `code-defect-log.md` with its
+    `disposition`, `statement`, `intent` and `blocked_on`, **read where the file is present** — it
+    is absent on a package whose decisions turn on no code defect, and its absence is never a gate;
+    `brd-link.md`; `interview/customer-questions.md`; every `interview/round-<N>.md`; and, when this
+    is a re-package, every earlier `self-review-<YYYYMMDD>.md`. A previous package's artifacts are
+    inputs, never scratch: nothing below deletes, renames or rewrites a dated artifact another run
+    wrote.
 
     **Resolve `brd/source/<basename>` and `brd/brd-defect-log.md` here too**, even though nothing in
     this run reads their *content*: both go into the bundle
@@ -383,6 +386,7 @@ Dispatch `brd-package-reviewer` once, over the whole package, pinned to the Opus
   >   grounding:      [paths to grounding/code-grounding.md and grounding/design-grounding.md]
   >   seeds:          [paths to prd-seed.md / ard-seed.md / spec-seed.md, as they exist]
   >   ledger:         [path to coverage-ledger.md]
+  >   defects:        [path to code-defect-log.md, or omit when the folder holds none]
   >   questions:      [path to interview/customer-questions.md]
   >   prior_reviews:  [paths to every earlier self-review-<YYYYMMDD>.md, or omit when none]"
 
@@ -392,7 +396,7 @@ that agent refuses to run without `brd_dir`, `package.decisions` and `package.gr
 this dispatch, not in the package, and proceeding past it would build a bundle on a review of
 nothing.
 
-**One dispatch, not one per document.** The five classes that agent works are cross-document by
+**One dispatch, not one per document.** The six classes that agent works are cross-document by
 construction — a decision read against the finding it cites, a `[C]` question read against the test
 that says who may answer it — and an agent handed one document at a time can only find things about
 sentences.
@@ -404,7 +408,7 @@ and nothing below waits for one: the gate is the next phase, and a run that look
 would sit forever on an agent designed never to emit one.
 
 **An empty findings list is accepted only with its account.** The agent owes a per-pass statement of
-what each of the five passes examined; an empty list arriving without it is the same output an agent
+what each of the six passes examined; an empty list arriving without it is the same output an agent
 produces when it read nothing. Missing account → re-dispatch once, naming the omission; still
 missing → stop rather than package against a review that may not have happened:
 `BRD_PACKAGE_REVIEW_UNACCOUNTED: brd-package-reviewer returned no findings and no per-pass account — the review cannot be distinguished from a run that read nothing.`
@@ -543,12 +547,12 @@ do.
 | 3 | Documents to review | the bundle manifest, by filename |
 | 4 | Code baselines and the verification procedure | `grounding/baselines.md`, with the three commands written out |
 | 5 | The single most important claim to verify first | the register and the findings, by the rule below |
-| 6 | Review scope | `coverage-ledger.md` dispositions and `brd/brd-inventory.md` |
+| 6 | Review scope | `coverage-ledger.md` dispositions, `brd/brd-inventory.md`, and every `in-scope` `[CDF#n]` |
 | 7 | The decisions the customer must make | `interview/customer-questions.md`, every open `[AS#n]`, and every `escalated-to-customer` `[SR#n]` |
-| 8 | What could still move | the prerequisites resolved above, and every `conditional_on` position (D20) |
+| 8 | What could still move | the prerequisites resolved above, every `conditional_on` position (D20), and every `conditional` `[CDF#n]` |
 | 9 | Where to attack us hardest | every open `[AS#n]`, and every `accepted-risk` `[SR#n]` |
 | 10 | The required output file, its name, and the inlined schema | the D13 rule, and `render-schema` below |
-| 11 | What this session cannot settle | the ledger, the prerequisites, and the review's own limits |
+| 11 | What this session cannot settle | the ledger, the prerequisites, every `out-of-scope` `[CDF#n]`, and the review's own limits |
 
 **Part 1 — Setup.** States, in this order: the one-line capability set the prompt assumes — *this
 prompt assumes an agent that can read files in a folder and search for a file by name; the pin check
@@ -576,6 +580,11 @@ take and the most expensive one to correct later; putting them in for review get
 requirement answered twice, in two packages, by the same person — the contradiction one `[CD#n]`
 record cannot hold (`${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` §5). Naming them as
 somebody else's is the only reading that is both complete and true.
+
+**And every `[CDF#n]` disposed `in-scope`**, named by id with its `statement` and its `intent`, under
+one line saying plainly that repairing it is inside this package's scope and that the requirements
+above depend on it. A defect the delivery team has undertaken to fix is scope, and a scope section
+that omits it understates what the customer is agreeing to.
 
 **Part 4 — Code baselines and the verification procedure.** One row per repository: the repository,
 the commit it is pinned to, and how that pin was verified. Then the three `baseline-integrity`
@@ -632,6 +641,12 @@ blocking, it is unsettled, and the two get very different treatment on the deliv
 with no prerequisite at all says so explicitly — a reviewer who was told nothing could move writes
 no contingent rows, and their absence then means what it says.
 
+**And every `[CDF#n]` disposed `conditional`**, named by id with its `statement` and its `blocked_on`.
+An unsettled scope condition on a repair is exactly what this part is for: say what would have to be
+settled before the delivery team can say whether the repair is in scope, and — as with an unreviewed
+prerequisite — tell the customer's reviewer to mark the affected approvals contingent rather than
+listing them as blockers.
+
 **Part 9 — where to attack us hardest.** Every open `[AS#n]`, and every `[SR#n]` this run disposed
 `accepted-risk`, each in the reviewer agent's own words rather than re-summarised — that agent
 writes its findings knowing they may end up here. Nothing disposed `fixed` appears (it is no longer
@@ -683,6 +698,13 @@ below.
 5. Render the result under a heading of the prompt's own, introduced in one line as the rules the
    returned review must satisfy.
 
+**Part 11 — what this session cannot settle.** Beyond the three sources the parts table already
+names for it — the ledger, the prerequisites, and the review's own limits — every `[CDF#n]`
+disposed `out-of-scope`, named by id with its `statement`, under one line saying the defect is
+recorded and this engagement will not repair it. A known defect the package will not fix is a limit
+on what the package can promise, and a customer who meets it here can argue about it while the
+scope is still open — which is cheaper for both sides than meeting it after delivery.
+
 ### The plugin-free scan
 
 The last thing this phase does, over the **finished** prompt text — not over the templates, and not
@@ -717,10 +739,13 @@ citation-resolution check (Phase 8 rule 8, `bundle-packaging.md` §6) carries a 
 the identical shape for this same file, and a third of a different shape for `[SR#n]` (§6.3) — and
 it exists because the alternatives are a deadlock or an edit to the customer's own document.
 
-Identifiers are **not** in the scan's classes and are meant to travel: `[BR#n]`, `[CG#n]`, `[DG#n]`,
-`[VD#n]`, `[AS#n]` and `[SR#n]` are how the returned review cites the package's own claims without
-minting identifiers of its own, and a prompt that hid them would get back a review nothing could be
-matched to.
+Identifiers are **not** in the scan's classes and are meant to travel: the classes
+`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.1's table enumerates are how the returned
+review cites the package's own claims without minting identifiers of its own, and a prompt that hid
+them would get back a review nothing could be matched to. **Cited rather than re-listed, and that is
+the fix rather than the style**: this sentence carried its own copy of the list, six classes against
+a table that already held eight before this branch added its own ninth, and there is no reason a
+second copy would fare better.
 
 ---
 
@@ -779,14 +804,15 @@ Write `<BRD-dir>/bundle-<YYYYMMDD>/`. The bundle is a **rendered copy**, produce
 the working documents keep their wikilinks and are never rewritten in place
 (`bundle-packaging.md` §2).
 
-**What goes in is `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1's allow-list, applied
-verbatim** — the rendered prompt; the customer's own source document and the defect log (**the
-parent's on a slice**, one hop, since a slice holds neither —
+**What goes in is `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1's allow-list,
+applied verbatim** — the rendered prompt; the customer's own source document and the defect log
+(**the parent's on a slice**, one hop, since a slice holds neither —
 `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4); `brd/brd-inventory.md`;
-`coverage-ledger.md`; `grounding/code-grounding.md`, `grounding/design-grounding.md` and
-`grounding/baselines.md`; `decisions.md`; `interview/customer-questions.md`; every prerequisite
-package resolved above, copied in and marked **not for re-review**; every image those documents
-reference; and a manifest. Plain markdown and images, and nothing else.
+`coverage-ledger.md`; `code-defect-log.md`, when the folder holds one;
+`grounding/code-grounding.md`, `grounding/design-grounding.md` and `grounding/baselines.md`;
+`decisions.md`; `interview/customer-questions.md`; every prerequisite package resolved above,
+copied in and marked **not for re-review**; every image those documents reference; and a
+manifest. Plain markdown and images, and nothing else.
 
 **What does not go in:** the delivery note; **`self-review-<YYYYMMDD>.md`**; every other working
 record in this BRD folder (`slices.md`, `brd-link.md`, the seeds, the round records, an earlier
@@ -879,8 +905,8 @@ self-review is free of them while being the most internal document this command 
    A corpus file holding record-shaped content that parses to zero ids of its class (§6.1) stops
    with the message below — and **only** such a file. One holding no record-shaped content at all is
    a legitimately empty corpus and passes: that is the ordinary state of a `design-grounding.md`
-   written as a short note because design grounding was skipped, and of a defect log whose walk
-   confirmed nothing.
+   written as a short note because design grounding was skipped, and of a requirement defect log whose
+   walk confirmed nothing.
    `BRD_PACKAGE_CORPUS_UNREADABLE: <corpus file> holds record-shaped content but parsed to zero <class> ids — that is a parse failure, not an empty corpus, and reporting it as an absence would report every reference in the bundle as dead (workflows-core:grounding-format §2.1).`
 
    **A hit inside `brd/source/<basename>` reports rather than stops** — the same treatment the
@@ -1025,8 +1051,9 @@ degradation, named again here because a self-review that ran on a weaker model i
 `[SR#n]` with its disposition**, grouped by disposition, with the `accepted-risk` ones listed in
 full because those are the ones the customer will read; whether a second reviewer pass ran after a
 `fixed` correction and what it added; the counts the prompt carries — `[C]` questions, open
-`[AS#n]`, `escalated-to-customer` findings; **every prerequisite named under *what could still
-move***, with whether it resolved, whether its decisions are customer-reviewed, and whether a
+`[AS#n]`, `escalated-to-customer` findings, and the `[CDF#n]` counts parts 6, 8 and 11 each carry,
+`in-scope`, `conditional` and `out-of-scope` respectively; **every prerequisite named under *what
+could still move***, with whether it resolved, whether its decisions are customer-reviewed, and whether a
 package of its own was copied in; the four artifacts written, by path; **the citation check's
 outcome** — how many identifier references resolved, across how many source packages, how many
 carried an owning BRD key, and every hit inside the customer's own source document that the operator

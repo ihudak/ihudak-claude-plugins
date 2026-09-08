@@ -842,9 +842,17 @@ self-review is free of them while being the most internal document this command 
 
    A reference that resolves to nothing — an unresolved id or filename (§6.2 relations 1 and 3), a
    bundle document whose filename carries no `<BRD-KEY>` and therefore has no partition at all, or a
-   prerequisite key this run carried that no partition in the bundle answers to, which is what a
-   collapsed set of filenames looks like from the key set (§6.1) — stops with:
+   prerequisite key **whose package this run copied in** that no partition in the bundle answers to,
+   which is what a collapsed set of filenames looks like from the key set (§6.1) — stops with:
    `BRD_PACKAGE_DEAD_CITATION: <id-or-filename> in <bundle document> resolves to nothing — <what it was resolved against>. A reference the reviewer cannot follow is not fixed by deleting it: some sentence in the package assumed that id or that file, and the sentence is what has to change.`
+
+   **A prerequisite Phase 2 carried with no package to copy in is not a hit**, and the discriminator
+   is Phase 2's own carry — *whether a package of its own was found*. Its *BRD not found* and *no
+   package on file; nothing to copy in* branches both leave a key that correctly answers to no
+   partition, and both are ordinary; the guard is about a package that **is** in the bundle under
+   flattened names. A reference naming such a prerequisite's own record is not a hit either — §6.2's
+   relation 1 discharges a structured field another authority formats as a qualified cross-package
+   reference, exactly because no partition could ever hold it.
 
    A class-4 `[DG#n]` whose `cites` resolves but names a different requirement than the citing
    finding's own claim (§6.2 relation 2) stops with:

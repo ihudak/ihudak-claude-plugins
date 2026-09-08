@@ -334,12 +334,25 @@ than a guess: no candidate in the set matches.
 **Vacuity guard.** A bundle into which a prerequisite package was copied and which nonetheless
 partitions to **one** is a collapsed bundle, not a clean one: the names were flattened onto this
 run's key, and every id in that package's documents is being resolved against another package's
-corpus. So every prerequisite key Phase 2 carried must answer to a partition, and one that answers
-to none stops the run with `BRD_PACKAGE_DEAD_CITATION`, naming the key and the package — the same
-disposition an unkeyed document gets below, for the same reason. Asserting it costs one comparison,
-and it is the shape this repository's own build gates already use for a coverage relation: a
-relation that comes up empty fails rather than passes, because empty is what a silently broken
-derivation looks like.
+corpus. So every prerequisite key **whose package was copied in** must answer to a partition, and
+one that answers to none stops the run with `BRD_PACKAGE_DEAD_CITATION`, naming the key and the
+package — the same disposition an unkeyed document gets below, for the same reason. Asserting it
+costs one comparison, and it is the shape this repository's own build gates already use for a
+coverage relation: a relation that comes up empty fails rather than passes, because empty is what a
+silently broken derivation looks like.
+
+**The guard reads Phase 2's own carry, and a prerequisite with no package copied in is not a
+defect.** `commands/brd-package.md` Phase 2 records, per prerequisite, *whether a package of its own
+was found* — that field is the discriminator, and nothing new is derived here. Two of its branches
+carry a prerequisite key with nothing to copy in, and neither stops there: step 1's *BRD not found*,
+and step 3's *no package on file; nothing to copy in*. Such a key contributes **no partition**,
+correctly, and the guard passes over it. Testing every carried key instead would stop both of those
+ordinary runs on content that is right — the collapse this guard exists for is a package that *is*
+in the bundle under names that were flattened, which is a different state from a package that was
+never copied in. §6.2's relation 1 disposes of the other half of that same state — a
+structured field naming a record of a prerequisite whose package is absent, `conditional_on` being
+the worked case: qualified rather than resolved, precisely because no partition could ever hold it.
+The two sections describe one state and must not be read against each other.
 
 Each partition parses its own corpus, and **each corpus file is located by filename search within
 the partition, never at the working path named below.** The working names identify *which* document
@@ -347,7 +360,7 @@ each corpus is; inside the bundle that document carries its `<BRD-KEY>-` prefixe
 
 | Class | Corpus file, within the partition |
 |---|---|
-| `[BR#n]` | `brd/brd-inventory.md` |
+| `[BR#n]` | `brd/brd-inventory.md` — on a slice its **own**, defined over `claims:` (`references/brd-format.md` §2.1) |
 | `[DEF#n]` | `brd/brd-defect-log.md` (the parent's on a slice, one hop — `references/brd-format.md` §4) |
 | `[CG#n]`, `[DG#n]` | `grounding/code-grounding.md`, `grounding/design-grounding.md` |
 | `[VD#n]`, `[CD#n]`, `[AS#n]` | `decisions.md` (`references/decision-register-format.md` §1 and §7) |
@@ -360,6 +373,15 @@ column-anchored scan once reported 140 findings as missing that were on the page
 in a `code-grounding.md` padded its `id:` colon for alignment and the next did not. The identical
 scan run here, over a bundle's copied corpus files, would report every reference in the bundle as
 dead.
+
+**The two rows a slice reads differently differ in opposite directions, and both are stated because
+a reader meeting one will assume the other matches.** `[DEF#n]` widens one hop: §1.1 ships the
+**parent's** defect log into a slice's bundle, so the parent's log *is* that partition's corpus for
+the class. `[BR#n]` does not widen: §1.1 ships the slice's own inventory, which is defined over
+`claims:` (`references/brd-format.md` §2.1), and the parent's is not a bundle document at all. So a
+`[BR#n]` that a structured field names one hop up — an orphan row's own `id`, a `superseded-by`, a
+parent defect entry's counterpart — has no corpus here to resolve against, and §6.2's relation 1
+discharges it as a qualified cross-package reference rather than reporting it dead.
 
 **A corpus that yields zero ids is one of two states, and only one of them is a failure.** A corpus
 file holding **record-shaped content** — at least one block the format would recognise as a record,
@@ -391,32 +413,65 @@ every id inside it is unresolvable by construction.
 ### 6.2 The three relations
 
 **Relation 1 — every identifier reference resolves inside its own partition's corpus for that
-class, unless it carries the owning BRD key at the point of use.** The qualified form is
+class, unless it carries the owning BRD key at the point of use.** The qualified **prose** form is
 `<BRD-KEY> [CG#7]` — the key immediately before the bracketed id — and it is **one spelling only**:
 `workflows-core:grounding-format` §2.1's whole argument is that a writer free to choose between two
 renderings produces an artifact whose readers are wrong in a way that looks like data, and a
-qualified citation is exactly such a rendering choice. This also repairs a live ambiguity the check
-merely surfaces: today a reviewer reading a copied prerequisite's grounding file meets `[CG#7]` with
-nothing telling them whose numbering it is.
+qualified citation written into a sentence is exactly such a rendering choice. This also repairs a
+live ambiguity the check merely surfaces: today a reviewer reading a copied prerequisite's grounding
+file meets `[CG#7]` with nothing telling them whose numbering it is.
 
-**A second qualified form already ships, and relation 1 reads it rather than refusing it.**
-`references/decision-register-format.md` §5 fixes `conditional_on: <BRD-KEY>/<decision-id>` — a
-decision of this package's register naming one specific decision in a named prerequisite's own
-register, written by whoever takes the decision — and `decisions.md` is a bundle document (§1.1), so
-that field reaches the bundle verbatim. **Relation 1 treats `<BRD-KEY>/<decision-id>` as a qualified
-cross-package reference wherever the register's own field carries it**, discharging it exactly as
-the prose form does. That matters twice over: the operator could not repair it without violating §5,
-which owns the field's format; and the prerequisite may not be in the bundle at all — Phase 2's *no
-package on file; nothing to copy in* branch — so no partition could ever hold that id, and a rule
-that demanded resolution rather than qualification would make such a package permanently
-unpackageable, the deadlock §6.3's exemptions exist to avoid.
+**A structured field is already qualified, and relation 1 reads it rather than refusing it.** Where
+an identifier reaches the bundle inside a **structured field whose format another authority fixes**,
+and that authority defines the field to name a record of another BRD, relation 1 treats it as a
+**qualified cross-package reference** and discharges it: it is never resolved against this
+partition's corpus, and never a dead citation. That is the rule, and the fields below follow from it
+rather than the other way round. Two things make it the only honest reading. The operator could not
+repair such a value without violating the authority that owns the field; and the BRD it names may
+not be in the bundle at all — `commands/brd-package.md` Phase 2's *BRD not found* and *no package on
+file; nothing to copy in* branches both carry a prerequisite key with nothing copied in — so no
+partition could ever hold that id, and a rule demanding resolution rather than qualification would
+make such a package permanently unpackageable, the deadlock §6.3's exemptions exist to avoid. §6.1's
+vacuity guard reads the same Phase 2 carry and passes over the same prerequisites, for the same
+reason.
 
-**The two forms are different things, and the one-spelling discipline is untouched.**
-`<BRD-KEY>/<decision-id>` is a **structured field** another authority owns and §6 only reads: a
-check reads what the tree writes, not what it would have preferred it wrote. `<BRD-KEY> [CG#7]` is
-the **prose** form §6 itself introduces, for a reference sitting in a sentence rather than in a
-field, and there one spelling stands — that is where a writer would otherwise be free to choose,
-which is the freedom §2.1's argument is about.
+**Which fields those are is derived from the authorities that own them, never maintained as a list
+here** — the discipline relation 3 already follows for §1.1's table, and for the identical reason: a
+field an authority declares and a copy here misses would be invisible to exactly the check that
+exists to catch it. **A new such field is that authority's to declare**, and reaches relation 1 the
+moment it does. Those that exist today:
+
+| Field | Authority | What that authority defines it to name |
+|---|---|---|
+| `conditional_on: <BRD-KEY>/<decision-id>` | `references/decision-register-format.md` §5 | one specific decision in a named prerequisite's own register |
+| `prerequisite` | `workflows-core:grounding-format` §2, §5 | the prerequisite BRD's decision a `will-change` finding's horizon turns on |
+| `resolved-by: [CG#n]` | `references/brd-format.md` §4 | the grounding finding that settled a defect; grounding is slice-only, so it is whichever slice settled it |
+| the `[BR#n]` a defect entry is raised against, and a `conflict` / `duplicate` entry's counterpart `[BR#n]` | `references/brd-format.md` §3 | a requirement in the log-owning BRD's inventory — the parent's on a slice |
+| `superseded-by: [BR#n]`, and an orphan row's own `id: [BR#n]` | `references/coverage-ledger-format.md` §2, §3 | a requirement of the parent's, one this slice "need not claim or hold a row for" |
+
+**The last three are routine rather than exotic**, which is why refusing them would stop the
+ordinary package rather than a rare one. §1.1 ships the **parent's** defect log whole into a slice's
+bundle, and a parent that split into several slices carries defects — and requirements superseding
+one another — across all of them, while the slice's own inventory is defined over `claims:`
+(`references/brd-format.md` §2.1) and its `covered-by` rows are exactly its orphan rows
+(`references/coverage-ledger-format.md` §3). Every one of those references is correct content whose
+target sits one hop up, outside this partition's corpus by §1.1's own allow-list.
+
+**`prerequisite` is reported, never silently resolved.** Alone among the fields above it fixes no
+spelling: `workflows-core:grounding-format` §5 requires a `will-change` finding to name the
+prerequisite's decision and does not say how, so a bare `[VD#n]` there is indistinguishable from one
+of this package's own. Resolving it would land on a different record and go **green** — a citation
+resolving to the wrong thing, which is the failure §6 exists for, and worse than a stop because
+nothing surfaces. So an **unqualified** `prerequisite` value is reported, exactly as relation 2
+reports a claim naming more than one requirement id, and never resolved into this partition's
+corpus; a silent pick is a guess there too. A value that does carry the owning key is discharged
+like any other field above.
+
+**The two are different things, and the one-spelling discipline is untouched.** A structured field
+is another authority's to format and §6's only to read: a check reads what the tree writes, not what
+it would have preferred it wrote. `<BRD-KEY> [CG#7]` is the **prose** form §6 itself introduces, for
+a reference sitting in a sentence rather than in a field, and there one spelling stands — that is
+where a writer would otherwise be free to choose, which is the freedom §2.1's argument is about.
 
 **Relation 2 — for every `[DG#n]` whose `class` is 4, its `cites` resolves within the same
 partition, and the cited `[CG#n]`'s `claim` names the same requirement id as the citing finding's
@@ -476,6 +531,16 @@ Stated because a green check here is otherwise read as a clean bundle:
   pattern separates a deliberate description from a missing filename.
 - **A citation that resolves to the right id and is wrong in a way relation 2 does not test** — a
   `[CG#n]` about the right requirement but the wrong claim within it.
+- **A corpus every one of whose records is malformed the same way.** §6.1 separates an unreadable
+  corpus from an empty one on **record-shaped content**, so a file in which nothing at all is
+  recognisable as a record reads as empty and passes — reproducing, in the one case that test cannot
+  see, the *report every reference in the bundle as dead* outcome `BRD_PACKAGE_CORPUS_UNREADABLE`
+  was written to prevent. It is acceptable rather than merely tolerated: the run still stops,
+  because every reference into that corpus then fails relation 1 as an ordinary dead citation, so
+  nothing ships wrong. What is lost is the diagnosis — the operator is pointed at the references
+  rather than at the corpus. A test tighter than the parse it adjudicates would be undecidable by an
+  agent whose parser has just failed, which is why the looser one is the right trade and this limit
+  is stated rather than closed.
 - **An identifier class shipping without a row in §6.1's table.** The table is a closed list, so a
   future class is invisible to relation 1 until it has a row. The reverse case — a row whose corpus
   file is **absent** from the bundle — is not a corpus-unreadable: that stop is defined on a file

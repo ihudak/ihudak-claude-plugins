@@ -13,10 +13,11 @@ The plugin-free scan (§1) deliberately exempts identifiers — `[BR#n]`, `[CG#n
 minting identifiers of its own — but nothing then checked that they land. `/brd-package` Phase 8
 now runs a second pass over every document in the finished bundle, testing three relations: every
 identifier reference resolves inside its own source package's corpus for its class, unless it
-carries the owning BRD key at the point of use — in the prose form `<BRD-KEY> [CG#7]`, or in the
-register's own `conditional_on: <BRD-KEY>/<decision-id>`, a field format
-`references/decision-register-format.md` §5 already fixes and the check reads rather than refuses;
-a class-4 `[DG#n]`'s `cites` resolves within the
+carries the owning BRD key at the point of use — in the prose form `<BRD-KEY> [CG#7]`, or inside a
+structured field whose format another authority fixes and which that authority defines to name
+another BRD's record, such as the register's own `conditional_on: <BRD-KEY>/<decision-id>`; those
+fields are derived from the authorities that own them, not listed in §6, and the check reads them
+rather than refusing them; a class-4 `[DG#n]`'s `cites` resolves within the
 same partition and names the same requirement as the citing finding's own `claim` (the correctness
 half of `workflows-core:grounding-format` §6.3's rule, added there in 1.3.2); and a bare
 `<name>.md` token names a document actually present in the bundle.

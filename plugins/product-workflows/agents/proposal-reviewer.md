@@ -105,6 +105,11 @@ Re-derive, against §4 section 6's `[WP#n]` × role grid:
   reconciliation argued in developer-days against §4 section 6's hours row, a schedule argued in
   weeks against an FTE figure — is exactly where an unchecked figure hides; multiply it out rather
   than reading it as consistent because it sits nearby.
+- *(Umbrella runs only — the same folder-kind test as check 9.)* **The umbrella's own totals
+  reconcile to its included slice rows plus its own named adjustments** — never a bare sum of the
+  slice rows. The umbrella carries one row per included slice (hours, range, tier, confidence) plus
+  whatever it names as an adjustment on top of them; a total that merely sums the slice rows has
+  silently dropped an adjustment.
 
 A mismatch in any of the above is a **BLOCKER** unless this check itself names it a
 **RECOMMENDATION** (the no-reason band deviation).
@@ -269,9 +274,10 @@ notes: |
 - NEVER modify `proposal.md`, `proposal-brief.md`, or any file this review reads. This agent reads
   and files findings; the orchestrator, under `workflows-core:finding-triage`, verifies, disposes,
   and fixes.
-- NEVER assign, suggest, or pre-empt a disposition. `fixed | accepted-risk | escalated-to-customer |
-  rejected-with-reason` belongs to the caller; this agent's findings carry a severity, not a
-  disposition.
+- NEVER assign, suggest, or pre-empt a disposition. This agent's findings carry a severity, not a
+  disposition — the caller triages every finding under `workflows-core:finding-triage` (keep or
+  dismiss, each with a reason that disposes of that finding's own claim) before any survivor is
+  fixed.
 - NEVER treat a citation as evidence without opening the record it names and reading its own
   status — a `verdict`, a `status: decided`, or an on-file `[CDF#n]`. A cited id proves a record
   exists, not that it resolves (check 1).

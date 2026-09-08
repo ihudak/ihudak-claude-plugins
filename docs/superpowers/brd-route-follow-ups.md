@@ -282,7 +282,23 @@ register created to fix it contained the same unrecorded claim.
 
 ---
 
-# Open after gate 3 — G3-1, G3-2 and G3-3 closed 2026-09-08; G3-4 stands as constraints
+# Open after gate 3 — G3-1, G3-2 and G3-3 closed 2026-09-08; G3-4 stands as constraints; E-4 raised
+
+## E-4 — the package tells every reviewer to extract an archive, including the ones who pull the repository
+
+**Raised by the operator 2026-09-08 while approving E-2. Recorded rather than folded in:** E-2's relations are mechanical checks over identifiers and filenames; this one needs an input the run does not have, and that is a design decision, not a check.
+
+`bundle-packaging.md` §5 already states the bundle serves **both** delivery routes with one artifact — *"A customer with access to the repository pulls the bundle directly and needs nothing else. Everyone else gets one archive command."* The route is real and documented. **Nothing anywhere records which route a given package is taking**, so every site that mentions delivery assumes the archive.
+
+**Site 1 is the defect; the other two are friction.**
+
+1. **`commands/brd-package.md` Phase 6, Part 1's OS note, rendered unconditionally into the customer's own prompt.** It says *"extract the archive to a real folder before pointing anything at it: a file browser will show you the contents of a `.zip` without extracting it…"*, and Part 1's *what to put on the machine* line says *"the extracted bundle"*. For a customer who pulled the specs repo — **the common case, per the operator: most customers work in the same specs repository and already have every file** — that instruction names a file they were never sent, in the one document whose entire job is to be followable by somebody with no context and no plugin. It is the same failure class the de-Obsidianising pass exists to prevent: an instruction that looks actionable, is not, and gives the reader no way to tell which.
+2. **Phase 8 prints the archive command unconditionally**, with an absolute path, at the end of every run. Harmless to a repo customer, but it is the run's only statement about delivery and it names one route.
+3. **Phase 10's `choices:` array** offers *"Send it — the delivery note is printed above and the archive command is in the report"*, describing the archive as the thing that gets sent.
+
+**What the fix has to settle first, which is why this is not a one-line edit:** the run cannot know the route, and the two honest ways to give it one differ in cost. Either the operator declares it (a Phase 0 question or a flag, which is one more thing to get wrong and one more state to document), or Part 1 is authored to cover both routes in one sentence and stops assuming — cheaper, no new input, and it makes the prompt correct for every reader at the cost of one clause a repo customer skips. The second is the better default on this route's own evidence, since every other Part 1 line is written to be true for every reviewer.
+
+**Not a regression and not urgent:** the archive route works, and a reviewer who was in fact sent a zip is told the right thing. What is wrong is that the common case is documented as the exception.
 
 ## G3-1 — `dev-workflows/docs/reference/environment.md:11` lost `/prd-ground` from an enumeration
 

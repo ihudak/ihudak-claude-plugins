@@ -9,7 +9,8 @@ the rules a reviewer checks. Design authority:
 `docs/superpowers/specs/2026-09-08-proposal-commands-design.md`.
 
 **Written by `commands/prd-proposal.md` and `commands/brd-proposal.md`; reviewed against by
-`agents/proposal-reviewer.md`.** Nothing else reads a proposal.
+`agents/proposal-reviewer.md`.** The one command that reads a proposal is `commands/brd-proposal.md`,
+which rolls each slice's into the umbrella; nothing else in the family opens one.
 
 ## 1. What this format governs, and the two quantities it must never conflate
 
@@ -24,9 +25,13 @@ either artifact, in either command, or in this file may let a reader take one fo
 hours, at any tier, under any flag. Rates are contractual and belong in a document this pipeline does
 not produce, and a git-committed rate card is a disclosure waiting to happen.
 
-**A proposal gates nothing.** No command requires one, reads one, or behaves differently because one
-exists, and no grade in this file withholds permission to begin work. A proposal is a document a
-vendor sends a customer; it is not a phase and never a prerequisite.
+**A proposal gates nothing on the build ladder.** `/create-ard`, `/specify`, `/epics`, `/design`,
+`/implement` and `/ready` each resolve the same folder and neither know nor care whether it holds a
+proposal: none requires one, reads one, or behaves differently because one exists, and no grade in this
+file withholds permission to begin work. The one command that does read a proposal is `/brd-proposal`,
+which gates on a slice's in order to roll it into the umbrella — a second proposal rather than a phase
+of the build. A proposal is a document a vendor sends a customer; it is not a phase and never a
+prerequisite for building anything.
 
 ## 2. The two artifacts, where they live, and how a revision is archived
 
@@ -83,13 +88,15 @@ tier, and a section with nothing to say says so rather than being omitted.
 | 12 | Assumptions | |
 | 13 | Dependencies | including everything §8's open-items sweep produced |
 | 14 | Risks | |
-| 15 | What the range does **not** cover | §9 — a different list from section 18 |
-| 16 | Change control | shaped by `engagement_model` |
-| 17 | Acceptance | per package, which is why a package must be independently acceptable |
-| 18 | Exclusions from scope | |
-| 19 | Traceability | requirement identifiers → `[WP#n]`, in the form §11 fixes |
-| 20 | Reconciliation to a prior estimate | **conditional** — renders only under `--baseline`; absent is not a gap and is never apologised for |
-| 21 | Changelog | **conditional** — renders only on a revision; §12 |
+| 15 | What the range does **not** cover | §9 — a different list from section 20 |
+| 16 | Engagement governance | shaped by `engagement_model` — cadence, reporting, who accepts on each side, and what each model makes of all three |
+| 17 | Change control | shaped by `engagement_model` |
+| 18 | Scope levers and priced options | shaped by `engagement_model` — the `[WP#n]`s that may be dropped, deferred or taken up, and what each does to the range. **This is the priced-options table §7's defect-package prohibition names**, and a defect-remediation package never renders in it |
+| 19 | Acceptance | per package, which is why a package must be independently acceptable |
+| 20 | Exclusions from scope | |
+| 21 | Traceability | requirement identifiers → `[WP#n]`, in the form §11 fixes |
+| 22 | Reconciliation to a prior estimate | **conditional** — renders only under `--baseline`; absent is not a gap and is never apologised for |
+| 23 | Changelog | **conditional** — renders only on a revision; §12 |
 
 ## 5. Readiness tiers, and the ceiling each puts on confidence
 
@@ -164,7 +171,7 @@ and high figures describe a credible range rather than best and worst cases.**
 ## 7. Work packages
 
 Requirements cluster by **delivery seam** — what can be built, tested and accepted independently. That
-property is load-bearing: sections 9 and 17 of §4 both rest on it, and a package that cannot be
+property is load-bearing: sections 9 and 19 of §4 both rest on it, and a package that cannot be
 accepted on its own makes both of them false.
 
 **Two packages are always present:** a discovery-and-design package first, and a test/UAT/release
@@ -256,7 +263,7 @@ Section 15 of §4 is a **short block stating what the low-to-high band does not 
 a settled decision, a discovery that materially more of the system is live than the evidence records,
 customer-side delay on a named dependency, a decision resolved in the direction that widens scope.
 
-**This is a different list from section 18, exclusions from scope**, and conflating them is how a
+**This is a different list from section 20, exclusions from scope**, and conflating them is how a
 reader concludes the high figure is a ceiling. It is not: it is the top of a band computed under stated
 conditions, and this block is the conditions. They are two sections rather than one for that reason.
 
@@ -273,7 +280,7 @@ rather than written fresh:
 |---|---|---|
 | 1 | The driver argument | §8's baseline and `[ED#n]` table |
 | 2 | Corrections this revision owes the customer | §12's correction rows |
-| 3 | Reconciliation to their prior estimate | §4 section 20, where `--baseline` was given |
+| 3 | Reconciliation to their prior estimate | §4 section 22, where `--baseline` was given |
 | 4 | Each deliberately-unpriced item, with the gate that will price it | §8's re-estimate gates |
 | 5 | What is needed before week 1 | §8's open-items sweep |
 | 6 | Any requirement where the vendor's architecture and the customer's own text still contradict each other | the register and the grounding findings |

@@ -4,7 +4,7 @@ Authors a customer-facing effort proposal for one PRD folder: work packages, hou
 
 ## Who runs it
 
-`/prd-proposal` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution phase [proposal](../roles-and-phases.md#proposal). Being in that phase means a requirement set is being **priced** rather than advanced. It is optional at every readiness tier, on both routes into a PRD folder, and nothing downstream waits on it.
+`/prd-proposal` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution phase [proposal](../roles-and-phases.md#proposal). Being in that phase means a requirement set is being **priced** rather than advanced. It is optional at every readiness tier, on both routes into a PRD folder, and nothing on the build ladder waits on it.
 
 ## Synopsis
 
@@ -53,7 +53,7 @@ The run opens no code repository at any point. Every commit a grounding finding 
 
 ## What it produces
 
-- **`proposal.md`**, always, written into the resolved folder — so its traceability section is relative links that resolve rather than names a reader has to go and find. It carries the twenty-one-section set fixed by [`proposal-format.md`](../../references/proposal-format.md) §4, opening with a header block that puts the readiness tier beside the date: a reader is never handed a number without being told what grade of evidence stands behind it.
+- **`proposal.md`**, always, written into the resolved folder — so its traceability section is relative links that resolve rather than names a reader has to go and find. It carries the twenty-three-section set fixed by [`proposal-format.md`](../../references/proposal-format.md) §4, opening with a header block that puts the readiness tier beside the date: a reader is never handed a number without being told what grade of evidence stands behind it.
 - **`proposal-brief.md`**, at tier 2 and above unless `--no-brief` was given — a short pre-read whose spine is the driver argument, derived from the same resolved data set as the proposal rather than re-authored from it. It does not render below tier 2 irrespective of the flag, because below tier 2 that spine does not exist. The final report says which of the two reasons applied.
 - **The archived prior revision**, on a re-run — the previous `proposal.md` moved to `revisions/<KEY>_proposal_<YYYYMMDD>.md`, and the previous brief beside it where this run rendered a new one. The new canonical records `revision_of:` naming the archived snapshot, and its changelog section classifies every moved figure as a **correction** or a **re-estimate**.
 
@@ -69,7 +69,7 @@ Every figure in both artifacts is **hours of human delivery time**. Neither carr
 
 ## What it does not do
 
-- **It gates nothing downstream, and nothing downstream waits on it.** No command reads `proposal.md`, requires one to exist, or behaves differently because one does. No readiness tier withholds permission to begin work.
+- **It gates nothing on the build ladder, and nothing there waits on it.** No command of that ladder reads `proposal.md`, requires one to exist, or behaves differently because one does — [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/epics`](epics.md) and the `dev-workflows` commands below them each resolve the same folder and neither know nor care whether it holds a proposal. No readiness tier withholds permission to begin work. The one command that does read a proposal is the sibling umbrella that rolls a slice's into a programme-level one, which is a second proposal rather than a phase of the build.
 - **It prices nothing in money.** No rate card, no currency, no monetary total — those are contractual and belong in a document this pipeline does not produce.
 - **It requires no ARD and no specification.** Grading replaces that gate, which is the whole answer to the question of when a requirement set becomes estimable.
 - **It does no documentation grounding**, and takes no `--no-docs` flag. Shipped product documentation bears on how a feature is described and not at all on what it costs to build, so there is no flag to turn off and no `docs grounding:` line in the report.

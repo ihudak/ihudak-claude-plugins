@@ -124,7 +124,7 @@ Every failure is reported and the phase is described as **not handed off**. The 
 
 | Input | Meaning |
 |---|---|
-| `prefix` | one of `idea`, `prd`, `ard`, `spec`, `design`, `ready`, `brd` (shared by every `/brd-*` command and, on the BRD route, `/prd-ground`, the way `prd` is shared by `/create-prd`, `/update-prd` and, on the idea route, `/prd-ground`), `frames` |
+| `prefix` | one of `idea`, `prd`, `ard`, `spec`, `design`, `ready`, `brd` (shared by every `/brd-*` command and, on the BRD route, `/prd-ground`, the way `prd` is shared by `/create-prd`, `/update-prd`, `/prd-proposal` and, on the idea route, `/prd-ground`), `frames` |
 | `feature_folder` | the resolved directory the deliverable was written into |
 | `deliverable_paths` | the literal repo-relative paths this phase wrote — authored or copied in — one file each, never a directory (§2.3) |
 | `title` | the commit subject and pull-request title |

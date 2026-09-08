@@ -23,11 +23,15 @@ Usage: `/prd-proposal <ADDRESS> [--no-brief] [--profile] [--baseline <path>] [--
 `$SPECS_PATH` is settled — a resolution taken before the variable is known returns `absent` for a
 folder that exists, which is the ordering `/create-prd` and `/create-ard` state for the same reason.
 
-**This command gates nothing downstream and nothing downstream waits on it.** It gates its own input
-and nothing beyond it. No other command reads `proposal.md`, requires one to exist, or changes
-behaviour because one does; running this is optional at every tier, in the same sense `/prd-ground`
-is optional and ungated on the idea route. A proposal is a document a vendor sends a customer — not a
-phase, not a prerequisite, and never a reason implementation cannot start.
+**This command gates nothing on the build ladder and nothing on it waits.** It gates its own input
+and nothing beyond it. **No command of the build ladder reads `proposal.md`** — `/create-ard`,
+`/specify`, `/epics`, `/dev-workflows:design`, `/dev-workflows:implement` and `/dev-workflows:ready`
+each resolve the same folder and neither know nor care whether it holds one — so nothing there is
+waiting on this run and no readiness tier withholds permission to build. Its one reader is the sibling
+umbrella `/product-workflows:brd-proposal`, which is a second proposal rather than a phase of the
+build. Running this is optional at every tier, in the same sense `/prd-ground` is optional and ungated
+on the idea route. A proposal is a document a vendor sends a customer — not a phase, not a
+prerequisite, and never a reason implementation cannot start.
 
 **`/prd-proposal` is not BRD-route-only.** A `PRD-` folder is a `PRD-` folder. An idea-route PRD
 carrying no `brd-link.md`, no `decisions.md` and no `grounding/` estimates fine — it grades at tier 1
@@ -144,11 +148,11 @@ folder holds and caps confidence accordingly, and no tier withholds permission t
 copied, committed or rewritten, and the reconciliation section cites it by the path the operator
 gave. **An unreadable path is a stop naming that path**, never a silently omitted section:
 `PRD_PROPOSAL_BASELINE_UNREADABLE: --baseline named <path>, which cannot be read. Give a readable path or drop the flag — a reconciliation section written against a baseline nobody can open is worse than none.`
-Absent, §4's section 20 does not exist, is not a gap, and the document does not apologise for it.
+Absent, §4's section 22 does not exist, is not a gap, and the document does not apologise for it.
 
 **Note whether this run is a revision**, last: whether `proposal.md` and `proposal-brief.md` already
 exist in the resolved folder. Where either does, Phase 6 treats the prior as the anchor (§8) unless
-`--redo` was given, Phase 7 archives it (§2), and §4's section 21 renders (§12).
+`--redo` was given, Phase 7 archives it (§2), and §4's section 23 renders (§12).
 
 `/prd-proposal` is **cwd-agnostic**: it reads the resolved folder and the profile, and opens no code
 repository at any point. Every commit any grounding finding cites was pinned by `/prd-ground`, and
@@ -216,7 +220,7 @@ calendar:
 
 - **Absent** — grill it into existence (`workflows-core:grilling-technique`), field by field, and
   write it. `engagement_model` **restructures the engagement-governance, change-control and
-  priced-options sections wholesale** (§4 sections 16 and 18), so it is asked rather than assumed:
+  priced-options sections wholesale** (§4 sections 16, 17 and 18), so it is asked rather than assumed:
   `choices: ["time-and-material", "fixed-price"]`.
 - **Present** — **show it back for confirmation, every run, never read silently.** A productivity
   basis captured once and never revisited silently mis-scales every later proposal, which is the
@@ -272,37 +276,25 @@ and §4's section 4 says so outright.
 ## Phase 4 — Derive the work packages
 
 Execute `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §7. Mint `[WP#n]` contiguously from the
-resolved folder's requirement set (§3), and record for each package the seam that makes it
-independently buildable, testable and acceptable — sections 9 and 17 of §4 both rest on that property,
-so a package that cannot be accepted on its own makes both of them false.
+resolved folder's requirement set (§3), and record for each package the delivery seam §7 clusters on —
+what can be built, tested and accepted independently.
 
 1. **The two fixed packages** — a discovery-and-design package first and a test/UAT/release package
    last (§7).
 2. **The middle packages.** Where `EPIC-` folders exist under the resolved folder they seed the
    clustering; where they do not, nothing is missing and the document says nothing about it. Epics are
    never required.
-3. **The three-source defect sweep**, unioned (§7), because the obvious single source is necessary and
-   nowhere near sufficient:
-   - **`code-defect-log.md`** — every `[CDF#n]` not recorded as resolved. **No confirmation:** a
-     standing `[CDF#n]` is a defect somebody already adjudicated
-     (`${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md`).
-   - **A verified grounding finding whose own text records a defect** rather than a capability.
-     **Operator confirmation required.**
-   - **An `[SR#n]` self-review finding** in the packaged bundle, where one exists, naming a code defect
-     and not recorded as resolved. **Operator confirmation required.**
-
-   Confirm sources 2 and 3 one candidate at a time, quoting the finding's own text and its
-   `file:line`, because neither is a defect *register*: a finding may already be repaired, or may not
-   be the vendor's to repair.
+3. **The defect sweep.** §7 fixes the three sources, what each one admits, and which of them need
+   operator confirmation; sweep and union all three, reading that policy there rather than from here.
+   **This phase's own job is the confirming**: take each candidate from a source §7 marks as needing
+   it one at a time, quoting the finding's own text and its `file:line` so the operator rules on the
+   record rather than on a summary of it.
    `choices: ["Confirm — an unrepaired code defect this engagement would repair", "Reject — already repaired, or not the vendor's to repair"]`
-   A confirmed defect from any source is identical downstream: same package, same exclusion from the
-   lever table.
+   A confirmed defect is identical downstream whichever source produced it.
 4. **The defect-remediation package.** Where the sweep confirmed anything, its repair is its own
-   `[WP#n]`, created automatically. **It is never a scope lever** and renders into neither the
-   scope-lever table nor the priced-options table (§7): asking a customer to authorise deferring a
-   defect the vendor's own work found returns that deferral carrying the customer's authority on a
-   question the vendor's policy has already answered. Where it cannot fit the delivery window, that is
-   disclosed in §4's section 11 as a schedule fact, not tendered as an option.
+   `[WP#n]`, created automatically, and it **never renders in §4's section 18** — the scope-lever and
+   priced-options table (§7). Where it cannot fit the delivery window, that is disclosed in §4's
+   section 11 as a schedule fact, not tendered as an option.
 
 Report the `[WP#n]` set, each with its seam, and name every defect candidate the operator rejected —
 a rejection is a decision, and a reader of the final report is entitled to see which ones were taken.
@@ -311,10 +303,8 @@ a rejection is a decision, and a reader of the final report is entitled to see w
 
 ## Phase 5 — Derive the cost drivers
 
-**Compute and print the naive baseline first, at every tier** (§8): what the requirement would cost if
-read at face value, with no correctness, completeness or enforcement obligation. It is the anchor that
-makes the real number legible, and without it the driver table has no subject. It renders as §4's
-section 3, before the drivers.
+**Compute and print the naive baseline first, at every tier** — §8 fixes what it is and why it comes
+before the drivers. It renders as §4's section 3.
 
 Then mint `[ED#n]` contiguously. **Every driver cites evidence from §8's closed set of three classes**,
 each resolving to something on disk an independent reader can open — a verified grounding finding, a
@@ -327,9 +317,7 @@ may carry; do not re-express it.
   the row where it does not resolve. Report every dropped candidate by its intended subject, so a
   reader can tell a driver that was never written from one that was never thought of.
 - **The narrowing is per-driver, not global** (§8): a driver making a claim about **the code** cites
-  class 1, because a decision cannot evidence a statement about a repository. Restricting the whole
-  set to grounding was the first draft of that rule and it was wrong — the driver class that is *scope
-  the customer added after the baseline* is evidenced by the register and by nothing else.
+  class 1. §8 fixes which claims narrow to which class, and why the set is not narrowed globally.
 - **At tier 1 the section states outright that the drivers are not known** (§4 section 4, §5). It is
   not an empty table and it is not an apology: it is the one honest thing a tier-1 document can say
   about why its number is what it is.
@@ -365,13 +353,10 @@ review package and the proposal.
    gate is mandatory at Low; **the no-hours commitment is not**, and it belongs to a particular gate
    rather than to the grade (§8). Offer it per gate, never by default:
    `choices: ["Declare the gate only — a re-estimate promise", "Add the no-implementation-hours-before-the-gate commitment"]`
-6. **The stability rule, which is what makes a re-run safe** (§8). A re-run always re-derives its
-   inputs, but the prior revision is an **anchor**: a package's expected hours carry forward unchanged
-   unless something feeding them changed, and where a figure moves, §12's changelog names the cause. A
-   figure that moved with no cited cause is a defect. **`--redo` discards the anchor deliberately**,
-   for when the prior estimate is known to be wrong — say so in the report when it was given, because
-   a run that discarded the anchor and a run that had none are indistinguishable in the output
-   otherwise.
+6. **Apply §8's stability rule** on a re-run, against the prior revision Phase 0 noted; §12's
+   changelog then names the cause of every figure that moved. **`--redo` discards the anchor** — say
+   so in the report when it was given, because a run that discarded the anchor and a run that never
+   had one are otherwise indistinguishable in the output.
 
 **No money for human hours, at any tier, under any flag** (§1). Every figure this phase produces is
 hours.
@@ -380,16 +365,15 @@ hours.
 
 ## Phase 7 — Author `proposal.md`
 
-Write `<folder>/proposal.md` — `<folder>` being the resolved folder itself, so §4's section 19
+Write `<folder>/proposal.md` — `<folder>` being the resolved folder itself, so §4's section 21
 traceability is relative links that resolve rather than names a reader must go and find (§2).
 
-**Archive the predecessor before overwriting it** (§2), following the canonical-plus-archived
-convention `commands/update-prd.md` Phase 5 establishes: the prior `proposal.md` moves to
-`<folder>/revisions/<KEY>_proposal_<YYYYMMDD>.md`, a second revision on the same day taking the suffix
-`-2`, `-3`, and so on. The new canonical records `revision_of:` naming the archived snapshot.
+**Archive the predecessor before overwriting it**, exactly as §2 fixes it: the path under
+`revisions/`, the same-day suffix, and the `revision_of:` the new canonical records are all §2's, and
+Phase 10 hands off the paths it produced.
 
-**Render §4's twenty-one-row section set, in its order.** Two sections are conditional — section 20
-renders only under `--baseline`, section 21 only on a revision (§12) — and **every other section
+**Render §4's twenty-three-row section set, in its order.** Two sections are conditional — section 22
+renders only under `--baseline`, section 23 only on a revision (§12) — and **every other section
 renders at every tier, a section with nothing to say saying so rather than being omitted**. The header
 block carries the readiness tier beside the date, so a reader is never handed a number without being
 told what grade of evidence stands behind it (§2), and it carries the `engagement_model` from the
@@ -398,11 +382,9 @@ profile.
 Three things the section list makes easy to get wrong, each stated because §4 names them and this run
 executes them:
 
-- **Section 15 is not section 18.** *What the range does not cover* is the set of conditions the band
-  was computed under (§9); *exclusions from scope* is what is not being built. Conflating them is how
-  a reader concludes the high figure is a ceiling. They are two sections for that reason.
+- **Section 15 is not section 20** — §9 states what separates them and what conflating them costs.
 - **Section 11's indicative schedule carries peak concurrency, never a sum of FTEs** (§4).
-- **Section 19 cites a requirement in the form the source artifact carries it** (§11), because a
+- **Section 21 cites a requirement in the form the source artifact carries it** (§11), because a
   proposal is read by the **customer**, who wrote those identifiers in their own document in their own
   form. The `[WP#n]` and `[ED#n]` namespaces this run mints are the plugin's own and stay bracketed. A
   conversion in either direction is the defect the reviewer looks for.
@@ -413,11 +395,10 @@ Write the whole file as prose that is never hard-wrapped (`workflows-core:prose-
 
 ## Phase 8 — Author `proposal-brief.md`
 
-**Skipped below tier 2, irrespective of `--no-brief`** (§5): the brief's spine is the driver argument,
-and below tier 2 that spine does not exist. A two-page pre-read explaining why a number is large,
-written when the reasons are unknown, is the one artifact this format must not produce. Skipped as well
-at tier ≥ 2 where `--no-brief` was given. **Say which of the two reasons applied**, in the report — a
-brief withheld by the tier and a brief withheld by the flag are different facts about the run.
+**Skipped below tier 2, irrespective of `--no-brief`** — §5 fixes that floor and states why it holds
+against the flag. Skipped as well at tier ≥ 2 where `--no-brief` was given. **Say which of the two
+reasons applied**, in the report — a brief withheld by the tier and a brief withheld by the flag are
+different facts about the run.
 
 Otherwise write `<folder>/proposal-brief.md` from **the same resolved data set as the proposal, never
 re-authored from it**, rendering §10's six-row section set. **A spine-only brief is a defect, not a
@@ -482,11 +463,11 @@ Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and pre
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-**The array above is §4.3's `gated` one, selected by §4.0's test and named here rather than left to be
-inferred.** `/product-workflows:brd-proposal` runs `require-on-main` against the `proposal.md` this run
-writes, so the artifact carries a §3.4 row and declining the handoff costs that command its start.
-`proposal-brief.md` and the archived revisions travel in the same `deliverable_paths` set and take that
-path's class with them (§4.0).
+**The array above is §4.3's `gated` one, and the class is named here rather than left to be inferred.**
+The proposal's one reader is the sibling umbrella `/product-workflows:brd-proposal`, which gates on the
+`proposal.md` this run writes, so declining the handoff costs that command its start — which is what
+the `gated` array's parenthetical tells the operator. `proposal-brief.md` and the archived revisions
+travel in the same `deliverable_paths` set and take that path's class with them (§4.0).
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: prd`
 (§2.9's table — the proposal opens on the shared `prd` prefix rather than a ninth of its own; the eight
@@ -635,7 +616,9 @@ labelled as **model spend in USD, a different quantity from the hours above**; t
 `Specs repo:` outcome line from `commit-artifacts` (`workflows-core:specs-repo-git` §6), with any
 guard notice repeated in full; and the next-step recommendation.
 
-**Say plainly, at the end, that this document gates nothing.** No command reads a proposal, no tier
-withholds permission to begin work, and nothing downstream is waiting on this run — the residual risk
+**Say plainly, at the end, that this document gates nothing on the build ladder.** No command of that
+ladder reads a proposal, no tier withholds permission to begin work, and nothing there is waiting on
+this run; the one command that does read one is the sibling umbrella, which is a second proposal rather
+than a phase of the build. The residual risk
 `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §13 states is carried by the person who sends
 the document, and that person is the reader of this report.

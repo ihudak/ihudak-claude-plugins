@@ -309,3 +309,22 @@ Fix is one line: name `/prd-ground` alongside the glob. Nothing about a run misb
 **Why it matters beyond the annoyance:** the merged-result gate run is the last check before a branch lands, and it runs from the main checkout while the worktree is still on disk — so the two gates fail for a reason that has nothing to do with the merge, at the precise moment someone is deciding whether the merge was sound. The correct reading is "remove the worktree, re-run", and nothing says so. On gate 3 the sequence was: merge → 10 errors → investigate → confirm the merge was identical to the verified branch tip → remove worktree → all seven green.
 
 **Fix:** have both scripts skip gitignored paths, or at minimum skip a `.worktrees/`/`worktrees/` directory at the repo root. `check-docs.sh`'s list-driven approach is the shape that already works.
+
+
+## G3-3 — check 11 cannot enforce `<merge-clause>` on any offer of `/create-ard` or `/specify`, anywhere in the tree
+
+**Pre-existing, parked during gate 3 on reasoning the final review then corrected. It is ready to take.**
+
+`check-docs.sh` check 11 gates the `<merge-clause>` placeholder by intersecting the offering run's declared `deliverable_paths` with the offered command's `require-on-main` target, read from `workflows-core:phase-handoff` §3.4's row-F table. Rows 10 and 11 name that target as the prose **"the PRD"** where every other row names a backticked filename, so the intersection has nothing to match and the relation never fires for either command. Nothing shipped is wrong — every such offer gate 3 added carries the placeholder — but they are held by review alone.
+
+**The parking reasoning was wrong and the correction is the useful part.** It was parked partly on the estimate that naming `` `prd.md` `` in those two rows "would newly gate every offer of `/create-ard` and `/specify` across the tree (`/create-prd`, `/update-prd`, `/brd-reconcile` and others)", making it a scope explosion mid-plan. The final whole-branch review measured it instead: **check 11 only ever examines commands matching the family globs**, so `/create-prd` and `/update-prd` are unreachable by it; only `/brd-reconcile` is in-family; and the writer set extracted for all six in-family commands shows **none declares `prd.md`**. So the widening fires on **nothing** inside the gate's scope — which is precisely the criterion this repository uses to accept a widening ("fires-on-nothing means take it", the same measurement on which check 13's widening was taken and check 11's earlier one twice refused).
+
+**Fix:** name `` `prd.md` `` in `phase-handoff.md` §3.4 rows 10 and 11, run `./scripts/check-docs.sh --root .`, and confirm the fire count is zero before committing. Re-measure rather than trusting the paragraph above — that is the whole lesson of this entry.
+
+## G3-4 — recorded as constraints and open questions, not defects
+
+Neither is a bug; both are written down because S18 is a promise about *known* state and these are known.
+
+- **The `product-workflows` manifest `description` is 988 of its 1024 characters**, tripping `validate-catalog.py`'s 900-char warning. Gate 3's addition was a proper in-place clause insertion with one stale word removed — the correct form, not the trailing-sentence accretion that once took this blurb to 2788 chars — but it was net-additive with nothing trimmed, leaving 36 characters of headroom. **The next capability added to this blurb must trim rather than append**, and there is no longer room to decide that later.
+- **`workflows-core:grounding-format` §1** has an em-dash clause butting against a pre-existing parenthetical. Cosmetic, reads clunkily, no reader is misled.
+- **Open question, reachability unproven:** `/prd-ground`'s legacy-fallback branch routes a folder whose `prd.md` is *present but does not assert `kind: prd`* to the interrupted-intake stop, which names `/brd-intake <KEY> @<brd-file>` — a BRD source document that operator does not have. This is what the design specified, and no `prd.md` without `kind:` has been shown to exist (`prd-format`'s history records `key` having been unset for a period, not `kind`). Recorded as a question so it is not rediscovered as a defect.

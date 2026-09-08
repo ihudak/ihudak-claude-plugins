@@ -288,12 +288,13 @@ record that is still true when somebody re-opens the argument a year later.
 ## 6. Citation resolution
 
 **`citation-resolution`** is a check over the assembled bundle that the plugin-free scan (§1) does
-not perform. That scan deliberately exempts identifiers — `[BR#n]`, `[CG#n]`, `[DG#n]`, `[VD#n]`,
-`[AS#n]` and `[SR#n]` are how a returned review cites the package's own claims without minting
-identifiers of its own, and a prompt that hid them would get back a review nothing could be matched
-to. **Nothing then checks that they land.** Three failures were observed in shipped bundles: a
-class-4 design finding whose `[CG#n]` citation resolved, inside the customer's own bundle, to a
-real finding about a different requirement; a reference naming an id above the highest its own
+not perform. That scan deliberately exempts identifiers — the eight classes §6.1's table covers,
+`[BR#n]`, `[DEF#n]`, `[CG#n]`, `[DG#n]`, `[VD#n]`, `[CD#n]`, `[AS#n]` and `[SR#n]`, are how a
+returned review cites the package's own claims without minting identifiers of its own, and a prompt
+that hid them would get back a review nothing could be matched to. **Nothing then checks that they
+land.** Three failures were observed in shipped bundles: a class-4 design finding whose `[CG#n]`
+citation resolved, inside the customer's own bundle, to a real finding about a different
+requirement; a reference naming an id above the highest its own
 corpus contains — one of them the sole `evidence` on a decision record; and a reference, in prose
 rather than a link, to a document §1.1 excludes by rule or has already renamed on the way in. Three
 stops carry it: `BRD_PACKAGE_DEAD_CITATION` for a reference that resolves to nothing (§6.1's
@@ -317,6 +318,29 @@ then silently resolve every id against one corpus and **pass**. Keying on the fi
 failure rather than mitigating it — a flattened, renamed or re-archived bundle partitions
 identically, because the discriminator travels with the document.
 
+**The key in a document's name is its own package's key, never this run's applied uniformly.** A
+prerequisite package copied in (rule 5) arrives already named from the packaging run that built it,
+and those names are kept on the way in — nothing renames them — so rule 1's `<BRD-KEY>` means *the
+key of the package the document belongs to*. Read the other way, rule 1 would prefix every document
+with this run's key, yield **one** partition, and resolve a prerequisite's `[CG#7]` against this
+package's `[CG#7]`: a cross-package citation resolving to the wrong finding, and the check going
+green. That is the flattened-bundle silent pass this partition was chosen to remove, one level down.
+**The partition key is resolved against the key set the run already holds** — this run's key plus
+every prerequisite key Phase 2 carried — never parsed out of a filename (`workflows-core:addressing`
+§1 fixes the grammar; `workflows-core:specs-repo-git` §3.5 is the worked example of resolving
+against a set instead). That is also what makes the unkeyed-document stop below decidable rather
+than a guess: no candidate in the set matches.
+
+**Vacuity guard.** A bundle into which a prerequisite package was copied and which nonetheless
+partitions to **one** is a collapsed bundle, not a clean one: the names were flattened onto this
+run's key, and every id in that package's documents is being resolved against another package's
+corpus. So every prerequisite key Phase 2 carried must answer to a partition, and one that answers
+to none stops the run with `BRD_PACKAGE_DEAD_CITATION`, naming the key and the package — the same
+disposition an unkeyed document gets below, for the same reason. Asserting it costs one comparison,
+and it is the shape this repository's own build gates already use for a coverage relation: a
+relation that comes up empty fails rather than passes, because empty is what a silently broken
+derivation looks like.
+
 Each partition parses its own corpus, and **each corpus file is located by filename search within
 the partition, never at the working path named below.** The working names identify *which* document
 each corpus is; inside the bundle that document carries its `<BRD-KEY>-` prefixed name:
@@ -335,9 +359,27 @@ leading spaces (`workflows-core:grounding-format` §2.1). That section's own pre
 column-anchored scan once reported 140 findings as missing that were on the page, because one block
 in a `code-grounding.md` padded its `id:` colon for alignment and the next did not. The identical
 scan run here, over a bundle's copied corpus files, would report every reference in the bundle as
-dead. A corpus file that is present and non-empty but parses to zero ids is not read as an absence
-either — it stops the run with `BRD_PACKAGE_CORPUS_UNREADABLE`, naming the file and the partition,
-because a scan that cannot read a block has learned nothing about whether the ids it names exist.
+dead.
+
+**A corpus that yields zero ids is one of two states, and only one of them is a failure.** A corpus
+file holding **record-shaped content** — at least one block the format would recognise as a record,
+an `id:`-bearing block in a grounding file, an entry or row in an inventory or defect log, a record
+in `decisions.md` — and yielding zero ids of its class stops the run with
+`BRD_PACKAGE_CORPUS_UNREADABLE`, naming the file and the partition, because a scan that cannot read
+a block has learned nothing about whether the ids it names exist. A corpus file holding **no**
+record-shaped content is an **empty corpus**: a real and ordinary state, and it passes.
+`commands/prd-ground.md`'s *Write findings* phase writes `grounding/design-grounding.md` as every
+`[DG#n]` **or a short note when design grounding was skipped and why**, and a defect walk that
+confirmed nothing leaves `brd/brd-defect-log.md` with a header and no entries — both present, both
+non-empty, both correctly holding no ids, and both routine. Stopping on either would be a check
+firing on correct content.
+
+**The distinction is drawn on record-shaped content because of what the failure actually is.** What
+`workflows-core:grounding-format` §2.1 warns about is a **reader** that cannot see records that are
+there — the padded-colon scan, blind to blocks on the page — so record-shaped content is the
+evidence that there was something to see. Where there is none, the zero and the file agree and
+nothing has gone wrong. A reference *into* an empty corpus then fails relation 1 as an ordinary dead
+citation, which is the correct outcome and needs no stop of its own.
 
 **The partition depends on rule 1 holding.** The boundary is the `<BRD-KEY>` in each document's
 filename, so it survives flattening, renaming and re-archiving — but a bundle document that reached
@@ -357,6 +399,25 @@ qualified citation is exactly such a rendering choice. This also repairs a live 
 merely surfaces: today a reviewer reading a copied prerequisite's grounding file meets `[CG#7]` with
 nothing telling them whose numbering it is.
 
+**A second qualified form already ships, and relation 1 reads it rather than refusing it.**
+`references/decision-register-format.md` §5 fixes `conditional_on: <BRD-KEY>/<decision-id>` — a
+decision of this package's register naming one specific decision in a named prerequisite's own
+register, written by whoever takes the decision — and `decisions.md` is a bundle document (§1.1), so
+that field reaches the bundle verbatim. **Relation 1 treats `<BRD-KEY>/<decision-id>` as a qualified
+cross-package reference wherever the register's own field carries it**, discharging it exactly as
+the prose form does. That matters twice over: the operator could not repair it without violating §5,
+which owns the field's format; and the prerequisite may not be in the bundle at all — Phase 2's *no
+package on file; nothing to copy in* branch — so no partition could ever hold that id, and a rule
+that demanded resolution rather than qualification would make such a package permanently
+unpackageable, the deadlock §6.3's exemptions exist to avoid.
+
+**The two forms are different things, and the one-spelling discipline is untouched.**
+`<BRD-KEY>/<decision-id>` is a **structured field** another authority owns and §6 only reads: a
+check reads what the tree writes, not what it would have preferred it wrote. `<BRD-KEY> [CG#7]` is
+the **prose** form §6 itself introduces, for a reference sitting in a sentence rather than in a
+field, and there one spelling stands — that is where a writer would otherwise be free to choose,
+which is the freedom §2.1's argument is about.
+
 **Relation 2 — for every `[DG#n]` whose `class` is 4, its `cites` resolves within the same
 partition, and the cited `[CG#n]`'s `claim` names the same requirement id as the citing finding's
 `claim`.** The rule itself belongs to `workflows-core:grounding-format` §6.3, which requires the
@@ -374,11 +435,14 @@ the bundle, and only when it is one of two shapes.** Either it carries the `<BRD
 matches the **working** filename of a document §1.1 admits or excludes by name — **derived from
 §1.1's own table each time this relation runs, never copied into a second list here**, because a
 document added to §1.1 without a matching entry here would be invisible to exactly the check that
-exists to catch it. A working filename carrying a `<YYYYMMDD>` placeholder resolves against the
-run's own date, never matched as literal text. The scoping is what keeps the relation off correct
-content: a grounding finding's `evidence` field is a repository `file:line` list, and a repository
-that documents itself in markdown puts a bare `docs/api.md:12` into a finding that is entirely
-correct — an unscoped rule would refuse the whole bundle over it.
+exists to catch it. **A working filename carrying a placeholder is resolved before it is matched,
+never compared as literal text** — `<YYYYMMDD>` against the run's own date, and
+`brd/source/<basename>` against the basename of the customer's own document as copied in — one rule
+covering both, because resolving one and not the other drops whichever it missed out of shape 2, and
+the customer's own document is the one §1.1 admits under a placeholder. The scoping is what keeps
+the relation off correct content: a grounding finding's `evidence` field is a repository
+`file:line` list, and a repository that documents itself in markdown puts a bare `docs/api.md:12`
+into a finding that is entirely correct — an unscoped rule would refuse the whole bundle over it.
 
 Relations 1 and 3 fail the same way — a reference that resolves to nothing — and stop the run with
 `BRD_PACKAGE_DEAD_CITATION`, naming the id or filename, the document it sits in, and the corpus or
@@ -412,6 +476,17 @@ Stated because a green check here is otherwise read as a clean bundle:
   pattern separates a deliberate description from a missing filename.
 - **A citation that resolves to the right id and is wrong in a way relation 2 does not test** — a
   `[CG#n]` about the right requirement but the wrong claim within it.
-- **An identifier class shipping without a row in §6.1's table.** The table is a closed list; the
-  reverse case — a row whose file is not in the bundle — is `BRD_PACKAGE_CORPUS_UNREADABLE`, never
-  a silent skip.
+- **An identifier class shipping without a row in §6.1's table.** The table is a closed list, so a
+  future class is invisible to relation 1 until it has a row. The reverse case — a row whose corpus
+  file is **absent** from the bundle — is not a corpus-unreadable: that stop is defined on a file
+  that is there and holds record-shaped content (§6.1), so asserting it about a file that is not in
+  the bundle would tell the operator something false about their own tree. An absent corpus is an
+  empty one for every purpose §6 has, and a reference into it fails relation 1 as an ordinary dead
+  citation.
+- **The delivery note.** Its whole job is to name a bundle file exactly — *which file is the prompt*
+  and *which file comes back* (§4) — and it is deliberately **not** a bundle document (§4, §1.1), so
+  the check, which runs over every document in the finished bundle, never sees it. A wrong filename
+  there stops the reviewer before they open anything, which is the failure this whole route is built
+  around. Widening the check to reach it is a scope decision rather than a wording one — the note
+  names files, and the bundle's own filename set exists by the time the check runs — so it is named
+  here rather than assumed covered.

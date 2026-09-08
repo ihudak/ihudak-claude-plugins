@@ -13,7 +13,10 @@ The plugin-free scan (§1) deliberately exempts identifiers — `[BR#n]`, `[CG#n
 minting identifiers of its own — but nothing then checked that they land. `/brd-package` Phase 8
 now runs a second pass over every document in the finished bundle, testing three relations: every
 identifier reference resolves inside its own source package's corpus for its class, unless it
-carries the owning BRD key at the point of use; a class-4 `[DG#n]`'s `cites` resolves within the
+carries the owning BRD key at the point of use — in the prose form `<BRD-KEY> [CG#7]`, or in the
+register's own `conditional_on: <BRD-KEY>/<decision-id>`, a field format
+`references/decision-register-format.md` §5 already fixes and the check reads rather than refuses;
+a class-4 `[DG#n]`'s `cites` resolves within the
 same partition and names the same requirement as the citing finding's own `claim` (the correctness
 half of `workflows-core:grounding-format` §6.3's rule, added there in 1.3.2); and a bare
 `<name>.md` token names a document actually present in the bundle.
@@ -28,8 +31,11 @@ immutable by rule, so a hard stop would make that BRD permanently unpackageable.
 
 Three stops: `BRD_PACKAGE_DEAD_CITATION` for a reference that resolves to nothing;
 `BRD_PACKAGE_CITATION_MISMATCH` for one that resolves, but to a finding about the wrong
-requirement; and `BRD_PACKAGE_CORPUS_UNREADABLE` for a corpus file present and non-empty but
-parsed to zero ids, so a parse failure is never reported as an absence.
+requirement; and `BRD_PACKAGE_CORPUS_UNREADABLE` for a corpus file that holds record-shaped
+content and still parses to zero ids of its class, so a parse failure is never reported as an
+absence. A corpus holding no record-shaped content is a legitimately **empty** corpus and passes —
+a `design-grounding.md` written as a short note because design grounding was skipped, and a defect
+log whose walk confirmed nothing, are both ordinary and neither is a parse failure.
 
 **The honest consequence: relation 2 will refuse bundles that ship today.** A parent BRD's
 verified findings, hand-narrowed onto a slice, is common enough that the first run against an

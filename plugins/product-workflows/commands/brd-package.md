@@ -82,11 +82,12 @@ them is.
    copy from which a later package could be rendered correctly.
 
 4. **The plugin-free scan runs over the finished text, not over the templates.** It is the last
-   thing the *Render the customer prompt* and *Render the delivery note* phases each do; in
-   *Assemble the bundle* it is the last thing rule 7 does, immediately followed by rule 8's
-   citation-resolution check (`bundle-packaging.md` §6) as that phase's own last pass. It inspects
-   what will actually be sent, wherever it sits: a scan over the templates would pass on a prompt
-   whose leak arrived through an interpolated document title.
+   thing the *Render the customer prompt* phase does; in *Render the delivery note* nothing follows
+   it but the instruction to print the finished note; and in *Assemble the bundle* it is the last
+   thing rule 7 does, immediately followed by rule 8's citation-resolution check
+   (`bundle-packaging.md` §6) as that phase's own last pass. It inspects what will actually be sent,
+   wherever it sits: a scan over the templates would pass on a prompt whose leak arrived through an
+   interpolated document title.
 
 5. **A scan hit stops the run; it never sanitises.** The command does not strip the offending token
    and continue. A citation that reached the prompt reached it because some part of the package
@@ -790,7 +791,14 @@ self-review is free of them while being the most internal document this command 
    and the bundle will be extracted, renamed, re-zipped and mailed on. So each document's bundle
    filename carries the `<BRD-KEY>` and is unique within the bundle, and every reference from one
    bundle document to another, and every instruction in the prompt that sends the reviewer to a
-   document, names that filename and tells them to search for it.
+   document, names that filename and tells them to search for it. **The `<BRD-KEY>` is the key of
+   the package the document belongs to, not this run's key applied uniformly:** a prerequisite
+   package copied in under rule 5 arrives already named from the packaging run that built it, and
+   those keyed filenames are kept on the way in — nothing renames them. That is what keeps one
+   bundle's two `[CG#7]`s apart, because it is the same key rule 8's check partitions the corpus on
+   (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.1); re-prefixing every document with
+   this run's key would collapse the corpus to one partition and let a cross-package citation
+   resolve to the wrong finding while the check went green.
 2. **De-Obsidianise every copied document — except the customer's own source, which is copied byte
    for byte** (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §2.1). Every `[BR#n]` anchors
    into that file by a heading path or a line range, so a rendered copy breaks the traceability the
@@ -832,17 +840,22 @@ self-review is free of them while being the most internal document this command 
    that scan hunts tokens a reader **cannot resolve**, and this one hunts tokens a reader **resolves
    to the wrong thing**, which is the worse failure and needs the bundle's own corpus to detect.
 
-   A reference that resolves to nothing — an unresolved id or filename (§6.2 relations 1 and 3), or
-   a bundle document whose filename carries no `<BRD-KEY>` and therefore has no partition at all
-   (§6.1) — stops with:
+   A reference that resolves to nothing — an unresolved id or filename (§6.2 relations 1 and 3), a
+   bundle document whose filename carries no `<BRD-KEY>` and therefore has no partition at all, or a
+   prerequisite key this run carried that no partition in the bundle answers to, which is what a
+   collapsed set of filenames looks like from the key set (§6.1) — stops with:
    `BRD_PACKAGE_DEAD_CITATION: <id-or-filename> in <bundle document> resolves to nothing — <what it was resolved against>. A reference the reviewer cannot follow is not fixed by deleting it: some sentence in the package assumed that id or that file, and the sentence is what has to change.`
 
    A class-4 `[DG#n]` whose `cites` resolves but names a different requirement than the citing
    finding's own claim (§6.2 relation 2) stops with:
    `BRD_PACKAGE_CITATION_MISMATCH: <DG-id> is class 4 and cites <CG-id>, whose claim names <requirement-a> where the citing finding's claim names <requirement-b> — the citation resolves, to a finding about a different requirement, which is the one failure a reviewer cannot detect by following it.`
 
-   A corpus file present and non-empty that parses to zero ids of its class (§6.1) stops with:
-   `BRD_PACKAGE_CORPUS_UNREADABLE: <corpus file> is present and non-empty but parsed to zero <class> ids — that is a parse failure, not an empty corpus, and reporting it as an absence would report every reference in the bundle as dead (workflows-core:grounding-format §2.1).`
+   A corpus file holding record-shaped content that parses to zero ids of its class (§6.1) stops
+   with the message below — and **only** such a file. One holding no record-shaped content at all is
+   a legitimately empty corpus and passes: that is the ordinary state of a `design-grounding.md`
+   written as a short note because design grounding was skipped, and of a defect log whose walk
+   confirmed nothing.
+   `BRD_PACKAGE_CORPUS_UNREADABLE: <corpus file> holds record-shaped content but parsed to zero <class> ids — that is a parse failure, not an empty corpus, and reporting it as an absence would report every reference in the bundle as dead (workflows-core:grounding-format §2.1).`
 
    **A hit inside `brd/source/<basename>` reports rather than stops** — the same treatment the
    plugin-free scan gives it above, and for the identical reason (§6.3): the customer's own document

@@ -103,7 +103,13 @@ guess, not a citation.
      pending a `code-grounder` pass — and let the caller close the gap and re-run this agent. This
      agent never fabricates the code answer to complete a finding it wants to file.
    - A `[DG#n]` of this class carrying no `[CG#n]` citation is incomplete, per `workflows-core:grounding-format`
-     §6 — that rule is enforced here, not merely noted.
+     §6.3 — and that rule has a second half this agent is bound by just as tightly: the citation must
+     be the **right** one, meaning the cited `[CG#n]`'s `claim` names the same requirement id as this
+     finding's own `claim`. A citation that is present and wrong is worse than one that is absent —
+     an absent one is visibly incomplete and a reader stops, while a wrong one sends them to a real
+     finding about a different requirement, which they have no way to detect. Both halves are
+     enforced here, not merely noted, and the second is checked mechanically downstream, at the point
+     the findings are copied in front of a customer.
 
 6. **Assign `altitude` and `horizon`** per `workflows-core:grounding-format` §2 and §5. A class-4 finding's
    `horizon` and `commit` follow the cited `[CG#n]`'s own — this agent does not re-derive a horizon

@@ -227,23 +227,28 @@ attack.
   identifiers are **not** in the scan's classes and are meant to travel — they are how the returned
   review cites the package without minting identifiers of its own; whether each one actually lands
   is what the citation-resolution check below verifies.
+- **Phase 7 — the delivery note's 200-word ceiling.** A ceiling, not a target. Over it, the note is
+  shortened and re-rendered; the two facts that are never trimmed are which file is the prompt and
+  which file comes back.
 - **Phase 8 — the citation-resolution check.** Run over every document in the assembled bundle,
   after the plugin-free scan, because both of its inputs — the identifier corpus and the set of
   bundle filenames — are facts about the bundle only once it is assembled. Three relations: every
   identifier reference resolves inside its own partition's corpus for its class, unless it carries
   the owning BRD key at the point of use; a class-4 `[DG#n]`'s `cites` resolves within the same
   partition and names the same requirement as the citing finding's own claim; and a bare
-  `<name>.md` token names a document that is actually in the bundle. Two exemptions: `[SR#n]` is
-  exempt entirely, because the self-review file it would resolve against is excluded from the
-  bundle by rule and its content reaches the customer filtered through the prompt; and a hit inside
-  the customer's own source document reports rather than stops, for the same reason the plugin-free
-  scan treats it that way. A reference that resolves to nothing stops with
+  `<name>.md` token names a document that is actually in the bundle — scoped to the tokens that
+  claim to be bundle references, meaning the token carries the `<BRD-KEY>-` prefix every bundle
+  document's filename carries or exactly matches the working filename of a document the allow-list
+  admits or excludes by name. That scoping is the relation: unscoped, it would refuse a bundle over
+  a correct `docs/api.md:12` sitting in a grounding finding's `evidence` list. Two exemptions:
+  `[SR#n]` is exempt entirely, because the self-review file it would resolve against is excluded
+  from the bundle by rule and its content reaches the customer filtered through the prompt; and a
+  hit inside the customer's own source document reports rather than stops, for the same reason the
+  plugin-free scan treats it that way. A reference that resolves to nothing stops with
   `BRD_PACKAGE_DEAD_CITATION`; one that resolves to the wrong requirement stops with
-  `BRD_PACKAGE_CITATION_MISMATCH`; a corpus file that cannot be parsed stops with
-  `BRD_PACKAGE_CORPUS_UNREADABLE`.
-- **Phase 7 — the delivery note's 200-word ceiling.** A ceiling, not a target. Over it, the note is
-  shortened and re-rendered; the two facts that are never trimmed are which file is the prompt and
-  which file comes back.
+  `BRD_PACKAGE_CITATION_MISMATCH`; a corpus file holding record-shaped content that yields no ids
+  stops with `BRD_PACKAGE_CORPUS_UNREADABLE` — a corpus holding no record-shaped content at all is
+  legitimately empty and passes.
 
 ## What it does not do
 

@@ -141,8 +141,9 @@ under a single rule: every question is tagged `[G]` / `[V]` / `[C]` before it is
 decides who may answer it — a `[G]` from the grounding findings and never a human, a `[V]` from the
 delivery team with recorded argumentation, a `[C]` held for the customer. `/brd-package` takes the
 register and the held `[C]` questions, attacks the package before the customer does, refuses to
-build a bundle while any `[SR#n]` self-review finding is undisposed, and renders the prompt, the
-delivery note, and the dated bundle. `/brd-reconcile` takes the file that comes back, freezes each
+build a bundle while any `[SR#n]` self-review finding is undisposed, refuses to ship one whose own
+identifier and filename citations do not resolve inside it, and renders the prompt, the delivery
+note, and the dated bundle. `/brd-reconcile` takes the file that comes back, freezes each
 confirmed answer as a `[CD#n]` only once an operator has confirmed it against the customer's own
 words, and then sweeps every dependent BRD and every artifact still asserting a position the answer
 overturned.

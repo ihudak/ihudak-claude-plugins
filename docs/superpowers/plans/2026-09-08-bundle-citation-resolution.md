@@ -179,6 +179,20 @@ Follow it with the parsing rule: every corpus is **parsed**, and an id is resolv
    - a citation that resolves to the right id and is wrong in a way relation 2 does not test;
    - an identifier class shipping without a row in §6.1's table. The table is a closed list; the reverse case — a row whose file is not in the bundle — is `BRD_PACKAGE_CORPUS_UNREADABLE`, never a silent skip.
 
+- [ ] **Step 2b: Repair this file's own preamble, which §6 falsifies in two places**
+
+Found by the pre-flight scan, not by the sweep at the end, and both are the enumeration-goes-stale class that cost the previous increment the most — neither sentence contains any word this change introduces, so no search for "citation" finds them.
+
+- The preamble's **"Consumed by `commands/brd-package.md`, which builds a bundle against this contract — its plugin-free rules, its §1.1 content allow-list, its de-Obsidianising pass, its degradation tiers, its delivery-note ceiling and its committed dated directory"** enumerates six things the command builds against. §6 is a seventh. Add it in the same voice; do not append a trailing clause.
+- The preamble's **"the finding record and the `baseline-integrity` procedure … belong to `workflows-core:grounding-format` §2 and §4"** names the sections of that file this one cites. §6 cites **§2.1** (the reading rule) and **§6.3** (the class-4 correctness rule) as well. Extend the section list.
+
+Verify both:
+
+```bash
+grep -c 'its committed dated directory' plugins/product-workflows/references/bundle-packaging.md   # expect 1, and read the sentence
+grep -n 'workflows-core:grounding-format` §' plugins/product-workflows/references/bundle-packaging.md
+```
+
 - [ ] **Step 3: Verify the section's structure and its non-restatement**
 
 ```bash
@@ -298,7 +312,8 @@ Subject: `feat(brd-package): check that shipped citations resolve inside the bun
 ### Task 4: Docs page, versions, changelogs
 
 **Files:**
-- Modify: `plugins/product-workflows/docs/commands/brd-package.md` — the `## Gates` section
+- Modify: `plugins/product-workflows/docs/commands/brd-package.md` — the `## Gates` section, the identifiers sentence in the plugin-free-scan bullet, and the `bundle-packaging.md` See-also description
+- Modify: `plugins/product-workflows/docs/reference/references.md` — the `bundle-packaging.md` entry
 - Modify: `plugins/product-workflows/.claude-plugin/plugin.json` → `3.1.0`; `plugins/workflows-core/.claude-plugin/plugin.json` → `1.3.2`
 - Modify: `.claude-plugin/marketplace.json` — the two matching `version` values, **and nothing else in the file**
 - Modify: `plugins/product-workflows/CHANGELOG.md`, `plugins/workflows-core/CHANGELOG.md`
@@ -309,6 +324,14 @@ Subject: `feat(brd-package): check that shipped citations resolve inside the bun
 - [ ] **Step 1: Add the docs-page gate bullet**
 
 In `## Gates`, immediately after the `**Phases 6, 7 and 8 — the plugin-free scan.**` bullet, add a bullet of the same shape. It must state: where it runs (Phase 8, over the assembled bundle); the three relations in one sentence each; the two exemptions; and the three stop names. **Derive each claim by reading `commands/brd-package.md` rule 8 and `references/bundle-packaging.md` §6** — the retired-README rule applies to every page here: a docs page is a source of topics, never of facts.
+
+- [ ] **Step 1b: Repair the three documentation sentences §6 falsifies**
+
+All three found by the pre-flight scan. Each is an enumeration of what `bundle-packaging.md` covers, and each silently loses a member when §6 lands — the same class as Task 2's step 2b, on the documentation side.
+
+- **`docs/reference/references.md`, the `bundle-packaging.md` entry.** Its description runs through the plugin-free rules, the de-Obsidianising pass, the three tiers, the allow-list, the delivery note's ceiling and the dated directory. Add the citation check in the same voice and at the same altitude — what it checks and why, not how.
+- **`docs/commands/brd-package.md`, the See-also entry** — *"the authority for plugin-free construction, the de-Obsidianising pass, the three degradation tiers, the delivery note's ceiling, and where the bundle lands"*. Five members; add the sixth.
+- **`docs/commands/brd-package.md`, the plugin-free-scan Gates bullet's last sentence** — *"identifiers are **not** in the scan's classes and are meant to travel — they are how the returned review cites the package without minting identifiers of its own."* **This sentence is correct and stays**: §6 checks that identifiers *land*, it does not stop them travelling. But it is the page's only statement about identifiers, and left alone it now reads as "and nothing checks them". Add the companion clause pointing at the new bullet. Do not delete or weaken the existing sentence — a sweep that removes it has misread the change.
 
 - [ ] **Step 2: Bump both versions**
 
@@ -349,6 +372,8 @@ Subject: `docs(brd-package): document the citation check; product-workflows 3.1.
 ## Whole-branch sweep, before the final review
 
 Run these from the repository root and read every hit. They are not optional: gate 3's signature defect was prose that derived an obligation from a glob a rename had shrunk, invisible to a search for the renamed thing.
+
+**Four sites were already found and repaired at pre-flight** — two in `bundle-packaging.md`'s preamble (Task 2 step 2b) and three across the documentation (Task 4 step 1b). The sweep below is still run in full: it is the second pass, and on the previous increment the second pass is what found the instance the first had walked past.
 
 - [ ] **Exclusivity probe.** The claim *"the plugin-free scan is the only pass over the finished bundle"* — or any sentence of that shape — is now false.
 

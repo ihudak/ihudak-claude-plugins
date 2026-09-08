@@ -344,9 +344,27 @@ That operator has an idea-route PRD folder. There is no `<brd-file>`; there neve
 
 **Blocks release under S18.** A known defect in shipped behaviour.
 
+**WIDENED 2026-09-08 during its own brainstorm — this entry under-counted the class, and the measurement is the correction.** `/prd-ground` is not the only one of five. The grep this entry cites returns `/update-prd` twice, but both hits are the **revision-archive** naming (`revisions/<KEY>_<slug>_<YYYYMMDD>.md`), not legacy-PRD reading: its step 4 says the PRD *"is the `prd.md` in the folder step 3 resolved — the only copy there is, and therefore authoritative without a test."* So `/update-prd` does not know the legacy name either, and its `UPDATE_PRD_NO_PRD` remedy names `/create-prd`, which **does** find the legacy file and redirects back — **a closed loop in which neither command can run.** Two further defects sit in the very commands this entry named as the correct precedent: `/create-ard` and `/specify` fall back to a `` `<PRD>_*.md` `` entry, which matches the legacy ARD `<PRD>_ARD.md` — `1da7480`'s own diff names it — and `_ARD.md` sorts first, so the PRD gate gates the ARD; and `/create-prd` says the legacy file is identified by `kind: prd`, a field that same commit introduced **alongside** the rename, so no legacy file can carry it. `/epics` refuses outright, and `/release-notes`, `/document`, `/ready` and `/implement` degrade silently. The shared authority carries the false premise as well: `coverage-ledger-format` §5.1 defines a legacy idea-route PRD folder as one *"holding `idea.md` and `prd.md`"*.
+
+**Root cause, located.** `75029fe` kept the rule on purpose — *"`prd-source-resolution.md` keeps the `issue_type: ValueIncrement` check alongside the filename … which that check is what identifies inside it."* `469c656` then deleted that file, judging *"Duplicating those is not the drift risk that duplicating a key grammar was."* It was: what remained was three lines, not two, and the third was the legacy identification. Both callers lost it in the same commit.
+
+**Design approved 2026-09-08** at `docs/superpowers/specs/2026-09-08-legacy-artifact-resolution-design.md` — one owner (`workflows-core:addressing` §3's new `resolve-artifact` entry point plus §5.1's closed legacy-filename table), ten consumers, four plugins. **The lesson this entry keeps paying for**: an enumeration written from memory is short, and only a sweep run against the tree is a count.
+
 ---
 
-# Open after gate 3 — G3-1, G3-2, G3-3, E-2, E-3 and E-4 closed 2026-09-08; G3-4 stands as constraints; E-5 and E-6 opened
+## E-7 — `relevant_for_release_notes` encodes a premise its owner rejects
+
+**Raised by the operator 2026-09-08 while approving E-6's design**, which had named the field's `/release-notes` worthiness gate as a defect surface. It is not one: **every PRD is relevant for release notes, so no field is needed for that.**
+
+**Not a defect, and recorded as such.** Nothing misbehaves — `/create-prd` already defaults the field to `yes`, and `/release-notes` proceeds silently where it is absent. What is wrong is that the field exists at all: it asks a question with one answer, and the stop it feeds (`RELEASE_NOTES_NOT_RELEVANT`, overridable) can only ever fire on a value nobody should write. So this is a design change, not an S18 blocker, and folding it into E-6's legacy-resolution increment would have mixed two unrelated blast radii.
+
+**Measured surface: nine sites across five files and two plugins, plus `CLAUDE.md`.** `workflows-core:prd-format`'s frontmatter block; `/create-prd`'s capture (*"defaults to `yes`; ask only …"*); `/release-notes`'s gate, its stop and its own rule sentence; `docs-workflows/docs/commands/release-notes.md` × 3; and `CLAUDE.md`'s `/release-notes` key invariant (*"an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently"*).
+
+**What the fix has to settle**, so it is not taken as a pure deletion: retiring the gate removes `/release-notes`'s only refusal, and `CLAUDE.md`'s own rule holds that **a rewrite which narrows a rule is a deletion and is itemised separately**. A PRD carrying `relevant_for_release_notes: no` on an existing tree must be handled deliberately — read and ignored, or read and reported — rather than becoming a field nothing mentions while the value sits in the file.
+
+---
+
+# Open after gate 3 — G3-1, G3-2, G3-3, E-2, E-3 and E-4 closed 2026-09-08; G3-4 stands as constraints; E-5, E-6 and E-7 opened
 
 ## E-4 — the package tells every reviewer to extract an archive, including the ones who pull the repository
 

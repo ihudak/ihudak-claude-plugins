@@ -13,7 +13,7 @@ The marketplace takes a requirement from a customer document to an implemented, 
 That gap is filled by hand today, and filling it by hand has three failure modes that are all visible in the source documents:
 
 - **The rationale drifts from the estimate.** The proposal and its pre-read brief agree only because they were written in one sitting. The next revision of either is where they diverge, and the brief is the document that gets read first.
-- **The reasoning is not reproducible.** The interesting property of a grounded estimate is not the number, it is the argument for why the number is roughly eight times what the naive reading of the requirement suggests. That argument is built entirely from grounding findings that already exist on disk, in a structured, verified, citable form — and is nonetheless re-derived from memory each revision.
+- **The reasoning is not reproducible.** The interesting property of a grounded estimate is not the number, it is the argument for why the number is roughly eight times what the naive reading of the requirement suggests. That argument is built from records that already exist on disk in a structured, verified, citable form — grounding findings for what the code makes expensive, the decision register for what the customer added after the baseline — and is nonetheless re-derived from memory each revision.
 - **Nothing checks the arithmetic.** A ten-package by seven-role hours table, authored by a language model in prose, is exactly where a silent addition error survives to a customer.
 
 There is also a second, quieter gap. An operator repeatedly asked at what point a requirement set becomes estimable — after the PRD, after the ARD, after the specification, or only after Epics — and the pipeline offered no answer, so the question was settled by feel each time.
@@ -22,13 +22,13 @@ There is also a second, quieter gap. An operator repeatedly asked at what point 
 
 **Two commands, in `product-workflows`.**
 
-`/prd-proposal <ADDRESS>` authors an effort proposal for one `PRD-` folder: work packages, hours by package and role, ranged with per-package confidence, a driver table in which every cost driver cites verified grounding evidence, a delivery approach, a team composition, an indicative schedule, assumptions, dependencies, risks, change control, acceptance, exclusions and traceability.
+`/prd-proposal <ADDRESS>` authors an effort proposal for one `PRD-` folder: work packages, hours by package and role, ranged with per-package confidence, a driver table in which every cost driver cites a record that exists on disk — a verified grounding finding, a frozen decision, or a confirmed code defect (§6) — a delivery approach, a team composition, an indicative schedule, assumptions, dependencies, risks, change control, acceptance, exclusions and traceability.
 
 `/brd-proposal <ADDRESS>` authors the umbrella for a `BRD-` container: a roll-up over its slices' proposals, with the cross-slice effort that exists in no slice, de-duplication of shared work, one programme schedule, one team, and a coverage statement computed from the root coverage ledger.
 
 Each run writes **two artifacts** — the full proposal and a short derived rationale brief — from one resolved data set, so the two cannot disagree.
 
-**The hours are model-derived.** This is the decision that shapes everything else and it is taken deliberately rather than settled by default: in the source engagement both revisions of the estimate were produced by a language model from the requirement set and the grounding, and they held up under customer scrutiny. What made them defensible was not an external anchor — the first revision reconciled to a prior task-level estimate that most users of this marketplace will simply not have — but the **evidence chain**: every driver cited code at a specific line, every package carried a confidence grade with a stated reason, ranges widened where evidence was thin rather than expected values moving, and anything genuinely not estimable carried a declared re-estimate gate instead of a number pretending to be one. Every one of those properties is reproducible for any user with a grounded slice, and each is enforced in §6 and checked in §11.
+**The hours are model-derived.** This is the decision that shapes everything else and it is taken deliberately rather than settled by default: in the source engagement both revisions of the estimate were produced by a language model from the requirement set and the grounding, and they held up under customer scrutiny. What made them defensible was not an external anchor — the first revision reconciled to a prior task-level estimate that most users of this marketplace will simply not have — but the **evidence chain**: every driver resolved to a record the customer could open, most of them code at a specific line and the rest their own signed decisions; every package carried a confidence grade with a stated reason; ranges widened where evidence was thin rather than expected values moving; and anything genuinely not estimable carried a declared re-estimate gate instead of a number pretending to be one. Every one of those properties is reproducible for any user with a grounded slice, and each is enforced in §6 and checked in §11.
 
 **The estimate is of human delivery time, in hours.** The marketplace already emits model spend in USD through `workflows-core:cost-emission`. Two different quantities, both colloquially "cost". No command, agent, reference or artifact introduced by this design may conflate them, and the proposal artifacts carry **no money at all** (§9).
 
@@ -41,7 +41,7 @@ Each run writes **two artifacts** — the full proposal and a short derived rati
 
 - `--no-brief` suppresses the rationale brief. The brief is on by default and is additionally suppressed below tier 2 by §4.
 - `--profile` forces a re-grill of the proposal profile (§9) instead of reading the stored one.
-- `--baseline <path>` supplies a prior task-level estimate. It is the **only** thing that makes the reconciliation section render; absent, that section does not exist, is not a gap, and the document does not apologise for its absence.
+- `--baseline <path>` supplies a prior task-level estimate. It is the **only** thing that makes the reconciliation section render; absent, that section does not exist, is not a gap, and the document does not apologise for its absence. **The path may sit outside `$SPECS_PATH`, and is read strictly read-only** — in the source engagement the baseline lived in a personal vault, which is where a pre-pipeline estimate usually is. Nothing is copied, committed or rewritten; the reconciliation section cites it by the path the operator gave. An unreadable path is a stop naming that path, never a silently omitted section.
 - `--redo` forces a clean-room re-derivation that ignores the prior revision as an anchor (§6, §10).
 
 **Address resolution** is `workflows-core:addressing` §3 `resolve-address`, taken after `$SPECS_PATH` is settled, exactly as `/create-prd` and `/create-ard` state the ordering and for the same reason: a resolution taken before the variable is known returns `absent` for a folder that exists.
@@ -61,12 +61,12 @@ The container test is the **directory prefix**, never the folder's asserted `kin
 
 ## 4. Readiness grading — when a PRD is ready to be estimated
 
-The command **grades rather than gates**. There is exactly one hard refusal, no `prd.md`, and `require-on-main` already performs it.
+The command **grades rather than gates**. On readiness there is exactly one hard refusal — no `prd.md` — and `require-on-main` already performs it. The other stops either command carries are about *what was addressed* rather than how ready it is: the two container refusals in §3, the zero-slice stop in §7, and an unreadable `--baseline` path.
 
 | Tier | Reached when the resolved folder holds | What the tier changes |
 | --- | --- | --- |
 | **1 · Indicative** | `prd.md` | The driver section renders as an explicit statement that the cost drivers are **not known** — never as an empty or omitted section. Standing banner in the header block. |
-| **2 · Grounded** | \+ verified grounding, \+ a settled decision register | Driver table with `file:line` evidence; accepted deviations; scope levers. **The floor for a document that goes to a customer.** |
+| **2 · Grounded** | \+ verified grounding, \+ a settled decision register | Driver table with evidence resolving to `file:line` for code drivers and to the register for decision drivers; accepted deviations; scope levers. **The floor for a document that goes to a customer.** |
 | **3 · Architected** | \+ `ard.md` | The discovery package becomes *translation* of an existing architecture rather than authoring one. Architecture-bearing packages become eligible for High confidence. |
 | **4 · Specified** | \+ `specification.md` | QA effort is sized from the authored test-case count rather than a ratio of development effort; the definition of done is built from the acceptance criteria; analysis effort falls to refinement rather than acceptance-criteria authoring. |
 
@@ -76,9 +76,28 @@ The command **grades rather than gates**. There is exactly one hard refusal, no 
 
 **The tier caps confidence; it never sets it.** This is the load-bearing mechanic. Range width is computed bottom-up from per-package confidence (§6), and the tier is a **ceiling** on how confident any package may be — evidence can only push a package lower. In the source engagement the slice sat at tier 4 and still carried an asymmetric range roughly −20 %/+40 %, because one package remained un-profiled and therefore Low regardless of tier. A tier-derived global percentage would have flattened precisely the signal the document existed to convey.
 
+**The ceiling itself, stated rather than left to be inferred.** A mechanic described but not tabulated is a mechanic each implementer invents:
+
+| Tier | Highest grade any package may carry | Why that is the ceiling |
+| --- | --- | --- |
+| **1 · Indicative** | **Low** | With the drivers unknown there is nothing on disk that could raise a package above the grade that means *not yet estimable*. Every package therefore carries a re-estimate gate, and the whole document is one. |
+| **2 · Grounded** | **Medium** | Drivers are evidenced, so a package is no longer a guess — but no architecture is settled and no acceptance criteria are authored, so nothing supports High. |
+| **3 · Architected** | **High** for a package an `[AD#n]` covers; **Medium** for one it does not | The ARD is what makes a package's shape settled, and it does not cover every package uniformly. |
+| **4 · Specified** | **High** | Authored acceptance criteria and test cases give every package a countable basis. |
+
+**And the grade fixes the range, which is the other half nothing stated.** These are the shipped defaults, taken from the source engagement's own bands and held in `proposal-format.md` so exactly one place carries them:
+
+| Confidence | Band about the expected figure |
+| --- | --- |
+| **High** | −15 % / +30 % |
+| **Medium** | −20 % / +40 % |
+| **Low** | −45 % / +80 %, and a declared re-estimate gate (§6) is **mandatory**, not optional |
+
+**A package may be widened beyond its grade's band where the document states the reason; it may never be narrowed.** The source widened one Medium package to roughly −27 %/+53 % against a named unknown — how many external callers a contract change would break — and that is the behaviour to preserve. Narrowing would let an author recover, one package at a time, exactly the false precision the grade exists to deny.
+
 **Two structural consequences, expressed as behaviour rather than as warnings:**
 
-- **The brief does not render below tier 2**, irrespective of `--no-brief`. Its entire content is the driver argument. A two-page pre-read explaining why a number is large, written when the reasons are unknown, is the one artifact in this design that must not exist.
+- **The brief does not render below tier 2**, irrespective of `--no-brief`. Its **spine** is the driver argument — the naive baseline, why the number is not that, and what the largest single share of the estimate is owed to — and below tier 2 that spine does not exist. A two-page pre-read explaining why a number is large, written when the reasons are unknown, is the one artifact in this design that must not exist. **The spine is not the whole brief, and `proposal-format.md` must not be written as though it were:** the source brief also carries, in the customer's own terms, the corrections this revision owes them, the reconciliation to their prior estimate, each deliberately-unpriced item together with the gate that will price it, the short list of what is needed before week 1, and any requirement on which the vendor's architecture and the customer's own text still contradict each other. Each is derived — from the register, from the changelog (§10), from the open-items sweep (§6) — rather than re-authored, which is why §11.7 checks more than figure agreement.
 - **The tier is printed in the header block of both artifacts**, beside the date. A reader cannot be handed a tier-1 number without being told what it is.
 
 **Epics are not an input, and their absence is not a gap.** The source slice reached a defensible tier-4 estimate with no `EPIC-` folder anywhere beneath it; `/epics` never ran. The estimate decomposes by **work package**, a delivery-sequencing unit the proposal derives (§5), which is not the same object as an Epic and is not substitutable for one. Where `EPIC-` folders exist they seed the clustering; where they do not, nothing is missing and the command says nothing about it.
@@ -89,7 +108,15 @@ Requirements cluster by **delivery seam** — what can be built, tested and acce
 
 **Two packages are always present:** a discovery-and-design package first, and a test/UAT/release package last. Where `EPIC-` folders exist under the resolved PRD, they seed the clustering of the middle packages.
 
-**A defect-remediation package is created automatically, and it is never a scope lever.** Where the resolved folder's `code-defect-log.md` holds an unresolved `[CDF#n]`, its repair becomes its own work package. This encodes the bug-first policy structurally rather than leaving it to be remembered: in the source engagement the first revision offered two found security defects back to the customer as priced options, and the second withdrew that offer and moved them into scope, on the reasoning that asking a customer to authorise deferring a defect the vendor's own work found returns that deferral carrying the customer's authority on a question the vendor's policy has already answered.
+**A defect-remediation package is created automatically, and it is never a scope lever.** Where the resolved folder holds an unrepaired code defect, its repair becomes its own work package. This encodes the bug-first policy structurally rather than leaving it to be remembered: in the source engagement the first revision offered two found security defects back to the customer as priced options, and the second withdrew that offer and moved them into scope, on the reasoning that asking a customer to authorise deferring a defect the vendor's own work found returns that deferral carrying the customer's authority on a question the vendor's policy has already answered.
+
+**The trigger is three sources, not one, and that is a correction made against the source engagement rather than a widening for its own sake.** The obvious trigger — an unresolved `[CDF#n]` in the folder's `code-defect-log.md` — is necessary and nowhere near sufficient. That log has exactly one writer, `/brd-interview`, and it writes only where a **decision turns on** a `[CDF#n]`; a defect that nothing had to be decided about never reaches it. The two security defects that became the source slice's largest single addition were found by grounding and by the package self-review, and the slice folder holds no `code-defect-log.md` and no `[CDF#n]` at all — so a trigger reading only that file would have produced **no package** in exactly the engagement this rule was written from. The command therefore sweeps three sources and unions them:
+
+1. **`code-defect-log.md`** — every `[CDF#n]` not recorded as resolved.
+2. **Verified grounding findings whose own text records a defect** rather than a capability — the class `/prd-ground` already produces and `grounding-verifier` already stamps with an outcome.
+3. **`[SR#n]` self-review findings** carried in the packaged bundle, where one exists, that name a code defect and are not recorded as resolved.
+
+Sources 2 and 3 need operator confirmation before a package is created — neither is a defect *register*, so a finding may already be repaired, or may not be the vendor's to repair. Source 1 needs none: a standing `[CDF#n]` is a defect somebody already adjudicated. A confirmed defect from any source is then identical downstream — same package, same exclusion from the lever table.
 
 The command therefore **refuses to render a defect-remediation package into the scope-lever table or the priced-options table**, and the reviewer (§11) checks it. Where such a package genuinely cannot fit the delivery window, that is disclosed in the document as a schedule fact, not tendered as a scope option.
 
@@ -97,11 +124,21 @@ The command therefore **refuses to render a defect-remediation package into the 
 
 **The naive baseline is computed and printed first.** A short statement of what the requirement would cost if read at face value — storage and exposure, with no correctness, completeness or enforcement obligation — precedes the driver table. This is mandatory at every tier. It is the anchor that makes the real number legible: without it the reader has nothing to compare against, and the argument in the driver table has no subject.
 
-**Every driver must cite evidence.** One driver row is one or more verified grounding findings, cited by identifier with the `file:line` location the finding itself records. **A driver with no finding behind it cannot render at all.** This is the anti-invention rule, and its value is that it is mechanically checkable rather than a matter of authorial care — the reviewer resolves every citation against the grounding file.
+**Every driver must cite evidence, and the evidence classes are named rather than assumed to be one.** One driver row cites one or more identifiers drawn from a **closed set of three classes**, each of which resolves to something on disk that an independent reader can open:
+
+- a **verified grounding finding** — `[CG#n]` or `[DG#n]`, carrying the verifier outcome without which `workflows-core:grounding-format` says it is not evidence, cited with the `file:line` location the finding itself records;
+- a **frozen decision** — `[VD#n]` or `[CD#n]` in the register, for the driver class that is *scope the customer added after the baseline*;
+- a **confirmed code defect** — `[CDF#n]`, or a §5-confirmed finding from the two other defect sources, for a driver that exists because something is broken.
+
+**A driver citing nothing from that set cannot render at all.** This is the anti-invention rule, and its value is that it is mechanically checkable rather than a matter of authorial care — the reviewer resolves every citation against the file that owns its class.
+
+**Restricting the set to grounding alone was the first draft of this rule and it was wrong.** In the source engagement one driver — *scope added by customer decision after the estimate baseline* — cited four decisions and no code, was worth roughly a tenth of the estimate, and earned a section of its own in the pre-read brief. A rule that admitted only grounding would have deleted the single row the customer was most likely to recognise as theirs. The narrowing that survives is per-driver rather than global: **a driver making a claim about the code must cite class 1**, because a decision cannot evidence a statement about a repository.
 
 **Hours per package and role** are derived from the requirement count and kind within the package, the drivers touching that package, and the profile's productivity basis and hours-per-developer-day (§9). QA effort is sized from the authored test-case count at tier 4 and from a stated ratio below it, and **the document says which of the two it used** — a ratio silently replaced by a count, or the reverse, is a change in basis that a reader is entitled to see.
 
 **Confidence is per package, with a stated reason, and rolls up into the range.** The document states explicitly that the low and high figures describe a credible range rather than best and worst cases. A package graded Low gets a **declared re-estimate gate naming its trigger event** — the completion of a profiling activity, the arrival of a decision, a load measurement — together with the commitment that no implementation hours inside that package are incurred before the gate. A wide range with a dated gate is an honest artifact; a narrow range over unprofiled work is not.
+
+**The range carries its own exclusions, and they are not the document's exclusions.** A separate short block states what the low-to-high band does **not** cover — a reversal of a settled decision, a discovery that materially more of the system is live than the evidence records, customer-side delay on a named dependency, a decision resolved in the direction that widens scope. This is a different list from the document's exclusions-from-scope section — both are named in `proposal-format.md`'s section set (§10) as two sections rather than one — and conflating them is how a reader concludes the high figure is a ceiling. It is not: it is the top of a band computed under stated conditions, and the conditions are the block.
 
 **Open items become dependencies automatically.** Open assumption records, unanswered customer questions from the interview round, and any code defect recorded as blocking render into the dependencies section and into the short "what is needed before week 1" list. Derived from the register, not authored — so a question raised of the customer and not yet answered cannot silently vanish between the review package and the proposal.
 
@@ -173,6 +210,14 @@ It is grilled on the first run that needs it, shown back for confirmation on lat
 
 **Two namespaces, and deliberately only two.** `[WP#n]` names a work package and `[ED#n]` names an estimate driver; every hours figure, confidence grade, schedule row, acceptance clause and scope lever attaches to a `[WP#n]`, and every driver row to an `[ED#n]`. A re-estimate gate is a **property of its `[WP#n]`**, not a namespace of its own — the family already carries fifteen bracketed namespaces, and a sixteenth earning its keep is a higher bar than a seventeenth being conceivable. Two sections are conditional — the reconciliation section renders only under `--baseline`, and the changelog section only on a revision.
 
+**Which form a requirement is cited in, and this is a decision the family has not previously had to take.** Every other artifact the plugin writes is read by the operator or pasted into a tracker, and `workflows-core:pre-lint`'s auto-link collision check exists for the second of those. A proposal is read by the **customer**, who wrote the requirement identifiers in their own document in their own form — commonly the dash-separated `FR-843`, the exact shape that check classifies as a BLOCKER and that `scripts/check-id-grammar.sh` forbids the plugin to teach. Rendering `[FR#843]` to a customer who has never seen that form makes the traceability section unusable to its only reader; rendering `FR-843` puts a tracker-autolinkable token in a document the pipeline authored.
+
+**The proposal cites a requirement in the form the source artifact carries it, and the artifacts are excluded from the auto-link collision check by name.** The reasoning is the one `pre-lint` itself gives for the check's narrowness: it is an auto-link detector for documents that get pasted into a tracker, and these two are not — they are sent to a customer, as a document. Three consequences the implementer must carry through rather than infer:
+
+- **`pre-lint`'s *Auto-link collision* section is scoped `(PRD, ARD, Epic files only)` today, so it already excludes these two artifacts and needs no edit to do so.** What it needs is one sentence saying the exclusion is *deliberate* for proposals and why, because a reader who finds the family's most-pasted document outside the collision check will otherwise read it as an oversight and widen the scope. Everything else `pre-lint` performs — the universal checks, identifier integrity, required-section presence — does run, which is what §12.1 means by running it.
+- **The `[WP#n]` and `[ED#n]` namespaces the proposal mints are the plugin's own and stay bracketed**, unlike the requirements it cites. The source engagement's mnemonic package labels — a letter per package, one of them ending in a digit — are not adopted: one of them matches the auto-link grep exactly, and the mnemonic can be carried as the package's **title** where a bare identifier reads poorly.
+- **The reviewer checks the direction, not the form** (§11.10): a requirement identifier appearing in either artifact matches the form the artifact it was read from uses. A silent conversion in either direction is the defect.
+
 **The changelog section is generated by diffing against the anchor**, one row per moved figure or changed section, each with a direction and a pointer to the section that now carries it.
 
 **And it classifies each row as a re-estimate or a correction.** This is the most valuable distinction in the source document and it is a computed classification, not prose: a change that **withdraws or contradicts a statement the previous revision made to the customer** is a correction; a figure that moved is a re-estimate. Corrections are listed first, are stated in the customer's own terms, and are never folded into a net total — a revision that quietly nets a withdrawn claim against a re-estimate is precisely the artifact this rule exists to prevent.
@@ -181,15 +226,17 @@ It is grilled on the first run that needs it, shown back for confirmation on lat
 
 A new Opus agent in `product-workflows/agents/`, read-only, adversarial in the mould of `brd-package-reviewer`, returning findings plus a `PASS` / `PASS WITH RECOMMENDATIONS` / `BLOCK` verdict. It checks:
 
-1. **Evidence.** Every driver cites at least one verified grounding finding, and every citation resolves to a finding that exists and carries a verifier outcome.
-2. **Arithmetic.** Package-by-role totals reconcile to the role totals and to the grand total; every range brackets its expected value; FTE reconciles to hours ÷ weeks ÷ hours-per-week; the umbrella's totals reconcile to its slice rows plus its named adjustments. This is the check with the highest expected yield in the whole design: a model-authored table of ten packages by seven roles is where a silent addition error survives to a customer.
+1. **Evidence.** Every driver cites at least one identifier from §6's closed three-class set, every citation resolves to a record that exists — a grounding finding carrying a verifier outcome, a frozen decision, a confirmed defect — and every driver making a claim about the code cites class 1 specifically.
+2. **Arithmetic.** Package-by-role totals reconcile to the role totals and to the grand total; **the Low and High columns each sum to the stated total range**, which is a separate relation from the expected column and the one a reader is least likely to re-add; every range brackets its expected value and matches its package's confidence band (§4) or states the reason it is wider; FTE reconciles to hours ÷ weeks ÷ hours-per-week; **any section arguing in a different unit reconciles to the row it feeds** — the source's reconciliation section argued in developer-days and had to multiply out to the Backend hours row, and a unit change is exactly where an unchecked figure hides; the umbrella's totals reconcile to its slice rows plus its named adjustments. This is the check with the highest expected yield in the whole design: a model-authored table of ten packages by seven roles is where a silent addition error survives to a customer.
 3. **Stability.** No figure has moved from the anchor without a cause named in the changelog section.
 4. **Policy.** No defect-remediation package appears in the scope-lever or priced-options tables.
 5. **Money.** No rate, currency symbol or monetary total for human hours appears anywhere in either artifact.
 6. **Tier honesty.** The tier claimed in the header is the tier the evidence on disk supports, and the brief is absent below tier 2.
-7. **Brief agreement.** Every figure the brief repeats matches the proposal.
+7. **Brief agreement, in both directions.** Every figure the brief repeats matches the proposal — and every correction, every unpriced item with its gate, every week-1 dependency and every unresolved requirement contradiction the proposal carries reaches the brief, because the brief is the document that gets read first and a spine-only brief is the failure §4 describes.
 8. **Completeness of obligations.** Every open assumption record, unanswered customer question and blocking code defect reaches the dependencies section.
 9. **Coverage** (`/brd-proposal` only). The coverage statement reconciles to the root ledger, and every excluded slice's requirements are enumerated.
+10. **Identifier form.** Every requirement identifier in either artifact carries the form the artifact it was read from uses (§10), with no silent conversion in either direction, and no `[WP#n]` or `[ED#n]` rendered in any form but the bracketed one.
+11. **Range exclusions.** The band's own exclusions block is present, and is distinct from the exclusions-from-scope section rather than a restatement of it.
 
 Findings are triaged and verified by the caller under `workflows-core:finding-triage`, as every other reviewer gate in the family is.
 
@@ -203,13 +250,15 @@ Nothing here is novel; it is enumerated rather than gestured at, because "the st
 - **`workflows-core:escalation-rules`** for every prompt either command raises — the profile grill (§9) and the readiness walk (§7). Choices arrays of two to four options, and **never an authored "Other"**: §0 is explicit that the harness supplies the free-text escape itself.
 - **`workflows-core:grilling-technique`** governs the profile grill.
 - **`workflows-core:prose-formatting`** governs both artifacts. They are prose documents; prose is never hard-wrapped, one unbroken line per paragraph.
-- **`workflows-core:pre-lint`** before the review gate, as `/create-prd` runs it — a cheap pass ahead of an expensive Opus one.
-- **`handoff-to-main`** (`workflows-core:phase-handoff` §4.3) for `proposal.md`, `proposal-brief.md` and, on a revision, the archived prior.
+- **`workflows-core:pre-lint`** before the review gate, as `/create-prd` runs it — a cheap pass ahead of an expensive Opus one. **Its universal checks, identifier integrity and required-section presence apply; its *Auto-link collision* check does not**, that section being scoped to PRD, ARD and Epic files, and §10 records why that exclusion is deliberate here rather than an oversight to be corrected.
+- **`handoff-to-main`** (`workflows-core:phase-handoff` **§2**, behind §4.3's consent choice — §4.3 is the choice, not the entry point) for `proposal.md`, `proposal-brief.md` and, on a revision, the archived prior. **Both commands declare those paths in `deliverable_paths` as backticked filenames**, which is not bookkeeping: check 11's writer relation reads that declaration, and a path named only in prose drops the whole command's offers out of the gate — `workflows-core:next-phase-offer` records `/update-prd` doing exactly that.
 - **`impl-maintenance`**, whose Lessons Learned report feeds **`emit-auto`** (`workflows-core:feedback-emission`, the automatic caller of the three named entry points).
 - **`emit-cost`** (`workflows-core:cost-emission` §11), supplying `command`, `phase`, `role`, `key`, `source` and `plugin_version` like the other twenty measuring commands. This entry records **model spend in USD** and has no relationship whatever to the human hours the artifacts contain (§2).
 - **`followup-emission`** §8's caller contract, with the end-of-run batch preview.
 - **`next-phase-offer`**, with **`session-hygiene`** co-firing on the same role labels — §12.2.
 - **`commit-artifacts`** as the last action, skipped on `specs_git: blocked`.
+
+**Branch prefix, which the git contract does not leave open.** `handoff-to-main` is bounded to `^(idea|prd|ard|spec|design|ready|brd|frames)/` (`workflows-core:phase-handoff` §1 rule 3), so a `proposal/` branch would be refused by the plugin's own authority. **`/prd-proposal` opens on the shared `prd` prefix and `/brd-proposal` on the shared `brd` prefix**, joining the commands that already share each — the eight prefixes are not extended, and nothing about a proposal makes it a ninth phase. Both commands join `workflows-core:specs-repo-git` §7's producer list and `phase-handoff.md`'s producer count, and the prose in both files that counts producers moves with them.
 
 **Neither command takes documentation grounding, and neither carries `--no-docs`.** This is a decision, not an omission: `docs-grounder` retrieves existing product-documentation pages, which bear on how a feature is described and not at all on what it costs to build. The inputs to an estimate are the specs tree and the profile. Adding the switch would buy a consent prompt and a retrieval round for a digest nothing in either artifact could consume.
 
@@ -235,11 +284,26 @@ Adding a command adds edges to the routing graph, and `CLAUDE.md`'s Surgical Cha
 | `/create-ard` | tier 3 |
 | `/specify` | tier 4 |
 
-**One interaction the implementer must check rather than assume.** This repository's build gates include a check that enforces a `<merge-clause>` on any offer of `/create-ard` or `/specify` within the command-family globs. `/prd-proposal` offers both of those commands under the tier-raising rule above, so it may fall inside that check's scope the moment it is added. Run the repository's own gate checks after wiring the offers, and satisfy the clause rather than exempting the command from the check.
+**One interaction this design previously stated the wrong way round, corrected here so it is not re-derived from the wrong end.** `scripts/check-docs.sh` check 11 requires a `<merge-clause>` on any `choices:` option naming a command whose `require-on-main` target **the offering run itself writes**. Three facts follow, and only the third is the one to act on:
+
+- **Both new commands are inside the check unconditionally, not "possibly".** Check 11 derives its families from every glob in `workflows-core:next-phase-offer`'s scope paragraph, and `/prd-proposal` and `/brd-proposal` match `/product-workflows:prd-*` and `/product-workflows:brd-*` by name. There is no version of this work in which they sit outside it.
+- **The tier-raising offers of `/create-ard` and `/specify` need no clause.** Both gate on `prd.md`, and `/prd-proposal` does not write `prd.md`. An earlier draft named these two as the interaction to watch; they are precisely the offers the rule does not reach.
+- **The offer that does need the clause is `/prd-proposal` → `/brd-proposal`,** because `/brd-proposal` gates on the `proposal.md` the offering run has just written. That is the one option in either command whose text must carry `<merge-clause>`.
+
+**And the relation only binds if two declarations are made, so making them is part of the work rather than a consequence of it.** Check 11 reads what a run writes from the command's own `deliverable_paths` (§12.1) and the gate target from `workflows-core:phase-handoff` §3.4's row-F table — both as **backticked filenames**, never as prose. So §3.4's table gains a row for each new consumer (`/prd-proposal` on `prd.md`, `/brd-proposal` on each included slice's `proposal.md`), and both commands declare their written paths in the same form. Declared in prose, the check silently covers nothing and reports green. Run the repository's gate checks after wiring the offers, and satisfy the clause rather than exempting the command from the check.
 
 ### 12.3 Documentation and catalogue
 
 Both commands are added to the workflow map in the repository `CLAUDE.md`, to `product-workflows/README.md`, to its `docs/` tree with a page each in the shape the existing per-command pages take, and to the plugin's `CHANGELOG.md`. `next-phase-offer.md`'s routing graph gains both nodes. The `product-workflows` blurb in **both** `plugin.json` and `marketplace.json` must be **re-worded rather than appended to**, and must stay inside the 1024-character catalogue limit `scripts/validate-catalog.py` enforces — the limit is Copilot CLI's and it rejects the whole catalogue, so one over-long blurb breaks installation for every plugin in the marketplace.
+
+**Four gated surfaces beyond those, each of which turns the build red if it is missed.** They are listed because "add the docs" does not reach them and an implementer who discovers them from a failing gate discovers them late:
+
+- **`workflows-core:cost-emission` §7's attribution table** gains a row per command. `check-docs.sh` check 8 asserts that relation in both directions — a command handing `emit-cost` a fixed `phase`/`role` pair with no §7 row fails, and a §7 row naming a command that emits no fixed pair fails too. The natural pair for both is the `brd-to-prd` phase at the `pm` role, matching the six route commands, but derive it rather than copy it.
+- **The command-namespace manifest** check 4 asserts in both directions: a command missing from it fails, and a manifest name that is no command fails.
+- **Every prose count check 9 gates.** `product-workflows` moves from twelve slash commands to fourteen, twelve subagents to thirteen, ten reference files to eleven; `CLAUDE.md`'s documentation-page sentence moves from *25 — … 12 command pages and 8 reference pages* to 27, 14 and 9. Check 9 gates the per-plugin sentences; `CLAUDE.md`'s numbers are held by hand alone, so re-derive both against the tree rather than adjusting the digits.
+- **Check 15's index membership.** Each command must appear in `docs/README.md`, in the plugin README, **and inside `docs/workflow.md`'s mermaid diagram** — the diagram asserted separately from the page, which is where a command lands when someone adds it in a hurry.
+
+**One thing deliberately *not* changed, recorded so it is not changed by reflex.** `scripts/check-id-grammar.sh`'s `PATTERN` stays as it is. It carries the requirement-ID prefixes a tracker would auto-link out of a pasted artifact (`US`, `AC`, `SM`, `SMC`, `UC`, `FR`, `AD`) and none of the family's eight other bracketed namespaces — `[CG#n]`, `[BR#n]`, `[VD#n]`, `[CD#n]`, `[CDF#n]`, `[SR#n]` and the rest are all outside it, for the same reason `[WP#n]` and `[ED#n]` are: nothing pastes a work-package label into a tracker. Adding them would mean two new alternations and their per-alternation selftest greps for no defect the gate could catch.
 
 ## 13. Vendor neutrality — a hard constraint on the implementation
 
@@ -287,7 +351,7 @@ Four deliverables in strict order, because each is the previous one's consumer.
 
 1. **`proposal-format.md`, then `/prd-proposal`, then `proposal-reviewer`** — the format fixes the section set and the two namespaces; the command authors against it; the agent checks against it. The reviewer is not optional and not a later increment: its arithmetic check (§11.2) is the highest-yield check in the design, and shipping the author without it ships an unchecked hours table to a customer.
 2. **`/brd-proposal`** — it reads `proposal.md` files, so it cannot be specified against a format that does not exist yet, and its de-duplication check (§8) depends on the driver citations the first command writes.
-3. **The workflow edges** (§12.2) — the offers out of both new commands, the offers into them added to `/brd-reconcile`, `/create-ard` and `/specify`, and both nodes added to `next-phase-offer.md`'s routing graph. Then run the repository's own build gates, because the tier-raising offer may bring `/prd-proposal` inside the `<merge-clause>` check.
-4. **Documentation and catalogue** — the workflow map in `CLAUDE.md`, the `product-workflows` README and `docs/` pages, `CHANGELOG.md`, and the re-worded blurb inside the 1024-character limit.
+3. **The workflow edges** (§12.2) — the offers out of both new commands, the offers into them added to `/brd-reconcile`, `/create-ard` and `/specify`, both nodes added to `next-phase-offer.md`'s routing graph, the two `deliverable_paths` declarations and the two `phase-handoff.md` §3.4 rows that make check 11's relation bind at all. Then run the repository's own build gates: both commands are inside the `<merge-clause>` check by their names, and the option needing the clause is `/prd-proposal`'s offer of `/brd-proposal`.
+4. **Documentation and catalogue** — the workflow map in `CLAUDE.md`, the `product-workflows` README and `docs/` pages (including `docs/workflow.md`'s mermaid diagram, which check 15 asserts separately from the page), `CHANGELOG.md`, the re-worded blurb inside the 1024-character limit, and §12.3's four gated surfaces: the `cost-emission` §7 rows, the command-namespace manifest, every prose count check 9 gates, and `CLAUDE.md`'s hand-held page totals.
 
 A useful first milestone is `/prd-proposal` at tier 4 against a folder that already holds a PRD, an ARD, a specification, a settled register and verified grounding: it exercises every branch that matters, and the lower tiers are subtractions from it rather than separate paths.

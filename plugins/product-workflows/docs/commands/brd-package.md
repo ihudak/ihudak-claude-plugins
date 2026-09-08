@@ -143,8 +143,9 @@ make*. Shipping the file would defeat that filter and hand the customer an inter
 referee. What the bundle *does* hold is an allow-list, not a deny-list, and
 [`bundle-packaging.md`](../../references/bundle-packaging.md) §1.1 is its authority: the prompt; the
 customer's own source document and defect log (the parent's on a slice); the inventory; the coverage
-ledger; the three grounding files; the decision register; the `[C]` question set; each prerequisite
-package; the images those reference; and the manifest. A document reaches the bundle only where a
+ledger; the three grounding files; the decision register; the code-defect log where the folder holds
+one; the `[C]` question set; each prerequisite package; the images those reference; and the
+manifest. A document reaches the bundle only where a
 part of the prompt sends the reviewer to it — everything else in the folder is a working record and
 stays.
 

@@ -80,6 +80,7 @@ Exactly this, and nothing else:
 | `brd/brd-inventory.md` | *Review scope* |
 | `brd/brd-defect-log.md` — **the parent's on a slice**, one hop, exactly as an inherited `[DEF#n]` already resolves (`references/brd-format.md` §4) | *Review scope*: a ledger row reading `rejected: [DEF#n]` cites an id the reviewer must be able to resolve |
 | `coverage-ledger.md` | *Review scope*, and *what this session cannot settle* |
+| `code-defect-log.md`, when the folder holds one | *Review scope*, *what could still move*, and *what this session cannot settle* — a defect disposed `in-scope` **is** the delivery boundary |
 | `grounding/code-grounding.md` and `grounding/design-grounding.md` | *the single most important claim to verify first* |
 | `grounding/baselines.md` | *code baselines and the verification procedure* |
 | `decisions.md` | *the single most important claim to verify first*, *the decisions the customer must make*, *what could still move* |
@@ -90,6 +91,15 @@ Exactly this, and nothing else:
 
 Plain markdown and images — nothing else (§2). The manifest lists documents by filename, for the
 same reason rule 4 does.
+
+**The code-defect log ships, and the reason is scope rather than disclosure.** A `[CDF#n]` disposed
+`in-scope` names a repair that has to happen inside this PRD's scope or the feature cannot be
+delivered (`references/code-defect-log-format.md` §4). A `[VD#n]` whose real basis is such a repair
+is a decision the customer cannot evaluate without it — which is exactly the failure
+`references/decision-register-format.md` §2 exists to prevent, displaced out of `argumentation` and
+into a file nobody sends them. Withholding it would also have been **concealed but reachable**: a
+customer who pulls the specs repository rather than taking the archive can open every file in the
+folder, so the rule would have held on one delivery route and failed silently on the other.
 
 **What the bundle does not contain**, each named because each is a document sitting in the same
 folder under the same `<BRD-KEY>`-and-date naming, indistinguishable from a package document by
@@ -303,20 +313,20 @@ record that is still true when somebody re-opens the argument a year later.
 
 ## 6. Citation resolution
 
-**`citation-resolution`** is a check over the assembled bundle that the plugin-free scan (§1) does
-not perform. That scan deliberately exempts identifiers — the eight classes §6.1's table covers,
-`[BR#n]`, `[DEF#n]`, `[CG#n]`, `[DG#n]`, `[VD#n]`, `[CD#n]`, `[AS#n]` and `[SR#n]`, are how a
-returned review cites the package's own claims without minting identifiers of its own, and a prompt
-that hid them would get back a review nothing could be matched to. **Nothing then checks that they
-land.** Three failures were observed in shipped bundles: a class-4 design finding whose `[CG#n]`
-citation resolved, inside the customer's own bundle, to a real finding about a different
-requirement; a reference naming an id above the highest its own
-corpus contains — one of them the sole `evidence` on a decision record; and a reference, in prose
-rather than a link, to a document §1.1 excludes by rule or has already renamed on the way in. Three
-stops carry it: `BRD_PACKAGE_DEAD_CITATION` for a reference that resolves to nothing (§6.1's
-unkeyed-document case, §6.2's relations 1 and 3), `BRD_PACKAGE_CITATION_MISMATCH` for one that
-resolves to the wrong requirement (§6.2's relation 2), and `BRD_PACKAGE_CORPUS_UNREADABLE` for a
-corpus that cannot be parsed (§6.1). Design authority:
+**`citation-resolution`** is a check over the assembled bundle that the plugin-free scan (§1)
+does not perform. That scan deliberately exempts identifiers — the nine classes §6.1's table
+covers, `[BR#n]`, `[DEF#n]`, `[CG#n]`, `[DG#n]`, `[VD#n]`, `[CD#n]`, `[AS#n]`, `[CDF#n]` and
+`[SR#n]`, are how a returned review cites the package's own claims without minting identifiers
+of its own, and a prompt that hid them would get back a review nothing could be matched to.
+**Nothing then checks that they land.** Three failures were observed in shipped bundles: a
+class-4 design finding whose `[CG#n]` citation resolved, inside the customer's own bundle, to a
+real finding about a different requirement; a reference naming an id above the highest its own
+corpus contains — one of them the sole `evidence` on a decision record; and a reference, in
+prose rather than a link, to a document §1.1 excludes by rule or has already renamed on the way
+in. Three stops carry it: `BRD_PACKAGE_DEAD_CITATION` for a reference that resolves to nothing
+(§6.1's unkeyed-document case, §6.2's relations 1 and 3), `BRD_PACKAGE_CITATION_MISMATCH` for
+one that resolves to the wrong requirement (§6.2's relation 2), and
+`BRD_PACKAGE_CORPUS_UNREADABLE` for a corpus that cannot be parsed (§6.1). Design authority:
 `docs/superpowers/specs/2026-09-08-bundle-citation-resolution-design.md` §3–§7.
 
 ### 6.1 The corpus is built per source package, and never crossed
@@ -380,6 +390,7 @@ each corpus is; inside the bundle that document carries its `<BRD-KEY>-` prefixe
 | `[DEF#n]` | `brd/brd-defect-log.md` (the parent's on a slice, one hop — `references/brd-format.md` §4) |
 | `[CG#n]`, `[DG#n]` | `grounding/code-grounding.md`, `grounding/design-grounding.md` |
 | `[VD#n]`, `[CD#n]`, `[AS#n]` | `decisions.md` (`references/decision-register-format.md` §1 and §7) |
+| `[CDF#n]` | `code-defect-log.md` (`references/code-defect-log-format.md` §2) — **absent where the folder holds no entry**, which is an empty corpus and passes |
 | `[SR#n]` | **none — exempt entirely, §6.3** |
 
 **Every corpus is parsed, never assumed.** An identifier reference is resolved against the set of
@@ -411,6 +422,14 @@ record-shaped content is an **empty corpus**: a real and ordinary state, and it 
 confirmed nothing leaves `brd/brd-defect-log.md` with a header and no entries — both present, both
 non-empty, both correctly holding no ids, and both routine. Stopping on either would be a check
 firing on correct content.
+
+**A `[CDF#n]` corpus that is absent altogether is the third ordinary state, and it is not the
+unreadable one.** `commands/brd-interview.md` writes `code-defect-log.md` only where a round raised
+an entry, so a package whose decisions turn on no code defect ships no log at all — and §1.1's row
+for it is conditional for that reason. An absent corpus file is not a corpus holding record-shaped
+content that parsed to zero, so it never reaches `BRD_PACKAGE_CORPUS_UNREADABLE`; a `defects` field
+naming a `[CDF#n]` with no log in the bundle fails relation 1 as an ordinary dead citation, which is
+the correct outcome and needs no stop of its own.
 
 **The distinction is drawn on record-shaped content because of what the failure actually is.** What
 `workflows-core:grounding-format` §2.1 warns about is a **reader** that cannot see records that are

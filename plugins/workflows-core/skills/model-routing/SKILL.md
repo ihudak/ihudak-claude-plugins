@@ -1,6 +1,6 @@
 ---
 name: model-routing
-description: Load the dev-workflows task-complexity classification rules and model fallback chain. Invoked at the classification step by the 21 pipeline commands (`/implement`, `/document`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/docs-profile`, `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, `/ready`, `/frames`, and the six `/brd-*` commands), so every pipeline command across the family loads one copy of the rules from one named entry point, rather than each citing the file by its own path.
+description: Load the dev-workflows task-complexity classification rules and model fallback chain. Invoked at the classification step by the 21 pipeline commands (`/implement`, `/document`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/docs-profile`, `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, `/ready`, `/frames`, and the BRD-to-PRD route's `/brd-intake`, `/brd-split`, `/prd-ground`, `/brd-interview`, `/brd-package` and `/brd-reconcile`), so every pipeline command across the family loads one copy of the rules from one named entry point, rather than each citing the file by its own path.
 user-invocable: false
 allowed-tools: Read
 ---

@@ -241,10 +241,11 @@ resolved folder's own.
 which is exactly why §6.2 rebuilds from the directory rather than from what a run copied: an idempotent
 re-run copies nothing at all, and an index written from "each image copied" would resolve to no rows.
 
-**Writing this index does not mean `/idea` design grounding has shipped.** Nothing on this route
-dispatches `design-grounder`, produces a `[DG#n]`, or reaches `grounding-verifier` — the index makes
-the frame set *readable*, not reconciled. That capability remains deliberately unbuilt and is a
-decision of its own; `workflows-core:grounding-format` §6.1 says so, and this section keeps it true.
+**Writing this index is still not grounding it.** `/idea` dispatches no `design-grounder`, produces no
+`[DG#n]`, and reaches no `grounding-verifier` — the index makes the frame set *readable*, not
+reconciled. What reconciles it is `/prd-ground`, on a later, separate run over the same PRD folder,
+against this same PRD's `[AC#n]`/`[FR#n]`/`[US#n]` rows; `workflows-core:grounding-format` §6.1 says
+so, and this section keeps `/idea`'s own part of that — writing the index, nothing more — true.
 
 ### The collision rule
 

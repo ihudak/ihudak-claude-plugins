@@ -66,7 +66,7 @@ No reviewer, and nothing to review — an index states what a directory holds. T
 
 ## What it is not
 
-**Indexing makes frames readable; grounding makes them `[DG#n]` findings.** `/frames` dispatches no `design-grounder`, produces no finding, cites no requirement, and never reaches `grounding-verifier` — both of those agents ship in the sibling `product-workflows` plugin and are dispatched only by its `/product-workflows:prd-ground`. Design grounding on the `/product-workflows:idea` route remains deliberately unbuilt — §6.1 says so, and this command keeps it true. The one command that grounds a frame set is `/product-workflows:prd-ground`, on the BRD route.
+**Indexing makes frames readable; grounding makes them `[DG#n]` findings.** `/frames` dispatches no `design-grounder`, produces no finding, cites no requirement, and never reaches `grounding-verifier`, on either route — both of those agents ship in the sibling `product-workflows` plugin and are dispatched only by its `/product-workflows:prd-ground`. Design grounding on the `/product-workflows:idea` route ships in this same increment as the BRD route's own — §6.1 says so — and this command still keeps no part of it: `/frames` reconciles nothing on either route, only ever building the index a grounding pass then reads. The one command that grounds a frame set is `/product-workflows:prd-ground`, now on both routes.
 
 It is also not `/design-index`, deliberately. `/dev-workflows:design` is the engineering-design workflow, and a name adjacent to it would send an operator who wanted an index into the wrong command. *Frame set* and *frame* are §6.1's own vocabulary.
 

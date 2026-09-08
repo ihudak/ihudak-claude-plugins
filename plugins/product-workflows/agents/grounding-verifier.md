@@ -39,7 +39,7 @@ out or move the repository.
 ```yaml
 finding:
   id:       <CG#n> | <DG#n>
-  claim:    <the BR#n premise under test, as the original finding recorded it>
+  claim:    <the requirement premise under test, id and text as the original finding recorded them — a BR#n on the BRD route, an AC#n/FR#n/US#n on the idea route>
   class:    <1-4, DG#n only — read up front, it names which reconciliation question to re-derive>
   verdict:  <the original finding's verdict — read only AFTER re-deriving your own>
   evidence: <the original finding's evidence — DO NOT READ before Process step 2>
@@ -51,7 +51,8 @@ repo_path:     <absolute path to the repository the finding is pinned against �
                 finding that rests on code, see the table below>
 frame_set_dir: <absolute path to the exported frame set the [DG#n] was reconciled against —
                 required for every [DG#n], see the table below>
-inventory:     <every [BR#n] the BRD claims, id and text — required for every [DG#n], see the
+inventory:     <every requirement row the caller claims, id and text — a BR#n on the BRD route, an
+                AC#n/FR#n/US#n on the idea route — required for every [DG#n], see the
                 table below. This is the same list design-grounder was handed; a [DG#n] is a
                 reconciliation between the frame set and this inventory, and cannot be
                 re-derived against only one side of it>
@@ -64,8 +65,8 @@ provenance: own-run | inherited     # own-run: produced earlier in this same wor
 
 A `[CG#n]` and a class-4 `[DG#n]` rest on code, and cannot be re-derived without a repository
 pinned to a commit. A `[DG#n]` of class 1, 2, or 3 rests on the design alone
-(`workflows-core:grounding-format` §6: those three are "settled entirely … from the frame set and the BRD
-text"), so there is no repository to pin and no commit to demand — demanding one would make every
+(`workflows-core:grounding-format` §6: those three are "settled entirely … from the frame set and the
+requirement text"), so there is no repository to pin and no commit to demand — demanding one would make every
 design-only finding permanently unverifiable, and a finding that can never carry an outcome can
 never become evidence (§8).
 
@@ -76,9 +77,9 @@ never become evidence (§8).
 | `[DG#n]`, `class: 1`, `2`, or `3` | design only | `frame_set_dir` **and** `inventory` |
 
 **`inventory` is required for every `[DG#n]`, and a class-1 finding is why.** A class-1 finding
-asserts *"this frame shows a field the BRD never requires"* — a **negative over the whole
+asserts *"this frame shows a field no requirement asks for"* — a **negative over the whole
 requirement set** — and `design-grounder` writes its `claim` as the literal `none — frame-only`,
-because there is no `[BR#n]` to name. Handed the frames and that claim and nothing else, this agent
+because there is no requirement id to name. Handed the frames and that claim and nothing else, this agent
 cannot re-derive the assertion at all: it can see the field on the frame and has no set to establish
 the absence against. It correctly returns `NOT-PROVABLE` and says why, which is the contract working
 — but the finding is then permanently unverifiable, and a finding that can never carry an outcome
@@ -126,11 +127,11 @@ An input that is not required is still honoured when given; it is never silently
    A class-4 `[DG#n]` does both, in that order — it is the one finding with a foot in each source.
 
 2. **Re-derive the claim independently, before reading `finding.evidence` (or, for a class-4
-   `[DG#n]`, `finding.cites`) at all.** Start from `finding.claim` — the `[BR#n]` premise — the same
+   `[DG#n]`, `finding.cites`) at all.** Start from `finding.claim` — the requirement premise — the same
    way `code-grounder` or `design-grounder` would starting cold: derive your own search terms, read
    the matching files or frames fully, and reach your own verdict from the closed set in
    `workflows-core:grounding-format` §3 — from the repository for a `[CG#n]`, and from `frame_set_dir`'s
-   indexed frames and the `[BR#n]` text for a `[DG#n]`, re-running that finding's own
+   indexed frames and the requirement text for a `[DG#n]`, re-running that finding's own
    reconciliation question per §6. For a
    class-4 `[DG#n]`, "independently" covers both halves of the claim: whether the frame implies the
    capture (design-side, from the frame set) *and* whether the pinned code can perform it

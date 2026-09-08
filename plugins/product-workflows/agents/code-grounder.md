@@ -1,6 +1,6 @@
 ---
 name: code-grounder
-description: Grounds specific BRD claims against a single code repository at a pinned commit — one [CG#n] finding per claim, with file:line evidence and a verdict from the closed set. Answers "is this claim true of this commit?", not "what capability exists?" — that is code-scanner. Read-only; one instance per repo, up to 4 concurrent. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Grounds specific requirement claims (a BRD's [BR#n] rows, or a PRD's [AC#n]/[FR#n]/[US#n] rows) against a single code repository at a pinned commit — one [CG#n] finding per claim, with file:line evidence and a verdict from the closed set. Answers "is this claim true of this commit?", not "what capability exists?" — that is code-scanner. Read-only; one instance per repo, up to 4 concurrent. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Bash", "Skill"]
 ---
 
@@ -11,8 +11,11 @@ six verdicts, the `baseline-integrity` procedure, and the horizons. Follow that 
 restate it here. Invoke `Skill(skill: "workflows-core:reference", args: "read-only-repos")` and read it for the read-only
 posture toward a mounted repository.
 
-Ground a list of specific `[BR#n]` claims against one code repository, pinned to one commit. The
-caller — `/prd-ground` — dispatches one instance per repository, up to 4 concurrent.
+Ground a list of specific requirement claims against one code repository, pinned to one commit. The
+caller — `/prd-ground` — dispatches one instance per repository, up to 4 concurrent. Each claim carries
+a requirement identifier and its text, as the caller supplied them — `[BR#n]` on the BRD route,
+`[AC#n]`, `[FR#n]` or `[US#n]` on the idea route. Resolve an id against the list the caller handed you;
+never parse one out of the claim text.
 
 **Distinction from `code-scanner`.** That agent answers *what capability exists for this theme?* —
 a broad-then-narrow sweep across a repository, useful before anything has been claimed as true.
@@ -27,7 +30,7 @@ agent returns is a capability inventory.
 repo_path: <absolute path to a local clone, e.g. /workspace/<repo-name>>
 commit:    <the commit SHA every finding must be pinned to>
 claims:
-  - id:   <BR#n>
+  - id:   <the requirement identifier as the caller supplied it — BR#n, AC#n, FR#n, or US#n>
     text: <the requirement's premise, verbatim or closely paraphrased>
 refresh:
   pull: false   # default false — grounding checks a pinned commit, not the tip; a caller that
@@ -58,7 +61,7 @@ repository, a commit, or a claim to have something to ground.
    <commit>`, `git ls-tree -r --name-only <commit>`) otherwise, so every citation describes content
    at the pinned commit rather than an unrelated working tree.
 
-4. **Search for each claim**, starting from the `[BR#n]` premise itself, not from a guess at the
+4. **Search for each claim**, starting from the requirement premise itself, not from a guess at the
    mechanism that would satisfy it. Derive search terms from the claim text (symbols, config keys,
    route names, column names it implies); read the matching files fully enough to know whether the
    matched line actually bears on the premise, not merely whether it contains a matching token.
@@ -105,7 +108,7 @@ repo_path: <absolute path as received>
 commit: <the resolved commit this run grounded against>
 findings:
   - id: CG#<n>
-    claim: <BR#n> — <the claim text as given>
+    claim: <the requirement id as given — BR#n, AC#n, FR#n, or US#n> — <the claim text as given>
     verdict: CONFIRMED | AMENDED | REWRITTEN | FALSE-FRIEND | NOT-PROVABLE | SUPERSEDED
     evidence:
       - path: <relative to repo_path>

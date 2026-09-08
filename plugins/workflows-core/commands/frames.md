@@ -19,9 +19,9 @@ resolved folder.
 
 **`/frames` is not design grounding, and must not be mistaken for it.** Indexing makes frames
 *readable*; grounding makes them `[DG#n]` findings. This command dispatches no `design-grounder`,
-produces no finding, cites no `[BR#n]` or `[CG#n]`, and never reaches `grounding-verifier`.
-`/idea`-route design grounding remains deliberately unbuilt, §6.1 says so, and this command keeps
-that true. The one command that grounds a frame set is `/prd-ground`, on the BRD route.
+produces no finding, cites no requirement id or `[CG#n]`, and never reaches `grounding-verifier`,
+on either route. The one command that grounds a frame set is `/prd-ground`, now on both routes — the
+BRD route's `[BR#n]` inventory and the idea route's PRD-level `[AC#n]`/`[FR#n]`/`[US#n]` inventory.
 
 **The name.** `design/` and *frame set* are §6.1's own vocabulary, so `/frames` names what it acts on.
 It is deliberately not `/design-index`: `/design` is the engineering-design workflow, and a name

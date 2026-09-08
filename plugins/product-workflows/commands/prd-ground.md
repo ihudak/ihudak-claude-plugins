@@ -672,7 +672,8 @@ different system is exactly what `NOT-PROVABLE` exists to say, not a reason to p
   > "repo_path: [resolved absolute path from Phase 1]
   > commit:    [Phase 3 pinned commit for this repo]
   > claims:
-  >   - id:   [BR#n]
+  >   - id:   [the requirement id exactly as Phase 0 step 8 (or 8i) recorded it — BR#n on route:
+  >            brd, AC#n/FR#n/US#n on route: idea]
   >     text: [requirement text]
   >   [… every claim from Phase 0 step 8]
   > refresh:
@@ -695,7 +696,8 @@ own numbers as the BRD's numbering.
 subdirectory is a candidate exported frame set. The location and the index requirement are
 `workflows-core:grounding-format` §6.1's, cited here rather than restated —
 `design/` is a reserved subdirectory of any folder under `specifications/`, so the same path resolves
-whether this run stands on a BRD folder or on the PRD folder a slice is. None found → skip, reporting
+whether this run stands on a BRD folder, on the PRD folder a slice is, or — on `route: idea` — the
+PRD folder `/create-prd` wrote directly. None found → skip, reporting
 why (`--no-design` given, or no `design/` folder exists yet for this BRD). One or more found → dispatch one instance per frame set, same ≤4
 concurrent discipline, **after** the code-grounder batch above has fully returned — this agent's
 fourth reconciliation class cites a `[CG#n]`, so the findings it needs must already exist. Under
@@ -706,7 +708,8 @@ grounding at all:
 → Agent (subagent_type: "product-workflows:design-grounder", model: `<detection_model>`):
   > "frame_set_dir: [absolute path to this frame set]
   > inventory:
-  >   - id:   [BR#n]
+  >   - id:   [the requirement id exactly as Phase 0 step 8 (or 8i) recorded it — BR#n on route:
+  >            brd, AC#n/FR#n/US#n on route: idea]
   >     text: [requirement text]
   >   [… every claim from Phase 0 step 8]
   > cg_findings:
@@ -771,7 +774,8 @@ to the Opus chain (`review_model`, frontmatter-pinned, no override):
 → Agent (subagent_type: "product-workflows:grounding-verifier", model: `<review_model>`):
   > "finding:
   >   id:       [CG#n or DG#n]
-  >   claim:    [the BR#n premise as the finding recorded it]
+  >   claim:    [the requirement premise as the finding recorded it — a BR#n on route: brd, an
+  >              AC#n/FR#n/US#n on route: idea]
   >   class:    [1-4 — DG#n only, omit for CG#n]
   >   verdict:  [the finding's verdict]
   >   evidence: [the finding's evidence list]
@@ -810,7 +814,7 @@ that could drift from it. Two consequences for this dispatch:
   inventory, so handing over only the frames gives the verifier one side of the comparison. A
   **class-1** finding cannot be re-derived at all without it: it asserts that no requirement asks
   for what the frame shows — a negative over the whole set — and its `claim` is the literal
-  `none — frame-only`, so there is no `[BR#n]` in the record to stand in for the set. The verifier
+  `none — frame-only`, so there is no requirement id in the record to stand in for the set. The verifier
   correctly returns `NOT-PROVABLE`, and the finding is then permanently unverifiable and can never
   become evidence (`workflows-core:grounding-format` §8). This dispatch omitted the field, which is
   where that dead end came from.

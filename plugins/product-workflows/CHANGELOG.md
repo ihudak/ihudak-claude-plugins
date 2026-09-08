@@ -4,6 +4,25 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.3.3] — 2026-09-08
+
+### Fixed
+
+- **`/brd-reconcile` reaches a dependent BRD's `code-defect-log.md`.** A `[CDF#n]` declares its
+  dependency by a field — `blocked_on: <BRD-KEY>/<decision-id>` — exactly as a decision does with
+  `conditional_on`, but the propagation sweep walks decisions and `[AS#n]` only, and the stale
+  cross-reference sweep stopped at the parent's folder. Inside the parent the log was always swept;
+  outside it, a defect blocked on a decision that had just moved was reached by neither. The stale
+  sweep's **first** search — the literal-id one — now also runs over the propagation sweep's
+  already-resolved dependent set. No new traversal and no new outcome: a hit keeps `needs-a-human`,
+  because every disposition on that log is the operator's.
+- **The write surface deliberately did not move with it.** Outside the parent's folder the only
+  outcomes are `still-true` and `needs-a-human`, never `updated`, and the second search — the prose
+  one — does not follow at all: it cannot be reduced to a pattern and needs a reader who knows what
+  the old position claimed. Two claims moved in the same change rather than being left to go stale:
+  the sweep's opening now says the parent root bounds everything except search 1, and the guard's
+  *"why this sweep's root being the parent's folder is safe"* became **writing root**.
+
 ## [3.3.2] — 2026-09-08
 
 ### Removed

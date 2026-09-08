@@ -82,9 +82,11 @@ them is.
    copy from which a later package could be rendered correctly.
 
 4. **The plugin-free scan runs over the finished text, not over the templates.** It is the last
-   thing the *Render the customer prompt*, *Render the delivery note* and *Assemble the bundle*
-   phases each do, and it inspects what will actually be sent. A scan over the templates would pass
-   on a prompt whose leak arrived through an interpolated document title.
+   thing the *Render the customer prompt* and *Render the delivery note* phases each do; in
+   *Assemble the bundle* it is the last thing rule 7 does, immediately followed by rule 8's
+   citation-resolution check (`bundle-packaging.md` §6) as that phase's own last pass. It inspects
+   what will actually be sent, wherever it sits: a scan over the templates would pass on a prompt
+   whose leak arrived through an interpolated document title.
 
 5. **A scan hit stops the run; it never sanitises.** The command does not strip the offending token
    and continue. A citation that reached the prompt reached it because some part of the package
@@ -707,8 +709,10 @@ committed — it is the customer having written the token themselves, most plaus
 told what tooling the delivery team uses. Report it, name the file and the token, and **let the
 operator decide** whether to ship: stopping outright would make that BRD permanently unpackageable,
 since the one repair the rule allows is not editing the file, and every other document's hit stays a
-hard stop exactly as above. This is the only exemption, and it exists because the alternatives are a
-deadlock or an edit to the customer's own document.
+hard stop exactly as above. **This is the plugin-free scan's only exemption** — the
+citation-resolution check (Phase 8 rule 8, `bundle-packaging.md` §6) carries a second exemption of
+the identical shape for this same file, and a third of a different shape for `[SR#n]` (§6.3) — and
+it exists because the alternatives are a deadlock or an edit to the customer's own document.
 
 Identifiers are **not** in the scan's classes and are meant to travel: `[BR#n]`, `[CG#n]`, `[DG#n]`,
 `[VD#n]`, `[AS#n]` and `[SR#n]` are how the returned review cites the package's own claims without
@@ -818,7 +822,8 @@ self-review is free of them while being the most internal document this command 
    for re-review*. The manifest is a bundle document; the delivery note is not.
 7. **Run the plugin-free scan over every document in the finished bundle**, and stop on any hit. The
    scan runs here as well as over the prompt because a leak can arrive through a copied document as
-   easily as through a rendered part, and this is the last point at which anything is still ours.
+   easily as through a rendered part, and together with rule 8's citation-resolution check, this
+   pair is the last point at which anything is still ours.
 8. **Run the citation-resolution check over every document in the finished bundle**, per
    `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6, and stop on any hit. It runs here and
    nowhere earlier because both of its inputs — the identifier corpus and the set of bundle

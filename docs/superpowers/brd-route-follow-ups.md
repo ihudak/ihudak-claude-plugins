@@ -311,6 +311,23 @@ register created to fix it contained the same unrecorded claim.
 
 ## E-5 — a `[CDF#n]`'s `blocked_on` is outside `/brd-reconcile`'s propagation sweep
 
+**CLOSED 2026-09-08 in `product-workflows` 3.3.3 — and the measurement falsified most of this entry before the fix was written.** Three results, none of them derivable from the text below.
+
+1. **"Goes stale invisibly" is false inside the parent tree.** Phase **11**'s stale cross-reference sweep — not Phase 10 — names *"the code-defect log"* in its scope, searches every changed id as text whitespace-tolerantly, and roots at *"the parent's folder — the source-owning BRD's directory and every slice inside it."* A `code-defect-log.md` hit already took `needs-a-human`, whose stated reason is verbatim E-3's rule. The entry named the wrong sweep and therefore the wrong severity.
+2. **`prerequisite` is a third cross-BRD pointer and is deliberately outside both sweeps.** A `will-change` finding stays a true record of its pinned commit and is superseded by a later finding at a later commit (`workflows-core:grounding-format` §5) — there is nothing for a sweep to reopen. So this was one field, not three. That distinction now ships beside the fix, because it is the test for any future widening: **`blocked_on` moves a *disposition*, which is a position, and reopening positions whose ground has shifted is what these sweeps are for; `prerequisite` moves nothing.**
+3. **The design question the entry called open was already answered.** *"Who re-settles it, through which channel"* — `needs-a-human`, which *"travels into what still needs a human"*, a section of `reconciliation-<date>.md` that the final report prints **in full**. No new channel was needed and none was added.
+
+**So the real gap was one shape: a `[CDF#n]` in a dependent BRD outside this parent's tree.** Phase 10 reaches such a BRD (its declared-dependents scan covers `specifications/` and three levels down) but walks decisions and `[AS#n]` only; Phase 11 reaches the log but stops at the parent. **The fix reuses both**: Phase 11's *first* search — the literal-id one — also runs over Phase 10's already-resolved swept set. No new traversal, no new outcome, no fifth disposition (Phase 10's four are closed by design).
+
+**Two claims moved with it, in the same change, because a widening that leaves its own justification standing is the defect class this repo tracks.** The sweep's opening now says the parent root bounds everything *except* search 1, and *"the guard is why this sweep's root being the parent's folder is safe"* became **writing root** — since search 1 now reads wider than the sweep writes. **The write surface deliberately did not move**: outside the parent the only outcomes are `still-true` and `needs-a-human`, never `updated`, so the cross-BRD write guard's own table stays true as written. The second search does not follow either — it cannot be reduced to a pattern and needs a reader who knows what the old position claimed, which is affordable over one parent and is not over the tree.
+
+**Carried out as its own entry, deliberately: E-8.** The entry's recommended candidate answer assumed `/brd-interview` would re-ask; it does not read the reconciliation record at all. That is consistent rather than broken — but if it *is* wrong, it is wrong on the within-parent common path first, so it is decided there and not under this entry's exotic case.
+
+---
+
+### The original entry, as filed
+
+
 **Parked deliberately during E-3, not a slip.** `code-defect-log-format.md` §5 gives `blocked_on` the same `<BRD-KEY>/<decision-id>` shape as `conditional_on`, but `/brd-reconcile` Phase 10's propagation sweep walks only records carrying `conditional_on`. So a `[CDF#n]` blocked on another BRD's decision goes stale invisibly when that decision moves — verbatim the failure `decision-register-format` §5 argues `conditional_on` exists to prevent.
 
 **Why it was not folded into E-3.** A sweep that *finds* a stale `blocked_on` needs a writer for it in `/brd-reconcile`, and E-3 closed that command against unilateral writes to the log precisely because the operator owns every disposition and the customer channel must not reach one. So the fix is a design question — who re-settles a scope condition when its prerequisite moves, and through which channel — not a wording change. It needs its own brainstorm.
@@ -323,6 +340,20 @@ register created to fix it contained the same unrecorded claim.
 - **The strongest candidate answer already exists in the tree and should be the brainstorm's starting point rather than a mid-session discovery.** E-3 taught `/brd-interview` to **re-disposition** an existing `[CDF#n]` in a later round (`disposition` and `blocked_on` only; `id`, `statement`, `behaviour`, `intent`, `intent_basis` and `round` are immovable). So the shape that fits the existing writer model is: the sweep **reports** a stale `blocked_on` and writes nothing, and the operator re-settles it in the next `/brd-interview` round. That preserves "one writer" and needs no new channel. Test it against the case where no further round is planned before packaging — that is where it may fail.
 - **Measure whether this is live before designing for it, the way E-2's severity correction had to be.** A `[CDF#n]` reaches the sweep only where its `blocked_on` carries the **qualified** `<BRD-KEY>/<decision-id>` form; `code-defect-log-format.md` §5's other sanctioned spelling is prose naming no bracketed identifier, which has nothing to sweep and never goes stale in this way. So the defect's whole surface is qualified-form entries under a prerequisite BRD whose decisions can move — the same precondition `conditional_on` already has. It may be narrower than the entry above implies.
 - **Settle G3-4's remaining open question first.** Its `/prd-ground` legacy-fallback bullet is marked *reachability unproven*: a folder whose `prd.md` is present but does not assert what the branch expects. If it proves reachable it is another blocker, and it is bounded work. Knowing that before E-5 is planned beats discovering it mid-increment — the same argument this ledger already makes for measuring a gate's trigger before building it.
+
+---
+
+## E-8 — a `needs-a-human` item has no mechanical carry-forward into the next interview round
+
+**Raised 2026-09-08 while measuring E-5, and deliberately not folded into it.**
+
+`/brd-reconcile`'s stale cross-reference sweep sends a hit it may not correct to `needs-a-human`, which *"travels into what still needs a human"* — a section of `reconciliation-<date>.md`, printed **in full** in the run's final report. For a `code-defect-log.md` hit that is the whole channel: **`/brd-interview` does not read the reconciliation record**, verified — its only `reconciliation` mention is an unrelated `[DG#n]` sense — and its re-disposition trigger fires on an entry still `open`, or `conditional` on a `blocked_on` **this round has settled**. A `blocked_on` settled by *another* BRD's reconciliation is neither. So the operator carries it between runs by reading a report.
+
+**This is very possibly correct, and the entry says so.** The section is named *what still needs a human*; it exists precisely to hold what no command may act on, and E-3 wrote two carve-outs to stop a sweep driving a disposition. Teaching the interview to prompt from another command's sweep output is adjacent to reopening that, and needs its own argument rather than inheriting one.
+
+**What has to be decided, and on which evidence.** Whether a report line is a strong enough guarantee that a `conditional` `[CDF#n]` is re-settled before packaging — or whether the trigger should widen to include an entry the last reconciliation flagged. **Decide it on the within-parent common path**, which has behaved this way since E-3 shipped; E-5's cross-parent case is the exotic instance and would mis-size it. Test the answer against the case the E-3 notes already flag: **no further interview round is planned before packaging**, which is where a report-carried item is likeliest to be lost.
+
+**Not an S18 blocker as filed** — nothing misbehaves, and the item does reach a committed artifact and the operator. It is a question about the strength of a guarantee.
 
 ---
 

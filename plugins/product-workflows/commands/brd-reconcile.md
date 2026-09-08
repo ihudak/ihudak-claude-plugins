@@ -1074,7 +1074,9 @@ re-run that skipped it would silently refuse to.
 
 ## Phase 11 — The stale cross-reference sweep
 
-**The sweep is not optional, and it is not a grep.** Its root is the **parent's** folder — the
+**The sweep is not optional, and it is not a grep.** Its root is the **parent's** folder — and that
+root bounds everything here except search 1's literal-id pass, which also reads the previous phase's
+already-resolved dependent set (below). The root is the
 source-owning BRD's directory and every slice inside it — so that a *sibling* slice still asserting a
 superseded position is reached. Every markdown file under it is in scope:
 the seeds, `slices.md`, the inventory, the ledger, the grounding files, every register, the
@@ -1086,6 +1088,39 @@ code-defect log, every round record, and every dated snapshot.
    **whitespace-tolerantly** — an identifier is routinely broken across a line wrap in prose, and a
    search that only matched it on one line would report a clean tree over an artifact that names it
    twice.
+
+   **This first search alone also runs over the previous phase's swept set**, wherever a BRD in it
+   falls outside this root — the declared dependents that scan found anywhere under `specifications/`,
+   and the BRDs this ledger delegates to. No new traversal: that set is already resolved, and this
+   reads the same files in it. **The second search does not follow**, deliberately: it cannot be
+   reduced to a pattern and needs a reader who knows what the old position claimed, which is
+   affordable over one parent's folder and is not over the whole tree.
+
+   **What this reaches that nothing else did is the dependent's `code-defect-log.md`.** A `[CDF#n]`
+   declares its dependency by a field — `blocked_on: <BRD-KEY>/<decision-id>`
+   (`${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §5) — exactly as a decision declares
+   one with `conditional_on`, but the previous phase's citation pass walks decisions and `[AS#n]`
+   only, and this sweep's root stops at the parent. Inside the parent the log was always swept and a
+   hit always took `needs-a-human`; outside it, a defect blocked on a decision that has just moved was
+   reached by neither. **The outcome is unchanged and no new one is added**: the row below sends every
+   `code-defect-log.md` hit to `needs-a-human`, because every disposition on that log is the operator's
+   and `/product-workflows:brd-interview` is its only writer. What travels is the finding, not a
+   correction.
+
+   **Outside this root the only outcomes available are `still-true` and `needs-a-human`; `updated` is
+   not.** This widening is detection, and the write surface does not move with it: correcting a
+   sentence in an arbitrary dependent's prose is a wider write path than anything here has argued for,
+   and it is not bought by reaching that file to look at it. So the guard table's *stale
+   cross-reference sweep* row stays true exactly as written — `updated` corrections still go only into
+   artifacts under the parent.
+
+   **Why `blocked_on` belongs here and a `will-change` finding's `prerequisite` does not**, which is
+   the distinction to hold if this is ever widened again: a finding's `prerequisite` moving does not
+   make the finding untrue — it stays a true record of its pinned commit and is superseded by a later
+   finding at a later commit (`workflows-core:grounding-format` §5), so there is nothing for a sweep to
+   reopen. A `[CDF#n]`'s `blocked_on` moving does not make the defect untrue either — but it moves the
+   **disposition**, which is a position, and reopening positions whose ground has shifted is what these
+   two sweeps exist for.
 2. **Prose asserting a now-superseded position, with no id in it at all.** For each position this run
    changed, search for the *claim the old position made*, in the words these artifacts use for it,
    and read every hit. This half cannot be reduced to a pattern, and skipping it is what the sweep
@@ -1103,7 +1138,8 @@ code-defect log, every round record, and every dated snapshot.
 | `still-true` | the sentence survives the change; **why** it survives is recorded, because "I looked and it was fine" and "I did not look" leave the same trace otherwise |
 | `needs-a-human` | the correction is a judgement this run cannot take, or the hit is inside a dated snapshot; it travels into *what still needs a human* |
 
-**The guard is why this sweep's root being the parent's folder is safe.** Reaching a sibling slice is
+**The guard is why this sweep's writing root being the parent's folder is safe** — and *writing* is
+the word that carries it, since search 1 above reads wider than that. Reaching a sibling slice is
 the whole point of rooting it there — a superseded position asserted in a sibling's seed is invisible
 from this BRD's own folder — but reaching it and *writing* into it are two different acts, and the
 second is a cross-BRD write like any other. Without the guard this sweep would be the widest

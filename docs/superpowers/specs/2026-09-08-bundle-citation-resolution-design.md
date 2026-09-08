@@ -28,7 +28,11 @@ Three failures were observed in shipped bundles:
 
 **A prerequisite package is copied into the bundle wholesale** (Phase 2 step 3, Phase 8 rule 5, `bundle-packaging.md` §1.1), carrying its own grounding files, its own inventory and its own register — each numbered from 1 in its own corpus. So one bundle can hold two different `[CG#7]`s.
 
-Bundle documents therefore **partition by provenance**: this package's documents, and each copied prerequisite package's subtree. Each partition parses its own corpus from its own files:
+Bundle documents therefore **partition by the `<BRD-KEY>` each one's own filename carries**. `commands/brd-package.md`'s *Assemble the bundle* rule 1 gives every bundle document a filename carrying its `<BRD-KEY>`, unique within the bundle, precisely so documents can be located by **filename search, never by path** — and that same guarantee is what draws the partition boundary.
+
+**An earlier draft partitioned "by subtree", and that was wrong twice over.** It told an executor to use a path inside a bundle whose entire addressing convention is path-free (§1 rule 4), and it made the boundary a property of where a file sits rather than of what it says — so a future change that flattened the bundle would silently resolve every id against one corpus, **and would then pass**. Partitioning on the key in the filename removes that failure mode rather than mitigating it: a flattened bundle partitions identically, because the discriminator travels in the name.
+
+Each partition parses its own corpus, and **each corpus file is located by filename search within the partition, never at the working path named below**. The working names identify *which* document each corpus is; inside the bundle that document carries its `<BRD-KEY>-` prefixed name:
 
 | Class | Corpus file, within the partition |
 |---|---|
@@ -105,4 +109,4 @@ Stated in the reference, because a green gate here is otherwise read as a clean 
 
 **Relation 3's second shape is a closed list, and a closed list goes stale.** It enumerates the working filenames §1.1 admits or excludes by name. A document added to §1.1 without a corresponding entry here is invisible to relation 3 when it is named by its working filename — the exact defect the relation exists to catch. The implementation therefore derives the list from §1.1's own table rather than restating it, and §6 says so where someone editing §1.1 will meet it.
 
-**The partition boundary is derived from where a document sits, not from what it says.** A prerequisite package's documents are identified by the subtree they were copied into. If a future change flattens the bundle, relation 1 silently starts resolving every id against one corpus — and would then pass, not fail. The implementation asserts the partition is non-trivial whenever a prerequisite package was copied in.
+**The partition depends on rule 1 holding.** The boundary is the `<BRD-KEY>` in each document's filename, so it survives flattening, renaming and re-archiving — but a bundle document that reached the bundle *without* its key-carrying name has no partition, and relation 1 cannot place it. That is a rule-1 violation before it is a §6 problem, and §6 reports it as one rather than guessing a partition: an unkeyed bundle document stops the run with `BRD_PACKAGE_DEAD_CITATION` naming the document, because every id in it is unresolvable by construction.

@@ -16,7 +16,7 @@ A role-based pipeline of 13 slash commands for the product-definition side of th
 | PE | [`/epics`](docs/commands/epics.md), [`/specify`](docs/commands/specify.md) | Break a PRD into Epics, then author an org-standard specification through a grill. |
 | PM *(effort proposal — optional, gates nothing)* | [`/prd-proposal`](docs/commands/prd-proposal.md) | Price one PRD folder: work packages, hours by role, a range from per-package confidence, every driver evidenced. Graded by readiness rather than gated on an ARD or a specification. |
 
-Twelve agents (see [Agents](docs/reference/agents.md)) carry the BRD grounding and reconciliation, PRD/ARD/spec review, and Epic writing and review these commands share. Eleven reference pages (see [References](docs/reference/references.md)) define the BRD, code-defect-log, decision-register, coverage-ledger, customer-review, idea, ARD, specification and effort-proposal artifact formats.
+Thirteen agents (see [Agents](docs/reference/agents.md)) carry the BRD grounding and reconciliation, PRD/ARD/spec/proposal review, and Epic writing and review these commands share. Eleven reference pages (see [References](docs/reference/references.md)) define the BRD, code-defect-log, decision-register, coverage-ledger, customer-review, idea, ARD, specification and effort-proposal artifact formats.
 
 ## Documentation
 

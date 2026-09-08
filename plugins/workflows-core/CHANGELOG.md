@@ -4,6 +4,59 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.3.0] — 2026-09-08
+
+### Changed — `grounding-format.md`'s finding contract widened to a route-neutral claim, not only a `[BR#n]`
+
+`product-workflows` shipped idea-route grounding: `/prd-ground` now takes its claim list from a
+PRD's own `[AC#n]`/`[FR#n]`/`[US#n]` rows as readily as from a BRD's `[BR#n]` inventory. §1's finding
+definition, §2's finding-record fields, and §6's design-grounding reconciliation classes now speak
+of "a requirement id and its text, as the caller supplies them" rather than assuming `[BR#n]` — the
+BRD-6 lesson applied one level up: a contract that still names one prefix in its own prose is a
+contract whose worked examples keep reproducing it, however route-neutral the field shapes
+underneath already were. `code-grounder`, `design-grounder` and `grounding-verifier` resolve an id
+against the list the caller handed them, on either route, and their own output templates moved to
+match — the same lesson again, since a template the model copies has to change too, not just the
+prose around it.
+
+### Fixed — §6.1's foreclosures asserted an absence this release makes false
+
+Two paragraphs said a `/idea`-route `design/` folder reconciling into evidence was "a known and
+deliberate state, not a gap" and that the capability "remains deliberately unbuilt on every other
+route." Both are now false: `/prd-ground` reads a `design/` frame set as evidence on both routes in
+this release. §6.1 is rewritten against what ships — a class-1/2/3 finding settled from the frame set
+and the requirement text alone, a class-4 citing a `[CG#n]` and inheriting its commit, either route —
+and its writer-versus-consumer paragraph, which forecloses nothing itself but fixes what "consuming"
+a frame set means, is read alongside the correction rather than left to imply the old foreclosure
+still holds. A cosmetic fix travels with it: §1's requirement-identifier clause had an em-dash-bounded
+aside butting straight against a pre-existing parenthetical; the two are now nested rather than
+stacked.
+
+### Changed — `next-phase-offer.md`'s scope paragraph, and `check-docs.sh` check 11, now read a second family glob
+
+`/product-workflows:prd-ground` left the `` `/product-workflows:brd-*` `` family the day its own
+rename shipped — the rename made it stop matching. It still prints an offer naming a downstream
+command whose `require-on-main` gate this same run feeds, exactly as the other five route commands
+do, so it carries the `<merge-clause>` convention too, now under its own glob,
+`` `/product-workflows:prd-*` ``, named in the scope paragraph on the same line as the first. Check
+11's family derivation reads every glob the scope paragraph names rather than only the first, so the
+rename does not silently drop `/prd-ground`'s offers out of the gate it was already subject to — a
+risk this feature's own design flagged as the one item a sweep cannot fix, because it has to be
+designed.
+
+### Fixed — `phase-handoff.md` §2.9 named only two commands sharing the `prd` branch prefix
+
+`/prd-ground` now uses `prefix: prd` on the idea route, which the parenthetical did not name. Fixed
+to read "shared by `/create-prd`, `/update-prd` and, on the idea route, `/prd-ground`."
+
+### Changed — renamed citations swept through the shared reference corpus
+
+`docs-grounding.md`'s consumer list, `read-only-repos.md`'s direct-citation note, `specs-repo-git.md`
+and `phase-handoff.md`'s branch-prefix and producer/consumer tables, `feedback-emission.md`, and
+`workflows-core:frames`'s own command and docs page all cited `/brd-ground` by its old name. Every
+citation now reads `/prd-ground`, and `phase-handoff.md`'s six-consumer / fifteen-producer counts are
+unchanged — the rename moved a name, not a relationship.
+
 ## [1.2.0] — 2026-09-07
 
 ### Fixed — a verifier could disagree with a finding and nothing noticed

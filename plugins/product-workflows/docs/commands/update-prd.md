@@ -40,7 +40,8 @@ Four subagents are dispatched — three of them unconditionally, `docs-grounder`
 - **`<KEY>`** — mandatory; absent or malformed stops the run with `UPDATE_PRD_NEEDS_KEY`.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH` and offers to enter a path or cancel.
 - **The PRD**, at the resolved folder's `prd.md` — the only copy there is, and therefore the base without a freshness test.
-- **Secondary grounding** (all optional and read-only): a frozen specs-repo draft (**prd.md**), any **ard.md**, **specification.md**, and the `@transcript`/notes path(s) passed on the command line. None of these gate the run. Where a discovered **ard.md** or **specification.md** is not on the specs repo's default branch, the Phase 1 confirmation flags it as unapproved — advisory only, never a reason to stop.
+- **Secondary grounding** (all optional and read-only): a frozen specs-repo draft (**prd.md**), any **ard.md**, **specification.md**, `grounding/code-grounding.md` and `grounding/design-grounding.md`, and the `@transcript`/notes path(s) passed on the command line. None of these gate the run. Where a discovered **ard.md**, **specification.md**, or either grounding file is not on the specs repo's default branch, the Phase 1 confirmation flags it as unapproved — advisory only, never a reason to stop.
+- **Grounding findings** (optional, either route) — where `grounding/code-grounding.md` and/or `grounding/design-grounding.md` are discovered, every `[CG#n]`/`[DG#n]` finding on file is read; a finding with no verifier outcome is not evidence and grounds nothing. Carried into the Phase 3 grill with the same **grill-rank** consumption the docs digest uses — the highest-value case is a `[CG#n]` whose verdict says an `[AC#n]` the PRD asks for is already satisfied at the pinned commit, which is scope this update can drop or narrow rather than a defect to raise. Where neither file was discovered, this step is a silent skip.
 - **Documentation grounding** (optional, on by default) — turned off with `--no-docs`; a miss is a silent skip, never a gate.
 - **No repos.** `/update-prd` is cwd-agnostic and product-level — it never mounts or scans code.
 
@@ -52,6 +53,8 @@ Four subagents are dispatched — three of them unconditionally, `docs-grounder`
 - An **archived snapshot** of the prior canonical PRD, written first, before the overwrite, to `<feature-folder>/revisions/<KEY>_<slug>_<YYYYMMDD>.md` (a same-day second revision is suffixed `-2`, `-3`, …).
 - Behind Phase 5's consent choice, both files are committed, pushed, and a pull request opened against the specs repo's default branch.
 - *(The run used to end with a manual reminder to copy the updated body back into a tracker and refresh the export it read from. Neither step exists: the PRD is where every downstream command reads it.)*
+
+**Where `grounding/code-grounding.md` and/or `grounding/design-grounding.md` were discovered, Phase 5 closes the consumption loop**: it sets `consumed_by: PRD` on each `[CG#n]`/`[DG#n]` finding this update actually drew on — never a finding read for context and unused, and never one with no verifier outcome — and stages both grounding files alongside the canonical PRD and its archived snapshot, since an uncommitted consumption record is one no later run can read. **This is the first time `PRD` is written onto a grounding finding record** — [`/create-ard`](create-ard.md) and [`/specify`](specify.md) already write `ARD` and `specification` at their own altitudes, and [`/create-prd`](create-prd.md) already writes `PRD`, but only onto a `decisions.md` decision record on the BRD route, never inside a grounding file, since it reads no `grounding/` file on either route.
 
 ## Gates
 
@@ -77,3 +80,5 @@ The run resolves the feature folder, reads its `prd.md` as the base, grills the 
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `prd-reviewer` runs under.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 7 bookkeeping every run emits.
 - `workflows-core:prd-format` — the canonical structure the PRD is updated and reviewed against.
+- [`/prd-ground`](prd-ground.md) — the optional, ungated run, on either route, whose `[CG#n]`/`[DG#n]` findings this command reads and marks `consumed_by: PRD`.
+- `workflows-core:grounding-format` — the finding record, the six verdicts, and the `consumed_by` field this command is the first to write onto a grounding finding.

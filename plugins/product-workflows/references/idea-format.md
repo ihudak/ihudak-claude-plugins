@@ -113,6 +113,10 @@ the idea arrived, `## Prior art` answers what it must stay consistent with.
 `## Feasibility grounding` — what the code says today about whether this idea is needed and how large it
 is. **Write it when code grounding ran *and* returned at least one finding; omit it entirely
 otherwise** — a grounded run that found nothing writes no empty section and no "nothing found" line.
+**This is `code-scanner`'s scoping sweep, never a `[CG#n]` finding and never verified** — the verified
+pass over this same PRD's `[AC#n]`/`[FR#n]`/`[US#n]` rows is `/prd-ground`, run later and separately,
+and the two are not to be confused: a scan answers *what capability exists for this theme?*, grounding
+answers *is this claim true of this commit?* (`workflows-core:grounding-format` §1).
 
 The section opens with what its claims were true of: a single line naming every grounded repo as
 `<repo>@<scanned_ref>`, taken from `code-scanner`'s `prep.scanned_ref`. Code moves; a finding with no ref

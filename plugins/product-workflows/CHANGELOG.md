@@ -4,6 +4,90 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.0.0] — 2026-09-08
+
+### Changed (breaking) — `/brd-ground` renamed to `/prd-ground`
+
+Every fully-qualified invocation, docs page, and cross-plugin citation must use
+`/product-workflows:prd-ground`; `/brd-ground` no longer exists. The rename is taken now because
+nothing has published — `product-workflows` does not exist on `origin/main` at all — so it costs
+installed users nothing extra, and after a release it would have been a breaking change against a
+name people had learned. It is called out as breaking anyway: a removed command name is breaking
+however unpublished the plugin is, and the version is the one place a reader looks to find out.
+
+**The rule that bounds it, so a future reader does not rename three more commands on the slice
+argument.** `brd-` names the **route**, not the folder kind. Four of the six route commands refuse a
+root — `/prd-ground` (`PRD_GROUND_ROOT_LEVEL`), `/brd-interview`, `/brd-package` and
+`/brd-reconcile`, each with its own `*_ROOT_LEVEL` stop — so "runs on a slice" is the wrong test for
+which one renames: `/brd-intake` and `/brd-split` are route commands that genuinely run at root, and
+interviewing, packaging and reconciling exist only because a customer handed over a BRD — the slice
+they run on is a slice *of* one, and none of them will ever run anywhere else. `/prd-ground` is the
+only one of the six that **leaves the route**: after this release it runs on an idea-route PRD folder
+with no BRD anywhere in its ancestry, where `brd-` was not merely imprecise but false. That is what
+earns it the new name, and nothing else in the six-command route is touched — `code-grounder`,
+`design-grounder`, `grounding-verifier`, `grounding/`, `code-grounding.md`, `design-grounding.md`,
+`baselines.md`, `brd-link.md`, `coverage-ledger.md`, `slices.md`, `brd/` and `brd-reader` all keep
+their names, the first six because they were already route-neutral and the rest because they *are*
+BRD-route artifacts.
+
+### Added — `/prd-ground` now serves the idea route too, optionally and ungated
+
+Idea-route grounding runs after `/create-prd`, once merged, on the same PRD folder — never on a
+root, and never on a resolved `EPIC-` folder (`PRD_GROUND_EPIC_LEVEL`, new). The route is detected
+from the resolved folder, never declared: a `PRD-` folder carrying `brd-link.md` is still the BRD
+route; a `PRD-` folder without one is the idea route. The claim list is built from the PRD's own
+`[AC#n]` and `[FR#n]` rows, plus a `[US#n]` whose story carries neither — `[UC#n]`, `[SM#n]` and
+`[SMC#n]` are excluded, and the run reports the count and the excluded prefixes both before the repo
+prompt and in the Final report, so a clean run is never read as a fully-ground PRD. A PRD with no
+resulting claim stops with `PRD_GROUND_NO_CLAIMS`, naming `/update-prd` as the fix and never
+`/create-prd`, which would rewrite the PRD rather than add acceptance criteria to it. `--depends-on`
+is refused outright on this route (`PRD_GROUND_NO_PREREQUISITES`): a `will-change` horizon needs a
+decision register to freeze a prerequisite's decision in, and the idea route has none, so every
+finding on it is `current`. Five new stops altogether: `PRD_GROUND_EPIC_LEVEL`,
+`PRD_GROUND_NEEDS_PRD`, `PRD_GROUND_PRD_NOT_HANDED_OFF`, `PRD_GROUND_NO_CLAIMS`, and
+`PRD_GROUND_NO_PREREQUISITES`. The branch prefix on this route is `prd/`, shared with `/create-prd`
+and `/update-prd`; the next-step offer names `/create-ard` and `/specify`, with `/update-prd` named
+first, marked `(Recommended)`, wherever a claim came back `SUPPORTED`. Grounding stays optional here
+and nothing gates on it — the run's own Final report says outright when every claim came back a
+verified absence, so a PRD that is greenfield against the resolved repositories reads as one finding
+rather than a wall of absences, and a second run over the same folder is exactly what that headline
+exists to make unnecessary.
+
+### Added — design grounding ships on the idea route in the same release
+
+A class 1, 2 or 3 `[DG#n]` is settled from the frame set and the requirement text alone; a class 4
+cites a `[CG#n]` and inherits its commit. The frames are `/idea`'s own source images, vendored into
+`design/idea-sources/` with their mandatory index — a class-1 finding here reads *this mockup shows a
+screen no `[AC#n]` asks for*, a reconciliation available before `/create-ard` and on no other route.
+A folder with no `design/` at all is the common case, and `grounding/design-grounding.md` is still
+written on every run, carrying the `## Frame sets covered` census — absent always means the file is
+not there, never that the pass was declined.
+
+### Changed — `/create-ard` and `/specify` read grounding wherever the resolved folder holds it, and seed their scans from it
+
+Both commands already knew how to read `grounding/code-grounding.md` and `grounding/design-grounding.md`
+and to stamp `consumed_by` back onto what they drew on — that reading was gated on `brd-link.md`
+being present. The gate is gone: wherever the resolved folder holds either file, on either route, its
+findings are read, stamped `consumed_by: ARD` or `consumed_by: specification`, and — new in this
+release — used to **seed** each command's own theme extraction before it falls back to the
+PRD/Epic-derived themes it always used. A `[CG#n]`/`[DG#n]` whose verdict says a capability is absent
+is a theme worth scanning; one whose verdict says it is present names the code that already
+implements it, directing the scan at it instead of searching blind. Neither command's own
+`code-scanner` fan-out is replaced, made conditional, or put behind a flag — the two answer different
+questions, and a folder with no grounding derives its themes exactly as before this release.
+
+### Added — `/update-prd` reads grounding and gives `consumed_by: PRD` its first writer onto a grounding finding
+
+`/update-prd` now discovers `grounding/code-grounding.md` and `grounding/design-grounding.md` in the
+resolved folder (all optional, read-only, never gating — the same posture as its existing `ard.md`
+and `specification.md` reads) and carries their findings into the grill with the same **grill-rank**
+consumption the documentation digest already uses. Where it draws on a finding to change the PRD, it
+sets `consumed_by: PRD` on that finding — the same write `/create-ard` and `/specify` already make at
+their own altitudes. This is the **first time `PRD` has been written onto a grounding finding
+record**: `/create-prd` already writes `consumed_by: PRD`, but only onto a `decisions.md` decision
+record on the BRD route, never inside a grounding file, since it reads no `grounding/` file on either
+route.
+
 ## [2.2.0] — 2026-09-07
 
 ### Fixed — `/brd-ground` never checked a verifier's outcome against the verdict it re-derived

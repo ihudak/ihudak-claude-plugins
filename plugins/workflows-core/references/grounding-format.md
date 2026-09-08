@@ -20,8 +20,8 @@ three, and `/product-workflows:brd-split`, whose Phase 0 gate turns on §8's ver
 
 Grounding answers one question: **is this specific claim true of this specific commit?** A
 `[CG#n]`/`[DG#n]` finding is always an answer to a premise stated by one requirement row — a BRD's
-`[BR#n]` on the BRD route, a PRD's `[AC#n]`, `[FR#n]` or `[US#n]` on the idea route — (or, for design
-grounding, one such requirement reconciled against one exported frame), checked against a pinned
+`[BR#n]` on the BRD route, a PRD's `[AC#n]`, `[FR#n]` or `[US#n]` on the idea route (or, for design
+grounding, one such requirement reconciled against one exported frame) — checked against a pinned
 revision of a real repository.
 
 This is a narrower question than `code-scanner` answers. `code-scanner` answers **what capability

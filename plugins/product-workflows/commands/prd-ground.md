@@ -1,6 +1,6 @@
 ---
 name: prd-ground
-description: BRD-grounding workflow (PA phase of the BRD-to-PRD route, run once per slice `/brd-split` carves, and again on an already-ground slice a later re-cut gives a new row). Pins every mounted repository to a verified commit, grounds every [BR#n] claim against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and assigns each finding a current/will-change horizon against declared prerequisite BRDs. Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (off with --no-docs, and under --no-code) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. Optional --depends-on persists prerequisites to brd-link.md; --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split as the next step.
+description: Grounding workflow serving both routes into a PRD, its route detected from the resolved folder and never declared — the BRD-to-PRD route's PA phase, run once per slice `/brd-split` carves and again when a re-cut gives a slice a new row; and, optionally and ungated, once after `/create-prd` on the idea route. Pins every mounted repository to a verified commit and grounds every claim in the resolved folder's own claim list — a BRD slice's [BR#n] rows on the BRD route, a PRD's [AC#n]/[FR#n] rows (plus a [US#n] whose story carries neither) on the idea route, excluding [UC#n]/[SM#n]/[SMC#n] on either — against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and, on the BRD route, assigns each finding a current/will-change horizon against declared prerequisite BRDs (--depends-on; refused on the idea route, which has no decision register to freeze one against). Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (off with --no-docs, and under --no-code) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split on the BRD route; on the idea route, /create-ard and /specify, with /update-prd named first wherever a claim came back SUPPORTED.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -992,10 +992,10 @@ section at all. Nothing in this section is ever copied into a finding's `evidenc
 row's `evidence` column ever names a page.
 
 **Derivation matrix.** Resolve whether it runs: an explicit `--derivation-matrix` /
-`--no-derivation-matrix` wins outright; otherwise default it **on** when the BRD inventory reads
+`--no-derivation-matrix` wins outright; otherwise default it **on** when the claim list reads
 as reporting- or data-centric (a judgment call this command makes from the claim text — recurring
 language about reports, dashboards, exports, extracts, or stored/displayed data fields) and **off**
-otherwise. When on, append one implementation-altitude row per data element the inventory asks to
+otherwise. When on, append one implementation-altitude row per data element the claim list asks to
 display or store to `<BRD-dir>/grounding/code-grounding.md`, classed per `workflows-core:grounding-format` §7
 (`EXISTS | DERIVED | NEW-CAPTURE | NEW-CONFIG | PARTNER | DEFERRED | DEPENDENCY`) — appended there
 rather than as a new file, since it is not in this command's produced-artifact set on its own.

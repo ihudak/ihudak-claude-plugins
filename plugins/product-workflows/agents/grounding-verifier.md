@@ -61,6 +61,10 @@ provenance: own-run | inherited     # own-run: produced earlier in this same wor
                                      # earlier run of this workflow
 ```
 
+`finding.claim` and `inventory` both carry an id already paired with its text by the caller — a
+`[BR#n]` on the BRD route, an `[AC#n]`/`[FR#n]`/`[US#n]` on the idea route. Resolve an id against
+the list you were handed; never parse one out of the text.
+
 ### Which inputs are required, and why it depends on the finding
 
 A `[CG#n]` and a class-4 `[DG#n]` rest on code, and cannot be re-derived without a repository

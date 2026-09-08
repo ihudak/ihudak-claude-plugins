@@ -697,11 +697,11 @@ below.
 5. Render the result under a heading of the prompt's own, introduced in one line as the rules the
    returned review must satisfy.
 
-**Part 11 — what this session cannot settle.** And every `[CDF#n]` disposed `out-of-scope`,
-named by id with its `statement`, under one line saying the defect is recorded and this engagement
-will not repair it. A known defect the package will not fix is a limit on what the package can
-promise, and a customer who meets it here can argue about it while the scope is still open — which
-is cheaper for both sides than meeting it after delivery.
+**Part 11 — what this session cannot settle.** Every `[CDF#n]` disposed `out-of-scope`, named by
+id with its `statement`, under one line saying the defect is recorded and this engagement will not
+repair it. A known defect the package will not fix is a limit on what the package can promise, and a
+customer who meets it here can argue about it while the scope is still open — which is cheaper for
+both sides than meeting it after delivery.
 
 ### The plugin-free scan
 

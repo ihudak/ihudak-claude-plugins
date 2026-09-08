@@ -51,11 +51,10 @@ to read "shared by `/create-prd`, `/update-prd` and, on the idea route, `/prd-gr
 
 ### Changed — renamed citations swept through the shared reference corpus
 
-`docs-grounding.md`'s consumer list, `read-only-repos.md`'s direct-citation note, `specs-repo-git.md`
-and `phase-handoff.md`'s branch-prefix and producer/consumer tables, `feedback-emission.md`, and
-`workflows-core:frames`'s own command and docs page all cited `/brd-ground` by its old name. Every
-citation now reads `/prd-ground`, and `phase-handoff.md`'s six-consumer / fifteen-producer counts are
-unchanged — the rename moved a name, not a relationship.
+`docs-grounding.md`'s consumer list, `phase-handoff.md`'s branch-prefix and producer/consumer tables,
+`feedback-emission.md`, and `workflows-core:frames`'s own command and docs page all cited
+`/brd-ground` by its old name. Every citation now reads `/prd-ground`, and `phase-handoff.md`'s
+six-consumer / fifteen-producer counts are unchanged — the rename moved a name, not a relationship.
 
 ## [1.2.0] — 2026-09-07
 

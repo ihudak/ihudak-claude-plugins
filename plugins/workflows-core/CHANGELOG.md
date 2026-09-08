@@ -4,6 +4,15 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.3.5] — 2026-09-08
+
+### Removed
+
+- **`relevant_for_release_notes` is retired from `prd-format`'s frontmatter.**
+  It asked a question with one answer — every PRD is relevant for release notes — so the only value it
+  could carry that changed anything was one nobody should write. A value left in an existing PRD is read by
+  nothing, and the file records the retirement so the field is not reintroduced.
+
 ## [1.3.4] — 2026-09-08
 
 ### Changed

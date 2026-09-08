@@ -4,6 +4,14 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.3.2] — 2026-09-08
+
+### Removed
+
+- **`/create-prd` no longer captures `relevant_for_release_notes`**, and no longer asks to confirm a `no`.
+  It asked a question with one answer — every PRD is relevant for release notes — so the only value it
+  could carry that changed anything was one nobody should write.
+
 ## [3.3.1] — 2026-09-08
 
 ### Fixed

@@ -434,7 +434,7 @@ Carry both digests into Phase 3 with **grill-rank** consumption. When both are O
 
 Author `prd.md` live against `Skill(skill: "workflows-core:reference", args: "prd-format")` for the selected profile, applying the no-hard-wrap prose convention in `Skill(skill: "workflows-core:reference", args: "prose-formatting")`. Walk the **spine** in dependency order:
 
-1. Frontmatter — `relevant_for_release_notes` (defaults to `yes`; ask only to confirm a `no`); `sources` (propagated), `derived_from`, `seeded_from_prd` (only when `--from-prd` was used), and `key` — **written on every route**, set to the address this run resolved. On either route it is the `key:` the resolved folder asserts (`workflows-core:addressing` §4) — the positional key the operator chose on the `/idea` route, and the slice's own key on the BRD route, which is also the name of the folder this PRD is written into.
+1. Frontmatter — `sources` (propagated), `derived_from`, `seeded_from_prd` (only when `--from-prd` was used), and `key` — **written on every route**, set to the address this run resolved. On either route it is the `key:` the resolved folder asserts (`workflows-core:addressing` §4) — the positional key the operator chose on the `/idea` route, and the slice's own key on the BRD route, which is also the name of the folder this PRD is written into.
 
    **Do NOT ask for `release_versions`, `change_type` or `release_notes_category` here.** They are
    authored fields now rather than tracker dropdowns returned by an import

@@ -119,27 +119,9 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 ---
 
-## Phase 2 — Worthiness check + plan/approval
+## Phase 2 — Plan + approval
 
-1. **Worthiness gate.** Read `relevant_for_release_notes` from the resolved folder's own `prd.md`
-   under `prd_dir`. **Read it from the PRD, which is the same reversal Phase 3 makes for its two
-   sibling fields**: this step used to read an import and was told explicitly *never* to read the
-   authored PRD. Nothing imports anything now, so that instruction made the field permanently absent
-   and the stop below unreachable — a PRD marked `false` had a release note drafted for it anyway.
-   The PRD is the only place the field can come from (`workflows-core:prd-format`).
-   Read it directly here rather than waiting for Phase 3's folder read, which runs later.
-   - **`false` / `no`** → stop:
-     `RELEASE_NOTES_NOT_RELEVANT: <KEY> is flagged not relevant for release notes; the PRD's status rule does not require one.`
-     Offer an override for drafting ahead of the flag:
-     ```
-     choices: ["Cancel — nothing to draft (Recommended)", "Draft anyway — I'll set the flag later"]
-     ```
-   - **`true` / `yes`** → proceed.
-   - **absent** → **proceed silently.** The field defaults to true; absent is not false.
-
-   `release_versions` plays no part in this gate.
-
-2. **Plan.** Before presenting the plan, run `resolve-docs-grounding release-notes` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's the folder read and Phase 4/5's diff resolution do any of the run's real work. Present: resolved `key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), style-check choice, and the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs). Ask:
+1. **Plan.** Before presenting the plan, run `resolve-docs-grounding release-notes` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's the folder read and Phase 4/5's diff resolution do any of the run's real work. Present: resolved `key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), style-check choice, and the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs). Ask:
    ```
    choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
    ```
@@ -473,7 +455,7 @@ current working directory; no user name is ever written (§10).
 - The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block.
 - The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a plain **Category:** label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version — the version is the **section heading** the draft is filed under, which is the only thing that says which release a section belongs to now that the three destinations are three sections of one file. The prohibition survives for the body prose alone. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
 - The category label IS the PRD's `release_notes_category`, used verbatim; when the PRD carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
-- The run is GATED on the PRD's own `relevant_for_release_notes`: an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently.
+- The run has **no worthiness gate**: every PRD is relevant for release notes, so there is no content state in which this command refuses to draft. `relevant_for_release_notes` is retired (`workflows-core:prd-format`) and a value left in an existing PRD is read by nothing. Whether a note is drafted is the decision of whoever runs the command.
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
 - ALWAYS use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
 - Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`workflows-core:specs-repo-git` §2.2); it creates none), and no commit of the draft or of anything in a docs/code repo or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1).

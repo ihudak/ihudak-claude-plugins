@@ -4,6 +4,24 @@ All notable changes to the **docs-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.1.2] — 2026-09-08
+
+### Removed
+
+- **`/release-notes` has no worthiness gate.** Phase 2's `relevant_for_release_notes` check, its
+  `RELEASE_NOTES_NOT_RELEVANT` stop and that stop's override are gone, and the phase is now
+  *Plan + approval*.
+  It asked a question with one answer — every PRD is relevant for release notes — so the only value it
+  could carry that changed anything was one nobody should write. The run's one refusal is
+  `RELEASE_NOTES_NEEDS_KEY`, on an address that does not resolve.
+
+### Fixed
+
+- **The command page no longer documents the gate's own retired implementation.** It said Phase 2 read
+  the flag *"straight from the imported PRD frontmatter — never from the authored specs draft"* — the
+  instruction the command reversed when the import was cut, which had made the stop unreachable. The
+  page was not swept at the time; the paragraph is now gone with the gate it described.
+
 ## [1.1.1] — 2026-09-06
 
 ### Fixed — two more bare `doc-fixer` dispatches in `document.md`

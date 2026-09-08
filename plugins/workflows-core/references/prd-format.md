@@ -24,7 +24,6 @@ owning_program: <program>
 tracking_programs: [ ... ]
 priority: <e.g. Major>
 labels: [ ... ]
-relevant_for_release_notes: <yes | no>
 sources:                     # PROPAGATED from idea.md's recorded provenance — not the literal idea.md
   - provenance: rfe | prd | community-post | prompt | markdown
     ref: <RFE key | post URL | ...>
@@ -38,6 +37,8 @@ built_from_date: <YYYY-MM-DD of the resolved folder the `/update-prd` refresh wa
 workitem_key: <optional — your own tracker's identity for this work; the plugin never writes it>
 ---
 ```
+
+**`relevant_for_release_notes` is retired and is not to be reintroduced.** It asked a question with one answer — every PRD is relevant for release notes — so the only value it could carry that changed anything was one nobody should write. `/release-notes` gated on it and `/create-prd` asked to confirm a `no`; neither does now, and a value left in an existing PRD is read by nothing. What replaced it is not another field: whether a note is drafted is the decision of the person running `/release-notes`, taken at that moment, and the PRD says nothing about it.
 
 `brd_key`, `brd_parent` and `depends_on` are written only by `/create-prd` on the BRD route, from the BRD's
 own `brd-link.md`, and are never asked of the PM. **`brd_parent` is present on every PRD that carries

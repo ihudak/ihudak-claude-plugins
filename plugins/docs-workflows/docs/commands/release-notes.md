@@ -26,7 +26,7 @@ Drafts a customer-facing release-notes summary for a resolved Product Requiremen
 flowchart TD
     p0["Phase 0 — Load"] --> p1["Phase 1 — Clarification"]
     p1 --> p15["Phase 1.5 — Classify"]
-    p15 --> p2["Phase 2 — Worthiness check + plan/approval"]
+    p15 --> p2["Phase 2 — Plan + approval"]
     p2 --> p3["Phase 3 — Read the PRD folder"]
     p3 --> d1{"Diff grounding on? (Phase 1)"}
     d1 -- "on" --> p45["Phase 4 — Resolve repos / 5 — Diff summarisation"]
@@ -45,7 +45,6 @@ Three subagents are dispatched: `workflows-core:docs-grounder` (Phase 5.5, read-
 ## What it needs
 
 - **A resolved address** — a key or an `@<path>` naming a folder in the specs tree, resolved directory; `mode: direct` is rejected outright.
-- **The `relevant_for_release_notes` flag**, read from the resolved folder's PRD frontmatter before the folder read even runs. An explicit `false`/`no` stops the run with `RELEASE_NOTES_NOT_RELEVANT` — overridable, since a PM may still want to draft ahead of the flag. An **absent** value proceeds silently: the field defaults to true, and absent is never treated as false.
 - **Optional diff grounding** (default OFF) — when turned on, `$REPOS_PATH` and a PR-status filter are resolved the same way `/document` resolves them, and a repo that resolves to zero matches is put to you as a choice rather than resolved silently; a repo you then skip degrades the grounding for that repo and never the run.
 - **Optional `$DOCS_PATH` grounding** (Phase 5.5), resolved once in Phase 2 alongside plan approval — read-only, never a gate.
 - **For a deprecating change, an end-of-life date.** A deprecation note is required whenever the PRD deprecates a capability or is itself a deprecation, and it always needs an end-of-life date — the end-of-support date is optional. A missing end-of-life date is never invented: it becomes a `deprecation_eol` gap the command asks the user about, with a `<!-- TODO: end-of-life date -->` placeholder in the draft until it's answered.
@@ -62,7 +61,7 @@ The **section** is resolved from the PRD's `change_type` when it carries one, el
 
 **Light gate only.** There is no Opus review, no tests, and no branch created by this command — `specs-preflight` may switch `$SPECS_PATH` between branches that already exist and were created by the plugin, but it creates none. The one optional gate is a **style check** (Phase 7): when the user chose it, `prose-style-checker` runs against the rendered draft and, on the auto-fix choice, `prose-fixer` applies safe fixes. Optional here means the user's own answer in Phase 1 — `prose-style` is a declared dependency, so the phase never skips itself for want of a plugin.
 
-**The worthiness gate is the run's real stop point**, and it fires before any of the run's expensive work — though not before *anything*: Phase 0 resolves the input, Phase 1 asks every user-facing question, and Phase 1.5 classifies, all ahead of it. Phase 2 then reads `relevant_for_release_notes` straight from the imported PRD frontmatter — never from the authored specs draft — and an explicit `false` halts the run with `RELEASE_NOTES_NOT_RELEVANT` unless the user overrides it.
+**The run has no worthiness gate, and there is no content state in which it refuses to draft.** One existed and was retired: it read a `relevant_for_release_notes` flag off the PRD and stopped on an explicit `no`. Every PRD is relevant for release notes, so the flag asked a question with one answer and the only value that changed anything was one nobody should write; the field is retired in `workflows-core:prd-format` and a value left in an existing PRD is read by nothing. The run's one refusal is `RELEASE_NOTES_NEEDS_KEY`, in Phase 0, on an address that does not resolve — whether a note is worth drafting is the decision of whoever runs the command.
 
 The run makes **zero external API calls**: PR URLs (when diff grounding is on) are identifiers only, GitHub resolution may use the `gh` CLI, Bitbucket is pure local `git`, and the folder read is strictly read-only.
 
@@ -76,7 +75,7 @@ One invocation, two runs — the command is the same either time, and only the i
 /docs-workflows:release-notes PRODUCT-1234
 ```
 
-The run checks `relevant_for_release_notes`, asks about diff grounding (default: PRD content only) and the release version, classifies as `MODERATE`, reads the PRD, resolves `$DOCS_PATH` grounding if configured, and finds neither `specification.md` nor `design.md` under the PRD's specs dir — so it infers `run_phase: pm` and renders the draft via `release-notes-writer` with no documentation redirect link, because the feature isn't built and there is no page to point at yet. It then runs the optional style gate and writes the persistent draft with a reminder to publish it.
+The run asks about diff grounding (default: PRD content only) and the release version, classifies as `MODERATE`, reads the PRD, resolves `$DOCS_PATH` grounding if configured, and finds neither `specification.md` nor `design.md` under the PRD's specs dir — so it infers `run_phase: pm` and renders the draft via `release-notes-writer` with no documentation redirect link, because the feature isn't built and there is no page to point at yet. It then runs the optional style gate and writes the persistent draft with a reminder to publish it.
 
 **The dev's later re-run**, once a specification or design is on record:
 

@@ -1,0 +1,99 @@
+# Bundle citation resolution — design
+
+**Status:** approved in brainstorming 2026-09-08, not yet implemented. Ledger item **E-2**, sequenced after gate 3. Blocks the release under S18.
+
+**Ledger:** `docs/superpowers/brd-route-follow-ups.md` § E-2.
+
+## 1. The problem
+
+`/brd-package` renders a customer prompt and assembles a bundle, then runs two passes over the result: the **plugin-free scan** (Phase 6's `The plugin-free scan`, re-run over the delivery note in Phase 7 and over every bundle document in Phase 8 step 7) and the **de-Obsidianising pass** (Phase 8 step 2, `bundle-packaging.md` §2).
+
+Both are correct and neither checks what this design adds. The scan deliberately exempts identifiers — `[BR#n]`, `[CG#n]`, `[DG#n]`, `[VD#n]`, `[AS#n]` and `[SR#n]` are how a returned review cites the package's own claims without minting identifiers of its own, and a prompt that hid them would get back a review nothing could be matched to. **Nothing then checks that they land.**
+
+Three failures were observed in shipped bundles:
+
+1. **A citation that resolves to the wrong requirement.** `workflows-core:grounding-format` §6.3 makes the citation the entire content of a class-4 design finding — *"This class always cites a `[CG#n]` … A `[DG#n]` of this class carrying no `[CG#n]` citation is incomplete."* §6.3 requires the citation to be **present**; nothing requires it to be **correct**. In the observed corpus, 16 of 17 class-4 citations resolved, inside the customer's own bundle, to a finding about a different requirement. The one that was right was right by coincidence — the two numberings happen to coincide for the first row or two. **This is worse than an absent citation, because it resolves**: a reviewer follows it, lands on a real finding in their own bundle, and cannot tell it is the wrong one.
+2. **References above the corpus.** 11 references named ids higher than the highest the corpus contains, belonging to a different BRD's corpus. Three were unattributed, and one of those was the sole evidence for a question being put to the customer — a decision record's `evidence` field, which `product-workflows:decision-register-format` §1 fills with `[CG#n]`/`[DG#n]` ids.
+3. **A guaranteed dead reference.** `bundle-packaging.md` §1.1 excludes `self-review-<YYYYMMDD>.md` from the bundle while bundle documents name it in prose. §2's rewrite rule governs **links**, not prose, so it survives both passes — as did three references to grounding files by their *working* filenames after the bundle renamed them, which Phase 8's rule 1 already forbids and nothing verifies.
+
+**Severity correction, carried from the ledger.** The mechanism that produced failure 1 is retired. That corpus had a slice carrying its **parent's** design findings, which requires the parent to have been ground; slice-first grounding removed root grounding entirely, and the sibling re-cut moves no findings. It came from the documented hand deviation recorded as BRD-5, on a pre-split tree. **The defect stays real** — existing bundles carry it, and a bundle check must catch a broken citation however it got there — but it is not a live regression source.
+
+## 2. Decision
+
+**A new check runs beside the plugin-free scan, over the assembled bundle, and stops the run the same way.** Its rules live in `product-workflows:bundle-packaging` as a new **§6**, the same embedded authority that owns the plugin-free rule (§1) and the de-Obsidianising rule (§2); `/brd-package` Phase 8 executes it as a new **step 8**, immediately after step 7.
+
+**The seam is forced, not chosen.** Both inputs the check needs — the identifier corpus and the set of bundle filenames — are facts about the *assembled* bundle. Phase 6's scan runs before assembly and cannot see either. The rendered prompt is still covered, because the prompt is itself a bundle document.
+
+## 3. The corpus is built per source package, and never crossed
+
+**A prerequisite package is copied into the bundle wholesale** (Phase 2 step 3, Phase 8 rule 5, `bundle-packaging.md` §1.1), carrying its own grounding files, its own inventory and its own register — each numbered from 1 in its own corpus. So one bundle can hold two different `[CG#7]`s.
+
+Bundle documents therefore **partition by provenance**: this package's documents, and each copied prerequisite package's subtree. Each partition parses its own corpus from its own files:
+
+| Class | Corpus file, within the partition |
+|---|---|
+| `[BR#n]` | `brd/brd-inventory.md` |
+| `[DEF#n]` | `brd/brd-defect-log.md` (the parent's on a slice, one hop — `brd-format.md` §4) |
+| `[CG#n]`, `[DG#n]` | `grounding/code-grounding.md`, `grounding/design-grounding.md` |
+| `[VD#n]`, `[CD#n]`, `[AS#n]` | `decisions.md` (`decision-register-format` §1 and §7) |
+| `[SR#n]` | **none — exempt by rule, see §5** |
+
+**Every corpus is parsed, never assumed.** `workflows-core:grounding-format` §2.1's reading rule binds here: an id is resolved **against the set actually parsed**, never by matching a fixed column or a fixed run of leading spaces. That rule exists because a live run wrote `- id:       [CG#1]` in one section and `- id: [CG#12]` in the next, and a column-anchored scan reported **140 findings as missing that were on the page** — a false absence, which is the one class of wrong answer this check must never produce, since it would report every reference in the bundle as dead.
+
+## 4. Three relations
+
+**Relation 1 — every identifier reference resolves inside its own partition.** For each partition, every identifier reference appearing in its documents must be in that partition's corpus for that class, **unless it carries the owning BRD key at the point of use**.
+
+**The qualified form is `<BRD-KEY> [CG#7]` — the owning key immediately before the bracketed id, and exactly one spelling.** A second rendering is not a convenience: §2.1's whole argument is that a writer free to choose between two spellings produces an artifact whose readers are wrong in a way that looks like data. The key precedes the id because that is how the sentence reads aloud, and because it gives the scan a single left-anchored token pair rather than a trailing parenthetical that a line break can separate.
+
+This is also the repair for a live ambiguity the check merely exposes: today a reviewer reading a copied prerequisite's grounding file sees `[CG#7]` with nothing telling them whose numbering it is.
+
+**Relation 2 — a class-4 design finding cites a finding about the same requirement.** For every `[DG#n]` whose `class` is 4: its `cites` must resolve within the same partition, **and** the cited `[CG#n]`'s `claim` must open with the same requirement id as the citing `[DG#n]`'s `claim`. Both values are already in the records being copied, which is what makes this the cheapest of the three and the one that catches the entire carried-findings class.
+
+**The rule is stated in `workflows-core:grounding-format` §6.3, route-neutrally, and enforced here.** §6.3 is where the class-4 citation requirement already lives, so the correctness half belongs beside the presence half rather than only in a consumer. **Route-neutral matters:** gate 3 made §6 speak of "a BRD's `[BR#n]` rows, or a PRD's `[AC#n]`/`[FR#n]`/`[US#n]` rows", so the rule says *the same requirement id*, never *the same `[BR#n]`*. `/brd-package` is slice-only and will only ever see `[BR#n]`, but §6.3 is read by the idea route too.
+
+**Relation 3 — every markdown filename token names a document in the bundle.** For each bundle document, every token of the form `<name>.md` must exactly equal the bundle filename of a document in the bundle.
+
+**This is the report's checks 3 and 4 as one relation, and the collapse is deliberate.** Check 3 asked for the dead-filename rule to extend from links to prose; check 4 asked that references name the *bundle* filename rather than the working one. A single exact-match relation against the bundle's own filename set satisfies both — a working filename is not in the bundle, so it fails the same test a dead one does — and one mechanism cannot drift from itself the way two can.
+
+`bundle-packaging.md` §2 gains a sentence saying the rule now covers prose. Without it a reader meets §2's three cases, all about rewritten links, and concludes links are the boundary — which is exactly the reading under which failure 3 shipped.
+
+## 5. Two exemptions, and why each is principled rather than convenient
+
+**`[SR#n]` is exempt entirely.** `self-review-<YYYYMMDD>.md` is excluded from the bundle by a rule that `bundle-packaging.md` §1.1 calls the one exclusion that is a *rule* rather than a consequence of the allow-list — while the `[SR#n]` content the customer may see reaches them **filtered**, through the prompt's parts 7 and 9, cited by id. So an `[SR#n]` reference is correct content that resolves to nothing in the bundle, by design. **A check without this exemption fires on every package.**
+
+It is worth naming that this is failure 3's own shape — an excluded document referenced from a bundle document — and that the two are nonetheless different: naming the *file* is dead, naming an `[SR#n]` is the filtered citation working as intended. Relation 3 catches the first; relation 1 must not catch the second.
+
+**`brd/source/<basename>` reports rather than stops.** The customer's own document is copied byte for byte and is immutable by rule (`bundle-packaging.md` §2.1, `brd-format.md` §1). It inherits the plugin-free scan's existing treatment verbatim and for the identical reason: stopping outright would make that BRD permanently unpackageable, since the one repair the rule allows is not editing the file. Report it, name the file and the token, and let the operator decide whether to ship. Every other document's hit stays a hard stop.
+
+## 6. Three stops, because the remedies differ
+
+| Stop | Fires on | Why it is its own code |
+|---|---|---|
+| `BRD_PACKAGE_DEAD_CITATION` | relations 1 and 3 — a reference that resolves to nothing | the remedy is to fix or qualify the reference |
+| `BRD_PACKAGE_CITATION_MISMATCH` | relation 2 — resolves, to a finding about a different requirement | the remedy is to re-derive the finding, and the reference itself may be untouched |
+| `BRD_PACKAGE_CORPUS_UNREADABLE` | a corpus file present and non-empty that parses to zero ids | `grounding-format` §2.1: *"A count that disagrees with the file is reported as a parse failure, never as an absence."* Without this the check reports every reference dead and the operator repairs the wrong thing |
+
+Each names the id or filename, the bundle document it sits in, and what it failed to resolve against — the shape `BRD_PACKAGE_PROMPT_LEAK` already sets.
+
+## 7. What §6 will state that it cannot see
+
+Stated in the reference, because a green gate here is otherwise read as a clean bundle:
+
+- **A reference that *describes* a bundle document where Phase 8's rule 1 requires it to *name* one.** That is the unmechanisable half of the report's check 4: "the grounding file" is prose, and no pattern distinguishes a deliberate description from a missing filename.
+- **A citation that resolves to the right id and is wrong in a way relation 2 does not test** — a `[CG#n]` about the right requirement but the wrong claim within it.
+- **An identifier class shipping without a corpus row.** The §3 table is a closed list; a future class is invisible to relation 1 until it has a row, and the reverse — a row whose file is not in the bundle — is a `BRD_PACKAGE_CORPUS_UNREADABLE` rather than a silent skip.
+
+## 8. Out of scope, stated so a reader does not reintroduce them
+
+- **No narrowing mechanism.** The plugin has no supported way to narrow a parent's verified findings to a slice's claimed subset; under slice-first that operation should no longer be needed, and it stays its own ledger entry. The bundle check catches a broken citation regardless of how it got there — that is the whole point of checking at delivery.
+- **No sanitising.** The check stops, exactly as the plugin-free scan stops. A citation that reached the bundle reached it because some sentence assumed a resolvable id, and rewriting the id leaves the sentence asserting something nobody checked.
+- **No delivery-route change.** Ledger item **E-4** — the package telling every reviewer to extract an archive — was raised alongside this work and is deliberately not folded in: it needs an input the run does not have, and choosing how it gets one is a design decision, not a check.
+
+## 9. Risks
+
+**Relation 2 will refuse bundles that ship today.** That is the intent — the observed corpus had 16 of 17 class-4 citations wrong — but the first run against an existing hand-narrowed BRD may stop, and the repair is by hand, because §8's narrowing gap is real. The stop must therefore say what disagrees, not merely that something does.
+
+**Relation 3's exact-match rule is strict by construction.** A bundle document that legitimately mentions a markdown filename which is not a bundle document — a repository path in a grounding finding's `evidence`, say — fails it. That is measured during implementation rather than assumed: if it fires on correct content, the relation is scoped to filenames the bundle's own naming convention produces rather than widened with exceptions, since an exception list is how a gate stops meaning anything.
+
+**The partition boundary is derived from where a document sits, not from what it says.** A prerequisite package's documents are identified by the subtree they were copied into. If a future change flattens the bundle, relation 1 silently starts resolving every id against one corpus — and would then pass, not fail. The implementation asserts the partition is non-trivial whenever a prerequisite package was copied in.

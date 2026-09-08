@@ -16,6 +16,7 @@
 | record an architecture decision | [`/create-ard`](commands/create-ard.md) |
 | break a PRD into Epics | [`/epics`](commands/epics.md) |
 | write a specification | [`/specify`](commands/specify.md) |
+| price a requirement set — work packages, hours by role, a range with its evidence | [`/prd-proposal`](commands/prd-proposal.md) |
 | understand what a run cost | [Session cost](reference/session-cost.md) |
 
 Four pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets your environment variables; [Workflow overview](workflow.md) shows the whole pipeline as one diagram; [BRD workflow](brd-workflow.md) shows the second route into a PRD — from a customer-supplied BRD to a grounded, allocated, decided inventory, back out through a customer review the plugin waits on, and on into the PRD pipeline through the BRD route — as its own diagram; [Roles and phases](roles-and-phases.md) says what each role owns and hands off. Every other page below documents one command, one shared subsystem, or — for [Agents](reference/agents.md) and [References](reference/references.md) — one whole inventory.
@@ -32,6 +33,7 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [`/create-prd`](commands/create-prd.md) — turn a refined idea plus a key into a reviewed Product Requirements Document.
 - [`/epics`](commands/epics.md) — break a Product Requirements Document into reviewed child Epic drafts.
 - [`/idea`](commands/idea.md) — refine a raw prompt, file, community post, or existing PRD into a one-page idea brief.
+- [`/prd-proposal`](commands/prd-proposal.md) — author an effort proposal for one PRD folder: work packages, hours by package and role, and a range whose width comes from per-package confidence, with every cost driver citing a record on disk.
 - [`/specify`](commands/specify.md) — author an org-standard specification for one item through a relentless grill.
 - [`/update-prd`](commands/update-prd.md) — refresh an existing Product Requirements Document.
 

@@ -35,4 +35,4 @@ Produce artifact content from a structured handoff. Does not run git.
 |---|---|---|---|---|
 | `epic-writer` | per routing | Read, Glob, Grep, Write, Edit, Skill | Writes one file per child Epic from a structured handoff, traceable to the PRD it partitions and `code-scanner` evidence; write-only, never commits. | `/epics` |
 
-Every one of the 12 agents above is dispatched by at least one command. There is no maintenance section here: `workflows-core:impl-maintenance`, dispatched by all 12 commands, ships in `workflows-core`. `workflows-core:docs-grounder` is the one agent no command here dispatches by writing a `subagent_type:` inline — its callers invoke a named procedure defined in its own governing reference file instead.
+Every one of the 12 agents above is dispatched by at least one command. There is no maintenance section here: `workflows-core:impl-maintenance`, dispatched by all 13 commands, ships in `workflows-core`. `workflows-core:docs-grounder` is the one agent no command here dispatches by writing a `subagent_type:` inline — its callers invoke a named procedure defined in its own governing reference file instead.

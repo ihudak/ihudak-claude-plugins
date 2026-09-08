@@ -29,6 +29,7 @@
   ],
   "product-workflows": [
     "prd-ground",
+    "prd-proposal",
     "brd-intake",
     "brd-interview",
     "brd-package",

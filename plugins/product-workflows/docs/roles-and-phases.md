@@ -14,11 +14,11 @@ The companion `dev-workflows` plugin's `/dev-workflows:ready` is the one caller 
 ## PM — product management
 
 - **Owns:** turning a raw prompt, community post, RFE, or existing PRD into a refined idea, then into a well-formed Product Requirements Document, and keeping an existing PRD current.
-- **Runs:** `/idea`, `/create-prd`, `/update-prd`; also the early run of the companion plugin's `/docs-workflows:release-notes`, before any specification or design exists yet.
+- **Runs:** `/idea`, `/create-prd`, `/update-prd`; also `/prd-proposal`, the optional effort proposal, which gates nothing and which nothing waits on; also the early run of the companion plugin's `/docs-workflows:release-notes`, before any specification or design exists yet.
 - **Consumes:** a prompt, file, community post, RFE, or existing PRD as its source; then a refined `idea.md` plus a user-supplied address.
-- **Produces:** `idea.md` in the PRD folder the address names, then **prd.md** written to that same folder under `$SPECS_PATH/specifications/`; an early release-notes draft.
+- **Produces:** `idea.md` in the PRD folder the address names, then **prd.md** written to that same folder under `$SPECS_PATH/specifications/`; an early release-notes draft; and, optionally, **proposal.md** and its rationale brief in that same folder.
 - **Hands over at the seam:** `/idea` writes `idea.md` in its final folder and lands it, and `/create-prd` / `/update-prd` land the PRD, each onto the specs repo's default branch. `/create-ard` and `/specify` each gate on the PRD there — an absent PRD falls back to reading the resolved folder directly instead of stopping (reported, not silent), and the hard stop is an unmerged PRD, never a missing one. `/epics` reads the PRD unconditionally through the folder read, with no PRD gate at all — see PE below for the input it does gate.
-- **Cost phase(s):** `prd-creation` (`/idea`, `/create-prd`), `prd-update` (`/update-prd`), `brd-to-prd` (`/brd-intake`, `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile`) — all role `pm`.
+- **Cost phase(s):** `prd-creation` (`/idea`, `/create-prd`), `prd-update` (`/update-prd`), `brd-to-prd` (`/brd-intake`, `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile`), `proposal` (`/prd-proposal`) — all role `pm`.
 - **Also owns the BRD-to-PRD route** ([BRD workflow](brd-workflow.md)): turning a customer-supplied BRD into a requirement inventory that is grounded, fully allocated, decided, and reviewed by the customer who supplied it. This route is PM-owned end to end — every command on it runs as PM except `/prd-ground`, which is PM-initiated and PA/Dev-executed: PM starts it, and PA/Dev do the actual grounding against the mounted code and design repos.
 - **Hands over at the BRD route's own seams:** each `/brd-*` command lands its deliverable on the specs repo's default branch and the next one gates on it there — `/brd-split`, run on the root, on the intake ledger, carving each slice's own inventory and ledger; `/prd-ground`, run on a slice, on that ledger and inventory; `/brd-split` again, run on the same slice in `allocate-only` mode, on those grounding findings; `/brd-interview` on that second `/brd-split` run's fully-allocated ledger (it refuses a single row still `unallocated`) as well as on the findings; `/brd-package` on the decision register; `/brd-reconcile` on the sent package. Between `/brd-package` and `/brd-reconcile` the route leaves the plugin entirely: the customer reviews the bundle off-platform, with a vanilla agent and nothing installed, and the route resumes only when an operator hands `/brd-reconcile` the file that came back. The BRD route on `/create-prd`, `/create-ard` and `/specify` ships, so `/brd-reconcile` is where this route hands over rather than where it ends. **All three refuse a `BRD-` container** (D5), so its next-step phase never offers them against a root key: standing on a root it names the `PRD-` slices under it instead, and standing on a slice it offers the three against that **slice's** key — `/create-prd` only where the reconciled ledger leaves no row `unallocated` and at least one `covered-here`, and `/create-ard` and `/specify` on the level test alone, since neither reads the ledger and the PRD gate both now run on every route reports an absent PRD rather than stopping on it.
 
@@ -46,7 +46,7 @@ This plugin's spine ends at `specification.md`, landed on the specs repo's defau
 
 ## Cost-attribution phases
 
-Every cost-emitting command tags its cost line with a `phase` and a `role`. Six phases are reached by this plugin's twelve commands; each entry below names the command that emits it and what being in that phase means. Four more lifecycle phases exist for the companion `dev-workflows` and `docs-workflows` plugins' own commands and are documented on their own pages, not restated here. Each of the six below can also be reached **by inheritance**: the companion `workflows-core` plugin's `/workflows-core:prompt`, `/workflows-core:feedback`, `/workflows-core:prompt-brainstorm` and `/workflows-core:prompt-grill-me` adopt the phase and role of whatever they are correcting, so a correction to a `/specify` output is a second entry in `specification`.
+Every cost-emitting command tags its cost line with a `phase` and a `role`. Seven phases are reached by this plugin's thirteen commands; each entry below names the command that emits it and what being in that phase means. Four more lifecycle phases exist for the companion `dev-workflows` and `docs-workflows` plugins' own commands and are documented on their own pages, not restated here. Each of the seven below can also be reached **by inheritance**: the companion `workflows-core` plugin's `/workflows-core:prompt`, `/workflows-core:feedback`, `/workflows-core:prompt-brainstorm` and `/workflows-core:prompt-grill-me` adopt the phase and role of whatever they are correcting, so a correction to a `/specify` output is a second entry in `specification`.
 
 ### prd-creation
 
@@ -68,10 +68,14 @@ Emitted by `/create-ard`, role `pa`. Being in this phase means architecture deci
 
 Emitted by `/specify`, role `pe`. Being in this phase means an org-standard `specification.md` is being authored for one item, lightly grounded in code.
 
+### proposal
+
+Emitted by `/prd-proposal`, role `pm`. Being in this phase means a requirement set is being **priced** rather than advanced — work packages, hours by role, and a range with its evidence — for a document a vendor sends a customer. It is the one phase here that no other phase waits on and that gates nothing: a proposal is optional at every readiness tier, and no command reads one. It is its own phase rather than part of `brd-to-prd` because the command runs on the idea route as readily as on the BRD route.
+
 ### epic-refinement
 
 Emitted by `/epics`, role `pe`. Being in this phase means a PRD is being broken down into child Epic drafts.
 
 ---
 
-**Plugin feedback** (`plugin-feedback`, role `n/a`) is the fallback phase for a `/workflows-core:prompt`/`/workflows-core:feedback`/`/workflows-core:prompt-brainstorm`/`/workflows-core:prompt-grill-me` run with no target command to inherit from — documented in full on the companion `workflows-core` plugin's own Roles and phases page, since none of this plugin's twelve commands emits it directly.
+**Plugin feedback** (`plugin-feedback`, role `n/a`) is the fallback phase for a `/workflows-core:prompt`/`/workflows-core:feedback`/`/workflows-core:prompt-brainstorm`/`/workflows-core:prompt-grill-me` run with no target command to inherit from — documented in full on the companion `workflows-core` plugin's own Roles and phases page, since none of this plugin's thirteen commands emits it directly.

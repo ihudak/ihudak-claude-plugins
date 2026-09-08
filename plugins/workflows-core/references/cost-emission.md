@@ -323,6 +323,7 @@ Fixed per-command labels, with six inferred exceptions:
 | `/brd-interview` | brd-to-prd | pm |
 | `/brd-package` | brd-to-prd | pm |
 | `/brd-reconcile` | brd-to-prd | pm |
+| `/prd-proposal` | proposal | pm |
 | `/prompt` | **inferred** | **inferred** |
 | `/feedback` | **inferred** | **inferred** |
 | `/prompt-brainstorm` | **inferred** | **inferred** |
@@ -441,6 +442,13 @@ tail, unattributed, exactly as it is for every other command.
 Epics while still in PM/PE hands, so keying on Epics would misattribute the PM
 run. Cheap to check; matches the real workflow. Still a heuristic —
 reattributable at aggregation time (cost < quality).
+
+**`proposal` is its own phase rather than a second `brd-to-prd` one.**
+`/prd-proposal` runs on the idea route as readily as on the BRD route, so
+attributing its spend to the BRD-to-PRD route would file idea-route spend under a
+route that run never touched; and an effort proposal is a commercial activity over
+a requirement set rather than a step that advances one. Both proposal commands tag
+it, at the `pm` role.
 
 **Keys.** Reuse the run's own resolution — `resolve-address`
 (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) plus the specs-dir matching feedback and

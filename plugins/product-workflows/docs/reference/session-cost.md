@@ -1,10 +1,10 @@
 # Session cost
 
-Cost attribution is one of the subsystems the companion `workflows-core` plugin holds: its `cost-emission` reference and the price table beside it are what every plugin in the family reads, and its `session-cost.py` script does the arithmetic. This page documents the subsystem from the side that invokes it — what a command here declares, and what the twelve commands *in this plugin* charge to.
+Cost attribution is one of the subsystems the companion `workflows-core` plugin holds: its `cost-emission` reference and the price table beside it are what every plugin in the family reads, and its `session-cost.py` script does the arithmetic. This page documents the subsystem from the side that invokes it — what a command here declares, and what the thirteen commands *in this plugin* charge to.
 
 ## What a command declares
 
-Every cost-emitting command passes a `phase` and a `role` label at the point it calls the shared entry point, and `workflows-core:cost-emission` §7 carries one attribution row per command. Twelve commands emit a cost entry here — all of them, and all with a fixed pair rather than an inferred one:
+Every cost-emitting command passes a `phase` and a `role` label at the point it calls the shared entry point, and `workflows-core:cost-emission` §7 carries one attribution row per command. Thirteen commands emit a cost entry here — all of them, and all with a fixed pair rather than an inferred one:
 
 | Command(s) | Phase | Role |
 |---|---|---|
@@ -15,6 +15,7 @@ Every cost-emitting command passes a `phase` and a `role` label at the point it 
 | `/create-ard` | `architecture` | `pa` |
 | `/epics` | `epic-refinement` | `pe` |
 | `/specify` | `specification` | `pe` |
+| `/prd-proposal` | `proposal` | `pm` |
 
 `brd-to-prd` is the one phase shared across two roles: every command of the BRD-to-PRD route runs as PM except `/prd-ground`, which is PM-initiated but PA/Dev-executed, and both roles tag their cost line `brd-to-prd`. [Roles and phases](../roles-and-phases.md) defines what each phase means and what a run in it is accountable for; this page states only what each command passes.
 

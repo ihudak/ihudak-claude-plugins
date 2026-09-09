@@ -4,6 +4,82 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.4.0] — 2026-09-08
+
+### Added — the `proposal` cost phase, and its two `cost-emission` §7 rows
+
+`product-workflows`'s `/prd-proposal` and `/brd-proposal` each take a fixed `phase: proposal`,
+`role: pm` row in §7's attribution table, bringing that table to twenty-four rows.
+
+**`proposal` is its own phase rather than a second `brd-to-prd` one**, and §7 records why:
+`/prd-proposal` runs on the idea route as readily as on the BRD route, so filing its spend under
+`brd-to-prd` would attribute idea-route spend to a route that run never touched — and an effort
+proposal is a commercial activity over a requirement set rather than a step that advances one.
+
+The counts that ride on §7 moved with it: the file's own opening sentence now reads twenty-two of
+the twenty-four rows, and §11's and §13.3's *"commands that measure themselves"* both read
+twenty-two. `scripts/command-namespaces.json` gains both command names under `product-workflows`,
+which is what lets §13.2 cut a deferred run's window at either of them.
+
+### Added — two `phase-handoff.md` §3.4 row-F rows, and one §4.0 classification
+
+- **`/prd-proposal` on `prd.md`** — **stops**, splitting row F into `PRD_PROPOSAL_NEEDS_PRD` (never
+  produced) and `PRD_PROPOSAL_PRD_NOT_HANDED_OFF` (produced, handoff declined). Never optional:
+  there is nothing to estimate without it, and the command ships with no pre-gate behaviour to fall
+  back to, which is the §3.4 test a stop has to pass.
+- **`/brd-proposal` on each included slice's `proposal.md`** — **stops** with
+  `BRD_PROPOSAL_SLICE_NOT_HANDED_OFF`, naming every included slice that came back row F in one stop
+  rather than one run per slice. **It is the only row in that table that inverts the level rule**:
+  the four callers above it refuse a root and their rows describe a slice run, while this one refuses
+  a slice and gates a file in each of several **child** folders from the root.
+- §4.0 classifies a slice's `proposal.md` as **gated** (conditionally gated is still gated, the same
+  call `grounding/design-grounding.md`'s row makes), and an umbrella's `proposal.md`,
+  `proposal-brief.md` at either level and the archived `revisions/` snapshots as **unread** — looked
+  for, and none found. The §2.9 `prefix` row records that `prd` is now shared by `/prd-proposal`
+  alongside `/create-prd`, `/update-prd` and idea-route `/prd-ground`, and `brd` by `/brd-proposal`
+  alongside the route's six; the eight prefixes §1 rule 3 fixes are **not** extended.
+
+### Added — both routing-graph nodes in `next-phase-offer.md`
+
+A *PM — effort proposals* section: `/prd-proposal` offers depth (`/brd-proposal`, where the folder
+has a parent BRD), breadth (the next unpriced sibling slice) and, below tier 4, the command that
+would raise the tier; `/brd-proposal` offers no forward advance at all, because the umbrella is the
+end of that branch rather than a phase in the build ladder.
+
+**The `<merge-clause>` rule reaches the pair through the globs the scope paragraph already names** —
+`` `/product-workflows:brd-*` `` and `` `/product-workflows:prd-*` `` — so both are inside the rule
+by name rather than by adoption, and `check-docs.sh` check 11 gates them without being widened.
+**The placeholder appears in exactly one option across the pair**: `/prd-proposal`'s offer of
+`/brd-proposal`, whose `require-on-main` gate targets the `proposal.md` that same run has just
+written. Every other option in the pair names a command gating on `prd.md`, which neither proposal
+command writes, or names the offering command itself.
+
+The scope paragraph also states the property most likely to be misread: neither command is a
+prerequisite for the build ladder, none of `/create-ard`, `/specify`, `/epics`, `/design`,
+`/implement` or `/ready` reads a proposal, and the pair's one internal read —
+`/brd-proposal`'s gate on a slice's `proposal.md` — stays inside the pair and never reaches into the
+pipeline above it.
+
+### Changed — counts and enumerations the new commands moved
+
+- `specs-repo-git.md`: twenty-six `commit-artifacts` callers, and §4.1's branch-opening list is
+  seventeen, still matching `phase-handoff.md`'s producer count, with `/prd-proposal` named and
+  `/brd-proposal` reached by the `/brd-*` glob.
+- `feedback-emission.md`: twenty-one of the twenty-six callers ship from a sibling plugin.
+- `escalation-rules.md`: both commands cite the *Required path environment variable unset* rule, and
+  the clause that used to read "for the last four" now names its commands — counting from the end of
+  a list is how it silently came to describe a different set.
+- `addressing.md`: `/prd-proposal` joins the commands that are **not** in §7's adopter table because
+  each resolves its own single positional address with `resolve-address` (§3). §7's two totals are
+  unchanged at twelve files and twelve commands, re-derived rather than adjusted. The two places that
+  counted the `/brd-*` consumers now say six, since `/brd-proposal` matches that glob and addresses
+  the same parent containers §3's disambiguation step exists to keep addressable.
+- `cost-emission.md`'s preamble sketch of who has a §7 row names the effort-proposal pair. The
+  paragraph already refuses to be a roster — read the table — but an omitted class is what went stale
+  there once before.
+- `docs/roles-and-phases.md`: twelve phases exist, nine of them reachable from this plugin only by
+  inheritance.
+
 ## [1.3.6] — 2026-09-08
 
 ### Fixed

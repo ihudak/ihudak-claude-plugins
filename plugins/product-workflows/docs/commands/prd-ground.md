@@ -366,7 +366,7 @@ already does is worth revising before an architecture or a specification is auth
   record, the six verdicts, the two horizons, the `baseline-integrity` procedure this command's
   Phase 3 runs, and the four verification outcomes this command's Phase 7 acts on.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the ledger line every
-  `/brd-*` command's final report ends with, on the BRD route.
+  command of the BRD-to-PRD route ends its final report with, this one included on the BRD route.
 - `workflows-core:prd-format` — the `[AC#n]`/`[FR#n]`/`[US#n]` grammar this
   command reads its claim list from, on the idea route.
 - `workflows-core:docs-grounding` — the `$DOCS_PATH` resolution gate,

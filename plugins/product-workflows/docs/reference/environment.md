@@ -4,7 +4,7 @@
 
 ## `$SPECS_PATH`
 
-- **`$SPECS_PATH`** — the shared, team-visible repository holding every PRD, ARD, specification, idea, and BRD folder these twelve commands read and write, and the one place any of them commits its own session bookkeeping; required for every keyed run, with no built-in default.
+- **`$SPECS_PATH`** — the shared, team-visible repository holding every PRD, ARD, specification, idea, and BRD folder these fourteen commands read and write, and the one place any of them commits its own session bookkeeping; required for every keyed run, with no built-in default.
 
 **Resolution.** Read straight from the shell environment — there is no config file, CLI flag, or derived fallback that feeds it. Every git call against it is `git -C "$SPECS_PATH"`, never a `cd`, so your current working directory is untouched.
 
@@ -26,7 +26,7 @@
 
 - **`$DOCS_PATH`** — a read-only clone of your shipped product documentation; defaults to `/workspace/docs` when unset.
 
-**Resolution.** Resolved per the shared `workflows-core:docs-grounding` gate, consumed by every command here except `/brd-split`, `/brd-interview`, `/brd-package`, and `/brd-reconcile` (each of which resolves no docs grounding at all, for a reason its own body states) — grill-rank in the authoring/interview commands, lead-only in `/prd-ground`. Overridable with `--docs <path>` where the command parses it — today `/idea` alone, though the shared gate declares it for every consumer; turned off with `--no-docs` everywhere, and additionally by `--no-code` in `/prd-ground`.
+**Resolution.** Resolved per the shared `workflows-core:docs-grounding` gate, consumed by every command here except `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile`, `/prd-proposal` and `/brd-proposal` (each of which resolves no docs grounding at all — for `/prd-proposal` and `/brd-proposal`, because an estimate's inputs are the specs tree and the profile, while a documentation page bears on how a feature is described rather than on what it costs to build; five of the six say so in their own body, `/brd-split` being the exception, whose reason — it allocates requirements to a recorded fate, which documentation does not inform — is stated in the shared `workflows-core:docs-grounding` reference instead) — grill-rank in the authoring/interview commands, lead-only in `/prd-ground`. Overridable with `--docs <path>`, which every one of the eight consumers here parses and strips together with its value before the address is read; turned off with `--no-docs` everywhere, and additionally by `--no-code` in `/prd-ground`.
 
 **When unset.** The `/workspace/docs` default is probed; on a host where that path does not exist, the resolution simply reports `OFF` and the run continues.
 

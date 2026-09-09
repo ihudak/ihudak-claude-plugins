@@ -670,6 +670,17 @@ judge for themselves. Where the option is dropped and nothing replaces it, the a
 
 **Every merge clause above is the `<merge-clause>` placeholder**, resolved from this run's own `Phase handoff:` outcome line per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`, and never the unconditional "once the pull request above is merged": a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on. It is a placeholder, not an instruction to reword an option, so the arrays are still presented verbatim per `workflows-core:escalation-rules`. **The wait it names is real for every command named above**, and it is a stop, not a silent degradation: `/product-workflows:epics`, `/product-workflows:specify` and `/dev-workflows:design` each read this ARD through `workflows-core:ard-resolution` and each stops on `status: unmerged`, naming the branch and any open pull request. Only a handoff that reached no branch at all resolves `status: none`, where that reference's no-regression rule has the run proceed exactly as it would with no ARD.
 
+**The commercial step this run just unlocked, named in prose — and it depends on the route.** On the
+BRD route, where verified grounding and a settled register already exist, this ARD is what takes the
+folder to tier 3, where architecture-bearing work packages become eligible for High confidence
+(`${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5): **`/product-workflows:prd-proposal <KEY>`
+now prices this folder against a settled architecture rather than an assumed one, and re-running it
+after this ARD narrows the range.** On the idea route neither input exists, so the folder stays at
+§5's tier-1 ceiling regardless of this ARD — `/product-workflows:prd-proposal <KEY>` is still worth
+naming, but it stays indicative until the folder is grounded and its register settled. Either way it
+is optional and ungated — nothing waits on a proposal, and no arrays above change. No merge wait: that
+command gates on `prd.md`, which this run does not write.
+
 Guidance only — never auto-invokes another command. Per `workflows-core:next-phase-offer`.
 
 ### Context hygiene

@@ -9,7 +9,7 @@ ledger where every requirement starts `unallocated`.
 `/brd-intake` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution
 phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route, the way `/idea` and
 `/create-prd` share `prd-creation`. It is the route's entry point: nothing else in the route reads a
-customer-supplied source document. Downstream, each `/brd-*` command gates on whatever the command
+customer-supplied source document. Downstream, each command of the route gates on whatever the command
 immediately before it in the chain produced, not on this one directly. Nothing gates on this
 command's own inventory and ledger at all: `/brd-split`, run on the root, reads both from the
 working tree and stops on what they contain rather than on where they have been merged. Every
@@ -146,7 +146,8 @@ commit, push, and open a pull request.
 - [`brd-format.md`](../../references/brd-format.md) — the `[BR#n]` row shape, the immutability rule,
   and the six defect classes this command confirms against.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the ledger row shape,
-  the six dispositions, and the ledger line every `/brd-*` command's final report ends with.
+  the six dispositions, and the ledger line every command of the BRD-to-PRD route ends its final
+  report with.
 - `workflows-core:docs-grounding` — the `$DOCS_PATH` resolution gate,
   the `docs grounding:` line this command shows verbatim, and the grill-rank consumption mode.
 - [Agents](../reference/agents.md) — `brd-reader`'s and `docs-grounder`'s full contracts.

@@ -9,7 +9,7 @@ Intake the customer-supplied business requirements document: $ARGUMENTS
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
 `/brd-intake` is the **entry point of the BRD-to-PRD flow** (PM phase) — the first of the
-`/brd-*` commands, which between them turn a long, often internally
+route's commands, which between them turn a long, often internally
 contradictory customer BRD into requirements a PRD can be built from. It copies the customer's
 source into the specs repo **verbatim and immutably**, extracts a `[BR#n]` requirement inventory
 via the `brd-reader` agent, classifies the document's defects **with a human** rather than on the

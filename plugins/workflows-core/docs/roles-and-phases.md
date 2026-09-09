@@ -1,6 +1,6 @@
 # Roles and phases
 
-The `dev-workflows` plugin family charges every cost-emitting run to a `phase` and a `role`. Eleven phases exist, and the vocabulary itself belongs to the pipeline plugin whose commands own the lifecycle. This page says only what `workflows-core`'s own six commands do with it, because that is the part a reader of *these* commands needs.
+The `dev-workflows` plugin family charges every cost-emitting run to a `phase` and a `role`. Twelve phases exist, and the vocabulary itself belongs to the pipeline plugin whose commands own the lifecycle. This page says only what `workflows-core`'s own six commands do with it, because that is the part a reader of *these* commands needs.
 
 ## No command here owns a phase
 
@@ -11,7 +11,7 @@ None of the six commands in this plugin advances a product increment, so none of
 
 `/statusline` emits nothing at all: it sets a configuration value rather than running a task.
 
-The three phases those two mechanisms can land on directly are described below. The other eight are reachable only by inheritance, and each is documented by the plugin whose command emits it.
+The three phases those two mechanisms can land on directly are described below. The other nine are reachable only by inheritance, and each is documented by the plugin whose command emits it.
 
 ### prd-creation
 

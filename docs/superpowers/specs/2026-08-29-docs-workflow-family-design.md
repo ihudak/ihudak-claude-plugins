@@ -2,13 +2,15 @@
 
 **Date:** 2026-08-29
 **Status:** Design approved in brainstorming; not implemented. Spec 1 of 3 specified in full; Specs 2 and 3 specified as contracts only.
-**Scope:** one plugin — provisionally `plugins/dev-workflows`, see the banner below
+**Scope:** one plugin — `plugins/docs-workflows`, settled by the marketplace split; see the banner below
 
 ---
 
 > ### ⚠ The home plugin is provisional
 >
-> This design places the family in `dev-workflows` (D1). A marketplace restructure is planned ahead of implementation — extracting a shared `workflows-core`, then splitting the remainder into `product-workflows`, `dev-workflows` and `docs-workflows`. **If that lands first, the family is born in `docs-workflows` instead**, and four things here are re-derived rather than followed: **D1** (which plugin), **§13.3** (every inventory count), **§13.5** (which becomes a record of what was done rather than what is possible), and **§15** (the documentation deliverable, whose paths and counts all assume one plugin).
+> This design placed the family in `dev-workflows` (D1) and warned that a marketplace restructure was planned ahead of implementation. **That restructure landed on 2026-09-02, and this design was its trigger** — `2026-09-02-marketplace-split-design.md` names this document by name and overturns D1 on the evidence §13.5 had already assembled against it. The shared `workflows-core` was extracted, the remainder split into `product-workflows`, `dev-workflows` and `docs-workflows`, and `guideline-reviewers` carved out beside them.
+>
+> **The family is therefore born in `docs-workflows`.** The four things this banner said would be re-derived have been, and each now says so where it stands: **D1** (retired in place), **§13.3** (counts and gate description refreshed), **§13.5** (rewritten from prediction into record), and **§15** (the deliverable, re-pointed at the plugin that actually holds it). **§20 records the whole of what the split changed**, in the shape §19 established for the specs-native pipeline.
 >
 > **Everything else is independent of the packaging** and stands as written: the coverage model (§5), the four frozen contracts (§8), the visibility model (§9), the per-command designs (§6, §7, §10, §11), and the operating procedure (§14).
 >
@@ -22,12 +24,12 @@
 
 A large share of software projects have no product documentation at all, and the gap widens as the project grows: the surface to document expands faster than anyone's willingness to start, and by the time documentation is attempted nobody can say what should exist, in what order, or when it is finished.
 
-`dev-workflows` already has a documentation surface, but every part of it assumes documentation **already exists**:
+The family plugins already have a documentation surface — `docs-workflows` since the split, `dev-workflows` when this was written — but every part of it assumes documentation **already exists**:
 
 | Existing | What it assumes |
 |---|---|
-| `/document` Mode A | A PRD key, a Jira export, PR URLs, a docs repo, and a docs profile. It documents a **delta**. |
-| `/document` Mode B | A specific edit the user already knows they want. |
+| `/document` keyed mode | A PRD key, an `implementation.md` record, PR URLs, a docs repo, and a docs profile. It documents a **delta**. |
+| `/document` direct mode | A specific edit the user already knows they want. |
 | `/docs-profile` | A docs repo that already exists, to be **described**. |
 
 Nothing answers the cold-start question: *there are no docs and no docs repo — what should exist, in what order do we write it, and how do we know when we are done?* That is a different shape of problem. It is inventory and prioritisation against a denominator derived from code, not diffing against a ticket.
@@ -54,11 +56,11 @@ Spec 2 is largely a re-wiring of agents that already exist. Spec 3 is meaningles
 
 | # | Decision | Rationale |
 |---|---|---|
-| D1 | **Extend `dev-workflows`; do not create a `doc-workflows` plugin.** | The scaffold's output *is* `docs-profile.yml` — the schema `/docs-profile` writes and `/document` consumes. Splitting plugins separates a schema from one of its writers, and nothing catches the drift because each plugin's gates see only its own tree. `doc-fixer` is already shared by `/epics` and `/document`; `code-scanner` by six commands. And `finding-triage`, `gate-ledger`, `context-management`, `phase-handoff`, `specs-repo-git` cannot be safely duplicated. **Two of these three arguments were weakened by a later finding — see §13.5. The decision stands for this increment on packaging grounds, not on the impossibility grounds originally given.** |
+| D1 | ~~**Extend `dev-workflows`; do not create a `doc-workflows` plugin.**~~ **RETIRED 2026-09-02 — the family ships from `docs-workflows`.** | The original rationale ran: the scaffold's output *is* `docs-profile.yml`, splitting plugins separates a schema from one of its writers, `doc-fixer` and `code-scanner` are already shared, and `finding-triage`, `gate-ledger`, `context-management`, `phase-handoff` and `specs-repo-git` cannot be safely duplicated. **The last of those was false and §13.5 proved it before implementation began**: Claude Code supports plugin dependencies natively, and the marketplace split then acted on exactly that finding, citing this design as its trigger. What replaced D1 is `2026-09-02-marketplace-split-design.md`: a shared `workflows-core` reached through one argument-taking loader skill, with `docs-workflows` declaring it as a hard dependency. **The rule the retirement leaves standing is D1's last clause** — keep the family's own references in their own directory — which is now what makes them easy to *find*, rather than what would have made them easy to extract. |
 | D2 | **One command family, `audience: user \| engineering` typed onto each backlog unit — not two pipelines.** | The audit is a single pass over the same code and yields both audiences' gaps at once; prioritisation is one backlog or it cannot answer "what is the next most valuable page". What differs by audience is not the pipeline but the **evidence contract** — template, evidence source, verification method, drift signal — so those become two implementations of one interface. |
 | D3 | **User-doc evidence is code-first draft plus a human-executed verification walkthrough.** Browser automation is deferred, but the walkthrough is structured from day one so a driver is a runner, not a rewrite. | Screenshot capture is an asset-lifecycle problem, not a capture problem (see the existing images policy: CDN-hosted, immutable URLs, never refreshed in place). And most projects with no docs also have no seeded environment with per-role credentials — making browser grounding core would make the family unportable. |
-| D4 | **The later screenshot/verification pass is `/docs-verify`, never `/document`.** | `/document` Mode A requires a PRD key, a Jira export and PR URLs; "add screenshots to the Roles page" is not a delta with a ticket behind it. Mode B has no role model, no grounding and no asset lifecycle. |
-| D5 | **The backlog is a tracked file in the docs repo** (`.dev-workflows/docs-backlog.yml`), beside the profile. | Zero external dependencies, reviewable in a PR, git history is the progress record. Jira/GitHub projection is an optional emitter, never the source of truth. |
+| D4 | **The later screenshot/verification pass is `/docs-verify`, never `/document`.** | `/document` keyed mode requires a PRD key and an `implementation.md` record; "add screenshots to the Roles page" is not a delta with a change record behind it. Direct mode has no role model, no grounding and no asset lifecycle. **The conclusion never depended on the tracker** — it rests on `/document` documenting a *delta*, which every later increment preserved — but the rationale used to argue from a Jira export, and that wording is gone rather than footnoted. |
+| D5 | **The backlog is a tracked file in the docs repo** (`.dev-workflows/docs-backlog.yml`), beside the profile. | Zero external dependencies, reviewable in a PR, git history is the progress record. A tracker projection is an optional emitter, never the source of truth — and since the plugin removed its tracker dependency entirely, the live candidate is GitHub issues or nothing (§19, row 6). The `.dev-workflows/` directory name is deliberate and survives the split: it is the directory `/docs-profile` already writes into, and renaming it per-plugin would orphan every profile in the wild. |
 | D6 | **Coverage denominator = surfaces enumerated from code, crossed with Diátaxis.** | Without a denominator "what is missing" is a vibe. Three of the four Diátaxis quadrants are derivable from code; tutorials are not, and the design says so rather than pretending. |
 | D7 | **Volatility de-prioritises but never excludes.** | Documenting a churning surface burns effort and trust; but a churning surface that blocks the primary journey still gets written — in a form that survives churn (concept and reference, not step-by-step screenshots). |
 | D8 | **Generator: Material for MkDocs.** | Vale has no MDX parser, so an MDX generator means fighting JSX false positives for the life of the project. Material is pure Markdown, has first-class snippets (`pymdownx.snippets`), and expresses brand colour and logo as ~10 lines of config. The Node alternative, if ever wanted, is VitePress (Markdown-first); Docusaurus is ruled out. |
@@ -84,7 +86,7 @@ Spec 2 is largely a re-wiring of agents that already exist. Spec 3 is meaningles
 | Command | Job | Reuses |
 |---|---|---|
 | `/docs-init` | Scaffold the docs repo: generator, product-shaped page skeleton (D15), Vale, snippets, two builds, CI; emit `docs-profile.yml` | profile schema, `/docs-brand` inline |
-| `/docs-brand` | Extract logo + rough colour scheme from the code repos and apply them | `references/guidelines/accessibility.md` |
+| `/docs-brand` | Extract logo + rough colour scheme from the code repos and apply them | `references/guidelines/accessibility.md` — **not loadable from `docs-workflows` today; settle §18 question 3 before building §7.3** |
 | `/docs-serve` | Start/stop/status the docs server in the background; report a reachable URL | profile `dev_servers` |
 | `/docs-audit` | Enumerate surfaces, assign each the page types it earns, write the prioritised backlog | `code-scanner`, `docs-grounder` |
 | `/docs-write <unit>` | Ground → draft → style → review → publish one backlog unit *(Spec 2)* | `doc-writer`, `docs-style-checker`, `doc-fixer`, `doc-reviewer`, `finding-triage` |
@@ -812,7 +814,11 @@ For each surface, diff `sources[].ref` → `HEAD` restricted to the surface's ev
 
 ### 13.1 Reused unchanged
 
-`model-routing`, `specs-repo-git` (`specs-preflight` + `commit-artifacts`), `finding-triage`, `gate-ledger`, `context-management` read-failure tiers, `toolchain-preflight`, `read-only-repos`, `prose-formatting`, `cost-emission`, `feedback-emission`, `followup-emission`, `session-hygiene`, `doc-structure-conventions`, `source-truth`, `pre-lint`, `references/guidelines/accessibility.md`. Agents: `code-scanner`, `docs-grounder`, `diff-summarizer`, `doc-writer`, `doc-reviewer`, `doc-fixer`, `docs-style-checker`, `impl-maintenance`.
+`model-routing`, `specs-repo-git` (`specs-preflight` + `commit-artifacts`), `finding-triage`, `gate-ledger`, `context-management` read-failure tiers, `toolchain-preflight`, `read-only-repos`, `prose-formatting`, `cost-emission`, `feedback-emission`, `followup-emission`, `session-hygiene`, `doc-structure-conventions`, `source-truth`, `pre-lint`. Agents: `code-scanner`, `docs-grounder`, `diff-summarizer`, `doc-writer`, `doc-reviewer`, `doc-fixer`, `docs-style-checker`, `impl-maintenance`.
+
+**How they are reached changed, even though what they are did not.** Every reference above now lives in `workflows-core` (or, for `toolchain-preflight`, `gate-ledger` and `release-note-types`, in `docs-workflows` itself) and is loaded through one argument-taking skill — `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path, because `${CLAUDE_PLUGIN_ROOT}` resolves to the *reading* plugin. Every consuming file carries the loader preamble, and `check-docs.sh` check 16 gates the contract in five relations. An agent crosses a plugin boundary for free; a reference does not.
+
+**One entry has dropped off this list because the split made it unreachable, and it needs a decision rather than an edit.** `references/guidelines/accessibility.md` — cited here as reused unchanged — now lives in **`guideline-reviewers`**, which no plugin declares as a dependency and which the `workflows-core:reference` loader does not serve. Nothing outside that plugin cites it today, so a `docs-workflows` command cannot load it at all. `/docs-init`'s branding phase (§7.3) and the image policies (§8.4) both lean on it. See §18, open question 3.
 
 ### 13.2 Changed
 
@@ -821,20 +827,20 @@ For each surface, diff `sources[].ref` → `HEAD` restricted to the surface's ev
 
 ### 13.3 Gate impact, stated up front
 
-Re-derived against the tree at `v3.24.1` (dev-workflows 3.24.1), with the specs-native pipeline complete. Re-derive again at implementation time — these move on almost every release, and nothing gates a number written in prose.
+Re-derived against the post-split tree, scoped to the five plugins `check-docs.sh` gates (`dev-workflows`, `docs-workflows`, `product-workflows`, `workflows-core`, `guideline-reviewers`). **The scope of these numbers changed with the split and the totals mostly did not** — the restructure moved content between plugins without adding commands or agents — so the interesting column is no longer the total but the per-plugin inventory the gate actually checks. Re-derive again at implementation time: these move on almost every release, and nothing gates a number written in prose.
 
 | Inventory | Now | After the family |
 |---|---|---|
-| Commands | 28 | 36 |
-| Agents | 38 | 42 |
-| Reference files | 105 | 105 + `references/docs-workflow/*` |
-| `docs/` pages | 43 | 56 |
-| Skills | 2 | 2 |
-| Hooks | 5 | 5 |
+| Commands | 28 across five plugins (3 in `docs-workflows`) | 36 (11 in `docs-workflows`) |
+| Agents | 38 across five plugins (7 in `docs-workflows`) | 42 (11 in `docs-workflows`) |
+| Reference files | 100 across five plugins (14 in `docs-workflows`) | 100 + `docs-workflows/references/docs-workflow/*` |
+| `docs/` pages | 79 across five plugins (11 in `docs-workflows`) | 92 (24 in `docs-workflows`) |
+| Skills | 3 (`model-routing`, `reference`, `docs-frontmatter`) | 3 |
+| Hooks | 6 | 6 |
 
-`scripts/check-docs.sh` runs **eleven** checks over 51 selftest cases and enforces six inventories in both directions plus the prose counts that mirror them; `scripts/check-id-grammar.sh` applies to the new reference files. The `plugin.json` and `marketplace.json` descriptions are capped at 1024 characters and are already tight: the new capability **replaces** wording, it never appends.
+`scripts/check-docs.sh` runs **seventeen** checks over 119 selftest cases and enforces six inventories in both directions plus the prose counts that mirror them; `scripts/check-id-grammar.sh` applies to the new reference files. The `plugin.json` and `marketplace.json` descriptions are capped at 1024 characters and are already tight: the new capability **replaces** wording, it never appends. **Four of the seventeen postdate this design and each one bites here:** check 13 (vendor neutrality — no tracker name in any text file without a marker), check 14 (identity quarantine over the whole repository, no marker and no exception), check 16 (the loader contract, in five relations), and check 17 (an agent granted `Task` must carry the NEVER-dispatch rule).
 
-Check 11 gates `choices:` placeholders for the `/brd-*` family only, and `CLAUDE.md` records that its scope was deliberately not widened on evidence. This family is therefore **outside** that check — which means its offers must carry the `references/next-phase-offer.md` merge clause by discipline rather than by gate, and that is worth stating in the commands themselves rather than discovering later.
+Check 11 gates `choices:` placeholders for the `/brd-*` **and `/prd-*`** families — it was one glob when this was written and is two now, derived from every glob in `workflows-core:next-phase-offer`'s scope paragraph rather than from a hard-coded list. No `/docs-*` name matches either, so this family is still **outside** the check — but that is now a conclusion to re-test whenever the scope paragraph gains a glob, not a standing fact. Either way its offers must carry the `next-phase-offer` merge clause by discipline rather than by gate, and that is worth stating in the commands themselves rather than discovering later.
 
 ### 13.4 Where a documentation run's bookkeeping lands
 
@@ -853,50 +859,50 @@ $SPECS_PATH/documentation/<docs-repo-slug>/
 
 `<docs-repo-slug>` comes from the resolved docs repo's git remote, or its directory name. Per-repo rather than one flat `docs/` bucket, because a person who documents two products must still be able to answer what documenting each one cost — which is exactly why the PRD-directory rung exists for the pipeline. The docs repo is this family's unit of attribution.
 
+**The inner `dev-workflows/` directory in that path is the live convention, not a pre-split leftover — do not "correct" it.** The shipped persistence ladder writes `<PRD-dir>/dev-workflows/cost/<sid8>.md` regardless of which plugin emitted the entry, so the directory names the *family*, not the plugin. Renaming it per-plugin would fragment one repository's cost record across four directories and break every reader of it.
+
 Three consequences worth stating because each is a place to get it wrong:
 
 - **`references/specs-repo-git.md` §2.1 gains a fourth bounded path shape.** Staging stays enumeration-based; nothing else about the bookkeeping commit changes.
 - **`references/cost-emission.md` §7 gains a row per new command** that hands `emit-cost` a fixed `phase`/`role` pair. `check-docs.sh` check 8 fails in both directions, so a row without a command is as red as a command without a row.
-- **No new branch prefix is needed.** `specs-repo-git.md`'s seven-prefix authority (`^(idea|prd|ard|spec|design|ready|brd)/`) governs branches the plugin creates **in `$SPECS_PATH`**, and this family creates none there — its deliverables live in the docs repo, where it follows `/docs-profile`'s existing discipline of branch, commit, draft a PR, never push. `handoff-to-main` and `require-on-main` likewise do not apply, because no deliverable of this family is a `$SPECS_PATH` artefact.
+- **No new branch prefix is needed.** `specs-repo-git.md`'s prefix authority — seven when this was written, **eight since `/frames` landed** (`^(idea|prd|ard|spec|design|ready|brd|frames)/`) — governs branches the plugin creates **in `$SPECS_PATH`**, and this family creates none there: its deliverables live in the docs repo, where it follows `/docs-profile`'s existing discipline of branch, commit, draft a PR, never push. `handoff-to-main` and `require-on-main` likewise do not apply, because no deliverable of this family is a `$SPECS_PATH` artefact. The count moved; the conclusion did not.
 
-### 13.5 If the family is later extracted: what the plugin system actually supports
+### 13.5 The extraction happened — what the plugin system actually supported, and what shipped
 
-D1 chose to extend rather than split, and part of its justification was that the shared invariants "cannot be safely duplicated". That premise was never verified against the plugin system, and checking it changes the picture. **Claude Code supports plugin dependencies natively**, so a shared core is a supported architecture rather than something to invent:
+**This section was written as a prediction and is kept as a record.** D1 chose to extend rather than split, partly on the premise that the shared invariants "cannot be safely duplicated". That premise was never verified against the plugin system, and checking it changed the picture: **Claude Code supports plugin dependencies natively**, so a shared core was a supported architecture rather than something to invent. `2026-09-02-marketplace-split-design.md` then acted on exactly that finding, cites this design as its trigger, and shipped. Everything below is now past tense, and the three places the prediction was wrong are marked, because a prediction that was mostly right is more misleading than one that was wrong.
+
+What shipped, in `.claude-plugin/plugin.json`:
 
 ```json
 {
-  "name": "doc-workflows",
-  "version": "1.0.0",
-  "dependencies": [
-    "dev-workflows-core",
-    { "name": "prose-style", "version": "~0.3.0" }
-  ]
+  "name": "docs-workflows",
+  "dependencies": ["workflows-core", "prose-style"]
 }
 ```
 
-Dependencies are declared in `.claude-plugin/plugin.json` or in the marketplace entry, resolved and **installed automatically**, reinstalled on reload or background update if missing, and constrained with semver ranges that Claude Code intersects across every plugin declaring them. `allowCrossMarketplaceDependenciesOn` in `marketplace.json` extends this across marketplaces.
+**What crosses a plugin boundary, and what does not.** This was the distinction that decided the real cost of the split, and it held:
 
-**What crosses a plugin boundary, and what does not.** This is the distinction that decides the real cost of a split:
-
-| Shared thing | Crosses today | Cost to move to a core plugin |
+| Shared thing | Crosses | What it cost |
 |---|---|---|
-| **Agents** — `code-scanner`, `docs-grounder`, `code-grounder`, `design-grounder`, `doc-fixer`, `code-review`, `review-fixer`, `doc-reviewer` | **Yes.** `subagent_type: "<plugin>:<agent>"` already works — `/epics` and `/create-prd` invoke `prose-style:prose-style-checker` today | Change the prefix. Effectively zero |
-| **Skills** — `model-routing` | **Yes.** `<plugin>:<skill>` via the Skill tool | Zero |
-| **Reference files** — `cost-emission.md`, `feedback-emission.md`, `finding-triage.md`, `specs-repo-git.md`, `phase-handoff.md`, `release-note-types.md` | **No.** `${CLAUDE_PLUGIN_ROOT}` resolves to the *reading* plugin's own directory; a dependency guarantees installation, not file access | Each becomes a **skill wrapper** — the exact pattern `skills/model-routing/` already implements, invented here for a different reason (slash-command bodies cannot expand the variable) |
+| **Agents** — `code-scanner`, `docs-grounder`, `doc-fixer`, `code-review`, `review-fixer`, `doc-reviewer` | **Yes.** `subagent_type: "<plugin>:<agent>"` | Change the prefix. Effectively zero, as predicted |
+| **Skills** — `model-routing` | **Yes.** `<plugin>:<skill>` via the Skill tool | Zero, as predicted |
+| **Reference files** — `cost-emission.md`, `finding-triage.md`, `specs-repo-git.md`, `phase-handoff.md`, … | **No.** `${CLAUDE_PLUGIN_ROOT}` resolves to the *reading* plugin; a dependency guarantees installation, not file access | **Predicted wrong.** See below |
 | **Hooks** | No | Each plugin ships its own; `${CLAUDE_PLUGIN_ROOT}` is correct as-is |
 
-So the honest cost of a split is **not** duplicated invariants. It is one skill wrapper per shared reference, and the pattern for that already exists in this repository.
+**Three corrections to the prediction, each worth carrying forward:**
 
-**Three caveats that would need handling, one of which is live in this repository right now:**
+1. **The reference solution is one loader, not one wrapper per file.** This section predicted "a **skill wrapper** per shared reference — the exact pattern `skills/model-routing/` already implements". What shipped is a single argument-taking skill, `Skill(skill: "workflows-core:reference", args: "<name>")`, with an optional second token naming an entry point *within* the reference. Twenty-eight wrappers would have been twenty-eight files to keep in step with a corpus that moves; one skill whose argument nothing validates needed something to validate it, which is `check-docs.sh` check 16 — five derived relations, in both directions. **Implement against the loader, never against a wrapper.**
+2. **The stated reason `model-routing` exists is retired.** The parenthetical here — that the wrapper pattern was "invented for a different reason (slash-command bodies cannot expand the variable)" — was verified false in a live run: `${CLAUDE_PLUGIN_ROOT}` **does** expand in slash-command bodies, all 33 literal tokens in `docs-workflows`'s own `document.md` arrived as absolute paths. `CLAUDE.md` records the retirement. The skill survives; its justification did not.
+3. **`prose-style` is no longer optional, and caveat 2 below came true.** This section warned that a declared dependency is hard rather than optional, in contrast to "today's only cross-plugin relationship, where `prose-style` is optional and skipped gracefully". `docs-workflows` now declares `prose-style` as a hard dependency and **carries no absent case for it** — `docs-style-checker` falls back to `prose-style-checker` only when the *repo's own* linter rungs fail, and that fallback is conditional on the repo, never on the plugin. So every command this family adds inherits a hard dependency, and none of them may write a "if `prose-style` is missing" branch.
 
-1. **Git tags matter only for *version-ranged* dependencies.** A bare-name dependency (`"dependencies": ["workflows-core"]`) tracks the latest available version and needs no tags at all. A ranged one (`{ "name": "workflows-core", "version": "~1.2.0" }`) is resolved by auto-update against "the highest compatible git tag", and this repository's only tag is `v1.3.0` while `dev-workflows` is at 3.5.0 — so a ranged dependency declared today would fail `no-matching-tag` immediately. **Start with bare names; adopt release tags at the point you want to pin.** Where every plugin ships from one repository at one commit, version skew is small enough that bare names are the honest default.
-2. **A declared dependency is hard, not optional.** An unsatisfied, conflicting, or out-of-range dependency produces a named error (`dependency-unsatisfied`, `range-conflict`, `dependency-version-unsatisfied`, `no-matching-tag`) and **Claude Code disables the affected plugin**. That is better than silent degradation, but it is a different character from today's only cross-plugin relationship, where `prose-style` is optional and skipped gracefully. A core version conflict would take the whole family down at once.
-3. **Two plugins to install**, and a core whose version must be compatible with every dependent simultaneously — the usual cost of a shared library, now with the version ranges to manage that implies.
+**The two caveats that held, kept because they are still the operating rules:**
 
-**Where `/release-notes` lands, if the split happens.** It is the one command the documented role model does not resolve — PM drafts it early, Dev finalises it. It belongs in `docs-workflows`, for three reasons: the role assignment was driven by a tracker rule (a ticket's status could not advance without release notes) that no longer applies; the command already resolves clones under `$REPOS_PATH` for optional diff grounding, which `docs-workflows` needs anyway for `/document`; and under this design its drafts are the evidence behind every What's-new page (§5.1's `release` surface), so co-locating them makes that integration intra-plugin instead of a cross-plugin contract.
+- **Git tags matter only for *version-ranged* dependencies, and bare names were the right call.** A bare-name dependency tracks the latest available version and needs no tags; a ranged one resolves against "the highest compatible git tag". The recommendation here was *start with bare names, adopt release tags at the point you want to pin* — and that is exactly what shipped: every family `plugin.json` declares bare `"workflows-core"` and, where applicable, bare `"prose-style"`. The repository now carries three tags (`pre-split`, `v1.3.0`, `v3.24.1`) against plugin versions in the 1.x–4.x range, so a ranged dependency declared today would still fail `no-matching-tag`. Do not add one casually.
+- **A declared dependency is hard.** An unsatisfied, conflicting or out-of-range dependency produces a named error and **Claude Code disables the affected plugin**. A `workflows-core` version conflict takes the whole family down at once. That is better than silent degradation, and it is the trade the split accepted knowingly.
 
-**Recommendation: keep D1 for this increment, and revisit after the family ships**, when the dependency surface is observed rather than predicted. Nothing in Spec 1 forecloses the split — the new references stay in `references/docs-workflow/`, so extraction is a `git mv` plus a manifest plus one skill wrapper per shared reference. What *would* foreclose it cheaply is scattering the family's references among the existing ones, which is why the own-directory rule in D1 is the part that matters most.
+**Where `/release-notes` landed.** This section predicted `docs-workflows`, for three reasons — the role assignment came from a tracker rule that no longer applies, the command already resolves clones under `$REPOS_PATH`, and its drafts are the evidence behind every What's-new page (§5.1's `release` surface). **It landed in `docs-workflows`.** That integration is therefore intra-plugin, as designed.
 
+**One thing the split created that this section did not foresee:** a fifth plugin, `guideline-reviewers`, that nothing depends on — which is how `references/guidelines/accessibility.md` became unreachable from this family (§13.1, §18 question 3). The lesson generalises: *dependencies were the cheap part; what is expensive is a shared file in a plugin no dependency names.*
 ---
 
 ## 14. Operating procedure — from zero to a populated portal
@@ -927,7 +933,7 @@ The commands are the machine; this is the procedure a person follows, and it bel
 
 ## 15. Documentation deliverable
 
-`scripts/check-docs.sh` fails the build until this is complete, so it is **part of the change, not a follow-up**. The checks that bite here are the command / agent / reference inventories in both directions, the six prose counts, the 200-character table-cell cap, and the identity quarantine — no page under `docs/` may name a marketplace or a container repo, `getting-started.md` being the single sanctioned exception.
+`scripts/check-docs.sh` fails the build until this is complete, so it is **part of the change, not a follow-up**. **Every path in this section is `plugins/docs-workflows/`'s**, that being where the split put the family (D1, retired). The checks that bite here are the command / agent / reference inventories in both directions, the six prose counts, the 200-character table-cell cap, the identity quarantine — no page under `docs/` may name a marketplace or a container repo, `getting-started.md` being the single sanctioned exception — and check 15's index membership, which asserts each command appears in `docs/README.md`, in the plugin README, **and inside `docs/workflow.md`'s mermaid diagram**, the diagram asserted separately from the page.
 
 Every claim on every new page is derived from **the thing that runs it**: a synopsis from the command's argument-parsing phase, phases from its `## Phase` headings, gates from its reviewer dispatch, the agent inventory from `agents/`. Not from this design document, which will drift from the implementation the moment the implementation starts.
 
@@ -958,9 +964,9 @@ Four reference pages under `docs/reference/`, mirroring the new `references/docs
 | `docs-evidence.md` | The evidence contract and the walkthrough spec, including the marked-claim rule (§8.2, §8.3) |
 | `docs-visibility.md` | The two-build model, both traps, and the two output-level gates (§9) |
 
-**One route page, `docs/docs-workflow.md`** — the ordered walkthrough from §14, following the precedent of the existing `docs/brd-workflow.md`, which does exactly this for the BRD route. A family of eight commands needs a page that says which order to run them in; without it the per-command pages describe eight tools and no procedure.
+**One route page, `docs/docs-workflow.md`** — the ordered walkthrough from §14, following the precedent of `docs/brd-workflow.md`, which does exactly this for the BRD route. That page now lives in `product-workflows` rather than beside this one, so it is a **pattern to copy, not a sibling to link**: check 10's identity quarantine and check 1's link resolution both apply, and a cross-plugin relative link resolves to nothing. A family of eight commands needs a page that says which order to run them in; without it the per-command pages describe eight tools and no procedure.
 
-`docs/README.md` gains rows in the "I want to…" table — *start documenting a project that has no docs* → `/docs-init`, `/docs-audit`; *write the next page* → `/docs-write`; *check the docs still match the code* → `/docs-drift`; *open the docs in a browser* → `/docs-serve`. `docs/workflow.md` gains the family as a fourth stage on the existing pipeline diagram, and `docs/roles-and-phases.md` gains the Docs role.
+`docs/README.md` gains rows in the "I want to…" table — *start documenting a project that has no docs* → `/docs-init`, `/docs-audit`; *write the next page* → `/docs-write`; *check the docs still match the code* → `/docs-drift`; *open the docs in a browser* → `/docs-serve`. `docs/workflow.md` gains the family as a stage on its pipeline diagram — **and that is the diagram check 15 asserts membership against, so a command added to the page but not the diagram fails the build.** **`docs/roles-and-phases.md` does not exist in `docs-workflows`** — three plugins carry one and this is not among them — so the Docs role is either introduced by creating that page here, or recorded in `docs/workflow.md`; creating it means a new page that check 3 requires be reachable from `docs/README.md`. Decide, do not assume the page is there.
 
 ### 15.3 Which diagram lives where
 
@@ -1005,7 +1011,7 @@ flowchart TD
 
 ### 15.4 Counts to update in the same change
 
-`check-docs.sh` cross-checks six inventories plus the cost-emitting set against prose counts scattered across the tree, and each must move together: commands 28 → 36, agents 38 → 42, reference files 105 → 105 plus `references/docs-workflow/*`, docs pages 43 → 56 (8 command pages, 4 reference pages, 1 route page). `CLAUDE.md`'s command list, agent list and workflow map are updated in the same commit, and every new command handing `emit-cost` a fixed `phase`/`role` pair needs its matching row in `references/cost-emission.md` §7 — check 8 fails in both directions.
+`check-docs.sh` cross-checks six inventories plus the cost-emitting set against prose counts scattered across the tree, and each must move together. **Scoped to `docs-workflows`, which is the scope the gate applies:** commands 3 → 11, agents 7 → 11, reference files 14 → 14 plus `references/docs-workflow/*`, docs pages 11 → 24 (8 command pages, 4 reference pages, 1 route page). The five-plugin totals move with them (28 → 36 commands, 38 → 42 agents, 79 → 92 pages). `CLAUDE.md`'s command list, agent list, per-plugin inventory sentences and workflow map are updated in the same commit — **`CLAUDE.md`'s own numbers are held by hand, nothing gates them** — and every new command handing `emit-cost` a fixed `phase`/`role` pair needs its matching row in `workflows-core:cost-emission` §7, plus `docs-workflows` in `COST_PLUGIN_RELS`; check 8 fails in both directions.
 
 **Do not copy these numbers forward without re-deriving them.** This document already carried a stale set once: it was written against a tree with 21 commands and 33 agents, and by the time it was reviewed the repository had 27 and 39. `CLAUDE.md` says it plainly — nothing gates any number written in prose, so re-derive against the tree you are actually changing.
 
@@ -1038,14 +1044,15 @@ flowchart TD
 | Internal content leaks into the public build | Two output-level gates (§9.3), asserting on built HTML rather than on source paths or contributor discipline |
 | **The backlog and the pages disagree** — a second source of truth | `unit:` in frontmatter is the link in both directions. `/docs-audit --refresh` reconciles both ways and **never silently deletes a unit**: one whose surface vanished is marked `blocked_by: [surface-removed]` and reported, because a surface disappearing is as likely to be a failed scan as a real removal |
 | **The generated `nav:` drifts from the files** | Nav is regenerated from frontmatter `order` on every write, and the public build already runs `strict: true` with `validation.nav.omitted_files: warn` — so a page missing from the nav fails the build rather than going quietly unreachable |
-| 36 commands is a maintainability **and** discoverability problem | All nine docs commands share the `/docs-*` namespace; `docs/docs-workflow.md` gives the family one route page; the README role row gives it one entry point. The new references stay in their own directory so a later extraction is a move, not an untangling — revisit after Spec 2 |
+| 36 commands across five plugins is a maintainability **and** discoverability problem | All nine docs commands share the `/docs-*` namespace and one plugin; `docs/docs-workflow.md` gives the family one route page; the README role row gives it one entry point. The split already did the structural half of this — the family lands in a plugin whose whole subject is documentation, rather than as eight more commands in a 28-command monolith |
 | Python toolchain in a Ruby/Node shop is resented | The docs repo is a separate repo with its own toolchain; D9 keeps the generator choice reversible behind the profile, and VitePress is the named Node alternative |
 | The backlog goes stale as a file | `/docs-drift` (Spec 3) is what keeps it live. Until Spec 3 ships, `--refresh` is manual and that limitation is stated rather than papered over |
 
 ## 18. Open questions
 
 1. **Tutorial selection UX.** The audit proposes candidates and a human picks; whether that is an interactive prompt in `/docs-audit` or a marked section of the backlog to edit is unsettled.
-2. **Jira/GitHub projection of the backlog** (D5's optional emitter) is named but not designed. Deferred until someone needs it.
+2. **Tracker projection of the backlog** (D5's optional emitter) is named but not designed. Deferred until someone needs it; if it is ever built it is GitHub issues, not a tracker the plugin deliberately stopped reading (§19, row 6).
+3. **How `/docs-init` reaches accessibility guidance.** `references/guidelines/accessibility.md` is cited by §7.3 and §8.4 and sits in `guideline-reviewers`, which no plugin declares as a dependency and which the `workflows-core:reference` loader does not serve — so `docs-workflows` cannot load it. Three candidate answers, none obviously right: move the file into the `workflows-core` corpus, where it becomes loadable by everything and belongs to nothing in particular; declare `guideline-reviewers` a dependency of `docs-workflows`, which makes a reviewer plugin a hard prerequisite for scaffolding a docs repo; or state the handful of rules `/docs-init` actually needs locally and cite the guideline plugin as further reading. **This is the one item on this list that blocks implementation of §7.3**, so settle it first.
 
 *(Three questions this document originally carried are now settled and have moved into §3: whether `docs-frontmatter` should own the evidence block — D18; the acceptable review spend per unit — D20; and the default page owner — D21.)*
 
@@ -1063,11 +1070,40 @@ This design was written against a tree that no longer exists. [`2026-08-31-specs
 | 2 | The `release` surface reads `/release-notes` drafts grouped by version | Verified: the three destinations are now **three sections of one `release-notes.md` in the PRD folder** | **Simpler than designed.** The section split each What's-new page wanted already exists in the source file, and `release-note-types.md` remains its authority. Only the *grouping* still needs deriving — this design wants one page per major version, and the source is per PRD folder |
 | 3 | Drift diffs `sources[].ref → HEAD` | Verified: `implementation.md` ships and is read by `/implement`, `/document`, `/release-notes` and `/ready` | **A better anchor than designed.** It records the branch, base and commit where work actually landed. Read it first; fall back to `sources[].ref` |
 | 4 | The bookkeeping rung slots into the old cost/feedback ladder | Verified: the ladder collapsed to four specs-first tiers and the vault rung is gone — but **tier 2 is still `pending`** | **The gap D19 identified is still open.** The collapse did not close it; it left it exactly where it was, so §13.4's rung is still the fix and still slots in before tier 2 |
-| 5 | Inventory counts | Everything moved: 28 commands, 38 agents, 105 references, 43 documentation pages at `v3.24.1` | §13.3 and §15.4 refreshed once. They will move again — re-derive at implementation time rather than tracking them per release |
+| 5 | Inventory counts | Everything moved: 28 commands, 38 agents, 105 references, 43 documentation pages at `v3.24.1` | §13.3 and §15.4 were refreshed for this. The split then moved the *scope* as well as the values (§20, row 11), which is why they carry a per-plugin column now — re-derive at implementation time rather than tracking them per release |
 | 6 | Open question 2 proposes a Jira projection of the backlog | The plugin removed its tracker dependency entirely | A **Jira** projection is now against the direction of travel. The live answer is GitHub issues, or nothing |
 
-**Unaffected, stated so it is not re-examined:** the coverage model (§5), all four frozen contracts (§8), the visibility model (§9), every per-command design (§6, §7, §10, §11), the operating procedure (§14), and all twenty-two decisions in §3.
+**Unaffected by the specs-native pipeline, stated so it is not re-examined:** the coverage model (§5), all four frozen contracts (§8), the visibility model (§9), every per-command design (§6, §7, §10, §11), the operating procedure (§14), and all twenty-two decisions in §3. §20 records what the *marketplace split* changed, which is a different and shorter list — and D1 is on it.
 
-One decision needs a note because its *rationale* cites the tracker while its *conclusion* never depended on it. **D4** — the screenshot pass belongs to `/docs-verify`, never `/document` — argues from `/document` Mode A requiring "a PRD key, a Jira export and PR URLs". That is now a PRD key and `implementation.md`. The conclusion stands unchanged, because it rests on `/document` documenting a **delta**, which the specs-native design preserved rather than removed.
+**D4's rationale has since been rewritten in place rather than footnoted here.** It used to argue from `/document` Mode A requiring "a PRD key, a Jira export and PR URLs"; the tracker is gone and the mode names are `keyed` and `direct`, so the decision now states the live prerequisite — a PRD key and an `implementation.md` record. The conclusion never moved: it rests on `/document` documenting a **delta**, which every increment since has preserved. A footnote correcting a table that still asserts the wrong thing is two live contradictory statements, which is what this replaces.
 
-**A new command arrived that this design has never considered: `/frames`.** It is the 28th command and postdates every section here. Nothing in this design depends on it, but the split that precedes implementation will have to allocate it.
+**A new command arrived that this design has never considered: `/frames`.** It postdates every section here and nothing in this design depends on it. This section left its allocation to the split; **the split allocated it to `workflows-core`**, alongside the other family-meta commands.
+
+
+---
+
+## 20. What the marketplace split changed here
+
+`2026-09-02-marketplace-split-design.md` **completed on 2026-09-02**, and this document was its stated trigger. The banner above promised that four things would be re-derived if the split landed first and that everything else was independent of the packaging. **The promise held.** This section is the accounting, in the shape §19 established.
+
+**One decision fell, and it fell on this document's own evidence.** D1 chose to extend `dev-workflows`; §13.5 then showed its central premise was false; the split acted on that and put the family in `docs-workflows`. D1 is retired in place rather than deleted, because the grounds matter: a reader who finds only the conclusion cannot tell whether the reasoning was wrong or merely overtaken.
+
+| # | What this document assumed | What shipped | Consequence |
+|---|---|---|---|
+| 1 | D1 — extend `dev-workflows`, do not create a docs plugin | `docs-workflows` exists and holds `/document`, `/docs-profile`, `/release-notes` | **D1 retired**, with the surviving clause (own reference directory) named. The family is born in `docs-workflows` |
+| 2 | A shared reference becomes one **skill wrapper** each | One argument-taking loader, `workflows-core:reference`, gated by check 16 in five relations | **Simpler than designed.** Implement against the loader; never write a wrapper |
+| 3 | `model-routing` exists because slash-command bodies cannot expand `${CLAUDE_PLUGIN_ROOT}` | Verified false in a live run; the claim is retired and the skill kept | §13.5's parenthetical corrected. Do not repeat the retired reason as a rationale for anything |
+| 4 | `prose-style` is optional and skipped gracefully — the contrast that made a hard dependency sound severe | `prose-style` is a **hard** declared dependency of `docs-workflows`, with no absent case | Every command this family adds inherits it. **No command may write an "if `prose-style` is missing" branch** |
+| 5 | `references/guidelines/accessibility.md` is reused unchanged | It lives in `guideline-reviewers`, which nothing depends on and the loader does not serve | **Unreachable.** §18 question 3, and the one item that blocks §7.3 |
+| 6 | `/release-notes` belongs in `docs-workflows`, if the split happens | It landed there | The What's-new integration (§5.1's `release` surface) is intra-plugin, as designed |
+| 7 | Bare-name dependencies now, ranged ones once tags exist | Every family `plugin.json` declares bare names | **The recommendation was followed.** Three tags exist against 1.x–4.x plugin versions, so a ranged dependency would still fail `no-matching-tag` |
+| 8 | `check-docs.sh` runs eleven checks over 51 cases; check 11 covers `/brd-*` only | Seventeen checks over 119 cases; check 11 covers `/brd-*` and `/prd-*`, derived from every glob in the scope paragraph | §13.3 refreshed. This family is still outside check 11, but that is now a conclusion to re-test rather than a fact |
+| 9 | Seven branch prefixes in `$SPECS_PATH` | Eight, since `/frames` | Count moved, conclusion did not — this family creates no `$SPECS_PATH` branch |
+| 10 | `docs/roles-and-phases.md` gains the Docs role | `docs-workflows` ships no such page | §15.2 now says so and names the two ways out |
+| 11 | Inventory counts against one plugin at `v3.24.1` | The scope is now five gated plugins; commands and agents are unchanged in total, references, pages, skills and hooks all moved | §13.3 and §15.4 restated per-plugin, which is the scope the gate applies |
+
+**Four checks postdate this design and each one bites.** Check 13 (vendor neutrality — no tracker name in any text file without a marker, which every command and reference this family adds must respect), check 14 (identity quarantine over the whole repository, no marker and no exception), check 16 (the loader contract), and check 17 (an agent granted `Task` carries the NEVER-dispatch rule — relevant to any family agent that dispatches).
+
+**Unaffected by the split, stated so it is not re-examined:** the coverage model (§5), the four frozen contracts (§8), the visibility model (§9), every per-command design (§6, §7, §10, §11), the operating procedure (§14), and every decision in §3 except D1. The packaging moved; the design did not.
+
+**The general lesson, recorded because it is the one this document paid for twice:** dependencies were the cheap part. What is expensive is a shared file sitting in a plugin that no dependency names — which is how `accessibility.md` became unreachable, and is the shape to check for before adding a fifth plugin to anything.

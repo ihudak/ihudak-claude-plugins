@@ -1336,6 +1336,27 @@ Where this run can go next:
 choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this slice's PRD — /product-workflows:create-prd <SLICE-KEY> (PM)", "Author this slice's architecture — /product-workflows:create-ard <SLICE-KEY> (PA, optional)", "Author this slice's specification — /product-workflows:specify <SLICE-KEY> (PE)"]
 ```
 
+**And, in prose beside the array, the one thing this run has just changed commercially.** **It is not
+the tier** — `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5 fixes *a settled register* as
+the test `/brd-package` already applies. **On the ordinary path that test was met before this run
+started**: `/brd-package` ran two commands ago and gated on `decisions.md`, so grounding exists, the
+register was settled, and the slice was already tier 2. **On a `--sent` run it was not.** That flag
+replaces the package gate precisely for a review answering a package this route did not build (Phase 0,
+*Resolve inputs and gate the sent package*), so `/brd-package` never ran against this slice and neither
+verified grounding nor a settled register is implied by having reached here — such a slice may still be
+below tier 2. Assert no tier on that path: §5's ladder grades the folder and `/prd-proposal` walks it,
+and this command does neither. What changed here is the same on both paths, which is why the offer
+stands on either: it is what an effort proposal's drivers may stand on. §8's second evidence class is a
+**frozen decision**, and until this run froze the customer's `[CD#n]`s there were none — so a proposal
+written now prices what the customer agreed rather than what was put to them, and its corrections,
+banners and resolved defects are on the record the driver table cites. So name it:
+**`/product-workflows:prd-proposal <SLICE-KEY>` prices this slice, and it can now cite the customer's
+own frozen decisions.** It is offered in prose rather
+than as a fifth option because the array is full at four (`workflows-core:escalation-rules` §0) and the
+three advance options are the route's actual handover, which an optional, ungated document must not
+displace. It carries no merge wait: `/product-workflows:prd-proposal` gates on `prd.md`, which this run
+does not write.
+
 **Reconciling another BRD is on the list and not in the array**, because it is the one lateral move
 among four forward ones and this run has just finished the slice it was given. Say so in the line
 under the prompt: the list above is longer than the options, and anything on it is reachable through
@@ -1385,9 +1406,11 @@ here.
 oversight.** Every row of `workflows-core:next-phase-offer`'s resolution table
 names a *wait*, and none of the three waits on anything this run wrote: `/create-prd`'s only
 `require-on-main` target is `idea.md` (`workflows-core:phase-handoff` row F), a
-file no `/brd-*` command writes and one the BRD route resolves no ladder for; and the
-BRD-route runs of `/create-ard` and `/specify` skip the PRD gate outright and resolve no ARD this
-run produced, so §3.4's rows for them describe a route neither is on here. That is the same class as
+file no `/brd-*` command writes and one the BRD route resolves no ladder for; and `/create-ard` and
+`/specify` both gate `prd.md` — on every route, this one included, as the option list above already
+says of them and as `workflows-core:phase-handoff` §3.4's rows for them do — but `prd.md` is not a
+file this run writes — the same derivation this phase already applies to
+`/product-workflows:prd-proposal`'s own offer — and neither resolves an ARD this run produced. That is the same class as
 the clause-free options `/product-workflows:create-prd`'s own next-step phase presents on this route — an
 option whose downstream command gates nothing the offering run produced — and not a new one. The
 three still read the BRD folder this run just wrote into, which is why the handoff above is offered

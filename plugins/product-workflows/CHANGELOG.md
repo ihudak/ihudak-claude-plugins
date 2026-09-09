@@ -4,6 +4,138 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.4.0] — 2026-09-08
+
+### Added — two effort-proposal commands, and the format they author against
+
+- **`/prd-proposal <ADDRESS>`** authors a customer-facing effort proposal for one `PRD-` folder — an
+  idea-route PRD or a BRD-route slice, since a `PRD-` folder is a `PRD-` folder either way. It writes
+  `proposal.md` and, at tier 2 and above, `proposal-brief.md`: work packages clustered by delivery
+  seam, hours by package and role, and a range whose width is computed bottom-up from per-package
+  confidence. Flags: `--no-brief`, `--profile`, `--baseline <path>`, `--redo`.
+- **`/brd-proposal <ADDRESS>`** rolls a `BRD-` container's slice proposals into one programme
+  umbrella — one row per included slice, read out of that slice's own proposal and never re-derived;
+  the cross-slice effort that exists in no slice; and a coverage statement computed from the root
+  `coverage-ledger.md`, with the remainder enumerated by identifier. Its natural altitude is the
+  root, which inverts the rest of the BRD route: it refuses a slice, where `/prd-ground`,
+  `/brd-interview`, `/brd-package` and `/brd-reconcile` each refuse a root. The roll-up is not a sum:
+  each of its three adjustments — umbrella effort, de-duplication where two slices cite the same
+  finding identifier, and peak concurrency rather than summed FTE — is named in the document rather
+  than absorbed into a total.
+- **`references/proposal-format.md`** is the authority both commands author against and
+  `proposal-reviewer` checks: the section sets of both artifacts, the `[WP#n]` work-package and
+  `[ED#n]` estimate-driver namespaces, the readiness tiers, the confidence grades and their default
+  bands, the closed evidence set, and — in §14 — what the umbrella adds over a slice's own proposal.
+  `docs/reference/proposal-format.md` documents the same subsystem from the reader's side.
+
+### Added — readiness is graded, never gated
+
+- **Neither command requires an ARD or a specification.** What those artifacts change is the
+  **readiness tier** printed in the header beside the date — 1 · Indicative (the PRD alone),
+  2 · Grounded (verified grounding plus a settled decision register), 3 · Architected (`ard.md`),
+  4 · Specified (`specification.md`). Grading replaces the gate that would otherwise have stood here,
+  which is the whole answer to when a requirement set becomes estimable. The only hard refusal on
+  readiness is each command's own `require-on-main` gate on its input.
+- **The tier is a ceiling on confidence and never sets it.** Tier 1 caps every package at Low, tier 2
+  at Medium, tier 4 at High, and tier 3 at High only for a package an `[AD#n]` covers; confidence
+  itself is computed from the evidence each package actually has, and evidence can only push a
+  package lower. A tier-1 proposal is still a real document — it simply says outright that its cost
+  drivers are not known.
+
+### Added — what a cost driver may cite, and what happens when it cites nothing
+
+- **A closed set of three evidence classes**, each resolving to something on disk an independent
+  reader can open: a verified grounding finding (`[CG#n]`/`[DG#n]`, carrying its verifier outcome,
+  cited with the `file:line` the finding records), a frozen decision (`[VD#n]`/`[CD#n]`), or a
+  confirmed code defect (`[CDF#n]`). The narrowing is per driver: one making a claim about the code
+  cites the first class, because a decision cannot evidence a statement about a repository.
+- **A driver citing nothing from that set does not render at all**, and the run names every candidate
+  it dropped. The value of the rule is that it is mechanically checkable rather than a matter of
+  authorial care.
+
+### Added — the defect-remediation package, and why it is never a lever
+
+- **Where the folder records an unrepaired code defect, its repair becomes its own `[WP#n]`
+  automatically**, swept from three sources and unioned: every `[CDF#n]` in `code-defect-log.md`
+  whose disposition is `open`, `in-scope` or `conditional` (no confirmation needed — a standing entry
+  is one somebody already adjudicated), a verified grounding finding whose own text records a defect,
+  and an `[SR#n]` self-review finding in the packaged bundle dispositioned `accepted-risk` or
+  `escalated-to-customer`. The last two need operator confirmation, because neither is a defect
+  *register*.
+- **The first source names the three dispositions it admits rather than filtering on *unresolved*.**
+  That vocabulary has no value meaning resolved, so a filter phrased that way would admit all five.
+  The two it leaves out are left out for opposite reasons: `withdrawn` means the intent basis was
+  wrong and there was never a defect, while `out-of-scope` **is** unrepaired and is excluded anyway,
+  because its repair is recorded and deliberately not this engagement's work — neither may be priced
+  into a mandatory scope the customer is then forbidden to decline.
+- **It never renders into the scope-lever or priced-options table.** Where it cannot fit the delivery
+  window, that is disclosed as a schedule fact. Asking a customer to authorise deferring a defect the
+  vendor's own work found would return that deferral carrying the customer's authority on a question
+  the vendor's policy has already answered.
+
+### Added — the rationale brief, and why it is withheld below tier 2
+
+- **`proposal-brief.md` is derived from the same resolved data set as the proposal**, never
+  re-authored from it, and its spine is the driver argument: the naive baseline, why the number is
+  not that, and what the largest share of the estimate is owed to. It also carries the corrections
+  this revision owes the customer, each deliberately-unpriced item with the gate that will price it,
+  and what is needed before week 1.
+- **It does not render below tier 2 irrespective of `--no-brief`**, because below tier 2 that spine
+  does not exist. A two-page pre-read explaining why a number is large, written when the reasons are
+  unknown, is the one artifact this format must not produce. The final report says which of the two
+  reasons applied.
+
+### Added — `proposal-reviewer`, the review gate both commands dispatch
+
+- Opus-pinned by frontmatter with no override, dispatched with both artifact paths, the profile, the
+  resolved tier and the anchor revision where one exists. Its findings are triaged by the
+  orchestrator before anything is edited, per `workflows-core:finding-triage`.
+- **Its arithmetic check is the reason the agent exists**, and it is the one check that cannot be
+  delegated to judgement: it re-adds every column and every row of the `[WP#n]` × role grid — the
+  Expected column first, then Low and High **independently**, because the Low and High columns each
+  summing to the stated range is the relation a reader is least likely to re-add and exactly where a
+  silent error survives — checks that every package's range brackets its own expected figure, and
+  compares every band against its confidence grade's default within the one-percentage-point
+  tolerance whole-hour rounding needs.
+
+### Added — the no-money rule
+
+- **Neither artifact carries money at all** — no rate, no currency symbol, no monetary total for
+  human hours, at any tier and under any flag. Rates are contractual and belong in a document this
+  pipeline does not produce, and a git-committed rate card is a disclosure waiting to happen. Note
+  the collision this rule exists to prevent: `workflows-core:cost-emission` already records a
+  quantity called **cost**, and it is USD of model spend for a run. The two are unrelated, and no
+  sentence in either artifact lets a reader take one for the other.
+
+### Added — what these commands do *not* do, stated because it is the property most likely to be misread
+
+- **Neither command gates anything downstream, and nothing on the build ladder waits on either.** No
+  command of that ladder reads a proposal: `/create-ard`, `/specify`, `/epics`, and the `dev-workflows`
+  commands below them each resolve the same folder and neither know nor care whether it holds one.
+  No readiness tier withholds permission to begin work. **The one reader is the sibling umbrella
+  `/brd-proposal`**, which runs `require-on-main` on each included slice's `proposal.md` in order to
+  roll it up — a gate that stays inside the pair, on a second proposal rather than a phase of the
+  build.
+- **Neither resolves documentation grounding**, and neither takes `--no-docs`. An estimate's inputs
+  are the specs tree and the profile; a documentation page bears on how a feature is described rather
+  than on what it costs to build. There is no flag to turn off and no `docs grounding:` line in
+  either report.
+- **Neither opens a code repository.** Every commit a grounding finding cites was pinned by
+  `/prd-ground`, and these commands read the finding rather than the repository.
+
+### Changed — a `/brd-*` glob that stopped meaning "the BRD-to-PRD route"
+
+`/brd-proposal` matches `/brd-*` without being a phase of that route, so every claim written as a
+glob over the family had to be re-read against it. `coverage-ledger-format.md` §6 said *"every
+`/brd-*` command's final report ends with"* the ledger line; `/brd-proposal` prints no such line —
+it reads a container's ledger only to compute the coverage statement inside the document it writes.
+§6 now states the route as the test and records why the glob is not, and the three pages that cited
+it (`docs/commands/brd-intake.md`, `docs/commands/prd-ground.md`, `docs/roles-and-phases.md`) follow
+it. `commands/create-prd.md`'s refusal cites the same convention by route rather than by glob, and
+`commands/brd-intake.md`'s opening no longer describes what "the `/brd-*` commands between them"
+do. The prefix claims are untouched and stay glob-shaped: `brd` genuinely is the branch prefix every
+`/brd-*` command shares, `/brd-proposal` included.
+
 ## [3.3.3] — 2026-09-08
 
 ### Fixed

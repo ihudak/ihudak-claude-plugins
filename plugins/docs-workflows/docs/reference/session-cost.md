@@ -10,7 +10,7 @@ Two commands emit a cost entry here: `/document` — in both its keyed and its d
 
 Both phases belong to the pipeline the companion `dev-workflows` plugin drives, which is the point: a documentation run's spend lands against the same PRD as the specification and implementation runs that preceded it, in the same per-session cost file, so the total for a Product Requirements Document stays one number rather than one per plugin.
 
-**`/docs-profile` emits nothing.** It is a one-shot setup utility with no PRD to attribute spend to — it profiles a documentation repository so that later `/document` runs have something to read.
+**`/docs-profile` and `/docs-serve` emit nothing.** Both are setup utilities with no PRD to attribute spend to: `/docs-profile` profiles a documentation repository so that later `/document` runs have something to read, and `/docs-serve` starts, stops, or checks that repository's own dev server and reports a URL — neither reasons about a PRD, and `/docs-serve` runs no `workflows-core:model-routing` classification at all.
 
 ## Where cost files land
 

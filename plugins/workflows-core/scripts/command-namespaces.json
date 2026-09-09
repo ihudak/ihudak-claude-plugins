@@ -8,6 +8,7 @@
   ],
   "docs-workflows": [
     "docs-profile",
+    "docs-serve",
     "document",
     "release-notes"
   ],

@@ -1,6 +1,6 @@
 # Workflow overview
 
-`docs-workflows` carries the documentation tail of the pipeline the companion `dev-workflows` plugin drives. Every command it ships is shown below. The spine is short: once a Product Requirements Document's Epics are implemented, `/docs-workflows:document` writes the product documentation and `/docs-workflows:release-notes` drafts the note that announces it. `/docs-workflows:docs-profile` sits outside that spine — it is the setup utility that teaches `/document` what a given documentation repository looks like.
+`docs-workflows` carries the documentation tail of the pipeline the companion `dev-workflows` plugin drives. Every command it ships is shown below. The spine is short: once a Product Requirements Document's Epics are implemented, `/docs-workflows:document` writes the product documentation and `/docs-workflows:release-notes` drafts the note that announces it. `/docs-workflows:docs-profile` and `/docs-workflows:docs-serve` sit outside that spine — setup utilities reached at any point: the first teaches `/document` what a given documentation repository looks like, the second runs that repository's own dev server so you can look at it.
 
 ```mermaid
 flowchart TD
@@ -13,18 +13,20 @@ flowchart TD
         rndev["/docs-workflows:release-notes (final)"]
         document --> rndev
     end
-    subgraph SETUP["Anytime — setup utility"]
+    subgraph SETUP["Anytime — setup utilities"]
         profile["/docs-workflows:docs-profile"]
+        docsserve["/docs-workflows:docs-serve"]
     end
 
     implement -->|every Epic implemented| document
     createprd -.->|early draft, before any spec or design| rndev
     profile -.->|.dev-workflows/docs-profile.yml| document
+    profile -.->|dev_servers block| docsserve
 ```
 
 Two nodes are drawn for continuity and are not this plugin's commands: `/dev-workflows:implement` and `/product-workflows:create-prd` ship in the companion pipeline plugin and are documented there.
 
-**One command name here collides with a Claude Code built-in of the same name: `/release-notes`.** Typing the bare form reaches Claude Code's own command instead of this one, so use the qualified `/docs-workflows:release-notes`. `/document` and `/docs-profile` are not known to collide today, so the rest work either way, and the diagram above spells out the qualified form throughout because that form always works.
+**One command name here collides with a Claude Code built-in of the same name: `/release-notes`.** Typing the bare form reaches Claude Code's own command instead of this one, so use the qualified `/docs-workflows:release-notes`. `/document`, `/docs-profile`, and `/docs-serve` are not known to collide today, so the rest work either way, and the diagram above spells out the qualified form throughout because that form always works.
 
 ## The two modes of `/document`
 
@@ -39,8 +41,8 @@ A change that touches both code and docs is `/dev-workflows:implement`'s, not ei
 
 ## Where each command writes
 
-- **A documentation repository** — `/document` writes pages there and, in keyed mode, finishes on a branch with an opt-in push and a copy-paste pull-request draft. `/docs-profile` writes `.dev-workflows/docs-profile.yml` and complementary `CLAUDE.md` guidance there, as a reviewable pull request; it never pushes or auto-merges.
-- **`$SPECS_PATH`** — session bookkeeping only: the cost, feedback and follow-up entries `/document` and `/release-notes` emit, committed by the terminal step bounded to those paths. `/docs-profile` runs no specs-preflight and no terminal commit, so it writes nothing here at all. None of the three writes a pipeline artifact there.
+- **A documentation repository** — `/document` writes pages there and, in keyed mode, finishes on a branch with an opt-in push and a copy-paste pull-request draft. `/docs-profile` writes `.dev-workflows/docs-profile.yml` and complementary `CLAUDE.md` guidance there, as a reviewable pull request; it never pushes or auto-merges. `/docs-serve` writes only a pid/port record under that same `.dev-workflows/`, so `--stop` and `--status` work in a later session — never a page, never a branch, never a commit.
+- **`$SPECS_PATH`** — session bookkeeping only: the cost, feedback and follow-up entries `/document` and `/release-notes` emit, committed by the terminal step bounded to those paths. `/docs-profile` and `/docs-serve` run no specs-preflight and no terminal commit, so neither writes anything here at all. None of the four writes a pipeline artifact there.
 - **Wherever you keep drafts** — `/release-notes` writes its draft to a persistent destination you choose and commits nothing in a docs or code repository. The draft is the authored body only; the metadata wrapper is the docs automation's.
 
 ## Sources of truth

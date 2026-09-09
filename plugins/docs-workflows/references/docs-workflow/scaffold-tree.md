@@ -2,7 +2,7 @@
 
 Single source of truth for **what `/docs-init` creates**. It is an executable template, not a description of one: a command reads it to know which directories and files to write, what goes in each, and what the two build configs and the linter config contain.
 
-Consumed by `/docs-init` (Phase 3 writes §1–§4, Phase 4 writes §7) and by `docs-scaffold-reviewer`, whose checklist asserts relationships between the files this file specifies. `/docs-write` reads §4, because it regenerates the same `nav:` on every write.
+Consumed by `/docs-init` (Phase 3 writes §1–§6, Phase 4 writes §7) and by `docs-scaffold-reviewer`, whose checklist asserts relationships between the files this file specifies. `/docs-write` reads §4, because it regenerates the same `nav:` on every write.
 
 Its entry points, so a command can say which part it is executing: **the tree** (§1), **the stubs** (§3), **nav generation** (§4), **the mkdocs configs** (§5 and §6), and **the vale config** (§7, which also carries `requirements-docs.txt`).
 

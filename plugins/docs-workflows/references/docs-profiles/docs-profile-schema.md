@@ -1,7 +1,8 @@
 # docs-profile schema
 
 `/docs-profile` writes this file to **`.dev-workflows/docs-profile.yml`** in
-the target docs repo. `/document` reads it. `changelog` and `owners` are
+the target docs repo, and `/docs-init` writes the first one when it scaffolds
+that repo. `/document` and `/docs-serve` read it. `changelog` and `owners` are
 intentionally absent — they are owned by the `docs-frontmatter` skill.
 
 ```yaml

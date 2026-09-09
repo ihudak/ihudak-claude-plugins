@@ -5,7 +5,7 @@
 Single source of truth for verifying, before a run writes anything, that the tools its gates invoke
 are actually present.
 
-Consumed by `/document` (both modes) at Phase 0. Pairs with
+Consumed by `/document` (both modes) at Phase 0, and by `/docs-init` at Phase 2 step 3 — which has no profile to derive from, since it is the run that writes the first one, and so states its required tool set outright and uses §2's sources 2 and 3 only. Pairs with
 `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` — the preflight decides whether to start; the ledger
 records what actually happened.
 

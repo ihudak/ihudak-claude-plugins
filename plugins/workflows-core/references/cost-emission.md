@@ -1,7 +1,7 @@
 # Session Cost Emission — Shared Reference
 
-Single source of truth for the dev-workflows session-cost subsystem. Twenty-three of
-the twenty-five commands with an §7 row cite this file from their terminal
+Single source of truth for the dev-workflows session-cost subsystem. Twenty-four of
+the twenty-six commands with an §7 row cite this file from their terminal
 "Session cost" phase and execute its steps inline through the single `emit-cost`
 entry point (§11). The other two — `/prompt-brainstorm` and `/prompt-grill-me` —
 cede the session before such a phase could run, call `emit-cost` never, and
@@ -468,16 +468,16 @@ subdir. Walk top-down; stop at the first tier that applies:
    `<PRD-dir>/dev-workflows/cost/<sid8>.md`. *[primary]*
 2. `$SPECS_PATH` writable but no PRD dir (or no key resolved) — two destinations,
    and the documentation branch is tried first:
-   - **The run resolved a documentation repository** (a `docs-workflows` command
-     working against a docs repo rather than a PRD — design D19) ->
+   - **The run is `/docs-init`, or `/docs-brand` on its standalone path**, and it
+     resolved a documentation repository (design D19) ->
      `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`,
      where `<docs-repo-slug>` is that repo's git-remote slug, or its directory
      name where it has no remote. **Per docs repo, not one flat bucket**, for the
      same reason the PRD-directory rung exists for the pipeline: a person
      documenting two products must still be able to answer what documenting each
      one cost. The inner `dev-workflows/` names the *family*, not the emitting
-     plugin — see the note under tier 1 — and `specs-repo-git.md` §2.1's second
-     path shape is what stages it.
+     plugin — see the note under tier 1 — and `specs-repo-git.md` §2.1's
+     `<specs-root>/documentation/*/dev-workflows/**` shape is what stages it.
    - **Otherwise** -> **pending** (§9).
 
    **Why this rung is inserted before pending rather than folded into it.**
@@ -485,6 +485,16 @@ subdir. Walk top-down; stop at the first tier that applies:
    from such a run awaits a reconciliation that is never coming and accumulates
    forever. §9's opportunistic reconciliation is built for a *keyless* run that
    will later acquire a key; this one will not.
+
+   **The branch names its two commands rather than testing "did the run resolve a
+   docs repo", and that narrowness is deliberate.** `/document` direct mode also
+   resolves a docs repo, resolves no PRD key, and therefore has exactly the
+   problem D19 describes — but it is a shipped command whose bookkeeping lands
+   in **pending** today and says so in its own body, and moving where a shipped
+   command's entries land is a behaviour change with its own migration question.
+   Extending this branch to it is a **deliberate follow-up, not an oversight**;
+   until it is taken, `/document` direct mode keeps the pending destination it
+   has always had, and nothing here silently alters it.
 3. `source = directory` (a passed directory, no `$SPECS_PATH`) -> beside that
    directory.
 4. Nothing resolvable -> **report-only** in the run output. **NEVER write into the
@@ -534,7 +544,7 @@ and acceptable.
 
 ## 11. Caller contract — `emit-cost`
 
-One entry point, called by the twenty-three commands that measure themselves and by
+One entry point, called by the twenty-four commands that measure themselves (§1) and by
 whichever of them replays a §13 record (never by the two that defer — they call
 nothing). Every caller supplies `command`, `phase`, `role` (or the
 `inferred` marker — `/release-notes` and the four feedback commands), `key` (or
@@ -691,8 +701,8 @@ exists to catch.
 
 ### 13.3 The replay
 
-`emit-cost` step 2 (§11). **No deferred file ⇒ nothing changes**; the twenty-three
-commands that measure themselves never take this path.
+`emit-cost` step 2 (§11). **No deferred file ⇒ nothing changes**; the twenty-four
+commands that measure themselves (§1) never take this path.
 
 Otherwise the run passes one `--claim <command>` per deferred record, oldest
 first, and the script partitions the window:

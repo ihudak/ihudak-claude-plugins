@@ -154,7 +154,7 @@ A confirmed failing colour is **still applied** — never silently corrected —
 
 ## Phase 7 — Branch (standalone only)
 
-**`--inline` creates no branch of its own.** It writes into the caller's branch — `/docs-workflows:docs-init`'s own Phase 0 and its own finish phase own that branch's whole lifecycle; this run never switches, creates, or otherwise touches git here. Skip to Phase 8.
+**`--inline` creates no branch of its own.** It writes into the caller's branch — `/docs-workflows:docs-init` creates it at its own Phase 2.5, **before** its Phase 3 writes anything, and its Phase 8 commits and drafts the pull request; that command owns the branch's whole lifecycle, and this run never switches, creates, or otherwise touches git here. Skip to Phase 8.
 
 **Standalone** creates the branch here, **before Phase 8 writes anything** — the family invariant that a branch is created before any file is touched, and the same order `/docs-workflows:docs-profile`'s own Phase 5 uses (branch at step 2, write at step 3):
 
@@ -225,7 +225,7 @@ There is no re-review cycle — with no fixer, there is no second pass to gate a
 
 ## Phase 10 — Finish
 
-**`--inline` returns here instead of running any of this.** Its diff (Phase 8) and its contrast finding (Phase 6) are returned to the caller — `/docs-workflows:docs-init`'s own finish phase branches, commits, and drafts the single PR for the whole scaffold, this diff included. Nothing below runs on `--inline`: no commit, no PR, and — see Phases 12–14 — no emitter tail. **A standalone run that cancelled at Phase 7 never reaches this phase either** — see Phase 7's cancel path, which jumps straight to Phase 11.
+**`--inline` returns here instead of running any of this.** Its diff (Phase 8) and its contrast finding (Phase 6) are returned to the caller — `/docs-workflows:docs-init` branched at its Phase 2.5 before any of this ran, and its Phase 8 commits and drafts the single pull request for the whole scaffold, this diff included. Nothing below runs on `--inline`: no commit, no PR, and — see Phases 12–14 — no emitter tail. **A standalone run that cancelled at Phase 7 never reaches this phase either** — see Phase 7's cancel path, which jumps straight to Phase 11.
 
 **Standalone** commits what Phase 7's branch and Phase 8's writes produced, then drafts a PR message — **never push, never merge**:
 
@@ -236,7 +236,7 @@ There is no re-review cycle — with no fixer, there is no second pass to gate a
 
 ## Phase 11 — Report
 
-**`--inline` reports nothing of its own** — control returns to `/docs-workflows:docs-init`'s finish phase, which produces the consolidated report; this run returns straight to Phase 6's contrast finding and Phase 8's diff, no report of its own.
+**`--inline` reports nothing of its own** — control returns to `/docs-workflows:docs-init`, whose Phase 8.5 produces the consolidated report; this run returns straight to Phase 6's contrast finding and Phase 8's diff, no report of its own.
 
 **Standalone** produces:
 
@@ -300,7 +300,7 @@ Terminal phase — runs AFTER the Phase 11 report; NEVER interrupts an earlier p
    > - Review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK, resolved | N/A — cancelled before Phase 9]
    > - Test result: N/A (no tests in /docs-brand)
    > - Project root: [the resolved docs repo root]"
-2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6), passing the Lessons Learned report, `command: /docs-brand`, `key: null` (this run resolves no PRD/Epic key), `source: none`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). With no PRD dir to match and a resolved docs repository, `feedback-emission.md` §2 tier 2's **documentation branch** applies: the entry lands at `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/feedback/<date>.md` — filed against the docs repo rather than unfiled at the specs-repo root, because that repository is this family's unit of attribution (design D19).
+2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6), passing the Lessons Learned report, `command: /docs-brand`, `key: null` (this run resolves no PRD/Epic key), `source: none`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). With no PRD dir to match, `feedback-emission.md` §2 tier 2's **documentation branch** — which names this command's standalone path explicitly — applies: the entry lands at `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/feedback/<date>.md` — filed against the docs repo rather than unfiled at the specs-repo root, because that repository is this family's unit of attribution (design D19).
 3. **Surface** the persisted path (or "no plugin-facing signal — nothing persisted") as this phase's only output.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits, NEVER makes an external API call, and NEVER writes into a docs repo, a code repo, or the current working directory.
@@ -323,11 +323,11 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits, and NEVER writes int
 
 Terminal phase — the final operational phase; runs after Phase 13 and NEVER interrupts an earlier phase. Records this command's token-cost contribution by invoking `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and calling its single `emit-cost` entry point. **Cost ALWAYS runs on the standalone path — including a run that cancelled at Phase 7.**
 
-Call `emit-cost` with `command: /docs-brand`, `phase: docs-scaffold`, `role: dev` — a **fixed** pair (`workflows-core:cost-emission` §7), never `inferred`. **Only the standalone path emits.** An `--inline` run's cost belongs to `/docs-workflows:docs-init`'s own entry; emitting a second time would double-count one run, which is exactly why Phases 12–14 are skipped there rather than run with a key-less variant of the same call. Pass `key: null`, `source: none`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). With no PRD dir and a resolved docs repository, `cost-emission.md` §8 rung 2's **documentation branch** applies: the entry lands at `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`, where `<docs-repo-slug>` is the resolved repo's git-remote slug or its directory name (design D19). That rung is inserted before pending precisely because documentation work on a docs repo alone frequently has no PRD and never will, so a pending entry from it would await a reconciliation that is never coming; the pending file (§9) is now only for a genuinely keyless run that may still acquire a key. `specs-repo-git.md` §2.1's second path shape is what stages it.
+Call `emit-cost` with `command: /docs-brand`, `phase: docs-scaffold`, `role: dev` — a **fixed** pair (`workflows-core:cost-emission` §7), never `inferred`. **Only the standalone path emits.** An `--inline` run's cost belongs to `/docs-workflows:docs-init`'s own entry; emitting a second time would double-count one run, which is exactly why Phases 12–14 are skipped there rather than run with a key-less variant of the same call. Pass `key: null`, `source: none`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). With no PRD dir, `cost-emission.md` §8 rung 2's **documentation branch** — which names this command's standalone path explicitly — applies: the entry lands at `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`, where `<docs-repo-slug>` is the resolved repo's git-remote slug or its directory name (design D19). That rung is inserted before pending precisely because documentation work on a docs repo alone frequently has no PRD and never will, so a pending entry from it would await a reconciliation that is never coming; the pending file (§9) is now only for a genuinely keyless run that may still acquire a key. `specs-repo-git.md` §2.1's `$SPECS_PATH/documentation/<docs-repo-slug>/…` shape is what stages it.
 
 **Then write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` §1. With no PRD dir, rung 2 applies: skip the file, rely on the printed `### Next step`.
 
-**Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH` (here: the documentation-run feedback and cost files above, which are §2.1's second path shape), commits, and pushes per §4 step 5. It NEVER touches the docs repo or the code repo; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Print its §6 outcome line here, as the run's last output — prefixed `Specs repo:`, with any guard notice repeated in full.
+**Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH` (here: the documentation-run feedback and cost files above, under §2.1's `$SPECS_PATH/documentation/<docs-repo-slug>/…` shape), commits, and pushes per §4 step 5. It NEVER touches the docs repo or the code repo; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Print its §6 outcome line here, as the run's last output — prefixed `Specs repo:`, with any guard notice repeated in full.
 
 ---
 

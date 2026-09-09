@@ -54,11 +54,11 @@ set is ever staged.
 <specs-root>/{specs|specifications|vis}/**/follow-ups.md      # followup-emission.md §2, appended per PRD/Epic folder
 ```
 
-**The second shape is the `docs-workflows` family's, and it exists because that family's normal run has no PRD and never will.** A documentation run against a repository nobody has written a PRD for would otherwise park every entry as *pending*, awaiting a reconciliation into a PRD directory that is never coming — so those entries accumulate forever and reconcile against nothing. The rung `feedback-emission.md` §2 and `cost-emission.md` §8 insert before pending writes instead to `<specs-root>/documentation/<docs-repo-slug>/dev-workflows/{cost,feedback}/`, where `<docs-repo-slug>` is the resolved docs repository's git-remote slug, or its directory name where it has no remote. **Per docs repo, not one flat `documentation/` bucket**, for exactly the reason the PRD-directory rung exists for the pipeline: a person documenting two products must still be able to answer what documenting each one cost. The docs repo is that family's unit of attribution.
+**The `documentation/` shape is the `docs-workflows` family's, and it exists because that family's normal run has no PRD and never will.** A documentation run against a repository nobody has written a PRD for would otherwise park every entry as *pending*, awaiting a reconciliation into a PRD directory that is never coming — so those entries accumulate forever and reconcile against nothing. The rung `feedback-emission.md` §2 and `cost-emission.md` §8 insert before pending writes instead to `<specs-root>/documentation/<docs-repo-slug>/dev-workflows/{cost,feedback}/`, where `<docs-repo-slug>` is the resolved docs repository's git-remote slug, or its directory name where it has no remote. **Per docs repo, not one flat `documentation/` bucket**, for exactly the reason the PRD-directory rung exists for the pipeline: a person documenting two products must still be able to answer what documenting each one cost. The docs repo is that family's unit of attribution.
 
 **The inner `dev-workflows/` in that path names the *family*, not the plugin — do not "correct" it per-plugin.** The shipped persistence ladder writes `<PRD-dir>/dev-workflows/cost/<sid8>.md` regardless of which plugin emitted the entry, and this shape is the same directory one level out. Renaming it to match the emitting plugin would fragment one repository's cost record across four directories and break every reader of it. **No new branch prefix goes with this shape**: §2.2's prefix authority governs branches the plugin creates *in* `$SPECS_PATH`, and the documentation family creates none there — its deliverable is the docs repository, where it branches, commits and drafts a pull request it never pushes.
 
-**The fifth, sixth and seventh shapes name three files, never their folder, and the distinction is the
+**The `implementation.md`, `release-notes.md` and `follow-ups.md` shapes name three files, never their folder, and the distinction is the
 whole safety property.** All three sit in the feature folder rather than under `dev-workflows/`, because
 all three are read by *key* rather than by session — `implementation.md` is what `/document`,
 `/release-notes` and `epic-picker.md`'s ● marker read, and a record only one machine holds is a record
@@ -73,7 +73,7 @@ literally and nothing else in that directory is ever staged here.
 **All three were outside this set until a review found them**, while `/implement` and `/release-notes`
 each told the operator the terminal step committed them. It did not: step 2 below classified each as
 OTHER, step 3 skipped it, and the file then sat permanently dirty — which fired §3.3's G1 dirty-tree
-guard on every later run of any of the twenty-six callers, suppressing the leftover flush and the
+guard on every later run of any of the twenty-eight callers, suppressing the leftover flush and the
 branch disposition for the rest of the session. **`follow-ups.md` was the third instance and it was
 found the same way, by a live run rather than by reading** — long after the first two were fixed, because
 this section's own comment claimed follow-ups were tier 1 under `dev-workflows/**` and its source

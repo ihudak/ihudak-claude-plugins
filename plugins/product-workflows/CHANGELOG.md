@@ -56,11 +56,18 @@ Versions follow semver at the plugin level.
 ### Added — the defect-remediation package, and why it is never a lever
 
 - **Where the folder records an unrepaired code defect, its repair becomes its own `[WP#n]`
-  automatically**, swept from three sources and unioned: every unresolved `[CDF#n]` in
-  `code-defect-log.md` (no confirmation needed — a standing entry is one somebody already
-  adjudicated), a verified grounding finding whose own text records a defect, and an `[SR#n]`
-  self-review finding in the packaged bundle. The last two need operator confirmation, because
-  neither is a defect *register*.
+  automatically**, swept from three sources and unioned: every `[CDF#n]` in `code-defect-log.md`
+  whose disposition is `open`, `in-scope` or `conditional` (no confirmation needed — a standing entry
+  is one somebody already adjudicated), a verified grounding finding whose own text records a defect,
+  and an `[SR#n]` self-review finding in the packaged bundle dispositioned `accepted-risk` or
+  `escalated-to-customer`. The last two need operator confirmation, because neither is a defect
+  *register*.
+- **The first source names the three dispositions it admits rather than filtering on *unresolved*.**
+  That vocabulary has no value meaning resolved, so a filter phrased that way would admit all five.
+  The two it leaves out are left out for opposite reasons: `withdrawn` means the intent basis was
+  wrong and there was never a defect, while `out-of-scope` **is** unrepaired and is excluded anyway,
+  because its repair is recorded and deliberately not this engagement's work — neither may be priced
+  into a mandatory scope the customer is then forbidden to decline.
 - **It never renders into the scope-lever or priced-options table.** Where it cannot fit the delivery
   window, that is disclosed as a schedule fact. Asking a customer to authorise deferring a defect the
   vendor's own work found would return that deferral carrying the customer's authority on a question

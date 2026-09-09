@@ -197,9 +197,12 @@ Grade a slice's tier against `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.m
 that slice's own folder — the same grading `/prd-proposal` Phase 3 performs, applied here only to
 decide which of the three rows a slice is in.
 
-**Print the computed recommendation beside the array rather than folding it into an option's
-wording**, so the operator reads the run's judgement and the available answers separately. For a
-slice whose `proposal.md` is on disk but stale:
+**Always print the computed recommendation beside the array**, so the operator reads the run's
+judgement and the available answers separately: the printed line is what carries the judgement, and an
+option's wording is never the only place it appears. **An option may still offer the recommendation's
+own action**, and the first array below does — where an answer would otherwise reach no defined path,
+giving it an option is what gives it one, and that row says so where it does it. For a slice whose
+`proposal.md` is on disk but stale:
 
 ```
 choices: ["Include it as it stands", "Re-price it first — /product-workflows:prd-proposal <SLICE-KEY>, then re-run the umbrella", "Exclude it, and disclose the exclusion in the coverage statement"]
@@ -222,13 +225,14 @@ choices: ["Price the slice first — /product-workflows:prd-proposal <SLICE-KEY>
 ```
 
 **"Price the slice first" and "Re-price it first" both end the run**, on one path. They are the two
-answers in this walk that are not membership decisions, so neither is recorded as one: finish the walk so the operator sees the whole picture,
-then end before Phase 4, naming **every** slice still to price and writing no artifact at all — no
-`proposal.md`, no brief, no archive, no handoff. Neither excludes anything. This is an operator's
-finished decision rather than a refusal, so it carries no stop id and runs the emitter tail (Phase 13)
-on the way out, exactly as a completed run does; the final report says which slices it is waiting on. Treating it as an exclusion would produce the understated umbrella this
-row's **Stop** recommendation exists to prevent, and would record the operator as having chosen an
-exclusion they did not choose.
+answers in this walk that are not membership decisions, so neither is recorded as one: finish the walk
+so the operator sees the whole picture, then end before Phase 4, naming **every** slice still to price
+and writing no artifact at all — no `proposal.md`, no brief, no archive, no handoff. Neither excludes
+anything. This is an operator's finished decision rather than a refusal, so it carries no stop id and
+runs the emitter tail (Phase 13) on the way out, exactly as a completed run does; the final report
+says which slices it is waiting on. Treating it as an exclusion would produce the understated umbrella
+this row's **Stop** recommendation exists to prevent, and would record the operator as having chosen
+an exclusion they did not choose.
 
 Neither array's wording is adjusted per slice: `<SLICE-KEY>` is a substitution, and the row's own
 recommendation is printed beside the array (`workflows-core:escalation-rules`, *Choice lists are

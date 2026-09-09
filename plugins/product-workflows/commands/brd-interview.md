@@ -742,9 +742,12 @@ assumption record.
 
 **`<BRD-dir>/interview/round-<N>.md`** — the round's own record, append-only. **A round that raised
 no question at all records the walk instead of the questions**: each of the six sources *Round 1 is
-generated from the grounding* names, and what this BRD held under it — every finding `CONFIRMED` and
-`current`, no design divergence, no ledger row with an unstated consequence, nothing asserted without
-evidence. That is a complete record of a completed walk, which is exactly what the all-delegated
+generated from the grounding* names, and what this BRD held under each — **written from what the
+walk found, never from a rule over verdicts**: no finding whose verdict left its premise open, none
+carrying a `will-change` horizon, no design divergence, no ledger row with an unstated consequence,
+nothing asserted without evidence. Naming the verdicts instead would put a false sentence in the
+record on any corpus holding a `SUPERSEDED` finding, which raises no question and is not
+`CONFIRMED` either. That is a complete record of a completed walk, which is exactly what the all-delegated
 stop's prohibition on an *empty* record is protecting against. Otherwise: every question in the
 order it was written, its tag, every re-tag with the finding that caused it, every split with the
 parts it became, and each question's state in the vocabulary the *Resolve the round* phase fixes —
@@ -890,8 +893,10 @@ proposes a new round "only if findings or decisions have changed **since the las
 a test with no referent where no round has ever closed, which is exactly this state. It does not
 apply here: **where the BRD holds no round record at all, that branch generates round 1's questions
 and acts on what they come to** — opening the round where there is one to ask, and otherwise
-recording the walk — which is what its own "(round 1 when none exists)" means. Either way the run
-leaves a round record behind, which is what makes this state unreachable a second time. The change
+recording the walk — which is what its own "(round 1 when none exists)" means. Both of those exits leave a round record behind, which is what
+makes this state unreachable a second time; the third — the all-delegated stop that branch takes
+first — leaves none, and needs none, because it stops the run rather than reaching the packaging
+question at all. The change
 test governs the second round onward, where there is a previous round to have had something in front
 of it.
 

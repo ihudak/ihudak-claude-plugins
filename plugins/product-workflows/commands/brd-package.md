@@ -187,7 +187,8 @@ cannot review, and they will not tell you that — they will review it anyway, b
    disk" — that is the thing being checked. `decisions.md` is already on main (step 6) and **every record in it carries the `round` it was
    recorded in — `[VD#n]` *and* `[AS#n]` alike** (`product-workflows:decision-register-format` §1
    and §7) **that was recorded in one** — so the rounds this BRD *has* are the distinct `round` values
-   across **both** record kinds, taken from the records that carry the field. **A record carrying no
+   across **every** record kind in it — `[VD#n]`, `[AS#n]` and `[CD#n]` alike — taken from the records
+   that carry the field. **A record carrying no
    `round` contributes nothing to the set, and that is correct rather than a hole**: an `[AS#n]`
    written by `/product-workflows:create-prd` for a customer-authority gap came from PRD authoring
    and from no round (`product-workflows:decision-register-format` §7), so there is no

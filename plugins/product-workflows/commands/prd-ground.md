@@ -962,38 +962,64 @@ Act on `outcome`:
   in the report as verification-inconclusive.
 - **`contradict`** — **the finding is rewritten, and the rewrite retains the same id.** Replace
   the finding's `verdict` and `evidence` with the verifier's `own_verdict` and `own_evidence`, and
-  keep a one-line note of the pre-rewrite verdict for the audit trail. **Where the rewrite asserts an
-  absence, its `control` is the verifier's `own_control`** — a rewritten finding owes one exactly as
-  an original does, and the run holds no other search to build it from. A `contradict` whose
-  `own_verdict` asserts an absence and whose `own_control` is missing is an incomplete return: report
-  it and leave the finding unrewritten, rather than writing a record this format would refuse. The id never changes, so
+  keep a one-line note of the pre-rewrite verdict for the audit trail. **Where the rewritten finding *owes* a control — §2.2's
+  closed-set rule, the same test the verifier applied to the original and not "does it assert an
+  absence", which gets classes 1 and 4 wrong — its `control` is the verifier's `own_control`**: a
+  rewritten finding owes one exactly as an original does, and the run holds no other search to build
+  it from. A `contradict` on a finding that owes one, returning no `own_control`, is an incomplete
+  return: report it and leave the finding unrewritten rather than write a record this format refuses. The id never changes, so
   every existing citation into it still resolves.
 
 **Then sweep the class-4 `[DG#n]` findings against the `[CG#n]` set this phase just settled.** A
 class-4 finding's standing is derived from the `[CG#n]` it cites
 (`workflows-core:grounding-format` §6.3), so every `contradict` rewrite above may have moved the
 ground under one without touching its record — the id still resolves and the claim ids still match,
-which is exactly why nothing else here would notice. **The set swept is the union of two, and taking either alone misses a whole class of run.** This
-phase runs before Phase 8 writes anything, so a run whose design pass produced findings **holds**
-them and they are not yet on file, while a run under `--no-design` produces none at all and every
-class-4 `[DG#n]` that could go stale is **only** on file. Sweep both: every class-4 finding this run
-holds, **and** every class-4 finding in `<BRD-dir>/grounding/design-grounding.md`, de-duplicated by
-id where a `--rebaseline` pass has both. Where the file does not exist, the held set is the whole of
-it and the report says so; where neither has a class-4 finding, the report says there was nothing to
-sweep rather than "none", which would read as a sweep that found nothing. For every class-4 `[DG#n]`
-in that union whose cited `[CG#n]` this phase rewrote, compare the two: where the rewritten `[CG#n]` now settles the capture
-question the other way, the citing `[DG#n]` is **re-derived, not adjusted** — re-dispatch
-`grounding-verifier` over it once, and act on the returned outcome as above. Where they still agree,
-record that the pair was re-checked. **A class-4 finding is never left carrying a verifier outcome
-earned against a version of its citation that no longer exists**, and a sweep that finds nothing is
-reported as "none", so a clean run reads as swept rather than as skipped.
+which is exactly why nothing else here would notice.
 
-**A finding carried over from before this field existed owes one and cannot have it, and that is a
-re-grounding job rather than a `contradict`.** Where a finding's `provenance` is `inherited` and the
-verifier returns `control_outcome: missing`, do **not** rewrite it on that ground: nothing about the
-claim has been falsified, only its record is older than the requirement. Report those findings by id
-as owing a control, and name `/product-workflows:prd-ground <KEY> --rebaseline` as what supplies one.
-An own-run finding returning `missing` is the writer's defect and is normalised as above.
+**The set is every class-4 `[DG#n]` this run holds *and* every one in
+`<BRD-dir>/grounding/design-grounding.md`**, minus any already carrying `verdict: SUPERSEDED`. Both
+halves are needed and neither alone suffices: this phase runs before Phase 8 writes anything, so a run
+whose design pass produced findings holds them and they are not on file, while a `--no-design` run
+produces none and every class-4 finding that could go stale is only on file. **They are separate
+generations, not duplicates** — Phase 5 numbers from the highest `DG#n` already on file, so a
+re-derived finding takes a *new* id and the old one is superseded rather than replaced. Dropping the
+superseded ones is what keeps one claim from carrying two live class-4 findings; there is nothing to
+de-duplicate by id, because no id appears twice.
+
+**What the sweep does is not a re-derivation, and that is the whole of the fix.** Re-deriving needs
+`frame_set_dir`, which `grounding-verifier` requires for every `[DG#n]` and which only Phase 5's
+design pass resolves — so on a `--no-design` run, the mode where the on-file half matters most, a
+re-dispatch returns `INPUT_MISSING`, this phase stops, and the run writes nothing at all including
+the `[CG#n]` rewrites it already made. So for every class-4 `[DG#n]` in the set whose cited `[CG#n]`
+this phase rewrote:
+
+- **Where this run holds a resolved `frame_set_dir` for that finding's own frame set** — its design
+  pass ran over it — re-dispatch `grounding-verifier` once and act on the returned outcome as above.
+- **Otherwise, clear the finding's verifier `outcome` and record a one-line note** naming the
+  `[CG#n]`, the verdict it used to carry and the verdict it carries now. Nothing is re-derived and
+  nothing is invented. **This is not a weaker treatment, it is a stronger one**: a finding with no
+  outcome is not evidence (`workflows-core:grounding-format` §8), cannot be `consumed_by` anything,
+  and `/product-workflows:brd-split` refuses to split while one exists — so the route stops until
+  somebody re-grounds it, which is exactly the right consequence for a finding whose foundation moved
+  and which this run cannot re-check. §6.3 sanctions both branches: *re-derived or superseded, never
+  left standing*.
+
+**An inherited finding that owes a control and carries none is `contradict` like any other, and gets
+no discount for being old.** `workflows-core:grounding-format` §8 makes an inherited finding
+unverified by definition, and `product-workflows:grounding-verifier`'s own rules forbid searching one
+any less hard; an exception here would admit an uncontrolled absence claim as evidence precisely
+where the claim is *least* checked. The verifier has re-derived it and returned its own
+`own_control`, so what replaces it is a properly controlled finding rather than a hole. **Expect this
+to fire in bulk on the first run over a corpus written before the field existed**, and report it by
+count, so a wall of rewrites reads as the one-time conversion it is rather than as a corpus falling
+apart.
+
+Where the cited `[CG#n]` was rewritten and still settles the capture question the same way, the pair
+is recorded as re-checked and nothing changes. **Report the sweep in all three of its states** — the
+findings re-derived, the findings whose outcome was cleared with the re-run that restores them
+(`/product-workflows:prd-ground <KEY>` without `--no-design`), and, where the set was empty, that
+there was nothing to sweep rather than "none", which would read as a sweep that ran and found
+nothing.
 
 A finding carrying no verifier outcome is not evidence (`workflows-core:grounding-format` §8) and is never
 written to the package with `consumed_by` anything but `none` — this phase is what stands between
@@ -1004,8 +1030,10 @@ a raw finding and one a downstream command may cite.
 ## Phase 8 — Write findings
 
 Write `<BRD-dir>/grounding/code-grounding.md` (every `[CG#n]`) and
-`<BRD-dir>/grounding/design-grounding.md` (every `[DG#n]`, or a short note when Phase 5 skipped
-design grounding and why) — one block per finding, **serialised exactly as
+`<BRD-dir>/grounding/design-grounding.md` (every `[DG#n]` this run produced — **or, where Phase 5
+produced none, a short note saying design grounding was skipped and why, appended to whatever the
+file already holds rather than replacing it**: an existing corpus is not overwritten by a run that
+ground no design, and the Phase 7 sweep may have edited blocks inside it) — one block per finding, **serialised exactly as
 `workflows-core:grounding-format` §2.1 fixes it**: one space after every colon, never alignment
 padding, keys in the §2 table's order, and an inapplicable field omitted rather than written empty.
 That section is not a style note — a writer that aligns one section's keys and not the next produces
@@ -1027,14 +1055,15 @@ any other re-grounded finding, or — where no design pass ran this run — mark
 one-line note naming the `[CG#n]` that took it there, so the next `/prd-ground` re-derives it rather
 than a reader trusting it.
 
-**A finding the Phase 7 class-4 sweep re-derived is written in place, whichever set it came from.**
-Where it was already on file, this phase edits that block — same id, replaced `verdict` and
-`evidence`, the one-line note of what it was — and never appends a second block for it; where the run
-held it, it is written like any other finding of this run. **This applies on a `--no-design` run
-too**, which otherwise writes no `[DG#n]` at all: the sweep is the one thing that can change an
-on-file design finding on such a run, and a run that re-derived one and did not write it would leave
-the record it just falsified sitting on disk. That is the same in-place rule `--no-code` states for
-`[CG#n]` below, met from the other side.
+**A finding the Phase 7 class-4 sweep touched is written in place, whichever set it came from.** The
+sweep either re-derived it or cleared its verifier `outcome` and left a note; both are edits to an
+existing block — same id, never a second block appended for it. Where the run held the finding it is
+written like any other of this run's. **This applies on a `--no-design` run too**, which otherwise
+writes no `[DG#n]` at all: the sweep is the only thing that can change an on-file design finding on
+such a run, and a run that cleared an outcome and did not write it would leave a record on disk
+asserting a verification it no longer has. Opening `design-grounding.md` to edit those blocks is not
+the same as writing design findings, and this mode's rule below is unchanged — it is the file's only
+other write on such a run, and only for blocks the sweep touched.
 
 **Under `--no-code` this phase writes `design-grounding.md` and nothing else.**
 `code-grounding.md` is not opened for writing at all — not for findings, not for the documentation
@@ -1301,8 +1330,9 @@ tally (`agree` / `extend` / `contradict` / `unprovable`) with every `contradict`
 id — **and, separately, every outcome Phase 7 normalised**, each named by finding id with the outcome
 as returned, both verdicts, and which of the two routes forced it (a differing `own_verdict`, or a
 `control_outcome` of `missing`, or of `failed` on a finding whose verdict rests on the absence), or an explicit "none" where the verifier and the findings agreed
-throughout, so a clean run reads as checked rather than as unchecked; the class-4 sweep's result — every `[DG#n]` re-derived because the `[CG#n]` it cites was rewritten or
-superseded, or an explicit "none"; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Phase 4.5 lead added,
+throughout, so a clean run reads as checked rather than as unchecked; the class-4 sweep's result in each of its three states — every `[DG#n]` re-derived, every one whose
+verifier outcome was cleared (with the re-run that restores it), and, where the set was empty, that
+there was nothing to sweep rather than "none"; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Phase 4.5 lead added,
 and the count of documentation divergences recorded (each named by the `[CG#n]` it diverges from —
 never by an identifier of its own, because it has none); whether the derivation matrix ran and why; any `design-grounder` class-4 gap deferred for want
 of a settling `[CG#n]`; **on `route: idea`, the claim-exclusion count and prefixes step 8i

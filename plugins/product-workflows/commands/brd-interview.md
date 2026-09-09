@@ -792,9 +792,13 @@ Neither test is restated here, deliberately: `/brd-package` is the command that 
 run, so a second copy of either precondition sitting in this phase would drift, and the run that
 reads the drifted copy is this one. Both gates pass → `package_offerable: yes`. Step 7 fails →
 `package_offerable: rounds-unsettled`, and every question that gate named is named beside the list
-with its round and its holding state. Step 7 passes and step 8 fails → `package_offerable: nothing-to-review`,
-which is not a defect in this run: every question was settled from verified findings and the
-delivery team owes the customer no decision.
+with its round and its holding state. Step 7 passes and step 8 fails → **one of two states, and they get
+different messages.** Where the BRD has no `interview/` round record at all, that command stops with
+`BRD_PACKAGE_NOT_INTERVIEWED` whatever its register holds, so this run's offer is the ordinary
+"work a round" one and never the congratulatory line below — a BRD nobody has interviewed has not
+finished anything. Otherwise → `package_offerable: nothing-to-review`, which is not a defect in this
+run: every question was settled from verified findings and the delivery team owes the customer no
+decision.
 
 **`package_offerable: yes`:**
 

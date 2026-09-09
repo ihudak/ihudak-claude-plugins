@@ -48,6 +48,40 @@ that it did.
 `[BR#n]` numbers are never reused and never renumbered, including across a split: once assigned, an
 id is permanent even if the row it names is later split, superseded, or found defective.
 
+### 2.2 The inventory's coverage of its source is checkable from the inventory alone
+
+**A section the read skipped and a section that genuinely holds no obligation come out of an
+inventory identically — as a section with no row — so the difference cannot be read off the
+artifact.** It is made visible at intake instead, and the whole of it is derivable from `source_anchor`
+and the source document: **nothing new is stored, and no agent returns a new field.** A first design
+had the reader account for every heading it passed; measured against real intakes that is fifty-odd
+accounts of "this section holds context", which buries the one case worth seeing.
+
+Two relations, both over the **top-level section**:
+
+1. **Every `source_anchor` resolves to a section the source actually has.** An anchor naming a
+   section the document does not hold is a row nobody can trace back, in the artifact whose whole
+   job is traceability.
+2. **Every top-level section of the source either holds a row or is accounted for.** A section is
+   held where any anchor names it or names a section beneath it. One with none is not a defect and is
+   not a stop — only a person can say whether a section binds the delivery team to anything — so
+   `/brd-intake` names each with what the source has under it and asks.
+
+**The granularity is the finding, not a detail.** Real BRDs run to fifty or sixty headings under
+fourteen or fifteen top-level sections, and on a careful intake nine of those fifteen legitimately
+hold nothing — the alternatives considered, the personas, the journeys, the decisions log. At section
+granularity the operator answers nine questions instead of fifty, and the two that matter stand out:
+on a real package the sections carrying no row included the **user stories** and the **acceptance
+tests**, which is exactly the pair a reader would expect to have been inventoried and exactly the
+question worth putting to a human.
+
+**Both relations resolve against the anchor's own leading section reference**, which is the form
+every anchor carries — a section number, its title, a locator within the section, and the line. That
+one form makes the line-number half of an anchor an aid rather than an ambiguity: an anchor is
+resolved by its section, and the line locates the row inside it. **Where no anchor parses at all,
+that is a read failure and is reported as one** — never as a document with no coverage
+(`workflows-core:grounding-format` §2.1).
+
 ### 2.1 A slice's inventory
 
 A **slice** — a BRD in every respect but its folder name, nested inside its parent's folder as the `PRD-` folder its PRD is authored in (`workflows-core:addressing` §6) —

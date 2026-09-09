@@ -88,6 +88,33 @@ records, leaving this command free to create one new `[AS#n]` — never a `[VD#n
 Ids continue from the highest on file and a gap already recorded is not recorded twice, because the
 sanctioned fresh-PRD re-run puts this command over the same folder more than once.
 
+### Added — two checks over what a run restates, both measured against real packages
+
+Two verification gaps the register named, built the second time against assembled artifacts rather
+than against the format documents. The first attempt at each was cut before release because both
+fired on **correct** trees; every relation below is narrower than its obvious form, and each
+narrowing is a false positive somebody would otherwise have met.
+
+**`/brd-package` — `bundle-packaging.md` §7, `set-resolution`.** The manifest, the delivery note and
+several prompt parts each restate a set held elsewhere, and nothing compared them. Three relations,
+comparing **membership** and never counts, since two sets of the same size with different members
+read as correct. What measurement changed: the review-scope part renders its source as **prose in the
+customer's vocabulary**, not identifiers, so relation 1 reaches only the parts that genuinely
+enumerate identified records; a manifest writes filenames **with or without the extension** — both
+conventions occur across builds of one package — and names images only sometimes, so relation 2
+matches basenames tolerantly, excludes the manifest and non-review markers, and leaves images to §6;
+and a delivery note **abbreviates** its commits, so relation 3 tests each as a **prefix** of a
+baseline rather than for equality. An equality test reports every correct note as carrying no pin.
+
+**`/brd-intake` — `brd-format.md` §2.2.** A section the read skipped and one that genuinely holds no
+obligation look identical in an inventory. Two relations, both derived from the `source_anchor`
+column already written: every anchor resolves to a section the source has, and every **top-level
+section** either holds a row or is accounted for. **No agent returns a new field and nothing new is
+stored** — the first design added one and persisted it nowhere. Granularity is the finding: real BRDs
+carry fifty to sixty headings under about fifteen top-level sections, nine of which legitimately hold
+nothing, so the operator answers nine questions rather than fifty. On a real package the sections
+holding no row included the user stories and the acceptance tests — the pair worth asking about.
+
 ### Added — a recorded review verdict names the version it was taken against
 
 `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/prd-proposal` and

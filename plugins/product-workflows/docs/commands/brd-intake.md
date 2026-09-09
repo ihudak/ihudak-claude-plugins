@@ -106,6 +106,17 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   and the run says so plainly, because the route stops on a claimless BRD: Phase 8 then offers a
   re-run of this command with a corrected source instead of offering `/prd-ground`, which would
   refuse the BRD. `NOT_FOUND` stops the run and surfaces the agent's exact message.
+
+  **The inventory's coverage of its own source is then checked, both directions, from the anchors
+  already written.** Every `source_anchor` must resolve to a section the copied source actually has —
+  one that does not is a row nobody can trace back, and the run stops. And every **top-level section**
+  must either hold a row or be accounted for: one that holds none is a question rather than a stop,
+  since only a person can say whether a section binds the delivery team to anything, so the run names
+  each with what the source has under it and asks once for the set. **Section granularity is the point
+  and was measured**: real BRDs carry fifty or sixty headings under about fifteen top-level sections,
+  of which nine or so legitimately hold nothing, so the operator answers nine questions rather than
+  fifty — and on a real package the sections carrying no row included the user stories and the
+  acceptance tests, which is exactly the pair worth putting to a human.
 - **Phase 3.5 — `docs-grounder`** (optional). Read-only, advisory, never a gate. Its digest is
   consumed grill-rank: `docs_challenges` are ranked into the order Phase 4 walks its candidates,
   and one may be *raised* as an additional defect candidate — but only as `unsourced` (the

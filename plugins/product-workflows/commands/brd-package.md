@@ -929,6 +929,26 @@ self-review is free of them while being the most internal document this command 
    is immutable by rule, and the one repair the rule allows is not editing the file. Every other
    document's hit stays a hard stop.
 
+9. **Run the set-resolution check**, per `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §7,
+   and stop on any hit. It is a third pass rather than a widening of rule 8, and the three hunt
+   different failures: rule 7 finds a token the reviewer **cannot resolve**, rule 8 one they
+   **resolve to the wrong thing**, and this one a **set restated wrongly** — every identifier
+   resolving, every filename real, and the set they compose not being the set its source holds. It
+   runs last because relation 2 needs the assembled bundle's own listing, and it is the only one that
+   reaches the delivery note, which is deliberately not a bundle document.
+
+   **Read §7's three qualifications on relation 2 and its abbreviation rule on relation 3 before
+   running either.** Both were measured against assembled packages, and the obvious form of each
+   fires on a correct bundle: a manifest matcher fixed on one filename convention reports every
+   document as missing, and a commit test demanding equality reports every correct delivery note as
+   carrying no pin.
+
+   A membership mismatch stops with:
+   `BRD_PACKAGE_SET_MISMATCH: <part-or-document> restates <source>'s <filter> as <N> item(s) and the source holds <M> — <missing> are in the source and not here; <extra> are here and not in the source. A restatement is a copy; the sentence that composed it is what has to change, not the list.`
+
+   A source side that comes up empty while the restatement is not stops with:
+   `BRD_PACKAGE_SET_UNREADABLE: <source> yielded zero records under <filter> while <part-or-document> restates some — that is a read failure, not an empty set, and passing it would certify a restatement against nothing.`
+
 **The bundle is committed** (D18), through the handoff below. That serves both delivery routes with
 one artifact: a customer with repository access pulls it and needs nothing else, and everybody else
 gets **one archive command**. **It is printed only where the archive is the route Phase 7 settled**

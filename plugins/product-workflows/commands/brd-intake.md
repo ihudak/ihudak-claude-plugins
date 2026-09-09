@@ -205,6 +205,30 @@ Act on `status`:
   Leave each row's `defects` column empty for now — it is filled in Phase 4, once a candidate is
   actually confirmed into a `[DEF#n]`, never before. Carry every returned `defect_candidates` entry
   forward into Phase 4; nothing here treats a candidate as a decision.
+
+  **Then check the inventory's coverage of its own source**, per
+  `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.2, before anything downstream treats the
+  inventory as the spine it is. Both relations read the anchors already written and the copied source;
+  nothing else is stored and the agent is not re-dispatched.
+
+  1. **Every `source_anchor` resolves to a section the source has.** Any that does not is named with
+     its `[BR#n]`, and the run stops — a row nobody can trace back is a defect in the artifact whose
+     job is traceability, and it is the writer's to correct:
+     `BRD_INTAKE_DANGLING_ANCHOR: <N> inventory row(s) carry a source_anchor naming a section brd/source/ does not hold (<BR-id>: <anchor>, …). The row cannot be traced back to the customer's document, which is the one thing the anchor exists for. Correct the anchors by hand in <path> and re-run; do not re-run brd-reader over the whole document, which would renumber every row.`
+  2. **Every top-level section either holds a row or is accounted for.** Name each section that holds
+     none, with what the source has under it, and ask — one question for the set, not one per section:
+
+```
+choices: ["Re-read the named sections — re-dispatch brd-reader over the whole document and reconcile ids (Recommended)", "They hold no obligation — record that and continue", "Cancel"]
+```
+
+  **The first option re-reads the whole document and reconciles**, because `brd-reader` takes only a
+  source path and numbers from `BR#1` on every read — there is no narrower re-dispatch, and the
+  reconciliation is the one the re-run branch above already performs. The second records the
+  operator's account in the final report. **Report the outcome either way, including "every
+  top-level section accounted for"** — an unreported clean result is indistinguishable from an unrun
+  check. **Where no anchor parses at all, say that and stop**: that is a read failure, not a document
+  with no coverage.
 - **`EMPTY`** — report that the source contained no identifiable requirement. Skip Phase 4 (nothing
   to classify) and write an empty `brd/brd-inventory.md` and `coverage-ledger.md` in Phase 5; the
   final report's ledger line reads

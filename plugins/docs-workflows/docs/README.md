@@ -7,6 +7,7 @@
 | document a feature from its PRD and its shipped diffs | [`/document`](commands/document.md) |
 | make a one-off prose edit in a docs repo | [`/document`](commands/document.md) — direct mode |
 | teach this plugin what a docs repository looks like | [`/docs-profile`](commands/docs-profile.md) |
+| pick up a logo and brand colours from the product's own code | [`/docs-brand`](commands/docs-brand.md) |
 | open the docs in a browser | [`/docs-serve`](commands/docs-serve.md) |
 | draft the note that announces a change | [`/release-notes`](commands/release-notes.md) |
 | keep internal pages out of a published documentation site | [Documentation visibility](reference/docs-visibility.md) |
@@ -17,6 +18,7 @@ Two pages orient you before you touch a command: [Getting started](getting-start
 ## Commands
 
 - [`/docs-profile`](commands/docs-profile.md) — scan a documentation repository and write or refresh the machine-readable profile `/document` consumes, as a reviewable pull request.
+- [`/docs-brand`](commands/docs-brand.md) — extract a logo and a rough primary/accent colour pair from a product's own code and apply them to the docs site, standalone or `--inline` from `/docs-init`.
 - [`/docs-serve`](commands/docs-serve.md) — start, stop, or check a profiled repo's dev server, and report a URL that actually opens from the host.
 - [`/document`](commands/document.md) — write or update product documentation: a one-shot direct edit, or the full keyed feature-documentation workflow.
 - [`/release-notes`](commands/release-notes.md) — draft a release-notes Summary for a resolved PRD, shaped by the destination it resolves to.
@@ -41,4 +43,4 @@ This plugin is the documentation half of a family. Three sibling plugins matter 
 
 ## Status
 
-This plugin ships 4 slash commands, 7 agents, 18 reference files and 2 hooks — and it ships one bundled skills entry, `docs-frontmatter`. All of it moved here from `dev-workflows` in the third increment of the marketplace split, and behaves as it did there but for one deliberate change: `prose-style` is now a declared dependency, so the branches that used to skip or degrade the style check when it was absent are gone. Otherwise only the namespace these commands answer to and the way they reach the shared corpus have changed. The `preload-context` hook is the one thing that was split rather than moved, because `dev-workflows` still needs its half.
+This plugin ships 5 slash commands, 7 agents, 18 reference files and 2 hooks — and it ships one bundled skills entry, `docs-frontmatter`. All of it moved here from `dev-workflows` in the third increment of the marketplace split, and behaves as it did there but for one deliberate change: `prose-style` is now a declared dependency, so the branches that used to skip or degrade the style check when it was absent are gone. Otherwise only the namespace these commands answer to and the way they reach the shared corpus have changed. The `preload-context` hook is the one thing that was split rather than moved, because `dev-workflows` still needs its half.

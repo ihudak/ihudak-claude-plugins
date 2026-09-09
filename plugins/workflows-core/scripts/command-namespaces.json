@@ -7,6 +7,7 @@
     "vuln"
   ],
   "docs-workflows": [
+    "docs-brand",
     "docs-profile",
     "docs-serve",
     "document",

@@ -488,6 +488,8 @@ file describes the archived revision and not this one.
    empties the survivor set, do not dispatch a fix cycle with nothing to apply and do not silently
    promote the verdict — the user settles a verdict its own findings no longer support.
 
+**The recorded verdict names the version it was taken against** — where any edit followed it, the final report says so and names the edits, per the `A recorded verdict names the version it was taken against` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`. Where none did, it says that too.
+
 Report findings reviewed, survivors, and every dismissal with its reason: a triage that reports only
 survivors is indistinguishable from a reviewer that found less.
 

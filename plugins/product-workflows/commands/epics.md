@@ -658,6 +658,8 @@ Act on the verdict (same shape as `/document` keyed mode Phase 7):
 
 Cap: one fix cycle + one re-review maximum.
 
+**The recorded verdict names the version it was taken against** — where any edit followed it, the final report says so and names the edits, per the `A recorded verdict names the version it was taken against` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`. Where none did, it says that too.
+
 ---
 
 ## Phase 8 — Post-write maintenance

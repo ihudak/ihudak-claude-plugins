@@ -309,6 +309,28 @@ A read-only mount is not a failure and does not use the `Refresh blocked` list: 
 
 The condition gates the prompt, so the `(Recommended — <why>)` reason annotation is well-formed under the rules at the top of this file.
 
+## A recorded verdict names the version it was taken against
+
+**The review cap assumes a fix cycle only removes defects, and three live runs proved otherwise.** On
+each, the fix applied after a BLOCK **introduced** something the re-review then found — and by then
+the one-fix-cycle-plus-one-re-review budget was spent, so the run's choice was to ship a known defect
+or to fix it and leave the final text unreviewed. Both branches end the same way: the verdict on
+record was reached against a version of the artifact that is no longer the one on disk, and nothing
+says so. A reader meets a `PASS` beside a file the `PASS` never saw.
+
+**Every command that records a review verdict states what that verdict was taken against**, and where
+**any** edit followed it — a `MAJOR` fix applied inline, an escalation's manual fix notes, a deferred
+finding written into the artifact, a style pass — the final report says so plainly and names the
+edits. One line: *"`<verdict>` was reached before <the edits>, which followed it; the current text has
+not been reviewed."*
+
+**This is deliberately a reporting rule and not another cycle.** Raising the cap trades one unreviewed
+version for a later one and has no fixed point, since each new review can find something the previous
+fix introduced. What actually costs the reader is not the unreviewed edit — a run has to stop
+somewhere — but believing the verdict covers it. Saying which version it covers costs nothing, cannot
+itself introduce a defect, and leaves the decision about the residue where it belongs. **Where no edit
+followed the verdict, say that too**, so a clean run reads as checked rather than as unreported.
+
 ## Review verdict BLOCK (unresolved after one fix cycle) — /document
 
 `choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run"]`

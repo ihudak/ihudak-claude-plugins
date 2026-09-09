@@ -22,24 +22,18 @@ For one-off doc edits use direct mode; for keyed feature documentation use `/doc
 
 ## Phase 0 — Resolve and validate the target repo
 
-1. **Resolve the repo path.** Take the first token of `$ARGUMENTS` as the target path; if `$ARGUMENTS` is empty, default to the current working directory. Resolve it to an absolute path and record it as `<repo>`. Treat a `--inline` token (in any position) as the inline-mode flag, not a path; record `inline = true` when present.
+1. **Resolve the repo path.** Strip a `--inline` token (in any position) from `$ARGUMENTS` before reading a positional token — it is the inline-mode flag, never a path; record `inline = true` when present. Execute **`resolve-docs-repo`** from `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/repo-resolution.md` §1 — the signal-positive form, since this command needs a docs repo that already exists, never one to create. Do not restate its ladder here; the entry point owns it. Report which rung answered, per its own hard rule — a command that quietly works in an unexpected directory is expensive to unpick afterwards. Record the resolved absolute path as `<repo>`.
 
 2. **Validate it is a writeable git work tree:**
    - `git -C <repo> rev-parse --is-inside-work-tree` must print `true`. If it errors or prints anything else, stop with the named error: `NOT_A_GIT_WORKTREE: <repo> is not inside a git work tree.`
    - `test -w <repo>` must succeed. If not, stop with the named error: `REPO_NOT_WRITEABLE: <repo> is not writeable.`
    - Resolve and record the repo's git root: `git -C <repo> rev-parse --show-toplevel`. All later detection and writes are relative to this root.
 
-3. **Detect docs-repo signals** under the git root:
-   - `package.json` with any doc script (matching `*:start`, `*:build`, `*:lint`, `docs:*`, `prettier`),
-   - a `.docstack/` directory,
-   - a `.vale.ini` file,
-   - any `*/_content/` directory (e.g. `cloud/_content`, `self-hosted/_content`),
-   - any `_snippets/` directory.
-
-   If **≥ 1** signal is present → proceed silently to Phase 1.
-   If **0** signals are present → ask before continuing:
+3. **Confirm a signal-less target.** `resolve-docs-repo` only applies its own signal test at its *conditional* rungs — the cwd rung and the `$DOCS_PATH` rung; its first rung takes an explicit positional token "as given," with no signal test at all, and its last rung is a generic "which directory" question, not a question about *this* directory. So a repo named explicitly on the command line, or supplied in answer to that generic question, can still reach here carrying zero signals — this is the branch that lets `/docs-profile` profile a repo the resolver would never have found on its own, and it asks a different question from resolution: whether to *write a profile* for a repo that shows none of the signals a docs repo usually carries. Test the resolved git root against the signal set fixed by `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/repo-resolution.md` §3 (cite it; never re-derive it here):
+   - **≥ 1 signal present** → proceed silently to Phase 1.
+   - **0 signals present** → ask before continuing:
    ```
-   "No documentation-repo signals detected under <repo> (checked: package.json doc scripts, .docstack/, .vale.ini, */_content/, _snippets/). Profile it anyway?"
+   "No documentation-repo signals detected under <repo> (checked against repo-resolution.md §3's signal set). Profile it anyway?"
    choices: ["Proceed — I confirm this is a docs repo (Recommended)", "Cancel — point me at a docs repo first"]
    ```
    Default = Proceed. On Cancel, stop and report.
@@ -48,7 +42,7 @@ For one-off doc edits use direct mode; for keyed feature documentation use `/doc
 
 ## Phase 1 — Model routing
 
-Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`) to load `workflows-core:model-routing/classification`. Slash-command bodies cannot expand `${CLAUDE_PLUGIN_ROOT}` themselves, so the skill is what makes the policy text available.
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`) to load `workflows-core:model-routing/classification`. The skill is invoked because `model-routing` is a `workflows-core` skill and the classification file it loads is a `workflows-core` reference — this plugin cannot read either by path; `${CLAUDE_PLUGIN_ROOT}` resolves to `docs-workflows`, not to the plugin that carries them.
 
 Profiling is **SIGNIFICANT** — it is a cross-cutting synthesis of the whole repository whose output (`docs-profile.yml`) steers every later `/document` run, so a wrong profile has a large blast radius. State the classification and a one-line reason.
 

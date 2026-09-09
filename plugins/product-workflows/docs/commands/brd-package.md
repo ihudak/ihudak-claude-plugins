@@ -262,10 +262,12 @@ attack.
   sets of the same size with different members read as correct: a part that enumerates identified
   records names exactly what its filter selects; the manifest and the bundle name the same review
   documents; and the delivery note's repositories and pins are the bundle's baselines'. **Each is
-  narrower than its obvious form, and the narrowings were measured against assembled packages** — the
-  review-scope part renders prose rather than identifiers, a manifest writes filenames with or
-  without the extension and names images only sometimes, and a delivery note abbreviates its commits,
-  so the obvious form of each relation fires on a correct bundle. A mismatch stops with
+  narrower than its obvious form, and every narrowing was measured against assembled packages** — the
+  review-scope part renders prose rather than identifiers; a part writes `[AS#1]`–`[AS#4]` as a range
+  rather than naming each; a manifest writes filenames with or without the extension and names images
+  only sometimes; and a delivery note abbreviates its commits, against a baselines document that
+  records one entry per repository *per run* and so may hold the same commit twice. The obvious form
+  of each relation fires on a correct bundle. A mismatch stops with
   `BRD_PACKAGE_SET_MISMATCH`; an empty source side with `BRD_PACKAGE_SET_UNREADABLE`.
 
 ## What it does not do

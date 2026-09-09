@@ -109,7 +109,11 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
 
   **The inventory's coverage of its own source is then checked, both directions, from the anchors
   already written.** Every `source_anchor` must resolve to a section the copied source actually has —
-  one that does not is a row nobody can trace back, and the run stops. And every **top-level section**
+  by its section reference, or by the line it names where it carries none, since the format sanctions
+  both anchor forms. One that resolves to nothing is a row nobody can trace back and the run stops,
+  **except a row a re-run deliberately preserved as no longer present in a revised source**: that is
+  a recorded state, and stopping on it would refuse a customer's revised BRD with a remedy nobody
+  could perform. And every **top-level section**
   must either hold a row or be accounted for: one that holds none is a question rather than a stop,
   since only a person can say whether a section binds the delivery team to anything, so the run names
   each with what the source has under it and asks once for the set. **Section granularity is the point

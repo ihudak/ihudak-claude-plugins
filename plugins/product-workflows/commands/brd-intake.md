@@ -211,10 +211,19 @@ Act on `status`:
   inventory as the spine it is. Both relations read the anchors already written and the copied source;
   nothing else is stored and the agent is not re-dispatched.
 
-  1. **Every `source_anchor` resolves to a section the source has.** Any that does not is named with
-     its `[BR#n]`, and the run stops — a row nobody can trace back is a defect in the artifact whose
-     job is traceability, and it is the writer's to correct:
-     `BRD_INTAKE_DANGLING_ANCHOR: <N> inventory row(s) carry a source_anchor naming a section brd/source/ does not hold (<BR-id>: <anchor>, …). The row cannot be traced back to the customer's document, which is the one thing the anchor exists for. Correct the anchors by hand in <path> and re-run; do not re-run brd-reader over the whole document, which would renumber every row.`
+  1. **Every `source_anchor` resolves to a section the source has** — by its section reference, or,
+     where it carries none, by the line it names (`brd-format.md` §2.2 fixes the order). **Except the
+     rows the reconciliation above deliberately kept**: a re-run over a revised source preserves any
+     existing row *"this source no longer contains"*, id retained and reported, and such a row's
+     anchor points into a section the new document may well have dropped. That is a recorded state,
+     not an untraceable one, and stopping on it would hard-stop a supported path — a customer sending
+     a revised BRD — with a remedy nobody can perform, since correcting the anchor by hand is
+     impossible when the content it named is gone. Exclude them by the reconciliation's own list and
+     name them in the report instead.
+
+     Any **other** unresolvable anchor is named with its `[BR#n]`, and the run stops — a row nobody
+     can trace back is a defect in the artifact whose job is traceability:
+     `BRD_INTAKE_DANGLING_ANCHOR: <N> inventory row(s) carry a source_anchor that resolves to no section of brd/source/ (<BR-id>: <anchor>, …), and none of them is a row this run preserved as no longer present. The row cannot be traced back to the customer's document, which is the one thing the anchor exists for. Correct the anchors by hand in <path> and re-run; do not re-run brd-reader over the whole document, which would renumber every row.`
   2. **Every top-level section either holds a row or is accounted for.** Name each section that holds
      none, with what the source has under it, and ask — one question for the set, not one per section:
 

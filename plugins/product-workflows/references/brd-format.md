@@ -75,12 +75,26 @@ on a real package the sections carrying no row included the **user stories** and
 tests**, which is exactly the pair a reader would expect to have been inventoried and exactly the
 question worth putting to a human.
 
-**Both relations resolve against the anchor's own leading section reference**, which is the form
-every anchor carries — a section number, its title, a locator within the section, and the line. That
-one form makes the line-number half of an anchor an aid rather than an ambiguity: an anchor is
-resolved by its section, and the line locates the row inside it. **Where no anchor parses at all,
-that is a read failure and is reported as one** — never as a document with no coverage
-(`workflows-core:grounding-format` §2.1).
+**Both relations resolve an anchor to a section, and §2's anchor is a heading path *or* a line range,
+so both forms resolve — in this order:**
+
+1. **A leading section reference** — `§` and a section number — resolves directly. This is the form
+   every anchor carried across the corpora this rule was measured on, which is why it is tried first
+   and not why it is the only branch.
+2. **Otherwise, the line the anchor names** resolves it: a line falls inside exactly one section, so
+   a line-range anchor is section-resolvable against the source without the writer having named a
+   section at all.
+3. **Neither** — no section reference and no line — and the anchor is unresolvable. That is a
+   malformed anchor, reported per row.
+
+**The ordering matters more than it looks.** An earlier draft of this section asserted that a leading
+section reference is *the* form an anchor carries. It is what every measured anchor happened to have,
+and §2 above plus `product-workflows:brd-reader` both sanction the line-range form — so the assertion
+promoted an observation about one corpus into a rule the producers do not follow, and would have
+stopped a correct intake as a read failure on the first anchor written the other way.
+
+**Where no anchor in the whole inventory resolves, that is a read failure and is reported as one** —
+never as a document with no coverage (`workflows-core:grounding-format` §2.1).
 
 ### 2.1 A slice's inventory
 

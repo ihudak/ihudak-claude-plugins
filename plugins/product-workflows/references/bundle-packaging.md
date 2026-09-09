@@ -615,9 +615,21 @@ somebody already paid for.
 ### 7.1 The relations
 
 **Relation 1 — a part that enumerates a set of identified records names exactly that set.** Its scope
-is the prompt parts whose source is a set of records carrying identifiers **and** which render them
-as an enumeration: the open assumptions and accepted-risk findings, the conditional positions and
-conditional defect entries, and the out-of-scope defect entries. For each, the identifiers the part
+is the prompt parts whose source is a set of records carrying identifiers, which render them as an
+enumeration, **and whose source is itself in the bundle**: the open assumptions, the conditional
+positions and conditional defect entries, and the out-of-scope defect entries.
+
+**Expand a range before comparing.** A part legitimately writes `[AS#1]`–`[AS#4]` for four records
+rather than naming each, and on measured packages that was the *only* rendering in most of them — so
+a comparison over literal tokens sees two ids where the part names four and reports two omissions
+against a correct package. A range between two ids of one prefix denotes every id between them
+inclusive.
+
+**The accepted-risk findings are deliberately outside this relation, though the part that surfaces
+them is not.** Their source is the adversarial self-review, which §1.1 excludes from the bundle by
+rule — so inside an assembled package there is nothing to compare that part against, and a relation
+that reached for it would resolve to an absent file on every correct bundle. What reaches the customer
+about those findings is prose the packaging run wrote, and prose is review's. For each, the identifiers the part
 names are exactly those the part's own stated filter selects from its source file, both directions —
 an identifier in the part and not in the filtered source is an invention, one in the source and not
 in the part is an omission, and the omission is the dangerous half because a customer cannot see what
@@ -647,9 +659,13 @@ the bundle. Three qualifications, each of which a real package would otherwise f
 
 **Relation 3 — the delivery note's repositories and pins are the bundle's own baselines'.** The note
 restates which repositories, at which commits; the bundle's baselines document is where those were
-recorded. Same repositories, and **each commit the note names is a prefix of exactly one baseline
-commit** — the note abbreviates, as a note written for a person does, so an equality test finds
-nothing and reports every correct note as carrying no pin at all. This is the one relation that
+recorded. Same repositories, and **each commit the note names is a prefix of a baseline commit, with every
+baseline it prefixes being the same commit** — the note abbreviates, as a note written for a person
+does, so an equality test finds nothing and reports every correct note as carrying no pin at all.
+**"Exactly one" is the wrong cardinality and fires on correct content**: a baselines document records
+one entry per repository *per run*, so a package pinned across two dated runs at unmoved commits
+holds the same SHA twice and a prefix legitimately matches both. What makes an abbreviation
+ambiguous is matching two *different* commits, which is the case to report. This is the one relation that
 reaches the note, which is deliberately not a bundle document (§4) and which §6 therefore never sees:
 a pin restated wrongly there has the reviewer verify every code claim against a snapshot nobody
 ground.

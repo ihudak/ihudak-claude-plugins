@@ -937,11 +937,12 @@ self-review is free of them while being the most internal document this command 
    runs last because relation 2 needs the assembled bundle's own listing, and it is the only one that
    reaches the delivery note, which is deliberately not a bundle document.
 
-   **Read §7's three qualifications on relation 2 and its abbreviation rule on relation 3 before
-   running either.** Both were measured against assembled packages, and the obvious form of each
-   fires on a correct bundle: a manifest matcher fixed on one filename convention reports every
-   document as missing, and a commit test demanding equality reports every correct delivery note as
-   carrying no pin.
+   **Read §7's narrowings before running any relation — all four, one of which belongs to relation 1
+   and is the one that fires most often.** Each was measured against assembled packages and the
+   obvious form of each fires on a correct bundle: a part writes an id **range** where a literal
+   comparison sees two ids and reports the rest as omissions; a manifest matcher fixed on one
+   filename convention reports every document as missing; a manifest names images only sometimes; and
+   a commit test demanding equality reports every correct delivery note as carrying no pin.
 
    A membership mismatch stops with:
    `BRD_PACKAGE_SET_MISMATCH: <part-or-document> restates <source>'s <filter> as <N> item(s) and the source holds <M> — <missing> are in the source and not here; <extra> are here and not in the source. A restatement is a copy; the sentence that composed it is what has to change, not the list.`

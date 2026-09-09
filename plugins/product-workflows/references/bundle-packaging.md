@@ -617,7 +617,13 @@ somebody already paid for.
 **Relation 1 — a part that enumerates a set of identified records names exactly that set.** Its scope
 is the prompt parts whose source is a set of records carrying identifiers, which render them as an
 enumeration, **and whose source is itself in the bundle**: the open assumptions, the conditional
-positions and conditional defect entries, and the out-of-scope defect entries.
+positions and conditional defect entries, and the out-of-scope defect entries. **For each part in that
+scope**, the identifiers it names are exactly those its own stated filter selects from its source
+file, both directions — an identifier in the part and not in the filtered source is an invention, one
+in the filtered source and not in the part is an omission, and the omission is the dangerous half
+because a customer cannot see what they were not shown. **The two paragraphs below narrow that scope
+and never extend it**, which is worth saying because they once sat between this sentence and the
+scope it governs, and a reader taking them in order bound the rule to the set they exclude.
 
 **Expand a range before comparing.** A part legitimately writes `[AS#1]`–`[AS#4]` for four records
 rather than naming each, and on measured packages that was the *only* rendering in most of them — so
@@ -629,11 +635,7 @@ inclusive.
 them is not.** Their source is the adversarial self-review, which §1.1 excludes from the bundle by
 rule — so inside an assembled package there is nothing to compare that part against, and a relation
 that reached for it would resolve to an absent file on every correct bundle. What reaches the customer
-about those findings is prose the packaging run wrote, and prose is review's. For each, the identifiers the part
-names are exactly those the part's own stated filter selects from its source file, both directions —
-an identifier in the part and not in the filtered source is an invention, one in the source and not
-in the part is an omission, and the omission is the dangerous half because a customer cannot see what
-they were not shown.
+about those findings is prose the packaging run wrote, and prose is review's.
 
 **It does not reach every part, and the exclusions are measured rather than cautious.** The review
 scope part renders its source as **prose in the customer's own vocabulary** — the scope areas a

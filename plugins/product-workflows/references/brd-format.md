@@ -81,10 +81,13 @@ so both forms resolve — in this order:**
 1. **A leading section reference** — `§` and a section number — resolves directly. This is the form
    every anchor carried across the corpora this rule was measured on, which is why it is tried first
    and not why it is the only branch.
-2. **Otherwise, the line the anchor names** resolves it: a line falls inside exactly one section, so
-   a line-range anchor is section-resolvable against the source without the writer having named a
-   section at all.
-3. **Neither** — no section reference and no line — and the anchor is unresolvable. That is a
+2. **Otherwise, the line the anchor names** resolves it: a line in the document body falls inside
+   exactly one section, so a line-range anchor is section-resolvable against the source without the
+   writer having named a section at all. A line **above the first heading** — frontmatter, a title
+   block — is inside none, and an anchor naming only such a line falls to branch 3 rather than
+   resolving to the first section by proximity.
+3. **Neither** — no section reference, and no line that lands in a section — and the anchor is
+   unresolvable. That is a
    malformed anchor, reported per row.
 
 **The ordering matters more than it looks.** An earlier draft of this section asserted that a leading

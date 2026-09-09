@@ -16,7 +16,7 @@ Every recognized flag is stripped from `$ARGUMENTS` before the remaining token i
 
 ## What it needs
 
-- **A profiled docs repository** — resolved by `resolve-docs-repo` (`docs-workflow/repo-resolution.md` §1), the same signal-positive ladder `/document` Phase 0 applies: the given path, else the working directory, else `$DOCS_PATH`, else a search under `$REPOS_PATH`, else a question — each rung tested against a docs-repo signal, and the rung that answered is reported.
+- **A profiled docs repository** — resolved by `resolve-docs-repo` (`docs-workflow/repo-resolution.md` §1), the same signal-positive ladder `/document` Phase 0 applies: the given path, else the working directory, else `$DOCS_PATH`, else a search under `$REPOS_PATH`, else a question — only two of these rungs can hand back a directory carrying no docs signal, an explicit path (taken as given) and the final generic question; every other rung tests against a docs-repo signal before it can answer, and the rung that did is reported.
 - **A written `dev_servers` block** — `.dev-workflows/docs-profile.yml` (in the resolved repo, not the plugin), specifically its `dev_servers.servers[]` list. A repo that has never been profiled, or whose profile predates `dev_servers`, stops with `DOCS_SERVE_NO_DEV_SERVER` and points at `/docs-workflows:docs-profile` to write one.
 - **Nothing from `$SPECS_PATH`** — this command runs no `specs-preflight` and no `commit-artifacts`. The only state it records lives under the resolved repo's own `.dev-workflows/`.
 

@@ -71,11 +71,11 @@ Read `<repo-root>/.dev-workflows/docs-profile.yml` (`${CLAUDE_PLUGIN_ROOT}/refer
 
 `DOCS_SERVE_NO_DEV_SERVER: <repo> has no dev_servers block recorded. Run /docs-workflows:docs-profile <repo> first — it detects a repo's *:start scripts and writes this block.`
 
-`dev_servers.servers[]` is a list, one entry per servable space — `space`, `command`, `port`, and optionally `base_path` and `public_base_url`. Select the entry this run serves:
+`dev_servers.servers[]` is a list, one entry per servable space — `space`, `command`, `port`, and optionally `base_path`, `public_base_url`, and `visibility` (`docs-profile-schema.md`'s field rules). Select the entry this run serves:
 
-1. Where an entry carries a `visibility` tag (a profile MAY record `visibility: public|internal` per server, the same field name the two-build `builds[]` shape already carries), `--internal` selects the `internal`-tagged entry and its absence selects the `public`-tagged one.
-2. Where no entry carries a usable `visibility` tag and the list holds exactly one entry — the ordinary case, including the single server `/docs-init`'s scaffold records — use it regardless of `--internal`, and say plainly that the profile records no public/internal split for this command to honour, rather than pretending `--internal` changed anything.
-3. Where the list holds more than one entry and none resolves by step 1, ask rather than guess: a `choices` array (2–4 options, one per `space` id in the order the profile lists them, the first one recommended).
+1. Where an entry carries the declared `visibility` field (`public | internal` — it pairs a server with the `builds[]` entry of the same visibility, and the two-build MkDocs shape `/docs-init` scaffolds records one server per build, tagged to match), `--internal` selects the `internal`-tagged entry and its absence selects the `public`-tagged one.
+2. Where no entry carries `visibility` and the list holds exactly one entry — the ordinary case for a repo with nothing to split, including a single-space profile with no two-build scaffold behind it — use it regardless of `--internal`, and say plainly that the profile records no public/internal split for this command to honour, rather than pretending `--internal` changed anything.
+3. Where the list holds more than one entry and none carries `visibility`, ask rather than guess: a `choices` array (2–4 options, one per `space` id in the order the profile lists them, the first one recommended). The worked two-space profile (`cloud`, `self-hosted`) is exactly this case — its two servers differ by space, not by visibility, so step 1 never resolves them and step 3 asks.
 
 `--port <n>`, when given, overrides the selected entry's configured `port` for this run's own reachability checks (Phases 2 and 3 test `<n>`, not the profile's recorded port); it does not rewrite the entry's `command` — a command that hardcodes its own port (a baked-in `-a 0.0.0.0:8000`, say) is reported as such rather than silently overridden.
 

@@ -17,7 +17,7 @@ Consumed by `/docs-brand`, both standalone and as `/docs-init`'s branding phase.
 | UI component boundaries, and graphical objects that carry meaning | **3:1** | SC 1.4.11 Non-text Contrast |
 | A visible focus indicator | **3:1** | SC 2.4.7, SC 2.4.11, SC 2.4.13 |
 
-`/docs-brand` checks the first three. The fourth is named because a theme that overrides focus styling can fail it, and the command reports rather than fixes.
+`/docs-brand` checks every derived colour — the confirmed primary, its derived light and dark variants, and the confirmed accent — against the **first row alone** (body text, 4.5:1). It derives a colour pair and cannot know which UI components a theme will draw with it, so rather than guess whether a given colour ends up governing body text, large text, or a component boundary, it applies the strictest of the rows a text-role colour could plausibly be held to: a pass on the first row implies a pass on the second and third for the same pair, since all three are the same computed ratio measured against three different bars. The second and third rows are named here as the thresholds a docs-scaffold theme *is* held to even though `/docs-brand` never computes them separately. The fourth (focus indicator) is named for a different reason: a theme that overrides focus styling can fail it, but `/docs-brand` neither derives nor touches focus styling, so it is entirely outside this command's reach — named here so a future focus-styling check has a threshold to cite rather than a fourth reason to invent one.
 
 ## 2. The formula
 

@@ -16,15 +16,15 @@ Extracts a logo and a rough primary/accent colour pair from a product's own code
 
 ## What it needs
 
-- **A docs repository that already exists** — resolved by `resolve-docs-repo` (`docs-workflow/repo-resolution.md` §1), the same signal-positive ladder `/docs-workflows:docs-serve` uses: the given path, else the working directory, else `$DOCS_PATH`, else a search under `$REPOS_PATH`, else a question. It must carry at least one of `mkdocs.yml` / `mkdocs.internal.yml` — this command's theme application is Material for MkDocs-specific.
+- **A docs repository that already exists** — resolved by `resolve-docs-repo` (`docs-workflow/repo-resolution.md` §1), the same signal-positive ladder `/docs-workflows:docs-serve` uses: the given path, else the working directory when it carries a docs signal, else `$DOCS_PATH` when it carries one, else a search under `$REPOS_PATH`, else a question. It must additionally declare `theme: name: material` in every MkDocs config it carries — this command writes Material-native configuration, the family's one deliberate exception to never branching on a repo's generator.
 - **A code repository to read from** — named by `--from`, or resolved from `$REPOS_PATH` with a confirmation (Phase 2). It is read-only: nothing here writes into it, and the applied theme never references it at build time.
-- **Nothing pre-existing in the docs repo beyond the MkDocs config** — a `theme:` block and a `stylesheets/extra.css` file are created if absent, so a hand-built MkDocs site works exactly as well as one this family scaffolded.
+- **Nothing pre-existing in the docs repo beyond a Material MkDocs config** — a `stylesheets/extra.css` file is created if absent and the `theme:` block is edited into place rather than replaced, so a hand-built Material for MkDocs site is branded the same way as one this family scaffolded; a site running a different theme or a different generator entirely is outside what this command supports (`DOCS_BRAND_NOT_MKDOCS`, below).
 
 ## What it produces
 
-Phase 3 walks a fixed colour precedence — a Tailwind config's `theme.extend.colors`, CSS custom properties matching `--(color-)?(primary|brand|accent)`, a MUI `createTheme` call, a web-app manifest's `theme_color`, and SCSS/LESS `$primary` / `$brand` / `$accent` variables — taking the first rule that matches anything and recording its file and line. Accent is looked for independently among the three rules that name it explicitly, defaulting to the primary value when none of them match. Phase 4 searches `public/`, `src/assets/`, `static/`, `logo*` / `brand*` / `icon*` filenames, `favicon.*`, and a manifest's `icons[]`, ranking SVG over PNG and larger over smaller.
+Phase 3 walks a fixed colour precedence — a Tailwind config's `theme.extend.colors`, CSS custom properties matching `--(color-)?(primary|brand|accent)`, a MUI `createTheme` call, a web-app manifest's `theme_color`, and SCSS/LESS `$primary` / `$brand` / `$accent` variables — taking the first rule that matches anything and recording its file and line. Accent is looked for independently among the three rules that name it explicitly, defaulting to the primary value when none of them match. Phase 4 searches `public/`, `src/assets/`, `static/`, `logo*` / `brand*` / `icon*` filenames, `favicon.*`, and a manifest's `icons[]`, ranking SVG over PNG and larger over smaller, and is the one place a logo is picked from — presented as a literal, capped choice list when more than one candidate is found.
 
-Every extracted value is printed with its source before Phase 7 applies anything, and the operator confirms or edits it — nothing here is ever applied silently. Phase 6 checks the confirmed primary and accent against `docs-workflow/contrast.md`'s WCAG 2.2 thresholds (4.5:1 body text) and reports the ratio to two decimals; a failing colour is still applied if the operator confirms it — it is their brand — and the finding is carried into the drafted PR message regardless of outcome. Phase 7 writes a `theme:` / `extra_css:` block identical across both MkDocs configs when both exist, writes the derived primary-light/primary-dark and accent CSS variables into `stylesheets/extra.css`, and copies the confirmed logo and favicon into `docs/assets/`.
+Every extracted value is printed with its source before Phase 8 applies anything, and the operator confirms or edits it — nothing here is ever applied silently. Phase 6 checks the confirmed primary, its derived light and dark variants, and the confirmed accent against `docs-workflow/contrast.md`'s body-text row and reports each ratio to two decimals; a failing colour is still applied if the operator confirms it — it is their brand — and the finding is carried into the drafted PR message regardless of outcome. On a standalone run, Phase 7 creates the branch **before** anything is written — matching the family invariant and `/docs-profile`'s own order. Phase 8 then writes a `theme:` / `extra_css:` block identical across both MkDocs configs when both exist (edited into the existing block, never a literal replacement — that would drop `name: material` itself), writes the derived primary-light/primary-dark and accent CSS variables into `stylesheets/extra.css`, and copies the confirmed logo and favicon into `docs/assets/`.
 
 ## Gates
 
@@ -34,7 +34,7 @@ Every extracted value is printed with its source before Phase 7 applies anything
 
 - `DOCS_BRAND_NOT_A_GIT_WORKTREE` — the resolved docs repo is not inside a git work tree.
 - `DOCS_BRAND_REPO_NOT_WRITEABLE` — the resolved docs repo is not writeable.
-- `DOCS_BRAND_NOT_MKDOCS` — the resolved repo carries neither `mkdocs.yml` nor `mkdocs.internal.yml`. Scaffold one with `/docs-workflows:docs-init` first, or point this run at a repo that already has one.
+- `DOCS_BRAND_NOT_MKDOCS` — the resolved repo carries neither `mkdocs.yml` nor `mkdocs.internal.yml`, or a config it does carry declares a theme other than Material (`theme: name: material` is required in every config that exists). Scaffold one with `/docs-workflows:docs-init` first, or point this run at a repo that already runs Material.
 - `DOCS_BRAND_NO_CODE_REPO` — no code repository resolved to extract from, after checking `--from`, the docs profile's source-repo set, and `$REPOS_PATH`.
 - `DOCS_BRAND_NOTHING_TO_APPLY` — neither a colour nor a logo was found or supplied; there is nothing for the run to brand.
 - `DOCS_BRAND_UNRESOLVED_BLOCKER` — a BLOCKER finding from `docs-scaffold-reviewer` was neither fixed nor overridden.
@@ -46,7 +46,7 @@ Every extracted value is printed with its source before Phase 7 applies anything
 /docs-workflows:docs-brand ~/repos/example-docs --from ~/repos/example-webapp
 ```
 
-Resolves the docs repo and the named code repo, walks the colour and logo precedence, confirms what it found, checks contrast, applies the theme to both MkDocs configs, dispatches the scaffold review, and finishes on a branch with a drafted pull request — never pushed, never merged.
+Resolves the docs repo and the named code repo, walks the colour and logo precedence, confirms what it found, checks contrast, creates a branch, applies the theme to both MkDocs configs, dispatches the scaffold review, and finishes with a drafted pull request — never pushed, never merged.
 
 ```
 /docs-workflows:docs-init

@@ -23,6 +23,7 @@ flowchart TD
     createprd -.->|early draft, before any spec or design| rndev
     profile -.->|.dev-workflows/docs-profile.yml| document
     profile -.->|dev_servers block| docsserve
+    brand -.->|preview the branded site| docsserve
 ```
 
 Two nodes are drawn for continuity and are not this plugin's commands: `/dev-workflows:implement` and `/product-workflows:create-prd` ship in the companion pipeline plugin and are documented there.

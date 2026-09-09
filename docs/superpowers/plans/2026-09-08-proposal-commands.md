@@ -1,5 +1,7 @@
 # `/prd-proposal` and `/brd-proposal` — effort proposals — Implementation Plan
 
+> **This plan is an execution ledger, and the shipped tree is the authority over every word of it.** Several fenced blocks below quote draft prose that later commits corrected — among them `proposal-format.md` §5's tier-1 re-estimate gate and its idea-route cap, §7's defect-sweep source filter, the "gates nothing" paragraphs of `/prd-proposal` and `proposal-format.md` §1, `/brd-proposal`'s count of the container refusals it inverts, and the next-step prose of `/brd-reconcile`, `/create-ard` and `/specify` — so open the file a block names and re-read it before re-pasting anything from here, and never paste a block back over what ships.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Give `product-workflows` two commands that author a customer-facing effort proposal — work packages, hours by package and role, ranged by per-package confidence, every cost driver citing a record that exists on disk — for one `PRD-` slice and for a `BRD-` container's roll-up.

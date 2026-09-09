@@ -7,8 +7,8 @@ tools: ["Read", "Glob", "Grep", "Bash", "Skill"]
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
-**First instruction, before anything else: do not read the finding's `evidence` list — and, for
-a class-4 `[DG#n]`, do not read its `cites` field either.** Read the `claim` this finding is about,
+**First instruction, before anything else: do not read the finding's `evidence` list or its
+`control` — and, for a class-4 `[DG#n]`, do not read its `cites` field either.** Read the `claim` this finding is about,
 the `class` when the finding is a `[DG#n]` (`workflows-core:grounding-format` §2, §6), and the source it is
 anchored to — the `repo_path`/`commit` for a finding that rests on code, the `frame_set_dir` for
 one that rests on the design. Then go find the answer yourself, from that source (and, for a
@@ -147,9 +147,23 @@ An input that is not required is still honoured when given; it is never silently
    — a re-derivation contaminated by the citation you are supposed to be checking is not
    independent, and this agent's entire value is that independence.
 
-3. **Only now, read `finding.evidence`, `finding.verdict`, and — for a class-4 `[DG#n]` —
-   `finding.cites`**, and compare your independently reached verdict and evidence (including your
-   own answer to the code question) against the original's, and against the cited `[CG#n]`'s.
+3. **Only now, read `finding.evidence`, `finding.verdict`, `finding.control` where the finding
+   carries one, and — for a class-4 `[DG#n]` — `finding.cites`**, and compare your independently
+   reached verdict and evidence (including your own answer to the code question) against the
+   original's, and against the cited `[CG#n]`'s.
+
+3a. **Where the finding asserts an absence, run its `control` yourself.** Not "confirm the cited
+   line exists" — this agent checks nothing by looking at it. Run the control's own method against
+   the case it names and see whether it fires, exactly as step 2 re-derived the claim. A control that
+   does not reproduce means the search underlying the absence was never shown capable of finding the
+   kind of thing it says is missing, and the absence therefore rests on nothing
+   (`workflows-core:grounding-format` §2.2). **That is a `contradict` on its own ground**, whatever
+   your own step-2 search turned up and even where your search also found nothing — two searches
+   sharing one blind spot is precisely the state a control exists to expose. Set `control_outcome`
+   accordingly and say in `notes` what the control did when you ran it. A finding that asserts an
+   absence and carries **no** `control` at all is the same failure met earlier: return `contradict`
+   with `control_outcome: absent`, because a required field's absence is not something this agent
+   may supply on the writer's behalf.
 
 4. **Decide the outcome** from the closed set in `workflows-core:grounding-format` §8:
    - **`agree`** — your re-derivation reaches the same verdict.
@@ -184,6 +198,11 @@ own_evidence:
   - path:  <relative to repo_path, or the frame path for a DG#n>
     lines: [<1-based line numbers>]   # omit only when the evidence is a whole-file read
     note:  <what this line or frame actually shows, and how it bears on the claim>
+control_outcome: fired | failed | absent | n/a
+  # `n/a` where the finding asserts no absence and needs no control. `fired` where the finding's
+  # own control reproduced when THIS agent ran it. `failed` where it did not. `absent` where the
+  # finding asserts an absence and carries no control. Both `failed` and `absent` force
+  # `outcome: contradict` on their own, per `workflows-core:grounding-format` §2.2.
 commit: <the resolved commit this re-derivation was checked against — omitted on a class-1/2/3
          [DG#n], which is re-derived from the frame set alone and was checked against none>
 notes: |
@@ -229,8 +248,8 @@ owns what happens next; this agent never invents an outcome to avoid returning o
 
 ## Hard rules
 
-- NEVER read `finding.evidence` — or, for a class-4 `[DG#n]`, `finding.cites` — before completing
-  your own independent re-derivation (Process step 2). This is the one rule the entire agent exists
+- NEVER read `finding.evidence` or `finding.control` — or, for a class-4 `[DG#n]`, `finding.cites`
+  — before completing your own independent re-derivation (Process step 2). This is the one rule the entire agent exists
   to enforce, and it applies to a cited `[CG#n]` exactly as it applies to a `file:line`.
 - NEVER return `extend` when your own re-derivation reached a different verdict than the original.
   That is `contradict`, argued with your own evidence — not a softened `extend`.
@@ -244,6 +263,11 @@ owns what happens next; this agent never invents an outcome to avoid returning o
   NEVER treat a missing or unreadable `class` as licence to skip them. The Inputs table's row
   selection is fail-closed for exactly this reason: only an explicitly asserted `class` of `1`, `2`,
   or `3` on a `DG#`-prefixed finding excuses a commit, and nothing a caller omits ever does.
+- NEVER accept a `control` by reading it. Run it. A control this agent did not reproduce is a
+  failed control, and a failed or absent control on an absence claim is `contradict` on its own
+  ground — never an `agree` qualified by a note, and never an `unprovable`, which would say the
+  claim could not be settled when what was actually established is that the original search could
+  never have settled it.
 - NEVER leave `own_evidence` blank, including for `unprovable` outcomes. State what was searched
   and why it fell short, per `workflows-core:grounding-format` §2.
 - NEVER let a confident original write-up substitute for your own search. Fluency is not evidence.

@@ -46,6 +46,7 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 | `claim` | the requirement premise under test — a `[BR#n]` on the BRD route, an `[AC#n]`/`[FR#n]`/`[US#n]` on the idea route — quoted or closely paraphrased |
 | `verdict` | exactly one of the six values in §3 |
 | `evidence` | a `file:line` list, or — when the verdict is `NOT-PROVABLE` or the finding asserts an absence — an explicit statement of why no evidence exists rather than an empty field |
+| `control` | *(required wherever the finding asserts an absence — the same trigger `evidence`'s absence clause uses; omitted otherwise)* the **positive control** on the search that reached that absence: the same method, run against a case of the same kind known to be present in this same source, and what it returned (§2.2) |
 | `commit` | the pinned commit SHA the finding was checked against (`baseline-integrity`, §4); **absent on a `[DG#n]` of class 1, 2 or 3**, which is settled from the frame set and the requirement text alone (§6) and is pinned to no commit. A class-4 `[DG#n]` carries the cited `[CG#n]`'s own |
 | `altitude` | one of `product \| architecture \| implementation` |
 | `horizon` | one of `current \| will-change` (§5), naming the prerequisite decision when `will-change` |
@@ -58,7 +59,8 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 what the four classes mean and why the fourth requires a citation; this table fixes only the field
 names, where they apply, and when `cites` is required.
 
-**`commit` is the third field whose applicability is not universal, and saying so is load-bearing.**
+**`commit`'s applicability is not universal — nor is `class`'s, `cites`'s, `prerequisite`'s or
+`control`'s — and saying so is load-bearing.**
 §8's verification is fail-closed on exactly this: `product-workflows:grounding-verifier`'s Inputs table puts
 a `[DG#n]` in the design-only row **only** where its `class` positively reads 1, 2 or 3, and demands
 `repo_path` and `commit` everywhere else. A design-only finding that carried a `commit` anyway would
@@ -68,7 +70,9 @@ applicability is a field an emitter fills to satisfy the table.
 
 **`evidence` is never blank.** A finding that asserts a mechanism is absent still owes the reader
 what was searched and where it was expected — "no route under `api/` handles this verb; searched
-`api/**/*.py` at the pinned commit" is evidence; a bare empty field is not.
+`api/**/*.py` at the pinned commit" is evidence; a bare empty field is not. **That is what was
+searched; `control` (§2.2) is whether the search could have found it**, and an absence claim owes
+both — the first without the second is the reason this field set gained a row.
 
 **`consumed_by` starts at `none` and is written later**, by whichever downstream authoring command
 actually cites the finding — this file fixes only that the field exists and what its values mean,
@@ -108,8 +112,9 @@ So, canonically:
   the bytes: a writer free to add a field produces an artifact whose readers disagree about which
   value is the finding's.
 - **A field that does not apply is omitted, never written empty** — `class` and `cites` on a
-  `[CG#n]`, `cites` on a `[DG#n]` of class 1, 2 or 3, `commit` on a `[DG#n]` of class 1, 2 or 3, and
-  `prerequisite` on any finding whose `horizon` is `current`. An empty value asserts that the field
+  `[CG#n]`, `cites` on a `[DG#n]` of class 1, 2 or 3, `commit` on a `[DG#n]` of class 1, 2 or 3,
+  `prerequisite` on any finding whose `horizon` is `current`, and `control` on a finding that
+  asserts no absence. An empty value asserts that the field
   applies and its value is unknown, which is a different claim from the field not applying. §2's
   `cites` row said "empty otherwise" until this section was written; the two rules met head-on for
   forty-five lines, and §2 was the one corrected.
@@ -143,6 +148,68 @@ matching a fixed column or a fixed run of leading spaces. That is this repo's "r
 known set, never parse one out of free text" rule met at the one place the free text is an artifact
 this family wrote itself. A count that disagrees with the file is reported as a parse failure, never
 as an absence: a scan that cannot read a block has learned nothing about whether the finding exists.
+
+### 2.2 `control` — the positive control on an absence
+
+**An absence claim rests on a search returning nothing, and a search returns nothing for two
+different reasons.** Either the thing is not there, or the method could never have found it. Those
+two are indistinguishable from the result, and only one of them is a finding. `control` is the field
+that separates them, and it is a field rather than an instruction because the difference has already
+been explained in prose and reproduced anyway: a run explicitly warned about this failure filed an
+empty `grep` as evidence of absence in the same pass.
+
+The canonical case is a Rails repository and the claim *"the record stores who approved it"*.
+`grep 'associate_id'` returns nothing, and attribution **is** written — through the association,
+which never spells the column name anywhere the grep could see. The empty result was true; the
+inference from it was false.
+
+**What `control` holds.** The same method, pointed at a case of the same kind that is known to be
+present in this same source, and what it returned:
+
+- **Same method.** The grep that reached the absence, not a different or easier one.
+- **Same kind.** A case of the shape the claim is about — another attributed field, another
+  scheduled job, another frame carrying the class of element that is missing. A control that
+  succeeds on an unrelated shape proves only that the tool runs.
+- **Known present.** Established independently of this search — from a finding already settled in
+  this run, or from a file the agent has read and can cite. Not assumed.
+- **Its result.** The `file:line` the control matched. A control that matched nothing is a **failed
+  control**, and it does not become evidence by being reported.
+
+**A failed control forecloses the absence, not the finding.** Where the control does not fire, the
+search has established nothing about the source and the verdict may not rest on the absence: the
+finding is `NOT-PROVABLE`, its `evidence` says what was searched, and its `control` records the
+control that failed. That is a true and useful record — it says this method cannot see this class of
+thing here — where a `REWRITTEN` on the same search would be a fabrication with a citation.
+
+**Where it applies is the claim, not the verdict.** Any finding asserting that something is not
+there carries it, whichever of §3's six verdicts it lands on — this is the same trigger `evidence`'s
+absence clause already uses, deliberately, so a writer resolves one question rather than two. A
+`FALSE-FRIEND` carries one whenever the half being asserted is that the plausible name does *not* do
+the thing. A `[DG#n]` of class 2 — a requirement asks for a field no frame shows — is an absence over
+a frame set and carries a control drawn from the frame set: another field of that kind, found in
+these frames by the same reading. A class-4 `[DG#n]` carries none of its own, because its code half
+is not its own search: it cites a `[CG#n]`, and the control belongs to the finding that did the
+searching (§6.3).
+
+**The verifier checks the control, and checks it the way it checks everything else — by
+re-deriving.** `product-workflows:grounding-verifier` does not confirm that the control's cited line
+exists; it runs the control itself. A control that does not reproduce falsifies the absence, and the
+outcome is `contradict` on that ground alone, whatever the verifier's own search turned up.
+
+```
+- id: [CG#31]
+  claim: [BR#12] — an approval records which associate approved it
+  verdict: NOT-PROVABLE
+  evidence:
+    - no column, association or writer under app/models matches approver attribution
+    - searched `git grep -n 'approv' <commit> -- app/models app/services`
+  control: same grep shape for `submitted` attribution, which BR#9 settled as written — app/models/request.rb:41
+  commit: 4f1c9ab
+  altitude: implementation
+  horizon: current
+  consumed_by: none
+  outcome: agree
+```
 
 ## 3. Verdicts
 
@@ -505,6 +572,15 @@ reconciles it against the requirement inventory it was handed — a BRD's `[BR#n
    finding about a different requirement, which they have no way to detect. Both values sit in
    the two records, so this is checkable wherever both are on hand — `product-workflows:bundle-packaging`
    §6 is the first consumer to check it, at the point the findings are copied in front of a customer.
+   **A class-4 finding's standing is derived, not its own, and that is the half a resolving citation
+   hides.** Every other finding stands or falls on a search its own writer ran; this one stands on a
+   conclusion another finding reached, so it goes stale when that finding moves while its own record
+   shows nothing — the ids still match, the citation still resolves, and the correctness test above
+   passes on a pair that now disagree. **Wherever a cited `[CG#n]`'s `verdict` is replaced — by §8's
+   `contradict` handling, or by a re-grounding run marking it `SUPERSEDED` — every class-4 `[DG#n]`
+   citing it is re-derived or superseded alongside it, never left standing.** A class-4 finding
+   outliving its own foundation is the one way this class reads as settled while resting on nothing,
+   and a reader cannot detect it: they follow a citation that resolves.
 
 ## 7. The derivation matrix
 
@@ -564,6 +640,16 @@ verdict is `NOT-PROVABLE` and therefore differs from the finding's by definition
 means only that the verifier's own search settled nothing — which is not the same as the finding
 being wrong, and normalising it would rewrite every inconclusive finding into a contradiction nobody
 reached.
+
+**A failed or absent control is its own route to `contradict`, independent of the verifier's own
+search.** Where the finding asserts an absence, the verifier runs its `control` (§2.2) rather than
+reading it, and returns `control_outcome` alongside the four outcomes above. `failed` — the control
+did not reproduce — and `absent` — the finding asserts an absence and carries no control at all —
+each force `contradict` on their own, **including where the verifier's own search also found
+nothing**: two searches sharing one blind spot is exactly the state the control exists to expose, and
+an `agree` between them would launder it into evidence. `control_outcome` is a return field, never a
+record field, on the same terms as `own_verdict` (§2.1) — the caller acts on it and writes `verdict`
+and `outcome`, never a third column of its own.
 
 A finding without a verifier outcome is not evidence and cannot be recorded as `consumed_by`
 anything. **Findings inherited from another team's report, or from an earlier run of this

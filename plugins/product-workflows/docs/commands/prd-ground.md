@@ -2,8 +2,8 @@
 
 Grounding workflow serving both routes into a PRD, its route detected from the resolved folder and
 never declared. Pins every mounted repository to a verified commit, grounds every claim in the
-resolved folder's own claim list against code (`code-grounder`) and an exported design frame set
-(`design-grounder`), independently re-derives every finding (`grounding-verifier`, Opus), and, on
+resolved folder's own claim list against code (`code-grounder`, Opus) and an exported design frame set
+(`design-grounder`, Opus), independently re-derives every finding (`grounding-verifier`, Opus), and, on
 the BRD route, assigns each finding a `current` / `will-change` horizon against declared
 prerequisite BRDs.
 

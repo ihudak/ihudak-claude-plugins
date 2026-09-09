@@ -615,8 +615,11 @@ tracking* section (§7.3) has every finding and decision record a `consumed_by`,
 lost" is checkable rather than hoped for. Set `consumed_by: PRD` on each product-altitude
 `decided` record in `decisions.md` this PRD actually took content from — and on nothing else: a
 record this run read for context and did not use is still `none`, and marking it consumed would
-report a routing that never happened. This is the **only** write this command makes into
-`decisions.md` (Phase 3), and it is not a `status` change. Everything at product altitude still
+report a routing that never happened. This is the only write this command makes onto a
+record that already exists in `decisions.md`, and it is not a `status` change. **The run makes one
+other write into that file** — Phase 3's new `[AS#n]` for a customer-authority gap — which creates a
+record rather than editing one, which is why the write guarantee above is stated over existing
+records; both are staged in Phase 5's handoff. Everything at product altitude still
 `none` afterwards goes in the final report by id, per §7.3.
 
 **`prd-seed.md` is reported, not stamped, and the difference is a fact about the authorities rather

@@ -947,7 +947,8 @@ both verdicts — in the Final report's verifier tally. A normalisation that hap
 indistinguishable from an agent that never disagreed, which is the state this step exists to make
 visible.
 
-**None of the verifier's own fields reaches the record.** `own_verdict`, `own_evidence`,
+**None of the verifier's own field NAMES reaches the record**, though a `contradict` writes their
+values into the record's own fields. `own_verdict`, `own_evidence`, `own_control`,
 `control_outcome` and the verifier's re-derivation `commit` are return fields
 (`workflows-core:grounding-format` §2.1's closed field set). What Phase 8 writes is the `verdict`
 this step settles, plus `outcome` and any `notes` — never a second verdict beside the first.
@@ -961,24 +962,38 @@ Act on `outcome`:
   in the report as verification-inconclusive.
 - **`contradict`** — **the finding is rewritten, and the rewrite retains the same id.** Replace
   the finding's `verdict` and `evidence` with the verifier's `own_verdict` and `own_evidence`, and
-  keep a one-line note of the pre-rewrite verdict for the audit trail. The id never changes, so
+  keep a one-line note of the pre-rewrite verdict for the audit trail. **Where the rewrite asserts an
+  absence, its `control` is the verifier's `own_control`** — a rewritten finding owes one exactly as
+  an original does, and the run holds no other search to build it from. A `contradict` whose
+  `own_verdict` asserts an absence and whose `own_control` is missing is an incomplete return: report
+  it and leave the finding unrewritten, rather than writing a record this format would refuse. The id never changes, so
   every existing citation into it still resolves.
 
 **Then sweep the class-4 `[DG#n]` findings against the `[CG#n]` set this phase just settled.** A
 class-4 finding's standing is derived from the `[CG#n]` it cites
 (`workflows-core:grounding-format` §6.3), so every `contradict` rewrite above may have moved the
 ground under one without touching its record — the id still resolves and the claim ids still match,
-which is exactly why nothing else here would notice. **The set swept is every class-4 `[DG#n]` on file in
-`<BRD-dir>/grounding/design-grounding.md`, not the set this run happens to hold** — a run under
-`--no-design` produces no `[DG#n]` at all while still rewriting `[CG#n]`, so a sweep over held
-findings would report "none" on precisely the run that created the staleness. Read the file. Where it
-does not exist there is nothing to sweep and the report says that, rather than "none". For every
-class-4 `[DG#n]` whose cited `[CG#n]` this phase rewrote, compare the two: where the rewritten `[CG#n]` now settles the capture
+which is exactly why nothing else here would notice. **The set swept is the union of two, and taking either alone misses a whole class of run.** This
+phase runs before Phase 8 writes anything, so a run whose design pass produced findings **holds**
+them and they are not yet on file, while a run under `--no-design` produces none at all and every
+class-4 `[DG#n]` that could go stale is **only** on file. Sweep both: every class-4 finding this run
+holds, **and** every class-4 finding in `<BRD-dir>/grounding/design-grounding.md`, de-duplicated by
+id where a `--rebaseline` pass has both. Where the file does not exist, the held set is the whole of
+it and the report says so; where neither has a class-4 finding, the report says there was nothing to
+sweep rather than "none", which would read as a sweep that found nothing. For every class-4 `[DG#n]`
+in that union whose cited `[CG#n]` this phase rewrote, compare the two: where the rewritten `[CG#n]` now settles the capture
 question the other way, the citing `[DG#n]` is **re-derived, not adjusted** — re-dispatch
 `grounding-verifier` over it once, and act on the returned outcome as above. Where they still agree,
 record that the pair was re-checked. **A class-4 finding is never left carrying a verifier outcome
 earned against a version of its citation that no longer exists**, and a sweep that finds nothing is
 reported as "none", so a clean run reads as swept rather than as skipped.
+
+**A finding carried over from before this field existed owes one and cannot have it, and that is a
+re-grounding job rather than a `contradict`.** Where a finding's `provenance` is `inherited` and the
+verifier returns `control_outcome: missing`, do **not** rewrite it on that ground: nothing about the
+claim has been falsified, only its record is older than the requirement. Report those findings by id
+as owing a control, and name `/product-workflows:prd-ground <KEY> --rebaseline` as what supplies one.
+An own-run finding returning `missing` is the writer's defect and is normalised as above.
 
 A finding carrying no verifier outcome is not evidence (`workflows-core:grounding-format` §8) and is never
 written to the package with `consumed_by` anything but `none` — this phase is what stands between
@@ -999,7 +1014,7 @@ a file whose readers report findings as missing that are on the page. Each block
 `consumed_by: none`, plus `control` on every finding asserting an absence, `class`/`cites` on a
 `[DG#n]` and `commit` on everything **except** a
 `[DG#n]` of class 1, 2 or 3 — those are settled from the frame set alone and are pinned to no commit,
-per §2's applicability note) plus this run's verifier `outcome` **and any `notes` the verifier returned** — **and nothing else.** §2.1 makes the field set closed: `own_verdict`, `own_evidence`, `control_outcome` and the verifier's re-derivation `commit` are return fields Phase 7 has already acted on, and a block carrying `own_verdict` beside `verdict` states two verdicts at once, leaving every downstream reader free to quote whichever half suits. That is the state `/brd-split` step 7 and `/brd-interview` step 7 now refuse, so writing it here deadlocks the route rather than merely muddying the record. Its contract calls those *"anything the caller should know before recording this outcome"*, so they are read before the outcome is written, not after — a verdict recorded without them is recorded against a caveat the verifier raised and nothing carried.
+per §2's applicability note) plus this run's verifier `outcome` **and any `notes` the verifier returned** — **and nothing else.** §2.1 makes the field set closed: `own_verdict`, `own_evidence`, `own_control`, `control_outcome` and the verifier's re-derivation `commit` are return fields Phase 7 has already acted on — where a `contradict` rewrote a finding, their values are already in that block under the record's own names (`verdict`, `evidence`, `control`) and the return names never appear — and a block carrying `own_verdict` beside `verdict` states two verdicts at once, leaving every downstream reader free to quote whichever half suits. That is the state `/brd-split` step 7 and `/brd-interview` step 7 now refuse, so writing it here deadlocks the route rather than merely muddying the record. Its contract calls those *"anything the caller should know before recording this outcome"*, so they are read before the outcome is written, not after — a verdict recorded without them is recorded against a caveat the verifier raised and nothing carried.
 A `--rebaseline` run appends its new findings after the existing ones and marks any finding it
 superseded with `verdict: SUPERSEDED`, id retained, rather than deleting or renumbering it.
 **Superseding a `[CG#n]` supersedes every class-4 `[DG#n]` citing it, in the same pass.** That
@@ -1011,6 +1026,15 @@ re-derived against the new pin by this run's own Phase 5 design pass, and supers
 any other re-grounded finding, or — where no design pass ran this run — marked `SUPERSEDED` with a
 one-line note naming the `[CG#n]` that took it there, so the next `/prd-ground` re-derives it rather
 than a reader trusting it.
+
+**A finding the Phase 7 class-4 sweep re-derived is written in place, whichever set it came from.**
+Where it was already on file, this phase edits that block — same id, replaced `verdict` and
+`evidence`, the one-line note of what it was — and never appends a second block for it; where the run
+held it, it is written like any other finding of this run. **This applies on a `--no-design` run
+too**, which otherwise writes no `[DG#n]` at all: the sweep is the one thing that can change an
+on-file design finding on such a run, and a run that re-derived one and did not write it would leave
+the record it just falsified sitting on disk. That is the same in-place rule `--no-code` states for
+`[CG#n]` below, met from the other side.
 
 **Under `--no-code` this phase writes `design-grounding.md` and nothing else.**
 `code-grounding.md` is not opened for writing at all — not for findings, not for the documentation
@@ -1276,7 +1300,7 @@ separately, and the verifier
 tally (`agree` / `extend` / `contradict` / `unprovable`) with every `contradict` rewrite named by
 id — **and, separately, every outcome Phase 7 normalised**, each named by finding id with the outcome
 as returned, both verdicts, and which of the two routes forced it (a differing `own_verdict`, or a
-`control_outcome` of `failed`/`absent`), or an explicit "none" where the verifier and the findings agreed
+`control_outcome` of `missing`, or of `failed` on a finding whose verdict rests on the absence), or an explicit "none" where the verifier and the findings agreed
 throughout, so a clean run reads as checked rather than as unchecked; the class-4 sweep's result — every `[DG#n]` re-derived because the `[CG#n]` it cites was rewritten or
 superseded, or an explicit "none"; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Phase 4.5 lead added,
 and the count of documentation divergences recorded (each named by the `[CG#n]` it diverges from —

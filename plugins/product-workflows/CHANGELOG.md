@@ -35,8 +35,9 @@ classification rather than reverting it.
 Both grounders emit `control` (`workflows-core:grounding-format` §2.2) wherever a finding asserts an
 absence, and `code-grounder` gains step 4a and a hard rule for it. `design-grounder` carries it on
 **class 2** — a requirement asks for a field no frame shows — which is an absence over a frame set
-and fails the same way: the field may be there and this reading may not be one that finds it. Class 1
-and class 3 assert what a frame *shows*; class 4's code half is the cited `[CG#n]`'s own search.
+and fails the same way: the field may be there and this reading may not be one that finds it. Classes
+1 and 3 resolve against the `inventory` the caller handed the agent, which is a lookup rather than a
+search and so has nothing to control for; class 4's code half is the cited `[CG#n]`'s own search.
 
 `grounding-verifier` is handed the field and **runs** the control rather than reading it, returning
 `control_outcome`. It settles **owed-ness first**, by §2.2's closed-set rule: a negative over a set

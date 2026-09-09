@@ -301,8 +301,9 @@ an idea-route run has already gated `prd.md` with `require-on-main`, so it only 
 
   **A second, independent route to `contradict` runs off the finding's positive control.** The
   verifier decides first whether the finding owed one at all — three of the four `[DG#n]` classes
-  owe none, because they resolve against the requirement inventory the caller handed in rather than
-  by searching — then runs any control it finds rather than reading it. A control that owed to be
+  owe none: classes 1 and 3 resolve against the requirement inventory the caller handed in, which is
+  a lookup rather than a search, and class 4's code half belongs to the `[CG#n]` it cites — then runs
+  any control it finds rather than reading it. A control that owed to be
   there and is not, or one that fails on a finding whose verdict **rests on** the absence,
   normalises to `contradict` even where the verifier's own search also found nothing: two searches
   sharing one blind spot is the state a control exists to expose. The one exception is a finding

@@ -319,17 +319,17 @@ record was reached against a version of the artifact that is no longer the one o
 says so. A reader meets a `PASS` beside a file the `PASS` never saw.
 
 **Every command that records a review verdict states what that verdict was taken against**, and where
-**any** edit followed it
+**any** edit followed it — a `MAJOR` fix applied inline, an escalation's manual fix notes, a deferred
+finding written into the artifact, a style pass, a resumed verify step — the final report says so
+plainly and names the edits. One line: *"`<verdict>` was reached before <the edits>, which followed
+it; the current text has not been reviewed."*
 
 **Which commands those are is derived, not listed, and a phrase grep is not the derivation.** The set
 was first taken from the commands carrying the literal *"one fix cycle + one re-review"* cap, which
 missed `/vuln` and `/upgrade` — both run one fixer pass and one re-review, both edit afterwards
 through a resumed verify step, and `/upgrade`'s own results table carries a `Review` column. The test
 is behavioural: **a command records a review verdict, and anything it does afterwards can change what
-that verdict was about.** — a `MAJOR` fix applied inline, an escalation's manual fix notes, a deferred
-finding written into the artifact, a style pass — the final report says so plainly and names the
-edits. One line: *"`<verdict>` was reached before <the edits>, which followed it; the current text has
-not been reviewed."*
+that verdict was about.**
 
 **This is deliberately a reporting rule and not another cycle.** Raising the cap trades one unreviewed
 version for a later one and has no fixed point, since each new review can find something the previous

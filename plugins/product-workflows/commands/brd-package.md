@@ -192,8 +192,10 @@ cannot review, and they will not tell you that — they will review it anyway, b
    written by `/product-workflows:create-prd` for a customer-authority gap came from PRD authoring
    and from no round (`product-workflows:decision-register-format` §7), so there is no
    `interview/round-<N>.md` it could ever name. Requiring one would demand a file no command writes
-   and make every slice holding such a record permanently unpackageable. **This is the only reason a
-   record legitimately omits the field**, so a `[VD#n]` without one is still a malformed record. Deriving from `[VD#n]` alone leaves the hole open rather than closing it: a round that
+   and make every slice holding such a record permanently unpackageable. **Two record shapes legitimately omit the
+   field and no others**: that `[AS#n]`, and a `[CD#n]` answering it, which `/product-workflows:brd-reconcile`
+   writes with no round for the same reason (`product-workflows:decision-register-format` §1). A
+   `[VD#n]` without one is still a malformed record, and so is any record from a round that omits it. Deriving from `[VD#n]` alone leaves the hole open rather than closing it: a round that
    produced only assumptions and `[C]` questions names no `[VD#n]`, so a register of nothing but
    `[AS#n]` and `[C]` yields an empty derived set and the gate passes without checking a thing — the
    same vacuity one record kind further out. For each of them, execute `require-on-main`
@@ -246,13 +248,18 @@ cannot review, and they will not tell you that — they will review it anyway, b
    step.** A package with **no** `[C]` question, **no** open `[AS#n]`, and **no** `[VD#n]` in the
    register has nothing for a customer to confirm, correct or attack. Stop rather than sending it:
    `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — every question its rounds asked was settled from verified findings, so there is nothing for a customer to confirm, correct or attack. This is a finished state, not a missing step: the delivery team owes the customer no decision here, and a package built from it would ask for a review of nothing. Re-running /product-workflows:brd-interview <BRD-KEY> is NOT the fix — it opens a new round only when the findings or the decisions have moved, so on an unchanged BRD it reports that nothing is askable and asks nothing. What makes a round askable again is new evidence or a moved position: '/product-workflows:prd-ground <BRD-KEY> --rebaseline' re-derives the findings against current commits, and a decision reopened or superseded in decisions.md has the same effect. Absent either, this BRD is decided and needs no customer review.`
-   **Before printing that, test `interview/` and branch the message.** A BRD holding no `[VD#n]`
-   *and* no `interview/` directory was never interviewed, and telling that operator their questions
-   "were settled from verified findings" congratulates them on work nobody did and names no next
-   step. Where `interview/` is absent or empty, say so and name the command that starts the
-   interview instead:
-   `BRD_PACKAGE_NOT_INTERVIEWED: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n], and no interview/ round record — this BRD has not been interviewed, so there is nothing yet to put in front of a customer. Run '/product-workflows:brd-interview <BRD-KEY>' first.`
-   The finished-state message stays exactly as it is for the case it was written for: an
+   **Test `interview/` FIRST, and independently of what the register holds.** This was once a branch
+   *inside* the stop above — reached only where there was nothing to review — and that placement had a
+   hole the moment a second command gained the power to write an `[AS#n]`:
+   `/product-workflows:create-prd` writes one for a customer-authority gap and its own gates are
+   ledger-based, so a slice **nobody ever interviewed** can hold one open assumption, sail past the
+   nothing-to-review test because it has something to review, and ship a package with no `interview/`
+   at all — no rounds, no `customer-questions.md` for part 7 to draw on, and a customer prompt built
+   from a single assumption. **A BRD with no interview record is not packageable whatever else its
+   register holds**, so where `interview/` is absent or holds no round record, stop here before the
+   test above runs:
+   `BRD_PACKAGE_NOT_INTERVIEWED: <BRD-KEY> has no interview/ round record — this BRD has not been interviewed, so there is nothing yet to put in front of a customer, whatever its register holds. Where it holds an open [AS#n] written by /product-workflows:create-prd, that assumption still needs the interview it never had: a package carries a customer's decisions against a record of what was asked, and there is no such record here. Run '/product-workflows:brd-interview <BRD-KEY>' first.`
+   The finished-state message above then stays exactly as it is for the case it was written for: an
    `interview/` that holds rounds whose every question a verified finding settled.
 
    **Why the message names grounding rather than another interview round.** The register is reached
@@ -279,8 +286,9 @@ cannot review, and they will not tell you that — they will review it anyway, b
    and never the ledger line, for the reason that section gives.
 10. **Read the inputs the rest of the run works from**, all from the gated folder:
     `decisions.md` (every `[VD#n]` and `[AS#n]` with its `status`, `evidence`, `argumentation`,
-    `conditional_on`, `altitude` and `round`); every verified `[CG#n]`/`[DG#n]` with its `verdict`,
-    `evidence`, `horizon` and verifier `outcome`; `grounding/baselines.md`; `brd/brd-inventory.md`'s
+    `conditional_on`, `altitude` and `round` **where it carries one**); every verified
+    `[CG#n]`/`[DG#n]` with its `verdict`, `evidence`, `control` where it carries one, `horizon` and
+    verifier `outcome`; `grounding/baselines.md`; `brd/brd-inventory.md`'s
     `[BR#n]` rows; `coverage-ledger.md`; every `[CDF#n]` in `code-defect-log.md` with its
     `disposition`, `statement`, `intent` and `blocked_on`, **read where the file is present** — it
     is absent on a package whose decisions turn on no code defect, and its absence is never a gate;

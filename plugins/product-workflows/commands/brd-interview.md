@@ -203,9 +203,13 @@ and nothing downstream can tell the difference afterwards.
    c. **No finding block carries a field the record's format does not define.** Parse every
       `[CG#n]`/`[DG#n]` block per `workflows-core:grounding-format` §2.1 and test each key against
       that section's **closed** field set — §2's fields, plus `outcome` and `notes`. Any other key
-      fails. The one that actually occurs is `own_verdict`, a verifier **return** field transcribed
-      into the record, which leaves the block stating two verdicts at once. **Test b. cannot see
-      it**: the block carries an `outcome`, so it passes on presence. This gate matters more here
+      fails. The test is derived from that section, never from a list here, which is what admits a
+      field §2 gains — `control` (§2.2) is one — without this gate being touched. **The keys that
+      actually occur are the verifier's own return fields**, and `own_verdict` above all: transcribed
+      into the record it leaves the block stating two verdicts at once. `control_outcome` is the same
+      mistake with a different consequence — it is one verifier's judgement about whether that
+      finding's control fired, so a block carrying it asserts as a property of the finding something
+      only a re-derivation establishes. **Test b. cannot see** either: the block carries an `outcome`, so it passes on presence. This gate matters more here
       than anywhere else on the route — every `[G]` question is answered from the findings and from
       nothing else, so a finding with two verdicts is a `[VD#n]` frozen against whichever half the
       run happened to read, and `/brd-package` puts that decision in front of the customer.
@@ -236,8 +240,8 @@ and nothing downstream can tell the difference afterwards.
    refuse to interview a BRD that is completely allocated, for work that belongs to a different BRD's
    walk.
 9. **Read the inputs the rest of the run works from**, all from the gated folder: every verified
-   `[CG#n]`/`[DG#n]` with its `verdict`, `evidence`, `horizon` and verifier `outcome`
-   (`workflows-core:grounding-format` §2, §3, §5); `brd/brd-inventory.md`'s `[BR#n]` rows; `coverage-ledger.md`;
+   `[CG#n]`/`[DG#n]` with its `verdict`, `evidence`, `control` where it carries one, `horizon` and
+   verifier `outcome` (`workflows-core:grounding-format` §2, §2.2, §3, §5); `brd/brd-inventory.md`'s `[BR#n]` rows; `coverage-ledger.md`;
    `brd-link.md` (its `parent:` and any `depends-on:`); and, when they already exist, `decisions.md`,
    every `interview/round-<N>.md`, and `code-defect-log.md`. A previous run's register, round
    records and code-defect log are inputs, never scratch: nothing below deletes, renumbers or

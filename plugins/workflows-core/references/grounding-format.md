@@ -101,7 +101,7 @@ So, canonically:
   indentation, and no blank line inside a block. `outcome` (§8) and any verifier `notes` follow the
   §2 fields, in that order, where the run that wrote the block had them.
 - **The field set is closed: §2's fields, `outcome` and `notes`, and nothing else.** A verifier
-  returns more than the record keeps — `own_verdict`, `own_evidence` and its own re-derivation
+  returns more than the record keeps — `own_verdict`, `own_evidence`, `own_control`, `control_outcome` and its own re-derivation
   `commit` are how it reports to the caller, which **acts** on them (§8) rather than transcribing
   them. **`own_verdict` in particular is never a record field**, and writing it is not a harmless
   extra: `verdict` is what every downstream consumer reads, so a block carrying both states two

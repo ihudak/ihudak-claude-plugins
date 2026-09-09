@@ -186,10 +186,14 @@ An input that is not required is still honoured when given; it is never silently
    - **It owes one and carries none** → `missing`, and `contradict`. A required field's absence is
      not something this agent may supply on the writer's behalf.
 
-   **Where your own re-derivation reaches an absence the original did not**, supply a control for it
-   in `own_evidence` on the same terms you would demand of a writer — an outcome that asserts an
-   absence with no control behind it is the defect this agent exists to catch, and it does not stop
-   being one because a verifier wrote it.
+   **Where your own re-derivation reaches an absence the original did not**, run a control for it and
+   return it in `own_control` — on the same terms you would demand of a writer, and in the same
+   `<method, and the case it was pointed at> — <path:line>` or `— no match` shape
+   (`workflows-core:grounding-format` §2.2). An outcome that asserts an absence with no control
+   behind it is the defect this agent exists to catch, and it does not stop being one because a
+   verifier wrote it. It is its own field rather than a line inside `own_evidence` because the caller
+   writes it into the record when it rewrites the finding, and `own_evidence`'s shape requires a
+   `path` a failed control has not got.
 
 4. **Decide the outcome** from the closed set in `workflows-core:grounding-format` §8:
    - **`agree`** — your re-derivation reaches the same verdict.
@@ -224,6 +228,8 @@ own_evidence:
   - path:  <relative to repo_path, or the frame path for a DG#n>
     lines: [<1-based line numbers>]   # omit only when the evidence is a whole-file read
     note:  <what this line or frame actually shows, and how it bears on the claim>
+own_control: <required whenever own_verdict asserts an absence, in §2.2's shape; omitted otherwise.
+             This is the control for YOUR re-derivation, not a judgement on the original's>
 control_outcome: fired | failed | missing | not-owed
   # Decide OWED-NESS FIRST, by §2.2's closed-set rule, and never from whether the field is present:
   #   `not-owed`  — this finding owes no control. Every finding asserting no absence, plus a [DG#n]

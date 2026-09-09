@@ -87,6 +87,23 @@ round. `/brd-interview`'s askable test admits it, so the operator's natural next
 round instead of reporting "nothing askable" while a customer question sits open; it is identifiable
 without a writer field, since `post-<N>` is a value no round of its own produces.
 
+### Added — the BRD inventory's coverage of its source is checked
+
+A section the read **skipped** and a section that genuinely holds no obligation both come out of an
+inventory the same way — as a heading with no row — so the difference cannot be read off the
+artifact. On a live run one went missing and surfaced only because `brd-reader` happened to mention
+it in `notes`.
+
+`brd-reader` now returns **`sections_without_obligation`** — every heading its walk passed that
+yielded no `[BR#n]`, with one line on what it holds instead — as a required field rather than a note.
+`/brd-intake` Phase 3 then checks two relations over the copied source, in both directions: every
+`source_anchor` resolves in it, and every heading is either pointed into by an anchor or carries an
+account. A heading in neither is **not a stop but a question**, because only a person can say whether
+a section binds the delivery team to anything: the run names each with what the source has under it
+and offers a re-read. The outcome is reported either way, including "every heading accounted for",
+since an unreported clean result is indistinguishable from an unrun check. A source with no headings
+at all is said to have no set to work over rather than passed as satisfied.
+
 ### Added — a recorded review verdict names the version it was taken against
 
 `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/prd-proposal` and

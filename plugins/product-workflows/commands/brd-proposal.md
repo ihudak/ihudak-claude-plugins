@@ -511,6 +511,8 @@ that file describes the archived revision and not this one.
    empties the survivor set, do not dispatch a fix cycle with nothing to apply and do not silently
    promote the verdict — the user settles a verdict its own findings no longer support.
 
+**The recorded verdict names the version it was taken against** — where any edit followed it, the final report says so and names the edits, per the `A recorded verdict names the version it was taken against` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`. Where none did, it says that too.
+
 **A finding against a slice's own proposal is not fixed here.** This run edits the umbrella and
 nothing under it; where a survivor's location is a slice document, record it, name the slice, and
 recommend `/product-workflows:prd-proposal <SLICE-KEY>` — editing another phase's deliverable from

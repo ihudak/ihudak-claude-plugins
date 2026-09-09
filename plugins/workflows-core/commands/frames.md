@@ -175,6 +175,12 @@ For each frame set, in directory order:
      exception. That row holds no description to preserve and this command *can* obtain one, so the
      frame joins the describe set. **This is what makes a capped run recoverable**, and it is why the
      placeholder is a marker rather than an answer.
+   - **has a row whose description is `_could not be read: <reason>_`** → **preserved, and not
+     retried.** The describer already looked at this file and could not read it, so a re-run
+     reproduces the identical failure while spending budget a reachable frame would have used, and the
+     set never converges — three oversized exports once rejoined the describe set on every run,
+     forever. Clearing it is the operator's move and the report names it: fix the file, delete the
+     row, and the next run treats the frame as having no row at all.
    - **has no row at all** → the frame joins the describe set (§6.2 step 3).
 
    A row whose image is **not** in the listing is dropped (§6.2 step 5) and reported. Nothing is
@@ -222,7 +228,17 @@ For each frame set, in directory order:
    as the reason, and carry on to the next set — a set this command could not look at is still a set
    whose index must state what it holds. On `OK`, pair `frames[]` with the listing **by basename** and
    take each `description` **verbatim**. An entry with `read: false` gets the placeholder row and its
-   `reason` (`missing`, `not_an_image`, `unreadable`, `not_a_frame`) is reported.
+   `reason` (`missing`, `not_an_image`, `unreadable`, `not_a_frame`) is reported. **Which placeholder
+   that row carries follows §6.2 step 4's test — whether a re-run would do anything different, and
+   nothing else.** `unreadable` and `not_an_image` are facts about the **bytes** — the agent opened the
+   file, or tried to — so the row reads `_could not be read: <reason>_` and is not retried.
+   Everything else takes `_no description on record_` and the next run tries again: `missing` is a
+   disagreement between this run's own listing and what the describer found; the two whole-set
+   statuses are facts about the dispatch; and **`not_a_frame` is a fact about the *entry*, not the
+   file** — `frame-describer` returns it for a name carrying a path separator where a basename was
+   expected, having never opened anything. This command passes basenames, so it should not occur at
+   all; if it does, the bug is in the dispatch and a corrected re-run is exactly what should retry
+   it.
 
    **Never write a description this command produced itself.** `grounding-format.md` §6.1's index rule
    exists to forbid exactly the inference a filename invites, and this orchestrator never sees the
@@ -242,8 +258,10 @@ Hold, per set: the index path **as a repo-relative path** — that is the form `
 takes in Phase 3, and `handoff-to-main` §2.3 matches it against `git status --porcelain` output, which
 is repo-relative; an absolute path there matches nothing and stages nothing, silently. Hold also how
 many rows it now holds, how many this run added, how many it
-preserved, how many carry `_no description on record_` and why (`cap`, `missing`, `not_an_image`,
-`unreadable`, `not_a_frame`, or an agent status), and every row dropped because its image is gone.
+preserved, how many carry each placeholder and why — `_no description on record_` (`cap`, `missing`,
+`not_a_frame`, or an agent status) and `_could not be read: <reason>_` (`unreadable`,
+`not_an_image`), the second group named frame by frame with its remedy since no re-run clears it —
+and every row dropped because its image is gone.
 Hold also **each file in the set that is not a frame at all** (Phase 1 step 3), which carries no row
 and must still be named, and **any `notes` the describer returned** — a frame illegible at the
 resolution supplied, or a set that is plainly several unrelated exports. `frame-describer` documents
@@ -369,16 +387,25 @@ Report: the resolved folder with its `kind` and `key`, and whether §5's legacy 
 **the frame sets found**, or plainly that there were none and that nothing was created — naming no
 directory this run did not actually create. Then, per set: the index path and whether it was
 written, created, or rewritten; how many rows it now holds; how many rows this run **added**, how
-many it **preserved verbatim**, and how many carry `_no description on record_` with the reason for
-each (`cap`, `missing`, `not_an_image`, `unreadable`, `not_a_frame`, or the agent status that
-stopped the set); every row **dropped** because its image is no longer in the directory; a set
+many it **preserved verbatim**, and how many carry each of the two placeholders — `_no description
+on record_` with its reason (`cap`, `missing`, `not_a_frame`, or the agent status that stopped the
+set), which the next run retries; and `_could not be read: <reason>_` (`unreadable`,
+`not_an_image`), which it will not. **Name every frame in that second group individually, with the remedy**, because
+this is the one group no re-run clears on its own: fix the file — an oversized export re-exported
+smaller, a mislabelled one taken out of the set — then delete that row from `index.md`, after which
+the frame has no row and the next run describes it. Reporting it as a count would leave the operator
+knowing something is stuck without knowing which file or what to do; every row **dropped** because
+its image is no longer in the directory; a set
 skipped for holding no image; **each file in the set that is not a frame**, named once so it is
 visibly not indexed rather than invisibly missing (§6.2 step 1); and an index found under a name
 other than `index.md`, with the fact that `index.md` now sits beside it — and **how many of its rows were adopted, how many were not, and why not** (an image the set's listing does not hold, or a file that could not be parsed into rows at all). An operator retiring the older file needs to know what carried across before deleting it. Report, too, any images
 sitting directly in `design/` outside every set (Phase 1 step 2a).
 
 **Report the cap explicitly whenever it bit** — how many frames were described, how many were left,
-and that `/workflows-core:frames <the same address>` describes the next 40 and converges. State the
+and that `/workflows-core:frames <the same address>` describes the next 40 and converges. **Convergence
+here is over the frames a re-run can reach**: a `_could not be read_` row is excluded from that count
+and from the promise, since it is reported separately with its own remedy and no number of re-runs
+clears it. State the
 count even when it did not bite ("all N frames described; the 40-frame cap did not apply"), because
 the absence of a truncation notice is only informative once the run is known to print one.
 

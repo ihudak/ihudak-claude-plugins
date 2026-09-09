@@ -1,6 +1,6 @@
 {
   "name": "docs-workflows",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Three commands for the documentation half of the dev-workflows pipeline: /document runs in direct mode (a one-shot prose edit on any repository, style-checked and nothing more) or in keyed mode, which reads a resolved PRD folder and its PR trail of implementation diffs, synthesises product documentation, and adds an Opus doc review gate; /docs-profile bootstraps or refreshes a documentation repository's machine-readable profile and CLAUDE.md guidance that /document consumes, as a reviewable PR; /release-notes drafts a destination-shaped release-notes entry (breaking change, feature update, or fix) from the same PRD folder, optionally grounded in PR diffs. Seven agents and twelve reference pages carry the docs-repo discovery, PR-diff summarising, doc planning, writing and review these three commands share. Depends on workflows-core and on prose-style for its style-check gate.",
   "author": {
     "name": "Ivan Gudak",

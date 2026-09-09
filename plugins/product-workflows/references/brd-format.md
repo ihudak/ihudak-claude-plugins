@@ -48,6 +48,57 @@ that it did.
 `[BR#n]` numbers are never reused and never renumbered, including across a split: once assigned, an
 id is permanent even if the row it names is later split, superseded, or found defective.
 
+### 2.2 The inventory's coverage of its source is checkable from the inventory alone
+
+**A section the read skipped and a section that genuinely holds no obligation come out of an
+inventory identically — as a section with no row — so the difference cannot be read off the
+artifact.** It is made visible at intake instead, and the whole of it is derivable from `source_anchor`
+and the source document: **nothing new is stored, and no agent returns a new field.** A first design
+had the reader account for every heading it passed; measured against real intakes that is fifty-odd
+accounts of "this section holds context", which buries the one case worth seeing.
+
+Two relations, both over the **top-level section**:
+
+1. **Every `source_anchor` resolves to a section the source actually has.** An anchor naming a
+   section the document does not hold is a row nobody can trace back, in the artifact whose whole
+   job is traceability.
+2. **Every top-level section of the source either holds a row or is accounted for.** A section is
+   held where any anchor names it or names a section beneath it. One with none is not a defect and is
+   not a stop — only a person can say whether a section binds the delivery team to anything — so
+   `/brd-intake` names each with what the source has under it and asks.
+
+**The granularity is the finding, not a detail.** Real BRDs run to fifty or sixty headings under
+fourteen or fifteen top-level sections, and on a careful intake nine of those fifteen legitimately
+hold nothing — the alternatives considered, the personas, the journeys, the decisions log. At section
+granularity the operator answers nine questions instead of fifty, and the two that matter stand out:
+on a real package the sections carrying no row included the **user stories** and the **acceptance
+tests**, which is exactly the pair a reader would expect to have been inventoried and exactly the
+question worth putting to a human.
+
+**Both relations resolve an anchor to a section, and §2's anchor is a heading path *or* a line range,
+so both forms resolve — in this order:**
+
+1. **A leading section reference** — `§` and a section number — resolves directly. This is the form
+   every anchor carried across the corpora this rule was measured on, which is why it is tried first
+   and not why it is the only branch.
+2. **Otherwise, the line the anchor names** resolves it: a line in the document body falls inside
+   exactly one section, so a line-range anchor is section-resolvable against the source without the
+   writer having named a section at all. A line **above the first heading** — frontmatter, a title
+   block — is inside none, and an anchor naming only such a line falls to branch 3 rather than
+   resolving to the first section by proximity.
+3. **Neither** — no section reference, and no line that lands in a section — and the anchor does not
+   resolve. It may be perfectly well formed; what it is, is unresolvable against *this* source, which
+   is what relation 1 reports it as, per row.
+
+**The ordering matters more than it looks.** An earlier draft of this section asserted that a leading
+section reference is *the* form an anchor carries. It is what every measured anchor happened to have,
+and §2 above plus `product-workflows:brd-reader` both sanction the line-range form — so the assertion
+promoted an observation about one corpus into a rule the producers do not follow, and would have
+stopped a correct intake as a read failure on the first anchor written the other way.
+
+**Where no anchor in the whole inventory resolves, that is a read failure and is reported as one** —
+never as a document with no coverage (`workflows-core:grounding-format` §2.1).
+
 ### 2.1 A slice's inventory
 
 A **slice** — a BRD in every respect but its folder name, nested inside its parent's folder as the `PRD-` folder its PRD is authored in (`workflows-core:addressing` §6) —

@@ -1,6 +1,7 @@
 ---
 name: code-grounder
-description: Grounds specific requirement claims (a BRD's [BR#n] rows, or a PRD's [AC#n]/[FR#n]/[US#n] rows) against a single code repository at a pinned commit — one [CG#n] finding per claim, with file:line evidence and a verdict from the closed set. Answers "is this claim true of this commit?", not "what capability exists?" — that is code-scanner. Read-only; one instance per repo, up to 4 concurrent. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Grounds specific requirement claims (a BRD's [BR#n] rows, or a PRD's [AC#n]/[FR#n]/[US#n] rows) against a single code repository at a pinned commit — one [CG#n] finding per claim, with file:line evidence and a verdict from the closed set. Answers "is this claim true of this commit?", not "what capability exists?" — that is code-scanner. Read-only; one instance per repo, up to 4 concurrent. Uses Claude Opus — grounding adjudicates a claim, and the detection tier was measured wrong on every code-citing finding of a live corpus.
+model: opus
 tools: ["Read", "Glob", "Grep", "Bash", "Skill"]
 ---
 
@@ -68,6 +69,20 @@ repository, a commit, or a claim to have something to ground.
    **A cited line must be re-read for what it actually does before it is cited** — the failure this
    agent exists to prevent is inferring a plausible mechanism and citing something adjacent to it.
 
+4a. **Run a positive control before asserting any absence.** Where a claim's search returns nothing
+   and the finding is about to say the mechanism is not there, take the **same search** and point it
+   at a case of the **same kind** that is known to be present in this repository — established from a
+   claim already settled this run, or from a file read and citable, never assumed. Record it in
+   `control` with the `path:line` it matched. A control that matches nothing has established that
+   this method cannot see this class of thing here, which is a fact about the search and not about
+   the repository: the verdict becomes `NOT-PROVABLE` and the failed control is recorded with it,
+   written into the same field as the method and the case followed by `— no match`. **Record it;
+   never omit it for having failed** — an omitted control and a failed one are the same bytes and
+   mean opposite things, and the verifier reads the difference.
+   `workflows-core:grounding-format` §2.2 owns this; the canonical case it is drawn from is a Rails
+   repository where attribution is written through an association and never spells the column name a
+   grep was looking for.
+
 5. **Decide the verdict** from the closed set in `workflows-core:grounding-format` §3. Do not restate the
    definitions here; apply them as written there.
 
@@ -114,6 +129,10 @@ findings:
       - path: <relative to repo_path>
         lines: [<1-based line numbers>]   # omit only when the evidence is a whole-file read
         note: <what this line actually shows, and how it bears on the claim>
+    control: <required wherever this finding asserts an absence — the same search shape, run against a case
+              of the same kind known to be present in this repo, and the `path:line` it matched. Where it
+              matched nothing, the same field says so: the method and the case, then `— no match`. Omit
+              entirely on a finding that asserts no absence. `workflows-core:grounding-format` §2.2>
     commit: <same resolved commit as above — every finding is pinned individually>
     altitude: product | architecture | implementation
     horizon: current | will-change
@@ -153,6 +172,11 @@ notes: |
   evidence; evidence is a line re-read and confirmed to bear on the specific claim under test.
 - NEVER leave `evidence` blank, including for `NOT-PROVABLE` findings or findings that assert an
   absence. State what was searched and why it fell short, per `workflows-core:grounding-format` §2.
+- NEVER assert an absence without a `control` that fired. An empty search result means either the
+  thing is not there or the method could never have found it, and nothing in the result tells you
+  which (`workflows-core:grounding-format` §2.2). Where the control does not fire, the verdict is
+  `NOT-PROVABLE` and the failed control is recorded — never a `REWRITTEN` or an `AMENDED` resting
+  on a search that was never shown to work.
 - NEVER report a `FALSE-FRIEND` as though it were the claim's real support. When a plausibly-named
   decoy is the only thing found, the verdict names it as a decoy, not as confirmation.
 - NEVER invent a claim's verdict without evidence, and never suppress `NOT-PROVABLE` in favor of a

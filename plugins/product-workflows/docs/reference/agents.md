@@ -1,10 +1,10 @@
 # Agents reference
 
-`product-workflows` bundles 13 reusable subagents under `agents/`, dispatched internally by the invoking command via `subagent_type: "product-workflows:<name>"` — none of them is a user entry point. Seven carry a `model: opus` frontmatter pin (shown as **opus** below) and run on Opus every time, regardless of the dispatching command's own model tier for that run; one, `brd-reader`, carries a `model: sonnet` frontmatter pin (shown as **sonnet** below) and runs on Sonnet every time, because its extraction work is mechanical; the remaining five carry no pin (shown as **per routing**) and are assigned a tier by the dispatching command per the task-complexity classification in `workflows-core`'s model-routing classification reference. Three further agents this plugin's commands dispatch — `workflows-core:code-scanner`, `workflows-core:docs-grounder`, and `workflows-core:impl-maintenance` — ship in the companion `workflows-core` plugin and are listed in its own agents reference, not here. Agents are grouped below by role — reviewers and planners, readers and scanners, and writers — and each row's **Used by** column lists only the commands that actually dispatch that agent as a subagent.
+`product-workflows` bundles 13 reusable subagents under `agents/`, dispatched internally by the invoking command via `subagent_type: "product-workflows:<name>"` — none of them is a user entry point. Nine carry a `model: opus` frontmatter pin (shown as **opus** below) and run on Opus every time, regardless of the dispatching command's own model tier for that run; one, `brd-reader`, carries a `model: sonnet` frontmatter pin (shown as **sonnet** below) and runs on Sonnet every time, because its extraction work is mechanical; the remaining three carry no pin (shown as **per routing**) and are assigned a tier by the dispatching command per the task-complexity classification in `workflows-core`'s model-routing classification reference. Three further agents this plugin's commands dispatch — `workflows-core:code-scanner`, `workflows-core:docs-grounder`, and `workflows-core:impl-maintenance` — ship in the companion `workflows-core` plugin and are listed in its own agents reference, not here. Agents are grouped below by role — reviewers and planners, readers and scanners, and writers — and each row's **Used by** column lists only the commands that actually dispatch that agent as a subagent.
 
 ## Reviewers and planners
 
-Opus-gated quality gates, plus the one Sonnet-tier verifier that re-derives evidence rather than judging it.
+Opus-gated quality gates, plus the verifier that re-derives evidence rather than judging it — Opus too, and pinned for the same reason the grounders now are: re-derivation adjudicates.
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
@@ -23,9 +23,9 @@ Read-only discovery and grounding — each returns a structured digest rather th
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
 | `brd-reader` | sonnet | Read, Glob, Grep | Extracts a `[BR#n]` inventory from a customer-supplied BRD — `source_anchor` per row, unconfirmed `defect_candidates`; splits multi-obligation requirements. Never rewrites the source. | `/brd-intake` |
-| `code-grounder` | per routing | Read, Glob, Grep, Bash, Skill | Grounds specific BRD claims against one repository at a pinned commit — one `[CG#n]` finding per claim, verifying `HEAD` matches the pin before grounding anything. | `/prd-ground` |
+| `code-grounder` | opus | Read, Glob, Grep, Bash, Skill | Grounds specific BRD claims against one repository at a pinned commit — one `[CG#n]` finding per claim, verifying `HEAD` matches the pin before grounding anything. | `/prd-ground` |
 | `customer-review-reader` | per routing | Read, Glob, Grep | Reads a returned customer review in two modes — parses a schema-shaped file, or drafts that schema from prose; every free-text inference returns an unconfirmed candidate. | `/brd-reconcile` |
-| `design-grounder` | per routing | Read, Glob, Grep, Skill | Reconciles a BRD against an exported design frame set — one `[DG#n]` per divergence in four classes; refuses without an index file; the code-capture class cites a `[CG#n]` instead of asserting it. | `/prd-ground` |
+| `design-grounder` | opus | Read, Glob, Grep, Skill | Reconciles a BRD against an exported design frame set — one `[DG#n]` per divergence in four classes; refuses without an index file; the code-capture class cites a `[CG#n]` instead of asserting it. | `/prd-ground` |
 | `idea-reader` | per routing | Read, Glob, Grep, Skill | Ingests one idea source into a source digest for `/idea`: links two levels deep in either syntax, linked images read and described as context, every other linked file enumerated but never opened. | `/idea` |
 
 ## Writers

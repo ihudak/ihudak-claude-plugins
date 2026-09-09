@@ -703,7 +703,7 @@ about a genuinely new record, and each carries every field `decision-register-fo
 | `conditional_on` | written only where the customer's answer is itself correct only while a named prerequisite decision holds, and named as `<BRD-KEY>/<decision-id>` (§5) — for instance `conditional_on: EPIC-014/[CD#2]` |
 | `status` | `decided`, or `open` where the reason is absent and the *Confirm every candidate* phase took that resolution |
 | `consumed_by` | `none` |
-| `round` | the round that raised the question this answers |
+| `round` | the round that raised the question this answers — **omitted where that is an `[AS#n]` carrying no round**, which is what `/product-workflows:create-prd` writes for a customer-authority gap surfaced at PRD authoring (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §7). Such an answer came from no round, and inventing one here would put a value into the field `/product-workflows:brd-package` derives its round set from |
 
 **What "frozen" means, exactly.** A `[CD#n]` written `decided` leaves that status only through
 §4's two admitted causes — a new grounding finding, or a later incoming customer decision that

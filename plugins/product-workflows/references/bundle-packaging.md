@@ -592,3 +592,116 @@ Stated because a green check here is otherwise read as a clean bundle:
   around. Widening the check to reach it is a scope decision rather than a wording one — the note
   names files, and the bundle's own filename set exists by the time the check runs — so it is named
   here rather than assumed covered.
+
+## 7. Set resolution
+
+**`set-resolution`** is a check over the assembled bundle that §6 does not make, and the distinction
+is the point: §6 asks whether a reference *resolves*, this one asks whether a **restatement of a set**
+is faithful to the set it restates. The manifest, the delivery note and several prompt parts each
+restate, in their own words, a set held somewhere else — the documents in the bundle, the
+repositories and their pins, the open assumptions. A restatement is a copy, and a copy drifts after
+the first correction.
+
+**A count comparison is not the check.** Two sets of the same size with different members pass a
+count test and fail the reader — a substitution, which is worse than a miscount because it reads as
+correct. Every relation below compares **membership**.
+
+**Every relation here was measured against assembled bundles before it was written, and each one is
+narrower than the obvious version because the obvious version fired on correct packages.** That is
+recorded per relation rather than as a general caution, because the specific narrowings are the
+content: a reader who widens one back is not being bolder, they are reintroducing a false positive
+somebody already paid for.
+
+### 7.1 The relations
+
+**Relation 1 — a part that enumerates a set of identified records names exactly that set.** Its scope
+is the prompt parts whose source is a set of records carrying identifiers, which render them as an
+enumeration, **and whose source is itself in the bundle**: the open assumptions, the conditional
+positions and conditional defect entries, and the out-of-scope defect entries. **For each part in that
+scope**, the identifiers it names are exactly those its own stated filter selects from its source
+file, both directions — an identifier in the part and not in the filtered source is an invention, one
+in the filtered source and not in the part is an omission, and the omission is the dangerous half
+because a customer cannot see what they were not shown. **The paragraphs below narrow that scope
+and never extend it**, which is worth saying because they once sat between this sentence and the
+scope it governs, and a reader taking them in order bound the rule to the set they exclude.
+
+**Resolve the filter against the records' own fields, never against prose that uses the same
+words** — this family's "resolve against a known set, never parse one out of free text" rule, met at
+the one place the free text is a part a run rendered itself. A part states its filter in a sentence,
+and a sentence is a description of a property the records carry, not the selection itself: read the
+property off each record and select on it. The failure this forecloses was measured on an assembled
+package, where a part named four decisions as conditional on another engagement's review and a
+text-derived reading returned six — the two extra carried an explicit *no dependency* marker in the
+very field the filter is about, so the part was right and the looser resolution would have reported
+its two most carefully-handled records as omissions, which relation 1 calls the dangerous half.
+Where a part's filter names a property no record field carries, that part is **outside** this
+relation for the same reason the prose parts are: there is no set to select.
+
+**Expand a range before comparing.** A part legitimately writes `[AS#1]`–`[AS#4]` for four records
+rather than naming each, and on measured packages that was the *only* rendering in most of them — so
+a comparison over literal tokens sees two ids where the part names four and reports two omissions
+against a correct package. A range between two ids of one prefix denotes every id between them
+inclusive.
+
+**The accepted-risk findings are deliberately outside this relation, though the part that surfaces
+them is not.** Their source is the adversarial self-review, which §1.1 excludes from the bundle by
+rule — so inside an assembled package there is nothing to compare that part against, and a relation
+that reached for it would resolve to an absent file on every correct bundle. What reaches the customer
+about those findings is prose the packaging run wrote, and prose is review's.
+
+**It does not reach every part, and the exclusions are measured rather than cautious.** The review
+scope part renders its source as **prose in the customer's own vocabulary** — the scope areas a
+customer recognises, not the requirement ids behind them — so a relation demanding identifiers there
+fires on a correct package. The decisions part is mostly the interview's own questions, which carry
+**no minted identifier at all**, so only the assumption and escalated-finding fractions of it are
+testable and the part as a whole is not. A part built from prose has no set to compare.
+
+**Relation 2 — the manifest and the bundle name the same review documents.** Every markdown review
+document in the assembled bundle carries a manifest line, and every manifest line names a document in
+the bundle. Three qualifications, each of which a real package would otherwise fail:
+
+- **Match the basename, tolerating the extension either way.** A manifest legitimately writes
+  `` `<Document Name>` `` or `` `<Document Name>.md` ``; both conventions occur, sometimes across two
+  builds of the same package, and a matcher fixed on one reports every document in the other as
+  missing.
+- **The manifest does not list itself**, and neither does a file that is not a review document at
+  all — a marker written into a superseded bundle to say it was never sent is the case that occurs.
+  The test is *review document*, not *markdown file*.
+- **Images are out of scope.** The manifest names frames in prose where it names them, and does not
+  always name them; requiring it to would fire on a correct package. The design findings cite frames
+  by filename and §6's relation 3 already reaches those.
+
+**Relation 3 — the delivery note's repositories and pins are the bundle's own baselines'.** The note
+restates which repositories, at which commits; the bundle's baselines document is where those were
+recorded. Same repositories, and **each commit the note names is a prefix of a baseline commit, with every
+baseline it prefixes being the same commit** — the note abbreviates, as a note written for a person
+does, so an equality test finds nothing and reports every correct note as carrying no pin at all.
+**"Exactly one" is the wrong cardinality and fires on correct content**: a baselines document records
+one entry per repository *per run*, so a package pinned across two dated runs at unmoved commits
+holds the same SHA twice and a prefix legitimately matches both. What makes an abbreviation
+ambiguous is matching two *different* commits, which is the case to report. This is the one relation that
+reaches the note, which is deliberately not a bundle document (§4) and which §6 therefore never sees:
+a pin restated wrongly there has the reviewer verify every code claim against a snapshot nobody
+ground.
+
+**A relation whose source side comes up empty while the restatement is not fails rather than
+passes.** `workflows-core:grounding-format` §2.1 states the general form — a relation fails when
+**either** side comes up empty — and this is a deliberate narrowing of it rather than a citation of
+it, itemised here because a narrowed rule is a deletion
+(`workflows-core:instruction-file-maintenance`). What §2.1 governs is a resolution over records,
+where an empty side means a read failed. Here one side is a **restatement**, and a part that
+legitimately has nothing says so: both sides empty is the ordinary pass, and reading it as a failure
+would refuse every package with no conditional position or no out-of-scope defect. What stays
+failing is the asymmetric case — a restatement carrying members over a source that yielded none —
+because that is a read failure wearing the shape of a discrepancy.
+
+### 7.2 What §7 cannot see
+
+- **A part whose source is prose**, which relation 1's own scope already concedes: the review scope,
+  and the question half of the decisions part. Those are review's.
+- **A faithful restatement of a wrong source.** Where the ledger, the register or the findings are
+  themselves wrong, every relation here goes green. This check is about the copy; the original is
+  what verification and the interview settle.
+- **Prose beside a correct enumeration.** A part may name every right identifier and describe them
+  wrongly in the sentence above; membership is blind to that, and the adversarial self-review reads
+  for it.

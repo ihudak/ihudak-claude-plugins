@@ -475,11 +475,20 @@ when the first two are forgotten:**
    repos, so it can mint no new finding — and it receives no customer review, which reaches the
    register only through `/product-workflows:brd-reconcile`. A grill answer is neither of the two, whatever
    it says.
-3. **The only field of a decision record this command may write is `consumed_by`** (Phase 5).
-   `statement`, `options_considered`, `chosen`, `argumentation`, `evidence`, `altitude`,
-   `conditional_on`, `status` and `round` are never written here, on any record, in any status. So a
-   grill answer that contradicted a `decided` record could not become that record's new `chosen`
-   even if the first two failed: there is no write that would record it.
+3. **On a record that already exists, the only field this command may write is `consumed_by`**
+   (Phase 5). `statement`, `options_considered`, `chosen`, `argumentation`, `evidence`, `altitude`,
+   `conditional_on`, `status` and `round` are never written onto an existing record here, in any
+   status. So a grill answer that contradicted a `decided` record could not become that record's new
+   `chosen` even if the first two failed: there is no write that would record it.
+
+   **This guarantee was once stated over every record rather than every existing one, and the
+   narrowing is itemised here rather than made silently** (`workflows-core:instruction-file-maintenance`).
+   What it protects is a settled decision against a grill answer, and that protection is untouched:
+   nothing below edits a record anyone has decided. What it now permits is Phase 3 **creating** one
+   new record of one kind — an `[AS#n]`, never a `[VD#n]` and never a `[CD#n]` — for a
+   customer-authority gap, with all twelve of its own fields. A newly minted assumption overwrites
+   nothing and settles nothing; it records that this PRD had to assume something, which is what an
+   `[AS#n]` is for.
 
 **What happens when the grill surfaces a genuine contradiction with a settled decision** — which is
 useful information, not something to suppress. Do not decide it and do not soften the decision into
@@ -492,6 +501,48 @@ third one invented here: a `[VD#n]` needs a **new grounding finding** first, whi
 then re-decides against; a `[CD#n]` needs the **customer**, through
 `/product-workflows:brd-package <BRD-KEY>` and then `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>`.
 Naming the route is what keeps the contradiction actionable without this command taking the decision.
+
+**A gap the grill cannot close is triaged by who could settle it, and a customer-authority one gets
+a route rather than a paragraph.** PRD authoring surfaces questions nothing before it could have —
+a scope boundary the requirement text never drew, a rule the acceptance criteria need and nobody
+stated. Apply `${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` §2's test to each one that
+survives the grill: what kind of thing would settle it?
+
+- **A repository at a pinned commit** → it is a grounding question, not a PRD question. Name it in
+  the report with `/product-workflows:prd-ground <BRD-KEY> --rebaseline` as the route, and record it
+  under `## Assumptions & open questions` in the meantime.
+- **A trade-off the delivery team owns** → record it under `## Assumptions & open questions` and name
+  `/product-workflows:brd-interview <BRD-KEY>`, which is where a `[VD#n]` is taken. This command
+  never takes one.
+- **An authority only the customer holds** → **write it as an `[AS#n]` in `decisions.md`**, per
+  `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §7. All twelve fields **except
+  `round`, which is omitted entirely** — this record came from no interview round, and any value
+  there is read by `/product-workflows:brd-package` as a round it must find a record for. `evidence`
+  carries the account of why no evidence exists; a bare sentence is a claim, not an assumption
+  record. Record it under `## Assumptions & open questions` **as well**, by its `[AS#n]` id, so the
+  PRD's reader and the customer meet the same record rather than two descriptions of it.
+
+**Two mechanics the three bullets above share.** First, **`## Assumptions & open questions` does not
+exist on a kept `--lean`** (Phase 1), so on that profile every one of them records into the final
+report instead, exactly as the contradiction paragraph above already does — the `[AS#n]` is still
+written to `decisions.md`, which is a different file and unaffected by the profile. Second, **ids are
+continued, never restarted, and a gap already recorded is not recorded twice**: read `decisions.md`
+first, take the next `[AS#n]` after the highest on file, and where an open `[AS#n]` already states
+this same gap, leave it alone and name it in the report. The sanctioned *Overwrite as a fresh PRD*
+re-run (Phase 0) puts this command over the same folder more than once, and without both halves one
+gap accumulates several open assumptions — each of which `/brd-package` then puts in front of the
+customer twice.
+
+**The third case is the one this step exists for, and the reason is that `prd.md` reaches nobody who
+could answer.** A customer-answerable question written only into the PRD is met by every later reader
+as a flat statement in a document full of grounded ones — read as settled, built on, argued from —
+while the one party who could have corrected it in a sentence never sees the file. `[AS#n]` is the
+route back that already exists: `/brd-package` surfaces **every** open assumption, twice, and
+`/brd-reconcile` records the answer as a `[CD#n]` that supersedes it. **Writing the `[AS#n]` is not
+asking the customer anything** — no `[CD#n]` is written here and none may be (D14), and this command
+still never puts a question to a customer directly. It records what the PRD had to assume, and names
+the two runs that carry it: `/product-workflows:brd-package <BRD-KEY>`, then
+`/product-workflows:brd-reconcile <BRD-KEY> @<review-file>`.
 
 **`workflows-core:prd-format`'s no-implementation-detail rule is not relaxed** (D4). A gap the grill can only
 fill with implementation detail is not a gap this PRD closes: the detail belongs to `ard-seed.md` or
@@ -551,6 +602,8 @@ Act on the verdict (mirrors `/specify`):
 - **`BLOCK`** — fix the BLOCKER findings inline (the orchestrator/grill edits the PRD — no delegated writer) and re-review **once**. If still `BLOCK`, escalate per the `Review verdict BLOCK` rule in `workflows-core:escalation-rules` for each unresolved BLOCKER (`choices: ["Provide manual fix notes", "Defer to a follow-up issue", "Override and accept", "Cancel"]`).
 - **`PASS` / `PASS WITH RECOMMENDATIONS`** — proceed. Cap: one fix cycle + one re-review.
 
+**The recorded verdict names the version it was taken against** — where any edit followed it, the final report says so and names the edits, per the `A recorded verdict names the version it was taken against` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`. Where none did, it says that too.
+
 ---
 
 ## Phase 5 — Handoff
@@ -562,8 +615,11 @@ tracking* section (§7.3) has every finding and decision record a `consumed_by`,
 lost" is checkable rather than hoped for. Set `consumed_by: PRD` on each product-altitude
 `decided` record in `decisions.md` this PRD actually took content from — and on nothing else: a
 record this run read for context and did not use is still `none`, and marking it consumed would
-report a routing that never happened. This is the **only** write this command makes into
-`decisions.md` (Phase 3), and it is not a `status` change. Everything at product altitude still
+report a routing that never happened. This is the only write this command makes onto a
+record that already exists in `decisions.md`, and it is not a `status` change. **The run makes one
+other write into that file** — Phase 3's new `[AS#n]` for a customer-authority gap — which creates a
+record rather than editing one, which is why the write guarantee above is stated over existing
+records; both are staged in Phase 5's handoff. Everything at product altitude still
 `none` afterwards goes in the final report by id, per §7.3.
 
 **`prd-seed.md` is reported, not stamped, and the difference is a fact about the authorities rather
@@ -582,7 +638,7 @@ Then **offer** (commit-when-asked — never automatic), invoking `Skill(skill: "
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: prd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = the PRD file — **plus, on the BRD route, `decisions.md`**, because the `consumed_by` write above lands there and an uncommitted consumption record is one no later run can read; `prd-seed.md` is not staged, because this run does not write to it — `title: <KEY> Add Product Requirements Document — <summary>`, and `body_facts` = the resolved profile (`--lean`/`--hybrid`/`--full`), the adapt-in clusters pulled, the user-story and acceptance-criteria counts, any `[NEEDS CLARIFICATION]` markers carried in, the `prd-reviewer` verdict, and — on the BRD route — the `<BRD-KEY>` this PRD was seeded from and how many items were marked `consumed_by: PRD`; emit its §4.1 outcome line in the Final report.
+On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: prd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = the PRD file — **plus, on the BRD route, `decisions.md`**, because both of this run's register writes land there — the `consumed_by` stamps, and any `[AS#n]` Phase 3 recorded for a customer-authority gap — and an uncommitted register is one no later run can read, which for the `[AS#n]` means the question never reaches `/brd-package` and so never reaches the customer; `prd-seed.md` is not staged, because this run does not write to it — `title: <KEY> Add Product Requirements Document — <summary>`, and `body_facts` = the resolved profile (`--lean`/`--hybrid`/`--full`), the adapt-in clusters pulled, the user-story and acceptance-criteria counts, any `[NEEDS CLARIFICATION]` markers carried in, the `prd-reviewer` verdict, and — on the BRD route — the `<BRD-KEY>` this PRD was seeded from and how many items were marked `consumed_by: PRD`; emit its §4.1 outcome line in the Final report.
 
 ---
 
@@ -669,7 +725,11 @@ resolves a slice and a slice always has a `parent:` (naming `depends_on` if omit
 (Phase 0 step 7) are `covered-here`, read from `coverage-ledger.md` — **not** as a `ledger:` line, which this command
 neither parses nor prints (Phase 0 step 7); every `[VD#n]`/`[CD#n]`/`[AS#n]` carried in as a gap
 rather than an input, by id and status; every contradiction Phase 3 recorded rather than decided,
-with the reopening route named for each; every product-altitude item still `consumed_by: none`, by
+with the reopening route named for each; **every `[AS#n]` this run wrote for a customer-authority
+gap**, by id and statement, each followed by the two runs that carry it to the customer
+(`/product-workflows:brd-package <BRD-KEY>`, then `/product-workflows:brd-reconcile <BRD-KEY>
+@<review-file>`) — or an explicit "none", so a run that surfaced no such gap reads as triaged rather
+than as having skipped the triage; every other surviving gap with the route its authority test named; every product-altitude item still `consumed_by: none`, by
 id, per the design's *Consumption tracking* section (§7.3) — **the set here is `decisions.md`'s records and nothing else**, because Phase 2 reads exactly `prd-seed.md` and `decisions.md` and no `grounding/` file, so no `[CG#n]`/`[DG#n]` is in it and neither finding exclusion the architecture and implementation altitudes apply has a subject at this one: not the baseline findings, and not the findings a re-cut leaves behind on a slice whose own `coverage-ledger.md` now shows their `[BR#n]` as `covered-by` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.1, §3.2) — say that, so an empty list reads as an empty set rather than as an unrun check; a decision this slice took about a row it has since given up is **not** excluded either, because it records this slice's own refusal to build it, which the re-cut leaves standing (§3.2), so it is reported like any other; and any sub-product-altitude content the
 grill surfaced and left for `/product-workflows:create-ard` or `/product-workflows:specify` instead of the
 PRD (D4) — naming the command, never a seed file, since the register those runs will read that

@@ -857,6 +857,7 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS pass `Command run: /implement` in the Phase 4 Agent 4 session handoff
 - ALWAYS pass `Change type: code` in the Phase 4 change summary block (scopes the four maintenance agents' suggestions to code-change territory — docs variants use `docs`)
 - AFTER one review-fixer pass + one re-review, if verdict is still BLOCK: stop and surface to user — do NOT loop
+- ALWAYS state, with the recorded review verdict, which version it was taken against — where any edit followed it (a review-fixer pass, a manual fix, a Phase 3.5 regression fix), the Phase 5 report says so and names the edits, per the `A recorded verdict names the version it was taken against` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`; where none did, it says that too
 - AFTER two Phase 3.5 fix-loop attempts, if regressions remain: stop and surface to user — do NOT loop
 - ALWAYS classify each `@path` input by inspection (Phase 0) — never by matching the path string
 - WHEN `fan_out` is true (multi-repo or any directory input): floor classification at SIGNIFICANT (overridable at plan approval), run Phase 1.7, and feed its synthesized summary to the planner instead of the single Explore subagent

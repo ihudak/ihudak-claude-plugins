@@ -255,6 +255,20 @@ attack.
   `BRD_PACKAGE_CITATION_MISMATCH`; a corpus file holding record-shaped content that yields no ids
   stops with `BRD_PACKAGE_CORPUS_UNREADABLE` — a corpus holding no record-shaped content at all is
   legitimately empty and passes.
+- **Phase 8 — the set-resolution check.** Run last, and the three passes hunt different failures: a
+  token the reviewer cannot resolve, a token they resolve to the wrong thing, and a **set restated
+  wrongly** — every identifier resolving, every filename real, and the set they compose not being the
+  one its source holds. Three relations, all comparing membership rather than counts, because two
+  sets of the same size with different members read as correct: a part that enumerates identified
+  records names exactly what its filter selects; the manifest and the bundle name the same review
+  documents; and the delivery note's repositories and pins are the bundle's baselines'. **Each is
+  narrower than its obvious form, and every narrowing was measured against assembled packages** — the
+  review-scope part renders prose rather than identifiers; a part writes `[AS#1]`–`[AS#4]` as a range
+  rather than naming each; a manifest writes filenames with or without the extension and names images
+  only sometimes; and a delivery note abbreviates its commits, against a baselines document that
+  records one entry per repository *per run* and so may hold the same commit twice. The obvious form
+  of each relation fires on a correct bundle. A mismatch stops with
+  `BRD_PACKAGE_SET_MISMATCH`; an empty source side with `BRD_PACKAGE_SET_UNREADABLE`.
 
 ## What it does not do
 
@@ -301,7 +315,7 @@ the ledger line.
 - [Model routing](../reference/model-routing.md) — the classification rules this command applies.
 - [`bundle-packaging.md`](../../references/bundle-packaging.md) — the authority for plugin-free
   construction, the de-Obsidianising pass, the three degradation tiers, the delivery note's ceiling,
-  the citation-resolution check, and where the bundle lands.
+  the citation-resolution and set-resolution checks, and where the bundle lands.
 - [`customer-review-schema.md`](../../references/customer-review-schema.md) — the twelve sections the
   returned review carries, and the file whose body this command inlines from section 2 onward.
 - [`decision-register-format.md`](../../references/decision-register-format.md) — the `[VD#n]` /

@@ -46,6 +46,7 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 | `claim` | the requirement premise under test — a `[BR#n]` on the BRD route, an `[AC#n]`/`[FR#n]`/`[US#n]` on the idea route — quoted or closely paraphrased |
 | `verdict` | exactly one of the six values in §3 |
 | `evidence` | a `file:line` list, or — when the verdict is `NOT-PROVABLE` or the finding asserts an absence — an explicit statement of why no evidence exists rather than an empty field |
+| `control` | *(required wherever the finding asserts an absence — the second half of `evidence`'s own disjunction, not the whole of it: a `NOT-PROVABLE` finding that asserts no absence owes `evidence` and no control; omitted otherwise)* the **positive control** on the search that reached that absence: the same method, run against a case of the same kind known to be present in this same source, and what it returned (§2.2) |
 | `commit` | the pinned commit SHA the finding was checked against (`baseline-integrity`, §4); **absent on a `[DG#n]` of class 1, 2 or 3**, which is settled from the frame set and the requirement text alone (§6) and is pinned to no commit. A class-4 `[DG#n]` carries the cited `[CG#n]`'s own |
 | `altitude` | one of `product \| architecture \| implementation` |
 | `horizon` | one of `current \| will-change` (§5), naming the prerequisite decision when `will-change` |
@@ -58,7 +59,8 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 what the four classes mean and why the fourth requires a citation; this table fixes only the field
 names, where they apply, and when `cites` is required.
 
-**`commit` is the third field whose applicability is not universal, and saying so is load-bearing.**
+**`commit`'s applicability is not universal — nor is `class`'s, `cites`'s, `prerequisite`'s or
+`control`'s — and saying so is load-bearing.**
 §8's verification is fail-closed on exactly this: `product-workflows:grounding-verifier`'s Inputs table puts
 a `[DG#n]` in the design-only row **only** where its `class` positively reads 1, 2 or 3, and demands
 `repo_path` and `commit` everywhere else. A design-only finding that carried a `commit` anyway would
@@ -68,7 +70,9 @@ applicability is a field an emitter fills to satisfy the table.
 
 **`evidence` is never blank.** A finding that asserts a mechanism is absent still owes the reader
 what was searched and where it was expected — "no route under `api/` handles this verb; searched
-`api/**/*.py` at the pinned commit" is evidence; a bare empty field is not.
+`api/**/*.py` at the pinned commit" is evidence; a bare empty field is not. **That is what was
+searched; `control` (§2.2) is whether the search could have found it**, and an absence claim owes
+both — the first without the second is the reason this field set gained a row.
 
 **`consumed_by` starts at `none` and is written later**, by whichever downstream authoring command
 actually cites the finding — this file fixes only that the field exists and what its values mean,
@@ -97,7 +101,7 @@ So, canonically:
   indentation, and no blank line inside a block. `outcome` (§8) and any verifier `notes` follow the
   §2 fields, in that order, where the run that wrote the block had them.
 - **The field set is closed: §2's fields, `outcome` and `notes`, and nothing else.** A verifier
-  returns more than the record keeps — `own_verdict`, `own_evidence` and its own re-derivation
+  returns more than the record keeps — `own_verdict`, `own_evidence`, `own_control`, `control_outcome` and its own re-derivation
   `commit` are how it reports to the caller, which **acts** on them (§8) rather than transcribing
   them. **`own_verdict` in particular is never a record field**, and writing it is not a harmless
   extra: `verdict` is what every downstream consumer reads, so a block carrying both states two
@@ -108,8 +112,9 @@ So, canonically:
   the bytes: a writer free to add a field produces an artifact whose readers disagree about which
   value is the finding's.
 - **A field that does not apply is omitted, never written empty** — `class` and `cites` on a
-  `[CG#n]`, `cites` on a `[DG#n]` of class 1, 2 or 3, `commit` on a `[DG#n]` of class 1, 2 or 3, and
-  `prerequisite` on any finding whose `horizon` is `current`. An empty value asserts that the field
+  `[CG#n]`, `cites` on a `[DG#n]` of class 1, 2 or 3, `commit` on a `[DG#n]` of class 1, 2 or 3,
+  `prerequisite` on any finding whose `horizon` is `current`, and `control` on a finding that
+  asserts no absence. An empty value asserts that the field
   applies and its value is unknown, which is a different claim from the field not applying. §2's
   `cites` row said "empty otherwise" until this section was written; the two rules met head-on for
   forty-five lines, and §2 was the one corrected.
@@ -143,6 +148,132 @@ matching a fixed column or a fixed run of leading spaces. That is this repo's "r
 known set, never parse one out of free text" rule met at the one place the free text is an artifact
 this family wrote itself. A count that disagrees with the file is reported as a parse failure, never
 as an absence: a scan that cannot read a block has learned nothing about whether the finding exists.
+
+### 2.2 `control` — the positive control on an absence
+
+**An absence claim rests on a search returning nothing, and a search returns nothing for two
+different reasons.** Either the thing is not there, or the method could never have found it. Those
+two are indistinguishable from the result, and only one of them is a finding. `control` is the field
+that separates them, and it is a field rather than an instruction because the difference has already
+been explained in prose and reproduced anyway: a run explicitly warned about this failure filed an
+empty `grep` as evidence of absence in the same pass.
+
+The canonical case is a Rails repository and the claim *"the record stores who approved it"*.
+`grep 'associate_id'` returns nothing, and attribution **is** written — through the association,
+which never spells the column name anywhere the grep could see. The empty result was true; the
+inference from it was false.
+
+**What `control` holds.** The same method, pointed at a case of the same kind that is known to be
+present in this same source, and what it returned:
+
+- **Same method.** The grep that reached the absence, not a different or easier one.
+- **Same kind.** A case of the shape the claim is about — another attributed field, another
+  scheduled job, another frame carrying the class of element that is missing. A control that
+  succeeds on an unrelated shape proves only that the tool runs.
+- **Known present.** Established independently of this search — from a finding already settled in
+  this run, or from a file the agent has read and can cite. Not assumed.
+- **Its result**, and it is written whichever way the control went. A control that fired names the
+  `file:line` it matched. A control that matched nothing is a **failed control** and says so in the
+  same field — `… — no match` after the method and the case it was pointed at — because a failed
+  control is a finding about the search that the record has to carry. It does not become evidence by
+  being reported, and it is never omitted for having failed: an omitted control and a failed one are
+  the same bytes, and they mean opposite things.
+
+**A failed control forecloses the absence, not the finding.** Where the control does not fire, the
+search has established nothing about the source and the verdict may not rest on the absence: the
+finding is `NOT-PROVABLE`, its `evidence` says what was searched, and its `control` records the
+control that failed. That is a true and useful record — it says this method cannot see this class of
+thing here — where a `REWRITTEN` on the same search would be a fabrication with a citation.
+
+**Such a finding is correct, and nothing downstream may punish it for being honest.** A control that
+failed once fails again — it is the same deterministic search against the same pinned source — so a
+verifier re-running it reaches `failed` too. **That is agreement, not contradiction**, and §8 says so
+explicitly: a `failed` control overturns a finding only where the finding's verdict **rests on** the
+absence, which `NOT-PROVABLE` by definition does not. Without that scoping the rule would contradict
+every finding that followed this paragraph, on every run, forever — the writer told to record a
+failed control, and the verifier told to reject the record.
+
+**Where it applies is the claim, not the verdict.** Any finding asserting that something is not
+there carries it, whichever of §3's six verdicts it lands on. **This is deliberately the second half
+of `evidence`'s disjunction rather than the whole of it.** `evidence` is owed on a `NOT-PROVABLE`
+finding *or* on one asserting an absence; `control` is owed on the second only. A `NOT-PROVABLE`
+finding that asserts nothing about the source — the mechanism could live in a system this repository
+does not contain, the claim turns on behaviour no code path here determines — has made no absence
+claim to control, and demanding one would ask a writer to demonstrate a search could find something
+they never said was missing. A
+`FALSE-FRIEND` carries one whenever the half being asserted is that the plausible name does *not* do
+the thing.
+
+**A negative over a closed set handed to the agent owes no control, and that is the line — not
+"positive versus negative".** A control exists to test whether a **search** could have found the
+thing; where there is no search, because the set is enumerated in hand and the question is a lookup,
+there is nothing to control for. This is the same rule this family applies everywhere: resolve an
+identifier against a known set, never parse one out of free text. It settles the four `[DG#n]`
+classes without appeal to what each one "asserts", which is the reading that gets them wrong:
+
+- **Class 1** — a frame shows a field no requirement asks for. A negative, and over the `inventory`
+  the caller **handed the agent**. Lookup, not search: **no control**.
+- **Class 2** — a requirement asks for a field no frame shows. A negative over the **frame set**,
+  which is read rather than enumerated — the field may be there in a detail view this export does not
+  carry, named differently, or shown in a legend. That is a search, and it is the one design class
+  that **owes a control**: another field of the same kind, found in these frames by the same reading.
+- **Class 3** — a frame contradicts the requirement text. Both sides in hand: **no control**.
+- **Class 4** — a frame implies a capture the code cannot perform. It owes none **of its own**,
+  because the code half is not its own search: it cites a `[CG#n]`, and the control belongs to the
+  finding that did the searching (§6.3).
+
+**Three of the four owe no control, and a reader who works it out from "does it assert an absence?"
+gets class 1 wrong** — that class is a negative over the requirement set, and on that test would owe
+one. Stating the closed-set rule here, once, is what keeps the writer and the verifier from reaching
+different answers about the same finding.
+
+**The verifier checks the control, and checks it the way it checks everything else — by
+re-deriving.** `product-workflows:grounding-verifier` does not confirm that the control's cited line
+exists; it runs the control itself, and it is handed `control` in its inputs to do so. **A control
+that does not reproduce falsifies the absence, not the finding**: it forces `contradict` only where
+the finding's verdict rests on that absence, and a finding already reading `NOT-PROVABLE` with its
+failed control recorded is agreed with. §8 owns the outcome vocabulary and the exact rule.
+
+```
+- id: [CG#31]
+  claim: [BR#12] — an approval records which associate approved it
+  verdict: NOT-PROVABLE
+  evidence:
+    - no column, association or writer under app/models matches approver attribution
+    - searched `git grep -n 'approv' <commit> -- app/models app/services`
+  control: same grep shape for `submitted` attribution, which BR#9 settled as written — app/models/request.rb:41
+  commit: 4f1c9ab
+  altitude: implementation
+  horizon: current
+  consumed_by: none
+  outcome: agree
+```
+
+And the same claim where the control **failed** — the shape carrying the subtle rule, so it is
+written out rather than described. The verdict is `NOT-PROVABLE` because the search was never shown
+capable, the failed control is recorded in the same field rather than omitted, and a verifier that
+re-runs it and fails too **agrees** (§8):
+
+```
+- id: [CG#32]
+  claim: [BR#12] — an approval records which associate approved it
+  verdict: NOT-PROVABLE
+  evidence:
+    - no column, association or writer under app/models matches approver attribution
+    - searched `git grep -n 'approv' <commit> -- app/models app/services`
+  control: same grep shape for `submitted` attribution, which BR#9 settled as written — no match
+  commit: 4f1c9ab
+  altitude: implementation
+  horizon: current
+  consumed_by: none
+  outcome: agree
+```
+
+The two records differ in one field and say opposite things about the **search**: the first, that
+this method finds attribution where attribution is written, so the absence it reports is real; the
+second, that it finds nothing even where attribution is known to be there, so it has established
+nothing about the repository at all. An omitted `control` is indistinguishable from either.
+
 
 ## 3. Verdicts
 
@@ -440,18 +571,51 @@ Every writer runs exactly these steps, **after** whatever files it was going to 
    is that reason read forwards**: a row whose description is step 4's literal `_no description on
    record_` holds no description to preserve, so a writer that *can* obtain one replaces that row
    instead of preserving it. A writer that cannot leaves it exactly as it stands. Without this
-   exception the placeholder would be permanent, and step 4 would convert every cap and every failed
-   read into a frame nothing could ever describe.
+   exception the placeholder would be permanent, and step 4 would convert every cap into a frame
+   nothing could ever describe.
+
+   **The exception is keyed on that one literal, and step 4's other placeholder is deliberately
+   outside it.** A row reading `_could not be read: <reason>_` records a describer that *looked* and
+   failed, not a run that never looked, so it is preserved like any real description and does **not**
+   rejoin the describe set. Retrying it costs one read per run to reproduce the identical failure,
+   forever, while consuming budget a frame that could succeed would have used — and it never
+   converges, which is the property the cap's own recoverability argument rests on. A live run met
+   exactly this: three oversized exports returned to the describe set on every future run, with
+   nothing about the set having changed.
 3. **Append one row per frame this run accounts for and the index does not, in run order**, after the
    rows already present, built from that frame's description and its `Linked from` — **transcribed
    verbatim, never invented**. What a run "accounts for" is the one thing that differs per writer, and
    the table below is where each writer's answer is recorded.
 4. **A frame in the listing the run accounts for in no way still gets a row** — `—` in `Linked from`,
-   and the literal `_no description on record_` in the last column. Something the run cannot speak for
-   put that frame in the set, or a cap or a failed read stopped the run from looking at it. Omitting it
-   would rebuild the exact defect this contract exists to prevent, and inventing a description for it is
-   the inference §6.1 forbids. **Report it**, with the run's reason where it has one, so the operator
-   knows a re-run has work left.
+   and one of **two** literals in the last column. Something the run cannot speak for put that frame in
+   the set, or a cap or a failed read stopped the run from looking at it. Omitting it would rebuild the
+   exact defect this contract exists to prevent, and inventing a description for it is the inference
+   §6.1 forbids. **Report it**, with the run's reason where it has one, so the operator knows a re-run
+   has work left.
+
+   Which literal is decided by **whether a re-run would do anything different**, and nothing else:
+
+   - **`_no description on record_`** — the run **never looked at this file**: the cap bit before it,
+     the frame is accounted for nowhere, the describing agent failed for the whole set rather than for
+     this file, or it rejected the *entry* without ever opening the file. A re-run reaches it with a
+     fresh budget, so step 2's exception puts it back in the describe set and the set converges.
+   - **`_could not be read: <reason>_`** — the describing agent **opened this file, or tried to, and
+     could not read it**. Nothing about a re-run changes that, so step 2 preserves the row and the
+     frame is not retried. The reason goes inside the literal because it is the operator's whole
+     remedy: an oversized export is re-exported smaller, a mislabelled file is taken out of the set.
+
+   **The test is whether the file was reached, not whether a reason came back**, and the two are easy
+   to conflate. A describer that rejects a malformed *entry* — a path where a basename was expected —
+   has said nothing about the file, which it never opened; that is the caller's input shape, and a
+   corrected re-run is exactly what should retry it. Only a reason that is a fact **about the bytes**
+   puts a row in the second group.
+
+   **A preserved failure is not a permanent one, and the report says how to clear it.** Once the file
+   itself is fixed, the way back into the describe set is to delete that row — the frame then has no
+   row at all, and step 3 appends and describes it. That is one line for an operator who has just
+   replaced the file, and it is the only thing keeping "do not retry" from meaning "never again": a
+   writer cannot tell a replaced file from the original, because nothing in the set records what it
+   read last time.
 5. **A row whose image is no longer in the listing is dropped**, and reported. The index states what the
    set holds, and a row naming a frame that is not there is a promise `design-grounder` would resolve to
    nothing. Nothing is restored and nothing is re-copied: this step reconciles an index with a directory,
@@ -466,7 +630,9 @@ Every writer runs exactly these steps, **after** whatever files it was going to 
 once, so a run stopped by a cap, an unreadable frame, or an image nothing could describe still leaves a
 **valid and complete** index — every frame in the listing carries a row — rather than a half-written
 one. What such a run leaves behind is step 4's placeholder and a report saying so; step 2's exception is
-what lets the next run finish the job.
+what lets the next run finish the job for the frames a re-run can actually reach, and step 4's second
+literal is what stops the ones it cannot from making every future run report unfinished work it can
+never finish.
 
 **What each writer accounts for.** The steps above are identical for every writer; only this differs:
 
@@ -505,6 +671,15 @@ reconciles it against the requirement inventory it was handed — a BRD's `[BR#n
    finding about a different requirement, which they have no way to detect. Both values sit in
    the two records, so this is checkable wherever both are on hand — `product-workflows:bundle-packaging`
    §6 is the first consumer to check it, at the point the findings are copied in front of a customer.
+   **A class-4 finding's standing is derived, not its own, and that is the half a resolving citation
+   hides.** Every other finding stands or falls on a search its own writer ran; this one stands on a
+   conclusion another finding reached, so it goes stale when that finding moves while its own record
+   shows nothing — the ids still match, the citation still resolves, and the correctness test above
+   passes on a pair that now disagree. **Wherever a cited `[CG#n]`'s `verdict` is replaced — by §8's
+   `contradict` handling, or by a re-grounding run marking it `SUPERSEDED` — every class-4 `[DG#n]`
+   citing it is re-derived or superseded alongside it, never left standing.** A class-4 finding
+   outliving its own foundation is the one way this class reads as settled while resting on nothing,
+   and a reader cannot detect it: they follow a citation that resolves.
 
 ## 7. The derivation matrix
 
@@ -559,11 +734,41 @@ outcome, `agree` included. Where that verdict differs from the finding's while t
 `agree` or `extend`, the two halves of the return contradict each other — this table defines `agree`
 as reaching *the same verdict* and `extend` as the claim *holding* — and the caller **normalises the
 outcome to `contradict`** and acts on that branch, which is the one that believes the re-derivation.
-The normalisation is recorded, never silent. **`unprovable` is never normalised**: its re-derived
-verdict is `NOT-PROVABLE` and therefore differs from the finding's by definition, while the outcome
-means only that the verifier's own search settled nothing — which is not the same as the finding
-being wrong, and normalising it would rewrite every inconclusive finding into a contradiction nobody
-reached.
+The normalisation is recorded, never silent. **`unprovable` is never normalised on this ground**:
+its re-derived verdict is `NOT-PROVABLE` and therefore differs from the finding's by definition,
+while the outcome means only that the verifier's own search settled nothing — which is not the same
+as the finding being wrong, and normalising it would rewrite every inconclusive finding into a
+contradiction nobody reached. The control route below is the one exception, and it is not this rule
+bending: there the verifier has established that the **original** search was incapable, which is a
+fact about that search rather than about the verifier's own, and an inconclusive re-derivation does
+not rescue an absence that rested on nothing.
+
+**The control is a second, independent route to `contradict`, and it opens only after owed-ness is
+settled.** The verifier decides first whether this finding owes a control at all — §2.2's closed-set
+rule, applied by the verifier itself and never inferred from the field being absent — then, where it
+does, **runs** it rather than reading it, returning `control_outcome` alongside the four outcomes
+above:
+
+| `control_outcome` | Meaning | Effect |
+|---|---|---|
+| `not-owed` | The finding owes no control: it asserts no absence, or it is a `[DG#n]` of class 1, 3 or 4 | None. An ordinary clean result |
+| `fired` | It owes one, carries one, and the control reproduced | None |
+| `failed` | It owes one, carries one, and the control did not reproduce | `contradict` — **unless** the verdict is `NOT-PROVABLE` |
+| `missing` | It owes one and carries none | `contradict` |
+
+**`failed` on a `NOT-PROVABLE` finding is agreement, not contradiction**, and the exception is
+load-bearing rather than lenient: §2.2 *instructs* a writer whose control failed to record
+`NOT-PROVABLE` with that failed control attached. The control is deterministic against a pinned
+source, so the verifier re-running it necessarily gets `failed` too — it is reproducing the finding's
+own result. Without this row the rule would overturn, on every run and forever, every finding that
+followed §2.2 correctly.
+
+Everywhere else a `failed` or `missing` control forces `contradict` **including where the verifier's
+own search also found nothing**: two searches sharing one blind spot is exactly the state the control
+exists to expose, and an `agree` between them would launder it into evidence.
+
+`control_outcome` is a return field, never a record field, on the same terms as `own_verdict`
+(§2.1) — the caller acts on it and writes `verdict` and `outcome`, never a third column of its own.
 
 A finding without a verifier outcome is not evidence and cannot be recorded as `consumed_by`
 anything. **Findings inherited from another team's report, or from an earlier run of this

@@ -203,9 +203,13 @@ and nothing downstream can tell the difference afterwards.
    c. **No finding block carries a field the record's format does not define.** Parse every
       `[CG#n]`/`[DG#n]` block per `workflows-core:grounding-format` §2.1 and test each key against
       that section's **closed** field set — §2's fields, plus `outcome` and `notes`. Any other key
-      fails. The one that actually occurs is `own_verdict`, a verifier **return** field transcribed
-      into the record, which leaves the block stating two verdicts at once. **Test b. cannot see
-      it**: the block carries an `outcome`, so it passes on presence. This gate matters more here
+      fails. The test is derived from that section, never from a list here, which is what admits a
+      field §2 gains — `control` (§2.2) is one — without this gate being touched. **The keys that
+      actually occur are the verifier's own return fields**, and `own_verdict` above all: transcribed
+      into the record it leaves the block stating two verdicts at once. `control_outcome` is the same
+      mistake with a different consequence — it is one verifier's judgement about whether that
+      finding's control fired, so a block carrying it asserts as a property of the finding something
+      only a re-derivation establishes. **Test b. cannot see** either: the block carries an `outcome`, so it passes on presence. This gate matters more here
       than anywhere else on the route — every `[G]` question is answered from the findings and from
       nothing else, so a finding with two verdicts is a `[VD#n]` frozen against whichever half the
       run happened to read, and `/brd-package` puts that decision in front of the customer.
@@ -236,8 +240,8 @@ and nothing downstream can tell the difference afterwards.
    refuse to interview a BRD that is completely allocated, for work that belongs to a different BRD's
    walk.
 9. **Read the inputs the rest of the run works from**, all from the gated folder: every verified
-   `[CG#n]`/`[DG#n]` with its `verdict`, `evidence`, `horizon` and verifier `outcome`
-   (`workflows-core:grounding-format` §2, §3, §5); `brd/brd-inventory.md`'s `[BR#n]` rows; `coverage-ledger.md`;
+   `[CG#n]`/`[DG#n]` with its `verdict`, `evidence`, `control` where it carries one, `horizon` and
+   verifier `outcome` (`workflows-core:grounding-format` §2, §2.2, §3, §5); `brd/brd-inventory.md`'s `[BR#n]` rows; `coverage-ledger.md`;
    `brd-link.md` (its `parent:` and any `depends-on:`); and, when they already exist, `decisions.md`,
    every `interview/round-<N>.md`, and `code-defect-log.md`. A previous run's register, round
    records and code-defect log are inputs, never scratch: nothing below deletes, renumbers or
@@ -327,7 +331,47 @@ every one has one.
   do not restart the round, and do not re-ask a question that already carries a terminal
   disposition. Re-asking a `[C]` is the case §5 singles out, and the register is the reason: two customer answers to one
   question is a contradiction one `[CD#n]` record has no way to hold.
-- **Every round is closed, or none exists yet** → a new round is proposed **only if findings or
+- **No round record exists at all** → **generate round 1's questions first, then decide.** The change
+  test below does not apply here: it reads "since the last round closed", and no round has closed, so
+  it has no referent. Run *Round 1 is generated from the grounding* (below) and branch on what it
+  produced:
+  - **At least one question** → open round 1 and work it, exactly as ever.
+  - **No question at all** — no finding whose verdict leaves the premise open, no `will-change`
+    horizon, no `[DG#n]` divergence, no `deferred-to`/`rejected` row with an unstated consequence,
+    and nothing the package must assert without evidence. **The test is the generation's own output,
+    never a gloss on the verdicts**: `SUPERSEDED` raises no question and is neither `CONFIRMED` nor a
+    reason to ask one, so a rule phrased over verdicts and a rule phrased over questions would
+    disagree on a re-grounded corpus. Zero questions is the branch key. →
+    **First run the in-scope scoping the generation depends on**, and where it empties the set take
+    `BRD_INTERVIEW_ALL_DELEGATED` and stop: a BRD that kept none of its requirements has nothing of
+    its own to decide, that stop forbids a round record outright, and it is reached *instead of* this
+    branch rather than after it. Otherwise → **write `interview/round-1.md` recording the walk and
+    what it found nothing of, and close the round in the same write** — it holds no question, so
+    there is none to leave hanging, and a round left open would trap every later run on the resume
+    rule and make the change test unreachable forever. Then carry on through the rest of the run — the register phase (which writes
+    nothing: no `[VD#n]`, no `[AS#n]`, no `[C]`), the handoff, and the next-step offer. **This is a
+    completed run, not a stop**: it produced a deliverable, so it stages and hands off like any
+    other, and the offer it ends on is whichever the two `/brd-package` gates select. With an open
+    `[AS#n]` on file the packaging step is offered; with an empty register the run reports the BRD
+    decided. Neither is `not-interviewed`, because this run has just made that false.
+
+  **That record is not the empty round record the all-delegated stop forbids, and the difference is
+  the whole of why one is written here and not there.** That rule refuses a record that *"would sit
+  on file forever recording that nothing was asked, which reads indistinguishably from a round nobody
+  finished"* — and it is right, about an **empty** file. This record is not empty: it names each of
+  the six question sources and states what the walk found under it, so a reader meets an account of a
+  completed walk rather than a silence they have to interpret. The two also never compete, and the branch above is
+  what makes that true rather than an assertion resting on it: the scoping check runs **first**, so
+  an all-delegated BRD takes its own stop and never reaches the write.
+
+  **Why the record is written rather than the run simply reporting and exiting.** The operator cannot
+  know whether this BRD has anything to ask until this command has run, so the run is the discovery
+  step and its result is worth keeping. It is also what `/product-workflows:brd-package` reads: that
+  command refuses a BRD with no round record, and it must not re-derive the six sources above to
+  decide whether the refusal is fair — a second copy of this rule in another command is how the two
+  drift apart, and the first question source added to one and not the other ships a package over a
+  question nobody walked. It tests for the record; this branch is what makes an honest one exist.
+- **Every round is closed** → a new round is proposed **only if findings or
   decisions have changed since the last round closed**. Concretely: a `[CG#n]`/`[DG#n]` added or
   superseded since that round's record was written, a verifier outcome changed, or a decision in
   `decisions.md` moved to `reopened` or `superseded`. Nothing changed → there is nothing a new round
@@ -353,8 +397,12 @@ every one has one.
   contiguity §5 depends on:
   `BRD_INTERVIEW_NO_SUCH_ROUND: <BRD-KEY> has no round N — rounds on file: <list, or "none">. Omit --round to continue at the first round still holding a question without a terminal disposition.`
   The one exception: `N` is exactly `<highest + 1>` (or `1` when none exists), which is a request to
-  open the next round, and is granted on the same changed-findings-or-decisions test as the no-flag
-  path.
+  open the next round, and takes **whichever branch the no-flag path would take for that same
+  request** — the change test where rounds are on file, and the generate-then-branch rule where none
+  is, including its nothing-askable outcome. The two branches of *Resolve the round* differ, and a
+  flag must not reach a different answer than the bare command would. Naming a round is never a way
+  to accidentally do something else, and that cuts both ways: it must also never be a way to
+  accidentally do *less*.
 
 Carry the resolved round number for the whole run. Every decision, assumption and question this run
 records is stamped with it.
@@ -692,7 +740,15 @@ short — and `argumentation` saying **why the package proceeds on the assumptio
 to establish it**. A bare sentence with no account of its own groundlessness is a claim, not an
 assumption record.
 
-**`<BRD-dir>/interview/round-<N>.md`** — the round's own record, append-only: every question in the
+**`<BRD-dir>/interview/round-<N>.md`** — the round's own record, append-only. **A round that raised
+no question at all records the walk instead of the questions**: each of the six sources *Round 1 is
+generated from the grounding* names, and what this BRD held under each — **written from what the
+walk found, never from a rule over verdicts**: no finding whose verdict left its premise open, none
+carrying a `will-change` horizon, no design divergence, no ledger row with an unstated consequence,
+nothing asserted without evidence. Naming the verdicts instead would put a false sentence in the
+record on any corpus holding a `SUPERSEDED` finding, which raises no question and is not
+`CONFIRMED` either. That is a complete record of a completed walk, which is exactly what the all-delegated
+stop's prohibition on an *empty* record is protecting against. Otherwise: every question in the
 order it was written, its tag, every re-tag with the finding that caused it, every split with the
 parts it became, and each question's state in the vocabulary the *Resolve the round* phase fixes —
 either a **terminal disposition** (*answered from findings*, *decided* naming the `[VD#n]`,
@@ -758,8 +814,11 @@ re-opened; the question counts by tag; the `[G]` answers and the re-tags with th
 and new disposition; the `[C]` count held; and every will-change resolution
 taken. Emit its §4.1 outcome line in the final report.
 
-The no-new-round path in *Resolve the round* reaches this phase with nothing staged, so it reports
-the `nothing to commit` line rather than opening a pull request.
+The no-new-round path in *Resolve the round* — every round closed and nothing changed — reaches this
+phase with nothing staged, so it reports the `nothing to commit` line rather than opening a pull
+request. **The nothing-askable first run is not that path and does stage**: it wrote
+`interview/round-1.md`, which is a deliverable like any other round record and is handed off with
+the rest.
 
 ---
 
@@ -788,9 +847,18 @@ Neither test is restated here, deliberately: `/brd-package` is the command that 
 run, so a second copy of either precondition sitting in this phase would drift, and the run that
 reads the drifted copy is this one. Both gates pass → `package_offerable: yes`. Step 7 fails →
 `package_offerable: rounds-unsettled`, and every question that gate named is named beside the list
-with its round and its holding state. Step 7 passes and step 8 fails → `package_offerable: nothing-to-review`,
-which is not a defect in this run: every question was settled from verified findings and the
-delivery team owes the customer no decision.
+with its round and its holding state. **Before either gate is consulted, test whether this BRD has an
+`interview/` round record at all; where it has none → `package_offerable: not-interviewed`.** That
+command refuses this state with `BRD_PACKAGE_NOT_INTERVIEWED` whatever the register holds, so it is
+settled here first rather than inside one of the gates' outcomes — the same lift that stop itself
+took, and for the same reason. **Keying it on the two gates gets it wrong in both directions**: a
+never-interviewed BRD holding an `[AS#n]` that `/product-workflows:create-prd` wrote *passes* step 8
+and would be offered a packaging step that stops, while one holding nothing *fails* step 8 and would
+be congratulated on work nobody did. Neither of the other three values fits it — `rounds-unsettled`
+names questions this run never raised — which is why it is a value of its own. Otherwise, step 7
+passes and step 8 fails → `package_offerable: nothing-to-review`, which is not a defect in this run:
+every question was settled from verified findings and the delivery team owes the customer no
+decision.
 
 **`package_offerable: yes`:**
 
@@ -805,6 +873,33 @@ refused:**
 choices: ["Stop here — this round's decisions are recorded", "Work another round now — /product-workflows:brd-interview <BRD-KEY> (the questions named above are still in a holding state the packaging step refuses)", "Re-ground a question no finding bears on yet — /product-workflows:prd-ground <BRD-KEY>", "Interview another BRD or slice"]
 ```
 
+**`package_offerable: not-interviewed` — say plainly that this BRD has never been interviewed, and
+offer the round that starts it.** The register may hold an open `[AS#n]`, which is what makes this
+state distinct from having nothing at all: that assumption still needs the interview it never had,
+because a package carries a customer's decisions against a record of what was asked and there is no
+such record here. Do not offer the packaging step; it refuses this state by name.
+
+```
+choices: ["Interview this BRD now — /product-workflows:brd-interview <BRD-KEY> (Recommended)", "Stop here — I'll come back to it", "Interview another BRD or slice"]
+```
+
+The `(Recommended)` marker is carried here where the other three lists omit it, and the difference is
+real rather than an inconsistency: those lists turn on what this run left behind and only the
+operator knows which is right, while this one names the single missing step every path out of this
+state goes through.
+
+**That option does not loop, and the reason is the clause immediately below.** *Resolve the round*
+proposes a new round "only if findings or decisions have changed **since the last round closed**" —
+a test with no referent where no round has ever closed, which is exactly this state. It does not
+apply here: **where the BRD holds no round record at all, that branch generates round 1's questions
+and acts on what they come to** — opening the round where there is one to ask, and otherwise
+recording the walk — which is what its own "(round 1 when none exists)" means. Both of those exits leave a round record behind, which is what
+makes this state unreachable a second time; the third — the all-delegated stop that branch takes
+first — leaves none, and needs none, because it stops the run rather than reaching the packaging
+question at all. The change
+test governs the second round onward, where there is a previous round to have had something in front
+of it.
+
 **`package_offerable: nothing-to-review` — say plainly that this BRD is decided, and do not offer
 either the packaging step or another round of this command.** Both would stop or report a no-op: the
 packaging step on its step-8 gate, and this command because it opens a new round only where the
@@ -815,10 +910,15 @@ grounding pass, so that is what the list carries:
 choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-derive the findings against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what makes a new round askable)", "Interview another BRD or slice"]
 ```
 
-**No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
+**Three of the four lists carry no `(Recommended)` marker, and that omission is deliberate**, per the
 `When no option is safe to recommend` guidance in
-`Skill(skill: "workflows-core:reference", args: "escalation-rules")`: which one is right depends entirely on what
-this round left behind. What the gate above decides is only **whether `/brd-package` appears at
+`Skill(skill: "workflows-core:reference", args: "escalation-rules")`: on `yes`, `rounds-unsettled`
+and `nothing-to-review`, which one is right depends entirely on what
+this round left behind. **`not-interviewed` is the exception and is well-formed rather than an
+inconsistency**: that list is shown only in that state, and in it the interview is the single step
+every path out goes through — which is precisely the first bullet of that reference's
+`The (Recommended) marker is unconditional` section, where the condition gates the prompt and the
+marker is therefore a plain one. What the gate above decides is only **whether `/brd-package` appears at
 all**; it never promotes an option to recommended. A BRD both cited gates pass is ready to package;
 one either gate refuses is not — which is why it is not shown the option rather than shown it with a
 caveat. The `nothing-to-review` list carries no marker for the same reason and one of its own:
@@ -828,8 +928,9 @@ imply this BRD is unfinished when it is not.
 `<merge-clause>` in that list is the placeholder `workflows-core:next-phase-offer`
 resolves from this run's own `Phase handoff:` outcome line; it is never written as an unconditional
 "once the pull request above is merged", because the no-new-round path reaches the handoff with
-nothing to commit and opens no pull request. **The other two lists name
-`/product-workflows:prd-ground <BRD-KEY>` with no clause at all, and that asymmetry is deliberate:** that
+nothing to commit and opens no pull request. **The two lists that name
+`/product-workflows:prd-ground <BRD-KEY>` — `rounds-unsettled` and `nothing-to-review` — carry no
+clause at all, and that asymmetry is deliberate:** that
 command gates on `coverage-ledger.md` (`commands/prd-ground.md` Phase 0 step 6), which this run never
 writes, so no handoff of this run's can hold it up and there is no wait to state.
 

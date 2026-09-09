@@ -18,7 +18,8 @@ a question's answer lands in, and the rounds a decision is stamped with, belong 
 belongs to `workflows-core:addressing` §1.
 
 **Consumed by `commands/brd-interview.md`**, which writes `[VD#n]` and `[AS#n]` records against this
-shape and enforces §6; by `agents/brd-package-reviewer.md`, which reads them; and by
+shape and enforces §6; by `commands/create-prd.md`, which writes an `[AS#n]` — and only an `[AS#n]` —
+for a customer-authority gap that only PRD authoring could surface (§7); by `agents/brd-package-reviewer.md`, which reads them; and by
 `commands/brd-package.md`, which surfaces every open `[AS#n]` in the customer prompt (§7) and finds
 every position resting on a prerequisite by its `conditional_on` field (§5); and by
 `commands/brd-reconcile.md`, which writes the `[CD#n]` records — the only command that does —
@@ -58,7 +59,7 @@ round: 2
 | `conditional_on` | omitted unless the decision depends on a prerequisite — §5 |
 | `status` | one of the five in §3 |
 | `consumed_by` | the same field, values, and starting-at-`none` rule as `workflows-core:grounding-format` §2, applied to a decision instead of a finding |
-| `round` | the interview round that produced the decision, per `references/interview-tagging.md` §5 |
+| `round` | the interview round that produced the decision, per `references/interview-tagging.md` §5. **Omitted where the decision came from no round** — a `[CD#n]` answering an `[AS#n]` that itself carries none (§7) is the case that occurs, and inventing a value there would put it into the set `/brd-package` derives the rounds from. That is the only route to a round-less `[VD#n]`/`[CD#n]`: one taken in a round always carries it |
 
 **Which prefix a decision gets is fixed by the tag of the question it answers, not by who typed it.**
 A question tagged `[V]` produces a `[VD#n]`; a question tagged `[C]` produces a `[CD#n]`
@@ -225,7 +226,7 @@ detail an author may settle for themselves. All twelve are accounted for here.
 | `defects` | **As-is**, and omitted when absent: an assumption can turn on a known code defect exactly as a position can, and the customer who reads the assumption needs the same access to what would have to be repaired |
 | `status` | **Narrowed vocabulary**, from §3's five: an `[AS#n]` reaches `open`, `superseded` and `withdrawn` only. `decided` cannot apply — an assumption is never settled by being chosen; when the customer confirms it, the confirmation is a `[CD#n]` and the assumption is `superseded` by it (below). `reopened` follows `decided`, so it is unreachable too |
 | `consumed_by` | **As-is**, with the same starting-at-`none` rule |
-| `round` | **As-is**: the interview round the assumption was recorded in |
+| `round` | **As-is where there is one, and omitted where there is not.** An assumption recorded in an interview round carries that round. One recorded outside any round — `/create-prd` writing a customer-authority gap at PRD authoring (below) — **omits the field entirely**, per `workflows-core:grounding-format` §2.1's rule that a field which does not apply is omitted rather than written empty. It is not given the last closed round's number, which would claim it was in front of whoever answered that round, and not given an invented value, which `/brd-package` would read as a round and demand a round record for |
 
 **`evidence` is the field that carries the why-no-evidence explanation.** This is the same
 discipline `workflows-core:grounding-format` §2 applies to a finding asserting an absence — an
@@ -275,6 +276,28 @@ findings around it, so it is read as settled, built on, and argued from. The cus
 party who could have said "no, it does not work like that" in a single sentence — and they are the
 one party who was never shown it. Surfacing every open assumption is what converts the cheapest
 possible correction into one the customer can actually make.
+
+**`/brd-interview` is not the only writer, and the second one is why this record exists at all.**
+An assumption is recorded wherever the delivery team first has to assert something without evidence,
+and that is not always during an interview: `/create-prd` authoring a slice's PRD reaches questions
+**only PRD authoring surfaces** — a scope boundary the requirement text never drew, a rule the
+acceptance criteria need and nobody stated — and some of them are settled by an authority only the
+customer holds (`interview-tagging.md` §2). Written into the PRD's `## Assumptions & open questions`
+alone, such a question reaches nobody: the customer never receives `prd.md`. Written as an `[AS#n]`,
+it reaches them automatically, because `/brd-package` surfaces every open one. **That is the whole
+route back, and it needs no new machinery** — which is the answer to the objection that a PRD-stage
+question has missed the interview: the assumption record was always the mechanism for a thing
+asserted without evidence, and when it was written matters less than that the customer sees it.
+
+**Such a record carries no `round` at all, and the omission is the whole of the mechanism.** An
+assumption recorded at PRD authoring belongs to no interview round. Giving it the last closed round's
+number would claim it was in front of whoever answered that round; giving it any *invented* value is
+worse, because **`round` is read, not just displayed** — `/brd-package` derives the set of rounds a
+BRD has from the distinct `round` values across every record in it — `[VD#n]`, `[AS#n]` and `[CD#n]` alike — and then requires
+an `interview/round-<N>.md` for each. A record carrying a value no round record answers to makes the
+BRD permanently unpackageable, which is the precise opposite of why this record exists. Omitting the
+field leaves that derivation reading exactly the rounds that happened, and `[AS#n]` records with no
+round contribute nothing to it — which is correct, because they came from no round.
 
 An `[AS#n]` that the customer confirms does not silently become a fact: their confirmation is a
 customer decision, entering the register as a `[CD#n]` under §1's confirmation rule (D14), with the

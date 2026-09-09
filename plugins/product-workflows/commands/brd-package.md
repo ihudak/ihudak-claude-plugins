@@ -184,10 +184,19 @@ cannot review, and they will not tell you that — they will review it anyway, b
    deadlock.** Read every `interview/round-<N>.md`.
 
    **First, derive which rounds must exist, then gate each one.** The set is not "whatever is on
-   disk" — that is the thing being checked. `decisions.md` is already on main (step 6) and **every record in it carries the `round` it was
-   recorded in — `[VD#n]` *and* `[AS#n]` alike** (`product-workflows:decision-register-format` §1
-   and §7) — so the rounds this BRD *has* are the distinct `round` values across **both** record
-   kinds. Deriving from `[VD#n]` alone leaves the hole open rather than closing it: a round that
+   disk" — that is the thing being checked. `decisions.md` is already on main (step 6), and **every record in it that was
+   recorded in a round carries that round** — `[VD#n]`, `[AS#n]` and `[CD#n]` alike
+   (`product-workflows:decision-register-format` §1 and §7) — so the rounds this BRD *has* are the
+   distinct `round` values across every record kind in it, taken from the records that carry the
+   field. **A record carrying no
+   `round` contributes nothing to the set, and that is correct rather than a hole**: an `[AS#n]`
+   written by `/product-workflows:create-prd` for a customer-authority gap came from PRD authoring
+   and from no round (`product-workflows:decision-register-format` §7), so there is no
+   `interview/round-<N>.md` it could ever name. Requiring one would demand a file no command writes
+   and make every slice holding such a record permanently unpackageable. **Two record shapes legitimately omit the
+   field and no others**: that `[AS#n]`, and a `[CD#n]` answering it, which `/product-workflows:brd-reconcile`
+   writes with no round for the same reason (`product-workflows:decision-register-format` §1). A
+   `[VD#n]` without one is still a malformed record, and so is any record from a round that omits it. Deriving from `[VD#n]` alone leaves the hole open rather than closing it: a round that
    produced only assumptions and `[C]` questions names no `[VD#n]`, so a register of nothing but
    `[AS#n]` and `[C]` yields an empty derived set and the gate passes without checking a thing — the
    same vacuity one record kind further out. For each of them, execute `require-on-main`
@@ -210,7 +219,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
    and the round records rode with it in the run that wrote them, which is a fact about that run and
    not about the tree — a hand-committed set lands partially, which is exactly the case above.
 
-   **A register with no `[VD#n]` and no `[AS#n]` names no rounds, and this gate is silent on it** — the
+   **A register in which no record of any kind carries a `round` names no rounds, and this gate is silent on it** — the
    derived set is empty and there is nothing to require. That state reaches step 8's
    `BRD_PACKAGE_NOTHING_TO_REVIEW`, which reads it as a **finished** BRD ("every question its rounds
    asked was settled from verified findings"). That reading is right for a BRD that was interviewed
@@ -240,13 +249,18 @@ cannot review, and they will not tell you that — they will review it anyway, b
    step.** A package with **no** `[C]` question, **no** open `[AS#n]`, and **no** `[VD#n]` in the
    register has nothing for a customer to confirm, correct or attack. Stop rather than sending it:
    `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — every question its rounds asked was settled from verified findings, so there is nothing for a customer to confirm, correct or attack. This is a finished state, not a missing step: the delivery team owes the customer no decision here, and a package built from it would ask for a review of nothing. Re-running /product-workflows:brd-interview <BRD-KEY> is NOT the fix — it opens a new round only when the findings or the decisions have moved, so on an unchanged BRD it reports that nothing is askable and asks nothing. What makes a round askable again is new evidence or a moved position: '/product-workflows:prd-ground <BRD-KEY> --rebaseline' re-derives the findings against current commits, and a decision reopened or superseded in decisions.md has the same effect. Absent either, this BRD is decided and needs no customer review.`
-   **Before printing that, test `interview/` and branch the message.** A BRD holding no `[VD#n]`
-   *and* no `interview/` directory was never interviewed, and telling that operator their questions
-   "were settled from verified findings" congratulates them on work nobody did and names no next
-   step. Where `interview/` is absent or empty, say so and name the command that starts the
-   interview instead:
-   `BRD_PACKAGE_NOT_INTERVIEWED: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n], and no interview/ round record — this BRD has not been interviewed, so there is nothing yet to put in front of a customer. Run '/product-workflows:brd-interview <BRD-KEY>' first.`
-   The finished-state message stays exactly as it is for the case it was written for: an
+   **Test `interview/` FIRST, and independently of what the register holds.** This was once a branch
+   *inside* the stop above — reached only where there was nothing to review — and that placement had a
+   hole the moment a second command gained the power to write an `[AS#n]`:
+   `/product-workflows:create-prd` writes one for a customer-authority gap and its own gates are
+   ledger-based, so a slice **nobody ever interviewed** can hold one open assumption, sail past the
+   nothing-to-review test because it has something to review, and ship a package with no `interview/`
+   at all — no rounds, no `customer-questions.md` for part 7 to draw on, and a customer prompt built
+   from a single assumption. **A BRD with no interview record is not packageable whatever else its
+   register holds**, so where `interview/` is absent or holds no round record, stop here before the
+   test above runs:
+   `BRD_PACKAGE_NOT_INTERVIEWED: <BRD-KEY> has no interview/ round record — this BRD has not been interviewed, so there is nothing yet to put in front of a customer, whatever its register holds. Where it holds an open [AS#n] written by /product-workflows:create-prd, that assumption still needs the interview it never had: a package carries a customer's decisions against a record of what was asked, and there is no such record here. Run '/product-workflows:brd-interview <BRD-KEY>' first.`
+   The finished-state message above then stays exactly as it is for the case it was written for: an
    `interview/` that holds rounds whose every question a verified finding settled.
 
    **Why the message names grounding rather than another interview round.** The register is reached
@@ -273,8 +287,9 @@ cannot review, and they will not tell you that — they will review it anyway, b
    and never the ledger line, for the reason that section gives.
 10. **Read the inputs the rest of the run works from**, all from the gated folder:
     `decisions.md` (every `[VD#n]` and `[AS#n]` with its `status`, `evidence`, `argumentation`,
-    `conditional_on`, `altitude` and `round`); every verified `[CG#n]`/`[DG#n]` with its `verdict`,
-    `evidence`, `horizon` and verifier `outcome`; `grounding/baselines.md`; `brd/brd-inventory.md`'s
+    `conditional_on`, `altitude` and `round` **where it carries one**); every verified
+    `[CG#n]`/`[DG#n]` with its `verdict`, `evidence`, `control` where it carries one, `horizon` and
+    verifier `outcome`; `grounding/baselines.md`; `brd/brd-inventory.md`'s
     `[BR#n]` rows; `coverage-ledger.md`; every `[CDF#n]` in `code-defect-log.md` with its
     `disposition`, `statement`, `intent` and `blocked_on`, **read where the file is present** — it
     is absent on a package whose decisions turn on no code defect, and its absence is never a gate;
@@ -913,6 +928,30 @@ self-review is free of them while being the most internal document this command 
    plugin-free scan gives it above, and for the identical reason (§6.3): the customer's own document
    is immutable by rule, and the one repair the rule allows is not editing the file. Every other
    document's hit stays a hard stop.
+
+9. **Run the set-resolution check**, per `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §7,
+   and stop on any hit. It is a third pass rather than a widening of rule 8, and the three hunt
+   different failures: rule 7 finds a token the reviewer **cannot resolve**, rule 8 one they
+   **resolve to the wrong thing**, and this one a **set restated wrongly** — every identifier
+   resolving, every filename real, and the set they compose not being the set its source holds. It
+   runs last because relation 2 needs the assembled bundle's own listing, and it is the only one that
+   reaches the delivery note, which is deliberately not a bundle document.
+
+   **Read §7's narrowings before running any relation, and read them all — the section states them
+   per relation and carries no total, deliberately.** Every one was measured against assembled
+   packages, and the obvious form of each fires on a correct bundle: a part writes an id **range**
+   where a literal comparison sees two ids and reports the rest as omissions; a filter resolved from
+   a part's prose rather than from the records' own fields over-selects; a manifest matcher fixed on
+   one filename convention reports every document as missing; a manifest does not list itself and
+   names images only sometimes; and a commit test demanding equality reports every correct delivery
+   note as carrying no pin. **A count here would be a fourth wrong one** — this pointer has carried a
+   wrong total three times, which is why it now cites the section instead of summarising it.
+
+   A membership mismatch stops with:
+   `BRD_PACKAGE_SET_MISMATCH: <part-or-document> restates <source>'s <filter> as <N> item(s) and the source holds <M> — <missing> are in the source and not here; <extra> are here and not in the source. A restatement is a copy; the sentence that composed it is what has to change, not the list.`
+
+   A source side that comes up empty while the restatement is not stops with:
+   `BRD_PACKAGE_SET_UNREADABLE: <source> yielded zero records under <filter> while <part-or-document> restates some — that is a read failure, not an empty set, and passing it would certify a restatement against nothing.`
 
 **The bundle is committed** (D18), through the handoff below. That serves both delivery routes with
 one artifact: a customer with repository access pulls it and needs nothing else, and everybody else

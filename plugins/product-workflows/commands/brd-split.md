@@ -203,9 +203,13 @@ four-resolution one.
    d. **No finding block carries a field the record's format does not define.** Parse every
    `[CG#n]`/`[DG#n]` block per `workflows-core:grounding-format` §2.1 and test each key against that
    section's **closed** field set — §2's fields, plus `outcome` and `notes`. Any other key fails. The
-   one that actually occurs is `own_verdict`, a verifier **return** field transcribed into the
-   record, which leaves the block stating two verdicts at once while `verdict` is the one this
-   command and every other consumer reads. **Test c. cannot see it**: such a block carries an
+   test is derived from that section, never from a list here, which is what admits a field §2 gains —
+   `control` (§2.2) is one — without this gate being touched. **The keys that actually occur are the
+   verifier's own return fields**, and `own_verdict` above all: transcribed into the record it leaves
+   the block stating two verdicts at once while `verdict` is the one this command and every other
+   consumer reads. `control_outcome` is the same mistake with a different consequence — it is one
+   verifier's judgement about whether that finding's control fired, so a block carrying it asserts as
+   a property of the finding something only a re-derivation establishes. **Test c. cannot see it**: such a block carries an
    `outcome`, so it passes on presence and the disagreement travels into a slice's allocation
    unexamined — which is why this is a relation of its own rather than a stricter count, the same
    shape as the design-presence test above. Name every offending finding and key, and name the

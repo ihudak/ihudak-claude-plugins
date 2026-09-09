@@ -4,6 +4,124 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.5.0] — 2026-09-09
+
+Five open defects from a live-engagement defect register, found running the family across two
+customer engagements.
+
+### Changed — both grounders are pinned to Opus
+
+`code-grounder` and `design-grounder` carried no model pin and `/prd-ground` dispatched them on the
+Sonnet detection chain. **Grounding adjudicates** — it decides whether a claim is true of a commit —
+and detection is what `code-scanner` does. The measurement: blind re-derivation of a Sonnet-ground
+corpus found **18 of 18 code-citing findings defective** (nine `contradict`, seven `extend`, no
+`agree` at all), with a second slice near 50% verdict error. An Opus-ground corpus of 314 findings
+still moved 85%, but mostly by *omission* rather than error — so the tier is a real and separable
+cause and not the whole cause, which is why the pin ships beside `control` rather than instead of it.
+
+Both are now frontmatter-pinned, like every reviewer. `workflows-core:docs-grounder` deliberately is
+not: it **retrieves**, and a missed lead costs a lead. `/prd-ground` reports `ground_tier` on every
+run, not only a degraded one, because a reader cannot otherwise tell an Opus corpus from a degraded
+one and the two are not interchangeable evidence.
+
+The standing cost objection is answered rather than dismissed: cheap and wrong grounding is the more
+expensive option, since a corpus in which every code-citing finding is defective has negative value
+and the cost is deferred and multiplied through verification, reconciliation and the human reading
+the result. Where the spend is unacceptable on a given run, make the pin conditional on
+classification rather than reverting it.
+
+### Added — every absence claim carries a positive control
+
+Both grounders emit `control` (`workflows-core:grounding-format` §2.2) wherever a finding asserts an
+absence, and `code-grounder` gains step 4a and a hard rule for it. `design-grounder` carries it on
+**class 2** — a requirement asks for a field no frame shows — which is an absence over a frame set
+and fails the same way: the field may be there and this reading may not be one that finds it. Classes
+1 and 3 resolve against the `inventory` the caller handed the agent, which is a lookup rather than a
+search and so has nothing to control for; class 4's code half is the cited `[CG#n]`'s own search.
+
+`grounding-verifier` is handed the field and **runs** the control rather than reading it, returning
+`control_outcome`. It settles **owed-ness first**, by §2.2's closed-set rule: a negative over a set
+the caller handed in is a lookup, not a search, so classes 1 and 3 owe no control and class 4's code
+half belongs to the cited `[CG#n]`. Only class 2 — a negative over the frame set, which is read —
+owes one. A `missing` control forces `contradict`; a `failed` one does too, **except** on a finding
+already reading `NOT-PROVABLE` with that failed control recorded, which is what §2.2 tells a writer to
+do and which the verifier is merely reproducing.
+
+### Fixed — a class-4 `[DG#n]` is no longer left standing on a citation that moved
+
+`/prd-ground` Phase 7 sweeps every class-4 finding whose cited `[CG#n]` this run rewrote and
+re-derives the pair — **reading the `[DG#n]` set from `design-grounding.md` rather than from what the
+run happens to hold**, since a `--no-design` run produces no `[DG#n]` at all while still rewriting
+`[CG#n]`, and a sweep over held findings would report "none" on precisely the run that created the
+staleness; Phase 8 supersedes class-4 findings alongside the `[CG#n]` that took them there
+on a `--rebaseline` pass. Previously a design finding could keep a verifier outcome earned against a
+version of its citation that no longer existed, with the id still resolving and the claim ids still
+matching — undetectable by a reader who follows the citation.
+
+### Added — a customer-answerable question from `/create-prd` reaches the customer
+
+PRD authoring surfaces questions nothing before it could have — a scope boundary the requirement text
+never drew, a rule the acceptance criteria need and nobody stated. Some are settled only by an
+authority the customer holds, and they landed in `prd.md` under `## Assumptions & open questions`,
+**which the customer never receives**. Every later reader then met them as flat statements in a
+document full of grounded ones: read as settled, built on, argued from, while the one party who could
+have corrected them in a sentence never saw the file.
+
+The route back already existed and nothing pointed at it. `/create-prd` now triages each surviving
+gap by `interview-tagging.md` §2's test — what kind of thing would settle it — and writes a
+customer-authority one as an `[AS#n]` in `decisions.md`, which `/brd-package` surfaces (every open
+one, twice) and `/brd-reconcile` supersedes with the answering `[CD#n]`. **Writing the record is not
+asking the customer anything**: no `[CD#n]` is written here and none may be (D14).
+
+`decision-register-format.md` §7 gains the second writer and the rule that **such a record omits
+`round` entirely**. Giving it the last closed round's number would claim it was in front of whoever
+answered that round; giving it any invented value is worse, because `round` is **read**, not just
+displayed — `/brd-package` derives the set of rounds a BRD has from the distinct `round` values across
+its records and then requires an `interview/round-<N>.md` for each, so a value no round record answers
+to would make the slice permanently unpackageable. That command's derivation now says explicitly that
+a record carrying no round contributes nothing to the set, and that this is the only reason a record
+legitimately omits the field.
+
+`/create-prd`'s third write guarantee is narrowed and the narrowing itemised rather than made
+silently: it protected a settled decision from a grill answer, and it now says so over *existing*
+records, leaving this command free to create one new `[AS#n]` — never a `[VD#n]`, never a `[CD#n]`.
+Ids continue from the highest on file and a gap already recorded is not recorded twice, because the
+sanctioned fresh-PRD re-run puts this command over the same folder more than once.
+
+### Added — two checks over what a run restates, both measured against real packages
+
+Two verification gaps the register named, built the second time against assembled artifacts rather
+than against the format documents. The first attempt at each was cut before release because both
+fired on **correct** trees; every relation below is narrower than its obvious form, and each
+narrowing is a false positive somebody would otherwise have met.
+
+**`/brd-package` — `bundle-packaging.md` §7, `set-resolution`.** The manifest, the delivery note and
+several prompt parts each restate a set held elsewhere, and nothing compared them. Three relations,
+comparing **membership** and never counts, since two sets of the same size with different members
+read as correct. What measurement changed: the review-scope part renders its source as **prose in the
+customer's vocabulary**, not identifiers, so relation 1 reaches only the parts that genuinely
+enumerate identified records; a manifest writes filenames **with or without the extension** — both
+conventions occur across builds of one package — and names images only sometimes, so relation 2
+matches basenames tolerantly, excludes the manifest and non-review markers, and leaves images to §6;
+and a delivery note **abbreviates** its commits, so relation 3 tests each as a **prefix** of a
+baseline rather than for equality. An equality test reports every correct note as carrying no pin.
+
+**`/brd-intake` — `brd-format.md` §2.2.** A section the read skipped and one that genuinely holds no
+obligation look identical in an inventory. Two relations, both derived from the `source_anchor`
+column already written: every anchor resolves to a section the source has, and every **top-level
+section** either holds a row or is accounted for. **No agent returns a new field and nothing new is
+stored** — the first design added one and persisted it nowhere. Granularity is the finding: real BRDs
+carry fifty to sixty headings under about fifteen top-level sections, nine of which legitimately hold
+nothing, so the operator answers nine questions rather than fifty. On a real package the sections
+holding no row included the user stories and the acceptance tests — the pair worth asking about.
+
+### Added — a recorded review verdict names the version it was taken against
+
+`/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/prd-proposal` and
+`/brd-proposal` cite the new `workflows-core:escalation-rules` rule. The one-fix-cycle cap assumes a
+fix only removes defects; three live runs saw the fix introduce something the re-review then found
+with the budget already spent, leaving a `PASS` on record beside a file the `PASS` never saw.
+
 ## [3.4.0] — 2026-09-08
 
 ### Added — two effort-proposal commands, and the format they author against

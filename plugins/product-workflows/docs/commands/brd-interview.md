@@ -28,7 +28,15 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
 - **`--round N`** (optional) — target one round: resume it if it is open, or re-open it if it is
   closed, recorded as a re-open with its cause. With no flag the run continues at the first round
   still holding a question without a terminal disposition, and proposes a new one only if findings
-  or decisions have changed since the last round closed.
+  or decisions have changed since the last round closed — **or, on a BRD with no round record at
+  all, generates round 1's questions and branches on what it finds.** At least one question opens
+  the round as ever; none at all writes `interview/round-1.md` recording the walk and what it found
+  nothing of, and the run completes there. That record is not an empty round: it names each question
+  source and what this BRD held under it, so a reader meets an account of a completed walk rather
+  than a silence. **It is also why this command is required before packaging even on a slice with
+  nothing to ask** — you cannot know there is nothing to ask until it has run, and
+  [`/brd-package`](brd-package.md) refuses a BRD with no round record rather than re-deriving that
+  judgement for itself.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).
@@ -123,7 +131,7 @@ command reads was already independently re-derived by `/prd-ground`'s own verifi
   nothing else.
 - **Every finding block is well-formed.** The record's field set is closed to the ones
   `workflows-core:grounding-format` §2 defines plus `outcome` and `notes`; a block carrying any other
-  key stops the run with `BRD_INTERVIEW_MALFORMED_FINDING`. The key that occurs is `own_verdict`, a
+  key stops the run with `BRD_INTERVIEW_MALFORMED_FINDING`. The keys that occur are the verifier's own return fields — `own_verdict` above all, and `control_outcome` beside it since the record gained a `control` field. `own_verdict` is a
   verifier **return** field, and a block carrying it states two verdicts at once. That matters more
   here than anywhere else on the route: every `[G]` is answered from the findings and from nothing
   else, so such a finding freezes a `[VD#n]` against whichever half the run happened to read, and

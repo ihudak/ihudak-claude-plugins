@@ -2,8 +2,8 @@
 
 Grounding workflow serving both routes into a PRD, its route detected from the resolved folder and
 never declared. Pins every mounted repository to a verified commit, grounds every claim in the
-resolved folder's own claim list against code (`code-grounder`) and an exported design frame set
-(`design-grounder`), independently re-derives every finding (`grounding-verifier`, Opus), and, on
+resolved folder's own claim list against code (`code-grounder`, Opus) and an exported design frame set
+(`design-grounder`, Opus), independently re-derives every finding (`grounding-verifier`, Opus), and, on
 the BRD route, assigns each finding a `current` / `will-change` horizon against declared
 prerequisite BRDs.
 
@@ -296,8 +296,19 @@ an idea-route run has already gated `prd.md` with `require-on-main`, so it only 
   the verifier re-derived**, which it returns on every outcome: `agree` means *the same verdict* and
   `extend` means *the claim holds*, so either arriving with a differing verdict is a return that
   contradicts itself, and the outcome is normalised to `contradict` and reported. `unprovable` is
-  never normalised — its verdict differs by definition, and the outcome means only that the
-  verifier's own search settled nothing. A `contradict` outcome rewrites the finding
+  never normalised **on that ground** — its verdict differs by definition, and the outcome means only
+  that the verifier's own search settled nothing.
+
+  **A second, independent route to `contradict` runs off the finding's positive control.** The
+  verifier decides first whether the finding owed one at all — three of the four `[DG#n]` classes
+  owe none: classes 1 and 3 resolve against the requirement inventory the caller handed in, which is
+  a lookup rather than a search, and class 4's code half belongs to the `[CG#n]` it cites — then runs
+  any control it finds rather than reading it. A control that owed to be
+  there and is not, or one that fails on a finding whose verdict **rests on** the absence,
+  normalises to `contradict` even where the verifier's own search also found nothing: two searches
+  sharing one blind spot is the state a control exists to expose. The one exception is a finding
+  already reading `NOT-PROVABLE` with its own failed control recorded — that is what the format tells
+  a writer to do, and reproducing its result is agreement. A `contradict` outcome rewrites the finding
   in place — same id, replaced verdict and evidence — so an existing citation keeps resolving; an
   `agree`/`extend`/`unprovable` outcome is recorded alongside the finding unchanged (`extend` also
   appends the additional evidence the verifier's own search turned up). Which anchor each finding

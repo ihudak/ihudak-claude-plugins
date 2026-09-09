@@ -287,7 +287,7 @@ reads was already independently verified by `/prd-ground`'s own agents.
 - **On a slice: every finding block is well-formed.** The finding record's field set is closed to
   the ones `workflows-core:grounding-format` §2 defines plus `outcome` and `notes`. A block carrying
   any other key stops the run with `BRD_SPLIT_MALFORMED_FINDING`, naming each finding and key. The
-  key that actually occurs is `own_verdict` — a field the verifier *returns* to its caller, which
+  keys that actually occur are the verifier's own return fields — `own_verdict` above all, with `control_outcome` beside it since the record gained a `control` field. `own_verdict` is a field the verifier *returns* to its caller, which
   leaves a block that carries it stating two verdicts at once while `verdict` is the one every
   consumer reads. The verified-outcome test above cannot catch it, because such a block does carry
   an outcome; the repair is to remove the offending key by hand, not to re-derive the corpus.

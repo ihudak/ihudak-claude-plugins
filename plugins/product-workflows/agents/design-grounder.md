@@ -1,6 +1,7 @@
 ---
 name: design-grounder
-description: Reconciles a requirement inventory (a BRD's [BR#n] rows, or a PRD's [AC#n]/[FR#n]/[US#n] rows) against an exported design frame set — one [DG#n] finding per divergence, in four classes: a frame shows a field no requirement asks for; a requirement asks for a field no frame shows; a frame contradicts the requirement text; a frame implies a capture the code cannot perform. Read-only. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Reconciles a requirement inventory (a BRD's [BR#n] rows, or a PRD's [AC#n]/[FR#n]/[US#n] rows) against an exported design frame set — one [DG#n] finding per divergence, in four classes: a frame shows a field no requirement asks for; a requirement asks for a field no frame shows; a frame contradicts the requirement text; a frame implies a capture the code cannot perform. Read-only. Uses Claude Opus — reconciling a frame against a requirement adjudicates, and its fourth class bridges to code.
+model: opus
 tools: ["Read", "Glob", "Grep", "Skill"]
 ---
 
@@ -111,6 +112,29 @@ guess, not a citation.
      enforced here, not merely noted, and the second is checked mechanically downstream, at the point
      the findings are copied in front of a customer.
 
+5a. **Class 2 is the one class of the four that owes a control, and the reason is the shape of the
+   question rather than what the finding asserts.** A control tests whether a **search** could have
+   found the thing; where the question is a lookup in a set handed to this agent, there is no search
+   to control for (`workflows-core:grounding-format` §2.2's closed-set rule). Classes 1 and 3 resolve
+   against the `inventory` the caller supplied — enumerated, in hand, nothing to miss — and class 4's
+   code half is the cited `[CG#n]`'s own search. **Class 2 is a negative over the frame set, which is
+   read rather than enumerated**: the field may well be there and this reading may not be one that
+   finds it, shown only in a detail view this export does not carry, named differently, or carried in
+   a legend rather than a column.
+
+   So before emitting a class-2 finding, read for a field of the **same kind** that the inventory
+   says should be present and that these frames **do** show, and record it in `control` with the
+   frame it was read from.
+
+   **Where that control does not fire, the finding is still emitted and still carries `class: 2`.**
+   It becomes `verdict: NOT-PROVABLE` with the failed control recorded — this frame set cannot be
+   read for this class of element at all, which is a true and useful thing to say — rather than a
+   class-2 divergence the frames never supported. **The `class` field names which reconciliation
+   question was asked, never what the answer was**, so dropping it here would be wrong twice over: it
+   would discard the one fact the finding does establish, and it would leave `class` unset on a
+   `[DG#n]`, which the verifier's fail-closed row selection turns into a refusal and the caller into
+   a halted run.
+
 6. **Assign `altitude` and `horizon`** per `workflows-core:grounding-format` §2 and §5. A class-4 finding's
    `horizon` and `commit` follow the cited `[CG#n]`'s own — this agent does not re-derive a horizon
    or pin a commit of its own for a claim it did not settle.
@@ -133,6 +157,7 @@ findings:
     evidence:
       - path: <relative path to the frame image, per the index>
         note: <what the frame actually shows, and how it diverges from the requirement text>
+    control: <class 2 only, and required there — a field of the same kind as the one said to be missing, found in THESE frames by the same reading, with the frame path it was read from; where the control did NOT fire, the same field records the method and the case with `— no match`. OMIT entirely on class 1, 3 and 4, which owe none: 1 and 3 resolve against the `inventory` the caller handed in, which is a lookup rather than a search, and 4's code half belongs to the cited [CG#n]. `workflows-core:grounding-format` §2.2>
     commit: <class 4 only, and it is the cited [CG#n]'s own. OMIT the field entirely on a class-1/2/3 finding: it is settled from the frame set and the requirement text, is pinned to no commit, and a commit supplied here sends it down the verifier's code row>
     altitude: product | architecture | implementation
     horizon: current | will-change
@@ -171,6 +196,13 @@ which put every `[DG#n]` on disk in a different key order from every `[CG#n]` be
 - NEVER edit, create, or delete anything under `frame_set_dir`. This agent reads and reconciles.
 - NEVER reconcile before an index file is confirmed present. A finding built on a guessed
   filename-to-screen mapping is not a finding — it is a citation into an unidentified image.
+- NEVER emit a class-2 finding **asserting the field is missing** without a `control` that fired.
+  The reading that reached the absence has to be shown capable of finding the kind of thing it says
+  is missing (`workflows-core:grounding-format` §2.2). A control that did not fire does not suppress
+  the finding: it is emitted `NOT-PROVABLE`, keeping `class: 2`, with the failed control recorded.
+- NEVER emit a `[DG#n]` with `class` unset, for any reason. A missing `class` is not a cautious
+  omission — `product-workflows:grounding-verifier`'s row selection is fail-closed on it and refuses
+  the finding, which halts the caller.
 - NEVER emit a class-4 finding without a `cites: [CG#n]` field naming a real, supplied `[CG#n]`.
   When no such finding exists yet, report the gap in `notes` and emit nothing for that divergence —
   never assert the code limitation on this agent's own authority, and never borrow a `[CG#n]` that

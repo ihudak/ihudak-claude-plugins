@@ -8,7 +8,6 @@ intentionally absent — they are owned by the `docs-frontmatter` skill.
 schema_version: 1
 repo:
   name: example-docs                # detected from git remote / dir name
-generator: mkdocs-material            # informational; consumers still go through commands.*
 spaces:                               # one entry per rendered space
   - id: cloud
     content_root: cloud/_content
@@ -18,9 +17,6 @@ spaces:                               # one entry per rendered space
     content_root: self-hosted/_content
     snippet_root: self-hosted/_snippets
     base_path: /self-hosted
-builds:                               # two builds from ONE content root
-  - { id: public,   config: mkdocs.yml,          command: "mkdocs build --strict -f mkdocs.yml",          out: site,          visibility: public }
-  - { id: internal, config: mkdocs.internal.yml, command: "mkdocs build --strict -f mkdocs.internal.yml", out: site-internal, visibility: internal }
 dev_servers:
   concurrent: false                   # cannot run two spaces at once
   readiness_timeout_seconds: 120      # optional; seconds to poll a booted server for readiness (default 120)
@@ -72,11 +68,8 @@ frontmatter:                          # pointers only — NOT a re-spec
   default_owners: references/docs-profiles/default-owners.txt
   owners_spaces: [self-hosted]     # space ids whose pages require an owners block
 images:
-  policy: in-repo | object-store | cdn  # all three of D16's policies
-  root: docs/assets                     # in-repo only
-  max_bytes: 307200                     # in-repo only; the CI budget
-  public_prefix: https://…/public/      # object-store and cdn; every public-build image URL must start here
-  internal_prefix: https://…/internal/  # object-store only; what the third visibility gate asserts against
+  policy: cdn                           # in-repo | object-store | cdn
+  public_prefix: https://cdn.example.com/docs/   # object-store and cdn; every public-build image URL must start here
 prerequisites:
   - "a dev server may need a working .docstack toolchain (e.g. an axios>=1.16 shim) before `*:start` boots"
 ```
@@ -84,7 +77,14 @@ prerequisites:
 ## Field rules
 - `frontmatter.owners_spaces` lists the `spaces[].id` values whose pages require an owners block. Absent or empty means the owners check never fires. It is read by the `changelog-owners-reminder` hook and by the `docs-frontmatter` skill; neither hardcodes a content root, so a repo supplying its own profile gets its own roots and its own owners policy.
 - `spaces[]` is required and non-empty. It is a plain list of the repo's content roots: a repo publishing one documentation set has one entry, a repo publishing several has one per set. A page belongs to whichever entry's `content_root`/`snippet_root` prefixes its path, and is written there and nowhere else.
-- `builds[]` is optional — a list of `{id, config, command, out, visibility}` entries for a repo whose ONE content root renders into more than one output. It is not a second `spaces[]` entry: `spaces[]` is defined by content-root ownership — a page belongs to whichever entry's `content_root` prefixes its path — so two spaces sharing one root breaks that rule. Two builds over one root is a different axis and needs its own field.
+- `builds[]` is optional — a list of `{id, config, command, out, visibility}` entries for a repo whose ONE content root renders into more than one output. It is not a second `spaces[]` entry: `spaces[]` is defined by content-root ownership — a page belongs to whichever entry's `content_root` prefixes its path — so two spaces sharing one root breaks that rule. Two builds over one root is a different axis and needs its own field. The worked example above stays two-space/pnpm and does not carry `generator`/`builds[]` — a repo cannot coherently run two mutually exclusive build toolchains. A single-content-root MkDocs repo, the shape `/docs-init` scaffolds, declares them like this:
+
+  ```yaml
+  generator: mkdocs-material
+  builds:
+    - { id: public,   config: mkdocs.yml,          command: "mkdocs build --strict -f mkdocs.yml",          out: site,          visibility: public }
+    - { id: internal, config: mkdocs.internal.yml, command: "mkdocs build --strict -f mkdocs.internal.yml", out: site-internal, visibility: internal }
+  ```
 - `dev_servers.concurrent: false` means the consumer must start servers sequentially.
 - `dev_servers.readiness_timeout_seconds` is optional (default 120) — how many seconds Phase 6.5 polls a booted server for readiness before falling back to the manual table.
 - `dev_servers.servers[].public_base_url` is optional — the externally reachable URL for that server, distinct from `port`. A command running inside a container cannot infer the host's published port mapping, so a consumer reports this value instead of guessing; when it is absent, the consumer reports the in-container URL with an explicit caveat rather than a URL that may not open.

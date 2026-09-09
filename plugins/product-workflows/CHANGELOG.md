@@ -4,6 +4,96 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.5.0] — 2026-09-09
+
+Five open defects from a live-engagement defect register, found running the family across two
+customer engagements.
+
+### Changed — both grounders are pinned to Opus
+
+`code-grounder` and `design-grounder` carried no model pin and `/prd-ground` dispatched them on the
+Sonnet detection chain. **Grounding adjudicates** — it decides whether a claim is true of a commit —
+and detection is what `code-scanner` does. The measurement: blind re-derivation of a Sonnet-ground
+corpus found **18 of 18 code-citing findings defective** (nine `contradict`, seven `extend`, no
+`agree` at all), with a second slice near 50% verdict error. An Opus-ground corpus of 314 findings
+still moved 85%, but mostly by *omission* rather than error — so the tier is a real and separable
+cause and not the whole cause, which is why the pin ships beside `control` rather than instead of it.
+
+Both are now frontmatter-pinned, like every reviewer. `workflows-core:docs-grounder` deliberately is
+not: it **retrieves**, and a missed lead costs a lead. `/prd-ground` reports `ground_tier` on every
+run, not only a degraded one, because a reader cannot otherwise tell an Opus corpus from a degraded
+one and the two are not interchangeable evidence.
+
+The standing cost objection is answered rather than dismissed: cheap and wrong grounding is the more
+expensive option, since a corpus in which every code-citing finding is defective has negative value
+and the cost is deferred and multiplied through verification, reconciliation and the human reading
+the result. Where the spend is unacceptable on a given run, make the pin conditional on
+classification rather than reverting it.
+
+### Added — every absence claim carries a positive control
+
+Both grounders emit `control` (`workflows-core:grounding-format` §2.2) wherever a finding asserts an
+absence, and `code-grounder` gains step 4a and a hard rule for it. `design-grounder` carries it on
+**class 2** — a requirement asks for a field no frame shows — which is an absence over a frame set
+and fails the same way: the field may be there and this reading may not be one that finds it. Class 1
+and class 3 assert what a frame *shows*; class 4's code half is the cited `[CG#n]`'s own search.
+
+`grounding-verifier` **runs** the control rather than reading it, and returns `control_outcome`. A
+failed or absent control is `contradict` on its own ground. `/prd-ground` Phase 7 normalises on it —
+the only normalisation that also applies to `unprovable`, because the control says the original search
+was *incapable*, which is stronger than the verifier's own search having settled nothing.
+
+### Fixed — a class-4 `[DG#n]` is no longer left standing on a citation that moved
+
+`/prd-ground` Phase 7 sweeps every class-4 finding whose cited `[CG#n]` this run rewrote and
+re-derives the pair; Phase 8 supersedes class-4 findings alongside the `[CG#n]` that took them there
+on a `--rebaseline` pass. Previously a design finding could keep a verifier outcome earned against a
+version of its citation that no longer existed, with the id still resolving and the claim ids still
+matching — undetectable by a reader who follows the citation.
+
+### Added — `/brd-package` checks every restated set against the file it restates
+
+New `bundle-packaging.md` §7, `set-resolution`, run as rule 9 of the assemble step. The prompt's
+parts, the manifest and the delivery note each restate a set of records held elsewhere — ledger rows
+in scope, open assumptions, disposed findings, prerequisite packages, bundle documents, repositories
+and their pins — and a restatement is a copy that drifts after the first correction. Nothing compared
+them, so on one live package the covering documents' cardinalities were simply believed.
+
+Three relations, all derived from the parts table and each part's own stated filter, comparing
+**membership in both directions** and never cardinality: two sets of the same size with different
+members pass a count test and fail the reader, which is worse than a miscount because it reads as
+correct. It is the one check that reaches the **delivery note**, which is deliberately not a bundle
+document — a pin restated wrongly there has the reviewer verify every code claim against a snapshot
+nobody ground. An empty source side fails rather than passes.
+
+### Added — a customer-answerable question from `/create-prd` reaches the customer
+
+PRD authoring surfaces questions nothing before it could have — a scope boundary the requirement text
+never drew, a rule the acceptance criteria need and nobody stated. Some are settled only by an
+authority the customer holds, and they landed in `prd.md` under `## Assumptions & open questions`,
+**which the customer never receives**. Every later reader then met them as flat statements in a
+document full of grounded ones: read as settled, built on, argued from, while the one party who could
+have corrected them in a sentence never saw the file.
+
+The route back already existed and nothing pointed at it. `/create-prd` now triages each surviving
+gap by `interview-tagging.md` §2's test — what kind of thing would settle it — and writes a
+customer-authority one as an `[AS#n]` in `decisions.md`, which `/brd-package` surfaces (every open
+one, twice) and `/brd-reconcile` supersedes with the answering `[CD#n]`. **Writing the record is not
+asking the customer anything**: no `[CD#n]` is written here and none may be (D14).
+
+`decision-register-format.md` §7 gains the second writer and the `round: post-<N>` value — giving
+such a record the last closed round's number would claim it was in front of whoever answered that
+round. `/brd-interview`'s askable test admits it, so the operator's natural next command opens a
+round instead of reporting "nothing askable" while a customer question sits open; it is identifiable
+without a writer field, since `post-<N>` is a value no round of its own produces.
+
+### Added — a recorded review verdict names the version it was taken against
+
+`/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/prd-proposal` and
+`/brd-proposal` cite the new `workflows-core:escalation-rules` rule. The one-fix-cycle cap assumes a
+fix only removes defects; three live runs saw the fix introduce something the re-review then found
+with the budget already spent, leaving a `PASS` on record beside a file the `PASS` never saw.
+
 ## [3.4.0] — 2026-09-08
 
 ### Added — two effort-proposal commands, and the format they author against

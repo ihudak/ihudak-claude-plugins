@@ -198,12 +198,20 @@ that slice's own folder — the same grading `/prd-proposal` Phase 3 performs, a
 decide which of the three rows a slice is in.
 
 **Print the computed recommendation beside the array rather than folding it into an option's
-wording**, so the operator reads the run's judgement and the two available answers separately. For a
+wording**, so the operator reads the run's judgement and the available answers separately. For a
 slice whose `proposal.md` is on disk but stale:
 
 ```
-choices: ["Include it as it stands", "Exclude it, and disclose the exclusion in the coverage statement"]
+choices: ["Include it as it stands", "Re-price it first — /product-workflows:prd-proposal <SLICE-KEY>, then re-run the umbrella", "Exclude it, and disclose the exclusion in the coverage statement"]
 ```
+
+**The middle option is this row's own computed recommendation, and it is an option rather than only a
+printed line** because a stale proposal is the one row where the run's judgement is *"re-run it"* and
+the operator has no way to say yes. Without it the free-text option is where that answer would land,
+and a typed *"re-run it"* reaches no defined path. It ends the run on exactly the path
+**"Price the slice first"** takes below — finish the walk, write nothing, name what is still to
+price — because re-pricing and first-pricing leave the umbrella in the same state: waiting on a slice
+run. Nothing is excluded by it and no membership is recorded for that slice.
 
 For a slice holding **no `proposal.md` at all** — the first two rows above — the array differs, and it
 differs for one reason: there is nothing to include, so an option offering to include it is one the
@@ -213,10 +221,10 @@ run cannot honour. The recommendation printed beside it is what tells the two ro
 choices: ["Price the slice first — /product-workflows:prd-proposal <SLICE-KEY>, then re-run the umbrella", "Exclude it, and disclose the exclusion in the coverage statement"]
 ```
 
-**"Price the slice first" ends the run.** It is the one answer in this walk that is not a membership
-decision, so it must not be recorded as one: finish the walk so the operator sees the whole picture,
+**"Price the slice first" and "Re-price it first" both end the run**, on one path. They are the two
+answers in this walk that are not membership decisions, so neither is recorded as one: finish the walk so the operator sees the whole picture,
 then end before Phase 4, naming **every** slice still to price and writing no artifact at all — no
-`proposal.md`, no brief, no archive, no handoff. Nothing is excluded by it. This is an operator's
+`proposal.md`, no brief, no archive, no handoff. Neither excludes anything. This is an operator's
 finished decision rather than a refusal, so it carries no stop id and runs the emitter tail (Phase 13)
 on the way out, exactly as a completed run does; the final report says which slices it is waiting on. Treating it as an exclusion would produce the understated umbrella this
 row's **Stop** recommendation exists to prevent, and would record the operator as having chosen an
@@ -228,8 +236,10 @@ presented verbatim*). An operator who excludes a slice the walk recommended pric
 decision the document must record: **every exclusion, and every inclusion taken against the walk's
 recommendation, is named in the final report and enumerated in the coverage statement** (Phase 7).
 
-**Nothing here re-prices a slice, re-derives its hours, or edits its proposal.** The walk decides
-membership and nothing else.
+**Nothing here re-prices a slice, re-derives its hours, or edits its proposal**, the two
+run-ending answers included: each of those ends the run and leaves the re-pricing to a
+`/product-workflows:prd-proposal` run the operator starts. Every other answer this walk takes is a
+membership decision and nothing else.
 
 ---
 
@@ -281,6 +291,15 @@ this run reads it rather than defining a second one.
   `choices: ["Use it as shown (Recommended)", "Correct a field — I'll say which", "Re-grill the whole profile"]`.
 - **`--profile`** — re-grill it in full regardless of what is on disk, then continue the run.
 
+**`engagement_model` is a closed vocabulary here too, and for a stronger reason: this run reads the
+same committed file every slice was priced under.** A free-text answer to either picker — the grill's
+own, or a `"Correct a field — I'll say which"` answer naming `engagement_model` — is normalised into
+`time-and-material` or `fixed-price`, or the question is re-asked; it is never written through as a
+third value (`workflows-core:escalation-rules`, *Closed-vocabulary pickers must normalise the
+free-text answer*, whose table carries this picker). §0 of that file makes the free-text option
+unconditional, so the array cannot protect the field by omitting one, and §4 sections 16, 17 and 18
+have only the two shapes to render.
+
 A run that cannot obtain a profile at all — the grill was cancelled, or the file cannot be written —
 stops:
 `BRD_PROPOSAL_NEEDS_PROFILE: no proposal profile at $SPECS_PATH/.dev-workflows/proposal-profile.yml, and none was captured. Re-run with --profile to author one; an effort proposal cannot state a team, a schedule or a productivity basis without it.`
@@ -307,8 +326,16 @@ This phase performs all of them; it does not re-express any of them.
 1. **Build the row set** — one row per included slice, carrying that slice's hours, its range, its
    tier and its confidence, read from that slice's own `proposal.md` and **never re-derived** (§14).
    A figure this run cannot read out of a slice proposal is a stop-shaped defect in that proposal,
-   not a number to reconstruct: report it and exclude the slice, or send the operator back to
-   `/product-workflows:prd-proposal <SLICE-KEY>`.
+   not a number to reconstruct. **It is not this phase's to settle either**: excluding the slice here
+   would reverse the membership decision Phase 3 reserved to the operator and would reach the
+   coverage statement Phase 7 computes, so put the two outcomes to them, quoting what could not be
+   read and from where:
+   `choices: ["Exclude it, and disclose the exclusion in the coverage statement", "End the run — re-price it with /product-workflows:prd-proposal <SLICE-KEY>, then re-run the umbrella"]`
+   The second answer ends the run on the same path Phase 3's two run-ending answers take: finish
+   nothing, write no artifact, name the slice in the report. The first is an exclusion like any
+   other, and Phase 3's rule applies to it unchanged — it is named in the final report and
+   enumerated in the coverage statement, together with the reason it was excluded here rather than
+   in the walk.
 2. **The umbrella's own work packages** — §7's two always-present packages read at programme altitude
    (§14), and §14's first adjustment, the umbrella effort, beside them. §14 fixes which is which;
    this step mints all of their `[WP#n]`s in the umbrella's own contiguous series (§3), grades each
@@ -337,8 +364,20 @@ This phase performs all of them; it does not re-express any of them.
    taking slice order from `depends_on` in each slice's PRD frontmatter.
 6. **The umbrella's tier** is §14's minimum-and-print-the-mix rule; every package this phase minted
    of its own (steps 2 and 3) is capped by §5's ceiling for that minimum tier.
-7. **Sum the ranges and state them as summed** (§14).
-8. **Apply §8's stability rule** on a re-run, against the prior revision Phase 0 noted; §12's
+7. **Re-estimate gates for the umbrella's own packages** — §4's section 8, derived here and not
+   anywhere else. §6 makes a declared gate **mandatory** at Low, and step 6's ceiling makes Low the
+   common outcome rather than an edge: the umbrella's tier is the minimum of its included slices',
+   so a single tier-1 slice caps every package this phase minted at Low. Give each such package a
+   gate naming its trigger event, and offer the no-hours commitment **per gate, never by default**,
+   exactly as `/product-workflows:prd-proposal` Phase 6 step 5 does at slice altitude:
+   `choices: ["Declare the gate only — a re-estimate promise", "Add the no-implementation-hours-before-the-gate commitment"]`
+   **At tier 1 the document-level gate is the umbrella's own** (§5, §14): its trigger is §5's — what
+   capped each of them — applied per included slice whose tier set the minimum and named by key
+   rather than left as "the slice", because the umbrella grades no folder of its own. A slice's own
+   gates stay inside that slice's row and are not restated here (§14) — this step declares gates only
+   for the `[WP#n]`s steps 2 and 3 minted.
+8. **Sum the ranges and state them as summed** (§14).
+9. **Apply §8's stability rule** on a re-run, against the prior revision Phase 0 noted; §12's
    changelog then names the cause of every figure that moved — including a figure that moved only
    because a slice was re-priced beneath it, which is a cause and is named as one. **`--redo`
    discards the anchor** — say so in the report when it was given, because a run that discarded the

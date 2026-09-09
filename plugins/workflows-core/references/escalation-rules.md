@@ -49,12 +49,12 @@ to protect that by omitting the free-text option. **Under §0 they cannot** — 
 whatever the array says — so the protection moves from the array's shape to the run's handling of the
 answer:
 
-**A free-text answer on one of the six arrays below is normalised into that array's own vocabulary,
+**A free-text answer on one of the seven arrays below is normalised into that array's own vocabulary,
 or the question is re-asked. It is never written through as a new value.** `/document`'s image
 disposition is the shipped worked example: its free text *"resolves to one of the three dispositions
 above … There is no fourth disposition and no 'skip on my own judgement' path here."*
 
-**The six:**
+**The seven:**
 
 | Array | Its closed vocabulary | Owner |
 |---|---|---|
@@ -64,6 +64,13 @@ above … There is no fourth disposition and no 'skip on my own judgement' path 
 | the will-change resolution picker | the exactly three resolutions of `product-workflows:decision-register-format` §6 | `/product-workflows:brd-interview` |
 | the `[SR#n]` disposition picker | `fixed` / `accepted-risk` / `escalated-to-customer` / `rejected-with-reason` | `/product-workflows:brd-package` |
 | the degradation-tier picker | `Full` / `Partial` / `Documents only` — the three rows of `product-workflows:bundle-packaging` §3 | `/product-workflows:brd-package` |
+| the `engagement_model` picker | `time-and-material` / `fixed-price` | `/product-workflows:prd-proposal` Phase 2, over the two shapes `product-workflows:proposal-format` §4 sections 16–18 fixes; `/product-workflows:brd-proposal` re-asks the same question over the same committed profile |
+
+**The seventh is the one whose value outlives its own run**, which is why it is here rather than left
+to the command: the answer is written to a committed `proposal-profile.yml` and read by every later
+run of both proposal commands, so a third value written through would be re-read indefinitely by two
+commands with no shape to render for it. It also has a **second route to the same field** — the
+confirmation picker's *correct a field* option — and that route is normalised the same way.
 
 **The first three are load-bearing beyond tidiness, and the reason is worth carrying.** They are the
 pickers through which a customer's authority enters the decision register, and D14 exists because
@@ -75,10 +82,10 @@ re-opened by an adjustment made in good faith against this file. A rule contradi
 authority is not a rule, so the carve-out is written here, by name, rather than left to each command
 to assert against a reference that overrules it.
 
-**No operator is trapped, and the reason is no longer `Cancel`.** Three of the six carried a
+**No operator is trapped, and the reason is no longer `Cancel`.** Three of the seven carried a
 trailing `Cancel` until the four-option cap was enforced, and it was dropped from each — a fifth slot
 the harness would not render. The escape that replaces it is the free-text option, which is always
-present and, on these six, is normalised rather than frozen. Where aborting has a consequence the
+present and, on these seven, is normalised rather than frozen. Where aborting has a consequence the
 operator must see before choosing, the command states it in the prose introducing the walk rather
 than in an option: `/brd-package`'s and `/brd-reconcile`'s walks both do.
 

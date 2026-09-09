@@ -1336,11 +1336,17 @@ Where this run can go next:
 choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this slice's PRD — /product-workflows:create-prd <SLICE-KEY> (PM)", "Author this slice's architecture — /product-workflows:create-ard <SLICE-KEY> (PA, optional)", "Author this slice's specification — /product-workflows:specify <SLICE-KEY> (PE)"]
 ```
 
-**And, in prose beside the array, the one thing this run has just made possible commercially.** The
-register settling is what takes this slice from tier 1 to tier 2 — the point at which an effort
-proposal stops being indicative and becomes a document that can go to a customer
-(`${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5). So name it: **`/product-workflows:prd-proposal
-<SLICE-KEY>` prices this slice, and this run is what made it sendable.** It is offered in prose rather
+**And, in prose beside the array, the one thing this run has just changed commercially.** **It is not
+the tier** — `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5 fixes *a settled register* as
+the test `/brd-package` already applies, and `/brd-package` runs before this command and gates on
+`decisions.md`; a run that reached here has a package that was built and sent, so grounding exists and
+the register was settled two commands ago. The slice was already tier 2 before this run started. What
+changed here is what an effort proposal's drivers may stand on: §8's second evidence class is a
+**frozen decision**, and until this run froze the customer's `[CD#n]`s there were none — so a proposal
+written now prices what the customer agreed rather than what was put to them, and its corrections,
+banners and resolved defects are on the record the driver table cites. So name it:
+**`/product-workflows:prd-proposal <SLICE-KEY>` prices this slice, and it can now cite the customer's
+own frozen decisions.** It is offered in prose rather
 than as a fifth option because the array is full at four (`workflows-core:escalation-rules` §0) and the
 three advance options are the route's actual handover, which an optional, ungated document must not
 displace. It carries no merge wait: `/product-workflows:prd-proposal` gates on `prd.md`, which this run

@@ -14,8 +14,10 @@ One source tree, shared snippets, working cross-links. Two builds over that one 
 
 | Build | Config | What it contains | Output |
 |---|---|---|---|
-| **public** | `mkdocs.yml` | everything except `internal/`, dropped by `exclude_docs` (gitignore-style patterns, MkDocs 1.6+) | `site/` |
-| **internal** | `mkdocs.internal.yml` | everything, via `INHERIT: mkdocs.yml` plus the internal nav | `site-internal/` |
+| **public** | `mkdocs.yml` | every page except those under `internal/`, dropped by `exclude_docs` (gitignore-style patterns, MkDocs 1.6+) | `site/` |
+| **internal** | `mkdocs.internal.yml` | every page, via `INHERIT: mkdocs.yml` plus the internal nav | `site-internal/` |
+
+**The two configs differ only in which paths they exclude**, and neither exclusion set is empty. The public build drops `internal/` and `_snippets/`; the internal build drops `_snippets/` alone. The fragment directory is excluded from **both** because a fragment is an include and not a page: left in a build, every file under `docs/_snippets/` renders as a standalone page — an orphan in the nav, and, for an internal fragment in the public build, a leak more direct than the one gate 2 exists for. Excluding it costs nothing, because `pymdownx.snippets` reads its fragments off the filesystem rather than out of the build (`scaffold-tree.md` §5).
 
 Two outputs, two deploy targets, **two hostnames**.
 
@@ -43,7 +45,9 @@ A run that reports "the internal page is not in the public site" on the strength
 
 `pymdownx.snippets` lets a page include a file from `docs/_snippets/`. An **internal snippet included into a public page leaks its content** even though every file sits in exactly the correct directory.
 
-A path-based rule cannot catch this, because **no path is wrong**. The internal snippet is under the snippet root, the public page is outside `internal/`, the include is a legal include, and the exclusion never fires: `exclude_docs` drops files from the build, and the snippet was never a build input in its own right — it was inlined into a page that ships.
+A path-based rule cannot catch this, because **no path is wrong**. The internal snippet is under the snippet root, the public page is outside `internal/`, and the include is a legal include.
+
+**Excluding the snippet does not help, and understanding why is the whole trap.** `exclude_docs` governs what the build renders as a page; `pymdownx.snippets` reads its fragments off the **filesystem**. So `_snippets/` is excluded from both builds and every fragment is still includable — which is what makes that exclusion safe (§1) — and it is exactly why the exclusion cannot be the defence here. The fragment never ships as a page; its **content** ships, inside a page that does.
 
 Nor does a link check catch it. There is no link. There is only text that used to be in one document and is now in another.
 
@@ -155,4 +159,4 @@ The internal build runs on every PR too. It is not deployed from here, but a con
 - NEVER write an internal file, or an internal-only snippet, without the §5 marker.
 - NEVER quote the literal marker string on a page inside the built public tree.
 - NEVER write a conditional image step the resolved `images.policy` does not call for (§4).
-- NEVER let the two build configs differ by anything but the exclusion — see `scaffold-tree.md` §6.
+- NEVER let the two build configs differ by anything but their `exclude_docs` sets — see `scaffold-tree.md` §6, and note that neither set is empty.

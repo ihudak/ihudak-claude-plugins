@@ -13,8 +13,8 @@ The navigation is **product-shaped** (design D15). Diátaxis lives in each page'
 ## 1. The tree
 
 ```
-mkdocs.yml                  # public build; strict: true; exclude_docs drops internal/
-mkdocs.internal.yml         # INHERIT: mkdocs.yml + internal nav, builds everything
+mkdocs.yml                  # public build; strict: true; exclude_docs drops internal/ and _snippets/
+mkdocs.internal.yml         # INHERIT: mkdocs.yml + internal nav; excludes _snippets/ only
 .vale.ini
 docs/
   index.md                             # portal home
@@ -56,7 +56,7 @@ docs/
     architecture/
     decisions/
     runbooks/
-  _snippets/                           # pymdownx.snippets base_path
+  _snippets/                           # pymdownx.snippets base_path; excluded from BOTH builds
   assets/                              # logo, favicon, images
   stylesheets/extra.css
 .dev-workflows/
@@ -437,11 +437,11 @@ The tree names individual pages inside four sections. Each is created as a stub 
 
 ### 3.13 The three directories that get no stub
 
-`_snippets/`, `assets/` and `stylesheets/` hold no pages, and a page stub in any of them would be **built into the site** — `exclude_docs` drops `internal/` and nothing else (§5), so a stub under `docs/_snippets/` would render as a public page and `validation.nav.omitted_files` would report it as omitted from the nav.
+None of the three holds pages, and the reason differs by directory. `_snippets/` holds **fragments** — includes that are inlined into a page that has its own frontmatter — and it is excluded from both builds (§5, §6) precisely so that no fragment is mistaken for a page; a stub there would be a page-shaped file in a directory whose whole contract is that it holds none. `assets/` and `stylesheets/` hold no Markdown at all, so there is nothing for a stub to be.
 
 So their convention is stated here rather than in a file that ships:
 
-- **`_snippets/`** — reusable Markdown fragments included with `pymdownx.snippets`. A fragment intended for internal pages carries the visibility marker (`visibility.md` §5); this is the file the snippet leak travels in, and nothing else marks it. No fragment carries frontmatter — it is inlined into a page that has its own.
+- **`_snippets/`** — reusable Markdown fragments included with `pymdownx.snippets`, and excluded from both builds (§5) while staying includable, because the extension reads them off the filesystem rather than out of the build. A fragment intended for internal pages carries the visibility marker (`visibility.md` §5); this is the file the snippet leak travels in, and nothing else marks it. No fragment carries frontmatter — it is inlined into a page that has its own.
 - **`assets/`** — the logo, the favicon, and images, under `images.root` when the profile's `images.policy` is `in-repo`. One path per slot: a replacement overwrites, and never lands beside the old file under a new name. An image only internal pages may see does **not** go here — it goes under `internal/`, because `exclude_docs` drops files rather than only Markdown, and everything in `assets/` is copied into both builds whether a public page references it or not (`visibility.md` §4).
 - **`stylesheets/`** — `extra.css` and nothing else unless the brand needs it. `/docs-brand` writes here; hand edits are what a rebrand then has to reconcile.
 
@@ -485,6 +485,7 @@ markdown_extensions:
   - pymdownx.tabbed: { alternate_style: true }
 exclude_docs: |
   internal/
+  _snippets/
 validation:
   nav:
     omitted_files: warn
@@ -497,6 +498,8 @@ nav:
 
 `strict: true` plus the `validation.nav.*` settings are gate 1 (`visibility.md` §4): a public page linking into `internal/` becomes a build failure rather than a broken link a reader finds. Dropping either one retires that gate while the CI step still appears to run.
 
+**`_snippets/` is excluded while `pymdownx.snippets` keeps `base_path: [docs/_snippets]`, and that pairing is deliberate rather than contradictory.** `exclude_docs` removes a file from the **build**; the snippets extension reads its fragments from the **filesystem**. So an excluded fragment is still includable — which is MkDocs' own guidance for include files — and this is the only configuration in which the directory works as intended. Without the exclusion every fragment under `docs/_snippets/` is a `.md` file inside `docs_dir` and MkDocs therefore **renders each one as a standalone page in both builds**: every fragment becomes an orphan that `validation.nav.omitted_files` reports, and an *internal* fragment becomes a **public page** — a more direct leak than the transclusion case gate 2 exists for. State the pairing wherever it is set, because a reader who does not know it reads the exclusion as a mistake and removes it.
+
 ---
 
 ## 6. `mkdocs.internal.yml`
@@ -506,12 +509,15 @@ The internal build.
 ```yaml
 INHERIT: mkdocs.yml
 site_name: <product> (internal)
-exclude_docs: ""
+exclude_docs: |
+  _snippets/
 nav:
   # generated — the public nav plus the internal/ sections; see §4
 ```
 
-**`exclude_docs: ""` is the whole of the difference between the two builds**, and stating it here is what makes the reviewer's second checklist item checkable. A second `nav:` **source**, a different `markdown_extensions` list, or a divergent `theme` block in the internal config is a **defect, not a customisation** — two configs that differ in more than the exclusion are two sites, and the shared snippets, shared search index and working cross-links that the one-tree model buys are gone.
+**The two configs differ only in which paths they exclude** — `internal/` and `_snippets/` in the public build, `_snippets/` alone in the internal one — and stating that here is what makes the reviewer's second checklist item checkable. `_snippets/` is excluded from **both**, for the reason §5 gives: a fragment is an include, not a page, and leaving it in either build renders every fragment as a standalone page. So the internal build's exclusion is not empty, and an internal config carrying `exclude_docs: ""` is the defect, not the baseline.
+
+Everything else must match. A second `nav:` **source**, a different `markdown_extensions` list, or a divergent `theme` block in the internal config is a **defect, not a customisation** — two configs that differ in more than their exclusion sets are two sites, and the shared snippets, shared search index and working cross-links that the one-tree model buys are gone.
 
 The generated `nav:` differs, of course; that is §4 running over a larger file set, not a second source of truth.
 
@@ -556,7 +562,8 @@ The file is created either way. An absent `accept.txt` beside a `Vocab = Project
 ## 8. Hard rules
 
 - NEVER hand-edit a generated `nav:`. Change `order:` or `title:` and regenerate (§4).
-- NEVER let the two configs differ by anything but `exclude_docs` and the generated `nav:` (§6).
+- NEVER let the two configs differ by anything but their `exclude_docs` sets and the generated `nav:` (§6).
+- NEVER remove `_snippets/` from either config's `exclude_docs`, and never remove `base_path: [docs/_snippets]` to "match" it — the pairing is what makes fragments includable without rendering them (§5).
 - NEVER write a directory without its stub, and never write a stub without its "what does not belong" half (§3).
 - NEVER write a file under `internal/` without the visibility marker on its first line after the frontmatter (`visibility.md` §5).
 - NEVER put a page stub in `_snippets/`, `assets/` or `stylesheets/` (§3.13).

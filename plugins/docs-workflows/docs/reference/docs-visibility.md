@@ -10,10 +10,12 @@ There is exactly one directory of Markdown. Internal pages live under `docs/inte
 
 | Build | Config | Contains | Output |
 |---|---|---|---|
-| public | `mkdocs.yml` | everything except `docs/internal/`, dropped by `exclude_docs` | `site/` |
-| internal | `mkdocs.internal.yml` | everything, via `INHERIT: mkdocs.yml` plus the internal nav | `site-internal/` |
+| public | `mkdocs.yml` | every page except those under `docs/internal/`, dropped by `exclude_docs` | `site/` |
+| internal | `mkdocs.internal.yml` | every page, via `INHERIT: mkdocs.yml` plus the internal nav | `site-internal/` |
 
-The internal config differs from the public one by **one line** — `exclude_docs: ""` — plus a generated navigation block. That is deliberate and it is checked: two configs that differ in more than the exclusion are two sites, and the shared snippets, shared search index and working cross-links that one source tree buys are gone.
+The two configs differ **only in which paths they exclude**, plus a generated navigation block. That is deliberate and it is checked: two configs that differ in more than their exclusion sets are two sites, and the shared snippets, shared search index and working cross-links that one source tree buys are gone.
+
+Neither exclusion set is empty. The public build drops `docs/internal/` **and** `docs/_snippets/`; the internal build drops `docs/_snippets/` too. The fragment directory is excluded from both because a fragment is an include, not a page: any `.md` file inside the documentation directory is rendered as a standalone page unless something excludes it, so leaving the fragments in would give every one of them its own orphan page in both builds — and would publish an internal fragment as a public page, which is a more direct leak than the one the second gate below exists for. Excluding them costs nothing, because the snippets extension reads fragments off the filesystem rather than out of the build, so an excluded fragment is still includable.
 
 The two outputs go to two deploy targets on **two hostnames**, rather than to one host with a protected `/internal/` path. Path-prefix protection fails open — a rule that stops matching looks, from outside, exactly like no rule — while a separate host fails closed, because there is nothing at the public address to protect.
 
@@ -33,7 +35,7 @@ That is convenient while writing — you can read an internal page beside the pu
 
 Pages can include reusable fragments from `docs/_snippets/` with `pymdownx.snippets`. An internal fragment included into a public page **leaks its content while every file sits in exactly the right directory**.
 
-No path is wrong, so no path-based rule can see it. The exclusion never fires, because it drops files from the build and the fragment was never a build input on its own — it was inlined into a page that ships. A link checker sees nothing either, because there is no link: there is only text that used to be in one document and is now in another.
+No path is wrong, so no path-based rule can see it. Nor does excluding the fragment help, and the reason is the same one that makes excluding it safe: `exclude_docs` governs what the build renders as a page, while the snippets extension reads fragments off the filesystem. The fragment never ships as a page — its **content** ships, inside a page that does. A link checker sees nothing either, because there is no link: there is only text that used to be in one document and is now in another.
 
 ## The two gates
 

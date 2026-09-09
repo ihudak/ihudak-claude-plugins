@@ -43,7 +43,16 @@ Otherwise, for each recorded entry: test the pid with `kill -0`, and re-probe th
 
 ## `--stop` mode
 
-Read the same state file. Select the entry to stop: a `--port <n>` argument targets the entry recorded at that port; an `--internal` flag targets whichever entry Phase 1's own selection logic would resolve for `--internal`; with neither given and exactly one entry recorded, stop that one; with neither given and more than one entry recorded, list them and ask which to stop — the same 2–4-option `choices` shape Phase 1 uses for its own disambiguation.
+Read the same state file. Select the entry to stop:
+
+- A `--port <n>` argument targets the entry recorded at that port — resolved directly, no prompt.
+- An `--internal` flag targets whichever entry Phase 1 rung 1 would resolve for `--internal` — resolved directly, no prompt.
+- With neither given and exactly one entry recorded, stop that one — no prompt.
+- With neither given and more than one entry recorded, resolve it the same way Phase 1 step 3 resolves an ambiguous server: the state file has one entry per servable space, the same unbounded-by-schema shape, so the same cap applies. Print every recorded entry as prose above the prompt — its space and port — then:
+  - **Three or fewer entries** — `choices: ["<space-1> — port <port-1> (Recommended)", "<space-2> — port <port-2>", "<space-3> — port <port-3>"]` (2 or 3 options, matching however many are recorded).
+  - **Four or more entries** — `choices: ["<space-1> — port <port-1> (Recommended)", "<space-2> — port <port-2>", "<space-3> — port <port-3>", "Another entry from the list above — name its space or port"]`.
+
+  The typed answer is resolved against the entries just printed — never parsed out of the free text.
 
 For the selected entry: send `SIGTERM` to the recorded pid; wait up to 5 seconds for it to exit; `SIGKILL` if it has not. Remove the entry from the state file whether or not the pid was still alive — a pid already gone is stopped as far as this command is concerned, and leaving its stale entry behind is what breaks the next `--status`. Report what was stopped, or `Nothing recorded to stop for <repo>` when the file holds no matching entry.
 
@@ -75,7 +84,14 @@ Read `<repo-root>/.dev-workflows/docs-profile.yml` (`${CLAUDE_PLUGIN_ROOT}/refer
 
 1. Where an entry carries the declared `visibility` field (`public | internal` — it pairs a server with the `builds[]` entry of the same visibility, and the two-build MkDocs shape `/docs-init` scaffolds records one server per build, tagged to match), `--internal` selects the `internal`-tagged entry and its absence selects the `public`-tagged one.
 2. Where no entry carries `visibility` and the list holds exactly one entry — the ordinary case for a repo with nothing to split, including a single-space profile with no two-build scaffold behind it — use it regardless of `--internal`, and say plainly that the profile records no public/internal split for this command to honour, rather than pretending `--internal` changed anything.
-3. Where the list holds more than one entry and none carries `visibility`, ask rather than guess: a `choices` array (2–4 options, one per `space` id in the order the profile lists them, the first one recommended). The worked two-space profile (`cloud`, `self-hosted`) is exactly this case — its two servers differ by space, not by visibility, so step 1 never resolves them and step 3 asks.
+3. Where the list holds more than one entry and none carries `visibility`, ask — never guess, and never render an array sized to the list: `spaces[]` is explicitly unbounded (`docs-profile-schema.md`), so a naive one-row-per-space array is a tool call `AskUserQuestion` rejects the moment a profile records five servable spaces, not a long menu. This is the same shape `workflows-core:epic-picker` *The cap* exists for — a picker built from a directory listing, with no literal options for a static check to count — so resolve it the same way. Load the reference with `Skill(skill: "workflows-core:reference", args: "epic-picker")`; cited here as the authority rather than restated.
+
+   Print every candidate space as prose above the prompt, one line each — its `space` id and `port` — then:
+
+   - **Three or fewer entries** — the array carries them all: `choices: ["<space-1> (Recommended)", "<space-2>", "<space-3>"]` (2 or 3 options, matching however many are recorded; a one-entry list never reaches this rung — it resolves at step 2).
+   - **Four or more entries** — the array carries the first three plus the overflow option: `choices: ["<space-1> (Recommended)", "<space-2>", "<space-3>", "Another space from the list above — name its id"]`.
+
+   The typed answer is resolved against the `space` ids just printed — never parsed out of the free text (`workflows-core:epic-picker`'s closing paragraph states the same rule for its own picker). The worked two-space profile (`cloud`, `self-hosted`) reaches the three-or-fewer case: its two servers differ by space, not by visibility, so step 1 never resolves them and step 3 prints both and asks.
 
 `--port <n>`, when given, overrides the selected entry's configured `port` for this run's own reachability checks (Phases 2 and 3 test `<n>`, not the profile's recorded port); it does not rewrite the entry's `command` — a command that hardcodes its own port (a baked-in `-a 0.0.0.0:8000`, say) is reported as such rather than silently overridden.
 
@@ -132,5 +148,5 @@ End the report with a `### Next step` line, per `Skill(skill: "workflows-core:re
 - NEVER start a second server on a port that already answers as this docs site — detect and report the existing one instead (Phase 2)
 - ALWAYS say so explicitly when a port collision shifts the serving port (Phase 3) or when `public_base_url` is absent (Phase 6) — never print a URL silently that may not open
 - ALWAYS record pid/port state under the resolved repo's own `.dev-workflows/`, never under `$SPECS_PATH`
-- ALWAYS use `choices` arrays for a genuine disambiguation; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself
+- ALWAYS use `choices` arrays for a genuine disambiguation; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself. Where the candidate set is unbounded (Phase 1 step 3, `--stop` mode) — a servable-space or state-file list with no fixed count — the array is never sized to the list itself: print every candidate as prose first, then cap the array at three concrete rows plus one overflow option, per `workflows-core:epic-picker` *The cap*
 - ALWAYS reference this plugin's own bundled files with `${CLAUDE_PLUGIN_ROOT}`; the one `workflows-core` citation (`next-phase-offer`) is loaded through `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`, never by path

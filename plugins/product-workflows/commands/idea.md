@@ -292,7 +292,12 @@ repairs where `idea.md` points.
    accounts for** is §6.2's writer table: the images step 2 copied, described from their digest
    `description`, transcribed verbatim and never invented. An image the collision rule *reused*
    (byte-identical content already at the destination) is not a new frame and gets no second row; the
-   row already describing it stands. **The index is not optional**:
+   row already describing it stands. **Every placeholder this run writes is §6.2 step 4's first
+   literal, `_no description on record_`, and that is a consequence of the writer table rather than a
+   choice made here.** Step 4's second literal records a describer that looked at a file and could not
+   read it; this run copies only images `idea-reader` actually read, so a frame it accounts for
+   nowhere is always one it never looked at — which a later `/workflows-core:frames` run can still
+   describe. **The index is not optional**:
    `workflows-core:grounding-format` §6.1 makes its absence unrecoverable, so images
    written without one would be a frame set nothing can ever read. **Writing it is still not
    grounding it** — nothing here dispatches `design-grounder`, produces a `[DG#n]`, or reaches a

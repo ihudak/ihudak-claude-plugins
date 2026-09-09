@@ -507,18 +507,46 @@ Every writer runs exactly these steps, **after** whatever files it was going to 
    is that reason read forwards**: a row whose description is step 4's literal `_no description on
    record_` holds no description to preserve, so a writer that *can* obtain one replaces that row
    instead of preserving it. A writer that cannot leaves it exactly as it stands. Without this
-   exception the placeholder would be permanent, and step 4 would convert every cap and every failed
-   read into a frame nothing could ever describe.
+   exception the placeholder would be permanent, and step 4 would convert every cap into a frame
+   nothing could ever describe.
+
+   **The exception is keyed on that one literal, and step 4's other placeholder is deliberately
+   outside it.** A row reading `_could not be read: <reason>_` records a describer that *looked* and
+   failed, not a run that never looked, so it is preserved like any real description and does **not**
+   rejoin the describe set. Retrying it costs one read per run to reproduce the identical failure,
+   forever, while consuming budget a frame that could succeed would have used — and it never
+   converges, which is the property the cap's own recoverability argument rests on. A live run met
+   exactly this: three oversized exports returned to the describe set on every future run, with
+   nothing about the set having changed.
 3. **Append one row per frame this run accounts for and the index does not, in run order**, after the
    rows already present, built from that frame's description and its `Linked from` — **transcribed
    verbatim, never invented**. What a run "accounts for" is the one thing that differs per writer, and
    the table below is where each writer's answer is recorded.
 4. **A frame in the listing the run accounts for in no way still gets a row** — `—` in `Linked from`,
-   and the literal `_no description on record_` in the last column. Something the run cannot speak for
-   put that frame in the set, or a cap or a failed read stopped the run from looking at it. Omitting it
-   would rebuild the exact defect this contract exists to prevent, and inventing a description for it is
-   the inference §6.1 forbids. **Report it**, with the run's reason where it has one, so the operator
-   knows a re-run has work left.
+   and one of **two** literals in the last column. Something the run cannot speak for put that frame in
+   the set, or a cap or a failed read stopped the run from looking at it. Omitting it would rebuild the
+   exact defect this contract exists to prevent, and inventing a description for it is the inference
+   §6.1 forbids. **Report it**, with the run's reason where it has one, so the operator knows a re-run
+   has work left.
+
+   Which literal is decided by **whether a re-run would do anything different**, and nothing else:
+
+   - **`_no description on record_`** — the run **never looked**: the cap bit before this frame, the
+     frame is accounted for nowhere, or the describing agent failed for the whole set rather than for
+     this file. A re-run reaches it with a fresh budget, so step 2's exception puts it back in the
+     describe set and the set converges.
+   - **`_could not be read: <reason>_`** — the describing agent **looked at this file and could not
+     read it**: `unreadable`, `not_an_image`, `not_a_frame`. Nothing about a re-run changes that, so
+     step 2 preserves the row and the frame is not retried. The reason goes inside the literal because
+     it is the operator's whole remedy: an oversized export is re-exported smaller, a mislabelled file
+     is taken out of the set.
+
+   **A preserved failure is not a permanent one, and the report says how to clear it.** Once the file
+   itself is fixed, the way back into the describe set is to delete that row — the frame then has no
+   row at all, and step 3 appends and describes it. That is one line for an operator who has just
+   replaced the file, and it is the only thing keeping "do not retry" from meaning "never again": a
+   writer cannot tell a replaced file from the original, because nothing in the set records what it
+   read last time.
 5. **A row whose image is no longer in the listing is dropped**, and reported. The index states what the
    set holds, and a row naming a frame that is not there is a promise `design-grounder` would resolve to
    nothing. Nothing is restored and nothing is re-copied: this step reconciles an index with a directory,
@@ -533,7 +561,9 @@ Every writer runs exactly these steps, **after** whatever files it was going to 
 once, so a run stopped by a cap, an unreadable frame, or an image nothing could describe still leaves a
 **valid and complete** index — every frame in the listing carries a row — rather than a half-written
 one. What such a run leaves behind is step 4's placeholder and a report saying so; step 2's exception is
-what lets the next run finish the job.
+what lets the next run finish the job for the frames a re-run can actually reach, and step 4's second
+literal is what stops the ones it cannot from making every future run report unfinished work it can
+never finish.
 
 **What each writer accounts for.** The steps above are identical for every writer; only this differs:
 

@@ -1052,12 +1052,15 @@ only because both commands resolved that export and found nothing without it. Ne
 export any more. The test is not relaxed — its subject no longer exists.
 
 **And the commercial step, in prose — and it too depends on the route.** On the BRD route, where
-verified grounding and a settled register already exist, this specification is what takes the folder
-to tier 4, the top tier, where QA effort is sized from the authored test-case count rather than a
-ratio and the definition of done is built from the acceptance criteria
+verified grounding and a settled register already exist **and an `ard.md` is already in place**, this
+specification takes the folder to tier 4, the top tier, where QA effort is sized from the authored
+test-case count rather than a ratio and the definition of done is built from the acceptance criteria
 (`${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5): **`/product-workflows:prd-proposal <KEY>`
-prices it at the tightest range the format allows.** On the idea route neither input exists, so the
-folder stays at §5's tier-1 ceiling regardless of this specification —
+prices it at the tightest range the format allows.** Where the BRD route reached `/specify` without an
+`ard.md` — optional in this family, and so a normal state rather than an edge case — tier 3's own
+condition is unmet, and the folder stays at whatever tier its own ladder walk reaches (§5) until one
+lands, this specification notwithstanding. On the idea route neither grounding nor a settled register
+exists, so the folder stays at §5's tier-1 ceiling regardless of this specification —
 `/product-workflows:prd-proposal <KEY>` is still worth naming, but it stays indicative until the
 folder is grounded and its register settled. Either way it is optional and ungated. No merge wait:
 that command gates on `prd.md`, which this run does not write.

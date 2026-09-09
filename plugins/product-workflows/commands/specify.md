@@ -1051,6 +1051,12 @@ offers used to be withheld unless an export directory existed under the key, a t
 only because both commands resolved that export and found nothing without it. Neither reads an
 export any more. The test is not relaxed — its subject no longer exists.
 
+**And the commercial step, in prose.** A specification takes a folder to tier 4, the top tier, where QA
+effort is sized from the authored test-case count rather than a ratio and the definition of done is
+built from the acceptance criteria (`${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5):
+**`/product-workflows:prd-proposal <KEY>` prices it at the tightest range the format allows.** Optional
+and ungated. No merge wait: that command gates on `prd.md`, which this run does not write.
+
 - Consider **`/rename <PRD-ID>-<slug>-pe`** to relocate this session later.
 
 Guidance only — see `workflows-core:session-hygiene`.

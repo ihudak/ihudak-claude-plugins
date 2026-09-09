@@ -1336,6 +1336,16 @@ Where this run can go next:
 choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this slice's PRD — /product-workflows:create-prd <SLICE-KEY> (PM)", "Author this slice's architecture — /product-workflows:create-ard <SLICE-KEY> (PA, optional)", "Author this slice's specification — /product-workflows:specify <SLICE-KEY> (PE)"]
 ```
 
+**And, in prose beside the array, the one thing this run has just made possible commercially.** The
+register settling is what takes this slice from tier 1 to tier 2 — the point at which an effort
+proposal stops being indicative and becomes a document that can go to a customer
+(`${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5). So name it: **`/product-workflows:prd-proposal
+<SLICE-KEY>` prices this slice, and this run is what made it sendable.** It is offered in prose rather
+than as a fifth option because the array is full at four (`workflows-core:escalation-rules` §0) and the
+three advance options are the route's actual handover, which an optional, ungated document must not
+displace. It carries no merge wait: `/product-workflows:prd-proposal` gates on `prd.md`, which this run
+does not write.
+
 **Reconciling another BRD is on the list and not in the array**, because it is the one lateral move
 among four forward ones and this run has just finished the slice it was given. Say so in the line
 under the prompt: the list above is longer than the options, and anything on it is reachable through

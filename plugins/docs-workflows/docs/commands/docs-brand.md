@@ -56,7 +56,7 @@ Resolves the docs repo and the named code repo, walks the colour and logo preced
 
 ## See also
 
-- `/docs-workflows:docs-init` — the command `--inline` mode serves; scaffolds the docs repo this command later rebrands. Not yet a linked page in this plugin's docs tree.
+- [`/docs-init`](docs-init.md) — the command `--inline` mode serves; scaffolds the docs repository this command later rebrands, and runs this one as its own Phase 5.
 - [`/docs-profile`](docs-profile.md) — the sibling standalone-plus-`--inline` setup command this one follows the same finishing discipline as (branch, commit, drafted PR, never pushed).
 - [`/docs-serve`](docs-serve.md) — preview the branded site once the pull request above is merged.
 - [Session cost](../reference/session-cost.md) — the standalone path's fixed `docs-scaffold` / `dev` attribution, and why `--inline` never emits its own entry.

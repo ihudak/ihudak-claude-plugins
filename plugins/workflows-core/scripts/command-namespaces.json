@@ -8,6 +8,7 @@
   ],
   "docs-workflows": [
     "docs-brand",
+    "docs-init",
     "docs-profile",
     "docs-serve",
     "document",

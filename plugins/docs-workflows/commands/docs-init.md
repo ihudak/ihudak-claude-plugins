@@ -1,0 +1,323 @@
+---
+name: docs-init
+description: Scaffold a documentation repository for a project that has none — a product-shaped Material for MkDocs page skeleton with a stub in every section, two builds over one content root (public and internal), a generated nav, Vale with a seeded vocabulary, a CI workflow that runs both builds and the visibility gates, and a written docs-profile.yml that makes /docs-serve and every later docs command work on it. Refuses to scaffold over a repository that already carries a docs signal and points at /docs-profile instead. Branches before it writes, verifies the scaffold builds and lints, gates the result on an Opus scaffold review, and finishes on a drafted pull request it never pushes.
+allowed-tools: Read Write Edit Bash Glob Grep Task Skill
+---
+
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
+Scaffold a documentation repository: $ARGUMENTS
+
+`/docs-init` creates a documentation repository that **builds, serves, lints, and is profiled** — for a project that has no documentation at all. It never writes documentation content beyond the skeleton and its own explanatory stubs: what it produces is a portal shape, two working builds, a linter that will not cry wolf on day one, a CI workflow that asserts the public/internal boundary on built output, and the `.dev-workflows/docs-profile.yml` that is what makes `/docs-workflows:docs-serve` — and every later command of this family — work on the repository afterwards. **Its bulk lives in this plugin's own references and it does not restate them**: a second copy of the page tree, the stubs or the two configs is a second thing to keep in step, and this repository has paid for that mistake more than once. This command body names the entry point it is executing at each step, and the flags that vary it.
+
+**Signature:** `/docs-init [<docs-repo-path>] [--generator mkdocs-material] [--no-brand] [--public-only] [--with-pricing] [--with-compliance]`
+
+**It is the cold-start command, and its acceptance test is inverted because of that.** Every sibling in this family wants a docs repository that already **exists** — `/docs-workflows:docs-profile` to describe one, `/docs-workflows:docs-brand` to brand one, `/docs-workflows:docs-serve` to serve one. This one wants a place to **make** one, so a directory carrying a docs signal is a **stop**, not a match (design D23). An implementer who copies a sibling's ladder gets that exactly backwards, and the scaffold then refuses the one directory it was pointed at.
+
+---
+
+## Phase 0 — Resolve and validate
+
+0. **Flags.** Strip `--generator <name>` (together with the token immediately after it), `--no-brand`, `--public-only`, `--with-pricing` and `--with-compliance` from `$ARGUMENTS` wherever they appear, before reading a positional token. What remains is the optional `<docs-repo-path>`. Record each flag; they are consumed at Phases 3, 4 and 5. `--generator` accepts `mkdocs-material` and nothing else today — any other value stops with `DOCS_INIT_UNKNOWN_GENERATOR: <value> is not a generator this command can scaffold (mkdocs-material is the only one).` The flag exists so the profile's `generator` field has an author rather than a default nobody chose (D8, D9); a second generator is a new template, not a rewrite of this command.
+
+1. **Resolve the target.** Execute **`resolve-scaffold-target`** from `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/repo-resolution.md` §2 — the **inverted** form, since this command creates a docs repository rather than adopting one. Do not restate its ladder here; the entry point owns it, and §4 of that file explains why the two forms are opposite. Report which rung answered, per its own hard rule — a scaffold that quietly writes into an unexpected directory is expensive to unpick. **A `$DOCS_PATH` that carries a signal is never skipped in silence** at that ladder's rung 2: report it together with the redirect to `/docs-workflows:docs-profile` before continuing, because it is almost certainly the repository the operator meant.
+
+2. **Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline, as early as `$SPECS_PATH` is known: flush any leftover session artifacts from an earlier run, retry an artifact commit that failed to push, and settle the branch. This runs against `$SPECS_PATH` only — `git -C "$SPECS_PATH"`, never a `cd`, so the docs repo this run is about to create is untouched (§1 rule 1). Prompt-free and silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts` step skips on it. **This family creates no branch in `$SPECS_PATH`** — its deliverable is the docs repository — so this preflight only ever settles a branch that already exists; it never switches onto one this run made.
+
+3. **The target must be somewhere this command may write.** Three cases, tested in this order:
+
+   - **A git work tree** — `git -C <target> rev-parse --is-inside-work-tree` prints `true`. Record its root (`git -C <target> rev-parse --show-toplevel`); every later read and write in this run is relative to that root. `test -w <root>` must succeed, or stop: `DOCS_INIT_TARGET_NOT_WRITEABLE: <root> is not writeable.`
+   - **Absent, or an empty directory** — offer to create and initialise it:
+     ```
+     "<target> is <absent | empty>. /docs-init needs a git work tree to scaffold into."
+     choices: ["Create it and run git init (Recommended)", "Cancel — I'll point you at a different directory"]
+     ```
+     On the first, `mkdir -p <target>` where needed and `git -C <target> init`; the resolved root is `<target>` itself. On Cancel, end the run with nothing written — the emitter tail (Phases 9–11) still runs, so this run's cost is still recorded.
+   - **Anything else** — a non-empty directory that is not inside a git work tree. Stop: `DOCS_INIT_NOT_A_GIT_WORKTREE: <target> is not empty and is not inside a git work tree. Initialise it yourself (git init) and re-run, or point /docs-workflows:docs-init at an empty or absent directory.`
+
+4. **Refuse to scaffold over an existing docs repo.** Test the resolved root against the signal set in `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/repo-resolution.md` §3 — the one list both entry points share; do not re-derive it here. **One signal is enough.** Stop: `DOCS_INIT_EXISTING_DOCS_REPO: <root> already carries a documentation signal (<the signals found, named>). /docs-init scaffolds a repository that has none. Run /docs-workflows:docs-profile <root> to describe the one that is already there, or /docs-workflows:docs-brand <root> to brand it.` Scaffolding is for cold start; describing an existing repository is a different command, and writing a second `mkdocs.yml` beside someone's Docusaurus config is not a merge, it is damage.
+
+---
+
+## Phase 1 — Model routing
+
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then classify the task.
+
+`/docs-init` is **MODERATE** — mechanical scaffolding against a known template held in this plugin's own references, applied as a templated diff whose output is reviewed as a pull request before anyone relies on it. State the classification and a one-line reason. (Contrast `/docs-audit`, which is SIGNIFICANT because it reasons about what a codebase's documentation *ought* to contain; that command ships in a later increment.)
+
+**The review gate is Opus regardless of class.** D17 and D20: every artefact-writing command in this family passes a high-tier review with no tiering by unit, and a MODERATE classification lowers which model plans and executes, never which model reviews. Record a `model_routing` block:
+
+```yaml
+model_routing:
+  classification: MODERATE
+  reason: "mechanical scaffolding against a known template; output reviewed as a pull request"
+  current_model: <the model this orchestrator is running under>
+  review_model: <the §2 Opus chain — claude-opus-5, fallback per §2 — pinned regardless of MODERATE classification, per D17/D20>
+  opus_available: true | false
+  notes: <any §2 degradation, e.g. "Opus unavailable; docs-scaffold-reviewer fell back to Sonnet 5">
+```
+
+Phase 7.5 dispatches `docs-scaffold-reviewer`, which is already pinned to Opus by its own frontmatter — no dispatch override is needed unless Opus is unavailable, in which case the fallback is announced here and again in the final report.
+
+---
+
+## Phase 2 — Source repos and toolchain preflight
+
+1. **Resolve the code repos this portal will document.** List `${REPOS_PATH:-/workspace}` one level deep for directories that are git work trees, and add any the operator named. **Confirm the set** — it is recorded in the profile and reused by `/docs-audit` and `/docs-drift` when they ship, so a wrong set here is a wrong denominator for every later coverage question. Print **every** candidate as prose above the prompt, one line each — its directory name and its `origin` slug where it has one — then:
+
+   ```
+   choices: ["Document all of the repositories listed above (Recommended)", "Name the ones to include — I'll take them from the list above", "None for now — record an empty set"]
+   ```
+
+   A typed answer is **resolved against the list just printed, never parsed out of the free text** — the rule `workflows-core:epic-picker` *The cap* states for its own directory-listing picker, and the reason the candidates are printed as prose rather than rendered as one option per repository: `${REPOS_PATH:-/workspace}` is unbounded, so an array sized to it is a tool call the harness rejects the moment a workspace holds five clones. Load that reference with `Skill(skill: "workflows-core:reference", args: "epic-picker")` where the cap's wording is wanted; it is cited here as the authority rather than restated. **The array above is fixed-arity by construction**, so no overflow row is needed: the set travels in the prose, and only the *disposition* is picked.
+
+2. **Resolve the product name and the current major version.** `<product>` is a scaffold-time substitution appearing throughout `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/scaffold-tree.md`'s stubs, and `<MAJOR>` names the `whats-new/v<MAJOR>/` directory. Propose `<product>` from the confirmed repo set (a single repo's own name, or the docs repo's directory name) and `<MAJOR>` from the newest semantic-version tag across that set (`git -C <repo> tag --list`), falling back to `1` where no repo carries one. Confirm both in one step: `choices: ["Use <product> and v<MAJOR> (Recommended)", "Let me give you the product name and major version"]`. Neither is guessed silently — both appear in the title of every page the scaffold writes.
+
+3. **Toolchain preflight.** Run the check in `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` for the tools this scaffold's own gates will invoke: `git`, `python3` and `pip` (or `uv`), `mkdocs`, and `vale`. There is no profile to derive the set from yet — this run is about to write the first one — so the required set is stated here rather than read from `commands.*`, and §2's repo-config and documented-prerequisite sources contribute nothing to an empty repository. **Prompt only when something required is missing**, with Cancel recommended, and stay silent when everything resolves. Cancelling stops the run: `DOCS_INIT_TOOLCHAIN_INCOMPLETE: <the missing tools, named>. Phase 7 cannot verify a scaffold it cannot build or lint.` Proceeding anyway is allowed and is recorded — Phase 7 will then report the verification step as unrun rather than as passed, which is the distinction `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` exists to keep.
+
+---
+
+## Phase 2.5 — Branch
+
+**The branch is created here, before Phase 3 writes a single file.** This is the family invariant — a branch is created before any file is touched — and it is placed at its own phase rather than folded into the finish because the clean-tree gate below is only meaningful *ahead* of the first write. `/docs-workflows:docs-brand` shipped the other order once and it was a Critical defect: it wrote its output, then ran a clean-tree gate that fired on its own files and recommended stashing them.
+
+1. **Resolve the branch name.** This repository has no profile yet — this run writes the first one — so there is no `branch_naming.pattern` to read, and a freshly `git init`ed tree documents no convention either. Take the prefix and the identity placeholder from `Skill(skill: "workflows-core:reference", args: "branch-naming")` §2's ladder, whose fallback prefix for this command is `docs/`, and name the branch `<prefix>/NOISSUE-docs-init` — scaffolding has no ticket, so the issue segment takes the no-issue literal. Where the resolved root is a pre-existing repository that *does* document a branch convention, follow it as written instead. Always confirm: `choices: ["Use proposed branch <name> (Recommended)", "Edit the name"]`.
+
+2. **Prepare the working tree.** `git -C <root> status --porcelain`. Nothing of this run has written anything yet, so a non-empty result here genuinely is pre-existing dirt and never this command's own output: `choices: ["Stash changes and continue (Recommended)", "Proceed anyway — pre-existing changes will appear in the diff", "Cancel"]`. Base the branch on the repository's default branch where one exists (`git -C <root> symbolic-ref --short refs/remotes/origin/HEAD`, falling back to `main` then `master`): `switch` + `pull --ff-only`, then `switch -c <name>`. On a repository this run just `git init`ed there is no default branch and no remote, and HEAD is unborn — `switch -c <name>` is correct there and no fetch is attempted.
+
+**Cancel here ends the run with nothing written**: skip Phases 3 through 8 entirely and go straight to Phase 8.5's report, which states plainly that Phase 2.5 was cancelled. The emitter tail (Phases 9–11) still runs, so this run's cost and any feedback are still recorded.
+
+---
+
+## Phase 3 — Scaffold
+
+Execute, in order, the entry points of `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/scaffold-tree.md` — **the tree** (§1), **the stubs** (§3), **nav generation** (§4) and **the mkdocs configs** (§5 and §6) — and of `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/visibility.md` — **the marker convention** (§5) and **the CI workflow** (§6). Everything those files fix is theirs: the directories, what each stub says and does not say, the frontmatter each carries, the nav sort rule, both configs, and the workflow's steps. **What this phase owns is which of them run and what the substitutions resolve to.**
+
+1. **The flags that vary the tree.** `--public-only` omits `mkdocs.internal.yml`, the whole `docs/internal/` tree, and — from the CI workflow — both the `Build internal site` step and gate 2. The build step would invoke a config that does not exist, and there is no internal build to separate, so the marker gate has nothing to assert and writing it would leave a step that can never fail. `--with-pricing` adds `discover/pricing.md`; `--with-compliance` adds `discover/accessibility.md` and `discover/security.md`. `integrations/` is written when the confirmed Phase 2 repo set gives the portal integrations to document — that set answers it, not a flag. Everything else in §1 is unconditional: a portal missing one of §2's sections is missing it, not customised.
+
+2. **The substitutions.** `<product>` and `<MAJOR>` come from Phase 2 step 2. Every one of them is resolved before a file is written — a stub shipping a literal `<product>` in its title is a defect the reviewer will find and the reader would have found first.
+
+3. **The visibility marker.** Every file under `docs/internal/`, and every snippet intended for internal pages, carries `visibility.md` §5's marker as its first line after the frontmatter. **A public page never carries it, not even quoting it in prose**: gate 2 greps the literal string over the built public tree, so a page explaining the convention would fail the build that ships it. Under `--public-only` there is no `internal/` tree and no marker is written anywhere.
+
+4. **The CI workflow, and the one substitution that must be resolved live.** Write `.github/workflows/docs.yml` from `visibility.md` §6. Its two `WRITTEN ONLY WHEN` steps are conditional on the `images.policy` Phase 6 records — see step 5. Its Vale install step carries `<VALE_VERSION>` and an asset filename as **scaffold-time substitutions, and the template says outright that they are resolved against the project's current release rather than copied from it.** Resolve them: read the current release of the Vale project (`gh release view --repo vale-cli/vale --json tagName,assets` where the `gh` CLI is available, else the project's releases page), pin the tag, and take the asset name **from that release's own asset list**, matching the runner platform the workflow declares (`ubuntu-latest` is x86-64, so the `Linux_64-bit` tarball). **Never write an asset name from memory.** A wrong one is a first-run CI failure — precisely the class the template's "every tool the workflow invokes, the workflow installs" invariant exists to remove, and a workflow that fails the first time it runs teaches the team to distrust it before it has ever caught anything. *(Verified at authoring time: the current release was `v3.20.0`, whose Linux x86-64 asset is `vale_3.20.0_Linux_64-bit.tar.gz`, at `https://github.com/vale-cli/vale/releases/download/v3.20.0/vale_3.20.0_Linux_64-bit.tar.gz`. That is a worked example of the shape, not a value to copy — resolve the current one.)* Where the release genuinely cannot be read, write the step with the substitution markers left in place and say so in the Phase 8.5 report, so a human resolves it before the workflow first runs; **inventing a filename is never the fallback.**
+
+5. **The two policy-conditional CI steps, written per `visibility.md` §4.** They are **policy-exclusive, not additive**, and each is *omitted* rather than disabled when the policy does not call for it: a step that cannot fail teaches a reviewer that the gate set is complete when it is not. Read the policy Phase 6 is about to record and write the step it calls for. On every `/docs-init` run that policy is `in-repo` — this command writes no other (Phase 6) — so in practice the **size-budget step is written** and **gate 3 is not**. The step is still written against the policy rather than against that constant, because `visibility.md` §4 owns the rule and the same repository, after a later policy edit, meets one rule rather than two. **Both halves of the size-budget step come from the profile**: the path is `images.root` and the threshold is `images.max_bytes` rendered as a `find` size suffix. `scripts/check-image-prefix.sh`, which gate 3 invokes, belongs to the **scaffolded repository** and is written beside the workflow under `object-store` or `cdn` only — it is not a file of this plugin and must never be looked for in one.
+
+6. **Nothing outside the resolved root is written.** Not the code repositories Phase 2 confirmed, not `$DOCS_PATH` when the ladder answered elsewhere, and not the current working directory when it is neither.
+
+---
+
+## Phase 4 — Vale
+
+Execute **the vale config** (§7) of `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/scaffold-tree.md`: write `requirements-docs.txt`, write `.vale.ini`, run `vale sync` to download the packages `.vale.ini` names, and create `styles/config/vocabularies/Project/accept.txt`.
+
+**The vocabulary file is created either way.** `/docs-audit` is what seeds it from the domain nouns it extracts, and that command ships in a later increment — so in this one the file is always created carrying §7's placeholder comment and nothing else. An absent `accept.txt` beside a `Vocab = Project` line is a configuration error; an empty one with a comment is a working configuration and an invitation. Seeding matters because without it every product noun is a spelling error on day one, the first lint returns dozens of findings that are all wrong, and the team turns Vale off in week two.
+
+A `vale sync` that fails is **reported, not worked around** — it is Phase 7 step 3's problem to surface, and the fix is never to delete the `Packages` line that made it fail.
+
+---
+
+## Phase 5 — Branding
+
+Unless `--no-brand`, run `/docs-workflows:docs-brand --inline` over the repository this run just scaffolded.
+
+**Pass the resolved docs-repo root as the positional token, explicitly.** That is `/docs-brand`'s own `--inline` contract: it becomes rung 1 of that command's `resolve-docs-repo` ladder, so the ladder never runs an independent search that could resolve somewhere other than the repository this run has open. Where Phase 2 confirmed **exactly one** code repository, pass it as `--from <path>` too, reusing what this run already resolved; where it confirmed several or none, omit `--from` and let that command's own rungs resolve it — its contract provides for exactly that.
+
+```
+/docs-workflows:docs-brand <resolved-docs-repo-root> [--from <the one confirmed code repo>] --inline
+```
+
+`--inline` skips that command's own preflight, its own branch, its own review gate, its own pull request and its own emitter tail, and returns **its diff and its contrast finding**. Both belong to this run: the diff joins Phase 7.5's single review, and the contrast finding — whether it passed or failed — is carried into Phase 8's pull-request draft and Phase 8.5's report, so a reviewer sees a confirmed-failing colour before it ships. **It emits no cost entry of its own**; its spend belongs to this run's Phase 11 entry, and emitting on both paths would double-count one run.
+
+`--no-brand` skips this phase entirely. The scaffold's theme is then Material's own default palette, which builds and serves perfectly well — `/docs-workflows:docs-brand` can be run standalone against the repository at any later point, which is the whole reason it is a command as well as a phase (D14).
+
+---
+
+## Phase 6 — Profile
+
+Write `.dev-workflows/docs-profile.yml` in the resolved root, conforming to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`. That file fixes every field and its rules; what this phase fixes is the shape a scaffolded repository takes.
+
+- **`generator: mkdocs-material`** — informational. No consumer branches on it; every build, lint and serve invocation goes through `commands.*` and `dev_servers.*` regardless, which is what makes the generator choice reversible behind the profile (D9).
+- **`repo.name`** — the docs repo's `origin` slug where it has one, else its directory name.
+- **`spaces[]`** — exactly one entry, `content_root: docs`, `snippet_root: docs/_snippets`. One content root is the whole basis of the two-build model; a second space here would break the rule that a page belongs to whichever entry's `content_root` prefixes its path.
+- **`builds[]`** — the two builds over that one root: `{id: public, config: mkdocs.yml, out: site, visibility: public}` and `{id: internal, config: mkdocs.internal.yml, out: site-internal, visibility: internal}`, each with its `--strict` build command. **`out: site-internal` must agree with `mkdocs.internal.yml`'s own `site_dir`** — the reviewer cross-checks the two, and a disagreement is the failure where both builds write to `site/` and gate 2 greps the wrong tree. Under `--public-only` only the public entry is recorded.
+- **`dev_servers.servers[]`** — one entry per build, each tagged with the matching `visibility`, bound to `0.0.0.0` and on distinct ports. That tagging is exactly what lets `/docs-workflows:docs-serve` honour a `--internal` selection without re-deriving it from a command string. Under `--public-only` only the public server is recorded. `public_base_url` is **not** invented: leave it unset, and `/docs-serve` reports the in-container URL with an explicit caveat until someone records the real mapping.
+- **`commands.build` and `commands.lint`** — the public build and `vale docs/`, so the existing style gate and every consumer that reads a flat command find one.
+- **`images:`** — the structured block: `policy: in-repo`, `root: docs/assets`, `max_bytes: 307200`. **`in-repo` is what this command writes, and it offers no alternative** (D16's scaffold default): adopting an object store or a CDN is an infrastructure decision, with a bucket to secure, back up and pay attention to, and a scaffold must not take it on a project's behalf. It is reversible — switching later is a profile edit plus a rewrite of the affected image references — so the default is a starting point, not a trap. `public_prefix` and `internal_prefix` belong to the other two policies and are therefore not written here.
+- **`frontmatter.*`** — pointers to the `docs-frontmatter` skill and to this plugin's changelog and default-owners files. Pointers only; never a copy of the rules.
+
+**The profile and the CI workflow have to agree**, and they are written one phase apart precisely so this is checkable: Phase 3 step 5 wrote whichever image step this policy calls for, and `docs-scaffold-reviewer` dimension 6 reads `images.policy` from this file before judging that step. A profile edited later without the workflow is how a size budget starts scanning a directory that holds nothing.
+
+---
+
+## Phase 7 — Verify the scaffold
+
+**A scaffold that cannot build is not a scaffold.** Four steps, in this order:
+
+1. `mkdocs build --strict -f mkdocs.yml` succeeds — the public build. This step **is** gate 1: `strict: true` plus the `validation.nav.*` settings are what make a public page linking into `internal/` a build failure rather than a broken link a reader finds.
+2. `mkdocs build --strict -f mkdocs.internal.yml` succeeds — the internal build. **Skipped under `--public-only`**, where there is no second config; recorded as not applicable rather than as passed.
+3. `vale docs/` runs and returns. Findings are **informational at this stage** — a fresh portal of stubs will produce some, and that is not a failure. What must not happen is the run erroring on *configuration*: an unsynced package, an unresolvable style, a missing `accept.txt`.
+4. The visibility gate passes against the **public build output** — `visibility.md` **the gates** (§4), gate 2: the marker string appears nowhere under `site/`. Skipped under `--public-only`, where no marker was written. **Never confirmed from the dev server**: as of MkDocs 1.6 `exclude_docs` does not apply to `mkdocs serve`, so what you see locally is not what ships, and an observation made there has confirmed nothing (`visibility.md` §2).
+
+**A failure at any step is reported and left unfixed rather than worked around. That is a rule, not advice.** Do not relax `--strict`, do not drop a `validation.nav` key, do not delete or exclude the page that failed, and do not edit `.vale.ini` to silence a configuration error. Record the failing step, its output, and the step number in the run state; carry it into Phase 7.5's brief so the reviewer sees it, into Phase 8's pull-request draft so a human sees it before merging, and into Phase 8.5's report. The run continues — the branch and the diff exist and are worth reviewing — but nothing downstream may describe this scaffold as verified.
+
+---
+
+## Phase 7.5 — Review gate
+
+The scaffold **is code** — two build configs, a CI workflow, `.vale.ini`, a generated `nav:` and, where Phase 5 ran, theme CSS — so it is reviewed as code (D17). Dispatch `docs-scaffold-reviewer`, pinned to Opus by its own frontmatter:
+
+→ Agent (subagent_type: "docs-workflows:docs-scaffold-reviewer"):
+  > "Review the documentation-repository scaffold written by this run:
+  >
+  > Task description: [/docs-init run — a fresh Material for MkDocs scaffold at <root>, <with | without> a --inline /docs-brand diff folded in, flags: <the flags this run carried>]
+  > Written file paths: [absolute paths of every file Phases 3–6 wrote: mkdocs.yml, mkdocs.internal.yml (absent under --public-only), .vale.ini, styles/config/vocabularies/Project/accept.txt, requirements-docs.txt, .github/workflows/docs.yml, docs/stylesheets/extra.css, scripts/check-image-prefix.sh where the policy called for it, and every asset Phase 5 copied]
+  > docs_tree: [Glob docs/** in the resolved root]
+  > profile: [the .dev-workflows/docs-profile.yml Phase 6 wrote]
+  > Phase 7 verification: [each of the four steps with its outcome — passed, failed with its output, or not applicable and why]
+  > Not applicable this run: [under --public-only: dimension 2 in full (there is one config, so there is no parity relationship to check), dimension 1's internal-nav half, and dimension 5's second-build and marker-gate halves — the internal build and gate 2 are absent by design, not missing. Report each as 'N/A — --public-only', never as a defect. Under --no-brand: nothing theme-related was written this run.]"
+
+**Tell the reviewer what `--public-only` makes inapplicable rather than letting it report a missing internal build as a defect.** Its checklist is fixed and it will otherwise check every item; an absent `mkdocs.internal.yml` looks exactly like a dropped one from inside the diff.
+
+**Its second dimension reads an itemisation, not key-level identity.** The two configs legitimately differ in `exclude_docs`, `site_name`, `site_dir` and their generated `nav:` — `scaffold-tree.md` §6's "Must be identical / May differ" table is the list. Nothing in this run's own verification may contradict that: an internal `exclude_docs: ""` is the defect, not the baseline, and `site_dir: site-internal` is required rather than optional.
+
+**Triage before applying anything.** Invoke `Skill(skill: "workflows-core:reference", args: "finding-triage")` and follow it: verify each finding's own claimed consequence at the location it names, keep or dismiss with a reason that disposes of that finding's own claim, carry **survivors only** forward, and carry every dismissal into the Phase 8.5 report — a triage that reports only survivors is indistinguishable from a reviewer that found less. Where triage empties the survivor set on a non-PASS verdict, follow that reference's own disposition: surface it and let the operator settle the verdict, never silently promote it to PASS.
+
+**There is no dedicated fixer for this diff (D25) — the orchestrator applies survivors itself**, editing the named file directly and bound by `finding-triage.md`'s patch gate: fix only a defect a finding actually demonstrated, never guard state it did not show. A survivor whose fix is not a safe mechanical patch is surfaced rather than guessed at:
+
+```
+"docs-scaffold-reviewer flagged <finding> as <SEVERITY>, and the fix isn't a safe mechanical patch: <why>. How should I proceed?"
+choices: ["Describe the fix yourself — I'll apply it", "Defer — note it in the report, run continues", "Override — accept the finding as-is", "Cancel this run"]
+```
+
+A **BLOCKER** left deferred — neither fixed nor overridden — stops the run before Phase 8: `DOCS_INIT_UNRESOLVED_BLOCKER: a BLOCKER finding from docs-scaffold-reviewer was neither fixed nor overridden — resolve it and re-run.` A BLOCKER that is fixed, or explicitly overridden by the operator, proceeds. MAJOR survivors are applied the same way; MINOR and NIT are deferred to the report without a prompt. **There is no re-review cycle** — with no fixer there is no second pass to gate against: the orchestrator's direct edit is the fix, applied against the same finding it answers.
+
+---
+
+## Phase 8 — Finish
+
+Commit what Phase 2.5's branch and Phases 3–7.5 produced, then draft a pull-request message. **Never pushes, never merges** — the same discipline as `/docs-workflows:docs-profile` and `/docs-workflows:docs-brand`.
+
+1. **Commit.** `git -C <root> add` — the scaffold's own paths, enumerated, never `git add -A` at repository scope — then `git -C <root> commit -m "docs: scaffold the documentation portal (docs-init)"`. On a repository this run `git init`ed this is its first commit.
+2. **Draft the pull-request message.** Detect the host (`git -C <root> remote get-url origin`; a repository this run initialised has none, and the draft then says so and is kept for whenever a remote is added). Draft a copy-paste-ready title and body stating: the flags this run carried, the confirmed source-repo set, **every one of Phase 7's four verification steps with its outcome**, the review verdict with every applied and every dismissed finding, and — where Phase 5 ran — the contrast finding, whether it passed or failed. **Do not push, and do not open the pull request through any CLI.** Present the branch name and the drafted message for the operator.
+
+---
+
+## Phase 8.5 — Report
+
+```
+## Docs-init Report
+
+### Classification
+MODERATE — mechanical scaffolding against a known template; output reviewed as a pull request (review gate is Opus regardless, D17/D20)
+
+### Target
+Docs repo: <resolved root>  (resolved via: <which resolve-scaffold-target rung answered>; <"created and git init'ed by this run" | "pre-existing git work tree">)
+Flags: <--public-only | --no-brand | --with-pricing | --with-compliance | --generator …, or "none">
+Source repos: <the confirmed set, or "none recorded">
+Product / major: <product> / v<MAJOR>
+
+### Scaffold
+Pages written: <N>   Sections: <N>   Configs: <mkdocs.yml, mkdocs.internal.yml | mkdocs.yml only (--public-only)>
+Vale: <.vale.ini written; vale sync <succeeded | failed: reason>; accept.txt created with its placeholder comment>
+CI: .github/workflows/docs.yml — <both builds | public build only>, gate 1, <gate 2 | "gate 2 omitted: --public-only">, <"size-budget step (images.policy: in-repo)" | "gate 3 + scripts/check-image-prefix.sh (images.policy: <policy>)">
+Vale pin: <the resolved tag and asset name, or "UNRESOLVED — the substitution markers are still in the workflow; resolve them before the first CI run">
+Profile: .dev-workflows/docs-profile.yml — generator mkdocs-material, <2|1> build(s), <2|1> dev server(s), images.policy <policy>
+
+### Branding
+<the extracted values and their sources, plus every contrast ratio and its PASS/FAIL, from the --inline /docs-brand run | "skipped — --no-brand">
+
+### Verification
+1. public build --strict:   <PASS | FAIL: …>
+2. internal build --strict: <PASS | FAIL: … | N/A — --public-only>
+3. vale docs/:              <ran, N informational findings | FAILED ON CONFIGURATION: …>
+4. visibility gate 2:       <PASS | FAIL: … | N/A — --public-only>
+<Where any step failed: "Reported and left unfixed. Nothing downstream may describe this scaffold as verified.">
+
+### Review
+Verdict: <PASS | PASS WITH RECOMMENDATIONS | BLOCK, resolved | "N/A — cancelled at Phase 2.5, never reached">
+Findings: <N reviewed, M survived triage, K applied, J deferred or overridden with reason | "N/A">
+
+### Branch
+<branch name — 1 commit, NOT pushed and NOT merged | "cancelled at Phase 2.5 — no branch created, nothing written or committed">
+
+### PR draft (copy-paste)
+**Title:** <title>
+
+<body>
+
+### Next step
+[per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. On a completed run: push the drafted pull request above and merge it, then `/docs-workflows:docs-serve <root>` to look at the portal, and `/docs-workflows:docs-brand <root>` to apply a brand where `--no-brand` skipped it. `/docs-audit`, which enumerates what is missing and seeds the Vale vocabulary this run left as a placeholder comment, ships in a later increment and is named here as the next thing rather than offered. Where Phase 2.5 was cancelled, state that plainly — nothing to serve, nothing to merge — and stop there.]
+```
+
+**This offer carries no `<merge-clause>`.** `workflows-core:next-phase-offer`'s merge-clause rule applies where an offer names a downstream command whose `require-on-main` gate is fed by *this run's own artefact*. This run's deliverable is the docs repository; it creates no branch in `$SPECS_PATH`, runs neither `handoff-to-main` nor `require-on-main`, and the pull request it drafts targets a repository no `$SPECS_PATH` gate reads. `scripts/check-docs.sh` check 11 asserts the placeholder across the `/product-workflows:brd-*` and `/prd-*` families only — no `/docs-*` glob is in its scope — so nothing enforces this here; it is stated by discipline, for the next maintainer who adds a `/docs-*` offer that *does* name a fed gate.
+
+---
+
+## Phase 9 — Session maintenance & feedback
+
+Terminal phase — runs AFTER the Phase 8.5 report; NEVER interrupts an earlier phase.
+
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`):
+   > "Analyse this session and return a Lessons Learned report.
+   >
+   > Session handoff:
+   > - Command run: /docs-init
+   > - What was done: [one-paragraph summary — a portal scaffolded at <root> for <product>, N pages, which flags, whether branding ran, or cancelled at Phase 2.5 with nothing written]
+   > - Key events: [a failed verification step, an unresolvable Vale release, a missing tool the operator proceeded past, a deferred or overridden review finding, a Phase 2.5 cancellation — or 'none']
+   > - Workarounds used: [manual steps not automated by the workflow — or 'none']
+   > - Review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK, resolved | N/A — cancelled before Phase 7.5]
+   > - Test result: N/A (no tests in /docs-init; Phase 7's four verification steps are reported above)
+   > - Project root: [the resolved docs repo root]"
+2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6), passing the Lessons Learned report, `command: /docs-init`, `key: null` (this run resolves no PRD or Epic key), `source: none`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). With no PRD dir and a resolved docs repository, `feedback-emission.md` §2 tier 2's documentation branch applies: the entry lands at `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/feedback/<date>.md`, where `<docs-repo-slug>` is the resolved repo's `origin` slug or its directory name (design D19).
+3. **Surface** the persisted path (or "no plugin-facing signal — nothing persisted") as this phase's only output.
+
+ADDITIVE — this phase NEVER fails the run, NEVER commits, NEVER makes an external API call, and NEVER writes into the docs repo, a code repo, or the current working directory.
+
+---
+
+## Phase 10 — Emit follow-up tasks
+
+Terminal phase — runs AFTER Phases 8.5 and 9; NEVER interrupts an earlier phase. Invoke `Skill(skill: "workflows-core:reference", args: "followup-emission")` and execute its steps inline.
+
+1. **Collect** the qualifying follow-ups: the mandatory manual step ("push `<branch>` and open the pull request" — only where Phase 8 was reached), any failing Phase 7 verification step, an unresolved Vale pin, and any deferred or overridden review finding from Phase 7.5.
+2. **Filter** them with the reference's §6 qualifying predicate.
+3. This run resolves **no PRD or Epic folder** — that reference's "no folder resolved" rung applies: report-only, kept in the Phase 8.5 report, with the one-line notice `⚠ No resolved folder — N follow-up(s) kept in this report only.`
+
+ADDITIVE — this phase NEVER fails the run, NEVER commits, and NEVER writes into the docs repo, a code repo, or the current working directory.
+
+---
+
+## Phase 11 — Session cost
+
+Terminal phase — the final operational phase; runs after Phase 10 and NEVER interrupts an earlier phase. Records this command's token-cost contribution by invoking `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and calling its single `emit-cost` entry point. **Cost ALWAYS runs — including a run that cancelled at Phase 2.5, and including one whose Phase 7 verification failed.**
+
+Call `emit-cost` with `command: /docs-init`, `phase: docs-scaffold`, `role: dev` — a **fixed** pair (`workflows-core:cost-emission` §7), never `inferred`. This entry covers the whole run, the `--inline` `/docs-brand` phase included: that path emits nothing of its own, precisely so one run is not counted twice. Pass `key: null`, `source: none`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). With no PRD dir and a resolved docs repository, `cost-emission.md` §8 rung 2's documentation branch applies: the entry lands at `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md` rather than in the pending queue (design D19). **Per docs repo, not one flat bucket** — a person documenting two products must still be able to answer what documenting each one cost — and the inner `dev-workflows/` names the *family*, not the plugin: renaming it per-plugin would fragment one repository's cost record across four directories.
+
+**Then write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` §1. With no PRD dir, rung 2 applies: skip the file, rely on the printed `### Next step`.
+
+**Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH` — here the documentation-run cost and feedback files above, which are §2.1's fourth path shape — commits, and pushes per §4 step 5. It NEVER touches the docs repo or a code repo; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Print its §6 outcome line here, as the run's last output — prefixed `Specs repo:`, with any guard notice repeated in full.
+
+---
+
+## Invariants (always enforced)
+
+- ALWAYS resolve the target via `resolve-scaffold-target` (`${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/repo-resolution.md` §2 — the **inverted** form) and report which rung answered; NEVER copy a sibling's signal-positive ladder, which refuses the one directory this command was pointed at
+- ALWAYS refuse to scaffold over a directory carrying ≥ 1 docs signal, and ALWAYS name `/docs-workflows:docs-profile` in the refusal — scaffolding is cold start, describing is a different command
+- ALWAYS create the branch at Phase 2.5, **before** Phase 3 writes anything — a clean-tree gate run after the first write fires on the run's own output and recommends stashing it
+- ALWAYS execute the reference entry points by name rather than restating what they fix — the tree, the stubs, nav generation, the mkdocs configs, the vale config, the marker convention and the CI workflow are `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/`'s, and a second copy is a second thing to keep in step
+- ALWAYS resolve every scaffold-time substitution before writing the file that carries it — `<product>`, `<MAJOR>`, and the Vale tag and asset name, the last of these against the project's current release and NEVER from memory; where the release cannot be read, leave the markers and say so rather than inventing a filename
+- ALWAYS write exactly one of the two policy-conditional CI steps — the size-budget step under `images.policy: in-repo`, gate 3 under `object-store` or `cdn` — and NEVER both, NEVER the wrong one, and NEVER a step whose path or threshold is hardcoded instead of read from the profile
+- ALWAYS write `site_dir: site-internal` in the internal config; without it both builds write to `site/` and gate 2 greps the internal output, failing every correct scaffold
+- NEVER let the two build configs differ in their content source — `docs_dir`, `markdown_extensions`, `theme`, `extra_css`, `validation`, or the nav-generation rule. `exclude_docs`, `site_name`, `site_dir` and the generated `nav:` are the four that may differ, and `scaffold-tree.md` §6's table is the list
+- NEVER write the visibility marker on a page inside the built public tree, and NEVER omit it from a file under `internal/` or from a snippet intended for internal pages
+- ALWAYS run Phase 7's four verification steps in order, and ALWAYS report a failure rather than working around it — no relaxed `--strict`, no dropped `validation.nav` key, no deleted page, no silenced linter; a scaffold that cannot build is not a scaffold
+- NEVER confirm visibility from the dev server — built output only (`visibility.md` §2)
+- ALWAYS dispatch `docs-scaffold-reviewer` at Opus (D17, D20 — no tiering by unit), ALWAYS tell it which dimensions `--public-only` makes inapplicable, and NEVER let a verification that contradicts `scaffold-tree.md` §6's "Must be identical / May differ" itemisation stand in its place
+- ALWAYS triage its findings (`workflows-core:finding-triage`) before applying anything; there is NO dedicated fixer (D25) — the orchestrator applies survivors itself, bound by the patch gate, and surfaces a survivor it cannot safely patch rather than guessing
+- ALWAYS pass the resolved docs-repo root to `/docs-workflows:docs-brand --inline` as its positional token (that command's own `--inline` contract), and NEVER let that phase emit a cost entry, open a pull request, or run a review of its own — its diff and its contrast finding join this run's single review and single pull request
+- ALWAYS use `choices` arrays for a genuine decision point; 2–4 options, and NEVER author an "Other" option — the harness supplies the free-text escape itself. Where the candidate set is unbounded (Phase 2's repository listing), print every candidate as prose first and keep the array fixed-arity over the *disposition*, resolving a typed answer against the list just printed rather than parsing it (`workflows-core:epic-picker` *The cap*)
+- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the last action (`workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths and to plugin-created branches, of which this family creates none; always `git -C "$SPECS_PATH"` and never a `cd`; never force-pushing; never failing the run
+- NEVER push or auto-merge the docs-repo branch — output a reviewable pull request (branch, commit, drafted message) for the operator to push
+- NEVER write outside the resolved docs-repo root, except for the bookkeeping paths inside `$SPECS_PATH`; NEVER write into a code repository, `$DOCS_PATH` when the ladder answered elsewhere, or the current working directory
+- ALWAYS reference this plugin's own bundled files with `${CLAUDE_PLUGIN_ROOT}`; every `workflows-core:<name>` citation is loaded through `Skill(skill: "workflows-core:reference", args: "<name>")`, never by path

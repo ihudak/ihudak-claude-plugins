@@ -261,8 +261,8 @@ through `handoff-to-main` (`workflows-core:phase-handoff` §2), behind that refe
 choice, with every file under the dated directory in the calling command's `deliverable_paths`.
 
 **Not through `workflows-core:specs-repo-git`, and the difference is not pedantry.** That reference
-owns the plugin's *bookkeeping* commit, and its §2.1 bounds staging to three path shapes, all of them
-under `dev-workflows/**` — a bundle is under none of them, so `commit-artifacts` cannot stage one and
+owns the plugin's *bookkeeping* commit, and its §2.1 bounds staging to a fixed, enumerated set of path
+shapes — a bundle matches none of them, so `commit-artifacts` cannot stage one and
 was never meant to. A reader sent to the wrong entry point finds the bundle missing from §2.1 and
 reaches for the plausible repair, which is to widen those path shapes; that would let the prompt-free
 bookkeeping step commit a customer-facing deliverable with no consent choice in front of it, which is

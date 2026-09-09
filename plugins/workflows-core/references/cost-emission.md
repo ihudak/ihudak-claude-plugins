@@ -331,6 +331,7 @@ Fixed per-command labels, with six inferred exceptions:
 | `/prompt-brainstorm` | **inferred** | **inferred** |
 | `/prompt-grill-me` | **inferred** | **inferred** |
 | `/docs-brand` | docs-scaffold | dev |
+| `/docs-init` | docs-scaffold | dev |
 
 **`/release-notes` inference (PM PRD-run vs. dev documenting-run).** The
 discriminator is the presence of **downstream engineering artifacts** — any
@@ -465,7 +466,25 @@ subdir. Walk top-down; stop at the first tier that applies:
 1. `$SPECS_PATH` writable **and** the PRD dir exists (matched by
    `$SPECS_PATH/{specs|specifications|vis}/…/<KEY>{-|_}<slug>/…`) ->
    `<PRD-dir>/dev-workflows/cost/<sid8>.md`. *[primary]*
-2. `$SPECS_PATH` writable but no PRD dir (or no key resolved) -> **pending** (§9).
+2. `$SPECS_PATH` writable but no PRD dir (or no key resolved) — two destinations,
+   and the documentation branch is tried first:
+   - **The run resolved a documentation repository** (a `docs-workflows` command
+     working against a docs repo rather than a PRD — design D19) ->
+     `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`,
+     where `<docs-repo-slug>` is that repo's git-remote slug, or its directory
+     name where it has no remote. **Per docs repo, not one flat bucket**, for the
+     same reason the PRD-directory rung exists for the pipeline: a person
+     documenting two products must still be able to answer what documenting each
+     one cost. The inner `dev-workflows/` names the *family*, not the emitting
+     plugin — see the note under tier 1 — and `specs-repo-git.md` §2.1's second
+     path shape is what stages it.
+   - **Otherwise** -> **pending** (§9).
+
+   **Why this rung is inserted before pending rather than folded into it.**
+   Documentation work frequently has no PRD and never will, so a pending entry
+   from such a run awaits a reconciliation that is never coming and accumulates
+   forever. §9's opportunistic reconciliation is built for a *keyless* run that
+   will later acquire a key; this one will not.
 3. `source = directory` (a passed directory, no `$SPECS_PATH`) -> beside that
    directory.
 4. Nothing resolvable -> **report-only** in the run output. **NEVER write into the

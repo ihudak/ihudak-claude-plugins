@@ -41,11 +41,12 @@ loop: a **run-start** flush and branch disposition (`specs-preflight`, §3) and 
 
 ### 2.1 Paths
 
-Exactly six shapes, derived from the emission ladders — three directory shapes and the three single files §2.1 names below. Nothing outside this
+Exactly seven shapes, derived from the emission ladders — four directory shapes and the three single files §2.1 names below. Nothing outside this
 set is ever staged.
 
 ```
 <specs-root>/{specs|specifications|vis}/**/dev-workflows/**   # tier 1: feedback, cost, resume.md
+<specs-root>/documentation/*/dev-workflows/**                 # the documentation run with no PRD (D19): feedback, cost
 <specs-root>/dev-workflows-feedback/**                        # feedback-emission.md §2 tier 2 (keyless runs)
 <specs-root>/dev-workflows-cost/**                            # cost-emission.md §9 pending files (keyless runs)
 <specs-root>/{specs|specifications|vis}/**/implementation.md  # implementation-format.md §1, appended by /implement
@@ -53,7 +54,11 @@ set is ever staged.
 <specs-root>/{specs|specifications|vis}/**/follow-ups.md      # followup-emission.md §2, appended per PRD/Epic folder
 ```
 
-**The fourth, fifth and sixth shapes name three files, never their folder, and the distinction is the
+**The second shape is the `docs-workflows` family's, and it exists because that family's normal run has no PRD and never will.** A documentation run against a repository nobody has written a PRD for would otherwise park every entry as *pending*, awaiting a reconciliation into a PRD directory that is never coming — so those entries accumulate forever and reconcile against nothing. The rung `feedback-emission.md` §2 and `cost-emission.md` §8 insert before pending writes instead to `<specs-root>/documentation/<docs-repo-slug>/dev-workflows/{cost,feedback}/`, where `<docs-repo-slug>` is the resolved docs repository's git-remote slug, or its directory name where it has no remote. **Per docs repo, not one flat `documentation/` bucket**, for exactly the reason the PRD-directory rung exists for the pipeline: a person documenting two products must still be able to answer what documenting each one cost. The docs repo is that family's unit of attribution.
+
+**The inner `dev-workflows/` in that path names the *family*, not the plugin — do not "correct" it per-plugin.** The shipped persistence ladder writes `<PRD-dir>/dev-workflows/cost/<sid8>.md` regardless of which plugin emitted the entry, and this shape is the same directory one level out. Renaming it to match the emitting plugin would fragment one repository's cost record across four directories and break every reader of it. **No new branch prefix goes with this shape**: §2.2's prefix authority governs branches the plugin creates *in* `$SPECS_PATH`, and the documentation family creates none there — its deliverable is the docs repository, where it branches, commits and drafts a pull request it never pushes.
+
+**The fifth, sixth and seventh shapes name three files, never their folder, and the distinction is the
 whole safety property.** All three sit in the feature folder rather than under `dev-workflows/`, because
 all three are read by *key* rather than by session — `implementation.md` is what `/document`,
 `/release-notes` and `epic-picker.md`'s ● marker read, and a record only one machine holds is a record
@@ -78,7 +83,8 @@ a verified fact. When an emission ladder changes shape, re-derive this list agai
 trusting either end. `/epics` is the deliberate contrast and stays as it is: it
 writes `epic.md` files this reference never stages, and says so in place.
 
-Sources: `feedback-emission.md` §2 tiers 1–2, `cost-emission.md` §8 tier 1 and
+Sources: `feedback-emission.md` §2 tiers 1–2 including tier 2's documentation
+branch, `cost-emission.md` §8 tier 1, tier 2's documentation branch and
 §9 pending, `followup-emission.md` §2 (where it lands, per PRD/Epic folder),
 `session-hygiene.md` §1 (resume tier 1).
 
@@ -90,7 +96,8 @@ fragile to express and to review. The procedure is:
    directory to a single `?? dir/` line, which would hide which files are being
    staged.
 2. Classify each reported path: **ARTIFACT** if it matches
-   `^(specs|specifications|vis)/.+/dev-workflows/` or `^dev-workflows-feedback/`
+   `^(specs|specifications|vis)/.+/dev-workflows/` or
+   `^documentation/[^/]+/dev-workflows/` or `^dev-workflows-feedback/`
    or `^dev-workflows-cost/` or
    `^(specs|specifications|vis)/.+/(implementation|release-notes|follow-ups)\.md$`;
    **OTHER** otherwise.

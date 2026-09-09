@@ -100,9 +100,20 @@ capture, §5). Walk the ladder top-down and stop at the first tier that applies:
    by `$SPECS_PATH/{specs|specifications|vis}/…/<KEY>{-|_}<slug>/…` →
    `<PRD-dir>/dev-workflows/<KEY>-feedback.md`. *[primary — the whole point]*
 2. **`$SPECS_PATH` writable but no PRD dir matched** (no `key`, or no
-   matching spec dir) → `$SPECS_PATH/dev-workflows-feedback/<KEY-or-date>.md` at
-   the specs-repo root. Still committed & aggregated; notice:
-   `unfiled — move under the PRD dir if it belongs to one.`
+   matching spec dir) — two destinations, and the documentation branch is tried
+   first:
+   - **The run resolved a documentation repository** (a `docs-workflows` command
+     working against a docs repo rather than a PRD — design D19) →
+     `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/feedback/<date>.md`,
+     where `<docs-repo-slug>` is that repo's git-remote slug, or its directory
+     name where it has no remote. Filed, not unfiled: the docs repo is that
+     family's unit of attribution exactly as the PRD directory is the pipeline's,
+     so there is nothing to move it under later. **Per docs repo, not one flat
+     bucket**, and the inner `dev-workflows/` names the *family*, not the
+     emitting plugin. `specs-repo-git.md` §2.1's second path shape stages it.
+   - **Otherwise** → `$SPECS_PATH/dev-workflows-feedback/<KEY-or-date>.md` at
+     the specs-repo root. Still committed & aggregated; notice:
+     `unfiled — move under the PRD dir if it belongs to one.`
 3. **`source = directory`** (a passed directory, no `$SPECS_PATH`) → beside that
    directory.
 4. **Nothing resolvable** → **report-only**: keep the feedback in the run's

@@ -1,6 +1,6 @@
 # Getting started
 
-This page takes you from zero to your first successful run — install the plugin, set the environment variables it reads, and run `/document` end to end. Once you have done this once, [Workflow overview](workflow.md) shows how the three commands fit together.
+This page takes you from zero to your first successful run — install the plugin, set the environment variables it reads, and run `/document` end to end. If the project you want to document has no documentation repository at all, start with [Your first run on a project with no docs](#your-first-run-on-a-project-with-no-docs) instead. Once you have done this once, [Workflow overview](workflow.md) shows how the six commands fit together.
 
 ## Install
 
@@ -33,7 +33,7 @@ claude plugin update docs-workflows@ihudak-plugins
 
 ## What you set on your machine
 
-This plugin reads four environment variables. None is required for a direct-mode `/document` edit or for `/docs-profile`; a keyed run wants the first, and the rest degrade to a documented default or a silent skip. [Environment](reference/environment.md) has the exact resolution order and failure behaviour for each.
+This plugin reads four environment variables. None is required for a direct-mode `/document` edit, for `/docs-profile`, or for `/docs-init`; a keyed run wants the first, and the rest degrade to a documented default or a silent skip. [Environment](reference/environment.md) has the exact resolution order and failure behaviour for each.
 
 ### `SPECS_PATH`
 
@@ -49,7 +49,19 @@ A read-only clone of your shipped product documentation, defaulting to `/workspa
 
 ### `GIT_USER_INITIALS`
 
-Your branch identifier, used by the two runs that create a branch in a documentation repository — `/document` in keyed mode, and `/docs-profile`. Branch naming is repo-rule-first: each reads the target repo's own documented convention and follows it as written, and this variable only fills a name-or-initials segment where the convention asks for one.
+Your branch identifier, used by every run that creates a branch in a documentation repository — `/document` in keyed mode, `/docs-profile`, `/docs-init`, and a standalone `/docs-brand`. Branch naming is repo-rule-first: each reads the target repo's own documented convention and follows it as written, and this variable only fills a name-or-initials segment where the convention asks for one. A repository `/docs-init` has just created documents no convention yet, so there the fallback prefix and this variable are the whole of it.
+
+## Your first run on a project with no docs
+
+If there is no documentation repository yet, `/docs-init` makes one:
+
+```
+/docs-workflows:docs-init /workspace/docs
+```
+
+It resolves the target (and refuses outright if that directory already looks like a documentation repository — pointing you at `/docs-profile` instead, which is the command for one that already exists), offers to `git init` an empty or absent directory, confirms which code repositories the portal will document, branches, then writes the page skeleton, both build configs, `.vale.ini` with a seeded vocabulary, a CI workflow carrying the visibility gates, and `.dev-workflows/docs-profile.yml`. It runs `/docs-brand --inline` to pick up a logo and colours from the product's own code, verifies that both builds and the linter actually work, gates the whole diff on an Opus review, and leaves it on a branch with a drafted pull request. It never pushes and never merges.
+
+Then `/docs-workflows:docs-serve` opens the result in a browser, and `/document` starts filling it in. Skip straight to the next section if your documentation repository already exists.
 
 ## Your first run
 

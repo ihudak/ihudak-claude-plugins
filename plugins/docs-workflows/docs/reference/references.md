@@ -10,7 +10,7 @@ The accounting a documentation run keeps about what it actually verified, and th
 
 - `gate-ledger.md` — the six verification-gate outcomes (`RAN` / `DEGRADED` / `FAILED` / `UNAVAILABLE` / `SKIPPED_BY_USER` / `NOT_APPLICABLE`), the rule that no outcome is orchestrator-assignable to mean "I decided not to run this", the per-mode gate registry, the `UNAVAILABLE` conversion prompt, and the reviewer contract; consumed by `/document` and by the agents whose gates it registers.
 - `repo-verification-gates.md` — how to extract a docs repo's own pre-PR checklist into the `repo_verification_gates` block a reviewer can check the written files against, augmenting the plugin's own gates rather than overriding them.
-- `toolchain-preflight.md` — the Phase 0 environment check `/document` runs: deriving the required tool set from the resolved profile, the repo's config signals and the repo's own documented prerequisites, the tool→gate map, and the prompt that fires only when a required tool is missing.
+- `toolchain-preflight.md` — the Phase 0 environment check `/document` and `/docs-init` run: deriving the required tool set from the resolved profile, the repo's config signals and the repo's own documented prerequisites, the tool→gate map, and the prompt that fires only when a required tool is missing.
 
 ## Git and handoff
 
@@ -35,7 +35,7 @@ The one handoff mechanic that belongs to a single command rather than to the fam
 
 Two further subtrees carry bundled guidance too large or too domain-specific to enumerate file-by-file; each is counted here instead.
 
-- `docs-profiles/` (5) — docs-profile authoring conventions for the built-in `example-docs` worked example (frontmatter, changelog, anchors, render verification, the docs-profile schema), consulted by `/docs-profile`, `/document`, and the `docs-frontmatter` skill.
+- `docs-profiles/` (5) — docs-profile authoring conventions for the built-in `example-docs` worked example (frontmatter, changelog, anchors, render verification, the docs-profile schema), consulted by `/docs-profile`, `/document`, `/docs-init` (the schema page, for the profile it writes), and the `docs-frontmatter` skill.
 - `handoff/` (2) — one input/output document-format contract per agent, read by the agent itself rather than by the dispatching command: one for `diff-summarizer`, one for `release-notes-writer`.
 
 One of these subtrees (`docs-profiles/`) also holds the data and template files named in the introduction above, so its `*.md` count here is smaller than `find <dir> -type f` would report; `handoff/` and `docs-workflow/` are markdown only, and for them the two counts agree.

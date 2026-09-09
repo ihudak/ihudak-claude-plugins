@@ -1338,10 +1338,15 @@ choices: ["Stop here — the decisions are frozen and both sweeps are recorded",
 
 **And, in prose beside the array, the one thing this run has just changed commercially.** **It is not
 the tier** — `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5 fixes *a settled register* as
-the test `/brd-package` already applies, and `/brd-package` runs before this command and gates on
-`decisions.md`; a run that reached here has a package that was built and sent, so grounding exists and
-the register was settled two commands ago. The slice was already tier 2 before this run started. What
-changed here is what an effort proposal's drivers may stand on: §8's second evidence class is a
+the test `/brd-package` already applies. **On the ordinary path that test was met before this run
+started**: `/brd-package` ran two commands ago and gated on `decisions.md`, so grounding exists, the
+register was settled, and the slice was already tier 2. **On a `--sent` run it was not.** That flag
+replaces the package gate precisely for a review answering a package this route did not build (Phase 0,
+*Resolve inputs and gate the sent package*), so `/brd-package` never ran against this slice and neither
+verified grounding nor a settled register is implied by having reached here — such a slice may still be
+below tier 2. Assert no tier on that path: §5's ladder grades the folder and `/prd-proposal` walks it,
+and this command does neither. What changed here is the same on both paths, which is why the offer
+stands on either: it is what an effort proposal's drivers may stand on. §8's second evidence class is a
 **frozen decision**, and until this run froze the customer's `[CD#n]`s there were none — so a proposal
 written now prices what the customer agreed rather than what was put to them, and its corrections,
 banners and resolved defects are on the record the driver table cites. So name it:

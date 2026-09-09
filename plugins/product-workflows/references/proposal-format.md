@@ -136,25 +136,43 @@ ceiling that minimum sets is then the ceiling in the second table.
 | **3 · Architected** | **High** for a package an `[AD#n]` covers; **Medium** for one it does not |
 | **4 · Specified** | **High** |
 
-**At tier 1 the document carries one document-level re-estimate gate, and its trigger is whatever the
-run printed as the cap** — grounding the folder where grounding is the half that is missing, settling
-a register where the folder is already ground — rather than a per-package commitment against triggers
-nobody has scheduled. Naming grounding unconditionally would write a trigger that has already fired
-into a proposal for a folder `/prd-ground` has run on, which is reachable on either route. The grade
-stays Low because Low is honest. **What does not ride on it is a prohibition** (§8).
+**At tier 1 the document carries at most one document-level re-estimate gate, and whether it carries
+one at all is decided by what capped the folder** — never a per-package commitment against triggers
+nobody has scheduled. **A gate is written only where the thing that would lift the cap has a producer
+on this folder's own route**, and the two halves of tier 2 differ on exactly that:
+
+- **Grounding is the missing half.** The gate's trigger is grounding the folder, and it has a producer
+  on either route: `commands/prd-ground.md` runs on `route: idea` as readily as on a slice. Naming
+  grounding unconditionally would instead write a trigger that has *already fired* into a proposal for
+  a folder that command has run on, which is reachable on either route.
+- **The folder is already ground and the register is the missing half.** On the BRD route the trigger
+  is settling the register, produced by `commands/brd-interview.md` and `commands/brd-reconcile.md` on
+  a slice. **On the idea route it has no producer at all, so no gate is written** — the document says
+  plainly that nothing available on this folder's route settles a register, and that the tier-1 ceiling
+  therefore stands. The idea-route limitation is **disclosed rather than mitigated** — the paragraph
+  below says so of the cap itself, and a gate is a mitigation. Writing one here would be the worse of
+  the two errors above: not a trigger that has already fired, but a customer-facing commitment to a
+  re-estimate no run on this route can ever honour.
+
+The grade stays Low because Low is honest. **What does not ride on it is a prohibition** (§8).
 
 **The brief does not render below tier 2**, irrespective of the flag: its spine is the driver
 argument, and below tier 2 that spine does not exist. A two-page pre-read explaining why a number is
 large, written when the reasons are unknown, is the one artifact this format must not produce.
 
-**An idea-route PRD caps at tier 1 by default, and that is a truthful grade rather than a defect.**
+**An idea-route PRD caps at tier 1 today, and that is a truthful grade rather than a defect.**
 **The cap rests on the register alone.** `commands/prd-ground.md` runs on `route: idea`, gating
 `prd.md` rather than a ledger, so *verified grounding* is reachable from a folder `/idea` and
 `/create-prd` built — it is the optional, ungated run that supplies that half of tier 2 on **either**
-route. What no idea-route folder can reach is the other half: a `decisions.md` is written by
-`commands/brd-interview.md` and by nothing else, and that command runs only on a BRD slice. So an
-idea-route folder that has been ground still grades tier 1, and it grades there because it holds no
-register — which is what the run prints as the cap, rather than a claim that nothing was ground. A
+route. What no idea-route folder can reach is the other half: a `decisions.md` has exactly two
+writers — `commands/brd-interview.md`, which opens the register and settles each round into it, and
+`commands/brd-reconcile.md`, which freezes the customer's `[CD#n]`s into it and writes the dependent
+BRDs' registers in its propagation sweep — **and both run only on a BRD slice**, so the cap holds for
+the same reason whichever of the two is named. So an idea-route folder that has been ground still
+grades tier 1, and it grades there because it holds no register — which is what the run prints as the
+cap, rather than a claim that nothing was ground. **The limitation is disclosed rather than
+mitigated**: the tier is printed, the brief is withheld, the driver section says outright that the
+drivers are unknown, and no re-estimate gate is written for a trigger this route does not produce. A
 code scan discovers capability; grounding asks whether a specific claim is true of a specific commit,
 and only the second can carry a driver. A tier-1 proposal is still a real document — scope, packages,
 team, schedule, a ranged number, every assumption and dependency. What it does not carry is the
@@ -421,7 +439,9 @@ against that same minimum — so one tier-1 slice withholds `proposal-brief.md` 
 **§5's tier-1 document-level gate reads here as the umbrella's own, and it names which slices**: its
 trigger is §5's own — whatever capped each of them — applied per included slice whose tier set the
 minimum and named by key, because the umbrella grades no folder of its own and an unqualified trigger
-would name nothing at this altitude. The
+would name nothing at this altitude. **§5's producerless case cannot arise here**: every included
+slice is a `PRD-` folder under a `BRD-` container, so a register-capped slice always has
+`commands/brd-interview.md` as its trigger's producer, and the gate is always writable. The
 per-package gates §6 makes mandatory at Low are declared for the `[WP#n]`s the umbrella mints of its
 own; a slice's own gates are inside that slice's row and are not restated at this altitude.
 

@@ -66,11 +66,27 @@ above … There is no fourth disposition and no 'skip on my own judgement' path 
 | the degradation-tier picker | `Full` / `Partial` / `Documents only` — the three rows of `product-workflows:bundle-packaging` §3 | `/product-workflows:brd-package` |
 | the `engagement_model` picker | `time-and-material` / `fixed-price` | `/product-workflows:prd-proposal` Phase 2, over the two shapes `product-workflows:proposal-format` §4 sections 16–18 fixes; `/product-workflows:brd-proposal` re-asks the same question over the same committed profile |
 
-**The seventh is the one whose value outlives its own run**, which is why it is here rather than left
-to the command: the answer is written to a committed `proposal-profile.yml` and read by every later
-run of both proposal commands, so a third value written through would be re-read indefinitely by two
-commands with no shape to render for it. It also has a **second route to the same field** — the
-confirmation picker's *correct a field* option — and that route is normalised the same way.
+**The seventh is the one whose value is re-read as configuration by later runs of the same commands**,
+which is why it is here rather than left to the command: the answer is written to a committed
+`proposal-profile.yml` and loaded again on every later run of **both** proposal commands, to choose
+which of `product-workflows:proposal-format` §4's two section shapes to render — so a third value
+written through would be re-read indefinitely by two commands with no shape to render for it. It is
+never consumed once and closed.
+
+**Outliving its own run is not what distinguishes it, and five rows above falsify that weaker
+property** — it was claimed here once and was wrong. Row 5's `[SR#n]` disposition is read by a later
+run of a **different** command, as the defect-remediation sweep's third source
+(`product-workflows:proposal-format` §7). Rows 1, 2 and 4 write into `decisions.md`, whose frozen
+`[VD#n]`s and `[CD#n]`s are read on later runs by `/create-prd`, `/create-ard` and `/specify`, each
+filtering them by altitude. Row 3's disposition is written onto a dependent BRD's register row and
+read there the same way. Every one of those is a **record** of what was decided, read back as evidence
+about one finding or one requirement; only the seventh is a **setting** that shapes what a later run
+renders. Row 6 alone is genuinely spent inside its run — its tier is recorded as a fact about that
+dated bundle, never reloaded to shape a later one. So check the property in every row before claiming
+one, rather than checking that the row is in the table.
+
+The seventh also has a **second route to the same field** — the proposal-profile confirmation
+picker's *Correct a field* option, in both commands — and that route is normalised the same way.
 
 **The first three are load-bearing beyond tidiness, and the reason is worth carrying.** They are the
 pickers through which a customer's authority enters the decision register, and D14 exists because

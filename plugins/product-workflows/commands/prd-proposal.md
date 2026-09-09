@@ -275,13 +275,20 @@ only hard refusal on readiness is the absent `prd.md` Phase 0 already performed.
 highest grade any package may carry at this tier (§5's second table) and say that evidence can only
 push a package lower, never higher.
 
-**Two consequences the later phases execute rather than decide:** at tier 1 the document carries one
-**document-level** re-estimate gate whose trigger is **whatever this phase just printed as the cap** —
-grounding the folder where that is the missing half, settling a register where the folder is already
-ground — rather than a per-package commitment against triggers nobody has scheduled; and the brief
-does not render below tier 2
+**Two consequences the later phases execute rather than decide:** at tier 1 the document carries **at
+most one document-level** re-estimate gate, written only where the thing that would lift the cap has a
+producer on this folder's own route — rather than a per-package commitment against triggers nobody has
+scheduled; and the brief does not render below tier 2
 irrespective of `--no-brief` (Phase 8). Both are §5's, and both are stated to the operator here so the
 shape of what they are about to receive is not a surprise at the end.
+
+**Resolve the gate's trigger from what this phase printed as the cap, and from the route** (§5's
+bullets, which own the rule — do not re-derive it here). Where **grounding** is the missing half the
+trigger is grounding the folder, on either route. Where the folder is **already ground** and the
+register is the missing half, the trigger is settling the register on the BRD route and has **no
+producer on the idea route** — so on that route no gate is written, and the document says instead that
+nothing available on this folder's route settles a register and the tier-1 ceiling stands. Print which
+of the three this run reached, so an operator can see whether a gate is coming.
 
 **An idea-route PRD caps at tier 1, and that is a truthful grade rather than a defect** (§5) — **the
 register is what caps it**, `/prd-ground` running on that route too and supplying the grounding half,

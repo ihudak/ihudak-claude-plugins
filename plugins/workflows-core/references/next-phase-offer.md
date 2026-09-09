@@ -172,9 +172,15 @@ array carries every option.
 - `/product-workflows:brd-proposal <BRD-KEY>` — **no forward advance.** The umbrella is the end of this
   branch, not a phase in the build ladder. It offers re-runs: `/product-workflows:prd-proposal
   <SLICE-KEY>` for each slice its readiness walk found stale or excluded, and itself once those land.
-- **Neither is a prerequisite for anything.** No command reads `proposal.md`, requires one, or behaves
-  differently because one exists, and no readiness tier withholds permission to begin work. These two
-  are offered *from* the pipeline and never gate *into* it.
+- **Neither is a prerequisite for the build ladder.** `/product-workflows:create-ard`,
+  `/product-workflows:specify`, `/product-workflows:epics`, `/dev-workflows:design`,
+  `/dev-workflows:implement` and `/dev-workflows:ready` each resolve the same folder and neither know
+  nor care whether it holds a proposal — none reads `proposal.md`, requires one, or behaves
+  differently because one exists, and no readiness tier withholds permission to begin work
+  (`product-workflows:proposal-format` §1). The pair's own internal read above is real and stays
+  inside the pair: `/product-workflows:brd-proposal`'s `require-on-main` against a slice's
+  `proposal.md` never reaches into the pipeline above it. These two are offered *from* the pipeline
+  and never gate *into* it.
 
 **PA — architecture (optional)**
 

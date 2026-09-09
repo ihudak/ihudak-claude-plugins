@@ -22,12 +22,12 @@ dev_servers:
       command: "pnpm cloud:start"
       port: 4000
       base_path: /docs
-      public_base_url: "http://localhost:4000"
+      public_base_url: "http://localhost:5000"
     - space: self-hosted
       command: "pnpm self-hosted:start"
       port: 4001
       base_path: /self-hosted
-      public_base_url: "http://localhost:4001"
+      public_base_url: "http://localhost:5001"
 commands:
   lint: "pnpm docs:lint"
   format: "pnpm prettier -w"

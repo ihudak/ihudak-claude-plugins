@@ -4,6 +4,32 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.6.0] — 2026-09-10
+
+Everything here is a shared contract another plugin reads, which is why the arrival of `docs-workflows`' cold-start commands (`/docs-init`, `/docs-brand`, `/docs-serve`) moves this plugin's version rather than only theirs.
+
+### Added — a bookkeeping destination for a run that has no PRD and never will (D19)
+
+`specs-repo-git.md` §2.1 gains a **fourth directory shape**, `<specs-root>/documentation/*/dev-workflows/**`, and its staging classifier gains the matching `^documentation/[^/]+/dev-workflows/` branch. `cost-emission.md` §8 and `feedback-emission.md` §2 each gain the rung that writes there, inserted **before** pending / unfiled rather than folded into it: the old ladder parked a keyless entry as *pending*, awaiting reconciliation into a PRD directory, and documentation work frequently has no PRD and never will — so those entries would have accumulated forever against a reconciliation that is never coming. The path is per docs repo (`<docs-repo-slug>` — the git-remote slug, else the directory name), because a person documenting two products must still be able to answer what documenting each one cost.
+
+Two narrownesses are deliberate and are stated where they bite. The inner `dev-workflows/` names the **family**, not the emitting plugin — the shipped ladder already writes `<PRD-dir>/dev-workflows/cost/<sid8>.md` whatever emitted it, and renaming it per plugin would fragment one repository's record across four directories. And the rung tests **which command is running** (`/docs-init`, or `/docs-brand` on its standalone path) rather than "did the run resolve a docs repo": `/document` direct mode has exactly the problem D19 describes, but its entries land in pending today and its own body says so, and moving a shipped command's bookkeeping is a behaviour change with its own migration question. Extending the rung to it is a deliberate follow-up.
+
+**No new branch prefix goes with the shape.** §2.2's prefix authority governs branches the plugin creates *in* `$SPECS_PATH`, and this family creates none there — its deliverable is the docs repository, where it branches, commits and drafts a pull request it never pushes.
+
+### Added — attribution and branch-naming rows for the new commands
+
+`cost-emission.md` §7 gains `/docs-init` and `/docs-brand`, both `phase: docs-scaffold, role: dev` — the first fixed pair this family has carried. `branch-naming.md` gains both to its consumer list, its prefix table (`docs/`) and its slug list, with `/docs-brand` marked standalone-only because an `--inline` run writes on its caller's branch and creates none. `escalation-rules.md`'s initials-fallback prompt names them among the branch-creating commands. `scripts/command-namespaces.json` gains `docs-init`, `docs-brand` and `docs-serve` — the manifest a deferred cost claim is resolved against, so a cede-and-replay across one of these commands is matched rather than dropped.
+
+### Changed — every caller count re-derived rather than incremented
+
+`specs-repo-git.md`, `cost-emission.md` and `feedback-emission.md` each carried caller counts that this increment moved. All were re-derived against the tree: twenty-eight `commit-artifacts` callers, twenty-four commands with an automatic maintenance phase, twenty-six `§7` attribution rows of which twenty-four call `emit-cost` (the two that cede the session call it never). `dependencies.md`'s description of `docs-workflows` moves from three commands and seven agents to six and eight.
+
+`skills/model-routing/SKILL.md`'s frontmatter `description` said **21** pipeline commands and enumerated them; it was already short by two before this increment (`/prd-proposal` and `/brd-proposal`) and is now **25**, enumerated in full. A skill description is what the harness matches on, so a stale enumeration there is not cosmetic.
+
+### Fixed — a retired rationale removed from three documentation pages
+
+`docs/reference/references.md` (twice) and `docs/workflow.md` still asserted that **a slash-command body cannot expand `${CLAUDE_PLUGIN_ROOT}`**, and used it as the reason both skills exist. That was verified false in a live run and is recorded as retired in `CLAUDE.md` and in the docs-workflow-family design's §20 row 3, but the three copies here survived the retirement. The reason that actually holds is unchanged and now stands alone: `${CLAUDE_PLUGIN_ROOT}` resolves to the **reading** plugin, so a sibling cannot open this plugin's `references/` by path whatever a command body can expand — which is what the loader skill is for.
+
 ## [1.5.0] — 2026-09-09
 
 ### Added — `control`, a positive control on every grounding absence claim

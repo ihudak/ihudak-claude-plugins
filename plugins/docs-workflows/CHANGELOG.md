@@ -4,6 +4,41 @@ All notable changes to the **docs-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.2.0] — 2026-09-10
+
+### Added — the cold-start scaffold: `/docs-init`, `/docs-brand`, `/docs-serve`
+
+Three commands answer the question the plugin previously could not: *there are no docs and no docs repo — what should exist?* Every existing command assumed documentation already existed, and documented a delta against it.
+
+- **`/docs-init`** scaffolds a documentation repository from nothing: a product-shaped Material for MkDocs page skeleton with a stub in every section, **two builds over one content root** (public and internal), a nav generated from frontmatter `order`, Vale with a seeded project vocabulary, a CI workflow that runs both builds and the two output-level visibility gates, and the `.dev-workflows/docs-profile.yml` every later docs command reads. It refuses to scaffold over a repository that already carries a docs signal and points at `/docs-profile` instead. It branches before it writes, verifies the scaffold builds and lints, and finishes on a **drafted** pull request it never pushes.
+- **`/docs-brand`** extracts a logo and a rough primary/accent colour pair from the product's own code — a fixed precedence over a Tailwind config, CSS custom properties, a MUI theme, a web-app manifest and SCSS/LESS variables — prints every extracted value with its file and line before applying anything, checks the pair against the WCAG 2.2 threshold pair, and copies assets into `docs/assets/` rather than linking back into the code repo. It runs standalone, or `--inline` from `/docs-init`, which folds its diff and its contrast finding into that command's own review and pull request: a rebrand never requires re-scaffolding the site.
+- **`/docs-serve`** starts, stops or checks the docs site's dev server for any profiled repo and reports a URL that actually opens from the host. It never starts a second server on a port that already answers, falls forward to the next free port on a collision and says so, and `--build` runs the profile's build command and exits. It writes no documentation and no artefact — which is why, alone in this plugin's pipeline, it runs no `specs-preflight`, no `commit-artifacts`, no review gate and no maintenance phase.
+
+### Added — `docs-scaffold-reviewer` (D25)
+
+A new Opus-pinned agent gates both scaffolding commands. `/docs-init` and `/docs-brand` write `mkdocs.yml`, a CI workflow, `.vale.ini`, a generated nav and theme CSS — code, reviewed as code (D17) — but the plugin's declared dependencies are `workflows-core` and `prose-style`, and `code-review` and `review-fixer` ship from `dev-workflows`, so nothing guaranteed they were installed: **a miss would have removed the gate silently rather than degraded a feature**. It was also the wrong reviewer on its merits — `code-review` carries a spec-conformance dimension and a captured test baseline, and a scaffold has neither. The fixer disposition is *orchestrator applies*, behind `workflows-core:finding-triage`, so there is no re-review cycle: the orchestrator's direct edit is the fix, applied against the same finding it answers.
+
+### Added — four references under `references/docs-workflow/`
+
+- `scaffold-tree.md` — the scaffold's directory tree, both `mkdocs.yml` configs with their "must be identical / may differ" table, `.vale.ini`, the CI workflow and the marker-comment convention.
+- `visibility.md` — the two-build model over one content root, both traps, and the two **output-level** gates, which assert on built HTML rather than on source paths or contributor discipline.
+- `contrast.md` (D24) — the WCAG 2.2 **SC 1.4.3** (4.5:1 body text, 3:1 large text) and **SC 1.4.11** (3:1 UI boundaries) threshold pair and the relative-luminance formula, stated here rather than loaded from `guideline-reviewers`' `accessibility.md`, which sits in a plugin nothing declares and is therefore unreachable. That file is cited as further reading and loaded by nothing.
+- `repo-resolution.md` — one docs-repo resolution ladder in two forms: **signal-positive** (`resolve-docs-repo`, for a repo that exists) and **signal-inverted** (`resolve-scaffold-target`, for a repo to create). Same variable, same `${DOCS_PATH:-/workspace/docs}` default, opposite predicate (D23) — an implementer who copies the adopting ladder verbatim gets the scaffold exactly backwards.
+
+### Changed — the docs profile records what the scaffold produces
+
+`docs-profile-schema.md` and `docs-profile.default.yml` gain `generator` (informational only — every invocation still goes through `commands.*`, which is what keeps the generator choice reversible), `builds[]` for a repo whose one content root renders into more than one output, `dev_servers.servers[].public_base_url` (a command inside a container cannot infer the host's published port mapping, so it reports this instead of guessing) and `dev_servers.servers[].visibility`. `images.policy` becomes an enum — `in-repo` (the scaffold default) / `object-store` / `cdn` — replacing a free-text sentence, with every rule that sentence carried preserved under the policy it describes, beside `images.root`, `max_bytes`, `public_prefix` and `internal_prefix`.
+
+`frontmatter-guidelines.md` gains a **reserved-keys** section (D18): `type`, `audience`, `visibility` and `unit`, reserved by this family on any docs repo it scaffolds or writes into. `docs-frontmatter`'s ownership of the schema is unchanged.
+
+### Changed — `/docs-profile` resolves through the shared ladder
+
+Its Phase 0 took the first token of `$ARGUMENTS`, else the current working directory — which in a container means it profiles wherever the shell happens to be rather than where the docs clone is mounted. It now executes `resolve-docs-repo` and reports which rung answered. Its signal-less confirmation survives as a distinct question — whether to *write a profile* for a repo showing none of the usual signals — and cites `repo-resolution.md` §3's signal set rather than re-deriving it.
+
+### Fixed
+
+`/docs-profile`'s Phase 1 justified invoking the `model-routing` skill on the ground that "slash-command bodies cannot expand `${CLAUDE_PLUGIN_ROOT}`". That was verified false in a live run. The reason that survives is the one that was always doing the work: `${CLAUDE_PLUGIN_ROOT}` resolves to the *reading* plugin, so this plugin cannot read a `workflows-core` skill or reference by path whatever a command body can expand.
+
 ## [1.1.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

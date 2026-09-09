@@ -71,9 +71,9 @@ Every file in `references/` is markdown except `cost-prices.yaml`, which is a da
 
 ## Skills
 
-Two skills ship under `skills/` — reusable guidance packaged for the `Skill` tool, distinct from a `references/` file that a command or agent reads directly by path. Both exist for the same reason: a slash-command body cannot expand `${CLAUDE_PLUGIN_ROOT}` itself, and a command or agent in a *sibling* plugin could not expand it into this plugin's tree even if it could — its own `${CLAUDE_PLUGIN_ROOT}` names the sibling. A skill invoked by namespaced name resolves the path on the caller's behalf either way.
+Two skills ship under `skills/` — reusable guidance packaged for the `Skill` tool, distinct from a `references/` file that a command or agent reads directly by path. Both exist for the same reason: `${CLAUDE_PLUGIN_ROOT}` resolves to the *reading* plugin, so a command or agent in a sibling plugin cannot expand it into this plugin's tree — its own plugin root names the sibling, and the shared corpus is not there to open. A skill invoked by its namespaced name resolves the path on the caller's behalf instead.
 
 | Skill | Invocable | What it's for |
 |---|---|---|
-| `model-routing` | No — loaded internally, at the classification step, by the pipeline commands whose bodies cannot expand `${CLAUDE_PLUGIN_ROOT}` themselves | Resolves the classification reference and hands the caller the task-complexity classification rules and the model fallback chain. |
+| `model-routing` | No — loaded internally, at the classification step, by every pipeline command in the family; all but `/frames` ship from a plugin that cannot reach this one's `references/` by path | Resolves the classification reference and hands the caller the task-complexity classification rules and the model fallback chain. |
 | `reference` | No — loaded internally, wherever a command or agent must read a shared reference or run one of its entry points | Takes a reference name and an optional entry point, and hands the caller that file's contents to follow as written. Every dependent plugin reads the corpus through it. |

@@ -162,9 +162,13 @@ the variable the run is missing, never a generic placeholder.
 
 `/brd-intake` (Phase 0 step 5), `/prd-ground` (Phase 0 step 3 for `SPECS_PATH` and Phase 0 step 7
 for `REPOS_PATH`), `/brd-split` (Phase 0 step 2), `/brd-interview` (Phase 0 step 3),
-`/brd-package` (Phase 0 step 3), `/brd-reconcile` (Phase 0 step 3) and `/frames` (Phase 0 step 1)
-cite this rule by name — for the last four, `SPECS_PATH` is the only path variable they need, since
-none of them opens a repository. Derive the set rather than trusting this list:
+`/brd-package` (Phase 0 step 3), `/brd-reconcile` (Phase 0 step 3), `/frames` (Phase 0 step 1),
+`/prd-proposal` (Phase 0 step 1) and `/brd-proposal` (Phase 0 step 1)
+cite this rule by name — for `/brd-interview`, `/brd-package`, `/brd-reconcile`, `/frames`,
+`/prd-proposal` and `/brd-proposal`, `SPECS_PATH` is the only path variable they need, since
+none of them opens a repository. **Name them rather than counting from the end of the list**: the
+clause read "for the last four" until the list grew, at which point it silently described a
+different set. Derive the set rather than trusting this list:
 `grep -rl 'Required path environment variable unset' commands/`. It is a stop, not a
 degradation: there is no "continue without it" option, because the path is where the run's inputs
 and outputs live. Other commands reproduce the same two-option list inline without naming the

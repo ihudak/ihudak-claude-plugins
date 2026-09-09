@@ -30,7 +30,7 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 
 ## Cost-attribution phases
 
-Every cost-emitting command tags its cost line with a `phase` and a `role`. Three phases are reached by this plugin's three cost-emitting commands; each entry below names the command that emits it and what being in that phase means. Six more lifecycle phases exist for the companion `product-workflows` plugin's own commands, and one more for the companion `docs-workflows` plugin's `/docs-workflows:document` — documented on their own pages, not restated here. Each of the three below can also be reached **by inheritance**: the companion `workflows-core` plugin's `/workflows-core:prompt`, `/workflows-core:feedback`, `/workflows-core:prompt-brainstorm` and `/workflows-core:prompt-grill-me` adopt the phase and role of whatever they are correcting, so a correction to a `/design` output is a second entry in `planning`.
+Every cost-emitting command tags its cost line with a `phase` and a `role`. Three phases are reached by this plugin's three cost-emitting commands; each entry below names the command that emits it and what being in that phase means. Seven more lifecycle phases exist for the companion `product-workflows` plugin's own commands, and one more for the companion `docs-workflows` plugin's `/docs-workflows:document` — documented on their own pages, not restated here. Each of the three below can also be reached **by inheritance**: the companion `workflows-core` plugin's `/workflows-core:prompt`, `/workflows-core:feedback`, `/workflows-core:prompt-brainstorm` and `/workflows-core:prompt-grill-me` adopt the phase and role of whatever they are correcting, so a correction to a `/design` output is a second entry in `planning`.
 
 ### planning
 

@@ -7,7 +7,7 @@ Ivan Gudak's open-source Claude Code plugin marketplace.
 | Plugin | Description |
 |--------|-------------|
 | [dev-workflows](plugins/dev-workflows/) | Five slash commands for design → implementation → readiness, upgrade, and vuln fixing, with Opus-backed planning and review gates. Needs `workflows-core`. [Docs](plugins/dev-workflows/docs/README.md) |
-| [product-workflows](plugins/product-workflows/) | Twelve slash commands for idea → PRD → ARD → specification, plus the six-command BRD-to-PRD route. Needs `workflows-core` and `prose-style`. [Docs](plugins/product-workflows/docs/README.md) |
+| [product-workflows](plugins/product-workflows/) | Fourteen slash commands: idea → PRD → ARD → specification, a six-command BRD-to-PRD route, effort proposals. Needs `workflows-core` and `prose-style`. [Docs](plugins/product-workflows/docs/README.md) |
 | [guideline-reviewers](plugins/guideline-reviewers/) | Two standalone commands: `/api-guideline-reviewer` reviews OpenAPI specs against bundled REST/IAM guidance; `/guideline-reviewer` reviews code/UI against bundled design-system and a11y standards. |
 | [workflows-core](plugins/workflows-core/) | Shared foundation for the workflow plugin family — addressing, git handoff, model routing, emission — plus six utility commands. [Docs](plugins/workflows-core/docs/README.md) |
 | [docs-workflows](plugins/docs-workflows/) | Documentation pipeline: `/document`, `/docs-profile`, `/release-notes`. Needs `workflows-core` and `prose-style`. [Docs](plugins/docs-workflows/docs/README.md) |

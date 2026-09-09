@@ -18,6 +18,7 @@
 | write a specification | [`/specify`](commands/specify.md) |
 | price a requirement set — work packages, hours by role, a range with its evidence | [`/prd-proposal`](commands/prd-proposal.md) |
 | roll a BRD's priced slices into one programme proposal, with its coverage computed from the ledger | [`/brd-proposal`](commands/brd-proposal.md) |
+| read an effort proposal, or know what one guarantees before sending it | [Effort proposals](reference/proposal-format.md) |
 | understand what a run cost | [Session cost](reference/session-cost.md) |
 
 Four pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets your environment variables; [Workflow overview](workflow.md) shows the whole pipeline as one diagram; [BRD workflow](brd-workflow.md) shows the second route into a PRD — from a customer-supplied BRD to a grounded, allocated, decided inventory, back out through a customer review the plugin waits on, and on into the PRD pipeline through the BRD route — as its own diagram; [Roles and phases](roles-and-phases.md) says what each role owns and hands off. Every other page below documents one command, one shared subsystem, or — for [Agents](reference/agents.md) and [References](reference/references.md) — one whole inventory.
@@ -47,6 +48,7 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [Environment](reference/environment.md) — every environment variable the plugin reads, and what it configures.
 - [Hooks](reference/hooks.md) — the bundled hook and what it does.
 - [Model routing](reference/model-routing.md) — the task-complexity classification and model fallback chain commands apply before acting.
+- [Effort proposals](reference/proposal-format.md) — the two customer-facing estimate documents: hours never money, the readiness tiers, the confidence bands, and what a cost driver may cite.
 - [Session cost](reference/session-cost.md) — how a run's dollar cost is computed, attributed, and persisted.
 - [Session feedback](reference/session-feedback.md) — two different signals about the plugin itself: this plugin's own automatic capture, and the companion plugin's `/workflows-core:feedback`, which logs what you tell it, and `/workflows-core:prompt*`, which captures a bad result, your correction, and the good result that came out of it.
 - [Resume and checkpoints](reference/resume-and-checkpoints.md) — session hygiene: checkpointing state and resuming a long-running command.

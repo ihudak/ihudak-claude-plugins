@@ -97,6 +97,7 @@ Same run, graded **tier 1 · Indicative**, ceiling **Low**. Every package is gra
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns, and what the `proposal` phase means on a cost report.
+- [Effort proposals](../reference/proposal-format.md) — the subsystem from the reader's side: hours never money, how to read a tier and a range, what a driver citation buys you, and what a revision owes the customer.
 - [`proposal-format.md`](../../references/proposal-format.md) — the canonical shape of both artifacts: the section sets, the `[WP#n]`/`[ED#n]` namespaces, the readiness tiers, the confidence grades and bands, and the closed set of evidence classes a cost driver may cite.
 - [`/create-prd`](create-prd.md) — the upstream command that authors the `prd.md` this run gates on.
 - [`/prd-ground`](prd-ground.md) — the optional, ungated run, on either route, whose verified findings are what raises a folder from tier 1 to tier 2 and what most cost drivers cite.

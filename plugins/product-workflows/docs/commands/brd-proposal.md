@@ -106,6 +106,7 @@ Same run, now including four slices. The prior umbrella is archived under `revis
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns, and what the `proposal` phase means on a cost report.
 - [`/prd-proposal`](prd-proposal.md) — the sibling that prices one slice, and whose `proposal.md` this run gates on and reads. Run it once per slice before running this.
+- [Effort proposals](../reference/proposal-format.md) — the subsystem from the reader's side: hours never money, how to read a tier and a range, and what the umbrella adds over a slice's own proposal.
 - [`proposal-format.md`](../../references/proposal-format.md) — the canonical shape of both artifacts, including §14, which owns the umbrella's row set, its three adjustments, the tier and range rules, the coverage statement and the de-duplication check with its disclosed limit.
 - [`/brd-split`](brd-split.md) — where the slices come from, and the source of the positive `brd-link.md` test this run enumerates them with.
 - [The BRD-to-PRD route](../brd-workflow.md) — the six commands that carry a customer BRD to the point where its slices can be priced.

@@ -502,9 +502,12 @@ nothing in this plugin moves a `deferred-to`, `rejected` or `superseded-by` row 
 
 ## 6. The ledger line
 
-Every `/brd-*` command's final report ends with exactly one line — as does `/prd-ground`'s, on
-`route: brd`, which cites this section for the format — so the ledger's state is visible
-without opening the file or running anything else:
+Every command of the BRD-to-PRD route ends its final report with exactly one line — the five
+`/brd-*` commands of that route, and `/prd-ground`'s too on `route: brd`, which cites this section
+for the format — so the ledger's state is visible without opening the file or running anything else.
+**The glob is not the test, and this sentence used to read as though it were**: `/brd-proposal`
+matches `/brd-*` without being a phase of the route, reads a container's ledger only to compute the
+coverage statement inside the document it writes, and prints no line here.
 
 ```
 ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)

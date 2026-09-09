@@ -219,7 +219,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
    and the round records rode with it in the run that wrote them, which is a fact about that run and
    not about the tree — a hand-committed set lands partially, which is exactly the case above.
 
-   **A register with no `[VD#n]` and no `[AS#n]` names no rounds, and this gate is silent on it** — the
+   **A register in which no record of any kind carries a `round` names no rounds, and this gate is silent on it** — the
    derived set is empty and there is nothing to require. That state reaches step 8's
    `BRD_PACKAGE_NOTHING_TO_REVIEW`, which reads it as a **finished** BRD ("every question its rounds
    asked was settled from verified findings"). That reading is right for a BRD that was interviewed

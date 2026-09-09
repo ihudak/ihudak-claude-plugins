@@ -293,7 +293,7 @@ asserted without evidence, and when it was written matters less than that the cu
 assumption recorded at PRD authoring belongs to no interview round. Giving it the last closed round's
 number would claim it was in front of whoever answered that round; giving it any *invented* value is
 worse, because **`round` is read, not just displayed** — `/brd-package` derives the set of rounds a
-BRD has from the distinct `round` values across its `[VD#n]` and `[AS#n]` records, and then requires
+BRD has from the distinct `round` values across every record in it — `[VD#n]`, `[AS#n]` and `[CD#n]` alike — and then requires
 an `interview/round-<N>.md` for each. A record carrying a value no round record answers to makes the
 BRD permanently unpackageable, which is the precise opposite of why this record exists. Omitting the
 field leaves that derivation reading exactly the rounds that happened, and `[AS#n]` records with no

@@ -792,13 +792,15 @@ Neither test is restated here, deliberately: `/brd-package` is the command that 
 run, so a second copy of either precondition sitting in this phase would drift, and the run that
 reads the drifted copy is this one. Both gates pass → `package_offerable: yes`. Step 7 fails →
 `package_offerable: rounds-unsettled`, and every question that gate named is named beside the list
-with its round and its holding state. Step 7 passes and step 8 fails → **one of two states, and they get
-different messages.** Where the BRD has no `interview/` round record at all, that command stops with
-`BRD_PACKAGE_NOT_INTERVIEWED` whatever its register holds, so this run's offer is the ordinary
-"work a round" one and never the congratulatory line below — a BRD nobody has interviewed has not
-finished anything. Otherwise → `package_offerable: nothing-to-review`, which is not a defect in this
-run: every question was settled from verified findings and the delivery team owes the customer no
-decision.
+with its round and its holding state. Step 7 passes and step 8 fails → **one of two states**, told apart by whether
+the BRD has an `interview/` round record at all. With one → `package_offerable: nothing-to-review`,
+which is not a defect in this run: every question was settled from verified findings and the delivery
+team owes the customer no decision. **Without one → `package_offerable: not-interviewed`**, which
+that command refuses with `BRD_PACKAGE_NOT_INTERVIEWED` whatever the register holds. The state is
+reachable from this run's own no-new-round path over a register holding only an `[AS#n]` that
+`/product-workflows:create-prd` wrote, and it needs its own value because none of the other three
+fits: `yes` would offer a command that stops, `rounds-unsettled` names questions this run never
+raised, and `nothing-to-review` congratulates an operator on work nobody did.
 
 **`package_offerable: yes`:**
 
@@ -813,6 +815,21 @@ refused:**
 choices: ["Stop here — this round's decisions are recorded", "Work another round now — /product-workflows:brd-interview <BRD-KEY> (the questions named above are still in a holding state the packaging step refuses)", "Re-ground a question no finding bears on yet — /product-workflows:prd-ground <BRD-KEY>", "Interview another BRD or slice"]
 ```
 
+**`package_offerable: not-interviewed` — say plainly that this BRD has never been interviewed, and
+offer the round that starts it.** The register may hold an open `[AS#n]`, which is what makes this
+state distinct from having nothing at all: that assumption still needs the interview it never had,
+because a package carries a customer's decisions against a record of what was asked and there is no
+such record here. Do not offer the packaging step; it refuses this state by name.
+
+```
+choices: ["Interview this BRD now — /product-workflows:brd-interview <BRD-KEY> (Recommended)", "Stop here — I'll come back to it", "Interview another BRD or slice"]
+```
+
+The `(Recommended)` marker is carried here where the other three lists omit it, and the difference is
+real rather than an inconsistency: those lists turn on what this run left behind and only the
+operator knows which is right, while this one names the single missing step every path out of this
+state goes through.
+
 **`package_offerable: nothing-to-review` — say plainly that this BRD is decided, and do not offer
 either the packaging step or another round of this command.** Both would stop or report a no-op: the
 packaging step on its step-8 gate, and this command because it opens a new round only where the
@@ -823,10 +840,15 @@ grounding pass, so that is what the list carries:
 choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-derive the findings against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what makes a new round askable)", "Interview another BRD or slice"]
 ```
 
-**No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
+**Three of the four lists carry no `(Recommended)` marker, and that omission is deliberate**, per the
 `When no option is safe to recommend` guidance in
-`Skill(skill: "workflows-core:reference", args: "escalation-rules")`: which one is right depends entirely on what
-this round left behind. What the gate above decides is only **whether `/brd-package` appears at
+`Skill(skill: "workflows-core:reference", args: "escalation-rules")`: on `yes`, `rounds-unsettled`
+and `nothing-to-review`, which one is right depends entirely on what
+this round left behind. **`not-interviewed` is the exception and is well-formed rather than an
+inconsistency**: that list is shown only in that state, and in it the interview is the single step
+every path out goes through — which is precisely the first bullet of that reference's
+`The (Recommended) marker is unconditional` section, where the condition gates the prompt and the
+marker is therefore a plain one. What the gate above decides is only **whether `/brd-package` appears at
 all**; it never promotes an option to recommended. A BRD both cited gates pass is ready to package;
 one either gate refuses is not — which is why it is not shown the option rather than shown it with a
 caveat. The `nothing-to-review` list carries no marker for the same reason and one of its own:

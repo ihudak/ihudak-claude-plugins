@@ -283,12 +283,13 @@ irrespective of `--no-brief` (Phase 8). Both are §5's, and both are stated to t
 shape of what they are about to receive is not a surprise at the end.
 
 **Resolve the gate's trigger from what this phase printed as the cap, and from the route** (§5's
-bullets, which own the rule — do not re-derive it here). Where **grounding** is the missing half the
-trigger is grounding the folder, on either route. Where the folder is **already ground** and the
-register is the missing half, the trigger is settling the register on the BRD route and has **no
-producer on the idea route** — so on that route no gate is written, and the document says instead that
-nothing available on this folder's route settles a register and the tier-1 ceiling stands. Print which
-of the three this run reached, so an operator can see whether a gate is coming.
+bullets, which own the rule — do not re-derive it here). Where **grounding** is missing, with or
+without the register missing beside it, the trigger is grounding the folder, on either route. Where
+the folder is **already ground** and the register is the missing half, the trigger is settling the
+register on the BRD route and has **no producer on the idea route** — so on that route no gate is
+written, and the document says instead that nothing available on this folder's route settles a
+register and the tier-1 ceiling stands. Print which of the three this run reached, so an operator
+can see whether a gate is coming.
 
 **An idea-route PRD caps at tier 1, and that is a truthful grade rather than a defect** (§5) — **the
 register is what caps it**, `/prd-ground` running on that route too and supplying the grounding half,
@@ -404,6 +405,16 @@ renders at every tier, a section with nothing to say saying so rather than being
 block carries the readiness tier beside the date, so a reader is never handed a number without being
 told what grade of evidence stands behind it (§2), and it carries the `engagement_model` from the
 profile.
+
+**Section 8 is where the tier-1 document-level re-estimate gate renders** — §5 fixes it, Phase 3
+resolved its trigger and printed it, and until it renders here the run promises the operator a gate
+the customer's document never carries. Write it as a row in section 8's own table, naming the
+document where a per-package row names its `[WP#n]`, and **beside** those rows rather than in place
+of them: §6 makes a declared gate mandatory for every Low package, and Low is the ceiling every
+package sits at here (§5). Where §5's bullets write no document-level gate at all, section 8 says so
+in the terms Phase 3 printed — that nothing available on this folder's route settles a register, and
+that the tier-1 ceiling therefore stands. **Do not re-derive which case this run is in**: §5 owns
+the rule, Phase 3 resolved it, and this phase writes what that phase reached.
 
 Three things the section list makes easy to get wrong, each stated because §4 names them and this run
 executes them:

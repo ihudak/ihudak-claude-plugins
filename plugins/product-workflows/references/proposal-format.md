@@ -81,7 +81,7 @@ tier, and a section with nothing to say says so rather than being omitted.
 | 5 | Work packages | the `[WP#n]` set — §7 |
 | 6 | Hours by package and role | the `[WP#n]` × role grid, carrying an **Expected**, a **Low** and a **High** total column per package plus a totals row and a totals column — the shape the arithmetic check reconciles in both directions |
 | 7 | Confidence and range | per package, with a stated reason; §6 |
-| 8 | Re-estimate gates | one row per `[WP#n]` carrying one, with its trigger event |
+| 8 | Re-estimate gates | one row per `[WP#n]` carrying one, with its trigger event — **and, at tier 1, the document-level row §5 fixes wherever §5's bullets write a gate at all**, in the same table, naming the document where a per-package row names its `[WP#n]`. Where §5 writes none, the section says why rather than leaving the tier-1 cap unexplained |
 | 9 | Delivery approach | how the packages sequence into deliverable increments |
 | 10 | Team composition | roles and counts, from the profile |
 | 11 | Indicative schedule | with peak concurrency, never a sum of FTEs |
@@ -141,10 +141,14 @@ one at all is decided by what capped the folder** — never a per-package commit
 nobody has scheduled. **A gate is written only where the thing that would lift the cap has a producer
 on this folder's own route**, and the two halves of tier 2 differ on exactly that:
 
-- **Grounding is the missing half.** The gate's trigger is grounding the folder, and it has a producer
-  on either route: `commands/prd-ground.md` runs on `route: idea` as readily as on a slice. Naming
-  grounding unconditionally would instead write a trigger that has *already fired* into a proposal for
-  a folder that command has run on, which is reachable on either route.
+- **Grounding is missing — whether or not the register is missing with it.** The gate's trigger is
+  grounding the folder, and it has a producer on either route: `commands/prd-ground.md` runs on
+  `route: idea` as readily as on a slice. **A folder missing both halves takes this bullet, not the
+  one below** — a fresh idea-route folder holding nothing but `prd.md` is that case and the ordinary
+  one — because grounding is the half a run on this folder's own route can actually supply, and the
+  bullet below presupposes it in its own first words. Naming grounding unconditionally would instead
+  write a trigger that has *already fired* into a proposal for a folder that command has run on,
+  which is reachable on either route.
 - **The folder is already ground and the register is the missing half.** On the BRD route the trigger
   is settling the register, produced by `commands/brd-interview.md` and `commands/brd-reconcile.md` on
   a slice. **On the idea route it has no producer at all, so no gate is written** — the document says

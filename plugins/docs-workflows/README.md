@@ -20,7 +20,7 @@ Eight agents and sixteen reference pages carry the docs-repo discovery, PR-diff 
 |------|--------------|
 | [Documentation index](docs/README.md) | The full "I want to…" lookup table, plus the command, agent, and reference inventories. |
 | [Getting started](docs/getting-started.md) | Install, environment variables, your first `/docs-profile` and `/document` runs. |
-| [Workflow overview](docs/workflow.md) | The three commands as one diagram, and the two modes of `/document`. |
+| [Workflow overview](docs/workflow.md) | The five commands as one diagram, and the two modes of `/document`. |
 | [Agents](docs/reference/agents.md) | The subagent inventory the commands dispatch internally. |
 | [References](docs/reference/references.md) | The reference-doc inventory under `references/`, and the one bundled skill. |
 | [Environment](docs/reference/environment.md) | Every environment variable the plugin reads. |

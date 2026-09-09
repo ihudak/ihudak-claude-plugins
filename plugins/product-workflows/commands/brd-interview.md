@@ -330,7 +330,13 @@ every one has one.
 - **Every round is closed, or none exists yet** → a new round is proposed **only if findings or
   decisions have changed since the last round closed**. Concretely: a `[CG#n]`/`[DG#n]` added or
   superseded since that round's record was written, a verifier outcome changed, or a decision in
-  `decisions.md` moved to `reopened` or `superseded`. Nothing changed → there is nothing a new round
+  `decisions.md` moved to `reopened` or `superseded`, **or an `[AS#n]` was recorded there by a
+  command other than this one since that round closed** — `/create-prd` writes one for a
+  customer-authority gap only PRD authoring could surface
+  (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §7), and such a record is by
+  construction something the last round did **not** have in front of it, which is exactly what this
+  test asks. It is identifiable without a writer field: its `round` reads `post-<N>`, which no round
+  of this command's own ever produces. Nothing changed → there is nothing a new round
   could ask that the last one did not already have in front of it; report that plainly, skip to the
   handoff phase with nothing to commit, and end on the ledger line. Something changed → open round
   `<highest + 1>` (round 1 when none exists), naming in its record exactly what changed and made it
@@ -808,8 +814,10 @@ choices: ["Stop here — this round's decisions are recorded", "Work another rou
 **`package_offerable: nothing-to-review` — say plainly that this BRD is decided, and do not offer
 either the packaging step or another round of this command.** Both would stop or report a no-op: the
 packaging step on its step-8 gate, and this command because it opens a new round only where the
-findings or the decisions have moved, which nothing here has done. What can move them is a fresh
-grounding pass, so that is what the list carries:
+findings or the decisions have moved, or a `[AS#n]` was recorded by another command since the last
+round closed — and this state has none of the three by construction, since it is defined by there
+being no open `[AS#n]` at all. What can move it is a fresh grounding pass, so that is what the list
+carries:
 
 ```
 choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-derive the findings against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what makes a new round askable)", "Interview another BRD or slice"]

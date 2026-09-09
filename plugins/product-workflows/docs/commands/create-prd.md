@@ -95,6 +95,8 @@ Author one from a reconciled BRD slice instead — no path, because the key reso
 
 The run resolves `EPIC-008-01`'s `PRD-` slice folder one level under `specifications/`, confirms it is a slice and not the `BRD-` container above it, checks its coverage ledger permits a PRD here at all, reads `prd-seed.md` and `decisions.md`, defaults to `--full`, and grills **only the gaps** — every `[VD#n]` and `[CD#n]` the register holds as decided is an input the interview never reopens, because the customer signed it. Open decisions and open `[AS#n]` assumptions reach the PRD as open questions under their own ids rather than being quietly settled.
 
+A gap the grill cannot close is then triaged by **who could settle it**, per the same test the interview tags by: a repository at a pinned commit means a re-grounding pass, a delivery-team trade-off means another interview round, and an authority only the customer holds is written as a new `[AS#n]` in `decisions.md`. That last one is the case worth knowing about, because PRD authoring surfaces questions nothing before it could have — a scope boundary the requirement text never drew — and `prd.md` reaches nobody who could answer them: the customer never receives it. An `[AS#n]` does reach them, automatically, because [`/brd-package`](brd-package.md) surfaces every open assumption and [`/brd-reconcile`](brd-reconcile.md) records the answer as a `[CD#n]` that supersedes it. The run writes the record and names those two commands; it never puts a question to a customer itself, and it never writes a `[CD#n]`.
+
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off at the `prd-creation` seam.

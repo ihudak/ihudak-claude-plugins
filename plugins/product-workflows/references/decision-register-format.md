@@ -276,6 +276,25 @@ party who could have said "no, it does not work like that" in a single sentence 
 one party who was never shown it. Surfacing every open assumption is what converts the cheapest
 possible correction into one the customer can actually make.
 
+**`/brd-interview` is not the only writer, and the second one is why this record exists at all.**
+An assumption is recorded wherever the delivery team first has to assert something without evidence,
+and that is not always during an interview: `/create-prd` authoring a slice's PRD reaches questions
+**only PRD authoring surfaces** — a scope boundary the requirement text never drew, a rule the
+acceptance criteria need and nobody stated — and some of them are settled by an authority only the
+customer holds (`interview-tagging.md` §2). Written into the PRD's `## Assumptions & open questions`
+alone, such a question reaches nobody: the customer never receives `prd.md`. Written as an `[AS#n]`,
+it reaches them automatically, because `/brd-package` surfaces every open one. **That is the whole
+route back, and it needs no new machinery** — which is the answer to the objection that a PRD-stage
+question has missed the interview: the assumption record was always the mechanism for a thing
+asserted without evidence, and when it was written matters less than that the customer sees it.
+
+**Its `round` names where it was recorded, not a round it was asked in.** An assumption recorded at
+PRD authoring belongs to no interview round, and giving it the number of the last closed round would
+claim it was in front of whoever answered that round. It carries `round: post-<N> — recorded at PRD
+authoring` for the highest closed round `<N>`, or `round: post-none` where no round has closed. That
+value is legible to every reader, sorts after the rounds, and cannot be mistaken for a question the
+customer has already seen.
+
 An `[AS#n]` that the customer confirms does not silently become a fact: their confirmation is a
 customer decision, entering the register as a `[CD#n]` under §1's confirmation rule (D14), with the
 assumption recorded as `superseded` by it. An `[AS#n]` the customer contradicts is `superseded` the

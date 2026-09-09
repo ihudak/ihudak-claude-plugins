@@ -137,9 +137,13 @@ ceiling that minimum sets is then the ceiling in the second table.
 | **4 · Specified** | **High** |
 
 **At tier 1 the document carries at most one document-level re-estimate gate, and whether it carries
-one at all is decided by what capped the folder** — never a per-package commitment against triggers
-nobody has scheduled. **A gate is written only where the thing that would lift the cap has a producer
-on this folder's own route**, and the two halves of tier 2 differ on exactly that:
+one at all is decided by what capped the folder** — never **§8's no-hours commitment**, attached per
+package against a trigger nobody has scheduled. **The per-package re-estimate gates themselves still
+render, and at this tier every package carries one**: the ceiling in the table above puts every
+package at Low, where §6 makes a declared gate mandatory, and §4's section 8 is the single table
+those rows and the document-level row share. What tier 1 forbids is the commitment, not the gate.
+**A document-level gate is written only where the thing that would lift the cap has a producer on
+this folder's own route**, and the two halves of tier 2 differ on exactly that:
 
 - **Grounding is missing — whether or not the register is missing with it.** The gate's trigger is
   grounding the folder, and it has a producer on either route: `commands/prd-ground.md` runs on

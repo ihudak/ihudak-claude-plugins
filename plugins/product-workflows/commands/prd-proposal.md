@@ -277,10 +277,11 @@ push a package lower, never higher.
 
 **Two consequences the later phases execute rather than decide:** at tier 1 the document carries **at
 most one document-level** re-estimate gate, written only where the thing that would lift the cap has a
-producer on this folder's own route — rather than a per-package commitment against triggers nobody has
-scheduled; and the brief does not render below tier 2
-irrespective of `--no-brief` (Phase 8). Both are §5's, and both are stated to the operator here so the
-shape of what they are about to receive is not a surprise at the end.
+producer on this folder's own route — rather than §8's no-hours commitment attached per package
+against a trigger nobody has scheduled, the per-package gates §6 mandates still rendering beside it in
+§4's section 8; and the brief does not render below tier 2 irrespective of `--no-brief` (Phase 8).
+Both are §5's, and both are stated to the operator here so the shape of what they are about to receive
+is not a surprise at the end.
 
 **Resolve the gate's trigger from what this phase printed as the cap, and from the route** (§5's
 bullets, which own the rule — do not re-derive it here). Where **grounding** is missing, with or

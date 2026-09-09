@@ -1406,9 +1406,11 @@ here.
 oversight.** Every row of `workflows-core:next-phase-offer`'s resolution table
 names a *wait*, and none of the three waits on anything this run wrote: `/create-prd`'s only
 `require-on-main` target is `idea.md` (`workflows-core:phase-handoff` row F), a
-file no `/brd-*` command writes and one the BRD route resolves no ladder for; and the
-BRD-route runs of `/create-ard` and `/specify` skip the PRD gate outright and resolve no ARD this
-run produced, so §3.4's rows for them describe a route neither is on here. That is the same class as
+file no `/brd-*` command writes and one the BRD route resolves no ladder for; and `/create-ard` and
+`/specify` both gate `prd.md` — on every route, this one included, as the option list above already
+says of them and as `workflows-core:phase-handoff` §3.4's rows for them do — but `prd.md` is not a
+file this run writes — the same derivation this phase already applies to
+`/product-workflows:prd-proposal`'s own offer — and neither resolves an ARD this run produced. That is the same class as
 the clause-free options `/product-workflows:create-prd`'s own next-step phase presents on this route — an
 option whose downstream command gates nothing the offering run produced — and not a new one. The
 three still read the BRD folder this run just wrote into, which is why the handoff above is offered

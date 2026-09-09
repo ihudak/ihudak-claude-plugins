@@ -331,7 +331,12 @@ every one has one.
   do not restart the round, and do not re-ask a question that already carries a terminal
   disposition. Re-asking a `[C]` is the case §5 singles out, and the register is the reason: two customer answers to one
   question is a contradiction one `[CD#n]` record has no way to hold.
-- **Every round is closed, or none exists yet** → a new round is proposed **only if findings or
+- **No round record exists at all** → open round 1 from the grounding, unconditionally. The change
+  test below does not apply: it reads "since the last round closed", and no round has closed. A BRD
+  whose grounding is verified and whose ledger is allocated has a first round's worth of questions in
+  it by construction (*Round 1 is generated from the grounding*, below), and refusing to ask them
+  because nothing has "changed" would leave the route with no way in.
+- **Every round is closed** → a new round is proposed **only if findings or
   decisions have changed since the last round closed**. Concretely: a `[CG#n]`/`[DG#n]` added or
   superseded since that round's record was written, a verifier outcome changed, or a decision in
   `decisions.md` moved to `reopened` or `superseded`. Nothing changed → there is nothing a new round
@@ -792,15 +797,18 @@ Neither test is restated here, deliberately: `/brd-package` is the command that 
 run, so a second copy of either precondition sitting in this phase would drift, and the run that
 reads the drifted copy is this one. Both gates pass → `package_offerable: yes`. Step 7 fails →
 `package_offerable: rounds-unsettled`, and every question that gate named is named beside the list
-with its round and its holding state. Step 7 passes and step 8 fails → **one of two states**, told apart by whether
-the BRD has an `interview/` round record at all. With one → `package_offerable: nothing-to-review`,
-which is not a defect in this run: every question was settled from verified findings and the delivery
-team owes the customer no decision. **Without one → `package_offerable: not-interviewed`**, which
-that command refuses with `BRD_PACKAGE_NOT_INTERVIEWED` whatever the register holds. The state is
-reachable from this run's own no-new-round path over a register holding only an `[AS#n]` that
-`/product-workflows:create-prd` wrote, and it needs its own value because none of the other three
-fits: `yes` would offer a command that stops, `rounds-unsettled` names questions this run never
-raised, and `nothing-to-review` congratulates an operator on work nobody did.
+with its round and its holding state. **Before either gate is consulted, test whether this BRD has an
+`interview/` round record at all; where it has none → `package_offerable: not-interviewed`.** That
+command refuses this state with `BRD_PACKAGE_NOT_INTERVIEWED` whatever the register holds, so it is
+settled here first rather than inside one of the gates' outcomes — the same lift that stop itself
+took, and for the same reason. **Keying it on the two gates gets it wrong in both directions**: a
+never-interviewed BRD holding an `[AS#n]` that `/product-workflows:create-prd` wrote *passes* step 8
+and would be offered a packaging step that stops, while one holding nothing *fails* step 8 and would
+be congratulated on work nobody did. Neither of the other three values fits it — `rounds-unsettled`
+names questions this run never raised — which is why it is a value of its own. Otherwise, step 7
+passes and step 8 fails → `package_offerable: nothing-to-review`, which is not a defect in this run:
+every question was settled from verified findings and the delivery team owes the customer no
+decision.
 
 **`package_offerable: yes`:**
 
@@ -830,6 +838,14 @@ real rather than an inconsistency: those lists turn on what this run left behind
 operator knows which is right, while this one names the single missing step every path out of this
 state goes through.
 
+**That option does not loop, and the reason is the clause immediately below.** *Resolve the round*
+proposes a new round "only if findings or decisions have changed **since the last round closed**" —
+a test with no referent where no round has ever closed, which is exactly this state. It does not
+apply here: **where the BRD holds no round record at all, round 1 opens from the grounding
+unconditionally**, which is what that branch's own "(round 1 when none exists)" means. The change
+test governs the second round onward, where there is a previous round to have had something in front
+of it.
+
 **`package_offerable: nothing-to-review` — say plainly that this BRD is decided, and do not offer
 either the packaging step or another round of this command.** Both would stop or report a no-op: the
 packaging step on its step-8 gate, and this command because it opens a new round only where the
@@ -858,8 +874,9 @@ imply this BRD is unfinished when it is not.
 `<merge-clause>` in that list is the placeholder `workflows-core:next-phase-offer`
 resolves from this run's own `Phase handoff:` outcome line; it is never written as an unconditional
 "once the pull request above is merged", because the no-new-round path reaches the handoff with
-nothing to commit and opens no pull request. **The other two lists name
-`/product-workflows:prd-ground <BRD-KEY>` with no clause at all, and that asymmetry is deliberate:** that
+nothing to commit and opens no pull request. **The two lists that name
+`/product-workflows:prd-ground <BRD-KEY>` — `rounds-unsettled` and `nothing-to-review` — carry no
+clause at all, and that asymmetry is deliberate:** that
 command gates on `coverage-ledger.md` (`commands/prd-ground.md` Phase 0 step 6), which this run never
 writes, so no handoff of this run's can hold it up and there is no wait to state.
 

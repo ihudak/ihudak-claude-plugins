@@ -978,9 +978,9 @@ which is exactly why nothing else here would notice.
 
 **The set is every class-4 `[DG#n]` this run holds *and* every one in
 `<BRD-dir>/grounding/design-grounding.md`**, minus two sets that are already dispositioned: any finding
-that entered this phase **already** carrying `verdict: SUPERSEDED` from an earlier run, and any that
-**this run's own Phase 5 re-derived**, whose old generation Phase 8 supersedes on that path and must
-not also be swept here — two rules claiming one block is how a block ends up with two conflicting
+that entered this phase **already** carrying `verdict: SUPERSEDED` from an earlier run, and any on-file finding **whose successor this run's own
+Phase 5 already re-derived** — Phase 8 supersedes that predecessor on that path, so sweeping it here
+would have two rules writing one block — two rules claiming one block is how a block ends up with two conflicting
 writes. Both halves of the set are needed and neither alone suffices: this phase runs before Phase 8 writes anything, so a run
 whose design pass produced findings holds them and they are not on file, while a `--no-design` run
 produces none and every class-4 finding that could go stale is only on file. **They are separate
@@ -999,7 +999,8 @@ this phase rewrote:
 - **Where this run holds a resolved `frame_set_dir` for that finding's own frame set** — its design
   pass ran over it — re-dispatch `grounding-verifier` once and act on the returned outcome as above.
 - **Otherwise, mark the finding `verdict: SUPERSEDED`, id retained, with a one-line note** naming
-  the `[CG#n]`, the verdict it used to carry and the verdict it carries now. Its verifier `outcome`
+  the `[CG#n]`, the verdict it used to carry, the verdict it carries now, and
+  `/product-workflows:prd-ground <KEY> --no-code` as the run that replaces it. Its verifier `outcome`
   stays exactly as it is. Nothing is re-derived and nothing is invented.
 
   **This is the same disposition Phase 8 already applies to the sibling trigger** — a `--rebaseline`
@@ -1010,8 +1011,8 @@ this phase rewrote:
   like the safer move. A finding with no outcome is not evidence
   (`workflows-core:grounding-format` §8), which reads as a useful brake — but `/brd-split` and
   `/brd-interview` both count outcome-less findings **without excluding superseded ones**, and no
-  `/prd-ground` mode restores an outcome to an on-file `[DG#n]`: Phase 7's dispatch set never holds
-  one, Phase 5 mints new ids rather than re-outcoming old ones, and the sweep cannot re-fire because
+  `/prd-ground` mode restores an outcome to an on-file `[DG#n]`: Phase 7's own Phase-7-opening dispatch set never holds one — only the
+  sweep's branch 1 reaches an on-file finding, and only where this run resolved its frame set — Phase 5 mints new ids rather than re-outcoming old ones, and the sweep cannot re-fire because
   the cited `[CG#n]` now carries the verdict the verifier settled on. The route would deadlock with
   no command able to clear it and no stop naming the hand edit that could. `SUPERSEDED` says the same
   thing about the finding — it no longer stands — while leaving the record verified and the route
@@ -1029,11 +1030,19 @@ apart.
 
 Where the cited `[CG#n]` was rewritten and still settles the capture question the same way, the pair
 is recorded as re-checked and nothing changes. **Report every state the sweep reached** — the findings
-re-derived; the findings marked `SUPERSEDED`, each with the re-run that replaces them
-(`/product-workflows:prd-ground <KEY>` without `--no-design`); the findings re-checked and left
-standing because the rewritten `[CG#n]` still settles the capture question the same way; and, where
-the set was empty, that there was nothing to sweep rather than "none", which would read as a sweep
-that ran and found nothing. A state this run did not reach is omitted, not reported as zero.
+re-derived; the findings marked `SUPERSEDED`, each with the re-run that
+replaces them — **`/product-workflows:prd-ground <KEY> --no-code`**, and it has to be that mode
+rather than a plain re-run: a `contradict` moves no commit, so on a plain re-run `HEAD` still matches
+the pin, Phase 3 skips re-grounding the repository's claims, Phase 5 merges no `[CG#n]`, and a
+`design-grounder` handed an empty `cg_findings` **does not emit a class-4 finding at all**. Under
+`--no-code` the `[CG#n]` set is read from file, which is the whole reason that mode can add design
+grounding, and it is the only run that regenerates what the sweep retired; the findings re-checked and left
+standing because the rewritten `[CG#n]` still settles the capture question the same way; and the two ways the sweep can
+legitimately do nothing, which are different facts and are not reported as the same one: **the set
+was empty** — no class-4 finding held or on file — and **the set was non-empty but this phase
+rewrote no `[CG#n]`**, which is every `--no-code` run and any run whose verifier agreed throughout.
+Say which. Neither is reported as "none", which would read as a sweep that ran over findings and
+found nothing wrong with them. A state this run did not reach is omitted, not reported as zero.
 
 A finding carrying no verifier outcome is not evidence (`workflows-core:grounding-format` §8) and is never
 written to the package with `consumed_by` anything but `none` — this phase is what stands between
@@ -1346,8 +1355,9 @@ id — **and, separately, every outcome Phase 7 normalised**, each named by find
 as returned, both verdicts, and which of the two routes forced it (a differing `own_verdict`, or a
 `control_outcome` of `missing`, or of `failed` on a finding whose verdict rests on the absence), or an explicit "none" where the verifier and the findings agreed
 throughout, so a clean run reads as checked rather than as unchecked; the class-4 sweep's result in every state it reached — every `[DG#n]` re-derived, every one marked
-`SUPERSEDED` (with the re-run that replaces it), every one re-checked and left standing, and, where
-the set was empty, that there was nothing to sweep rather than "none"; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Phase 4.5 lead added,
+`SUPERSEDED` (with `--no-code` named as the run that replaces it), every one re-checked and left
+standing, and, where it did nothing, which of the two reasons applied: an empty set, or a non-empty
+one over which this phase rewrote no `[CG#n]`; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Phase 4.5 lead added,
 and the count of documentation divergences recorded (each named by the `[CG#n]` it diverges from —
 never by an identifier of its own, because it has none); whether the derivation matrix ran and why; any `design-grounder` class-4 gap deferred for want
 of a settling `[CG#n]`; **on `route: idea`, the claim-exclusion count and prefixes step 8i

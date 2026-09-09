@@ -46,7 +46,7 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 | `claim` | the requirement premise under test — a `[BR#n]` on the BRD route, an `[AC#n]`/`[FR#n]`/`[US#n]` on the idea route — quoted or closely paraphrased |
 | `verdict` | exactly one of the six values in §3 |
 | `evidence` | a `file:line` list, or — when the verdict is `NOT-PROVABLE` or the finding asserts an absence — an explicit statement of why no evidence exists rather than an empty field |
-| `control` | *(required wherever the finding asserts an absence — the same trigger `evidence`'s absence clause uses; omitted otherwise)* the **positive control** on the search that reached that absence: the same method, run against a case of the same kind known to be present in this same source, and what it returned (§2.2) |
+| `control` | *(required wherever the finding asserts an absence — the second half of `evidence`'s own disjunction, not the whole of it: a `NOT-PROVABLE` finding that asserts no absence owes `evidence` and no control; omitted otherwise)* the **positive control** on the search that reached that absence: the same method, run against a case of the same kind known to be present in this same source, and what it returned (§2.2) |
 | `commit` | the pinned commit SHA the finding was checked against (`baseline-integrity`, §4); **absent on a `[DG#n]` of class 1, 2 or 3**, which is settled from the frame set and the requirement text alone (§6) and is pinned to no commit. A class-4 `[DG#n]` carries the cited `[CG#n]`'s own |
 | `altitude` | one of `product \| architecture \| implementation` |
 | `horizon` | one of `current \| will-change` (§5), naming the prerequisite decision when `will-change` |
@@ -182,8 +182,13 @@ control that failed. That is a true and useful record — it says this method ca
 thing here — where a `REWRITTEN` on the same search would be a fabrication with a citation.
 
 **Where it applies is the claim, not the verdict.** Any finding asserting that something is not
-there carries it, whichever of §3's six verdicts it lands on — this is the same trigger `evidence`'s
-absence clause already uses, deliberately, so a writer resolves one question rather than two. A
+there carries it, whichever of §3's six verdicts it lands on. **This is deliberately the second half
+of `evidence`'s disjunction rather than the whole of it.** `evidence` is owed on a `NOT-PROVABLE`
+finding *or* on one asserting an absence; `control` is owed on the second only. A `NOT-PROVABLE`
+finding that asserts nothing about the source — the mechanism could live in a system this repository
+does not contain, the claim turns on behaviour no code path here determines — has made no absence
+claim to control, and demanding one would ask a writer to demonstrate a search could find something
+they never said was missing. A
 `FALSE-FRIEND` carries one whenever the half being asserted is that the plausible name does *not* do
 the thing. A `[DG#n]` of class 2 — a requirement asks for a field no frame shows — is an absence over
 a frame set and carries a control drawn from the frame set: another field of that kind, found in
@@ -665,11 +670,14 @@ outcome, `agree` included. Where that verdict differs from the finding's while t
 `agree` or `extend`, the two halves of the return contradict each other — this table defines `agree`
 as reaching *the same verdict* and `extend` as the claim *holding* — and the caller **normalises the
 outcome to `contradict`** and acts on that branch, which is the one that believes the re-derivation.
-The normalisation is recorded, never silent. **`unprovable` is never normalised**: its re-derived
-verdict is `NOT-PROVABLE` and therefore differs from the finding's by definition, while the outcome
-means only that the verifier's own search settled nothing — which is not the same as the finding
-being wrong, and normalising it would rewrite every inconclusive finding into a contradiction nobody
-reached.
+The normalisation is recorded, never silent. **`unprovable` is never normalised on this ground**:
+its re-derived verdict is `NOT-PROVABLE` and therefore differs from the finding's by definition,
+while the outcome means only that the verifier's own search settled nothing — which is not the same
+as the finding being wrong, and normalising it would rewrite every inconclusive finding into a
+contradiction nobody reached. The control route below is the one exception, and it is not this rule
+bending: there the verifier has established that the **original** search was incapable, which is a
+fact about that search rather than about the verifier's own, and an inconclusive re-derivation does
+not rescue an absence that rested on nothing.
 
 **A failed or absent control is its own route to `contradict`, independent of the verifier's own
 search.** Where the finding asserts an absence, the verifier runs its `control` (§2.2) rather than

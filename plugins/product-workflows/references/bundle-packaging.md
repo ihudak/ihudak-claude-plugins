@@ -618,14 +618,21 @@ by hand — a hand-maintained list of what to check is the same drift, moved one
 **Relation 1 — every part that enumerates by identifier restates its own source exactly.** The
 prompt's parts table names, per part, the file the part is *filled from*; each part's own paragraph
 states the filter it applies to that file — a `disposition` column value, an `[AS#n]` still open, an
-`[SR#n]`'s disposition, a `[CDF#n]`'s, a prerequisite not yet customer-reviewed. For every part whose
-source is a set of identified records, the identifiers the rendered part names are exactly those the
-stated filter selects from the source file. Both directions: an identifier in the part and not in the
+`[SR#n]`'s disposition, a `[CDF#n]`'s, a prerequisite not yet customer-reviewed. For every source
+that is a set of identified records, the identifiers the rendered part names **from that source** are
+exactly those the stated filter selects from it. **The relation is per source, not per part**, and
+that distinction is load-bearing: parts 7, 8 and 11 each draw on three or four sources at once, so a
+per-part reading would either skip a part for holding one unidentified source or lump four filters
+into one comparison that no mismatch could be attributed to. Both directions: an identifier in the part and not in the
 filtered source is an invention, and one in the filtered source and not in the part is an omission —
 the more dangerous half, because a customer cannot see what they were not shown.
 
-**Relation 2 — the manifest and the bundle name the same documents.** Every document file in the
-assembled bundle carries a manifest line, and every manifest line names a file in the bundle. This is
+**Relation 2 — the manifest and the bundle name the same documents.** Every **markdown** file in
+the assembled bundle carries a manifest line, and every manifest line names a file in the bundle. The
+images §2 admits alongside the documents are not manifest rows — §4 and the assemble step both say
+the manifest lists *documents*, and a rule reading "every file" would report every image as missing.
+An image a plain reader cannot open is named in the manifest as prose, which is a different
+obligation and not this relation's. This is
 the inventory relation in both directions, for the same reason every other inventory in this family
 is asserted both ways: a manifest missing a file hides it, and a manifest naming an absent file sends
 the reviewer looking for something that was never sent.
@@ -648,6 +655,12 @@ empty set on both sides and passes; a part rendered from a source it could not p
 - **A part whose source is prose rather than identified records.** Part 1's capability line, part 4's
   written-out commands, part 10's inlined schema — there is no set to compare. Those are covered by
   §6's relations where they name a file, and by review otherwise.
+- **A source whose records carry no identifier**, which is not the same thing and is easy to assume
+  away. Interview questions are the case, and deliberately: they carry no minted identifier at all
+  (D21), so `interview/customer-questions.md` cannot be compared by membership. **Part 7 is therefore
+  only partly covered** — its open `[AS#n]` and its `escalated-to-customer` `[SR#n]` are identified
+  and are checked; its `[C]` questions are not. Stated here because a reader who takes part 7 for
+  covered stops looking at the one source in it that nothing checks.
 - **A faithful restatement of a wrong source.** Where the ledger, the register or the findings are
   themselves wrong, every relation here goes green: this check is about the copy, never about the
   original. The original is what `/prd-ground`'s verification and `/brd-interview`'s dispositions are

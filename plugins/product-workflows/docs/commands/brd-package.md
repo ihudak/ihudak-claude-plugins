@@ -262,9 +262,13 @@ attack.
   note each restate a set of records held elsewhere, and a restatement is a copy that drifts after
   the first correction. Three relations, all comparing **membership** in both directions rather than
   cardinality, because two sets of the same size with different members read as correct and are not:
-  every part enumerating by identifier names exactly what its own stated filter selects from the file
-  the parts table says it is filled from; the manifest and the bundle name the same documents; and
-  the delivery note's repositories and commits are `grounding/baselines.md`'s. This is the one check
+  every source that is a set of identified records is restated exactly as its own stated filter selects
+  it — **per source, not per part**, since parts 7, 8 and 11 each draw on three or four at once; the
+  manifest and the bundle name the same markdown documents (images are not manifest rows); and the
+  delivery note's repositories and commits are `grounding/baselines.md`'s. Interview questions carry
+  no minted identifier, so part 7's `[C]` half is outside the relation and part 7 is only partly
+  covered — worth knowing, because a reader who takes it for covered stops looking at the one source
+  in it that nothing checks. This is the one check
   that reaches the delivery note, which is deliberately not a bundle document — a pin restated wrongly
   there has the reviewer verify every code claim against a snapshot nobody ground. A mismatch stops
   with `BRD_PACKAGE_SET_MISMATCH`; a source side that comes up empty while the restatement is not

@@ -4,7 +4,7 @@ Single source of truth for **what `/docs-init` creates**. It is an executable te
 
 Consumed by `/docs-init` (Phase 3 writes §1–§4, Phase 4 writes §7) and by `docs-scaffold-reviewer`, whose checklist asserts relationships between the files this file specifies. `/docs-write` reads §4, because it regenerates the same `nav:` on every write.
 
-Its entry points, so a command can say which part it is executing: **the tree** (§1), **the stubs** (§3), **nav generation** (§4), **the mkdocs configs** (§5 and §6), and **the vale config** (§7).
+Its entry points, so a command can say which part it is executing: **the tree** (§1), **the stubs** (§3), **nav generation** (§4), **the mkdocs configs** (§5 and §6), and **the vale config** (§7, which also carries `requirements-docs.txt`).
 
 The navigation is **product-shaped** (design D15). Diátaxis lives in each page's `type:` frontmatter, which is what the coverage grid reads — so the tree looks like a documentation portal a reader recognises while the quadrant discipline stays fully intact.
 
@@ -14,8 +14,11 @@ The navigation is **product-shaped** (design D15). Diátaxis lives in each page'
 
 ```
 mkdocs.yml                  # public build; strict: true; exclude_docs drops internal/ and _snippets/
-mkdocs.internal.yml         # INHERIT: mkdocs.yml + internal nav; excludes _snippets/ only
+mkdocs.internal.yml         # INHERIT: mkdocs.yml + internal nav; site_dir: site-internal
 .vale.ini
+requirements-docs.txt       # the CI build's Python dependencies -- see §7
+styles/                     # .vale.ini's StylesPath; `vale sync` populates it
+  config/vocabularies/Project/accept.txt   # product terms Vale must not flag -- see §7
 docs/
   index.md                             # portal home
   discover/                            # "Discover <product>"
@@ -94,7 +97,7 @@ The sections a reader would predict need no defence. These nine do, and each is 
 
 This is not filler. The commonest failure of a documentation tree is contributors putting explanation into how-to guides — a guide that starts with four paragraphs of background, a reference page that becomes a tutorial, a concept page that grows numbered steps. The stub is where that is prevented, at the moment someone opens the directory to add a page. A convention stated only in a style guide nobody opens is not a convention; a convention stated in the file you are about to edit is.
 
-Every stub carries six frontmatter fields — `title`, `description`, `type`, `audience`, `visibility`, `order`. The full page contract is larger (`references/docs-profiles/frontmatter-guidelines.md` and the `docs-frontmatter` skill own it); a stub carries the six that decide where the page sits, who it is for, and which build it lands in, and the writer fills the rest when the page stops being a stub.
+Every **directory** stub carries six frontmatter fields — `title`, `description`, `type`, `audience`, `visibility`, `order` — being the six that decide where the page sits, who it is for, and which build it lands in. The full page contract is larger (`references/docs-profiles/frontmatter-guidelines.md` and the `docs-frontmatter` skill own it), and the writer fills the rest when the page stops being a stub. **A leaf-page stub carries a lighter shape**, defined with its reason in §3.12.
 
 **Every file under `internal/` carries the visibility marker** as its first line after the frontmatter — see `visibility.md` §5. The stubs below show it. A stub written without it is the exact file the gate cannot see.
 
@@ -411,7 +414,9 @@ Operational procedures, written to be followed at three in the morning by someon
 
 ### 3.12 The named leaf pages
 
-The tree names individual pages inside four sections. Each is created as a stub too, in the same shape as the directory stubs — six frontmatter fields, a "what belongs here", a "what does not" — with the `type:` and `order:` below. The directory stub's `type:` is the section default; a leaf listed here that differs from its section is a deliberate exception, not an oversight.
+The tree names individual pages inside four sections. Each is created as a stub too, but in a **lighter shape than a directory stub**: `title:`, `description:`, `type:`, `order:`, and a one-line "what belongs here". The `type:` and `order:` are below; `title:` and `description:` come from the page's own subject. `audience:` and `visibility:` are not in that list because every leaf named here sits in a public, user-facing section and takes its section stub's values — a leaf that differs from its section states both explicitly. The directory stub's `type:` is the section default, and a leaf listed here that differs from its section is a deliberate exception, not an oversight.
+
+> **The "what does not belong" half is deliberately not required of a leaf, and that is a narrowing of §3's rule.** §3 requires it of every stub; this section exempts the 19 leaves. The reason is what the half is *for*: it marks a **boundary**, so a contributor adding to `guides/` is told, in the file they opened, that explanation does not go there. A directory is a boundary. `limits.md` and `errors.md` are content pages inside one, and their boundary is already stated by the stub one level up. Writing 19 more of them would restate `reference/`'s rule five times and dilute it. **What was cut is the requirement on leaves only**; a directory stub still carries the full shape, and §8's hard rule now says so explicitly rather than reading as though it bound both.
 
 | Page | `type:` | `order:` | What belongs on it |
 |---|---|---|---|
@@ -509,21 +514,49 @@ The internal build.
 ```yaml
 INHERIT: mkdocs.yml
 site_name: <product> (internal)
+site_dir: site-internal
 exclude_docs: |
   _snippets/
 nav:
   # generated — the public nav plus the internal/ sections; see §4
 ```
 
-**The two configs differ only in which paths they exclude** — `internal/` and `_snippets/` in the public build, `_snippets/` alone in the internal one — and stating that here is what makes the reviewer's second checklist item checkable. `_snippets/` is excluded from **both**, for the reason §5 gives: a fragment is an include, not a page, and leaving it in either build renders every fragment as a standalone page. So the internal build's exclusion is not empty, and an internal config carrying `exclude_docs: ""` is the defect, not the baseline.
+### The invariant, stated as a content rule
 
-Everything else must match. A second `nav:` **source**, a different `markdown_extensions` list, or a divergent `theme` block in the internal config is a **defect, not a customisation** — two configs that differ in more than their exclusion sets are two sites, and the shared snippets, shared search index and working cross-links that the one-tree model buys are gone.
+**The two builds share one content source and differ only in what they publish from it.** Concretely, and this is the form the reviewer's second checklist item is checked against:
 
-The generated `nav:` differs, of course; that is §4 running over a larger file set, not a second source of truth.
+| Must be identical | May differ |
+|---|---|
+| `docs_dir` (inherited — the internal config never sets it) | `exclude_docs` — `internal/` + `_snippets/` public, `_snippets/` internal |
+| `markdown_extensions`, including `pymdownx.snippets`' `base_path` | `site_name` — the internal site says so in its title |
+| the `theme` block, `extra_css`, and `validation` | `site_dir` — `site/` and `site-internal/` |
+| the §4 nav-generation **rule** | the generated `nav:` that rule produces |
+
+`_snippets/` is excluded from **both** for the reason §5 gives: a fragment is an include, not a page, and leaving it in either build renders every fragment as a standalone page. So the internal exclusion is not empty, and an internal config carrying `exclude_docs: ""` is the defect, not the baseline.
+
+**`site_dir: site-internal` is not optional.** `site_dir` defaults to `site` and `INHERIT` merges a parent that does not set it either, so an internal config omitting it writes **over the public build's output**. The two are then indistinguishable on disk, and gate 2's marker grep over `site/` inspects the internal output — where every `internal/` page carries the marker by design — and fails every correct scaffold in the one way that reads as a real leak (`visibility.md` §4). `references/docs-profiles/docs-profile-schema.md`'s `builds[]` records `out: site-internal` for this build; the config and the profile have to agree.
+
+**Everything in the left column is the actual rule.** A second `nav:` **source**, a different `markdown_extensions` list, or a divergent `theme` block in the internal config is a **defect, not a customisation** — two configs that differ in their content source are two sites, and the shared snippets, shared search index and working cross-links that the one-tree model buys are gone. The generated `nav:` differs, of course; that is §4 running over a larger file set, not a second source of truth.
+
+> **This rule was narrowed, deliberately.** It read *"the two configs differ only in which paths they exclude"*, and before that *"`exclude_docs: \"\"` is the whole of the difference"*. Both were falsified by the file's own config: §6 has always set `site_name`, and `site_dir` is now a third divergence. A reviewer implementing the old wording would have flagged a correct scaffold, and — worse — a scaffold author obeying it literally would have deleted the `site_dir` line that makes the two builds separable at all. What was cut is **key-level identity**; what survives, and is the whole point, is **one content source**. Nothing in the left column was relaxed.
 
 ---
 
-## 7. `.vale.ini` and the vocabulary
+## 7. `requirements-docs.txt`, `.vale.ini`, and the vocabulary
+
+### `requirements-docs.txt`
+
+The CI workflow's first job is to reproduce the build, so the scaffold writes the dependency file that step installs:
+
+```
+mkdocs-material
+```
+
+**One pin is all a `--strict` build needs.** `mkdocs-material` pulls `mkdocs` and the `pymdownx` extensions §5 enables, so every extension in that config resolves from this single requirement. A project adds to this file as it adds plugins; the scaffold does not guess at any.
+
+The file is not optional and is not a convenience: `visibility.md` §6's workflow runs `pip install -r requirements-docs.txt`, and a workflow whose first substantive step installs a file the scaffold never wrote fails on the repository's very first CI run.
+
+### `.vale.ini` and the vocabulary
 
 Vale is the deterministic pre-lint the family's existing style gate already knows how to run — `docs-style-checker` runs a repo's `.vale.ini` as its primary rung — so writing this file lights up an existing gate with no new wiring.
 
@@ -539,7 +572,9 @@ BasedOnStyles = Vale, Google, write-good
 
 `Packages` load in order, with later entries overriding earlier ones, so a project package added later can override Google's rules without editing them.
 
-After writing the file, run **`vale sync`** to download the packages. A `.vale.ini` naming a package that was never synced fails at the first lint, which the scaffold's own verification phase surfaces immediately rather than leaving for the first contributor.
+After writing the file, run **`vale sync`** to download the packages named by `Packages`. A `.vale.ini` naming a package that was never synced fails at the first lint, which the scaffold's own verification phase surfaces immediately rather than leaving for the first contributor.
+
+**`vale sync` runs in CI as well as locally, and that is not a duplicate.** Sync writes the downloaded packages into `StylesPath` (`styles/`), and those are third-party bundles a repository does not commit — what the scaffold commits under `styles/` is the vocabulary below and nothing else. So a fresh CI checkout has a `.vale.ini` naming packages that are not on disk, and `visibility.md` §6's Vale step therefore runs `vale sync` before `vale docs/`. A workflow that lints without syncing fails on a clean runner while passing on the author's machine, which is the least useful shape a CI failure can take.
 
 ### The vocabulary is seeded, not left empty
 
@@ -562,9 +597,10 @@ The file is created either way. An absent `accept.txt` beside a `Vocab = Project
 ## 8. Hard rules
 
 - NEVER hand-edit a generated `nav:`. Change `order:` or `title:` and regenerate (§4).
-- NEVER let the two configs differ by anything but their `exclude_docs` sets and the generated `nav:` (§6).
+- NEVER let the two configs differ in their content source — `docs_dir`, `markdown_extensions`, `theme`, `extra_css`, `validation`, or the nav-generation rule. `exclude_docs`, `site_name`, `site_dir` and the generated `nav:` are the four that may differ, and §6's table is the list (§6).
+- NEVER omit `site_dir: site-internal` from the internal config — without it both builds write to `site/` and gate 2 greps the wrong tree (§6).
 - NEVER remove `_snippets/` from either config's `exclude_docs`, and never remove `base_path: [docs/_snippets]` to "match" it — the pairing is what makes fragments includable without rendering them (§5).
-- NEVER write a directory without its stub, and never write a stub without its "what does not belong" half (§3).
+- NEVER write a directory without its stub, and never write a **directory** stub without its "what does not belong" half (§3). A leaf-page stub carries the lighter shape §3.12 defines and is exempt from that half, by the narrowing recorded there.
 - NEVER write a file under `internal/` without the visibility marker on its first line after the frontmatter (`visibility.md` §5).
 - NEVER put a page stub in `_snippets/`, `assets/` or `stylesheets/` (§3.13).
-- NEVER create `.vale.ini` without also creating `accept.txt` (§7).
+- NEVER create `.vale.ini` without also creating `accept.txt`, and never write the CI workflow without `requirements-docs.txt` beside it — a workflow installing a file the scaffold never wrote fails on the first run (§7).

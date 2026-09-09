@@ -1,5 +1,11 @@
 # Contrast — the accessibility rule this family carries itself
 
+Single source of truth for the accessibility rule a derived brand palette is held to: the threshold pair, the formula, and what happens to a colour that fails.
+
+Consumed by `/docs-brand`, both standalone and as `/docs-init`'s branding phase. Its entry points, so a command can say which part it is executing: **the thresholds** (§1), **the formula** (§2), and **the adjudication** (§3).
+
+---
+
 **Why this file exists.** `/docs-brand` derives a palette from a product's own code and must not apply one that makes body text unreadable. The rule it needs is a threshold pair and a formula, not a review rulebook — so the family carries it rather than reaching into `guideline-reviewers`, whose `references/guidelines/accessibility.md` states the same rule inside 183 lines of application-UI review vocabulary and is not loadable from `docs-workflows` at all (design D24). That file is worth reading and is cited here as further reading; **nothing loads it at runtime**, so an install without that plugin behaves identically.
 
 ## 1. The thresholds
@@ -27,18 +33,26 @@ for each channel C in {R, G, B}, with c = C / 255:
 L = 0.2126 * R_lin + 0.7152 * G_lin + 0.0722 * B_lin
 ```
 
-Worked example — `#1565C0` on `#FFFFFF`:
+Worked example — `#1565C0` on `#FFFFFF`. Every intermediate is shown so the next reader can **check** this rather than trust it:
 
 ```
-R = 0x15 = 21   -> 21/255  = 0.0824 -> ((0.0824+0.055)/1.055)^2.4 = 0.00605
-G = 0x65 = 101  -> 101/255 = 0.3961 -> 0.13287
-B = 0xC0 = 192  -> 192/255 = 0.7529 -> 0.52712
-L1(white) = 1.0
-L2        = 0.2126*0.00605 + 0.7152*0.13287 + 0.0722*0.52712 = 0.13444
-ratio     = (1.0 + 0.05) / (0.13444 + 0.05) = 5.69:1     -> passes SC 1.4.3
+channel   8-bit      c = C/255    (c+0.055)/1.055    ^2.4 = c_lin
+R = 0x15    21        0.082353        0.130192          0.00750
+G = 0x65   101        0.396078        0.427562          0.13014
+B = 0xC0   192        0.752941        0.765821          0.52712
+
+L2 = 0.2126*0.00750 + 0.7152*0.13014 + 0.0722*0.52712
+   =    0.00159     +    0.09308     +    0.03806        = 0.13273
+L1 = 1.0                                                  (white)
+
+ratio = (1.0 + 0.05) / (0.13273 + 0.05)
+      = 1.05 / 0.18273
+      = 5.75:1                                            -> passes SC 1.4.3
 ```
 
 Report the ratio to two decimal places. Never report a pass or fail without the number.
+
+**The number is the interface, so it is worth stating why this example is spelled out to five places.** An earlier revision of this file carried a worked example whose R and G channels and final ratio were wrong (0.00605, 0.13287, 5.69:1) while its verdict — passes — was right. A wrong example with a right verdict is the dangerous kind: nothing about the outcome looks off, so someone checking a correct implementation against it concludes their own code is broken and "fixes" it to reproduce the wrong figure. Recompute the three `c_lin` values before trusting any example, this one included.
 
 ## 3. Adjudication
 

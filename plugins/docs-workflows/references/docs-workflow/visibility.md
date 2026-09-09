@@ -17,7 +17,9 @@ One source tree, shared snippets, working cross-links. Two builds over that one 
 | **public** | `mkdocs.yml` | every page except those under `internal/`, dropped by `exclude_docs` (gitignore-style patterns, MkDocs 1.6+) | `site/` |
 | **internal** | `mkdocs.internal.yml` | every page, via `INHERIT: mkdocs.yml` plus the internal nav | `site-internal/` |
 
-**The two configs differ only in which paths they exclude**, and neither exclusion set is empty. The public build drops `internal/` and `_snippets/`; the internal build drops `_snippets/` alone. The fragment directory is excluded from **both** because a fragment is an include and not a page: left in a build, every file under `docs/_snippets/` renders as a standalone page — an orphan in the nav, and, for an internal fragment in the public build, a leak more direct than the one gate 2 exists for. Excluding it costs nothing, because `pymdownx.snippets` reads its fragments off the filesystem rather than out of the build (`scaffold-tree.md` §5).
+**The two builds share one content source and differ only in what they publish from it.** `docs_dir`, the `markdown_extensions` set, the `theme` block and the nav-generation rule are identical; `exclude_docs`, `site_name`, `site_dir` and the generated `nav:` are the four things that differ, and `scaffold-tree.md` §6 is the list. Neither exclusion set is empty: the public build drops `internal/` and `_snippets/`, the internal build drops `_snippets/` alone. The fragment directory is excluded from **both** because a fragment is an include and not a page: left in a build, every file under `docs/_snippets/` renders as a standalone page — an orphan in the nav, and, for an internal fragment in the public build, a leak more direct than the one gate 2 exists for. Excluding it costs nothing, because `pymdownx.snippets` reads its fragments off the filesystem rather than out of the build (`scaffold-tree.md` §5).
+
+**`site_dir` is load-bearing here, not cosmetic.** It defaults to `site`, and `INHERIT` merges a parent that does not set it either — so an internal config omitting `site_dir: site-internal` writes over the public output. The two builds are then indistinguishable on disk, and gate 2's grep over `site/` inspects the internal build, where every `internal/` page carries the marker by design: the gate fails on a correct scaffold, in the one way that reads as a genuine leak.
 
 Two outputs, two deploy targets, **two hostnames**.
 
@@ -74,11 +76,13 @@ so a public page linking into `internal/` becomes a **build failure** rather tha
 
 Gate 2 is the same technique as verifying a history rewrite by grepping the resulting blobs: **assert on the artefact, not on the intent.**
 
+**Every tool the workflow invokes, the workflow installs.** A CI file is not a note to a human who already has the toolchain; it runs on a bare runner. So §6 installs the Python build dependencies from `requirements-docs.txt` (which the scaffold writes — `scaffold-tree.md` §7), installs the Vale **binary** explicitly rather than assuming it, and runs `vale sync` before linting because the style packages `.vale.ini` names are downloaded rather than committed. A step that invokes a tool no earlier step provided is a gate that fails on the repository's first run and teaches the team to distrust the workflow before it has ever caught anything.
+
 ### The third gate, and when it exists
 
 `images.policy` in the profile (`references/docs-profiles/docs-profile-schema.md` fixes the field and its per-policy rules; they are not restated here) decides whether a third gate is written at all, because the two above have no reach into an object store.
 
-- **`in-repo`** — no third gate, because there are no image **URLs** to check: an image is a file in the tree, referenced by a relative path, and the build resolves it. What separates the two builds here is the same `exclude_docs` that separates the pages — it drops files, not only Markdown — so **an image that only internal pages may see belongs under `docs/internal/`, not under `images.root`.** A file under `images.root` is copied into *both* builds whether or not any page references it: MkDocs copies the content tree, it does not trace references. What is written instead of a gate is the **size-budget step**, checking each file against `images.max_bytes` (default 307200 bytes, rendered in the template as `+300k`), because committed binaries are permanent and an unbudgeted default is how a docs repository becomes one nobody wants to clone.
+- **`in-repo`** — no third gate, because there are no image **URLs** to check: an image is a file in the tree, referenced by a relative path, and the build resolves it. What separates the two builds here is the same `exclude_docs` that separates the pages — it drops files, not only Markdown — so **an image that only internal pages may see belongs under `docs/internal/`, not under `images.root`.** A file under `images.root` is copied into *both* builds whether or not any page references it: MkDocs copies the content tree, it does not trace references. What is written instead of a gate is the **size-budget step**, checking each file under `images.root` against `images.max_bytes`, because committed binaries are permanent and an unbudgeted default is how a docs repository becomes one nobody wants to clone. **Both halves of that step come from the profile** — the path from `images.root` exactly as the threshold comes from `images.max_bytes` — and §6's template shows the two defaults (`docs/assets` and `+300k`, the latter rendering 307200 bytes) rather than fixed values. A step that hardcoded `docs/assets` against a repository whose `images.root` is anything else would scan an empty directory and pass forever, which is the failure this section condemns two paragraphs below.
 - **`object-store` and `cdn`** — the third gate is written, and the size-budget step is not. **A bucket has no notion of the two builds.** A public page referencing an internal screenshot leaks the image while gates 1 and 2 both pass, because the leak is in the object store and not in the HTML. So the gate asserts that **every image URL in the built public output starts with `images.public_prefix`**; under `object-store`, internal media lives under `images.internal_prefix`, which is what the gate is separating it from. A gate cannot assert against a prefix the profile does not record, which is why those two fields are part of the schema rather than left to convention.
 
 **Neither step is written unconditionally.** A size-budget step under `cdn` checks a directory that holds no images; an image-prefix gate under `in-repo` checks URLs that do not exist. Both are green forever, which is worse than absent: a gate that cannot fail teaches a reviewer that the gate set is complete when it is not.
@@ -106,7 +110,7 @@ Two consequences worth stating, because both halves of the convention have to ag
 
 ## 6. The CI workflow
 
-`/docs-init` writes this to `.github/workflows/docs.yml`. Both builds run, the visibility gate runs against the public output, and the image steps are written per `images.policy` per §4 — the two marked steps are **conditional and are omitted, not disabled, when the policy does not call for them**.
+`/docs-init` writes this to `.github/workflows/docs.yml`. Both builds run, the visibility gate runs against the public output, every tool a step invokes is installed by an earlier step (§4), and the image steps are written per `images.policy`. The two steps marked `WRITTEN ONLY WHEN` are **conditional and are omitted, not disabled, when the policy does not call for them**; the other comments mark scaffold-time substitutions, which are resolved rather than left in place.
 
 ```yaml
 name: docs
@@ -123,6 +127,13 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements-docs.txt
+      # Vale is a single static binary, not a pip package, so it is installed explicitly.
+      # <VALE_VERSION> and the asset name are scaffold-time substitutions, resolved against
+      # the project's current release — pinned, never floating, and never copied from here.
+      - name: Install Vale
+        run: |
+          curl -sSfL "https://github.com/vale-cli/vale/releases/download/v<VALE_VERSION>/vale_<VALE_VERSION>_Linux_64-bit.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin vale
       - name: Build public site
         run: mkdocs build --strict -f mkdocs.yml
       - name: Build internal site
@@ -137,13 +148,18 @@ jobs:
       - name: Gate 3 — every public image URL resolves to the public prefix
         run: scripts/check-image-prefix.sh
       # WRITTEN ONLY WHEN images.policy is in-repo — omit under object-store and cdn.
-      # The threshold is the profile's images.max_bytes; +300k renders the 307200 default.
+      # BOTH the path and the threshold are scaffold-time substitutions from the profile:
+      # the path is images.root (docs/assets below is its default), and the threshold is
+      # images.max_bytes rendered as a find size suffix (+300k renders the 307200 default).
       - name: Image size budget
         run: |
           find docs/assets -type f -size +300k -print -exec false {} + \
             || { echo "::error::image over the 300 KB budget"; exit 1; }
+      # `vale sync` downloads the packages .vale.ini names; they are not committed.
       - name: Vale
-        run: vale docs/
+        run: |
+          vale sync
+          vale docs/
 ```
 
 Gate 1 is not a step of its own: it **is** the `Build public site` step, because `strict: true` in `mkdocs.yml` is what makes a cross-boundary link fail the build. A workflow that ran the build without `--strict`, or a config that dropped `strict: true`, would silently retire gate 1 while the step still appeared to run — which is why `docs-scaffold-reviewer` checks the config and the workflow against each other rather than either alone.
@@ -159,4 +175,7 @@ The internal build runs on every PR too. It is not deployed from here, but a con
 - NEVER write an internal file, or an internal-only snippet, without the §5 marker.
 - NEVER quote the literal marker string on a page inside the built public tree.
 - NEVER write a conditional image step the resolved `images.policy` does not call for (§4).
-- NEVER let the two build configs differ by anything but their `exclude_docs` sets — see `scaffold-tree.md` §6, and note that neither set is empty.
+- NEVER let the two build configs differ in their content source — `docs_dir`, `markdown_extensions`, `theme`, `validation`, or the nav-generation rule. `exclude_docs`, `site_name`, `site_dir` and the generated `nav:` are the four that may differ (`scaffold-tree.md` §6).
+- NEVER ship an internal config without `site_dir: site-internal` — both builds then write to `site/` and gate 2 greps the internal output.
+- NEVER write a workflow step that invokes a tool no earlier step installed (§4).
+- NEVER hardcode the size-budget step's path or threshold; both come from the profile (§4).

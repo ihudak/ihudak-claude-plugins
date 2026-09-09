@@ -203,6 +203,7 @@ All twenty-six in-scope commands additionally run `specs-preflight` at run start
                       └── doc-planner (docs-workflows)          (used by /document keyed mode)
                       └── docs-style-checker (docs-workflows)   (used by /document, both modes)
                       └── epic-reviewer (product-workflows)          (used by /epics)
+                      └── epic-writer (product-workflows)            (used by /epics)
                       └── code-scanner (workflows-core)         (used by /epics, /implement multi-source fan-out, /create-ard, /specify, /design, /idea)
                       └── prd-reviewer (product-workflows)           (used by /create-prd, /update-prd)
                       └── ard-reviewer (product-workflows)           (used by /create-ard)

@@ -621,9 +621,21 @@ positions and conditional defect entries, and the out-of-scope defect entries. *
 scope**, the identifiers it names are exactly those its own stated filter selects from its source
 file, both directions — an identifier in the part and not in the filtered source is an invention, one
 in the filtered source and not in the part is an omission, and the omission is the dangerous half
-because a customer cannot see what they were not shown. **The two paragraphs below narrow that scope
+because a customer cannot see what they were not shown. **The paragraphs below narrow that scope
 and never extend it**, which is worth saying because they once sat between this sentence and the
 scope it governs, and a reader taking them in order bound the rule to the set they exclude.
+
+**Resolve the filter against the records' own fields, never against prose that uses the same
+words** — this family's "resolve against a known set, never parse one out of free text" rule, met at
+the one place the free text is a part a run rendered itself. A part states its filter in a sentence,
+and a sentence is a description of a property the records carry, not the selection itself: read the
+property off each record and select on it. The failure this forecloses was measured on an assembled
+package, where a part named four decisions as conditional on another engagement's review and a
+text-derived reading returned six — the two extra carried an explicit *no dependency* marker in the
+very field the filter is about, so the part was right and the looser resolution would have reported
+its two most carefully-handled records as omissions, which relation 1 calls the dangerous half.
+Where a part's filter names a property no record field carries, that part is **outside** this
+relation for the same reason the prose parts are: there is no set to select.
 
 **Expand a range before comparing.** A part legitimately writes `[AS#1]`–`[AS#4]` for four records
 rather than naming each, and on measured packages that was the *only* rendering in most of them — so

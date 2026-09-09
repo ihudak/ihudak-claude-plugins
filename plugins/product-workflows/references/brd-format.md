@@ -86,9 +86,9 @@ so both forms resolve — in this order:**
    writer having named a section at all. A line **above the first heading** — frontmatter, a title
    block — is inside none, and an anchor naming only such a line falls to branch 3 rather than
    resolving to the first section by proximity.
-3. **Neither** — no section reference, and no line that lands in a section — and the anchor is
-   unresolvable. That is a
-   malformed anchor, reported per row.
+3. **Neither** — no section reference, and no line that lands in a section — and the anchor does not
+   resolve. It may be perfectly well formed; what it is, is unresolvable against *this* source, which
+   is what relation 1 reports it as, per row.
 
 **The ordering matters more than it looks.** An earlier draft of this section asserted that a leading
 section reference is *the* form an anchor carries. It is what every measured anchor happened to have,

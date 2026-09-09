@@ -2,6 +2,7 @@
 
 **Date:** 2026-08-29
 **Status:** Design approved in brainstorming; not implemented. Spec 1 of 3 specified in full; Specs 2 and 3 specified as contracts only.
+**Reviewed:** 2026-09-09, by the operator and by an independent agent pass. Findings applied in place — a citation-form sweep, a restored policy in a frozen contract, the counts replaced by their derivations, `$DOCS_PATH` given a decision of its own (D23), and the Diátaxis boundary stated where it was being misread. **Two questions block implementation and now carry recommendations: §18 q3 (accessibility guidance) and §18 q4 (the reviewer for `/docs-init` and `/docs-brand`, which §4's gate table cannot reach).**
 **Scope:** one plugin — `plugins/docs-workflows`, settled by the marketplace split; see the banner below
 
 ---
@@ -78,6 +79,7 @@ Spec 2 is largely a re-wiring of agents that already exist. Spec 3 is meaningles
 | D20 | **The review model is the Opus chain for every gated command, with no tiering by unit.** Classification still varies per unit and still drives the planning model; it never lowers the reviewer. | Settled by the operator against the cost: a mechanical-looking reference page is exactly where a wrong claim survives review, because it reads plausibly and nobody re-derives it. Cost is controlled by throughput (`--batch` caps, visible per-run cost emission), never by weakening the gate. |
 | D21 | **A new page's default `owners` is its `creator`, until someone reassigns it.** | Accurate at write time, never blocks a write, and degrades honestly: an unmaintained page visibly names someone who has moved on, which is itself the signal to reassign. A single org-wide default would name the same owner on every page whether or not anyone is watching it, which is indistinguishable from no owner at all. `references/docs-profiles/default-owners.txt` is seeded with that convention rather than with a name. |
 | D22 | **Process capture is its own command, `/docs-capture`, with two supported inputs and no video.** | A how-to or tutorial encodes a sequence a person performs, which no amount of code reading yields. That reverses the flow — capture first, prose derived from the capture — which is a different lifecycle position, a different input (a human performance, not a document) and a new state (`captured`). Folding it into `/docs-verify` would give one command two inputs, two outputs and two positions in the lifecycle; folding it into `/docs-write` would bury a human-interactive step inside the one command that must stay unattended for `--batch` to mean anything. **Video is rejected outright, not deferred** — scene-change keyframes land mid-transition and make worse screenshots than purpose-taken ones, a demo records one happy path while docs need the error states, and a recording captures incidentally what a screenshot captures deliberately. |
+| D23 | **`${DOCS_PATH:-/workspace/docs}` is the docs-repo default for every command in this family — and `/docs-init` applies the *inverse* acceptance test to it.** | `$DOCS_PATH` is already a same-level citizen of `$SPECS_PATH` and `$REPOS_PATH`: `workflows-core:docs-grounding` §1 resolves it as the grounding root, `/document` Phase 0 rung (a.5) resolves the same expression as the docs-repo **write-target** hint, and `${REPOS_PATH:-/workspace}` establishes the container convention that `/workspace/docs` completes. The one command that never learned it is `/docs-profile`, and §6's Phase 0 had copied that gap — *first token, else cwd* — which in a container means the scaffold lands wherever the shell happens to be rather than where the docs clone is mounted. **The inversion is the part worth deciding rather than assuming.** Every other consumer accepts `$DOCS_PATH` when it carries **≥ 1 docs signal**, because it wants a docs repo that exists. `/docs-init` accepts it only when it carries **none** — its Phase 0 step 4 refuses to scaffold over an existing docs repo, so a signal there is a stop, not a match. Same variable, same default, opposite predicate; an implementer who copies `/document`'s ladder verbatim gets it exactly backwards, and the scaffold then refuses the one directory it was pointed at. `/docs-brand`, `/docs-serve` and `/docs-audit` all take the signal-positive form. |
 
 ---
 
@@ -94,14 +96,14 @@ Spec 2 is largely a re-wiring of agents that already exist. Spec 3 is meaningles
 | `/docs-verify <unit>` | Execute the walkthrough, record confirmations, fill image slots *(Spec 2)* | new |
 | `/docs-drift` | Re-check pages against the evidence they were built from *(Spec 3)* | `code-scanner`, `diff-summarizer` |
 
-**Four new agents** — `docs-auditor`, `ia-planner`, `drift-detector`, `docs-audit-reviewer`. Everything else already exists.
+**Four new agents** — `docs-auditor`, `ia-planner`, `drift-detector`, `docs-audit-reviewer` — **and a fifth if §18 q4 is settled the way this document recommends.** Everything else already exists, subject to that question: two rows of the gate table below name agents this plugin cannot reach.
 
 Every command that writes an artefact carries a review gate (D17):
 
 | Command | Reviewer | Fixer | Why that reviewer |
 |---|---|---|---|
-| `/docs-init` | `code-review` @ Opus | `review-fixer` | Its output is `mkdocs.yml`, a CI workflow, `.vale.ini` and CSS — code, reviewed as code |
-| `/docs-brand` | `code-review` @ Opus | `review-fixer` | Config and CSS, plus a contrast finding to adjudicate |
+| `/docs-init` | **unsettled — see §18 q4** | — | Its output is `mkdocs.yml`, a CI workflow, `.vale.ini` and CSS — code, reviewed as code. The `code-review` + `review-fixer` pair this row named are `dev-workflows` agents and `docs-workflows` declares no tie to that plugin in either category |
+| `/docs-brand` | **unsettled — see §18 q4** | — | Config and CSS, plus a contrast finding to adjudicate. Same pair, same problem |
 | `/docs-audit` | `docs-audit-reviewer` @ Opus | orchestrator applies | Spot-checks that surfaces resolve to real paths, that types fit, and that each `priority_reason` actually supports its rank |
 | `/docs-write` | `doc-reviewer` @ Opus | `doc-fixer` | The existing documentation reviewer, unchanged |
 | `/docs-capture` | `doc-reviewer` @ Opus | `doc-fixer` | Checks the derived walkthrough against the capture: no step invented, no step silently dropped |
@@ -109,33 +111,27 @@ Every command that writes an artefact carries a review gate (D17):
 | `/docs-drift` | `docs-audit-reviewer` @ Opus | orchestrator applies | Same artefact as the audit; the claim under review is "this page is stale" |
 | `/docs-serve` | — | — | Writes no artefact: a background process, a pidfile, a URL |
 
-Findings are triaged by the orchestrator before any fixer sees them (`references/finding-triage.md`), every dismissal recorded with a reason that disposes of that finding's own claim.
+Findings are triaged by the orchestrator before any fixer sees them (`workflows-core:finding-triage`), every dismissal recorded with a reason that disposes of that finding's own claim.
 
 ```mermaid
 flowchart TD
     repos[("code repos")]
-
     subgraph COLD["Cold start — Spec 1"]
         init["/docs-init — scaffold, Vale, two builds"]
         brand["/docs-brand — logo and colours"]
         audit["/docs-audit — surfaces and the pages they earn"]
     end
-
     profile[("docs-profile.yml")]
     serve["/docs-serve — run the site, anytime"]
     backlog[("docs-backlog.yml")]
-
     subgraph ITER["Iteration — Spec 2"]
         write["/docs-write — one unit"]
         verify["/docs-verify — resolve claims"]
     end
-
     pages[("docs/ pages")]
-
     subgraph KEEP["Drift — Spec 3"]
         drift["/docs-drift — re-check evidence"]
     end
-
     repos --> init
     init -->|inline| brand
     init --> profile
@@ -176,6 +172,8 @@ Enumerated mechanically from the scanned repos:
 Roles are a coverage **dimension**, not a nice-to-have: "what can a user in role R actually do" is the question user documentation exists to answer, and it is the reason walkthroughs are role-scoped.
 
 ### 5.2 Page types: crossing surfaces with Diátaxis
+
+**Diátaxis is used, at exactly one level: it is the page `type`, and nothing else.** It is the second axis of the coverage grid (D6) and a reserved frontmatter key (§8.6, D18). It is **not** the navigation, **not** the folder tree, and **not** a per-surface quota — D15 settles the first two and §17's mechanical-application risk settles the third. Both statements are true at once and neither weakens the other: the quadrant discipline governs what a page *is*, while the reader sees a product-shaped portal.
 
 Coverage is a grid of `(surface, audience, type)` cells, each `exists | missing | stale`.
 
@@ -231,8 +229,12 @@ Creates a documentation repository that builds, serves, lints, and is profiled. 
 
 ### Phase 0 — Resolve and validate
 
-1. Resolve the target path (first token, else cwd). Resolve to absolute.
-2. Run `specs-preflight` against `$SPECS_PATH` per `references/specs-repo-git.md`, as early as `$SPECS_PATH` is known.
+1. **Resolve the target path**, in this order, and print which rung answered — a scaffold that writes into an unexpected directory is expensive to unpick:
+   - **(a)** the first token of `$ARGUMENTS`, if there is one;
+   - **(b)** else `${DOCS_PATH:-/workspace/docs}` **when it is absent, or exists and carries no docs signal** — the inverse of the test `/document` Phase 0 rung (a.5) applies to the same expression, because this command scaffolds and that one adopts (D23). A `$DOCS_PATH` that *does* carry a signal is not skipped silently: it is reported, with the redirect to `/docs-profile` that step 4 gives, since it is almost certainly the repo the operator meant;
+   - **(c)** else the current working directory.
+   Resolve the result to absolute.
+2. Run `specs-preflight` against `$SPECS_PATH` per `workflows-core:specs-repo-git`, as early as `$SPECS_PATH` is known.
 3. The target must be a writable git work tree, or an empty/absent directory that the command offers to `git init`. A non-empty directory that is not a git work tree stops with `NOT_A_GIT_WORKTREE`.
 4. **Refuse to scaffold over an existing docs repo.** If ≥ 1 docs signal is present (the `/document` Phase 0 signal set: a `*:start`/`*:build`/`*:lint`/`docs:*` script, `.docstack/`, `mkdocs.yml`, `docusaurus.config.js`, `antora.yml`, `.vale.ini`, `DOCUMENTATION-GUIDELINES.md`, or any `_snippets/`), stop and point at `/docs-profile` instead. Scaffolding is for cold start; describing an existing repo is a different command.
 
@@ -371,7 +373,7 @@ A failure at any step is reported and left unfixed rather than worked around; a 
 
 ### Phase 7.5 — Review gate
 
-The scaffold is code — `mkdocs.yml`, a CI workflow, `.vale.ini`, `extra.css`, and a generated `nav:` — so it is reviewed as code (D17). Dispatch `code-review` at Opus over the written diff, triage its findings per `references/finding-triage.md`, and hand `review-fixer` the survivors only. A survivor that fails the patch gate is surfaced for a human decision rather than patched.
+The scaffold is code — `mkdocs.yml`, a CI workflow, `.vale.ini`, `extra.css`, and a generated `nav:` — so it is reviewed as code (D17). Dispatch `code-review` at Opus over the written diff, triage its findings per `workflows-core:finding-triage`, and hand `review-fixer` the survivors only. A survivor that fails the patch gate is surfaced for a human decision rather than patched.
 
 The reviewer is told what this diff is for, so its attention lands where the blast radius is: does the public build genuinely exclude `internal/`, does `strict` actually fail on a cross-boundary link, does the generated `nav:` list every scaffolded page exactly once, and does the CI workflow run both gates rather than only the build.
 
@@ -384,6 +386,8 @@ Branch, commit, and draft a PR message. Never pushes, never merges — same disc
 ## 7. `/docs-brand`
 
 **Signature:** `/docs-brand [<docs-repo-path>] [--from <code-repo-path>] [--inline]`
+
+The docs repo resolves by the signal-**positive** ladder — first token, else `${DOCS_PATH:-/workspace/docs}` when it carries a docs signal, else cwd, else ask (D23). Branding applies to a site that exists, so this is the ordinary form; `/docs-init` is the one command in the family that inverts it.
 
 Extracts a logo and a rough colour scheme from the product's own code and applies them to the docs site. Expectations are deliberately modest: a mark and a primary/accent pair, not a design system.
 
@@ -427,7 +431,7 @@ Light and dark variants are derived from the primary when the source supplies on
 ### 7.3 Honesty and accessibility
 
 - **Never applies silently.** The command prints each extracted value with the file and line it came from, and asks to confirm. A wrong brand colour applied quietly is worse than no branding.
-- **Contrast check.** The derived palette is checked against `references/guidelines/accessibility.md`; a primary that fails contrast on body text is reported as a finding with the measured ratio, not silently accepted. A brand colour that fails is still applied if the user confirms — it is their brand — but the finding is recorded in the PR message.
+- **Contrast check.** The derived palette is checked against one rule — WCAG 2.2 **SC 1.4.3** (4.5:1 for body text, 3:1 for large text) and **SC 1.4.11** (3:1 for UI component boundaries and meaningful graphics) — which is a *computation* over relative luminance, not a guideline lookup. `guideline-reviewers`' `references/guidelines/accessibility.md` states it, and is unreachable from here (§18 q3); the threshold pair and the luminance formula are the whole of what this phase needs from it. a primary that fails contrast on body text is reported as a finding with the measured ratio, not silently accepted. A brand colour that fails is still applied if the user confirms — it is their brand — but the finding is recorded in the PR message.
 - **Copies, never links.** Logo assets are copied into `docs/assets/`; the docs build never reaches into a code repo at build time.
 
 ### 7.4 Review gate
@@ -480,7 +484,7 @@ coverage:
 threshold: 2                          # "done" = every unit with priority <= threshold is published
 ```
 
-**Why surfaces and units are separate tables:** one surface spawns several units across quadrants, and **drift is detected per surface and then fans out to its units**. A single flat list would either duplicate the evidence per unit or lose the fan-out. `sources[].ref` is what makes drift computable at all, and it is the same idea as `prep.scanned_ref` in `references/read-only-repos.md`.
+**Why surfaces and units are separate tables:** one surface spawns several units across quadrants, and **drift is detected per surface and then fans out to its units**. A single flat list would either duplicate the evidence per unit or lose the fan-out. `sources[].ref` is what makes drift computable at all, and it is the same idea as `prep.scanned_ref` in `workflows-core:read-only-repos`.
 
 ### 8.2 The evidence contract
 
@@ -490,7 +494,7 @@ The interface, with two implementations:
 |---|---|---|
 | Template | Diátaxis quadrant | arc42/C4 section, MADR, runbook, generated API reference |
 | Evidence source | Routes, views, i18n strings, plus a walkthrough | Code, config, ARDs and design docs from the specs repo |
-| A claim is resolved by | **Observation** — a walkthrough step confirms it | **Code read** — delegated to `references/source-truth.md` |
+| A claim is resolved by | **Observation** — a walkthrough step confirms it | **Code read** — delegated to `workflows-core:source-truth` |
 | Drift signal | Behaviour change: routes, labels, flows | Structure change: interfaces, modules, dependencies |
 
 A third evidence kind, `artifact`, covers a claim whose source is neither code nor observation but a committed document — a `/release-notes` draft under `$SPECS_PATH`, an ARD, a design doc. It records the path **and the commit it was read at**, so drift can tell a re-worded draft from an unchanged one.
@@ -578,10 +582,14 @@ A fourth change is to an **existing** key rather than an addition: `images.polic
 
 ```yaml
 images:
-  policy: in-repo | cdn                 # was a prose sentence
+  policy: in-repo | object-store | cdn  # was a prose sentence; all three of D16's policies
   root: docs/assets                     # in-repo only
   max_bytes: 307200                     # in-repo only; CI budget
+  public_prefix: https://…/public/      # object-store and cdn; the base every public-build image URL must start with
+  internal_prefix: https://…/internal/  # object-store only; what §8.4's third visibility gate asserts against
 ```
+
+**The enum carries all three policies, and the last two fields are what makes `object-store` implementable rather than merely named.** §8.4 requires a *third* visibility gate under that policy — every image URL in the public build must resolve to the public prefix — and a gate cannot assert against a prefix the profile does not record. An earlier draft of this block wrote `in-repo | cdn`, silently deleting a policy the decisions table had decided; §8 is labelled frozen because Specs 2 and 3 code the enum from here, so a value missing here is a value missing from the implementation.
 
 **Why `builds:` rather than a second `spaces[]` entry:** `spaces[]` is defined by content-root ownership — "a page belongs to whichever entry's `content_root` prefixes its path". Two spaces sharing one root breaks that rule. Two builds over one root is a different axis and needs its own field.
 
@@ -666,7 +674,7 @@ Profile-driven, so it works on any profiled docs repo — including one `/docume
 
 ### 10.1 Behaviour
 
-1. Resolve the docs repo the same way `/document` Phase 0 does (cwd with signals → `$DOCS_PATH` → search `$REPOS_PATH` → ask).
+1. Resolve the docs repo the same way `/document` Phase 0 does — cwd with signals → `${DOCS_PATH:-/workspace/docs}` with signals → search `$REPOS_PATH` → ask (D23, the signal-positive form).
 2. Read `dev_servers` from the profile. `--internal` selects the internal build's server; default is public.
 3. **Already-running detection** — if the port answers and the response identifies the docs site, report the existing URL and stop. Never start a second server.
 4. **Port collision** — if the port is occupied by something else, pick the next free port, use it, and say so explicitly.
@@ -693,7 +701,7 @@ A port-shifted stack (a project whose Postgres and Redis are moved off the stand
 
 ### Phase 0 — Resolve
 
-Docs repo and profile as above; `specs-preflight`; source repos from the profile's recorded set (confirm if absent).
+Docs repo and profile by the signal-positive ladder (D23, as §10.1); `specs-preflight`; source repos from the profile's recorded set (confirm if absent).
 
 ### Phase 1 — Model routing
 
@@ -701,7 +709,7 @@ Docs repo and profile as above; `specs-preflight`; source repos from the profile
 
 ### Phase 2 — Scan
 
-Dispatch `code-scanner` per repo in a **single response**, capped at 4 concurrent, per `classification.md` §8. Each scanner returns its `prep` block (`read_only`, `scanned_ref`, `ref_committed_at`, `head_divergence`) per `references/read-only-repos.md`; `scanned_ref` is recorded in `sources[]`.
+Dispatch `code-scanner` per repo in a **single response**, capped at 4 concurrent, per `workflows-core:model-routing/classification` §8. Each scanner returns its `prep` block (`read_only`, `scanned_ref`, `ref_committed_at`, `head_divergence`) per `workflows-core:read-only-repos`; `scanned_ref` is recorded in `sources[]`.
 
 Optionally dispatch `docs-grounder` against `$DOCS_PATH`, advisory.
 
@@ -796,7 +804,7 @@ Screenshots supplied in folder mode land in the unit's image slots per `images.p
 **Two backends, matching the two implementations of the evidence contract (§8.2)** — one command, not two:
 
 - **`audience: user`** — composes or loads the unit's walkthrough (§8.3), renders it as a checklist, records `confirmed`/`differs`/`blocked` per step with the observed text on `differs`, and collects image slots for CDN upload.
-- **`audience: engineering`** — re-reads the claims against the code and the specs-repo artefacts they cite, delegating to `references/source-truth.md`. No walkthrough; the same status transition.
+- **`audience: engineering`** — re-reads the claims against the code and the specs-repo artefacts they cite, delegating to `workflows-core:source-truth`. No walkthrough; the same status transition.
 
 Both resolve marked claims and move the unit `drafted → verified`. v2 adds a browser driver behind the user backend, with no change to the file format.
 
@@ -818,25 +826,30 @@ For each surface, diff `sources[].ref` → `HEAD` restricted to the surface's ev
 
 **How they are reached changed, even though what they are did not.** Every reference above now lives in `workflows-core` (or, for `toolchain-preflight`, `gate-ledger` and `release-note-types`, in `docs-workflows` itself) and is loaded through one argument-taking skill — `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path, because `${CLAUDE_PLUGIN_ROOT}` resolves to the *reading* plugin. Every consuming file carries the loader preamble, and `check-docs.sh` check 16 gates the contract in five relations. An agent crosses a plugin boundary for free; a reference does not.
 
-**One entry has dropped off this list because the split made it unreachable, and it needs a decision rather than an edit.** `references/guidelines/accessibility.md` — cited here as reused unchanged — now lives in **`guideline-reviewers`**, which no plugin declares as a dependency and which the `workflows-core:reference` loader does not serve. Nothing outside that plugin cites it today, so a `docs-workflows` command cannot load it at all. `/docs-init`'s branding phase (§7.3) and the image policies (§8.4) both lean on it. See §18, open question 3.
+**The citation form in this document follows that rule, and the two forms are not interchangeable.** A `workflows-core` reference is named `workflows-core:<name>` throughout and is loaded through the loader skill; a reference this plugin *owns* — `toolchain-preflight`, `gate-ledger`, `release-note-types`, everything under `references/docs-profiles/` — keeps its `references/<name>.md` path form, because `${CLAUDE_PLUGIN_ROOT}` resolves to `docs-workflows` for exactly those. Check 16 relation 5 fails a *core* reference cited by path from outside core and says nothing about an own-plugin one, which is the distinction to preserve when this text is copied into a command body — which is how these citations usually travel.
+
+**One entry has dropped off this list because the split made it unreachable, and it needs a decision rather than an edit.** `references/guidelines/accessibility.md` — cited here as reused unchanged — now lives in **`guideline-reviewers`**, which no plugin declares as a dependency and which the `workflows-core:reference` loader does not serve. Nothing outside that plugin cites it today, so a `docs-workflows` command cannot load it at all. **Its blast radius is one section, not two.** `/docs-brand`'s contrast check (§7.3) is the only thing in this design that cites it — §8.4 names no accessibility rule at all, and an earlier draft of this paragraph and of §18 question 3 both claimed it did. That matters because an over-stated blast radius is what makes an expensive answer look proportionate. See §18, open question 3, where the correction changes the recommendation.
 
 ### 13.2 Changed
 
 - `references/docs-profiles/docs-profile-schema.md` — three optional fields (§8.5) plus their field rules.
+- **`/docs-profile` Phase 0 step 1 gains the `$DOCS_PATH` rung** (D23). It resolves *first token, else cwd* today and is the only docs command that never learned the variable; the family cannot claim one docs-repo default while its own profiler ignores it. Signal-positive form, as everywhere except `/docs-init`.
 - New `references/docs-workflow/` directory holding the coverage model, the backlog schema, the evidence contract, and the walkthrough spec — kept self-contained so a later extraction to a separate plugin stays cheap (D1).
 
 ### 13.3 Gate impact, stated up front
 
 Re-derived against the post-split tree, scoped to the five plugins `check-docs.sh` gates (`dev-workflows`, `docs-workflows`, `product-workflows`, `workflows-core`, `guideline-reviewers`). **The scope of these numbers changed with the split and the totals mostly did not** — the restructure moved content between plugins without adding commands or agents — so the interesting column is no longer the total but the per-plugin inventory the gate actually checks. Re-derive again at implementation time: these move on almost every release, and nothing gates a number written in prose.
 
-| Inventory | Now | After the family |
-|---|---|---|
-| Commands | 28 across five plugins (3 in `docs-workflows`) | 36 (11 in `docs-workflows`) |
-| Agents | 38 across five plugins (7 in `docs-workflows`) | 42 (11 in `docs-workflows`) |
-| Reference files | 100 across five plugins (14 in `docs-workflows`) | 100 + `docs-workflows/references/docs-workflow/*` |
-| `docs/` pages | 79 across five plugins (11 in `docs-workflows`) | 92 (24 in `docs-workflows`) |
-| Skills | 3 (`model-routing`, `reference`, `docs-frontmatter`) | 3 |
-| Hooks | 6 | 6 |
+| Inventory | Now, in `docs-workflows` | After the family | Five-plugin total |
+|---|---|---|---|
+| Commands | 3 | 11 | derive: `ls plugins/{dev,docs,product}-workflows/commands plugins/workflows-core/commands plugins/guideline-reviewers/commands` |
+| Agents | 7 | 11 | derive: same shape over `agents/` |
+| Reference files | 14 | 14 + `references/docs-workflow/*` | derive: `find "$p/references" -type f` per gated plugin — the shape check 9 itself uses |
+| `docs/` pages | 11 | 24 (8 command, 4 reference, 1 route) | derive: same shape over `docs/` |
+| Skills | 1 (`docs-frontmatter`) | 1 | 3 with `workflows-core`'s `model-routing` and `reference` |
+| Hooks | 2 | 2 | derive from each `hooks/hooks.json` |
+
+**The per-plugin column is the one that matters and the only one anything gates**: check 9 asserts each of those seven sentences inside the plugin's own tree, so a per-plugin number that goes stale turns the build red. **The five-plugin totals are held by hand and nothing gates them, so this table no longer carries them.** It used to, and every one of them rotted: written as 28 commands / 38 agents / 100 references / 79 pages, the tree read 30 / 39 / 107 / 82 by the next review — four of six wrong, from a table whose own preamble told the reader to re-derive. The rule this document now follows is `CLAUDE.md`'s: cite the derivation, do not carry the count.
 
 `scripts/check-docs.sh` runs **seventeen** checks over 119 selftest cases and enforces six inventories in both directions plus the prose counts that mirror them; `scripts/check-id-grammar.sh` applies to the new reference files. The `plugin.json` and `marketplace.json` descriptions are capped at 1024 characters and are already tight: the new capability **replaces** wording, it never appends. **Four of the seventeen postdate this design and each one bites here:** check 13 (vendor neutrality — no tracker name in any text file without a marker), check 14 (identity quarantine over the whole repository, no marker and no exception), check 16 (the loader contract, in five relations), and check 17 (an agent granted `Task` must carry the NEVER-dispatch rule).
 
@@ -844,7 +857,7 @@ Check 11 gates `choices:` placeholders for the `/brd-*` **and `/prd-*`** familie
 
 ### 13.4 Where a documentation run's bookkeeping lands
 
-Feedback and cost follow the existing ladders in `references/feedback-emission.md` and `references/cost-emission.md` unchanged **whenever a PRD is in scope** — a `/document` run against a PRD keeps writing under that PRD's directory, and nothing about it changes.
+Feedback and cost follow the existing ladders in `workflows-core:feedback-emission` and `workflows-core:cost-emission` unchanged **whenever a PRD is in scope** — a `/document` run against a PRD keeps writing under that PRD's directory, and nothing about it changes.
 
 The gap is the run with no PRD, which for this family is the normal case. The specs-native work collapsed the ladder to four specs-first tiers with no vault rung, but **tier 2 is still `pending`** — parked awaiting reconciliation into a PRD directory. Documentation work often has no PRD and never will, so those pending entries accumulate forever and reconcile against nothing. The collapse did not close this gap; it left it exactly where it was.
 
@@ -863,9 +876,9 @@ $SPECS_PATH/documentation/<docs-repo-slug>/
 
 Three consequences worth stating because each is a place to get it wrong:
 
-- **`references/specs-repo-git.md` §2.1 gains a fourth bounded path shape.** Staging stays enumeration-based; nothing else about the bookkeeping commit changes.
-- **`references/cost-emission.md` §7 gains a row per new command** that hands `emit-cost` a fixed `phase`/`role` pair. `check-docs.sh` check 8 fails in both directions, so a row without a command is as red as a command without a row.
-- **No new branch prefix is needed.** `specs-repo-git.md`'s prefix authority — seven when this was written, **eight since `/frames` landed** (`^(idea|prd|ard|spec|design|ready|brd|frames)/`) — governs branches the plugin creates **in `$SPECS_PATH`**, and this family creates none there: its deliverables live in the docs repo, where it follows `/docs-profile`'s existing discipline of branch, commit, draft a PR, never push. `handoff-to-main` and `require-on-main` likewise do not apply, because no deliverable of this family is a `$SPECS_PATH` artefact. The count moved; the conclusion did not.
+- **`workflows-core:specs-repo-git` §2.1 gains a fourth bounded path shape.** Staging stays enumeration-based; nothing else about the bookkeeping commit changes.
+- **`workflows-core:cost-emission` §7 gains a row per new command** that hands `emit-cost` a fixed `phase`/`role` pair. `check-docs.sh` check 8 fails in both directions, so a row without a command is as red as a command without a row.
+- **No new branch prefix is needed.** `workflows-core:specs-repo-git`'s prefix authority — seven when this was written, **eight since `/frames` landed** (`^(idea|prd|ard|spec|design|ready|brd|frames)/`) — governs branches the plugin creates **in `$SPECS_PATH`**, and this family creates none there: its deliverables live in the docs repo, where it follows `/docs-profile`'s existing discipline of branch, commit, draft a PR, never push. `handoff-to-main` and `require-on-main` likewise do not apply, because no deliverable of this family is a `$SPECS_PATH` artefact. The count moved; the conclusion did not.
 
 ### 13.5 The extraction happened — what the plugin system actually supported, and what shipped
 
@@ -1011,7 +1024,7 @@ flowchart TD
 
 ### 15.4 Counts to update in the same change
 
-`check-docs.sh` cross-checks six inventories plus the cost-emitting set against prose counts scattered across the tree, and each must move together. **Scoped to `docs-workflows`, which is the scope the gate applies:** commands 3 → 11, agents 7 → 11, reference files 14 → 14 plus `references/docs-workflow/*`, docs pages 11 → 24 (8 command pages, 4 reference pages, 1 route page). The five-plugin totals move with them (28 → 36 commands, 38 → 42 agents, 79 → 92 pages). `CLAUDE.md`'s command list, agent list, per-plugin inventory sentences and workflow map are updated in the same commit — **`CLAUDE.md`'s own numbers are held by hand, nothing gates them** — and every new command handing `emit-cost` a fixed `phase`/`role` pair needs its matching row in `workflows-core:cost-emission` §7, plus `docs-workflows` in `COST_PLUGIN_RELS`; check 8 fails in both directions.
+`check-docs.sh` cross-checks six inventories plus the cost-emitting set against prose counts scattered across the tree, and each must move together. **Scoped to `docs-workflows`, which is the scope the gate applies:** commands 3 → 11, agents 7 → 11, reference files 14 → 14 plus `references/docs-workflow/*`, docs pages 11 → 24 (8 command pages, 4 reference pages, 1 route page). The five-plugin totals move with them; **derive both endpoints rather than copying the pair from here or from §13.3** — the numbers this sentence used to name were stale within two increments, in both tables at once. `CLAUDE.md`'s command list, agent list, per-plugin inventory sentences and workflow map are updated in the same commit — **`CLAUDE.md`'s own numbers are held by hand, nothing gates them** — and every new command handing `emit-cost` a fixed `phase`/`role` pair needs its matching row in `workflows-core:cost-emission` §7, plus `docs-workflows` in `COST_PLUGIN_RELS`; check 8 fails in both directions.
 
 **Do not copy these numbers forward without re-deriving them.** This document already carried a stale set once: it was written against a tree with 21 commands and 33 agents, and by the time it was reviewed the repository had 27 and 39. `CLAUDE.md` says it plainly — nothing gates any number written in prose, so re-derive against the tree you are actually changing.
 
@@ -1035,7 +1048,7 @@ flowchart TD
 |---|---|
 | The audit produces a large, discouraging backlog | `threshold` plus the four prioritisation signals; the report leads with the top N and the coverage grid. `--next` means the operator never faces the full list to decide anything |
 | **The scaffold ships and nobody writes** — the classic docs-project death | Four things attack it directly: `/docs-serve` in step 2 makes the empty portal real before any work is committed; `--next` removes the "what do I do now" decision entirely; the coverage grid turns progress into a number that moves; and §14 states the order so the project has a procedure rather than a toolbox |
-| Diátaxis applied mechanically, producing four thin pages per surface | `ia-planner` assigns types per surface — not every surface earns all four quadrants — and `docs-audit-reviewer` check 2 fails a type that does not fit its surface |
+| **Diátaxis applied as a quota** rather than as a page type — four thin pages per surface because there are four quadrants | `ia-planner` assigns types per surface — not every surface earns all four quadrants — and `docs-audit-reviewer` check 2 fails a type that does not fit its surface |
 | Volatility inversion permanently defers the hard parts | D7: ranks, never excludes. A high-value churning surface is written in a churn-resistant form with `churn_adapted: true` recorded, so the choice is visible |
 | **Docs rot that drift cannot see** — a renamed product, a changed process, a page wrong with no code change | `review_by` in frontmatter is the calendar backstop; `/docs-audit --refresh` sweeps on `updated` and re-queues what has aged past its review date. Drift watches evidence, `review_by` watches time, and neither covers the other |
 | **In-repo images bloat the repository** (D16's default) | A 300 KB per-image CI budget beside the visibility gates, SVG preferred, an optimiser run when available, and one path per slot so a replacement overwrites rather than accumulating. `git-lfs` is named as the escape hatch |
@@ -1052,7 +1065,23 @@ flowchart TD
 
 1. **Tutorial selection UX.** The audit proposes candidates and a human picks; whether that is an interactive prompt in `/docs-audit` or a marked section of the backlog to edit is unsettled.
 2. **Tracker projection of the backlog** (D5's optional emitter) is named but not designed. Deferred until someone needs it; if it is ever built it is GitHub issues, not a tracker the plugin deliberately stopped reading (§19, row 6).
-3. **How `/docs-init` reaches accessibility guidance.** `references/guidelines/accessibility.md` is cited by §7.3 and §8.4 and sits in `guideline-reviewers`, which no plugin declares as a dependency and which the `workflows-core:reference` loader does not serve — so `docs-workflows` cannot load it. Three candidate answers, none obviously right: move the file into the `workflows-core` corpus, where it becomes loadable by everything and belongs to nothing in particular; declare `guideline-reviewers` a dependency of `docs-workflows`, which makes a reviewer plugin a hard prerequisite for scaffolding a docs repo; or state the handful of rules `/docs-init` actually needs locally and cite the guideline plugin as further reading. **This is the one item on this list that blocks implementation of §7.3**, so settle it first.
+3. **How `/docs-brand` reaches accessibility guidance.** `references/guidelines/accessibility.md` sits in `guideline-reviewers`, which no plugin declares as a dependency and which the `workflows-core:reference` loader does not serve — so `docs-workflows` cannot load it. **Two facts changed the shape of this question since it was written.** First, its blast radius is one section: §7.3's contrast check, not §7.3 *and* §8.4 — §8.4 names no accessibility rule at all (§13.1). Second, what §7.3 needs is one line of a 183-line file: the SC 1.4.3 / SC 1.4.11 threshold pair. The remaining 182 lines are application-UI review vocabulary — axe-core rule ids, W3C ACT rules, form-field and multimedia criteria — with nothing to say about choosing two brand hexes, and the check itself is a relative-luminance computation rather than a rulebook consultation.
+
+   Four candidates, and the cost of each is now measurable rather than guessed:
+
+   - **Move the file into `workflows-core`.** It becomes loadable by everything — and it forces `guideline-reviewers`, which today declares **no dependencies at all** and is a standalone marketplace sibling by `workflows-core:dependencies`' own reckoning, to declare `workflows-core` and rewrite its three citations to loader form. A standalone plugin becomes a dependent one to serve a threshold pair in another plugin.
+   - **Declare `guideline-reviewers` a dependency of `docs-workflows`.** An unsatisfied dependency *disables* the declaring plugin, so this makes an application-UI review plugin a hard install-time prerequisite for scaffolding a documentation repository. Two commands out of eleven would justify it.
+   - **`prose-style/references/accessibility.md`.** Reachable — `prose-style` is already a hard dependency — and it does **not** answer this. It covers prose accessibility: zero occurrences of *contrast*, against six in the `guideline-reviewers` file. Named explicitly so an implementer who finds the reachable file does not wire §7.3 to it.
+   - **State the rule where this family can reach it, and cite the guideline file as further reading.** ← **recommended.** The threshold pair and the luminance formula go in the family's own `references/docs-workflow/` directory (§13.2) rather than inline in the command, so `/docs-verify` and any later image-contrast check share one copy rather than three. `references/guidelines/accessibility.md` is cited as the authority a reviewer should read; nothing loads it at runtime, so nothing breaks when `guideline-reviewers` is absent — which it is, for most installs.
+
+   **This still blocks implementation of §7.3**, but it is now a cheap decision rather than a packaging one.
+
+4. **Which reviewer gates `/docs-init` and `/docs-brand`.** §4's gate table assigns both to `code-review` @ Opus with `review-fixer`. Both agents live in `plugins/dev-workflows/agents/`, and `docs-workflows` declares `["workflows-core", "prose-style"]` — there is no `docs-workflows` → `dev-workflows` tie in either of `workflows-core:dependencies`' two categories, so nothing guarantees those agents are installed, and a miss would kill the gate rather than degrade a feature. **This is §20's own closing lesson applied one level up** — a shared *file* in a plugin no dependency names is how `accessibility.md` became unreachable; row 5 caught the reference and nothing caught the agents. It needs a decision rather than a wiring fix, because D17's rationale for those two rows is *"its output is code, reviewed as code"*, and three of the four answers change that.
+
+   - **A new `docs-scaffold-reviewer` in `docs-workflows`.** ← **recommended.** `code-review` is built for an implementation diff: it carries a spec/design-conformance dimension tracing `[Uxx]`/`[ACxx]`/`[TCxx]`, a captured test baseline, and `dev-workflows:context-management` read-failure tiers. A scaffold has no spec to conform to and no baseline to compare against, so most of that reviewer is inert here while the things that actually need checking are specific and checkable: the generated `nav:` matches the files on disk, the two builds differ **only** by the exclusion (§9), `.vale.ini` parses and its styles resolve, CI runs both builds and all three gates, the image budget is wired, and no internal path appears in the public config. This is the pattern this design already chose once — it invents `docs-audit-reviewer` rather than reusing a generic reviewer for the audit — and it takes the same `orchestrator applies` fixer disposition, so `review-fixer` is not needed either. **D17 survives intact**: a high-tier gate on every artefact-writing command, by a reviewer that can actually read the artefact. Cost: a fifth new agent, so §4's count, §13.3's per-plugin agent row and §15.4 all move.
+   - **Move `code-review` and `review-fixer` into `workflows-core`.** Structurally the cleanest reading of what those agents are — core already holds five shared agents, and a general code reviewer is exactly that shape. It is a `dev-workflows` refactor touching `/implement`, `/vuln` and `/upgrade`, for a benefit this family does not need if the first answer is right. **This is the answer the moment a second consumer appears**, and it should not be taken before then.
+   - **Declare `dev-workflows` a dependency of `docs-workflows`.** Inverts the family's direction of travel — documentation is downstream of development, not dependent on it — and makes the whole build pipeline a hard prerequisite for `/docs-init`.
+   - **Reuse `doc-reviewer`.** Already in `docs-workflows` and reachable, but it reviews prose against evidence. Pointing it at a CI workflow and a CSS file **overturns D17's stated rationale** rather than satisfying it, and should be recorded as overturning it if it is chosen.
 
 *(Three questions this document originally carried are now settled and have moved into §3: whether `docs-frontmatter` should own the evidence block — D18; the acceptable review spend per unit — D20; and the default page owner — D21.)*
 
@@ -1073,7 +1102,7 @@ This design was written against a tree that no longer exists. [`2026-08-31-specs
 | 5 | Inventory counts | Everything moved: 28 commands, 38 agents, 105 references, 43 documentation pages at `v3.24.1` | §13.3 and §15.4 were refreshed for this. The split then moved the *scope* as well as the values (§20, row 11), which is why they carry a per-plugin column now — re-derive at implementation time rather than tracking them per release |
 | 6 | Open question 2 proposes a Jira projection of the backlog | The plugin removed its tracker dependency entirely | A **Jira** projection is now against the direction of travel. The live answer is GitHub issues, or nothing |
 
-**Unaffected by the specs-native pipeline, stated so it is not re-examined:** the coverage model (§5), all four frozen contracts (§8), the visibility model (§9), every per-command design (§6, §7, §10, §11), the operating procedure (§14), and all twenty-two decisions in §3. §20 records what the *marketplace split* changed, which is a different and shorter list — and D1 is on it.
+**Unaffected by the specs-native pipeline, stated so it is not re-examined:** the coverage model (§5), all four frozen contracts (§8), the visibility model (§9), every per-command design (§6, §7, §10, §11), the operating procedure (§14), and every decision in §3 (D23 postdates it and is unaffected for the same reason — it settles path resolution, which no pipeline change touched). §20 records what the *marketplace split* changed, which is a different and shorter list — and D1 is on it.
 
 **D4's rationale has since been rewritten in place rather than footnoted here.** It used to argue from `/document` Mode A requiring "a PRD key, a Jira export and PR URLs"; the tracker is gone and the mode names are `keyed` and `direct`, so the decision now states the live prerequisite — a PRD key and an `implementation.md` record. The conclusion never moved: it rests on `/document` documenting a **delta**, which every increment since has preserved. A footnote correcting a table that still asserts the wrong thing is two live contradictory statements, which is what this replaces.
 
@@ -1107,3 +1136,5 @@ This design was written against a tree that no longer exists. [`2026-08-31-specs
 **Unaffected by the split, stated so it is not re-examined:** the coverage model (§5), the four frozen contracts (§8), the visibility model (§9), every per-command design (§6, §7, §10, §11), the operating procedure (§14), and every decision in §3 except D1. The packaging moved; the design did not.
 
 **The general lesson, recorded because it is the one this document paid for twice:** dependencies were the cheap part. What is expensive is a shared file sitting in a plugin that no dependency names — which is how `accessibility.md` became unreachable, and is the shape to check for before adding a fifth plugin to anything.
+
+**And the lesson generalises past files, which this section did not notice at the time.** Row 5 swept the *references* this design cites and found one unreachable. It did not sweep the **agents**, and §4's gate table names two — `code-review` and `review-fixer` — that sit in `dev-workflows` with no tie to it in either dependency category (§18 q4). `CLAUDE.md`'s "an agent crosses a plugin boundary for free" is a statement about the *dispatch* — no loader, no path, no wrapper — and not about installation: free to call is not guaranteed to be there. **Sweep both inventories against the declared dependency set, not just the reference corpus**, and do it in the same pass, because a reviewer that is absent at runtime removes a gate silently while a reference that is absent fails loudly at its first read.

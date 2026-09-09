@@ -684,9 +684,16 @@ reaches the note, which is deliberately not a bundle document (§4) and which §
 a pin restated wrongly there has the reviewer verify every code claim against a snapshot nobody
 ground.
 
-**Any relation whose source side comes up empty fails rather than passes**, per
-`workflows-core:grounding-format` §2.1. A part that legitimately has nothing says so and is read as
-the empty set on both sides; a part rendered from a source that could not be parsed is not.
+**A relation whose source side comes up empty while the restatement is not fails rather than
+passes.** `workflows-core:grounding-format` §2.1 states the general form — a relation fails when
+**either** side comes up empty — and this is a deliberate narrowing of it rather than a citation of
+it, itemised here because a narrowed rule is a deletion
+(`workflows-core:instruction-file-maintenance`). What §2.1 governs is a resolution over records,
+where an empty side means a read failed. Here one side is a **restatement**, and a part that
+legitimately has nothing says so: both sides empty is the ordinary pass, and reading it as a failure
+would refuse every package with no conditional position or no out-of-scope defect. What stays
+failing is the asymmetric case — a restatement carrying members over a source that yielded none —
+because that is a read failure wearing the shape of a discrepancy.
 
 ### 7.2 What §7 cannot see
 

@@ -331,11 +331,36 @@ every one has one.
   do not restart the round, and do not re-ask a question that already carries a terminal
   disposition. Re-asking a `[C]` is the case §5 singles out, and the register is the reason: two customer answers to one
   question is a contradiction one `[CD#n]` record has no way to hold.
-- **No round record exists at all** → open round 1 from the grounding, unconditionally. The change
-  test below does not apply: it reads "since the last round closed", and no round has closed. A BRD
-  whose grounding is verified and whose ledger is allocated has a first round's worth of questions in
-  it by construction (*Round 1 is generated from the grounding*, below), and refusing to ask them
-  because nothing has "changed" would leave the route with no way in.
+- **No round record exists at all** → **generate round 1's questions first, then decide.** The change
+  test below does not apply here: it reads "since the last round closed", and no round has closed, so
+  it has no referent. Run *Round 1 is generated from the grounding* (below) and branch on what it
+  produced:
+  - **At least one question** → open round 1 and work it, exactly as ever.
+  - **No question at all** — every finding `CONFIRMED`, no `will-change` horizon, no `[DG#n]`
+    divergence, no `deferred-to`/`rejected` row with an unstated consequence, and nothing the package
+    must assert without evidence → **write `interview/round-1.md` recording the walk and what it
+    found nothing of**, and carry on through the rest of the run — the register phase (which writes
+    nothing: no `[VD#n]`, no `[AS#n]`, no `[C]`), the handoff, and the next-step offer. **This is a
+    completed run, not a stop**: it produced a deliverable, so it stages and hands off like any
+    other, and the offer it ends on is whichever the two `/brd-package` gates select. With an open
+    `[AS#n]` on file the packaging step is offered; with an empty register the run reports the BRD
+    decided. Neither is `not-interviewed`, because this run has just made that false.
+
+  **That record is not the empty round record the all-delegated stop forbids, and the difference is
+  the whole of why one is written here and not there.** That rule refuses a record that *"would sit
+  on file forever recording that nothing was asked, which reads indistinguishably from a round nobody
+  finished"* — and it is right, about an **empty** file. This record is not empty: it names each of
+  the six question sources and states what the walk found under it, so a reader meets an account of a
+  completed walk rather than a silence they have to interpret. Where the all-delegated stop fires the
+  run never reaches this branch at all, so the two never compete.
+
+  **Why the record is written rather than the run simply reporting and exiting.** The operator cannot
+  know whether this BRD has anything to ask until this command has run, so the run is the discovery
+  step and its result is worth keeping. It is also what `/product-workflows:brd-package` reads: that
+  command refuses a BRD with no round record, and it must not re-derive the six sources above to
+  decide whether the refusal is fair — a second copy of this rule in another command is how the two
+  drift apart, and the first question source added to one and not the other ships a package over a
+  question nobody walked. It tests for the record; this branch is what makes an honest one exist.
 - **Every round is closed** → a new round is proposed **only if findings or
   decisions have changed since the last round closed**. Concretely: a `[CG#n]`/`[DG#n]` added or
   superseded since that round's record was written, a verifier outcome changed, or a decision in
@@ -362,8 +387,12 @@ every one has one.
   contiguity §5 depends on:
   `BRD_INTERVIEW_NO_SUCH_ROUND: <BRD-KEY> has no round N — rounds on file: <list, or "none">. Omit --round to continue at the first round still holding a question without a terminal disposition.`
   The one exception: `N` is exactly `<highest + 1>` (or `1` when none exists), which is a request to
-  open the next round, and is granted on the same changed-findings-or-decisions test as the no-flag
-  path.
+  open the next round, and takes **whichever branch the no-flag path would take for that same
+  request** — the change test where rounds are on file, and the generate-then-branch rule where none
+  is, including its nothing-askable outcome. The two branches of *Resolve the round* differ, and a
+  flag must not reach a different answer than the bare command would. Naming a round is never a way
+  to accidentally do something else, and that cuts both ways: it must also never be a way to
+  accidentally do *less*.
 
 Carry the resolved round number for the whole run. Every decision, assumption and question this run
 records is stamped with it.
@@ -701,7 +730,12 @@ short — and `argumentation` saying **why the package proceeds on the assumptio
 to establish it**. A bare sentence with no account of its own groundlessness is a claim, not an
 assumption record.
 
-**`<BRD-dir>/interview/round-<N>.md`** — the round's own record, append-only: every question in the
+**`<BRD-dir>/interview/round-<N>.md`** — the round's own record, append-only. **A round that raised
+no question at all records the walk instead of the questions**: each of the six sources *Round 1 is
+generated from the grounding* names, and what this BRD held under it — every finding `CONFIRMED` and
+`current`, no design divergence, no ledger row with an unstated consequence, nothing asserted without
+evidence. That is a complete record of a completed walk, which is exactly what the all-delegated
+stop's prohibition on an *empty* record is protecting against. Otherwise: every question in the
 order it was written, its tag, every re-tag with the finding that caused it, every split with the
 parts it became, and each question's state in the vocabulary the *Resolve the round* phase fixes —
 either a **terminal disposition** (*answered from findings*, *decided* naming the `[VD#n]`,
@@ -767,8 +801,11 @@ re-opened; the question counts by tag; the `[G]` answers and the re-tags with th
 and new disposition; the `[C]` count held; and every will-change resolution
 taken. Emit its §4.1 outcome line in the final report.
 
-The no-new-round path in *Resolve the round* reaches this phase with nothing staged, so it reports
-the `nothing to commit` line rather than opening a pull request.
+The no-new-round path in *Resolve the round* — every round closed and nothing changed — reaches this
+phase with nothing staged, so it reports the `nothing to commit` line rather than opening a pull
+request. **The nothing-askable first run is not that path and does stage**: it wrote
+`interview/round-1.md`, which is a deliverable like any other round record and is handed off with
+the rest.
 
 ---
 

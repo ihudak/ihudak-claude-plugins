@@ -28,7 +28,15 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
 - **`--round N`** (optional) — target one round: resume it if it is open, or re-open it if it is
   closed, recorded as a re-open with its cause. With no flag the run continues at the first round
   still holding a question without a terminal disposition, and proposes a new one only if findings
-  or decisions have changed since the last round closed.
+  or decisions have changed since the last round closed — **or, on a BRD with no round record at
+  all, generates round 1's questions and branches on what it finds.** At least one question opens
+  the round as ever; none at all writes `interview/round-1.md` recording the walk and what it found
+  nothing of, and the run completes there. That record is not an empty round: it names each question
+  source and what this BRD held under it, so a reader meets an account of a completed walk rather
+  than a silence. **It is also why this command is required before packaging even on a slice with
+  nothing to ask** — you cannot know there is nothing to ask until it has run, and
+  [`/brd-package`](brd-package.md) refuses a BRD with no round record rather than re-deriving that
+  judgement for itself.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).

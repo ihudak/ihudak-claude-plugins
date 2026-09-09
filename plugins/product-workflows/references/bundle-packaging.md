@@ -592,3 +592,66 @@ Stated because a green check here is otherwise read as a clean bundle:
   around. Widening the check to reach it is a scope decision rather than a wording one — the note
   names files, and the bundle's own filename set exists by the time the check runs — so it is named
   here rather than assumed covered.
+
+## 7. Set resolution
+
+**`set-resolution`** is a check over the assembled bundle that §6 does not make, and the distinction
+is the point: §6 asks whether a reference resolves, and this one asks whether a **restatement of a
+set** is faithful to the set it restates. The prompt's parts, the manifest and the delivery note each
+restate, in their own words, a set of records held in a different file — the ledger rows in this
+package's scope, the open assumptions, the disposed findings, the prerequisite packages, the
+documents in the bundle, the repositories and their pins. A restatement is a copy, and a copy drifts
+after the first correction. Nothing compared them, so on one live package the covering documents'
+cardinalities were simply believed, and the only thing standing between a wrong one and a customer
+was somebody counting by hand.
+
+**A count comparison is not the check, and the difference matters.** Two sets of the same size with
+different members pass a count test and fail the reader — that is a substitution, which is strictly
+worse than a miscount because it reads as correct. So every relation below compares **membership**,
+by identifier or filename, in **both directions**.
+
+### 7.1 The relations
+
+All three are derived. Nothing here is a list that a later part, document or pin has to be added to
+by hand — a hand-maintained list of what to check is the same drift, moved one file over.
+
+**Relation 1 — every part that enumerates by identifier restates its own source exactly.** The
+prompt's parts table names, per part, the file the part is *filled from*; each part's own paragraph
+states the filter it applies to that file — a `disposition` column value, an `[AS#n]` still open, an
+`[SR#n]`'s disposition, a `[CDF#n]`'s, a prerequisite not yet customer-reviewed. For every part whose
+source is a set of identified records, the identifiers the rendered part names are exactly those the
+stated filter selects from the source file. Both directions: an identifier in the part and not in the
+filtered source is an invention, and one in the filtered source and not in the part is an omission —
+the more dangerous half, because a customer cannot see what they were not shown.
+
+**Relation 2 — the manifest and the bundle name the same documents.** Every document file in the
+assembled bundle carries a manifest line, and every manifest line names a file in the bundle. This is
+the inventory relation in both directions, for the same reason every other inventory in this family
+is asserted both ways: a manifest missing a file hides it, and a manifest naming an absent file sends
+the reviewer looking for something that was never sent.
+
+**Relation 3 — the delivery note's repositories and pins are `grounding/baselines.md`'s.** The note
+restates which repositories, at which commits (§4), and the baselines file is where those were
+recorded. Same repositories, same SHAs, both directions. The note is not a bundle document and §6
+therefore never sees it (§6.4); this relation reaches it deliberately, because a pin restated wrongly
+in the covering letter is verified by the reviewer against the wrong snapshot and every code claim
+they confirm is confirmed about something else.
+
+**Any relation whose source side comes up empty fails rather than passes.** An empty filter result on
+a bundle that was built because there was something to review means the read failed, not that the set
+is clean — the same rule `workflows-core:grounding-format` §2.1 fixes for every relation over these
+records. A part that legitimately has nothing says `none` and says why, which this check reads as the
+empty set on both sides and passes; a part rendered from a source it could not parse does not.
+
+### 7.2 What §7 cannot see
+
+- **A part whose source is prose rather than identified records.** Part 1's capability line, part 4's
+  written-out commands, part 10's inlined schema — there is no set to compare. Those are covered by
+  §6's relations where they name a file, and by review otherwise.
+- **A faithful restatement of a wrong source.** Where the ledger, the register or the findings are
+  themselves wrong, every relation here goes green: this check is about the copy, never about the
+  original. The original is what `/prd-ground`'s verification and `/brd-interview`'s dispositions are
+  for.
+- **Prose beside a correct enumeration.** A part may name every right identifier and describe them
+  wrongly in the sentence above; the membership relation is blind to that, and the adversarial
+  self-review is what reads for it.

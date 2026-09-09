@@ -38,33 +38,24 @@ absence, and `code-grounder` gains step 4a and a hard rule for it. `design-groun
 and fails the same way: the field may be there and this reading may not be one that finds it. Class 1
 and class 3 assert what a frame *shows*; class 4's code half is the cited `[CG#n]`'s own search.
 
-`grounding-verifier` **runs** the control rather than reading it, and returns `control_outcome`. A
-failed or absent control is `contradict` on its own ground. `/prd-ground` Phase 7 normalises on it —
-the only normalisation that also applies to `unprovable`, because the control says the original search
-was *incapable*, which is stronger than the verifier's own search having settled nothing.
+`grounding-verifier` is handed the field and **runs** the control rather than reading it, returning
+`control_outcome`. It settles **owed-ness first**, by §2.2's closed-set rule: a negative over a set
+the caller handed in is a lookup, not a search, so classes 1 and 3 owe no control and class 4's code
+half belongs to the cited `[CG#n]`. Only class 2 — a negative over the frame set, which is read —
+owes one. A `missing` control forces `contradict`; a `failed` one does too, **except** on a finding
+already reading `NOT-PROVABLE` with that failed control recorded, which is what §2.2 tells a writer to
+do and which the verifier is merely reproducing.
 
 ### Fixed — a class-4 `[DG#n]` is no longer left standing on a citation that moved
 
 `/prd-ground` Phase 7 sweeps every class-4 finding whose cited `[CG#n]` this run rewrote and
-re-derives the pair; Phase 8 supersedes class-4 findings alongside the `[CG#n]` that took them there
+re-derives the pair — **reading the `[DG#n]` set from `design-grounding.md` rather than from what the
+run happens to hold**, since a `--no-design` run produces no `[DG#n]` at all while still rewriting
+`[CG#n]`, and a sweep over held findings would report "none" on precisely the run that created the
+staleness; Phase 8 supersedes class-4 findings alongside the `[CG#n]` that took them there
 on a `--rebaseline` pass. Previously a design finding could keep a verifier outcome earned against a
 version of its citation that no longer existed, with the id still resolving and the claim ids still
 matching — undetectable by a reader who follows the citation.
-
-### Added — `/brd-package` checks every restated set against the file it restates
-
-New `bundle-packaging.md` §7, `set-resolution`, run as rule 9 of the assemble step. The prompt's
-parts, the manifest and the delivery note each restate a set of records held elsewhere — ledger rows
-in scope, open assumptions, disposed findings, prerequisite packages, bundle documents, repositories
-and their pins — and a restatement is a copy that drifts after the first correction. Nothing compared
-them, so on one live package the covering documents' cardinalities were simply believed.
-
-Three relations, all derived from the parts table and each part's own stated filter, comparing
-**membership in both directions** and never cardinality: two sets of the same size with different
-members pass a count test and fail the reader, which is worse than a miscount because it reads as
-correct. It is the one check that reaches the **delivery note**, which is deliberately not a bundle
-document — a pin restated wrongly there has the reviewer verify every code claim against a snapshot
-nobody ground. An empty source side fails rather than passes.
 
 ### Added — a customer-answerable question from `/create-prd` reaches the customer
 
@@ -81,28 +72,20 @@ customer-authority one as an `[AS#n]` in `decisions.md`, which `/brd-package` su
 one, twice) and `/brd-reconcile` supersedes with the answering `[CD#n]`. **Writing the record is not
 asking the customer anything**: no `[CD#n]` is written here and none may be (D14).
 
-`decision-register-format.md` §7 gains the second writer and the `round: post-<N>` value — giving
-such a record the last closed round's number would claim it was in front of whoever answered that
-round. `/brd-interview`'s askable test admits it, so the operator's natural next command opens a
-round instead of reporting "nothing askable" while a customer question sits open; it is identifiable
-without a writer field, since `post-<N>` is a value no round of its own produces.
+`decision-register-format.md` §7 gains the second writer and the rule that **such a record omits
+`round` entirely**. Giving it the last closed round's number would claim it was in front of whoever
+answered that round; giving it any invented value is worse, because `round` is **read**, not just
+displayed — `/brd-package` derives the set of rounds a BRD has from the distinct `round` values across
+its records and then requires an `interview/round-<N>.md` for each, so a value no round record answers
+to would make the slice permanently unpackageable. That command's derivation now says explicitly that
+a record carrying no round contributes nothing to the set, and that this is the only reason a record
+legitimately omits the field.
 
-### Added — the BRD inventory's coverage of its source is checked
-
-A section the read **skipped** and a section that genuinely holds no obligation both come out of an
-inventory the same way — as a heading with no row — so the difference cannot be read off the
-artifact. On a live run one went missing and surfaced only because `brd-reader` happened to mention
-it in `notes`.
-
-`brd-reader` now returns **`sections_without_obligation`** — every heading its walk passed that
-yielded no `[BR#n]`, with one line on what it holds instead — as a required field rather than a note.
-`/brd-intake` Phase 3 then checks two relations over the copied source, in both directions: every
-`source_anchor` resolves in it, and every heading is either pointed into by an anchor or carries an
-account. A heading in neither is **not a stop but a question**, because only a person can say whether
-a section binds the delivery team to anything: the run names each with what the source has under it
-and offers a re-read. The outcome is reported either way, including "every heading accounted for",
-since an unreported clean result is indistinguishable from an unrun check. A source with no headings
-at all is said to have no set to work over rather than passed as satisfied.
+`/create-prd`'s third write guarantee is narrowed and the narrowing itemised rather than made
+silently: it protected a settled decision from a grill answer, and it now says so over *existing*
+records, leaving this command free to create one new `[AS#n]` — never a `[VD#n]`, never a `[CD#n]`.
+Ids continue from the highest on file and a gap already recorded is not recorded twice, because the
+sanctioned fresh-PRD re-run puts this command over the same folder more than once.
 
 ### Added — a recorded review verdict names the version it was taken against
 

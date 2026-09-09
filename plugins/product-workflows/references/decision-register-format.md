@@ -18,7 +18,8 @@ a question's answer lands in, and the rounds a decision is stamped with, belong 
 belongs to `workflows-core:addressing` §1.
 
 **Consumed by `commands/brd-interview.md`**, which writes `[VD#n]` and `[AS#n]` records against this
-shape and enforces §6; by `agents/brd-package-reviewer.md`, which reads them; and by
+shape and enforces §6; by `commands/create-prd.md`, which writes an `[AS#n]` — and only an `[AS#n]` —
+for a customer-authority gap that only PRD authoring could surface (§7); by `agents/brd-package-reviewer.md`, which reads them; and by
 `commands/brd-package.md`, which surfaces every open `[AS#n]` in the customer prompt (§7) and finds
 every position resting on a prerequisite by its `conditional_on` field (§5); and by
 `commands/brd-reconcile.md`, which writes the `[CD#n]` records — the only command that does —
@@ -225,7 +226,7 @@ detail an author may settle for themselves. All twelve are accounted for here.
 | `defects` | **As-is**, and omitted when absent: an assumption can turn on a known code defect exactly as a position can, and the customer who reads the assumption needs the same access to what would have to be repaired |
 | `status` | **Narrowed vocabulary**, from §3's five: an `[AS#n]` reaches `open`, `superseded` and `withdrawn` only. `decided` cannot apply — an assumption is never settled by being chosen; when the customer confirms it, the confirmation is a `[CD#n]` and the assumption is `superseded` by it (below). `reopened` follows `decided`, so it is unreachable too |
 | `consumed_by` | **As-is**, with the same starting-at-`none` rule |
-| `round` | **As-is**: the interview round the assumption was recorded in |
+| `round` | **As-is where there is one, and omitted where there is not.** An assumption recorded in an interview round carries that round. One recorded outside any round — `/create-prd` writing a customer-authority gap at PRD authoring (below) — **omits the field entirely**, per §2.1's rule that a field which does not apply is omitted rather than written empty. It is not given the last closed round's number, which would claim it was in front of whoever answered that round, and not given an invented value, which `/brd-package` would read as a round and demand a round record for |
 
 **`evidence` is the field that carries the why-no-evidence explanation.** This is the same
 discipline `workflows-core:grounding-format` §2 applies to a finding asserting an absence — an
@@ -288,12 +289,15 @@ route back, and it needs no new machinery** — which is the answer to the objec
 question has missed the interview: the assumption record was always the mechanism for a thing
 asserted without evidence, and when it was written matters less than that the customer sees it.
 
-**Its `round` names where it was recorded, not a round it was asked in.** An assumption recorded at
-PRD authoring belongs to no interview round, and giving it the number of the last closed round would
-claim it was in front of whoever answered that round. It carries `round: post-<N> — recorded at PRD
-authoring` for the highest closed round `<N>`, or `round: post-none` where no round has closed. That
-value is legible to every reader, sorts after the rounds, and cannot be mistaken for a question the
-customer has already seen.
+**Such a record carries no `round` at all, and the omission is the whole of the mechanism.** An
+assumption recorded at PRD authoring belongs to no interview round. Giving it the last closed round's
+number would claim it was in front of whoever answered that round; giving it any *invented* value is
+worse, because **`round` is read, not just displayed** — `/brd-package` derives the set of rounds a
+BRD has from the distinct `round` values across its `[VD#n]` and `[AS#n]` records, and then requires
+an `interview/round-<N>.md` for each. A record carrying a value no round record answers to makes the
+BRD permanently unpackageable, which is the precise opposite of why this record exists. Omitting the
+field leaves that derivation reading exactly the rounds that happened, and `[AS#n]` records with no
+round contribute nothing to it — which is correct, because they came from no round.
 
 An `[AS#n]` that the customer confirms does not silently become a fact: their confirmation is a
 customer decision, entering the register as a `[CD#n]` under §1's confirmation rule (D14), with the

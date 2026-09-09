@@ -205,38 +205,6 @@ Act on `status`:
   Leave each row's `defects` column empty for now — it is filled in Phase 4, once a candidate is
   actually confirmed into a `[DEF#n]`, never before. Carry every returned `defect_candidates` entry
   forward into Phase 4; nothing here treats a candidate as a decision.
-
-  **Then check the read's coverage of the source, before anything downstream treats the inventory as
-  the spine it is.** Two relations over the copied source and the agent's return, both directions,
-  neither of which the `status` above can see:
-
-  1. **Every `source_anchor` resolves in the copied source.** An anchor naming a heading path or line
-     range the file does not hold is a row nobody can trace back, in the one artifact whose whole job
-     is traceability.
-  2. **Every heading in the source is accounted for** — pointed into by at least one `source_anchor`,
-     or listed in the agent's `sections_without_obligation`. A heading in neither is a section the
-     walk did not account for, and **it is indistinguishable from a section that correctly held
-     nothing**, which is exactly how one went missing on a live run: a section inventoried for one BRD
-     and skipped for another, surfaced only because the agent happened to mention it in `notes`.
-
-  **A heading in neither is not a stop — it is a question**, because only a person can say whether
-  that section holds an obligation. Name each one with what the source has under it and ask:
-
-```
-choices: ["Re-read those sections — re-dispatch brd-reader naming them (Recommended)", "They hold no obligation — record that and continue", "Cancel"]
-```
-
-  On the first, re-dispatch once naming the headings; a second pass that still leaves one unaccounted
-  for is reported and takes the second option's treatment. On the second, the headings join
-  `sections_without_obligation` with the operator as their source, which is a recorded account rather
-  than a silence. **Report the outcome either way, including "every heading accounted for"** — an
-  unreported clean result is indistinguishable from an unrun check, which is the failure this whole
-  relation exists to remove.
-
-  **Where the source holds no headings at all, this relation has no set to work over**: say so and
-  continue, rather than passing it as satisfied. A relation whose source side comes up empty has
-  learned that its read failed, not that the tree is clean
-  (`workflows-core:grounding-format` §2.1).
 - **`EMPTY`** — report that the source contained no identifiable requirement. Skip Phase 4 (nothing
   to classify) and write an empty `brd/brd-inventory.md` and `coverage-ledger.md` in Phase 5; the
   final report's ledger line reads

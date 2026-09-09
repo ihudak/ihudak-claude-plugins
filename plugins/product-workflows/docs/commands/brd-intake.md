@@ -106,18 +106,6 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   and the run says so plainly, because the route stops on a claimless BRD: Phase 8 then offers a
   re-run of this command with a corrected source instead of offering `/prd-ground`, which would
   refuse the BRD. `NOT_FOUND` stops the run and surfaces the agent's exact message.
-
-  **The read's coverage of the source is then checked, in both directions.** Every `source_anchor`
-  must resolve in the copied source — an anchor naming a heading the file does not hold is a row
-  nobody can trace back, in the one artifact whose whole job is traceability — and every heading in
-  the source must be accounted for, either by an anchor pointing into it or by the agent listing it
-  as holding no obligation. A heading in neither is **not** a stop but a question, because only a
-  person can say whether that section binds the delivery team to anything: the run names each one
-  with what the source has under it and offers a re-read. It exists because a skipped section and a
-  correctly empty one look identical in an inventory — on a live run one went missing and surfaced
-  only because the agent happened to mention it in its notes. The outcome is reported either way,
-  including "every heading accounted for", since an unreported clean result is indistinguishable
-  from an unrun check.
 - **Phase 3.5 — `docs-grounder`** (optional). Read-only, advisory, never a gate. Its digest is
   consumed grill-rank: `docs_challenges` are ranked into the order Phase 4 walks its candidates,
   and one may be *raised* as an additional defect candidate — but only as `unsourced` (the

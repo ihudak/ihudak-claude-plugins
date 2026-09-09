@@ -75,7 +75,10 @@ repository, a commit, or a claim to have something to ground.
    claim already settled this run, or from a file read and citable, never assumed. Record it in
    `control` with the `path:line` it matched. A control that matches nothing has established that
    this method cannot see this class of thing here, which is a fact about the search and not about
-   the repository: the verdict becomes `NOT-PROVABLE` and the failed control is recorded with it.
+   the repository: the verdict becomes `NOT-PROVABLE` and the failed control is recorded with it,
+   written into the same field as the method and the case followed by `— no match`. **Record it;
+   never omit it for having failed** — an omitted control and a failed one are the same bytes and
+   mean opposite things, and the verifier reads the difference.
    `workflows-core:grounding-format` §2.2 owns this; the canonical case it is drawn from is a Rails
    repository where attribution is written through an association and never spells the column name a
    grep was looking for.
@@ -127,8 +130,9 @@ findings:
         lines: [<1-based line numbers>]   # omit only when the evidence is a whole-file read
         note: <what this line actually shows, and how it bears on the claim>
     control: <required wherever this finding asserts an absence — the same search shape, run against a case
-              of the same kind known to be present in this repo, and the `path:line` it matched; omit entirely
-              on a finding that asserts no absence. `workflows-core:grounding-format` §2.2>
+              of the same kind known to be present in this repo, and the `path:line` it matched. Where it
+              matched nothing, the same field says so: the method and the case, then `— no match`. Omit
+              entirely on a finding that asserts no absence. `workflows-core:grounding-format` §2.2>
     commit: <same resolved commit as above — every finding is pinned individually>
     altitude: product | architecture | implementation
     horizon: current | will-change

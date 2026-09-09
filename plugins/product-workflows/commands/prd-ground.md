@@ -455,7 +455,7 @@ model_routing:
                                    # the multi-source rule in model-routing/classification.md §1.1
   reason: <one-line>
   current_model: <the model this orchestrator is running under>
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # docs-grounder (Phase 4.5) — retrieval, and the only consumer left
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # docs-grounder (Phase 4.5) — retrieval, not adjudication; also the Phase 9 impl-maintenance dispatch
   review_model:    <§2 Opus chain>     # code-grounder, design-grounder (Phase 5), grounding-verifier (Phase 7) — all three frontmatter-pinned; recorded, no override
   ground_tier:     <the tier the [CG#n]/[DG#n] corpus was actually ground at — the resolved review_model, or the degraded model where no Opus resolved>
   opus_available: <true if a §2 Opus model resolved, else false>
@@ -802,6 +802,9 @@ to the Opus chain (`review_model`, frontmatter-pinned, no override):
   >   class:    [1-4 — DG#n only, omit for CG#n]
   >   verdict:  [the finding's verdict]
   >   evidence: [the finding's evidence list]
+  >   control:  [the finding's control, where it carries one — omit where it carries none; the
+  >              agent decides owed-ness itself from grounding-format §2.2's closed-set rule and
+  >              never from the field being absent]
   >   commit:   [the finding's pinned commit — every CG#n and every class-4 DG#n; omit only for a
   >              class-1/2/3 DG#n, which is pinned to no commit]
   >   cites:    [class-4 DG#n only — the CG#n it cites]
@@ -917,16 +920,27 @@ means only that the verifier's own search settled nothing — normalising it wou
 inconclusive finding into a contradiction nobody reached. `contradict` already disagrees and is left
 alone.
 
-**A `control_outcome` of `failed` or `absent` is a second, independent route to `contradict`.**
-Where the verifier ran the finding's own positive control (`workflows-core:grounding-format` §2.2)
-and it did not reproduce — or the finding asserts an absence and carries no control at all — the
-absence rests on a search never shown capable of finding the thing it says is missing. Normalise the
-outcome to `contradict` **even where the returned outcome is `agree` and the verifier's own search
-also found nothing**: that agreement is two searches sharing one blind spot, which is the state the
-control exists to expose and the one an `agree` would launder into evidence. This normalisation is
-recorded and counted exactly as the `own_verdict` one below is, and it is the only normalisation that
-also applies to `unprovable` — the control says the original search was incapable, which is a
-different and stronger fact than the verifier's own search having settled nothing.
+**A `control_outcome` of `missing` — or of `failed` on a finding whose verdict rests on the absence —
+is a second, independent route to `contradict`.** The verifier decides first whether the finding
+*owed* a control at all (`workflows-core:grounding-format` §2.2's closed-set rule), so `not-owed` is
+an ordinary clean result and is never normalised: three of the four `[DG#n]` classes legitimately
+carry none, and treating their empty field as a defect would contradict every one of them.
+
+- **`missing`** — the finding owed a control and carries none. Normalise to `contradict`.
+- **`failed`**, and the finding's verdict is anything **other than** `NOT-PROVABLE` — the absence
+  rests on a search never shown capable of finding the thing it says is missing. Normalise to
+  `contradict` **even where the returned outcome is `agree` and the verifier's own search also found
+  nothing**: that agreement is two searches sharing one blind spot, which is the state the control
+  exists to expose and the one an `agree` would launder into evidence.
+- **`failed`**, and the finding already reads `NOT-PROVABLE` with that failed control recorded —
+  **no normalisation.** The finding did exactly what §2.2 tells a writer to do and the verifier
+  reproduced its result; overturning it would contradict, on every run and forever, the one finding
+  on the page that told the truth about its own search.
+
+Where a normalisation does fire it is recorded and counted exactly as the `own_verdict` one below is,
+and it is the only one that can also apply to a returned `unprovable` — the control establishes that
+the **original** search was incapable, which is a different and stronger fact than the verifier's own
+search having settled nothing.
 
 **Record every normalisation and report the count** — the finding id, the outcome as returned, and
 both verdicts — in the Final report's verifier tally. A normalisation that happens silently is
@@ -954,8 +968,12 @@ Act on `outcome`:
 class-4 finding's standing is derived from the `[CG#n]` it cites
 (`workflows-core:grounding-format` §6.3), so every `contradict` rewrite above may have moved the
 ground under one without touching its record — the id still resolves and the claim ids still match,
-which is exactly why nothing else here would notice. For every `[DG#n]` of class 4 whose cited
-`[CG#n]` this phase rewrote, compare the two: where the rewritten `[CG#n]` now settles the capture
+which is exactly why nothing else here would notice. **The set swept is every class-4 `[DG#n]` on file in
+`<BRD-dir>/grounding/design-grounding.md`, not the set this run happens to hold** — a run under
+`--no-design` produces no `[DG#n]` at all while still rewriting `[CG#n]`, so a sweep over held
+findings would report "none" on precisely the run that created the staleness. Read the file. Where it
+does not exist there is nothing to sweep and the report says that, rather than "none". For every
+class-4 `[DG#n]` whose cited `[CG#n]` this phase rewrote, compare the two: where the rewritten `[CG#n]` now settles the capture
 question the other way, the citing `[DG#n]` is **re-derived, not adjusted** — re-dispatch
 `grounding-verifier` over it once, and act on the returned outcome as above. Where they still agree,
 record that the pair was re-checked. **A class-4 finding is never left carrying a verifier outcome

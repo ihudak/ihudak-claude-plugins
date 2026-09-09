@@ -48,15 +48,6 @@ that it did.
 `[BR#n]` numbers are never reused and never renumbered, including across a split: once assigned, an
 id is permanent even if the row it names is later split, superseded, or found defective.
 
-**The inventory's coverage of its source is checkable, and is checked.** A section the read skipped
-and a section that genuinely holds no obligation both come out of the inventory the same way — as a
-heading with no row — so the difference cannot be read off the artifact. It is made visible at
-intake instead: every `source_anchor` resolves in `brd/source/`, and every heading in the source is
-either pointed into by one or carries a recorded account of what it holds instead. A heading in
-neither is a section nobody accounted for, and `/brd-intake` puts it to the operator rather than
-inventing an answer. This is the inventory's own version of the rule this format applies everywhere
-else — an absence is a claim, and a claim owes its evidence.
-
 ### 2.1 A slice's inventory
 
 A **slice** — a BRD in every respect but its folder name, nested inside its parent's folder as the `PRD-` folder its PRD is authored in (`workflows-core:addressing` §6) —

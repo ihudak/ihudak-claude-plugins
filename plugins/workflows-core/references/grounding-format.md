@@ -172,14 +172,26 @@ present in this same source, and what it returned:
   succeeds on an unrelated shape proves only that the tool runs.
 - **Known present.** Established independently of this search — from a finding already settled in
   this run, or from a file the agent has read and can cite. Not assumed.
-- **Its result.** The `file:line` the control matched. A control that matched nothing is a **failed
-  control**, and it does not become evidence by being reported.
+- **Its result**, and it is written whichever way the control went. A control that fired names the
+  `file:line` it matched. A control that matched nothing is a **failed control** and says so in the
+  same field — `… — no match` after the method and the case it was pointed at — because a failed
+  control is a finding about the search that the record has to carry. It does not become evidence by
+  being reported, and it is never omitted for having failed: an omitted control and a failed one are
+  the same bytes, and they mean opposite things.
 
 **A failed control forecloses the absence, not the finding.** Where the control does not fire, the
 search has established nothing about the source and the verdict may not rest on the absence: the
 finding is `NOT-PROVABLE`, its `evidence` says what was searched, and its `control` records the
 control that failed. That is a true and useful record — it says this method cannot see this class of
 thing here — where a `REWRITTEN` on the same search would be a fabrication with a citation.
+
+**Such a finding is correct, and nothing downstream may punish it for being honest.** A control that
+failed once fails again — it is the same deterministic search against the same pinned source — so a
+verifier re-running it reaches `failed` too. **That is agreement, not contradiction**, and §8 says so
+explicitly: a `failed` control overturns a finding only where the finding's verdict **rests on** the
+absence, which `NOT-PROVABLE` by definition does not. Without that scoping the rule would contradict
+every finding that followed this paragraph, on every run, forever — the writer told to record a
+failed control, and the verifier told to reject the record.
 
 **Where it applies is the claim, not the verdict.** Any finding asserting that something is not
 there carries it, whichever of §3's six verdicts it lands on. **This is deliberately the second half
@@ -190,16 +202,37 @@ does not contain, the claim turns on behaviour no code path here determines — 
 claim to control, and demanding one would ask a writer to demonstrate a search could find something
 they never said was missing. A
 `FALSE-FRIEND` carries one whenever the half being asserted is that the plausible name does *not* do
-the thing. A `[DG#n]` of class 2 — a requirement asks for a field no frame shows — is an absence over
-a frame set and carries a control drawn from the frame set: another field of that kind, found in
-these frames by the same reading. A class-4 `[DG#n]` carries none of its own, because its code half
-is not its own search: it cites a `[CG#n]`, and the control belongs to the finding that did the
-searching (§6.3).
+the thing.
+
+**A negative over a closed set handed to the agent owes no control, and that is the line — not
+"positive versus negative".** A control exists to test whether a **search** could have found the
+thing; where there is no search, because the set is enumerated in hand and the question is a lookup,
+there is nothing to control for. This is the same rule this family applies everywhere: resolve an
+identifier against a known set, never parse one out of free text. It settles the four `[DG#n]`
+classes without appeal to what each one "asserts", which is the reading that gets them wrong:
+
+- **Class 1** — a frame shows a field no requirement asks for. A negative, and over the `inventory`
+  the caller **handed the agent**. Lookup, not search: **no control**.
+- **Class 2** — a requirement asks for a field no frame shows. A negative over the **frame set**,
+  which is read rather than enumerated — the field may be there in a detail view this export does not
+  carry, named differently, or shown in a legend. That is a search, and it is the one design class
+  that **owes a control**: another field of the same kind, found in these frames by the same reading.
+- **Class 3** — a frame contradicts the requirement text. Both sides in hand: **no control**.
+- **Class 4** — a frame implies a capture the code cannot perform. It owes none **of its own**,
+  because the code half is not its own search: it cites a `[CG#n]`, and the control belongs to the
+  finding that did the searching (§6.3).
+
+**Three of the four owe no control, and a reader who works it out from "does it assert an absence?"
+gets class 1 wrong** — that class is a negative over the requirement set, and on that test would owe
+one. Stating the closed-set rule here, once, is what keeps the writer and the verifier from reaching
+different answers about the same finding.
 
 **The verifier checks the control, and checks it the way it checks everything else — by
 re-deriving.** `product-workflows:grounding-verifier` does not confirm that the control's cited line
-exists; it runs the control itself. A control that does not reproduce falsifies the absence, and the
-outcome is `contradict` on that ground alone, whatever the verifier's own search turned up.
+exists; it runs the control itself, and it is handed `control` in its inputs to do so. **A control
+that does not reproduce falsifies the absence, not the finding**: it forces `contradict` only where
+the finding's verdict rests on that absence, and a finding already reading `NOT-PROVABLE` with its
+failed control recorded is agreed with. §8 owns the outcome vocabulary and the exact rule.
 
 ```
 - id: [CG#31]
@@ -215,6 +248,32 @@ outcome is `contradict` on that ground alone, whatever the verifier's own search
   consumed_by: none
   outcome: agree
 ```
+
+And the same claim where the control **failed** — the shape carrying the subtle rule, so it is
+written out rather than described. The verdict is `NOT-PROVABLE` because the search was never shown
+capable, the failed control is recorded in the same field rather than omitted, and a verifier that
+re-runs it and fails too **agrees** (§8):
+
+```
+- id: [CG#32]
+  claim: [BR#12] — an approval records which associate approved it
+  verdict: NOT-PROVABLE
+  evidence:
+    - no column, association or writer under app/models matches approver attribution
+    - searched `git grep -n 'approv' <commit> -- app/models app/services`
+  control: same grep shape for `submitted` attribution, which BR#9 settled as written — no match
+  commit: 4f1c9ab
+  altitude: implementation
+  horizon: current
+  consumed_by: none
+  outcome: agree
+```
+
+The two records differ in one field and say opposite things about the **search**: the first, that
+this method finds attribution where attribution is written, so the absence it reports is real; the
+second, that it finds nothing even where attribution is known to be there, so it has established
+nothing about the repository at all. An omitted `control` is indistinguishable from either.
+
 
 ## 3. Verdicts
 
@@ -536,15 +595,20 @@ Every writer runs exactly these steps, **after** whatever files it was going to 
 
    Which literal is decided by **whether a re-run would do anything different**, and nothing else:
 
-   - **`_no description on record_`** — the run **never looked**: the cap bit before this frame, the
-     frame is accounted for nowhere, or the describing agent failed for the whole set rather than for
-     this file. A re-run reaches it with a fresh budget, so step 2's exception puts it back in the
-     describe set and the set converges.
-   - **`_could not be read: <reason>_`** — the describing agent **looked at this file and could not
-     read it**: `unreadable`, `not_an_image`, `not_a_frame`. Nothing about a re-run changes that, so
-     step 2 preserves the row and the frame is not retried. The reason goes inside the literal because
-     it is the operator's whole remedy: an oversized export is re-exported smaller, a mislabelled file
-     is taken out of the set.
+   - **`_no description on record_`** — the run **never looked at this file**: the cap bit before it,
+     the frame is accounted for nowhere, the describing agent failed for the whole set rather than for
+     this file, or it rejected the *entry* without ever opening the file. A re-run reaches it with a
+     fresh budget, so step 2's exception puts it back in the describe set and the set converges.
+   - **`_could not be read: <reason>_`** — the describing agent **opened this file, or tried to, and
+     could not read it**. Nothing about a re-run changes that, so step 2 preserves the row and the
+     frame is not retried. The reason goes inside the literal because it is the operator's whole
+     remedy: an oversized export is re-exported smaller, a mislabelled file is taken out of the set.
+
+   **The test is whether the file was reached, not whether a reason came back**, and the two are easy
+   to conflate. A describer that rejects a malformed *entry* — a path where a basename was expected —
+   has said nothing about the file, which it never opened; that is the caller's input shape, and a
+   corrected re-run is exactly what should retry it. Only a reason that is a fact **about the bytes**
+   puts a row in the second group.
 
    **A preserved failure is not a permanent one, and the report says how to clear it.** Once the file
    itself is fixed, the way back into the describe set is to delete that row — the frame then has no
@@ -679,15 +743,32 @@ bending: there the verifier has established that the **original** search was inc
 fact about that search rather than about the verifier's own, and an inconclusive re-derivation does
 not rescue an absence that rested on nothing.
 
-**A failed or absent control is its own route to `contradict`, independent of the verifier's own
-search.** Where the finding asserts an absence, the verifier runs its `control` (§2.2) rather than
-reading it, and returns `control_outcome` alongside the four outcomes above. `failed` — the control
-did not reproduce — and `absent` — the finding asserts an absence and carries no control at all —
-each force `contradict` on their own, **including where the verifier's own search also found
-nothing**: two searches sharing one blind spot is exactly the state the control exists to expose, and
-an `agree` between them would launder it into evidence. `control_outcome` is a return field, never a
-record field, on the same terms as `own_verdict` (§2.1) — the caller acts on it and writes `verdict`
-and `outcome`, never a third column of its own.
+**The control is a second, independent route to `contradict`, and it opens only after owed-ness is
+settled.** The verifier decides first whether this finding owes a control at all — §2.2's closed-set
+rule, applied by the verifier itself and never inferred from the field being absent — then, where it
+does, **runs** it rather than reading it, returning `control_outcome` alongside the four outcomes
+above:
+
+| `control_outcome` | Meaning | Effect |
+|---|---|---|
+| `not-owed` | The finding owes no control: it asserts no absence, or it is a `[DG#n]` of class 1, 3 or 4 | None. An ordinary clean result |
+| `fired` | It owes one, carries one, and the control reproduced | None |
+| `failed` | It owes one, carries one, and the control did not reproduce | `contradict` — **unless** the verdict is `NOT-PROVABLE` |
+| `missing` | It owes one and carries none | `contradict` |
+
+**`failed` on a `NOT-PROVABLE` finding is agreement, not contradiction**, and the exception is
+load-bearing rather than lenient: §2.2 *instructs* a writer whose control failed to record
+`NOT-PROVABLE` with that failed control attached. The control is deterministic against a pinned
+source, so the verifier re-running it necessarily gets `failed` too — it is reproducing the finding's
+own result. Without this row the rule would overturn, on every run and forever, every finding that
+followed §2.2 correctly.
+
+Everywhere else a `failed` or `missing` control forces `contradict` **including where the verifier's
+own search also found nothing**: two searches sharing one blind spot is exactly the state the control
+exists to expose, and an `agree` between them would launder it into evidence.
+
+`control_outcome` is a return field, never a record field, on the same terms as `own_verdict`
+(§2.1) — the caller acts on it and writes `verdict` and `outcome`, never a third column of its own.
 
 A finding without a verifier outcome is not evidence and cannot be recorded as `consumed_by`
 anything. **Findings inherited from another team's report, or from an earlier run of this

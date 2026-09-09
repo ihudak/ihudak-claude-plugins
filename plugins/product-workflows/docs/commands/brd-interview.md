@@ -28,11 +28,7 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
 - **`--round N`** (optional) — target one round: resume it if it is open, or re-open it if it is
   closed, recorded as a re-open with its cause. With no flag the run continues at the first round
   still holding a question without a terminal disposition, and proposes a new one only if findings
-  or decisions have changed since the last round closed — or if another command recorded an `[AS#n]`
-  in the register since then, which [`/create-prd`](create-prd.md) does for a customer-authority gap
-  only PRD authoring could surface. Such a record carries a `round` of `post-<N>`, which no round of
-  this command's own produces, and it is by construction something the last round did not have in
-  front of it.
+  or decisions have changed since the last round closed.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).

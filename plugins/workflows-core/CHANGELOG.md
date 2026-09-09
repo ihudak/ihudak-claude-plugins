@@ -24,11 +24,20 @@ and reproduced anyway — a live run explicitly warned about this failure filed 
 evidence of absence in the same pass. The canonical case is a Rails repository where attribution is
 written through an association and never spells the column name the grep was looking for.
 
+**Who owes a control is settled by a closed-set rule, not by "does it assert an absence?"** A control
+tests whether a **search** could have found the thing; a negative over a set the caller handed in is a
+lookup, with no search to control for. So `[DG#n]` classes 1 and 3 (which resolve against the supplied
+inventory) and class 4 (whose code half is the cited `[CG#n]`'s search) owe none, and class 2 — a
+negative over the frame set, which is read — owes one. A reader working it out from "asserts an
+absence" gets class 1 wrong, which is why the rule is stated rather than left derivable.
+
 §8 gains `control_outcome` as a verifier **return** field (never a record field, on the same terms as
-`own_verdict`): `fired` / `failed` / `absent` / `n/a`. `failed` and `absent` each force `contradict`
-on their own — **including where the verifier's own search also found nothing**, since two searches
-sharing one blind spot is exactly the state the control exists to expose and an `agree` between them
-would launder it into evidence.
+`own_verdict`): `not-owed` / `fired` / `failed` / `missing`. `missing` forces `contradict`; `failed`
+does too — **including where the verifier's own search also found nothing**, since two searches
+sharing one blind spot is exactly what the control exists to expose — **except** on a finding already
+reading `NOT-PROVABLE` with its failed control recorded. That finding did what §2.2 instructs, the
+control is deterministic so the verifier necessarily reproduces its result, and without the exception
+the rule would overturn every honest finding on every run forever.
 
 ### Added — a class-4 `[DG#n]`'s standing is derived, and goes stale when its citation moves
 
@@ -53,11 +62,13 @@ by nothing else:
 
 - **`_no description on record_`** — the run never looked (the cap bit, the frame is accounted for
   nowhere, or the whole dispatch failed). Step 2's exception still applies and the set converges.
-- **`_could not be read: <reason>_`** — the describer looked at that file and failed (`unreadable`,
-  `not_an_image`, `not_a_frame`). Step 2 preserves it and the frame is not retried.
+- **`_could not be read: <reason>_`** — the describer opened that file, or tried to, and failed
+  (`unreadable`, `not_an_image`). Step 2 preserves it and the frame is not retried.
 
-`missing` and the whole-set statuses stay in the first group: they are facts about the dispatch, not
-about the file. The reason goes inside the literal because it is the operator's whole remedy, and
+**The test is whether the file was reached, not whether a reason came back.** `missing` and the
+whole-set statuses are facts about the dispatch; `not_a_frame` is a fact about the *entry* — the
+describer rejects a name carrying a path separator without ever opening anything — so all of them
+stay in the first group, where a corrected re-run is exactly what should retry them. The reason goes inside the literal because it is the operator's whole remedy, and
 `/frames` reports that group **by name rather than as a count** — it is the one group no re-run
 clears. Clearing it: fix the file, delete the row, and the frame has no row at all next run. Nothing
 in a set records what a run read last time, so deleting the row is what tells the next run the file
@@ -73,7 +84,10 @@ the run either shipped a known defect or fixed it and left the final text unrevi
 
 Every command that records a verdict now states what it covers, and where any edit followed it — an
 inline `MAJOR` fix, an escalation's manual fix notes, a deferred finding written into the artifact, a
-style pass — the final report says so and names the edits. Where none did, it says that too, so a
+style pass, a resumed verify step — the final report says so and names the edits. **The set is
+derived behaviourally, not by grepping for the cap phrase**: that first pass missed `/vuln` and
+`/upgrade`, both of which run one fixer pass and one re-review and then edit through a resumed verify
+step, and `/upgrade`'s own results table carries a `Review` column. Where none did, it says that too, so a
 clean run reads as checked rather than as unreported. **Deliberately a reporting rule and not another
 cycle**: raising the cap trades one unreviewed version for a later one and has no fixed point.
 

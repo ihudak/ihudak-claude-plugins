@@ -230,11 +230,15 @@ For each frame set, in directory order:
    take each `description` **verbatim**. An entry with `read: false` gets the placeholder row and its
    `reason` (`missing`, `not_an_image`, `unreadable`, `not_a_frame`) is reported. **Which placeholder
    that row carries follows §6.2 step 4's test — whether a re-run would do anything different, and
-   nothing else.** `unreadable`, `not_an_image` and `not_a_frame` are facts about the file: the row
-   reads `_could not be read: <reason>_` and is not retried. `missing` is a disagreement between this
-   run's own listing and what the describer found, and the two whole-set statuses above are facts
-   about the dispatch rather than about any one file — all three take `_no description on record_`, so
-   the next run tries again.
+   nothing else.** `unreadable` and `not_an_image` are facts about the **bytes** — the agent opened the
+   file, or tried to — so the row reads `_could not be read: <reason>_` and is not retried.
+   Everything else takes `_no description on record_` and the next run tries again: `missing` is a
+   disagreement between this run's own listing and what the describer found; the two whole-set
+   statuses are facts about the dispatch; and **`not_a_frame` is a fact about the *entry*, not the
+   file** — `frame-describer` returns it for a name carrying a path separator where a basename was
+   expected, having never opened anything. This command passes basenames, so it should not occur at
+   all; if it does, the bug is in the dispatch and a corrected re-run is exactly what should retry
+   it.
 
    **Never write a description this command produced itself.** `grounding-format.md` §6.1's index rule
    exists to forbid exactly the inference a filename invites, and this orchestrator never sees the
@@ -254,8 +258,10 @@ Hold, per set: the index path **as a repo-relative path** — that is the form `
 takes in Phase 3, and `handoff-to-main` §2.3 matches it against `git status --porcelain` output, which
 is repo-relative; an absolute path there matches nothing and stages nothing, silently. Hold also how
 many rows it now holds, how many this run added, how many it
-preserved, how many carry `_no description on record_` and why (`cap`, `missing`, `not_an_image`,
-`unreadable`, `not_a_frame`, or an agent status), and every row dropped because its image is gone.
+preserved, how many carry each placeholder and why — `_no description on record_` (`cap`, `missing`,
+`not_a_frame`, or an agent status) and `_could not be read: <reason>_` (`unreadable`,
+`not_an_image`), the second group named frame by frame with its remedy since no re-run clears it —
+and every row dropped because its image is gone.
 Hold also **each file in the set that is not a frame at all** (Phase 1 step 3), which carries no row
 and must still be named, and **any `notes` the describer returned** — a frame illegible at the
 resolution supplied, or a set that is plainly several unrelated exports. `frame-describer` documents
@@ -382,9 +388,9 @@ Report: the resolved folder with its `kind` and `key`, and whether §5's legacy 
 directory this run did not actually create. Then, per set: the index path and whether it was
 written, created, or rewritten; how many rows it now holds; how many rows this run **added**, how
 many it **preserved verbatim**, and how many carry each of the two placeholders — `_no description
-on record_` with its reason (`cap`, `missing`, or the agent status that stopped the set), which the
-next run retries; and `_could not be read: <reason>_` (`unreadable`, `not_an_image`, `not_a_frame`),
-which it will not. **Name every frame in that second group individually, with the remedy**, because
+on record_` with its reason (`cap`, `missing`, `not_a_frame`, or the agent status that stopped the
+set), which the next run retries; and `_could not be read: <reason>_` (`unreadable`,
+`not_an_image`), which it will not. **Name every frame in that second group individually, with the remedy**, because
 this is the one group no re-run clears on its own: fix the file — an oversized export re-exported
 smaller, a mislabelled one taken out of the set — then delete that row from `index.md`, after which
 the frame has no row and the next run describes it. Reporting it as a count would leave the operator

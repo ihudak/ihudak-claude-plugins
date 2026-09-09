@@ -8,13 +8,13 @@ Versions follow semver at the plugin level.
 
 ### Added — a recorded review verdict names the version it was taken against
 
-`/document` (keyed mode) cite the new `A recorded verdict names the version it was taken against` rule in
+`/document` (keyed mode) cites the new `A recorded verdict names the version it was taken against` rule in
 `workflows-core:escalation-rules`. The one-fix-cycle-plus-one-re-review cap assumes a fix cycle only
 removes defects; on three live runs it **introduced** something the re-review then found, with the
 budget already spent — so the run either shipped a known defect or fixed it and left the final text
 unreviewed. Both end with a `PASS` on record beside a file the `PASS` never saw.
 
-Each now states what the verdict covers, and where any edit followed it, the final report says so and
+It now states what the verdict covers, and where any edit followed it, the final report says so and
 names the edits. Where none did, it says that too, so a clean run reads as checked rather than as
 unreported.
 

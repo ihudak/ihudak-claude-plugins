@@ -45,14 +45,6 @@ repo for "something that looks like a BRD."
    a requirement; the obligation is the sentence or clause that binds the delivery team to
    something.
 
-2a. **Account for every heading the walk passed, including the ones holding nothing.** A heading is
-   not a requirement and many hold no obligation at all — background, a glossary, a revision history.
-   That is ordinary, and it is also indistinguishable from a section the walk **skipped**: both come
-   out as a heading with no row. So return every such heading in `sections_without_obligation`, with
-   one line saying what it holds instead. **The list is the whole point of the field**: a section
-   silently missed and a section correctly empty look identical in an inventory, and on a live run the
-   difference surfaced only because this agent happened to mention it in `notes`.
-
 3. **Emit one `[BR#n]` row per discrete obligation**, numbered contiguously from `BR#1` in the
    order encountered:
    - `id` — `[BR#n]`.
@@ -92,9 +84,6 @@ inventory:
       - class: ambiguity | conflict | untestable | unsourced | duplicate | scope-leak
         reason: <one line, applying the brd-format.md §3 test for this class>
         names: [BR#<m>, ...]          # required for conflict and duplicate; omitted otherwise
-sections_without_obligation:        # every heading the walk passed that yielded no [BR#n]
-  - heading: <the heading path, in the same form source_anchor uses>
-    holds: <one line — what is in it instead of an obligation>
 notes: |
   <optional — anything the caller should know about the read, e.g. an unusually
   structured source, a passage that could not be confidently split>
@@ -103,10 +92,6 @@ notes: |
 - `status: OK` — the source was read and produced at least one `[BR#n]` row.
 - `status: EMPTY` — the source was read but contained no identifiable requirement.
 - `status: NOT_FOUND` — `source_path` was missing, non-markdown, or did not resolve to a file.
-- `sections_without_obligation` is **not optional and is not a notes field**. Together with the
-  `source_anchor`s it makes the walk's coverage checkable: every heading in the source is either
-  pointed into by an anchor or listed here, and a heading in neither is a section this agent did not
-  account for. Return it empty only where every heading in the source yielded at least one row.
 - Every `defect_candidates` entry is a candidate, never a decision. Confirmation, `[DEF#n]`
   assignment, and disposition all belong to `/brd-intake` and its human-in-the-loop step, not to
   this agent.
@@ -126,7 +111,3 @@ notes: |
   BRD is the orchestrator's responsibility, not this agent's.
 - NEVER run without `source_path`, and NEVER substitute a different file when the given path is
   missing or unreadable — return `status: NOT_FOUND` and name the problem instead of guessing.
-- NEVER leave a heading out of both the `source_anchor` set and `sections_without_obligation`. A
-  heading in neither is a section this read did not account for, and it reads to every downstream
-  consumer as a section that legitimately held nothing. Where a section could not be read at all,
-  list it here saying so — that is an account, and silence is not.

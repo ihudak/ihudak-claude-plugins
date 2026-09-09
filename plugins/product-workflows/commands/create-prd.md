@@ -475,11 +475,20 @@ when the first two are forgotten:**
    repos, so it can mint no new finding — and it receives no customer review, which reaches the
    register only through `/product-workflows:brd-reconcile`. A grill answer is neither of the two, whatever
    it says.
-3. **The only field of a decision record this command may write is `consumed_by`** (Phase 5).
-   `statement`, `options_considered`, `chosen`, `argumentation`, `evidence`, `altitude`,
-   `conditional_on`, `status` and `round` are never written here, on any record, in any status. So a
-   grill answer that contradicted a `decided` record could not become that record's new `chosen`
-   even if the first two failed: there is no write that would record it.
+3. **On a record that already exists, the only field this command may write is `consumed_by`**
+   (Phase 5). `statement`, `options_considered`, `chosen`, `argumentation`, `evidence`, `altitude`,
+   `conditional_on`, `status` and `round` are never written onto an existing record here, in any
+   status. So a grill answer that contradicted a `decided` record could not become that record's new
+   `chosen` even if the first two failed: there is no write that would record it.
+
+   **This guarantee was once stated over every record rather than every existing one, and the
+   narrowing is itemised here rather than made silently** (`workflows-core:instruction-file-maintenance`).
+   What it protects is a settled decision against a grill answer, and that protection is untouched:
+   nothing below edits a record anyone has decided. What it now permits is Phase 3 **creating** one
+   new record of one kind — an `[AS#n]`, never a `[VD#n]` and never a `[CD#n]` — for a
+   customer-authority gap, with all twelve of its own fields. A newly minted assumption overwrites
+   nothing and settles nothing; it records that this PRD had to assume something, which is what an
+   `[AS#n]` is for.
 
 **What happens when the grill surfaces a genuine contradiction with a settled decision** — which is
 useful information, not something to suppress. Do not decide it and do not soften the decision into
@@ -506,12 +515,23 @@ survives the grill: what kind of thing would settle it?
   `/product-workflows:brd-interview <BRD-KEY>`, which is where a `[VD#n]` is taken. This command
   never takes one.
 - **An authority only the customer holds** → **write it as an `[AS#n]` in `decisions.md`**, per
-  `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §7, with `round: post-<N> —
-  recorded at PRD authoring` for the highest closed round (`post-none` where none has closed). All
-  twelve fields, and `evidence` carrying the account of why no evidence exists — a bare sentence is a
-  claim, not an assumption record. Record it under `## Assumptions & open questions` **as well**, by
-  its `[AS#n]` id, so the PRD's reader and the customer meet the same record rather than two
-  descriptions of it.
+  `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §7. All twelve fields **except
+  `round`, which is omitted entirely** — this record came from no interview round, and any value
+  there is read by `/product-workflows:brd-package` as a round it must find a record for. `evidence`
+  carries the account of why no evidence exists; a bare sentence is a claim, not an assumption
+  record. Record it under `## Assumptions & open questions` **as well**, by its `[AS#n]` id, so the
+  PRD's reader and the customer meet the same record rather than two descriptions of it.
+
+**Two mechanics the three bullets above share.** First, **`## Assumptions & open questions` does not
+exist on a kept `--lean`** (Phase 1), so on that profile every one of them records into the final
+report instead, exactly as the contradiction paragraph above already does — the `[AS#n]` is still
+written to `decisions.md`, which is a different file and unaffected by the profile. Second, **ids are
+continued, never restarted, and a gap already recorded is not recorded twice**: read `decisions.md`
+first, take the next `[AS#n]` after the highest on file, and where an open `[AS#n]` already states
+this same gap, leave it alone and name it in the report. The sanctioned *Overwrite as a fresh PRD*
+re-run (Phase 0) puts this command over the same folder more than once, and without both halves one
+gap accumulates several open assumptions — each of which `/brd-package` then puts in front of the
+customer twice.
 
 **The third case is the one this step exists for, and the reason is that `prd.md` reaches nobody who
 could answer.** A customer-answerable question written only into the PRD is met by every later reader

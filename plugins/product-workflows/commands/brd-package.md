@@ -186,8 +186,14 @@ cannot review, and they will not tell you that — they will review it anyway, b
    **First, derive which rounds must exist, then gate each one.** The set is not "whatever is on
    disk" — that is the thing being checked. `decisions.md` is already on main (step 6) and **every record in it carries the `round` it was
    recorded in — `[VD#n]` *and* `[AS#n]` alike** (`product-workflows:decision-register-format` §1
-   and §7) — so the rounds this BRD *has* are the distinct `round` values across **both** record
-   kinds. Deriving from `[VD#n]` alone leaves the hole open rather than closing it: a round that
+   and §7) **that was recorded in one** — so the rounds this BRD *has* are the distinct `round` values
+   across **both** record kinds, taken from the records that carry the field. **A record carrying no
+   `round` contributes nothing to the set, and that is correct rather than a hole**: an `[AS#n]`
+   written by `/product-workflows:create-prd` for a customer-authority gap came from PRD authoring
+   and from no round (`product-workflows:decision-register-format` §7), so there is no
+   `interview/round-<N>.md` it could ever name. Requiring one would demand a file no command writes
+   and make every slice holding such a record permanently unpackageable. **This is the only reason a
+   record legitimately omits the field**, so a `[VD#n]` without one is still a malformed record. Deriving from `[VD#n]` alone leaves the hole open rather than closing it: a round that
    produced only assumptions and `[C]` questions names no `[VD#n]`, so a register of nothing but
    `[AS#n]` and `[C]` yields an empty derived set and the gate passes without checking a thing — the
    same vacuity one record kind further out. For each of them, execute `require-on-main`
@@ -913,22 +919,6 @@ self-review is free of them while being the most internal document this command 
    plugin-free scan gives it above, and for the identical reason (§6.3): the customer's own document
    is immutable by rule, and the one repair the rule allows is not editing the file. Every other
    document's hit stays a hard stop.
-
-9. **Run the set-resolution check over the finished bundle, the rendered prompt and the delivery
-   note**, per `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §7, and stop on any hit. It is a
-   third pass rather than a widening of rule 8, and the three hunt different failures: rule 7 finds a
-   token the reviewer **cannot resolve**, rule 8 a token they **resolve to the wrong thing**, and this
-   one a **set restated wrongly** — every identifier resolving, every filename real, and the set they
-   compose not being the set the source file holds. It runs last because relation 2 needs the
-   assembled bundle's own filename listing, and it reaches the delivery note, which rules 7 and 8
-   deliberately do not (§6.4): the note restates the repositories and their pins, and a wrong pin
-   there has the reviewer verify every code claim against a snapshot nobody grounded.
-
-   A membership mismatch stops with:
-   `BRD_PACKAGE_SET_MISMATCH: <part-or-document> restates <source file>'s <filter> as <N> item(s) and the source holds <M> — <missing ids/filenames> are in the source and not here; <extra ids/filenames> are here and not in the source. A restatement is a copy, and the sentence that composed it is what has to change, not the list.`
-
-   A source side that comes up empty while the bundle is not stops with:
-   `BRD_PACKAGE_SET_UNREADABLE: <source file> yielded zero records under <filter> while <part-or-document> restates some — that is a read failure, not an empty set, and passing it would certify a restatement against nothing.`
 
 **The bundle is committed** (D18), through the handoff below. That serves both delivery routes with
 one artifact: a customer with repository access pulls it and needs nothing else, and everybody else

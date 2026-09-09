@@ -8,7 +8,7 @@ Versions follow semver at the plugin level.
 
 ### Added — a recorded review verdict names the version it was taken against
 
-`/design` and `/implement` cite the new `A recorded verdict names the version it was taken against` rule in
+`/design`, `/implement`, `/vuln` and `/upgrade` cite the new `A recorded verdict names the version it was taken against` rule in
 `workflows-core:escalation-rules`. The one-fix-cycle-plus-one-re-review cap assumes a fix cycle only
 removes defects; on three live runs it **introduced** something the re-review then found, with the
 budget already spent — so the run either shipped a known defect or fixed it and left the final text

@@ -4,7 +4,7 @@
 
 ## Reviewers and planners
 
-Opus-gated quality gates, plus the one Sonnet-tier verifier that re-derives evidence rather than judging it.
+Opus-gated quality gates, plus the verifier that re-derives evidence rather than judging it — Opus too, and pinned for the same reason the grounders now are: re-derivation adjudicates.
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
@@ -22,7 +22,7 @@ Read-only discovery and grounding — each returns a structured digest rather th
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
-| `brd-reader` | sonnet | Read, Glob, Grep | Extracts a `[BR#n]` inventory from a BRD — `source_anchor` per row, unconfirmed `defect_candidates`, multi-obligation requirements split, every heading yielding no row accounted for. Read-only. | `/brd-intake` |
+| `brd-reader` | sonnet | Read, Glob, Grep | Extracts a `[BR#n]` inventory from a customer-supplied BRD — `source_anchor` per row, unconfirmed `defect_candidates`; splits multi-obligation requirements. Never rewrites the source. | `/brd-intake` |
 | `code-grounder` | opus | Read, Glob, Grep, Bash, Skill | Grounds specific BRD claims against one repository at a pinned commit — one `[CG#n]` finding per claim, verifying `HEAD` matches the pin before grounding anything. | `/prd-ground` |
 | `customer-review-reader` | per routing | Read, Glob, Grep | Reads a returned customer review in two modes — parses a schema-shaped file, or drafts that schema from prose; every free-text inference returns an unconfirmed candidate. | `/brd-reconcile` |
 | `design-grounder` | opus | Read, Glob, Grep, Skill | Reconciles a BRD against an exported design frame set — one `[DG#n]` per divergence in four classes; refuses without an index file; the code-capture class cites a `[CG#n]` instead of asserting it. | `/prd-ground` |

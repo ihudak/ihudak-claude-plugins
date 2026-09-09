@@ -1043,7 +1043,7 @@ was empty** — no class-4 finding held or on file; **the set was non-empty but 
 `[CG#n]`**, which is every `--no-code` run and any run whose verifier agreed throughout; and **the
 set was non-empty and `[CG#n]` were rewritten, but no class-4 finding in it cites one of them**,
 which is the ordinary shape of a corpus whose design findings rest on code the verifier upheld.
-Say which. Neither is reported as "none", which would read as a sweep that ran over findings and
+Say which. None of the three is reported as "none", which would read as a sweep that ran over findings and
 found nothing wrong with them. A state this run did not reach is omitted, not reported as zero.
 
 A finding carrying no verifier outcome is not evidence (`workflows-core:grounding-format` §8) and is never
@@ -1358,9 +1358,9 @@ as returned, both verdicts, and which of the two routes forced it (a differing `
 `control_outcome` of `missing`, or of `failed` on a finding whose verdict rests on the absence), or an explicit "none" where the verifier and the findings agreed
 throughout, so a clean run reads as checked rather than as unchecked; the class-4 sweep's result in every state it reached — every `[DG#n]` re-derived, every one marked
 `SUPERSEDED` (with `--no-code` named as the run that replaces it), every one re-checked and left
-standing, and, where it did nothing, which of the three reasons applied: an empty set, a
-non-empty one over which this phase rewrote no `[CG#n]`, or a non-empty one none of whose findings
-cites a `[CG#n]` this phase rewrote; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Phase 4.5 lead added,
+standing, and, where it did nothing, which of the three reasons applied: an empty set; a
+non-empty one over which this phase rewrote no `[CG#n]` at all; or a non-empty one where `[CG#n]`
+**were** rewritten and no finding in the set cites one of them; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Phase 4.5 lead added,
 and the count of documentation divergences recorded (each named by the `[CG#n]` it diverges from —
 never by an identifier of its own, because it has none); whether the derivation matrix ran and why; any `design-grounder` class-4 gap deferred for want
 of a settling `[CG#n]`; **on `route: idea`, the claim-exclusion count and prefixes step 8i

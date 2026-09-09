@@ -336,10 +336,19 @@ every one has one.
   it has no referent. Run *Round 1 is generated from the grounding* (below) and branch on what it
   produced:
   - **At least one question** → open round 1 and work it, exactly as ever.
-  - **No question at all** — every finding `CONFIRMED`, no `will-change` horizon, no `[DG#n]`
-    divergence, no `deferred-to`/`rejected` row with an unstated consequence, and nothing the package
-    must assert without evidence → **write `interview/round-1.md` recording the walk and what it
-    found nothing of**, and carry on through the rest of the run — the register phase (which writes
+  - **No question at all** — no finding whose verdict leaves the premise open, no `will-change`
+    horizon, no `[DG#n]` divergence, no `deferred-to`/`rejected` row with an unstated consequence,
+    and nothing the package must assert without evidence. **The test is the generation's own output,
+    never a gloss on the verdicts**: `SUPERSEDED` raises no question and is neither `CONFIRMED` nor a
+    reason to ask one, so a rule phrased over verdicts and a rule phrased over questions would
+    disagree on a re-grounded corpus. Zero questions is the branch key. →
+    **First run the in-scope scoping the generation depends on**, and where it empties the set take
+    `BRD_INTERVIEW_ALL_DELEGATED` and stop: a BRD that kept none of its requirements has nothing of
+    its own to decide, that stop forbids a round record outright, and it is reached *instead of* this
+    branch rather than after it. Otherwise → **write `interview/round-1.md` recording the walk and
+    what it found nothing of, and close the round in the same write** — it holds no question, so
+    there is none to leave hanging, and a round left open would trap every later run on the resume
+    rule and make the change test unreachable forever. Then carry on through the rest of the run — the register phase (which writes
     nothing: no `[VD#n]`, no `[AS#n]`, no `[C]`), the handoff, and the next-step offer. **This is a
     completed run, not a stop**: it produced a deliverable, so it stages and hands off like any
     other, and the offer it ends on is whichever the two `/brd-package` gates select. With an open
@@ -351,8 +360,9 @@ every one has one.
   on file forever recording that nothing was asked, which reads indistinguishably from a round nobody
   finished"* — and it is right, about an **empty** file. This record is not empty: it names each of
   the six question sources and states what the walk found under it, so a reader meets an account of a
-  completed walk rather than a silence they have to interpret. Where the all-delegated stop fires the
-  run never reaches this branch at all, so the two never compete.
+  completed walk rather than a silence they have to interpret. The two also never compete, and the branch above is
+  what makes that true rather than an assertion resting on it: the scoping check runs **first**, so
+  an all-delegated BRD takes its own stop and never reaches the write.
 
   **Why the record is written rather than the run simply reporting and exiting.** The operator cannot
   know whether this BRD has anything to ask until this command has run, so the run is the discovery
@@ -878,8 +888,10 @@ state goes through.
 **That option does not loop, and the reason is the clause immediately below.** *Resolve the round*
 proposes a new round "only if findings or decisions have changed **since the last round closed**" —
 a test with no referent where no round has ever closed, which is exactly this state. It does not
-apply here: **where the BRD holds no round record at all, round 1 opens from the grounding
-unconditionally**, which is what that branch's own "(round 1 when none exists)" means. The change
+apply here: **where the BRD holds no round record at all, that branch generates round 1's questions
+and acts on what they come to** — opening the round where there is one to ask, and otherwise
+recording the walk — which is what its own "(round 1 when none exists)" means. Either way the run
+leaves a round record behind, which is what makes this state unreachable a second time. The change
 test governs the second round onward, where there is a previous round to have had something in front
 of it.
 

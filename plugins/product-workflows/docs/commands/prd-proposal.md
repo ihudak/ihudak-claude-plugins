@@ -100,7 +100,7 @@ Same run, graded **tier 1 · Indicative**, ceiling **Low**. Every package is gra
 - [Effort proposals](../reference/proposal-format.md) — the subsystem from the reader's side: hours never money, how to read a tier and a range, what a driver citation buys you, and what a revision owes the customer.
 - [`proposal-format.md`](../../references/proposal-format.md) — the canonical shape of both artifacts: the section sets, the `[WP#n]`/`[ED#n]` namespaces, the readiness tiers, the confidence grades and bands, and the closed set of evidence classes a cost driver may cite.
 - [`/create-prd`](create-prd.md) — the upstream command that authors the `prd.md` this run gates on.
-- [`/prd-ground`](prd-ground.md) — the optional, ungated run, on either route, whose verified findings are what raises a folder from tier 1 to tier 2 and what most cost drivers cite.
+- [`/prd-ground`](prd-ground.md) — the optional, ungated run, on either route, whose verified findings supply one of the two conditions tier 2 asks for and are what most cost drivers cite. The other condition is a settled decision register, which the BRD-to-PRD route produces and the idea route does not, so grounding alone does not raise the tier.
 - [`/create-ard`](create-ard.md) and [`/specify`](specify.md) — the two commands this run's next-step offer names at tiers 2 and 3, because each one raises the tier and narrows the range on a re-run.
 - [`/epics`](epics.md) — where the `EPIC-` folders come from that seed the middle work packages when they exist. They are never required.
 - [The BRD-to-PRD route](../brd-workflow.md) — where a slice's decision register, coverage ledger and code-defect log come from, all three of which this run reads.

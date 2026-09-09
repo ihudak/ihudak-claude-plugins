@@ -36,7 +36,7 @@ The tier is a **ceiling on confidence**, never the confidence itself: tier 1 cap
 
 **A tier-1 proposal is still a real document** — scope, packages, team, schedule, a ranged number, every assumption and dependency. What it does not carry is the argument for why the number is what it is, which is also why the brief does not render below tier 2 no matter what you pass: a two-page pre-read explaining a large number, written when the reasons are unknown, is the one artifact this subsystem must not produce.
 
-Raising the tier is what narrows the range. [`/prd-ground`](../commands/prd-ground.md) takes a folder from tier 1 to tier 2, [`/create-ard`](../commands/create-ard.md) to tier 3, [`/specify`](../commands/specify.md) to tier 4 — and each command's next-step offer names the one that would move the grade, together with the plain statement that re-running the proposal afterwards narrows the range.
+Raising the tier is what narrows the range. [`/prd-ground`](../commands/prd-ground.md) supplies **one of the two** conditions tier 2 asks for — the verified grounding — on either route; the other is a settled decision register, which only the BRD-to-PRD route produces, so a ground idea-route folder still grades tier 1 and the run says the register is what capped it. [`/create-ard`](../commands/create-ard.md) takes a folder to tier 3 and [`/specify`](../commands/specify.md) to tier 4 — and each command's next-step offer names the one that would move the grade, together with the plain statement that re-running the proposal afterwards narrows the range.
 
 ## Reading the range
 

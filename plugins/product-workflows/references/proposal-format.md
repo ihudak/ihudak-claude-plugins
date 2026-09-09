@@ -114,8 +114,12 @@ refusal on readiness is the absence of the caller's own gated input, which that 
 
 **Both tier conditions reuse rules that already exist.** *Verified grounding* means every finding
 carries a verifier outcome — `workflows-core:grounding-format`'s rule that a finding without an
-outcome is not evidence. *A settled register* means every interview round is settled, the test
-`commands/brd-package.md` already applies.
+outcome is not evidence. *A settled register* means **a `decisions.md` is present and every interview
+round it names is settled**, the test `commands/brd-package.md` already applies. **The presence half
+is not redundant**: a folder holding no register at all names no round, so a condition worded only as
+*every round is settled* is vacuously true there — and combined with grounding, which is reachable on
+either route, it would grade a folder with no register at all at tier 2 and unlock the brief this
+section's own floor withholds.
 
 **The tier caps confidence; it never sets it.** Range width is computed bottom-up from per-package
 confidence (§6). The tier is a ceiling: evidence can only push a package lower.
@@ -132,16 +136,25 @@ ceiling that minimum sets is then the ceiling in the second table.
 | **3 · Architected** | **High** for a package an `[AD#n]` covers; **Medium** for one it does not |
 | **4 · Specified** | **High** |
 
-**At tier 1 the document carries one document-level re-estimate gate** — grounding the slice is its
-trigger — rather than a per-package commitment against triggers nobody has scheduled. The grade stays
-Low because Low is honest. **What does not ride on it is a prohibition** (§8).
+**At tier 1 the document carries one document-level re-estimate gate, and its trigger is whatever the
+run printed as the cap** — grounding the folder where grounding is the half that is missing, settling
+a register where the folder is already ground — rather than a per-package commitment against triggers
+nobody has scheduled. Naming grounding unconditionally would write a trigger that has already fired
+into a proposal for a folder `/prd-ground` has run on, which is reachable on either route. The grade
+stays Low because Low is honest. **What does not ride on it is a prohibition** (§8).
 
 **The brief does not render below tier 2**, irrespective of the flag: its spine is the driver
 argument, and below tier 2 that spine does not exist. A two-page pre-read explaining why a number is
 large, written when the reasons are unknown, is the one artifact this format must not produce.
 
-**An idea-route PRD caps at tier 1 today, and that is a truthful grade rather than a defect.**
-Verified grounding and a settled register are produced by the BRD-to-PRD route and by nothing else. A
+**An idea-route PRD caps at tier 1 by default, and that is a truthful grade rather than a defect.**
+**The cap rests on the register alone.** `commands/prd-ground.md` runs on `route: idea`, gating
+`prd.md` rather than a ledger, so *verified grounding* is reachable from a folder `/idea` and
+`/create-prd` built — it is the optional, ungated run that supplies that half of tier 2 on **either**
+route. What no idea-route folder can reach is the other half: a `decisions.md` is written by
+`commands/brd-interview.md` and by nothing else, and that command runs only on a BRD slice. So an
+idea-route folder that has been ground still grades tier 1, and it grades there because it holds no
+register — which is what the run prints as the cap, rather than a claim that nothing was ground. A
 code scan discovers capability; grounding asks whether a specific claim is true of a specific commit,
 and only the second can carry a driver. A tier-1 proposal is still a real document — scope, packages,
 team, schedule, a ranged number, every assumption and dependency. What it does not carry is the
@@ -194,12 +207,31 @@ on a question the vendor's policy has already answered.
 **Three sources are swept and unioned**, because the obvious single source is necessary and nowhere
 near sufficient — `code-defect-log.md` has one writer and it records only defects a decision turned on:
 
-1. **`code-defect-log.md`** — every `[CDF#n]` not recorded as resolved. Needs no confirmation: a
-   standing `[CDF#n]` is a defect somebody already adjudicated.
+1. **`code-defect-log.md`** — every `[CDF#n]` whose disposition is `open`, `in-scope` or
+   `conditional`. Needs no confirmation: a standing `[CDF#n]` is a defect somebody already
+   adjudicated.
 2. **A verified grounding finding whose own text records a defect** rather than a capability.
    **Operator confirmation required.**
 3. **An `[SR#n]` self-review finding** in the packaged bundle, where one exists, naming a code defect
-   and not recorded as resolved. **Operator confirmation required.**
+   and dispositioned `accepted-risk` or `escalated-to-customer`. **Operator confirmation required.**
+
+**Both filters name the values they admit, because neither vocabulary has a value meaning
+*resolved*.** `code-defect-log-format.md` §4 fixes five dispositions and states that there is **no
+`fixed` disposition** — nothing on this route builds anything, so a repaired defect keeps whatever
+disposition it had — and a filter reading *not recorded as resolved* would therefore admit all five.
+The two source 1 excludes are excluded for opposite reasons: `withdrawn` means the intent basis was
+wrong and there was never a defect, and `out-of-scope` means the repair is recorded and deliberately
+not this engagement's work. Neither may be priced into a mandatory scope §7 then forbids the customer
+from declining. A `conditional` entry **is** packaged, and its `blocked_on` is carried into §4 section
+13 as a dependency: what the repair waits on is what a reader needs in order to schedule it, and
+dropping the field would put a package in the document with no statement of what it turns on.
+
+**Source 3's four values are `commands/brd-package.md`'s**, and the two it admits are the two under
+which the defect the finding names is still standing. `rejected-with-reason` refused the finding
+outright and never reached the customer; `fixed` records a correction made against the finding inside
+the packaging run. **Where a `fixed` disposition corrected a bundle document rather than the code it
+named, the code defect is still standing** — and it reaches this sweep through source 1 or source 2,
+both of which read records of the code rather than records of the bundle.
 
 Sources 2 and 3 need confirmation because neither is a defect *register*: a finding may already be
 repaired, or may not be the vendor's to repair. A confirmed defect from any source is identical
@@ -386,6 +418,12 @@ repair twice, so it sweeps only what the container itself holds and reports what
 programme cannot claim to be specified because three of its five slices are. §5's ceiling for that
 minimum tier then caps every package the umbrella mints of its own, and §5's brief floor is read
 against that same minimum — so one tier-1 slice withholds `proposal-brief.md` for the whole programme.
+**§5's tier-1 document-level gate reads here as the umbrella's own, and it names which slices**: its
+trigger is §5's own — whatever capped each of them — applied per included slice whose tier set the
+minimum and named by key, because the umbrella grades no folder of its own and an unqualified trigger
+would name nothing at this altitude. The
+per-package gates §6 makes mandatory at Low are declared for the `[WP#n]`s the umbrella mints of its
+own; a slice's own gates are inside that slice's row and are not restated at this altitude.
 
 **Ranges are summed, and stated as summed**, carrying §6's caveat that low and high are not
 simultaneous outcomes. A statistical roll-up would be narrower and unexplainable in the meeting this

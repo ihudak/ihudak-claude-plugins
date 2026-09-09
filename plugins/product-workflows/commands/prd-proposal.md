@@ -1,6 +1,6 @@
 ---
 name: prd-proposal
-description: Effort-proposal workflow (PM phase, optional and ungated on both routes) — author a customer-facing effort proposal for one PRD- folder. Grades the folder against four readiness tiers rather than gating on an ARD or a specification, and the tier caps how confident any work package may be. Derives work packages by delivery seam, hours by package and role, and a range computed bottom-up from per-package confidence; every cost driver cites a verified grounding finding, a frozen decision or a confirmed code defect, and a driver citing none of the three does not render. Creates a defect-remediation package automatically from three defect sources and never offers it as a scope lever. Writes proposal.md and a derived proposal-brief.md from one resolved data set, archives the prior revision, and gates on the Opus proposal-reviewer. Carries no money for human hours at any tier. Nothing downstream reads a proposal or waits on one.
+description: Effort-proposal workflow (PM phase, optional and ungated on both routes) — author a customer-facing effort proposal for one PRD- folder. Grades the folder against four readiness tiers rather than gating on an ARD or a specification, and the tier caps how confident any work package may be. Derives work packages by delivery seam, hours by package and role, and a range computed bottom-up from per-package confidence; every cost driver cites a verified grounding finding, a frozen decision or a confirmed code defect, and a driver citing none of the three does not render. Creates a defect-remediation package automatically from three defect sources and never offers it as a scope lever. Writes proposal.md and a derived proposal-brief.md from one resolved data set, archives the prior revision, and gates on the Opus proposal-reviewer. Carries no money for human hours at any tier. Nothing on the build ladder reads a proposal or waits on one.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -228,6 +228,18 @@ calendar:
   `choices: ["Use it as shown (Recommended)", "Correct a field — I'll say which", "Re-grill the whole profile"]`.
 - **`--profile`** — re-grill it in full regardless of what is on disk, then continue the run.
 
+**`engagement_model` is a closed vocabulary, so a free-text answer to either picker is normalised
+into it or the question is re-asked — never written through as a third value**
+(`workflows-core:escalation-rules`, *Closed-vocabulary pickers must normalise the free-text answer*,
+whose table carries this picker). §0 of that file makes the free-text option unconditional, so the
+array cannot protect the field by omitting one, and the two values are the only shapes anything
+renders: §4 sections 16, 17 and 18 are built from this field, the answer is written to a committed
+`proposal-profile.yml`, and every later run of this command and of `/product-workflows:brd-proposal`
+reads it back. **Both routes into the field are the same route** — the grill's own answer, and a
+`"Correct a field — I'll say which"` answer that names `engagement_model` — and both are normalised
+or re-asked. Nothing else in the profile is closed this way: a productivity basis or an
+hours-per-week figure is a value the operator supplies, not one chosen from a set.
+
 A run that cannot obtain a profile at all — the grill was cancelled, or the file cannot be written —
 stops:
 `PRD_PROPOSAL_NEEDS_PROFILE: no proposal profile at $SPECS_PATH/.dev-workflows/proposal-profile.yml, and none was captured. Re-run with --profile to author one; an effort proposal cannot state a team, a schedule or a productivity basis without it.`
@@ -249,9 +261,12 @@ folder does not meet:
 2. **Verified grounding, and a settled decision register.** Both conditions reuse rules that already
    exist and neither is re-expressed here: *verified grounding* is `workflows-core:grounding-format`'s
    rule that a finding carrying no verifier outcome is not evidence, applied to every finding in
-   `grounding/code-grounding.md` and `grounding/design-grounding.md`; *a settled register* is the test
-   `commands/brd-package.md` already applies to `decisions.md` and its `interview/round-<N>.md`
-   records. Tier **2 · Grounded**.
+   `grounding/code-grounding.md` and `grounding/design-grounding.md`; *a settled register* is
+   **`decisions.md` present, and every `interview/round-<N>.md` it names settled** — the test
+   `commands/brd-package.md` already applies. **Test the presence first and do not collapse the two**
+   (§5): a folder holding no register names no round, so the settled half alone is vacuously true on
+   an idea-route folder that has never held one, and this step would grade it tier 2 on grounding
+   alone. Tier **2 · Grounded**.
 3. **`ard.md` in the resolved folder.** Tier **3 · Architected**.
 4. **`specification.md` in the resolved folder.** Tier **4 · Specified**.
 
@@ -261,12 +276,16 @@ highest grade any package may carry at this tier (§5's second table) and say th
 push a package lower, never higher.
 
 **Two consequences the later phases execute rather than decide:** at tier 1 the document carries one
-**document-level** re-estimate gate whose trigger is grounding the folder, rather than a per-package
-commitment against triggers nobody has scheduled; and the brief does not render below tier 2
+**document-level** re-estimate gate whose trigger is **whatever this phase just printed as the cap** —
+grounding the folder where that is the missing half, settling a register where the folder is already
+ground — rather than a per-package commitment against triggers nobody has scheduled; and the brief
+does not render below tier 2
 irrespective of `--no-brief` (Phase 8). Both are §5's, and both are stated to the operator here so the
 shape of what they are about to receive is not a surprise at the end.
 
-**An idea-route PRD caps at tier 1 today, and that is a truthful grade rather than a defect** (§5). A
+**An idea-route PRD caps at tier 1, and that is a truthful grade rather than a defect** (§5) — **the
+register is what caps it**, `/prd-ground` running on that route too and supplying the grounding half,
+so a ground idea-route folder still grades tier 1 and this phase prints the register as the cap. A
 tier-1 proposal is still a real document — scope, packages, team, schedule, a ranged number, every
 assumption and dependency. What it does not carry is the argument for why the number is what it is,
 and §4's section 4 says so outright.
@@ -467,7 +486,9 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 The proposal's one reader is the sibling umbrella `/product-workflows:brd-proposal`, which gates on the
 `proposal.md` this run writes, so declining the handoff costs that command its start — which is what
 the `gated` array's parenthetical tells the operator. `proposal-brief.md` and the archived revisions
-travel in the same `deliverable_paths` set and take that path's class with them (§4.0).
+are themselves classed **unread** in §4.0's own table — nothing reads either — but they travel in the
+same `deliverable_paths` set, and §4.0's strongest-class rule gives one handoff one array carrying the
+strongest class in the set. That set holds a gated path, so the gated array is the one presented.
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: prd`
 (§2.9's table — the proposal opens on the shared `prd` prefix rather than a ninth of its own; the eight
@@ -507,7 +528,11 @@ moves the grade, and telling the operator the document they just received is imp
 than a forward pointer.
 
 **Drop an option whose subject does not exist on this run** — the umbrella option where the folder has
-no parent BRD, the sibling option where no sibling holds a stale proposal or none exists. **Where
+no parent BRD, the sibling option where **no sibling holds a stale proposal or holds none at all**.
+Read that as one predicate over the siblings, matching `workflows-core:next-phase-offer`'s own wording
+(*"the next sibling holding no current proposal"*): the option stands wherever some sibling has no
+current proposal, a sibling that was never priced included. Read the other way — dropped unless a
+sibling holds a *stale* one — it would vanish in the commonest case there is. **Where
 dropping would leave fewer than two options, add** `"Re-derive it from scratch once the inputs move —
 /product-workflows:prd-proposal <KEY> --redo"`, which is available on every run, so the array never
 falls below the two options `AskUserQuestion` requires. Nothing is ever added beyond that, and no

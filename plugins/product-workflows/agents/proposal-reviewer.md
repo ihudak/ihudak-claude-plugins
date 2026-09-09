@@ -29,9 +29,10 @@ for the `[CDF#n]` record, its `behaviour`/`intent` fields, and its five disposit
 `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` for the ledger's row dispositions —
 needed only where check 9 applies. Invoke
 `Skill(skill: "workflows-core:reference", args: "grounding-format")` and read it for the `[CG#n]`/
-`[DG#n]` finding record, its `verdict` field, and the rule that a finding carrying none is not
-evidence. Follow those references; do not restate them here, and do not re-derive a rule you can
-cite.
+`[DG#n]` finding record, its §8 verifier `outcome`, and the rule that a finding carrying none is not
+evidence. **The field to resolve is the `outcome`, never the `verdict`:** §2's `verdict` is written by
+the grounder and every finding carries one, so confirming it confirms nothing. Follow those
+references; do not restate them here, and do not re-derive a rule you can cite.
 
 **Dispatched by `commands/prd-proposal.md` Phase 9, and unchanged by `commands/brd-proposal.md`** —
 the same review, over a `PRD-` slice's own proposal or the `BRD-` umbrella's, and only check 9 tells
@@ -70,9 +71,12 @@ Every `[ED#n]` row in §4 section 4 cites at least one identifier from §8's clo
 a verified grounding finding (`[CG#n]`/`[DG#n]`), a frozen decision (`[VD#n]`/`[CD#n]`), or a
 confirmed code defect (`[CDF#n]`, or a §7-confirmed finding from either other source). **Resolve
 every citation against the record that owns its class rather than trusting that it exists**: open
-the grounding file the id names and confirm it carries a `verdict` (`workflows-core:grounding-format`
-— a finding without one is not evidence); open `decisions.md` and confirm the `[VD#n]`/`[CD#n]` is
-there with `status: decided`; open `code-defect-log.md` and confirm the `[CDF#n]` is on file. A
+the grounding file the id names and confirm it carries a verifier `outcome`
+(`workflows-core:grounding-format` §8 — a finding without one is not evidence). **Not its `verdict`:**
+that is a §2 field the grounder writes on every finding, so a check reading it passes an unverified
+finding as class-1 evidence, which is the one thing §8 of the format forbids; open `decisions.md`
+and confirm the `[VD#n]`/`[CD#n]` is there with `status: decided`; open `code-defect-log.md` and
+confirm the `[CDF#n]` is on file. A
 citation that does not resolve is a **BLOCKER** against §8's own rule that an unresolved driver does
 not render at all — the row is on the page, so the rule was not applied.
 
@@ -90,11 +94,13 @@ that only *looks* consistent has not been checked.
 
 Re-derive, against §4 section 6's `[WP#n]` × role grid:
 
-- Every package-by-role cell sums to that package's own role total, and every role column sums to
-  the grand total — for the **Expected** column first, then, independently, for **Low** and for
-  **High**. **The Low and High columns each sum to the stated total range separately from the
-  Expected column** — a relation a reader is least likely to re-add, and exactly where a silent
-  error survives.
+- Every package-by-role cell sums to that package's own row total; every role column sums to **that
+  role's own total**, and the role totals then sum to the grand total. **Not every role column to
+  the grand total** — on any grid with more than one non-zero role that relation is false of a
+  correct table, and asserting it would file a BLOCKER against every such proposal. Re-derive all
+  three for the **Expected** column first, then, independently, for **Low** and for **High**. **The
+  Low and High columns each sum to the stated total range separately from the Expected column** — a
+  relation a reader is least likely to re-add, and exactly where a silent error survives.
 - Every package's Low–High range brackets its own Expected figure.
 - Every band in §4 section 7 matches its confidence grade's default (§6) within the
   one-percentage-point tolerance §6 fixes. A deviation with no stated reason is a
@@ -142,9 +148,12 @@ tier or flag that excuses it.
 ## 6. Tier honesty
 
 The tier printed in §4 section 1's header block is the tier §5's ladder actually supports on
-disk — re-grade the folder against §5's own conditions (verified grounding plus a settled register
-for tier 2, `ard.md` for tier 3, `specification.md` for tier 4) rather than trusting the printed
-grade. A tier claimed that the folder's own evidence does not support, in either direction, is a
+disk — re-grade the folder against §5's own conditions (for tier 2, verified grounding **plus a
+`decisions.md` that is present and every interview round it names settled**; `ard.md` for tier 3;
+`specification.md` for tier 4) rather than trusting the printed grade. **Re-grade the presence of the
+register, not only the settledness of its rounds:** a folder holding none names no round, so the
+settled half alone passes vacuously and this check would confirm a tier-2 grade §5 caps at 1. A tier
+claimed that the folder's own evidence does not support, in either direction, is a
 **BLOCKER**: a customer is told the wrong grade of evidence behind the number either way. **The
 brief is absent below tier 2, irrespective of any flag** (§5) — its presence there, or its absence
 at tier ≥ 2 for a reason other than the operator's own `--no-brief`, is a **BLOCKER**.
@@ -286,8 +295,8 @@ notes: |
   dismiss, each with a reason that disposes of that finding's own claim) before any survivor is
   fixed.
 - NEVER treat a citation as evidence without opening the record it names and reading its own
-  status — a `verdict`, a `status: decided`, or an on-file `[CDF#n]`. A cited id proves a record
-  exists, not that it resolves (check 1).
+  status — a verifier `outcome`, a `status: decided`, or an on-file `[CDF#n]`. A cited id proves a
+  record exists, not that it resolves (check 1).
 - NEVER re-add a total from the numbers the document asserts about itself. Re-add it from the
   individual cells (check 2); a total that matches its own stated total by construction proves
   nothing.

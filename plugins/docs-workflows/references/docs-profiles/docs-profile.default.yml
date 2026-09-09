@@ -5,6 +5,7 @@
 schema_version: 1
 repo:
   name: example-docs
+generator: mkdocs-material
 spaces:
   - id: cloud
     content_root: cloud/_content
@@ -14,6 +15,9 @@ spaces:
     content_root: self-hosted/_content
     snippet_root: self-hosted/_snippets
     base_path: /self-hosted
+builds:
+  - { id: public,   config: mkdocs.yml,          command: "mkdocs build --strict -f mkdocs.yml",          out: site,          visibility: public }
+  - { id: internal, config: mkdocs.internal.yml, command: "mkdocs build --strict -f mkdocs.internal.yml", out: site-internal, visibility: internal }
 dev_servers:
   concurrent: false
   readiness_timeout_seconds: 120
@@ -22,10 +26,12 @@ dev_servers:
       command: "pnpm cloud:start"
       port: 4000
       base_path: /docs
+      public_base_url: "http://localhost:4000"
     - space: self-hosted
       command: "pnpm self-hosted:start"
       port: 4001
       base_path: /self-hosted
+      public_base_url: "http://localhost:4001"
 commands:
   lint: "pnpm docs:lint"
   format: "pnpm prettier -w"
@@ -64,7 +70,9 @@ frontmatter:
   # Space ids whose pages require an owners block. Absent/empty = never checked.
   owners_spaces: [self-hosted]
 images:
-  policy: "CDN-hosted; the user uploads to CDN and supplies links; docs reference the URLs; never commit binaries. A CDN URL is immutable. Every new or replacing screenshot is a new URL, and the docs edit is always a URL swap. An image is never refreshed in place."
+  policy: in-repo
+  root: docs/assets
+  max_bytes: 307200
 prerequisites:
   - "a dev server may need a working .docstack toolchain (e.g. an axios>=1.16 shim) before `*:start` boots"
   - "the lint command needs a build folder: run a `*:start` (serve) once in a fresh clone before the first `*:lint`, or lint exits non-zero with no content findings (CONTRIBUTING.md, 'Other useful scripts/tasks')"

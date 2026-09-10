@@ -39,6 +39,8 @@ Its Phase 0 took the first token of `$ARGUMENTS`, else the current working direc
 
 `/docs-profile`'s Phase 1 justified invoking the `model-routing` skill on the ground that "slash-command bodies cannot expand `${CLAUDE_PLUGIN_ROOT}`". That was verified false in a live run. The reason that survives is the one that was always doing the work: `${CLAUDE_PLUGIN_ROOT}` resolves to the *reading* plugin, so this plugin cannot read a `workflows-core` skill or reference by path whatever a command body can expand.
 
+The plugin `description` now says "eighteen reference **files**" rather than "reference pages". Eighteen is the file count; sixteen are pages, the other two being `default-owners.txt` and `docs-profile.default.yml`, which are read as data. The predecessor blurb counted pages ("twelve reference pages" against fourteen files), so the unit had silently flipped while the number moved.
+
 ## [1.1.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

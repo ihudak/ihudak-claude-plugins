@@ -1556,7 +1556,7 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
   expect_fail "an unresolvable loader argument is rejected" 16 \
     "sed 's|args: \"phase-handoff\"|args: \"no-such-reference\"|' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
   # THE DISCRIMINATOR for the forward direction. A second argument is an entry point WITHIN
-  # the reference, not part of its name; 141 of the live tree's 270 real invocations carry
+  # the reference, not part of its name; 167 of the live tree's 342 real invocations carry
   # one. An implementation matching the whole argument string passes both red cases above
   # and below and fails only this one.
   expect_pass_after "the two-argument entry-point form resolves on its first token" \
@@ -1588,10 +1588,10 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
   expect_pass_after "the bare backticked citation form reaches a reference" \
     "sed 's|\`\${CLAUDE_PLUGIN_ROOT}/references/handoff/one.md\`|\`references/handoff/one.md\`|' $(cmd_file $PLUGIN_REL alpha) > c16.tmp && mv c16.tmp $(cmd_file $PLUGIN_REL alpha)"
   # Relation 3, and its SCOPE, which is the half a red case cannot prove. Measured on the
-  # live tree: within $CMD_DIR/, agents/ and $REF_DIR/ the match is exact (64 files cite a
-  # core reference, 64 carry the preamble), while 28 files OUTSIDE them cite one -- docs
+  # live tree: within $CMD_DIR/, agents/ and $REF_DIR/ the match is exact (74 files cite a
+  # core reference, 74 carry the preamble), while 38 files OUTSIDE them cite one -- docs
   # pages and a shell hook -- and none of them should carry a runtime loader instruction. An
-  # implementation reading "every file that cites" fires 28 times on a correct tree; here it
+  # implementation reading "every file that cites" fires 38 times on a correct tree; here it
   # turns the green case red.
   expect_fail "a consuming file that cites core without the preamble is rejected" 16 \
     "sed '/^\*\*Core references\.\*\*/d' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
@@ -2060,7 +2060,7 @@ check_index_membership() {
 #   1. FORWARD  -- every real `args:` string resolves to a file under
 #                  $CORE_PLUGIN_REL/$REF_DIR/. The FIRST whitespace token is the reference;
 #                  a second token is an entry point WITHIN it (`specs-repo-git
-#                  specs-preflight`), and 141 of this tree's 270 real invocations carry one.
+#                  specs-preflight`), and 167 of this tree's 342 real invocations carry one.
 #                  An implementation matching the whole argument string reports every one of
 #                  them as unresolvable.
 #   2. REVERSE  -- every markdown file in the corpus is reached by at least one citation.
@@ -2081,8 +2081,8 @@ check_index_membership() {
 #
 # THE PLACEHOLDER TRAP, which is the single most likely way to get this wrong. The preamble
 # quotes the invocation form literally -- `args: "<name>"` -- as documentation of the
-# convention, on 64 files in this tree. A forward direction that resolves every `args:`
-# string it finds opens `<name>.md`, fails, and reports 64 defects on entirely correct
+# convention, on 74 files in this tree. A forward direction that resolves every `args:`
+# string it finds opens `<name>.md`, fails, and reports 74 defects on entirely correct
 # content. A bracketed first token is therefore the PREAMBLE MARKER, not an argument: it is
 # what relation 3 looks for, and it is skipped by relations 1 and 4. Anything else that is
 # not a plausible reference name is still reported -- skipping "implausible" arguments
@@ -2105,10 +2105,16 @@ check_index_membership() {
 # correct, and neither will ever appear in an `args:` string.
 #
 # SCOPE IS $CMD_DIR/, agents/ and $REF_DIR/, and the bound is measured rather than tasteful.
-# Relation 3 over those three directories is an EXACT match on this tree -- 64 files cite a
-# core reference, 64 carry the preamble -- while 28 further files cite one from OUTSIDE them
+# THIS HEADER IS THE ONE HOME OF THIS CENSUS. Every figure in it is derived from the scan
+# below rather than kept by hand, and CLAUDE.md cites this comment instead of holding a
+# second copy -- the two copies disagreed for two increments before that. Re-derive by
+# instrumenting the scan itself (print real_calls / entry_calls / preamble_files after the
+# plugin loop); never adjust a figure by the size of your own change.
+#
+# Relation 3 over those three directories is an EXACT match on this tree -- 74 files cite a
+# core reference, 74 carry the preamble -- while 38 further files cite one from OUTSIDE them
 # (human-facing pages under docs/ and one shell hook), and not one of them should carry a
-# runtime loader instruction. A relation-3 implemented as "every file that cites" fires 28
+# runtime loader instruction. A relation-3 implemented as "every file that cites" fires 38
 # times on a correct tree. The same bound is what keeps relation 2 falsifiable: core's own
 # docs/reference/references.md enumerates every reference file by name, so admitting docs/
 # as a citation source would make the reverse direction unfalsifiable by construction.
@@ -2355,7 +2361,7 @@ PYEOF
 # self-disclosed dispatching a stray subagent mid-run, outside its own sanctioned set.
 # A check that verifies RUNTIME behaviour is impossible from a static script -- and a check
 # that merely asserted "the rule exists" would have passed on the very run that misbehaved:
-# MEASURED FIRST, only 3 of the 38 agents under PLUGIN_RELS carry `Task` in their tool list at
+# MEASURED FIRST, only 3 of the 40 agents under PLUGIN_RELS carry `Task` in their tool list at
 # all (upgrade-executor, vuln-fixer, docs-style-checker), and all three already carried a
 # NEVER-dispatch rule naming their sanctioned subagent, in near-identical wording, when one of
 # them still mis-dispatched. So what is checkable is the STRUCTURAL PRECONDITION, not the

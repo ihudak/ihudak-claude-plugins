@@ -30,6 +30,16 @@ Two narrownesses are deliberate and are stated where they bite. The inner `dev-w
 
 `docs/reference/references.md` (twice) and `docs/workflow.md` still asserted that **a slash-command body cannot expand `${CLAUDE_PLUGIN_ROOT}`**, and used it as the reason both skills exist. That was verified false in a live run and is recorded as retired in `CLAUDE.md` and in the docs-workflow-family design's §20 row 3, but the three copies here survived the retirement. The reason that actually holds is unchanged and now stands alone: `${CLAUDE_PLUGIN_ROOT}` resolves to the **reading** plugin, so a sibling cannot open this plugin's `references/` by path whatever a command body can expand — which is what the loader skill is for.
 
+### Fixed — three more documentation claims this increment falsified or left standing
+
+- `docs/roles-and-phases.md` said **twelve** phases exist and **nine** are reachable only by inheritance. `docs-scaffold` makes it thirteen and ten. The sentence now states what it counts — the twelve lifecycle phases carried as fixed pairs in `references/cost-emission.md` §7, plus this plugin's own `plugin-feedback` fallback, which §7 has no row for — so the arithmetic is checkable and the sibling pages' figure of twelve reads as the different claim it is rather than as a disagreement.
+- `docs/reference/hooks.md` said *"its six utility commands take no address and need no injected context"*. Five take none; `/frames` takes a **mandatory** one and resolves it with `resolve-address` in its own Phase 0. The page now says which is which.
+- `docs/reference/session-cost.md`'s persistence-ladder paragraph described a ladder that now has a rung ahead of pending. It is scoped to this plugin's five cost emitters, none of which can reach that rung, so the sentence was never false — but it now carries a one-clause pointer to `references/cost-emission.md` §8 so the "is this still true?" question is answered where it is asked, without a second copy of the rung's rules.
+
+### Changed — the loader-contract census has one home
+
+`scripts/check-docs.sh`'s check-16 header is now the only place the loader census is written, and it says so. `CLAUDE.md` carried a second copy of four of its figures; both copies had gone stale, disagreeing with each other and with the tree. The header's figures are re-derived from the scan itself (342 real invocations, 167 carrying an entry point, 74 files citing a core reference and 74 carrying the preamble, 38 citing files outside the scanned directories), and `CLAUDE.md` now cites the header instead of restating it. The agent total the check-17 header and `CLAUDE.md` share moves from 38 to 40; the **3** agents carrying `Task` is unchanged, and `docs-scaffold-reviewer` correctly carries none.
+
 ## [1.5.0] — 2026-09-09
 
 ### Added — `control`, a positive control on every grounding absence claim

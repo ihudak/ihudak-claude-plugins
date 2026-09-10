@@ -82,7 +82,7 @@
     {
       "name": "docs-workflows",
       "version": "1.2.0",
-      "description": "Six commands for the documentation half of the dev-workflows pipeline. /docs-init scaffolds a documentation repository for a project that has none: a Material for MkDocs skeleton with public and internal builds over one content root, Vale, CI and the docs-profile.yml every later command reads. /docs-brand extracts a logo and colour pair from the product's code and applies them, WCAG contrast-checked. /docs-serve runs the site's dev server. /document edits prose directly, or keyed to a PRD folder writes product docs from its implementation diffs behind an Opus review gate. /docs-profile refreshes a docs repository's machine-readable profile; /release-notes drafts a destination-shaped entry from the same folder. Eight agents and eighteen reference pages carry repo resolution, diff summarising, planning, writing, scaffold review and style checks. Depends on workflows-core and prose-style.",
+      "description": "Six commands for the documentation half of the dev-workflows pipeline. /docs-init scaffolds a documentation repository for a project that has none: a Material for MkDocs skeleton with public and internal builds over one content root, Vale, CI and the docs-profile.yml every later command reads. /docs-brand extracts a logo and colour pair from the product's code and applies them, WCAG contrast-checked. /docs-serve runs the site's dev server. /document edits prose directly, or keyed to a PRD folder writes product docs from its implementation diffs behind an Opus review gate. /docs-profile refreshes a docs repository's machine-readable profile; /release-notes drafts a destination-shaped entry from the same folder. Eight agents and eighteen reference files carry repo resolution, diff summarising, planning, writing, scaffold review and style checks. Depends on workflows-core and prose-style.",
       "author": {
         "name": "Ivan Gudak",
         "email": "ihudak@gmail.com"
@@ -93,7 +93,7 @@
     },
     {
       "name": "product-workflows",
-      "version": "3.5.0",
+      "version": "3.5.1",
       "description": "Fourteen slash commands for the product-definition half of the dev-workflows pipeline: a six-command BRD-to-PRD route (/brd-intake → /brd-split → /prd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile) that grounds a customer's requirements document, settles it with them, and seeds the PRD, ARD and specification; the idea→PRD→ARD→specification ladder (/idea → /create-prd → /update-prd → /create-ard → /specify), with /prd-ground optionally grounding the PRD itself; /epics, deriving Epics from a PRD; and /prd-proposal and /brd-proposal, pricing a graded requirement set in human hours — never money — with every cost driver citing a record on disk and gating nothing. Thirteen agents carry the grounding, reconciliation, PRD/ARD/spec/Epic/proposal review and Epic writing. Eleven reference pages define the artifact formats these commands author against.",
       "author": {
         "name": "Ivan Gudak",

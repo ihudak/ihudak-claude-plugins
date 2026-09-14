@@ -246,7 +246,7 @@ Invoke the `model-routing` skill. `/docs-init` is **MODERATE**: it is mechanical
 
 ### Phase 2 — Source repos and toolchain preflight
 
-1. Resolve the code repos to be documented: `ls ${REPOS_PATH:-/workspace}`, plus any explicitly named. Confirm the set with the user. This set is recorded in the profile and reused by `/docs-audit` and `/docs-drift`.
+1. Resolve the code repos to be documented: `ls ${REPOS_PATH:-/workspace}`, plus any explicitly named. Confirm the set with the user. **As shipped in increment 1, the set is used by that run only** — to propose the product name and major version, to decide whether `integrations/` is written, and to supply `/docs-brand --inline`'s `--from` where it holds one repository — and **nothing records it**: no profile field holds a source-repo set, and `/docs-init` writes none (its own Phase 2 step 1 says so). Persisting it is increment 2's job, where `/docs-audit` first needs it as a coverage denominator; the profile schema gains the field then, and `/docs-drift` can reuse it after.
 2. Run the toolchain check per `references/toolchain-preflight.md` for the tools the scaffold's own gates will need — `python3`/`pip` (or `uv`), `mkdocs`, `vale`, `git`. Prompt only when something required is missing, Cancel recommended.
 
 ### Phase 3 — Scaffold
@@ -688,11 +688,11 @@ Profile-driven, so it works on any profiled docs repo — including one `/docume
 
 1. Resolve the docs repo by the signal-positive form of D23's ladder — as shipped, `resolve-docs-repo` (`docs-workflows:docs-workflow/repo-resolution` §1): the first token → cwd with signals → `${DOCS_PATH:-/workspace/docs}` with signals → search `$REPOS_PATH` → ask. That is `/document` Phase 0's ladder in shape, plus a first-token rung, and its signal set is §3 of that reference rather than `/document`'s own list.
 2. Read `dev_servers` from the profile. `--internal` selects the internal build's server; default is public.
-3. **Already-running detection** — if the port answers and the response identifies the docs site, report the existing URL and stop. Never start a second server. On a two-build profile identifying the *site* is not enough, since both builds render it: the shipped command decides by the visibility each recorded server carries, treats a port held by the other build's server as a collision, and reports an unrecorded match as build-unconfirmed rather than guess (`/docs-serve` Phase 2 and its state lookup).
+3. **Already-running detection** — if the port answers and the response identifies the docs site, report the existing URL and stop. Never start a second server. Where the profile records more than one server, identifying the *site* is not enough, since each of them renders it: the shipped command decides by the server each recorded entry names (its space and visibility), treats a port held by another recorded server as a collision, and reports an unrecorded match as unconfirmed rather than guess. A profile with one server re-adopts an unrecorded match and records it, since there is nothing else it could be (`/docs-serve` Phase 2 and its state lookup).
 4. **Port collision** — if the port is occupied by something else, pick the next free port, use it, and say so explicitly.
 5. Start the command with Bash `run_in_background`.
 6. **Poll for readiness** up to `dev_servers.readiness_timeout_seconds` (default 120), then print the URL.
-7. Record the pid and port — and the visibility of the server started — under `.dev-workflows/` so `--stop` and `--status` work across sessions.
+7. Record the pid and port — and the space and visibility of the server started — under `.dev-workflows/` so `--stop` and `--status` work across sessions.
 
 `--build` runs the profile's build command and exits without serving. No separate `/docs-build` command: the pipeline already gates on the profile's build, and a flag is cheaper than a command.
 
@@ -713,7 +713,7 @@ A port-shifted stack (a project whose Postgres and Redis are moved off the stand
 
 ### Phase 0 — Resolve
 
-Docs repo and profile by the signal-positive ladder (D23, as §10.1); `specs-preflight`; source repos from the profile's recorded set (confirm if absent).
+Docs repo and profile by the signal-positive ladder (D23, as §10.1); `specs-preflight`; source repos from the profile's recorded set — a field increment 2 adds with this command, since increment 1's `/docs-init` records none (§6 Phase 2) — confirmed with the operator, and recorded, where absent.
 
 ### Phase 1 — Model routing
 

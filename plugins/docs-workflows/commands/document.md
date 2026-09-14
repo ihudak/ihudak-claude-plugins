@@ -1144,9 +1144,7 @@ transcript + subagents (§1), loads and **advances the chained checkpoint** (§3
 computes the per-model token-cost delta against
 the price table (§4), records the optional statusline cross-check (§5), and
 appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via
-the specs-first ladder (§8) — pending + opportunistic move-then-delete
-reconciliation (§9) when no PRD key resolves. **The checkpoint advances even in
-the pending / report-only tiers.** Surface the persisted path (or the
+the specs-first ladder (§8). Keyed mode always resolves its folder — an absent one is a stop in the Mode detection section — so that is where the entry lands whenever `$SPECS_PATH` is writable, never in pending; with a key resolved, §9's opportunistic move-then-delete reconciliation offers any pending files earlier keyless runs left. **The checkpoint advances in every tier, report-only included.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 
 **Then write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` and, per its §1, write/overwrite
@@ -1456,7 +1454,7 @@ the report's **Command workflow improvements**, **New agents / skills**, and
 plugin **Reference docs** sections plus the **Key observations** that
 triggered them (§4 plugin-facing predicate) — never target-project
 `CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by stable `id`
-(§3), resolves the target via the §2 specs-first ladder, and writes silently.
+(§3), resolves the target via the §2 specs-first ladder, and writes silently. A direct-mode run with no PRD folder takes that ladder's documentation branch (design D19): `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/feedback/<date>.md`, where `<docs-repo-slug>` is `workflows-core:specs-repo-git` §2.1's name for the write target Phase 0 step 3 resolved — filed against the repository this run edited, never left unfiled at the specs-repo root.
 List the persisted path (or "no plugin-facing signal — nothing persisted") in
 the Phase 5 `### Session learnings (Agent 4)` line. ADDITIVE — the
 impl-maintenance report still appears in the report; this step NEVER fails the
@@ -1580,7 +1578,7 @@ into the docs repo or the current working directory.
 
 Terminal phase — the NEW final operational phase; runs after Phase 6 (the
 follow-up phase) and NEVER interrupts an earlier phase. Records this command's
-token-cost contribution to the PRD by invoking `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and calling its single `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
+token-cost contribution by invoking `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and calling its single `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
 nothing".
 
 Call `emit-cost` with `command: /document (direct mode)`, `phase: documenting`,
@@ -1590,10 +1588,7 @@ and `plugin_version` (read from
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
 computes the per-model token-cost delta against
 the price table (§4), records the optional statusline cross-check (§5), and
-appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via
-the specs-first ladder (§8) — pending + opportunistic move-then-delete
-reconciliation (§9) when no PRD key resolves. **The checkpoint advances even in
-the pending / report-only tiers.** Surface the persisted path (or the
+appends one per-invocation entry via the specs-first ladder (§8). A direct-mode run with no PRD folder — the ordinary case — takes that ladder's documentation branch (design D19): `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`, where `<docs-repo-slug>` is the one-segment name `workflows-core:specs-repo-git` §2.1 defines for the write target Phase 0 step 3 resolved — its git root, or the target directory itself where that is not a git work tree. Every direct-mode run resolves a write target, so none parks an entry in pending; a run whose key does resolve a PRD folder lands in `<PRD-dir>/dev-workflows/cost/<sid8>.md` instead. **The checkpoint advances in every tier, report-only included.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 
 **Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It

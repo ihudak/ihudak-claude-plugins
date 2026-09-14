@@ -231,8 +231,8 @@ There is no re-review cycle — with no fixer, there is no second pass to gate a
 
 **Standalone** commits what Phase 7's branch and Phase 8's writes produced, then drafts a PR message — **never push, never merge**:
 
-1. **Commit.** `git -C <repo-root> add` — only the files Phase 8 wrote or Phase 9 edited — then `git -C <repo-root> commit -m "docs: apply brand colours and logo (docs-brand)"`.
-2. **Draft the PR message.** Detect the host (`git -C <repo-root> remote get-url origin`); draft a copy-paste-ready title + body for Bitbucket or GitHub. The body states the extracted values and their sources (Phase 5), the review verdict and every applied or dismissed finding (Phase 9), and — **always, whether it passed or failed** — the Phase 6 contrast findings, so a reviewer sees a confirmed-failing colour before it ships. **Do not push, do not open the PR via any CLI** — present the branch name and the drafted message for the operator to push and open themselves.
+1. **Ignore test, then commit.** Immediately before staging, run `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/scaffold-tree.md` §7's commit-time ignore test over the files Phase 8 wrote and Phase 9 edited. A docs repository's own `.gitignore` may ignore an image or a stylesheet (`*.svg`, `*.css`): such a path is left unstaged, never force-added, and the config key naming it — `theme.logo`, `theme.favicon` or the `extra_css` entry — is removed first, so the committed config never names a file the commit leaves out. Then `git -C <repo-root> add` — only the remaining files Phase 8 wrote or Phase 9 edited — and `git -C <repo-root> commit -m "docs: apply brand colours and logo (docs-brand)"`.
+2. **Draft the PR message.** Detect the host (`git -C <repo-root> remote get-url origin`); draft a copy-paste-ready title + body for Bitbucket or GitHub. The body states the extracted values and their sources (Phase 5), the review verdict and every applied or dismissed finding (Phase 9), any written path step 1 left uncommitted (the path, the ignoring `.gitignore` line with its number, and the config key removed for it), and — **always, whether it passed or failed** — the Phase 6 contrast findings, so a reviewer sees a confirmed-failing colour before it ships. **Do not push, do not open the PR via any CLI** — present the branch name and the drafted message for the operator to push and open themselves.
 
 ---
 
@@ -272,6 +272,7 @@ Findings: <N reviewed, M survived triage, K applied, J deferred or overridden wi
 
 ### Branch
 <branch name — N commit(s), NOT pushed and NOT merged | "cancelled at Phase 7 — no branch created, nothing written or committed">
+Left uncommitted: <"none" | <path> — ignored by .gitignore:<N> `<line>`; config key removed: <key> — the committed config differs from the reviewed one by exactly that key>
 
 ### PR draft (copy-paste)
 **Title:** <title>

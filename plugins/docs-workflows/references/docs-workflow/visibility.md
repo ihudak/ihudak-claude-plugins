@@ -149,13 +149,19 @@ jobs:
         run: scripts/check-image-prefix.sh
       # WRITTEN ONLY WHEN images.policy is in-repo — omit under object-store and cdn.
       # BOTH the path and the threshold are scaffold-time substitutions from the profile:
-      # the path is images.root (docs/assets below is its default), and the threshold is
-      # images.max_bytes rendered as a find size suffix (+300k renders the 307200 default).
+      # the path is images.root (docs/assets below is its default, and it appears twice),
+      # and the threshold is images.max_bytes rendered as a find size suffix (+300k
+      # renders the 307200 default).
       - name: Image size budget
         run: |
+          if [ ! -d docs/assets ]; then
+            echo "docs/assets does not exist yet: no committed image to budget"
+            exit 0
+          fi
           find docs/assets -type f -size +300k -print -exec false {} + \
             || { echo "::error::image over the 300 KB budget"; exit 1; }
       # `vale sync` downloads the packages .vale.ini names; they are not committed.
+      # `vale docs/` is run bare: its exit code IS the gate (scaffold-tree.md §7).
       - name: Vale
         run: |
           vale sync
@@ -165,6 +171,10 @@ jobs:
 Gate 1 is not a step of its own: it **is** the `Build public site` step, because `strict: true` in `mkdocs.yml` is what makes a cross-boundary link fail the build. A workflow that ran the build without `--strict`, or a config that dropped `strict: true`, would silently retire gate 1 while the step still appeared to run — which is why `docs-scaffold-reviewer` checks the config and the workflow against each other rather than either alone.
 
 The internal build runs on every PR too. It is not deployed from here, but a config that has drifted into a second source of truth fails loudly at build time rather than at the next release.
+
+**The size-budget step passes when `images.root` does not exist, and that is not a gate that cannot fail.** Git tracks no empty directory, so a scaffold that has committed no image yet — every `--no-brand` run, and every run whose branding applied no logo — has no `docs/assets/` on the runner at all, and a bare `find` over it exits non-zero and reports exactly as an over-budget image would. The guard makes the step's first run pass for the right reason; the moment an image is committed the directory exists and the budget applies to it. It cannot mask an over-budget image, because an over-budget image is a file, and a file means the directory exists.
+
+**The Vale step's exit code is the gate, unmodified.** It passes by the criterion `scaffold-tree.md` §7 states once — the one `/docs-init`'s own Phase 7 applies to the same command — so a scaffold that passed locally does not fail here on its first run. No flag that moves the line (`--no-exit`, `--minAlertLevel`) belongs on this step.
 
 ---
 

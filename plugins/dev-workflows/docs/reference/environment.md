@@ -28,13 +28,13 @@
 
 ## `$DOCS_PATH`
 
-- **`$DOCS_PATH`** — a read-only clone of your shipped product documentation; defaults to `/workspace/docs` when unset.
+- **`$DOCS_PATH`** — your shipped product documentation's clone, read-only in its role as a docs-grounding root; defaults to `/workspace/docs` when unset. (`docs-workflows`' docs commands also use it as a write target for a docs repository — a different role, not a contradiction.)
 
 **Resolution.** Flags first — `--no-docs` forces grounding off regardless of `$DOCS_PATH`; `--docs <path>` overrides it for that run. Otherwise `docs_root = ${DOCS_PATH:-/workspace/docs}`. A validity gate then has to pass for grounding to turn on at all: `docs_root` must be non-empty, an existing readable directory, and contain at least one markdown file.
 
 **When unset.** The `/workspace/docs` default is probed by the validity gate above; on a host where that path does not exist, the gate simply fails.
 
-**When it points somewhere unreadable, or the gate otherwise fails.** Every miss — unset, missing, unreadable, or no markdown file found — is a **silent, non-blocking skip**: `docs_grounding: OFF` with a one-line internal reason, never an error and never `emit-block`. None of this plugin's own five commands is a grounding consumer any more — the eight that are (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake` and `/prd-ground`) ship in the companion `product-workflows` plugin now, and the ninth, `/docs-workflows:release-notes`, ships in `docs-workflows`. `$DOCS_PATH` is documented here only because `code-handoff.md`'s git finish names it in a "never touches" boundary statement; the variable's token appears in this plugin's bundled content for that reason alone, and it is never written to.
+**When it points somewhere unreadable, or the gate otherwise fails.** Every miss — unset, missing, unreadable, or no markdown file found — is a **silent, non-blocking skip**: `docs_grounding: OFF` with a one-line internal reason, never an error and never `emit-block`. None of this plugin's own five commands is a grounding consumer any more — the eight that are (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake` and `/prd-ground`) ship in the companion `product-workflows` plugin now, and the ninth, `/docs-workflows:release-notes`, ships in `docs-workflows`. `$DOCS_PATH` is documented here only because `code-handoff.md`'s git finish names it in a "never touches" boundary statement; the variable's token appears in this plugin's bundled content for that reason alone, and this plugin never writes to it.
 
 **Directory layout.** Unlike `$SPECS_PATH`, the plugin imposes no expected substructure here — it searches whatever markdown it finds under the root (for example, a full documentation-site checkout).
 
@@ -65,6 +65,6 @@ $SPECS_PATH/                        # shared, team-visible store
 $REPOS_PATH/                        # code clones, one directory or a colon-separated list (default /workspace)
   <repo>/                           # discovered by directory name; matched by origin slug for PR-URL resolution
 
-$DOCS_PATH/                         # optional, read-only: a product-docs clone (default /workspace/docs)
+$DOCS_PATH/                         # optional: a product-docs clone, read-only for grounding (default /workspace/docs)
   ...                               # searched for grounding; the plugin never writes here
 ```

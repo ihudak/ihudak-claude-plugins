@@ -80,4 +80,6 @@ Under `in-repo` there are no image URLs to check — an image is a file in the t
 
 Neither step is written unconditionally. A size budget under `cdn` checks a directory holding no images, and a prefix gate under `in-repo` checks URLs that do not exist; both would be green forever, which is worse than absent, because a gate that cannot fail teaches a reviewer the gate set is complete when it is not.
 
+The size budget does pass when the image directory does not exist yet, and that is not the same thing. Git tracks no empty directory, so a freshly scaffolded repository that has committed no image — every scaffold whose branding applied no logo — has no image directory on the CI runner at all, and a bare scan over it would fail its very first run as though an image were over budget. The step checks for the directory first; the moment an image is committed the directory exists and the budget applies. It cannot hide an oversized image, because an oversized image is a file, and a file means the directory is there.
+
 The fields themselves are documented in [the docs-profile schema](../../references/docs-profiles/docs-profile-schema.md), which is the authority on what each policy means.

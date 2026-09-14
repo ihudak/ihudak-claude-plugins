@@ -22,7 +22,7 @@ Every recognized flag is stripped from `$ARGUMENTS` before the remaining token i
 
 ## What it produces
 
-The default flow (Phase 1 onward) selects the server to run — by a profile's own `visibility` tag when one is recorded, by being the only server on offer, or by asking when several exist and neither applies — then checks whether it is already running (never starting a second copy of the same docs site on the same port), works around a port already held by something else by moving forward to the next free one and saying so, starts the chosen command bound to `0.0.0.0` so a container-mapped port stays reachable from the host, polls it for readiness, and reports the URL to open: the profile's own `public_base_url` when set, or the in-container address with an explicit caveat when not. It then records the pid and port under `.dev-workflows/` so a later `--status` or `--stop` — in the same session or a new one — can act on what this run started.
+The default flow (Phase 1 onward) selects the server to run — by a profile's own `visibility` tag when one is recorded, by being the only server on offer, or by asking when several exist and neither applies — then checks whether it is already running (never starting a second copy of the same docs site on the same port), works around a port already held by something else by moving forward to the next free one and saying so, starts the chosen command bound to `0.0.0.0` so a container-mapped port stays reachable from the host, polls it for readiness, and reports the URL to open: the profile's own `public_base_url` when set, or the in-container address with an explicit caveat when not. It then records the pid under `.dev-workflows/`, **keyed by the port the server is bound to**, so a later `--status` or `--stop` — in the same session or a new one — can act on what this run started. A port holds one server and a space name does not identify one: the profile `/docs-init` writes serves one content space twice, a public site and an internal one, and a record per port is what keeps the two from overwriting each other. `--stop --internal` and `--status --internal` find the internal server by resolving `--internal` to its port first, the same way a serve run selects it. The state file is never committed; ignore that one file, not the `.dev-workflows/` directory, which also holds the committed profile.
 
 `--build` runs the profile's build command (from `builds[]`, `commands.per_space.<space>.build`, or `commands.build`, in that order) in the foreground and exits without serving — the flag exists instead of a separate `/docs-build` command, since the pipeline already gates on the profile's build. `--status` reports every server this command has a live record of for the resolved repo. `--stop` ends one.
 
@@ -48,7 +48,7 @@ Resolves the repo, reads its `dev_servers` block, starts (or finds already runni
 /docs-workflows:docs-serve --stop
 ```
 
-Resolves the repo the same way, then stops whatever this command has a live record of running for it.
+Resolves the repo the same way, then stops the server this command has a record of running for it — or, where it has records for several ports, lists them and asks which.
 
 ## See also
 

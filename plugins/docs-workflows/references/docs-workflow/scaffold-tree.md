@@ -2,9 +2,9 @@
 
 Single source of truth for **what `/docs-init` creates**. It is an executable template, not a description of one: a command reads it to know which directories and files to write, what goes in each, and what the two build configs and the linter config contain.
 
-Consumed by `/docs-init` (Phase 3 writes §1–§6, Phase 4 writes §7) and by `docs-scaffold-reviewer`, whose checklist asserts relationships between the files this file specifies. `/docs-write` reads §4, because it regenerates the same `nav:` on every write.
+Consumed by `/docs-init` (Phase 3 writes §1–§6, Phase 4 writes §7), by `/docs-brand`, which reads §5 and §6 to know which config carries the theme and which inherits it, and by `docs-scaffold-reviewer`, whose checklist asserts relationships between the files this file specifies. `/docs-write` reads §4, because it regenerates the same `nav:` on every write.
 
-Its entry points, so a command can say which part it is executing: **the tree** (§1), **the stubs** (§3), **nav generation** (§4), **the mkdocs configs** (§5 and §6), and **the vale config** (§7, which also carries `requirements-docs.txt`).
+Its entry points, so a command can say which part it is executing: **the tree** (§1), **the stubs** (§3), **nav generation** (§4), **the mkdocs configs** (§5 and §6), and **the vale config** (§7, which also carries `requirements-docs.txt`, `.gitignore`, and the Vale exit criterion both the scaffold's own verification and its CI apply).
 
 The navigation is **product-shaped** (design D15). Diátaxis lives in each page's `type:` frontmatter, which is what the coverage grid reads — so the tree looks like a documentation portal a reader recognises while the quadrant discipline stays fully intact.
 
@@ -15,6 +15,7 @@ The navigation is **product-shaped** (design D15). Diátaxis lives in each page'
 ```
 mkdocs.yml                  # public build; strict: true; exclude_docs drops internal/ and _snippets/
 mkdocs.internal.yml         # INHERIT: mkdocs.yml + internal nav; site_dir: site-internal
+.gitignore                  # build outputs, synced Vale packages, /docs-serve's state file -- see §7
 .vale.ini
 requirements-docs.txt       # the CI build's Python dependencies -- see §7
 styles/                     # .vale.ini's StylesPath; `vale sync` populates it
@@ -117,7 +118,7 @@ order: 1
 
 Start here. This page routes to the rest of the portal: what <product> is, how to get it running, how to do a specific task, and where the exact values live.
 
-**What belongs here:** signposting — one short paragraph per section, naming who each is for. Nothing else.
+**What belongs here:** signposting—one short paragraph per section, naming who each is for. Nothing else.
 
 **What does not:** product explanation (that is `discover/`), installation steps (`get-started/`), or anything a reader would need to scroll to reach. A home page that has to be read is a home page nobody reads.
 ```
@@ -178,7 +179,7 @@ visibility: public
 order: 1
 ---
 
-One page per task, each named for the task in the reader's words — *Import a customer list*, not *The import subsystem*.
+One page per task, each named for the task in the reader's words—*Import a customer list*, not *The import subsystem*.
 
 **What belongs here:** a stated goal, the prerequisites for it, the steps, and how to tell it worked.
 
@@ -192,7 +193,7 @@ One page per task, each named for the task in the reader's words — *Import a c
 ```markdown
 ---
 title: Reference
-description: Exact values — configuration, CLI, data model, limits, errors.
+description: Exact values—configuration, CLI, data model, limits, errors.
 type: reference
 audience: user
 visibility: public
@@ -201,7 +202,7 @@ order: 1
 
 The lookup layer. A reader arrives here knowing what they want and needing its exact name, type, default, or value.
 
-**What belongs here:** complete, structured, scannable statements of fact — tables, parameter lists, enumerations, error codes. Consistency of shape matters more than prose quality.
+**What belongs here:** complete, structured, scannable statements of fact—tables, parameter lists, enumerations, error codes. Consistency of shape matters more than prose quality.
 
 **What does not:** narrative and advice. A reference page that explains when to use an option has become an explanation with a table in it, and the table is now harder to scan. Put the recommendation in a guide and link it.
 ```
@@ -222,7 +223,7 @@ order: 10
 
 The HTTP (or equivalent) surface, one page per resource or generated from a schema.
 
-**What belongs here:** endpoints with their methods, parameters, request and response bodies, status codes, and auth requirements — every one of them derived from the shipped source or spec, never from memory.
+**What belongs here:** endpoints with their methods, parameters, request and response bodies, status codes, and auth requirements—every one of them derived from the shipped source or spec, never from memory.
 
 **What does not:** integration tutorials and client walkthroughs. Those are `guides/`. This directory is also the one most likely to be generated; a hand-written page that duplicates a generated one is a page that will disagree with the API within a release.
 ```
@@ -245,7 +246,7 @@ One page per integrated system, each covering what the connection does, what it 
 
 **What belongs here:** the third-party prerequisites, the credentials and permissions required, the setup steps, and what breaks when the connection is wrong.
 
-**What does not:** documentation of the third-party product itself. Link to their docs and keep this page about the seam. A page that re-explains someone else's console is a page that goes stale on their release schedule, not yours.
+**What does not:** documentation of the third-party product itself. Link to their docs and keep this page about the seam. A page that re-explains another vendor's console is a page that goes stale on their release schedule, not yours.
 ```
 
 ### 3.8 `administration/`
@@ -276,7 +277,7 @@ Tasks that require elevated permissions: user and role management, authenticatio
 ```markdown
 ---
 title: Troubleshooting
-description: Symptoms, causes, and fixes — plus the FAQ and known issues.
+description: Symptoms, causes, and fixes—plus the FAQ and known issues.
 type: how-to
 audience: user
 visibility: public
@@ -287,7 +288,7 @@ Organised by **symptom**, in the words a reader would use before they know the c
 
 **What belongs here:** symptom-first entries, the FAQ, and the current known-issues list with its status and workaround.
 
-**What does not:** error-code tables — those are `reference/errors.md`, because a reader pasting a code wants a lookup, not a narrative. Nor does anything organised by subsystem: a reader who knew which subsystem failed would not be here.
+**What does not:** error-code tables—those are `reference/errors.md`, because a reader pasting a code wants a lookup, not a narrative. Nor does anything organised by subsystem: a reader who knew which subsystem failed would not be here.
 ```
 
 ### 3.10 `whats-new/`
@@ -306,7 +307,7 @@ order: 1
 
 The release hub: one entry per major version, newest first, plus the deprecations page.
 
-**What belongs here:** links to the per-major pages and the deprecation schedule. Nothing that has to be edited when a release ships — the per-major pages carry that.
+**What belongs here:** links to the per-major pages and the deprecation schedule. Nothing that has to be edited when a release ships—the per-major pages carry that.
 
 **What does not:** hand-written release prose. These pages are rendered from the release-notes drafts the pipeline already produced; writing them by hand creates a second source of truth that disagrees with the first by the following release.
 ```
@@ -347,7 +348,7 @@ order: 1
 
 Everything in this tree is excluded from the public build. It is for the people who build and operate the product.
 
-**What belongs here:** architecture, decision records, and runbooks — plus anything that names internal hostnames, internal tooling, or unreleased work.
+**What belongs here:** architecture, decision records, and runbooks—plus anything that names internal hostnames, internal tooling, or unreleased work.
 
 **What does not:** anything a customer should be able to read. A page that is merely technical is not internal; API reference is engineering-shaped and public. The test is whether publishing it would be wrong, not whether it is advanced. Every file here carries the visibility marker on its first line after the frontmatter.
 ```
@@ -357,7 +358,7 @@ Everything in this tree is excluded from the public build. It is for the people 
 ```markdown
 ---
 title: Architecture
-description: How <product> is built — components, boundaries, and data flow.
+description: How <product> is built—components, boundaries, and data flow.
 type: explanation
 audience: engineering
 visibility: internal
@@ -369,7 +370,7 @@ The system as it is today: components, the boundaries between them, what crosses
 
 **What belongs here:** structure and rationale that a new engineer needs before reading code, with a diagram wherever a diagram is what is actually being described.
 
-**What does not:** decisions and their alternatives — those are `internal/decisions/`, where they can be dated and superseded. An architecture page that carries its own history stops describing the present.
+**What does not:** decisions and their alternatives—those are `internal/decisions/`, where they can be dated and superseded. An architecture page that carries its own history stops describing the present.
 ```
 
 `docs/internal/decisions/index.md`
@@ -387,7 +388,7 @@ order: 1
 
 One page per decision, dated, stating the context, the decision, the alternatives considered, and the consequences.
 
-**What belongs here:** decisions that constrain later work, including the ones that were reversed — a superseded record is marked superseded and kept, never deleted.
+**What belongs here:** decisions that constrain later work, including the ones that were reversed—a superseded record is marked superseded and kept, never deleted.
 
 **What does not:** the current state of the system. That is `internal/architecture/`. A decision record is a record of a moment; editing it to match today destroys the only thing it was for.
 ```
@@ -407,7 +408,7 @@ order: 1
 
 Operational procedures, written to be followed at three in the morning by someone who did not write them.
 
-**What belongs here:** the trigger, the checks, the steps, the rollback, and who to escalate to — each step executable without judgement calls the reader cannot make under pressure.
+**What belongs here:** the trigger, the checks, the steps, the rollback, and who to escalate to—each step executable without judgement calls the reader cannot make under pressure.
 
 **What does not:** explanation of why the system works this way. Link it. A runbook whose first screen is background is a runbook nobody reaches the steps of.
 ```
@@ -432,7 +433,7 @@ The tree names individual pages inside four sections. Each is created as a stub 
 | `reference/configuration.md` | reference | 20 | Every setting: name, type, default, effect, and where it is set. |
 | `reference/cli.md` | reference | 30 | Every command, its flags, its arguments, and its exit codes. |
 | `reference/data-model.md` | reference | 40 | The entities, their fields, and the relationships between them. |
-| `reference/limits.md` | reference | 50 | Limits and quotas, with the value, the scope, and whether it is raisable. |
+| `reference/limits.md` | reference | 50 | Limits and quotas, with the value, the scope, and whether it can be raised. |
 | `reference/errors.md` | reference | 60 | Every error code, what causes it, and what to do about it. |
 | `troubleshooting/faq.md` | how-to | 20 | Questions in the reader's words, each with a short answer that links out. |
 | `troubleshooting/known-issues.md` | reference | 30 | Current defects with status and workaround; entries are removed when fixed. |
@@ -477,8 +478,6 @@ site_name: <product>
 strict: true
 theme:
   name: material
-  logo: assets/logo.svg
-  favicon: assets/favicon.png
   features: [navigation.sections, navigation.top, search.suggest, content.code.copy]
 markdown_extensions:
   - admonition
@@ -502,6 +501,8 @@ nav:
 ```
 
 `strict: true` plus the `validation.nav.*` settings are gate 1 (`visibility.md` §4): a public page linking into `internal/` becomes a build failure rather than a broken link a reader finds. Dropping either one retires that gate while the CI step still appears to run.
+
+**No `logo:` or `favicon:` key, deliberately.** The scaffold writes no image, so a key naming `assets/logo.svg` would reference a file nothing wrote — a broken image on every page of both builds, which `--strict` does not catch because Material does not check that a theme asset exists. `/docs-brand` adds both keys in the same run that copies the files into `docs/assets/`, and only when it applies a logo; under `--no-brand`, or where `/docs-init`'s branding phase applied nothing, Material's own default mark stands and the config stays valid without them.
 
 **`_snippets/` is excluded while `pymdownx.snippets` keeps `base_path: [docs/_snippets]`, and that pairing is deliberate rather than contradictory.** `exclude_docs` removes a file from the **build**; the snippets extension reads its fragments from the **filesystem**. So an excluded fragment is still includable — which is MkDocs' own guidance for include files — and this is the only configuration in which the directory works as intended. Without the exclusion every fragment under `docs/_snippets/` is a `.md` file inside `docs_dir` and MkDocs therefore **renders each one as a standalone page in both builds**: every fragment becomes an orphan that `validation.nav.omitted_files` reports, and an *internal* fragment becomes a **public page** — a more direct leak than the transclusion case gate 2 exists for. State the pairing wherever it is set, because a reader who does not know it reads the exclusion as a mistake and removes it.
 
@@ -542,7 +543,24 @@ nav:
 
 ---
 
-## 7. `requirements-docs.txt`, `.vale.ini`, and the vocabulary
+## 7. `.gitignore`, `requirements-docs.txt`, `.vale.ini`, and the vocabulary
+
+### `.gitignore`
+
+Written first, before `vale sync` downloads anything and before either build writes an output, so none of what the scaffold's own tooling produces ever shows up as an untracked file:
+
+```
+# Build outputs: both builds write here, and CI rebuilds them from source.
+/site/
+/site-internal/
+# Vale packages that `vale sync` downloads into StylesPath. Only the project vocabulary under styles/config/ is committed.
+/styles/*
+!/styles/config/
+# /docs-serve's pid/port record. The profile beside it is committed, so never ignore the directory.
+/.dev-workflows/docs-serve.state.json
+```
+
+**Two of these rules are narrower than they could be, and each is narrow on purpose.** `/styles/*` with `!/styles/config/` rather than `/styles/`, because git cannot re-include a file whose parent directory is ignored: ignoring `styles/` wholesale would drop `accept.txt` — the one file under it the scaffold commits — from the repository. And the `/docs-serve` state file by name rather than `.dev-workflows/`, because that directory also holds `docs-profile.yml`, which is committed and which the family's other commands read; ignoring the directory would silently drop the profile from the next commit that touched it.
 
 ### `requirements-docs.txt`
 
@@ -576,21 +594,37 @@ After writing the file, run **`vale sync`** to download the packages named by `P
 
 **`vale sync` runs in CI as well as locally, and that is not a duplicate.** Sync writes the downloaded packages into `StylesPath` (`styles/`), and those are third-party bundles a repository does not commit — what the scaffold commits under `styles/` is the vocabulary below and nothing else. So a fresh CI checkout has a `.vale.ini` naming packages that are not on disk, and `visibility.md` §6's Vale step therefore runs `vale sync` before `vale docs/`. A workflow that lints without syncing fails on a clean runner while passing on the author's machine, which is the least useful shape a CI failure can take.
 
+### The exit criterion — stated here, once
+
+**`vale docs/` passes when it exits 0.** Vale exits non-zero when any **error**-level alert fires, and on a configuration or runtime error — a package never synced, a style that does not resolve, a missing vocabulary file. Warning- and suggestion-level alerts are reported and never change the exit code. That is Vale's own default, and it is the criterion **both** places that lint this scaffold apply: `/docs-init` Phase 7 step 3, and the Vale step of `visibility.md` §6's CI workflow. Same command, same configuration, same exit code — so a scaffold that passes the one cannot fail the other on its first run, which is the gap this paragraph exists to close. Neither place passes a flag that moves the line (`--no-exit`, `--minAlertLevel`); `.vale.ini`'s `MinAlertLevel = suggestion` governs what is *reported*, not what fails. Every other file that mentions this criterion cites this paragraph rather than restating it.
+
+**The scaffold passes its own gate, and that is a property of this file rather than luck.** Run over §3's stubs with the configuration above and the seed below, Vale raises no error-level alert — checked against Vale 3.21 with the `Google` and `write-good` packages when this was written. Two things buy it. The seed below covers every word the stubs use that the dictionary does not know. And the stubs write an em dash **without** surrounding spaces, because `Google.EmDash` is an error-level rule — which is why they read differently from the prose in this file. **A stub edited later has to keep the property**: a spaced em dash, or a word the dictionary lacks, fails the step and fails CI. Reword the stub, or add a genuine term to the seed list here in the same change — never a word to `accept.txt` at run time to make a failing step pass.
+
 ### The vocabulary is seeded, not left empty
 
 `styles/config/vocabularies/Project/accept.txt` holds the product's own terms — one per line, regex-escaped — so Vale stops reporting them as misspellings.
 
-**Seeding it is not a nicety.** Without it every product noun is a spelling error on day one, the first lint returns dozens of findings that are all wrong, and the team turns Vale off in week two. A linter that cried wolf once is a linter nobody re-enables.
+**Seeding it is not a nicety.** Without it every product noun is a spelling error on day one — and `Vale.Spelling` is an error-level rule, so under the criterion above that is a failing gate rather than noise — the first lint returns dozens of findings that are all wrong, and the team turns Vale off in week two. A linter that cried wolf once is a linter nobody re-enables.
 
-`/docs-audit` extracts the domain nouns for its `concept` surfaces, and those are what seed the file. **`/docs-audit` does not exist until increment 2**, so in this increment the file is always created carrying exactly this comment and nothing else:
+**There are two seeds, written by two commands, and they answer different questions.**
 
-```
-# Product terms Vale should not flag as misspellings.
-# /docs-workflows:docs-audit seeds this from the domain nouns it extracts for
-# `concept` surfaces. Until then, add terms by hand — one per line, regex-escaped.
-```
+- **The scaffold seed — written by `/docs-init`, always, in this increment.** It exists so the scaffold passes its own gate, and it is **not** a domain vocabulary. It is the comment, the product name, and the words §3's stubs introduce that the dictionary does not know — the last derived by running Vale over the stubs, not guessed:
 
-The file is created either way. An absent `accept.txt` beside a `Vocab = Project` line is a configuration error; an empty one with a comment is a working configuration and an invitation.
+  ```
+  # Product terms Vale should not flag as misspellings.
+  # /docs-workflows:docs-audit seeds this from the domain nouns it extracts for
+  # `concept` surfaces. Until then, add terms by hand — one per line, regex-escaped.
+  <product>
+  [Ff]rontmatter
+  [Hh]ostnames?
+  [Rr]unbooks?
+  [Ww]alkthroughs?
+  ```
+
+  `<product>` is the product name `/docs-init` confirmed at its Phase 2, regex-escaped — a scaffold-time substitution like every other `<product>` in this file, and the entry that matters most, because every stub names the product and a name the dictionary lacks fails the gate on every page. The four patterns after it are the stubs' own technical vocabulary; each admits its capitalised form because a vocabulary entry also fixes a term's case — `Vale.Terms`, an error-level rule, reports `Runbooks` against a lowercase-only `runbooks?` — and a stub title starts with a capital.
+- **The domain seed — `/docs-audit`'s, when it ships.** `/docs-audit` extracts the domain nouns for its `concept` surfaces and appends those. **`/docs-audit` does not exist until increment 2**; until then the domain terms are added by hand, which is what the comment above says.
+
+The file is created on every `/docs-init` run. An absent `accept.txt` beside a `Vocab = Project` line is a configuration error.
 
 ---
 
@@ -603,4 +637,8 @@ The file is created either way. An absent `accept.txt` beside a `Vocab = Project
 - NEVER write a directory without its stub, and never write a **directory** stub without its "what does not belong" half (§3). A leaf-page stub carries the lighter shape §3.12 defines and is exempt from that half, by the narrowing recorded there.
 - NEVER write a file under `internal/` without the visibility marker on its first line after the frontmatter (`visibility.md` §5).
 - NEVER put a page stub in `_snippets/`, `assets/` or `stylesheets/` (§3.13).
-- NEVER create `.vale.ini` without also creating `accept.txt`, and never write the CI workflow without `requirements-docs.txt` beside it — a workflow installing a file the scaffold never wrote fails on the first run (§7).
+- NEVER create `.vale.ini` without also creating `accept.txt` carrying the scaffold seed, and never write the CI workflow without `requirements-docs.txt` beside it — a workflow installing a file the scaffold never wrote fails on the first run (§7).
+- NEVER apply a different Vale exit criterion locally than in CI, and NEVER add a flag that moves it — §7 states it once, and both apply it (§7).
+- NEVER write a stub that raises an error-level Vale alert — no spaced em dash, no word the dictionary lacks unless it is in the scaffold seed — since the scaffold has to pass its own gate (§7).
+- NEVER ignore `styles/` or `.dev-workflows/` wholesale in `.gitignore` — the first holds the committed vocabulary, the second the committed profile (§7).
+- NEVER write a `logo:` or `favicon:` key the scaffold has no file for — `/docs-brand` adds both when it applies a logo (§5).

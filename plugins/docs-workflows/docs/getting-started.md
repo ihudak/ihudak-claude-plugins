@@ -20,7 +20,7 @@ Two other plugins arrive with it, because they are **declared dependencies** rat
 
 **What you do not need.** The companion `dev-workflows` pipeline plugin is not a dependency in either direction. `/document` and `/release-notes` read a folder in a specs tree; whether the plugin that authored that folder is installed on *your* machine makes no difference. Install it if you also author PRDs, specifications and designs.
 
-**What you also need, and it is not a plugin.** A prose linter helps but is not required — `vale`, a repo lint script, `markdownlint` or `remark` are all detected if present, and `prose-style` covers the run when none of them is. Because `prose-style` arrives as a declared dependency, a repository with no linter of its own is still style-checked rather than waved through; what a missing `vale` costs you is the lexical pass CI will run on your PR, which is why the Phase 0 toolchain preflight names it.
+**What you also need, and it is not a plugin.** A prose linter helps but is not required — `vale`, a repo lint script, `markdownlint` or `remark` are all detected if present, and `prose-style` covers the run when none of them is. Because `prose-style` arrives as a declared dependency, a repository with no linter of its own is still style-checked rather than waved through; what a missing `vale` costs you is the lexical pass CI will run on your PR, which is why the Phase 0 toolchain preflight names it. **`/docs-init` is the exception, and needs `vale` outright** — together with `git`, `python3` and `pip` (or `uv`), and `mkdocs` — because the repository it scaffolds lints with Vale both in its own verification phase and in its CI workflow; its preflight reports any of them missing before a single file is written.
 
 ## Update
 
@@ -45,7 +45,7 @@ Where your code clones live — one directory, or a colon-separated list of them
 
 ### `DOCS_PATH`
 
-A read-only clone of your shipped product documentation, defaulting to `/workspace/docs`. `/document` prefers it as a docs-repo discovery hint when your current working directory carries no documentation signals — in a container the docs clone is usually mounted right here, which makes this the common fast path. `/release-notes` reads the same variable for optional grounding against what is already published.
+Where your product documentation's clone lives, defaulting to `/workspace/docs`. `/document` prefers it as a docs-repo discovery hint when your current working directory carries no documentation signals — in a container the docs clone is usually mounted right here, which makes this the common fast path — and `/docs-init` scaffolds a new documentation repository here when nothing is there yet. `/release-notes` reads the same variable for optional grounding against what is already published, and **as a grounding root it is read-only**: that is the one role in which nothing writes into it. Writing into the docs repository it points at is a different role, not a contradiction.
 
 ### `GIT_USER_INITIALS`
 
@@ -59,7 +59,7 @@ If there is no documentation repository yet, `/docs-init` makes one:
 /docs-workflows:docs-init /workspace/docs
 ```
 
-It resolves the target (and refuses outright if that directory already looks like a documentation repository — pointing you at `/docs-profile` instead, which is the command for one that already exists), offers to `git init` an empty or absent directory, confirms which code repositories the portal will document, branches, then writes the page skeleton, both build configs, `.vale.ini` with an empty project vocabulary ready for your own terms, a CI workflow carrying the visibility gates, and `.dev-workflows/docs-profile.yml`. It runs `/docs-brand --inline` to pick up a logo and colours from the product's own code, verifies that both builds and the linter actually work, gates the whole diff on an Opus review, and leaves it on a branch with a drafted pull request. It never pushes and never merges.
+It resolves the target (and refuses outright if that directory already looks like a documentation repository — pointing you at `/docs-profile` instead, which is the command for one that already exists), offers to `git init` an empty or absent directory, confirms which code repositories the portal will document, branches, then writes the page skeleton, both build configs, `.vale.ini` with a project vocabulary seeded with the product name and the few technical words the scaffold's own pages use (so the scaffold passes its own lint gate, locally and in CI alike), a CI workflow carrying the visibility gates, and `.dev-workflows/docs-profile.yml`. It runs `/docs-brand --inline` to pick up a logo and colours from the product's own code, verifies that both builds and the linter actually work, gates the whole diff on an Opus review, and leaves it on a branch with a drafted pull request. It never pushes and never merges.
 
 Then `/docs-workflows:docs-serve` opens the result in a browser, and `/document` starts filling it in. Skip straight to the next section if your documentation repository already exists.
 

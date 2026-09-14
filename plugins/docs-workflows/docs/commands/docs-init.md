@@ -1,6 +1,6 @@
 # /docs-init
 
-Scaffolds a documentation repository for a project that has none — one that builds, serves, lints, and carries the profile every later command in this family reads.
+Scaffolds a documentation repository for a project that has none — one that builds, serves, lints, and carries the profile `/docs-serve`, `/document` and `/docs-brand` read.
 
 ## Who runs it
 
@@ -30,11 +30,11 @@ Every recognized flag is stripped from `$ARGUMENTS` before the remaining token i
 |---|---|
 | 0 — Resolve and validate | Strip flags; resolve the target and report the rung; run the specs-repo preflight; establish a writable git work tree or offer to create one; refuse a directory carrying a docs signal. |
 | 1 — Model routing | Classify MODERATE and record the routing block. The review model is pinned to the Opus chain regardless. |
-| 2 — Source repos and toolchain preflight | Confirm which code repositories the portal documents, resolve the product name and current major version, and check that the tools the later gates invoke are present. |
+| 2 — Source repos and toolchain preflight | Confirm which code repositories the portal documents (used by this run only; nothing records the set), resolve the product name and current major version, and check the tools the later gates invoke. |
 | 2.5 — Branch | Create the branch, **before anything is written**, behind a clean-tree check that is only meaningful ahead of the first write. |
 | 3 — Scaffold | Write the tree, the stubs, the generated navigation, both build configs, the visibility markers, and the CI workflow, resolving every substitution including the pinned Vale release. |
-| 4 — Vale | Write `requirements-docs.txt` and `.vale.ini`, run `vale sync`, and create the project vocabulary file. |
-| 5 — Branding | Run `/docs-brand --inline` against the repository just scaffolded, unless `--no-brand`. Its diff and its contrast finding join this run's single review and single pull request. |
+| 4 — Vale | Write `.gitignore`, `requirements-docs.txt` and `.vale.ini`, run `vale sync`, and create the project vocabulary, seeded with the product name and the scaffold's own words. |
+| 5 — Branding | Run `/docs-brand --inline` on the new repo unless `--no-brand`. Its diff and contrast finding join this run's review and PR; if it cannot brand, the run continues as if `--no-brand` and says why. |
 | 6 — Profile | Write `.dev-workflows/docs-profile.yml`: the generator, both builds, both dev servers, the commands, and the structured images block. |
 | 7 — Verify the scaffold | Public build strict, internal build strict, `vale docs/`, then the visibility gate against the **public build output** — in that order. |
 | 7.5 — Review gate | Dispatch `docs-scaffold-reviewer` at Opus over the written diff, triage its findings, and apply the survivors in the orchestrator. |
@@ -46,7 +46,9 @@ Every recognized flag is stripped from `$ARGUMENTS` before the remaining token i
 
 **Phase 7 — verification, and a failure is reported rather than worked around.** The four steps run in order, and the rule is stated in the command body rather than left as advice: no relaxed `--strict`, no dropped validation key, no deleted page, no silenced linter. A failing step is carried into the reviewer's brief, into the pull-request draft, and into the report, and nothing downstream describes the scaffold as verified. The run continues, because the branch and the diff still exist and are still worth reviewing.
 
-**Phase 7.5 — the review gate.** `docs-scaffold-reviewer` runs on Opus over a fixed seven-item checklist, six of whose items assert a relationship *between two files* — the navigation against the tree, one config against the other, a workflow step against the profile field that parameterises it. That is exactly what a reviewer reading one diff hunk at a time cannot see, which is why the checklist is fixed rather than left to judgement. The run tells the reviewer which of the seven `--public-only` makes inapplicable, so an absent internal build is reported as by-design rather than as a defect.
+The Vale step passes or fails by **the same exit criterion the scaffold's CI workflow applies** — Vale's own exit code, which fails on an error-level alert or a configuration error and never on a warning or a suggestion — so a scaffold that passes here does not fail its first CI run. It passes because the scaffold seeds the project vocabulary with the product name and the handful of technical words its own stubs use; that seed is only what the scaffold needs to pass its own gate, and the product's domain vocabulary is a later command's job.
+
+**Phase 7.5 — the review gate.** `docs-scaffold-reviewer` runs on Opus over a fixed seven-item checklist whose cross-file items each assert a relationship *between two files* — the navigation against the tree, one config against the other, a workflow step against the profile field that parameterises it. That is exactly what a reviewer reading one diff hunk at a time cannot see, which is why the checklist is fixed rather than left to judgement. The run tells the reviewer which of the seven `--public-only` makes inapplicable, so an absent internal build is reported as by-design rather than as a defect.
 
 Its build-parity item reads an itemisation, not key-level identity: the two configs are *required* to share `docs_dir`, `markdown_extensions`, the theme block, `extra_css`, `validation` and the navigation-generation rule, and are *allowed* to differ in `exclude_docs`, `site_name`, `site_dir` and the generated navigation itself. An internal config with an empty `exclude_docs`, or one missing `site_dir: site-internal`, is the defect — not the difference.
 
@@ -55,7 +57,7 @@ Findings are triaged by the orchestrator before anything is applied: each is ver
 ## Outputs
 
 - **The scaffolded repository**, on a branch with one commit and a drafted pull-request message. Nothing is pushed and nothing is merged.
-- **`.dev-workflows/docs-profile.yml`** — the one output that makes every later command work on this repository: `/docs-serve` reads its `dev_servers` block, `/document` reads its content roots and commands, and the CI workflow's conditional image step is written against its `images.policy`.
+- **`.dev-workflows/docs-profile.yml`** — the output the family's other docs-repo commands read: `/docs-serve` reads its `dev_servers` block, `/document` reads its content roots and commands, a standalone `/docs-brand` reads its branch-naming pattern, and the CI workflow's conditional image step is written against its `images.policy`. `/release-notes` reads no docs profile.
 - **A session cost entry and any feedback**, filed under `$SPECS_PATH/documentation/<docs-repo-slug>/` — per documentation repository rather than in the pending queue, because a documentation run frequently has no PRD and never will. See [Session cost](../reference/session-cost.md).
 
 ## Failure modes
@@ -67,6 +69,7 @@ Findings are triaged by the orchestrator before anything is applied: each is ver
 - `DOCS_INIT_TOOLCHAIN_INCOMPLETE` — a required tool is missing and the operator cancelled at the preflight prompt. Proceeding anyway is allowed; Phase 7 then reports the affected step as unrun rather than as passed.
 - `DOCS_INIT_UNRESOLVED_BLOCKER` — a BLOCKER finding from `docs-scaffold-reviewer` was neither fixed nor explicitly overridden.
 - A cancelled Phase 2.5 is not a failure: nothing is written, no branch is created, and the report says so. The cost entry is still recorded.
+- A branding phase that cannot brand is not a failure either. Whatever stopped `/docs-brand` — no MkDocs Material config, no code repository, nothing to apply (routine for an API or CLI product with no frontend), or a Cancel at one of its prompts — comes back as `no branding applied: <reason>`, and the scaffold carries on as if `--no-brand` had been passed, with the reason in the pull-request draft and the report.
 
 ## Example
 

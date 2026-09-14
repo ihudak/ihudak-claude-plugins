@@ -386,7 +386,7 @@ not attempt to infer it from anything else.
   Treat it as the `n/a` case below.
 - **Target is `n/a`, or a command with no row above -> `phase: plugin-feedback`,
   `role: n/a`.** The second case covers `/vuln`, `/upgrade`, `/docs-profile`,
-  and `/statusline`, none of which emits cost and so has nothing to inherit.
+  `/docs-serve` and `/statusline`, none of which emits cost and so has nothing to inherit.
 - **Target is `/frames` -> resolve ITS inference first**, then inherit the result,
   exactly as for `/release-notes`. One level only. Where no folder resolves — which
   for `/frames` means the run never started — treat it as the `n/a` case.
@@ -400,12 +400,7 @@ not attempt to infer it from anything else.
 than guessed, and aggregation should treat it as unattributed rather than folding
 it into `dev`.
 
-**`/vuln`, `/upgrade`, and `/docs-profile` emit no cost entry, and that is
-a decision about what the number is for.** A cost entry measures **AI investment in a product
-increment**, and the rule is: *a cost entry attaches to a run that advances a PRD- or BRD-scoped
-artifact.* A CVE remediation, a library version bump, and a docs-profile refresh advance none —
-they are noise against a PRD or a BRD, and a metric that averages the two answers a question
-nobody asked.
+**`/vuln`, `/upgrade`, `/docs-profile` and `/docs-serve` emit no cost entry, and that is a decision about what the number is for.** A cost entry measures **AI investment in a product increment**, and the rule is: *a cost entry attaches to a run that advances a PRD- or BRD-scoped artifact — or builds the documentation repository a product is documented in, which is the `docs-workflows` family's unit of attribution and which §8 rung 2 files per docs repo.* That second clause is what `/docs-init` and a standalone `/docs-brand` satisfy, and why they have §7 rows. A CVE remediation, a library version bump, a docs-profile refresh and a dev-server start advance none — they are noise against a PRD, a BRD or a docs repository, and a metric that averages the two answers a question nobody asked.
 
 **This is restated here because it lived only on the command pages.** `docs/commands/vuln.md` and
 `docs/commands/upgrade.md` have carried the reason all along — *"runs outside the PRD pipeline: no
@@ -468,16 +463,7 @@ subdir. Walk top-down; stop at the first tier that applies:
    `<PRD-dir>/dev-workflows/cost/<sid8>.md`. *[primary]*
 2. `$SPECS_PATH` writable but no PRD dir (or no key resolved) — two destinations,
    and the documentation branch is tried first:
-   - **The run is `/docs-init`, or `/docs-brand` on its standalone path**, and it
-     resolved a documentation repository (design D19) ->
-     `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`,
-     where `<docs-repo-slug>` is that repo's git-remote slug, or its directory
-     name where it has no remote. **Per docs repo, not one flat bucket**, for the
-     same reason the PRD-directory rung exists for the pipeline: a person
-     documenting two products must still be able to answer what documenting each
-     one cost. The inner `dev-workflows/` names the *family*, not the emitting
-     plugin — see the note under tier 1 — and `specs-repo-git.md` §2.1's
-     `<specs-root>/documentation/*/dev-workflows/**` shape is what stages it.
+   - **The run is `/docs-init`, or `/docs-brand` on its standalone path**, and it resolved a documentation repository (design D19) -> `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`, where `<docs-repo-slug>` is the one-segment name `specs-repo-git.md` §2.1 defines for that repo — cited, never re-derived here, because the staging classifier admits exactly one segment there. **Per docs repo, not one flat bucket**, for the same reason the PRD-directory rung exists for the pipeline: a person documenting two products must still be able to answer what documenting each one cost. The inner `dev-workflows/` names the *family*, not the emitting plugin — `specs-repo-git.md` §2.1 says why — and that section's `<specs-root>/documentation/*/dev-workflows/**` shape is what stages it.
    - **Otherwise** -> **pending** (§9).
 
    **Why this rung is inserted before pending rather than folded into it.**
@@ -715,7 +701,7 @@ first, and the script partitions the window:
 
 **Matching by name is the whole point, and positional pairing is the trap.** A
 window routinely holds boundaries no claim corresponds to: `/vuln`, `/upgrade`,
-`/docs-profile`, and `/statusline` are real commands that emit no cost entry,
+`/docs-profile`, `/docs-serve` and `/statusline` are real commands that emit no cost entry,
 and an interrupted run leaves a boundary too. Pair the
 k-th claim with the k-th boundary and a single `/vuln` in the window shifts every
 claim by one — filing a security run's spend under a PRD lifecycle phase, which

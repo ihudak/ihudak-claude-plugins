@@ -102,15 +102,7 @@ capture, §5). Walk the ladder top-down and stop at the first tier that applies:
 2. **`$SPECS_PATH` writable but no PRD dir matched** (no `key`, or no
    matching spec dir) — two destinations, and the documentation branch is tried
    first:
-   - **The run is `/docs-init`, or `/docs-brand` on its standalone path**, and it
-     resolved a documentation repository (design D19) →
-     `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/feedback/<date>.md`,
-     where `<docs-repo-slug>` is that repo's git-remote slug, or its directory
-     name where it has no remote. Filed, not unfiled: the docs repo is that
-     family's unit of attribution exactly as the PRD directory is the pipeline's,
-     so there is nothing to move it under later. **Per docs repo, not one flat
-     bucket**, and the inner `dev-workflows/` names the *family*, not the
-     emitting plugin. `specs-repo-git.md` §2.1's `<specs-root>/documentation/*/dev-workflows/**` shape stages it.
+   - **The run is `/docs-init`, or `/docs-brand` on its standalone path**, and it resolved a documentation repository (design D19) → `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/feedback/<date>.md`, where `<docs-repo-slug>` is the one-segment name `specs-repo-git.md` §2.1 defines for that repo — cited, never re-derived here, because the staging classifier admits exactly one segment there. Filed, not unfiled: the docs repo is that family's unit of attribution exactly as the PRD directory is the pipeline's, so there is nothing to move it under later. **Per docs repo, not one flat bucket**, and the inner `dev-workflows/` names the *family*, not the emitting plugin. `specs-repo-git.md` §2.1's `<specs-root>/documentation/*/dev-workflows/**` shape stages it.
    - **Otherwise** → `$SPECS_PATH/dev-workflows-feedback/<KEY-or-date>.md` at
      the specs-repo root. Still committed & aggregated; notice:
      `unfiled — move under the PRD dir if it belongs to one.`

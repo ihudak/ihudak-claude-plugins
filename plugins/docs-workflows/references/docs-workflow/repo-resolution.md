@@ -51,7 +51,7 @@ Resolve to absolute and print which rung answered, exactly as §1 does.
 
 ## 3. The signal set
 
-One list, tested by both entry points, identical to the set `/document` Phase 0 already applies. A directory carries a signal when any of these is present:
+One list, tested by both entry points. **It is close to the set `/document` Phase 0 applies, and not identical to it, in two ways that both matter:** it adds one entry that set lacks — any `*/_content/` directory — and it omits one `/document` accepts at its `$DOCS_PATH` and `$REPOS_PATH` rungs, an in-repo `.dev-workflows/docs-profile.yml`, which `/document` takes as an alternative to a signal rather than as one of them. So a directory can resolve as a docs repository for one and not the other. That difference is recorded here rather than reconciled; closing it changes which directories `/document` adopts or which ones `/docs-init` refuses, which is a behaviour change to be made deliberately in one place or the other, not by a sentence claiming the two already agree. A directory carries a signal when any of these is present:
 
 - a `*:start`, `*:build`, `*:lint`, or `docs:*` script in `package.json`;
 - a `.docstack/` directory;

@@ -58,7 +58,7 @@ Report the ratio to two decimal places. Never report a pass or fail without the 
 
 - A derived colour that **fails** is reported as a finding naming the measured ratio, the pair it was measured against, and the criterion — never silently accepted and never silently corrected.
 - **It is still applied if the operator confirms.** It is their brand; the command's job is that the choice is informed, not that it is overridden. The finding is carried into the PR message so the decision is visible to a reviewer.
-- A **passing** colour produces no output. Silence is the pass signal.
+- A **passing** colour produces **no prompt** — it is applied without asking — but its ratio is still **reported**, beside every failing one, in the report and in the PR message. Silence at the prompt is the pass signal; silence in the report is not, because the number is the interface (§2) and a pass stated without its ratio is a pass nobody can check.
 
 ## Further reading
 

@@ -18,7 +18,7 @@ Two pages orient you before you touch a command: [Getting started](getting-start
 
 ## Commands
 
-- [`/docs-init`](commands/docs-init.md) — scaffold a documentation repository for a project that has none: a product-shaped page skeleton with a stub in every section, two builds over one content root, Vale, a CI workflow with the visibility gates, and the profile every later command reads.
+- [`/docs-init`](commands/docs-init.md) — scaffold a documentation repository for a project that has none: a product-shaped page skeleton with a stub in every section, two builds over one content root, Vale, a CI workflow with the visibility gates, and the profile `/docs-serve`, `/document` and `/docs-brand` read.
 - [`/docs-profile`](commands/docs-profile.md) — scan a documentation repository and write or refresh the machine-readable profile `/document` consumes, as a reviewable pull request.
 - [`/docs-brand`](commands/docs-brand.md) — extract a logo and a rough primary/accent colour pair from a product's own code and apply them to the docs site, standalone or `--inline` from `/docs-init`.
 - [`/docs-serve`](commands/docs-serve.md) — start, stop, or check a profiled repo's dev server, and report a URL that actually opens from the host.

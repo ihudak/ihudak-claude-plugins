@@ -36,6 +36,10 @@ Two narrownesses are deliberate and are stated where they bite. The inner `dev-w
 - `docs/reference/hooks.md` said *"its six utility commands take no address and need no injected context"*. Five take none; `/frames` takes a **mandatory** one and resolves it with `resolve-address` in its own Phase 0. The page now says which is which.
 - `docs/reference/session-cost.md`'s persistence-ladder paragraph described a ladder that now has a rung ahead of pending. It is scoped to this plugin's five cost emitters, none of which can reach that rung, so the sentence was never false — but it now carries a one-clause pointer to `references/cost-emission.md` §8 so the "is this still true?" question is answered where it is asked, without a second copy of the rung's rules.
 
+### Fixed — `finding-triage.md` names every reviewer whose findings it triages
+
+Its attachment table and the paragraph beneath it named the new `docs-scaffold-reviewer` path, but not `proposal-reviewer` → the orchestrator itself in `/prd-proposal` and `/brd-proposal`, which both invoke this reference over their reviewer's findings and, with no delegated writer, fix surviving BLOCKERs inline. The row is added and the no-fixer paragraph covers both. The consumer set was re-derived with `grep -l finding-triage plugins/*/commands/*.md plugins/*/agents/*.md` rather than patched, and `CLAUDE.md`'s copy of the list now matches it.
+
 ### Changed — the loader-contract census has one home
 
 `scripts/check-docs.sh`'s check-16 header is now the only place the loader census is written, and it says so. `CLAUDE.md` carried a second copy of four of its figures; both copies had gone stale, disagreeing with each other and with the tree. The header's figures are re-derived from the scan itself (342 real invocations, 167 carrying an entry point, 74 files citing a core reference and 74 carrying the preamble, 38 citing files outside the scanned directories), and `CLAUDE.md` now cites the header instead of restating it. The agent total the check-17 header and `CLAUDE.md` share moves from 38 to 40; the **3** agents carrying `Task` is unchanged, and `docs-scaffold-reviewer` correctly carries none.

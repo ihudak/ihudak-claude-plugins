@@ -2,11 +2,11 @@
 
 Single source of truth for **what `/docs-init` creates**. It is an executable template, not a description of one: a command reads it to know which directories and files to write, what goes in each, and what the two build configs and the linter config contain.
 
-Consumed by `/docs-init` (Phase 3 writes §1–§6, Phase 4 writes §7), by `/docs-brand`, which reads §5 and §6 to know which config carries the theme and which inherits it, and by `docs-scaffold-reviewer`, whose checklist asserts relationships between the files this file specifies. `/docs-write` reads §4, because it regenerates the same `nav:` on every write.
+Consumed by `/docs-init` (Phase 3 writes §1–§6, Phase 4 writes §7), by `/docs-brand`, which reads §5 and §6 to know which config carries the theme and which inherits it, and by `docs-scaffold-reviewer`, whose checklist asserts relationships between the files this file specifies. §4 is written for one more reader that does not ship yet: `/docs-write`, a later command, is to regenerate the same `nav:` on every page it writes, and will take the rule from §4 rather than restate it.
 
-Its entry points, so a command can say which part it is executing: **the tree** (§1), **the stubs** (§3), **nav generation** (§4), **the mkdocs configs** (§5 and §6), and **the vale config** (§7, which also carries `requirements-docs.txt`, `.gitignore`, and the Vale exit criterion both the scaffold's own verification and its CI apply).
+Its entry points, so a command can say which part it is executing: **the tree** (§1), **the stubs** (§3), **nav generation** (§4), **the mkdocs configs** (§5 and §6), and **the vale config** (§7, which also carries `requirements-docs.txt`, `.gitignore` with its create-or-merge rule, and the Vale exit criterion both the scaffold's own verification and its CI apply).
 
-The navigation is **product-shaped** (design D15). Diátaxis lives in each page's `type:` frontmatter, which is what the coverage grid reads — so the tree looks like a documentation portal a reader recognises while the quadrant discipline stays fully intact.
+The navigation is **product-shaped** (design D15). Diátaxis lives in each page's `type:` frontmatter, the field the coverage grid is to read once `/docs-audit` ships in the next increment, so the tree looks like a documentation portal a reader recognises while the quadrant discipline stays fully intact.
 
 ---
 
@@ -70,7 +70,7 @@ docs/
 
 Three of these are conditional. `integrations/` is written when the run has integrations to document — the source-repo set resolved in Phase 2 is what answers that, not a flag. `pricing.md` is written under `--with-pricing`. `accessibility.md` and `security.md` are written under `--with-compliance`. Everything else is unconditional: a portal missing one of the §2 sections is missing it, not customised.
 
-**"What's new" is fed, not written by hand.** `/docs-audit` enumerates a `release` surface per major version from the `/release-notes` drafts already sitting in `$SPECS_PATH`, and `/docs-write` renders the page from them. `references/release-note-types.md` supplies the section split inside each page — breaking changes, feature updates, fixes — because that reference already owns the destination map and the per-destination prose shape. Nothing is re-derived here.
+**"What's new" is fed, not written from scratch.** Its entries come from the `/release-notes` drafts already sitting in `$SPECS_PATH`, which that command writes for its user to paste wherever release notes are published — and pasting them here is how the pages are filled today. Two later commands are to automate it: `/docs-audit`, in the next increment, is to enumerate a `release` surface per major version from those drafts, and `/docs-write`, in a later spec, to render the page from them. `references/release-note-types.md` supplies the section split inside each page — breaking changes, feature updates, fixes — because that reference already owns the destination map and the per-destination prose shape. Nothing is re-derived here.
 
 ---
 
@@ -80,8 +80,8 @@ The sections a reader would predict need no defence. These nine do, and each is 
 
 | Section | Why every portal has it |
 |---|---|
-| **Glossary** | The highest-leverage page in a new portal: it is what lets every other page stop re-explaining terms. It also seeds the Vale vocabulary (§7), so product nouns stop being reported as misspellings. |
-| **Roles** | A reader's first question is which of these instructions are for them. It is also this family's coverage dimension, so the page and the grid read the same list. |
+| **Glossary** | The highest-leverage page in a new portal: it is what lets every other page stop re-explaining terms. Every product noun it defines belongs in the Vale vocabulary too (§7), so those nouns stop being reported as misspellings. |
+| **Roles** | A reader's first question is which of these instructions are for them. It is also this family's coverage dimension, so the page and the coverage grid `/docs-audit` is to build will read the same list. |
 | **Troubleshooting / FAQ / Known issues** | The highest-traffic pages on most portals, and the main support-deflection surface. Absent, the traffic arrives as tickets instead. |
 | **Limits and quotas** | Routinely the single most-visited reference page, and the one most often missing. An evaluator looks for it before they look at features. |
 | **Error codes** | The only page a reader arrives at by pasting a string out of a log. Nothing else in the portal serves that entry path. |
@@ -98,7 +98,7 @@ The sections a reader would predict need no defence. These nine do, and each is 
 
 This is not filler. The commonest failure of a documentation tree is contributors putting explanation into how-to guides — a guide that starts with four paragraphs of background, a reference page that becomes a tutorial, a concept page that grows numbered steps. The stub is where that is prevented, at the moment someone opens the directory to add a page. A convention stated only in a style guide nobody opens is not a convention; a convention stated in the file you are about to edit is.
 
-Every **directory** stub carries six frontmatter fields — `title`, `description`, `type`, `audience`, `visibility`, `order` — being the six that decide where the page sits, who it is for, and which build it lands in. The full page contract is larger (`references/docs-profiles/frontmatter-guidelines.md` and the `docs-frontmatter` skill own it), and the writer fills the rest when the page stops being a stub. **A leaf-page stub carries a lighter shape**, defined with its reason in §3.12.
+Every **directory** stub carries six frontmatter fields — `title`, `description`, `type`, `audience`, `visibility`, `order` — being the six that record where the page sits, who it is for, and which build it belongs to (the build itself is decided by path — `visibility.md` §1 — and each stub's `visibility` matches its path). The full page contract is larger (`references/docs-profiles/frontmatter-guidelines.md` and the `docs-frontmatter` skill own it), and the writer fills the rest when the page stops being a stub. **A leaf-page stub carries a lighter shape**, defined with its reason in §3.12.
 
 **Every file under `internal/` carries the visibility marker** as its first line after the frontmatter — see `visibility.md` §5. The stubs below show it. A stub written without it is the exact file the gate cannot see.
 
@@ -309,7 +309,7 @@ The release hub: one entry per major version, newest first, plus the deprecation
 
 **What belongs here:** links to the per-major pages and the deprecation schedule. Nothing that has to be edited when a release ships—the per-major pages carry that.
 
-**What does not:** hand-written release prose. These pages are rendered from the release-notes drafts the pipeline already produced; writing them by hand creates a second source of truth that disagrees with the first by the following release.
+**What does not:** release prose written from scratch. Each entry comes from the release-notes draft the pipeline already produced for that change; writing it again by hand creates a second source of truth that disagrees with the first by the following release.
 ```
 
 `docs/whats-new/v<MAJOR>/index.md`
@@ -326,7 +326,7 @@ order: 1
 
 One major version. Sections follow `references/release-note-types.md`: breaking changes, feature updates, fixes.
 
-**What belongs here:** the changes shipped in this major, in that section order, each one rendered from its release-notes draft.
+**What belongs here:** the changes shipped in this major, in that section order, each one taken from its release-notes draft.
 
 **What does not:** migration tutorials. A breaking change names its remediation in a sentence and links a guide; the guide lives in `guides/`, where it can be found by someone who is not reading release notes.
 ```
@@ -423,7 +423,7 @@ The tree names individual pages inside four sections. Each is created as a stub 
 |---|---|---|---|
 | `discover/how-it-works.md` | explanation | 20 | The mental model: the pieces, how they relate, what the product does on your behalf. |
 | `discover/use-cases.md` | explanation | 30 | The shapes of problem the product is for, each with who has it. |
-| `discover/roles.md` | explanation | 40 | Every role the product recognises and what each can do. The coverage grid reads this list. |
+| `discover/roles.md` | explanation | 40 | Every role the product recognises and what each can do. |
 | `discover/glossary.md` | reference | 50 | Every term, role, integration and workflow name the portal uses, defined once. |
 | `discover/pricing.md` | reference | 60 | Plans, what each includes, and what is metered. `--with-pricing` only. |
 | `discover/accessibility.md` | explanation | 70 | The accessibility conformance statement. `--with-compliance` only. |
@@ -461,7 +461,7 @@ MkDocs takes navigation order from `mkdocs.yml`, not from frontmatter, so a page
 
 The rule: **sort each section's pages on frontmatter `order`, then on `title`.** Ties break on title so the result is stable rather than filesystem-ordered, and a page with no `order:` sorts after every page that has one.
 
-Regenerated on every write, by `/docs-init` when it scaffolds and by `/docs-write` when it adds or renames a page. One source of truth, no extra plugin, and no state that can drift: the block is derived from the tree each time rather than edited.
+Regenerated on every write that goes through the family: today that is `/docs-init` when it scaffolds, and `/docs-write`, a later command, is to regenerate it whenever it adds or renames a page. One source of truth, no extra plugin, and no state that can drift: the block is derived from the tree each time rather than edited.
 
 Both configs' `nav:` blocks are generated. The internal one is the public nav plus the `internal/` sections, in the same order by the same rule.
 
@@ -547,7 +547,7 @@ nav:
 
 ### `.gitignore`
 
-Written first, before `vale sync` downloads anything and before either build writes an output, so none of what the scaffold's own tooling produces ever shows up as an untracked file:
+Created or merged into first, before `vale sync` downloads anything and before either build writes an output, so none of what the scaffold's own tooling produces ever shows up as an untracked file. The block below is what the scaffold needs the file to carry:
 
 ```
 # Build outputs: both builds write here, and CI rebuilds them from source.
@@ -559,6 +559,10 @@ Written first, before `vale sync` downloads anything and before either build wri
 # /docs-serve's pid/port record. The profile beside it is committed, so never ignore the directory.
 /.dev-workflows/docs-serve.state.json
 ```
+
+**Create or merge — never replace.** Where the resolved root has no `.gitignore`, write the block above as the whole file. Where it has one, **append only the lines of the block it does not already contain verbatim, at the end of the file and in the block's order — never removing, reordering or rewriting a line that is already there**, and starting on a new line: where the file does not end in a newline, terminate its last line first — a line terminator, not a change to that line's text, though git's diff will show the line as changed — or the first appended line fuses with it and rewrites it. The reason is the directory `/docs-init` accepts. Phase 0 takes any git work tree that carries no docs signal, and a common one is a repository created on a hosting service with a language template's `.gitignore` already committed — every line of which is the project's own decision: its virtualenv, its caches, its secrets file. Replacing the file would un-ignore all of them silently, in a diff that reads as a docs scaffold, and the next `git add` by anyone would commit what the project had deliberately kept out. An exact line already present is therefore skipped rather than duplicated, and an equivalent line spelled differently (`/site` against `/site/`) is appended beside it — two patterns matching the same build directory cost nothing.
+
+**A pre-existing line can still ignore a path the scaffold commits, and it is reported, not rewritten.** The block's own lines never do — that is what its two narrow rules below are for — but a project line such as `styles/` does, and no line appended after it can re-include a file beneath it. So after the merge, test each path the scaffold commits with `git -C <root> check-ignore -v <path>`, which matches paths that do not exist yet, so the profile `/docs-init` Phase 6 has still to write is testable here. A line that matches is the project's, and it is left as it is: name the path, the line and its line number in the pull-request draft and the run's report, and leave that path out of the commit rather than force-adding it past the project's own rule.
 
 **Two of these rules are narrower than they could be, and each is narrow on purpose.** `/styles/*` with `!/styles/config/` rather than `/styles/`, because git cannot re-include a file whose parent directory is ignored: ignoring `styles/` wholesale would drop `accept.txt` — the one file under it the scaffold commits — from the repository. And the `/docs-serve` state file by name rather than `.dev-workflows/`, because that directory also holds `docs-profile.yml`, which is committed and which the family's other commands read; ignoring the directory would silently drop the profile from the next commit that touched it.
 
@@ -596,7 +600,7 @@ After writing the file, run **`vale sync`** to download the packages named by `P
 
 ### The exit criterion — stated here, once
 
-**`vale docs/` passes when it exits 0.** Vale exits non-zero when any **error**-level alert fires, and on a configuration or runtime error — a package never synced, a style that does not resolve, a missing vocabulary file. Warning- and suggestion-level alerts are reported and never change the exit code. That is Vale's own default, and it is the criterion **both** places that lint this scaffold apply: `/docs-init` Phase 7 step 3, and the Vale step of `visibility.md` §6's CI workflow. Same command, same configuration, same exit code — so a scaffold that passes the one cannot fail the other on its first run, which is the gap this paragraph exists to close. Neither place passes a flag that moves the line (`--no-exit`, `--minAlertLevel`); `.vale.ini`'s `MinAlertLevel = suggestion` governs what is *reported*, not what fails. Every other file that mentions this criterion cites this paragraph rather than restating it.
+**`vale docs/` passes when it exits 0.** Vale exits non-zero when any **error**-level alert fires, and on a configuration or runtime error — a package never synced, a style that does not resolve, a vocabulary directory that does not exist. Warning- and suggestion-level alerts are reported and never change the exit code. That is Vale's own default, and it is the criterion **both** places that lint this scaffold apply: `/docs-init` Phase 7 step 3, and the Vale step of `visibility.md` §6's CI workflow. Same command, same configuration, same exit code — so a scaffold that passes the one cannot fail the other on its first run over the same files, which is the gap this paragraph exists to close. Two things can still make the files differ, and neither is a second criterion: a scaffold path a project `.gitignore` line keeps out of the commit (the `.gitignore` rule above reports it by name, and an uncommitted `accept.txt` fails CI's lint), and a Vale release or synced package that is newer on the runner than on the machine that ran the scaffold's own check. **Neither place passes a flag that moves the line**: `--no-exit`, which makes Vale exit 0 whatever it finds; `--filter` or `--glob`, which narrow the rules or files checked and so can leave an error-level alert unraised (`--filter='.Level in ["warning", "suggestion"]'` turns a failing file into a passing one); or `--config`, which swaps the configuration. **`MinAlertLevel` does not move it**, whether set as the `.vale.ini` key or as the `--minAlertLevel` flag: it sets the lowest severity Vale *reports*, and since `error` is the highest severity there is, no setting of it can filter out an error-level alert or change the exit code. Vale's own documentation says both halves — only error-level alerts produce a non-zero exit, and `MinAlertLevel` is the minimum level reported — and Vale 3.21 confirms it: a file carrying only warnings and suggestions exits 0, and a file carrying one error-level alert exits 1, under every `MinAlertLevel` from `suggestion` to `error`. So `.vale.ini`'s `MinAlertLevel = suggestion` reports every alert and fails on exactly what `error` would; a reviewer reading it as a stricter gate has misread it. Every other file that mentions this criterion cites this paragraph rather than restating it.
 
 **The scaffold passes its own gate, and that is a property of this file rather than luck.** Run over §3's stubs with the configuration above and the seed below, Vale raises no error-level alert — checked against Vale 3.21 with the `Google` and `write-good` packages when this was written. Two things buy it. The seed below covers every word the stubs use that the dictionary does not know. And the stubs write an em dash **without** surrounding spaces, because `Google.EmDash` is an error-level rule — which is why they read differently from the prose in this file. **A stub edited later has to keep the property**: a spaced em dash, or a word the dictionary lacks, fails the step and fails CI. Reword the stub, or add a genuine term to the seed list here in the same change — never a word to `accept.txt` at run time to make a failing step pass.
 
@@ -612,8 +616,8 @@ After writing the file, run **`vale sync`** to download the packages named by `P
 
   ```
   # Product terms Vale should not flag as misspellings.
-  # /docs-workflows:docs-audit seeds this from the domain nouns it extracts for
-  # `concept` surfaces. Until then, add terms by hand — one per line, regex-escaped.
+  # Add terms by hand — one per line, regex-escaped. A later command,
+  # /docs-workflows:docs-audit, is to append the domain nouns it extracts.
   <product>
   [Ff]rontmatter
   [Hh]ostnames?
@@ -622,9 +626,9 @@ After writing the file, run **`vale sync`** to download the packages named by `P
   ```
 
   `<product>` is the product name `/docs-init` confirmed at its Phase 2, regex-escaped — a scaffold-time substitution like every other `<product>` in this file, and the entry that matters most, because every stub names the product and a name the dictionary lacks fails the gate on every page. The four patterns after it are the stubs' own technical vocabulary; each admits its capitalised form because a vocabulary entry also fixes a term's case — `Vale.Terms`, an error-level rule, reports `Runbooks` against a lowercase-only `runbooks?` — and a stub title starts with a capital.
-- **The domain seed — `/docs-audit`'s, when it ships.** `/docs-audit` extracts the domain nouns for its `concept` surfaces and appends those. **`/docs-audit` does not exist until increment 2**; until then the domain terms are added by hand, which is what the comment above says.
+- **The domain seed — `/docs-audit`'s, when it ships.** `/docs-audit` is to extract the domain nouns for its `concept` surfaces and append those. **`/docs-audit` does not exist until increment 2**; until then the domain terms are added by hand, which is what the comment above says.
 
-The file is created on every `/docs-init` run. An absent `accept.txt` beside a `Vocab = Project` line is a configuration error.
+The file is created on every `/docs-init` run. An absent `accept.txt` beside a `Vocab = Project` line is a configuration defect, and Vale's exit code does not reliably report it: where the `Project/` directory is gone too — as it always is on a fresh checkout, since git tracks no empty directory — Vale stops with a runtime error and exits 2, but an empty `Project/` directory left behind passes with exit 0 (both checked against Vale 3.21). So the file's presence is checked directly, by `docs-scaffold-reviewer` dimension 4, rather than left to the lint step.
 
 ---
 
@@ -638,7 +642,8 @@ The file is created on every `/docs-init` run. An absent `accept.txt` beside a `
 - NEVER write a file under `internal/` without the visibility marker on its first line after the frontmatter (`visibility.md` §5).
 - NEVER put a page stub in `_snippets/`, `assets/` or `stylesheets/` (§3.13).
 - NEVER create `.vale.ini` without also creating `accept.txt` carrying the scaffold seed, and never write the CI workflow without `requirements-docs.txt` beside it — a workflow installing a file the scaffold never wrote fails on the first run (§7).
-- NEVER apply a different Vale exit criterion locally than in CI, and NEVER add a flag that moves it — §7 states it once, and both apply it (§7).
+- NEVER apply a different Vale exit criterion locally than in CI, and NEVER add a flag that moves it (`--no-exit`, `--filter`, `--glob`, `--config`) — §7 states it once, and both apply it (§7). `MinAlertLevel` changes what is reported, never what fails.
 - NEVER write a stub that raises an error-level Vale alert — no spaced em dash, no word the dictionary lacks unless it is in the scaffold seed — since the scaffold has to pass its own gate (§7).
 - NEVER ignore `styles/` or `.dev-workflows/` wholesale in `.gitignore` — the first holds the committed vocabulary, the second the committed profile (§7).
+- NEVER replace an existing `.gitignore`, and NEVER remove, reorder or rewrite a line already in one — append only the lines of §7's block it lacks, and report, rather than rewrite, a project line that ignores a path the scaffold commits (§7).
 - NEVER write a `logo:` or `favicon:` key the scaffold has no file for — `/docs-brand` adds both when it applies a logo (§5).

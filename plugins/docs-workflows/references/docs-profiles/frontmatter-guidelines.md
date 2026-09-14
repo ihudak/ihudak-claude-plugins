@@ -82,11 +82,11 @@ replace.
 
 ## Reserved keys for the docs-workflow family
 
-Design authority: `docs/superpowers/specs/2026-08-29-docs-workflow-family-design.md` §8.6, D18. `/docs-init`, `/docs-audit`, `/docs-write`, and the rest of the docs-workflow family reserve four frontmatter keys — `type`, `audience`, `visibility`, `unit` — on **any** docs repo they scaffold or write into, not only one carrying the example-docs profile, and touch nothing else in this skill's territory: the fields above, and `docs-frontmatter`'s ownership of the schema as a whole, are unchanged by this section.
+Design authority: `docs/superpowers/specs/2026-08-29-docs-workflow-family-design.md` §8.6, D18. The docs-workflow family reserves four frontmatter keys — `type`, `audience`, `visibility`, `unit` — on **any** docs repo its commands scaffold or write into, not only one carrying the example-docs profile, and touches nothing else in this skill's territory; the reservation binds the family's later commands, `/docs-audit` and `/docs-write` among them, as they ship. What is unchanged: the fields above, and `docs-frontmatter`'s ownership of the schema as a whole, are unchanged by this section.
 
 ### `type` (RESERVED)
 
-Diátaxis or engineering type; the coverage grid reads this. The vocabulary depends on `audience`:
+Diátaxis or engineering type; the field the coverage grid is to read once `/docs-audit` ships. The vocabulary depends on `audience`:
 
 | `audience` | `type` values |
 |---|---|
@@ -99,11 +99,11 @@ Diátaxis or engineering type; the coverage grid reads this. The vocabulary depe
 
 ### `visibility` (RESERVED)
 
-`public` or `internal` — the two-build split reads this. It **defaults from `audience` but is independently settable** (D12): API reference is engineering-audience and usually public; a runbook naming hostnames is not.
+`public` or `internal` — the build the page belongs to. The shipped two-build split does not read this key: it decides by path, a page being internal because it sits under `docs/internal/` (`references/docs-workflow/visibility.md` §1), and every directory stub the scaffold writes carries the value its path implies. It **defaults from `audience` but is independently settable** (D12): API reference is engineering-audience and usually public; a runbook naming hostnames is not.
 
 ### `unit` (RESERVED)
 
-The backlog unit id; drift reads this. Written by increment 2's `/docs-audit` and `/docs-write`, and left absent by every stub this increment's scaffold writes.
+The backlog unit id. Nothing that ships yet writes or reads it: `/docs-audit` (the next increment) and `/docs-write` (a later spec) are to write it, drift (`/docs-drift`, a later spec still) is to read it, and every stub this increment's scaffold writes leaves it absent.
 
 ### Related fields, none of them reserved
 

@@ -2,7 +2,7 @@
 
 Single source of truth for how public and internal documentation are separated, why the obvious ways of checking that separation do not work, and what CI asserts instead.
 
-Consumed by `/docs-init`, which writes the two build configs and the workflow in §6, and by `docs-scaffold-reviewer`, whose checklist asserts the relationship §4 describes. `/docs-serve` reads §2 — it is the command that boots the dev server this file warns about — and `/docs-write` reads §5, because a page it writes under `internal/` carries the marker or the gate cannot see it.
+Consumed by `/docs-init`, which writes the two build configs and the workflow in §6, and by `docs-scaffold-reviewer`, whose checklist asserts the relationship §4 describes. `/docs-serve` reads §2 — it is the command that boots the dev server this file warns about. §5 is also written for `/docs-write`, a later command: a page it writes under `internal/` is to carry the marker, or the gate cannot see it.
 
 Its entry points, so a command can say which part it is executing: **the model** (§1), **the traps** (§2 and §3), **the gates** (§4), and **the CI workflow** (§6).
 
@@ -148,10 +148,10 @@ jobs:
       - name: Gate 3 — every public image URL resolves to the public prefix
         run: scripts/check-image-prefix.sh
       # WRITTEN ONLY WHEN images.policy is in-repo — omit under object-store and cdn.
-      # BOTH the path and the threshold are scaffold-time substitutions from the profile:
-      # the path is images.root (docs/assets below is its default, and it appears twice),
-      # and the threshold is images.max_bytes rendered as a find size suffix (+300k
-      # renders the 307200 default).
+      # BOTH the path and the threshold are scaffold-time substitutions from the profile,
+      # at every place the step names them: the path is images.root (docs/assets below is
+      # its default), and the threshold is images.max_bytes, rendered as a find size suffix
+      # (+300k renders the 307200 default) and in the error message's wording.
       - name: Image size budget
         run: |
           if [ ! -d docs/assets ]; then
@@ -174,7 +174,7 @@ The internal build runs on every PR too. It is not deployed from here, but a con
 
 **The size-budget step passes when `images.root` does not exist, and that is not a gate that cannot fail.** Git tracks no empty directory, so a scaffold that has committed no image yet — every `--no-brand` run, and every run whose branding applied no logo — has no `docs/assets/` on the runner at all, and a bare `find` over it exits non-zero and reports exactly as an over-budget image would. The guard makes the step's first run pass for the right reason; the moment an image is committed the directory exists and the budget applies to it. It cannot mask an over-budget image, because an over-budget image is a file, and a file means the directory exists.
 
-**The Vale step's exit code is the gate, unmodified.** It passes by the criterion `scaffold-tree.md` §7 states once — the one `/docs-init`'s own Phase 7 applies to the same command — so a scaffold that passed locally does not fail here on its first run. No flag that moves the line (`--no-exit`, `--minAlertLevel`) belongs on this step.
+**The Vale step's exit code is the gate, unmodified.** It passes by the criterion `scaffold-tree.md` §7 states once — the one `/docs-init`'s own Phase 7 applies to the same command — so a scaffold that passed locally does not fail here on its first run over the same files (§7 names what can still make them differ). Nothing that moves or discards that exit code belongs on this step: not a Vale flag that moves the line (`scaffold-tree.md` §7 names them — `--no-exit`, `--filter`, `--glob`, `--config`), and not a shell or workflow construct that swallows a failure (`|| true`, `continue-on-error: true`). `--minAlertLevel` is not one of them — it changes which alerts are reported, and no value of it hides an error-level alert (`scaffold-tree.md` §7) — but the step still runs `vale docs/` bare, because the same command in both places is what makes CI report what Phase 7 reported.
 
 ---
 

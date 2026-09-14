@@ -4,7 +4,7 @@ Extracts a logo and a rough primary/accent colour pair from a product's own code
 
 ## Who runs it
 
-`/docs-brand` runs two ways. **Standalone** it behaves like `/docs-workflows:docs-profile` — a setup utility reached at any point, gated by its own Opus review, finishing on a branch with a drafted pull request. **`--inline`** it is a phase `/docs-workflows:docs-init` Phase 5 dispatches during a fresh scaffold: its diff and its contrast finding join that command's own single review and single PR rather than opening a second one. And where it cannot brand — any of the stops below, or a Cancel at one of its prompts — it never ends the scaffold: it hands back `no branding applied: <reason>` with an empty diff, and `/docs-init` carries on as if `--no-brand` had been passed. Expectations are deliberately modest — a mark and a colour pair, not a design system — because rebrands happen and re-scaffolding a whole docs site to pick up a new logo would be absurd.
+`/docs-brand` runs two ways. **Standalone** it behaves like `/docs-workflows:docs-profile` — a setup utility reached at any point, gated by its own Opus review, finishing on a branch with a drafted pull request. **`--inline`** it is a phase `/docs-workflows:docs-init` Phase 5 dispatches during a fresh scaffold: its diff and its contrast finding join that command's own single review and single PR rather than opening a second one. And where it cannot brand — any stop below that an `--inline` run can reach, or a Cancel at one of its prompts — it never ends the scaffold: it hands back `no branding applied: <reason>` with an empty diff, and `/docs-init` carries on as if `--no-brand` had been passed. Expectations are deliberately modest — a mark and a colour pair, not a design system — because rebrands happen and re-scaffolding a whole docs site to pick up a new logo would be absurd.
 
 ## Synopsis
 
@@ -39,7 +39,7 @@ Every extracted value is printed with its source before Phase 8 applies anything
 - `DOCS_BRAND_NOTHING_TO_APPLY` — neither a colour nor a logo was found or supplied; there is nothing for the run to brand.
 - `DOCS_BRAND_UNRESOLVED_BLOCKER` — a BLOCKER finding from `docs-scaffold-reviewer` was neither fixed nor overridden.
 - A failing contrast check is never a stop — it is a confirmation prompt (Phase 6): the operator may apply the colour anyway, choose a different value, or cancel.
-- **Under `--inline`, none of the stops above ends the caller's run.** Each of them, and a Cancel at any prompt, returns `no branding applied: <reason>` with an empty diff and no contrast finding — every one of them happens before anything is written — and `/docs-init` continues its scaffold as if `--no-brand` had been passed, recording the reason.
+- **Under `--inline`, no stop ends the caller's run.** Every stop above that an `--inline` run can reach — all but `DOCS_BRAND_UNRESOLVED_BLOCKER`, which belongs to the standalone review gate an `--inline` run skips — and a Cancel at any of its prompts returns `no branding applied: <reason>` with an empty diff and no contrast finding. Every one of those happens before anything is written, and `/docs-init` continues its scaffold as if `--no-brand` had been passed, recording the reason.
 
 ## Example
 

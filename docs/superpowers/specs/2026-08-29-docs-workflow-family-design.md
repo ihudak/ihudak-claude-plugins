@@ -225,7 +225,7 @@ Documentation work has no natural end, so the family defines one:
 
 ## 6. `/docs-init`
 
-**Signature:** `/docs-init [<docs-repo-path>] [--generator mkdocs-material] [--no-brand] [--public-only]`
+**Signature:** `/docs-init [<docs-repo-path>] [--generator mkdocs-material] [--no-brand] [--public-only] [--with-pricing] [--with-compliance]`
 
 Creates a documentation repository that builds, serves, lints, and is profiled. It never writes documentation content beyond a skeleton and its own explanatory stubs.
 
@@ -238,7 +238,7 @@ Creates a documentation repository that builds, serves, lints, and is profiled. 
    Resolve the result to absolute.
 2. Run `specs-preflight` against `$SPECS_PATH` per `workflows-core:specs-repo-git`, as early as `$SPECS_PATH` is known.
 3. The target must be a writable git work tree, or an empty/absent directory that the command offers to `git init`. A non-empty directory that is not a git work tree stops with `NOT_A_GIT_WORKTREE`.
-4. **Refuse to scaffold over an existing docs repo.** If ≥ 1 docs signal is present (the `/document` Phase 0 signal set: a `*:start`/`*:build`/`*:lint`/`docs:*` script, `.docstack/`, `mkdocs.yml`, `docusaurus.config.js`, `antora.yml`, `.vale.ini`, `DOCUMENTATION-GUIDELINES.md`, or any `_snippets/`), stop and point at `/docs-profile` instead. Scaffolding is for cold start; describing an existing repo is a different command.
+4. **Refuse to scaffold over an existing docs repo.** If ≥ 1 docs signal is present, stop and point at `/docs-profile` instead. Scaffolding is for cold start; describing an existing repo is a different command. The shipped signal set is `docs-workflows:docs-workflow/repo-resolution` §3's, and it is wider than the `/document` Phase 0 list this step first named (a `*:start`/`*:build`/`*:lint`/`docs:*` script, `.docstack/`, `mkdocs.yml`, `docusaurus.config.js`, `antora.yml`, `.vale.ini`, `DOCUMENTATION-GUIDELINES.md`, or any `_snippets/`) by two entries: any `*/_content/` directory, and an in-repo `.dev-workflows/docs-profile.yml` — without the second, a profiled repository carrying none of the others, a Sphinx one say, would be scaffolded over.
 
 ### Phase 1 — Model routing
 
@@ -387,7 +387,7 @@ The scaffold is code — `mkdocs.yml`, a CI workflow, `.vale.ini`, `extra.css`, 
 6. the image size budget (§8.4) is wired to the policy the profile actually records;
 7. no `internal/` path, hostname or marker appears in the public config.
 
-The list is stated here rather than left to the reviewer's judgement because six of the seven are assertions about a *relationship between two files*, which is exactly what a reviewer reading one diff hunk at a time misses.
+The list is stated here rather than left to the reviewer's judgement because most of it asserts a *relationship between two artefacts* — a config against the filesystem, one config against the other, a workflow step against the profile field that parameterises it — which is exactly what a reviewer reading one diff hunk at a time misses; the rest are single-file checks whose failure is silent.
 
 ### Phase 8 — Finish
 
@@ -399,7 +399,7 @@ Branch, commit, and draft a PR message. Never pushes, never merges — same disc
 
 **Signature:** `/docs-brand [<docs-repo-path>] [--from <code-repo-path>] [--inline]`
 
-The docs repo resolves by the signal-**positive** ladder — first token, else `${DOCS_PATH:-/workspace/docs}` when it carries a docs signal, else cwd, else ask (D23). Branding applies to a site that exists, so this is the ordinary form; `/docs-init` is the one command in the family that inverts it.
+The docs repo resolves by the signal-**positive** ladder (D23) — as shipped, `resolve-docs-repo` (`docs-workflows:docs-workflow/repo-resolution` §1): first token, else cwd when it carries a docs signal, else `${DOCS_PATH:-/workspace/docs}` when it carries one, else a search under `$REPOS_PATH`, else ask. Branding applies to a site that exists, so this is the ordinary form; `/docs-init` is the one command in the family that inverts it.
 
 Extracts a logo and a rough colour scheme from the product's own code and applies them to the docs site. Expectations are deliberately modest: a mark and a primary/accent pair, not a design system.
 
@@ -680,19 +680,19 @@ Gate 2 is the same technique as verifying a history rewrite by grepping the resu
 
 ## 10. `/docs-serve`
 
-**Signature:** `/docs-serve [--internal] [--stop] [--status] [--build] [--port <n>]`
+**Signature:** `/docs-serve [<docs-repo-path>] [--internal] [--stop] [--status] [--build] [--port <n>]`
 
 Profile-driven, so it works on any profiled docs repo — including one `/document` is working in, not only one `/docs-init` scaffolded.
 
 ### 10.1 Behaviour
 
-1. Resolve the docs repo the same way `/document` Phase 0 does — cwd with signals → `${DOCS_PATH:-/workspace/docs}` with signals → search `$REPOS_PATH` → ask (D23, the signal-positive form).
+1. Resolve the docs repo by the signal-positive form of D23's ladder — as shipped, `resolve-docs-repo` (`docs-workflows:docs-workflow/repo-resolution` §1): the first token → cwd with signals → `${DOCS_PATH:-/workspace/docs}` with signals → search `$REPOS_PATH` → ask. That is `/document` Phase 0's ladder in shape, plus a first-token rung, and its signal set is §3 of that reference rather than `/document`'s own list.
 2. Read `dev_servers` from the profile. `--internal` selects the internal build's server; default is public.
-3. **Already-running detection** — if the port answers and the response identifies the docs site, report the existing URL and stop. Never start a second server.
+3. **Already-running detection** — if the port answers and the response identifies the docs site, report the existing URL and stop. Never start a second server. On a two-build profile identifying the *site* is not enough, since both builds render it: the shipped command decides by the visibility each recorded server carries, treats a port held by the other build's server as a collision, and reports an unrecorded match as build-unconfirmed rather than guess (`/docs-serve` Phase 2 and its state lookup).
 4. **Port collision** — if the port is occupied by something else, pick the next free port, use it, and say so explicitly.
 5. Start the command with Bash `run_in_background`.
 6. **Poll for readiness** up to `dev_servers.readiness_timeout_seconds` (default 120), then print the URL.
-7. Record the pid and port under `.dev-workflows/` so `--stop` and `--status` work across sessions.
+7. Record the pid and port — and the visibility of the server started — under `.dev-workflows/` so `--stop` and `--status` work across sessions.
 
 `--build` runs the profile's build command and exits without serving. No separate `/docs-build` command: the pipeline already gates on the profile's build, and a flag is cheaper than a command.
 

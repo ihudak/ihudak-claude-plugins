@@ -348,7 +348,7 @@ Vocab = Project
 BasedOnStyles = Vale, Google, write-good
 ```
 
-then runs `vale sync` to download the packages, and seeds `styles/config/vocabularies/Project/accept.txt` from the domain nouns `/docs-audit` extracts for its `concept` surfaces (when the audit has already run; otherwise the file is created empty with a comment pointing at `/docs-audit`).
+then runs `vale sync` to download the packages, and seeds `styles/config/vocabularies/Project/accept.txt`. As shipped (`docs-workflows:docs-workflow/scaffold-tree` §7) the scaffold writes its own seed — a comment, the product name and the words its stubs use that the dictionary lacks — because the scaffold must pass its own lint gate; an empty file would fail it on every page naming the product. The domain nouns `/docs-audit` extracts for its `concept` surfaces are that command's to append once it ships.
 
 **Seeding the vocabulary is not a nicety.** Without it every product term is reported as a spelling error on day one and the team turns Vale off in week two.
 

@@ -1,0 +1,13 @@
+{
+  "name": "check-mermaid",
+  "private": true,
+  "description": "Pinned dependencies for scripts/mermaid/check-mermaid.mjs, the CI gate that every mermaid diagram in the repository parses. Versions are exact on purpose: a floating range would let the parser change under the gate between two runs.",
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
+  },
+  "dependencies": {
+    "jsdom": "29.1.1",
+    "mermaid": "11.17.2"
+  }
+}

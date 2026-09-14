@@ -769,18 +769,19 @@ When run, check each space in the **verification set** — every space whose `co
 - **any other set of more than one** — nothing tells them apart, and a guessed server is a false result either way: record "smoke-check skipped for `<space>`: `<n>` servers share it and nothing tells them apart" and use the manual table for that space;
 - **none** — record "smoke-check skipped for `<space>`: no dev server is recorded for it" and use the manual table for that space.
 
-Boot a space's public server before its internal one, and skip a server no affected page was assigned to. For each server booted — full mechanics in `render-verification.md`:
+Boot a space's public server before its internal one, and skip a server no affected page was assigned to. A port **answers** while something accepts a connection on it — any HTTP status counts, and only a refused connection does not (`curl -s -o /dev/null --max-time 2 http://localhost:<port>/` exits 7); this probe needs no socket tool. For each server booted — full mechanics in `render-verification.md` §2:
 1. **Prerequisites (best-effort, never auto-applied).** Verify `profile.prerequisites`. The `.docstack` shim is a local, gitignored dev-environment workaround — check it, NEVER apply it. Unmet → record "smoke-check skipped for `<space>`: prerequisite `<x>` unmet" and use the manual table for that space.
-2. **Boot** the chosen server's `command` in the background, every `{port}` in it replaced by that server's configured `port` — never run with the token unsubstituted (`docs-profile-schema.md`'s field rule); record the process id.
-3. **Readiness poll** — GET `http://localhost:<port><base_path>/`, this server's own, until HTTP 200 or `profile.dev_servers.readiness_timeout_seconds` seconds (fall back to **120** when absent). On timeout → stop the process, record "smoke-check skipped for `<space>`: not ready", use the manual table for this server's pages.
+2. **Probe, then boot.** Where the server's `port` already answers, something this run did not start holds it: boot nothing, signal nothing, and **boot no further server** — record "smoke-check stopped at `<space>`: port `<port>` was answering before its server booted", and every page not yet checked uses the manual table. Otherwise boot the chosen server's `command` in the background, every `{port}` in it replaced by that server's configured `port` — never run with the token unsubstituted (`docs-profile-schema.md`'s field rule) — and hold whatever pid the start returns, where it returns one. It is usually a wrapper's (the Bash tool's shell, an `npm` or `pnpm` script), whose child holds the port and outlives it, so step 5 falls back to it and never starts with it.
+3. **Readiness poll** — GET `http://localhost:<port><base_path>/`, this server's own, until HTTP 200 or `profile.dev_servers.readiness_timeout_seconds` seconds (fall back to **120** when absent). **Once the port answers, read its listener's pid from the socket table**, as `/docs-serve` Phase 5 does, by `${CLAUDE_PLUGIN_ROOT}/commands/docs-serve.md` Phase 2's definition (**The evidence**, item 1's opening paragraph: `lsof`, else `ss`; the process the others descend from where several are named; no listener where neither tool names one) — and by nothing else of it: not its checkout test, because this run started the server on a port it found silent, and not its living-entry test, because this command keeps no state file and uses the pid once, in step 5, without recording it. On timeout → stop it as step 5 says, record "smoke-check skipped for `<space>`: not ready", use the manual table for this server's pages.
 4. For each affected page assigned to this server, GET its derived URL (Step 3 route rule) → assert **HTTP 200**.
-5. **Stop the server** (kill the recorded process id) before the next one.
+5. **Stop the server by its listener's pid** — or, where step 3 named no listener, the pid step 2 holds, where it holds one: `SIGTERM`, wait up to 5 seconds for the port to stop answering, `SIGKILL` the same pid if it still answers. **Then probe the port** before the next server boots — the probe decides, not the signal. Still answering → **boot no further server**: record "smoke-check stopped after `<space>`: port `<port>` still answers — left running" (with its listener's pid where the socket table names one), and every page not yet checked uses the manual table. A missing socket tool alone never ends the check; only a port that answers when it should be silent does — here, or before a boot (step 2).
 
 Where a space has two servers, `<space>` in each record above names the server as well — `docs (internal)`.
 
 Outcomes:
 - **404/500** on an affected page = render defect → treat as a Step 1 content failure (offer `doc-fixer` / surface).
 - Any **boot / prerequisite / readiness** problem is best-effort → never blocks; that space falls back to the manual table — on a space with two servers, that server's pages.
+- A port that **answers before its server boots, or still answers after the stop** (steps 2 and 5) ends the smoke-check → never blocks; every page not yet checked falls back to the manual table, and the record names the port left running.
 
 ### Step 3 — "Pages to visit" table (always)
 
@@ -805,7 +806,8 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
 - `render_smoke_check` — `RAN` when the smoke-check completed for every space in scope;
   `DEGRADED` when at least one space — or one server of a space with two — fell back to the manual
   table, with `not_run:` naming the space (and the server) and its reason (prerequisite unmet / boot
-  failure / readiness timeout / servers nothing tells apart / no server recorded);
+  failure / readiness timeout / servers nothing tells apart / no server recorded / the check stopped
+  because a port answered before its boot or after the stop — naming that port);
   `SKIPPED_BY_USER` with the chosen option quoted verbatim when the user selected Skip.
 
 ---
@@ -824,7 +826,7 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
   > doc-planner checklist:  [the full YAML from Phase 5.7]
   > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or prose-style-checker; same violation schema regardless of source]
   > gate_ledger:        [the complete gate_ledger block — one row per gate in references/gate-ledger.md §4, including the Phase 0 toolchain_preflight row]
-  > render_verification: [the Phase 6.5 summary — each build's result, named by its `id` (or space); smoke-check per space, and per server where a space has two (passed / skipped with reason)]
+  > render_verification: [the Phase 6.5 summary — each build's result, named by its `id` (or space); smoke-check per space, and per server where a space has two (passed / skipped with reason / stopped, naming the port left running)]
   > code_repos:         [the Phase-4 resolved {slug, path} map; [] if none resolved]
   > existing_image_decisions: [the Phase 5.6/6.1 stale-image-swap array, one entry per **reviewed occurrence** and each {target, occurrence, old_url, new_url, section, decision}. `[]` when the per-item existing-image review did not run — the existing-image list was empty, or the user chose "Add-list only" / "Nothing to do" at the Phase 5.6 merged prompt. An all-declined review is NOT `[]`: every reviewed occurrence appends an entry, `decision: declined` included. Supplies the swap-completeness evidence for the 'Screenshots' dimension]
   > profile:            [the resolved docs-profile from Phase 0 — supplies frontmatter.changelog_guidelines and spaces[]]"
@@ -1058,7 +1060,7 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 
 ### Render verification
 - Build: [one entry per build Step 1 ran, named by its `id` (or space) — ran — pass/fail | unverified (reason)] OR "no build command in profile — boot served as the proof" (does NOT apply to example-docs, which defines per-space build commands)
-- Smoke-check: [per space, and per server where a space has two — passed (N pages, HTTP 200) | skipped (reason)] OR "not run (user skipped)"
+- Smoke-check: [per space, and per server where a space has two — passed (N pages, HTTP 200) | skipped (reason) | stopped (reason — the port left running)] OR "not run (user skipped)"
 - Pages to visit: [the Phase 6.5 Step 3 table]
 
 ### Doc review verdict

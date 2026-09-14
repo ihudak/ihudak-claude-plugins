@@ -78,21 +78,51 @@ that space's `id`:
 
 Then boot the chosen servers one at a time — the verification set's spaces in order and, within a
 space, its public server before its internal one — skipping any server no affected page was assigned
-to. On a profile with one server per space, that is one boot per space in the set. For each server:
+to. On a profile with one server per space, that is one boot per space in the set.
+
+A port **answers** while something accepts a connection on it: any HTTP status, an error included, is
+an answer, and only a refused connection is not (`curl -s -o /dev/null --max-time 2
+http://localhost:<port>/` exits 7). Every probe below is this one, and it needs no socket tool. For
+each server:
 
 1. Verify prerequisites (§4) — best-effort, never applied.
-2. Boot the server's `command` in the background, with every `{port}` in it replaced by that
-   server's configured `port` — never run with the token unsubstituted, and never rewritten anywhere
-   else (`docs-profile-schema.md`'s field rule for `dev_servers.servers[].command`); record the
-   process id.
+2. **Probe the server's `port` before booting it.** Where it already answers, something this run did
+   not start holds it: boot nothing there, signal nothing, and **boot no further server** — record
+   "smoke-check stopped at `<space>`: port `<port>` was answering before its server booted", and
+   every page not yet checked falls back to the manual table (§5). Otherwise boot the server's
+   `command` in the background, with every `{port}` in it replaced by that server's configured
+   `port` — never run with the token unsubstituted, and never rewritten anywhere else
+   (`docs-profile-schema.md`'s field rule for `dev_servers.servers[].command`) — and hold whatever
+   pid the start returns, where it returns one. That pid is usually a wrapper's — the Bash tool's
+   shell, an `npm` or `pnpm` script — whose child holds the port and outlives it, so it is step 5's
+   fallback, never its first choice.
 3. Readiness poll: GET `http://localhost:<port><base_path>/`, that server's own, until HTTP 200 or
    `profile.dev_servers.readiness_timeout_seconds` seconds elapse (fall back to **120** when the
-   field is absent).
+   field is absent). **Once the port answers, read its listener's pid from the socket table**, as
+   `/docs-serve` Phase 5 does, by the definition in `${CLAUDE_PLUGIN_ROOT}/commands/docs-serve.md`
+   Phase 2, **The evidence**, item 1's opening paragraph: `lsof`, else `ss`; where several processes
+   are named, the one the others descend from; where neither tool is present, or the one present
+   names nothing, no listener is named. That definition is all that carries over. Not its
+   **Checkout first** test — this run started the server itself, on a port step 2 found silent, so
+   whatever now holds that port is this run's — and not its Phase 7 living-entry test, which judges a
+   pid recorded in a state file: this command keeps none, and the pid it reads here is used once, by
+   step 5 of this same boot, and never recorded. On a timeout, stop the server as step 5 says — the
+   signal, then the probe — and record "smoke-check skipped for `<space>`: not ready".
 4. For each affected page assigned to this server, GET its derived URL (§3) and assert HTTP 200.
-5. Stop the server (kill the recorded process id) before booting the next one.
+5. **Stop the server by its listener's pid** — or, where step 3 named no listener, by the pid step 2
+   holds, where it holds one: `SIGTERM` it, wait up to 5 seconds for the port to stop answering, and
+   `SIGKILL` the same pid if it still answers. **Then probe the port** — the probe, not the signal,
+   decides whether the server stopped. Where the port no longer answers, boot the next server. Where
+   it still answers — a wrapper's child that outlived the pid signalled, or a server something
+   restarted — **boot no further server**: record "smoke-check stopped after `<space>`: port
+   `<port>` still answers — left running", with its listener's pid where the socket table names one,
+   and every page not yet checked falls back to the manual table (§5). A missing socket tool alone
+   never ends the check; only a port that answers when it should be silent does — here, or before a
+   boot (step 2).
 
-Never run two servers at once. Always stop the current one before the next. Where a space has two
-servers, every record this file names for `<space>` names the server as well — `docs (internal)`.
+Never run two servers at once: the next server boots only once the probe has found the last one's
+port silent. Where a space has two servers, every record this file names for `<space>` names the
+server as well — `docs (internal)`.
 
 ## 3. Route derivation
 
@@ -120,7 +150,11 @@ prerequisite `<x>` unmet" and use the manual table for that space.
 The smoke-check is best-effort. Any prerequisite-unmet, boot-failure, or
 readiness-timeout outcome is recorded with its reason and falls back to the
 manual table for that space — on a space with two servers, for that server's
-pages — and it never blocks the run. (A 404/500 on an affected page IS a
+pages — and it never blocks the run. A port that answers before its server
+boots, or still answers after the stop (§2 steps 2 and 5), ends the
+smoke-check rather than one space's part of it: every page not yet checked
+falls back to the manual table, and the record names the port left running —
+it never blocks the run either. (A 404/500 on an affected page IS a
 finding — it is surfaced, not silently dropped.)
 
 The **pages-to-visit table** is always emitted, one row per affected page: its

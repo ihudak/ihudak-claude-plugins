@@ -28,13 +28,13 @@
 
 ## `$DOCS_PATH`
 
-- **`$DOCS_PATH`** — a read-only clone of your shipped product documentation; defaults to `/workspace/docs` when unset.
+- **`$DOCS_PATH`** — your shipped product documentation's clone, read-only in its role as a docs-grounding root; defaults to `/workspace/docs` when unset. (`docs-workflows`' docs commands also use it as a write target for a docs repository — a different role, not a contradiction.)
 
 **Resolution.** Flags first — `--no-docs` forces grounding off regardless of `$DOCS_PATH`; `--docs <path>` overrides it for that run. Otherwise `docs_root = ${DOCS_PATH:-/workspace/docs}`. A validity gate then has to pass for grounding to turn on at all: `docs_root` must be non-empty, an existing readable directory, and contain at least one markdown file.
 
 **When unset.** The `/workspace/docs` default is probed by the validity gate above; on a host where that path does not exist, the gate simply fails.
 
-**When it points somewhere unreadable, or the gate otherwise fails.** Every miss — unset, missing, unreadable, or no markdown file found — is a **silent, non-blocking skip**: `docs_grounding: OFF` with a one-line internal reason, never an error and never `emit-block`. None of this plugin's own five commands is a grounding consumer any more — the eight that are (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake` and `/prd-ground`) ship in the companion `product-workflows` plugin now, and the ninth, `/docs-workflows:release-notes`, ships in `docs-workflows`. `$DOCS_PATH` is documented here only because `code-handoff.md`'s git finish names it in a "never touches" boundary statement; the variable's token appears in this plugin's bundled content for that reason alone, and it is never written to.
+**When it points somewhere unreadable, or the gate otherwise fails.** Every miss — unset, missing, unreadable, or no markdown file found — is a **silent, non-blocking skip**: `docs_grounding: OFF` with a one-line internal reason, never an error and never `emit-block`. None of this plugin's own five commands is a grounding consumer any more — the eight that are (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/brd-intake` and `/prd-ground`) ship in the companion `product-workflows` plugin now, and the ninth, `/docs-workflows:release-notes`, ships in `docs-workflows`. `$DOCS_PATH` is documented here only because `code-handoff.md`'s git finish names it in a "never touches" boundary statement; the variable's token appears in this plugin's bundled content for that reason alone, and this plugin never writes to it.
 
 **Directory layout.** Unlike `$SPECS_PATH`, the plugin imposes no expected substructure here — it searches whatever markdown it finds under the root (for example, a full documentation-site checkout).
 
@@ -42,7 +42,7 @@
 
 - **`$GIT_USER_INITIALS`** — your branch identity string; no default, and the plugin never fails when it is absent.
 
-**Resolution.** It is rung 1 of a five-rung identity ladder applied by the five commands that name branches in a *code* or docs repo — `/implement`, `/upgrade` and `/vuln` here, plus the companion plugin's `/docs-workflows:document` (keyed mode; direct mode creates no branch) and `/docs-workflows:docs-profile` — the specs-repo handoff branches (`idea/`, `prd/`, `ard/`, `spec/`, `design/`, `ready/`, `brd/`, `frames/`) are named by `workflows-core:phase-handoff` §2.2 instead and never enter it. The rungs run in order, stopping at the first non-empty result: `$GIT_USER_INITIALS` (used verbatim, never with a trailing `/`) → `git config user.initials` (same semantics, set once per repo or globally) → inference from existing branch names (a candidate accepted at ≥30% of a sampled 200 branches and ≥3 occurrences) → a mandatory prompt if all three yield nothing.
+**Resolution.** It is rung 1 of a five-rung identity ladder applied by the seven commands that name branches in a *code* or docs repo — `/implement`, `/upgrade` and `/vuln` here, plus the companion plugin's `/docs-workflows:document` (keyed mode; direct mode creates no branch), `/docs-workflows:docs-profile`, `/docs-workflows:docs-init` and `/docs-workflows:docs-brand` (standalone; an `--inline` run writes on its caller's branch) — the specs-repo handoff branches (`idea/`, `prd/`, `ard/`, `spec/`, `design/`, `ready/`, `brd/`, `frames/`) are named by `workflows-core:phase-handoff` §2.2 instead and never enter it. The rungs run in order, stopping at the first non-empty result: `$GIT_USER_INITIALS` (used verbatim, never with a trailing `/`) → `git config user.initials` (same semantics, set once per repo or globally) → inference from existing branch names (a candidate accepted at ≥30% of a sampled 200 branches and ≥3 occurrences) → a mandatory prompt if all three yield nothing.
 
 **When unset.** The ladder simply falls through to rung 2, then 3, then the prompt — there is no error, only degradation to a less certain source. Where the target repo's documented branch-naming convention has no name-or-initials segment at all, the variable is simply unused for that repo regardless of whether it is set.
 
@@ -65,6 +65,6 @@ $SPECS_PATH/                        # shared, team-visible store
 $REPOS_PATH/                        # code clones, one directory or a colon-separated list (default /workspace)
   <repo>/                           # discovered by directory name; matched by origin slug for PR-URL resolution
 
-$DOCS_PATH/                         # optional, read-only: a product-docs clone (default /workspace/docs)
+$DOCS_PATH/                         # optional: a product-docs clone, read-only for grounding (default /workspace/docs)
   ...                               # searched for grounding; the plugin never writes here
 ```

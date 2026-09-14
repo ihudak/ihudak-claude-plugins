@@ -12,11 +12,11 @@ Scans a documentation repository and writes or refreshes its machine-readable `.
 /docs-profile [<repo-path>] [--inline]
 ```
 
-The first token of `$ARGUMENTS` is the target repo path (default: the current working directory). `--inline` is the flag `/document` (keyed mode) passes when it invokes this flow itself, from its own Phase 0 — it skips the branch-name prompt in favour of a deterministic branch name, and hands the PR draft back to `/document` instead of reporting one itself.
+`--inline` is stripped from `$ARGUMENTS` before the remaining token is read as the optional docs-repo path (Phase 0). `--inline` is the flag `/document` (keyed mode) passes when it invokes this flow itself, from its own Phase 0 — it skips the branch-name prompt in favour of a deterministic branch name, and hands the PR draft back to `/document` instead of reporting one itself.
 
 ## What it needs
 
-- **A docs repository** — a writeable git work tree carrying at least one docs-repo signal (a doc `package.json` script, `.docstack/`, `.vale.ini`, a `*/_content/` directory, or `_snippets/`). Zero signals asks before continuing rather than refusing outright; not a work tree, or not writeable, stops with a named error.
+- **A docs repository** — resolved by `resolve-docs-repo` (`docs-workflow/repo-resolution.md` §1), the same signal-positive ladder `/docs-workflows:docs-serve` and `/docs-workflows:docs-brand` use: the given path, else the working directory when it carries a docs signal, else `$DOCS_PATH` when it carries one, else a search under `$REPOS_PATH`, else a question — each conditional rung tested against a docs-repo signal; the first rung takes an explicit path as given, with no signal test. It must additionally be a writeable git work tree; not a work tree, or not writeable, stops with a named error. A resolved target that still carries zero signals — reachable only through that first, untested rung, or through the resolver's own generic question — is not refused: this command asks its own, narrower question, specifically whether to profile it anyway, since a repo the resolver would never have found on its own is exactly the case `/docs-profile` still needs to serve.
 - Nothing from `$SPECS_PATH` — the scan and the write both happen inside the target repo itself, and this command runs no specs-preflight and no `commit-artifacts` step.
 - **`$GIT_USER_INITIALS`** (optional) — used in standalone mode's branch-naming ladder, both to fill an identity placeholder in a convention the repo already documents, and as the fallback prefix when the repo documents no convention at all.
 

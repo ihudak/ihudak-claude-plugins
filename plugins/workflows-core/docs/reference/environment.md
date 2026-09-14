@@ -26,7 +26,7 @@ Every one of the five is read by a reference this plugin ships rather than by a 
 
 ## `$DOCS_PATH`
 
-- **`$DOCS_PATH`** — a **read-only** clone of your shipped product documentation. Defaults to `/workspace/docs`.
+- **`$DOCS_PATH`** — your shipped product documentation's clone, **read-only** in its role as a docs-grounding root — the role this plugin's `docs-grounding.md` and `docs-grounder` give it. Defaults to `/workspace/docs`. (`docs-workflows`' docs commands also use it as a write target for a docs repository — a different role, not a contradiction.)
 
 **Resolution.** `docs-grounding.md` gates on it being a readable directory holding at least one markdown file; `docs-grounder` reads it and never writes to it.
 

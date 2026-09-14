@@ -41,11 +41,12 @@ loop: a **run-start** flush and branch disposition (`specs-preflight`, §3) and 
 
 ### 2.1 Paths
 
-Exactly six shapes, derived from the emission ladders — three directory shapes and the three single files §2.1 names below. Nothing outside this
+Exactly seven shapes, derived from the emission ladders — four directory shapes and the three single files §2.1 names below. Nothing outside this
 set is ever staged.
 
 ```
 <specs-root>/{specs|specifications|vis}/**/dev-workflows/**   # tier 1: feedback, cost, resume.md
+<specs-root>/documentation/*/dev-workflows/**                 # the documentation run with no PRD (D19): feedback, cost
 <specs-root>/dev-workflows-feedback/**                        # feedback-emission.md §2 tier 2 (keyless runs)
 <specs-root>/dev-workflows-cost/**                            # cost-emission.md §9 pending files (keyless runs)
 <specs-root>/{specs|specifications|vis}/**/implementation.md  # implementation-format.md §1, appended by /implement
@@ -53,7 +54,13 @@ set is ever staged.
 <specs-root>/{specs|specifications|vis}/**/follow-ups.md      # followup-emission.md §2, appended per PRD/Epic folder
 ```
 
-**The fourth, fifth and sixth shapes name three files, never their folder, and the distinction is the
+**The `documentation/` shape is the `docs-workflows` family's, and it exists because that family's normal run has no PRD and never will.** A documentation run against a repository nobody has written a PRD for would otherwise park every entry as *pending*, awaiting a reconciliation into a PRD directory that is never coming — so those entries accumulate forever and reconcile against nothing. The rung `feedback-emission.md` §2 and `cost-emission.md` §8 insert before pending writes instead to `<specs-root>/documentation/<docs-repo-slug>/dev-workflows/{cost,feedback}/`, where `<docs-repo-slug>` is the one-segment name the next paragraph defines. **Per docs repo, not one flat `documentation/` bucket**, for exactly the reason the PRD-directory rung exists for the pipeline: a person documenting two products must still be able to answer what documenting each one cost. The docs repo is that family's unit of attribution.
+
+**`<docs-repo-slug>` is defined here, once, and it is always exactly one path segment.** Read the resolved docs repository's `origin` remote (`git -C <docs-repo-root> remote get-url origin`) and derive `OWNER_REPO` from it exactly as `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6 derives it — the same `host` and `slug` expressions, and the same rule that only `github.com` drops the host — then replace every `/` in the result with `-`. So `git@github.com:acme/docs.git` gives `acme-docs`, and `ssh://git@git.example.com/team/docs.git` gives `git.example.com-team-docs`. Where the repository has no `origin` remote, the slug is the basename of its git root. **The one-segment property is the whole point, and it is why the flattening is not cosmetic**: step 2's classifier below admits exactly one segment between `documentation/` and `dev-workflows/` (`^documentation/[^/]+/dev-workflows/`), while an unflattened `OWNER_REPO` is two segments on GitHub and three anywhere else. An entry written under one would be classified OTHER — never staged, left dirty, and firing §3.3's G1 on every later preflight of every caller, which is exactly the failure the three single-file shapes below were once found to cause. Every site that fills the placeholder — `feedback-emission.md` §2, `cost-emission.md` §8, and the two `docs-workflows` commands that emit there — cites this paragraph rather than restating the derivation; a second derivation is how two sites come to disagree about where one repository's record lives. The flattening can in principle map two remotes to one name (`a-b/c` and `a/b-c` both become `a-b-c`); that is accepted, since the alternative is a second derivation or a path the classifier cannot stage.
+
+**The inner `dev-workflows/` in that path names the *family*, not the plugin — do not "correct" it per-plugin.** The shipped persistence ladder writes `<PRD-dir>/dev-workflows/cost/<sid8>.md` regardless of which plugin emitted the entry, and this shape is the same directory one level out. Renaming it to match the emitting plugin would fragment one repository's cost record across four directories and break every reader of it. **No new branch prefix goes with this shape**: §2.2's prefix authority governs branches the plugin creates *in* `$SPECS_PATH`, and the documentation family creates none there — its deliverable is the docs repository, where it branches, commits and drafts a pull request it never pushes.
+
+**The `implementation.md`, `release-notes.md` and `follow-ups.md` shapes name three files, never their folder, and the distinction is the
 whole safety property.** All three sit in the feature folder rather than under `dev-workflows/`, because
 all three are read by *key* rather than by session — `implementation.md` is what `/document`,
 `/release-notes` and `epic-picker.md`'s ● marker read, and a record only one machine holds is a record
@@ -68,7 +75,7 @@ literally and nothing else in that directory is ever staged here.
 **All three were outside this set until a review found them**, while `/implement` and `/release-notes`
 each told the operator the terminal step committed them. It did not: step 2 below classified each as
 OTHER, step 3 skipped it, and the file then sat permanently dirty — which fired §3.3's G1 dirty-tree
-guard on every later run of any of the twenty-six callers, suppressing the leftover flush and the
+guard on every later run of any of the twenty-eight callers, suppressing the leftover flush and the
 branch disposition for the rest of the session. **`follow-ups.md` was the third instance and it was
 found the same way, by a live run rather than by reading** — long after the first two were fixed, because
 this section's own comment claimed follow-ups were tier 1 under `dev-workflows/**` and its source
@@ -78,7 +85,8 @@ a verified fact. When an emission ladder changes shape, re-derive this list agai
 trusting either end. `/epics` is the deliberate contrast and stays as it is: it
 writes `epic.md` files this reference never stages, and says so in place.
 
-Sources: `feedback-emission.md` §2 tiers 1–2, `cost-emission.md` §8 tier 1 and
+Sources: `feedback-emission.md` §2 tiers 1–2 including tier 2's documentation
+branch, `cost-emission.md` §8 tier 1, tier 2's documentation branch and
 §9 pending, `followup-emission.md` §2 (where it lands, per PRD/Epic folder),
 `session-hygiene.md` §1 (resume tier 1).
 
@@ -90,7 +98,8 @@ fragile to express and to review. The procedure is:
    directory to a single `?? dir/` line, which would hide which files are being
    staged.
 2. Classify each reported path: **ARTIFACT** if it matches
-   `^(specs|specifications|vis)/.+/dev-workflows/` or `^dev-workflows-feedback/`
+   `^(specs|specifications|vis)/.+/dev-workflows/` or
+   `^documentation/[^/]+/dev-workflows/` or `^dev-workflows-feedback/`
    or `^dev-workflows-cost/` or
    `^(specs|specifications|vis)/.+/(implementation|release-notes|follow-ups)\.md$`;
    **OTHER** otherwise.

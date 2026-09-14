@@ -4,6 +4,42 @@ All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.6.0] — 2026-09-10
+
+Everything here is a shared contract another plugin reads, which is why the arrival of `docs-workflows`' cold-start commands (`/docs-init`, `/docs-brand`, `/docs-serve`) moves this plugin's version rather than only theirs.
+
+### Added — a bookkeeping destination for a run that has no PRD and never will (D19)
+
+`specs-repo-git.md` §2.1 gains a **fourth directory shape**, `<specs-root>/documentation/*/dev-workflows/**`, and its staging classifier gains the matching `^documentation/[^/]+/dev-workflows/` branch. `cost-emission.md` §8 and `feedback-emission.md` §2 each gain the rung that writes there, inserted **before** pending / unfiled rather than folded into it: the old ladder parked a keyless entry as *pending*, awaiting reconciliation into a PRD directory, and documentation work frequently has no PRD and never will — so those entries would have accumulated forever against a reconciliation that is never coming. The path is per docs repo, because a person documenting two products must still be able to answer what documenting each one cost. **`<docs-repo-slug>` is defined once, in `specs-repo-git.md` §2.1 beside the shape it fills**: the docs repo's `origin` `OWNER_REPO`, derived exactly as `phase-handoff.md` §2.6 derives it, with every `/` replaced by `-` — the directory name where there is no remote. The flattening is load-bearing: the classifier admits exactly one path segment there, and an unflattened `owner/repo` (two segments on GitHub, three elsewhere) would be classified OTHER, never staged, and left dirty to fire the G1 guard on every later preflight. `feedback-emission.md` §2, `cost-emission.md` §8 and the two emitting commands cite §2.1 rather than restating a derivation.
+
+Two narrownesses are deliberate and are stated where they bite. The inner `dev-workflows/` names the **family**, not the emitting plugin — the shipped ladder already writes `<PRD-dir>/dev-workflows/cost/<sid8>.md` whatever emitted it, and renaming it per plugin would fragment one repository's record across four directories. And the rung tests **which command is running** (`/docs-init`, or `/docs-brand` on its standalone path) rather than "did the run resolve a docs repo": `/document` direct mode has exactly the problem D19 describes, but its entries land in pending today and its own body says so, and moving a shipped command's bookkeeping is a behaviour change with its own migration question. Extending the rung to it is a deliberate follow-up.
+
+**No new branch prefix goes with the shape.** §2.2's prefix authority governs branches the plugin creates *in* `$SPECS_PATH`, and this family creates none there — its deliverable is the docs repository, where it branches, commits and drafts a pull request it never pushes.
+
+### Added — attribution and branch-naming rows for the new commands
+
+`cost-emission.md` §7 gains `/docs-init` and `/docs-brand`, both `phase: docs-scaffold, role: dev` — the first fixed pair this family has carried. `branch-naming.md` gains both to its consumer list, its prefix table (`docs/`) and its slug list, with `/docs-brand` marked standalone-only because an `--inline` run writes on its caller's branch and creates none. `escalation-rules.md`'s initials-fallback prompt names them among the branch-creating commands. `scripts/command-namespaces.json` gains `docs-init`, `docs-brand` and `docs-serve` — the manifest a deferred cost claim is resolved against, so a cede-and-replay across one of these commands is matched rather than dropped. `cost-emission.md`'s rule for which runs carry a cost entry now names the docs repository as an attribution unit beside a PRD- or BRD-scoped artifact — the clause `/docs-init` and a standalone `/docs-brand` satisfy — and its lists of non-emitters name `/docs-serve`. `finding-triage.md` gains the `docs-scaffold-reviewer` → orchestrator path (`/docs-init`, standalone `/docs-brand`), which has no fixer agent and so triages before the orchestrator's own edit. `next-phase-offer.md` records that the three cold-start commands, though not pipeline nodes, each print a prose `### Next step` with no `<merge-clause>`.
+
+### Changed — every caller count re-derived rather than incremented
+
+`specs-repo-git.md`, `cost-emission.md` and `feedback-emission.md` each carried caller counts that this increment moved. All were re-derived against the tree: twenty-eight `commit-artifacts` callers, twenty-four commands with an automatic maintenance phase, twenty-six `§7` attribution rows of which twenty-four call `emit-cost` (the two that cede the session call it never). `dependencies.md`'s description of `docs-workflows` moves from three commands and seven agents to six and eight.
+
+`skills/model-routing/SKILL.md`'s frontmatter `description` said **21** pipeline commands and enumerated them; it was already short by two before this increment (`/prd-proposal` and `/brd-proposal`) and is now **25**, enumerated in full. A skill description is what the harness matches on, so a stale enumeration there is not cosmetic.
+
+### Fixed — a retired rationale removed from three documentation pages
+
+`docs/reference/references.md` (twice) and `docs/workflow.md` still asserted that **a slash-command body cannot expand `${CLAUDE_PLUGIN_ROOT}`**, and used it as the reason both skills exist. That was verified false in a live run and is recorded as retired in `CLAUDE.md` and in the docs-workflow-family design's §20 row 3, but the three copies here survived the retirement. The reason that actually holds is unchanged and now stands alone: `${CLAUDE_PLUGIN_ROOT}` resolves to the **reading** plugin, so a sibling cannot open this plugin's `references/` by path whatever a command body can expand — which is what the loader skill is for.
+
+### Fixed — three more documentation claims this increment falsified or left standing
+
+- `docs/roles-and-phases.md` said **twelve** phases exist and **nine** are reachable only by inheritance. `docs-scaffold` makes it thirteen and ten. The sentence now states what it counts — the twelve lifecycle phases carried as fixed pairs in `references/cost-emission.md` §7, plus this plugin's own `plugin-feedback` fallback, which §7 has no row for — so the arithmetic is checkable and the sibling pages' figure of twelve reads as the different claim it is rather than as a disagreement.
+- `docs/reference/hooks.md` said *"its six utility commands take no address and need no injected context"*. Five take none; `/frames` takes a **mandatory** one and resolves it with `resolve-address` in its own Phase 0. The page now says which is which.
+- `docs/reference/session-cost.md`'s persistence-ladder paragraph described a ladder that now has a rung ahead of pending. It is scoped to this plugin's five cost emitters, none of which can reach that rung, so the sentence was never false — but it now carries a one-clause pointer to `references/cost-emission.md` §8 so the "is this still true?" question is answered where it is asked, without a second copy of the rung's rules.
+
+### Changed — the loader-contract census has one home
+
+`scripts/check-docs.sh`'s check-16 header is now the only place the loader census is written, and it says so. `CLAUDE.md` carried a second copy of four of its figures; both copies had gone stale, disagreeing with each other and with the tree. The header's figures are re-derived from the scan itself (342 real invocations, 167 carrying an entry point, 74 files citing a core reference and 74 carrying the preamble, 38 citing files outside the scanned directories), and `CLAUDE.md` now cites the header instead of restating it. The agent total the check-17 header and `CLAUDE.md` share moves from 38 to 40; the **3** agents carrying `Task` is unchanged, and `docs-scaffold-reviewer` correctly carries none.
+
 ## [1.5.0] — 2026-09-09
 
 ### Added — `control`, a positive control on every grounding absence claim

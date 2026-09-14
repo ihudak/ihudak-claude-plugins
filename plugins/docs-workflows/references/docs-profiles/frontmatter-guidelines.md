@@ -79,3 +79,37 @@ replace.
 | `description` | **warning** (MAJOR/MINOR) — outside 120–160 chars |
 | `title` (new page) | MAJOR — missing |
 | `meta.i18n-priority`, `meta.generation` | advisory note only |
+
+## Reserved keys for the docs-workflow family
+
+Design authority: `docs/superpowers/specs/2026-08-29-docs-workflow-family-design.md` §8.6, D18. `/docs-init`, `/docs-audit`, `/docs-write`, and the rest of the docs-workflow family reserve four frontmatter keys — `type`, `audience`, `visibility`, `unit` — on **any** docs repo they scaffold or write into, not only one carrying the example-docs profile, and touch nothing else in this skill's territory: the fields above, and `docs-frontmatter`'s ownership of the schema as a whole, are unchanged by this section.
+
+### `type` (RESERVED)
+
+Diátaxis or engineering type; the coverage grid reads this. The vocabulary depends on `audience`:
+
+| `audience` | `type` values |
+|---|---|
+| `user` | `tutorial \| how-to \| reference \| explanation` |
+| `engineering` | `architecture \| decision \| runbook \| api-reference` |
+
+### `audience` (RESERVED)
+
+`user` or `engineering`.
+
+### `visibility` (RESERVED)
+
+`public` or `internal` — the two-build split reads this. It **defaults from `audience` but is independently settable** (D12): API reference is engineering-audience and usually public; a runbook naming hostnames is not.
+
+### `unit` (RESERVED)
+
+The backlog unit id; drift reads this. Written by increment 2's `/docs-audit` and `/docs-write`, and left absent by every stub this increment's scaffold writes.
+
+### Related fields, none of them reserved
+
+- `order` — generates the nav. Without it MkDocs takes order from `mkdocs.yml` and the field is decorative.
+- `review_by` — the calendar backstop for rot no diff can see: a page can go wrong with no code change at all.
+- `evidence` — what the page's claims rest on.
+- `readtime` is **computed**, never typed: word count divided by ~200 wpm, refreshed on every write. A hand-maintained reading time is wrong within two edits.
+
+`changelog` and `owners` keep their own conventions ([`changelog-guidelines.md`](changelog-guidelines.md) and [`default-owners.txt`](default-owners.txt)) and are unaffected by this section.

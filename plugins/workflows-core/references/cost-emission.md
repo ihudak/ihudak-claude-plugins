@@ -1,7 +1,7 @@
 # Session Cost Emission — Shared Reference
 
-Single source of truth for the dev-workflows session-cost subsystem. Twenty-two of
-the twenty-four commands with an §7 row cite this file from their terminal
+Single source of truth for the dev-workflows session-cost subsystem. Twenty-four of
+the twenty-six commands with an §7 row cite this file from their terminal
 "Session cost" phase and execute its steps inline through the single `emit-cost`
 entry point (§11). The other two — `/prompt-brainstorm` and `/prompt-grill-me` —
 cede the session before such a phase could run, call `emit-cost` never, and
@@ -330,6 +330,8 @@ Fixed per-command labels, with six inferred exceptions:
 | `/feedback` | **inferred** | **inferred** |
 | `/prompt-brainstorm` | **inferred** | **inferred** |
 | `/prompt-grill-me` | **inferred** | **inferred** |
+| `/docs-brand` | docs-scaffold | dev |
+| `/docs-init` | docs-scaffold | dev |
 
 **`/release-notes` inference (PM PRD-run vs. dev documenting-run).** The
 discriminator is the presence of **downstream engineering artifacts** — any
@@ -384,7 +386,7 @@ not attempt to infer it from anything else.
   Treat it as the `n/a` case below.
 - **Target is `n/a`, or a command with no row above -> `phase: plugin-feedback`,
   `role: n/a`.** The second case covers `/vuln`, `/upgrade`, `/docs-profile`,
-  and `/statusline`, none of which emits cost and so has nothing to inherit.
+  `/docs-serve` and `/statusline`, none of which emits cost and so has nothing to inherit.
 - **Target is `/frames` -> resolve ITS inference first**, then inherit the result,
   exactly as for `/release-notes`. One level only. Where no folder resolves — which
   for `/frames` means the run never started — treat it as the `n/a` case.
@@ -398,12 +400,7 @@ not attempt to infer it from anything else.
 than guessed, and aggregation should treat it as unattributed rather than folding
 it into `dev`.
 
-**`/vuln`, `/upgrade`, and `/docs-profile` emit no cost entry, and that is
-a decision about what the number is for.** A cost entry measures **AI investment in a product
-increment**, and the rule is: *a cost entry attaches to a run that advances a PRD- or BRD-scoped
-artifact.* A CVE remediation, a library version bump, and a docs-profile refresh advance none —
-they are noise against a PRD or a BRD, and a metric that averages the two answers a question
-nobody asked.
+**`/vuln`, `/upgrade`, `/docs-profile` and `/docs-serve` emit no cost entry, and that is a decision about what the number is for.** A cost entry measures **AI investment in a product increment**, and the rule is: *a cost entry attaches to a run that advances a PRD- or BRD-scoped artifact — or builds the documentation repository a product is documented in, which is the `docs-workflows` family's unit of attribution and which §8 rung 2 files per docs repo.* That second clause is what `/docs-init` and a standalone `/docs-brand` satisfy, and why they have §7 rows. A CVE remediation, a library version bump, a docs-profile refresh and a dev-server start advance none — they are noise against a PRD, a BRD or a docs repository, and a metric that averages the two answers a question nobody asked.
 
 **This is restated here because it lived only on the command pages.** `docs/commands/vuln.md` and
 `docs/commands/upgrade.md` have carried the reason all along — *"runs outside the PRD pipeline: no
@@ -464,7 +461,26 @@ subdir. Walk top-down; stop at the first tier that applies:
 1. `$SPECS_PATH` writable **and** the PRD dir exists (matched by
    `$SPECS_PATH/{specs|specifications|vis}/…/<KEY>{-|_}<slug>/…`) ->
    `<PRD-dir>/dev-workflows/cost/<sid8>.md`. *[primary]*
-2. `$SPECS_PATH` writable but no PRD dir (or no key resolved) -> **pending** (§9).
+2. `$SPECS_PATH` writable but no PRD dir (or no key resolved) — two destinations,
+   and the documentation branch is tried first:
+   - **The run is `/docs-init`, or `/docs-brand` on its standalone path**, and it resolved a documentation repository (design D19) -> `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`, where `<docs-repo-slug>` is the one-segment name `specs-repo-git.md` §2.1 defines for that repo — cited, never re-derived here, because the staging classifier admits exactly one segment there. **Per docs repo, not one flat bucket**, for the same reason the PRD-directory rung exists for the pipeline: a person documenting two products must still be able to answer what documenting each one cost. The inner `dev-workflows/` names the *family*, not the emitting plugin — `specs-repo-git.md` §2.1 says why — and that section's `<specs-root>/documentation/*/dev-workflows/**` shape is what stages it.
+   - **Otherwise** -> **pending** (§9).
+
+   **Why this rung is inserted before pending rather than folded into it.**
+   Documentation work frequently has no PRD and never will, so a pending entry
+   from such a run awaits a reconciliation that is never coming and accumulates
+   forever. §9's opportunistic reconciliation is built for a *keyless* run that
+   will later acquire a key; this one will not.
+
+   **The branch names its two commands rather than testing "did the run resolve a
+   docs repo", and that narrowness is deliberate.** `/document` direct mode also
+   resolves a docs repo, resolves no PRD key, and therefore has exactly the
+   problem D19 describes — but it is a shipped command whose bookkeeping lands
+   in **pending** today and says so in its own body, and moving where a shipped
+   command's entries land is a behaviour change with its own migration question.
+   Extending this branch to it is a **deliberate follow-up, not an oversight**;
+   until it is taken, `/document` direct mode keeps the pending destination it
+   has always had, and nothing here silently alters it.
 3. `source = directory` (a passed directory, no `$SPECS_PATH`) -> beside that
    directory.
 4. Nothing resolvable -> **report-only** in the run output. **NEVER write into the
@@ -514,7 +530,7 @@ and acceptable.
 
 ## 11. Caller contract — `emit-cost`
 
-One entry point, called by the twenty-two commands that measure themselves and by
+One entry point, called by the twenty-four commands that measure themselves (§1) and by
 whichever of them replays a §13 record (never by the two that defer — they call
 nothing). Every caller supplies `command`, `phase`, `role` (or the
 `inferred` marker — `/release-notes` and the four feedback commands), `key` (or
@@ -671,8 +687,8 @@ exists to catch.
 
 ### 13.3 The replay
 
-`emit-cost` step 2 (§11). **No deferred file ⇒ nothing changes**; the twenty-two
-commands that measure themselves never take this path.
+`emit-cost` step 2 (§11). **No deferred file ⇒ nothing changes**; the twenty-four
+commands that measure themselves (§1) never take this path.
 
 Otherwise the run passes one `--claim <command>` per deferred record, oldest
 first, and the script partitions the window:
@@ -685,7 +701,7 @@ first, and the script partitions the window:
 
 **Matching by name is the whole point, and positional pairing is the trap.** A
 window routinely holds boundaries no claim corresponds to: `/vuln`, `/upgrade`,
-`/docs-profile`, and `/statusline` are real commands that emit no cost entry,
+`/docs-profile`, `/docs-serve` and `/statusline` are real commands that emit no cost entry,
 and an interrupted run leaves a boundary too. Pair the
 k-th claim with the k-th boundary and a single `/vuln` in the window shifts every
 claim by one — filing a security run's spend under a PRD lifecycle phase, which

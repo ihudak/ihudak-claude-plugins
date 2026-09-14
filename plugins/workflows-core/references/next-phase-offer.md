@@ -230,6 +230,8 @@ repairs a folder's frame-set indexes and advances no phase; it makes the §4.3 h
 deliverables require and no next-phase offer at all, so no `<merge-clause>` arises — nothing runs
 `require-on-main` on a frame-set index.
 
+**`/docs-workflows:docs-init`, `/docs-workflows:docs-brand` and `/docs-workflows:docs-serve` are not pipeline nodes either, but each does print a `### Next step`** — in this file's universal-minimum prose form, guidance only and never auto-invoked, because a cold-start run leaves the operator with an obvious next action (push the drafted docs-repo pull request; serve the site; write its pages) even though it advances no PRD phase. None of the three carries a `<merge-clause>`: the pull requests `/docs-init` and a standalone `/docs-brand` draft target the docs repository, not `$SPECS_PATH`, and none of the three runs `handoff-to-main` or feeds any command's `require-on-main` gate. Each states that omission in its own body; `scripts/check-docs.sh` check 11 does not see it, since no `/docs-*` glob is in its scope.
+
 ## Session hygiene co-fires here
 
 The `### Next step` this contract produces is immediately followed by a

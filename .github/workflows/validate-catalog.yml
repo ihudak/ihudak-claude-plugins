@@ -32,14 +32,17 @@ name: Validate plugin catalog
 # gate's --selftest runs immediately before its --root check, in the same order: a
 # gate that has stopped being able to fail must turn the build red, not green.
 #
-# It also runs scripts/mermaid/check-mermaid.mjs, which parses every ```mermaid block
-# in every tracked markdown file with mermaid's own parser. GitHub draws those fences as
-# diagrams and shows "Unable to render rich display" where one does not parse, and
-# nothing else here reads mermaid -- so plugins/product-workflows/docs/workflow.md
+# It also runs scripts/mermaid/check-mermaid.mjs, which finds every ```mermaid block in
+# every tracked markdown file with a real CommonMark lexer and parses it with mermaid's
+# own parser. GitHub draws those fences as diagrams and shows "Unable to render rich
+# display" where one does not parse, and nothing else here parsed mermaid (check-docs.sh
+# check 15 reads diagrams only for which commands they name) -- so
+# plugins/product-workflows/docs/workflow.md
 # shipped from product-workflows 3.0.0 onward with five unquoted edge labels that no
 # gate saw, and a person found it by opening the page. The parser is pinned by exact
-# version and a committed lockfile, and installed with --ignore-scripts, so it can
-# neither change under the gate between two runs nor execute code when it installs.
+# version and a committed lockfile, as is the lexer, and both are installed with
+# --ignore-scripts, so neither can change under the gate between two runs nor execute
+# code when it installs.
 #
 # Finally it self-tests session-cost.py's window splitter. That script is the only
 # executable code the family ships, and the splitter's failure mode is silent: a

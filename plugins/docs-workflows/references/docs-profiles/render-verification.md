@@ -42,8 +42,11 @@ The two operative consumers — `/document` Phase 6.5 Steps 1 and 2 — restate 
 For each space in the verification set, in order:
 
 1. Verify prerequisites (§4) — best-effort, never applied.
-2. Boot `profile.dev_servers.servers[<space>].command` in the background; record
-   the process id.
+2. Boot `profile.dev_servers.servers[<space>].command` in the background, with
+   every `{port}` in it replaced by that server's configured `port` — never run
+   with the token unsubstituted, and never rewritten anywhere else
+   (`docs-profile-schema.md`'s field rule for `dev_servers.servers[].command`);
+   record the process id.
 3. Readiness poll: GET `http://localhost:<port><base_path>/` until HTTP 200 or
    `profile.dev_servers.readiness_timeout_seconds` seconds elapse (fall back to
    **120** when the field is absent).

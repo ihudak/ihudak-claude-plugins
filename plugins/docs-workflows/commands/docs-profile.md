@@ -103,6 +103,7 @@ On the §2 powerful chain (`planning_model`), turn the detection report into a d
   > Rules:
   > - Emit `schema_version: 1` and one `spaces[]` entry per detected content root (`id`, `content_root`, `snippet_root`, `base_path`). `spaces[]` is required and non-empty.
   > - `dev_servers`: one `servers[]` entry per `*:start` script with its `command`, `port`, `base_path`; set `concurrent: false` unless detection proved two servers can run at once.
+  > - **The `{port}` token** (the schema's field rule for `dev_servers.servers[].command`): write it **only in place of a literal port the detected command already carries** — that entry's own `port`, standing as a whole number (not part of a longer one) exactly once in the command; replace that number with `{port}` and change nothing else. A command that carries no such literal — a script invocation like the schema's `pnpm cloud:start`, whose port lives inside the script — is written without the token, and so is one that carries it more than once, since which occurrence is the port cannot be told. **Never invent a flag or an argument-forwarding form to carry the token** (`-- --port {port}` and the like): which flag a tool takes, and whether a script forwards arguments to it, is that tool's business — `/docs-serve` refuses to guess it too.
   > - `commands`: `lint`, `format`, and any commit-hook chain detected.
   > - `tokens`: only the markers detection actually found (e.g. `latest_tag`, `settings_breadcrumb`).
   > - `internal_links.convention`, `branch_naming.pattern`, `images.policy`, `prerequisites[]`: fill from detection; leave a field out rather than inventing it.
@@ -211,6 +212,7 @@ SIGNIFICANT — cross-cutting synthesis of the whole docs repo; output steers al
 - user-supplied: [list the fields confirmed/filled in Phase 4]
 - omitted: [e.g. "commands.per_space — the repo has only whole-repo scripts"]
 - frontmatter: pointers only → docs-frontmatter skill (+ changelog-guidelines.md, default-owners.txt); changelog/owners NOT re-specified
+- fixed-port dev servers: [every dev_servers.servers[] entry in the written profile whose command carries no {port} token, by space — "none" when every command carries it. For each: "/docs-serve cannot fall forward from a collision on it, and --port cannot move it; add {port} by hand where its tool takes a port argument (docs-profile-schema.md, dev_servers.servers[].command)"]
 
 ### CLAUDE.md additions
 - [what was added to the repo's CLAUDE.md, or "none — all conventions covered by the docs-frontmatter skill"]

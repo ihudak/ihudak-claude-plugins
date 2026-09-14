@@ -761,7 +761,7 @@ choices: ["Run smoke-check (Recommended)", "Skip — use the manual table only",
 
 When run, boot each space in the **verification set** — every space whose `content_root` holds at least one affected page (see `render-verification.md` §2) — **sequentially** (`profile.dev_servers.concurrent: false` forbids overlap). Full mechanics in `render-verification.md`:
 1. **Prerequisites (best-effort, never auto-applied).** Verify `profile.prerequisites`. The `.docstack` shim is a local, gitignored dev-environment workaround — check it, NEVER apply it. Unmet → record "smoke-check skipped for `<space>`: prerequisite `<x>` unmet" and use the manual table for that space.
-2. **Boot** `profile.dev_servers.servers[<space>].command` in the background; record the process id.
+2. **Boot** `profile.dev_servers.servers[<space>].command` in the background, every `{port}` in it replaced by that server's configured `port` — never run with the token unsubstituted (`docs-profile-schema.md`'s field rule); record the process id.
 3. **Readiness poll** — GET `http://localhost:<port><base_path>/` until HTTP 200 or `profile.dev_servers.readiness_timeout_seconds` seconds (fall back to **120** when absent). On timeout → stop the process, record "smoke-check skipped for `<space>`: not ready", use the manual table for that space.
 4. For each affected page in `<space>`, GET its derived URL (Step 3 route rule) → assert **HTTP 200**.
 5. **Stop the server** (kill the recorded process id) before the next space.

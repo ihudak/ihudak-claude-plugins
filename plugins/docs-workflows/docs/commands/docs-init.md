@@ -35,7 +35,7 @@ Every recognized flag is stripped from `$ARGUMENTS` before the remaining token i
 | 3 — Scaffold | Write the tree, the stubs, the generated navigation, both build configs, the visibility markers, and the CI workflow, resolving every substitution including the pinned Vale release. |
 | 4 — Vale | Create `.gitignore` or append the lines an existing one lacks; write `requirements-docs.txt` and `.vale.ini`, run `vale sync`, and seed the vocabulary with the product name and stub words. |
 | 5 — Branding | Run `/docs-brand --inline` on the new repo unless `--no-brand`. Its diff and contrast finding join this run's review and PR; if it cannot brand, the run continues as if `--no-brand` and says why. |
-| 6 — Profile | Write `.dev-workflows/docs-profile.yml`: the generator, both builds, both dev servers, the commands, and the structured images block. |
+| 6 — Profile | Write `.dev-workflows/docs-profile.yml`: the generator, both builds, both dev servers (each command carrying the `{port}` token), the commands, and the structured images block. |
 | 7 — Verify the scaffold | Public build strict, internal build strict, `vale docs/`, then the visibility gate against the **public build output** — in that order. |
 | 7.5 — Review gate | Dispatch `docs-scaffold-reviewer` at Opus over the written diff, triage its findings, and apply the survivors in the orchestrator. |
 | 8 — Finish | Commit on the branch and draft a pull-request message. Never pushes, never merges. |
@@ -57,7 +57,7 @@ Findings are triaged by the orchestrator before anything is applied: each is ver
 ## Outputs
 
 - **The scaffolded repository**, on a branch with one commit and a drafted pull-request message. Nothing is pushed and nothing is merged.
-- **`.dev-workflows/docs-profile.yml`** — the output the family's other docs-repo commands read: `/docs-serve` reads its `dev_servers` block, `/document` reads its content roots and commands, a standalone `/docs-brand` reads its branch-naming pattern, and the CI workflow's conditional image step is written against its `images.policy`. `/release-notes` reads no docs profile.
+- **`.dev-workflows/docs-profile.yml`** — the output the family's other docs-repo commands read: `/docs-serve` reads its `dev_servers` block — whose two commands carry `{port}` where a port would go, so `/docs-serve` can serve either build on another port after a collision or under `--port`, and every consumer substitutes the port it serves on — `/document` reads its content roots and commands, a standalone `/docs-brand` reads its branch-naming pattern, and the CI workflow's conditional image step is written against its `images.policy`. `/release-notes` reads no docs profile.
 - **A session cost entry and any feedback**, filed under `$SPECS_PATH/documentation/<docs-repo-slug>/` — per documentation repository rather than in the pending queue, because a documentation run frequently has no PRD and never will. See [Session cost](../reference/session-cost.md).
 
 ## Failure modes

@@ -29,18 +29,29 @@
 // carry. A mermaid fence inside a raw HTML block is outside it too, as it is outside any
 // CommonMark lexer.
 //
-// WHERE IT POINTS. A failure names the SOURCE-FILE line. mermaid numbers its errors from
-// its own preprocessed text, after it has removed frontmatter, %%{...}%% directives, whole-
-// line %% comments and leading whitespace (mermaid's preprocessDiagram); mapErrorLine
-// replays exactly those removals, so the line holds even in a diagram that uses them. Where
-// a line cannot be mapped, it says so and names the fence line rather than guessing.
+// WHERE IT POINTS. A failure names the SOURCE-FILE line, found by content rather than by
+// arithmetic. mermaid numbers its errors from text it has already rewritten -- it
+// preprocesses twice, removes frontmatter, directives, %% comments and leading whitespace,
+// and a diagram's own parser rewrites more (flowchart collapses a `}` followed by blank
+// lines) -- so its line number cannot be mapped back by replaying what it did: a replay is
+// never complete, and an incomplete one points confidently at the wrong line. What every
+// parse and lexical error does carry is the text around the failure with a caret under it.
+// locateError finds that text in the diagram, ignoring whitespace and the lines mermaid
+// never parses, and trusts it only where it occurs exactly once; otherwise it names the
+// fence line and says so. It never guesses.
+//
+// WHAT IS NOT A DEFECT. A fence that is never closed runs to the end of its container --
+// the end of the file at the top level, the end of the item inside a list -- and GitHub
+// draws what it holds. So an unclosed fence is not rejected for being unclosed; only its
+// content is judged. Where an unclosed top-level fence fails to parse, the report says the
+// diagram ran to the end of the file, since that is almost always why.
 //
 // THE VERSION PIN. GitHub does not publish the mermaid version it serves. The failure
 // above reproduced identically on mermaid 10.9.8, 11.17.2 and 12.0.0, so the pin is the
 // mature 11.x line. package.json pins exact versions and package-lock.json is committed,
 // so neither the parser nor the lexer can change under the gate between two runs; moving
 // either is an edit to package.json plus a regenerated lockfile, taken deliberately -- and
-// mapErrorLine's fixtures are what will say if a new mermaid preprocesses differently.
+// the selftest's line cases are what will say if a new mermaid changes the context it prints.
 //
 // SCOPE. Tracked markdown only (`git ls-files`), because a tracked file is what GitHub
 // renders -- which also leaves out every git worktree copy under the ignored .worktrees/.
@@ -84,28 +95,29 @@ const newlines = (s) => (s.match(/\n/g) || []).length;
 // it. GitHub takes a block's language from the first word of its info string.
 function extractBlocks(text) {
   const blocks = [];
-  const walk = (tokens, firstLine) => {
+  const walk = (tokens, firstLine, depth) => {
     let line = firstLine;
     for (const t of tokens) {
       if (t.type === 'code' && t.codeBlockStyle !== 'indented'
           && (t.lang ?? '').trim().split(/\s+/)[0] === 'mermaid') {
-        blocks.push({ fenceLine: line, src: t.text, unclosed: !closesItsFence(t.raw) });
+        // Inside a container, the container's end closes the fence: that is not a defect.
+        blocks.push({ fenceLine: line, src: t.text, runsToEof: depth === 0 && !closesItsFence(t.raw) });
       } else if (t.type === 'blockquote') {
-        walk(t.tokens, line);
+        walk(t.tokens, line, depth + 1);
       } else if (t.type === 'list') {
         let itemLine = line;
-        for (const item of t.items) { walk(item.tokens, itemLine); itemLine += newlines(item.raw); }
+        for (const item of t.items) { walk(item.tokens, itemLine, depth + 1); itemLine += newlines(item.raw); }
       }
       line += newlines(t.raw);
     }
   };
   // marked normalises CRLF and CR to LF itself; the selftest's CRLF case pins that.
-  walk(marked.lexer(text), 1);
+  walk(marked.lexer(text), 1, 0);
   return blocks;
 }
 
-// A fenced block that reaches the end of its container with no closing fence: CommonMark
-// runs it to the end, so GitHub draws the rest of the file as the diagram.
+// Whether a fenced block ends on a closing fence of its own. Used only to explain a failure:
+// CommonMark runs an unclosed top-level fence to the end of the file.
 function closesItsFence(raw) {
   const lines = raw.replace(/\n+$/, '').split('\n');
   const open = lines[0].trim().match(/^(`{3,}|~{3,})/);
@@ -114,31 +126,48 @@ function closesItsFence(raw) {
   return close.test(lines[lines.length - 1].trim());
 }
 
-// mermaid's preprocessDiagram, reproduced for its line-removing steps only (cleanupText's
-// attribute-quote rewrite never adds or removes a line). The regexes are mermaid 11.17.2's
-// own. Then match the surviving lines back to the block in order, comparing trimmed text,
-// since trimStart also strips the first survivor's indentation. Returns the 0-based index
-// of the block line mermaid called `n`, or null where no clean mapping exists.
+// The lines mermaid never parses, hidden before a search so a failure's context can be
+// found across them. These are mermaid 11.17.2's own frontmatter and directive regexes;
+// they only ever REMOVE text from the search, so an imperfect one can cost a match (and
+// fall back to the fence line), never produce a wrong line.
 const FRONTMATTER = /^([^\S\n\r]*)-{3}\s*[\n\r](.*?)[\n\r]\1-{3}\s*[\n\r]+/s;
 const DIRECTIVE = /%{2}{\s*(?:(\w+)\s*:|(\w+))\s*(?:(\w+)|((?:(?!}%{2}).|\r?\n)*))?\s*(?:}%{2})?/gi;
-function mapErrorLine(blockText, n) {
-  const original = blockText.replace(/\r\n?/g, '\n');
-  const fm = original.match(FRONTMATTER);
-  let code = fm ? original.slice(fm[0].length) : original;
-  code = code.replace(DIRECTIVE, '');
-  code = code.replace(/^\s*%%(?!{)[^\n]+\n?/gm, '').trimStart();
-  const survivors = code.split('\n');
-  const lines = original.split('\n');
-  if (n < 1 || n > survivors.length) return null;
-  let p = 0;
-  for (let k = 0; k < n; k++) {
-    const want = survivors[k].trim();
-    while (p < lines.length && lines[p].trim() !== want) p++;
-    if (p >= lines.length) return null;
-    if (k === n - 1) return p;
-    p++;
+const COMMENT_LINE = /^[ \t]*%%(?!{)[^\n]*$/gm;
+
+// Find where mermaid's error is, from the context it prints -- up to twenty characters
+// before the failure, a caret, and what follows, all with newlines removed. Returns
+// { line } (0-based, within the diagram) or { reason } where it declines: mermaid printed
+// no context, the context is not in the diagram, or it is there more than once. A caller
+// then names the fence line and the reason, instead of guessing.
+function locateError(blockText, message) {
+  const m = message.match(/^(?:Parse|Lexical) error on line \d+[^\n]*\n([^\n]*)\n(-*)\^/);
+  if (!m) return { reason: 'mermaid printed no location' };
+  let pre = m[1].slice(0, m[2].length);
+  let post = m[1].slice(m[2].length);
+  if (pre.startsWith('...')) pre = pre.slice(3);
+  if (post.endsWith('...')) post = post.slice(0, -3);
+  const norm = (x) => x.replace(/\s+/g, '').replace(/'/g, '"');
+  const needle = norm(pre + post);
+  const at = norm(pre).length;
+  if (needle.length < 6) return { reason: 'the failure\'s context is too short to pin' };
+  const text = blockText.replace(/\r\n?/g, '\n');
+  const hidden = new Uint8Array(text.length);
+  const fm = text.match(FRONTMATTER);
+  if (fm) hidden.fill(1, 0, fm[0].length);
+  for (const re of [DIRECTIVE, COMMENT_LINE]) {
+    for (const x of text.matchAll(re)) hidden.fill(1, x.index, x.index + x[0].length);
   }
-  return null;
+  let view = '';
+  const offsets = [];
+  for (let i = 0; i < text.length; i++) {
+    if (hidden[i] || /\s/.test(text[i])) continue;
+    view += text[i] === "'" ? '"' : text[i];
+    offsets.push(i);
+  }
+  const first = view.indexOf(needle);
+  if (first < 0) return { reason: 'the failure\'s context is not in the diagram' };
+  if (view.indexOf(needle, first + 1) >= 0) return { reason: 'the failure\'s context occurs more than once' };
+  return { line: newlines(text.slice(0, offsets[first + Math.min(at, needle.length - 1)])) };
 }
 
 // Check one set of files. Returns { blocks, failures }, each failure "file:line: message".
@@ -149,20 +178,16 @@ async function checkFiles(files, displayRoot) {
     const rel = path.relative(displayRoot, file);
     for (const b of extractBlocks(fs.readFileSync(file, 'utf8'))) {
       blocks++;
-      if (b.unclosed) {
-        failures.push(`${rel}:${b.fenceLine}: unclosed \`\`\`mermaid fence -- GitHub treats the rest of the file as the diagram`);
-        continue;
-      }
       try {
         await mermaid.parse(b.src);
       } catch (e) {
         const msg = String(e?.message ?? e);
         const detail = msg.split('\n').filter(Boolean).slice(0, 3).join(' | ');
-        const m = msg.match(/on line (\d+)/);
-        const idx = m ? mapErrorLine(b.src, Number(m[1])) : null;
-        failures.push(idx === null
-          ? `${rel}:${b.fenceLine}: (in the diagram opening here${m ? `; mermaid's line ${m[1]}` : ''}) ${detail}`
-          : `${rel}:${b.fenceLine + 1 + idx}: ${detail}`);
+        const at = locateError(b.src, msg);
+        const eof = b.runsToEof ? ' -- this fence is never closed, so the diagram runs to the end of the file' : '';
+        failures.push(at.line === undefined
+          ? `${rel}:${b.fenceLine}: (in the diagram opening here; ${at.reason}) ${detail}${eof}`
+          : `${rel}:${b.fenceLine + 1 + at.line}: ${detail}${eof}`);
       }
     }
   }
@@ -228,7 +253,7 @@ async function runRoot(root) {
 // everything, or finds nothing, cannot pass both halves.
 async function selftest() {
   let bad = 0;
-  const expect = async (desc, dirOrFiles, { exit, blocks, report, reason }) => {
+  const expect = async (desc, dirOrFiles, { exit, blocks, report, reason, includes, excludes }) => {
     const files = Array.isArray(dirOrFiles) ? dirOrFiles : walkMarkdown(path.join(FIXTURES, dirOrFiles));
     const root = path.dirname(files[0]);
     const r = await checkFiles(files, root);
@@ -239,6 +264,12 @@ async function selftest() {
     if (blocks !== undefined && r.blocks !== blocks) problems.push(`${r.blocks} blocks, want ${blocks}`);
     if (report && !r.failures.some((f) => f.startsWith(report))) {
       problems.push(`no failure reported at ${report} (got: ${r.failures.join(' ; ') || 'none'})`);
+    }
+    if (includes && !r.failures.some((f) => f.includes(includes))) {
+      problems.push(`no failure mentions "${includes}" (got: ${r.failures.join(' ; ') || 'none'})`);
+    }
+    if (excludes && r.failures.some((f) => f.includes(excludes))) {
+      problems.push(`a failure wrongly mentions "${excludes}" (got: ${r.failures.join(' ; ')})`);
     }
     if (problems.length) { bad++; console.log(`FAIL ${desc}: ${problems.join('; ')}`); }
     else console.log(`ok ${desc}`);
@@ -263,8 +294,14 @@ async function selftest() {
     'green-indented-code', { exit: 0, blocks: 1 });
   await expect('a tilde fence and an info string with trailing words are both diagrams',
     'green-tilde-and-info', { exit: 0, blocks: 2 });
-  await expect('an unclosed mermaid fence is rejected',
-    'red-unclosed', { exit: 1, blocks: 1, report: 'page.md:5: unclosed' });
+  await expect('an unclosed fence at the end of the file is still a diagram, and a valid one passes',
+    'green-unclosed-at-eof', { exit: 0, blocks: 1 });
+  await expect('a fence the next list item closes is a diagram, and a valid one passes',
+    'green-closed-by-list-item', { exit: 0, blocks: 1 });
+  await expect('an unclosed fence that swallows prose fails, and says it ran to the end of the file',
+    'red-unclosed-swallows-prose', { exit: 1, blocks: 1, includes: 'never closed' });
+  await expect('a broken fence its list item closes fails without claiming it ran to the end of the file',
+    'red-closed-by-list-item', { exit: 1, blocks: 1, report: 'page.md:5:', excludes: 'never closed' });
   await expect('a tree with no mermaid block fails the vacuity guard',
     'red-no-blocks', { exit: 1, blocks: 0, reason: 'vacuous' });
 
@@ -277,6 +314,37 @@ async function selftest() {
     'red-line-directive', { exit: 1, blocks: 1, report: 'page.md:8:' });
   await expect('the line holds past a leading blank line',
     'red-line-leading-blank', { exit: 1, blocks: 1, report: 'page.md:8:' });
+  await expect('the line holds past a decision node and a blank line, which flowchart collapses',
+    'red-line-decision-node', { exit: 1, blocks: 1, report: 'page.md:8:' });
+  await expect('the line holds past a shape node and two blank lines',
+    'red-line-shape-syntax', { exit: 1, blocks: 1, report: 'page.md:8:' });
+  await expect('the line holds when a comment sits directly above the failure',
+    'red-line-after-comment', { exit: 1, blocks: 1, report: 'page.md:7:' });
+  await expect('the line holds past a comment before frontmatter, which mermaid strips on a second pass',
+    'red-line-comment-before-frontmatter', { exit: 1, blocks: 1, report: 'page.md:11:' });
+  await expect('the line holds when mermaid rewrites an HTML attribute\'s quotes inside the context',
+    'red-line-html-attribute', { exit: 1, blocks: 1, report: 'page.md:6:' });
+  await expect('the line holds when the source writes single quotes inside the context',
+    'red-line-single-quotes', { exit: 1, blocks: 1, report: 'page.md:6:' });
+  await expect('a failure mermaid gives no location for names the fence line and says why',
+    'red-no-location', { exit: 1, blocks: 1, report: 'page.md:3: (in the diagram opening here; mermaid printed no location)' });
+
+  // locateError's refusals, driven directly: mermaid's ~40-character context almost never
+  // repeats in a real diagram, so no fixture reliably reaches these branches.
+  const unit = (desc, got, want) => {
+    const ok = JSON.stringify(got) === JSON.stringify(want);
+    if (!ok) { bad++; console.log(`FAIL ${desc}: got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`); }
+    else console.log(`ok ${desc}`);
+  };
+  const ctx = (c, col) => `Parse error on line 2:\n${c}\n${'-'.repeat(col)}^\nExpecting 'X', got 'Y'`;
+  unit('a context found exactly once pins its line',
+    locateError('flowchart TD\n    q -->|p [r]| s', ctx('...rt TD    q -->|p [r]| s', 18)), { line: 1 });
+  unit('a context found twice is refused, not guessed',
+    locateError('flowchart TD\n    q -->|p [r]| s\n    q -->|p [r]| s', ctx('q -->|p [r]| s', 8)),
+    { reason: 'the failure\'s context occurs more than once' });
+  unit('a context absent from the diagram is refused',
+    locateError('flowchart TD\n    a --> b', ctx('...nothing like this at all', 10)),
+    { reason: 'the failure\'s context is not in the diagram' });
 
   // CRLF is written here rather than committed, so no git line-ending setting can
   // normalise the case away before it runs.

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+### Fixed
+
+`skills/prose-style-rules/SKILL.md` and `commands/prose-style-refresh.md` both said `/prose-style-refresh` asks the skill for the baseline directory **because `${CLAUDE_PLUGIN_ROOT}` does not expand in a slash-command body**. That was verified false in a live run — the variable does expand there — and the marketplace's `CLAUDE.md` records the claim as retired. The mechanism is unchanged; the reason that holds is now the one both files state: the skill is where the baseline's location is written down together with the rule that nothing writes into it, so the one command that writes overlays takes the path from there rather than restating either.
+
 ## 0.3.0
 
 ### BREAKING

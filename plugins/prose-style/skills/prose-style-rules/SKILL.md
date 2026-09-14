@@ -29,10 +29,7 @@ fall-through — never an error, never a prompt.**
 ${CLAUDE_PLUGIN_ROOT}/references/
 ```
 
-This is also the path `/prose-style-refresh` asks this skill to resolve on its behalf,
-because `${CLAUDE_PLUGIN_ROOT}` does not expand in a slash-command body. When a caller
-asks for the baseline directory, hand back this expanded absolute path. It is read-only:
-nothing ever writes into it, because a plugin update replaces it.
+This is also the path `/prose-style-refresh` asks this skill to resolve on its behalf, so that the command takes the baseline's location from the file that states it together with the rule that nothing writes into it, rather than restating either. When a caller asks for the baseline directory, hand back this expanded absolute path. It is read-only: nothing ever writes into it, because a plugin update replaces it.
 
 **Overlay (read the first that resolves, then stop):**
 

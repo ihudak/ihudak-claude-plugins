@@ -44,13 +44,13 @@ flowchart TD
     createvi -->|PRD-level spec| specify
     specify -->|specification.md| design
     ready -. verifies ARD/spec/design .-> implement
-    brdsplitroot -->|each confirmed slice — claims are its [BR#n] rows| prdground
-    prdground -->|verified [CG#n]/[DG#n] — required before the walk| brdsplitslice
-    createvi -.->|optional — claims are the PRD's own [AC#n]/[FR#n]| prdground
+    brdsplitroot -->|"each confirmed slice — claims are its [BR#n] rows"| prdground
+    prdground -->|"verified [CG#n]/[DG#n] — required before the walk"| brdsplitslice
+    createvi -.->|"optional — claims are the PRD's own [AC#n]/[FR#n]"| prdground
     createvi -.->|optional — priced from whatever readiness the folder has reached| prdproposal
     prdproposal -->|each included slice's proposal.md| brdproposal
-    prdground -.->|verified [CG#n]/[DG#n]| createard
-    prdground -.->|verified [CG#n]/[DG#n]| specify
+    prdground -.->|"verified [CG#n]/[DG#n]"| createard
+    prdground -.->|"verified [CG#n]/[DG#n]"| specify
     brdpackage -->|bundle sent| brdreview
     brdreview -->|answers come back as one file| brdreconcile
     brdreconcile -.->|a decision reopened, or a question askable again| brdinterview

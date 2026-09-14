@@ -759,20 +759,28 @@ Offer it. Present this list **verbatim** — the "Choice lists are presented ver
 choices: ["Run smoke-check (Recommended)", "Skip — use the manual table only", "Cancel"]
 ```
 
-When run, boot each space in the **verification set** — every space whose `content_root` holds at least one affected page (see `render-verification.md` §2) — **sequentially** (`profile.dev_servers.concurrent: false` forbids overlap). Full mechanics in `render-verification.md`:
+When run, check each space in the **verification set** — every space whose `content_root` holds at least one affected page (see `render-verification.md` §2) — **one server at a time** (`profile.dev_servers.concurrent: false` forbids overlap). **Choose the server per affected page, never by the space alone** (`render-verification.md` §2): `dev_servers.servers[]` is not keyed by space, and the two-build profile `/docs-init` writes records two servers for its one space. Among the `servers[]` entries whose `space` is the space's `id`:
+- **one** — it checks every affected page in the space;
+- **one tagged `visibility: public` and one tagged `visibility: internal`** — a page is checked on the public server unless the public build excludes it, and then on the internal server; `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/visibility.md` §1 (**the model**) decides which pages the public build excludes;
+- **any other set of more than one** — nothing tells them apart, and a guessed server is a false result either way: record "smoke-check skipped for `<space>`: `<n>` servers share it and nothing tells them apart" and use the manual table for that space;
+- **none** — record "smoke-check skipped for `<space>`: no dev server is recorded for it" and use the manual table for that space.
+
+Boot a space's public server before its internal one, and skip a server no affected page was assigned to. For each server booted — full mechanics in `render-verification.md`:
 1. **Prerequisites (best-effort, never auto-applied).** Verify `profile.prerequisites`. The `.docstack` shim is a local, gitignored dev-environment workaround — check it, NEVER apply it. Unmet → record "smoke-check skipped for `<space>`: prerequisite `<x>` unmet" and use the manual table for that space.
-2. **Boot** `profile.dev_servers.servers[<space>].command` in the background, every `{port}` in it replaced by that server's configured `port` — never run with the token unsubstituted (`docs-profile-schema.md`'s field rule); record the process id.
-3. **Readiness poll** — GET `http://localhost:<port><base_path>/` until HTTP 200 or `profile.dev_servers.readiness_timeout_seconds` seconds (fall back to **120** when absent). On timeout → stop the process, record "smoke-check skipped for `<space>`: not ready", use the manual table for that space.
-4. For each affected page in `<space>`, GET its derived URL (Step 3 route rule) → assert **HTTP 200**.
-5. **Stop the server** (kill the recorded process id) before the next space.
+2. **Boot** the chosen server's `command` in the background, every `{port}` in it replaced by that server's configured `port` — never run with the token unsubstituted (`docs-profile-schema.md`'s field rule); record the process id.
+3. **Readiness poll** — GET `http://localhost:<port><base_path>/`, this server's own, until HTTP 200 or `profile.dev_servers.readiness_timeout_seconds` seconds (fall back to **120** when absent). On timeout → stop the process, record "smoke-check skipped for `<space>`: not ready", use the manual table for this server's pages.
+4. For each affected page assigned to this server, GET its derived URL (Step 3 route rule) → assert **HTTP 200**.
+5. **Stop the server** (kill the recorded process id) before the next one.
+
+Where a space has two servers, `<space>` in each record above names the server as well — `docs (internal)`.
 
 Outcomes:
 - **404/500** on an affected page = render defect → treat as a Step 1 content failure (offer `doc-fixer` / surface).
-- Any **boot / prerequisite / readiness** problem is best-effort → never blocks; that space falls back to the manual table.
+- Any **boot / prerequisite / readiness** problem is best-effort → never blocks; that space falls back to the manual table — on a space with two servers, that server's pages.
 
 ### Step 3 — "Pages to visit" table (always)
 
-Emit a table, one row per affected page — its URL (`http://localhost:<port><base_path>/<route>`, derived against its own space's dev server) and what to verify ("confirm the page renders as intended"). When the smoke-check ran, annotate each row ✅ 200 / ⚠️ skipped (reason) / ❌ failed.
+Emit a table, one row per affected page — its URL (`http://localhost:<port><base_path>/<route>`, derived against the server Step 2 chose for it; a page Step 2 chose no server for gets its route on each of its space's servers, or the route alone where the space records none) and what to verify ("confirm the page renders as intended"). When the smoke-check ran, annotate each row ✅ 200 / ⚠️ skipped (reason) / ❌ failed.
 
 **Route derivation (best-effort):** `<route>` = the page path relative to its space's `content_root` with a trailing `index.md`/`.md` removed. Approximate — a wrong route that 404s in Step 2 simply downgrades that page to the manual table.
 
@@ -789,8 +797,9 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
   `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5 predicts — convert per
   `gate-ledger.md` §5. When the user has just declined the Step 2 smoke-check, fold this conversion into that same decision rather than prompting twice — record `SKIPPED_BY_USER` carrying their Step 2 choice, since declining the only remaining source of build proof is declining the build check.
 - `render_smoke_check` — `RAN` when the smoke-check completed for every space in scope;
-  `DEGRADED` when at least one space fell back to the manual table, with `not_run:` naming the space
-  and its reason (prerequisite unmet / boot failure / readiness timeout);
+  `DEGRADED` when at least one space — or one server of a space with two — fell back to the manual
+  table, with `not_run:` naming the space (and the server) and its reason (prerequisite unmet / boot
+  failure / readiness timeout / servers nothing tells apart / no server recorded);
   `SKIPPED_BY_USER` with the chosen option quoted verbatim when the user selected Skip.
 
 ---
@@ -809,7 +818,7 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
   > doc-planner checklist:  [the full YAML from Phase 5.7]
   > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or prose-style-checker; same violation schema regardless of source]
   > gate_ledger:        [the complete gate_ledger block — one row per gate in references/gate-ledger.md §4, including the Phase 0 toolchain_preflight row]
-  > render_verification: [the Phase 6.5 summary — build result; smoke-check per space (passed / skipped with reason)]
+  > render_verification: [the Phase 6.5 summary — build result; smoke-check per space, and per server where a space has two (passed / skipped with reason)]
   > code_repos:         [the Phase-4 resolved {slug, path} map; [] if none resolved]
   > existing_image_decisions: [the Phase 5.6/6.1 stale-image-swap array, one entry per **reviewed occurrence** and each {target, occurrence, old_url, new_url, section, decision}. `[]` when the per-item existing-image review did not run — the existing-image list was empty, or the user chose "Add-list only" / "Nothing to do" at the Phase 5.6 merged prompt. An all-declined review is NOT `[]`: every reviewed occurrence appends an entry, `decision: declined` included. Supplies the swap-completeness evidence for the 'Screenshots' dimension]
   > profile:            [the resolved docs-profile from Phase 0 — supplies frontmatter.changelog_guidelines and spaces[]]"
@@ -1043,7 +1052,7 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 
 ### Render verification
 - Build: [ran — pass/fail | unverified (reason) | no build command in profile — boot served as the proof (does NOT apply to example-docs, which defines per-space build commands)]
-- Smoke-check: [per space — passed (N pages, HTTP 200) | skipped (reason)] OR "not run (user skipped)"
+- Smoke-check: [per space, and per server where a space has two — passed (N pages, HTTP 200) | skipped (reason)] OR "not run (user skipped)"
 - Pages to visit: [the Phase 6.5 Step 3 table]
 
 ### Doc review verdict

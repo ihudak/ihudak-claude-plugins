@@ -27,7 +27,8 @@ Run this **after profile resolution** — the profile is what names the commands
 de-duplicate by binary name.
 
 1. **The resolved profile.** Take the **first whitespace-separated token** of every `commands.*` value
-   (including every `commands.per_space.<space>.*` value) and every `dev_servers.servers[].command`.
+   (including every `commands.per_space.<space>.*` value), every `builds[].command`, and every
+   `dev_servers.servers[].command`.
    `"pnpm docs:lint"` ⇒ `pnpm`. Add every entry in `profile.prerequisites` as a named
    prerequisite (these are prose, not binaries — record them for reporting, and check them only when
    the prose names a checkable path or binary).
@@ -78,9 +79,11 @@ run's outcome before the run:
 | `node_modules` present | every gate the package manager powers |
 | `git` | `source_truth_verification` |
 
-Derive `required_by` from where the tool came from: a binary that appears only in
-`commands.per_space.<space>.build` powers `build_check`; one that appears in a `dev_servers` command
-powers `render_smoke_check`. A tool with an empty `required_by` is reported but never blocks.
+Derive `required_by` from where the tool came from: a binary that appears in a command `build_check`
+runs — a `builds[].command`, `commands.build`, or `commands.per_space.<space>.build`
+(`docs-profiles/render-verification.md` §1) — powers `build_check`; one that appears in a
+`dev_servers` command powers `render_smoke_check`. A tool with an empty `required_by` is reported but
+never blocks.
 
 ## 5. Reporting and the prompt
 

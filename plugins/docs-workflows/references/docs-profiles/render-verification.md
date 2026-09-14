@@ -11,18 +11,31 @@ not hard-code example-docs specifics.
 
 ## 1. Build vs boot
 
-Resolve the build command per space: `profile.commands.per_space.<space>.build` when the profile
-declares one for that space, else the flat `profile.commands.build`. Run it for every space in the
-**verification set** defined in §2 — every space whose `content_root` holds at least one affected
-page. For example-docs the two commands are `pnpm cloud:build` and `pnpm self-hosted:build` — both
-exist, and an earlier version of this file wrongly claimed the repo had only `commands.lint` and the
-`*:start` servers, which disabled this gate entirely.
+Resolve the builds to run, most specific first — the precedence `/docs-serve --build` already uses:
+
+1. **`profile.builds[]`, where the profile records it** — run **every** entry's `command`, in list
+   order. Those entries are the builds one content root renders into (`docs-profile-schema.md`'s
+   field rules): the profile `/docs-init` writes records a public and an internal build over its one
+   root, and an internal-only page is compiled by the internal build alone, so a check that ran one
+   of them would pass a page the other cannot build.
+2. **Otherwise, per space** — `profile.commands.per_space.<space>.build` when the profile declares
+   one for that space, else the flat `profile.commands.build`, run for every space in the
+   **verification set** defined in §2 — every space whose `content_root` holds at least one affected
+   page. For example-docs the two commands are `pnpm cloud:build` and `pnpm self-hosted:build` — both
+   exist, and an earlier version of this file wrongly claimed the repo had only `commands.lint` and
+   the `*:start` servers, which disabled this gate entirely.
+
+**Each build is recorded on its own**, named by its `builds[]` `id` — or, at rung 2, by its space —
+with its command, its exit code and, where it failed, its output. A failure therefore names the build
+that failed, and the `doc-fixer` loop a content failure triggers (`/document` Phase 6.5 Step 1) is
+handed that build's own output, never a merged log.
 
 Phase 6.5 does NOT re-run the prose linter — that is Phase 6.4's `docs-style-checker`.
 
-Only when a repo genuinely declares **no** build command at either level does the **dev-server boot
-become the build proof** — a server that boots and serves HTTP 200s proves the content compiled. That
-is a fallback for repos without a build, not a description of example-docs.
+Only when a repo genuinely declares **no** build command at any of the three levels — no `builds[]`,
+no `commands.per_space.<space>.build`, no `commands.build` — does the **dev-server boot become the
+build proof** — a server that boots and serves HTTP 200s proves the content compiled. That is a
+fallback for repos without a build, not a description of example-docs.
 
 ## 2. Sequential dev-server smoke-check
 
@@ -34,10 +47,12 @@ repo declaring one content root always yields one space; a repo declaring severa
 ones this run actually wrote into. A space that owns no affected page is neither built nor booted —
 nothing changed in it.
 
-This set governs **both** gates: §1's build check runs each of its spaces' build commands, and the
-smoke-check below boots, for each of them, the servers that publish its affected pages.
+This set governs **both** gates: §1's build check, on a profile that records no `builds[]`, runs each
+of its spaces' build commands (with `builds[]` it runs every entry, since they all render the one
+content root), and the smoke-check below boots, for each of them, the servers that publish its
+affected pages.
 
-The two operative consumers — `/document` Phase 6.5 Steps 1 and 2 — restate this set inline rather than citing it alone, and Step 2 restates the choice of server below the same way. That duplication is deliberate: those are instructions a model acts on in one pass, and it may not follow a cross-reference before deciding which servers to boot. Keep every restatement in sync with this definition and do not collapse them into a bare citation. Descriptive references elsewhere (`gate-ledger.md` §4's registry, `docs-profile-schema.md`'s field rules) cite this section and should stay short.
+The two operative consumers — `/document` Phase 6.5 Steps 1 and 2 — restate this set inline rather than citing it alone, Step 1 restates §1's choice of builds the same way, and Step 2 restates the choice of server below. That duplication is deliberate: those are instructions a model acts on in one pass, and it may not follow a cross-reference before deciding which servers to boot. Keep every restatement in sync with this definition and do not collapse them into a bare citation. Descriptive references elsewhere (`gate-ledger.md` §4's registry, `docs-profile-schema.md`'s field rules) cite this section and should stay short.
 
 **Which server checks a page.** `profile.dev_servers.servers[]` is a list, not a map keyed by space, and a
 space id does not identify a server: the two-build profile `/docs-init` writes records **two** servers

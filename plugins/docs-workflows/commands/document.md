@@ -104,8 +104,8 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
 7. **Toolchain preflight.** Execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against
    the resolved `docs_repo_path` and the profile loaded in step 4. Derive the required set from all
-   three sources (profile commands including `commands.per_space`, repo config signals, the repo's
-   documented `Prerequisites`), check each, and build the `toolchain` block.
+   three sources (profile commands including `commands.per_space` and `builds[]`, repo config
+   signals, the repo's documented `Prerequisites`), check each, and build the `toolchain` block.
 
    Initialize the run's `gate_ledger` (schema:
    `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3) and append its first row:
@@ -739,8 +739,12 @@ Run this phase after Phase 6.4 **only** when Phase 6.3 wrote files into a builda
 
 ### Step 1 — Build check (gating)
 
-Resolve the build command per space — `profile.commands.per_space.<space>.build`, else the flat `profile.commands.build` — and run it for every space in the **verification set** (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md` §2): every space whose `content_root` holds at least one affected page. Do NOT re-run the Phase 6.4 prose linter. Classify any failure:
-- **Content failure** (the template won't compile, unresolved snippet include, broken postid/internal link, malformed token) → invoke `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`; Severities: BLOCKER and MAJOR), then re-run the build once. If failures remain:
+Resolve the builds to run, most specific first (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md` §1 — the precedence `/docs-serve --build` uses):
+- **The profile records `builds[]`** → run **every** entry's `command`, in list order. They are the builds one content root renders into — the profile `/docs-init` writes records a public and an internal one — and an internal-only page is compiled by the internal build alone, so running one of them would pass a page the other cannot build.
+- **Otherwise** → `profile.commands.per_space.<space>.build`, else the flat `profile.commands.build`, run for every space in the **verification set** (`render-verification.md` §2): every space whose `content_root` holds at least one affected page.
+
+Record **each build on its own** — its `builds[]` `id` (or, without `builds[]`, its space), its command, its exit code and, on a failure, its output — so a failure names the build that failed. Do NOT re-run the Phase 6.4 prose linter. Classify each failing build:
+- **Content failure** (the template won't compile, unresolved snippet include, broken postid/internal link, malformed token) → invoke `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`; Severities: BLOCKER and MAJOR), handing it **the failing build's output** as its `Reviewer or style-checker output` — each failing build under its `id` (or space), with its command and its output verbatim, every error it reports a BLOCKER at the file it names — then re-run every build this step resolved, once. If failures remain:
   ```
   choices: ["Proceed to smoke-check anyway", "Show remaining and fix manually", "Cancel"]
   ```
@@ -750,7 +754,7 @@ Resolve the build command per space — `profile.commands.per_space.<space>.buil
   ```
   This is the `gate-ledger.md` §5 conversion for `build_check`, not an orchestrator decision: "Proceed without this check" writes `SKIPPED_BY_USER` with the chosen option quoted verbatim in `user_decision`. Do NOT present this list when the `build_check` row already carries a `user_decision` from Phase 0's preflight naming the same missing tool — the user answered this question before anything was written, and that answer stands. Record the failure reason in the row, keep the existing `user_decision`, and continue to Step 2 without prompting.
 
-When the profile declares **no** build command at either level, record "no build command in profile; build proof deferred to the dev-server boot (Step 2)" and proceed. Under the built-in example-docs profile this branch does not apply — `commands.per_space.cloud.build` and `commands.per_space.self-hosted.build` are both defined.
+When the profile declares **no** build command at any of the three levels — no `builds[]`, no `commands.per_space.<space>.build`, no `commands.build` — record "no build command in profile; build proof deferred to the dev-server boot (Step 2)" and proceed. Under the built-in example-docs profile this branch does not apply — `commands.per_space.cloud.build` and `commands.per_space.self-hosted.build` are both defined — and under a profile `/docs-init` wrote it does not either, since that profile records `builds[]`.
 
 ### Step 2 — Dev-server smoke-check (opt-in, best-effort)
 
@@ -790,7 +794,9 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
 
 - `build_check` — `RAN` when a build command executed; `DEGRADED` when no build command exists and the
   Step 2 boot served as the proof, with `ci_still_checks: "the repo's build runs on the PR in CI"`;
-  `FAILED` on a content failure. A row Step 1 already wrote as `SKIPPED_BY_USER` (its §5 conversion,
+  `FAILED` on a content failure. `mechanism` names every build Step 1 ran, each by its `id` (or space)
+  with its result — `public: pass; internal: fail` — so a `FAILED` row names the build that failed.
+  A row Step 1 already wrote as `SKIPPED_BY_USER` (its §5 conversion,
   when the build tool would not run and the user chose to proceed) is **final — do not rewrite it**.
   `UNAVAILABLE` applies only when the build could not be attempted AND Step 1 did not already convert
   it: no build command exists **and** Step 2 did not run. That is the coverage hole
@@ -818,7 +824,7 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
   > doc-planner checklist:  [the full YAML from Phase 5.7]
   > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or prose-style-checker; same violation schema regardless of source]
   > gate_ledger:        [the complete gate_ledger block — one row per gate in references/gate-ledger.md §4, including the Phase 0 toolchain_preflight row]
-  > render_verification: [the Phase 6.5 summary — build result; smoke-check per space, and per server where a space has two (passed / skipped with reason)]
+  > render_verification: [the Phase 6.5 summary — each build's result, named by its `id` (or space); smoke-check per space, and per server where a space has two (passed / skipped with reason)]
   > code_repos:         [the Phase-4 resolved {slug, path} map; [] if none resolved]
   > existing_image_decisions: [the Phase 5.6/6.1 stale-image-swap array, one entry per **reviewed occurrence** and each {target, occurrence, old_url, new_url, section, decision}. `[]` when the per-item existing-image review did not run — the existing-image list was empty, or the user chose "Add-list only" / "Nothing to do" at the Phase 5.6 merged prompt. An all-declined review is NOT `[]`: every reviewed occurrence appends an entry, `decision: declined` included. Supplies the swap-completeness evidence for the 'Screenshots' dimension]
   > profile:            [the resolved docs-profile from Phase 0 — supplies frontmatter.changelog_guidelines and spaces[]]"
@@ -1051,7 +1057,7 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 [One row per gate in the `gate_ledger`, in registry order (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE) — empty otherwise. When any row is DEGRADED, follow the table with a one-line warning naming what CI will check that this run did not.]
 
 ### Render verification
-- Build: [ran — pass/fail | unverified (reason) | no build command in profile — boot served as the proof (does NOT apply to example-docs, which defines per-space build commands)]
+- Build: [one entry per build Step 1 ran, named by its `id` (or space) — ran — pass/fail | unverified (reason)] OR "no build command in profile — boot served as the proof" (does NOT apply to example-docs, which defines per-space build commands)
 - Smoke-check: [per space, and per server where a space has two — passed (N pages, HTTP 200) | skipped (reason)] OR "not run (user skipped)"
 - Pages to visit: [the Phase 6.5 Step 3 table]
 

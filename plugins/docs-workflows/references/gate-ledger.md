@@ -72,7 +72,7 @@ So: **read a `findings` count as "what this run reported", never as "how many de
 | `source_truth_verification` | 5.8 | ≥1 entry in `code_repos` | claim-class verification per `workflows-core:source-truth` §2–§3 | one supplementary direct grep against the resolved local path |
 | `style_check` | 6.4 | ≥1 file written | the repo linter ladder **plus** `prose-style-checker` complementary | `prose-style-checker` alone |
 | `repo_checklist` | 6.4 | the repo publishes authoring/verification guidance | `repo_verification_gates` applied to the written files | none |
-| `build_check` | 6.5 S1 | write context is a buildable repo | `commands.per_space.<space>.build` for every space in the render verification set (`docs-profiles/render-verification.md` §2), else whole-repo `commands.build` | the Step 2 dev-server boot |
+| `build_check` | 6.5 S1 | write context is a buildable repo | every `builds[]` entry's `command` where the profile records `builds[]`; else `commands.per_space.<space>.build` for every space in the render verification set, else whole-repo `commands.build` (`docs-profiles/render-verification.md` §1–§2) | the Step 2 dev-server boot |
 | `render_smoke_check` | 6.5 S2 | buildable repo with ≥1 affected page | the dev server that publishes each affected page — one per page, never picked by space alone (`docs-profiles/render-verification.md` §2) | the manual pages-to-visit table |
 | `image_review` | 5.6 | ≥1 candidate image (to add or possibly-stale) | the two-list review with per-occurrence decisions | none |
 

@@ -27,11 +27,11 @@ The two outputs go to two deploy targets on **two hostnames**, rather than to on
 
 Both of these look like they should work. Neither does, and each one is why one of the gates below exists.
 
-### The dev server does not exclude
+### The dev server is not the build
 
-As of MkDocs 1.6, `exclude_docs` **does not apply to `mkdocs serve`**. Internal pages still render in the local preview, at their ordinary URLs.
+What the local preview (`mkdocs serve`) shows is not what the build ships, and how the two differ depends on the MkDocs version and on which exclusion key a config uses. The public build drops internal pages with `exclude_docs`: on MkDocs 1.6, which the scaffold's configs are written for, the preview drops them too and their URLs return 404, while up to MkDocs 1.5 it still rendered them at their ordinary URLs. A page named by `draft_docs` goes the other way — it renders in the preview while it is drafted, and never ships. And no version's preview can show the snippet leak described next, because the leaked text renders inside a public page like any other text on it.
 
-That is convenient while writing — you can read an internal page beside the public one — and it means **what you see locally is not what ships**. So: visibility is never confirmed by looking at the dev server. Not by browsing it, not by searching it, not by checking that a URL returns 404 in it. It is confirmed against built output only, which is the artefact that is actually deployed. `/docs-serve` boots that preview and says so where it does.
+So: visibility is never confirmed by looking at the dev server. Not by browsing it, not by searching it, not by checking that a URL returns 404 in it. It is confirmed against built output only, which is the artefact that is actually deployed — whatever a preview happens to show, **what you see locally is not what ships**.
 
 ### Snippets cross the boundary invisibly
 

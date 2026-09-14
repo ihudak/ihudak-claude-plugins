@@ -667,6 +667,8 @@ As of MkDocs 1.6, `exclude_docs` **does not apply to `mkdocs serve`**. Excluded 
 
 **Rule: visibility is never confirmed by looking at the dev server.** It is confirmed against built output only.
 
+As shipped, the first paragraph above holds only up to MkDocs 1.5, and `docs-workflows:docs-workflow/visibility` §2 corrects it under the title *the dev server is not the build*. On MkDocs 1.6, the version §9.1's configs are written for, `mkdocs serve` drops an `exclude_docs` page as the build does and its URL answers 404, while a `draft_docs` page renders under serve and never ships — so what the dev server shows depends on the version and the exclusion key, and no version's dev server can show §9.3's leak. The rule is unchanged, on a ground that holds on every version: the dev server is not the artefact that ships.
+
 ### 9.3 Trap 2 — snippets cross the boundary invisibly
 
 An internal snippet included into a public page leaks its **content** even though every file sits in the correct directory. A path-based rule cannot catch this, because no path is wrong.

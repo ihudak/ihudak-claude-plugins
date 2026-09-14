@@ -2,7 +2,7 @@
 
 Single source of truth for how public and internal documentation are separated, why the obvious ways of checking that separation do not work, and what CI asserts instead.
 
-Consumed by `/docs-init`, which writes the two build configs and the workflow in §6, and by `docs-scaffold-reviewer`, whose checklist asserts the relationship §4 describes. `/docs-serve` reads §2 — it is the command that boots the dev server this file warns about. §5 is also written for `/docs-write`, a later command: a page it writes under `internal/` is to carry the marker, or the gate cannot see it.
+Consumed by `/docs-init`, which writes the two build configs and the workflow in §6, by `docs-scaffold-reviewer`, whose checklist asserts the relationship §4 describes, and by `/document`'s render check, which reads §1 to decide which affected pages the public build excludes (`references/docs-profiles/render-verification.md` §2). §5 is also written for `/docs-write`, a later command: a page it writes under `internal/` is to carry the marker, or the gate cannot see it.
 
 Its entry points, so a command can say which part it is executing: **the model** (§1), **the traps** (§2 and §3), **the gates** (§4), and **the CI workflow** (§6).
 
@@ -31,15 +31,18 @@ One content root is what makes this worth doing at all. A second site would give
 
 ---
 
-## 2. Trap 1 — the dev server does not exclude
+## 2. Trap 1 — the dev server is not the build
 
-As of MkDocs 1.6, **`exclude_docs` does not apply to `mkdocs serve`.** Excluded pages still render locally, at their ordinary URLs, in the site you are looking at.
+What `mkdocs serve` shows is not what `mkdocs build` ships, and how the two differ depends on the MkDocs version and on which exclusion key a config uses:
 
-That is convenient for authoring — you can read an internal page while writing the public one beside it — and dangerous for verification: **what you see locally is not what ships.**
+- **`exclude_docs`** — the key §1's public build uses. On MkDocs 1.6, the version §1's configs are written for, `mkdocs serve` drops an excluded page as the build does, and its URL answers 404. Up to MkDocs 1.5 the dev server still rendered it, at its ordinary URL.
+- **`draft_docs`** (MkDocs 1.6+) — a page it names renders under `mkdocs serve` and is left out of `mkdocs build`: readable in the preview while it is drafted, and never shipped.
 
-**Rule: visibility is never confirmed by looking at the dev server.** Not by browsing it, not by searching it, not by checking that a URL 404s in it. It is confirmed against **built output** only — `site/`, produced by `mkdocs build`, which is the artefact that is actually deployed.
+And **no version's dev server can show §3's leak.** An internal snippet included into a public page renders inside that page wherever the page renders, so the preview shows an ordinary public page with nothing to mark what crossed.
 
-A run that reports "the internal page is not in the public site" on the strength of a dev-server observation has reported nothing. `/docs-serve` boots that server and says so where it does.
+**Rule: visibility is never confirmed by looking at the dev server.** Not by browsing it, not by searching it, not by checking that a URL 404s in it. It is confirmed against **built output** only — `site/`, produced by `mkdocs build`, which is the artefact that is actually deployed. The reason holds on every version: whatever a dev server happens to show, **what you see locally is not what ships.**
+
+A run that reports "the internal page is not in the public site" on the strength of a dev-server observation has reported nothing.
 
 ---
 

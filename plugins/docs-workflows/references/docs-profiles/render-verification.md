@@ -183,8 +183,8 @@ yet checked goes to the manual table. For each server:
    is a profile defect, and a server it moves out of the group — as `setsid` and `docker run -d`
    do — is one this check can neither stop nor see bind late. The job outlives the call, which
    returns as soon as the pid is printed. **Then confirm the group:** read `<pid>`'s process group
-   as **Portability** (below) reads one — from `/proc/<pid>/stat` on Linux, with `ps -o pgid= -p
-   <pid>` elsewhere — and it is `<pid>`, or nothing, where the job has already exited, and the id
+   as **Portability** (below) reads one — from `/proc/<pid>/stat` on Linux, with
+   `command ps -o pgid= -p <pid>` elsewhere — and it is `<pid>`, or nothing, where the job has already exited, and the id
    still names whatever of it survives. That `<pid>` is the `<pgid>` step 5 signals. Where it is any
    other number, job control gave the job no group of its own: hold the pid alone, and step 5 stops
    it by its path for a server without a group.
@@ -258,34 +258,49 @@ socket table and a working directory, and from `ps` for the rest. A host uses on
 mix, and a Linux host needs neither `lsof` nor `ps`: BusyBox's `ps`, the one Alpine ships, cannot
 select a process with `-p` at all, and nothing here reads `ss`.
 
+**Every utility in these reads runs as `command <name>`, and the socket read's `ls` as
+`QUOTING_STYLE=literal command ls` — both are load-bearing, so neither is to be simplified away.**
+Each read runs in the Bash tool's own shell, which carries the user's aliases and shell functions
+— Claude Code's shell snapshot re-applies them, with alias expansion on — and the environment the
+terminal that launched it exported. An `ls` alias carrying `-F` appends `=` to the link target,
+one carrying `--color=always` wraps it in escape sequences, `-Q` quotes it and `-L` prints no
+target at all, and an exported `QUOTING_STYLE` of `shell`, `shell-escape`, `shell-always` or `c`
+quotes it too: each leaves the target unequal to `socket:[<inode>]`, so the read names no process
+while `lsof` and `ss` name the listener, and nothing in its output says so. An alias on any other
+utility here changes what the read parses the same way. `command` skips aliases and shell
+functions — a POSIX utility, checked in bash, dash and BusyBox's `ash` — and the variable pins GNU
+`ls`'s quoting, which BusyBox's `ls` ignores.
+
 - **The processes holding a listening socket on `<port>`.** On Linux: the rows of `/proc/net/tcp`
   and `/proc/net/tcp6` in state `0A`, listening, whose local port — the four hex digits after the
   `:` of the second field — is `<port>`, each naming its socket's inode in the tenth field; then
   every process one of whose `/proc/<pid>/fd` links reads `socket:[<inode>]`. As one Bash call:
 
   ```
-  i=$(cat /proc/net/tcp /proc/net/tcp6 2>/dev/null | awk -v p="$(printf ':%04X' <port>)" '$4 == "0A" && substr($2, length($2) - 4) == p { printf "socket:[%s] ", $10 }')
-  [ -n "$i" ] && ls -l /proc/[0-9]*/fd/ 2>/dev/null | awk -v i="$i" 'BEGIN { n = split(i, s, " "); for (k = 1; k <= n; k++) w[s[k]] = 1 } /^\/proc\// { split($0, a, "/"); p = a[3] } ($NF in w) && !d[p]++ { print p }'
+  i=$(command cat /proc/net/tcp /proc/net/tcp6 2>/dev/null | command awk -v p="$(command printf ':%04X' <port>)" '$4 == "0A" && substr($2, length($2) - 4) == p { printf "socket:[%s] ", $10 }')
+  [ -n "$i" ] && QUOTING_STYLE=literal command ls -l /proc/[0-9]*/fd/ 2>/dev/null | command awk -v i="$i" 'BEGIN { n = split(i, s, " "); for (k = 1; k <= n; k++) w[s[k]] = 1 } /^\/proc\// { split($0, a, "/"); p = a[3] } ($NF in w) && !d[p]++ { print p }'
   ```
 
   It prints each pid once — an IPv4 and an IPv6 listener alike, and a process holding both. Elsewhere:
-  `lsof -t -iTCP:<port> -sTCP:LISTEN`. Either way, a socket another user's process holds is in the
+  `command lsof -t -iTCP:<port> -sTCP:LISTEN`. Either way, a socket another user's process holds is in the
   table but named by no process — its `fd` links cannot be read without root, and `lsof` shows no
   other user's process either — so the read prints nothing for it.
 - **A process's parent, and its process group.** On Linux: `/proc/<pid>/stat`, read after its
   **last** `)`, since the process name in parentheses before it may itself hold spaces or
-  parentheses — `sed 's/.*)//' /proc/<pid>/stat` prints the state, then the parent's pid, then the
-  process group, so `| awk '{ print $2 }'` reads the parent and `| awk '{ print $3 }'` the group.
-  Elsewhere: `ps -o ppid= -p <pid>` and `ps -o pgid= -p <pid>`. Both print nothing where the process
+  parentheses — `command sed 's/.*)//' /proc/<pid>/stat` prints the state, then the parent's pid,
+  then the process group, so `| command awk '{ print $2 }'` reads the parent and
+  `| command awk '{ print $3 }'` the group. Elsewhere: `command ps -o ppid= -p <pid>` and
+  `command ps -o pgid= -p <pid>`. Both print nothing where the process
   has exited.
 - **The states of a process group's members.** On Linux:
-  `cat /proc/[0-9]*/stat 2>/dev/null | sed 's/.*)//' | awk -v g=<pgid> '$3 == g { print $1 }'`, a
-  zombie's state being `Z`. Elsewhere: `ps -A -o pgid=,stat= | awk -v g=<pgid> '$1 == g { print $2 }'`,
-  a zombie's beginning `Z`.
-- **A process's command line.** On Linux: `tr '\0' ' ' < /proc/<pid>/cmdline`, its arguments with
-  their NUL separators turned into spaces. Elsewhere: `ps -o args= -p <pid>`.
+  `command cat /proc/[0-9]*/stat 2>/dev/null | command sed 's/.*)//' | command awk -v g=<pgid> '$3 == g { print $1 }'`,
+  a zombie's state being `Z`. Elsewhere:
+  `command ps -A -o pgid=,stat= | command awk -v g=<pgid> '$1 == g { print $2 }'`, a zombie's
+  beginning `Z`.
+- **A process's command line.** On Linux: `command tr '\0' ' ' < /proc/<pid>/cmdline`, its arguments
+  with their NUL separators turned into spaces. Elsewhere: `command ps -o args= -p <pid>`.
 - **A process's working directory.** On Linux: `/proc/<pid>/cwd`, a link to it that `git -C` takes
-  as it stands. Elsewhere: the path on the `n` line of `lsof -a -p <pid> -d cwd -Fn`.
+  as it stands. Elsewhere: the path on the `n` line of `command lsof -a -p <pid> -d cwd -Fn`.
 
 Never run two servers at once: the next server boots only once step 5 has confirmed the last one
 stopped. Where a space has two servers, every record this file names for `<space>` names the

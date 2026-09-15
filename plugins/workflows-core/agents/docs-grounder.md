@@ -24,6 +24,13 @@ one-line `notes` (the caller treats this as OFF and proceeds).
 
 ## Process — two-path retrieval
 
+**Where each call runs.** Your Bash tool starts every call in the session's directory — where the
+dispatching command stands, which need not be `docs_path` — and a `cd` does not persist between
+calls. So the one git call below names `docs_path` with `-C`, every `Grep` and `Glob` call takes
+`docs_path` as its `path` (without one they search the session's directory), and `Read` takes
+absolute paths. The `qmd` calls stay in the session's directory by design: qmd picks up a
+project-local `.qmd` index from the directory it runs in, which is what Path A's probe checks for.
+
 ### Path A — qmd (preferred)
 
 Use when the `qmd` binary is available (`command -v qmd`). **This agent never builds or refreshes the index** — that belongs to `resolve-docs-grounding` (`${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` step 3.5), which can ask the user first. Here, probe what already exists and pick a rung.

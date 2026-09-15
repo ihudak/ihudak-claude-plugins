@@ -118,12 +118,21 @@ An input that is not required is still honoured when given; it is never silently
 
 ## Process
 
+**Every command names the source it reads.** Your Bash tool starts every call in the session's
+directory — where `/prd-ground` stands, which need not be `repo_path` — and a `cd` does not persist
+between calls, so a bare `git` reads the session's repository, not the one the finding is pinned to.
+Write every command against the repository as `git -C "<repo_path>" …`, with an absolute path, or as
+a subshell `(cd "<repo_path>" && …)` inside one Bash call; give every `Grep` and `Glob` call
+`repo_path` or `frame_set_dir` as its `path`, since without one they search the session's directory
+too; and `Read` absolute paths.
+
 1. **Establish the source, per the row the Inputs table put this finding in.**
 
    - **`repo_path` is in play** (every code row, and a design-only finding that was handed one
      anyway): verify `repo_path` exists — `status: REPO_MISSING` if it does not — and re-run
      `baseline-integrity` (`workflows-core:grounding-format` §4) against `finding.commit` before re-deriving
-     anything: `rev-parse HEAD`, `diff --ignore-cr-at-eol --stat`, `status --porcelain`. On any
+     anything: `git -C "<repo_path>" rev-parse HEAD`, `git -C "<repo_path>" diff --ignore-cr-at-eol
+     --stat`, `git -C "<repo_path>" status --porcelain`. On any
      mismatch, return `status: COMMIT_MISMATCH` naming both the pinned commit and the resolved
      `HEAD`. A re-derivation against an unverified tree settles nothing.
    - **`frame_set_dir` is in play** (every `[DG#n]`): verify it exists — `status:

@@ -109,7 +109,7 @@ each server:
    step 5 of this same boot, and never recorded. On a timeout, stop the server as step 5 says — the
    signal, then the probe — and record "smoke-check skipped for `<space>`: not ready".
 4. For each affected page assigned to this server, GET its derived URL (§3): HTTP 200 passes, and
-   §5 says what a 404 and a 5xx record.
+   §5 gives a 404 and a 5xx their one disposition each.
 5. **Stop the server by its listener's pid** — or, where step 3 named no listener, by the pid step 2
    holds, where it holds one: `SIGTERM` it, wait up to 5 seconds for the port to stop answering, and
    `SIGKILL` the same pid if it still answers. **Then probe the port** — the probe, not the signal,
@@ -164,7 +164,8 @@ and each has exactly one disposition:
 - **404** — ❌ with its URL, and the page stays on the manual table. It is
   **never a content failure by itself** and never dispatches `doc-fixer`: §3's
   route is best-effort, so a 404 cannot tell a wrong route from a missing page,
-  and §1's build check — which runs every build — owns compile failures.
+  and §1's build check — which runs every build that compiles an affected page —
+  owns compile failures.
 - **5xx** — a render defect: a content failure, handled exactly as a build's
   content failure (`/document` Phase 6.5 Step 1), because a server error is not
   a routing question.

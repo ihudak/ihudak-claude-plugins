@@ -779,7 +779,7 @@ Boot a space's public server before its internal one, and skip a server no affec
 Where a space has two servers, `<space>` in each record above names the server as well — `docs (internal)`.
 
 Outcomes:
-- **404** on an affected page → ❌ with its URL, and the page stays on the manual table. **Never a content failure by itself, and never a `doc-fixer` dispatch**: the route is best-effort (Step 3), so a 404 cannot tell a wrong route from a missing page, and Step 1's build check — every build — owns compile failures.
+- **404** on an affected page → ❌ with its URL, and the page stays on the manual table. **Never a content failure by itself, and never a `doc-fixer` dispatch**: the route is best-effort (Step 3), so a 404 cannot tell a wrong route from a missing page, and Step 1's build check — every build that compiles an affected page — owns compile failures.
 - **5xx** on an affected page = render defect → treat as a Step 1 content failure (offer `doc-fixer` / surface): a server error is not a routing question.
 - Any **boot / prerequisite / readiness** problem is best-effort → never blocks; that space falls back to the manual table — on a space with two servers, that server's pages.
 - A port that **answers before its server boots, or still answers after the stop** (steps 2 and 5) ends the smoke-check → never blocks; every page not yet checked falls back to the manual table, and the record names the port left running.

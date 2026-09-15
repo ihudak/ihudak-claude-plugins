@@ -18,7 +18,7 @@ commit, and a PR draft. No linter ran and no server booted, so the documentation
 exists and CI is green, and nothing signals that anything went wrong. The failure is silent, and it is
 the run's own environment that caused it.
 
-That is knowable at Phase 0 for the cost of one `command -v` per tool. Without a preflight the run
+That is knowable at Phase 0 for the cost of one probe per tool (§3). Without a preflight the run
 discovers it one gate at a time, at Phase 6.4 and Phase 6.5, after the documentation is written.
 
 ## 2. Deriving the required set
@@ -34,8 +34,9 @@ de-duplicate by binary name.
    form `/docs-profile` records for a script found below the top level — ⇒ `pnpm`;
    `"NODE_ENV=production pnpm build"` ⇒ `pnpm`. The first token alone will not do: `cd` is a shell
    builtin, so `command -v cd` exits 0 on every host and every command it leads would read as
-   runnable. This is the one definition of a command's tool; `docs-profiles/render-verification.md`
-   §1 and `/document` Phase 6.5 Step 1 cite it. Where the profile records any
+   runnable. This is the one definition of a command's tool, and §3 says how each is tested;
+   `docs-profiles/render-verification.md` §1 and `/document` Phase 6.5 Step 1 cite both. Where the
+   profile records any
    `dev_servers.servers[]` entry, add `bash`, `curl` and `ps` too: the render smoke check that boots
    those servers starts and stops them under `bash`, probes their ports with `curl` and reads their
    process groups with `ps`, and cannot run without any of them
@@ -73,6 +74,18 @@ sources **2 and 3 only**. It anchored on cwd unconditionally until a live run sh
 ## 3. Checking
 
 - Binaries: `command -v <binary>` — present when exit 0.
+- **A tool containing `/` is a path, not a name** — `node_modules/.bin/vitepress`, a form a
+  profile may record for a dev-server command. `command -v` resolves a name containing `/` against
+  the directory it runs in, and that is the session's directory, which need not be the docs
+  repository (§6). So test such a tool with `test -x` on that path, taken relative to the directory
+  the command runs from — `repo_root`, where every command the profile records runs, or the
+  directory a leading `cd <dir>` (§2 source 1) names under it:
+  `node_modules/.bin/vitepress dev docs` ⇒ `test -x "<repo_root>/node_modules/.bin/vitepress"`, and
+  `cd website && node_modules/.bin/vitepress dev` ⇒
+  `test -x "<repo_root>/website/node_modules/.bin/vitepress"`. An absolute path is tested as it
+  stands. **Never test it with `command -v` from the working directory**: run from anywhere but the
+  directory the command runs from, it reports a present tool missing, and the preflight prompts on a
+  healthy container (§7).
 - Directory signals (`node_modules/`): `test -d`.
 - Never install anything. Never modify the repo. This step is read-only.
 
@@ -80,7 +93,7 @@ sources **2 and 3 only**. It anchored on cwd unconditionally until a live run sh
 
 ```yaml
 toolchain:
-  - tool: <binary name, or a directory signal such as "node_modules">
+  - tool: <binary name; for a tool containing "/", the path §3 tested; or a directory signal such as "node_modules">
     status: present | missing
     source: <profile.commands | profile.prerequisites | .vale.ini | pnpm-lock.yaml | CONTRIBUTING.md Prerequisites | …>
     required_by: [<gate ids from gate-ledger.md §4 whose primary mechanism runs this tool>]

@@ -36,10 +36,14 @@ handed that build's own output, never a merged log.
 
 Phase 6.5 does NOT re-run the prose linter — that is Phase 6.4's `docs-style-checker`.
 
-Only when a repo genuinely declares **no** build command at any of the three levels — no `builds[]`,
-no `commands.per_space.<space>.build`, no `commands.build` — does the **dev-server boot become the
-build proof** — a server that boots and serves HTTP 200s proves the content compiled. That is a
-fallback for repos without a build, not a description of example-docs.
+The **dev-server boot becomes the build proof** — a server that boots and serves HTTP 200s proves
+the content compiled — in two cases, and only there. One is a repo that genuinely declares **no**
+build command at any of the three levels — no `builds[]`, no `commands.per_space.<space>.build`, no
+`commands.build`. The other is a build whose tool is missing while the tools the boot needs are
+present — `bash`, `curl`, `ps` and the first token of a chosen server's command — which is
+`build_check`'s registered fallback running, recorded `DEGRADED` rather than skipped
+(`/document` Phase 6.5 Step 1). Either way it is a fallback, not a description of example-docs,
+which declares both builds and whose servers need the same `pnpm` as its builds.
 
 ## 2. Sequential dev-server smoke-check
 

@@ -756,17 +756,19 @@ Run each from `docs_repo_path`, the top level every command the profile records 
   ```
   choices: ["Proceed to smoke-check anyway", "Show remaining and fix manually", "Cancel"]
   ```
-- **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason; no `doc-fixer` loop:
-  ```
-  choices: ["Install <the missing tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run"]
-  ```
-  This is the `gate-ledger.md` §5 conversion for `build_check`, not an orchestrator decision: "Proceed without this check" writes `SKIPPED_BY_USER` with the chosen option quoted verbatim in `user_decision`. Do NOT present this list when the `build_check` row already carries a `user_decision` from Phase 0's preflight naming the same missing tool — the user answered this question before anything was written, and that answer stands. Record the failure reason in the row, keep the existing `user_decision`, and continue to Step 2 without prompting.
+- **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason and record the build as not run, with that reason; no `doc-fixer` loop. **Then test the registered fallback before anything is asked.** `build_check`'s fallback is the Step 2 dev-server boot (`gate-ledger.md` §4), and `UNAVAILABLE` means that neither the primary nor its fallback ran (`gate-ledger.md` §2), so a missing build tool alone does not make the gate `UNAVAILABLE`. The fallback can run where `command -v` finds `bash`, `curl` and `ps` — the smoke check's own tools — and the first token of the `command` of at least one server Step 2 would boot for an affected page, chosen as Step 2 chooses it.
+  - **The fallback can run** → ask nothing here and continue to Step 2, whose boot is now this gate's build proof; Ledger (final) records `build_check` from what Step 2 does. A `user_decision` Phase 0's preflight left on the row stays on it.
+  - **The fallback cannot run** → neither the build nor its fallback can run, so the gate is `UNAVAILABLE`, and this is its `gate-ledger.md` §5 conversion, not an orchestrator decision:
+    ```
+    choices: ["Install <the missing tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run"]
+    ```
+    "Proceed without this check" writes `SKIPPED_BY_USER` with the chosen option quoted verbatim in `user_decision`. Do NOT present this list when the `build_check` row already carries a `user_decision` from Phase 0's preflight naming the same missing tool — the user answered this question before anything was written, and that answer stands. Record the failure reason in the row, keep the existing `user_decision`, and continue to Step 2 without prompting.
 
 When the profile declares **no** build command at any of the three levels — no `builds[]`, no `commands.per_space.<space>.build`, no `commands.build` — record "no build command in profile; build proof deferred to the dev-server boot (Step 2)" and proceed. Under the built-in example-docs profile this branch does not apply — `commands.per_space.cloud.build` and `commands.per_space.self-hosted.build` are both defined — and under a profile `/docs-init` wrote it does not either, since that profile records `builds[]`.
 
 ### Step 2 — Dev-server smoke-check (opt-in, best-effort)
 
-Offer it. Present this list **verbatim** — the "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules` forbids moving `(Recommended)`, reordering the options, or re-wording them. Dev-server flakiness and a clean static check are reasons to say something in prose beside the list; they are never reasons to recommend Skip.
+Offer it. Present this list **verbatim** — the "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules` forbids moving `(Recommended)`, reordering the options, or re-wording them. Dev-server flakiness and a clean static check are reasons to say something in prose beside the list; they are never reasons to recommend Skip. Where Step 1 could not run a build — the profile records none, or a build's tool is missing and the fallback can run — say so beside the list too: the boot is then the only proof for what that build compiles, so Skip declines the build check with it (Ledger (final)).
 ```
 choices: ["Run smoke-check (Recommended)", "Skip — use the manual table only", "Cancel"]
 ```
@@ -803,16 +805,25 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
 
 **Ledger (final).** Rewrite the two rows appended at the top of this phase (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3). A row already written as `NOT_APPLICABLE` is never reached here — this phase did not run:
 
-- `build_check` — `RAN` when a build command executed; `DEGRADED` when no build command exists and the
-  Step 2 boot served as the proof, with `ci_still_checks: "the repo's build runs on the PR in CI"`;
-  `FAILED` on a content failure. `mechanism` names every build Step 1 ran, each by its `id` (or space)
-  with its result — `public: pass; internal: fail` — so a `FAILED` row names the build that failed.
-  A row Step 1 already wrote as `SKIPPED_BY_USER` (its §5 conversion,
-  when the build tool would not run and the user chose to proceed) is **final — do not rewrite it**.
-  `UNAVAILABLE` applies only when the build could not be attempted AND Step 1 did not already convert
-  it: no build command exists **and** Step 2 did not run. That is the coverage hole
-  `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5 predicts — convert per
-  `gate-ledger.md` §5. When the user has just declined the Step 2 smoke-check, fold this conversion into that same decision rather than prompting twice — record `SKIPPED_BY_USER` carrying their Step 2 choice, since declining the only remaining source of build proof is declining the build check.
+- `build_check` — `RAN` when every build Step 1 resolved executed; `FAILED` on a content failure.
+  `mechanism` names every build Step 1 ran, each by its `id` (or space) with its result —
+  `public: pass; internal: fail` — so a `FAILED` row names the build that failed.
+  `DEGRADED` when a build did not run — the profile records no build command, or Step 1 found its
+  tool missing and the fallback able to run — and the Step 2 boot served as the proof: a server it
+  booted answered its readiness poll with a 200, which proves the content compiled
+  (`render-verification.md` §1). `not_run:` names each build that did not run and why
+  (`no build command in profile`, or `<tool> is not installed`), and `ci_still_checks:` names the
+  build CI runs on the pull request, or says that none runs where the repository has no CI build.
+  A `user_decision` Phase 0's preflight left on the row stays on it.
+  A row Step 1 leaves as `SKIPPED_BY_USER` — its §5 conversion, when neither the build nor its
+  fallback could run and the user chose to proceed, or the preflight's decision on that same missing
+  tool, which Step 1 kept — is **final — do not rewrite it**.
+  `UNAVAILABLE` applies only when a build did not run, Step 1 did not already convert it, and the
+  Step 2 boot did not serve as the proof — Step 2 did not run, or ran and no server it booted became
+  ready. That is the coverage hole `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5
+  predicts — convert per `gate-ledger.md` §5, except where the row carries Phase 0's decision on the
+  same missing tool: that decision stands, as it does in Step 1, and the row records
+  `SKIPPED_BY_USER` with it. When the user has just declined the Step 2 smoke-check, fold this conversion into that same decision rather than prompting twice — record `SKIPPED_BY_USER` carrying their Step 2 choice, since declining the only remaining source of build proof is declining the build check.
 - `render_smoke_check` — `RAN` when the smoke-check completed for every space in scope — a 404 does
   not change that, since the page's server booted and was checked and the 404 is no content failure:
   `findings:` counts the affected pages annotated ❌, each already surfaced with its URL; `FAILED`
@@ -1082,7 +1093,7 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 [One row per gate in the `gate_ledger`, in registry order (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE) — empty otherwise. When any row is DEGRADED, follow the table with a one-line warning naming what CI will check that this run did not.]
 
 ### Render verification
-- Build: [one entry per build Step 1 ran, named by its `id` (or space) — ran — pass/fail | unverified (reason)] OR "no build command in profile — boot served as the proof" (does NOT apply to example-docs, which defines per-space build commands)
+- Build: [one entry per build Step 1 resolved, named by its `id` (or space) — ran — pass/fail | not run (`<tool>` is not installed) — boot served as the proof | unverified (reason)] OR "no build command in profile — boot served as the proof" (does NOT apply to example-docs, which defines per-space build commands)
 - Smoke-check: [per space, and per server where a space has two — passed (N pages, HTTP 200) | skipped (reason) | stopped (reason — the port or process group left running, and its command); then every ❌ page with its URL — 404: on the manual table | 5xx: render defect] OR "not run (user skipped)"
 - Pages to visit: [the Phase 6.5 Step 3 table]
 

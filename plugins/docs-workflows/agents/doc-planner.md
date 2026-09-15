@@ -107,7 +107,7 @@ For each write target:
    - "Feature is mentioned in the PRD goal but no PR was merged yet; only PRD content is available."
 
    For each gap, set a `recommended_action`:
-   - `"ask user"` — the caller prompts inline before approval, and re-invokes you once with the answers as `gap_resolution`. Plan from each answer as from any other input, and do not return a gap it answers.
+   - `"ask user"` — the caller prompts inline before approval, and re-invokes you once with the answers as `gap_resolution`. Plan from each answer as from any other input, and do not return a gap it answers. A gap the user declined has no entry there, so you return it again as `"ask user"`; the caller keeps the fallback it chose on the decline, `"mark TODO in draft"`, and does not ask about it again.
    - `"mark TODO in draft"` — the writer emits a `<!-- TODO: … -->` marker in the output.
    - `"skip with note in final report"` — the gap is recorded in the Phase 9 `### Skipped items` section.
 

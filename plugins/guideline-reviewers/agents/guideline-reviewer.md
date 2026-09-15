@@ -137,10 +137,10 @@ in it. Your Bash tool starts every call in the session's directory, which need n
 repository, and a `cd` does not persist between calls — while `npx --no-install` (or, under Yarn
 Plug'n'Play, `yarn`) finds ESLint, and ESLint finds its config, from the directory it runs in — so run every command below for a
 partition as one subshell, `(builtin cd "<the partition's directory>" >/dev/null && …)`, inside a
-single Bash call, naming that partition's files by absolute path — `builtin cd`, its output discarded,
-since your Bash tool's shell carries the user's shell functions and aliases, and a `cd` of theirs
-would otherwise run in its place and could print into what you read. Merge what the partitions report into one set of
-findings, each keyed by its file.
+single Bash call, naming that partition's files by absolute path — `builtin cd`, its output
+discarded, since your Bash tool's shell carries the user's shell functions and aliases, and a `cd`
+of theirs would otherwise run in its place and could print into what you read. Merge what the
+partitions report into one set of findings, each keyed by its file.
 
 **1. Static linter — `eslint-plugin-jsx-a11y`** (the useful case: it checks source)
 

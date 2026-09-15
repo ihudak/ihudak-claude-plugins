@@ -20,8 +20,15 @@ breaking change / feature update / fix is universal, and every rule below about 
 deprecation applies to a section exactly as it applied to a file. Only *where a draft lands* changed.
 
 **The release version is the heading those three sit under**, because in one file nothing else says
-which release a section belongs to. A run whose version the operator declined files under
-`## Unreleased`.
+which release a section belongs to — and it sits **one level above them**, `# <version>`, since
+each section is `## …` and each titled draft opens with its own `### <feature title>` (§3). Those
+three levels are the file's whole outline, and they are what `/release-notes` Phase 8 appends by: a
+version's part of the file runs from its `#` heading to the next `#` heading, and a section runs from
+its `##` heading to the next `##` or `#` heading, so a draft appended at the end of its section, or a
+section at the end of its version's part, never lands inside the next. A version at the sections'
+own level would end at the first section, and a section at the drafts' title level at the first
+draft. A run whose version the operator declined files under `# Unreleased`. The file's title,
+`# Release notes — <KEY> <slug>`, is its first line and names no version.
 
 
 The Change Type selects the **section** of that one file:

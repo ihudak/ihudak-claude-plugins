@@ -51,7 +51,7 @@ Three subagents are dispatched: `workflows-core:docs-grounder` (Phase 5.5, read-
 
 ## What it produces
 
-**Where it lands.** `release-notes.md` in the resolved PRD folder, appended as a section: the Change Type selects `## Breaking changes`, `## Feature updates` or `## Fixes`, and those sit under a heading for the release version (`--version <v>`, else asked; `## Unreleased` when declined). The three former destination *files* are those three sections — the taxonomy is unchanged, only where a draft lands.
+**Where it lands.** `release-notes.md` in the resolved PRD folder, appended as a section: the Change Type selects `## Breaking changes`, `## Feature updates` or `## Fixes`, and those sit under a heading for the release version one level above them (`--version <v>`, else asked; `# Unreleased` when declined), each titled draft's `### title` sitting below its section. The three former destination *files* are those three sections — the taxonomy is unchanged, only where a draft lands.
 
 **The authored body only** — never an identifier, a PR link, a `Change type:` line, or a `{{#internal-note}}` block, since the docs automation adds that metadata wrapper when it publishes. For a titled destination (`## Feature updates` / `## Breaking changes`) that's the category label (the PRD's own `release_notes_category`, used verbatim, or omitted entirely when the PRD carries none), an `### title`, and customer-facing prose; under `## Fixes` it's **one bare past-tense sentence**, with no label and no title. Exactly **one** Summary is ever produced per run — never one block per declared release version — and no title or prose in it ever names the release version itself; the version is a separate field the PM sets.
 

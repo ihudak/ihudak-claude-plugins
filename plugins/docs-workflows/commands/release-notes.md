@@ -85,19 +85,29 @@ run — the terminal `commit-artifacts` step skips on it.
   The taxonomy is unchanged and `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` remains its
   authority — only where a draft lands changed.
 
-  **The release version is the section heading**, under which those three sit:
+  **The release version is the heading those three sit under, one level above them** —
+  `release-note-types.md` §1 fixes the three levels, and Phase 8 appends by them:
 
   ```markdown
   # Release notes — ACME-77 billing
 
-  ## 1.24.0
+  # 1.24.0
 
-  ### Feature updates
-  …
+  ## Feature updates
+
+  **Category:** Capability
+
+  ### <feature title>
+
+  <prose>
+
+  ## Fixes
+
+  Fixed an issue where …
   ```
 
   Exactly one Summary per run, appended under the resolved version and type. A run whose version the
-  operator declined appends under `## Unreleased`.
+  operator declined appends under `# Unreleased`.
 
   **NEVER write into a docs repo, a code repo, or the current working directory.** The PRD
   folder is in `$SPECS_PATH`, which is where the terminal `commit-artifacts` step commits it with the
@@ -307,7 +317,7 @@ Then read the scratch file back as `combined_rendered`, and remove it.
 
 ## Phase 8 — Write + report
 
-1. **Append** the `combined_rendered` draft to `release-notes.md` in the resolved PRD folder — the one destination Phase 1 derives, laid out as Phase 1 lays it out. Where the file does not exist, create it with its `# Release notes — <KEY> <slug>` title. Where it has no heading for the version this draft is filed under (Phase 1: the resolved version, or `## Unreleased`), add that heading at the end of the file; where that version has no section for the draft's Change Type, add the section at the end of that version's part of the file; then add the draft at the end of that section. **The append is the whole write**: nothing already in the file is rewritten, reordered or removed, since every earlier section is an earlier run's note, so there is no question to ask and no option that replaces the file. NEVER write into a docs repo.
+1. **Append** the `combined_rendered` draft to `release-notes.md` in the resolved PRD folder — the one destination Phase 1 derives, laid out as Phase 1 lays it out. Where the file does not exist, create it with its `# Release notes — <KEY> <slug>` title. Where it has no `#` heading for the version this draft is filed under (Phase 1: the resolved version, or `# Unreleased`), add that heading at the end of the file; where that version has no `##` section for the draft's Change Type, add the section at the end of that version's part of the file, which runs to the next `#` heading; then add the draft at the end of that section, which runs to the next `##` or `#` heading. Those are the levels `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1 fixes, and they are why the append lands where it should: a draft's own `### <feature title>` sits below its section, so it never ends one. **The append is the whole write**: nothing already in the file is rewritten, reordered or removed, since every earlier section is an earlier run's note, so there is no question to ask and no option that replaces the file. NEVER write into a docs repo.
 
 2. **Report:**
    ```

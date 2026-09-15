@@ -134,7 +134,8 @@ never `UNAVAILABLE`, since the manual table is that gate's registered fallback (
 and needs no tool. A probe that exits 127 anyway, part-way through, ends the check the same way:
 boot no further server, signal the process group of one this run already booted as step 5 does
 (its signals need neither `curl` nor `ps`), record "smoke-check unavailable: curl could not run
-(exit 127) — `<space>`'s server was signalled, and its port could not be probed", and every page not
+(exit 127) — `<space>`'s server was signalled, and its port could not be probed; its log is
+`<log>`", and every page not
 yet checked goes to the manual table. For each server:
 
 1. Verify prerequisites (§4) — best-effort, never applied. **Then check the server's command's
@@ -198,8 +199,8 @@ yet checked goes to the manual table. For each server:
    port answering — a theme that is not installed, a configuration it cannot load, a script its
    package does not have — and nothing of its group is left to bind the port later, so the check
    never waits out the timeout for it. Record "smoke-check skipped for `<space>`: its server exited
-   before it was ready — its command was `<command>`", with the last twenty lines of `<log>` and the
-   log's path; its pages fall back to the manual table (§5). Then probe the port as step 5 confirms
+   before it was ready — its command was `<command>`", with the last twenty lines of `<log>`; its
+   pages fall back to the manual table (§5). Then probe the port as step 5 confirms
    a stop — the group being gone already, the probe decides: quiet, the check goes on to the next
    server; still answering, a process outside the group holds it, and step 5's **Either not
    confirmed** applies. Where step 2 holds no `<pgid>`, the poll has no group to test and runs to
@@ -210,7 +211,8 @@ yet checked goes to the manual table. For each server:
    of its own ends the check on a timeout**, because nothing can tell whether a process of it will
    bind the port after the check has moved on: stop what the run holds as step 5 says, then **boot no
    further server** — record "smoke-check stopped at `<space>`: not ready, and started without a
-   process group of its own — port `<port>` may still bind; its command was `<command>`", and every
+   process group of its own — port `<port>` may still bind; its command was `<command>`, its log
+   `<log>`", and every
    page not yet checked falls back to the manual table (§5).
 4. For each affected page assigned to this server, GET its derived URL (§3): HTTP 200 passes, and
    §5 gives a 404 and a 5xx their one disposition each.
@@ -241,7 +243,8 @@ yet checked goes to the manual table. For each server:
       judges a pid recorded in a state file: this command keeps none, and the pid it reads here is
       used once, by this stop, and never recorded. Where either is still not confirmed, **boot no
       further server**: record "smoke-check stopped after `<space>`: `<what>` — left running; its
-      command was `<command>`", where `<what>` is "port `<port>` still answers", with the listener's
+      command was `<command>`, its log `<log>`", where `<what>` is "port `<port>` still answers",
+      with the listener's
       pid where the socket table names one, or "process group `<pgid>` still runs", and every page
       not yet checked falls back to the manual table (§5).
 
@@ -253,6 +256,15 @@ yet checked goes to the manual table. For each server:
 
    A missing `lsof` alone never ends the check. What ends it is a port that answers when it
    should be silent — before a boot (step 2) or after the stop — a group that will not go, a
+   **A server's `<log>` goes once the server is confirmed stopped.** Wherever step 5's two things
+   are confirmed — after its pages, after a readiness timeout, or after step 3 found its group gone
+   — and wherever a server without a group of its own is stopped with its port quiet and no timeout
+   behind it, remove its log with `command rm -f -- "<log>"`, once any record has quoted what it
+   needs from it: nothing else would remove it, and `command` keeps an `rm` alias or function of the
+   user's out of it (**Portability**). A server the check cannot show stopped — one it leaves
+   running, one without a group of its own that timed out, or one it signalled when `curl` could not
+   run — keeps its log, and the record that ends the check names it.
+
    readiness timeout on a server without a group of its own (step 3), or a probe that cannot run
    (above).
 

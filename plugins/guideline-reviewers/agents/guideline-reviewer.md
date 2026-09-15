@@ -94,10 +94,10 @@ severity policy, and its exceptions. Wrapping the repo's own configuration means
 that rule set, as ESLint resolves it from each file's package directory (below), so a finding here
 is one the repository's own rules raise; re-encoding the rule set here would duplicate the
 canonical source and drift from it. It is not a guarantee that CI reports the same: CI reports the
-same findings only where it lints those files from the same directory, or under the same
-configuration, with the same ESLint and plugin versions — a CI job that lints a monorepo from its
-top level reads the configuration ESLint resolves there, not the one a package keeps for itself —
-and a repository may run no linter in CI at all. This mirrors how `docs-style-checker` wraps a docs
+same findings where it lints those files from the same directory, or under the same
+configuration, with the same ESLint and plugin versions, and can report others where it does not
+— a CI job that lints a monorepo from its top level reads the configuration ESLint resolves there,
+not the one a package keeps for itself — and a repository may run no linter in CI at all. This mirrors how `docs-style-checker` wraps a docs
 repo's own Vale rather than embedding a style guide.
 
 ### What can and cannot run here — state this accurately

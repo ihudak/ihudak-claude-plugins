@@ -142,14 +142,14 @@ yet checked goes to the manual table. For each server:
    before it starts a server (its Phase 4), and the one §1 makes for a failed build's own servers.
    **A package manager whose dependencies are not installed counts as missing too**, since a server
    run through it fails as completely as one whose tool is absent; `/docs-serve` Phase 4 and
-   `/document` Phase 6.5 Step 2 cite this step for the rule. Where the tool is `pnpm`, `npm` or `yarn`, find its
-   lockfile — `pnpm-lock.yaml`, `package-lock.json` or `yarn.lock` — in the directory the command
-   runs from or the nearest directory above it that holds one, up to `<docs_repo_path>`. Where one
-   is found with no `node_modules/` beside it, and, for `yarn.lock`, no `.pnp.cjs` beside it either
-   — a Yarn Plug'n'Play install keeps that file instead of `node_modules/` — the tool counts as
-   missing. Where no lockfile is found, only the tool itself is tested. That is
-   `toolchain-preflight.md` §2 source 2's installed-dependencies signal, which its §5 counts the
-   same way for `build_check`'s fallback. Where the tool is missing, boot nothing for this server:
+   `/document` Phase 6.5 Step 2 cite this step for the rule. Where the tool is `pnpm`, `npm` or
+   `yarn`, find its lockfile — `pnpm-lock.yaml`, `package-lock.json` or `yarn.lock` — in the
+   directory the command runs from or the nearest directory above it that holds one, up to
+   `<docs_repo_path>`. Where one is found with no `node_modules/` beside it, and, for `yarn.lock`, no
+   `.pnp.cjs` beside it either — a Yarn Plug'n'Play install keeps that file instead of
+   `node_modules/` — the tool counts as missing. Where no lockfile is found, only the tool itself is
+   tested. That is `toolchain-preflight.md` §2 source 2's installed-dependencies signal, which its §5
+   also counts for `build_check`'s fallback. Where the tool is missing, boot nothing for this server:
    record "smoke-check skipped for `<space>`: `<tool>` is not installed" — or, where its
    dependencies are what is missing, "smoke-check skipped for `<space>`: `<tool>`'s dependencies
    are not installed (`<lockfile>` has none beside it)" — its pages fall back to the manual table
@@ -252,7 +252,7 @@ in forms BSD's tools document as well as GNU's.
 **Every read of the process or socket table has one source per operating system, defined here** —
 this check's, and `/docs-serve`'s, which cites this paragraph for each of them. **On Linux** —
 wherever `test -r /proc/net/tcp` succeeds — every read comes from the kernel's own tables under
-`/proc`, which need no tool beyond the shell's own `cat`, `sed`, `awk`, `ls` and `tr`, and no root
+`/proc`, which need no tool beyond the standard utilities `cat`, `sed`, `awk`, `ls` and `tr`, and no root
 for this user's own processes. **Anywhere else** — macOS ships both — they come from `lsof` for the
 socket table and a working directory, and from `ps` for the rest. A host uses one source, never a
 mix, and a Linux host needs neither `lsof` nor `ps`: BusyBox's `ps`, the one Alpine ships, cannot

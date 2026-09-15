@@ -532,7 +532,18 @@ Handle the `status` and `gaps`:
   - `"ask user"` → prompt inline **before** showing the checklist-approval choice. Free-text prompt scoped to the gap; feed the answer back to the planner via a single re-invocation (pass the user's answer as an additional `gap_resolution` field in the brief). If the user declines, fall back to `"mark TODO in draft"`.
   - `"mark TODO in draft"` → surface in the checklist display as a visible TODO; the writer at Phase 6.3 emits `<!-- TODO: … -->` markers. Does not block approval.
   - `"skip with note in final report"` → list in the checklist display; carry forward into the Phase 9 `### Skipped items`. Does not block approval.
-- **`status: PARTIAL`** alone (without user-asked gaps) is presented to the user alongside the checklist so the approval decision is informed.
+- **Ambiguous image policy** — a checklist target whose `image_policy` is `ambiguous` and whose `screenshots:` is non-empty. The planner found no dominant image convention among the target's sibling pages (mixed references, or none), so it planned neither a `dest` nor a `staging` path, and `doc-writer` cannot ask the user: it is a subagent. Resolve each such target here, **before** the checklist-approval choice and so before Phase 6.1 and Phase 6.3 — never leave it to the writer. For each, show the target path and the screenshots planned for it, then ask (no option is safe to recommend without a convention, so no `(Recommended)` marker):
+  ```
+  choices: ["Copy them into the repository beside the page", "Stage for manual upload to the repo's image-management tool", "Leave these screenshots off this page", "Cancel"]
+  ```
+  - **Copy them into the repository beside the page** → record `local` for that target.
+  - **Stage for manual upload to the repo's image-management tool** → record `cdn_upload_required` for that target. Where `<screenshot_staging_dir>` is null — Phase 1's **Not found** branch was skipped — first take an absolute staging directory from the user, rejecting `/tmp` and any path inside the docs repo as that branch does, and record it as `<screenshot_staging_dir>`.
+  - **Leave these screenshots off this page** → once the checklist is final — after the re-invocation below, where there is one — remove that target's `screenshots:` entries from it; the writer places no screenshot on that page, and each screenshot is listed in Phase 9's `### Deferred items` as a user-declined screenshot.
+  - **Cancel** → stop and summarise.
+  - A free-text answer is mapped onto one of the first three, or the question is asked again; it is never written through as a policy of its own.
+
+  Pass every `local` / `cdn_upload_required` answer to the planner as `image_policy_resolution` — `{<target_path>: local | cdn_upload_required}`, with the current `<screenshot_staging_dir>` — in the same single re-invocation that carries any `gap_resolution`, and take the checklist it returns: it plans each named target's `dest` or `staging` path under the chosen policy, exactly as it would have for a detected one. A target left `ambiguous` with no screenshot needs no answer — no screenshot is placed on it, so its policy decides nothing.
+- **`status: PARTIAL`** — returned for a user-asked gap or an ambiguous policy, each resolved by the bullets above — is presented to the user alongside the checklist so the approval decision is informed.
 
 Present the checklist (with any gaps + dispositions, and — when the planner returned a non-empty `repo_authoring_guidance` — the repo-specific authoring rules it extracted from the repo's own guidance files, so the user sees "this repo's CONTRIBUTING.md / CLAUDE.md requires …" before approving):
 ```
@@ -596,7 +607,7 @@ Pass `discrepancy_decisions` to Phase 6.3.
 
 ## Phase 6.1 — CDN image handoff
 
-Run this phase when, in the Phase 5.7 `doc-planner` return, **any** screenshot has `image_policy: cdn_upload_required` — **or** the user picked "Stage for manual upload" under an `ambiguous` target in Phase 6.3 — **or** any Phase 5.6 `existing_image_decisions[]` entry has `decision: accepted`. (When the only image policy in play is `local` and there is no accepted existing-image replacement, skip this phase: local images are copied into the repo at Phase 6.3 with no handoff needed.)
+Run this phase when, in the checklist Phase 5.7 settled, **any** screenshot has `image_policy: cdn_upload_required` — a target whose ambiguous policy Phase 5.7's **Ambiguous image policy** step resolved to "Stage for manual upload to the repo's image-management tool" included, since the planner's re-invocation returns it as `cdn_upload_required` — **or** any Phase 5.6 `existing_image_decisions[]` entry has `decision: accepted`. (When the only image policy in play is `local` and there is no accepted existing-image replacement, skip this phase: local images are copied into the repo at Phase 6.3 with no handoff needed.)
 
 1. **List each affected image** so the decision is informed — one row per image:
    - target page / anchor it belongs on (from the planner's per-screenshot placement, or — for an existing-image replacement — the `target` / `section` recorded in Phase 5.6);
@@ -1140,7 +1151,7 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 - [top suggestions from impl-maintenance agent, or "no suggestions — routine session"]
 
 ### Screenshots to upload manually
-[Only populated for the **Defer** path of Phase 6.1 — i.e. a target used image_policy: cdn_upload_required (or the user selected "Stage for manual upload" under the ambiguous branch) AND the user chose "Defer — stage with TODO placeholders" at the Phase 6.1 CDN handoff. For each staged screenshot: src (original user-provided path), staging path under <screenshot_staging_dir> (the staging directory), the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged — including when the user chose "Upload now" in Phase 6.1 (those images carry real CDN URLs in the markdown and need no manual step).]
+[Only populated for the **Defer** path of Phase 6.1 — i.e. a target used image_policy: cdn_upload_required (a target whose ambiguous policy Phase 5.7's **Ambiguous image policy** step resolved to "Stage for manual upload to the repo's image-management tool" included) AND the user chose "Defer — stage with TODO placeholders" at the Phase 6.1 CDN handoff. For each staged screenshot: src (original user-provided path), staging path under <screenshot_staging_dir> (the staging directory), the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged — including when the user chose "Upload now" in Phase 6.1 (those images carry real CDN URLs in the markdown and need no manual step).]
 
 ### Implementation gaps (PRD vs source)
 [Populated when Phase 5.8 produced any `document-as-spec` / `skip-and-report` decision, **or** any qualifying `document-as-code` decision (per `workflows-core:source-truth` §7.5 — the PRD phrasing asserts a specific value that contradicts the source). All three write the same bug-report draft, so all three are listed here; the status line differs by decision:

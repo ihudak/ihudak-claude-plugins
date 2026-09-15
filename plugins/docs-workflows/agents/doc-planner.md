@@ -22,6 +22,7 @@ code_repos:             <array of {slug, path} for source-truth verification; th
 specs_dir:              <absolute path to the PRD's spec folder (PRODUCT-NNNN*), or null; the authoritative intended-behavior source>
 repo_root:              <absolute path to the docs repo root>
 profile:                <the resolved docs-profile (built-in example-docs default, in-repo, or generated); supplies spaces[], tokens, internal_links>
+image_policy_resolution: <present only on the re-invocation /document Phase 5.7 makes after its Ambiguous image policy step: {<target_path>: local | cdn_upload_required} for each target the user settled; absent otherwise>
 ```
 
 Refuse to run without `folder_read`, `write_targets`, and `repo_root`. **`folder_read` is assembled by the orchestrator** from the resolved folder — it is not an agent's return value, and no schema file defines it; the dispatch names its keys.
@@ -77,7 +78,9 @@ For each write target:
    Pick the policy:
    - `local` count > 0 and `cdn` count is 0 (or negligible) → `image_policy: local`; identify the idiomatic directory (most common pattern — typically `<page-dir>/img/` or `<page-dir>/images/`).
    - `cdn` count > 0 and `local` count is 0 (or negligible) → `image_policy: cdn_upload_required` — the writer MUST NOT copy user-provided screenshots into the repo; they are staged outside the repo and surfaced in the Phase 9 report for manual upload to the repo's image-management tool (e.g. CDN, Image Manager, CMS).
-   - Mixed or zero references → `image_policy: ambiguous` — the writer asks the user at Phase 6.3 which approach to use for this specific feature.
+   - Mixed or zero references → `image_policy: ambiguous`, which `/document` Phase 5.7's **Ambiguous image policy** step settles with the user.
+
+   Where `image_policy_resolution` names the target, take the policy it gives in place of the one this detection picks, and plan the target's screenshots under it in step 6.
 
    Concrete threshold for "negligible": treat counts ≤ 1 (in a sample of 5–10) as negligible unless they align with the dominant pattern.
 
@@ -86,7 +89,7 @@ For each write target:
 6. **Plan screenshot placement per target.** For each user-provided screenshot that belongs on this target:
    - `image_policy: local` → set `dest` to an absolute path under `<page-dir>/img/` (or the detected idiomatic directory).
    - `image_policy: cdn_upload_required` → set `staging` to an absolute path under the caller-provided `screenshot_staging_dir` (the staging directory; e.g. `<screenshot_staging_dir>/<original-filename>`). NEVER place it inside `repo_root` and NEVER use `/tmp` — both are lost on container restart for repo-volume mounts / in-image `/tmp`, whereas a host-mounted directory the operator names is not. Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
-   - `image_policy: ambiguous` → leave both `dest` and `staging` null; the writer prompts the user at Phase 6.3.
+   - `image_policy: ambiguous` → leave both `dest` and `staging` null (`/document` Phase 5.7, **Ambiguous image policy**).
    - In all cases, populate `alt` with a proposed alt-text derived from the feature summary and the image filename.
 
    If the user provided zero screenshots, `screenshots: []` on every target.
@@ -154,7 +157,7 @@ checklist:
         # When image_policy == cdn_upload_required:
         staging:     <absolute path under the caller-provided screenshot_staging_dir (a persistent directory the operator named); NOT inside the repo, never /tmp>
         upload_note: <1-line instruction for the user, e.g. "Upload via <repo's image-management process>; replace placeholder URL in page">
-        # When image_policy == ambiguous: both dest and staging are null; the writer prompts the user at Phase 6.3.
+        # When image_policy == ambiguous: both dest and staging are null (/document Phase 5.7, Ambiguous image policy).
         alt:         <proposed alt-text>
     cross_links:
       from:  [<page paths that should link here>]
@@ -175,7 +178,7 @@ verification_warnings:        # source-truth findings; resolved by the orchestra
 
 `finding: SPEC-VS-PRD` flags a spec-vs-PRD drift — the spec markdown differs from the PRD narrative (regardless of whether the code matches the spec). The spec is authoritative, so this verdict surfaces that the PRD should be updated to match the spec. It can only occur when `specs_dir` is non-null; when no spec was provided, `spec_phrasing` is `"(no spec)"` and `SPEC-VS-PRD` never appears.
 
-`status: PARTIAL` is returned when the checklist is usable but at least one gap has `recommended_action: "ask user"` or the image policy is `ambiguous` for at least one target — the caller must surface those to the user before approval.
+`status: PARTIAL` is returned when the checklist is usable but at least one gap has `recommended_action: "ask user"`, or at least one target whose `image_policy` is `ambiguous` has a screenshot planned for it — the caller must surface those to the user before approval (`/document` Phase 5.7). A target with no screenshot is never `PARTIAL` for its policy: no screenshot is placed on it.
 
 ## Hard rules
 

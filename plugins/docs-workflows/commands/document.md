@@ -740,7 +740,7 @@ Then act on the return:
 
 ## Phase 6.5 — Render verification
 
-**Ledger first — before the run-condition below.** Both gates this phase owns must carry a row on every run, including runs where the phase does not execute. Per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3 each gate holds exactly one row, so **rewrite** the row Phase 0's preflight pre-seeded rather than appending beside it — and when that pre-seeded row carries a `user_decision`, keep it: the user already decided to proceed without this tooling, and that decision stands until the gate itself proves otherwise, or until a later answer of the user's decides the gate — Step 2's Skip, which Ledger (final) records on both rows (`gate-ledger.md` §3). Create the row here only when the preflight did not pre-seed one:
+**Ledger first — before the run-condition below.** Both gates this phase owns must carry a row on every run, including runs where the phase does not execute. Per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3 each gate holds exactly one row, so **rewrite** the row Phase 0's preflight pre-seeded rather than appending beside it — and when that pre-seeded row carries a `user_decision`, keep it: the user already decided to proceed without this tooling, and that decision stands until the gate itself proves otherwise, or until a later answer of the user's decides the gate — Step 2's Skip (`gate-ledger.md` §3). Ledger (final) quotes that Skip on `render_smoke_check` whenever it is chosen, and on `build_check` only where a build did not run, Step 1 did not already decide the row, and the Skip declined that build's only remaining proof; a `build_check` row whose builds all ran, or that Step 1 left `SKIPPED_BY_USER`, keeps its own outcome and decision, and a content `FAILED` keeps its outcome whatever else was declined. Create the row here only when the preflight did not pre-seed one:
 
 - Write context is `obsidian` or `plain_dir` → append BOTH `build_check` and `render_smoke_check` as `NOT_APPLICABLE` with `precondition_unmet` naming the actual context — `"write context is obsidian"` or `"write context is plain_dir"`. These rows are final; the phase does not run.
 - Write context is `docs_repo` or a confirmed `non_docs_repo` → append both provisionally as `RAN`, then rewrite each at the end of this phase per **Ledger (final)** below.
@@ -764,7 +764,7 @@ Run each from `docs_repo_path`, the top level every command the profile records 
     ```
     choices: ["Install <the missing tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run"]
     ```
-    "Proceed without this check" writes `SKIPPED_BY_USER` with the chosen option quoted verbatim in `user_decision`. Do NOT present this list when the `build_check` row already carries a `user_decision` from Phase 0's preflight naming the same missing tool — the user answered this question before anything was written, and that answer stands. Record the failure reason in the row, keep the existing `user_decision`, and continue to Step 2 without prompting.
+    "Proceed without this check" writes `SKIPPED_BY_USER` with the chosen option quoted verbatim in `user_decision` — where another build failed on its content, Ledger (final) records the row `FAILED` and keeps this decision on it (`gate-ledger.md` §2). Do NOT present this list when the `build_check` row already carries a `user_decision` from Phase 0's preflight naming the same missing tool — the user answered this question before anything was written, and that answer stands. Record the failure reason in the row, keep the existing `user_decision`, and continue to Step 2 without prompting.
 
 When the profile declares **no** build command at any of the three levels — no `builds[]`, no `commands.per_space.<space>.build`, no `commands.build` — record "no build command in profile; build proof deferred to the dev-server boot (Step 2)" and proceed. Under the built-in example-docs profile this branch does not apply — `commands.per_space.cloud.build` and `commands.per_space.self-hosted.build` are both defined — and under a profile `/docs-init` wrote it does not either, since that profile records `builds[]`.
 
@@ -805,7 +805,7 @@ Emit a table, one row per affected page — its URL (`http://localhost:<port><ba
 
 Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render verification` section, and pass a one-paragraph `render_verification` summary to Phase 7.
 
-**Ledger (final).** Rewrite the two rows appended at the top of this phase (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3). A row already written as `NOT_APPLICABLE` is never reached here — this phase did not run. Where one part of a gate `FAILED` and another only `DEGRADED` — one build failed on its content while another did not run, or one space answered a 5xx while another fell back — the row is `FAILED` and records the degraded part in its `not_run` and `ci_still_checks` (`gate-ledger.md` §2):
+**Ledger (final).** Rewrite the two rows appended at the top of this phase (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3). A row already written as `NOT_APPLICABLE` is never reached here — this phase did not run. Where one part of a gate `FAILED` and another only `DEGRADED` — one build failed on its content while another did not run, or one space answered a 5xx while another fell back — the row is `FAILED` and records the degraded part in its `not_run` and `ci_still_checks` (`gate-ledger.md` §2). A content `FAILED` also outranks a decision to proceed without another part — Step 1's §5 conversion, the preflight's decision Step 1 kept, or Step 2's Skip: the row is still `FAILED`, records the declined part the same way, and keeps that decision in `user_decision`, because a content failure is never hidden behind a skip (`gate-ledger.md` §2):
 
 - `build_check` — `RAN` when every build Step 1 resolved executed; `FAILED` on a content failure.
   `mechanism` names every build Step 1 ran, each by its `id` (or space) with its result —
@@ -823,16 +823,20 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
   A `user_decision` Phase 0's preflight left on the row stays on it.
   A row Step 1 leaves as `SKIPPED_BY_USER` — its §5 conversion, when neither the build nor its
   fallback could run and the user chose to proceed, or the preflight's decision on that same missing
-  tool, which Step 1 kept — is **final — do not rewrite it**.
+  tool, which Step 1 kept — is **final — do not rewrite it**, except where another build failed on
+  its content: the row is then `FAILED` (above), with that decision kept in `user_decision` and the
+  build that did not run in `not_run` and `ci_still_checks`.
   `UNAVAILABLE` applies only when a build did not run, Step 1 did not already convert it, and the
   Step 2 boot did not serve as its proof. **Where that is because the user chose Skip at Step 2**,
-  their Step 2 choice is the decision this row quotes: record `SKIPPED_BY_USER` with it, in place of
-  any decision Phase 0's preflight left on the row, and ask nothing more — declining the only
-  remaining source of build proof is declining the build check, and it is the decision that removed
-  the proof. **Otherwise** — Step 2 ran and none of that build's own servers it booted became
-  ready, or it booted none of them — this is the coverage hole `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5 predicts:
-  convert per `gate-ledger.md` §5, except where the row carries Phase 0's decision on the same
-  missing tool, which stands, as it does in Step 1, and the row records `SKIPPED_BY_USER` with it.
+  their Step 2 choice is the decision this row quotes, in place of any decision Phase 0's preflight
+  left on the row: record `SKIPPED_BY_USER` with it (`FAILED` with it, where another build failed on
+  its content — above), and ask nothing more. Declining the only remaining source of build proof is
+  declining the build check, and it is the decision that removed the proof. **Otherwise** — Step 2
+  ran and none of that build's own servers it booted became ready, or it booted none of them — this
+  is the coverage hole `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5 predicts: convert
+  per `gate-ledger.md` §5, except where the row carries Phase 0's decision on the same missing tool,
+  which stands, as it does in Step 1, and the row records `SKIPPED_BY_USER` with it — in either case
+  `FAILED` with the decision, where another build failed on its content (above).
 - `render_smoke_check` — `RAN` when the smoke-check completed for every space in scope — a 404 does
   not change that, since the page's server booted and was checked and the 404 is no content failure:
   `findings:` counts the affected pages annotated ❌, each already surfaced with its URL; `FAILED`
@@ -1100,7 +1104,7 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 ### Verification gates
 | Gate | Outcome | Mechanism | Detail |
 |---|---|---|---|
-[One row per gate in the `gate_ledger`, in registry order (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED, or FAILED with a degraded part — `gate-ledger.md` §2), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE) — empty otherwise. When any row carries a `ci_still_checks`, follow the table with a one-line warning naming what CI will check that this run did not.]
+[One row per gate in the `gate_ledger`, in registry order (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED, or FAILED with a degraded or declined part — `gate-ledger.md` §2), `user_decision` (SKIPPED_BY_USER, or FAILED with a declined part), or `precondition_unmet` (NOT_APPLICABLE) — empty otherwise. When any row carries a `ci_still_checks`, follow the table with a one-line warning naming what CI will check that this run did not.]
 
 ### Render verification
 - Build: [one entry per build Step 1 resolved, named by its `id` (or space) — ran — pass/fail | not run (the environmental failure, e.g. `<tool>` is not installed) — the boot of its own server served as the proof | unverified (reason)] OR "no build command in profile — boot served as the proof" (does NOT apply to example-docs, which defines per-space build commands)

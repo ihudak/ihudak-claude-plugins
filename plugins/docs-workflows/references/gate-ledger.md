@@ -43,12 +43,21 @@ space answers a 5xx while another times out. The row is `FAILED`, because a cont
 feeds the caller's fix loop, and the degraded part is still recorded in the row's `not_run` and
 `ci_still_checks`, which such a row fills as a `DEGRADED` row does.
 
+**`FAILED` also outranks a decision to proceed without another part.** Where one part failed on its
+content and another did not run and the user declined it — a §5 conversion answered "Proceed without
+this check" (`/document` Phase 6.5 Step 1 asks one for a build that neither its tool nor its
+fallback can run), the toolchain preflight's decision on the same missing tool kept in its place,
+or a Skip that declined that part's only remaining proof — the row is `FAILED`, not
+`SKIPPED_BY_USER`: a content failure is never hidden behind a skip. The declined part is recorded in
+`not_run` and `ci_still_checks` as a degraded part is, and the decision is kept in the row's
+`user_decision`, quoted verbatim.
+
 ## 3. Row schema
 
 The ledger is an in-context YAML block. The orchestrator **appends a row at the moment each gate
 completes** — never reconstructs the ledger at report time from memory.
 
-**One row per gate, created once.** The first writer to reach a gate creates its row; every later writer **rewrites that row in place** and never appends a second one. A row Phase 0's toolchain preflight pre-seeded is that gate's row — carry its `user_decision` forward rather than discarding it, whatever outcome the gate's own phase then rewrites around it, until the user answers a later question that itself decides that gate's outcome: the row then quotes that answer in its place. Two rows for one gate id is a defect even though §6 does not name it: the report table reads every row, so a duplicate silently misstates what happened.
+**One row per gate, created once.** The first writer to reach a gate creates its row; every later writer **rewrites that row in place** and never appends a second one. A row Phase 0's toolchain preflight pre-seeded is that gate's row — carry its `user_decision` forward rather than discarding it, whatever outcome the gate's own phase then rewrites around it, until the user answers a later question that itself decides that gate's outcome, or the part of it a `FAILED` row records as declined (§2): the row then quotes that answer in its place. Two rows for one gate id is a defect even though §6 does not name it: the report table reads every row, so a duplicate silently misstates what happened.
 
 A phase whose outcome is not yet known at append time may write a **provisional** row, but only when a named later step in that same phase rewrites it before the phase ends — Phase 5.8's `Ledger (final)` and Phase 6.5's `Ledger (final)` are the two sanctioned cases. A provisional row is never the outcome a later reader sees.
 
@@ -58,14 +67,15 @@ gate_ledger:
     phase: "<the phase that owns it>"
     outcome: RAN | DEGRADED | FAILED | UNAVAILABLE | SKIPPED_BY_USER | NOT_APPLICABLE
     mechanism: <what actually executed; omitted when nothing did>
-    not_run:                                        # DEGRADED, or FAILED with a degraded part (§2); non-empty
+    not_run:                                        # DEGRADED, or FAILED with a degraded or declined part (§2); non-empty
       - mechanism: <the primary mechanism that did not run>
         reason:    <why>
     ci_still_checks: <one line>                     # wherever not_run is; non-empty
     precondition_unmet: <the named precondition>    # NOT_APPLICABLE only, non-empty
-    user_decision: "<the user's choice, verbatim>"  # SKIPPED_BY_USER: required, non-empty. Any other
-                                                    # outcome: kept where Phase 0's toolchain preflight
-                                                    # pre-seeded the row (above)
+    user_decision: "<the user's choice, verbatim>"  # SKIPPED_BY_USER, or FAILED with a declined part
+                                                    # (§2): required, non-empty. Any other outcome: kept
+                                                    # where Phase 0's toolchain preflight pre-seeded the
+                                                    # row (above)
     findings: <count>                               # RAN / DEGRADED / FAILED -- see below
 ```
 
@@ -115,7 +125,8 @@ choices: ["Install <named tool> and retry this gate", "Proceed without this chec
 
 - "Install and retry" → re-run the gate and rewrite its row.
 - "Proceed without this check" → rewrite the row as `SKIPPED_BY_USER` with the user's choice quoted
-  verbatim in `user_decision`.
+  verbatim in `user_decision` — or, where another part of the gate failed on its content, as
+  `FAILED` with that choice in `user_decision` and the declined part in `not_run` (§2).
 - "Cancel the run" → stop.
 
 The orchestrator never selects among these on the user's behalf.
@@ -128,9 +139,10 @@ of these holds:
 
 - a registry gate has **no row** in the ledger;
 - a row's outcome is `UNAVAILABLE` (§5 never converted it);
-- `SKIPPED_BY_USER` with an empty or absent `user_decision`;
+- `SKIPPED_BY_USER`, or `FAILED` with a declined part (§2), with an empty or absent `user_decision`;
 - `NOT_APPLICABLE` with an empty or absent `precondition_unmet`;
-- `DEGRADED` with an empty `not_run` or an empty `ci_still_checks`.
+- `DEGRADED`, or `FAILED` with a degraded or declined part (§2), with an empty `not_run` or an empty
+  `ci_still_checks` — wherever §2 requires those fields, whatever the row's outcome.
 
 **A `ci_still_checks` line that says no CI check runs, and why, is filled, not empty.** Where CI
 runs nothing in the gate's place — the repository has no CI build, its CI runs no linter, or it

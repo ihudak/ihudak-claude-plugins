@@ -80,7 +80,7 @@ Every gate's outcome is recorded in a run-scoped `gate_ledger` with six possible
 | `source_truth_verification` | ≥1 entry in `code_repos` |
 | `style_check` | ≥1 file written |
 | `repo_checklist` | the repo publishes authoring/verification guidance |
-| `build_check` | write context is a buildable repo |
+| `build_check` | write context is a buildable repo, whether or not the profile records a build command |
 | `render_smoke_check` | buildable repo with ≥1 affected page |
 | `image_review` | ≥1 candidate image, to add or possibly stale |
 

@@ -75,7 +75,11 @@ at all). `Bash` is granted solely to copy a user-provided screenshot (step 5 abo
 absolute `src` to the absolute path the checklist records for it — its `dest` where the target's
 `image_policy` is `local`, its `staging` path where it is `cdn_upload_required` and
 `cdn_handoff_decision` is `defer` — creating the destination directory where it does not exist
-yet, in the same call (`mkdir -p "<its directory>" && cp "<src>" "<dest or staging>"`). Your Bash
+yet, in the same call
+(`command mkdir -p -- "<its directory>" && command cp -- "<src>" "<dest or staging>"`) — each
+utility as `command <name>`, since the Bash tool's shell carries the user's aliases and shell
+functions, and a `cp -i` alias would ask before overwriting, be answered no from an empty standard
+input, and leave the old file in place. Your Bash
 tool starts every call in the session's directory, not in `docs_repo_path`, and a `cd` does not
 persist between calls, so a relative path would land in the wrong tree. Never use it for git
 commands; the orchestrator remains the only actor

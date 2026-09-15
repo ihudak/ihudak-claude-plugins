@@ -119,7 +119,7 @@ On the §2 powerful chain (`planning_model`), turn the detection report into a d
 
 ## Phase 4 — Confirm and fill gaps
 
-**Rule: Ask, don't guess.** For every field the synthesis marked `needs-confirmation` — and anything detection could not settle — ask the user. Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`Skill(skill: "workflows-core:reference", args: "escalation-rules")` §0); the recommended default is first and labelled `"(Recommended)"`. Group related fields into one question where possible.
+**Rule: Ask, don't guess.** For every field the synthesis marked `needs-confirmation` — and anything detection could not settle — ask the user. Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`Skill(skill: "workflows-core:reference", args: "escalation-rules")` §0); the recommended default is first and labelled `"(Recommended)"`. Group related fields into one question where possible. On a **refresh** (below), a field the Phase 2 report found nothing for is not a gap: the existing profile already answers it and keeps it, so ask about it only where the existing profile does not carry it either.
 
 Typical gaps:
 
@@ -141,15 +141,22 @@ Typical gaps:
   ```
 
 **Idempotent refresh.** Before writing, check whether `<repo-root>/.dev-workflows/docs-profile.yml` already exists:
-- **Exists** → show a **field-level diff** (existing value → new value, per key) and confirm:
+- **Exists** → this run is a **refresh**, and it builds the new profile **from the existing one**, never from the draft alone. Phase 2 detects only what it looks for — a repository `/docs-workflows:docs-init` scaffolded has no `package.json` `*:start` script and no `*/_content` root, and nothing in Phase 2 looks for `builds[]` or `generator` at all — so the draft is a partial view of the repo, and a diff against it would read everything detection missed as a deletion. Build the refreshed profile by these rules:
+  - **The refresh proposes a change only for a field detection produced a value for.** That is a field the Phase 2 report found evidence for — marked `detected`, or `needs-confirmation` over a value the report did find — and never one the report says `not found` for or never looks for, whatever the synthesis drafted in its place. Where that value differs from the existing one it is a proposed change; where the existing profile lacks the field, a proposed addition.
+  - **Every other field is carried forward verbatim** — `builds[]`, `generator`, `repo`, the `images` block, `frontmatter.*`, a server's `visibility` and `public_base_url`, and any field the report found nothing for.
+  - **Detection finding nothing is never a proposal to delete.** A field or entry the draft omits, leaves empty or writes as `[]` because nothing was found — `announcement_pages: []`, a `dev_servers.servers[]` list with no `*:start` script behind it — leaves the existing one as it stands.
+  - **`spaces[]` is kept, never emptied.** It is required and non-empty; where detection found no content root, the existing entries stand.
+  - **Lists are compared entry by entry**, each entry by what identifies it — a `spaces[]` entry by its `id`, a `dev_servers.servers[]` entry by its `space`, an `announcement_pages[]` entry by its `path`, a `prerequisites[]` entry by its text — and leaf by leaf within a matched entry, so a key detection never produces inside an entry it did detect is carried over with it. Where one identifier matches more than one entry on either side — two servers sharing one space, told apart by a `visibility` detection never reads — propose nothing for that list: keep it as it stands, and say why in the diff.
+
+  Show the result as a **field-level diff** in two parts — every proposed change (`existing → new`) and addition, then every field **kept, not detected**, each named, so the operator sees what the refresh leaves alone — and confirm:
   ```
   "A docs-profile already exists. Apply these field-level changes?"
-  choices: ["Apply the diff — overwrite changed fields (Recommended)", "Keep existing, write nothing", "Edit specific fields first (you'll be prompted)"]
+  choices: ["Apply the diff — change the listed fields, keep the rest (Recommended)", "Keep existing, write nothing", "Edit specific fields first (you'll be prompted)"]
   ```
-  Do not overwrite without this confirmation.
+  "Apply the diff" changes exactly the fields listed as changed or added and nothing listed as kept. Do not overwrite without this confirmation.
 - **Absent** → bootstrap: proceed to Phase 5 with the confirmed draft.
 
-Record the final, confirmed `docs-profile.yml` and CLAUDE.md additions, and tag each field `detected` vs `user-supplied` for the Phase 6 report.
+Record the final, confirmed `docs-profile.yml` — on a refresh, the existing profile with the confirmed changes applied — and the CLAUDE.md additions, and tag each field `detected`, `user-supplied`, or, on a refresh, `kept, not detected` for the Phase 6 report.
 
 ---
 
@@ -176,7 +183,7 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
    ```
    Then base the branch on the repo's default branch so the profile PR is cut from a clean base: resolve the base (`git -C <repo-root> symbolic-ref --short refs/remotes/origin/HEAD`; fall back to `main`, then `master`) and run `git -C <repo-root> switch <base> && git -C <repo-root> pull --ff-only` (the clean-tree check above already ran; if the fast-forward pull fails, offer the same stash/proceed/cancel choices). Then create the branch: `git -C <repo-root> switch -c <name>` (or `git -C <repo-root> switch <name>` if it already exists).
 
-3. **Write the profile.** Create `<repo-root>/.dev-workflows/` if absent, then write the confirmed `.dev-workflows/docs-profile.yml`. It MUST conform to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`. Apply the confirmed complementary CLAUDE.md additions to the repo's root `CLAUDE.md` (create the file if absent) — minimal, additive, scoped edits only; never restate changelog/owners rules owned by the docs-frontmatter skill.
+3. **Write the profile.** Create `<repo-root>/.dev-workflows/` if absent, then write the confirmed `.dev-workflows/docs-profile.yml` — on a refresh, the existing profile with only the changes Phase 4 confirmed, every field listed as kept exactly as it stood. It MUST conform to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`. Apply the confirmed complementary CLAUDE.md additions to the repo's root `CLAUDE.md` (create the file if absent) — minimal, additive, scoped edits only; never restate changelog/owners rules owned by the docs-frontmatter skill.
 
 4. **Format / lint.** If the repo has a formatter or linter (the `format`/`lint` commands captured in the profile), run it on the written files; fix anything it flags on those files. Skip silently if none is configured.
 
@@ -210,7 +217,8 @@ SIGNIFICANT — cross-cutting synthesis of the whole docs repo; output steers al
 ### Fields: detected vs user-supplied
 - detected: [spaces, dev_servers, commands, tokens, internal_links, announcement_pages, branch_naming, images, prerequisites — list those that were detected]
 - user-supplied: [list the fields confirmed/filled in Phase 4]
-- omitted: [e.g. "commands.per_space — the repo has only whole-repo scripts"]
+- kept, not detected: [on a refresh, every field carried forward because detection produced no value for it — on a profile /docs-workflows:docs-init wrote, builds[], generator, images, frontmatter.* and dev_servers among them; "n/a — bootstrapped" otherwise]
+- omitted: [e.g. "commands.per_space — the repo has only whole-repo scripts"; on a refresh, never a field the existing profile carried]
 - frontmatter: pointers only → docs-frontmatter skill (+ changelog-guidelines.md, default-owners.txt); changelog/owners NOT re-specified
 - fixed-port dev servers: [every dev_servers.servers[] entry in the written profile whose command carries no {port} token, by space — "none" when every command carries it. For each: "/docs-serve cannot fall forward from a collision on it, and --port cannot move it; add {port} by hand where its tool takes a port argument (docs-profile-schema.md, dev_servers.servers[].command)"]
 
@@ -248,7 +256,7 @@ Branch <name> created with 1 commit on <repo-root>. NOT pushed and NOT merged �
 - ALWAYS run the synthesis on the §2 powerful (Opus) chain via the `task` `model:` override
 - ALWAYS conform the written profile to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`
 - ALWAYS treat `frontmatter:` as pointers to the docs-frontmatter skill; NEVER copy changelog/owners rules into the profile
-- ALWAYS show a field-level diff and confirm before overwriting an existing `.dev-workflows/docs-profile.yml` (idempotent refresh)
+- ALWAYS show a field-level diff and confirm before overwriting an existing `.dev-workflows/docs-profile.yml` (idempotent refresh), and NEVER let a refresh propose changing or removing a field detection produced no value for — carry it forward verbatim, list it as kept, not detected, and never empty `spaces[]` (Phase 4)
 - ALWAYS write the profile to `.dev-workflows/docs-profile.yml` in the TARGET repo — never the plugin
 - NEVER push or auto-merge — output a reviewable PR (branch + commit + drafted PR message) for the user to push
 - ALWAYS use `choices` arrays for decision points; recommended default first and labelled "(Recommended)"; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)

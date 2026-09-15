@@ -155,7 +155,11 @@ Still **never fatal** (§1): the notice reports and the run continues. What chan
 ### 3.2 Resolution inputs
 
 **Default branch:** `git -C "$SPECS_PATH" symbolic-ref --quiet refs/remotes/origin/HEAD`,
-then strip the `refs/remotes/origin/` prefix. If unset, fall back to `main`,
+then strip the `refs/remotes/origin/` prefix. It counts only where
+`git -C "$SPECS_PATH" rev-parse --verify --quiet origin/<name> >/dev/null` succeeds for the name it
+yields: a remote that renamed its default branch, fetched with `--prune`, leaves `origin/HEAD`
+naming a branch the remote deleted, and every test below would then name a ref that does not
+exist. If unset, or naming a ref that does not exist, fall back to `main`,
 then `master`, then the current branch — in which case no branch switching
 occurs at all.
 

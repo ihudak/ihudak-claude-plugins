@@ -54,8 +54,12 @@ the name from `git -C <repo_path> symbolic-ref --quiet --short refs/remotes/orig
 prints `origin/<name>`: the name is what follows `origin/`. Without `--short` the command prints
 `refs/remotes/origin/<name>`, which is not a name — in `origin/main`'s place it makes
 `origin/refs/remotes/origin/<name>`, a revision git rejects, and in the other two it turns a diff
-against the local branch into one against the remote. Where it prints nothing (`origin/HEAD` is
-unset), the name is `master` if
+against the local branch into one against the remote. It counts only where
+`git -C <repo_path> rev-parse --verify --quiet origin/<name> >/dev/null` succeeds for that name: a
+remote that renamed its default branch, fetched with `--prune`, leaves `origin/HEAD` naming the
+branch it deleted, and each diff below that names the default branch would then name a ref git
+rejects. Where it prints nothing
+(`origin/HEAD` is unset), or a name that probe rejects, the name is `master` if
 `git -C <repo_path> rev-parse --verify --quiet origin/master >/dev/null` succeeds and the same
 probe of `origin/main` does not; otherwise it stays `main`.
 

@@ -1289,9 +1289,12 @@ No model-routing reminder is injected for this command — classification still 
 
    — **never `git rev-parse --show-toplevel` from cwd.** Anchoring on cwd is how a run derives its toolchain and its checklist from one repository while writing into another, which is exactly what it did when invoked as `/docs-workflows:document /workspace/docs` from a different clone: the preflight read the repo it was standing in and the style check ran against the repo it was editing.
 
+   `site_root` is the site the target sits in, where the target is in a git work tree and that site lies below `repo_root`: walk up from `<target>` towards `repo_root` and take the first directory that itself holds one of the docs signals Mode A's Phase 0 step 2 lists. A monorepo's `website/` keeps its `.vale.ini`, lockfile and lint configuration beside itself, not at the top level — the reason keyed mode hands its `docs_repo_resolved` on as well (Mode A's Phase 0 step 7, Phase 6.4). Where the first such directory is `repo_root` itself, or none is found below it, there is no site below the top level, and `site_root` is not set.
+
    **Confirm writeable.** Run `test -w <repo_root>`. If it fails, stop with the named error `REPO_NOT_WRITEABLE: <repo_root> is not writeable.` — the same stop Mode A raises in its own Phase 0, for the same reason. Direct mode writes files, so a read-only mount otherwise surfaces as a raw `EROFS` from the editor in Phase 3, **after** the exploration and the plan have already been paid for, naming a temp file rather than the condition.
 
-   Then execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against it. Direct mode has no profile, so
+   Then execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against it — with `site_root`, where
+   one was set, as the site directory its source 2 also checks. Direct mode has no profile, so
    use **sources 2 and 3 only** (repo config signals and the repo's documented `Prerequisites`); the
    only gate in scope is `style_check`, so neither `required_by` nor `fallback_for` ever names
    `build_check` or `render_smoke_check`.
@@ -1423,6 +1426,7 @@ After writing the edits and before Phase 4, dispatch `docs-style-checker` on the
 
 → Agent (subagent_type: "docs-workflows:docs-style-checker"):
   > repo_root: [the `repo_root` Phase 0 step 3 resolved]
+  > site_root: [the `site_root` Phase 0 step 3 resolved, where it set one — the site's own .vale.ini, package.json and lint configuration are looked for there first; omit the key otherwise]
   > files:     [the files edited in Phase 3]
 
 - `VIOLATIONS_FOUND` → apply safe fixes via `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`, one fix cycle), then check the fixer's `Stop condition flag`. On `NEEDS HUMAN` it deferred a blocking violation it could not safely fix: surface each deferred BLOCKER with the fixer's reason and ask the user whether to fix it by hand and re-run, or skip the check — direct mode runs no reviewer, so nothing downstream would catch it. Record the `style_check` row from that answer per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` (`RAN` after a hand fix and re-run, `SKIPPED_BY_USER` with the choice quoted verbatim). Only on `CLEAR` re-run once.

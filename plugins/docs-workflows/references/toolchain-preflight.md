@@ -44,8 +44,9 @@ de-duplicate by binary name.
    reporting, and check them only when the prose names a checkable path or binary).
 2. **Repo config signals**, checked at `repo_root` — and, where the caller resolved the site to a
    directory below it, in that directory as well: `/document` keyed mode passes `docs_repo_resolved`
-   (its Phase 0 step 2). A monorepo's site keeps its `.vale.ini`, lockfile and lint configuration
-   beside itself, not at the top level. A signal found in either directory implies its tool, and so
+   (its Phase 0 step 2), and direct mode the `site_root` its own Phase 0 step 3 resolves. A
+   monorepo's site keeps its `.vale.ini`, lockfile and lint configuration beside itself, not at the
+   top level. A signal found in either directory implies its tool, and so
    does a lockfile in any directory a profile command's leading `cd <dir>` names (source 1), taken
    relative to `repo_root` — that is where the command runs its tool:
 

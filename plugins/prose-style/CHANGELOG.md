@@ -14,6 +14,8 @@ That name also counts only where `origin/<name>` exists. After a remote renames 
 
 Both looked for `.vale.ini` alone, while Vale reads its configuration from five file names — `.vale`, `_vale`, `vale.ini`, `.vale.ini` and `_vale.ini`, the first of them in that order within one directory — so a repository configured through `_vale.ini` was reported as having no Vale configuration and never linted by it. Both now look for all five, and the README's summary of `/prose-review-pr` says so.
 
+Both also ran Vale on whatever configuration the machine supplied besides the repository's. Vale merges the user's global configuration — `~/.config/vale/.vale.ini` on Linux — under the repository's, so a style enabled only on the reviewer's machine raised findings the repository's rules never would, and a rule turned off only there went silent where the repository enables it; measured with Vale 3.21, a global config turning `Vale.Repetition` off made a repeated word the repository's config flags disappear from the report. And `VALE_CONFIG_PATH`, where the environment set it, named a file Vale read in place of the repository's. Both commands now run `unset VALE_CONFIG_PATH && vale --no-global …` inside the same subshell, so the Vale findings are the repository's own, and the README's summaries say so.
+
 ## 0.3.0
 
 ### BREAKING

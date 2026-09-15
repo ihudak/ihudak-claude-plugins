@@ -101,7 +101,7 @@ the directory holding it**, in one Bash call — once per such directory where t
 different ones, each over its own files:
 
 ```bash
-(cd "<the directory holding the configuration>" && vale --output=line <file1> <file2> ... 2>&1)
+(cd "<the directory holding the configuration>" && unset VALE_CONFIG_PATH && vale --no-global --output=line <file1> <file2> ... 2>&1)
 ```
 
 Vale looks for its configuration in the directory it runs in and then in each directory above it,
@@ -111,6 +111,14 @@ outside that one's tree — the session's, say — it reads the first configurat
 directory instead, which may be another repository's; where there is none, it uses the user's
 global configuration, or, without one, stops with `E100 [.vale.ini not found]`. The file paths are
 step 2's absolute ones, so they resolve from that directory too.
+
+**The run reads the repository's own configuration alone.** Without `--no-global`, Vale merges the
+user's global configuration — `~/.config/vale/.vale.ini` on Linux, wherever `vale ls-dirs` names it
+elsewhere — under the repository's, so a style enabled only on this machine raises findings the
+repository's rules never would, and a rule turned off only on this machine goes silent where the
+repository enables it. And `VALE_CONFIG_PATH`, where the environment sets it, names a file Vale
+reads **instead** of searching, so the repository's own is never read; `--no-global` does not stop
+that, and clearing it in the subshell does (Vale 3.21).
 
 Collect Vale findings. Merge with prose-style-checker results, deduplicating where
 both flag the same line for the same issue.

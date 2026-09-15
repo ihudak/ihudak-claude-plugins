@@ -152,7 +152,7 @@ If Vale is installed and a configuration file was found, run it on the changed f
 in one Bash call:
 
 ```bash
-(cd "<vale_root>" && vale --output=line <file1> <file2> ... 2>&1)
+(cd "<vale_root>" && unset VALE_CONFIG_PATH && vale --no-global --output=line <file1> <file2> ... 2>&1)
 ```
 
 Vale looks for its configuration in the directory it runs in and then in each directory above it,
@@ -163,6 +163,14 @@ the first configuration at or above that directory instead, which may be another
 there is none, it uses the user's global configuration, or, without one, stops with
 `E100 [.vale.ini not found]`. The subshell keeps the `cd` to this one call, and the file paths are
 step 4's absolute ones, so they resolve from `<vale_root>` too.
+
+**The run reads the repository's own configuration alone, and the command says so twice.** Without
+`--no-global`, Vale merges the user's global configuration — `~/.config/vale/.vale.ini` on Linux,
+wherever `vale ls-dirs` names it elsewhere — under the repository's, so a style enabled only on this
+machine raises findings the repository's rules never would, and a rule turned off only on this
+machine goes silent where the repository enables it. And `VALE_CONFIG_PATH`, where the environment
+sets it, names a file Vale reads **instead** of searching, so the repository's own is never read;
+`--no-global` does not stop that, and clearing it in the subshell does (Vale 3.21).
 
 Collect Vale findings separately. If Vale is not installed, note:
 "Vale is not installed — skipping automated linting. Style check is based on

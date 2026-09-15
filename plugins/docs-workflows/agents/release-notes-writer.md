@@ -50,7 +50,7 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
    deprecation tie-breaker bars a deprecation from `fixes`, where the required end-of-life note would
    have nowhere to live). Otherwise, `change_type` → infer per §2. Set
    `release_notes_block.change_type` to one of `Breaking change` / `New technology support` /
-   `Bug fix`, and `release_notes_block.destination` to the matching file from §1. Only when the value
+   `Bug fix`, and `release_notes_block.destination` to the matching section from §1. Only when the value
    had to be **inferred** and is low-confidence, emit `gaps[]` (`field: change_type`,
    `recommended_action: "ask user"`) carrying the proposed value — the command confirms it by shape
    and destination, not by enum label. The Change Type is NEVER written as text into the draft.
@@ -154,7 +154,7 @@ Return YAML exactly as defined in `${CLAUDE_PLUGIN_ROOT}/references/handoff/rele
   inference (§2) instead: `not applicable`, and `Bug fix` on a change that trips the §5 deprecation
   trigger — see `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §7.
 - ALWAYS set `release_notes_block.change_type` to one of `Breaking change` /
-  `New technology support` / `Bug fix`, and `release_notes_block.destination` to the matching file
+  `New technology support` / `Bug fix`, and `release_notes_block.destination` to the matching section
   per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1; when the value was inferred with
   low confidence, still set it and record a `field: change_type` gap.
 - NEVER write the Change Type as text anywhere in the draft. It selects the destination and the shape

@@ -62,7 +62,7 @@ Tie-breakers:
 Emit the classification with a confidence signal. When confidence is low (the source supports two
 destinations roughly equally), record a `gaps[]` entry (`field: change_type`,
 `recommended_action: "ask user"`) carrying the proposed value. The command confirms it by
-**consequence** — the shape and the destination file — never by presenting the bare enum labels.
+**consequence** — the shape and the section it lands under — never by presenting the bare enum labels.
 
 ## 3. Draft shape per section
 

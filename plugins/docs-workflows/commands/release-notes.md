@@ -295,9 +295,11 @@ Pass `code_repos` (the Phase-4 resolved map) to the writer when diff-grounding i
 
 If the user chose a style check in Phase 1:
 
-→ Agent (subagent_type: "prose-style:prose-style-checker") on the `combined_rendered` draft (write it to the destination first when the destination is a file, or pass it inline). If violations are returned and the user chose auto-fix:
+→ Agent (subagent_type: "prose-style:prose-style-checker") on the `combined_rendered` draft, written first to a scratch file of its own — `mktemp -t rn-draft-XXXX.md` names one, outside every repository — since the checker and the fixer both take files. **Never to `release-notes.md`**: Phase 8 appends the draft there exactly once, and a checker or fixer handed that file would also check, and could edit, the sections earlier runs appended. If violations are returned and the user chose auto-fix:
 
-→ Agent (subagent_type: "prose-style:prose-fixer") to apply safe fixes.
+→ Agent (subagent_type: "prose-style:prose-fixer") to apply safe fixes to that scratch file.
+
+Then read the scratch file back as `combined_rendered`, and remove it.
 
 `prose-style` is a declared dependency of this plugin, so the only thing that skips this phase is the user's own "Skip style check" answer in Phase 1 — never a missing plugin. Record that answer in the report line below.
 
@@ -305,17 +307,13 @@ If the user chose a style check in Phase 1:
 
 ## Phase 8 — Write + report
 
-1. **Write** the `combined_rendered` draft to the resolved destination:
-   - `file:<path>` → write it. If the file exists, ask: `["Overwrite", "Write to <path>.new", "Print to screen instead", "Skip"]`.
-   - `stdout` → include the full draft in the report under `### Release-notes draft`.
-   - `skip` → do not write.
-   NEVER write into a docs repo.
+1. **Append** the `combined_rendered` draft to `release-notes.md` in the resolved PRD folder — the one destination Phase 1 derives, laid out as Phase 1 lays it out. Where the file does not exist, create it with its `# Release notes — <KEY> <slug>` title. Where it has no heading for the version this draft is filed under (Phase 1: the resolved version, or `## Unreleased`), add that heading at the end of the file; where that version has no section for the draft's Change Type, add the section at the end of that version's part of the file; then add the draft at the end of that section. **The append is the whole write**: nothing already in the file is rewritten, reordered or removed, since every earlier section is an earlier run's note, so there is no question to ask and no option that replaces the file. NEVER write into a docs repo.
 
 2. **Report:**
    ```
    ## Release-notes draft — <KEY>
-   - Destination: <path | stdout | skipped>
-   - Shaped as: <Feature update | Breaking change | Fix> → <destination file>  (source: <imported | inferred>)
+   - Appended to: <the resolved PRD folder>/release-notes.md, under <version | Unreleased> → <## Breaking changes | ## Feature updates | ## Fixes>
+   - Shaped as: <Feature update | Breaking change | Fix>  (source: <imported | inferred>)
    - Category label: <the value | none — omitted from the draft>
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
@@ -355,7 +353,7 @@ persists the plugin-facing slice of its report as session feedback.
    > - Workarounds used: [manual steps not automated by the workflow — or 'none']
    > - Review verdict: N/A (light gate only, no Opus review)
    > - Test result: N/A (no tests in /release-notes)
-   > - Project root: [the resolved prd_dir or the destination directory]"
+   > - Project root: [the resolved PRD folder]"
 2. **Persist plugin feedback (automatic).** Project the report's plugin-facing
    slice into the specs repo by invoking `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and calling its `emit-auto` entry point (§6). Pass the Lessons Learned report,
    `command: /release-notes`, the run's `key` and `source`, and
@@ -456,7 +454,7 @@ current working directory; no user name is ever written (§10).
 - The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a plain **Category:** label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version — the version is the **section heading** the draft is filed under, which is the only thing that says which release a section belongs to now that the three destinations are three sections of one file. The prohibition survives for the body prose alone. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
 - The category label IS the PRD's `release_notes_category`, used verbatim; when the PRD carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
 - The run has **no worthiness gate**: every PRD is relevant for release notes, so there is no content state in which this command refuses to draft. `relevant_for_release_notes` is retired (`workflows-core:prd-format`) and a value left in an existing PRD is read by nothing. Whether a note is drafted is the decision of whoever runs the command.
-- NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
+- NEVER write into a docs repo. The draft's one destination is `release-notes.md` in the resolved PRD folder, which is persistent (never `/tmp`), and it is appended to, never overwritten: no earlier section is ever rewritten or removed (Phase 8). The style gate's scratch copy is removed once it is read back (Phase 7).
 - ALWAYS use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
 - Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`workflows-core:specs-repo-git` §2.2); it creates none), and no commit of the draft or of anything in a docs/code repo or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1).
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run

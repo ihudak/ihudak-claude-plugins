@@ -114,8 +114,8 @@ de-duplicate by binary name.
    (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md` §2, **Portability**): a
    `cd` of the user's would otherwise run in its place, and one that prints would put its output
    ahead of Vale's. `builtin`, not `command`: that shell is bash or zsh, and zsh's `command` runs
-   no builtin, so `command cd` there is a command not found. For the same reason every utility
-   the forms run is `command <name>` — `mktemp`, `vale` and `rm`, whose `rm -i` or `rm -I` alias
+   no builtin, so `command cd` there is a command not found. For the same reason every external
+   utility the forms run is `command <name>` — `mktemp`, `vale` and `rm`, whose `rm -i` or `rm -I` alias
    would otherwise ask before removing the directory, be answered no from the Bash tool's empty
    standard input, and leave the directory behind — and `--` ends `rm`'s options. What neither form makes equal is the
    styles themselves: the packages this machine synced are the versions it synced, and a runner
@@ -128,8 +128,8 @@ de-duplicate by binary name.
    whichever project ran it, and until this repository is synced again a lint can raise what a
    clean runner does not, or stay silent where one raises (Vale 3.21: another project's file
    there turning a rule off silenced that rule's alert under this form, and under the first form
-   changed nothing). No run syncs to cure it — a sync is a network call and a write into a
-   directory other projects read — so the remedy is the operator's: `vale sync` for this
+   changed nothing). No lint here syncs first to cure it — a sync is a network call and a write into
+   a directory other projects read — so the remedy is the operator's: `vale sync` for this
    repository, in this form. `docs-style-checker`'s first rung, `docs-scaffold-reviewer`'s Vale dimension,
    and `/docs-init`'s Phase 4 sync and Phase 7 lint each run Vale this way.
 

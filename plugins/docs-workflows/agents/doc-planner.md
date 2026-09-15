@@ -79,7 +79,7 @@ For each write target:
    Pick the policy:
    - `local` count > 0 and `cdn` count is 0 (or negligible) → `image_policy: local`; identify the idiomatic directory (most common pattern — typically `<page-dir>/img/` or `<page-dir>/images/`).
    - `cdn` count > 0 and `local` count is 0 (or negligible) → `image_policy: cdn_upload_required` — the writer MUST NOT copy user-provided screenshots into the repo; each is referenced by the CDN URL the user pastes at `/document` Phase 6.1, or, where the user defers its upload there, staged outside the repo at the `staging` path planned below and listed in the Phase 9 report for manual upload to the repo's image-management tool (e.g. CDN, Image Manager, CMS).
-   - Mixed or zero references → `image_policy: ambiguous`. `/document` Phase 5.7's **Ambiguous image policy** step settles each such target of your first return with the user and re-invokes you once, the answers passed as `image_policy_resolution`; a target that re-invoked pass newly returns `ambiguous` is not asked about there, and `/document` Phase 6.3 settles it from `doc-writer`'s `BLOCKED` gap.
+   - Mixed or zero references → `image_policy: ambiguous`. `/document` Phase 5.7's **Ambiguous image policy** step settles each such target of your first return with the user and re-invokes you at most once, where an answer needs it, the answers passed as `image_policy_resolution`; a target that re-invoked pass newly returns `ambiguous` is not asked about there, and `/document` Phase 6.3 settles it from `doc-writer`'s `BLOCKED` gap.
 
    Where `image_policy_resolution` names the target, take the policy it gives in place of the one this detection picks, and plan the target's screenshots under it in step 6.
 
@@ -107,7 +107,7 @@ For each write target:
    - "Feature is mentioned in the PRD goal but no PR was merged yet; only PRD content is available."
 
    For each gap, set a `recommended_action`:
-   - `"ask user"` — the caller prompts inline before approval, and re-invokes you once with the answers as `gap_resolution`. Plan from each answer as from any other input, and do not return a gap it answers. A gap the user declined has no entry there, so you return it again as `"ask user"`; the caller keeps the fallback it chose on the decline, `"mark TODO in draft"`, and does not ask about it again.
+   - `"ask user"` — the caller prompts inline before approval, and re-invokes you at most once, where an answer needs it, with the answers as `gap_resolution`. Plan from each answer as from any other input, and do not return a gap it answers. A gap the user declined has no entry there, so you return it again as `"ask user"`; the caller keeps the fallback it chose on the decline, `"mark TODO in draft"`, and does not ask about it again.
    - `"mark TODO in draft"` — the writer emits a `<!-- TODO: … -->` marker in the output.
    - `"skip with note in final report"` — the gap is recorded in the Phase 9 `### Skipped items` section.
 

@@ -35,13 +35,19 @@ Exactly one of `--status`, `--stop`, or `--build` drives this run; where more th
 - `--build` → **`--build` mode**, below. Runs the profile's build command; starts no server.
 - None of the three → the default serve flow, **Phase 1** onward.
 
+**The probe must be able to run.** Every mode but `--build` judges ports with Phase 2's reachability probe, which runs `curl`, so before `--status`, `--stop` or the serve flow does anything else, confirm that `command -v curl` exits 0. A probe that cannot run is never read as a port that answers, nor as a free one. Where curl is missing, stop:
+
+`DOCS_SERVE_NO_PROBE: curl is not installed here (or not on PATH), and /docs-serve judges every port with it — without it a port that answers and a free one look the same, so nothing was probed, started, stopped or recorded. Install curl and re-run.`
+
+A probe that exits 127 later in the run — curl could not run after all — stops the same way at that point, and the stop names what the run had already done: a server it started and could not poll, left running and unrecorded, or an entry it signalled but could not re-probe.
+
 ---
 
 ## `--status` mode
 
 Read `<repo-root>/.dev-workflows/docs-serve.state.json` (Phase 7 writes it). Absent, or holding no entries → report `No /docs-serve state recorded for <repo>. Nothing appears to be running (a server started outside this command is invisible to --status).` and stop cleanly — an idle repo is the ordinary state, not an error.
 
-Otherwise, for each recorded entry — one per port, the key Phase 7 writes: test whether it is living (Phase 7), and re-probe the port and URL with the same reachability check Phase 2 uses. Report, per entry: port, space (and visibility, where recorded), pid, URL, and one of *running* (living, its port answering as recorded), *stale* (not living, or living but its port no longer answering as this docs site), or *unknown* (the probe itself failed); an entry recording no pid — Phase 2 and Phase 5 say when one is written — is judged by its port alone, and says it has no pid. A selector narrows the report to the entries **Phase 7's lookup** returns for it: `--internal` is Phase 1's own server selection for `--internal`, looked up as that server — so only entries recorded for it are reported, which on the two-server profile `/docs-workflows:docs-init` writes means those that recorded `internal` — and a bare `--port <n>` is that port, matched against every entry. With neither given, every recorded entry is reported.
+Otherwise, for each recorded entry — one per port, the key Phase 7 writes: test whether it is living (Phase 7), and re-probe the port and URL with the same reachability check Phase 2 uses. Report, per entry: port, space (and visibility, where recorded), pid, URL, and one of *running* (living, its port answering as recorded) or *stale* (not living, or living but its port no longer answering as this docs site) — a probe that cannot run gives no status at all, and stops the mode with `DOCS_SERVE_NO_PROBE` (Mode dispatch); an entry recording no pid — Phase 2 and Phase 5 say when one is written — is judged by its port alone, and says it has no pid. A selector narrows the report to the entries **Phase 7's lookup** returns for it: `--internal` is Phase 1's own server selection for `--internal`, looked up as that server — so only entries recorded for it are reported, which on the two-server profile `/docs-workflows:docs-init` writes means those that recorded `internal` — and a bare `--port <n>` is that port, matched against every entry. With neither given, every recorded entry is reported.
 
 ## `--stop` mode
 
@@ -107,7 +113,7 @@ Read `<repo-root>/.dev-workflows/docs-profile.yml` (`${CLAUDE_PLUGIN_ROOT}/refer
 
 Before starting anything, test whether the selected server is already up. **A server's identity comes from evidence, never from the port it answers on.** Every port this command judges — the configured port here, each port step 2's pre-scan probes, and each port Phase 3 walks — is judged the same way, in this order:
 
-- **Does it answer?** The reachability probe. A port that does not answer has nothing listening on it.
+- **Does it answer?** The reachability probe, `curl -s -o /dev/null --max-time 2 http://localhost:<port>/`, read by its exit code as `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md` §2 defines a port that answers: exit 7, a refused connection, is a port that does not answer, and it has nothing listening on it; any other code but 127 is a port that answers; 127 means curl could not run, which is no answer at all and stops the run (Mode dispatch).
 - **Is a living recorded entry of another server bound to it?** One the state file records at that port for a server other than the selected one — an entry step 1 of Phase 7's lookup would not keep for the selection — that is living (Phase 7). That makes it another of this repo's servers, whatever its page says — typically one an earlier run's Phase 3 moved onto the selected server's configured port: the public twin of an internal server, or another space's server.
 - **Does it answer as this docs site?** Fetch the response and test it for something that actually names this docs site (the profile's `repo.name`, or the generator's own `site_name`, whichever the repo exposes). An answer carrying no such marker is not this docs site. A marker establishes the *site* and nothing more: every server of a multi-server profile renders a page naming it, and so does the same server run from another checkout of this repo.
 - **Which server is it?** Decided by the evidence below, and by nothing else.
@@ -208,6 +214,7 @@ End the report with a `### Next step` line, per `Skill(skill: "workflows-core:re
 - NEVER run a review gate — D17's sole exemption: this command writes no artefact, so there is nothing for a reviewer to check before it is trusted
 - NEVER emit a cost entry — `/docs-serve` starts a process and reports a URL; there is no dev/PM spend here to attribute against a PRD (`docs/reference/session-cost.md`)
 - ALWAYS bind `0.0.0.0`, never `localhost`, for a server this command starts
+- NEVER read a probe that could not run as a port that answers or as a free one — without `curl`, every mode but `--build` stops with `DOCS_SERVE_NO_PROBE` before it probes anything (Mode dispatch)
 - ALWAYS replace every `{port}` in the selected command with the port this run serves on, and NEVER run it with the token unsubstituted or rewrite anything else in it (Phase 4). A command without the token is fixed-port: NEVER pre-scan for it, walk it, or move it with `--port` — a collision on it is reported as `DOCS_SERVE_PORT_HELD`, `--port` on it as `DOCS_SERVE_FIXED_PORT`, and neither starts anything (Phases 1–3)
 - NEVER start a second copy of a server that is already running — re-adopt it wherever the evidence finds it (Phase 2) — and NEVER walk past a port that answers as this docs site unless the evidence names it another checkout or another of this repo's servers (Phase 3)
 - ALWAYS say so explicitly when a port collision shifts the serving port (Phase 3) or when `public_base_url` is absent (Phase 6) — never print a URL silently that may not open

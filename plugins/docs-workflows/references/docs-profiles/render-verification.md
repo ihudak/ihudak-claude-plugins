@@ -84,10 +84,26 @@ Then boot the chosen servers one at a time — the verification set's spaces in 
 space, its public server before its internal one — skipping any server no affected page was assigned
 to. On a profile with one server per space, that is one boot per space in the set.
 
-A port **answers** while something accepts a connection on it: any HTTP status, an error included, is
-an answer, and only a refused connection is not (`curl -s -o /dev/null --max-time 2
-http://localhost:<port>/` exits 7). Every probe below is this one, and it needs no socket tool. For
-each server:
+A port **answers** while something listens on it. The probe is
+`curl -s -o /dev/null --max-time 2 http://localhost:<port>/`, read by its exit code alone:
+
+- **7** — the connection was refused: the port does not answer.
+- **127** — curl could not run at all (not installed, or not on `PATH`): **no answer either way**,
+  neither an answering port nor a quiet one.
+- **Any other code** — the port answers: a listener took the connection or left it waiting (an HTTP
+  status, an error included, an empty reply or a reset, or 28 when `--max-time` runs out on a
+  listener that never replies).
+
+Every probe below is this one, and it needs no socket tool. **A probe that cannot run is never read
+as an answer or as silence**, so the check does not start without its tools: before the first boot,
+confirm that `command -v curl` and `command -v ps` both exit 0 — step 2 reads a process group with
+`ps`, and step 5 a listener's parents. Where either does not, boot nothing, record "smoke-check
+unavailable: `<tool>` is not installed", and every page goes to the manual table (§5); `/document`
+Phase 6.5 records that on `render_smoke_check` as `UNAVAILABLE`. A probe that exits 127 anyway,
+part-way through, ends the check the same way: boot no further server, signal the process group of
+one this run already booted as step 5 does (its signals are shell built-ins), record "smoke-check
+unavailable: curl could not run (exit 127) — `<space>`'s server was signalled, and its port could
+not be probed", and every page not yet checked goes to the manual table. For each server:
 
 1. Verify prerequisites (§4) — best-effort, never applied.
 2. **Probe the server's `port` before booting it.** Where it already answers, something this run did
@@ -158,8 +174,9 @@ each server:
    check (step 3); where it still answers, boot no further server, recorded as above.
 
    A missing socket tool alone never ends the check. What ends it is a port that answers when it
-   should be silent — before a boot (step 2) or after the stop — a group that will not go, or a
-   readiness timeout on a server without a group of its own (step 3).
+   should be silent — before a boot (step 2) or after the stop — a group that will not go, a
+   readiness timeout on a server without a group of its own (step 3), or a probe that cannot run
+   (above).
 
 Never run two servers at once: the next server boots only once step 5 has confirmed the last one
 stopped. Where a space has two servers, every record this file names for `<space>` names the
@@ -198,7 +215,10 @@ step 2), a server §2 step 5 cannot confirm stopped — its port still answers, 
 its process group still runs — and a readiness timeout on a server started
 without a process group of its own (§2 step 3). Every page not yet checked then
 falls back to the manual table, and the record names the port or process group
-left running and its command — it never blocks the run either.
+left running and its command — it never blocks the run either. A fourth ending
+is the check being unavailable: `curl` or `ps` cannot run (§2), so it has no
+probe to trust; every page not yet checked falls back to the manual table, and
+the record names the tool.
 
 A 404 and a 5xx on an affected page are both surfaced, never silently dropped,
 and each has exactly one disposition:

@@ -29,7 +29,10 @@ de-duplicate by binary name.
 1. **The resolved profile.** Take the **first whitespace-separated token** of every `commands.*` value
    (including every `commands.per_space.<space>.*` value), every `builds[].command`, and every
    `dev_servers.servers[].command`.
-   `"pnpm docs:lint"` ⇒ `pnpm`. Add every entry in `profile.prerequisites` as a named
+   `"pnpm docs:lint"` ⇒ `pnpm`. Where the profile records any `dev_servers.servers[]` entry, add
+   `curl` and `ps` too: the render smoke check that boots those servers probes their ports with
+   `curl` and reads their process groups with `ps`, and cannot run without either
+   (`docs-profiles/render-verification.md` §2). Add every entry in `profile.prerequisites` as a named
    prerequisite (these are prose, not binaries — record them for reporting, and check them only when
    the prose names a checkable path or binary).
 2. **Repo config signals**, checked at `repo_root`:
@@ -78,12 +81,13 @@ run's outcome before the run:
 | the package manager (`pnpm` / `npm` / `yarn`) | `style_check`, `build_check`, `render_smoke_check` |
 | `node_modules` present | every gate the package manager powers |
 | `git` | `source_truth_verification` |
+| `curl`, `ps` (the smoke check's probes) | `render_smoke_check` |
 
 Derive `required_by` from where the tool came from: a binary that appears in a command `build_check`
 runs — a `builds[].command`, `commands.build`, or `commands.per_space.<space>.build`
 (`docs-profiles/render-verification.md` §1) — powers `build_check`; one that appears in a
-`dev_servers` command powers `render_smoke_check`. A tool with an empty `required_by` is reported but
-never blocks.
+`dev_servers` command powers `render_smoke_check`, and so do `curl` and `ps`, which that check's
+probes run. A tool with an empty `required_by` is reported but never blocks.
 
 ## 5. Reporting and the prompt
 

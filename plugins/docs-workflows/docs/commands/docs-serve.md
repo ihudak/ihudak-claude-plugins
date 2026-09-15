@@ -33,6 +33,7 @@ The default flow (Phase 1 onward) selects the server to run — by a profile's o
 ## Failure modes
 
 - `DOCS_SERVE_NO_DEV_SERVER` — the resolved repo's profile is absent, or present but records no `dev_servers` block. Run `/docs-workflows:docs-profile` against the repo first.
+- `DOCS_SERVE_NO_PROBE` — `curl` is not installed (or not on `PATH`). Every mode but `--build` judges ports with it, and without it a port that answers and a free one look the same, so the run stops before it probes, starts or stops anything.
 - `DOCS_SERVE_NO_BUILD_COMMAND` (`--build` only) — none of `builds[]`, `commands.per_space.<space>.build`, or `commands.build` resolves a command to run.
 - `DOCS_SERVE_NO_INTERNAL_BUILD` — `--internal` on a profile that tags its servers or builds but records no internal one, which is what a `/docs-init --public-only` scaffold writes. Drop `--internal` to serve the public build; an internal build needs its own build config and a server entry tagged `internal`. `DOCS_SERVE_NO_PUBLIC_BUILD` is the same stop the other way round.
 - `DOCS_SERVE_FIXED_PORT` — `--port <n>` on a server whose command carries no `{port}` token. Such a command binds its own port, so nothing starts; drop `--port`, or add the token where the command's tool takes a port argument.

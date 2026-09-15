@@ -444,7 +444,7 @@ Light and dark variants are derived from the primary when the source supplies on
 
 - **Never applies silently.** The command prints each extracted value with the file and line it came from, and asks to confirm. A wrong brand colour applied quietly is worse than no branding.
 - **Contrast check.** The derived palette is checked against `references/docs-workflow/contrast.md` (D24): WCAG 2.2 **SC 1.4.3** (4.5:1 for body text, 3:1 for large text) and **SC 1.4.11** (3:1 for UI component boundaries and meaningful graphics), computed from relative luminance. It is a computation, not a rulebook lookup, which is why the family carries the rule itself rather than reaching into `guideline-reviewers` — cited there as further reading, loaded by nothing, so an install without that plugin behaves identically. a primary that fails contrast on body text is reported as a finding with the measured ratio, not silently accepted. A brand colour that fails is still applied if the user confirms — it is their brand — but the finding is recorded in the PR message.
-- **Copies, never links.** Logo assets are copied into `docs/assets/`; the docs build never reaches into a code repo at build time.
+- **Copies, never links.** Logo assets are copied into `docs/assets/`; the docs build never reaches into a code repo at build time. As shipped, `docs/` is the site's `docs_dir` — the MkDocs configs are found through the profile's `builds[]`, else in the resolved directory, and the stylesheet and the assets go under each config's own `docs_dir`, so a site below its repository's top level is branded where it sits (`/docs-brand` Phase 0 step 3).
 
 ### 7.4 Review gate
 

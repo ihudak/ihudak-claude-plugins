@@ -373,10 +373,18 @@ Before writing any file:
 
 3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`. When a `key` is resolved and the chosen shape has no separate issue-key segment, prefix it: `<KEY>-<slug>`.
 
-4. **Check HEAD context** — if HEAD is NOT on the default branch (`main` / `master` / `develop`), check for ahead commits: `git log origin/HEAD..HEAD --oneline 2>/dev/null`. If output is non-empty (branch has commits ahead), ask:
+4. **Check HEAD context** — resolve `<base>`, the default branch's name, by `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.8, with `<repo>` the repository this phase branches. It is the ladder Phase 4.6 resolves the pull request's base with, so the branch this run cuts from is the base its pull request targets. Never judge by a list of names: in a repository whose default is `main`, a local `develop` is a branch like any other, and the commits it carries are what this step asks about.
+   - **§2.8's ladder is exhausted** — no `origin`, or an unset `origin/HEAD` and none of the branches it probes → there is no base to measure against or to branch from, so ask nothing: print `Base branch unresolved (<reason>) — branching from the current position.`, carry that line into the Phase 5 report's `### Branch` section, and go to step 5.
+   - **HEAD is on `<base>`** — `git branch --show-current` prints `<base>` → nothing to check; go to step 5.
+   - **HEAD is not on `<base>`** — it prints another name, or nothing on a detached HEAD → list the commits HEAD carries that the base does not: `git log origin/<base>..HEAD --oneline`, or `git log <base>..HEAD --oneline` where `origin/<base>` does not exist (`git rev-parse --verify --quiet origin/<base> >/dev/null` fails). Non-empty output → ask the question below. Empty output with exit 0 → HEAD carries nothing the base lacks; go to step 5. **A non-zero exit is a failed read, never "no ahead commits"** — keep its error rather than redirecting it away, show it, and ask the question below anyway, saying beside it that the ahead commits could not be read.
+
+   The question names `<base>` beside it and lists the commits the read returned, or its error:
    ```
    choices: ["Branch from current position — continue on this work (Recommended)", "Branch from default branch — fresh start", "Cancel"]
    ```
+   - **Branch from current position** → step 5 cuts the branch from HEAD.
+   - **Branch from default branch** → `git switch <base>` and nothing more — no fetch and no pull, as at `/vuln` Step 3's switch onto the same base. It takes the name, which `git switch` accepts where it refuses an `origin/<name>` ref, and it creates a local `<base>` from `origin/<base>` where none exists. Step 5 then cuts from `<base>`. Where git refuses the switch — an uncommitted change it would overwrite — report its error and the paths it named, and stop as Cancel does: no branch exists yet, and step 5 must not cut one from the HEAD the user just declined.
+   - **Cancel** → stop and summarize what was planned.
 
 5. **Create and checkout** — `git checkout -b <prefix>/<key>-<slug>` on a keyed run, `<prefix>/<slug>` in direct mode. If that name already exists, append the first 7 chars of HEAD's SHA: `<prefix>/<slug>-<short-sha>`.
 
@@ -705,6 +713,7 @@ Output a structured report — do NOT ask any closing confirmation:
 
 ### Branch
 [branch name created in Pre-Phase 3, e.g. feat/add-user-authentication]
+[Pre-Phase 3 step 4's `Base branch unresolved …` line, verbatim, when it printed one; omit the line otherwise]
 [the Phase 4.6 `Code repo:` outcome line, verbatim (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §3.1)]
 [any repo this run wrote into but never branched — path + dirty paths, flagged uncommitted; omit the line when there is none]
 

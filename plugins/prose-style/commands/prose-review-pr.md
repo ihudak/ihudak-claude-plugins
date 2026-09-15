@@ -176,8 +176,8 @@ directory behind — and `--` ends `rm`'s options.
 
 **This is the one definition of the form this plugin runs Vale in** — `/prose-review-docs` step 5
 cites it — **and every part of both forms is load-bearing** (Vale 3.21, measured, and read from
-its source). The run reads the repository's own configuration and none of the machine's, with the
-styles that configuration reads. Vale merges the user's global configuration file —
+its source). The run reads the repository's configuration with no global Vale configuration and no
+`VALE_CONFIG_PATH`, and with the styles that configuration reads. Vale merges the user's global configuration file —
 `~/.config/vale/.vale.ini` on Linux, wherever `vale ls-dirs` names it elsewhere — under the
 repository's, so a style enabled only on this machine raises findings the repository's rules never
 would, and a rule turned off only on this machine goes silent where the repository enables it.
@@ -190,7 +190,15 @@ documents as valid, and `--no-global` stops the run with
 the default path and sets aside the global file alone: Vale looks for that file under
 `XDG_CONFIG_HOME`, a fresh, empty directory there holds none, and the default StylesPath comes from
 `XDG_DATA_HOME`, or `VALE_STYLES_PATH` where that is set, which the form leaves as they are; it
-removes the directory it made and exits with Vale's status. And `VALE_CONFIG_PATH`, where the
+removes the directory it made and exits with Vale's status. **That is also the second form's
+limit**: the default StylesPath is one directory for every project on the machine whose
+configuration sets no `StylesPath`, and Vale reads every configuration file in its
+`.vale-config/`, ahead of the repository's own — the configuration a package such as `Hugo` or
+`MDX` ships, which `vale sync` writes there after clearing what the last sync into it left. So
+what it holds is whatever the machine's latest `vale sync` into that directory wrote, another
+project's included, and until this repository is synced again the run can raise what a clean
+runner does not, or stay silent where one raises. This command never syncs to cure it; the
+remedy is `vale sync` for this repository, in the same form. And `VALE_CONFIG_PATH`, where the
 environment sets it, names a file Vale reads **instead** of searching, so the repository's own is
 never read; neither `--no-global` nor `XDG_CONFIG_HOME` stops that, and clearing it in the subshell
 does.

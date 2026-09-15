@@ -72,7 +72,8 @@ de-duplicate by binary name.
    repository linter is configured.
 
    **How this plugin runs Vale — a lint and `vale sync` alike — is defined here too, once: on the
-   repository's configuration, the way a clean CI runner runs it.** A clean runner has no global
+   repository's configuration, with no global configuration file and no `VALE_CONFIG_PATH`, as a
+   clean CI runner has neither.** A clean runner has no global
    Vale configuration file and no `VALE_CONFIG_PATH`, and it has Vale's default StylesPath, which
    is where `vale sync` installs a configuration's packages when that configuration sets no
    `StylesPath` of its own. So every Vale run goes from the directory holding the configuration it
@@ -117,7 +118,18 @@ de-duplicate by binary name.
    would otherwise ask before removing the directory, be answered no from the Bash tool's empty
    standard input, and leave the directory behind — and `--` ends `rm`'s options. What neither form makes equal is the
    styles themselves: the packages this machine synced are the versions it synced, and a runner
-   syncs its own. `docs-style-checker`'s first rung, `docs-scaffold-reviewer`'s Vale dimension,
+   syncs its own. **The second form keeps more of the machine than that, and this is its limit.**
+   The default StylesPath it keeps is one directory for every project on this machine whose
+   configuration sets no `StylesPath`, and Vale reads every configuration file in that
+   directory's `.vale-config/`, ahead of the repository's own: the configuration a package ships,
+   as `Hugo` and `MDX` do, which `vale sync` writes there after clearing what the last sync into
+   that directory left. So it holds whatever the machine's latest `vale sync` into it wrote, for
+   whichever project ran it, and until this repository is synced again a lint can raise what a
+   clean runner does not, or stay silent where one raises (Vale 3.21: another project's file
+   there turning a rule off silenced that rule's alert under this form, and under the first form
+   changed nothing). No run syncs to cure it — a sync is a network call and a write into a
+   directory other projects read — so the remedy is the operator's: `vale sync` for this
+   repository, in this form. `docs-style-checker`'s first rung, `docs-scaffold-reviewer`'s Vale dimension,
    and `/docs-init`'s Phase 4 sync and Phase 7 lint each run Vale this way.
 
    Separately, when any lockfile is present, check `node_modules/` beside it — or, beside a

@@ -111,10 +111,11 @@ directory instead, which may be another repository's; where there is none, it st
 `E100 [.vale.ini not found]`, since both forms set the user's global configuration aside. The file paths are
 step 2's absolute ones, so they resolve from that directory too.
 
-**The run reads the repository's own configuration and none of the machine's** — no global Vale
-configuration, no `VALE_CONFIG_PATH` — and keeps the styles that configuration reads, which live in
-Vale's default StylesPath where it sets no `StylesPath` of its own; `/prose-review-pr` step 6 says
-why each part of both forms is there.
+**The run reads the repository's configuration with no global Vale configuration and no
+`VALE_CONFIG_PATH`**, and keeps the styles that configuration reads, which live in Vale's default
+StylesPath where it sets no `StylesPath` of its own — one directory for every such project on the
+machine, whose package configuration is read with them; `/prose-review-pr` step 6 says why each
+part of both forms is there, and what that shared directory can hold.
 
 Collect Vale findings. Merge with prose-style-checker results, deduplicating where
 both flag the same line for the same issue.

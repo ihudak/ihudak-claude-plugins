@@ -225,7 +225,7 @@ conventions (finds PRs by number in `git log`) and also accepts source branch na
 **What it does:**
 1. Finds changed `.md` files from the PR diff.
 2. Runs `prose-style-checker` on those files.
-3. Runs Vale if the repo carries a Vale configuration file (`.vale.ini`, or one of the other names Vale reads: `.vale`, `_vale`, `vale.ini`, `_vale.ini`) and Vale is installed — on that configuration alone, never merged with your global Vale configuration or replaced by `VALE_CONFIG_PATH`.
+3. Runs Vale if the repo carries a Vale configuration file (`.vale.ini`, or one of the other names Vale reads: `.vale`, `_vale`, `vale.ini`, `_vale.ini`) and Vale is installed — on that configuration, never merged with your global Vale configuration or replaced by `VALE_CONFIG_PATH`; where it sets no `StylesPath`, Vale's shared default styles directory is read with it, and `/prose-review-pr` step 6 says what that directory can hold.
 4. Reports violations with file, line, severity, and suggested fix.
 5. Shows violations in diff context so you see what changed alongside what violated.
 6. Offers to auto-fix via `prose-fixer`.
@@ -260,7 +260,7 @@ automatic fixes.
 **What it does:**
 1. Recursively finds all `.md` files in the specified path(s).
 2. Runs `prose-style-checker` on those files.
-3. Runs Vale if available, on the repository's own configuration alone, as `/prose-review-pr` does.
+3. Runs Vale if available, on the repository's configuration, as `/prose-review-pr` does.
 4. Reports violations grouped by file.
 5. With `--fix`: applies safe fixes via `prose-fixer`, then re-checks to verify.
 

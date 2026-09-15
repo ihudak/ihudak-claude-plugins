@@ -190,7 +190,19 @@ yet checked goes to the manual table. For each server:
    it by its path for a server without a group.
 3. Readiness poll: GET `http://localhost:<port><base_path>/`, that server's own, until HTTP 200 or
    `profile.dev_servers.readiness_timeout_seconds` seconds elapse (fall back to **120** when the
-   field is absent). On a timeout, stop the server as step 5 says. Where step 5 confirms it stopped,
+   field is absent). **At every interval at which the GET gets no response** — it prints `000` —
+   **test the group too**, where step 2 holds a `<pgid>`, by step 5's test for a gone group:
+   `bash -c 'kill -0 -- -<pgid>'` fails, or every member of the group is a zombie. **A gone group
+   ends the poll at once**, the way `/docs-serve` Phase 5's does: the command exited without its
+   port answering — a theme that is not installed, a configuration it cannot load, a script its
+   package does not have — and nothing of its group is left to bind the port later, so the check
+   never waits out the timeout for it. Record "smoke-check skipped for `<space>`: its server exited
+   before it was ready — its command was `<command>`", with the last twenty lines of `<log>` and the
+   log's path; its pages fall back to the manual table (§5). Then probe the port as step 5 confirms
+   a stop — the group being gone already, the probe decides: quiet, the check goes on to the next
+   server; still answering, a process outside the group holds it, and step 5's **Either not
+   confirmed** applies. Where step 2 holds no `<pgid>`, the poll has no group to test and runs to
+   its timeout. On a timeout, stop the server as step 5 says. Where step 5 confirms it stopped,
    record "smoke-check skipped for `<space>`: not ready", its pages fall back to the manual table
    (§5), and the check goes on to the next server: nothing of the group survives to bind the port
    later. Where step 5 cannot confirm it, step 5's record ends the check. **A server without a group

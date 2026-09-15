@@ -151,10 +151,10 @@ sources **2 and 3 only**. It anchored on cwd unconditionally until a live run sh
 - **Binaries — each tested by the shell that will run it.** Every Bash call runs in the Bash
   tool's own shell, bash or zsh, which carries the user's aliases and shell functions — Claude
   Code's shell snapshot re-applies them — so whether a tool counts as present depends on what runs
-  it. **This is where the plugin says which test a tool takes**, and every tool check in it cites
-  this split: `/docs-serve`'s Mode dispatch and Phase 4, `/document` Phase 6.5's Steps 1 and 2
-  with `docs-profiles/render-verification.md` §1 and §2, `docs-style-checker`'s third rung, and
-  this preflight, `/docs-init`'s included.
+  it. **This is where the plugin says which test a tool takes**, and the tool checks its gates and
+  servers rest on cite this split: `/docs-serve`'s Mode dispatch and Phase 4, `/document` Phase
+  6.5's Steps 1 and 2 with `docs-profiles/render-verification.md` §1 and §2, `docs-style-checker`'s
+  third rung, and this preflight, `/docs-init`'s included.
   - **A tool the run starts through an explicit `bash -c`, or runs as `command <name>`** — of
     those checked for here: `bash`, which runs every call on a process group as
     `command bash -c`; `curl`, which every probe and request runs as `command curl`; off Linux,
@@ -162,17 +162,19 @@ sources **2 and 3 only**. It anchored on cwd unconditionally until a live run sh
     (`docs-profiles/render-verification.md` §2, **Portability**); the tool of every
     `dev_servers.servers[].command`, which `render-verification.md` §2 step 2 and `/docs-serve`
     Phase 4 start inside an explicit `command bash -c`; and `vale`, which every Vale run in this
-    plugin calls as `command vale` (§2, source 2). Neither runs an alias or a function of the Bash
-    tool's shell, so this test takes neither for the tool:
+    plugin calls as `command vale` (§2, source 2). Neither runs an alias of the Bash tool's shell,
+    nor a function of it save one the user exported, which a child `bash` imports (below), so this
+    test takes neither for the tool:
     `command sh -c 'unset -f "$1" 2>/dev/null; command -v "$1"' sh <binary>` — present when it
     exits 0. **A bare `command -v <binary>` will not do**: it reports an alias or a function named
     after the binary, exiting 0 where no such binary is installed. A child `sh` inherits no alias,
     and its `unset -f` drops a function of the binary's name it may have taken in from the
     environment: bash, which some hosts install as `sh`, imports exported functions. `command sh`
     keeps an alias or a function named `sh` out of it too, as `command` keeps them out of the
-    process and socket reads. A bash function the user exported does reach a child `bash`, and
-    this test does not count it. Checked with bash, dash and BusyBox's `ash` as the calling shell,
-    each given an alias and a function named after an absent tool and bash an exported one as
+    process and socket reads. A bash function the user exported does reach a child `bash`, and this
+    test does not count it: an exported function standing in for a server's tool reads as missing
+    here though its server would start. Checked with bash, dash and BusyBox's `ash` as the calling
+    shell, each given an alias and a function named after an absent tool and bash an exported one as
     well, and with dash and with bash as the `sh` it starts: the bare form passes every one of
     them, and this form none, while a present tool shadowed the same way still passes. zsh 5.8, as
     the calling shell, passes neither an alias nor a function named after the tool or after `sh`,

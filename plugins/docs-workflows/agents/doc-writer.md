@@ -72,7 +72,9 @@ Author heading anchors and the internal-link forms that reference them per `${CL
 
 Write/modify files only — **never commit** (still true — this agent runs no git
 at all). `Bash` is granted solely to copy local screenshots (`image_policy: local`,
-step 5 above) — never for git commands; the orchestrator remains the only actor
+step 5 above), from the absolute `src` to the absolute `dest` the checklist records — your Bash
+tool starts every call in the session's directory, not in `docs_repo_path`, and a `cd` does not
+persist between calls, so a relative path would land in the wrong tree — never for git commands; the orchestrator remains the only actor
 that commits, both for the docs write target and for its own terminal
 `commit-artifacts` step. Return:
 

@@ -55,8 +55,8 @@
 //
 // SCOPE. Tracked markdown only (`git ls-files`), because a tracked file is what GitHub
 // renders -- which also leaves out every git worktree copy under the ignored .worktrees/.
-// The one subtree excluded is this gate's own negative fixtures, scripts/fixtures/mermaid/,
-// whose red cases are broken on purpose.
+// The one subtree excluded is this gate's own fixture tree, scripts/fixtures/mermaid/ --
+// its green cases as well as its red ones, which are broken on purpose.
 //
 // Usage: node scripts/mermaid/check-mermaid.mjs [--root <dir>]   (default --root .)
 //        node scripts/mermaid/check-mermaid.mjs --selftest
@@ -249,8 +249,10 @@ async function runRoot(root) {
 // failure names, or the block count a pass found. The exit code alone cannot tell a gate
 // that caught the defect from one that failed for another reason: several red cases here
 // exit 1 whether or not the gate found the diagram, because a gate that finds nothing
-// trips the vacuity guard. The cases are paired red/green so that a checker which fails
-// everything, or finds nothing, cannot pass both halves.
+// trips the vacuity guard. Red cases sit beside green ones -- two of them pairs,
+// edge-label and closed-by-list-item -- so that a checker which fails
+// everything cannot pass the green cases, and one which finds nothing cannot pass the red
+// ones, which assert what was reported and not only the exit code.
 async function selftest() {
   let bad = 0;
   const expect = async (desc, dirOrFiles, { exit, blocks, report, reason, includes, excludes }) => {

@@ -93,11 +93,17 @@ Collect the violation report.
 ### 5. Run Vale (optional)
 
 Check if `.vale.ini` exists at or above the file paths. If it does and `vale` is
-installed:
+installed, run Vale **from the directory holding that `.vale.ini`**, in one Bash call —
+once per such directory where the files sit under different ones, each over its own files:
 
 ```bash
-vale --output=line <file1> <file2> ... 2>&1
+(cd "<the directory holding the .vale.ini>" && vale --output=line <file1> <file2> ... 2>&1)
 ```
+
+Vale reads the `.vale.ini` it finds from the directory it runs in, not from the files'
+location, and this command's shell stands wherever the session does. Run from anywhere else,
+Vale stops with `E100 [.vale.ini not found]` or lints the files under another repository's
+rules. The file paths are step 2's absolute ones, so they resolve from that directory too.
 
 Collect Vale findings. Merge with prose-style-checker results, deduplicating where
 both flag the same line for the same issue.

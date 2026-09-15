@@ -69,7 +69,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      ```
      "Use cwd anyway" sets `docs_repo_path` = the git root of cwd (or cwd itself if not a git tree) and carries the user's confirmation forward. "Enter the docs repo path" takes a free-text absolute path and validates it exists.
 
-   **Then take it to its top level.** Record the directory the rung answered with as `docs_repo_resolved`, and set `docs_repo_path` to its git work-tree top level — `git -C <docs_repo_resolved> rev-parse --show-toplevel`, or `docs_repo_resolved` itself where it is in no git work tree. That top level is where the profile lives, where every path it records is rooted and where every command it records runs (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`, **Where the profile lives**), so every later use of `docs_repo_path` in this command means it. Rungs (a) and (b), and "Use cwd anyway", already answer with a top level; `$DOCS_PATH` at (a.5) and a path entered at (c) can name a site below one — a monorepo's `website/` — whose profile step 4 would otherwise look for in the wrong place. Only step 6's `.obsidian/` walk starts from `docs_repo_resolved`.
+   **Then take it to its top level.** Record the directory the rung answered with as `docs_repo_resolved`, and set `docs_repo_path` to its git work-tree top level — `git -C <docs_repo_resolved> rev-parse --show-toplevel`, or `docs_repo_resolved` itself where it is in no git work tree. That top level is where the profile lives, where every path it records is rooted and where every command it records runs (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`, **Where the profile lives**), so every later use of `docs_repo_path` in this command means it. Rungs (a) and (b), and "Use cwd anyway", already answer with a top level; `$DOCS_PATH` at (a.5) and a path entered at (c) can name a site below one — a monorepo's `website/` — whose profile step 4 would otherwise look for in the wrong place. `docs_repo_resolved` is kept for what the site's own directory decides: step 4(c) hands it to inline profiling, step 6's `.obsidian/` walk starts from it, and step 7's preflight and Phase 6.4's style check look there, before the top level, for the configuration a site keeps beside itself.
 
    **Confirm writeable.** Once `docs_repo_path` is resolved, run `test -w <docs_repo_path>`. If it fails, stop with the named error `REPO_NOT_WRITEABLE: <docs_repo_path> is not writeable.`
 
@@ -78,13 +78,13 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 4. **Resolve the profile** (record `profile_source`). The profile steers all later phases' conventions. Resolve in this order:
    - **(a) In-repo profile →** `in-repo`. If `<docs_repo_path>/.dev-workflows/docs-profile.yml` exists — the profile's one home, since step 2 took `docs_repo_path` to the top level — load it. `profile_source: in-repo`.
    - **(b) Built-in default profile →** `built-in`. Else, if `is_known_docs_repo`, load `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile.default.yml`. `profile_source: built-in`.
-   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/docs-profile` flow against `docs_repo_path` (Skill tool, `skill: "docs-workflows:docs-profile"`, with `docs_repo_path --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to return. It resolves the same top level (its Phase 0 step 2) and, finding no profile there — (a) has just looked — bootstraps one: it cuts its branch, writes `<docs_repo_path>/.dev-workflows/docs-profile.yml`, commits it, and hands back that branch as `profile_branch` and that commit as `profile_commit` (its Phase 6). Load the file, and record `profile_source: generated` with both values — Phase 6.2 renames `profile_branch` and Phase 8.5 squashes onto `profile_commit`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /docs-workflows:docs-profile or switch to a profiled repo.` Where profiling stops on a named error of its own instead — `DOCS_PROFILE_BOOTSTRAP_BRANCH_EXISTS`, which it raises on a bootstrap branch an earlier run left behind — stop with that error as it stands, since it names what to fix.
+   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/docs-profile` flow against `docs_repo_resolved` (Skill tool, `skill: "docs-workflows:docs-profile"`, with `docs_repo_resolved --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to return. Pass the directory step 2's rung answered with, not its top level: profiling's Phase 0 step 3 tests the directory it is handed and that directory's top level for a docs signal, so handed the top level of a monorepo whose site sits in `docs/` it tests one signal-less directory twice and asks "Profile it anyway?" about a repository this command has just found by its signal. It resolves the same top level (its Phase 0 step 2) and, finding no profile there — (a) has just looked — bootstraps one: it cuts its branch, writes `<docs_repo_path>/.dev-workflows/docs-profile.yml`, commits it, and hands back that branch as `profile_branch` and that commit as `profile_commit` (its Phase 6). Load the file, and record `profile_source: generated` with both values — Phase 6.2 renames `profile_branch` and Phase 8.5 squashes onto `profile_commit`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /docs-workflows:docs-profile or switch to a profiled repo.` Where profiling stops on a named error of its own instead — `DOCS_PROFILE_BOOTSTRAP_BRANCH_EXISTS`, which it raises on a bootstrap branch an earlier run left behind — stop with that error as it stands, since it names what to fix.
 
      **Where profiling hands back no commit** — it made none, as its refresh does when answered "Keep existing, write nothing" or when it finds nothing to change — it cut no branch either. (a) and profiling look for the profile in the same place, so profiling starts from none here and that refresh does not arise; should profiling hand back no commit anyway and leave a profile at `<docs_repo_path>/.dev-workflows/docs-profile.yml`, load it and record `profile_source: in-repo`, never `generated`. The in-repo base guard below then tests whether that profile is on the base, and Phase 6.2 takes its normal case: its inline-profiling case renames `profile_branch`, a branch this run did not cut, and Phase 8.5 has no `profile_commit` to squash onto.
 
    Hold the loaded profile for later phases.
 
-   **In-repo-profile-not-on-base guard.** When `profile_source: in-repo`, confirm the profile is committed on the base branch before relying on a docs branch cut from it. Resolve `<base-ref>` by `workflows-core:read-only-repos` §3's chain, run against `<docs_repo_path>`, and take the **ref** it yields as it stands — rung 1's `origin/<name>`, or the `origin/main` or `origin/master` rungs 2–3 find — then run `git -C <docs_repo_path> cat-file -e <base-ref>:.dev-workflows/docs-profile.yml`. This check is a read, so it takes the ref rather than the name (§3's **A switch takes the name**): Phase 6.2 cuts the docs branch from `<base>` after pulling it up to that ref, and this guard runs before that pull, when the local `<base>` may not yet hold a profile merged upstream. Where the chain finds no ref, `<base-ref>` is the local branch Phase 6.2 step 1 falls back to — `main`, then `master`, else HEAD:
+   **In-repo-profile-not-on-base guard.** When `profile_source: in-repo`, confirm the profile is committed on the base branch before relying on a docs branch cut from it. Resolve `<base>` exactly as Phase 6.2 step 1 does — `workflows-core:read-only-repos` §3's chain run against `<docs_repo_path>`, its `git -C <docs_repo_path> remote set-head origin --auto` retry where rung 1 fails, and its local fallback where the chain is exhausted — so the base this guard reads is the base Phase 6.2 cuts from. Step 2 has already confirmed the repository writable, which that retry needs: without it, a clone whose `origin/HEAD` was never set can read `origin/main` here while Phase 6.2's retry finds the remote's default is `develop`. Then take the **ref** that stands for `<base>` — `origin/<base>` where the chain found one, or, where step 1 falls back to a local branch, that branch itself: `<base>`, or HEAD where step 1 would switch nothing — and run `git -C <docs_repo_path> cat-file -e <base-ref>:.dev-workflows/docs-profile.yml`. This check is a read, so it takes the ref rather than the name (§3's **A switch takes the name**): Phase 6.2 pulls `<base>` up to `origin/<base>` before it cuts the docs branch, and this guard runs before that pull, when the local `<base>` may not yet hold a profile merged upstream:
    - **exit 0 (present on base)** → proceed (the common case — the profile was merged earlier).
    - **non-zero (absent on base)** → the profile is only in the working tree / on an unmerged branch, so the docs branch Phase 6.2 cuts from `<base>` will not include it. Warn and ask:
      ```
@@ -107,11 +107,12 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
    Record the resolved context — it drives Phase 6.2 (branch setup) and Phase 6.3 write rules. When `docs_repo_path` differs from cwd, record **both** and note that Phase 6.3 consumes `docs_repo_path`, not cwd, for every write.
 
 7. **Toolchain preflight.** Execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against
-   the resolved `docs_repo_path` and the profile loaded in step 4. Derive the required set from all
-   three sources (profile commands including `commands.per_space` and `builds[]`, together with
-   `bash`, `curl` and `ps`, which the smoke check runs, wherever the profile records a dev server; repo
-   config signals; the repo's documented `Prerequisites`), check each, and build the `toolchain`
-   block.
+   the resolved `docs_repo_path` and the profile loaded in step 4 — with `docs_repo_resolved` as the
+   site directory its source 2 also checks, where step 2 resolved one below the top level. Derive
+   the required set from all three sources (profile commands including `commands.per_space` and
+   `builds[]`, together with `bash`, `curl` and `ps`, which the smoke check runs, wherever the profile
+   records a dev server; repo config signals; the repo's documented `Prerequisites`), check each, and
+   build the `toolchain` block.
 
    Initialize the run's `gate_ledger` (schema:
    `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3) and append its first row:
@@ -623,7 +624,7 @@ Run this phase only when write context = `docs_repo` (or `non_docs_repo` after u
 
 Every git call in this phase, and in Phase 6.3's commit and Phase 8.5, runs as `git -C <docs_repo_path>` — the docs repository's top level (Phase 0 step 2), never the working directory — so every path given to git is relative to that top level.
 
-1. **Update the base branch.** `<base>` is the default branch's **name** — `main`, or `master` in a legacy repo — never its `origin/<name>` ref, which `git switch` refuses. Resolve it by `workflows-core:read-only-repos` §3's chain, run against `<docs_repo_path>`, and its **A switch takes the name** rule: rung 1, `git -C <docs_repo_path> symbolic-ref --quiet --short refs/remotes/origin/HEAD`, prints `origin/<name>`, and `<base>` is what follows `origin/`; where it prints nothing, `<base>` is the literal `main` or `master` whose ref rungs 2–3 find. Two steps are this command's own, beside that chain. Where rung 1 fails (unset `origin/HEAD`), run `git -C <docs_repo_path> remote set-head origin --auto` and retry it before rungs 2–3. Where the chain is exhausted — no `origin`, or one holding neither branch — `<base>` is the local `main`, then `master`, whichever `git -C <docs_repo_path> rev-parse --verify --quiet refs/heads/<name> >/dev/null` finds, and the fetch and the pull below are skipped, there being no remote branch to bring it up to; with neither, `<base>` is the branch HEAD is on and nothing is switched. Once the base is resolved: `git -C <docs_repo_path> fetch origin`. Then update the base working copy **only outside the inline-profiling case**: when `profile_source` is NOT `generated`, `git -C <docs_repo_path> switch <base> && git -C <docs_repo_path> pull --ff-only`. **In the inline-profiling case (`profile_source: generated`), do NOT switch** — HEAD must stay on `profile_branch`, the branch Phase 0's profiling cut off the base and committed the profile on, so this run's docs commits land on it after step 5 renames it. When a switch happened and the fast-forward pull fails:
+1. **Update the base branch.** `<base>` is a branch **name**, never an `origin/<name>` ref, which `git switch` refuses — the name the ladder below resolves: whichever branch `origin/HEAD` names, else `main` or `master` where the remote has one, and otherwise a local `main` or `master`, or the branch HEAD is on. Resolve it by `workflows-core:read-only-repos` §3's chain, run against `<docs_repo_path>`, and its **A switch takes the name** rule: rung 1, `git -C <docs_repo_path> symbolic-ref --quiet --short refs/remotes/origin/HEAD`, prints `origin/<name>`, and `<base>` is what follows `origin/`; where rung 1 fails — `origin/HEAD` unset, or naming a ref that no longer exists (§3 rung 1) — `<base>` is the literal `main` or `master` whose ref rungs 2–3 find. Two steps are this command's own, beside that chain. Where rung 1 fails, run `git -C <docs_repo_path> remote set-head origin --auto` and retry it before rungs 2–3. Where the chain is exhausted — no `origin`, or one holding neither branch — `<base>` is the local `main`, then `master`, whichever `git -C <docs_repo_path> rev-parse --verify --quiet refs/heads/<name> >/dev/null` finds, and the fetch and the pull below are skipped, there being no remote branch to bring it up to; with neither, `<base>` is the branch HEAD is on and nothing is switched. Once the base is resolved: `git -C <docs_repo_path> fetch origin`. Then update the base working copy **only outside the inline-profiling case**: when `profile_source` is NOT `generated`, `git -C <docs_repo_path> switch <base> && git -C <docs_repo_path> pull --ff-only`. **In the inline-profiling case (`profile_source: generated`), do NOT switch** — HEAD must stay on `profile_branch`, the branch Phase 0's profiling cut off the base and committed the profile on, so this run's docs commits land on it after step 5 renames it. When a switch happened and the fast-forward pull fails:
    ```
    choices: ["Stash local changes and continue (Recommended)", "Proceed from current base state", "Cancel"]
    ```
@@ -645,7 +646,7 @@ Every git call in this phase, and in Phase 6.3's commit and Phase 8.5, runs as `
    - **Normal case** (`profile_source` is `in-repo` or `built-in`, or a custom repo whose profiling did not create a branch): `git -C <docs_repo_path> switch -c <name>` from `base_branch`.
    - **Inline-profiling case** (`profile_source: generated`): Phase 0's `/docs-profile` already cut `profile_branch` and committed `.dev-workflows/docs-profile.yml` on it, so HEAD is already on that branch. Do NOT create a new branch — rename that one, by name: `git -C <docs_repo_path> branch -m <profile_branch> <name>`. Name the old branch every time: the one-argument `git branch -m <name>` renames whatever branch HEAD is on, `main` included, while the two-argument form fails where `profile_branch` does not exist rather than rename another. `profile_commit` is the commit profiling handed back (Phase 0 step 4(c)) — never a `git log --diff-filter=A` lookup, which names the newest commit that *added* the file, not necessarily the one this run made. Phase 8.5 squashes the docs commits onto `profile_commit`, keeping the profile-config commit as a distinct first commit. (Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §1.)
 
-No external CLI calls, and nothing is pushed or sent: step 1's reads of the remote — `git fetch origin`, the `pull --ff-only` behind it, and `remote set-head origin --auto` where `origin/HEAD` is unset — only settle the base, and every write this phase makes is local.
+No external CLI calls, and nothing is pushed or sent: step 1's reads of the remote — `git fetch origin`, the `pull --ff-only` behind it, and `remote set-head origin --auto` where rung 1 fails — only settle the base, and every write this phase makes is local.
 
 ---
 
@@ -663,19 +664,19 @@ The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opu
   > handoff_file: [absolute path of the temp handoff file from step 1]"
 
 3. **Handle the return.**
-   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.4 / 6.5 / 7 / 8. Then **commit** per the branch/commit policy below — `git -C <docs_repo_path> add -- <each path in files_written>`, then `git -C <docs_repo_path> commit`.
+   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.4 / 6.5 / 7 / 8. Then **commit** per the branch/commit policy below — `git -C <docs_repo_path> add -- <each path in files_written that lies under docs_repo_path>`, then `git -C <docs_repo_path> commit`. `files_written` also names what the writer put outside the docs repository — the `<KEY>-implementation-gaps.md` draft in the resolved PRD folder, and screenshots staged under `screenshot_staging_dir` — and those are never staged here: git refuses a path outside the repository (`fatal: … is outside repository`) and then stages nothing at all, so the commit would have nothing to commit.
    - **`status: BLOCKED`** — surface the named gap to the user:
      ```
      choices: ["Provide the missing input (you'll be prompted)", "Cancel"]
      ```
      On a provided value, rewrite the handoff file and re-dispatch once.
 
-Write context governs branch/commit (Phase 0 step 6); **the orchestrator commits the writer's output** (the writer never commits (still true — `doc-writer` runs no git at all; it only writes files)):
+Write context governs branch/commit (Phase 0 step 6); **the orchestrator commits the writer's output in the docs repository** (the writer never commits (still true — `doc-writer` runs no git at all; it only writes files)):
 
 | Write context | Branch | Commit |
 |---|---|---|
 | `obsidian` | NEVER | NEVER |
-| `docs_repo` | YES (opt-in confirmed at plan approval) — see Phase 6.2 | YES (orchestrator commits doc-writer's `files_written`) |
+| `docs_repo` | YES (opt-in confirmed at plan approval) — see Phase 6.2 | YES (orchestrator commits doc-writer's `files_written` that lie in the docs repo) |
 | `non_docs_repo` | Phase 0 step 2 already asked user to confirm; if confirmed, behave as `docs_repo` | YES (if user confirmed at Phase 0) |
 | `plain_dir` | NEVER | NEVER |
 
@@ -695,6 +696,7 @@ Invoke `docs-style-checker` on the files written in Phase 6.3:
   > "Run the style check for this brief:
   >
   > repo_root: [the resolved docs_repo_path (Phase 0)]
+  > site_root: [docs_repo_resolved (Phase 0 step 2), where it differs from docs_repo_path — the site's own .vale.ini, package.json and lint configuration are looked for there first; omit the key otherwise]
   > files:     [absolute paths of every file written or modified in Phase 6.3]
   > spaces:    [one entry per space in profile.spaces that has a profile.commands.per_space entry — {id, content_root, lint}; omit the key entirely when the profile declares no per_space commands]"
 
@@ -738,7 +740,7 @@ Then act on the return:
 
 ## Phase 6.5 — Render verification
 
-**Ledger first — before the run-condition below.** Both gates this phase owns must carry a row on every run, including runs where the phase does not execute. Per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3 each gate holds exactly one row, so **rewrite** the row Phase 0's preflight pre-seeded rather than appending beside it — and when that pre-seeded row carries a `user_decision`, keep it: the user already decided to proceed without this tooling, and that decision stands until the gate itself proves otherwise. Create the row here only when the preflight did not pre-seed one:
+**Ledger first — before the run-condition below.** Both gates this phase owns must carry a row on every run, including runs where the phase does not execute. Per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3 each gate holds exactly one row, so **rewrite** the row Phase 0's preflight pre-seeded rather than appending beside it — and when that pre-seeded row carries a `user_decision`, keep it: the user already decided to proceed without this tooling, and that decision stands until the gate itself proves otherwise, or until a later answer of the user's decides the gate — Step 2's Skip, which Ledger (final) records on both rows (`gate-ledger.md` §3). Create the row here only when the preflight did not pre-seed one:
 
 - Write context is `obsidian` or `plain_dir` → append BOTH `build_check` and `render_smoke_check` as `NOT_APPLICABLE` with `precondition_unmet` naming the actual context — `"write context is obsidian"` or `"write context is plain_dir"`. These rows are final; the phase does not run.
 - Write context is `docs_repo` or a confirmed `non_docs_repo` → append both provisionally as `RAN`, then rewrite each at the end of this phase per **Ledger (final)** below.
@@ -756,7 +758,7 @@ Run each from `docs_repo_path`, the top level every command the profile records 
   ```
   choices: ["Proceed to smoke-check anyway", "Show remaining and fix manually", "Cancel"]
   ```
-- **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason and record the build as not run, with that reason; no `doc-fixer` loop. **Then test the registered fallback before anything is asked.** `build_check`'s fallback is the Step 2 dev-server boot (`gate-ledger.md` §4), and `UNAVAILABLE` means that neither the primary nor its fallback ran (`gate-ledger.md` §2), so a missing build tool alone does not make the gate `UNAVAILABLE`. The fallback can run where `command -v` finds `bash`, `curl` and `ps` — the smoke check's own tools — and the first token of the `command` of at least one server Step 2 would boot for an affected page, chosen as Step 2 chooses it.
+- **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason and record the build as not run, with that reason; no `doc-fixer` loop. **Then test the registered fallback before anything is asked.** `build_check`'s fallback is the Step 2 dev-server boot (`gate-ledger.md` §4), and `UNAVAILABLE` means that neither the primary nor a fallback ran (`gate-ledger.md` §2), so a build that will not run does not by itself make the gate `UNAVAILABLE`. The fallback can run where `command -v` finds `bash`, `curl` and `ps` — the smoke check's own tools — and the tool of the `command` of at least one server Step 2 would boot for an affected page, chosen as Step 2 chooses it. A command's tool is the one `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines — never a leading `cd`, which `command -v` finds on every host: `cd website && pnpm start` needs `pnpm`.
   - **The fallback can run** → ask nothing here and continue to Step 2, whose boot is now this gate's build proof; Ledger (final) records `build_check` from what Step 2 does. A `user_decision` Phase 0's preflight left on the row stays on it.
   - **The fallback cannot run** → neither the build nor its fallback can run, so the gate is `UNAVAILABLE`, and this is its `gate-ledger.md` §5 conversion, not an orchestrator decision:
     ```
@@ -768,7 +770,7 @@ When the profile declares **no** build command at any of the three levels — no
 
 ### Step 2 — Dev-server smoke-check (opt-in, best-effort)
 
-Offer it. Present this list **verbatim** — the "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules` forbids moving `(Recommended)`, reordering the options, or re-wording them. Dev-server flakiness and a clean static check are reasons to say something in prose beside the list; they are never reasons to recommend Skip. Where Step 1 could not run a build — the profile records none, or a build's tool is missing and the fallback can run — say so beside the list too: the boot is then the only proof for what that build compiles, so Skip declines the build check with it (Ledger (final)).
+Offer it. Present this list **verbatim** — the "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules` forbids moving `(Recommended)`, reordering the options, or re-wording them. Dev-server flakiness and a clean static check are reasons to say something in prose beside the list; they are never reasons to recommend Skip. Where Step 1 could not run a build — the profile records none, or a build would not run for an environmental reason and the fallback can run — say so beside the list too: the boot is then the only proof for what that build compiles, so Skip declines the build check with it (Ledger (final)).
 ```
 choices: ["Run smoke-check (Recommended)", "Skip — use the manual table only", "Cancel"]
 ```
@@ -803,27 +805,32 @@ Emit a table, one row per affected page — its URL (`http://localhost:<port><ba
 
 Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render verification` section, and pass a one-paragraph `render_verification` summary to Phase 7.
 
-**Ledger (final).** Rewrite the two rows appended at the top of this phase (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3). A row already written as `NOT_APPLICABLE` is never reached here — this phase did not run:
+**Ledger (final).** Rewrite the two rows appended at the top of this phase (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3). A row already written as `NOT_APPLICABLE` is never reached here — this phase did not run. Where one part of a gate `FAILED` and another only `DEGRADED` — one build failed on its content while another did not run, or one space answered a 5xx while another fell back — the row is `FAILED` and records the degraded part in its `not_run` and `ci_still_checks` (`gate-ledger.md` §2):
 
 - `build_check` — `RAN` when every build Step 1 resolved executed; `FAILED` on a content failure.
   `mechanism` names every build Step 1 ran, each by its `id` (or space) with its result —
   `public: pass; internal: fail` — so a `FAILED` row names the build that failed.
-  `DEGRADED` when a build did not run — the profile records no build command, or Step 1 found its
-  tool missing and the fallback able to run — and the Step 2 boot served as the proof: a server it
-  booted answered its readiness poll with a 200, which proves the content compiled
+  `DEGRADED` when a build did not run — the profile records no build command, or Step 1 met an
+  environmental failure (its tool missing, a missing `.docstack` shim, any reason the build tool
+  would not run) and found the fallback able to run — and the Step 2 boot served as the proof: a
+  server it booted answered its readiness poll with a 200, which proves the content compiled
   (`render-verification.md` §1). `not_run:` names each build that did not run and why
-  (`no build command in profile`, or `<tool> is not installed`), and `ci_still_checks:` names the
-  build CI runs on the pull request, or says that none runs where the repository has no CI build.
+  (`no build command in profile`, or the environmental failure Step 1 recorded, such as `<tool> is
+  not installed`), and `ci_still_checks:` names the build CI runs on the pull request, or says that
+  none runs where the repository has no CI build.
   A `user_decision` Phase 0's preflight left on the row stays on it.
   A row Step 1 leaves as `SKIPPED_BY_USER` — its §5 conversion, when neither the build nor its
   fallback could run and the user chose to proceed, or the preflight's decision on that same missing
   tool, which Step 1 kept — is **final — do not rewrite it**.
   `UNAVAILABLE` applies only when a build did not run, Step 1 did not already convert it, and the
-  Step 2 boot did not serve as the proof — Step 2 did not run, or ran and no server it booted became
-  ready. That is the coverage hole `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5
-  predicts — convert per `gate-ledger.md` §5, except where the row carries Phase 0's decision on the
-  same missing tool: that decision stands, as it does in Step 1, and the row records
-  `SKIPPED_BY_USER` with it. When the user has just declined the Step 2 smoke-check, fold this conversion into that same decision rather than prompting twice — record `SKIPPED_BY_USER` carrying their Step 2 choice, since declining the only remaining source of build proof is declining the build check.
+  Step 2 boot did not serve as the proof. **Where that is because the user chose Skip at Step 2**,
+  their Step 2 choice is the decision this row quotes: record `SKIPPED_BY_USER` with it, in place of
+  any decision Phase 0's preflight left on the row, and ask nothing more — declining the only
+  remaining source of build proof is declining the build check, and it is the decision that removed
+  the proof. **Otherwise** — Step 2 ran and no server it booted became ready, or it booted none —
+  this is the coverage hole `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5 predicts:
+  convert per `gate-ledger.md` §5, except where the row carries Phase 0's decision on the same
+  missing tool, which stands, as it does in Step 1, and the row records `SKIPPED_BY_USER` with it.
 - `render_smoke_check` — `RAN` when the smoke-check completed for every space in scope — a 404 does
   not change that, since the page's server booted and was checked and the 404 is no content failure:
   `findings:` counts the affected pages annotated ❌, each already surfaced with its URL; `FAILED`
@@ -843,7 +850,7 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
   registered fallback (`gate-ledger.md` §4), which Step 3 always emits and which needs no tool — so
   `render_smoke_check` never records `UNAVAILABLE`, and no ending of it asks the `gate-ledger.md` §5
   conversion. A `user_decision` Phase 0's preflight pre-seeded on this row stays on it (this phase's
-  opening paragraph).
+  opening paragraph), unless the user selected Skip, whose choice the row then quotes in its place.
 
 ---
 
@@ -994,7 +1001,7 @@ Run this phase only when Phase 6.3 wrote + committed in a git repo (write contex
 Fold the run into clean history before handoff, every git call as `git -C <docs_repo_path>` (Phase 6.2):
 1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) may have edited without committing; the Phase 6.2 clean-tree check means everything uncommitted is this run's work.
 2. Compute the squash base: if Phase 0 recorded `profile_commit` (inline-profiling run), base = `profile_commit` (keeps the profile-config commit as a distinct first commit → two commits); otherwise base = `git -C <docs_repo_path> merge-base <base_branch> HEAD` (one commit).
-3. `git -C <docs_repo_path> add -- <each path this run wrote or edited>` → `git -C <docs_repo_path> reset --soft <squash-base>` → one `git -C <docs_repo_path> commit`. The message follows `profile.commit_convention` when present (example-docs: `<KEY> <summary>`); for a repo with no such field, infer from recent `git -C <docs_repo_path> log` / `CONTRIBUTING`, else fall back to `<KEY> <summary>`. NEVER put the key in a reader-visible changelog — see `workflows-core:doc-structure-conventions` §1.
+3. `git -C <docs_repo_path> add -- <each path under docs_repo_path this run wrote or edited>` → `git -C <docs_repo_path> reset --soft <squash-base>` → one `git -C <docs_repo_path> commit`. Never a path outside the docs repository — the implementation-gaps draft, a staged screenshot, or Phase 8's feedback file under `$SPECS_PATH` — which git refuses along with every other path in the same `add`. The message follows `profile.commit_convention` when present (example-docs: `<KEY> <summary>`); for a repo with no such field, infer from recent `git -C <docs_repo_path> log` / `CONTRIBUTING`, else fall back to `<KEY> <summary>`. NEVER put the key in a reader-visible changelog — see `workflows-core:doc-structure-conventions` §1.
 
 ### Step 2 — Offer push
 
@@ -1010,7 +1017,7 @@ choices: ["Push <branch> to origin now", "Skip — I'll push later", "Cancel"]
 Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §4–§5:
 1. **Detect the host** from the docs repo's `git -C <docs_repo_path> remote get-url origin` (Bitbucket Cloud / Bitbucket Server / GitHub / other).
 2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.5 render-verification summary, deferred style/review/render items, a link to the PRD. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <KEY>-implementation-gaps.md is resolved.` A qualifying `document-as-code` decision (§7.5) does NOT get this banner even though it also produces a gaps file — the docs correctly describe what shipped, so the PR is mergeable; only the source ticket needs correcting.
-3. **Write + show**: write `pr-draft.md` to the resolved PRD folder (`ignore: legacy find $x -maxdepth 5 -type d -name "<KEY>*"`; ask if none) AND print it.
+3. **Write + show**: write `pr-draft.md` to the resolved PRD folder (ask if none) AND print it.
 4. **Host footer**: Bitbucket → "open a PR in the web UI and paste the title + body"; GitHub → additionally offer `gh pr create --title "<title>" --body-file <pr-draft path>` that the user may run; other → "open a PR and paste the title + body". Bitbucket offers no CLI to open one — a host capability limit, not a policy: the plugin does open a pull request on a host with a CLI, but only in the separate GitHub-hosted specs repo (`$SPECS_PATH`), via a different flow — never in this docs repo (`workflows-core:phase-handoff` §2.6).
 
 Carry the squash result, push outcome, and PR-draft path into the Phase 9 report.
@@ -1091,10 +1098,10 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 ### Verification gates
 | Gate | Outcome | Mechanism | Detail |
 |---|---|---|---|
-[One row per gate in the `gate_ledger`, in registry order (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE) — empty otherwise. When any row is DEGRADED, follow the table with a one-line warning naming what CI will check that this run did not.]
+[One row per gate in the `gate_ledger`, in registry order (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED, or FAILED with a degraded part — `gate-ledger.md` §2), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE) — empty otherwise. When any row carries a `ci_still_checks`, follow the table with a one-line warning naming what CI will check that this run did not.]
 
 ### Render verification
-- Build: [one entry per build Step 1 resolved, named by its `id` (or space) — ran — pass/fail | not run (`<tool>` is not installed) — boot served as the proof | unverified (reason)] OR "no build command in profile — boot served as the proof" (does NOT apply to example-docs, which defines per-space build commands)
+- Build: [one entry per build Step 1 resolved, named by its `id` (or space) — ran — pass/fail | not run (the environmental failure, e.g. `<tool>` is not installed) — boot served as the proof | unverified (reason)] OR "no build command in profile — boot served as the proof" (does NOT apply to example-docs, which defines per-space build commands)
 - Smoke-check: [per space, and per server where a space has two — passed (N pages, HTTP 200) | skipped (reason) | stopped (reason — the port or process group left running, and its command); then every ❌ page with its URL — 404: on the manual table | 5xx: render defect] OR "not run (user skipped)"
 - Pages to visit: [the Phase 6.5 Step 3 table]
 
@@ -1286,8 +1293,8 @@ No model-routing reminder is injected for this command — classification still 
 
    Then execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against it. Direct mode has no profile, so
    use **sources 2 and 3 only** (repo config signals and the repo's documented `Prerequisites`); the
-   only gate in scope is `style_check`, so `required_by` never names `build_check` or
-   `render_smoke_check`.
+   only gate in scope is `style_check`, so neither `required_by` nor `fallback_for` ever names
+   `build_check` or `render_smoke_check`.
 
    Append the `toolchain_preflight` row per
    `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3. Present the §5 prompt verbatim only when a

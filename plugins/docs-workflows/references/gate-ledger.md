@@ -26,7 +26,7 @@ ends in one of six outcomes, and every non-run path terminates in a **named miss
 | `RAN` | The gate's primary mechanism executed. | evidence only |
 | `DEGRADED` | Only a fallback executed. Records what did not run, why, and what CI will still check. | evidence only |
 | `FAILED` | Ran and found blocking problems. Feeds the caller's existing fix loops. | evidence only |
-| `UNAVAILABLE` | Nothing ran and no fallback exists, with the precondition met. **Not a resting state** — see §5. | the orchestrator, but never as a final answer |
+| `UNAVAILABLE` | Neither the primary nor a fallback ran, with the precondition met. **Not a resting state** — see §5. | the orchestrator, but never as a final answer |
 | `SKIPPED_BY_USER` | The user chose to skip. Carries their decision quoted verbatim. | the user only |
 | `NOT_APPLICABLE` | A named precondition is unmet. | evidence only |
 
@@ -36,12 +36,19 @@ nowhere to go.
 `DEGRADED` proceeds — a weaker check is not a documentation defect, and the final report names what
 CI will check that the run did not. Total absence of coverage does not proceed.
 
+**One gate, one outcome: `FAILED` outranks `DEGRADED`.** A gate that runs in parts — `build_check`
+over several builds, `render_smoke_check` over several spaces — can end with one part `FAILED` and
+another `DEGRADED`: one build fails on its content while another build's tool is missing, or one
+space answers a 5xx while another times out. The row is `FAILED`, because a content failure is what
+feeds the caller's fix loop, and the degraded part is still recorded in the row's `not_run` and
+`ci_still_checks`, which such a row fills as a `DEGRADED` row does.
+
 ## 3. Row schema
 
 The ledger is an in-context YAML block. The orchestrator **appends a row at the moment each gate
 completes** — never reconstructs the ledger at report time from memory.
 
-**One row per gate, created once.** The first writer to reach a gate creates its row; every later writer **rewrites that row in place** and never appends a second one. A row Phase 0's toolchain preflight pre-seeded is that gate's row — carry its `user_decision` forward rather than discarding it, and let the gate's own phase rewrite the outcome around it. Two rows for one gate id is a defect even though §6 does not name it: the report table reads every row, so a duplicate silently misstates what happened.
+**One row per gate, created once.** The first writer to reach a gate creates its row; every later writer **rewrites that row in place** and never appends a second one. A row Phase 0's toolchain preflight pre-seeded is that gate's row — carry its `user_decision` forward rather than discarding it, whatever outcome the gate's own phase then rewrites around it, until the user answers a later question that itself decides that gate's outcome: the row then quotes that answer in its place. Two rows for one gate id is a defect even though §6 does not name it: the report table reads every row, so a duplicate silently misstates what happened.
 
 A phase whose outcome is not yet known at append time may write a **provisional** row, but only when a named later step in that same phase rewrites it before the phase ends — Phase 5.8's `Ledger (final)` and Phase 6.5's `Ledger (final)` are the two sanctioned cases. A provisional row is never the outcome a later reader sees.
 
@@ -51,12 +58,14 @@ gate_ledger:
     phase: "<the phase that owns it>"
     outcome: RAN | DEGRADED | FAILED | UNAVAILABLE | SKIPPED_BY_USER | NOT_APPLICABLE
     mechanism: <what actually executed; omitted when nothing did>
-    not_run:                                        # DEGRADED only, non-empty
+    not_run:                                        # DEGRADED, or FAILED with a degraded part (§2); non-empty
       - mechanism: <the primary mechanism that did not run>
         reason:    <why>
-    ci_still_checks: <one line>                     # DEGRADED only, non-empty
+    ci_still_checks: <one line>                     # wherever not_run is; non-empty
     precondition_unmet: <the named precondition>    # NOT_APPLICABLE only, non-empty
-    user_decision: "<the user's choice, verbatim>"  # SKIPPED_BY_USER only, non-empty
+    user_decision: "<the user's choice, verbatim>"  # SKIPPED_BY_USER: required, non-empty. Any other
+                                                    # outcome: kept where Phase 0's toolchain preflight
+                                                    # pre-seeded the row (above)
     findings: <count>                               # RAN / DEGRADED / FAILED -- see below
 ```
 
@@ -96,7 +105,7 @@ Direct mode has no `doc-planner`, so its orchestrator extracts `repo_verificatio
 
 ## 5. Converting `UNAVAILABLE`
 
-`UNAVAILABLE` means the precondition was met and neither the primary nor the fallback ran — a real
+`UNAVAILABLE` — neither the primary nor a fallback ran, with the precondition met (§2) — is a real
 coverage hole. The orchestrator converts it before the run continues, with a choice list bound by the
 "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules`:
 

@@ -39,11 +39,14 @@ Phase 6.5 does NOT re-run the prose linter — that is Phase 6.4's `docs-style-c
 The **dev-server boot becomes the build proof** — a server that boots and serves HTTP 200s proves
 the content compiled — in two cases, and only there. One is a repo that genuinely declares **no**
 build command at any of the three levels — no `builds[]`, no `commands.per_space.<space>.build`, no
-`commands.build`. The other is a build whose tool is missing while the tools the boot needs are
-present — `bash`, `curl`, `ps` and the first token of a chosen server's command — which is
-`build_check`'s registered fallback running, recorded `DEGRADED` rather than skipped
-(`/document` Phase 6.5 Step 1). Either way it is a fallback, not a description of example-docs,
-which declares both builds and whose servers need the same `pnpm` as its builds.
+`commands.build`. The other is a build that will not run for an environmental reason — its tool
+missing, a missing `.docstack` shim — while the tools the boot needs are present: `bash`, `curl`,
+`ps` and the tool of a chosen server's command, as
+`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines a command's tool (never a
+leading `cd`, which every shell has). That is `build_check`'s registered fallback running, recorded
+`DEGRADED` rather than skipped (`/document` Phase 6.5 Step 1). Either way it is a fallback, not a
+description of example-docs, which declares both builds and whose servers need the same `pnpm` as
+its builds.
 
 ## 2. Sequential dev-server smoke-check
 

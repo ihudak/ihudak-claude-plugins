@@ -54,8 +54,12 @@ the name from `git -C <repo_path> symbolic-ref --quiet --short refs/remotes/orig
 prints `origin/<name>`: the name is what follows `origin/`. Without `--short` the command prints
 `refs/remotes/origin/<name>`, which is not a name — in `origin/main`'s place it makes
 `origin/refs/remotes/origin/<name>`, a revision git rejects, and in the other two it turns a diff
-against the local branch into one against the remote. Where it prints nothing (`origin/HEAD` is
-unset), the name is `master` if
+against the local branch into one against the remote. It counts only where
+`git -C <repo_path> rev-parse --verify --quiet origin/<name> >/dev/null` succeeds for that name: a
+remote that renamed its default branch, fetched with `--prune`, leaves `origin/HEAD` naming the
+branch it deleted, and each diff below that names the default branch would then name a ref git
+rejects. Where it prints nothing
+(`origin/HEAD` is unset), or a name that probe rejects, the name is `master` if
 `git -C <repo_path> rev-parse --verify --quiet origin/master >/dev/null` succeeds and the same
 probe of `origin/main` does not; otherwise it stays `main`.
 
@@ -131,18 +135,26 @@ Collect the violation report, including its `rules_source` field.
 
 ### 6. Run Vale (optional)
 
-Check if `<repo_path>/.vale.ini` exists. If it does:
+Find the `.vale.ini`: `<repo_path>/.vale.ini`, else `<repo_root>/.vale.ini`, where `<repo_root>` is
+what `git -C <repo_path> rev-parse --show-toplevel` prints. The first that exists is the one Vale
+must read, and `<vale_root>` is the directory holding it. If there is one:
 
 ```bash
 which vale 2>/dev/null || echo "NOT_INSTALLED"
 ```
 
-If Vale is installed and `.vale.ini` exists, run it on the changed files:
+If Vale is installed and a `.vale.ini` was found, run it on the changed files **from `<vale_root>`**,
+in one Bash call:
 
 ```bash
-git -C <repo_path> rev-parse --show-toplevel  # confirm the root, then:
-vale --output=line <file1> <file2> ... 2>&1
+(cd "<vale_root>" && vale --output=line <file1> <file2> ... 2>&1)
 ```
+
+Vale reads the `.vale.ini` it finds from the directory it runs in, and this command's shell stands
+wherever the session does — which is what `--repo` exists to differ from. Run from anywhere else,
+Vale stops with `E100 [.vale.ini not found]`, or lints the files under another repository's rules.
+The subshell keeps the `cd` to this one call, and the file paths are step 4's absolute ones, so they
+resolve from `<vale_root>` too.
 
 Collect Vale findings separately. If Vale is not installed, note:
 "Vale is not installed — skipping automated linting. Style check is based on

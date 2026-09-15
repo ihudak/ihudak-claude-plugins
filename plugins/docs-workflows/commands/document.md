@@ -1398,12 +1398,12 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 
 ## Phase 3.5 — Style check (mandatory)
 
-**Skip this entire phase** when Phase 0 recorded direct mode's gates as `NOT_APPLICABLE` (cwd is not a git repository): do not dispatch `docs-style-checker`, do not check the repo checklist, and write no rows — the ledger is already complete and final. Proceed to Phase 4.
+**Skip this entire phase** when Phase 0 recorded direct mode's gates as `NOT_APPLICABLE` (the resolved target is not a git repository): do not dispatch `docs-style-checker`, do not check the repo checklist, and write no rows — the ledger is already complete and final. Proceed to Phase 4.
 
-After writing the edits and before Phase 4, dispatch `docs-style-checker` on the changed file(s):
+After writing the edits and before Phase 4, dispatch `docs-style-checker` on the changed file(s), against the repository Phase 0 step 3 resolved from the edit target, whichever repository cwd sits in:
 
 → Agent (subagent_type: "docs-workflows:docs-style-checker"):
-  > repo_root: [cwd's git root]
+  > repo_root: [the `repo_root` Phase 0 step 3 resolved]
   > files:     [the files edited in Phase 3]
 
 - `VIOLATIONS_FOUND` → apply safe fixes via `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`, one fix cycle), then check the fixer's `Stop condition flag`. On `NEEDS HUMAN` it deferred a blocking violation it could not safely fix: surface each deferred BLOCKER with the fixer's reason and ask the user whether to fix it by hand and re-run, or skip the check — direct mode runs no reviewer, so nothing downstream would catch it. Record the `style_check` row from that answer per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` (`RAN` after a hand fix and re-run, `SKIPPED_BY_USER` with the choice quoted verbatim). Only on `CLEAR` re-run once.
@@ -1420,7 +1420,7 @@ After the style check, hold the edited files against the `repo_verification_gate
 
 First gather the actual change context:
 
-a. Run `git diff --stat` (or equivalent) and capture the list of changed files with line counts. Note: the user has not committed, so `git diff --stat` will reflect unstaged changes.
+a. Run `git -C <repo_root> diff --stat` (or equivalent) — in the repository Phase 0 step 3 resolved, whichever one cwd sits in — and capture the list of changed files with line counts. Note: the user has not committed, so `git diff --stat` will reflect unstaged changes.
 b. Compose a **change summary block**:
 
 ```
@@ -1481,7 +1481,7 @@ Then spawn all four Phase 4 agents. They are independent and can run in any orde
 > - Workarounds used: [manual steps not automated by the workflow — or 'none']
 > - Review verdict: N/A (no review gate in /document direct mode)
 > - Test result: N/A (no tests in /document direct mode)
-> - Project root: [absolute path]"
+> - Project root: [the `repo_root` Phase 0 step 3 resolved, or the resolved target itself where it is not a git repository]"
 
 Collect all four summaries for the Phase 5 report.
 
@@ -1586,7 +1586,7 @@ Output a structured report — do NOT ask any closing confirmation:
 - [anything the user asked to defer, OR validation failures the user accepted, OR "none"]
 
 ### Git state
-The working tree has uncommitted changes. `/document` (direct mode) never commits your doc edits — you manage git manually. Run `git status` to review, then commit when ready. (This run's `$SPECS_PATH` session artifacts are committed separately — see the terminal step's outcome line at the end of the run.)
+The working tree has uncommitted changes. `/document` (direct mode) never commits your doc edits — you manage git manually. Run `git -C <repo_root> status` to review, then commit when ready. (This run's `$SPECS_PATH` session artifacts are committed separately — see the terminal step's outcome line at the end of the run.)
 ```
 
 ---

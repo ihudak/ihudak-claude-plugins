@@ -9,7 +9,7 @@
 | make a one-off prose edit in a docs repo | [`/document`](commands/document.md) — direct mode |
 | teach this plugin what a docs repository looks like | [`/docs-profile`](commands/docs-profile.md) |
 | pick up a logo and brand colours from the product's own code | [`/docs-brand`](commands/docs-brand.md) |
-| open the docs in a browser | [`/docs-serve`](commands/docs-serve.md) |
+| serve the docs and get a URL to open in a browser | [`/docs-serve`](commands/docs-serve.md) |
 | draft the note that announces a change | [`/release-notes`](commands/release-notes.md) |
 | keep internal pages out of a published documentation site | [Documentation visibility](reference/docs-visibility.md) |
 | understand what a run cost | [Session cost](reference/session-cost.md) |

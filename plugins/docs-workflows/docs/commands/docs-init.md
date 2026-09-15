@@ -89,7 +89,7 @@ The same run without the internal half — no `mkdocs.internal.yml`, no `interna
 ## See also
 
 - [`/docs-brand`](docs-brand.md) — run as a phase of this command, and separately whenever the brand changes.
-- [`/docs-serve`](docs-serve.md) — the natural next step: open the scaffolded portal in a browser.
+- [`/docs-serve`](docs-serve.md) — the natural next step: serve the scaffolded portal and get a URL to open in a browser.
 - [`/docs-profile`](docs-profile.md) — the command for a documentation repository that already exists, and where `DOCS_INIT_EXISTING_DOCS_REPO` sends you.
 - [Documentation visibility](../reference/docs-visibility.md) — the two-build model this scaffold implements, the traps that make the obvious checks useless, and the gates that assert on built output instead.
 - [Session cost](../reference/session-cost.md) — what this run charges to and where the file lands.

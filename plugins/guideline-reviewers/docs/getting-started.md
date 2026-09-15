@@ -28,7 +28,7 @@ Your organization's own UI rules, as a directory of `.md` files. The bundled gui
 
 ### `API_GUIDELINES_PATH`
 
-The same idea for `/api-guideline-reviewer` — your own scope grammar, header spellings, or error-envelope contract, layered over the bundled public-source baseline. This governs the *prose* rules; the executable half is separate, where your repo's own `.spectral.yaml` takes precedence over the bundled Spectral ruleset. Unset degrades silently.
+The same idea for `/api-guideline-reviewer` — your own scope grammar, header spellings, or error-envelope contract, layered over the bundled public-source baseline. This governs the *prose* rules; the executable half is separate, where your repo's own `.spectral.yaml`, `.spectral.yml` or `.spectral.json` takes precedence over the bundled Spectral ruleset. Unset degrades silently.
 
 See [Environment](reference/environment.md) for the exact resolution order and what an unreadable path does.
 

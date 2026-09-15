@@ -123,6 +123,12 @@ of these holds:
 - `NOT_APPLICABLE` with an empty or absent `precondition_unmet`;
 - `DEGRADED` with an empty `not_run` or an empty `ci_still_checks`.
 
+**A `ci_still_checks` line that says no CI check runs, and why, is filled, not empty.** Where CI
+runs nothing in the gate's place — the repository has no CI build, or no repo-level linter — a line
+saying so with its reason ("none runs: the repository has no CI build") is the record §2 asks for.
+Only an absent or blank field is empty. What the line must never carry is a claim about CI that the
+repository cannot support.
+
 `DEGRADED` is otherwise not a finding — the reviewer notes it, and the final report prints its
 `ci_still_checks` line.
 

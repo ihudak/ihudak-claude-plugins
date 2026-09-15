@@ -835,8 +835,9 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
   because a port answered before its boot, a server could not be confirmed stopped, or a server
   without a process group of its own timed out — naming the port or process group left running and
   its command / the check could not run because `bash`, `curl` or `ps` could not (Step 2) — naming
-  the tool), and with a `ci_still_checks:` line naming the build CI runs on the pull request where
-  the repository has one, never a claim that CI renders these pages;
+  the tool), and with a `ci_still_checks:` line naming the build CI runs on the pull request, or
+  saying that none runs where the repository has no CI build — never a claim that CI renders these
+  pages;
   `SKIPPED_BY_USER` with the chosen option quoted verbatim when the user selected Skip.
   Each reason `DEGRADED` lists falls back to the manual table, and that table is this gate's
   registered fallback (`gate-ledger.md` §4), which Step 3 always emits and which needs no tool — so

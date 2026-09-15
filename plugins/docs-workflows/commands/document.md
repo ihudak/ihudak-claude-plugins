@@ -1241,7 +1241,7 @@ name is ever written (§10 privacy).
 - NEVER call Bitbucket REST APIs for Cloud or self-hosted Server — Bitbucket URLs are identifiers only; all resolution is pure local git
 - GitHub URLs may use the `gh` CLI for head/base SHA resolution; no direct REST calls outside `gh`
 - NEVER write inside `_archive/` — that path is read-only by convention
-- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the resolved PRD folder (the `implementation-gaps.md` bug-report draft, the `<KEY>-pr-draft.md`, and screenshot staging) — never anywhere else.
+- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the resolved PRD folder (the `<KEY>-implementation-gaps.md` bug-report draft, `pr-draft.md`, and screenshot staging) — never anywhere else.
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `docs-style-checker` (Phase 6.4) before `doc-reviewer` (Phase 7)
 - ALWAYS run the Phase 0 toolchain preflight (`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md`) after profile resolution and before Phase 1; it prompts only when a required tool is missing

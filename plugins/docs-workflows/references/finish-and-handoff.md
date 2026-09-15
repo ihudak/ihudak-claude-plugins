@@ -33,9 +33,12 @@ Then squash:
 - squash base = `profile_commit` (C0) when recorded — keeps the profile-config
   commit as a distinct first commit; otherwise
   `git -C <docs_repo_path> merge-base <base_branch> HEAD`.
-- mechanics: `git -C <docs_repo_path> add -- <each path the run wrote or edited>`
+- mechanics: `git -C <docs_repo_path> add -- <each path under docs_repo_path the run wrote or edited>`
   → `git -C <docs_repo_path> reset --soft <squash-base>`
-  → one `git -C <docs_repo_path> commit -m "<message>"`.
+  → one `git -C <docs_repo_path> commit -m "<message>"`. Never a path outside the docs
+  repository — the implementation-gaps draft in the resolved PRD folder, a screenshot staged under
+  `screenshot_staging_dir`, or Phase 8's feedback file under `$SPECS_PATH` — which git refuses
+  (`fatal: … is outside repository`) along with every other path in the same `add`.
 - message follows `profile.commit_convention` when present (example-docs:
   `<KEY> <summary>`); for a repo with no such field, infer from recent
   `git -C <docs_repo_path> log` / `CONTRIBUTING` (a ticket-key prefix, or a conventional-commits

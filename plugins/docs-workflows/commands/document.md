@@ -663,7 +663,7 @@ The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opu
   > handoff_file: [absolute path of the temp handoff file from step 1]"
 
 3. **Handle the return.**
-   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.4 / 6.5 / 7 / 8. Then **commit** per the branch/commit policy below — `git -C <docs_repo_path> add -- <each path in files_written>`, then `git -C <docs_repo_path> commit`.
+   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.4 / 6.5 / 7 / 8. Then **commit** per the branch/commit policy below — `git -C <docs_repo_path> add -- <each path in files_written that lies under docs_repo_path>`, then `git -C <docs_repo_path> commit`. `files_written` also names what the writer put outside the docs repository — the `<KEY>-implementation-gaps.md` draft in the resolved PRD folder, and screenshots staged under `screenshot_staging_dir` — and those are never staged here: git refuses a path outside the repository (`fatal: … is outside repository`) and then stages nothing at all, so the commit would have nothing to commit.
    - **`status: BLOCKED`** — surface the named gap to the user:
      ```
      choices: ["Provide the missing input (you'll be prompted)", "Cancel"]
@@ -675,7 +675,7 @@ Write context governs branch/commit (Phase 0 step 6); **the orchestrator commits
 | Write context | Branch | Commit |
 |---|---|---|
 | `obsidian` | NEVER | NEVER |
-| `docs_repo` | YES (opt-in confirmed at plan approval) — see Phase 6.2 | YES (orchestrator commits doc-writer's `files_written`) |
+| `docs_repo` | YES (opt-in confirmed at plan approval) — see Phase 6.2 | YES (orchestrator commits doc-writer's `files_written` that lie in the docs repo) |
 | `non_docs_repo` | Phase 0 step 2 already asked user to confirm; if confirmed, behave as `docs_repo` | YES (if user confirmed at Phase 0) |
 | `plain_dir` | NEVER | NEVER |
 
@@ -994,7 +994,7 @@ Run this phase only when Phase 6.3 wrote + committed in a git repo (write contex
 Fold the run into clean history before handoff, every git call as `git -C <docs_repo_path>` (Phase 6.2):
 1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) may have edited without committing; the Phase 6.2 clean-tree check means everything uncommitted is this run's work.
 2. Compute the squash base: if Phase 0 recorded `profile_commit` (inline-profiling run), base = `profile_commit` (keeps the profile-config commit as a distinct first commit → two commits); otherwise base = `git -C <docs_repo_path> merge-base <base_branch> HEAD` (one commit).
-3. `git -C <docs_repo_path> add -- <each path this run wrote or edited>` → `git -C <docs_repo_path> reset --soft <squash-base>` → one `git -C <docs_repo_path> commit`. The message follows `profile.commit_convention` when present (example-docs: `<KEY> <summary>`); for a repo with no such field, infer from recent `git -C <docs_repo_path> log` / `CONTRIBUTING`, else fall back to `<KEY> <summary>`. NEVER put the key in a reader-visible changelog — see `workflows-core:doc-structure-conventions` §1.
+3. `git -C <docs_repo_path> add -- <each path under docs_repo_path this run wrote or edited>` → `git -C <docs_repo_path> reset --soft <squash-base>` → one `git -C <docs_repo_path> commit`. Never a path outside the docs repository — the implementation-gaps draft, a staged screenshot, or Phase 8's feedback file under `$SPECS_PATH` — which git refuses along with every other path in the same `add`. The message follows `profile.commit_convention` when present (example-docs: `<KEY> <summary>`); for a repo with no such field, infer from recent `git -C <docs_repo_path> log` / `CONTRIBUTING`, else fall back to `<KEY> <summary>`. NEVER put the key in a reader-visible changelog — see `workflows-core:doc-structure-conventions` §1.
 
 ### Step 2 — Offer push
 

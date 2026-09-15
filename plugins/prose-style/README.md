@@ -220,7 +220,7 @@ conventions (finds PRs by number in `git log`) and also accepts source branch na
 **What it does:**
 1. Finds changed `.md` files from the PR diff.
 2. Runs `prose-style-checker` on those files.
-3. Runs Vale if `.vale.ini` is present in the repo and Vale is installed.
+3. Runs Vale if the repo carries a Vale configuration file (`.vale.ini`, or one of the other names Vale reads: `.vale`, `_vale`, `vale.ini`, `_vale.ini`) and Vale is installed.
 4. Reports violations with file, line, severity, and suggested fix.
 5. Shows violations in diff context so you see what changed alongside what violated.
 6. Offers to auto-fix via `prose-fixer`.

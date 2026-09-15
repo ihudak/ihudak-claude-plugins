@@ -54,12 +54,20 @@ de-duplicate by binary name.
 
    | Signal file | Implies |
    |---|---|
-   | `.vale.ini` | `vale` |
+   | a Vale configuration file — any of the five names below | `vale` |
    | `pnpm-lock.yaml` | `pnpm` |
    | `package-lock.json` | `npm` |
    | `yarn.lock` | `yarn` |
    | `.markdownlint.json` / `.markdownlint.jsonc` | `markdownlint` |
    | `.remarkrc*` | `remark` |
+
+   **Vale reads its configuration from five file names, not one** — `.vale`, `_vale`, `vale.ini`,
+   `.vale.ini` and `_vale.ini` — and this is where this plugin defines them. In each directory it
+   searches, Vale takes the first of them in that order, and the nearest directory holding any of
+   them wins over a farther `.vale.ini` (Vale 3.21). So the checks that decide whether and on what
+   Vale runs — this source, `docs-style-checker`'s first rung and `docs-scaffold-reviewer`'s Vale
+   dimension — look for all five: a site whose only one is `_vale.ini` is linted by Vale all the
+   same, and a test for `.vale.ini` alone records that no repository linter is configured.
 
    Separately, when any lockfile is present, check `node_modules/` beside it as an
    **installed-dependencies** signal. A present `pnpm` with absent dependencies fails just as

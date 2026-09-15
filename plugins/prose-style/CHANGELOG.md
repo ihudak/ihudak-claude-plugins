@@ -12,6 +12,8 @@ That name also counts only where `origin/<name>` exists. After a remote renames 
 
 `/prose-review-pr` ran Vale bare after a `git -C <repo_path> rev-parse --show-toplevel` line that changes no directory, and Vale reads the first `.vale.ini` it finds in the directory it runs in or above it — so the documented `--repo /workspace/product-docs` usage, with the session elsewhere, stopped with `E100 [.vale.ini not found]` or linted under another repository's rules. Step 6 now finds the `.vale.ini` where Vale's own search would, in `<repo_path>` and then in each directory above it up to the repository's top level, the nearest first — so `--repo` naming a site's `website/docs` finds `website/.vale.ini` — and runs `(cd "<vale_root>" && vale --output=line <files>)` from the directory holding it. `/prose-review-docs` step 5 ran the same bare `vale` over files anywhere, having found their `.vale.ini` at or above them; it now runs from that directory the same way.
 
+Both looked for `.vale.ini` alone, while Vale reads its configuration from five file names — `.vale`, `_vale`, `vale.ini`, `.vale.ini` and `_vale.ini`, the first of them in that order within one directory — so a repository configured through `_vale.ini` was reported as having no Vale configuration and never linted by it. Both now look for all five, and the README's summary of `/prose-review-pr` says so.
+
 ## 0.3.0
 
 ### BREAKING

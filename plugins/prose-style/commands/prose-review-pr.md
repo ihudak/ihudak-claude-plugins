@@ -4,7 +4,7 @@ description: >
   Reviews documentation changes from a pull request against the active prose style
   rules. Accepts a PR number (merge-commit convention) or a source branch name.
   Extracts changed markdown files, runs prose-style-checker, and optionally runs Vale
-  if the repo has a .vale.ini. Reports violations with file, line, severity, and
+  if the repo has a Vale configuration file. Reports violations with file, line, severity, and
   suggested fix.
 allowed-tools: Read Bash Glob Grep Task
 ---
@@ -135,28 +135,31 @@ Collect the violation report, including its `rules_source` field.
 
 ### 6. Run Vale (optional)
 
-Find the `.vale.ini`: look in `<repo_path>` and then in each directory above it up to
+Find the Vale configuration: look in `<repo_path>` and then in each directory above it up to
 `<repo_root>`, the nearest first, where `<repo_root>` is what
 `git -C <repo_path> rev-parse --show-toplevel` prints — the order Vale's own search takes, climbing
-from the directory it runs in. The first that exists is the one Vale must read, and `<vale_root>`
-is the directory holding it. If there is one:
+from the directory it runs in. In each directory look for all five names Vale reads its
+configuration from, not only `.vale.ini`: `.vale`, `_vale`, `vale.ini`, `.vale.ini` and
+`_vale.ini`, of which Vale takes, in one directory, the first in that order (Vale 3.21) — so a
+repository whose only one is `_vale.ini` is linted all the same. The nearest directory holding one
+is the one Vale must read from, and `<vale_root>` is that directory. If there is one:
 
 ```bash
 which vale 2>/dev/null || echo "NOT_INSTALLED"
 ```
 
-If Vale is installed and a `.vale.ini` was found, run it on the changed files **from `<vale_root>`**,
+If Vale is installed and a configuration file was found, run it on the changed files **from `<vale_root>`**,
 in one Bash call:
 
 ```bash
 (cd "<vale_root>" && vale --output=line <file1> <file2> ... 2>&1)
 ```
 
-Vale looks for its `.vale.ini` in the directory it runs in and then in each directory above it,
+Vale looks for its configuration in the directory it runs in and then in each directory above it,
 uses the first it finds, and never looks beside the files; this command's shell stands wherever the
 session does — which is what `--repo` exists to differ from. Run from `<vale_root>`, Vale reads its
-`.vale.ini`. Run from a directory outside `<vale_root>`'s tree — the session's, say — it reads the
-first `.vale.ini` at or above that directory instead, which may be another repository's; where
+configuration there. Run from a directory outside `<vale_root>`'s tree — the session's, say — it reads
+the first configuration at or above that directory instead, which may be another repository's; where
 there is none, it uses the user's global configuration, or, without one, stops with
 `E100 [.vale.ini not found]`. The subshell keeps the `cd` to this one call, and the file paths are
 step 4's absolute ones, so they resolve from `<vale_root>` too.

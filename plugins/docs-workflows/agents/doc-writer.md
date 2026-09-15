@@ -32,7 +32,7 @@ Before writing, validate the handoff. Return `status: BLOCKED` with the specific
 - the handoff file is missing/unreadable, or `write_targets` is empty;
 - a screenshot has `image_policy: cdn_upload_required`, `cdn_handoff_decision: upload-now`, but no `cdn_urls[<image>]`;
 - a screenshot has `image_policy: cdn_upload_required` and `cdn_handoff_decision: defer` but `screenshot_staging_dir` is absent/null;
-- a target whose `image_policy` is `ambiguous` has a screenshot planned for it — `/document` Phase 5.7's **Ambiguous image policy** step settles every such target before dispatch, so the handoff is incomplete;
+- a target whose `image_policy` is `ambiguous` has a screenshot planned for it — no one has chosen that target's policy, so there is no path to place the screenshot at. `/document` Phase 5.7's **Ambiguous image policy** step settles each such target of `doc-planner`'s first return before you run; one the planner's single re-invocation newly returned reaches you unsettled, and `/document` Phase 6.3 settles it from this gap and re-dispatches you — so name every such target and its screenshots;
 
 ## Write mechanics
 

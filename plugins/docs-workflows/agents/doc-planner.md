@@ -79,7 +79,7 @@ For each write target:
    Pick the policy:
    - `local` count > 0 and `cdn` count is 0 (or negligible) → `image_policy: local`; identify the idiomatic directory (most common pattern — typically `<page-dir>/img/` or `<page-dir>/images/`).
    - `cdn` count > 0 and `local` count is 0 (or negligible) → `image_policy: cdn_upload_required` — the writer MUST NOT copy user-provided screenshots into the repo; they are staged outside the repo and surfaced in the Phase 9 report for manual upload to the repo's image-management tool (e.g. CDN, Image Manager, CMS).
-   - Mixed or zero references → `image_policy: ambiguous`, which `/document` Phase 5.7's **Ambiguous image policy** step settles with the user.
+   - Mixed or zero references → `image_policy: ambiguous`. `/document` Phase 5.7's **Ambiguous image policy** step settles each such target of your first return with the user and re-invokes you once, the answers passed as `image_policy_resolution`; a target that re-invoked pass newly returns `ambiguous` is not asked about there, and `/document` Phase 6.3 settles it from `doc-writer`'s `BLOCKED` gap.
 
    Where `image_policy_resolution` names the target, take the policy it gives in place of the one this detection picks, and plan the target's screenshots under it in step 6.
 

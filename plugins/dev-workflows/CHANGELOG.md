@@ -4,6 +4,22 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [4.0.4] — 2026-09-15
+
+### Fixed — `/implement` measures ahead commits against the base its pull request will target
+
+Pre-Phase 3 step 4 decided whether HEAD was on the default branch by a hard-coded list — `main` / `master` / `develop` — and read the ahead commits with `git log origin/HEAD..HEAD --oneline 2>/dev/null`. With `origin/HEAD` unset, that read exits 128 and the redirect hides *"fatal: ambiguous argument 'origin/HEAD..HEAD'"*, so the empty output read as "no ahead commits" and the question was silently never asked; the same happened with no `origin` remote, and with an `origin/HEAD` a pruning fetch left dangling. A local `develop` two commits ahead of a `main` default was in the list, so no check ran at all — while Phase 4.6's own ladder resolved the pull request's base to `main`. And *"Branch from default branch — fresh start"* named no branch to switch to.
+
+The step now resolves `<base>` by `code-handoff.md` §2.8, the ladder Phase 4.6 uses, so the branch a run cuts from is the base its pull request targets. It tests "HEAD is not on `<base>`" in place of the list, reads `git log origin/<base>..HEAD --oneline` — or `<base>..HEAD` where `origin/<base>` does not exist — and treats a non-zero exit as a failed read, never as "no ahead commits": git's error is shown and the question is asked. An exhausted ladder asks nothing and prints a `Base branch unresolved` line that the Phase 5 report's `### Branch` section carries. *"Branch from default branch"* runs `git switch <base>`, with no fetch and no pull, as `/vuln`'s switch onto the same base does; a switch git refuses stops the run before any branch exists, rather than cutting one from the HEAD the user declined.
+
+### Fixed — `/upgrade` defines the base its branch starts from
+
+Phase 2 prep said *"If HEAD is on a non-default branch with ahead commits, ask whether to branch from current position, branch from default, or cancel"*, and defined neither "default" nor what the ahead commits were measured against. It now takes the same rules as `/implement` above: `<base>` from `code-handoff.md` §2.8, which steps 6.5 and 7.5 already resolve it with; the same read and its failure rule; the same `git switch <base>`; and the same `Base branch unresolved` line, repeated beside the Upgrade Summary's `Code repo:` line.
+
+### Changed — the documentation names `docs-workflows`' cold-start commands
+
+Seven pages under `docs/` name `/docs-workflows:docs-init` and `/docs-workflows:docs-brand` where they list what the Dev role runs, what each companion plugin carries, which commands classify their task, which name a branch in a code or docs repository, and which cost phase each emits (`docs-scaffold`). They also say that `docs-workflows` now carries eight agents, `docs-scaffold-reviewer` having been created there rather than moved from here, and that `$DOCS_PATH` is a read-only grounding root for nine commands, all in companion plugins, and a write target for `docs-workflows`' documentation commands — a second role, not a contradiction. No command, agent or reference of this plugin changed for it.
+
 ## [4.0.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

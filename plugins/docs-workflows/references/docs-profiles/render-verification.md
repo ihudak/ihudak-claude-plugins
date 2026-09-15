@@ -97,13 +97,14 @@ A port **answers** while something listens on it. The probe is
 Every probe below is this one, and it needs no socket tool. **A probe that cannot run is never read
 as an answer or as silence**, so the check does not start without its tools: before the first boot,
 confirm that `command -v curl` and `command -v ps` both exit 0 — step 2 reads a process group with
-`ps`, and step 5 that group's members and a listener's parents. Where either does not, boot nothing, record "smoke-check
-unavailable: `<tool>` is not installed", and every page goes to the manual table (§5); `/document`
-Phase 6.5 records that on `render_smoke_check` as `UNAVAILABLE`. A probe that exits 127 anyway,
-part-way through, ends the check the same way: boot no further server, signal the process group of
-one this run already booted as step 5 does (its signals are shell built-ins), record "smoke-check
-unavailable: curl could not run (exit 127) — `<space>`'s server was signalled, and its port could
-not be probed", and every page not yet checked goes to the manual table. For each server:
+`ps`, and step 5 that group's members and a listener's parents. Where either does not, boot
+nothing, record "smoke-check unavailable: `<tool>` is not installed", and every page goes to the
+manual table (§5); `/document` Phase 6.5 records that on `render_smoke_check` as `UNAVAILABLE`. A
+probe that exits 127 anyway, part-way through, ends the check the same way: boot no further server,
+signal the process group of one this run already booted as step 5 does (its signals are shell
+built-ins), record "smoke-check unavailable: curl could not run (exit 127) — `<space>`'s server was
+signalled, and its port could not be probed", and every page not yet checked goes to the manual
+table. For each server:
 
 1. Verify prerequisites (§4) — best-effort, never applied.
 2. **Probe the server's `port` before booting it.** Where it already answers, something this run did
@@ -124,9 +125,13 @@ not be probed", and every page not yet checked goes to the manual table. For eac
    leads a new process group whose id is the pid `echo` prints, and every wrapper and child the
    command spawns — an `npm` or `pnpm` script, the `sh` it runs, the server itself — inherits that
    group, unless one leaves it for a session of its own — step 5 meets that one only by a port it
-   already holds. The job outlives the call, which returns as soon as the pid is printed. **Then
-   confirm the group:** `ps -o pgid= -p <pid>` prints `<pid>` — or nothing, where the job has
-   already exited, and the id still names whatever of it survives. That `<pid>` is the `<pgid>`
+   already holds. That is why the command keeps its server in the foreground and never detaches it
+   (`docs-profile-schema.md`'s field rule for `dev_servers.servers[].command`): a detaching command
+   is a profile defect, and a server it moves out of the group — as `setsid` and `docker run -d`
+   do — is one this check can neither stop nor see bind late. The job outlives the call, which
+   returns as soon as the pid is printed. **Then confirm the group:** `ps -o pgid= -p <pid>`
+   prints `<pid>` — or nothing, where the job has already exited, and the id still names whatever
+   of it survives. That `<pid>` is the `<pgid>`
    step 5 signals. Where it prints any other number, job control gave the job no group of its own:
    hold the pid alone, and step 5 stops it by its path for a server without a group.
 3. Readiness poll: GET `http://localhost:<port><base_path>/`, that server's own, until HTTP 200 or

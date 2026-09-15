@@ -9,7 +9,7 @@ the per-section prose rules, the deprecation-note rule, and Change Type sourcing
 the documentation-link rule) but never re-derives the writer's decision; the agent applies it and returns a proposed
 destination plus any gaps.
 
-The Change Type is a **field on the PRD, inferred and confirmed where the PRD does not carry one** (§7). It is never written into the draft
+The Change Type is a **field on the PRD, inferred where the PRD does not carry one, and confirmed where that inference is uncertain** (§7). It is never written into the draft
 and never collected as a field — the agent resolves it only to pick the destination and the shape.
 
 ## 1. The section map
@@ -183,11 +183,12 @@ does not already state.
 
    Two values are **not routable** and fall through to rung 2 (§2 inference): `not applicable`
    (§1 maps it to no section, and nothing stops such a run — `/release-notes` has no gate that reads
-   the field — so it is inferred like an absent value and a note is drafted), and `Bug fix` on a change that trips §5's deprecation trigger (§2's third tie-breaker bars a
-   deprecation from `fixes`, and §5's required end-of-life note has nowhere to live there).
-2. **Infer** — classify per §2, then **confirm with the operator by shape and destination, never by
-   enum label**. This was the fallback rung and is now the ordinary one: nothing supplies the field
-   from outside, so most runs reach it.
+   the field — so it is inferred like an absent value and a note is drafted), and `Bug fix` on a
+   change that trips §5's deprecation trigger (§2's third tie-breaker bars a deprecation from
+   `fixes`, and §5's required end-of-life note has nowhere to live there).
+2. **Infer** — classify per §2, then, where the inference is low-confidence, **confirm it with the
+   operator by shape and destination, never by enum label**. This was the fallback rung and is now
+   the ordinary one: nothing supplies the field from outside, so most runs reach it.
 
 **The category label — one rung.** It is your organization's product/solution taxonomy (e.g. `Platform`,
 `Application Observability | Distributed Tracing`, `Infrastructure Observability | Kubernetes`) and it
@@ -195,11 +196,14 @@ is exactly the PRD's `release_notes_category`:
 
 1. **Authored PRD frontmatter** — `release_notes_category`, where the PRD carries one. Use it
    verbatim as the label.
-2. **Absent → infer it from the work's subject area and confirm it in the same grill** that confirms
-   the Change Type. Never guess it silently, and never invent a taxonomy term the operator has not
-   seen.
 
-**Both used to be dropdowns set outside the plugin and returned by an import**, which is why this
-ladder's first rung was authoritative and its second was a fallback. Nothing returns them now, so the
-PRD is the only place either can come from, and an absent field is a question rather than a silence
-(see `workflows-core:prd-format`).
+**Absent, the draft carries no category label**: the line is omitted, and the label is never
+inferred, guessed or asked for — a taxonomy term is the organization's, and one the operator has not
+chosen is one this plugin would be inventing. A draft without the line is complete; a note that
+should carry one gets it from `release_notes_category` added to the PRD.
+
+**Both used to be dropdowns set outside the plugin and returned by an import**, which is why the
+Change Type ladder's first rung was authoritative and its second was a fallback. Nothing returns them now,
+so the PRD is the only place either can come from: an absent Change Type is inferred, and asked
+about where the inference is uncertain, while an absent category label is simply omitted (see
+`workflows-core:prd-format`).

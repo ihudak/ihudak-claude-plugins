@@ -71,6 +71,10 @@ The file's opening said everything below it is reached only when the mount is re
 
 `docs-workflows`' `/document` (keyed mode) writes `pr-draft.md` into the resolved PRD folder on every run that reaches its finish, and it and `/release-notes` write `<KEY>-implementation-gaps.md` there wherever a discrepancy decision calls for one — but `specs-repo-git.md` §2.1 matched neither, so `commit-artifacts` classified both as OTHER and left them untracked, and every later run of any caller met §3.3's G1 dirty-tree advisory, which skips the leftover flush and the branch settle, until someone committed or deleted them. §2.1 now names both as single-file shapes — `pr-draft.md`, and the keyed draft matched as `*-implementation-gaps.md` — beside `release-notes.md`, the draft it already named, and its classifier gains both: **four directory shapes and five single files, nine in all**. The folder is still never widened; `CLAUDE.md`'s count follows. A screenshot `/document` stages for manual upload is **not** made a shape — a temporary copy of the operator's own file, under a `Doc screenshots/` subfolder whose name `git status --porcelain` quotes, or an existing `Attachments/` one holding the operator's files — and §2.1 says so and why: `/document` keeps each copy it stages under `$SPECS_PATH` out of `git status` itself, through that repository's local exclude file.
 
+### Fixed — `prd-format.md` says what `/release-notes` does with an absent release-notes field
+
+1.5.0's `prd-format.md` said `change_type` and `release_notes_category` are "inferred and confirmed in `/release-notes`'s own grill". That command omits the category label where `release_notes_category` is absent, never inferring or asking for one, and confirms an inferred Change Type only where the inference is uncertain (`docs-workflows:release-note-types` §7). The paragraph now says so, and no longer says each field is asked for where it is not known.
+
 ## [1.5.0] — 2026-09-09
 
 ### Added — `control`, a positive control on every grounding absence claim

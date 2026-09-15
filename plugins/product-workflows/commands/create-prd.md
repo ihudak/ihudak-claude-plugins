@@ -438,11 +438,13 @@ Author `prd.md` live against `Skill(skill: "workflows-core:reference", args: "pr
 
    **Do NOT ask for `release_versions`, `change_type` or `release_notes_category` here.** They are
    authored fields now rather than tracker dropdowns returned by an import
-   (`workflows-core:prd-format`), but the place each is *known* is
-   `/release-notes` — it infers and confirms `change_type` and `release_notes_category` in its own
-   grill, and takes `release_versions` from its `--version` flag or that same grill. Write whichever
-   the operator volunteers; never invent one, and never spend a question here on an answer that
-   command asks for anyway. An unanswered field is omitted, not filled.
+   (`workflows-core:prd-format`), and `/release-notes` settles each where the PRD carries none: it
+   infers `change_type`, confirming it in its own grill where the inference is uncertain, and takes
+   `release_versions` from its `--version` flag or that same grill — so never spend a question here
+   on an answer that command gets anyway — and it omits the category label where
+   `release_notes_category` is absent, never inferring or asking for one, so that field is optional:
+   a draft without it is complete. Write whichever the operator volunteers; never invent one. An
+   unanswered field is omitted, not filled.
 
    **`key` was for a time omitted on the BRD route**, deferred to a tracker step — long retired — that once minted a separate identity and wrote it back. Once that step was gone nothing wrote the field at all, so it stayed permanently unset — which is the defect the spine item above closes by writing `key` on every route. Left unset, a folder whose only `kind:`+`key:` carrier is `brd-link.md` (`kind: brd`) resolves as a BRD rather than a PRD (`workflows-core:addressing` §4), while `/document` and `/release-notes` build their commit scan from a `key` that is empty and silently match nothing. There is no second identity to keep straight any more: one namespace, one grammar, and the folder's key is the key.
 2. **Problem**

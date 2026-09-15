@@ -1556,9 +1556,10 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
   expect_fail "an unresolvable loader argument is rejected" 16 \
     "sed 's|args: \"phase-handoff\"|args: \"no-such-reference\"|' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
   # THE DISCRIMINATOR for the forward direction. A second argument is an entry point WITHIN
-  # the reference, not part of its name; 167 of the live tree's 342 real invocations carry
-  # one. An implementation matching the whole argument string passes both red cases above
-  # and below and fails only this one.
+  # the reference, not part of its name, and nearly half of the live tree's real invocations
+  # carry one -- check 16's own header holds the count, and is the one place it is written. An
+  # implementation matching the whole argument string passes both red cases above and
+  # below and fails only this one.
   expect_pass_after "the two-argument entry-point form resolves on its first token" \
     "sed 's|args: \"phase-handoff\"|args: \"phase-handoff handoff-to-main\"|' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
   # ...and the extension guard, which points the OTHER way and was wrong here first. The
@@ -1588,11 +1589,12 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
   expect_pass_after "the bare backticked citation form reaches a reference" \
     "sed 's|\`\${CLAUDE_PLUGIN_ROOT}/references/handoff/one.md\`|\`references/handoff/one.md\`|' $(cmd_file $PLUGIN_REL alpha) > c16.tmp && mv c16.tmp $(cmd_file $PLUGIN_REL alpha)"
   # Relation 3, and its SCOPE, which is the half a red case cannot prove. Measured on the
-  # live tree: within $CMD_DIR/, agents/ and $REF_DIR/ the match is exact (74 files cite a
-  # core reference, 74 carry the preamble), while 38 files OUTSIDE them cite one -- docs
-  # pages and a shell hook -- and none of them should carry a runtime loader instruction. An
-  # implementation reading "every file that cites" fires 38 times on a correct tree; here it
-  # turns the green case red.
+  # live tree, and counted in check 16's own header, the one place those figures are
+  # written: within $CMD_DIR/, agents/ and $REF_DIR/ the match is exact -- every file that
+  # cites a core reference carries the preamble -- while dozens of files OUTSIDE them cite
+  # one -- docs pages and a shell hook -- and none of them should carry a runtime loader
+  # instruction. An implementation reading "every file that cites" fires once for each of
+  # them on a correct tree; here it turns the green case red.
   expect_fail "a consuming file that cites core without the preamble is rejected" 16 \
     "sed '/^\*\*Core references\.\*\*/d' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
   expect_pass_after "a docs page citing core without the preamble is accepted" \
@@ -2060,7 +2062,7 @@ check_index_membership() {
 #   1. FORWARD  -- every real `args:` string resolves to a file under
 #                  $CORE_PLUGIN_REL/$REF_DIR/. The FIRST whitespace token is the reference;
 #                  a second token is an entry point WITHIN it (`specs-repo-git
-#                  specs-preflight`), and 167 of this tree's 342 real invocations carry one.
+#                  specs-preflight`), and 167 of this tree's 341 real invocations carry one.
 #                  An implementation matching the whole argument string reports every one of
 #                  them as unresolvable.
 #   2. REVERSE  -- every markdown file in the corpus is reached by at least one citation.

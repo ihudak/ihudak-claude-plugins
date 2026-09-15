@@ -50,7 +50,8 @@ a `builds[]` entry, the server whose `visibility` pairs with the entry's; for a 
 configuration. A command's tool is the one
 `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines (never a leading `cd`, which
 every shell has), tested as its §3 tests it (a tool containing `/` by `test -x` from the directory
-the command runs from, never by `command -v` from the working directory). That is `build_check`'s
+the command runs from, never by `command -v` from the working directory), a package manager whose
+dependencies are not installed counting as missing (§2 step 1). That is `build_check`'s
 registered fallback running, recorded `DEGRADED` rather than skipped (`/document` Phase 6.5 Step 1).
 Either way it is a fallback, not a description of example-docs, which declares both builds and whose
 servers need the same `pnpm` as its builds.
@@ -139,10 +140,21 @@ yet checked goes to the manual table. For each server:
    tool** — the tool `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines, tested as
    its §3 tests it, for a command that runs from `<docs_repo_path>`: the check `/docs-serve` makes
    before it starts a server (its Phase 4), and the one §1 makes for a failed build's own servers.
-   Where it is missing, boot nothing for this server: record "smoke-check skipped for `<space>`:
-   `<tool>` is not installed", its pages fall back to the manual table (§5), and the check goes on
-   to the next server. A server whose tool is missing could never start, so it is never booted,
-   and the check never waits out step 3's readiness timeout for it.
+   **A package manager whose dependencies are not installed counts as missing too**, since a server
+   run through it fails as completely as one whose tool is absent; `/docs-serve` Phase 4 and
+   `/document` Phase 6.5 Step 2 cite this step for the rule. Where the tool is `pnpm`, `npm` or `yarn`, find its
+   lockfile — `pnpm-lock.yaml`, `package-lock.json` or `yarn.lock` — in the directory the command
+   runs from or the nearest directory above it that holds one, up to `<docs_repo_path>`. Where one
+   is found with no `node_modules/` beside it, and, for `yarn.lock`, no `.pnp.cjs` beside it either
+   — a Yarn Plug'n'Play install keeps that file instead of `node_modules/` — the tool counts as
+   missing. Where no lockfile is found, only the tool itself is tested. That is
+   `toolchain-preflight.md` §2 source 2's installed-dependencies signal, which its §5 counts the
+   same way for `build_check`'s fallback. Where the tool is missing, boot nothing for this server:
+   record "smoke-check skipped for `<space>`: `<tool>` is not installed" — or, where its
+   dependencies are what is missing, "smoke-check skipped for `<space>`: `<tool>`'s dependencies
+   are not installed (`<lockfile>` has none beside it)" — its pages fall back to the manual table
+   (§5), and the check goes on to the next server. A server whose tool is missing could never
+   start, so it is never booted, and the check never waits out step 3's readiness timeout for it.
 2. **Probe the server's `port` before booting it.** Where it already answers, something this run did
    not start holds it: boot nothing there, signal nothing, and **boot no further server** — record
    "smoke-check stopped at `<space>`: port `<port>` was answering before its server booted", and

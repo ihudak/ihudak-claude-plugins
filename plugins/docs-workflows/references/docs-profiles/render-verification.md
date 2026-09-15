@@ -96,15 +96,16 @@ A port **answers** while something listens on it. The probe is
 
 Every probe below is this one, and it needs no socket tool. **A probe that cannot run is never read
 as an answer or as silence**, so the check does not start without its tools: before the first boot,
-confirm that `command -v curl` and `command -v ps` both exit 0 — step 2 reads a process group with
-`ps`, and step 5 that group's members and a listener's parents. Where either does not, boot
-nothing, record "smoke-check unavailable: `<tool>` is not installed", and every page goes to the
-manual table (§5); `/document` Phase 6.5 records that on `render_smoke_check` as `UNAVAILABLE`. A
-probe that exits 127 anyway, part-way through, ends the check the same way: boot no further server,
-signal the process group of one this run already booted as step 5 does (its signals are shell
-built-ins), record "smoke-check unavailable: curl could not run (exit 127) — `<space>`'s server was
-signalled, and its port could not be probed", and every page not yet checked goes to the manual
-table. For each server:
+confirm that `command -v bash`, `command -v curl` and `command -v ps` all exit 0 — step 2 boots
+under `bash` and reads the process group with `ps`, and step 5 signals that group under `bash` and
+reads its members and a listener's parents with `ps`. Where any does not, boot nothing, record
+"smoke-check unavailable: `<tool>` is not installed", and every page goes to the manual table (§5);
+`/document` Phase 6.5 records that on `render_smoke_check` as `UNAVAILABLE`. A probe that exits 127
+anyway, part-way through, ends the check the same way: boot no further server, signal the process
+group of one this run already booted as step 5 does (its signals need neither `curl` nor `ps`),
+record "smoke-check unavailable: curl could not run (exit 127) — `<space>`'s server was signalled,
+and its port could not be probed", and every page not yet checked goes to the manual table. For
+each server:
 
 1. Verify prerequisites (§4) — best-effort, never applied.
 2. **Probe the server's `port` before booting it.** Where it already answers, something this run did
@@ -114,16 +115,21 @@ table. For each server:
    process group of its own**, with this one Bash call:
 
    ```
-   set -m; (cd <docs_repo_path> && <command>) > <log> 2>&1 & echo $!
+   bash -c 'set -m; (cd <docs_repo_path> && <command>) > <log> 2>&1 & echo $!'
    ```
 
    `<command>` is the server's `command` with every `{port}` in it replaced by that server's
    configured `port` — never run with the token unsubstituted, and never rewritten anywhere else
    (`docs-profile-schema.md`'s field rule for `dev_servers.servers[].command`) — and `<log>` is a
    file outside every repository tree (`mktemp -t dw-smoke-XXXX.log` names one), where a server
-   that fails to boot leaves its output. `set -m` turns job control on, so the background job
-   leads a new process group whose id is the pid `echo` prints, and every wrapper and child the
-   command spawns — an `npm` or `pnpm` script, the `sh` it runs, the server itself — inherits that
+   that fails to boot leaves its output. Inside the single-quoted script, write each `'` that
+   `<command>`, `<docs_repo_path>` or `<log>` carries as `'\''`. **The line runs under an explicit
+   `bash -c`, whatever shell the Bash tool itself uses** — zsh on a default macOS, or `dash`, which
+   refuses `set -m` without a terminal and reads `kill -- -<pgid>` as an illegal number — so job
+   control, `$!` and step 5's group signals are bash's semantics everywhere; `/bin/bash` ships with
+   macOS (3.2), which has all three. `set -m` turns job control on, so the background job leads a
+   new process group whose id is the pid `echo` prints, and every wrapper and child the command
+   spawns — an `npm` or `pnpm` script, the `sh` it runs, the server itself — inherits that
    group, unless one leaves it for a session of its own — step 5 meets that one only by a port it
    already holds. That is why the command keeps its server in the foreground and never detaches it
    (`docs-profile-schema.md`'s field rule for `dev_servers.servers[].command`): a detaching command
@@ -131,9 +137,9 @@ table. For each server:
    do — is one this check can neither stop nor see bind late. The job outlives the call, which
    returns as soon as the pid is printed. **Then confirm the group:** `ps -o pgid= -p <pid>`
    prints `<pid>` — or nothing, where the job has already exited, and the id still names whatever
-   of it survives. That `<pid>` is the `<pgid>`
-   step 5 signals. Where it prints any other number, job control gave the job no group of its own:
-   hold the pid alone, and step 5 stops it by its path for a server without a group.
+   of it survives. That `<pid>` is the `<pgid>` step 5 signals. Where it prints any other number,
+   job control gave the job no group of its own: hold the pid alone, and step 5 stops it by its path
+   for a server without a group.
 3. Readiness poll: GET `http://localhost:<port><base_path>/`, that server's own, until HTTP 200 or
    `profile.dev_servers.readiness_timeout_seconds` seconds elapse (fall back to **120** when the
    field is absent). On a timeout, stop the server as step 5 says. Where step 5 confirms it stopped,
@@ -149,12 +155,12 @@ table. For each server:
    §5 gives a 404 and a 5xx their one disposition each.
 5. **Stop the server by signalling its process group** — after its pages and after a readiness
    timeout alike:
-   1. `kill -TERM -- -<pgid>`; wait up to 5 seconds for the group to be gone; where it is not,
-      `kill -KILL -- -<pgid>` and wait up to 5 seconds more, since a killed process stays in its
-      group until its parent reaps it.
+   1. `bash -c 'kill -TERM -- -<pgid>'`; wait up to 5 seconds for the group to be gone; where it
+      is not, `bash -c 'kill -KILL -- -<pgid>'` and wait up to 5 seconds more, since a killed
+      process stays in its group until its parent reaps it.
    2. **Confirm two things:** the group is gone and the port is quiet — the probe no longer finds it
-      answering. **The group is gone** where `kill -0 -- -<pgid>` fails, **or** where every process
-      `ps -A -o pgid=,stat=` lists under `<pgid>` is a zombie, its stat beginning `Z` —
+      answering. **The group is gone** where `bash -c 'kill -0 -- -<pgid>'` fails, **or** where
+      every process `ps -A -o pgid=,stat=` lists under `<pgid>` is a zombie, its stat beginning `Z` —
       `ps -A -o pgid=,stat= | awk -v g=<pgid> '$1 == g { print $2 }'` prints only lines that begin
       with `Z`. A zombie runs nothing and holds no port; it has exited, and stays in its group only
       until its parent reaps it, which a parent that never reaps — a container whose PID 1 is
@@ -188,6 +194,14 @@ table. For each server:
    should be silent — before a boot (step 2) or after the stop — a group that will not go, a
    readiness timeout on a server without a group of its own (step 3), or a probe that cannot run
    (above).
+
+**Portability.** The shell semantics above are bash's, by step 2's and step 5's explicit `bash -c`.
+Every external tool is called in a form BSD's documents as well as GNU's: `ps -o pgid= -p <pid>`,
+`ps -o ppid= -p <pid>` and `ps -A -o pgid=,stat=` (POSIX options, and keywords both BSD `ps` and
+procps know), `lsof -t -iTCP:<port> -sTCP:LISTEN` (macOS ships `lsof`),
+`curl -s -o /dev/null --max-time 2`, `awk -v`, and `mktemp -t`, which BSD reads as a prefix rather
+than a template and which still names a fresh file. `ss` is Linux's alone, which is why it is only
+`lsof`'s fallback.
 
 Never run two servers at once: the next server boots only once step 5 has confirmed the last one
 stopped. Where a space has two servers, every record this file names for `<space>` names the
@@ -227,9 +241,9 @@ its process group still runs — and a readiness timeout on a server started
 without a process group of its own (§2 step 3). Every page not yet checked then
 falls back to the manual table, and the record names the port or process group
 left running and its command — it never blocks the run either. A fourth ending
-is the check being unavailable: `curl` or `ps` cannot run (§2), so it has no
-probe to trust; every page not yet checked falls back to the manual table, and
-the record names the tool.
+is the check being unavailable: `bash`, `curl` or `ps` cannot run (§2), and the
+check boots, probes and stops through them; every page not yet checked falls
+back to the manual table, and the record names the tool.
 
 A 404 and a 5xx on an affected page are both surfaced, never silently dropped,
 and each has exactly one disposition:

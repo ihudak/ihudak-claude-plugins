@@ -1540,7 +1540,7 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
     "printf -- '\n# quoting a foreign key shape: JIRA-1  # vendor-token-ok: fixture quote\n' >> $PLUGIN_REL/references/cost-prices.yaml"
 
   # Check 16 -- the loader contract. The UNMUTATED fixture already exercises three of the
-  # four relations and is the only place two of them are proven: fixture-two/$CMD_DIR/omega
+  # five relations and is the only place two of them are proven: fixture-two/$CMD_DIR/omega
   # carries the preamble and makes a real loader call (relations 1 and 3, green), and the
   # corpus is reached through BOTH non-loader citation forms -- `gamma.md` by the bare
   # backticked form ALONE and `handoff/one.md`, `handoff/two.md` and
@@ -2058,7 +2058,7 @@ check_index_membership() {
 # argument misfires silently where a named wrapper could not compile. This check is the
 # other half of that trade. Without it the loader is a string nothing validates.
 #
-# FOUR RELATIONS, all derived, none written in here:
+# FIVE RELATIONS, all derived, none written in here:
 #   1. FORWARD  -- every real `args:` string resolves to a file under
 #                  $CORE_PLUGIN_REL/$REF_DIR/. The FIRST whitespace token is the reference;
 #                  a second token is an entry point WITHIN it (`specs-repo-git

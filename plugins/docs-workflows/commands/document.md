@@ -758,9 +758,9 @@ Run each from `docs_repo_path`, the top level every command the profile records 
   ```
   choices: ["Proceed to smoke-check anyway", "Show remaining and fix manually", "Cancel"]
   ```
-- **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason and record the build as not run, with that reason; no `doc-fixer` loop. **Then test the registered fallback before anything is asked.** `build_check`'s fallback is the Step 2 dev-server boot (`gate-ledger.md` §4), and `UNAVAILABLE` means that neither the primary nor a fallback ran (`gate-ledger.md` §2), so a build that will not run does not by itself make the gate `UNAVAILABLE`. The fallback can run where `command -v` finds `bash`, `curl` and `ps` — the smoke check's own tools — and the tool of the `command` of at least one server Step 2 would boot for an affected page, chosen as Step 2 chooses it. A command's tool is the one `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines — never a leading `cd`, which `command -v` finds on every host: `cd website && pnpm start` needs `pnpm` — and it is tested as that file's §3 tests it: a name by `command -v`, and a tool containing `/` by `test -x` on that path from the directory the command runs from, `docs_repo_path` or the leading `cd <dir>` under it — never by `command -v` from the working directory, which reports `node_modules/.bin/vitepress` missing from anywhere else.
-  - **The fallback can run** → ask nothing here and continue to Step 2, whose boot is now this gate's build proof; Ledger (final) records `build_check` from what Step 2 does. A `user_decision` Phase 0's preflight left on the row stays on it.
-  - **The fallback cannot run** → neither the build nor its fallback can run, so the gate is `UNAVAILABLE`, and this is its `gate-ledger.md` §5 conversion, not an orchestrator decision:
+- **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason and record the build as not run, with that reason; no `doc-fixer` loop. **Then test the registered fallback before anything is asked.** `build_check`'s fallback is the Step 2 dev-server boot (`gate-ledger.md` §4), and `UNAVAILABLE` means that neither the primary nor a fallback ran (`gate-ledger.md` §2), so a build that will not run does not by itself make the gate `UNAVAILABLE`. The fallback can run for that build where `command -v` finds `bash`, `curl` and `ps` — the smoke check's own tools — and the tool of the `command` of at least one of **that build's own servers** is present. A build's own servers are the servers that publish what it compiles, among those Step 2 would boot for an affected page, chosen as Step 2 chooses them: for a `builds[]` entry, the server whose `visibility` pairs with the entry's (`docs-profile-schema.md`'s field rules); for a space's `commands.per_space.<space>.build`, that space's servers; for the flat `commands.build` — and, where the profile records no build command at all, for the proof Step 2 stands in for — every server Step 2 boots across the verification set. Never another build's server: it compiles another space or another configuration, so its boot proves nothing about this build. A command's tool is the one `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines — never a leading `cd`, which `command -v` finds on every host: `cd website && pnpm start` needs `pnpm` — and it is tested as that file's §3 tests it: a name by `command -v`, and a tool containing `/` by `test -x` on that path from the directory the command runs from, `docs_repo_path` or the leading `cd <dir>` under it — never by `command -v` from the working directory, which reports `node_modules/.bin/vitepress` missing from anywhere else.
+  - **The fallback can run** → ask nothing here and continue to Step 2, whose boot of that build's own servers is now its build proof; Ledger (final) records `build_check` from what Step 2 does. A `user_decision` Phase 0's preflight left on the row stays on it.
+  - **The fallback cannot run** → neither that build nor its fallback can run, so the gate is `UNAVAILABLE`, and this is its `gate-ledger.md` §5 conversion, not an orchestrator decision:
     ```
     choices: ["Install <the missing tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run"]
     ```
@@ -770,7 +770,7 @@ When the profile declares **no** build command at any of the three levels — no
 
 ### Step 2 — Dev-server smoke-check (opt-in, best-effort)
 
-Offer it. Present this list **verbatim** — the "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules` forbids moving `(Recommended)`, reordering the options, or re-wording them. Dev-server flakiness and a clean static check are reasons to say something in prose beside the list; they are never reasons to recommend Skip. Where Step 1 could not run a build — the profile records none, or a build would not run for an environmental reason and the fallback can run — say so beside the list too: the boot is then the only proof for what that build compiles, so Skip declines the build check with it (Ledger (final)).
+Offer it. Present this list **verbatim** — the "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules` forbids moving `(Recommended)`, reordering the options, or re-wording them. Dev-server flakiness and a clean static check are reasons to say something in prose beside the list; they are never reasons to recommend Skip. Where Step 1 could not run a build — the profile records none, or a build would not run for an environmental reason and the fallback can run — say so beside the list too: the boot of that build's own servers (Step 1) is then the only proof for what it compiles, so Skip declines the build check with it (Ledger (final)).
 ```
 choices: ["Run smoke-check (Recommended)", "Skip — use the manual table only", "Cancel"]
 ```
@@ -812,23 +812,25 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
   `public: pass; internal: fail` — so a `FAILED` row names the build that failed.
   `DEGRADED` when a build did not run — the profile records no build command, or Step 1 met an
   environmental failure (its tool missing, a missing `.docstack` shim, any reason the build tool
-  would not run) and found the fallback able to run — and the Step 2 boot served as the proof: a
-  server it booted answered its readiness poll with a 200, which proves the content compiled
-  (`render-verification.md` §1). `not_run:` names each build that did not run and why
-  (`no build command in profile`, or the environmental failure Step 1 recorded, such as `<tool> is
-  not installed`), and `ci_still_checks:` names the build CI runs on the pull request, or says that
-  none runs where the repository has no CI build.
+  would not run) and found the fallback able to run — and, for every build that did not run, the
+  Step 2 boot served as its proof: one of **that build's own servers** (Step 1 defines them — every
+  server Step 2 booted, where the profile records no build command) answered its readiness poll
+  with a 200, which proves what that build compiles (`render-verification.md` §1). A server of
+  another build answering proves nothing about this one. `not_run:` names each build that did not
+  run and why (`no build command in profile`, or the environmental failure Step 1 recorded, such as
+  `<tool> is not installed`), and `ci_still_checks:` names the build CI runs on the pull request, or
+  says that none runs where the repository has no CI build.
   A `user_decision` Phase 0's preflight left on the row stays on it.
   A row Step 1 leaves as `SKIPPED_BY_USER` — its §5 conversion, when neither the build nor its
   fallback could run and the user chose to proceed, or the preflight's decision on that same missing
   tool, which Step 1 kept — is **final — do not rewrite it**.
   `UNAVAILABLE` applies only when a build did not run, Step 1 did not already convert it, and the
-  Step 2 boot did not serve as the proof. **Where that is because the user chose Skip at Step 2**,
+  Step 2 boot did not serve as its proof. **Where that is because the user chose Skip at Step 2**,
   their Step 2 choice is the decision this row quotes: record `SKIPPED_BY_USER` with it, in place of
   any decision Phase 0's preflight left on the row, and ask nothing more — declining the only
   remaining source of build proof is declining the build check, and it is the decision that removed
-  the proof. **Otherwise** — Step 2 ran and no server it booted became ready, or it booted none —
-  this is the coverage hole `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5 predicts:
+  the proof. **Otherwise** — Step 2 ran and none of that build's own servers it booted became
+  ready, or it booted none of them — this is the coverage hole `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5 predicts:
   convert per `gate-ledger.md` §5, except where the row carries Phase 0's decision on the same
   missing tool, which stands, as it does in Step 1, and the row records `SKIPPED_BY_USER` with it.
 - `render_smoke_check` — `RAN` when the smoke-check completed for every space in scope — a 404 does
@@ -1101,7 +1103,7 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 [One row per gate in the `gate_ledger`, in registry order (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED, or FAILED with a degraded part — `gate-ledger.md` §2), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE) — empty otherwise. When any row carries a `ci_still_checks`, follow the table with a one-line warning naming what CI will check that this run did not.]
 
 ### Render verification
-- Build: [one entry per build Step 1 resolved, named by its `id` (or space) — ran — pass/fail | not run (the environmental failure, e.g. `<tool>` is not installed) — boot served as the proof | unverified (reason)] OR "no build command in profile — boot served as the proof" (does NOT apply to example-docs, which defines per-space build commands)
+- Build: [one entry per build Step 1 resolved, named by its `id` (or space) — ran — pass/fail | not run (the environmental failure, e.g. `<tool>` is not installed) — the boot of its own server served as the proof | unverified (reason)] OR "no build command in profile — boot served as the proof" (does NOT apply to example-docs, which defines per-space build commands)
 - Smoke-check: [per space, and per server where a space has two — passed (N pages, HTTP 200) | skipped (reason) | stopped (reason — the port or process group left running, and its command); then every ❌ page with its URL — 404: on the manual table | 5xx: render defect] OR "not run (user skipped)"
 - Pages to visit: [the Phase 6.5 Step 3 table]
 

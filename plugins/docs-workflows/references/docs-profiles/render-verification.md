@@ -37,17 +37,22 @@ handed that build's own output, never a merged log.
 Phase 6.5 does NOT re-run the prose linter — that is Phase 6.4's `docs-style-checker`.
 
 The **dev-server boot becomes the build proof** — a server that boots and serves HTTP 200s proves
-the content compiled — in two cases, and only there. One is a repo that genuinely declares **no**
-build command at any of the three levels — no `builds[]`, no `commands.per_space.<space>.build`, no
-`commands.build`. The other is a build that will not run for an environmental reason — its tool
-missing, a missing `.docstack` shim — while the tools the boot needs are present: `bash`, `curl`,
-`ps` and the tool of a chosen server's command, as
-`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines a command's tool (never a
-leading `cd`, which every shell has) and §3 tests it (a tool containing `/` by `test -x` from the
-directory the command runs from, never by `command -v` from the working directory). That is `build_check`'s registered fallback running, recorded
-`DEGRADED` rather than skipped (`/document` Phase 6.5 Step 1). Either way it is a fallback, not a
-description of example-docs, which declares both builds and whose servers need the same `pnpm` as
-its builds.
+that what its build compiles compiled — in two cases, and only there. One is a repo that genuinely
+declares **no** build command at any of the three levels — no `builds[]`, no
+`commands.per_space.<space>.build`, no `commands.build` — where every server §2 boots stands in.
+The other is a build that will not run for an environmental reason — its tool missing, a missing
+`.docstack` shim — while the tools its boot needs are present: `bash`, `curl`, `ps` and the tool of
+the command of one of **that build's own servers**, the servers that publish what it compiles — for
+a `builds[]` entry, the server whose `visibility` pairs with the entry's; for a space's
+`commands.per_space.<space>.build`, that space's servers; for the flat `commands.build`, every server
+§2 boots. Another build's server is never the proof: it compiles another space or another
+configuration. A command's tool is the one
+`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines (never a leading `cd`, which
+every shell has), tested as its §3 tests it (a tool containing `/` by `test -x` from the directory
+the command runs from, never by `command -v` from the working directory). That is `build_check`'s
+registered fallback running, recorded `DEGRADED` rather than skipped (`/document` Phase 6.5 Step 1).
+Either way it is a fallback, not a description of example-docs, which declares both builds and whose
+servers need the same `pnpm` as its builds.
 
 ## 2. Sequential dev-server smoke-check
 

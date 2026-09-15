@@ -85,7 +85,8 @@ space, its public server before its internal one — skipping any server no affe
 to. On a profile with one server per space, that is one boot per space in the set.
 
 A port **answers** while something listens on it. The probe is
-`curl -s -o /dev/null --max-time 2 http://localhost:<port>/`, read by its exit code alone:
+`curl -s -o /dev/null --noproxy '*' --max-time 2 http://localhost:<port>/`, read by its exit code
+alone:
 
 - **7** — the connection was refused: the port does not answer.
 - **127** — curl could not run at all (not installed, or not on `PATH`): **no answer either way**,
@@ -93,6 +94,16 @@ A port **answers** while something listens on it. The probe is
 - **Any other code** — the port answers: a listener took the connection or left it waiting (an HTTP
   status, an error included, an empty reply or a reset, or 28 when `--max-time` runs out on a
   listener that never replies).
+
+Every **GET** below — step 3's readiness poll and step 4's page requests — is
+`curl -sL -o /dev/null -w '%{http_code}' --noproxy '*' --max-time 10 <url>`, read by the status it
+prints: the last response's, since `-L` follows a redirect — `mkdocs serve`, for one, answers §3's
+route, which carries no trailing slash, with a 302 to the same path with one — and `000` where no
+response came. **Every request this check makes carries `--noproxy '*'`**, because each is meant
+for a server on this machine: with `http_proxy` or `ALL_PROXY` set and no `no_proxy` naming
+`localhost`, curl hands a request for `localhost` to the proxy instead, which answers it — exit 0
+on a port nothing listens on, so a free port reads as answering, and the proxy's own page in place
+of the server's.
 
 Every probe below is this one, and it needs no socket tool. **A probe that cannot run is never read
 as an answer or as silence**, so the check does not start without its tools: before the first boot,
@@ -200,9 +211,10 @@ goes to the manual table. For each server:
 Every external tool is called in a form BSD's documents as well as GNU's: `ps -o pgid= -p <pid>`,
 `ps -o ppid= -p <pid>` and `ps -A -o pgid=,stat=` (POSIX options, and keywords both BSD `ps` and
 procps know), `lsof -t -iTCP:<port> -sTCP:LISTEN` (macOS ships `lsof`),
-`curl -s -o /dev/null --max-time 2`, `awk -v`, and `mktemp -t`, which BSD reads as a prefix rather
-than a template and which still names a fresh file. `ss` is Linux's alone, which is why it is only
-`lsof`'s fallback.
+`curl -s -o /dev/null --noproxy '*' --max-time 2` and the GET's
+`curl -sL -o /dev/null -w '%{http_code}' --noproxy '*' --max-time 10`, `awk -v`, and `mktemp -t`,
+which BSD reads as a prefix rather than a template and which still names a fresh file. `ss` is
+Linux's alone, which is why it is only `lsof`'s fallback.
 
 Never run two servers at once: the next server boots only once step 5 has confirmed the last one
 stopped. Where a space has two servers, every record this file names for `<space>` names the

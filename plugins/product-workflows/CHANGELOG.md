@@ -32,7 +32,7 @@ A subagent's Bash tool starts every call in the session's directory — where `/
 
 ### Fixed — `/create-prd` no longer says `/release-notes` asks for the category label
 
-Phase 3's frontmatter step, and the command page, told the operator not to supply `release_notes_category` because `/release-notes` "infers and confirms `change_type` and `release_notes_category` in its own grill". That command uses the label verbatim where the PRD carries one and otherwise omits it, never inferring or asking; so a PRD whose release notes should carry a label must carry the field. Both now say that the field is optional, that `/release-notes` infers `change_type` and confirms it only where the inference is uncertain, and that it takes `release_versions` from `--version` or its grill. The step still asks for none of the three, and still writes whichever the operator volunteers.
+Phase 3's frontmatter step, and the command page, told the operator not to supply `release_notes_category` because `/release-notes` "infers and confirms `change_type` and `release_notes_category` in its own grill". That command uses the label verbatim where the PRD carries one and otherwise omits it, never inferring or asking; so a PRD whose release notes should carry a label must carry the field. Both now say that the field is optional, that `/release-notes` infers `change_type` and confirms it only where the inference is uncertain, and that it takes the release from `--version` or its grill, never from the PRD's `release_versions`. The step still asks for none of the three, and still writes whichever the operator volunteers.
 
 ### Fixed — `/update-prd` no longer names the import it retired
 

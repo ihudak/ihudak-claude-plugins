@@ -190,7 +190,7 @@ place either can come from (`workflows-core:prd-format`).
 
 **`release_versions` — `--version <v>`, else ask.** The flag takes the release this note belongs to.
 Absent, the grill asks once; declined, the draft omits it. **Never invent one.** It is not parsed
-from anything, because nothing supplies it.
+from anything, and the PRD's `release_versions`, where `/create-prd` wrote one, is not read.
 
 ---
 

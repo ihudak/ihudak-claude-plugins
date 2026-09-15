@@ -65,7 +65,7 @@ gate_ledger:
     precondition_unmet: <the named precondition>    # NOT_APPLICABLE only, non-empty
     user_decision: "<the user's choice, verbatim>"  # SKIPPED_BY_USER: required, non-empty. Any other
                                                     # outcome: kept where Phase 0's toolchain preflight
-                                                    # pre-seeded the row (see below)
+                                                    # pre-seeded the row (above)
     findings: <count>                               # RAN / DEGRADED / FAILED -- see below
 ```
 

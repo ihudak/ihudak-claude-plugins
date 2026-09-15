@@ -36,10 +36,10 @@ de-duplicate by binary name.
    builtin, so `command -v cd` exits 0 on every host and every command it leads would read as
    runnable. This is the one definition of a command's tool; `docs-profiles/render-verification.md`
    §1 and `/document` Phase 6.5 Step 1 cite it. Where the profile records any
-   `dev_servers.servers[]` entry, add
-   `bash`, `curl` and `ps` too: the render smoke check that boots those servers starts and stops
-   them under `bash`, probes their ports with `curl` and reads their process groups with `ps`, and
-   cannot run without any of them (`docs-profiles/render-verification.md` §2). Add every entry in
+   `dev_servers.servers[]` entry, add `bash`, `curl` and `ps` too: the render smoke check that boots
+   those servers starts and stops them under `bash`, probes their ports with `curl` and reads their
+   process groups with `ps`, and cannot run without any of them
+   (`docs-profiles/render-verification.md` §2). Add every entry in
    `profile.prerequisites` as a named prerequisite (these are prose, not binaries — record them for
    reporting, and check them only when the prose names a checkable path or binary).
 2. **Repo config signals**, checked at `repo_root` — and, where the caller resolved the site to a

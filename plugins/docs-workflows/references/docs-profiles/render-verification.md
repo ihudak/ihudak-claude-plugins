@@ -44,8 +44,9 @@ missing, a missing `.docstack` shim — while the tools the boot needs are prese
 `ps` and the tool of a chosen server's command, as
 `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines a command's tool (never a
 leading `cd`, which every shell has). That is `build_check`'s registered fallback running, recorded
-`DEGRADED` rather than skipped (`/document` Phase 6.5 Step 1). Either way it is a fallback, not a description of example-docs,
-which declares both builds and whose servers need the same `pnpm` as its builds.
+`DEGRADED` rather than skipped (`/document` Phase 6.5 Step 1). Either way it is a fallback, not a
+description of example-docs, which declares both builds and whose servers need the same `pnpm` as
+its builds.
 
 ## 2. Sequential dev-server smoke-check
 

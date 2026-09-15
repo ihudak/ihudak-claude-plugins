@@ -671,7 +671,7 @@ The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opu
      ```
      On a provided value, rewrite the handoff file and re-dispatch once.
 
-Write context governs branch/commit (Phase 0 step 6); **the orchestrator commits the writer's output** (the writer never commits (still true — `doc-writer` runs no git at all; it only writes files)):
+Write context governs branch/commit (Phase 0 step 6); **the orchestrator commits the writer's output in the docs repository** (the writer never commits (still true — `doc-writer` runs no git at all; it only writes files)):
 
 | Write context | Branch | Commit |
 |---|---|---|

@@ -7,7 +7,7 @@ are actually present.
 
 Consumed by `/document` (both modes) at Phase 0, and by `/docs-init` at Phase 2 step 3 — which **skips §2 entirely** and hands §3 a fixed set of its own (`git`, `python3`/`pip` or `uv`, `mkdocs`, `vale`). All three of §2's sources are empty for it: there is no profile yet, because it is the run that writes the first one; an absent or empty scaffold target carries no config signals; and it documents no `Prerequisites` of its own until this run has written them. It is the one consumer of the preflight that derives nothing. `/docs-serve` runs no preflight, but its Phase 4 takes §2's definition of a command's tool, and §3's test for one, before it starts a server. Pairs with
 `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` — the preflight decides whether to start; the ledger
-records what actually happened.
+records what actually happened. §2, source 2, is also where this plugin says how it runs Vale.
 
 ---
 
@@ -70,6 +70,47 @@ de-duplicate by binary name.
    `docs-scaffold-reviewer`'s Vale dimension — look for all five: a site whose only one is
    `_vale.ini` is linted by Vale all the same, and a test for `.vale.ini` alone records that no
    repository linter is configured.
+
+   **How this plugin runs Vale — a lint and `vale sync` alike — is defined here too, once: on the
+   repository's configuration, the way a clean CI runner runs it.** A clean runner has no global
+   Vale configuration file and no `VALE_CONFIG_PATH`, and it has Vale's default StylesPath, which
+   is where `vale sync` installs a configuration's packages when that configuration sets no
+   `StylesPath` of its own. So every Vale run goes from the directory holding the configuration it
+   is to read, as one subshell in one Bash call, in one of two forms, chosen by whether that file
+   sets `StylesPath` — a `StylesPath =` line above its first `[section]` header, the one place
+   Vale accepts the key (anywhere else it stops with `E201`):
+
+   - **It sets one:** `(cd "<that directory>" && unset VALE_CONFIG_PATH && vale --no-global <arguments>)`.
+   - **It sets none:** `(cd "<that directory>" && unset VALE_CONFIG_PATH && h=$(mktemp -d) && { XDG_CONFIG_HOME="$h" vale <arguments>; s=$?; rm -r "$h"; exit $s; })`,
+     which removes the directory it made and exits with Vale's own status.
+
+   Every part is there for a reason (Vale 3.21, measured, and read from its source). Vale merges
+   the user's global configuration file — `~/.config/vale/.vale.ini` on Linux, wherever
+   `vale ls-dirs` names it elsewhere — under the repository's, so a style enabled only on this
+   machine raises findings the repository's rules never would, a rule turned off only here goes
+   silent where a clean runner raises it, and with no repository configuration at all Vale lints
+   by the global one alone. `--no-global` drops that file **and Vale's default StylesPath with
+   it**: Vale adds its default path only where `--no-global` is absent, so `VALE_STYLES_PATH`,
+   which moves that path, does not bring it back. That is right only where the configuration
+   names a StylesPath of its own. There a clean runner's default path holds nothing, `vale sync`
+   having installed into the repository's, while this machine's may hold styles of its own — and
+   a style it holds under a name the repository's also carries has its rules merged into the
+   repository's. Where the configuration sets none, its packages and custom styles live in the
+   default path, a layout Vale documents as valid, and `--no-global` stops a lint with
+   `E100 … style '<name>' does not exist on StylesPath` and `vale sync` with
+   `E100 [initPath] … unable to initialize StylesPath`. So the second form keeps the default path
+   and sets aside the global file alone: Vale looks for that file under `XDG_CONFIG_HOME`, a
+   fresh, empty directory there holds none, and the default StylesPath comes from
+   `XDG_DATA_HOME`, or `VALE_STYLES_PATH` where that is set, which the form leaves as they are.
+   `VALE_CONFIG_PATH`, where the environment sets it, names a file Vale reads **instead** of
+   searching, so the repository's own is never read and `vale sync` installs the packages that
+   file names; neither `--no-global` nor `XDG_CONFIG_HOME` stops it, and clearing it in the
+   subshell does. The `cd` is there because Vale reads the first configuration it finds in the
+   directory it runs in or one above it, never beside the files, and a Bash call starts in the
+   session's directory, which need not be the repository's. What neither form makes equal is the
+   styles themselves: the packages this machine synced are the versions it synced, and a runner
+   syncs its own. `docs-style-checker`'s first rung, `docs-scaffold-reviewer`'s Vale dimension,
+   and `/docs-init`'s Phase 4 sync and Phase 7 lint each run Vale this way.
 
    Separately, when any lockfile is present, check `node_modules/` beside it — or, beside a
    `yarn.lock`, a `.pnp.cjs`, which a Yarn Plug'n'Play install keeps instead — as an

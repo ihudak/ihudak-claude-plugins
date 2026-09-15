@@ -98,27 +98,23 @@ directory holding one. Vale reads its configuration from five file names, not on
 them in that order, and a nearer directory before a farther one (Vale 3.21), so a site whose only
 one is `_vale.ini` is linted all the same. If one exists and `vale` is installed, run Vale **from
 the directory holding it**, in one Bash call — once per such directory where the files sit under
-different ones, each over its own files:
-
-```bash
-(cd "<the directory holding the configuration>" && unset VALE_CONFIG_PATH && vale --no-global --output=line <file1> <file2> ... 2>&1)
-```
+different ones, each over its own files — with `--output=line <file1> <file2> ... 2>&1`, in the
+form `/prose-review-pr` step 6 defines for every Vale run in this plugin (read it in
+`${CLAUDE_PLUGIN_ROOT}/commands/prose-review-pr.md`), which the configuration file decides: one form
+where it sets `StylesPath` and another where it sets none.
 
 Vale looks for its configuration in the directory it runs in and then in each directory above it,
 uses the first it finds, and never looks beside the files; this command's shell stands wherever the
 session does. Run from the directory holding that configuration, Vale reads it. Run from a directory
 outside that one's tree — the session's, say — it reads the first configuration at or above that
-directory instead, which may be another repository's; where there is none, it uses the user's
-global configuration, or, without one, stops with `E100 [.vale.ini not found]`. The file paths are
+directory instead, which may be another repository's; where there is none, it stops with
+`E100 [.vale.ini not found]`, since both forms set the user's global configuration aside. The file paths are
 step 2's absolute ones, so they resolve from that directory too.
 
-**The run reads the repository's own configuration alone.** Without `--no-global`, Vale merges the
-user's global configuration — `~/.config/vale/.vale.ini` on Linux, wherever `vale ls-dirs` names it
-elsewhere — under the repository's, so a style enabled only on this machine raises findings the
-repository's rules never would, and a rule turned off only on this machine goes silent where the
-repository enables it. And `VALE_CONFIG_PATH`, where the environment sets it, names a file Vale
-reads **instead** of searching, so the repository's own is never read; `--no-global` does not stop
-that, and clearing it in the subshell does (Vale 3.21).
+**The run reads the repository's own configuration and none of the machine's** — no global Vale
+configuration, no `VALE_CONFIG_PATH` — and keeps the styles that configuration reads, which live in
+Vale's default StylesPath where it sets no `StylesPath` of its own; `/prose-review-pr` step 6 says
+why each part of both forms is there.
 
 Collect Vale findings. Merge with prose-style-checker results, deduplicating where
 both flag the same line for the same issue.

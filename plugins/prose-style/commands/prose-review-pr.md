@@ -149,10 +149,14 @@ which vale 2>/dev/null || echo "NOT_INSTALLED"
 ```
 
 If Vale is installed and a configuration file was found, run it on the changed files **from `<vale_root>`**,
-in one Bash call:
+in one Bash call, in the form that configuration file decides — whether it sets `StylesPath`, a
+`StylesPath =` line above its first `[section]` header, the one place Vale accepts the key:
 
 ```bash
+# The configuration sets StylesPath:
 (cd "<vale_root>" && unset VALE_CONFIG_PATH && vale --no-global --output=line <file1> <file2> ... 2>&1)
+# It sets none:
+(cd "<vale_root>" && unset VALE_CONFIG_PATH && h=$(mktemp -d) && { XDG_CONFIG_HOME="$h" vale --output=line <file1> <file2> ... 2>&1; s=$?; rm -r "$h"; exit $s; })
 ```
 
 Vale looks for its configuration in the directory it runs in and then in each directory above it,
@@ -160,17 +164,30 @@ uses the first it finds, and never looks beside the files; this command's shell 
 session does — which is what `--repo` exists to differ from. Run from `<vale_root>`, Vale reads its
 configuration there. Run from a directory outside `<vale_root>`'s tree — the session's, say — it reads
 the first configuration at or above that directory instead, which may be another repository's; where
-there is none, it uses the user's global configuration, or, without one, stops with
-`E100 [.vale.ini not found]`. The subshell keeps the `cd` to this one call, and the file paths are
+there is none, it stops with `E100 [.vale.ini not found]`, since both forms below set the user's
+global configuration aside. The subshell keeps the `cd` to this one call, and the file paths are
 step 4's absolute ones, so they resolve from `<vale_root>` too.
 
-**The run reads the repository's own configuration alone, and the command says so twice.** Without
-`--no-global`, Vale merges the user's global configuration — `~/.config/vale/.vale.ini` on Linux,
-wherever `vale ls-dirs` names it elsewhere — under the repository's, so a style enabled only on this
-machine raises findings the repository's rules never would, and a rule turned off only on this
-machine goes silent where the repository enables it. And `VALE_CONFIG_PATH`, where the environment
-sets it, names a file Vale reads **instead** of searching, so the repository's own is never read;
-`--no-global` does not stop that, and clearing it in the subshell does (Vale 3.21).
+**This is the one place this plugin says how it runs Vale** — `/prose-review-docs` step 5 runs it
+the same way — **and every part of both forms is load-bearing** (Vale 3.21, measured, and read from
+its source). The run reads the repository's own configuration and none of the machine's, with the
+styles that configuration reads. Vale merges the user's global configuration file —
+`~/.config/vale/.vale.ini` on Linux, wherever `vale ls-dirs` names it elsewhere — under the
+repository's, so a style enabled only on this machine raises findings the repository's rules never
+would, and a rule turned off only on this machine goes silent where the repository enables it.
+`--no-global` drops that file **and Vale's default StylesPath with it**: Vale adds its default path
+only where `--no-global` is absent, and `VALE_STYLES_PATH` does not bring it back. That is right
+only where the configuration names a StylesPath of its own, whose styles are then the repository's.
+Where it sets none, its synced packages and custom styles live in the default path, a layout Vale
+documents as valid, and `--no-global` stops the run with
+`E100 … style '<name>' does not exist on StylesPath` in place of the findings. So that form keeps
+the default path and sets aside the global file alone: Vale looks for that file under
+`XDG_CONFIG_HOME`, a fresh, empty directory there holds none, and the default StylesPath comes from
+`XDG_DATA_HOME`, or `VALE_STYLES_PATH` where that is set, which the form leaves as they are; it
+removes the directory it made and exits with Vale's status. And `VALE_CONFIG_PATH`, where the
+environment sets it, names a file Vale reads **instead** of searching, so the repository's own is
+never read; neither `--no-global` nor `XDG_CONFIG_HOME` stops that, and clearing it in the subshell
+does.
 
 Collect Vale findings separately. If Vale is not installed, note:
 "Vale is not installed — skipping automated linting. Style check is based on

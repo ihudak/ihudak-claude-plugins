@@ -97,7 +97,7 @@ A port **answers** while something listens on it. The probe is
 Every probe below is this one, and it needs no socket tool. **A probe that cannot run is never read
 as an answer or as silence**, so the check does not start without its tools: before the first boot,
 confirm that `command -v curl` and `command -v ps` both exit 0 — step 2 reads a process group with
-`ps`, and step 5 a listener's parents. Where either does not, boot nothing, record "smoke-check
+`ps`, and step 5 that group's members and a listener's parents. Where either does not, boot nothing, record "smoke-check
 unavailable: `<tool>` is not installed", and every page goes to the manual table (§5); `/document`
 Phase 6.5 records that on `render_smoke_check` as `UNAVAILABLE`. A probe that exits 127 anyway,
 part-way through, ends the check the same way: boot no further server, signal the process group of
@@ -147,8 +147,14 @@ not be probed", and every page not yet checked goes to the manual table. For eac
    1. `kill -TERM -- -<pgid>`; wait up to 5 seconds for the group to be gone; where it is not,
       `kill -KILL -- -<pgid>` and wait up to 5 seconds more, since a killed process stays in its
       group until its parent reaps it.
-   2. **Confirm two things:** the group is gone — `kill -0 -- -<pgid>` fails — and the port is
-      quiet — the probe no longer finds it answering.
+   2. **Confirm two things:** the group is gone and the port is quiet — the probe no longer finds it
+      answering. **The group is gone** where `kill -0 -- -<pgid>` fails, **or** where every process
+      `ps -A -o pgid=,stat=` lists under `<pgid>` is a zombie, its stat beginning `Z` —
+      `ps -A -o pgid=,stat= | awk -v g=<pgid> '$1 == g { print $2 }'` prints only lines that begin
+      with `Z`. A zombie runs nothing and holds no port; it has exited, and stays in its group only
+      until its parent reaps it, which a parent that never reaps — a container whose PID 1 is
+      `sleep infinity`, with no init — never does, so `kill -0` alone would call that group running
+      for good.
    3. **Both confirmed** — the next server may boot.
    4. **Either not confirmed** — where the port still answers, a process outside the group holds it
       (one that left for a session of its own, or a server something restarted): read its listener's

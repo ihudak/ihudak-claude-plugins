@@ -143,28 +143,39 @@ registered fallback (`gate-ledger.md` §4) still runs without the missing tool, 
 where neither the primary nor the fallback can (`gate-ledger.md` §2). A gate is affected where a
 missing tool's `required_by` names it. Its fallback still runs where no missing tool's
 `fallback_for` names it — except `build_check`'s, which is decided **per build**, by the test
-`/document` Phase 6.5 Step 1 makes when that build will not run: a build whose own tool is missing
-keeps its fallback — the Step 2 boot of **that build's own servers** — where `bash`, `curl`, `ps`
-and the tool of one of those servers (§2, tested as §3 tests it) are all present, and never on the
-strength of another build's server, which compiles another space or another configuration. In this
-test a package manager whose installed dependencies are missing — its `node_modules/` signal (§2
-source 2) — counts as missing, for a build and a server alike, since it fails as completely.
-`build_check` is `DEGRADED` where every build whose tool is missing keeps its fallback, and
-`UNAVAILABLE` where any does not. A build's own servers are the ones Step 1 names — for a `builds[]`
-entry, the server whose `visibility` pairs with the entry's; for a space's
-`commands.per_space.<space>.build`, that space's servers; for the flat `commands.build`, every
-server — taken here from every server the profile records for it, since no page is written yet,
-where Step 1 counts only those Step 2 boots for an affected page. So with the build tool and `curl`
-both missing, `build_check` is `UNAVAILABLE`, not `DEGRADED`, because the boot that stands in for
-the build probes its server with `curl`; and where one space builds with a missing `mkdocs` but
-serves through a present `pnpm` while another space's server tool is missing, it is `DEGRADED`,
-because the build that will not run keeps its own server's boot.
+`/document` Phase 6.5 Step 1 makes when that build will not run: a build that will not run keeps its
+fallback — the Step 2 boot of **that build's own servers** — where `bash`, `curl`, `ps` and the tool
+of one of those servers (§2, tested as §3 tests it) are all present, and never on the strength of
+another build's server, which compiles another space or another configuration. In this test a
+package manager whose installed dependencies are missing — its `node_modules/` signal (§2 source 2)
+— counts as missing, for a build and a server alike, since it fails as completely. `build_check` is
+`DEGRADED` where every build that will not run keeps its fallback, and `UNAVAILABLE` where any does
+not. A build's own servers are the ones Step 1 names — for a `builds[]` entry, the server whose
+`visibility` pairs with the entry's; for a space's `commands.per_space.<space>.build`, that space's
+servers; for the flat `commands.build`, every server — taken here from every server the profile
+records for it, since no page is written yet, where Step 1 counts only those Step 2 boots for an
+affected page. So with the build tool and `curl` both missing, `build_check` is `UNAVAILABLE`, not
+`DEGRADED`, because the boot that stands in for the build probes its server with `curl`; and where
+one space builds with a missing `mkdocs` but serves through a present `pnpm` while another space's
+server tool is missing, it is `DEGRADED`, because the build that will not run keeps its own server's
+boot.
+
+**A profile that records no build command at all** — no `builds[]`, no
+`commands.per_space.<space>.build`, no `commands.build` — gives `build_check` no primary, so no
+tool's `required_by` names it. The gate still applies: its precondition is a buildable write context
+(`gate-ledger.md` §4), not a build command, and the Step 2 boot is then its only proof
+(`docs-profiles/render-verification.md` §1), so it records `UNAVAILABLE` wherever that boot cannot
+run. On such a profile `build_check` is therefore affected wherever a missing tool's `fallback_for`
+names it, and is decided as one build that will not run, whose own servers are every server the
+profile records: `UNAVAILABLE` where `bash`, `curl` or `ps` is missing or every server's tool is,
+`DEGRADED` otherwise.
 
 **What the `build_check` prediction assumes.** The preflight runs before any page is written, so it
-cannot know which servers Step 2 will boot. It assumes that every build whose tool is missing will
-have an affected page on one of its own servers. Where a build has none — the build whose tool is
-missing is the internal one, and every affected page is published by the public server — Step 1
-finds none of that build's servers among those Step 2 boots, so its fallback cannot run. The row
+cannot know which servers Step 2 will boot. It assumes that, for every build that will not run,
+Step 2 will boot one of the servers that kept that build's fallback here — that one of them
+publishes an affected page. Where none does — the build whose tool is missing is the internal one,
+and every affected page is published by the public server — Step 1 finds none of those servers
+among the ones Step 2 boots, so the build's fallback cannot run. The row
 then records the decision the user takes at this prompt, `SKIPPED_BY_USER` (or `FAILED` with that
 decision beside another build's content failure, `gate-ledger.md` §2), where the consequence line
 predicted `DEGRADED`. The line is a prediction from the profile alone; Step 1 and `/document`'s

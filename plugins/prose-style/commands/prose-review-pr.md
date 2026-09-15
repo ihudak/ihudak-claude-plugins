@@ -165,8 +165,8 @@ uses the first it finds, and never looks beside the files; this command's shell 
 session does — which is what `--repo` exists to differ from. Run from `<vale_root>`, Vale reads its
 configuration there. Run from a directory outside `<vale_root>`'s tree — the session's, say — it reads
 the first configuration at or above that directory instead, which may be another repository's; where
-there is none, it stops with `E100 [.vale.ini not found]`, since both forms below set the user's
-global configuration aside. The subshell keeps the `cd` to this one call, and the file paths are
+there is none, it falls back to `$HOME/.vale.ini`, which neither form above sets aside, and only where
+that is absent too does it stop with `E100 [.vale.ini not found]`. The subshell keeps the `cd` to this one call, and the file paths are
 step 4's absolute ones, so they resolve from `<vale_root>` too. It is `builtin cd`, its output
 discarded, because this command's shell carries the user's aliases and shell functions: a `cd` of
 theirs would otherwise run in its place, and one that prints would put its output ahead of Vale's.

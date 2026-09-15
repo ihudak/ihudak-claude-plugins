@@ -107,8 +107,9 @@ Vale looks for its configuration in the directory it runs in and then in each di
 uses the first it finds, and never looks beside the files; this command's shell stands wherever the
 session does. Run from the directory holding that configuration, Vale reads it. Run from a directory
 outside that one's tree — the session's, say — it reads the first configuration at or above that
-directory instead, which may be another repository's; where there is none, it stops with
-`E100 [.vale.ini not found]`, since both forms set the user's global configuration aside. The file paths are
+directory instead, which may be another repository's; where there is none, it falls back to
+`$HOME/.vale.ini`, which neither form sets aside, and only where that is absent too does it stop
+with `E100 [.vale.ini not found]`. The file paths are
 step 2's absolute ones, so they resolve from that directory too.
 
 **The run reads the repository's configuration with no global Vale configuration and no

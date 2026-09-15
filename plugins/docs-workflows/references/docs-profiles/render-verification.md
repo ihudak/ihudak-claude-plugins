@@ -122,12 +122,13 @@ of the server's.
 
 Every probe below is the exit-code probe defined first, and it needs no socket table. **A probe that
 cannot run is never read as an answer or as silence**, so the check does not start without its
-tools: before the first boot, confirm that `command -v bash` and `command -v curl` exit 0 and,
-where `test -r /proc/net/tcp` fails — off Linux — that `command -v ps` does too. Step 2 boots under
-`bash` and reads the process group it made, and step 5 signals that group under `bash` and reads
-its members and a listener's parents: on Linux those reads come from `/proc`, which needs nothing
-installed, and elsewhere from `ps` (**Portability**, below, defines each). Where one does not exit
-0, boot nothing, record "smoke-check unavailable: `<tool>` is not installed", and every page goes
+tools: before the first boot, confirm that `bash` and `curl` are present and, where
+`test -r /proc/net/tcp` fails — off Linux — that `ps` is too, each tested as
+`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §3 tests a binary, which an alias or a
+shell function of that name never passes. Step 2 boots under `bash` and reads the process group it
+made, and step 5 signals that group under `bash` and reads its members and a listener's parents: on
+Linux those reads come from `/proc`, which needs nothing installed, and elsewhere from `ps`
+(**Portability**, below, defines each). Where one is missing, boot nothing, record "smoke-check unavailable: `<tool>` is not installed", and every page goes
 to the manual table (§5); `/document` Phase 6.5 records that on `render_smoke_check` as `DEGRADED`,
 never `UNAVAILABLE`, since the manual table is that gate's registered fallback (`gate-ledger.md` §4)
 and needs no tool. A probe that exits 127 anyway, part-way through, ends the check the same way:

@@ -5,7 +5,7 @@
 Single source of truth for verifying, before a run writes anything, that the tools its gates invoke
 are actually present.
 
-Consumed by `/document` (both modes) at Phase 0, and by `/docs-init` at Phase 2 step 3 — which **skips §2 entirely** and hands §3 a fixed set of its own (`git`, `python3`/`pip` or `uv`, `mkdocs`, `vale`). All three of §2's sources are empty for it: there is no profile yet, because it is the run that writes the first one; an absent or empty scaffold target carries no config signals; and it documents no `Prerequisites` of its own until this run has written them. It is the one consumer of the preflight that derives nothing. `/docs-serve` runs no preflight, but its Phase 4 takes §2's definition of a command's tool, and §3's test for one, before it starts a server. Pairs with
+Consumed by `/document` (both modes) at Phase 0, and by `/docs-init` at Phase 2 step 3 — which **skips §2 entirely** and hands §3 a fixed set of its own (`git`, `python3`/`pip` or `uv`, `mkdocs`, `vale`). All three of §2's sources are empty for it: there is no profile yet, because it is the run that writes the first one; an absent or empty scaffold target carries no config signals; and it documents no `Prerequisites` of its own until this run has written them. It is the one consumer of the preflight that derives nothing. `/docs-serve` runs no preflight, but its Mode dispatch tests its own tools as §3 tests a binary, and its Phase 4 takes §2's definition of a command's tool, and §3's test for one, before it starts a server. Pairs with
 `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` — the preflight decides whether to start; the ledger
 records what actually happened. §2, source 2, is also where this plugin says how it runs Vale.
 
@@ -126,7 +126,24 @@ sources **2 and 3 only**. It anchored on cwd unconditionally until a live run sh
 
 ## 3. Checking
 
-- Binaries: `command -v <binary>` — present when exit 0.
+- Binaries: `command sh -c 'unset -f "$1" 2>/dev/null; command -v "$1"' sh <binary>` — present
+  when it exits 0. **A bare `command -v <binary>` will not do.** Every Bash call runs in the Bash
+  tool's own shell, which carries the user's aliases and shell functions — Claude Code's shell
+  snapshot re-applies them — and `command -v` reports an alias or a function named after the
+  binary, exiting 0 where no such binary is installed. A child `sh` inherits no alias, and its
+  `unset -f` drops a function of the binary's name it may have taken in from the environment: bash,
+  which some hosts install as `sh`, imports exported functions. `command sh` keeps an alias or a
+  function named `sh` out of it too, as `command` keeps them out of the process and socket reads
+  (`docs-profiles/render-verification.md` §2, **Portability**). Checked with bash, dash and BusyBox's
+  `ash` as the calling shell, each given an alias and a function named after an absent tool and
+  bash an exported one as well, and with dash and with bash as the `sh` it starts: the bare form
+  passes every one of them, and this form none, while a present tool shadowed the same way still
+  passes. zsh is not installed here, so it is unchecked there: zsh documents `command` as naming an
+  external command, never a function or a builtin, so `command sh` runs the `sh` binary there as
+  well, but whether zsh expands an alias on the word after `command`, and a global alias
+  (`alias -g`) on the binary's name, which zsh expands in any position, are open.
+  `/docs-serve`'s Mode dispatch and Phase 4, and `/document` Phase 6.5's Steps 1 and 2 with
+  `docs-profiles/render-verification.md` §2, test a binary this way too.
 - **A tool containing `/` is a path, not a name** — `node_modules/.bin/vitepress`, a form a
   profile may record for a dev-server command. `command -v` resolves a name containing `/` against
   the directory it runs in, and that is the session's directory, which need not be the docs

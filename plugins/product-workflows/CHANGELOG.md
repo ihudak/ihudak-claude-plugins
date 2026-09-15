@@ -42,6 +42,10 @@ Phase 0 step 4 says the base PRD is the resolved folder's own `prd.md`, and that
 
 `/idea`, `/specify`, `/epics`, and the BRD route's `/brd-intake`, `/brd-split`, `/prd-ground`, `/brd-interview`, `/brd-package` and `/brd-reconcile` said their terminal `commit-artifacts` step "NEVER touches" the current working directory, and `/epics`' invariants that it never commits "anything in the current working directory". Where the session stands inside `$SPECS_PATH`, that step commits and pushes in the working directory's own repository. Each now says so only where the working directory is not the specs repository.
 
+### Fixed — no command says it never writes into a working directory that is the specs repository
+
+All fourteen commands said their final phase "NEVER writes into" the current working directory — `/specify` and `/epics` said it of their feedback phase too, and `/epics` of its follow-up phase — while the `/prd-proposal` and `/brd-proposal` pages said each writes "nothing in your current working directory" and the session-cost page that the plugin "never writes into your current working directory". Where the session stands inside `$SPECS_PATH`, those phases write their feedback, follow-up, cost and resume files into the working directory's own repository. Each now makes the claim only where the working directory is not the specs repository. The session-feedback page's sentence, which speaks of a run where nothing resolves and so nothing is written, holds as written.
+
 ## [3.5.0] — 2026-09-09
 
 Five open defects from a live-engagement defect register, found running the family across two

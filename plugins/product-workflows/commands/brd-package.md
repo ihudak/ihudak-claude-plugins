@@ -1078,7 +1078,7 @@ is not one either — it is the gate working.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is
 offered only in the handoff phase), and NEVER writes into a code/docs repo, the vault, or the current
-working directory; no user name is ever written.
+working directory, where it is not the specs repository; no user name is ever written.
 
 ---
 

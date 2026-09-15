@@ -79,6 +79,10 @@ The file's opening said everything below it is reached only when the mount is re
 
 `specs-repo-git.md` said nothing in it "ever touches a code repo, a docs repo, or the current working directory", and `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me` and `/frames` said the same of their terminal step, the first four adding that they never commit "into a docs/code repo, or the current working directory". Where the session stands inside `$SPECS_PATH`, that terminal step commits and pushes in the working directory's own repository. Each sentence now makes the claim only where the working directory is not the specs repository.
 
+### Fixed — no reference or command says it never writes into a working directory that is the specs repository
+
+`cost-emission.md` §11 said `emit-cost` never writes "into a docs/code repo or the current working directory", `feedback-emission.md` §6 and `followup-emission.md` §8 said the same of what their callers write, `/frames` said it of its final phase, and the session-cost page said the plugin "never writes into your current working directory". Where the session stands inside `$SPECS_PATH`, each of those writes lands in the working directory's own repository. Each now makes the claim only where the working directory is not the specs repository. The three ladders' rule for their report-only rung — nothing resolved, so never fall back to writing into the working directory — holds as written, and is unchanged.
+
 ## [1.5.0] — 2026-09-09
 
 ### Added — `control`, a positive control on every grounding absence claim

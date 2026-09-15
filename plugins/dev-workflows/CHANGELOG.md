@@ -40,6 +40,10 @@ Seven pages under `docs/` change. Four name `/docs-workflows:docs-init` and `/do
 
 `/design`, `/ready` and `/implement` said their terminal `commit-artifacts` step "NEVER touches" the current working directory. Where the session stands inside `$SPECS_PATH`, that step commits and pushes in the working directory's own repository. Each now says so only where the working directory is not the specs repository.
 
+### Fixed — no command says it never writes into a working directory that is the specs repository
+
+`/design`, `/implement`, `/ready`, `/upgrade` and `/vuln` said their feedback, follow-up or final phases "NEVER write into" the current working directory, and the session-cost page that the plugin "never writes into your current working directory". Where the session stands inside `$SPECS_PATH`, those phases write their feedback, follow-up, cost and resume files into the working directory's own repository. Each now makes the claim only where the working directory is not the specs repository. The session-feedback page's sentence, which speaks of a run where nothing resolves and so nothing is written, holds as written.
+
 ## [4.0.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

@@ -109,7 +109,7 @@ run — the terminal `commit-artifacts` step skips on it.
   Exactly one Summary per run, appended under the resolved version and type. A run whose version the
   operator declined appends under `# Unreleased`.
 
-  **NEVER write into a docs repo, a code repo, or the current working directory.** The PRD
+  **NEVER write into a docs repo, a code repo, or the current working directory, where it is not the specs repository.** The PRD
   folder is in `$SPECS_PATH`, which is where the terminal `commit-artifacts` step commits it with the
   rest of the run's artifacts.
 
@@ -387,7 +387,7 @@ phase only writes the feedback file; those writes are committed by the terminal
 `commit-artifacts` step in Phase 11, per
 `workflows-core:specs-repo-git` §4), NEVER makes an
 external API call, and NEVER writes into a docs repo or the current working
-directory.
+directory, where it is not the specs repository.
 
 ---
 
@@ -411,7 +411,7 @@ fails the run, NEVER commits (still true — this phase only writes follow-up
 files; those writes are committed by the terminal `commit-artifacts` step in
 Phase 11, per `workflows-core:specs-repo-git` §4), NEVER
 makes an external API call, and NEVER writes into a docs repo or the current
-working directory.
+working directory, where it is not the specs repository.
 
 ---
 
@@ -459,7 +459,7 @@ commit: it opens no branch and no pull request for the draft, which the
 terminal step above commits in the specs repository as one of `$SPECS_PATH`'s
 bounded paths (§2.1), and never in a docs, code or vault repository. It
 NEVER makes an external API call, and NEVER writes into a docs repo or the
-current working directory; no user name is ever written (§10).
+current working directory, where it is not the specs repository; no user name is ever written (§10).
 
 ---
 

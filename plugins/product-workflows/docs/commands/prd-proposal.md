@@ -74,7 +74,7 @@ Every figure in both artifacts is **hours of human delivery time**. Neither carr
 - **It requires no ARD and no specification.** Grading replaces that gate, which is the whole answer to the question of when a requirement set becomes estimable.
 - **It does no documentation grounding**, and takes no `--no-docs` flag. Shipped product documentation bears on how a feature is described and not at all on what it costs to build, so there is no flag to turn off and no `docs grounding:` line in the report.
 - **It never offers a defect repair as a scope lever.** Where the folder holds an unrepaired code defect, its repair becomes its own work package automatically and appears in neither the scope-lever nor the priced-options table. Asking a customer to authorise deferring a defect the vendor's own work found would return that deferral carrying the customer's authority on a question the vendor's policy has already answered.
-- **It writes no code repository, no docs repository and nothing in your current working directory.**
+- **It writes no code repository, no docs repository and nothing in your current working directory, where it is not the specs repository.**
 
 ## Example
 

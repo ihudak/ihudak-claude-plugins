@@ -1013,7 +1013,7 @@ report still appears in the report; this step NEVER fails the run, NEVER
 commits (still true — this step only writes the feedback file; those writes
 are committed by the separate terminal `commit-artifacts` step, per
 `workflows-core:specs-repo-git` §4), and NEVER writes
-into the docs repo or the current working directory.
+into the docs repo or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -1210,7 +1210,7 @@ behaviour). This phase NEVER fails the run, NEVER commits (still true — this
 phase only writes follow-up files; those writes are committed by the separate
 terminal `commit-artifacts` step, per
 `workflows-core:specs-repo-git` §4), and NEVER writes
-into the docs repo or the current working directory.
+into the docs repo or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -1252,7 +1252,7 @@ repeated in full.
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (the
 documentation commit, branch, and PR are handled in Phase 8.5; the terminal
 step above commits only the bounded session-artifact paths in `$SPECS_PATH`),
-and NEVER writes into the docs repo or the current working directory; no user
+and NEVER writes into the docs repo or the current working directory, where it is not the specs repository; no user
 name is ever written (§10 privacy).
 
 ---
@@ -1549,7 +1549,7 @@ impl-maintenance report still appears in the report; this step NEVER fails the
 run, NEVER commits (still true — this step only writes the feedback file;
 those writes are committed by the separate terminal `commit-artifacts` step,
 per `workflows-core:specs-repo-git` §4), and NEVER writes
-into the docs repo or the current working directory.
+into the docs repo or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -1658,7 +1658,7 @@ fails the run, NEVER commits (still true — this phase only writes follow-up
 files, and the user manages git manually for the doc edits; those writes are
 committed by the separate terminal `commit-artifacts` step, per
 `workflows-core:specs-repo-git` §4), and NEVER writes
-into the docs repo or the current working directory.
+into the docs repo or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -1696,7 +1696,7 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable
 (direct-mode doc edits remain uncommitted — the user manages git manually;
 the terminal step above commits only the bounded session-artifact paths in
 `$SPECS_PATH`), and NEVER writes into the docs repo or the current working
-directory; no user name is ever written (§10 privacy).
+directory, where it is not the specs repository; no user name is ever written (§10 privacy).
 
 ---
 

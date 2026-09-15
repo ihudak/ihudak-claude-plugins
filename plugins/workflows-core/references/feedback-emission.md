@@ -185,7 +185,7 @@ signal the maintainer needs.
 Three named entry points. Every caller supplies `plugin_version` (§3) and lets
 this reference resolve the target (§2), dedupe/append (§3), and format the
 entry (§1). None of them commits; none writes into a docs/code repo or the
-current working directory. The artifacts are committed later, once, by the
+current working directory, where it is not the specs repository. The artifacts are committed later, once, by the
 run's terminal `commit-artifacts` step
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4).
 

@@ -309,7 +309,7 @@ Terminal phase — runs AFTER the Phase 11 report; NEVER interrupts an earlier p
 2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6), passing the Lessons Learned report, `command: /docs-brand`, `key: null` (this run resolves no PRD/Epic key), `source: none`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). With no PRD dir to match, `feedback-emission.md` §2 tier 2's **documentation branch** — which names this command's standalone path explicitly — applies: the entry lands at `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/feedback/<date>.md` — `<docs-repo-slug>` being the one-segment name `workflows-core:specs-repo-git` §2.1 defines — filed against the docs repo rather than unfiled at the specs-repo root, because that repository is this family's unit of attribution (design D19).
 3. **Surface** the persisted path (or "no plugin-facing signal — nothing persisted") as this phase's only output.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits, NEVER makes an external API call, and NEVER writes into a docs repo, a code repo, or the current working directory.
+ADDITIVE — this phase NEVER fails the run, NEVER commits, NEVER makes an external API call, and NEVER writes into a docs repo, a code repo, or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -321,7 +321,7 @@ Terminal phase — runs AFTER Phase 11 and Phase 12; NEVER interrupts an earlier
 2. **Filter** them with the reference's §6 qualifying predicate.
 3. This run resolves **no PRD or Epic folder** — `followup-emission.md` §2's "no folder resolved" rung applies: report-only, kept in the Phase 11 report, with the one-line notice `⚠ No resolved folder — N follow-up(s) kept in this report only.`
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits, and NEVER writes into a docs repo, a code repo, or the current working directory.
+ADDITIVE — this phase NEVER fails the run, NEVER commits, and NEVER writes into a docs repo, a code repo, or the current working directory, where it is not the specs repository.
 
 ---
 

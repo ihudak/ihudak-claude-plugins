@@ -82,7 +82,7 @@ Every figure in both artifacts is **hours of human delivery time**. Neither carr
 - **It re-prices no slice and edits none.** A reviewer finding whose location is a slice document is recorded and reported with the slice named, never fixed from here: editing another phase's deliverable would leave that slice's own reviewer verdict standing over content it never saw.
 - **It never asserts coverage.** The proportion of the BRD's requirements the programme covers is computed from the root `coverage-ledger.md` on every run, and the remainder is enumerated **by requirement identifier** rather than summarised — "two slices were excluded" tells a customer nothing about which of their own requirements are unpriced. Where the folder holds no root ledger at all, the document says so and claims no proportion.
 - **It does no documentation grounding**, and takes no `--no-docs` flag. Its inputs are the slice proposals, the root ledger and the profile.
-- **It writes no code repository, no docs repository and nothing in your current working directory.**
+- **It writes no code repository, no docs repository and nothing in your current working directory, where it is not the specs repository.**
 
 ## Example
 

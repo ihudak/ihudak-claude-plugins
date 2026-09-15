@@ -477,7 +477,7 @@ capability gap, so `emit-block` never fires from this command's own Phase 0.
    that notice. Hold its §6 outcome line for the final report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is
-offered only in Phase 7), and NEVER writes into a code/docs repo or the current working directory;
+offered only in Phase 7), and NEVER writes into a code/docs repo or the current working directory, where it is not the specs repository;
 no user name is ever written.
 
 ---

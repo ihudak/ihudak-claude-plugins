@@ -746,7 +746,7 @@ report still appears in the report; this step NEVER fails the run, NEVER
 commits (still true — this step only writes the feedback file; those writes
 are committed by the terminal `commit-artifacts` step in Phase 11, per
 `workflows-core:specs-repo-git` §4), and NEVER writes
-into the current working directory.
+into the current working directory, where it is not the specs repository.
 
 ---
 
@@ -861,7 +861,7 @@ ADDITIVE — the follow-ups also remain in the Phase 9 report. This phase NEVER
 fails the run, NEVER commits (still true — this phase only writes follow-up
 files; those writes are committed by the terminal `commit-artifacts` step in
 Phase 11, per `workflows-core:specs-repo-git` §4), and
-NEVER writes into the current working directory.
+NEVER writes into the current working directory, where it is not the specs repository.
 
 ---
 
@@ -905,7 +905,7 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git
 for the deliverable remains the user's responsibility — `/epics` never
 branches or opens a PR; the terminal step above commits only the bounded
 session-artifact paths in `$SPECS_PATH`), and NEVER writes into
-the current working directory; no
+the current working directory, where it is not the specs repository; no
 user name is ever written (§10 privacy).
 
 ---

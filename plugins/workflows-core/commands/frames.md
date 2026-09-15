@@ -377,7 +377,7 @@ gap** (a capability the run needed but the plugin lacked), `emit-block` (per
 ADDITIVE — this phase NEVER fails the run, NEVER commits a deliverable (each `index.md` is handed off
 separately, before this phase, via `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2, behind
 Phase 3's §4.3 consent choice), and NEVER writes into a code/docs repo or the current working
-directory; no user name is ever written.
+directory, where it is not the specs repository; no user name is ever written.
 
 ---
 

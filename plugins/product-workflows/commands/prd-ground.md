@@ -1337,7 +1337,7 @@ halts, never a plugin capability gap. `PRD_GROUND_DIRTY_TREE`, `PRD_GROUND_NEEDS
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable
 is offered only in Phase 9), and NEVER writes into a code repo, or the current working
-directory; no user name is ever written.
+directory, where it is not the specs repository; no user name is ever written.
 
 ---
 

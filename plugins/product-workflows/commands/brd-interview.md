@@ -994,7 +994,7 @@ its own is an allocation outcome this command reports correctly, not a capabilit
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is
 offered only in the handoff phase), and NEVER writes into a code/docs repo, or the current
-working directory; no user name is ever written.
+working directory, where it is not the specs repository; no user name is ever written.
 
 ---
 

@@ -400,7 +400,7 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits (still true — git f
 the deliverable is offered only in Phase 7, and this phase itself runs no git;
 those writes are committed by the terminal `commit-artifacts` step in Phase 9,
 per `workflows-core:specs-repo-git` §4), and NEVER writes
-into the current working directory. The specs-first ladder writes the feedback
+into the current working directory, where it is not the specs repository. The specs-first ladder writes the feedback
 file inside `$SPECS_PATH`, alongside the feature folder — the intended home.
 
 ## Phase 9 — Session cost
@@ -440,7 +440,7 @@ run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git
 for the deliverable is offered only in Phase 7; the terminal step above commits
 only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes
-into a docs/code repo or the current working directory; no user name is ever
+into a docs/code repo or the current working directory, where it is not the specs repository; no user name is ever
 written (§10 privacy).
 
 ## Final report

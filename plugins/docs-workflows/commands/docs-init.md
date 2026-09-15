@@ -279,7 +279,7 @@ Terminal phase — runs AFTER the Phase 8.5 report; NEVER interrupts an earlier 
 2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6), passing the Lessons Learned report, `command: /docs-init`, `key: null` (this run resolves no PRD or Epic key), `source: none`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). No PRD dir ever resolves here, and `feedback-emission.md` §2 tier 2's documentation branch names this command explicitly: the entry lands at `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/feedback/<date>.md`, where `<docs-repo-slug>` is the one-segment name `workflows-core:specs-repo-git` §2.1 defines for the resolved docs repo — cited rather than re-derived here, because that section's staging rule admits exactly one segment and a second derivation is how the two drift (design D19).
 3. **Surface** the persisted path (or "no plugin-facing signal — nothing persisted") as this phase's only output.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits, NEVER makes an external API call, and NEVER writes into the docs repo, a code repo, or the current working directory.
+ADDITIVE — this phase NEVER fails the run, NEVER commits, NEVER makes an external API call, and NEVER writes into the docs repo, a code repo, or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -291,7 +291,7 @@ Terminal phase — runs AFTER Phases 8.5 and 9; NEVER interrupts an earlier phas
 2. **Filter** them with the reference's §6 qualifying predicate.
 3. This run resolves **no PRD or Epic folder** — that reference's "no folder resolved" rung applies: report-only, kept in the Phase 8.5 report, with the one-line notice `⚠ No resolved folder — N follow-up(s) kept in this report only.`
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits, and NEVER writes into the docs repo, a code repo, or the current working directory.
+ADDITIVE — this phase NEVER fails the run, NEVER commits, and NEVER writes into the docs repo, a code repo, or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -331,5 +331,5 @@ Call `emit-cost` with `command: /docs-init`, `phase: docs-scaffold`, `role: dev`
 - ALWAYS use `choices` arrays for a genuine decision point; 2–4 options, and NEVER author an "Other" option — the harness supplies the free-text escape itself. Where the candidate set is unbounded (Phase 2's repository listing), print every candidate as prose first and keep the array fixed-arity over the *disposition*, resolving a typed answer against the list just printed rather than parsing it (`workflows-core:epic-picker` *The cap*)
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the last action (`workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths and to plugin-created branches, of which this family creates none; always `git -C "$SPECS_PATH"` and never a `cd`; never force-pushing; never failing the run
 - NEVER push or auto-merge the docs-repo branch — output a reviewable pull request (branch, commit, drafted message) for the operator to push
-- NEVER write outside the resolved docs-repo root, except for the bookkeeping paths inside `$SPECS_PATH`; NEVER write into a code repository, `$DOCS_PATH` when the ladder answered elsewhere, or the current working directory
+- NEVER write outside the resolved docs-repo root, except for the bookkeeping paths inside `$SPECS_PATH`; NEVER write into a code repository, `$DOCS_PATH` when the ladder answered elsewhere, or the current working directory, where it is neither that root nor the specs repository
 - ALWAYS reference this plugin's own bundled files with `${CLAUDE_PLUGIN_ROOT}`; every `workflows-core:<name>` citation is loaded through `Skill(skill: "workflows-core:reference", args: "<name>")`, never by path

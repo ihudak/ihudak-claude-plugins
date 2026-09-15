@@ -540,7 +540,7 @@ nothing). Every caller supplies `command`, `phase`, `role` (or the
 `null`), `source`, and `plugin_version`; the four feedback commands additionally
 supply `target_command` — `/prompt` and `/feedback` directly, `/prompt-brainstorm`
 and `/prompt-grill-me` through the §13 record a replay reads it from. `emit-cost` does the rest; it NEVER commits, NEVER writes
-into a docs/code repo or the current working directory, and NEVER fails the
+into a docs/code repo or the current working directory, where it is not the specs repository, and NEVER fails the
 run. The cost entry is committed later, once, by the run's terminal
 `commit-artifacts` step (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
 §4). Cost ALWAYS runs.

@@ -1490,7 +1490,7 @@ working.
    Hold its §6 outcome line for the final report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is
-offered only in the two handoff phases), and NEVER writes into a code/docs repo, or the current working directory; no user name is ever written.
+offered only in the two handoff phases), and NEVER writes into a code/docs repo, or the current working directory, where it is not the specs repository; no user name is ever written.
 
 ---
 

@@ -630,7 +630,7 @@ report still appears in the report; this step NEVER fails the run, NEVER
 commits (still true — this step only writes the feedback file; those writes
 are committed by the terminal `commit-artifacts` step in Phase 7, per
 `workflows-core:specs-repo-git` §4), and NEVER writes
-into the code repo or the current working directory.
+into the code repo or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -793,7 +793,7 @@ ADDITIVE — the follow-ups also remain in the Phase 5 report. This phase NEVER
 fails the run, NEVER commits (still true — this phase only writes follow-up
 files; those writes are committed by the terminal `commit-artifacts` step in
 Phase 7, per `workflows-core:specs-repo-git` §4), and
-NEVER writes into the code repo or the current working directory.
+NEVER writes into the code repo or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -837,7 +837,7 @@ last output — prefixed `Specs repo:`, with any guard notice repeated in full.
 ADDITIVE — this phase NEVER fails the run and NEVER commits the deliverable itself
 (the terminal step above commits only the bounded session-artifact paths in
 `$SPECS_PATH`; the implementation itself was committed and pushed in Phase 4.6, in the code repo, via `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2; the spec/design conformance notes from step 7.5 are handed off separately, also before this phase, via `workflows-core:phase-handoff` §2), and NEVER writes into the code repo or the current working
-directory; no user name is ever written (§10 privacy).
+directory, where it is not the specs repository; no user name is ever written (§10 privacy).
 
 ---
 

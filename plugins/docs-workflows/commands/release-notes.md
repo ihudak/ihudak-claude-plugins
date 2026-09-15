@@ -260,8 +260,9 @@ If `status: PARTIAL`, surface each `gaps` entry with `recommended_action: "ask u
 
 For a `field: change_type` gap, the destination was inferred with low confidence — and the
 destination decides the draft's whole shape. Confirm it by **consequence**, never by enum label.
-This fires ONLY when `change_type` was null; when the PRD already carries one, no
-prompt appears.
+This fires ONLY when the Change Type was inferred — `change_type` null, or one of the two values
+`release-note-types.md` §7 marks not routable, `not applicable` among them; when the PRD carries a
+routable one, no prompt appears.
 
 State the inference, then ask:
 

@@ -38,7 +38,7 @@ The Change Type selects the **section** of that one file:
 | `Breaking change` | `## Breaking changes` | plain **Category:** label + `### title` + prose |
 | `New technology support` | `## Feature updates` | plain **Category:** label + `### title` + prose |
 | `Bug fix` | `## Fixes` | one self-contained sentence — **no label, no title** |
-| `not applicable` | — | no note is authored; the command's Phase 2 gate stops the run |
+| `not applicable` | — | not routable: inferred as for an absent value (§7), and the draft lands in the section the inference picks |
 
 **The three-file model this replaced is gone, not merely renamed.** Drafts once landed in generated
 snippet files under `<space>/_snippets/release-notes/<product>/<sprint>/`, written into a docs repo by
@@ -182,8 +182,8 @@ does not already state.
    present, no confirmation prompt fires.
 
    Two values are **not routable** and fall through to rung 2 (§2 inference): `not applicable`
-   (§1 maps it to no destination — the command's relevance gate, not this ladder, is what stops such a
-   run), and `Bug fix` on a change that trips §5's deprecation trigger (§2's third tie-breaker bars a
+   (§1 maps it to no section, and nothing stops such a run — `/release-notes` has no gate that reads
+   the field — so it is inferred like an absent value and a note is drafted), and `Bug fix` on a change that trips §5's deprecation trigger (§2's third tie-breaker bars a
    deprecation from `fixes`, and §5's required end-of-life note has nowhere to live there).
 2. **Infer** — classify per §2, then **confirm with the operator by shape and destination, never by
    enum label**. This was the fallback rung and is now the ordinary one: nothing supplies the field

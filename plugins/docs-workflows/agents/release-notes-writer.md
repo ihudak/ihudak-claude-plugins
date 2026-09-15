@@ -44,8 +44,8 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
 
 1. **Resolve the destination.** Per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §7:
    `change_type` is authoritative, with two **not routable** exceptions that fall through to
-   inference (§2) instead: `not applicable` (§1 maps it to no destination — the command's Phase 2
-   relevance gate is what stops such a run, not this step) and `Bug fix` on a change that trips the §5
+   inference (§2) instead: `not applicable` (§1 maps it to no section, and nothing stops such a run —
+   `/release-notes` has no gate that reads the field — so it is inferred like an absent value) and `Bug fix` on a change that trips the §5
    deprecation trigger (apply that trigger's scan now, ahead of Process step 3's full detection — §2's
    deprecation tie-breaker bars a deprecation from `fixes`, where the required end-of-life note would
    have nowhere to live). Otherwise, `change_type` → infer per §2. Set

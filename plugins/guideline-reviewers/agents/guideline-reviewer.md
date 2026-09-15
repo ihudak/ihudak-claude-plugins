@@ -207,8 +207,12 @@ standard output is ESLint's JSON alone:
 
 `--no-install` is required: this step never installs anything, and `yarn run -B eslint` runs the
 ESLint the Plug'n'Play install already holds, installing none. Parse the JSON array
-(`filePath`, `messages[].ruleId`, `.line`, `.column`, `.message`, `.severity`), keep only messages
-whose `ruleId` starts with `jsx-a11y/`, and map severity `2` → **Critical**, `1` → **Warning**.
+(`filePath`, `messages[].ruleId`, `.line`, `.column`, `.message`, `.severity`), **keep only the
+entries whose `filePath` is one of the partition's reviewed files**, compared as the absolute paths
+ESLint prints and this step hands it, whatever else the lint covered — a lint script can lint more
+than the files it is handed, as `"eslint": "eslint src"` lints all of `src/` beside them, and a
+finding in a file outside the review is not this review's — then keep only their messages whose
+`ruleId` starts with `jsx-a11y/`, and map severity `2` → **Critical**, `1` → **Warning**.
 Cap the run at 2 minutes.
 
 Set `a11y_check: eslint-jsx-a11y`. A non-zero ESLint exit code means violations were found and is

@@ -33,7 +33,7 @@ Runs **before** the subagent's review passes, and wraps the target repo's own co
 
 | Order | Detected | What happens | `a11y_check` |
 |---|---|---|---|
-| 1 | `eslint-plugin-jsx-a11y` in the configuration ESLint resolves for the files (`eslint --print-config`) | The repo's own lint runs, scoped to the files under review; `jsx-a11y/*` messages become findings | `eslint-jsx-a11y` |
+| 1 | `eslint-plugin-jsx-a11y` in the configuration ESLint resolves for the files (`eslint --print-config`) | The repo's own lint runs over the files under review, and only their `jsx-a11y/*` messages become findings, whatever else a lint script covers | `eslint-jsx-a11y` |
 | 2 | `jest-axe`, `cypress-axe`, `@axe-core/playwright`, or `@axe-core/cli` in a `package.json` at or above the files' package | Recorded only — **not run**. The report names the axe rule ids the repo's own suite could confirm | `harness-detected:<name>` |
 | 3 | Neither | Silent skip; the review proceeds unchanged | `none` |
 

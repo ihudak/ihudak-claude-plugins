@@ -29,6 +29,10 @@ It preferred the repository's lint script, run through the runner its lockfile n
 
 Running `yarn` or `pnpm` let Corepack, which supplies both wherever Node.js enables it, download the release a repository's `packageManager` field pins wherever the machine lacked it — an install the agent's own rule forbids. Every command the check runs through a package runner now carries `COREPACK_ENABLE_NETWORK=0`, which Corepack reads and a runner it does not manage ignores. Where Corepack manages the runner and the machine lacks the pinned release, the runner exits with Corepack's *"Network access disabled by the environment"*, and the check records that attempt and goes on without the lint, installing nothing.
 
+### Fixed — `guideline-reviewer` keeps only the reviewed files' findings
+
+It preferred the repository's lint script where one accepts file arguments — a script named `lint`, `lint:js`, `lint:ts` or `eslint` — and kept every `jsx-a11y/` message in the JSON the script produced. A script such as `"eslint": "eslint src"` lints all of `src/` beside the files it is handed, so the review reported accessibility findings in files outside the review, against its own rule that the check is scoped to the files under review. It now keeps only the entries whose `filePath` is one of the partition's reviewed files, whatever else the lint covered, and only then their `jsx-a11y/` messages. Measured with ESLint 9.39 and `eslint-plugin-jsx-a11y` 6.10 through `npm run eslint`: the script linted both files of `src/` when handed one, and the filter kept that one's `jsx-a11y/alt-text` alone, where the `ruleId` filter alone, 1.0.0's, kept both files' — wherever 1.0.0's parse succeeded at all, which under `npm`, `pnpm` and Yarn 1 it did not (above).
+
 ## [1.0.0] — 2026-09-02
 
 ### Added — extracted from `dev-workflows` 3.25.0

@@ -380,8 +380,8 @@ This plugin supplies the **complementary semantic pass** that the `docs-style-ch
   separately. `docs-workflows` declares this plugin as a dependency, so that complementary
   pass has no absent case — it is also what carries the check on a repo with no linter of
   its own.
-- **`/epics`** Phase 6.2 invokes `prose-style-checker` directly (Epic drafts are
-  vault-internal and have no repo linter). `/create-prd`, `/update-prd`, and
+- **`/epics`** Phase 6.2 invokes `prose-style-checker` directly (Epic drafts live in the
+  specs tree, where no repo linter runs). `/create-prd`, `/update-prd`, and
   `/release-notes` invoke it directly too.
 - **`/prose-review-pr` and `/prose-review-docs`** are standalone — invoke them directly
   without going through the `dev-workflows` pipeline.

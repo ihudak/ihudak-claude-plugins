@@ -20,6 +20,8 @@ Both also ran Vale on whatever configuration the machine supplied besides the re
 
 The README's overlay section said the search for `<repo-root>` falls back from the files' repository to the working directory's, "falling back to no repo-local overlay". `prose-style-checker` step 1b's last rung does not: where neither is in a repository, it takes the deepest directory that holds every file being checked as `<repo-root>`, and that directory's own `.prose-style/rules/` is order 2. The README now says so.
 
+`prose-style-checker`'s *When to invoke* list and the README's *How it fits* section still named `/document`'s "Jira mode" and called Epic drafts "vault-internal", both retired: `/document` has a keyed mode, and `/epics` writes its drafts into the specs tree. Both now say so, and that no repo linter runs there, which is why `/epics` calls the checker directly.
+
 ## 0.3.0
 
 ### BREAKING

@@ -16,10 +16,11 @@ docs-style-checker finding schema.
 
 ## When to invoke
 
-- From `/document` (Jira mode) Phase 6.4 — dispatched inside `docs-style-checker` as the
+- From `/document` (keyed mode) Phase 6.4 — dispatched inside `docs-style-checker` as the
   complementary semantic pass alongside the repo's primary linter.
-- From `/epics` Phase 6.2 — as the primary style checker for Epic drafts (vault-internal,
-  no repo linter). Also from `/create-prd`, `/update-prd`, and `/release-notes`.
+- From `/epics` Phase 6.2 — as the primary style checker for Epic drafts, which live in the
+  specs tree, where no repo linter runs. Also from `/create-prd`, `/update-prd`, and
+  `/release-notes`.
 - From `/prose-review-pr` and `/prose-review-docs` in this plugin.
 - From any command that writes planning documents (PRDs, ARDs, and similar).
 

@@ -10,7 +10,7 @@ The accounting a documentation run keeps about what it actually verified, and th
 
 - `gate-ledger.md` — the six verification-gate outcomes (`RAN` / `DEGRADED` / `FAILED` / `UNAVAILABLE` / `SKIPPED_BY_USER` / `NOT_APPLICABLE`), the rule that no outcome is orchestrator-assignable to mean "I decided not to run this", the per-mode gate registry, the `UNAVAILABLE` conversion prompt, and the reviewer contract; consumed by `/document` and by the agents whose gates it registers.
 - `repo-verification-gates.md` — how to extract a docs repo's own pre-PR checklist into the `repo_verification_gates` block a reviewer can check the written files against, augmenting the plugin's own gates rather than overriding them.
-- `toolchain-preflight.md` — the environment check `/document` runs at Phase 0, deriving the required tool set from the resolved profile, the repo's config signals and the repo's own documented prerequisites; the tool→gate map; and the prompt that fires only when a required tool is missing. `/docs-init` runs the same check at its Phase 2 but derives nothing — there is no profile yet — and hands it a fixed set of its own.
+- `toolchain-preflight.md` — the environment check `/document` runs at Phase 0, deriving the required tool set from the resolved profile, the repo's config signals and the repo's own documented prerequisites; the tool→gate map; and the prompt that fires only when a required tool is missing. `/docs-init` runs the same check at its Phase 2 but derives nothing — there is no profile yet — and hands it a fixed set of its own. `/docs-serve` runs no preflight, but takes the file's definition of a command's tool, and its test for one, before it starts a server.
 
 ## Git and handoff
 

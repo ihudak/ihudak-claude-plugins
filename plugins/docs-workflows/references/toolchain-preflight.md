@@ -112,7 +112,7 @@ toolchain:
 
 `required_by` and `fallback_for` map each tool onto the gates it powers, which — with §5's per-build
 test for `build_check`, whose fallback depends on which build's servers a tool serves — is what lets
-the preflight state the run's outcome before the run:
+the preflight predict the run's outcome before the run (§5 says what that prediction assumes):
 
 | Tool | Typically required by | Fallback for |
 |---|---|---|
@@ -138,7 +138,7 @@ A preflight that prompts on a healthy container becomes one more thing to click 
 way the Phase 6.4 gate died.
 
 When one or more required tools are **missing**, print the `toolchain` rows (missing first), then the
-consequence — each affected gate and the outcome it will record: `DEGRADED` where the gate's
+consequence — each affected gate and the outcome it is predicted to record: `DEGRADED` where the gate's
 registered fallback (`gate-ledger.md` §4) still runs without the missing tool, and `UNAVAILABLE`
 where neither the primary nor the fallback can (`gate-ledger.md` §2). A gate is affected where a
 missing tool's `required_by` names it. Its fallback still runs where no missing tool's
@@ -158,7 +158,20 @@ where Step 1 counts only those Step 2 boots for an affected page. So with the bu
 both missing, `build_check` is `UNAVAILABLE`, not `DEGRADED`, because the boot that stands in for
 the build probes its server with `curl`; and where one space builds with a missing `mkdocs` but
 serves through a present `pnpm` while another space's server tool is missing, it is `DEGRADED`,
-because the build that will not run keeps its own server's boot. Then ask:
+because the build that will not run keeps its own server's boot.
+
+**What the `build_check` prediction assumes.** The preflight runs before any page is written, so it
+cannot know which servers Step 2 will boot. It assumes that every build whose tool is missing will
+have an affected page on one of its own servers. Where a build has none — the build whose tool is
+missing is the internal one, and every affected page is published by the public server — Step 1
+finds none of that build's servers among those Step 2 boots, so its fallback cannot run. The row
+then records the decision the user takes at this prompt, `SKIPPED_BY_USER` (or `FAILED` with that
+decision beside another build's content failure, `gate-ledger.md` §2), where the consequence line
+predicted `DEGRADED`. The line is a prediction from the profile alone; Step 1 and `/document`'s
+Ledger (final) record what the run found. No question is asked twice either way, since Step 1 keeps
+the decision this prompt records.
+
+Then ask:
 
 ```
 choices: ["Cancel — re-run in the docs container (Recommended)", "Continue anyway — record the degraded gates"]

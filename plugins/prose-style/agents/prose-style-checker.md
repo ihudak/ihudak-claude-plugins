@@ -30,6 +30,9 @@ files:        [<absolute paths of files to check>]
 doc_type:     epic | prd | ard | product-docs | general
 rules_path:   <optional absolute path to an overlay rules directory — overrides
                discovery in step 1>
+repo_root:    <optional absolute path to the repository whose rules apply — for a caller
+               that checks a copy of a file kept outside its repository; replaces step 1b's
+               derivation of <repo-root>>
 ```
 
 `doc_type` affects severity calibration (see step 5). Default: `general`.
@@ -63,7 +66,10 @@ the first hit; do not merge two overlays.
 | 3 | `$PROSE_STYLE_PATH` | the variable is set and names a readable directory containing ≥1 `.md` file |
 | 4 | *(none)* | always — the baseline alone is the active rule set |
 
-Derive `<repo-root>` for order 2 as follows, taking the first that works:
+Where the caller supplied `repo_root`, that is `<repo-root>`, and nothing is derived: a
+caller that checks a copy of a file kept outside its repository — `/release-notes` checks
+its draft in a scratch file — names the repository the file belongs to, whose rules apply.
+Otherwise derive `<repo-root>` for order 2 as follows, taking the first that works:
 
 ```bash
 # a. the repository containing the files being checked

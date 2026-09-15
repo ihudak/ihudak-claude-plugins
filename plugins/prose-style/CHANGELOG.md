@@ -2,6 +2,10 @@
 
 ## 0.3.1
 
+### Added
+
+`prose-style-checker` takes an optional `repo_root` input: the repository whose rules apply, for a caller that checks a copy of a file kept outside its repository. Where it is given, it is `<repo-root>` for step 1b's order 2, the repository-local overlay, and nothing is derived; without it the checker derives `<repo-root>` from the files it is handed as 0.3.0 did, falling back to the working directory's repository. `/release-notes` checks its draft in a scratch file outside every repository, so that neither the checker nor the fixer sees the sections earlier runs appended to `release-notes.md`, and names the specs repository with it — without it, such a copy took the rules of whatever repository the session stood in, or none. The README's overlay section says the same.
+
 ### Fixed
 
 `skills/prose-style-rules/SKILL.md` and `commands/prose-style-refresh.md` both said `/prose-style-refresh` asks the skill for the baseline directory **because `${CLAUDE_PLUGIN_ROOT}` does not expand in a slash-command body**. That was verified false in a live run — the variable does expand there — and the marketplace's `CLAUDE.md` records the claim as retired. The mechanism is unchanged; the reason that holds is now the one both files state: the skill is where the baseline's location is written down together with the rule that nothing writes into it, so the one command that writes overlays takes the path from there rather than restating either.

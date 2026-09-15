@@ -51,8 +51,11 @@ stops there:
 | 3 | `$PROSE_STYLE_PATH` | same |
 | 4 | *(none)* | always — the baseline alone is the rule set |
 
-`<repo-root>` is `git rev-parse --show-toplevel` for the files being checked, falling
-back to the working directory's repository, falling back to no repo-local overlay.
+`<repo-root>` is the repository a caller names in the checker's `repo_root` input — a
+caller that checks a copy of a file kept outside its repository, as `/release-notes` does
+with its draft, names the repository the file belongs to — and otherwise
+`git rev-parse --show-toplevel` for the files being checked, falling back to the working
+directory's repository, falling back to no repo-local overlay.
 
 **Every miss is a silent, non-blocking fallback.** A missing `.prose-style/` directory,
 an unset `$PROSE_STYLE_PATH`, an unreadable path, a directory with no markdown in it —

@@ -305,7 +305,7 @@ Pass `code_repos` (the Phase-4 resolved map) to the writer when diff-grounding i
 
 If the user chose a style check in Phase 1:
 
-→ Agent (subagent_type: "prose-style:prose-style-checker") on the `combined_rendered` draft, written first to a scratch file of its own — `mktemp -t rn-draft-XXXX.md` names one, outside every repository — since the checker and the fixer both take files. **Never to `release-notes.md`**: Phase 8 appends the draft there exactly once, and a checker or fixer handed that file would also check, and could edit, the sections earlier runs appended. If violations are returned and the user chose auto-fix:
+→ Agent (subagent_type: "prose-style:prose-style-checker") on the `combined_rendered` draft, written first to a scratch file of its own — `mktemp -t rn-draft-XXXX.md` names one, outside every repository — since the checker and the fixer both take files, and hand the checker `repo_root`: the specs repository, `git -C <the resolved PRD folder> rev-parse --show-toplevel`, wherever that finds one. **Never to `release-notes.md`**: Phase 8 appends the draft there exactly once, and a checker or fixer handed that file would also check, and could edit, the sections earlier runs appended. **The rules that apply are the specs repository's, as for `release-notes.md` itself.** The checker takes its house-style overlay from `<repo-root>/.prose-style/rules/`, and where no `repo_root` names that repository it derives it from the files it is handed: for a scratch file outside every repository, that is the working directory's repository, or none — a code clone's rules, say, where the session stands in one. `repo_root` makes it the repository `release-notes.md` lives in, so the draft is checked under the rules that file would be checked under, the checker's later orders included. That is why the scratch copy stays rather than a check in place: it keeps the checker and the fixer off every earlier run's section and writes nothing into a repository mid-run, and `repo_root` costs neither. If violations are returned and the user chose auto-fix:
 
 → Agent (subagent_type: "prose-style:prose-fixer") to apply safe fixes to that scratch file.
 
@@ -327,7 +327,7 @@ Then read the scratch file back as `combined_rendered`, and remove it.
    - Category label: <the value | none — omitted from the draft>
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
-   - Style check: <applied N safe fixes | report only (M findings) | skipped — you chose "Skip style check">
+   - Style check: <applied N safe fixes | report only (M findings) | skipped — you chose "Skip style check">, rules <the checker's rules_source>
    - Reminder: paste this wherever your release notes are published — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
 
    ### Next step

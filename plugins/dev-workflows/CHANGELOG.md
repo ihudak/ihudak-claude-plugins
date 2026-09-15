@@ -24,6 +24,10 @@ It measures how an interface is used with `git grep` and `git log` over the repo
 
 Phase 2 prep said *"If HEAD is on a non-default branch with ahead commits, ask whether to branch from current position, branch from default, or cancel"*, and defined neither "default" nor what the ahead commits were measured against. It now takes the same rules as `/implement` above: `<base>` from `code-handoff.md` §2.8, which steps 6.5 and 7.5 already resolve it with; the same read and its failure rule; the same `git switch <base>`; and the same `Base branch unresolved` line, repeated beside the Upgrade Summary's `Code repo:` line.
 
+### Fixed — the session-cost page no longer calls a run's source folder imported
+
+`docs/reference/session-cost.md`'s third tier said a cost entry "lands beside that imported directory". Nothing imports it: the tier is a run whose source is a folder in the specs tree, passed as a directory while `$SPECS_PATH` is unavailable, as `workflows-core:cost-emission` §8 states it. The page now says "beside that directory".
+
 ### Changed — the documentation names `docs-workflows`' cold-start commands
 
 Seven pages under `docs/` change. Four name `/docs-workflows:docs-init` and `/docs-workflows:docs-brand` where they list what the Dev role runs, what each companion plugin carries, which commands classify their task, which name a branch in a code or docs repository, and which cost phase each emits (`docs-scaffold`): `workflow.md`, `roles-and-phases.md`, `reference/model-routing.md` and `reference/environment.md`. `reference/agents.md` says that `docs-workflows` now carries eight agents, `docs-scaffold-reviewer` having been created there rather than moved from here. `getting-started.md` and `reference/environment.md` say that `$DOCS_PATH` is a read-only grounding root for nine commands, all in companion plugins, and a write target for `docs-workflows`' documentation commands — a second role, not a contradiction. `reference/references.md` names `docs-workflows`' `docs-workflow/` portal-scaffold set, and the six commands that read that plugin's corpus where it had counted three. No command, agent or reference of this plugin changed for it.

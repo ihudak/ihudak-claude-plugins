@@ -323,7 +323,7 @@ Then read the scratch file back as `combined_rendered`, and remove it.
    ```
    ## Release-notes draft — <KEY>
    - Appended to: <the resolved PRD folder>/release-notes.md, under <version | Unreleased> → <## Breaking changes | ## Feature updates | ## Fixes>
-   - Shaped as: <Feature update | Breaking change | Fix>  (source: <imported | inferred>)
+   - Shaped as: <Feature update | Breaking change | Fix>  (source: <PRD | inferred>)
    - Category label: <the value | none — omitted from the draft>
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>

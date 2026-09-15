@@ -87,6 +87,8 @@ Everything the convention leaves open comes from the repository, never from habi
 
 `<msg-path>` is a `mktemp -t` path **outside any repo tree** (§5). This is `workflows-core:phase-handoff` §2.7's rule applied to the commit message, and it is not stylistic: `-m "…"` inside a double-quoted shell string command-substitutes `$(…)` and backticks before git ever sees the text, and `/vuln`'s template interpolates an NVD CVE description — free text, routinely containing shell metacharacters and version expressions — straight into it. `/upgrade` interpolates component names and `/implement` a free-text summary, with the same exposure. `-F` also preserves the multi-line body and trailer that `-m` would mangle.
 
+**Remove `<msg-path>` once the commit has been made** — `command rm -f -- "<msg-path>"`, `command` because the Bash tool's shell carries the user's aliases and an `rm -i` of theirs would ask, be answered no from that shell's empty standard input, and leave the file. Nothing else removes it: it sits under the system's temporary directory, where no later step of the run and no later run looks. A rejected commit keeps its file until the run reports the rejection, and then removes it too — the message is in the report, and nothing re-reads the path.
+
 Never `--amend` (§1 rule 3): an amend rewrites a commit that may already be pushed, and this step is reachable more than once per run.
 
 **A rejected commit is a reported failure, never a silent one.** A `pre-commit` / `commit-msg` hook can reject the commit; the changes then stay staged. Do not retry, do not bypass with `--no-verify`, and do not proceed to the next unit as though the commit landed — a later unit's `add -A` would fold this unit's diff into that unit's commit under the wrong message. Record the failure and its hook output; in the §2.12 split form the caller reports it in its own per-unit results table, and the terminal call's §3.1 line names the count of units that failed to commit.
@@ -144,6 +146,8 @@ The `sed` expressions strip, in order: a scheme (`ssh://`, `https://`), a `user@
 Title: the commit subject of §2.3.
 
 Body: **written to a file** — `<body-path>`, a `mktemp -t` path outside any repo tree — never passed inline, which would break on newlines and quoting. It contains what the run produced (`body_facts`), the files changed, the reviewer verdict where the caller has one, the test result, and, on a `clean_finish: false` run, §2.9's banner as its **first line**. The same file is what §3.2 names when `gh` is unavailable, so the user pastes the identical body — banner included — into the web UI.
+
+**Remove `<body-path>` once `gh pr create` has read it** — `command rm -f -- "<body-path>"`, as §2.3 removes the message file and for the same reason. **This file is the one exception to that rule**, and §3.2 is why: where the fallback text names it, the user opens the pull request by hand afterwards, from that path, so the run leaves it and the report names it. It is kept on that path alone; where the run opened the pull request, or never reached §2.6 at all, nothing names the file again and it goes.
 
 ### 2.8 Resolving the base branch
 

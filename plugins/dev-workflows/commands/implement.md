@@ -548,7 +548,16 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
 
 ## Phase 4 — Post-implementation maintenance (both branches)
 
-First gather the actual change context:
+**First remove this run's handoff files.** Nothing from here on reads one — `summary_file`, `plan_file`,
+every `test_diff_file` and `review_diff_file` this run wrote (a re-capture that overwrote a path leaves
+one file, a fresh `mktemp` another), `review_file` and `claims_file`. Remove each as
+`command rm -f -- "<path>"`, per `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`
+(**Hand off by file, not paste**), which says why nothing else would. A run that stops before this
+phase — the two unreadable-`test_diff_file` stops, the unreadable-`review_diff_file` stop, the
+`review-fixer` `NEEDS HUMAN` stop, a second verdict still `BLOCK`, or a Cancel — removes the files it
+had made before it stops, in the same way.
+
+Then gather the actual change context:
 
 a. Run `git diff --stat` (or equivalent) and capture the list of changed files with line counts.
 b. Compose a **change summary block**:

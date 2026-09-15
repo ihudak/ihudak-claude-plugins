@@ -224,6 +224,14 @@ For orientation, the states that normally reach each outcome: `BASELINE_FAILED` 
 
 ## Step 4 — Summarise
 
+**First remove this run's handoff files.** Nothing from here on reads one — each CVE's `research_file`,
+and every `review_diff_file` and `claims_file` this run wrote on the SIGNIFICANT / HIGH-RISK path.
+Remove each as `command rm -f -- "<path>"`, per
+`${CLAUDE_PLUGIN_ROOT}/references/context-management.md` (**Hand off by file, not paste**), which says
+why nothing else would. A run that stops before this step — an unreadable `research_file` or
+`review_diff_file`, the `review-fixer` `NEEDS HUMAN` stop, or a second verdict still `BLOCK` — removes
+the files it had made before it stops, in the same way.
+
 After all CVEs are processed, print a result table:
 
 ```

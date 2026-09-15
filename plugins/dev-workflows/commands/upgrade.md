@@ -182,6 +182,14 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 
    Pass the §2.11 inputs: `repo` and `branch` from Phase 2 prep step 1; `pre_existing_dirty` and `stash_ref` as recorded there; `key` and `workitem_key` from the resolved folder, or `null` for a run with neither; `title` = `upgrade <component> to <version> [<key>]` for a single component, or `upgrade <first> and <N> more [<key>]` for a batch, dropping the suffix in a run with no key; `body_facts` = the Upgrade Summary rows, each component's classification and review verdict, and the test result against the Phase 2 prep baseline; `clean_finish: false` when any component ended `BLOCKED`, or with a review still `BLOCK`, or with kept regressions, `true` otherwise; and `commit_template: null` — `/upgrade` documents no full template of its own, so §2.3 derives the rest of each subject from the repo's own `git log`. Emit the §3.1 `Code repo:` outcome line with the Step 7 results table — one line for the batch, never one per component. **Under `--no-commit`** neither step runs, and §3.1's `--no-commit` row is emitted in place of the outcome line.
 
+7.6. **Remove this run's handoff files** — nothing from here on reads one: each component's
+   `plan_file`, and every `review_diff_file` and `claims_file` this run wrote. Remove each as
+   `command rm -f -- "<path>"`, per `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`
+   (**Hand off by file, not paste**), which says why nothing else would. A run that stops before this
+   step removes the files it had made before it stops, in the same way; a component that ended early
+   (step 3a's unreadable `plan_file`, the `review-fixer` `NEEDS HUMAN` stop, a second verdict still
+   `BLOCK`) keeps its files until here, since the loop goes on to the next component.
+
 8. **Post-batch maintenance** — After all components finish, invoke `impl-maintenance` (subagent_type: `"workflows-core:impl-maintenance"`) with a compact session handoff summarising what was upgraded, key failures or workarounds, and the overall result. **Always pass `Command run: /upgrade`** in that handoff — omitting it makes `impl-maintenance` default to `/implement`, mislabeling the run.
 
 **Context hygiene.** This was a large run — consider **`/compact`** to free context before your next task (per `workflows-core:session-hygiene` §3 — non-pipeline, so `/compact` only; guidance only).

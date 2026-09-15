@@ -664,7 +664,16 @@ Cap: one fix cycle + one re-review maximum.
 
 ## Phase 8 — Post-write maintenance
 
-First gather the change context:
+**First remove this run's temp files.** Nothing from here on reads one — Phase 6's `epic-writer`
+handoff file and, where Phase 7's BLOCK branch wrote one, its `claims_file`. Remove each as
+`command rm -f -- "<path>"`: `command` because the Bash tool's shell carries the user's aliases and
+shell functions, and an `rm -i` or `rm -I` of theirs would ask before removing the file, be answered no
+from that shell's empty standard input, and leave it behind; `--` ends `rm`'s options. Nothing else
+removes one — they sit under the system's temporary directory, outside every repository and outside
+the specs tree, where no later phase and no later run looks. A run that stops before this phase removes
+the files it had made, in the same way.
+
+Then gather the change context:
 
 a. `project_root` is the resolved PRD folder. Run `git diff --stat` from `project_root` if it is a git repo; otherwise list the written files manually. This command never commits anything under `project_root` — just report what changed (the terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths, per `workflows-core:specs-repo-git` §2.1).
 b. Compose a **change summary block**:

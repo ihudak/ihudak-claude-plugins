@@ -17,6 +17,15 @@ without degrading. Apply when the plan/step list is large or the run is nearing 
   content. Pasted dispatch content stays resident in the orchestrator's context and is re-read on every
   later turn; a file path costs one line. Always `mktemp` the handoff file — **never inside a repo working
   tree** (and never in the specs tree) — so a later `git add -N . && git diff` never picks it up.
+- **Remove every file so handed off, once no later step reads it** — and at the latest before the run
+  ends, whichever way it ends: its final report, or any stop taken after the file was made. Remove it as
+  `command rm -f -- "<path>"`: `command` because the Bash tool's shell carries the user's aliases and
+  shell functions, and an `rm -i` or `rm -I` of theirs would ask before removing the file, be answered
+  no from that shell's empty standard input, and leave it behind; `--` ends `rm`'s options. **Nothing
+  else removes one.** These files sit under the system's temporary directory, outside every repository,
+  where no later phase and no later run looks — a resume pointer names artifacts, never a handoff file
+  (`workflows-core:session-hygiene` §1) — so one a run leaves behind stays until the host clears that
+  directory. Where a file must outlive its run, the step that keeps it says why and names it to the user.
 
 Prefer the cheapest strategy that fits: checkpoint first; offload parallel steps only when they are
 genuinely independent; decompose only when a single unit still overflows. "Hand off by file" is

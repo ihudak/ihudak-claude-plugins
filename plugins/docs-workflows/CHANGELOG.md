@@ -135,6 +135,8 @@ Phase 8.5 told the run to write the pull-request draft to the resolved PRD folde
 
 **No run says it writes nothing into a working directory that is the specs repository.** 1.1.3's `/document` said, in both modes, that its feedback, follow-up and final phases "NEVER write into the docs repo or the current working directory"; `/release-notes` said the same of those phases, and "NEVER write into a docs repo, a code repo, or the current working directory" of its draft; and the session-cost page said the plugin "never writes into your current working directory". Where the session stands inside `$SPECS_PATH`, those phases, and the draft's `release-notes.md` in the resolved PRD folder, write into the working directory's own repository. Each now makes the claim only where the working directory is not the specs repository.
 
+**A run removes the temp files it made.** 1.1.3's `/document` (keyed mode) wrote `doc-writer`'s handoff file at Phase 6.3 and, on a BLOCK verdict, `doc-fixer`'s Fix Report at Phase 7, both to `mktemp` paths outside every repository and outside the specs tree, and nothing removed either: every run left them under the system's temporary directory, where no later phase and no later run looks. Phase 8 now removes both — `command rm -f -- "<path>"`, so an `rm -i` or `rm -I` alias of the user's cannot answer the prompt from an empty standard input and leave the file — and a run that stops before Phase 8 removes what it had made. A server log the render check writes already went this way.
+
 ## [1.1.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

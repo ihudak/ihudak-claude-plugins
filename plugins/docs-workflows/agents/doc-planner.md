@@ -79,7 +79,7 @@ For each write target:
    Pick the policy:
    - `local` count > 0 and `cdn` count is 0 (or negligible) → `image_policy: local`; identify the idiomatic directory (most common pattern — typically `<page-dir>/img/` or `<page-dir>/images/`).
    - `cdn` count > 0 and `local` count is 0 (or negligible) → `image_policy: cdn_upload_required` — the writer MUST NOT copy user-provided screenshots into the repo; each is referenced by the CDN URL the user pastes at `/document` Phase 6.1, or, where the user defers its upload there, staged outside the repo at the `staging` path planned below and listed in the Phase 9 report for manual upload to the repo's image-management tool (e.g. CDN, Image Manager, CMS).
-   - Mixed or zero references → `image_policy: ambiguous`. `/document` Phase 5.7's **Ambiguous image policy** step settles each such target of your first return with the user and re-invokes you at most once, where an answer needs it, the answers passed as `image_policy_resolution`; a target that re-invoked pass newly returns `ambiguous` is not asked about there, and `/document` Phase 6.3 settles it from `doc-writer`'s `BLOCKED` gap.
+   - Mixed or zero references → `image_policy: ambiguous`. `/document` Phase 5.7's **Ambiguous image policy** step settles each such target of your first return with the user and re-invokes you at most once, where an answer needs it, the answers passed as `image_policy_resolution`; a target that re-invoked pass newly returns `ambiguous` is not asked about there, and `/document` Phase 6.3 settles it from `doc-writer`'s `BLOCKED` gap. Where the sample's local references show an idiomatic directory, as for `local`, record it as the target's `image_dir`: Phase 6.3 copies a screenshot there when the user settles the target as local.
 
    Where `image_policy_resolution` names the target, take the policy it gives in place of the one this detection picks, and plan the target's screenshots under it in step 6.
 
@@ -90,7 +90,7 @@ For each write target:
 6. **Plan screenshot placement per target.** For each user-provided screenshot that belongs on this target:
    - `image_policy: local` → set `dest` to an absolute path under `<page-dir>/img/` (or the detected idiomatic directory).
    - `image_policy: cdn_upload_required` → set `staging` to an absolute path under the caller-provided `screenshot_staging_dir` (the staging directory; e.g. `<screenshot_staging_dir>/<original-filename>`). NEVER place it inside `repo_root` and NEVER use `/tmp` — both are lost on container restart for repo-volume mounts / in-image `/tmp`, whereas the staging directory `/document` Phase 1 resolves is not. Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
-   - `image_policy: ambiguous` → leave both `dest` and `staging` null (`/document` Phase 5.7, **Ambiguous image policy**).
+   - `image_policy: ambiguous` → leave both `dest` and `staging` null (`/document` Phase 5.7, **Ambiguous image policy**), and populate `upload_note` as for `cdn_upload_required`: `/document` Phase 6.3 keeps it for a screenshot it stages when the user settles the target there, and Phase 9 lists it.
    - In all cases, populate `alt` with a proposed alt-text derived from the feature summary and the image filename.
 
    If the user provided zero screenshots, `screenshots: []` on every target.
@@ -151,6 +151,7 @@ checklist:
       reuse:   [<relative snippet path>]
       extract: [<description of content to extract + proposed snippet path>]
     image_policy: local | cdn_upload_required | ambiguous
+    image_dir:    <ambiguous only: the absolute idiomatic directory the sample's local image references show (step 5a); null where they show none>
     screenshots:
       - src:         <user-provided absolute path>
         # When image_policy == local:
@@ -158,7 +159,7 @@ checklist:
         # When image_policy == cdn_upload_required:
         staging:     <absolute path under the caller-provided screenshot_staging_dir (the persistent directory /document Phase 1 resolved); NOT inside the docs repo, never /tmp>
         upload_note: <1-line instruction for the user, e.g. "Upload via <repo's image-management process>; replace placeholder URL in page">
-        # When image_policy == ambiguous: both dest and staging are null (/document Phase 5.7, Ambiguous image policy).
+        # When image_policy == ambiguous: both dest and staging are null (/document Phase 5.7, Ambiguous image policy); upload_note is set, as for cdn_upload_required.
         alt:         <proposed alt-text>
     cross_links:
       from:  [<page paths that should link here>]

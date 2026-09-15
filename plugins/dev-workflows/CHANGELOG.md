@@ -32,6 +32,10 @@ Phase 2 prep said *"If HEAD is on a non-default branch with ahead commits, ask w
 
 Seven pages under `docs/` change. Four name `/docs-workflows:docs-init` and `/docs-workflows:docs-brand` where they list what the Dev role runs, what each companion plugin carries, which commands classify their task, which name a branch in a code or docs repository, and which cost phase each emits (`docs-scaffold`): `workflow.md`, `roles-and-phases.md`, `reference/model-routing.md` and `reference/environment.md`. `reference/agents.md` says that `docs-workflows` now carries eight agents, `docs-scaffold-reviewer` having been created there rather than moved from here. `getting-started.md` and `reference/environment.md` say that `$DOCS_PATH` is a read-only grounding root for nine commands, all in companion plugins, and a write target for `docs-workflows`' documentation commands — a second role, not a contradiction. `reference/references.md` names `docs-workflows`' `docs-workflow/` portal-scaffold set, and the six commands that read that plugin's corpus where it had counted three. No command, agent or reference of this plugin changed for it.
 
+### Fixed — every `mktemp` template ends in `XXXXXX`
+
+`/implement`, `/upgrade` and `/vuln` named their handoff, plan, diff, review and claims files with templates such as `dw-impl-plan-XXXX.md` and `dw-upgrade-diff-XXXX.patch`, which BusyBox's `mktemp` — the one Alpine ships — rejects with *mktemp: Invalid argument*, since it takes a template only where it ends in six `X`s (BusyBox 1.36.1; GNU's accepts both). Each now ends in `XXXXXX` — `dw-impl-plan-XXXXXX`, `dw-upgrade-diff-XXXXXX` — which GNU, BusyBox and BSD `mktemp` all accept. Nothing reads a file by its extension, so dropping it changes nothing else.
+
 ## [4.0.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

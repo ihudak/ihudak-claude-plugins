@@ -169,7 +169,7 @@ yet checked goes to the manual table. For each server:
    `<command>` is the server's `command` with every `{port}` in it replaced by that server's
    configured `port` — never run with the token unsubstituted, and never rewritten anywhere else
    (`docs-profile-schema.md`'s field rule for `dev_servers.servers[].command`) — and `<log>` is a
-   file outside every repository tree (`command mktemp -t dw-smoke-XXXX.log` names one), where a server
+   file outside every repository tree (`command mktemp -t dw-smoke-XXXXXX` names one), where a server
    that fails to boot leaves its output. Inside the single-quoted script, write each `'` that
    `<command>`, `<docs_repo_path>` or `<log>` carries as `'\''`. **The line runs under an explicit
    `bash -c`, whatever shell the Bash tool itself uses** — zsh on a default macOS, or `dash`, which
@@ -259,8 +259,9 @@ yet checked goes to the manual table. For each server:
 **Portability.** The shell semantics above are bash's, by step 2's and step 5's explicit `bash -c`.
 `curl -s -o /dev/null --noproxy '*' --max-time 2`, the GET's
 `curl -sL -o /dev/null -w '%{http_code}' --noproxy '*' --max-time 10`, `awk -v`, and `mktemp -t` —
-which BSD reads as a prefix rather than a template and which still names a fresh file — are called
-in forms BSD's tools document as well as GNU's.
+which BSD reads as a prefix rather than a template and which still names a fresh file, and whose
+template ends in `XXXXXX`, the only ending BusyBox's accepts — are called in forms BSD's and
+BusyBox's tools document as well as GNU's.
 
 **Every read of the process or socket table has one source per operating system, defined here** —
 this check's, and `/docs-serve`'s, which cites this paragraph for each of them. **On Linux** —

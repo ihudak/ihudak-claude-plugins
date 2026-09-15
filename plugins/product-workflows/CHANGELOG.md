@@ -26,6 +26,10 @@ Versions follow semver at the plugin level.
 
 A subagent's Bash tool starts every call in the session's directory — where `/prd-ground` stands — and a `cd` does not persist between calls. `code-grounder` wrote its three read primitives bare (`git show <commit>:<path>`, `git grep -n <pattern> <commit>`, `git ls-tree -r --name-only <commit>`) beside a citation of `workflows-core:read-only-repos` §4, where they carry `-C`; run from the session's directory they exit 128, the pinned commit not being there. `grounding-verifier` named `baseline-integrity`'s three steps as bare `rev-parse HEAD`, `diff --stat` and `status --porcelain`, which would compare the pin against the session's `HEAD`. Both now write `git -C "<repo_path>"`, and each is told why and to give `Grep` and `Glob` the handed root as their path. Where a call runs in the repository instead, it is a `(builtin cd "<repo_path>" >/dev/null && …)` subshell, so a `cd` function or alias of the user's, which the Bash tool's shell carries, neither runs in its place nor prints into what the agent reads.
 
+### Fixed — `/epics`' claims file template ends in `XXXXXX`
+
+`/epics` named the file it hands `epic-reviewer` as `claims_file` with `mktemp -t dw-epics-claims-XXXX.md`, a template BusyBox's `mktemp` — the one Alpine ships — rejects with *mktemp: Invalid argument*, since it takes a template only where it ends in six `X`s (BusyBox 1.36.1; GNU's accepts it). It is now `dw-epics-claims-XXXXXX`, which GNU, BusyBox and BSD `mktemp` all accept.
+
 ## [3.5.0] — 2026-09-09
 
 Five open defects from a live-engagement defect register, found running the family across two

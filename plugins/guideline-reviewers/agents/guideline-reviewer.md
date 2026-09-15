@@ -179,7 +179,8 @@ the attempt in `a11y_attempt`, fall through to branch 2, and never fail the run.
 
 Detected when any of `jest-axe`, `cypress-axe`, `@axe-core/playwright`, `@axe-core/cli` appears in
 the `dependencies` / `devDependencies` of a `package.json` in the partition's directory or in any
-directory above it, up to the top level, where a workspace often keeps its test tooling.
+directory above it, up to the top level (in no repository, that directory alone), where a
+workspace often keeps its test tooling.
 
 **Do not attempt to run it.** There is no rendered app in a review. Set
 `a11y_check: harness-detected:<name>` and state in the report, in these terms:

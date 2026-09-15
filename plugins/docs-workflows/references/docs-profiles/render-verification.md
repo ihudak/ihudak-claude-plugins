@@ -110,6 +110,24 @@ alone:
   status, an error included, an empty reply or a reset, or 28 when `--max-time` runs out on a
   listener that never replies).
 
+**A port is free only where nothing answers on it and no socket a process holds uses it as its local
+port.** The probe settles the first half; **Portability**'s socket-state read (below) settles the
+second, in any state — a listener bound to an address `localhost` does not reach, an inbound
+connection, an outbound one. A port an outbound connection holds as its local end answers nothing and
+binds nothing: a server given it exits with *Address already in use* (measured on Linux 5.15 with a
+`curl --local-port` connection standing on the port, against `mkdocs serve -a 0.0.0.0:<port>` and
+`python3 -m http.server`), and every port in the kernel's ephemeral range — 32768–60999 on a default
+Linux — is one an outbound connection of any process on the host may be holding. **A socket no process
+holds is not one of these**: a connection in `TIME_WAIT`, or one whose process has already closed it,
+which `/proc/net/tcp` gives inode `0` and which `lsof` does not list at all. Counting those would take
+a port from the server that just left it — a server's own closed connections sit in `TIME_WAIT` on its
+port for up to a minute after it stops, and `mkdocs serve` and `python3 -m http.server` both bind such
+a port again at once (measured). What that leaves is a *client's* `TIME_WAIT` on the port, which does
+refuse a bind for that minute; a server started there exits with *Address already in use*, which step
+3's gone-group test reports with the command's log, as it reports any other boot failure. Where the
+socket-state read cannot be made at all — off Linux with no `lsof` installed, which never ends this
+check on its own — the probe alone decides, as before.
+
 Every **GET** below — step 3's readiness poll and step 4's page requests — is
 `command curl -sL -o /dev/null -w '%{http_code}' --noproxy '*' --max-time 10 <url>`, read by the status it
 prints: the last response's, since `-L` follows a redirect — `mkdocs serve`, for one, answers §3's
@@ -158,10 +176,15 @@ yet checked goes to the manual table. For each server:
    are not installed (`<lockfile>` has none beside it)" — its pages fall back to the manual table
    (§5), and the check goes on to the next server. A server whose tool is missing could never
    start, so it is never booted, and the check never waits out step 3's readiness timeout for it.
-2. **Probe the server's `port` before booting it.** Where it already answers, something this run did
-   not start holds it: boot nothing there, signal nothing, and **boot no further server** — record
+2. **Probe the server's `port` before booting it, and judge it free as this section defines free.**
+   Where it already answers, something this run did not start holds it: boot nothing there, signal
+   nothing, and **boot no further server** — record
    "smoke-check stopped at `<space>`: port `<port>` was answering before its server booted", and
-   every page not yet checked falls back to the manual table (§5). Otherwise **boot the server in a
+   every page not yet checked falls back to the manual table (§5). Where nothing answers but the
+   socket-state read (**Portability**) names a socket a process holds on the port as its local port —
+   an outbound connection's local end, which no server can bind — do exactly the same, recording
+   "smoke-check stopped at `<space>`: port `<port>` was held as a connection's local end before its
+   server booted", with that socket's pid where the read names one. Otherwise **boot the server in a
    process group of its own**, with this one Bash call:
 
    ```
@@ -316,6 +339,34 @@ exit 0 for a gone group, where `command bash` exits 1).
   Elsewhere: `command lsof -t -iTCP:<port> -sTCP:LISTEN`. Either way, a socket another user's
   process holds is in the table but named by no process — its `fd` links cannot be read without
   root, and `lsof` shows no other user's process either — so the read prints nothing for it.
+- **The sockets a process holds on `<port>` as their local port, in any state.** On Linux: the rows
+  of `/proc/net/tcp` and `/proc/net/tcp6` whose local port — the four hex digits after the `:` of the
+  second field — is `<port>` **and whose inode, the tenth field, is not `0`**; a row with inode `0` is
+  a connection no process holds any more, `TIME_WAIT` or one its process has closed, and is not one of
+  these. It is the listening read's own pipeline with the state test replaced by the inode test, so
+  both read the same table the same way. As one Bash call:
+
+  ```
+  i=$(command cat /proc/net/tcp /proc/net/tcp6 2>/dev/null | command awk -v p="$(command printf ':%04X' <port>)" 'substr($2, length($2) - 4) == p && $10 != "0" { printf "socket:[%s] ", $10 }')
+  [ -n "$i" ] && QUOTING_STYLE=literal command ls -l /proc/[0-9]*/fd/ 2>/dev/null | command awk -v i="$i" 'BEGIN { n = split(i, s, " "); for (k = 1; k <= n; k++) w[s[k]] = 1 } /^\/proc\// { split($0, a, "/"); p = a[3] } ($NF in w) && !d[p]++ { print p }'
+  ```
+
+  **The first line decides whether the port is free and the second only names who holds it**: a socket
+  another user's process holds is in the table, so the first line prints an inode for it while the
+  second names no process — the port is taken all the same. Elsewhere:
+  `command lsof -n -P -Fpn -iTCP:<port>`, filtered on the **local** end, since `lsof` matches
+  `-iTCP:<port>` at either end and a connection *to* another host's `<port>` holds an ephemeral local
+  port of its own:
+
+  ```
+  command lsof -n -P -Fpn -iTCP:<port> 2>/dev/null | command awk -v p=":<port>" '/^p/ { pid = substr($0, 2) } /^n/ { n = substr($0, 2); sub(/->.*/, "", n); if (n ~ (p "$")) print pid }' | command sort -u
+  ```
+
+  `-n` and `-P` keep addresses and ports numeric, so a well-known port is never printed as a service
+  name the filter would miss. `lsof` lists only sockets a process holds, and without root only this
+  user's, so a `TIME_WAIT` row is absent there as it is here, and another user's socket is invisible
+  rather than counted — the one place the two sources differ, and a port held that way reads as free
+  off Linux.
 - **A process's parent, and its process group.** On Linux: `/proc/<pid>/stat`, read after its
   **last** `)`, since the process name in parentheses before it may itself hold spaces or
   parentheses — `command sed 's/.*)//' /proc/<pid>/stat` prints the state, then the parent's pid,

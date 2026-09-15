@@ -115,30 +115,45 @@ Never write, or imply, that axe ran.
 Read-only detection, made once per lint partition (below). First match sets that partition's
 `a11y_check`; the check is scoped to the files under review and never to the whole tree.
 
-**Where it looks, and where it runs.** Partition the reviewed files by their lint directory, and
-detect and lint each partition on its own, in that directory. A file's lint directory is the
+**Where it looks, and where it runs.** Partition the reviewed files by their package directory, and
+detect and lint each partition on its own, from that directory. A file's package directory is the
 nearest directory at or above it, up to its repository's git top level
-(`git -C "<the file's directory>" rev-parse --show-toplevel`), that holds an ESLint config — any
-flat or legacy config file branch 1 lists — or a `package.json` that declares ESLint (`eslint` or
-`eslint-plugin-jsx-a11y` in `dependencies` / `devDependencies`, or an inline `eslintConfig` block).
-A file with no such ancestor belongs to its repository's top-level partition, detected and linted
-from the top level itself; files in no repository have no top level to walk up to, and form one
-partition in the deepest directory that holds them all. So a monorepo package that keeps its own
-ESLint config is linted under it, files from two such packages are each linted under their own
-package's, and a repository whose config sits at its top level is linted from there, as it is when
-you are started in it. Your Bash tool starts every call in the session's directory, which need not
-be the reviewed repository, and a `cd` does not persist between calls — while `npx --no-install`
-finds ESLint, and ESLint finds its config, from the directory it runs in — so run every command
-below for a partition as one subshell, `(cd "<the partition's directory>" && …)`, inside a single
-Bash call, naming that partition's files by absolute path. Merge what the partitions report into
-one set of findings, each keyed by its file.
+(`git -C "<the file's directory>" rev-parse --show-toplevel`), that holds a `package.json` — the
+project whose ESLint Node resolves there. A file with none up to the top level belongs to its
+repository's top-level partition, detected and linted from the top level itself; files in no
+repository have no top level to walk up to, and form one partition in the deepest directory that
+holds them all. **A `package.json` that declares ESLint is not a configuration**, and nothing here
+looks for the configuration by hand: ESLint finds its own, looking upward from the directory it
+runs in. So a package that keeps its own ESLint config is linted under it, a package that keeps
+none is linted under the one ESLint finds above it — at the top level, say — files from two
+packages are each linted under the config ESLint resolves for its own, and a repository whose
+config and `package.json` sit at its top level is linted from there, as it is when you are started
+in it. Your Bash tool starts every call in the session's directory, which need not be the reviewed
+repository, and a `cd` does not persist between calls — while `npx --no-install` finds ESLint, and
+ESLint finds its config, from the directory it runs in — so run every command below for a
+partition as one subshell, `(cd "<the partition's directory>" && …)`, inside a single Bash call,
+naming that partition's files by absolute path. Merge what the partitions report into one set of
+findings, each keyed by its file.
 
 **1. Static linter — `eslint-plugin-jsx-a11y`** (the useful case: it checks source)
 
-Detected when `jsx-a11y` appears, in the partition's directory, in any of:
-- `package.json` — `dependencies`, `devDependencies`, or an inline `eslintConfig` block
-- a flat config: `eslint.config.js` / `.mjs` / `.cjs` / `.ts`
-- a legacy config: `.eslintrc`, `.eslintrc.js`, `.eslintrc.cjs`, `.eslintrc.json`, `.eslintrc.yml`, `.eslintrc.yaml`
+Detected when the configuration ESLint itself resolves for any of the partition's files carries
+`jsx-a11y` — a `jsx-a11y` entry in its `plugins`, or a rule whose id starts with `jsx-a11y/` —
+and never from one directory's `package.json` or config file read by hand, which ESLint's upward
+lookup, an `extends` or a shared config each defeat. Ask ESLint, one file at a time until one
+answers yes; it prints that file's resolved configuration as JSON:
+
+```bash
+(cd "<the partition's directory>" && npx --no-install eslint --print-config "<one of the partition's files>")
+```
+
+ESLint answering that it can find no configuration file means none applies there: not detected.
+Where ESLint cannot answer at all — `npx --no-install` finds no ESLint installed, or ESLint fails
+to load the configuration — and an ESLint configuration file lies in that directory or any
+directory above it (a flat `eslint.config.js` / `.mjs` / `.cjs` / `.ts`, or a legacy `.eslintrc`,
+`.eslintrc.js`, `.eslintrc.cjs`, `.eslintrc.json`, `.eslintrc.yml`, `.eslintrc.yaml`), the
+repository configures a linter that could not run: record the attempt in `a11y_attempt` and fall
+through to branch 2. Where no such file does, not detected.
 
 When detected, run the repo's own lint over the partition's reviewed files only. Prefer the repo's
 lint script when it accepts file arguments (the partition directory's `package.json` scripts named
@@ -163,7 +178,8 @@ the attempt in `a11y_attempt`, fall through to branch 2, and never fail the run.
 **2. Runtime harness — detect only, never run**
 
 Detected when any of `jest-axe`, `cypress-axe`, `@axe-core/playwright`, `@axe-core/cli` appears in
-the partition directory's `package.json` `dependencies` / `devDependencies`.
+the `dependencies` / `devDependencies` of a `package.json` in the partition's directory or in any
+directory above it, up to the top level, where a workspace often keeps its test tooling.
 
 **Do not attempt to run it.** There is no rendered app in a review. Set
 `a11y_check: harness-detected:<name>` and state in the report, in these terms:

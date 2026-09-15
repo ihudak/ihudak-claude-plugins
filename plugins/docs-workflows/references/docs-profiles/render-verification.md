@@ -138,7 +138,7 @@ for a server on this machine: with `http_proxy` or `ALL_PROXY` set and no `no_pr
 on a port nothing listens on, so a free port reads as answering, and the proxy's own page in place
 of the server's.
 
-Every probe below is the exit-code probe defined first, and it needs no socket table. **A probe that
+Every probe below is the exit-code probe defined first, and the probe itself needs no socket table; the free test above adds the socket-state read to it, which needs nothing installed on Linux and `lsof` off it — where that is missing the probe decides alone (above), and it never ends the check (§5). **A probe that
 cannot run is never read as an answer or as silence**, so the check does not start without its
 tools: before the first boot, confirm that `bash` and `curl` are present and, where
 `test -r /proc/net/tcp` fails — off Linux — that `ps` is too, each tested as

@@ -42,7 +42,7 @@ refresh:
 
 Refuse to run without `repo_path` and at least one element in **`refs` or `pr_refs`**.
 
-**Every command names `repo_path`.** Your Bash tool starts every call in the session's directory — where the dispatching command stands, which need not be `repo_path` — and a `cd` does not persist between calls, so a bare `git` fetches, switches and reads the session's repository instead of this one. Every git command below is written `git -C "<repo_path>" …`. `gh pr view` names its repository with `--repo` and needs no clone; `gh pr checkout`, which acts on the clone and takes no `-C`, runs as a subshell `(cd "<repo_path>" && …)` inside one Bash call.
+**Every command names `repo_path`.** Your Bash tool starts every call in the session's directory — where the dispatching command stands, which need not be `repo_path` — and a `cd` does not persist between calls, so a bare `git` fetches, switches and reads the session's repository instead of this one. Every git command below is written `git -C "<repo_path>" …`. `gh pr view` names its repository with `--repo` and needs no clone.
 
 **`refs` is the shape the callers actually have**, and the refusal used to name `pr_refs` alone. `workflows-core:implementation-format` §1 records `repo` / `branch` / `base` / `commit` / `pushed` — no URL, no host, no PR id — because nothing in this plugin reads a tracker or a pull-request API any more. A caller holding only that record could satisfy neither the required field nor the host routing below, so every host-specific strategy is skipped for a `refs` element (`resolved_via: local_ref`) and the diff is taken directly: `git -C <repo_path> diff <branch_to>...<branch_from>`, with `branch_from` accepted as a commit sha when the branch is gone (`workflows-core:implementation-format` §1 records both for exactly that reason). `pr_refs` still routes by host where a URL is known.
 
@@ -97,8 +97,8 @@ If all four strategies fail: record the PR under `unresolved_prs` and continue. 
 1. **Resolve head/base SHAs.** Run `gh pr view <pr_id> --repo <owner>/<repo> --json headRefOid,baseRefOid,state,title,mergeCommit`. This is the single authoritative call. `gh` handles authentication via `gh auth login` (configured once on the host).
 
 2. **Ensure commits are local.** If `headRefOid` or `baseRefOid` is missing from the local clone (`git -C "<repo_path>" cat-file -e <sha>` returns non-zero):
-   - If `refresh.fetch` is true AND the mount is not read-only (per the Refresh step's read-only detection, item 2 below): run `git -C "<repo_path>" fetch origin <headRefOid> <baseRefOid>`. If fetch is rejected (server refuses direct-SHA fetch), fall back to `(cd "<repo_path>" && gh pr checkout <pr_id> --repo <owner>/<repo>)`, which fetches the branches.
-   - Otherwise (`refresh.fetch` is false, or the mount is read-only): do NOT run `git fetch` and do NOT run `gh pr checkout` — both write, and the latter also moves the working tree. Record the PR under `unresolved_prs` instead, with `reason: "commits not present locally; fetching disabled by refresh.fetch: false"` (or `"commits not present locally; fetching disabled by a read-only mount"`, as applicable), and continue to the next PR.
+   - If `refresh.fetch` is true AND the mount is not read-only (per the Refresh step's read-only detection, item 2 below): run `git -C "<repo_path>" fetch origin <headRefOid> <baseRefOid>`. If fetch is rejected (server refuses direct-SHA fetch), fetch the pull request's head instead, into a remote-tracking ref of its own that is never checked out: `git -C "<repo_path>" fetch origin "+refs/pull/<pr_id>/head:refs/remotes/origin/pr/<pr_id>"`. GitHub keeps that ref for every pull request, merged or not, so it reaches the head's commits after the branch is deleted, and the fetch writes only what any fetch writes — objects, that one ref and `FETCH_HEAD` — never a branch, HEAD or the working tree. Never `gh pr checkout` in its place: it creates a local branch and checks it out, which the hard rules below forbid. Then test both SHAs again with `cat-file -e`: the base ordinarily arrived with the Refresh step's `git fetch origin`, since it lies on the base branch. Where either is still missing, record the PR under `unresolved_prs` with `reason: "commits not present locally after fetching the pull request's head"`, and continue to the next PR.
+   - Otherwise (`refresh.fetch` is false, or the mount is read-only): run neither fetch — both write. Record the PR under `unresolved_prs` instead, with `reason: "commits not present locally; fetching disabled by refresh.fetch: false"` (or `"commits not present locally; fetching disabled by a read-only mount"`, as applicable), and continue to the next PR.
 
 3. **Produce diff.** `git -C "<repo_path>" diff <baseRefOid>..<headRefOid>`. Set `resolved_via: gh_cli`.
 
@@ -178,7 +178,7 @@ aggregate_summary: |
 
 - NEVER make HTTPS / REST calls to Bitbucket (Cloud or Server). All Bitbucket resolution is pure local git.
 - NEVER make HTTPS / REST calls to GitHub outside the `gh` CLI. No direct API calls, no raw `curl` to `api.github.com`.
-- NEVER mutate the repo (no commits, no branch creation, no `git reset`, no `git clean`).
+- NEVER mutate the repo (no commits, no branch creation — `gh pr checkout` creates one and switches to it — no `git reset`, no `git clean`).
 - NEVER switch the repo's HEAD when `refresh.pull` is false — leave the working tree as found.
 - NEVER hardcode a Bitbucket Server hostname. Host classification uses the substring rule documented above.
 - NEVER fabricate diff content. If a PR cannot be resolved by any strategy, record it in `unresolved_prs`.

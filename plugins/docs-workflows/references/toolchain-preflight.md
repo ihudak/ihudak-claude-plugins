@@ -36,10 +36,10 @@ de-duplicate by binary name.
    builtin, so `command -v cd` exits 0 on every host and every command it leads would read as
    runnable. This is the one definition of a command's tool, and §3 says how each is tested;
    `docs-profiles/render-verification.md` §1 and §2, `/document` Phase 6.5 Steps 1 and 2 and
-   `/docs-serve` Phase 4 cite both. Where the profile records any `dev_servers.servers[]` entry, add `bash`, `curl` and
-   `ps` too: the render smoke check that boots those servers starts and stops them under `bash`,
-   probes their ports with `curl` and reads their process groups with `ps`, and cannot run without
-   any of them (`docs-profiles/render-verification.md` §2). Add every entry in
+   `/docs-serve` Phase 4 cite both. Where the profile records any `dev_servers.servers[]` entry, add
+   `bash`, `curl` and `ps` too: the render smoke check that boots those servers starts and stops
+   them under `bash`, probes their ports with `curl` and reads their process groups with `ps`, and
+   cannot run without any of them (`docs-profiles/render-verification.md` §2). Add every entry in
    `profile.prerequisites` as a named prerequisite (these are prose, not binaries — record them for
    reporting, and check them only when the prose names a checkable path or binary).
 2. **Repo config signals**, checked at `repo_root` — and, where the caller resolved the site to a
@@ -64,10 +64,11 @@ de-duplicate by binary name.
    **Vale reads its configuration from five file names, not one** — `.vale`, `_vale`, `vale.ini`,
    `.vale.ini` and `_vale.ini` — and this is where this plugin defines them. In each directory it
    searches, Vale takes the first of them in that order, and the nearest directory holding any of
-   them wins over a farther `.vale.ini` (Vale 3.21). So the checks that decide whether and on what
-   Vale runs — this source, `docs-style-checker`'s first rung and `docs-scaffold-reviewer`'s Vale
-   dimension — look for all five: a site whose only one is `_vale.ini` is linted by Vale all the
-   same, and a test for `.vale.ini` alone records that no repository linter is configured.
+   them wins over a farther `.vale.ini` (Vale 3.21). So the checks in this plugin that decide
+   whether and on what Vale runs — this source, `docs-style-checker`'s first rung and
+   `docs-scaffold-reviewer`'s Vale dimension — look for all five: a site whose only one is
+   `_vale.ini` is linted by Vale all the same, and a test for `.vale.ini` alone records that no
+   repository linter is configured.
 
    Separately, when any lockfile is present, check `node_modules/` beside it as an
    **installed-dependencies** signal. A present `pnpm` with absent dependencies fails just as

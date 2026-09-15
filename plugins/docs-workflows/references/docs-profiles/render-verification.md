@@ -138,8 +138,8 @@ yet checked goes to the manual table. For each server:
    before it starts a server (its Phase 4), and the one §1 makes for a failed build's own servers.
    Where it is missing, boot nothing for this server: record "smoke-check skipped for `<space>`:
    `<tool>` is not installed", its pages fall back to the manual table (§5), and the check goes on
-   to the next server. A server that could never start is never booted, so the check never waits
-   out step 3's readiness timeout for it.
+   to the next server. A server whose tool is missing could never start, so it is never booted,
+   and the check never waits out step 3's readiness timeout for it.
 2. **Probe the server's `port` before booting it.** Where it already answers, something this run did
    not start holds it: boot nothing there, signal nothing, and **boot no further server** — record
    "smoke-check stopped at `<space>`: port `<port>` was answering before its server booted", and

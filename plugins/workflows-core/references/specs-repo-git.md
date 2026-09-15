@@ -99,8 +99,8 @@ command starts writing a draft into the feature folder, re-derive this list agai
 trusting either end. `/epics` is the deliberate contrast and stays as it is: it
 writes `epic.md` files this reference never stages, and says so in place.
 
-**A screenshot `/document` stages for manual upload is not a shape, and is never left as dirt
-either.** Its staging directory is, by default, the resolved PRD folder's screenshot subfolder
+**A screenshot `/document` stages for manual upload is not a shape, and `/document` keeps it out
+of `git status` instead.** Its staging directory is, by default, the resolved PRD folder's screenshot subfolder
 (`/docs-workflows:document` Phase 1), which lies under `$SPECS_PATH`. No shape stages it, for three
 reasons: it is a copy of the operator's own file, kept only until they upload it by hand, so a
 commit would make a temporary binary permanent in the specs repo's history through a prompt-free

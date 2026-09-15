@@ -40,8 +40,9 @@ Load only the references needed for the components found. Do NOT load all refere
 ### 3. Run the Deterministic Accessibility Check
 Before any LLM review pass, detect and wrap whatever accessibility tooling the target repo
 already configures — see **Deterministic Accessibility Check** below for the detection order,
-what each branch does, and the merge rule. Record the outcome as `a11y_check`. No tooling
-detected ⇒ skip **silently** and continue to step 4 exactly as if this step did not exist.
+what each branch does, and the merge rule. Record the outcome as `a11y_check`, one per lint
+partition (below). A partition with no tooling detected is skipped **silently**: its files continue
+to step 4 exactly as if this step did not exist.
 
 ### 4. Check Compliance
 For each component, verify against the mandatory rules in the guideline:
@@ -111,39 +112,43 @@ Never write, or imply, that axe ran.
 
 ### Detection order
 
-Read-only detection. First match sets `a11y_check`; the check is scoped to the files under
-review and never to the whole tree.
+Read-only detection, made once per lint partition (below). First match sets that partition's
+`a11y_check`; the check is scoped to the files under review and never to the whole tree.
 
-**Where it looks, and where it runs.** Detection and the lint work in one directory: starting from
-the deepest directory that holds every reviewed file and walking up to their repository's git top
-level (`git -C "<that directory>" rev-parse --show-toplevel`), the nearest one that holds an
-ESLint config — any flat or legacy config file branch 1 lists — or a `package.json` that declares
-ESLint (`eslint` or `eslint-plugin-jsx-a11y` in `dependencies` / `devDependencies`, or an inline
-`eslintConfig` block). Where no directory up to the top level holds either, use the top level
-itself; where the files are in no repository, that deepest common directory. So a monorepo package
-that keeps its own ESLint config is linted under it, and a repository whose config sits at its top
-level is linted from there, as it is when you are started in it. Your Bash tool starts every call
-in the session's directory, which need not be the reviewed repository, and a `cd` does not persist
-between calls — while `npx --no-install` finds ESLint, and ESLint finds its config, from the
-directory it runs in — so run every command below as one subshell, `(cd "<that directory>" && …)`,
-inside a single Bash call, naming the reviewed files by absolute path.
+**Where it looks, and where it runs.** Partition the reviewed files by their lint directory, and
+detect and lint each partition on its own, in that directory. A file's lint directory is the
+nearest directory at or above it, up to its repository's git top level
+(`git -C "<the file's directory>" rev-parse --show-toplevel`), that holds an ESLint config — any
+flat or legacy config file branch 1 lists — or a `package.json` that declares ESLint (`eslint` or
+`eslint-plugin-jsx-a11y` in `dependencies` / `devDependencies`, or an inline `eslintConfig` block).
+A file with no such ancestor belongs to its repository's top-level partition, detected and linted
+from the top level itself; files in no repository have no top level to walk up to, and form one
+partition in the deepest directory that holds them all. So a monorepo package that keeps its own
+ESLint config is linted under it, files from two such packages are each linted under their own
+package's, and a repository whose config sits at its top level is linted from there, as it is when
+you are started in it. Your Bash tool starts every call in the session's directory, which need not
+be the reviewed repository, and a `cd` does not persist between calls — while `npx --no-install`
+finds ESLint, and ESLint finds its config, from the directory it runs in — so run every command
+below for a partition as one subshell, `(cd "<the partition's directory>" && …)`, inside a single
+Bash call, naming that partition's files by absolute path. Merge what the partitions report into
+one set of findings, each keyed by its file.
 
 **1. Static linter — `eslint-plugin-jsx-a11y`** (the useful case: it checks source)
 
-Detected when `jsx-a11y` appears, in that directory, in any of:
+Detected when `jsx-a11y` appears, in the partition's directory, in any of:
 - `package.json` — `dependencies`, `devDependencies`, or an inline `eslintConfig` block
 - a flat config: `eslint.config.js` / `.mjs` / `.cjs` / `.ts`
 - a legacy config: `.eslintrc`, `.eslintrc.js`, `.eslintrc.cjs`, `.eslintrc.json`, `.eslintrc.yml`, `.eslintrc.yaml`
 
-When detected, run the repo's own lint over the reviewed files only. Prefer the repo's lint
-script when it accepts file arguments (that directory's `package.json` scripts named `lint`,
-`lint:js`, `lint:ts`, or `eslint`), selecting the package runner from the nearest lockfile at or
-above that directory (`pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `package-lock.json` /
+When detected, run the repo's own lint over the partition's reviewed files only. Prefer the repo's
+lint script when it accepts file arguments (the partition directory's `package.json` scripts named
+`lint`, `lint:js`, `lint:ts`, or `eslint`), selecting the package runner from the nearest lockfile at
+or above that directory (`pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `package-lock.json` /
 `npm-shrinkwrap.json` → `npm`, `bun.lockb` → `bun`). Otherwise invoke the repo's
 already-installed ESLint directly:
 
 ```bash
-(cd "<that directory>" && npx --no-install eslint --format json <files under review>)
+(cd "<the partition's directory>" && npx --no-install eslint --format json <the partition's files>)
 ```
 
 `--no-install` is required: this step never installs anything. Parse the JSON array
@@ -158,7 +163,7 @@ the attempt in `a11y_attempt`, fall through to branch 2, and never fail the run.
 **2. Runtime harness — detect only, never run**
 
 Detected when any of `jest-axe`, `cypress-axe`, `@axe-core/playwright`, `@axe-core/cli` appears in
-`package.json` `dependencies` / `devDependencies`.
+the partition directory's `package.json` `dependencies` / `devDependencies`.
 
 **Do not attempt to run it.** There is no rendered app in a review. Set
 `a11y_check: harness-detected:<name>` and state in the report, in these terms:
@@ -172,9 +177,10 @@ List the axe `ruleId`s the review's own findings cite. Never present them as res
 run without this step. Skipping is silent: no prompt, no warning, no finding, no failure. Record
 the value and say nothing further about it.
 
-When branch 1 ran **and** a runtime harness is also present, `a11y_check` keeps the first-match
-value `eslint-jsx-a11y` and the harness is recorded separately as `harness_present: <name>` — the
-information is not lost, and the single `a11y_check` value still says which check executed.
+When branch 1 ran **and** a runtime harness is also present, the partition's `a11y_check` keeps
+the first-match value `eslint-jsx-a11y` and the harness is recorded separately as
+`harness_present: <name>` — the information is not lost, and the partition's single `a11y_check`
+value still says which check executed.
 
 ### Merge, do not duplicate
 
@@ -306,7 +312,10 @@ harness_present: <harness name, only when a harness was detected alongside a lin
 a11y_attempt:    <one line, only when a detected linter failed to produce parseable output>
 ```
 
-`a11y_command` is `null` whenever no command executed — never fabricate one.
+`a11y_command` is `null` whenever no command executed — never fabricate one. Where the reviewed
+files fall into more than one lint partition, the block appears once per partition, each copy
+opening with `a11y_dir: <the partition's directory>`; with one partition it is the block above,
+unchanged.
 
 ### Quick Review
 Brief summary with pass/fail per guideline and critical issues only.

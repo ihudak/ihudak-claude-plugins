@@ -25,11 +25,11 @@ The accessibility tooling below is **optional**. Nothing is installed, and a rep
 
 ## What it produces
 
-The `guideline-reviewer` subagent's verdict against the mandatory design-system and accessibility standards: app header, data table, filter field, connections, permissions, settings, dashboards, accessibility/WCAG, terminology, and data-naming findings, each pointing at the offending file or element. The report opens with the deterministic check's `a11y_check` value (and the exact command it ran, or `null` when nothing did); accessibility findings additionally cite their axe `ruleId` and W3C ACT id where one exists, and are tagged `source: linter` or `source: review`. Its frontmatter grants `Bash` alongside `Read`, `Glob`, and `Grep` — but the command itself still writes nothing and applies no fix.
+The `guideline-reviewer` subagent's verdict against the mandatory design-system and accessibility standards: app header, data table, filter field, connections, permissions, settings, dashboards, accessibility/WCAG, terminology, and data-naming findings, each pointing at the offending file or element. The report opens with the deterministic check's `a11y_check` value (and the exact command it ran, or `null` when nothing did) — one of each per directory the linter runs from, each naming its directory, where the reviewed files span more than one; accessibility findings additionally cite their axe `ruleId` and W3C ACT id where one exists, and are tagged `source: linter` or `source: review`. Its frontmatter grants `Bash` alongside `Read`, `Glob`, and `Grep` — but the command itself still writes nothing and applies no fix.
 
 ## Deterministic accessibility check
 
-Runs **before** the subagent's review passes, and wraps the target repo's own configuration rather than re-encoding a rule set — the same reasoning the sibling `docs-workflows` plugin's `docs-style-checker` agent applies to a docs repo's Vale. Detection is read-only and follows a fixed order; the first match sets the reported `a11y_check` value.
+Runs **before** the subagent's review passes, and wraps the target repo's own configuration rather than re-encoding a rule set — the same reasoning the sibling `docs-workflows` plugin's `docs-style-checker` agent applies to a docs repo's Vale. Detection is read-only and follows a fixed order, in each directory the linter runs from (below); the first match sets that directory's reported `a11y_check` value.
 
 | Order | Detected | What happens | `a11y_check` |
 |---|---|---|---|
@@ -37,7 +37,7 @@ Runs **before** the subagent's review passes, and wraps the target repo's own co
 | 2 | `jest-axe`, `cypress-axe`, `@axe-core/playwright`, or `@axe-core/cli` in `package.json` | Recorded only — **not run**. The report names the axe rule ids the repo's own suite could confirm | `harness-detected:<name>` |
 | 3 | Neither | Silent skip; the review proceeds unchanged | `none` |
 
-**Where the linter runs.** From the directory that holds its configuration: the nearest one above the reviewed files that carries an ESLint config or a `package.json` declaring ESLint, else the repository's top level — whichever directory the session stands in, since `npx --no-install` finds ESLint, and ESLint its config, from the directory it runs in. A monorepo package that keeps its own ESLint config is linted under it.
+**Where the linter runs.** From the directory that holds its configuration, found for each reviewed file: the nearest one above it that carries an ESLint config or a `package.json` declaring ESLint, else the repository's top level — whichever directory the session stands in, since `npx --no-install` finds ESLint, and ESLint its config, from the directory it runs in. Files that share that directory are detected and linted together, once, and the findings from every directory are merged, each keyed by its file: a monorepo package that keeps its own ESLint config is linted under it, and files reviewed together from two such packages are each linted under their own package's.
 
 **What does not run, and why.** axe-core needs a rendered DOM, so it cannot be pointed at source files, and a review has no rendered app to hand a runtime harness. Only branch 1 executes anything: `eslint-plugin-jsx-a11y` is the one accessibility rule set that checks source. Branch 2 records the harness and says plainly that it did not run it — the axe and ACT ids elsewhere in the report are a **vocabulary for naming findings**, never evidence that axe executed.
 

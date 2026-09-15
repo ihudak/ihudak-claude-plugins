@@ -19,11 +19,11 @@ Surface the subagent's verdict to the user.
 
 ## Deterministic lint
 
-Before its LLM review passes, the subagent runs a **Spectral** lint of each spec file against the ruleset bundled with this plugin at `references/api-guidelines/spectral/ruleset.yaml` — forty rules that make the machine-checkable half of the guidelines executable, on top of `spectral:oas` (recommended). Where the spec's own repository carries a `.spectral.yaml` — the nearest one above the spec, up to the repository's top level — that file is used instead, on the assumption that an organization extends the bundled ruleset rather than editing it in place.
+Before its LLM review passes, the subagent runs a **Spectral** lint of the spec files — once per directory it lints from, the one that holds their Spectral configuration or else their repository's top level, each run over the specs that share it — against the ruleset bundled with this plugin at `references/api-guidelines/spectral/ruleset.yaml` — forty rules that make the machine-checkable half of the guidelines executable, on top of `spectral:oas` (recommended). Where the spec's own repository carries a `.spectral.yaml` — the nearest one above the spec, up to the repository's top level — that file is used instead, on the assumption that an organization extends the bundled ruleset rather than editing it in place.
 
 Two things follow, and both belong to the subagent — this command neither runs the linter nor post-processes its output:
 
 - **A missing Spectral CLI is not a failure.** The subagent probes `spectral` on PATH, then `npx --no-install @stoplight/spectral-cli`. If neither answers, the lint is skipped silently, the review proceeds exactly as it does without it, and the skip is recorded as `lint_source: none` in the verdict. Nothing is installed, nothing is prompted, and the run never fails on the linter's absence.
 - **Findings are merged, not duplicated.** Spectral's findings are authoritative for the rules it covers; the LLM passes cover what Spectral cannot express — cross-field version *agreement*, `allOf` property redefinition, error-envelope conformance, semantic naming quality, resource modelling and documentation adequacy, and whether an IAM scope is *correct* rather than merely well-formed.
 
-Surface the `lint_source` line with the rest of the verdict, so the reader can tell which half of the review was machine-checked.
+Surface the `lint_source` line — one per lint directory where the specs span more than one — with the rest of the verdict, so the reader can tell which half of the review was machine-checked.

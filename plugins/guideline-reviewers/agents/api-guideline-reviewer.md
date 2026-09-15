@@ -42,34 +42,34 @@ Load every guideline file listed below before reviewing — never skip one of th
 
 Run this **before** Pass 1. It is the only pass that produces machine-checked findings, and its findings are authoritative for the rules it covers.
 
-**Where it runs.** Every command in this pass runs in one directory, found for each spec file: the nearest directory at or above it, up to its repository's git top level (`git -C "<the spec's directory>" rev-parse --show-toplevel`), that holds a Spectral ruleset of its own — `.spectral.yaml`, `.spectral.yml` or `.spectral.json` — or a `package.json` that declares `@stoplight/spectral-cli`; where none does, the top level itself, and where the spec is in no repository, its own directory. A monorepo package that keeps its own ruleset or its own Spectral CLI is linted from that package, and a repository that keeps them at its top level from there, as it is when you are started in it. Your Bash tool starts every call in the session's directory, which need not be the spec's repository, and a `cd` does not persist between calls — while `npx --no-install` resolves the CLI from the directory it runs in, and from any other finds none, or the wrong one — so run each probe and each lint below as one subshell, `(cd "<that directory>" && …)`, inside a single Bash call, naming the spec by absolute path.
+**Where it runs.** Partition the spec files by their lint directory, and run steps 1–4 once per partition, in that directory. A spec's lint directory is the nearest directory at or above it, up to its repository's git top level (`git -C "<the spec's directory>" rev-parse --show-toplevel`), that holds a Spectral ruleset of its own — `.spectral.yaml`, `.spectral.yml` or `.spectral.json` — or a `package.json` that declares `@stoplight/spectral-cli`. A spec with no such ancestor belongs to its repository's top-level partition, linted from the top level itself; a spec in no repository has no top level to walk up to, and is linted from its own directory, with any other spec there. A monorepo package that keeps its own ruleset or its own Spectral CLI is linted from that package, specs from two such packages are each linted from their own package, and a repository that keeps them at its top level from there, as it is when you are started in it. Your Bash tool starts every call in the session's directory, which need not be the spec's repository, and a `cd` does not persist between calls — while `npx --no-install` resolves the CLI from the directory it runs in, and from any other finds none, or the wrong one — so run each probe and each lint below as one subshell, `(cd "<the partition's directory>" && …)`, inside a single Bash call, naming the partition's specs by absolute path. Merge what the partitions report into one set of findings, each keyed by its spec file.
 
-**1 — Resolve a CLI.** Try each in order, from that directory, and stop at the first that exits 0:
+**1 — Resolve a CLI.** Try each in order, from the partition's directory, and stop at the first that exits 0:
 
 | Order | Probe | `SPECTRAL` |
 |---|---|---|
 | 1 | `spectral --version` | `spectral` |
 | 2 | `npx --no-install @stoplight/spectral-cli --version` | `npx --no-install @stoplight/spectral-cli` |
-| 3 | *neither answered* | — skip Pass 0 |
+| 3 | *neither answered* | — skip Pass 0 for this partition |
 
-Nothing resolved is **not an error**. Set `lint_source: none`, go straight to Pass 1, and record the skip in the output block. Never install anything, never prompt the user, never fail the run, and never say more about it than the `lint_source` line — this mirrors how `docs-style-checker` treats a missing linter.
+Nothing resolved is **not an error**. Set the partition's `lint_source: none`, skip its steps 2–4 — its specs go to Pass 1 unlinted — and record the skip in the output block. Never install anything, never prompt the user, never fail the run, and never say more about it than the `lint_source` line — this mirrors how `docs-style-checker` treats a missing linter.
 
-**2 — Choose the ruleset.** If the spec has a ruleset of its own — the `.spectral.yaml` / `.spectral.yml` / `.spectral.json` in the nearest directory at or above it, up to its repository's git top level, that holds one — use that one: an organization is expected to **extend** the bundled ruleset in its own file rather than edit the bundled file in place, so its file is the more specific one. Otherwise use the bundled ruleset:
+**2 — Choose the ruleset.** If the partition's specs have a ruleset of their own — the `.spectral.yaml` / `.spectral.yml` / `.spectral.json` in the nearest directory at or above the partition's directory, up to its repository's git top level (in no repository, that directory alone), that holds one, which is also the nearest one at or above every spec in the partition — use that one: an organization is expected to **extend** the bundled ruleset in its own file rather than edit the bundled file in place, so its file is the more specific one. Otherwise use the bundled ruleset:
 
 ```
 ${CLAUDE_PLUGIN_ROOT}/references/api-guidelines/spectral/ruleset.yaml
 ```
 
-**3 — Run it,** once per spec file:
+**3 — Run it,** once per partition, over every spec in it:
 
 ```
-(cd "<that directory>" && <SPECTRAL> lint <spec-file> --ruleset <ruleset> --format json --fail-severity hint)
+(cd "<the partition's directory>" && <SPECTRAL> lint <the partition's spec files> --ruleset <ruleset> --format json --fail-severity hint)
 ```
 
 - **Exit code 1 means findings were reported, not that the tool failed.** Judge success by whether stdout carries a parseable JSON array, never by the exit code.
-- If Spectral errors out (`Error running Spectral!`, an unparseable ruleset, a timeout of roughly two minutes), treat it exactly like "no CLI resolved": set `lint_source: none`, note the reason in one clause on the `lint_source` line, and continue. Pass 0 never blocks the review.
+- If Spectral errors out (`Error running Spectral!`, an unparseable ruleset, a timeout of roughly two minutes), treat it exactly like "no CLI resolved": set the partition's `lint_source: none`, note the reason in one clause on its `lint_source` line, and continue. Pass 0 never blocks the review.
 
-**4 — Parse the JSON.** Each element carries `code` (the rule id), `message`, `path`, `range`, `severity` (`0` error, `1` warn, `2` info, `3` hint) and `source`. Map severity onto this agent's output vocabulary:
+**4 — Parse the JSON.** Each element carries `code` (the rule id), `message`, `path`, `range`, `severity` (`0` error, `1` warn, `2` info, `3` hint) and `source`, the file the finding was found in. Map severity onto this agent's output vocabulary:
 
 | Spectral severity | Section |
 |---|---|
@@ -80,7 +80,7 @@ The ruleset already encodes the RFC 2119 mapping (`error` ← MUST, `warn` ← S
 
 ### What Pass 0 covers, and what it therefore removes from Passes 1 and 2
 
-**Spectral findings are authoritative for the rules it covers.** When `lint_source` is a Spectral ruleset, Passes 1 and 2 **must not** re-check the following — a defect Spectral already reported must appear exactly once in the review:
+**Spectral findings are authoritative for the rules it covers.** For a spec whose partition's `lint_source` is a Spectral ruleset, Passes 1 and 2 **must not** re-check the following in that spec — a defect Spectral already reported must appear exactly once in the review:
 
 - **Version consistency** — `info.version` is full semver (`api-info-version-semver`); every `servers[].url` carries a `/v<major>` segment (`api-server-url-major-version`); every `x-gateway-url` carries one (`api-gateway-url-major-version`); no version segment in `paths` (`api-no-version-in-path`); supported `openapi` version (`api-openapi-version-supported`, `api-openapi-version-3-1-preferred`)
 - **Required elements** — `info.x-audience` present and one of the four values (`api-audience-declared`); only an `oauth2`-typed scheme is declared (`api-security-scheme-oauth2-only`); only the `clientCredentials` flow (`api-oauth2-client-credentials-only`); the org-wide scheme name (`api-security-scheme-name-consistent`); `Authorization` not declared as a parameter (`api-authorization-header-not-declared`); every operation covered by a `security` requirement (`api-security-requirement-present`, `api-operation-security-explicit`); `requestBody` carries a description (`api-request-body-description`)
@@ -100,11 +100,11 @@ The ruleset already encodes the RFC 2119 mapping (`error` ← MUST, `warn` ← S
 6. **Resource modelling and documentation adequacy.** Whether the resource decomposition, standard-vs-custom method choice, pagination and filtering design fit the guidelines; whether the descriptions that exist are actually informative; whether tags group operations logically rather than technically; whether documentation leaks internal concepts (`Swagger Documentation.md`).
 7. **IAM scope CORRECTNESS.** Spectral checks a scope's grammar, not its meaning. Verify the scope's `{service}` against the `servers.url` (or `x-gateway-url`) path, its `{resource}` against the resource collection in the URL, and its `{action}` against the HTTP method — `read` (GET/HEAD), `write` (POST/PUT/PATCH), `delete` (DELETE), or the custom method name.
 
-**When `lint_source` is `none`**, none of the above is removed: Passes 1 and 2 check *everything* in the two lists, exactly as this agent did before the ruleset existed. The review is never silently narrower than the machine's absence made it.
+**For a spec whose partition's `lint_source` is `none`**, none of the above is removed: Passes 1 and 2 check *everything* in the two lists for that spec, exactly as this agent did before the ruleset existed. The review is never silently narrower than the machine's absence made it.
 
 ### Pass 1: Comprehensive Analysis
 
-Work through the areas below. Skip any check the "What Pass 0 covers" list above assigns to Spectral **when Spectral actually ran**; check all of them otherwise.
+Work through the areas below. Skip any check the "What Pass 0 covers" list above assigns to Spectral **for a spec Spectral actually ran on**; check all of them otherwise.
 
 1. **Version Consistency Check**
    - `info.version` must contain full semantic version
@@ -233,6 +233,8 @@ Deviations from SHOULD/SHOULD NOT recommendations. Same format.
 ## Correctly Implemented
 What the specification does well.
 ```
+
+Where the specs fall into more than one lint partition (Pass 0), the `lint_source` and `lint_findings` lines appear once per partition, each pair preceded by `lint_dir:` and that partition's directory; with one partition they are the two lines above, unchanged.
 
 ## Classification Rules
 

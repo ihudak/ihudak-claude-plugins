@@ -21,8 +21,8 @@ Dispatch the review to the `guideline-reviewer` subagent:
   >
   > rules_path: [the --rules value, or omit]
   >
-  > Resolve the rule overlay per your `## Rule Overlay` section and open the report with the `rules_source:` and `a11y_check:` lines (`eslint-jsx-a11y` | `harness-detected:<name>` | `none`)."
+  > Resolve the rule overlay per your `## Rule Overlay` section and open the report with the `rules_source:` and `a11y_check:` lines (`eslint-jsx-a11y` | `harness-detected:<name>` | `none`) — one `a11y_check:` per lint directory where the files under review span more than one."
 
-Surface the subagent's verdict to the user, including its `a11y_check:` line and, when a runtime harness was detected, its statement that the harness was **not** executed. Never restate a detected-but-unrun harness as a check that ran.
+Surface the subagent's verdict to the user, including its `a11y_check:` line — one per lint directory where the reviewed files span more than one — and, when a runtime harness was detected, its statement that the harness was **not** executed. Never restate a detected-but-unrun harness as a check that ran.
 
 `a11y_check: none` is a normal outcome, not a problem to report: mention it once as the recorded value and do not suggest the user install tooling.

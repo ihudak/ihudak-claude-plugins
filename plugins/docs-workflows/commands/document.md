@@ -1280,7 +1280,7 @@ name is ever written (§10 privacy).
 - ALWAYS produce the Phase 9 report as the final output
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`) — guidance only, never auto-invoked; omitted in direct doc-edit mode (Mode B)
 - ALL written claims must be traceable to a resolved key or to PR diffs — attribution goes in the run's return payload and the commit message, NEVER inline in the rendered page (`workflows-core:doc-structure-conventions` §1)
-- For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo — stage under `<screenshot_staging_dir>`, a persistent directory the operator named (never the docs repo, never `/tmp`) — and surface in the Phase 9 `### Screenshots to upload manually` section
+- For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo — stage under `<screenshot_staging_dir>` — the resolved PRD folder's screenshot subfolder by default, else a directory the operator names (Phase 1); never the docs repo, never `/tmp` — and surface in the Phase 9 `### Screenshots to upload manually` section
 - ALWAYS end the Phase 9 report with a `### Context hygiene` block per `workflows-core:session-hygiene` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `workflows-core:session-hygiene` §1 — this block prints the guidance only), then a docs→PM handoff suggestion (`/clear`) + `/rename <PRD-ID>-<slug>-dev`; guidance only, never auto-run. **Mode B (direct doc-edit) omits this** — no PRD context.
 
 ---

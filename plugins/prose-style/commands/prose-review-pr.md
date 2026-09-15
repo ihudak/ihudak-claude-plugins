@@ -168,8 +168,8 @@ there is none, it stops with `E100 [.vale.ini not found]`, since both forms belo
 global configuration aside. The subshell keeps the `cd` to this one call, and the file paths are
 step 4's absolute ones, so they resolve from `<vale_root>` too.
 
-**This is the one place this plugin says how it runs Vale** — `/prose-review-docs` step 5 runs it
-the same way — **and every part of both forms is load-bearing** (Vale 3.21, measured, and read from
+**This is the one definition of the form this plugin runs Vale in** — `/prose-review-docs` step 5
+cites it — **and every part of both forms is load-bearing** (Vale 3.21, measured, and read from
 its source). The run reads the repository's own configuration and none of the machine's, with the
 styles that configuration reads. Vale merges the user's global configuration file —
 `~/.config/vale/.vale.ini` on Linux, wherever `vale ls-dirs` names it elsewhere — under the

@@ -184,16 +184,16 @@ yet checked goes to the manual table. For each server:
    do — is one this check can neither stop nor see bind late. The job outlives the call, which
    returns as soon as the pid is printed. **Then confirm the group:** read `<pid>`'s process group
    as **Portability** (below) reads one — from `/proc/<pid>/stat` on Linux, with
-   `command ps -o pgid= -p <pid>` elsewhere — and it is `<pid>`, or nothing, where the job has already exited, and the id
-   still names whatever of it survives. That `<pid>` is the `<pgid>` step 5 signals. Where it is any
-   other number, job control gave the job no group of its own: hold the pid alone, and step 5 stops
-   it by its path for a server without a group.
+   `command ps -o pgid= -p <pid>` elsewhere — and it is `<pid>`, or nothing, where the job has
+   already exited, and the id still names whatever of it survives. That `<pid>` is the `<pgid>`
+   step 5 signals. Where it is any other number, job control gave the job no group of its own:
+   hold the pid alone, and step 5 stops it by its path for a server without a group.
 3. Readiness poll: GET `http://localhost:<port><base_path>/`, that server's own, until HTTP 200 or
    `profile.dev_servers.readiness_timeout_seconds` seconds elapse (fall back to **120** when the
    field is absent). **At every interval at which the GET gets no response** — it prints `000` —
    **test the group too**, where step 2 holds a `<pgid>`, by step 5's test for a gone group:
    `bash -c 'kill -0 -- -<pgid>'` fails, or every member of the group is a zombie. **A gone group
-   ends the poll at once**, the way `/docs-serve` Phase 5's does: the command exited without its
+   ends the poll at once**, as `/docs-serve` Phase 5's poll ends: the command exited without its
    port answering — a theme that is not installed, a configuration it cannot load, a script its
    package does not have — and nothing of its group is left to bind the port later, so the check
    never waits out the timeout for it. Record "smoke-check skipped for `<space>`: its server exited
@@ -293,10 +293,10 @@ functions — a POSIX utility, checked in bash, dash and BusyBox's `ash` — and
   [ -n "$i" ] && QUOTING_STYLE=literal command ls -l /proc/[0-9]*/fd/ 2>/dev/null | command awk -v i="$i" 'BEGIN { n = split(i, s, " "); for (k = 1; k <= n; k++) w[s[k]] = 1 } /^\/proc\// { split($0, a, "/"); p = a[3] } ($NF in w) && !d[p]++ { print p }'
   ```
 
-  It prints each pid once — an IPv4 and an IPv6 listener alike, and a process holding both. Elsewhere:
-  `command lsof -t -iTCP:<port> -sTCP:LISTEN`. Either way, a socket another user's process holds is in the
-  table but named by no process — its `fd` links cannot be read without root, and `lsof` shows no
-  other user's process either — so the read prints nothing for it.
+  It prints each pid once — an IPv4 and an IPv6 listener alike, and a process holding both.
+  Elsewhere: `command lsof -t -iTCP:<port> -sTCP:LISTEN`. Either way, a socket another user's
+  process holds is in the table but named by no process — its `fd` links cannot be read without
+  root, and `lsof` shows no other user's process either — so the read prints nothing for it.
 - **A process's parent, and its process group.** On Linux: `/proc/<pid>/stat`, read after its
   **last** `)`, since the process name in parentheses before it may itself hold spaces or
   parentheses — `command sed 's/.*)//' /proc/<pid>/stat` prints the state, then the parent's pid,

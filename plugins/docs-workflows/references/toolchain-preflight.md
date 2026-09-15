@@ -5,7 +5,7 @@
 Single source of truth for verifying, before a run writes anything, that the tools its gates invoke
 are actually present.
 
-Consumed by `/document` (both modes) at Phase 0, and by `/docs-init` at Phase 2 step 3 — which **skips §2 entirely** and hands §3 a fixed set of its own (`git`, `python3`/`pip` or `uv`, `mkdocs`, `vale`). All three of §2's sources are empty for it: there is no profile yet, because it is the run that writes the first one; an absent or empty scaffold target carries no config signals; and it documents no `Prerequisites` of its own until this run has written them. It is the one consumer that derives nothing. Pairs with
+Consumed by `/document` (both modes) at Phase 0, and by `/docs-init` at Phase 2 step 3 — which **skips §2 entirely** and hands §3 a fixed set of its own (`git`, `python3`/`pip` or `uv`, `mkdocs`, `vale`). All three of §2's sources are empty for it: there is no profile yet, because it is the run that writes the first one; an absent or empty scaffold target carries no config signals; and it documents no `Prerequisites` of its own until this run has written them. It is the one consumer of the preflight that derives nothing. `/docs-serve` runs no preflight, but its Phase 4 takes §2's definition of a command's tool, and §3's test for one, before it starts a server. Pairs with
 `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` — the preflight decides whether to start; the ledger
 records what actually happened.
 
@@ -37,9 +37,10 @@ de-duplicate by binary name.
    runnable. This is the one definition of a command's tool, and §3 says how each is tested;
    `docs-profiles/render-verification.md` §1 and §2, `/document` Phase 6.5 Steps 1 and 2 and
    `/docs-serve` Phase 4 cite both. Where the profile records any `dev_servers.servers[]` entry, add
-   `bash`, `curl` and `ps` too: the render smoke check that boots those servers starts and stops
-   them under `bash`, probes their ports with `curl` and reads their process groups with `ps`, and
-   cannot run without any of them (`docs-profiles/render-verification.md` §2). Add every entry in
+   `bash` and `curl` too, and `ps` where `test -r /proc/net/tcp` fails — off Linux: the render smoke
+   check that boots those servers starts and stops them under `bash`, probes their ports with `curl`,
+   and reads their process groups from `/proc` on Linux and with `ps` elsewhere, and cannot run
+   without any of them (`docs-profiles/render-verification.md` §2, **Portability**). Add every entry in
    `profile.prerequisites` as a named prerequisite (these are prose, not binaries — record them for
    reporting, and check them only when the prose names a checkable path or binary).
 2. **Repo config signals**, checked at `repo_root` — and, where the caller resolved the site to a
@@ -70,7 +71,8 @@ de-duplicate by binary name.
    `_vale.ini` is linted by Vale all the same, and a test for `.vale.ini` alone records that no
    repository linter is configured.
 
-   Separately, when any lockfile is present, check `node_modules/` beside it as an
+   Separately, when any lockfile is present, check `node_modules/` beside it — or, beside a
+   `yarn.lock`, a `.pnp.cjs`, which a Yarn Plug'n'Play install keeps instead — as an
    **installed-dependencies** signal. A present `pnpm` with absent dependencies fails just as
    completely as a missing `pnpm`.
 3. **The repo's documented prerequisites.** Grep `repo_root`'s `CONTRIBUTING.md`, `CONTRIBUTION.md`,
@@ -96,7 +98,7 @@ sources **2 and 3 only**. It anchored on cwd unconditionally until a live run sh
   stands. **Never test it with `command -v` from the working directory**: run from anywhere but the
   directory the command runs from, it reports a present tool missing, and the preflight prompts on a
   healthy container (§7).
-- Directory signals (`node_modules/`): `test -d`.
+- Directory signals (`node_modules/`): `test -d`; a Yarn Plug'n'Play `.pnp.cjs`: `test -f`.
 - Never install anything. Never modify the repo. This step is read-only.
 
 ## 4. The `toolchain` block
@@ -118,15 +120,15 @@ the preflight predict the run's outcome before the run (§5 says what that predi
 |---|---|---|
 | the repo's prose linter (`vale`, `markdownlint`, `remark`) | `style_check` | — |
 | the package manager (`pnpm` / `npm` / `yarn`) | `style_check`, `build_check`, `render_smoke_check` | `build_check`, where a dev-server command runs it |
-| `node_modules` present | every gate the package manager powers | as the package manager |
+| installed dependencies present (`node_modules`, or a Yarn Plug'n'Play `.pnp.cjs`) | every gate the package manager powers | as the package manager |
 | `git` | `source_truth_verification` | — |
-| `bash`, `curl`, `ps` (the smoke check's own tools) | `render_smoke_check` | `build_check` |
+| `bash`, `curl`, and off Linux `ps` (the smoke check's own tools) | `render_smoke_check` | `build_check` |
 
 Derive both from where the tool came from, a tool being a command's tool as §2 source 1 defines it:
 the tool of a command `build_check` runs — a `builds[].command`, `commands.build`, or
 `commands.per_space.<space>.build` (`docs-profiles/render-verification.md` §1) — powers
 `build_check`; the tool of a `dev_servers` command powers `render_smoke_check`, and so do `bash`,
-`curl` and `ps`, which that check runs itself. **Those same tools also run `build_check`'s
+`curl` and, off Linux, `ps`, which that check runs itself. **Those same tools also run `build_check`'s
 registered fallback** — the Step 2 dev-server boot that stands in for a build that will not run
 (`gate-ledger.md` §4) — so each of them carries `fallback_for: [build_check]`. A tool with an empty
 `required_by` is reported but never blocks.
@@ -144,11 +146,12 @@ where neither the primary nor the fallback can (`gate-ledger.md` §2). A gate is
 missing tool's `required_by` names it. Its fallback still runs where no missing tool's
 `fallback_for` names it — except `build_check`'s, which is decided **per build**, by the test
 `/document` Phase 6.5 Step 1 makes when that build will not run: a build that will not run keeps its
-fallback — the Step 2 boot of **that build's own servers** — where `bash`, `curl`, `ps` and the tool
-of one of those servers (§2, tested as §3 tests it) are all present, and never on the strength of
-another build's server, which compiles another space or another configuration. In this test a
-package manager whose installed dependencies are missing — its `node_modules/` signal (§2 source 2)
-— counts as missing, for a build and a server alike, since it fails as completely. `build_check` is
+fallback — the Step 2 boot of **that build's own servers** — where `bash`, `curl` — off Linux, `ps`
+too — and the tool of one of those servers (§2, tested as §3 tests it) are all present, and never on
+the strength of another build's server, which compiles another space or another configuration. In
+this test a package manager whose installed dependencies are missing counts as missing, by the rule
+`docs-profiles/render-verification.md` §2 step 1 states for the tool check, for a build and a server
+alike, since it fails as completely. `build_check` is
 `DEGRADED` where every build that will not run keeps its fallback, and `UNAVAILABLE` where any does
 not. A build's own servers are the ones Step 1 names — for a `builds[]` entry, the server whose
 `visibility` pairs with the entry's; for a space's `commands.per_space.<space>.build`, that space's
@@ -167,8 +170,8 @@ tool's `required_by` names it. The gate still applies: its precondition is a bui
 (`docs-profiles/render-verification.md` §1), so it records `UNAVAILABLE` wherever that boot cannot
 run. On such a profile `build_check` is therefore affected wherever a missing tool's `fallback_for`
 names it, and is decided as one build that will not run, whose own servers are every server the
-profile records: `UNAVAILABLE` where `bash`, `curl` or `ps` is missing or every server's tool is,
-`DEGRADED` otherwise.
+profile records: `UNAVAILABLE` where `bash` or `curl` — or, off Linux, `ps` — is missing or every
+server's tool is, `DEGRADED` otherwise.
 
 **What the `build_check` prediction assumes.** The preflight runs before any page is written, so it
 cannot know which servers Step 2 will boot. It assumes that, for every build that will not run,

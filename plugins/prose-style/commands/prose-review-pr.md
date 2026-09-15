@@ -171,7 +171,10 @@ does it stop with `E100 [.vale.ini not found]`. The subshell keeps the `cd` to t
 step 4's absolute ones, so they resolve from `<vale_root>` too. It is `builtin cd`, its output
 discarded, because this command's shell carries the user's aliases and shell functions: a `cd` of
 theirs would otherwise run in its place, and one that prints would put its output ahead of Vale's.
-`builtin`, not `command`: the shell is bash or zsh, and zsh's `command` runs no builtin. For the
+`builtin`, not `command`: the shell is bash or zsh, and zsh's `command` runs no builtin, only a
+`cd` found on `PATH` — Linux has none, so `command cd` there is a command not found, and macOS has
+`/usr/bin/cd`, which changes only its own child process's directory, so `command cd` there exits 0
+and Vale runs wherever the session stands. For the
 same reason `mktemp`, `vale` and `rm` run as `command <name>` — an `rm -i` or `rm -I` alias would
 ask before removing the directory, be answered no from an empty standard input, and leave the
 directory behind — and `--` ends `rm`'s options.

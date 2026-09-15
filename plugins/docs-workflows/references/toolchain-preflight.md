@@ -114,7 +114,9 @@ de-duplicate by binary name.
    (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md` §2, **Portability**): a
    `cd` of the user's would otherwise run in its place, and one that prints would put its output
    ahead of Vale's. `builtin`, not `command`: that shell is bash or zsh, and zsh's `command` runs
-   no builtin, so `command cd` there is a command not found. For the same reason every external
+   no builtin, only a `cd` found on `PATH` — Linux has none, so `command cd` there is a command not
+   found, and macOS has `/usr/bin/cd`, which changes only its own child process's directory, so
+   `command cd` there exits 0 and Vale runs wherever the session stands. For the same reason every external
    utility the forms run is `command <name>` — `mktemp`, `vale` and `rm`, whose `rm -i` or `rm -I` alias
    would otherwise ask before removing the directory, be answered no from the Bash tool's empty
    standard input, and leave the directory behind — and `--` ends `rm`'s options. So a `vale` that

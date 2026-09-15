@@ -8,7 +8,7 @@ Versions follow semver at the plugin level.
 
 ### Fixed — the workflow diagram renders again
 
-`docs/workflow.md`'s mermaid diagram failed to render on GitHub — `Parse error on line 42 … got 'SQS'` — and had since 3.0.0, when the `/prd-ground` edges were drawn. Five edge labels carried a bracketed requirement ID (`[BR#n]`, `[CG#n]/[DG#n]`, `[AC#n]/[FR#n]`) unquoted, and inside a mermaid edge label `[` opens a node shape. Each label is now quoted (`-->|"…"|`). The diagram parses under mermaid 10.9.8, 11.17.2 and 12.0.0, and renders. No gate checks mermaid syntax, which is how it shipped.
+`docs/workflow.md`'s mermaid diagram failed to render on GitHub — `Parse error on line 42 … got 'SQS'` — and had since 3.0.0, when the `/prd-ground` edges were drawn. Five edge labels carried a bracketed requirement ID (`[BR#n]`, `[CG#n]/[DG#n]`, `[AC#n]/[FR#n]`) unquoted, and inside a mermaid edge label `[` opens a node shape. Each label is now quoted (`-->|"…"|`). The diagram parses under mermaid 10.9.8, 11.17.2 and 12.0.0, and renders. No gate checked mermaid syntax, which is how it shipped; the repository's CI now runs `scripts/mermaid/check-mermaid.mjs`, which parses every diagram in every tracked markdown file on each push.
 
 ### Fixed — two stale claims in shipped runtime instructions
 

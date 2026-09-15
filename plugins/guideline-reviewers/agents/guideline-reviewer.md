@@ -114,20 +114,19 @@ Never write, or imply, that axe ran.
 Read-only detection. First match sets `a11y_check`; the check is scoped to the files under
 review and never to the whole tree.
 
-**Where it looks, and where it runs.** Detection and the lint work in one directory, found for
-each reviewed file: the nearest directory at or above it, up to its repository's git top level
-(`git -C "<the file's directory>" rev-parse --show-toplevel`), that holds an ESLint config — any
-flat or legacy config file branch 1 lists — or a `package.json` that declares ESLint (`eslint` or
-`eslint-plugin-jsx-a11y` in `dependencies` / `devDependencies`, or an inline `eslintConfig`
-block). Where no directory up to the top level holds either, use the top level itself; where the
-file is in no repository, the deepest common parent of the reviewed files. So a monorepo package
-that keeps its own ESLint config is linted under it, and a repository whose config sits at its
-top level is linted from there, as it is when you are started in it. Files that resolve to the
-same directory are detected and linted together, once. Your Bash tool starts every call in the
-session's directory, which need not be the reviewed repository, and a `cd` does not persist
+**Where it looks, and where it runs.** Detection and the lint work in one directory: starting from
+the deepest directory that holds every reviewed file and walking up to their repository's git top
+level (`git -C "<that directory>" rev-parse --show-toplevel`), the nearest one that holds an
+ESLint config — any flat or legacy config file branch 1 lists — or a `package.json` that declares
+ESLint (`eslint` or `eslint-plugin-jsx-a11y` in `dependencies` / `devDependencies`, or an inline
+`eslintConfig` block). Where no directory up to the top level holds either, use the top level
+itself; where the files are in no repository, that deepest common directory. So a monorepo package
+that keeps its own ESLint config is linted under it, and a repository whose config sits at its top
+level is linted from there, as it is when you are started in it. Your Bash tool starts every call
+in the session's directory, which need not be the reviewed repository, and a `cd` does not persist
 between calls — while `npx --no-install` finds ESLint, and ESLint finds its config, from the
-directory it runs in — so run every command below as one subshell, `(cd "<that directory>" &&
-…)`, inside a single Bash call, naming the reviewed files by absolute path.
+directory it runs in — so run every command below as one subshell, `(cd "<that directory>" && …)`,
+inside a single Bash call, naming the reviewed files by absolute path.
 
 **1. Static linter — `eslint-plugin-jsx-a11y`** (the useful case: it checks source)
 

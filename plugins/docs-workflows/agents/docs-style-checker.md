@@ -163,7 +163,7 @@ complementary_error:   <only when the complementary pass failed independently; d
 - NEVER promote a MINOR / NIT style finding to BLOCKER. The linter's own severity is authoritative.
 - NEVER run the whole-repo lint if a files-scoped invocation is available (performance + noise reduction). If Vale and markdownlint both accept per-file paths, pass only the input `files`.
 - NEVER fabricate a `primary_command` or `complementary_command` value — if a pass didn't run, the field is `null`.
-- NEVER return a `primary_attempts` list that omits a rung the ladder tried. It is the caller's only evidence for what CI will check that this run did not, and it fills the gate ledger's `not_run` and `ci_still_checks` fields.
+- NEVER return a `primary_attempts` list that omits a rung the ladder tried. It records each rung this run's ladder tried and how it ended — not what CI runs — so it is the caller's evidence for what this run did not check: the caller fills the gate ledger's `not_run` field from it, and its `ci_still_checks` field from it together with what the repository's CI actually runs, which may be nothing.
 - A rung whose configuration is absent is still a rung the ladder passed: record it with `outcome: not_detected` and a one-line `reason` (e.g. "no Vale configuration file from the site up to the repo root"). `primary_attempts` describes the whole climb, not only the failures.
 - NEVER stop the ladder at a *detected but failing* rung. Detection is not execution — only a rung that produced parseable output counts as the primary pass.
 - NEVER output a partially filled violation record (missing `file` or `line`). Drop such records and note the count in `error` if suspicious.

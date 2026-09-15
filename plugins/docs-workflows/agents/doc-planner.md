@@ -22,6 +22,7 @@ code_repos:             <array of {slug, path} for source-truth verification; th
 specs_dir:              <absolute path to the PRD's spec folder (PRODUCT-NNNN*), or null; the authoritative intended-behavior source>
 repo_root:              <absolute path to the docs repo root>
 profile:                <the resolved docs-profile (built-in example-docs default, in-repo, or generated); supplies spaces[], tokens, internal_links>
+gap_resolution:         <present only on the re-invocation /document Phase 5.7 makes after asking the user about your "ask user" gaps: [{gap: <the gap's description, as you returned it>, answer: <the user's answer, verbatim>}] for each gap the user answered; absent otherwise>
 image_policy_resolution: <present only on the re-invocation /document Phase 5.7 makes after its Ambiguous image policy step: {<target_path>: local | cdn_upload_required} for each target the user settled; absent otherwise>
 ```
 
@@ -106,7 +107,7 @@ For each write target:
    - "Feature is mentioned in the PRD goal but no PR was merged yet; only PRD content is available."
 
    For each gap, set a `recommended_action`:
-   - `"ask user"` — the caller prompts inline before approval.
+   - `"ask user"` — the caller prompts inline before approval, and re-invokes you once with the answers as `gap_resolution`. Plan from each answer as from any other input, and do not return a gap it answers.
    - `"mark TODO in draft"` — the writer emits a `<!-- TODO: … -->` marker in the output.
    - `"skip with note in final report"` — the gap is recorded in the Phase 9 `### Skipped items` section.
 

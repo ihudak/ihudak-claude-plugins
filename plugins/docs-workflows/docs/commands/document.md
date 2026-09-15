@@ -84,7 +84,7 @@ Every gate's outcome is recorded in a run-scoped `gate_ledger` with six possible
 | `render_smoke_check` | buildable repo with ≥1 affected page |
 | `image_review` | ≥1 candidate image, to add or possibly stale |
 
-`build_check` runs every build the profile records in `builds[]` — the profile `/docs-init` writes records each of its builds there — and otherwise the build command of each space the run wrote into. Each build is reported on its own, so a failure names the build that failed, and `doc-fixer` is handed that build's output.
+`build_check` runs every build the profile records in `builds[]` — the profile `/docs-init` writes records each of its builds there — and otherwise the build command of each space the run wrote into. Each build is reported on its own, so a failure names the build that failed, and `doc-fixer` is handed that build's output. `render_smoke_check` reports a 404 on an affected page with its URL and leaves the page for you to check by hand, never sending it to `doc-fixer`: the page's URL is derived, so a 404 cannot tell a wrong URL from a missing page. A server error (5xx) is a render defect, handled like a build's content failure.
 
 **Direct mode registers exactly three of those seven** — `toolchain_preflight`, `repo_checklist`, and `style_check` — and the other four never appear at all, not even as `NOT_APPLICABLE`: direct mode has no Phase 5.8, no Phase 5.6, and no Phase 6.5 to produce them.
 

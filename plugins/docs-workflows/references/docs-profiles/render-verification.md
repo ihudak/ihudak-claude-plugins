@@ -108,7 +108,8 @@ each server:
    pid recorded in a state file: this command keeps none, and the pid it reads here is used once, by
    step 5 of this same boot, and never recorded. On a timeout, stop the server as step 5 says — the
    signal, then the probe — and record "smoke-check skipped for `<space>`: not ready".
-4. For each affected page assigned to this server, GET its derived URL (§3) and assert HTTP 200.
+4. For each affected page assigned to this server, GET its derived URL (§3): HTTP 200 passes, and
+   §5 says what a 404 and a 5xx record.
 5. **Stop the server by its listener's pid** — or, where step 3 named no listener, by the pid step 2
    holds, where it holds one: `SIGTERM` it, wait up to 5 seconds for the port to stop answering, and
    `SIGKILL` the same pid if it still answers. **Then probe the port** — the probe, not the signal,
@@ -133,8 +134,9 @@ the page path relative to its space's `content_root` with a trailing `index.md`
 or `.md` removed. Example: `cloud/_content/setup/foo/index.md` in the `cloud`
 space (`base_path: /docs`, port 4000) → `http://localhost:4000/docs/setup/foo`.
 
-This is best-effort. A wrong route that 404s in the smoke-check simply downgrades
-that page to the manual table — it is not a render defect by itself.
+This is best-effort, so a 404 cannot tell a wrong route from a missing page. A
+404 on an affected page is surfaced as ❌ with its URL and the page stays on the
+manual table; it is never a content failure by itself (§5).
 
 ## 4. Prerequisites (best-effort, never auto-applied)
 
@@ -154,14 +156,25 @@ pages — and it never blocks the run. A port that answers before its server
 boots, or still answers after the stop (§2 steps 2 and 5), ends the
 smoke-check rather than one space's part of it: every page not yet checked
 falls back to the manual table, and the record names the port left running —
-it never blocks the run either. (A 404/500 on an affected page IS a
-finding — it is surfaced, not silently dropped.)
+it never blocks the run either.
+
+A 404 and a 5xx on an affected page are both surfaced, never silently dropped,
+and each has exactly one disposition:
+
+- **404** — ❌ with its URL, and the page stays on the manual table. It is
+  **never a content failure by itself** and never dispatches `doc-fixer`: §3's
+  route is best-effort, so a 404 cannot tell a wrong route from a missing page,
+  and §1's build check — which runs every build — owns compile failures.
+- **5xx** — a render defect: a content failure, handled exactly as a build's
+  content failure (`/document` Phase 6.5 Step 1), because a server error is not
+  a routing question.
 
 The **pages-to-visit table** is always emitted, one row per affected page: its
 URL on the server §2 chose for it (§3) and what to verify ("confirm the page
 renders as intended"). A page §2 chose no server for gets its route on each of
 its space's servers, or the route alone where the space records none. When the
-smoke-check ran, annotate each row ✅ 200 / ⚠️ skipped (reason) / ❌ failed.
+smoke-check ran, annotate each row ✅ 200 / ⚠️ skipped (reason) / ❌ with its
+status.
 
 **Static analysis is necessary but never sufficient.** A clean link-integrity grep and a verified
 page structure corroborate the render gate and neither satisfies it. Static greps do not catch

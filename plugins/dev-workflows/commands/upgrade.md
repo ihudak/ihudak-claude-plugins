@@ -186,7 +186,8 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
    `plan_file`, and every `review_diff_file` and `claims_file` this run wrote. Remove each as
    `command rm -f -- "<path>"`, per `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`
    (**Hand off by file, not paste**), which says why nothing else would. A run that stops before this
-   step removes the files it had made before it stops, in the same way; a component that ended early
+   step removes the files it had made before it stops, in the same way — save a file the stop itself
+   named as unreadable, which stays for the operator to look at (that reference again); a component that ended early
    (step 3a's unreadable `plan_file`, the `review-fixer` `NEEDS HUMAN` stop, a second verdict still
    `BLOCK`) keeps its files until here, since the loop goes on to the next component.
 

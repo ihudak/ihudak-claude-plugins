@@ -230,7 +230,8 @@ Remove each as `command rm -f -- "<path>"`, per
 `${CLAUDE_PLUGIN_ROOT}/references/context-management.md` (**Hand off by file, not paste**), which says
 why nothing else would. A run that stops before this step — an unreadable `research_file` or
 `review_diff_file`, the `review-fixer` `NEEDS HUMAN` stop, or a second verdict still `BLOCK` — removes
-the files it had made before it stops, in the same way.
+the files it had made before it stops, in the same way, save a file the stop itself named as
+unreadable, which stays for the operator to look at (that reference again).
 
 After all CVEs are processed, print a result table:
 

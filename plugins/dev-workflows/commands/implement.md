@@ -555,7 +555,8 @@ one file, a fresh `mktemp` another), `review_file` and `claims_file`. Remove eac
 (**Hand off by file, not paste**), which says why nothing else would. A run that stops before this
 phase — the two unreadable-`test_diff_file` stops, the unreadable-`review_diff_file` stop, the
 `review-fixer` `NEEDS HUMAN` stop, a second verdict still `BLOCK`, or a Cancel — removes the files it
-had made before it stops, in the same way.
+had made before it stops, in the same way, save a file the stop itself named as unreadable, which
+stays for the operator to look at (that reference again).
 
 Then gather the actual change context:
 

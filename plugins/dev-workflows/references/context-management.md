@@ -25,7 +25,7 @@ without degrading. Apply when the plan/step list is large or the run is nearing 
   else removes one.** These files sit under the system's temporary directory, outside every repository,
   where no later phase and no later run looks — a resume pointer names artifacts, never a handoff file
   (`workflows-core:session-hygiene` §1) — so one a run leaves behind stays until the host clears that
-  directory. Where a file must outlive its run, the step that keeps it says why and names it to the user.
+  directory. Where a file must outlive its run, the step that keeps it says why and names it to the user. **A file a stop names to the user because it could not be read stays where it is**: the run has just told them where to look, and a path reported and then removed is worse than either.
 
 Prefer the cheapest strategy that fits: checkpoint first; offload parallel steps only when they are
 genuinely independent; decompose only when a single unit still overflows. "Hand off by file" is

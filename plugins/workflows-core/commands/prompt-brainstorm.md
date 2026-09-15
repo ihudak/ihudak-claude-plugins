@@ -83,7 +83,7 @@ figure here**, because the spend this record stands for has not happened yet.
 because the brainstorming skill takes over the session there. It stages ONLY the
 §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add
 dev-workflows session artifacts (/prompt-brainstorm)` — or `NOISSUE …` when no
-`key` resolved — and pushes. It NEVER touches a code/docs repo, or the current working directory; NEVER force-pushes; NEVER fails the run; and
+`key` resolved — and pushes. It NEVER touches a code/docs repo, or the current working directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the run; and
 skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting
 that notice. Print its §6 outcome line here, prefixed `Specs repo:`, with any
 guard notice repeated in full.
@@ -95,6 +95,6 @@ correction with the user. This is a direct skill use — there is **no declared
 install-time dependency**; the command simply invokes the skill if present.
 
 This command NEVER commits into a docs/code repo, or the current
-working directory. The Phase 2 `commit-artifacts` step commits ONLY
+working directory, where it is not the specs repository. The Phase 2 `commit-artifacts` step commits ONLY
 `$SPECS_PATH`'s bounded artifact paths
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).

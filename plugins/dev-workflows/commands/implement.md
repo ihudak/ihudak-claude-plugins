@@ -827,7 +827,7 @@ stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 step 5. It NEVER writes into the code repo this run just changed — that repo's
 own commit, push, and pull request were Phase 4.6's, through a different
 reference and against a different remote —
-NEVER touches a docs repo or the current working directory;
+NEVER touches a docs repo or the current working directory, where it is not the specs repository;
 NEVER force-pushes;
 NEVER fails the run; and skips entirely when the run carries `specs_git:
 blocked` (§3.3 G0), re-emitting that notice. Because the Phase 5 report was

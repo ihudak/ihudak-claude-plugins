@@ -75,6 +75,10 @@ The file's opening said everything below it is reached only when the mount is re
 
 1.5.0's `prd-format.md` said `change_type` and `release_notes_category` are "inferred and confirmed in `/release-notes`'s own grill". That command omits the category label where `release_notes_category` is absent, never inferring or asking for one, and confirms an inferred Change Type only where the inference is uncertain (`docs-workflows:release-note-types` §7). The paragraph now says so, and no longer says each field is asked for where it is not known.
 
+### Fixed — no command says it never commits in a working directory that is the specs repository
+
+`specs-repo-git.md` said nothing in it "ever touches a code repo, a docs repo, or the current working directory", and `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me` and `/frames` said the same of their terminal step, the first four adding that they never commit "into a docs/code repo, or the current working directory". Where the session stands inside `$SPECS_PATH`, that terminal step commits and pushes in the working directory's own repository. Each sentence now makes the claim only where the working directory is not the specs repository.
+
 ## [1.5.0] — 2026-09-09
 
 ### Added — `control`, a positive control on every grounding absence claim

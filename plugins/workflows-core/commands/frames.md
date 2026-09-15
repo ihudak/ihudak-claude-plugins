@@ -370,7 +370,7 @@ gap** (a capability the run needed but the plugin lacked), `emit-block` (per
    and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages
    ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session
    artifacts (/frames)` and pushes. It NEVER touches a code/docs repo or the current working
-   directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries
+   directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries
    `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its §6 outcome line for the Final
    report.
 

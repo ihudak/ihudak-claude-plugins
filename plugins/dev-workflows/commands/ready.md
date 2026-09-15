@@ -603,7 +603,7 @@ Silent; the printed `### Context hygiene` guidance already appeared in the Phase
 
 **Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY
 the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts
-(/ready)`, and pushes per §4 step 5. It NEVER touches a code/docs repo, or the current working directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
+(/ready)`, and pushes per §4 step 5. It NEVER touches a code/docs repo, or the current working directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Because the Phase 5 report was
 composed before this phase, **print its §6 outcome line here**, as the run's last output — prefixed
 `Specs repo:`, with any guard notice repeated in full.

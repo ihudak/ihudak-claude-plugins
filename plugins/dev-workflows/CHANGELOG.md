@@ -36,6 +36,10 @@ Seven pages under `docs/` change. Four name `/docs-workflows:docs-init` and `/do
 
 `/implement`, `/upgrade` and `/vuln` named their handoff, plan, diff, review and claims files with templates such as `dw-impl-plan-XXXX.md` and `dw-upgrade-diff-XXXX.patch`, which BusyBox's `mktemp` — the one Alpine ships — rejects with *mktemp: Invalid argument*, since it takes a template only where it ends in six `X`s (BusyBox 1.36.1; GNU's accepts both). Each now ends in `XXXXXX` — `dw-impl-plan-XXXXXX`, `dw-upgrade-diff-XXXXXX` — which GNU, BusyBox and BSD `mktemp` all accept. Nothing reads a file by its extension, so dropping it changes nothing else.
 
+### Fixed — no command says its terminal step never touches a working directory that is the specs repository
+
+`/design`, `/ready` and `/implement` said their terminal `commit-artifacts` step "NEVER touches" the current working directory. Where the session stands inside `$SPECS_PATH`, that step commits and pushes in the working directory's own repository. Each now says so only where the working directory is not the specs repository.
+
 ## [4.0.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

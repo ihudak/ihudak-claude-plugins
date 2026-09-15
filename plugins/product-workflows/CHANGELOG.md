@@ -34,6 +34,10 @@ A subagent's Bash tool starts every call in the session's directory — where `/
 
 Phase 3's frontmatter step, and the command page, told the operator not to supply `release_notes_category` because `/release-notes` "infers and confirms `change_type` and `release_notes_category` in its own grill". That command uses the label verbatim where the PRD carries one and otherwise omits it, never inferring or asking; so a PRD whose release notes should carry a label must carry the field. Both now say that the field is optional, that `/release-notes` infers `change_type` and confirms it only where the inference is uncertain, and that it takes `release_versions` from `--version` or its grill. The step still asks for none of the three, and still writes whichever the operator volunteers.
 
+### Fixed — `/update-prd` no longer names the import it retired
+
+Phase 0 step 4 says the base PRD is the resolved folder's own `prd.md`, and that the ladder which read an imported copy, stopped when none existed and offered a refresh past three days is gone. Yet Phase 7 still listed `not-imported` among the environment halts that must never raise a plugin-feedback block, and asked `impl-maintenance` for "import/freshness friction" among the run's key events, so both the reader and the maintenance handoff were told to expect a halt and a check the command no longer has. The invariant now names the halts it does have — a key whose folder does not resolve, or holds no `prd.md` — and the handoff asks for BLOCK reviews and unresolved clarifications.
+
 ## [3.5.0] — 2026-09-09
 
 Five open defects from a live-engagement defect register, found running the family across two

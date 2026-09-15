@@ -90,10 +90,15 @@ does not replace the step below.
 
 Accessibility rule sets are maintained by Deque (axe-core) and the W3C (ACT Rules), not by this
 plugin. A repo that configures `eslint-plugin-jsx-a11y` has already chosen its rule set, its
-severity policy, and its exceptions, and CI will run exactly that on the PR. Wrapping the repo's
-own configuration guarantees the local result matches what CI checks; re-encoding the rule set
-here would duplicate the canonical source and drift from it. This mirrors how `docs-style-checker`
-wraps a docs repo's own Vale rather than embedding a style guide.
+severity policy, and its exceptions. Wrapping the repo's own configuration means this step runs
+that rule set, as ESLint resolves it from each file's package directory (below), so a finding here
+is one the repository's own rules raise; re-encoding the rule set here would duplicate the
+canonical source and drift from it. It is not a guarantee that CI reports the same: CI reports the
+same findings only where it lints those files from the same directory, or under the same
+configuration, with the same ESLint and plugin versions — a CI job that lints a monorepo from its
+top level reads the configuration ESLint resolves there, not the one a package keeps for itself —
+and a repository may run no linter in CI at all. This mirrors how `docs-style-checker` wraps a docs
+repo's own Vale rather than embedding a style guide.
 
 ### What can and cannot run here — state this accurately
 

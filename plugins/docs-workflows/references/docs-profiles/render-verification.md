@@ -304,6 +304,12 @@ functions — a POSIX utility, checked in bash, dash and BusyBox's `ash` — and
   `| command awk '{ print $3 }'` the group. Elsewhere: `command ps -o ppid= -p <pid>` and
   `command ps -o pgid= -p <pid>`. Both print nothing where the process
   has exited.
+- **A process's start time.** On Linux: field 22 of `/proc/<pid>/stat`, read after its last `)` as
+  above — `command sed 's/.*)//' /proc/<pid>/stat | command awk '{ print $20 }'`, in clock ticks
+  since the host booted. Elsewhere: `command ps -o lstart= -p <pid>`. Both print nothing where the
+  process has exited, and neither changes while the process lives, an `exec` included, so a
+  process that later takes the same pid prints another. This check reads none; `/docs-serve` reads
+  it to tell the process group it started from one that reuses its id (its Phase 7).
 - **The states of a process group's members.** On Linux:
   `command cat /proc/[0-9]*/stat 2>/dev/null | command sed 's/.*)//' | command awk -v g=<pgid> '$3 == g { print $1 }'`,
   a zombie's state being `Z`. Elsewhere:

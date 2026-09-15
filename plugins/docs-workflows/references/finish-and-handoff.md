@@ -10,8 +10,7 @@ from the resolved `profile`. This flow does not open the pull request itself: do
 ## 1. The branch entering Phase 8.5
 
 Phase 6.2 created (normal case) or renamed (inline-profiling case) the work
-branch off the base (main/master/release), named per repo convention. The run
-carries:
+branch off the base, named per repo convention. The run carries:
 - `base_branch` — the base Phase 6.2 resolved.
 - `profile_commit` (C0) — set ONLY for an inline-profiling run
   (`profile_source: generated`): the commit `/docs-profile --inline` made on

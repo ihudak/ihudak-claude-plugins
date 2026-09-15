@@ -100,7 +100,7 @@ space, its public server before its internal one — skipping any server no affe
 to. On a profile with one server per space, that is one boot per space in the set.
 
 A port **answers** while something listens on it. The probe is
-`curl -s -o /dev/null --noproxy '*' --max-time 2 http://localhost:<port>/`, read by its exit code
+`command curl -s -o /dev/null --noproxy '*' --max-time 2 http://localhost:<port>/`, read by its exit code
 alone:
 
 - **7** — the connection was refused: the port does not answer.
@@ -111,7 +111,7 @@ alone:
   listener that never replies).
 
 Every **GET** below — step 3's readiness poll and step 4's page requests — is
-`curl -sL -o /dev/null -w '%{http_code}' --noproxy '*' --max-time 10 <url>`, read by the status it
+`command curl -sL -o /dev/null -w '%{http_code}' --noproxy '*' --max-time 10 <url>`, read by the status it
 prints: the last response's, since `-L` follows a redirect — `mkdocs serve`, for one, answers §3's
 route, which carries no trailing slash, with a 302 to the same path with one — and `000` where no
 response came. **Every request this check makes carries `--noproxy '*'`**, because each is meant
@@ -124,7 +124,7 @@ Every probe below is the exit-code probe defined first, and it needs no socket t
 cannot run is never read as an answer or as silence**, so the check does not start without its
 tools: before the first boot, confirm that `bash` and `curl` are present and, where
 `test -r /proc/net/tcp` fails — off Linux — that `ps` is too, each tested as
-`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §3 tests a binary, never by a bare
+`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §3 tests a tool run through `bash -c` or as `command <name>`, never by a bare
 `command -v`, which an alias or a shell function of that name passes. Step 2 boots under `bash` and
 reads the process group it made, and step 5 signals that group under `bash` and reads its members
 and a listener's parents: on Linux those reads come from `/proc`, which needs nothing installed, and
@@ -163,7 +163,7 @@ yet checked goes to the manual table. For each server:
    process group of its own**, with this one Bash call:
 
    ```
-   bash -c 'set -m; (cd <docs_repo_path> && <command>) > <log> 2>&1 & echo $!'
+   command bash -c 'set -m; (cd <docs_repo_path> && <command>) > <log> 2>&1 & echo $!'
    ```
 
    `<command>` is the server's `command` with every `{port}` in it replaced by that server's
@@ -172,7 +172,7 @@ yet checked goes to the manual table. For each server:
    file outside every repository tree (`command mktemp -t dw-smoke-XXXXXX` names one), where a server
    that fails to boot leaves its output. Inside the single-quoted script, write each `'` that
    `<command>`, `<docs_repo_path>` or `<log>` carries as `'\''`. **The line runs under an explicit
-   `bash -c`, whatever shell the Bash tool itself uses** — zsh on a default macOS, or `dash`, which
+   `command bash -c`, whatever shell the Bash tool itself uses** — zsh on a default macOS, or `dash`, which
    refuses `set -m` without a terminal and reads `kill -- -<pgid>` as an illegal number — so job
    control, `$!` and step 5's group signals are bash's semantics everywhere; `/bin/bash` ships with
    macOS (3.2), which has all three. `set -m` turns job control on, so the background job leads a
@@ -193,7 +193,7 @@ yet checked goes to the manual table. For each server:
    `profile.dev_servers.readiness_timeout_seconds` seconds elapse (fall back to **120** when the
    field is absent). **At every interval at which the GET gets no response** — it prints `000` —
    **test the group too**, where step 2 holds a `<pgid>`, by step 5's test for a gone group:
-   `bash -c 'kill -0 -- -<pgid>'` fails, or every member of the group is a zombie. **A gone group
+   `command bash -c 'kill -0 -- -<pgid>'` fails, or every member of the group is a zombie. **A gone group
    ends the poll at once**, as `/docs-serve` Phase 5's poll ends: the command exited without its
    port answering — a theme that is not installed, a configuration it cannot load, a script its
    package does not have — and nothing of its group is left to bind the port later, so the check
@@ -216,11 +216,11 @@ yet checked goes to the manual table. For each server:
    §5 gives a 404 and a 5xx their one disposition each.
 5. **Stop the server by signalling its process group** — after its pages and after a readiness
    timeout alike:
-   1. `bash -c 'kill -TERM -- -<pgid>'`; wait up to 5 seconds for the group to be gone; where it
-      is not, `bash -c 'kill -KILL -- -<pgid>'` and wait up to 5 seconds more, since a killed
+   1. `command bash -c 'kill -TERM -- -<pgid>'`; wait up to 5 seconds for the group to be gone; where it
+      is not, `command bash -c 'kill -KILL -- -<pgid>'` and wait up to 5 seconds more, since a killed
       process stays in its group until its parent reaps it.
    2. **Confirm two things:** the group is gone and the port is quiet — the probe no longer finds it
-      answering. **The group is gone** where `bash -c 'kill -0 -- -<pgid>'` fails, **or** where
+      answering. **The group is gone** where `command bash -c 'kill -0 -- -<pgid>'` fails, **or** where
       every member of `<pgid>` is a zombie — the states **Portability** (below) reads for the
       group's members are all `Z`, or on a `ps` all begin with `Z`. A zombie runs nothing and holds
       no port; it has exited, and stays in its group only until its parent reaps it, which a parent
@@ -256,7 +256,7 @@ yet checked goes to the manual table. For each server:
    readiness timeout on a server without a group of its own (step 3), or a probe that cannot run
    (above).
 
-**Portability.** The shell semantics above are bash's, by step 2's and step 5's explicit `bash -c`.
+**Portability.** The shell semantics above are bash's, by step 2's and step 5's explicit `command bash -c`.
 `curl -s -o /dev/null --noproxy '*' --max-time 2`, the GET's
 `curl -sL -o /dev/null -w '%{http_code}' --noproxy '*' --max-time 10`, `awk -v`, and `mktemp -t` —
 which BSD reads as a prefix rather than a template and which still names a fresh file, and whose
@@ -283,7 +283,11 @@ quotes it too: each leaves the target unequal to `socket:[<inode>]`, so the read
 while `lsof` and `ss` name the listener, and nothing in its output says so. An alias on any other
 utility here changes what the read parses the same way. `command` skips aliases and shell
 functions — a POSIX utility, checked in bash, dash and BusyBox's `ash` — and the variable pins GNU
-`ls`'s quoting, which BusyBox's `ls` ignores.
+`ls`'s quoting, which BusyBox's `ls` ignores. **The probe and the GET run `curl` the same way, as
+`command curl`, and every call on a process group runs `bash` as `command bash`**: `command` runs the
+binary `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §3 tested for, where a `bash` function
+of the user's would otherwise answer `kill -0` for a group it never looked at (bash 5.2 and zsh 5.8:
+exit 0 for a gone group, where `command bash` exits 1).
 
 - **The processes holding a listening socket on `<port>`.** On Linux: the rows of `/proc/net/tcp`
   and `/proc/net/tcp6` in state `0A`, listening, whose local port — the four hex digits after the

@@ -5,7 +5,7 @@
 Single source of truth for verifying, before a run writes anything, that the tools its gates invoke
 are actually present.
 
-Consumed by `/document` (both modes) at Phase 0, and by `/docs-init` at Phase 2 step 3 — which **skips §2 entirely** and hands §3 a fixed set of its own (`git`, `python3`/`pip` or `uv`, `mkdocs`, `vale`). All three of §2's sources are empty for it: there is no profile yet, because it is the run that writes the first one; an absent or empty scaffold target carries no config signals; and it documents no `Prerequisites` of its own until this run has written them. It is the one consumer of the preflight that derives nothing. `/docs-serve` runs no preflight, but its Mode dispatch tests its own tools as §3 tests a binary, its Phase 2 takes §2's set-aside of a leading `cd <dir> &&` and `VAR=value` words when it compares a recorded command with a process's command line, and its Phase 4 takes §2's definition of a command's tool, and §3's test for one, before it starts a server. Pairs with
+Consumed by `/document` (both modes) at Phase 0, and by `/docs-init` at Phase 2 step 3 — which **skips §2 entirely** and hands §3 a fixed set of its own (`git`, `python3`/`pip` or `uv`, `mkdocs`, `vale`). All three of §2's sources are empty for it: there is no profile yet, because it is the run that writes the first one; an absent or empty scaffold target carries no config signals; and it documents no `Prerequisites` of its own until this run has written them. It is the one consumer of the preflight that derives nothing. `/docs-serve` runs no preflight, but its Mode dispatch tests its own tools as §3 tests a tool run through `bash -c` or as `command <name>`, its Phase 2 takes §2's set-aside of a leading `cd <dir> &&` and `VAR=value` words when it compares a recorded command with a process's command line, and its Phase 4 takes §2's definition of a command's tool, and §3's test for one, before it starts a server. Pairs with
 `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` — the preflight decides whether to start; the ledger
 records what actually happened. §2, source 2, is also where this plugin says how it runs Vale.
 
@@ -117,7 +117,8 @@ de-duplicate by binary name.
    no builtin, so `command cd` there is a command not found. For the same reason every external
    utility the forms run is `command <name>` — `mktemp`, `vale` and `rm`, whose `rm -i` or `rm -I` alias
    would otherwise ask before removing the directory, be answered no from the Bash tool's empty
-   standard input, and leave the directory behind — and `--` ends `rm`'s options. What neither form makes equal is the
+   standard input, and leave the directory behind — and `--` ends `rm`'s options. So a `vale` that
+   only an alias or a function provides never runs here, which is why §3 tests `vale` as a binary. What neither form makes equal is the
    styles themselves: the packages this machine synced are the versions it synced, and a runner
    syncs its own. **The second form keeps more of the machine than that, and this is its limit.**
    The default StylesPath it keeps is one directory for every project on this machine whose
@@ -147,24 +148,60 @@ sources **2 and 3 only**. It anchored on cwd unconditionally until a live run sh
 
 ## 3. Checking
 
-- Binaries: `command sh -c 'unset -f "$1" 2>/dev/null; command -v "$1"' sh <binary>` — present
-  when it exits 0. **A bare `command -v <binary>` will not do.** Every Bash call runs in the Bash
-  tool's own shell, which carries the user's aliases and shell functions — Claude Code's shell
-  snapshot re-applies them — and `command -v` reports an alias or a function named after the
-  binary, exiting 0 where no such binary is installed. A child `sh` inherits no alias, and its
-  `unset -f` drops a function of the binary's name it may have taken in from the environment: bash,
-  which some hosts install as `sh`, imports exported functions. `command sh` keeps an alias or a
-  function named `sh` out of it too, as `command` keeps them out of the process and socket reads
-  (`docs-profiles/render-verification.md` §2, **Portability**). Checked with bash, dash and BusyBox's
-  `ash` as the calling shell, each given an alias and a function named after an absent tool and
-  bash an exported one as well, and with dash and with bash as the `sh` it starts: the bare form
-  passes every one of them, and this form none, while a present tool shadowed the same way still
-  passes. zsh is not installed here, so it is unchecked there: zsh documents `command` as naming an
-  external command, never a function or a builtin, so `command sh` runs the `sh` binary there as
-  well, but whether zsh expands an alias on the word after `command`, and a global alias
-  (`alias -g`) on the binary's name, which zsh expands in any position, are open.
-  `/docs-serve`'s Mode dispatch and Phase 4, and `/document` Phase 6.5's Steps 1 and 2 with
-  `docs-profiles/render-verification.md` §2, test a binary this way too.
+- **Binaries — each tested by the shell that will run it.** Every Bash call runs in the Bash
+  tool's own shell, bash or zsh, which carries the user's aliases and shell functions — Claude
+  Code's shell snapshot re-applies them — so whether a tool counts as present depends on what runs
+  it. **This is where the plugin says which test a tool takes**, and every tool check in it cites
+  this split: `/docs-serve`'s Mode dispatch and Phase 4, `/document` Phase 6.5's Steps 1 and 2
+  with `docs-profiles/render-verification.md` §1 and §2, `docs-style-checker`'s third rung, and
+  this preflight, `/docs-init`'s included.
+  - **A tool the run starts through an explicit `bash -c`, or runs as `command <name>`** — of
+    those checked for here: `bash`, which runs every call on a process group as
+    `command bash -c`; `curl`, which every probe and request runs as `command curl`; off Linux,
+    `lsof` and `ps`, which the process and socket reads run as `command <name>`
+    (`docs-profiles/render-verification.md` §2, **Portability**); the tool of every
+    `dev_servers.servers[].command`, which `render-verification.md` §2 step 2 and `/docs-serve`
+    Phase 4 start inside an explicit `command bash -c`; and `vale`, which every Vale run in this
+    plugin calls as `command vale` (§2, source 2). Neither runs an alias or a function of the Bash
+    tool's shell, so this test takes neither for the tool:
+    `command sh -c 'unset -f "$1" 2>/dev/null; command -v "$1"' sh <binary>` — present when it
+    exits 0. **A bare `command -v <binary>` will not do**: it reports an alias or a function named
+    after the binary, exiting 0 where no such binary is installed. A child `sh` inherits no alias,
+    and its `unset -f` drops a function of the binary's name it may have taken in from the
+    environment: bash, which some hosts install as `sh`, imports exported functions. `command sh`
+    keeps an alias or a function named `sh` out of it too, as `command` keeps them out of the
+    process and socket reads. A bash function the user exported does reach a child `bash`, and
+    this test does not count it. Checked with bash, dash and BusyBox's `ash` as the calling shell,
+    each given an alias and a function named after an absent tool and bash an exported one as
+    well, and with dash and with bash as the `sh` it starts: the bare form passes every one of
+    them, and this form none, while a present tool shadowed the same way still passes. zsh 5.8, as
+    the calling shell, passes neither an alias nor a function named after the tool or after `sh`,
+    since it expands no alias on the word after `command`; a global alias (`alias -g`) on either
+    name, which zsh expands in any position, defeats it, and macOS's zsh 5.9 is unchecked.
+  - **Every other tool, which a gate runs in the Bash tool's own shell** — the tool of every
+    `commands.*` and `builds[].command` value (`/document` Phase 6.5 Step 1's builds,
+    `docs-style-checker`'s lint rungs), the tools §2's other signals imply — a lockfile's package
+    manager, `markdownlint`, `remark` — and `/docs-init`'s `git`, `python3`, `pip` or `uv`, and
+    `mkdocs` — is present where that shell would run it: a binary on `PATH`, a shell function, or
+    an alias whose first word is itself present by this test, to one level:
+    `( w=$(command -v <tool>) && case $w in "alias "*) w=${w#*=}; w=${w#\'}; w=${w%%[[:space:]]*}; w=${w%\'}; command -v "$w" >/dev/null ;; esac )`
+    — present when it exits 0. In that shell `command -v` prints a binary's path, a function's
+    name, or an alias's definition, `alias <tool>=<value>`, in bash and zsh alike; for an alias the
+    form takes the first word of `<value>` and asks once more, and never follows that word through
+    a second alias. An alias whose first word cannot be found is not present by it. A dangling
+    alias it passes — one whose first word is another alias, say — still fails when the gate runs
+    it, and the gate records that failure as it records any environmental failure.
+  - **A tool both kinds run** — a package manager whose builds run in the Bash tool's own shell
+    and whose dev servers start inside `command bash -c` — takes both tests, each for the gates
+    its own commands power; where the two disagree, the `toolchain` block carries a row for each
+    (§4).
+
+  Checked with bash 5.2, with `expand_aliases` on as the snapshot sets it, and with zsh 5.8, each
+  as the Bash tool's shell and given an alias-provided `vale` and `mkdocs` and a lazy-loading
+  `pnpm` function with neither binary on `PATH`: the first test reads all three missing and the
+  second present, and the gates agree — `pnpm run build`, `pnpm docs:lint` and `mkdocs build`
+  run in that shell, while the Vale form's `command vale` exits 127 and a dev server booted
+  through `command bash -c` finds neither `pnpm` nor `mkdocs`.
 - **A tool containing `/` is a path, not a name** — `node_modules/.bin/vitepress`, a form a
   profile may record for a dev-server command. `command -v` resolves a name containing `/` against
   the directory it runs in, and that is the session's directory, which need not be the docs
@@ -211,6 +248,13 @@ the tool of a command `build_check` runs — a `builds[].command`, `commands.bui
 registered fallback** — the Step 2 dev-server boot that stands in for a build that will not run
 (`gate-ledger.md` §4) — so each of them carries `fallback_for: [build_check]`. A tool with an empty
 `required_by` is reported but never blocks.
+
+A tool §3 tests both ways — one a build or lint command and a dev-server command both run — takes
+one row where the two tests agree, and two where they do not: a `present` row whose `required_by`
+names the gates its build and lint commands power, and a `missing` row carrying the gates its dev
+servers power — `render_smoke_check` in `required_by`, `build_check` in `fallback_for`. So a
+`pnpm` that only a shell function provides predicts `render_smoke_check` `DEGRADED`, and leaves
+the builds it runs to run.
 
 ## 5. Reporting and the prompt
 

@@ -96,7 +96,9 @@ A preflight that prompts on a healthy container becomes one more thing to click 
 way the Phase 6.4 gate died.
 
 When one or more required tools are **missing**, print the `toolchain` rows (missing first), then the
-consequence — each affected gate and the outcome it will record — then ask:
+consequence — each affected gate and the outcome it will record: `DEGRADED` where the gate's
+registered fallback (`gate-ledger.md` §4) still runs without the missing tool, and `UNAVAILABLE`
+where neither the primary nor the fallback can (`gate-ledger.md` §2) — then ask:
 
 ```
 choices: ["Cancel — re-run in the docs container (Recommended)", "Continue anyway — record the degraded gates"]
@@ -106,7 +108,9 @@ Example consequence line:
 
 > With `vale` and `pnpm` missing, this run would record `style_check` **DEGRADED** (only
 > `prose-style-checker` runs — the repo's own linter, the one CI will run on your PR, would not),
-> `build_check` **UNAVAILABLE**, and `render_smoke_check` **UNAVAILABLE**.
+> `build_check` **UNAVAILABLE** (its fallback, the dev-server boot, runs `pnpm` too), and
+> `render_smoke_check` **DEGRADED** (no server boots, and every affected page goes to the manual
+> pages-to-visit table, the fallback that needs no tool).
 
 - **"Cancel"** → stop the run. Nothing has been written.
 - **"Continue anyway"** → for each gate named in the consequence line, **pre-seed** its ledger row's

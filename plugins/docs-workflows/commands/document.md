@@ -791,7 +791,7 @@ Outcomes:
 - **5xx** on an affected page = render defect → treat as a Step 1 content failure (offer `doc-fixer` / surface): a server error is not a routing question.
 - A **boot / prerequisite / readiness** problem is best-effort → never blocks; that space falls back to the manual table — on a space with two servers, that server's pages — unless it is one of the endings below.
 - A port that **answers before its server boots** (step 2), a server step 5 **cannot confirm stopped** — its port still answers or its process group still runs — and a **readiness timeout on a server without a process group of its own** (step 3) each end the smoke-check → never blocks; every page not yet checked falls back to the manual table, and the record names the port or process group left running and its command.
-- A check that **cannot run** — `bash`, `curl` or `ps` is not installed, or a probe exits 127 — ends the smoke-check too → never blocks; every page not yet checked falls back to the manual table, the record names the tool, and `render_smoke_check` records `UNAVAILABLE` (Ledger (final)).
+- A check that **cannot run** — `bash`, `curl` or `ps` is not installed, or a probe exits 127 — ends the smoke-check too → never blocks; every page not yet checked falls back to the manual table, the record names the tool, and `render_smoke_check` records `DEGRADED` (Ledger (final)).
 
 ### Step 3 — "Pages to visit" table (always)
 
@@ -823,12 +823,15 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
   failure / readiness timeout / servers nothing tells apart / no server recorded / the check stopped
   because a port answered before its boot, a server could not be confirmed stopped, or a server
   without a process group of its own timed out — naming the port or process group left running and
-  its command);
-  `UNAVAILABLE` when the check could not run because `bash`, `curl` or `ps` could not (Step 2) — naming the
-  tool — converted per `gate-ledger.md` §5, except where Phase 0's preflight already pre-seeded this
-  row with a `user_decision` naming the same missing tool: that answer stands, so record the reason,
-  keep the row `SKIPPED_BY_USER` with that decision, and do not ask again;
+  its command / the check could not run because `bash`, `curl` or `ps` could not (Step 2) — naming
+  the tool), and with a `ci_still_checks:` line naming the build CI runs on the pull request where
+  the repository has one, never a claim that CI renders these pages;
   `SKIPPED_BY_USER` with the chosen option quoted verbatim when the user selected Skip.
+  Each reason `DEGRADED` lists falls back to the manual table, and that table is this gate's
+  registered fallback (`gate-ledger.md` §4), which Step 3 always emits and which needs no tool — so
+  `render_smoke_check` never records `UNAVAILABLE`, and no ending of it asks the `gate-ledger.md` §5
+  conversion. A `user_decision` Phase 0's preflight pre-seeded on this row stays on it (this phase's
+  opening paragraph).
 
 ---
 

@@ -35,7 +35,10 @@ de-duplicate by binary name.
    cannot run without any of them (`docs-profiles/render-verification.md` §2). Add every entry in
    `profile.prerequisites` as a named prerequisite (these are prose, not binaries — record them for
    reporting, and check them only when the prose names a checkable path or binary).
-2. **Repo config signals**, checked at `repo_root`:
+2. **Repo config signals**, checked at `repo_root` — and, where the caller resolved the site to a
+   directory below it, in that directory as well: `/document` keyed mode passes `docs_repo_resolved`
+   (its Phase 0 step 2). A monorepo's site keeps its `.vale.ini`, lockfile and lint configuration
+   beside itself, not at the top level, and a signal found in either directory implies its tool:
 
    | Signal file | Implies |
    |---|---|
@@ -46,8 +49,9 @@ de-duplicate by binary name.
    | `.markdownlint.json` / `.markdownlint.jsonc` | `markdownlint` |
    | `.remarkrc*` | `remark` |
 
-   Separately, when any lockfile is present, check `node_modules/` as an **installed-dependencies**
-   signal. A present `pnpm` with absent dependencies fails just as completely as a missing `pnpm`.
+   Separately, when any lockfile is present, check `node_modules/` beside it as an
+   **installed-dependencies** signal. A present `pnpm` with absent dependencies fails just as
+   completely as a missing `pnpm`.
 3. **The repo's documented prerequisites.** Grep `repo_root`'s `CONTRIBUTING.md`, `CONTRIBUTION.md`,
    and `README.md` for a heading matching `Prerequisites` (case-insensitive) and read that section.
    Best-effort: extract named tools and minimum versions where stated. Nothing found ⇒ contribute

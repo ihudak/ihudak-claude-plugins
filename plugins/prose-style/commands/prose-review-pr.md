@@ -135,9 +135,11 @@ Collect the violation report, including its `rules_source` field.
 
 ### 6. Run Vale (optional)
 
-Find the `.vale.ini`: `<repo_path>/.vale.ini`, else `<repo_root>/.vale.ini`, where `<repo_root>` is
-what `git -C <repo_path> rev-parse --show-toplevel` prints. The first that exists is the one Vale
-must read, and `<vale_root>` is the directory holding it. If there is one:
+Find the `.vale.ini`: look in `<repo_path>` and then in each directory above it up to
+`<repo_root>`, the nearest first, where `<repo_root>` is what
+`git -C <repo_path> rev-parse --show-toplevel` prints — the order Vale's own search takes, climbing
+from the directory it runs in. The first that exists is the one Vale must read, and `<vale_root>`
+is the directory holding it. If there is one:
 
 ```bash
 which vale 2>/dev/null || echo "NOT_INSTALLED"
@@ -150,11 +152,14 @@ in one Bash call:
 (cd "<vale_root>" && vale --output=line <file1> <file2> ... 2>&1)
 ```
 
-Vale reads the `.vale.ini` it finds from the directory it runs in, and this command's shell stands
-wherever the session does — which is what `--repo` exists to differ from. Run from anywhere else,
-Vale stops with `E100 [.vale.ini not found]`, or lints the files under another repository's rules.
-The subshell keeps the `cd` to this one call, and the file paths are step 4's absolute ones, so they
-resolve from `<vale_root>` too.
+Vale looks for its `.vale.ini` in the directory it runs in and then in each directory above it,
+uses the first it finds, and never looks beside the files; this command's shell stands wherever the
+session does — which is what `--repo` exists to differ from. Run from `<vale_root>`, Vale reads its
+`.vale.ini`. Run from a directory outside `<vale_root>`'s tree — the session's, say — it reads the
+first `.vale.ini` at or above that directory instead, which may be another repository's; where
+there is none, it uses the user's global configuration, or, without one, stops with
+`E100 [.vale.ini not found]`. The subshell keeps the `cd` to this one call, and the file paths are
+step 4's absolute ones, so they resolve from `<vale_root>` too.
 
 Collect Vale findings separately. If Vale is not installed, note:
 "Vale is not installed — skipping automated linting. Style check is based on

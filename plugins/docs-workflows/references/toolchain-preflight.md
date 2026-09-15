@@ -44,12 +44,14 @@ de-duplicate by binary name.
    `profile.prerequisites` as a named prerequisite (these are prose, not binaries — record them for
    reporting, and check them only when the prose names a checkable path or binary).
 2. **Repo config signals**, checked at `repo_root` — and, where the caller resolved the site to a
-   directory below it, in that directory as well: `/document` keyed mode passes `docs_repo_resolved`
-   (its Phase 0 step 2), and direct mode the `site_root` its own Phase 0 step 3 resolves. A
-   monorepo's site keeps its `.vale.ini`, lockfile and lint configuration beside itself, not at the
-   top level. A signal found in either directory implies its tool, and so
-   does a lockfile in any directory a profile command's leading `cd <dir>` names (source 1), taken
-   relative to `repo_root` — that is where the command runs its tool:
+   directory below it, in every directory from that one up to `repo_root`: `/document` keyed mode
+   passes `docs_repo_resolved` (its Phase 0 step 2), and direct mode the `site_root` its own Phase 0
+   step 3 resolves. A monorepo's site keeps its `.vale.ini`, lockfile and lint configuration beside
+   itself or in a directory above it, not necessarily at the top level — a site directory of
+   `website/docs` finds `website/.vale.ini` one level up, as Vale's own search, which climbs from the
+   directory Vale runs in, finds it. A signal found in any of those directories implies its tool,
+   and so does a lockfile in any directory a profile command's leading `cd <dir>` names (source 1),
+   taken relative to `repo_root` — that is where the command runs its tool:
 
    | Signal file | Implies |
    |---|---|

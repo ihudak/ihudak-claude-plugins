@@ -100,10 +100,13 @@ once per such directory where the files sit under different ones, each over its 
 (cd "<the directory holding the .vale.ini>" && vale --output=line <file1> <file2> ... 2>&1)
 ```
 
-Vale reads the `.vale.ini` it finds from the directory it runs in, not from the files'
-location, and this command's shell stands wherever the session does. Run from anywhere else,
-Vale stops with `E100 [.vale.ini not found]` or lints the files under another repository's
-rules. The file paths are step 2's absolute ones, so they resolve from that directory too.
+Vale looks for its `.vale.ini` in the directory it runs in and then in each directory above it,
+uses the first it finds, and never looks beside the files; this command's shell stands wherever the
+session does. Run from the directory holding that `.vale.ini`, Vale reads it. Run from a directory
+outside that one's tree — the session's, say — it reads the first `.vale.ini` at or above that
+directory instead, which may be another repository's; where there is none, it uses the user's
+global configuration, or, without one, stops with `E100 [.vale.ini not found]`. The file paths are
+step 2's absolute ones, so they resolve from that directory too.
 
 Collect Vale findings. Merge with prose-style-checker results, deduplicating where
 both flag the same line for the same issue.

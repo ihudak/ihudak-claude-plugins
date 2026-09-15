@@ -89,40 +89,76 @@ each server:
 2. **Probe the server's `port` before booting it.** Where it already answers, something this run did
    not start holds it: boot nothing there, signal nothing, and **boot no further server** — record
    "smoke-check stopped at `<space>`: port `<port>` was answering before its server booted", and
-   every page not yet checked falls back to the manual table (§5). Otherwise boot the server's
-   `command` in the background, with every `{port}` in it replaced by that server's configured
-   `port` — never run with the token unsubstituted, and never rewritten anywhere else
-   (`docs-profile-schema.md`'s field rule for `dev_servers.servers[].command`) — and hold whatever
-   pid the start returns, where it returns one. That pid is usually a wrapper's — the Bash tool's
-   shell, an `npm` or `pnpm` script — whose child holds the port and outlives it, so it is step 5's
-   fallback, never its first choice.
+   every page not yet checked falls back to the manual table (§5). Otherwise **boot the server in a
+   process group of its own**, with this one Bash call:
+
+   ```
+   set -m; (cd <docs_repo_path> && <command>) > <log> 2>&1 & echo $!
+   ```
+
+   `<command>` is the server's `command` with every `{port}` in it replaced by that server's
+   configured `port` — never run with the token unsubstituted, and never rewritten anywhere else
+   (`docs-profile-schema.md`'s field rule for `dev_servers.servers[].command`) — and `<log>` is a
+   file outside every repository tree (`mktemp -t dw-smoke-XXXX.log` names one), where a server
+   that fails to boot leaves its output. `set -m` turns job control on, so the background job
+   leads a new process group whose id is the pid `echo` prints, and every wrapper and child the
+   command spawns — an `npm` or `pnpm` script, the `sh` it runs, the server itself — inherits that
+   group, unless one leaves it for a session of its own — step 5 meets that one only by a port it
+   already holds. The job outlives the call, which returns as soon as the pid is printed. **Then
+   confirm the group:** `ps -o pgid= -p <pid>` prints `<pid>` — or nothing, where the job has
+   already exited, and the id still names whatever of it survives. That `<pid>` is the `<pgid>`
+   step 5 signals. Where it prints any other number, job control gave the job no group of its own:
+   hold the pid alone, and step 5 stops it by its path for a server without a group.
 3. Readiness poll: GET `http://localhost:<port><base_path>/`, that server's own, until HTTP 200 or
    `profile.dev_servers.readiness_timeout_seconds` seconds elapse (fall back to **120** when the
-   field is absent). **Once the port answers, read its listener's pid from the socket table**, as
-   `/docs-serve` Phase 5 does, by the definition in `${CLAUDE_PLUGIN_ROOT}/commands/docs-serve.md`
-   Phase 2, **The evidence**, item 1's opening paragraph: `lsof`, else `ss`; where several processes
-   are named, the one the others descend from; where neither tool is present, or the one present
-   names nothing, no listener is named. That definition is all that carries over. Not its
-   **Checkout first** test — this run started the server itself, on a port step 2 found silent, so
-   whatever now holds that port is this run's — and not its Phase 7 living-entry test, which judges a
-   pid recorded in a state file: this command keeps none, and the pid it reads here is used once, by
-   step 5 of this same boot, and never recorded. On a timeout, stop the server as step 5 says — the
-   signal, then the probe — and record "smoke-check skipped for `<space>`: not ready".
+   field is absent). On a timeout, stop the server as step 5 says. Where step 5 confirms it stopped,
+   record "smoke-check skipped for `<space>`: not ready", its pages fall back to the manual table
+   (§5), and the check goes on to the next server: nothing of the group survives to bind the port
+   later. Where step 5 cannot confirm it, step 5's record ends the check. **A server without a group
+   of its own ends the check on a timeout**, because nothing can tell whether a process of it will
+   bind the port after the check has moved on: stop what the run holds as step 5 says, then **boot no
+   further server** — record "smoke-check stopped at `<space>`: not ready, and started without a
+   process group of its own — port `<port>` may still bind; its command was `<command>`", and every
+   page not yet checked falls back to the manual table (§5).
 4. For each affected page assigned to this server, GET its derived URL (§3): HTTP 200 passes, and
    §5 gives a 404 and a 5xx their one disposition each.
-5. **Stop the server by its listener's pid** — or, where step 3 named no listener, by the pid step 2
-   holds, where it holds one: `SIGTERM` it, wait up to 5 seconds for the port to stop answering, and
-   `SIGKILL` the same pid if it still answers. **Then probe the port** — the probe, not the signal,
-   decides whether the server stopped. Where the port no longer answers, boot the next server. Where
-   it still answers — a wrapper's child that outlived the pid signalled, or a server something
-   restarted — **boot no further server**: record "smoke-check stopped after `<space>`: port
-   `<port>` still answers — left running", with its listener's pid where the socket table names one,
-   and every page not yet checked falls back to the manual table (§5). A missing socket tool alone
-   never ends the check; only a port that answers when it should be silent does — here, or before a
-   boot (step 2).
+5. **Stop the server by signalling its process group** — after its pages and after a readiness
+   timeout alike:
+   1. `kill -TERM -- -<pgid>`; wait up to 5 seconds for the group to be gone; where it is not,
+      `kill -KILL -- -<pgid>` and wait up to 5 seconds more, since a killed process stays in its
+      group until its parent reaps it.
+   2. **Confirm two things:** the group is gone — `kill -0 -- -<pgid>` fails — and the port is
+      quiet — the probe no longer finds it answering.
+   3. **Both confirmed** — the next server may boot.
+   4. **Either not confirmed** — where the port still answers, a process outside the group holds it
+      (one that left for a session of its own, or a server something restarted): read its listener's
+      pid from the socket table, as `/docs-serve` Phase 5 does, by the definition in
+      `${CLAUDE_PLUGIN_ROOT}/commands/docs-serve.md` Phase 2, **The evidence**, item 1's opening
+      paragraph — `lsof`, else `ss`; where several processes are named, the one the others descend
+      from; where neither tool is present, or the one present names nothing, no listener is named —
+      then `SIGTERM` it, wait up to 5 seconds for the port to stop answering, `SIGKILL` it if it still
+      answers, and confirm both things again. That definition is all that carries over. Not its
+      **Checkout first** test — this run started the server itself, on a port step 2 found silent, so
+      whatever now holds that port is this run's — and not its Phase 7 living-entry test, which
+      judges a pid recorded in a state file: this command keeps none, and the pid it reads here is
+      used once, by this stop, and never recorded. Where either is still not confirmed, **boot no
+      further server**: record "smoke-check stopped after `<space>`: `<what>` — left running; its
+      command was `<command>`", where `<what>` is "port `<port>` still answers", with the listener's
+      pid where the socket table names one, or "process group `<pgid>` still runs", and every page
+      not yet checked falls back to the manual table (§5).
 
-Never run two servers at once: the next server boots only once the probe has found the last one's
-port silent. Where a space has two servers, every record this file names for `<space>` names the
+   **A server without a group of its own** (step 2) is stopped by what the run holds: `SIGTERM` the
+   pid step 2 holds and, where the port answers, its listener, read as above; wait up to 5 seconds
+   for the port to stop answering; `SIGKILL` both if it still answers. Then the probe decides: where
+   the port is quiet, the next server may boot — unless this stop followed a timeout, which ends the
+   check (step 3); where it still answers, boot no further server, recorded as above.
+
+   A missing socket tool alone never ends the check. What ends it is a port that answers when it
+   should be silent — before a boot (step 2) or after the stop — a group that will not go, or a
+   readiness timeout on a server without a group of its own (step 3).
+
+Never run two servers at once: the next server boots only once step 5 has confirmed the last one
+stopped. Where a space has two servers, every record this file names for `<space>` names the
 server as well — `docs (internal)`.
 
 ## 3. Route derivation
@@ -149,14 +185,16 @@ prerequisite `<x>` unmet" and use the manual table for that space.
 
 ## 5. Graceful fallback and the pages-to-visit table
 
-The smoke-check is best-effort. Any prerequisite-unmet, boot-failure, or
+The smoke-check is best-effort. A prerequisite-unmet, boot-failure, or
 readiness-timeout outcome is recorded with its reason and falls back to the
 manual table for that space — on a space with two servers, for that server's
-pages — and it never blocks the run. A port that answers before its server
-boots, or still answers after the stop (§2 steps 2 and 5), ends the
-smoke-check rather than one space's part of it: every page not yet checked
-falls back to the manual table, and the record names the port left running —
-it never blocks the run either.
+pages — and it never blocks the run. Three outcomes end the smoke-check rather
+than one space's part of it: a port that answers before its server boots (§2
+step 2), a server §2 step 5 cannot confirm stopped — its port still answers, or
+its process group still runs — and a readiness timeout on a server started
+without a process group of its own (§2 step 3). Every page not yet checked then
+falls back to the manual table, and the record names the port or process group
+left running and its command — it never blocks the run either.
 
 A 404 and a 5xx on an affected page are both surfaced, never silently dropped,
 and each has exactly one disposition:

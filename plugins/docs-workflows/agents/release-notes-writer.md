@@ -78,7 +78,7 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
 
 6. **Build the authored body, shaped by the destination (§3, §4):**
    - **`fixes`** — render **one self-contained past-tense sentence**: symptom + resolution, per §4
-     Fixes. NO the category label line, NO `###` title, NO keey. Skip the remaining bullets in this
+     Fixes. NO category label line, NO `###` title, NO key. Skip the remaining bullets in this
      step; they apply only to the titled shapes.
    - **Context label** (titled shapes only) — the value resolved in step 2, rendered verbatim. When it
      is null, omit the line.

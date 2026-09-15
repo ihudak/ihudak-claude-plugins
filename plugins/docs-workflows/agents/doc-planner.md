@@ -145,7 +145,7 @@ checklist:
         sources: [<key | PR URL>, ...]
         notes:   <optional 1-line guidance for the writer>
     frontmatter_updates:
-      changelog: {action: append, entry: "<YYYY-MM-DD> <customer-readable 1-line summary; NO keey>"}
+      changelog: {action: append, entry: "<YYYY-MM-DD> <customer-readable 1-line summary; NO key>"}
       other:     {<field>: <value>, ...}   # only fields needing change
     snippets:
       reuse:   [<relative snippet path>]

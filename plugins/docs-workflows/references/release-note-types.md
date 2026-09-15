@@ -9,7 +9,7 @@ the per-section prose rules, the deprecation-note rule, and Change Type sourcing
 the documentation-link rule) but never re-derives the writer's decision; the agent applies it and returns a proposed
 destination plus any gaps.
 
-The Change Type is a **field on the PRD, inferred where the PRD does not carry one, and confirmed where that inference is uncertain** (§7). It is never written into the draft
+The Change Type is a **field on the PRD, inferred where the PRD does not carry a routable one, and confirmed where that inference is uncertain** (§7). It is never written into the draft
 and never collected as a field — the agent resolves it only to pick the destination and the shape.
 
 ## 1. The section map

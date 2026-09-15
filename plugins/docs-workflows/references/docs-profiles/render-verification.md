@@ -124,9 +124,10 @@ Every probe below is the exit-code probe defined first, and it needs no socket t
 cannot run is never read as an answer or as silence**, so the check does not start without its
 tools: before the first boot, confirm that `bash` and `curl` are present and, where
 `test -r /proc/net/tcp` fails — off Linux — that `ps` is too, each tested as
-`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §3 tests a tool run through `bash -c` or as `command <name>`, never by a bare
-`command -v`, which an alias or a shell function of that name passes. Step 2 boots under `bash` and
-reads the process group it made, and step 5 signals that group under `bash` and reads its members
+`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §3 tests a tool run through `bash -c` or
+as `command <name>`, never by a bare `command -v`, which an alias or a shell function of that name
+passes. Step 2 boots under `bash` and reads the process group it made, and step 5 signals that
+group under `bash` and reads its members
 and a listener's parents: on Linux those reads come from `/proc`, which needs nothing installed, and
 elsewhere from `ps` (**Portability**, below, defines each). Where one is missing, boot nothing, record "smoke-check unavailable: `<tool>` is not installed", and every page goes
 to the manual table (§5); `/document` Phase 6.5 records that on `render_smoke_check` as `DEGRADED`,
@@ -173,10 +174,10 @@ yet checked goes to the manual table. For each server:
    file outside every repository tree (`command mktemp -t dw-smoke-XXXXXX` names one), where a server
    that fails to boot leaves its output. Inside the single-quoted script, write each `'` that
    `<command>`, `<docs_repo_path>` or `<log>` carries as `'\''`. **The line runs under an explicit
-   `command bash -c`, whatever shell the Bash tool itself uses** — zsh on a default macOS, or `dash`, which
-   refuses `set -m` without a terminal and reads `kill -- -<pgid>` as an illegal number — so job
-   control, `$!` and step 5's group signals are bash's semantics everywhere; `/bin/bash` ships with
-   macOS (3.2), which has all three. `set -m` turns job control on, so the background job leads a
+   `command bash -c`, whatever shell the Bash tool itself uses** — Claude Code runs that tool in
+   bash or in zsh, zsh on a default macOS — so job control, `$!` and step 5's group signals are
+   bash's semantics everywhere; `/bin/bash` ships with macOS (3.2), which has all three. `set -m`
+   turns job control on, so the background job leads a
    new process group whose id is the pid `echo` prints, and every wrapper and child the command
    spawns — an `npm` or `pnpm` script, the `sh` it runs, the server itself — inherits that
    group, unless one leaves it for a session of its own — step 5 meets that one only by a port it
@@ -254,8 +255,6 @@ yet checked goes to the manual table. For each server:
    the port is quiet, the next server may boot — unless this stop followed a timeout, which ends the
    check (step 3); where it still answers, boot no further server, recorded as above.
 
-   A missing `lsof` alone never ends the check. What ends it is a port that answers when it
-   should be silent — before a boot (step 2) or after the stop — a group that will not go, a
    **A server's `<log>` goes once the server is confirmed stopped.** Wherever step 5's two things
    are confirmed — after its pages, after a readiness timeout, or after step 3 found its group gone
    — and wherever a server without a group of its own is stopped with its port quiet and no timeout
@@ -265,6 +264,8 @@ yet checked goes to the manual table. For each server:
    running, one without a group of its own that timed out, or one it signalled when `curl` could not
    run — keeps its log, and the record that ends the check names it.
 
+   A missing `lsof` alone never ends the check. What ends it is a port that answers when it
+   should be silent — before a boot (step 2) or after the stop — a group that will not go, a
    readiness timeout on a server without a group of its own (step 3), or a probe that cannot run
    (above).
 

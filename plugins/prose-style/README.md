@@ -55,7 +55,9 @@ stops there:
 caller that checks a copy of a file kept outside its repository, as `/release-notes` does
 with its draft, names the repository the file belongs to — and otherwise
 `git rev-parse --show-toplevel` for the files being checked, falling back to the working
-directory's repository, falling back to no repo-local overlay.
+directory's repository, falling back to no repo-local overlay. The checker's output echoes
+the `<repo-root>` it took as `repo_root`, so a caller that named one can tell its input was
+honoured; the input and the echo arrived together, in 0.4.0.
 
 **Every miss is a silent, non-blocking fallback.** A missing `.prose-style/` directory,
 an unset `$PROSE_STYLE_PATH`, an unreadable path, a directory with no markdown in it —

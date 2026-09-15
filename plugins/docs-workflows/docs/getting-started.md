@@ -16,7 +16,7 @@ claude plugin marketplace add ihudak/ihudak-claude-plugins
 claude plugin install docs-workflows@ihudak-plugins
 ```
 
-Two other plugins arrive with it, because they are **declared dependencies** rather than suggestions. `workflows-core` carries the shared reference corpus every command here loads at runtime — an unsatisfied dependency disables the plugin instead of letting it half-run, which is the intended behaviour: there is no degraded mode to fall back to. `prose-style` is the complementary semantic prose pass the style check runs alongside a repo's own linter, and the fallback linter when a repository configures none.
+Two other plugins arrive with it, because they are **declared dependencies** rather than suggestions. `workflows-core` carries the shared reference corpus every command here loads at runtime — an unsatisfied dependency disables the plugin instead of letting it half-run, which is the intended behaviour: there is no degraded mode to fall back to. `prose-style` is the complementary semantic prose pass the style check runs alongside a repo's own linter, and the fallback linter when a repository configures none. It is declared at `>=0.4.0`, the release whose checker takes the repository `/release-notes` names for its rules, so Claude Code installs a current one and disables this plugin with `dependency-version-unsatisfied` beside an older one, until `prose-style` is updated.
 
 **What you do not need.** The companion `dev-workflows` pipeline plugin is not a dependency in either direction. `/document` and `/release-notes` read a folder in a specs tree; whether the plugin that authored that folder is installed on *your* machine makes no difference. Install it if you also author PRDs, specifications and designs.
 
@@ -27,9 +27,10 @@ Two other plugins arrive with it, because they are **declared dependencies** rat
 ```bash
 claude plugin marketplace update ihudak-plugins
 claude plugin update docs-workflows@ihudak-plugins
+claude plugin update prose-style@ihudak-plugins
 ```
 
-**Both steps are needed, and the second is the one that changes what runs.** `marketplace update` refreshes the catalogue — what the marketplace advertises — while an already-installed plugin stays at the version you installed. `claude plugin update` upgrades it, and **requires restarting Claude Code to apply.** The interactive `/plugins` interface does the same with a picker. This page used to say the first line alone was enough; it is not, and the symptom is quiet — `claude plugins list` keeps reporting the old version while the catalogue advertises the new one.
+**Both kinds of step are needed, and the `plugin update` lines are the ones that change what runs.** `marketplace update` refreshes the catalogue — what the marketplace advertises — while an already-installed plugin stays at the version you installed. `claude plugin update` upgrades it, and **requires restarting Claude Code to apply.** The interactive `/plugins` interface does the same with a picker. This page used to say the first line alone was enough; it is not, and the symptom is quiet — `claude plugins list` keeps reporting the old version while the catalogue advertises the new one. **Update `prose-style` with it**: this plugin declares it at `>=0.4.0`, and a `prose-style` left at an older version disables this plugin at its next load.
 
 ## What you set on your machine
 

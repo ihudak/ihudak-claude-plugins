@@ -116,6 +116,7 @@ overlay resolved either — return:
 status: ERROR
 checker: prose-style
 rules_source: none
+repo_root: <as step 6 defines it>
 violations: []
 error: "No rule set available: ${CLAUDE_PLUGIN_ROOT}/references/ is missing or empty and no overlay resolved."
 ```
@@ -171,6 +172,7 @@ status:         OK | VIOLATIONS_FOUND | ERROR
 checker:        prose-style
 checker_source: prose-style-checker
 rules_source:   baseline | overlay:<absolute path> | none
+repo_root:      <absolute path>
 violations:     [<array of violation records>]
 error:          <only when status == ERROR: one-line reason>
 ```
@@ -178,6 +180,12 @@ error:          <only when status == ERROR: one-line reason>
 The `checker_source` field lets consumers distinguish this output from
 `docs-style-checker` (which returns `linter:` instead). Both checkers share the same
 violation schema.
+
+`repo_root` echoes the `<repo-root>` step 1b took for order 2: the caller's `repo_root`
+input verbatim where it supplied one, else the one step 1b derived, rung c's directory
+included. Always return it. It is how a caller that handed `repo_root` knows its input was
+honoured: a checker from before this input existed ignores the input and returns no such
+field.
 
 - `status: OK` — all files checked, zero violations found.
 - `status: VIOLATIONS_FOUND` — at least one violation found.

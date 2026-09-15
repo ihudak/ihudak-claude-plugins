@@ -25,6 +25,10 @@ Resolve the builds to run, most specific first — the precedence `/docs-serve -
    exist, and an earlier version of this file wrongly claimed the repo had only `commands.lint` and
    the `*:start` servers, which disabled this gate entirely.
 
+Every build runs from `<docs_repo_path>` — the docs repository's git top level (`/document` Phase 0
+step 2), which is where every command the profile records runs (`docs-profile-schema.md`, **Where
+the profile lives**) — and so does every dev-server command §2 boots.
+
 **Each build is recorded on its own**, named by its `builds[]` `id` — or, at rung 2, by its space —
 with its command, its exit code and, where it failed, its output. A failure therefore names the build
 that failed, and the `doc-fixer` loop a content failure triggers (`/document` Phase 6.5 Step 1) is

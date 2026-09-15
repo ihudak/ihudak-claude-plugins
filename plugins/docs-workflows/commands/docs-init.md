@@ -26,7 +26,7 @@ Scaffold a documentation repository: $ARGUMENTS
 
 3. **The target must be somewhere this command may write.** Three cases, tested in this order:
 
-   - **A git work tree** — `git -C <target> rev-parse --is-inside-work-tree` prints `true`. Record its root (`git -C <target> rev-parse --show-toplevel`); every later read and write in this run is relative to that root. `test -w <root>` must succeed, or stop: `DOCS_INIT_TARGET_NOT_WRITEABLE: <root> is not writeable.`
+   - **A git work tree** — `git -C <target> rev-parse --is-inside-work-tree` prints `true`. Record its root (`git -C <target> rev-parse --show-toplevel`); every later read and write in this run is relative to that root. **That root must be `<target>` itself**: `git -C <target> rev-parse --show-prefix` prints an empty line at a work tree's top level and the target's path below it otherwise, and a non-empty answer stops: `DOCS_INIT_TARGET_BELOW_TOPLEVEL: <target> is inside the git work tree <root>, below its top level (<the prefix>). /docs-init scaffolds a work tree's top level: the profile it writes lives there (docs-profile-schema.md, Where the profile lives), and so do the CI workflow and every other path the scaffold fixes. Re-run against <root> to scaffold there, or against a directory outside this work tree.` Scaffolding `<root>` in the target's place would write where the operator did not point, and scaffolding inside `<target>` would mean re-rooting every path `scaffold-tree.md` fixes below the top level while the CI workflow stays at it, since a forge reads workflows only there — this command does neither. `test -w <root>` must succeed, or stop: `DOCS_INIT_TARGET_NOT_WRITEABLE: <root> is not writeable.`
    - **Absent, or an empty directory** — offer to create and initialise it:
      ```
      "<target> is <absent | empty>. /docs-init needs a git work tree to scaffold into."
@@ -139,7 +139,7 @@ Unless `--no-brand`, run `/docs-workflows:docs-brand --inline` over the reposito
 
 ## Phase 6 — Profile
 
-Write `.dev-workflows/docs-profile.yml` in the resolved root, conforming to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`. That file fixes every field and its rules; what this phase fixes is the shape a scaffolded repository takes.
+Write `.dev-workflows/docs-profile.yml` in the resolved root, conforming to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`. That file fixes every field and its rules; what this phase fixes is the shape a scaffolded repository takes. The resolved root is a work tree's top level (Phase 0 step 3), which is where the schema's **Where the profile lives** puts the file, so every path below is relative to it and every command runs from it.
 
 - **`generator: mkdocs-material`** — informational. No consumer branches on it; every build, lint and serve invocation goes through `commands.*` and `dev_servers.*` regardless, which is what makes the generator choice reversible behind the profile (D9).
 - **`repo.name`** — the docs repo's `origin` slug where it has one, else its directory name.
@@ -309,6 +309,7 @@ Call `emit-cost` with `command: /docs-init`, `phase: docs-scaffold`, `role: dev`
 
 - ALWAYS resolve the target via `resolve-scaffold-target` (`${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/repo-resolution.md` §2 — the **inverted** form) and report which rung answered; NEVER copy a sibling's signal-positive ladder, which refuses the one directory this command was pointed at
 - ALWAYS refuse to scaffold over a directory carrying ≥ 1 docs signal, and ALWAYS name `/docs-workflows:docs-profile` in the refusal — scaffolding is cold start, describing is a different command
+- NEVER scaffold a target that sits below its git work tree's top level, nor that top level in its place — Phase 0 step 3 stops with `DOCS_INIT_TARGET_BELOW_TOPLEVEL`, because the profile this run writes lives at a work tree's top level (`docs-profile-schema.md`, **Where the profile lives**)
 - ALWAYS create the branch at Phase 2.5, **before** Phase 3 writes anything — a clean-tree gate run after the first write fires on the run's own output and recommends stashing it
 - ALWAYS execute the reference entry points by name rather than restating what they fix — the tree, the stubs, nav generation, the mkdocs configs, the vale config, the marker convention and the CI workflow are `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/`'s, and a second copy is a second thing to keep in step
 - ALWAYS resolve every scaffold-time substitution before writing the file that carries it — `<product>`, `<MAJOR>`, and the Vale tag and asset name, the last of these against the project's current release and NEVER from memory; where the release cannot be read, leave the markers and say so rather than inventing a filename

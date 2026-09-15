@@ -27,7 +27,7 @@ For one-off doc edits use direct mode; for keyed feature documentation use `/doc
 2. **Validate it is a writeable git work tree:**
    - `git -C <repo> rev-parse --is-inside-work-tree` must print `true`. If it errors or prints anything else, stop with the named error: `NOT_A_GIT_WORKTREE: <repo> is not inside a git work tree.`
    - `test -w <repo>` must succeed. If not, stop with the named error: `REPO_NOT_WRITEABLE: <repo> is not writeable.`
-   - Resolve and record the repo's git root: `git -C <repo> rev-parse --show-toplevel`. All later detection and writes are relative to this root.
+   - Resolve and record the repo's git root as `<repo-root>`: `git -C <repo> rev-parse --show-toplevel`. It is the profile's one home (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`, **Where the profile lives**): this run reads and writes `<repo-root>/.dev-workflows/docs-profile.yml` even where `<repo>` is a site below it, and all later detection and writes are relative to this root.
 
 3. **Confirm a signal-less target.** Only two of `resolve-docs-repo`'s rungs can hand Phase 1 a directory that carries no docs signal: an explicit positional token, taken "as given" with no signal test at all, and the ladder's last-resort generic "which directory" question, which asks where to look rather than testing what comes back — step 3 is what catches both. So a repo named explicitly on the command line, or supplied in answer to that generic question, can still reach here carrying zero signals — this is the branch that lets `/docs-profile` profile a repo the resolver would never have found on its own, and it asks a different question from resolution: whether to *write a profile* for a repo that shows none of the signals a docs repo usually carries. Test the resolved git root against the signal set fixed by `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/repo-resolution.md` §3 (cite it; never re-derive it here):
    - **≥ 1 signal present** → proceed silently to Phase 1.
@@ -101,6 +101,7 @@ On the §2 powerful chain (`planning_model`), turn the detection report into a d
   > model_routing: [paste the Phase 1 block]
   >
   > Rules:
+  > - **Every path and every command is rooted at `repo_root`** (the schema's **Where the profile lives**): write each path relative to it, and each command in the form that runs from it. A script the report found in a `package.json` below `repo_root` runs in that file's directory, so record its command as `cd <that directory, relative to repo_root> && <the script invocation>` — run from `repo_root`, the bare invocation would read the wrong `package.json`, or none.
   > - Emit `schema_version: 1` and one `spaces[]` entry per detected content root (`id`, `content_root`, `snippet_root`, `base_path`). `spaces[]` is required and non-empty.
   > - `dev_servers`: one `servers[]` entry per `*:start` script with its `command`, `port`, `base_path`; set `concurrent: false` unless detection proved two servers can run at once.
   > - **The `{port}` token** (the schema's field rule for `dev_servers.servers[].command`): write it **only in place of a literal port the detected command already carries** — that entry's own `port`, standing as a whole number (not part of a longer one) exactly once in the command; replace that number with `{port}` and change nothing else. A command that carries no such literal — a script invocation like the schema's `pnpm cloud:start`, whose port lives inside the script — is written without the token, and so is one that carries it more than once, since which occurrence is the port cannot be told. **Never invent a flag or an argument-forwarding form to carry the token** (`-- --port {port}` and the like): which flag a tool takes, and whether a script forwards arguments to it, is that tool's business — `/docs-serve` refuses to guess it too.
@@ -155,7 +156,7 @@ Typical gaps:
   ```
   "Apply the diff" changes exactly the fields listed as changed or added and nothing listed as kept. Do not overwrite without this confirmation. Where each choice goes:
   - **"Apply the diff — change the listed fields, keep the rest"** → Phase 5, which writes the existing profile with those changes applied.
-  - **"Keep existing, write nothing"** → this run writes nothing. Skip Phase 5 entirely — no branch, no stash offer, no commit, and no CLAUDE.md additions — and go straight to Phase 6, whose report reads "kept — nothing written". In inline mode, which has no Phase 6 report of its own, control returns to `/document` with the existing profile unchanged, and `/document` proceeds with that profile (its Phase 0 step 4(c)).
+  - **"Keep existing, write nothing"** → this run writes nothing. Skip Phase 5 entirely — no branch, no stash offer, no commit, and no CLAUDE.md additions — and go straight to Phase 6, whose report reads "kept — nothing written". In inline mode, which has no Phase 6 report of its own, control returns to `/document` with the existing profile unchanged and no branch or commit to hand back (Phase 6), and `/document` proceeds with that profile (its Phase 0 step 4(c)).
   - **"Edit specific fields first (you'll be prompted)"** → take the edits, show the diff again with them folded in, and ask this question again.
 - **Absent** → bootstrap: proceed to Phase 5 with the confirmed draft.
 
@@ -188,7 +189,7 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
 
 3. **Write the profile.** Create `<repo-root>/.dev-workflows/` if absent, then write the confirmed `.dev-workflows/docs-profile.yml` — on a refresh, the existing profile with only the changes Phase 4 confirmed, every field listed as kept exactly as it stood. It MUST conform to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`. Apply the confirmed complementary CLAUDE.md additions to the repo's root `CLAUDE.md` (create the file if absent) — minimal, additive, scoped edits only; never restate changelog/owners rules owned by the docs-frontmatter skill.
 
-4. **Format / lint.** If the repo has a formatter or linter (the `format`/`lint` commands captured in the profile), run it on the written files; fix anything it flags on those files. Skip silently if none is configured.
+4. **Format / lint.** If the repo has a formatter or linter (the `format`/`lint` commands captured in the profile), run it from `<repo-root>`, where every command the profile records runs, on the written files; fix anything it flags on those files. Skip silently if none is configured.
 
 5. **Commit.** `git -C <repo-root> add .dev-workflows/docs-profile.yml CLAUDE.md` (only the files this command wrote), then commit:
    ```
@@ -201,7 +202,7 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
 
 ## Phase 6 — Final report
 
-**Inline mode** (`--inline`): skip this report — control returns to `/document` (keyed mode), which produces the consolidated report (its Phase 9). The rest of this section is the standalone report.
+**Inline mode** (`--inline`): skip this report — control returns to `/document` (keyed mode), which produces the consolidated report (its Phase 9), and hands it two values: `profile_branch`, the branch Phase 5 step 1 named, and `profile_commit`, the commit Phase 5 step 5 made — `git -C <repo-root> rev-parse HEAD`, read immediately after that commit succeeds. `/document` renames that branch and squashes onto that commit (its Phase 6.2 and Phase 8.5), so it takes both from here rather than looking either up. Where Phase 5 made no commit — the operator kept the existing profile (Phase 4) — neither is handed back. The rest of this section is the standalone report.
 
 Output a structured report — do NOT ask any closing confirmation:
 
@@ -264,7 +265,7 @@ Branch <name> created with 1 commit on <repo-root>. NOT pushed and NOT merged �
 - ALWAYS conform the written profile to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`
 - ALWAYS treat `frontmatter:` as pointers to the docs-frontmatter skill; NEVER copy changelog/owners rules into the profile
 - ALWAYS show a field-level diff and confirm before overwriting an existing `.dev-workflows/docs-profile.yml` (idempotent refresh), and NEVER let a refresh propose changing or removing a field detection produced no value for — carry it forward verbatim, list it as kept, not detected, and never empty `spaces[]` (Phase 4)
-- ALWAYS write the profile to `.dev-workflows/docs-profile.yml` in the TARGET repo — never the plugin
+- ALWAYS write the profile to `.dev-workflows/docs-profile.yml` at the TARGET repo's git work-tree top level (`<repo-root>`, the schema's **Where the profile lives**) — never the plugin, and never a directory below that top level
 - NEVER push or auto-merge — output a reviewable PR (branch + commit + drafted PR message) for the user to push; and where a refresh is answered "Keep existing, write nothing", write nothing at all — no branch, no stash, no commit — and end on the Phase 6 report, or, in inline mode, return the existing profile to `/document` (Phase 4)
 - ALWAYS use `choices` arrays for decision points; recommended default first and labelled "(Recommended)"; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)
 - ALWAYS reference plugin paths with `${CLAUDE_PLUGIN_ROOT}`

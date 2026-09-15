@@ -1,9 +1,21 @@
 # docs-profile schema
 
-`/docs-profile` writes this file to **`.dev-workflows/docs-profile.yml`** in
-the target docs repo, and `/docs-init` writes the first one when it scaffolds
-that repo. `/document` and `/docs-serve` read it. `changelog` and `owners` are
+`/docs-profile` writes this file to **`.dev-workflows/docs-profile.yml`** at
+the target docs repo's git work-tree top level (**Where the profile lives**,
+below), and `/docs-init` writes the first one when it scaffolds that repo.
+`/document`, `/docs-serve` and `/docs-brand` read it, as do the
+`docs-frontmatter` skill and its reminder hook. `changelog` and `owners` are
 intentionally absent — they are owned by the `docs-frontmatter` skill.
+
+## Where the profile lives
+
+**One home: the git work-tree top level of the resolved docs repository.** Whatever directory a command resolved — through `repo-resolution.md`'s `resolve-docs-repo`, or `/document`'s own Phase 0 ladder — its profile is `<top>/.dev-workflows/docs-profile.yml`, where `<top>` is what `git -C <resolved> rev-parse --show-toplevel` prints, or the resolved directory itself where it is in no git work tree. The resolved directory can sit below that top level — a Docusaurus `website/` in a monorepo, a `site/` beside the code — and the profile still lives at the top level, never beside the site: one repository has one profile however many content roots it publishes, as the two-space example below does. It is where `/docs-profile` has always written the file, so no existing profile moves.
+
+- **Every path the profile records is relative to that top level** — `spaces[].content_root` and `snippet_root`, `builds[].config` and `out`, `announcement_pages[].path`, `images.root`. A site under `site/` records `content_root: site/docs`, never `docs`.
+- **Every command it records runs from that top level** — every `commands.*` and `commands.per_space.*` value, every `builds[].command` and every `dev_servers.servers[].command` — so a site below it names its config from there: `mkdocs serve -f site/mkdocs.yml -a 0.0.0.0:{port}`.
+- **`/docs-serve`'s state file sits beside it**, at `<top>/.dev-workflows/docs-serve.state.json`.
+
+A command resolves `<top>` once, from the directory it resolved, and reads the profile, runs its commands and keeps that state file there — never in a directory below it.
 
 ```yaml
 schema_version: 1

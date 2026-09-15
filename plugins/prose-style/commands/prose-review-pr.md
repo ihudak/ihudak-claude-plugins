@@ -150,7 +150,8 @@ which vale 2>/dev/null || echo "NOT_INSTALLED"
 
 If Vale is installed and a configuration file was found, run it on the changed files **from `<vale_root>`**,
 in one Bash call, in the form that configuration file decides — whether it sets `StylesPath`, a
-`StylesPath =` line above its first `[section]` header, the one place Vale accepts the key:
+`StylesPath` key, written with `=` or `:`, with the case as written, above its first `[section]`
+header, the one place Vale accepts the key (a key in any other case Vale ignores, with `W101`):
 
 ```bash
 # The configuration sets StylesPath:

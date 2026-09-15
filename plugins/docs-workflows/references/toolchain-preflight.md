@@ -78,8 +78,9 @@ de-duplicate by binary name.
    is where `vale sync` installs a configuration's packages when that configuration sets no
    `StylesPath` of its own. So every Vale run goes from the directory holding the configuration it
    is to read, as one subshell in one Bash call, in one of two forms, chosen by whether that file
-   sets `StylesPath` — a `StylesPath =` line above its first `[section]` header, the one place
-   Vale accepts the key (anywhere else it stops with `E201`):
+   sets `StylesPath` — a `StylesPath` key, written with `=` or `:`, with the case as written,
+   above its first `[section]` header, the one place Vale accepts the key (anywhere else it stops
+   with `E201`, and a key in any other case it ignores, with `W101`):
 
    - **It sets one:** `(builtin cd "<that directory>" >/dev/null && unset VALE_CONFIG_PATH && command vale --no-global <arguments>)`.
    - **It sets none:** `(builtin cd "<that directory>" >/dev/null && unset VALE_CONFIG_PATH && h=$(command mktemp -d) && { XDG_CONFIG_HOME="$h" command vale <arguments>; s=$?; command rm -r -- "$h"; exit $s; })`,

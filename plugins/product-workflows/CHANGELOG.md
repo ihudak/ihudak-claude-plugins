@@ -10,12 +10,13 @@ Versions follow semver at the plugin level.
 
 `docs/workflow.md`'s mermaid diagram failed to render on GitHub — `Parse error on line 42 … got 'SQS'` — and had since 3.0.0, when the `/prd-ground` edges were drawn. Five edge labels carried a bracketed requirement ID (`[BR#n]`, `[CG#n]/[DG#n]`, `[AC#n]/[FR#n]`) unquoted, and inside a mermaid edge label `[` opens a node shape. Each label is now quoted (`-->|"…"|`). The diagram parses under mermaid 10.9.8, 11.17.2 and 12.0.0, and renders. No gate checked mermaid syntax, which is how it shipped; the repository's CI now runs `scripts/mermaid/check-mermaid.mjs`, which parses every diagram in every tracked markdown file outside its own fixture tree, `scripts/fixtures/mermaid/`, on each push.
 
-### Fixed — two stale claims in shipped runtime instructions
+### Changed — a count the `docs-workflows` cold-start increment moved
 
-Both were falsified by the `docs-workflows` cold-start increment, which added a `commit-artifacts` caller and a `specs-repo-git.md` §2.1 path shape. Neither is a documentation page: an installed user reads both at run time.
+`commands/create-prd.md` Phase 0 called this command *"the only one of the **twenty-six** `commit-artifacts` callers running no preflight"* — true in 3.5.0, and moved to twenty-eight by `docs-workflows`' `/docs-init` and `/docs-brand`. It is a runtime instruction an installed user reads, not a documentation page. The count was doing no work in a sentence that is a historical note about a past defect, so it is **removed rather than corrected** — the claim it makes is about being the only one, not about how many there are.
 
-- `commands/create-prd.md` Phase 0 called this command *"the only one of the **twenty-six** `commit-artifacts` callers running no preflight"*. There are twenty-eight now. The count was doing no work in a sentence that is a historical note about a past defect, so it is **removed rather than corrected** — the claim it makes is about being the only one, not about how many there are.
-- `references/bundle-packaging.md` said `specs-repo-git.md` §2.1 *"bounds staging to three path shapes, all of them under `dev-workflows/**`"*. It is four directory shapes plus three single files, and the fourth (`documentation/<docs-repo-slug>/…`) is not under `dev-workflows/**` at that level. Restated as "a fixed, enumerated set of path shapes", which is what the paragraph's argument actually needs — the point is that a bundle matches **none** of them, not how many there are.
+### Fixed — `bundle-packaging.md` no longer miscounts `specs-repo-git.md` §2.1
+
+`references/bundle-packaging.md` said `specs-repo-git.md` §2.1 *"bounds staging to three path shapes, all of them under `dev-workflows/**`"*. §2.1 named six in `workflows-core` 1.5.0 — three directory shapes and three single files, the files sitting beside a feature folder's artifacts rather than under `dev-workflows/**` — and names nine in 1.6.0, its fourth directory shape, `documentation/<docs-repo-slug>/…`, not under a feature folder at all. Like the count above, it is read at run time. Restated as "a fixed, enumerated set of path shapes", which is what the paragraph's argument actually needs — the point is that a bundle matches **none** of them, not how many there are.
 
 ### Fixed — the documentation route's gaps draft is named as it is written
 

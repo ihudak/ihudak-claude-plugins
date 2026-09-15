@@ -83,7 +83,7 @@ The run asks about diff grounding (default: PRD content only) and the release ve
 /docs-workflows:release-notes PRODUCT-1234
 ```
 
-Byte for byte the same command, and every step above happens the same way. The single difference is what the specs dir now contains: `run_phase` infers as `dev`, so the draft may carry a documentation redirect short link. Same destination question, same classification, same style gate, same publish reminder.
+Byte for byte the same command, and every step above happens the same way. The single difference is what the specs dir now contains: `run_phase` infers as `dev`, so the draft may carry a documentation redirect short link. Same destination, same classification, same style gate, same publish reminder.
 
 ## See also
 

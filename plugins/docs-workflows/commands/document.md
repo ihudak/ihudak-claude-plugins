@@ -664,7 +664,13 @@ The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opu
   > handoff_file: [absolute path of the temp handoff file from step 1]"
 
 3. **Handle the return.**
-   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.4 / 6.5 / 7 / 8. Then **commit** per the branch/commit policy below — `git -C <docs_repo_path> add -- <each path in files_written that lies under docs_repo_path>`, then `git -C <docs_repo_path> commit`. `files_written` also names what the writer put outside the docs repository — the `<KEY>-implementation-gaps.md` draft in the resolved PRD folder, and screenshots staged under `screenshot_staging_dir` — and those are never staged here: git refuses a path outside the repository (`fatal: … is outside repository`) and then stages nothing at all, so the commit would have nothing to commit.
+   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.4 / 6.5 / 7 / 8. Then **commit** per the branch/commit policy below — `git -C <docs_repo_path> add -- <each path in files_written that lies under docs_repo_path>`, then `git -C <docs_repo_path> commit`. `files_written` also names what the writer put outside the docs repository — the `<KEY>-implementation-gaps.md` draft in the resolved PRD folder, and screenshots staged under `screenshot_staging_dir` — and those are never staged here: git refuses a path outside the repository (`fatal: … is outside repository`) and then stages nothing at all, so the commit would have nothing to commit. The gaps draft, like Phase 8.5's `pr-draft.md`, is `$SPECS_PATH`'s, and the terminal `commit-artifacts` step commits it (`workflows-core:specs-repo-git` §2.1). A staged screenshot is committed nowhere — it is a copy kept only until the operator uploads it — so keep each one that lies under `$SPECS_PATH` out of that repository's `git status`, where `$SPECS_PATH` is a git work tree, lest every later run's `specs-preflight` meet it as a dirty path (that reference's §3.3 G1). Take `<rel>`, the staged path with its leading `$SPECS_PATH/` removed — a path that does not begin with it is outside the specs repository, and nothing is done for it — and where `git -C "$SPECS_PATH" check-ignore -q --no-index -- "<rel>"` exits 1, no rule matching it, append one anchored line naming it, its glob characters escaped, to the repository's local exclude file:
+
+     ```
+     f=$(git -C "$SPECS_PATH" rev-parse --git-path info/exclude) && case $f in /*) ;; *) f="$SPECS_PATH/$f" ;; esac && mkdir -p "$(dirname "$f")" && printf '\n/%s\n' "$(printf '%s' "<rel>" | sed -e 's/[][*?\\]/\\&/g' -e 's/ $/\\ /')" >> "$f"
+     ```
+
+     `--git-path` prints its path relative to the directory git ran in — `.git/info/exclude` at a top level — hence the `case`. That exclude file is the repository's own and never committed, so the line changes nothing anyone else sees. Exit 0 — a rule already ignores it — appends nothing, and so does any other exit, which is git failing rather than answering. Then run the same `check-ignore` again, and where it still does not exit 0, name the path in the Phase 9 report as left untracked in `$SPECS_PATH`.
    - **`status: BLOCKED`** — surface the named gap to the user:
      ```
      choices: ["Provide the missing input (you'll be prompted)", "Cancel"]
@@ -1245,7 +1251,7 @@ name is ever written (§10 privacy).
 - NEVER call Bitbucket REST APIs for Cloud or self-hosted Server — Bitbucket URLs are identifiers only; all resolution is pure local git
 - GitHub URLs may use the `gh` CLI for head/base SHA resolution; no direct REST calls outside `gh`
 - NEVER write inside `_archive/` — that path is read-only by convention
-- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the resolved PRD folder (the `<KEY>-implementation-gaps.md` bug-report draft, `pr-draft.md`, and screenshot staging) — never anywhere else.
+- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the resolved PRD folder (the `<KEY>-implementation-gaps.md` bug-report draft, `pr-draft.md`, and screenshot staging) and, for each screenshot staged under `$SPECS_PATH`, one line in that repository's local exclude file (Phase 6.3) — never anywhere else.
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `docs-style-checker` (Phase 6.4) before `doc-reviewer` (Phase 7)
 - ALWAYS run the Phase 0 toolchain preflight (`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md`) after profile resolution and before Phase 1; it prompts only when a required tool is missing

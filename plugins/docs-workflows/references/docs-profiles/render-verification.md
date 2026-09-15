@@ -41,8 +41,9 @@ that what its build compiles compiled — in two cases, and only there. One is a
 declares **no** build command at any of the three levels — no `builds[]`, no
 `commands.per_space.<space>.build`, no `commands.build` — where every server §2 boots stands in.
 The other is a build that will not run for an environmental reason — its tool missing, a missing
-`.docstack` shim — while the tools its boot needs are present: `bash`, `curl`, `ps` and the tool of
-the command of one of **that build's own servers**, the servers that publish what it compiles — for
+`.docstack` shim — while the tools its boot needs are present: the smoke check's own, which §2's
+tool check names (`bash`, `curl`, and off Linux `ps`), and the tool of the command of one of **that
+build's own servers**, the servers that publish what it compiles — for
 a `builds[]` entry, the server whose `visibility` pairs with the entry's; for a space's
 `commands.per_space.<space>.build`, that space's servers; for the flat `commands.build`, every server
 §2 boots. Another build's server is never the proof: it compiles another space or another
@@ -118,12 +119,14 @@ for a server on this machine: with `http_proxy` or `ALL_PROXY` set and no `no_pr
 on a port nothing listens on, so a free port reads as answering, and the proxy's own page in place
 of the server's.
 
-Every probe below is the exit-code probe defined first, and it needs no socket tool. **A probe that
+Every probe below is the exit-code probe defined first, and it needs no socket table. **A probe that
 cannot run is never read as an answer or as silence**, so the check does not start without its
-tools: before the first boot, confirm that `command -v bash`, `command -v curl` and `command -v ps`
-all exit 0 — step 2 boots under `bash` and reads the process group with `ps`, and step 5 signals
-that group under `bash` and reads its members and a listener's parents with `ps`. Where any does
-not, boot nothing, record "smoke-check unavailable: `<tool>` is not installed", and every page goes
+tools: before the first boot, confirm that `command -v bash` and `command -v curl` exit 0 and,
+where `test -r /proc/net/tcp` fails — off Linux — that `command -v ps` does too. Step 2 boots under
+`bash` and reads the process group it made, and step 5 signals that group under `bash` and reads
+its members and a listener's parents: on Linux those reads come from `/proc`, which needs nothing
+installed, and elsewhere from `ps` (**Portability**, below, defines each). Where one does not exit
+0, boot nothing, record "smoke-check unavailable: `<tool>` is not installed", and every page goes
 to the manual table (§5); `/document` Phase 6.5 records that on `render_smoke_check` as `DEGRADED`,
 never `UNAVAILABLE`, since the manual table is that gate's registered fallback (`gate-ledger.md` §4)
 and needs no tool. A probe that exits 127 anyway, part-way through, ends the check the same way:
@@ -167,11 +170,12 @@ yet checked goes to the manual table. For each server:
    (`docs-profile-schema.md`'s field rule for `dev_servers.servers[].command`): a detaching command
    is a profile defect, and a server it moves out of the group — as `setsid` and `docker run -d`
    do — is one this check can neither stop nor see bind late. The job outlives the call, which
-   returns as soon as the pid is printed. **Then confirm the group:** `ps -o pgid= -p <pid>`
-   prints `<pid>` — or nothing, where the job has already exited, and the id still names whatever
-   of it survives. That `<pid>` is the `<pgid>` step 5 signals. Where it prints any other number,
-   job control gave the job no group of its own: hold the pid alone, and step 5 stops it by its path
-   for a server without a group.
+   returns as soon as the pid is printed. **Then confirm the group:** read `<pid>`'s process group
+   as **Portability** (below) reads one — from `/proc/<pid>/stat` on Linux, with `ps -o pgid= -p
+   <pid>` elsewhere — and it is `<pid>`, or nothing, where the job has already exited, and the id
+   still names whatever of it survives. That `<pid>` is the `<pgid>` step 5 signals. Where it is any
+   other number, job control gave the job no group of its own: hold the pid alone, and step 5 stops
+   it by its path for a server without a group.
 3. Readiness poll: GET `http://localhost:<port><base_path>/`, that server's own, until HTTP 200 or
    `profile.dev_servers.readiness_timeout_seconds` seconds elapse (fall back to **120** when the
    field is absent). On a timeout, stop the server as step 5 says. Where step 5 confirms it stopped,
@@ -192,19 +196,19 @@ yet checked goes to the manual table. For each server:
       process stays in its group until its parent reaps it.
    2. **Confirm two things:** the group is gone and the port is quiet — the probe no longer finds it
       answering. **The group is gone** where `bash -c 'kill -0 -- -<pgid>'` fails, **or** where
-      every process `ps -A -o pgid=,stat=` lists under `<pgid>` is a zombie, its stat beginning `Z` —
-      `ps -A -o pgid=,stat= | awk -v g=<pgid> '$1 == g { print $2 }'` prints only lines that begin
-      with `Z`. A zombie runs nothing and holds no port; it has exited, and stays in its group only
-      until its parent reaps it, which a parent that never reaps — a container whose PID 1 is
-      `sleep infinity`, with no init — never does, so `kill -0` alone would call that group running
-      for good.
+      every member of `<pgid>` is a zombie — the states **Portability** (below) reads for the
+      group's members are all `Z`, or on a `ps` all begin with `Z`. A zombie runs nothing and holds
+      no port; it has exited, and stays in its group only until its parent reaps it, which a parent
+      that never reaps — a container whose PID 1 is `sleep infinity`, with no init — never does, so
+      `kill -0` alone would call that group running for good.
    3. **Both confirmed** — the next server may boot.
    4. **Either not confirmed** — where the port still answers, a process outside the group holds it
       (one that left for a session of its own, or a server something restarted): read its listener's
       pid from the socket table, as `/docs-serve` Phase 5 does, by the definition in
       `${CLAUDE_PLUGIN_ROOT}/commands/docs-serve.md` Phase 2, **The evidence**, item 1's opening
-      paragraph — `lsof`, else `ss`; where several processes are named, the one the others descend
-      from; where neither tool is present, or the one present names nothing, no listener is named —
+      paragraph — the processes **Portability**'s socket-table read (below) names for the port, from
+      `/proc` on Linux and with `lsof` elsewhere; where several are named, the one the others descend
+      from; where it names none, or off Linux no `lsof` is installed to read it, no listener is named —
       then `SIGTERM` it, wait up to 5 seconds for the port to stop answering, `SIGKILL` it if it still
       answers, and confirm both things again. That definition is all that carries over. Not its
       **Checkout first** test — this run started the server itself, on a port step 2 found silent, so
@@ -222,19 +226,54 @@ yet checked goes to the manual table. For each server:
    the port is quiet, the next server may boot — unless this stop followed a timeout, which ends the
    check (step 3); where it still answers, boot no further server, recorded as above.
 
-   A missing socket tool alone never ends the check. What ends it is a port that answers when it
+   A missing `lsof` alone never ends the check. What ends it is a port that answers when it
    should be silent — before a boot (step 2) or after the stop — a group that will not go, a
    readiness timeout on a server without a group of its own (step 3), or a probe that cannot run
    (above).
 
 **Portability.** The shell semantics above are bash's, by step 2's and step 5's explicit `bash -c`.
-Every external tool is called in a form BSD's documents as well as GNU's: `ps -o pgid= -p <pid>`,
-`ps -o ppid= -p <pid>` and `ps -A -o pgid=,stat=` (POSIX options, and keywords both BSD `ps` and
-procps know), `lsof -t -iTCP:<port> -sTCP:LISTEN` (macOS ships `lsof`),
-`curl -s -o /dev/null --noproxy '*' --max-time 2` and the GET's
-`curl -sL -o /dev/null -w '%{http_code}' --noproxy '*' --max-time 10`, `awk -v`, and `mktemp -t`,
-which BSD reads as a prefix rather than a template and which still names a fresh file. `ss` is
-Linux's alone, which is why it is only `lsof`'s fallback.
+`curl -s -o /dev/null --noproxy '*' --max-time 2`, the GET's
+`curl -sL -o /dev/null -w '%{http_code}' --noproxy '*' --max-time 10`, `awk -v`, and `mktemp -t` —
+which BSD reads as a prefix rather than a template and which still names a fresh file — are called
+in forms BSD's tools document as well as GNU's.
+
+**Every read of the process or socket table has one source per operating system, defined here** —
+this check's, and `/docs-serve`'s, which cites this paragraph for each of them. **On Linux** —
+wherever `test -r /proc/net/tcp` succeeds — every read comes from the kernel's own tables under
+`/proc`, which need no tool beyond the shell's own `cat`, `sed`, `awk`, `ls` and `tr`, and no root
+for this user's own processes. **Anywhere else** — macOS ships both — they come from `lsof` for the
+socket table and a working directory, and from `ps` for the rest. A host uses one source, never a
+mix, and a Linux host needs neither `lsof` nor `ps`: BusyBox's `ps`, the one Alpine ships, cannot
+select a process with `-p` at all, and nothing here reads `ss`.
+
+- **The processes holding a listening socket on `<port>`.** On Linux: the rows of `/proc/net/tcp`
+  and `/proc/net/tcp6` in state `0A`, listening, whose local port — the four hex digits after the
+  `:` of the second field — is `<port>`, each naming its socket's inode in the tenth field; then
+  every process one of whose `/proc/<pid>/fd` links reads `socket:[<inode>]`. As one Bash call:
+
+  ```
+  i=$(cat /proc/net/tcp /proc/net/tcp6 2>/dev/null | awk -v p="$(printf ':%04X' <port>)" '$4 == "0A" && substr($2, length($2) - 4) == p { printf "socket:[%s] ", $10 }')
+  [ -n "$i" ] && ls -l /proc/[0-9]*/fd/ 2>/dev/null | awk -v i="$i" 'BEGIN { n = split(i, s, " "); for (k = 1; k <= n; k++) w[s[k]] = 1 } /^\/proc\// { split($0, a, "/"); p = a[3] } ($NF in w) && !d[p]++ { print p }'
+  ```
+
+  It prints each pid once — an IPv4 and an IPv6 listener alike, and a process holding both. Elsewhere:
+  `lsof -t -iTCP:<port> -sTCP:LISTEN`. Either way, a socket another user's process holds is in the
+  table but named by no process — its `fd` links cannot be read without root, and `lsof` shows no
+  other user's process either — so the read prints nothing for it.
+- **A process's parent, and its process group.** On Linux: `/proc/<pid>/stat`, read after its
+  **last** `)`, since the process name in parentheses before it may itself hold spaces or
+  parentheses — `sed 's/.*)//' /proc/<pid>/stat` prints the state, then the parent's pid, then the
+  process group, so `| awk '{ print $2 }'` reads the parent and `| awk '{ print $3 }'` the group.
+  Elsewhere: `ps -o ppid= -p <pid>` and `ps -o pgid= -p <pid>`. Both print nothing where the process
+  has exited.
+- **The states of a process group's members.** On Linux:
+  `cat /proc/[0-9]*/stat 2>/dev/null | sed 's/.*)//' | awk -v g=<pgid> '$3 == g { print $1 }'`, a
+  zombie's state being `Z`. Elsewhere: `ps -A -o pgid=,stat= | awk -v g=<pgid> '$1 == g { print $2 }'`,
+  a zombie's beginning `Z`.
+- **A process's command line.** On Linux: `tr '\0' ' ' < /proc/<pid>/cmdline`, its arguments with
+  their NUL separators turned into spaces. Elsewhere: `ps -o args= -p <pid>`.
+- **A process's working directory.** On Linux: `/proc/<pid>/cwd`, a link to it that `git -C` takes
+  as it stands. Elsewhere: the path on the `n` line of `lsof -a -p <pid> -d cwd -Fn`.
 
 Never run two servers at once: the next server boots only once step 5 has confirmed the last one
 stopped. Where a space has two servers, every record this file names for `<space>` names the
@@ -274,8 +313,8 @@ its process group still runs — and a readiness timeout on a server started
 without a process group of its own (§2 step 3). Every page not yet checked then
 falls back to the manual table, and the record names the port or process group
 left running and its command — it never blocks the run either. A fourth ending
-is the check being unavailable: `bash`, `curl` or `ps` cannot run (§2), and the
-check boots, probes and stops through them; every page not yet checked falls
+is the check being unavailable: `bash` or `curl` — or, off Linux, `ps` — cannot
+run (§2), and the check boots, probes and stops through them; every page not yet checked falls
 back to the manual table, and the record names the tool.
 
 A 404 and a 5xx on an affected page are both surfaced, never silently dropped,

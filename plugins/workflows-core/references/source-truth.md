@@ -293,7 +293,7 @@ marker explaining the gap. See §7 for the marker format.
 - Bug-report draft destination is the same PRD folder used for
   the release-notes draft (auto-discovered by the orchestrator at
   the resolved PRD folder). File name:
-  `implementation-gaps.md`. Same hard rule as for release-notes:
+  `<KEY>-implementation-gaps.md`. Same hard rule as for release-notes:
   **NEVER `/tmp/`** — container restarts wipe it.
 
 ## 6. Example (drawn from a real run)
@@ -459,7 +459,7 @@ the user reviews, so a spurious entry costs a paragraph while a miss leaves
 a wrong customer-facing claim in the ticket indefinitely.
 
 ```
-<PRD-folder>/implementation-gaps.md
+<PRD-folder>/<KEY>-implementation-gaps.md
 ```
 
 Format:
@@ -503,7 +503,7 @@ the writer inserts this marker immediately before the affected prose:
 "<spec_phrasing>" (spec; "<prd_phrasing>" per the PRD when no spec) but the
 source at <file:line> currently has "<source_phrasing>". User decision:
 document intended phrasing pending implementation.
-See <PRD-folder>/implementation-gaps.md gap #<n>. -->
+See <KEY>-implementation-gaps.md gap #<n>. -->
 ```
 
 `doc-reviewer`'s Source-code accuracy dimension (§4.3) recognises this

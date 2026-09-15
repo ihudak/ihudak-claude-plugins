@@ -24,7 +24,7 @@ two halves: the `[CG#n]` supplies the behaviour, and this record supplies the in
 so.
 
 **The family's sibling precedent is `workflows-core:source-truth` §7.5**, which writes
-`implementation-gaps.md` on the documentation route. That artifact is a draft to file elsewhere
+`<KEY>-implementation-gaps.md` on the documentation route. That artifact is a draft to file elsewhere
 rather than a register — no bracketed id, no status, no disposition — and its fields are
 documentation-run specific. It is named here so that a reader looking for a code-defect record finds
 the two that exist rather than building a third.

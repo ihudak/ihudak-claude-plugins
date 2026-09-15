@@ -60,6 +60,10 @@ A subagent's Bash tool starts every call in the session's directory — where th
 
 The file's opening said everything past §1 is reached only on a read-only mount "except §3's chain". A writable run also reaches §3's three recorded facts and §6's `prep` block, which `code-scanner` and `diff-summarizer` report on every run, and §7's caller contract; the sentence now names them and drops the "only". `code-scanner`'s hard rule listed the chain's `symbolic-ref` and `rev-parse --verify --quiet` among its prep operations and then said none of them run on a read-only mount, while step 2 sends a read-only mount to that very chain; it also left out the reads behind §3's recorded facts. It now lists §3's reads with the writes, and says a read-only mount runs only the write-free reads.
 
+### Fixed — `source-truth.md` names the gaps draft and its marker as the writer writes them
+
+§5 and §7.5 named the bug-report draft `implementation-gaps.md`, and §7.6's intentional-discrepancy marker ended "See `<PRD-folder>/implementation-gaps.md` gap #n", while `docs-workflows`' `doc-writer` and `/document` write `<KEY>-implementation-gaps.md` and a marker ending "See `<KEY>-implementation-gaps.md` gap #n" — so a `doc-reviewer` holding the page's marker against §7.6 could judge the writer's own marker invalid, and raise the BLOCKER the marker exists to prevent. §5, §7.5 and §7.6 now name `<KEY>-implementation-gaps.md` and give the marker the writer writes. `followup-emission.md`, which tells a follow-up to link the draft, names it the same way.
+
 ## [1.5.0] — 2026-09-09
 
 ### Added — `control`, a positive control on every grounding absence claim

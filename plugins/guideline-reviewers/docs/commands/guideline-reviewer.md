@@ -43,7 +43,7 @@ Runs **before** the subagent's review passes, and wraps the target repo's own co
 
 **Merged, not duplicated.** A finding branch 1's linter reported deterministically is not re-raised by the review pass as a second finding; same file, same line, same underlying rule keeps the linter's version, with its rule id and the repo's own configured severity. Findings carry a `source: linter | review` tag so the two are distinguishable.
 
-**Never blocking.** Missing tooling, a missing binary, unparseable lint output, or a timeout all degrade to a recorded value and a review that continues. The step never installs a package, never starts a server or a test run, never prompts, and never fails the command.
+**Never blocking.** Missing tooling, a missing binary, unparseable lint output, or a timeout all degrade to a recorded value and a review that continues. The step never installs a package, never starts a server or a test run, never prompts, and never fails the command. It runs every package runner with Corepack's network access disabled (`COREPACK_ENABLE_NETWORK=0`), so where a repository pins a `yarn` or `pnpm` release the machine does not have, that lint is skipped and the attempt recorded, rather than the release being downloaded. A repository lint script's JSON is read from a file ESLint writes (`--output-file`), since a runner can print a banner of its own ahead of it — `npm run` does.
 
 ## Rule overlay
 

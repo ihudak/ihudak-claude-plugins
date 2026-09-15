@@ -149,7 +149,7 @@ lookup, an `extends` or a shared config each defeat. Ask ESLint, one file at a t
 answers yes; it prints that file's resolved configuration as JSON:
 
 ```bash
-(cd "<the partition's directory>" && npx --no-install eslint --print-config "<one of the partition's files>")
+(cd "<the partition's directory>" && COREPACK_ENABLE_NETWORK=0 npx --no-install eslint --print-config "<one of the partition's files>")
 ```
 
 **Under Yarn Plug'n'Play, run ESLint through Yarn.** A Plug'n'Play install — Yarn 2 and later's
@@ -162,6 +162,16 @@ declares itself, so where Yarn answers that it cannot find a script named `eslin
 declared by the root workspace alone, as in a monorepo that keeps its linter at the top — run
 `yarn run -T eslint …` instead, which runs the root workspace's.
 
+**Never let a package runner fetch itself.** Corepack, which supplies `yarn` and `pnpm` wherever a
+Node.js install enables it, downloads the release a repository's `packageManager` field pins where
+that release is not already on the machine — an install this step must never make. So every command
+in this branch runs with `COREPACK_ENABLE_NETWORK=0` in its environment, as the commands shown here
+carry it; Corepack reads it and refuses the download instead, and a runner Corepack does not manage
+ignores it. A runner refused that way — it exits non-zero with Corepack's *"Network access disabled
+by the environment"* — is a runner that cannot run: the probe above and the lint below treat it as
+they treat one, recording the attempt in `a11y_attempt` with Corepack's message as the reason
+wherever they record one, and nothing is installed.
+
 ESLint answering that it can find no configuration file means none applies there: not detected.
 Where ESLint cannot answer at all — `npx --no-install` finds no ESLint installed, or under
 Plug'n'Play Yarn finds none either way or cannot run, or ESLint fails to load the
@@ -173,13 +183,19 @@ through to branch 2. Where no such file does, not detected.
 
 When detected, run the repo's own lint over the partition's reviewed files only. Prefer the repo's
 lint script when it accepts file arguments (the partition directory's `package.json` scripts named
-`lint`, `lint:js`, `lint:ts`, or `eslint`), selecting the package runner from the nearest lockfile at
-or above that directory (`pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `package-lock.json` /
-`npm-shrinkwrap.json` → `npm`, `bun.lockb` → `bun`). Otherwise invoke the repo's
-already-installed ESLint directly — through Yarn, as above, under Plug'n'Play:
+`lint`, `lint:js`, `lint:ts`, or `eslint`), selecting the package runner from the nearest lockfile
+at or above that directory (`pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `package-lock.json` /
+`npm-shrinkwrap.json` → `npm`, `bun.lockb` → `bun`) and running it as `<runner> run <script>`, with
+`--` before the arguments under `npm`. Hand the script ESLint's `--format json --output-file "<file>"`
+ahead of the partition's files, `<file>` a fresh path outside every repository (`mktemp -t a11y-XXXX.json`
+names one), and **read the JSON from that file, never from standard output**: a runner can print a
+banner of its own there ahead of anything the script prints — `npm run` writes `> <script>` and the
+command line it runs — and a banner is not JSON. Remove the file once it is read. Otherwise invoke
+the repo's already-installed ESLint directly — through Yarn, as above, under Plug'n'Play — whose
+standard output is ESLint's JSON alone:
 
 ```bash
-(cd "<the partition's directory>" && npx --no-install eslint --format json <the partition's files>)
+(cd "<the partition's directory>" && COREPACK_ENABLE_NETWORK=0 npx --no-install eslint --format json <the partition's files>)
 ```
 
 `--no-install` is required: this step never installs anything, and `yarn eslint` runs the ESLint
@@ -232,7 +248,7 @@ rule. Never promote a linter Warning to Critical — the repo's configured sever
 ### Hard rules
 
 - NEVER modify files in the target repo. This agent reports; it does not fix.
-- NEVER install a package, start a server, or run a test suite.
+- NEVER install a package, start a server, or run a test suite — nor let Corepack download a package-manager release: every command the deterministic check runs through a package runner carries `COREPACK_ENABLE_NETWORK=0`.
 - NEVER claim axe-core, `jest-axe`, `cypress-axe`, `@axe-core/playwright`, or `@axe-core/cli` ran.
 - NEVER fail the run or prompt the user because tooling is absent. Absence sets `a11y_check: none`.
 - NEVER lint the whole tree when a file-scoped invocation is available.

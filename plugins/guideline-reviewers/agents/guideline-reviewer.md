@@ -156,11 +156,16 @@ answers yes; it prints that file's resolved configuration as JSON:
 default — keeps no `node_modules`, so `npx --no-install` finds no ESLint there and cancels. Where a
 `.pnp.cjs` sits in the partition's directory or in any directory above it, up to its repository's
 top level (in no repository, that directory alone), run every ESLint command in this branch —
-this probe and the lint below — as `yarn eslint …` in place of `npx --no-install eslint …`, from the
-same directory and with the same arguments. Plug'n'Play lets a workspace run only the binaries it
-declares itself, so where Yarn answers that it cannot find a script named `eslint` — ESLint is
-declared by the root workspace alone, as in a monorepo that keeps its linter at the top — run
-`yarn run -T eslint …` instead, which runs the root workspace's.
+this probe and the lint below — as `yarn run -B eslint …` in place of `npx --no-install eslint …`,
+from the same directory and with the same arguments. **`-B` (`--binaries-only`) is what makes it the
+ESLint binary**: without it Yarn runs a package script named `eslint` in the binary's place wherever
+`package.json` defines one — `"eslint": "eslint src"` is a common one — and that script, handed the
+probe's arguments, exits 2 with *"The --print-config option must be used with exactly one file
+name"*, which this step would read as ESLint unable to answer (Yarn 4.9.2). Plug'n'Play lets a
+workspace run only the binaries it declares itself, so where Yarn answers that it cannot find a
+script named `eslint` — ESLint is declared by the root workspace alone, as in a monorepo that keeps
+its linter at the top — run `yarn run -T -B eslint …` instead, which runs the root workspace's
+binary, and never a script the root workspace names `eslint`.
 
 **Never let a package runner fetch itself.** Corepack, which supplies `yarn` and `pnpm` wherever a
 Node.js install enables it, downloads the release a repository's `packageManager` field pins where
@@ -198,8 +203,8 @@ standard output is ESLint's JSON alone:
 (cd "<the partition's directory>" && COREPACK_ENABLE_NETWORK=0 npx --no-install eslint --format json <the partition's files>)
 ```
 
-`--no-install` is required: this step never installs anything, and `yarn eslint` runs the ESLint
-the Plug'n'Play install already holds, installing none. Parse the JSON array
+`--no-install` is required: this step never installs anything, and `yarn run -B eslint` runs the
+ESLint the Plug'n'Play install already holds, installing none. Parse the JSON array
 (`filePath`, `messages[].ruleId`, `.line`, `.column`, `.message`, `.severity`), keep only messages
 whose `ruleId` starts with `jsx-a11y/`, and map severity `2` → **Critical**, `1` → **Warning**.
 Cap the run at 2 minutes.

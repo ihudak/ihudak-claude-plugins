@@ -168,7 +168,7 @@ two overlays.
 |---|---|---|
 | 1 | `rules_path` input, when the caller supplied one (`--rules <path>`) | the path is a readable directory containing ≥1 `.md` file |
 | 2 | `<repo-root>/.dev-workflows/api-guidelines/` | the directory exists, is readable, and contains ≥1 `.md` file |
-| 3 | `$$API_GUIDELINES_PATH` | the variable is set and names a readable directory containing ≥1 `.md` file |
+| 3 | `$API_GUIDELINES_PATH` | the variable is set and names a readable directory containing ≥1 `.md` file |
 | 4 | *(none)* | always — the baseline alone is the active rule set |
 
 Derive `<repo-root>` for order 2, taking the first that works:

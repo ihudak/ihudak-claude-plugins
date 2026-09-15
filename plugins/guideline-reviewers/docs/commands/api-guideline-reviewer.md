@@ -56,7 +56,7 @@ The bundled rules are a **vendor-neutral baseline** distilled from public standa
 |---|---|
 | 1 | `--rules <path>` |
 | 2 | `<repo-root>/.dev-workflows/api-guidelines/` |
-| 3 | `$$API_GUIDELINES_PATH` |
+| 3 | `$API_GUIDELINES_PATH` |
 | 4 | the bundled baseline alone |
 
 An overlay file whose name matches a bundled one layers over it and wins on conflict; a file matching none is an additional rule source; an `## Allowed` section suppresses matching baseline rules; and a file whose first line is `<!-- api-guidelines: replace -->` supersedes its baseline counterpart outright. Every miss falls through **silently** — a missing overlay is the normal case, not a problem. The report's `rules_source:` line records what actually resolved (`baseline`, or `overlay:<path>`).

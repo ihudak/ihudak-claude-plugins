@@ -4,6 +4,12 @@ All notable changes to the **guideline-reviewers** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.0.1] — 2026-09-15
+
+### Fixed — the overlay variables are written with one `$`
+
+Both agents' rule-overlay tables named their third rung `$$UI_GUIDELINES_PATH` and `$$API_GUIDELINES_PATH`, and both command pages copied it. Run by bash, `$$` is the shell's own process id, so the rung an agent transcribed literally tested a directory named like `188847UI_GUIDELINES_PATH`, which never exists — and a miss at that rung falls through silently to the bundled baseline, which is what the rung is designed to do, so an overlay set through either variable was never read and nothing said so. All four sites now read `$UI_GUIDELINES_PATH` and `$API_GUIDELINES_PATH`, as the commands and `docs/reference/environment.md` already did.
+
 ## [1.0.0] — 2026-09-02
 
 ### Added — extracted from `dev-workflows` 3.25.0

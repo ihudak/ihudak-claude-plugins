@@ -106,8 +106,10 @@ baseline                      # no overlay resolved
 overlay:<absolute path>       # an overlay resolved, from any of orders 1–3
 ```
 
-Do not print a warning, a note, or a question about the resolution outcome. The
-`rules_source` field is the entire report.
+Do not print a warning, a note, or a question about the resolution outcome. Its
+whole report is two fields of the output block (step 6), and nothing else:
+`rules_source`, the rule set that applied, and `repo_root`, the `<repo-root>` step 1b
+took.
 
 **Only when step 1a itself fails** — the baseline directory is missing or empty and no
 overlay resolved either — return:
@@ -172,7 +174,7 @@ status:         OK | VIOLATIONS_FOUND | ERROR
 checker:        prose-style
 checker_source: prose-style-checker
 rules_source:   baseline | overlay:<absolute path> | none
-repo_root:      <absolute path>
+repo_root:      <absolute path> | none
 violations:     [<array of violation records>]
 error:          <only when status == ERROR: one-line reason>
 ```
@@ -183,7 +185,9 @@ violation schema.
 
 `repo_root` echoes the `<repo-root>` step 1b took for order 2: the caller's `repo_root`
 input verbatim where it supplied one, else the one step 1b derived, rung c's directory
-included. Always return it. It is how a caller that handed `repo_root` knows its input was
+included. Where `rules_path` resolved at order 1 and the caller supplied no `repo_root`,
+step 1b derives none, since order 2 is never reached, and the field reads `none`. Always
+return it. It is how a caller that handed `repo_root` knows its input was
 honoured: a checker from before this input existed ignores the input and returns no such
 field.
 

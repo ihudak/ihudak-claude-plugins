@@ -327,7 +327,7 @@ Then read the scratch file back as `combined_rendered`, and remove it.
    - Category label: <the value | none — omitted from the draft>
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
-   - Style check: <applied N safe fixes | report only (M findings) | skipped — you chose "Skip style check">, rules <the checker's rules_source>
+   - Style check: <applied N safe fixes | report only (M findings) | skipped — you chose "Skip style check"> — rules: <the checker's rules_source, where it ran>
    - Reminder: paste this wherever your release notes are published — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
 
    ### Next step

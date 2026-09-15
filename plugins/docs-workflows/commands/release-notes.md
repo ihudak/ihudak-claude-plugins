@@ -440,16 +440,19 @@ guidance already appeared in the Phase 8 report.
 **Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/release-notes)`, and pushes per
-§4 step 5. It NEVER writes into a docs repo — the release-note draft is
-untouched — NEVER touches a code repo, or the current working directory; NEVER force-pushes; NEVER fails the run;
+§4 step 5. **The draft is one of those paths**: `release-notes.md` in the
+resolved PRD folder is §2.1's `/release-notes` draft, so this step commits
+and pushes it with the rest of the run's artifacts, and edits nothing in it.
+It NEVER writes into a docs repo, NEVER touches a code repo, the vault, or the current working directory; NEVER force-pushes; NEVER fails the run;
 and skips entirely when the run carries `specs_git: blocked` (§3.3 G0),
 re-emitting that notice. Because the Phase 8 report was composed before this
 phase, **print its §6 outcome line here**, as the run's last output — prefixed
 `Specs repo:`, with any guard notice repeated in full.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (the
-release-notes draft is a plain file for manual publication; the terminal
-step above commits only the bounded session-artifact paths in `$SPECS_PATH`),
+ADDITIVE — this phase NEVER fails the run and makes no deliverable handoff
+commit: it opens no branch and no pull request for the draft, which the
+terminal step above commits in the specs repository as one of `$SPECS_PATH`'s
+bounded paths (§2.1), and never in a docs, code or vault repository. It
 NEVER makes an external API call, and NEVER writes into a docs repo or the
 current working directory; no user name is ever written (§10).
 
@@ -466,7 +469,7 @@ current working directory; no user name is ever written (§10).
 - The run has **no worthiness gate**: every PRD is relevant for release notes, so there is no content state in which this command refuses to draft. `relevant_for_release_notes` is retired (`workflows-core:prd-format`) and a value left in an existing PRD is read by nothing. Whether a note is drafted is the decision of whoever runs the command.
 - NEVER write into a docs repo. The draft's one destination is `release-notes.md` in the resolved PRD folder, which is persistent (never `/tmp`), and it is appended to, never overwritten: no earlier section is ever rewritten or removed (Phase 8). The style gate's scratch copy is removed once it is read back (Phase 7).
 - ALWAYS use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
-- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`workflows-core:specs-repo-git` §2.2); it creates none), and no commit of the draft or of anything in a docs/code repo or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1).
+- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`workflows-core:specs-repo-git` §2.2); it creates none), and no commit of anything in a docs/code repo, the vault, or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1) — the draft, `release-notes.md` in the resolved PRD folder, among them, so it is committed in the specs repository and nowhere else.
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the PRD is fully processed).
 - ALWAYS end the Phase 8 report with a `### Context hygiene` block per `workflows-core:session-hygiene` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `workflows-core:session-hygiene` §1 — this block prints the guidance only), then a leaf-aware suggestion (done → nothing; pending role → `/clear`) + `/rename <PRD-ID>-<slug>-<role>` using this run's inferred lane (`pm` or `dev`, per the Phase 6 inference); guidance only, never auto-run.

@@ -45,7 +45,7 @@ Its attachment table and the paragraph beneath it had no row for `proposal-revie
 
 ### Changed — the loader-contract census has one home
 
-`scripts/check-docs.sh`'s check-16 header is now the only place the loader census is written, and it says so. `CLAUDE.md` carried a second copy of four of its figures, which every change to the tree had to move twice, and this increment's commands and agents moved all four. The header's figures are re-derived from the scan itself (342 real invocations, 167 carrying an entry point, 74 files citing a core reference and 74 carrying the preamble, 38 citing files outside the scanned directories), and `CLAUDE.md` now cites the header instead of restating it. The agent total the check-17 header and `CLAUDE.md` share moves from 38 to 40; the **3** agents carrying `Task` is unchanged, and `docs-scaffold-reviewer` correctly carries none.
+`scripts/check-docs.sh`'s check-16 header is now the only place the loader census is written, and it says so. `CLAUDE.md` carried a second copy of four of its figures, so a change to the tree could leave either copy stale, and this increment's commands and agents moved all four. The header's figures are re-derived from the scan itself (342 real invocations, 167 carrying an entry point, 74 files citing a core reference and 74 carrying the preamble, 38 citing files outside the scanned directories), and `CLAUDE.md` now cites the header instead of restating it. The agent total the check-17 header and `CLAUDE.md` share moves from 38 to 40; the **3** agents carrying `Task` is unchanged, and `docs-scaffold-reviewer` correctly carries none.
 
 ### Fixed — a switch onto the default branch takes its name, never the `origin/` ref
 

@@ -159,7 +159,7 @@ Typical gaps:
   "Apply the diff" changes exactly the fields listed as changed or added and nothing listed as kept. Do not overwrite without this confirmation. Where each choice goes:
   - **"Apply the diff — change the listed fields, keep the rest"** → Phase 5, which writes the existing profile with those changes applied.
   - **"Keep existing, write nothing"** → this run writes nothing. Skip Phase 5 entirely — no branch, no stash offer, no commit, and no CLAUDE.md additions — and go straight to Phase 6, whose report reads "kept — nothing written". In inline mode, which has no Phase 6 report of its own, control returns to `/document` with the existing profile unchanged and no branch or commit to hand back (Phase 6), and `/document` proceeds with that profile (its Phase 0 step 4(c)).
-  - **"Edit specific fields first (you'll be prompted)"** → take the edits, show the diff again with them folded in, and ask this question again.
+  - **"Edit specific fields first (you'll be prompted)"** → take the edits and fold them into the diff; where it now lists no change and no addition, end the run as the paragraph above says, and otherwise show the diff again and ask this question again.
 - **Absent** → bootstrap: proceed to Phase 5 with the confirmed draft.
 
 Record the final, confirmed `docs-profile.yml` — on a refresh, the existing profile with the confirmed changes applied, or, where the operator kept it or the refresh found nothing to change, the existing profile as it stands — and the CLAUDE.md additions, and tag each field `detected`, `user-supplied`, or, on a refresh, `kept, not detected` for the Phase 6 report.

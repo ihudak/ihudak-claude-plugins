@@ -105,19 +105,19 @@ for a server on this machine: with `http_proxy` or `ALL_PROXY` set and no `no_pr
 on a port nothing listens on, so a free port reads as answering, and the proxy's own page in place
 of the server's.
 
-Every probe below is this one, and it needs no socket tool. **A probe that cannot run is never read
-as an answer or as silence**, so the check does not start without its tools: before the first boot,
-confirm that `command -v bash`, `command -v curl` and `command -v ps` all exit 0 — step 2 boots
-under `bash` and reads the process group with `ps`, and step 5 signals that group under `bash` and
-reads its members and a listener's parents with `ps`. Where any does not, boot nothing, record
-"smoke-check unavailable: `<tool>` is not installed", and every page goes to the manual table (§5);
-`/document` Phase 6.5 records that on `render_smoke_check` as `DEGRADED`, never `UNAVAILABLE`,
-since the manual table is that gate's registered fallback (`gate-ledger.md` §4) and needs no tool.
-A probe that exits 127 anyway, part-way through, ends the check the same way: boot no further
-server, signal the process group of one this run already booted as step 5 does (its signals need
-neither `curl` nor `ps`), record "smoke-check unavailable: curl could not run (exit 127) —
-`<space>`'s server was signalled, and its port could not be probed", and every page not yet checked
-goes to the manual table. For each server:
+Every probe below is the exit-code probe defined first, and it needs no socket tool. **A probe that
+cannot run is never read as an answer or as silence**, so the check does not start without its
+tools: before the first boot, confirm that `command -v bash`, `command -v curl` and `command -v ps`
+all exit 0 — step 2 boots under `bash` and reads the process group with `ps`, and step 5 signals
+that group under `bash` and reads its members and a listener's parents with `ps`. Where any does
+not, boot nothing, record "smoke-check unavailable: `<tool>` is not installed", and every page goes
+to the manual table (§5); `/document` Phase 6.5 records that on `render_smoke_check` as `DEGRADED`,
+never `UNAVAILABLE`, since the manual table is that gate's registered fallback (`gate-ledger.md` §4)
+and needs no tool. A probe that exits 127 anyway, part-way through, ends the check the same way:
+boot no further server, signal the process group of one this run already booted as step 5 does
+(its signals need neither `curl` nor `ps`), record "smoke-check unavailable: curl could not run
+(exit 127) — `<space>`'s server was signalled, and its port could not be probed", and every page not
+yet checked goes to the manual table. For each server:
 
 1. Verify prerequisites (§4) — best-effort, never applied.
 2. **Probe the server's `port` before booting it.** Where it already answers, something this run did

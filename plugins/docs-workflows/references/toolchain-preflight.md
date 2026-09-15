@@ -109,8 +109,8 @@ Example consequence line:
 > With `vale` and `pnpm` missing, this run would record `style_check` **DEGRADED** (only
 > `prose-style-checker` runs — the repo's own linter, the one CI will run on your PR, would not),
 > `build_check` **UNAVAILABLE** (its fallback, the dev-server boot, runs `pnpm` too), and
-> `render_smoke_check` **DEGRADED** (no server boots, and every affected page goes to the manual
-> pages-to-visit table, the fallback that needs no tool).
+> `render_smoke_check` **DEGRADED** (no server can start without `pnpm`, so every affected page goes
+> to the manual pages-to-visit table, the fallback that needs no tool).
 
 - **"Cancel"** → stop the run. Nothing has been written.
 - **"Continue anyway"** → for each gate named in the consequence line, **pre-seed** its ledger row's

@@ -24,7 +24,7 @@ ends in one of six outcomes, and every non-run path terminates in a **named miss
 | Outcome | Means | Assignable by |
 |---|---|---|
 | `RAN` | The gate's primary mechanism executed. | evidence only |
-| `DEGRADED` | Only a fallback executed. Records what did not run, why, and what CI will still check. | evidence only |
+| `DEGRADED` | Only a fallback executed. Records what did not run, why, and what CI will still check, or that nothing will. | evidence only |
 | `FAILED` | Ran and found blocking problems. Feeds the caller's existing fix loops. | evidence only |
 | `UNAVAILABLE` | Neither the primary nor a fallback ran, with the precondition met. **Not a resting state** — see §5. | the orchestrator, but never as a final answer |
 | `SKIPPED_BY_USER` | The user chose to skip. Carries their decision quoted verbatim. | the user only |
@@ -33,8 +33,9 @@ ends in one of six outcomes, and every non-run path terminates in a **named miss
 There is no orchestrator-assignable "skipped". "Flaky, and the static analysis was sufficient" has
 nowhere to go.
 
-`DEGRADED` proceeds — a weaker check is not a documentation defect, and the final report names what
-CI will check that the run did not. Total absence of coverage does not proceed.
+`DEGRADED` proceeds — a weaker check is not a documentation defect, and the final report prints the
+row's `ci_still_checks` line: what CI will check that the run did not, or that nothing will (§6).
+Total absence of coverage does not proceed.
 
 **One gate, one outcome: `FAILED` outranks `DEGRADED`.** A gate that runs in parts — `build_check`
 over several builds, `render_smoke_check` over several spaces — can end with one part `FAILED` and

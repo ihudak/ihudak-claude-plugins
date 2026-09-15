@@ -1613,7 +1613,7 @@ Output a structured report — do NOT ask any closing confirmation:
 ### Verification gates
 | Gate | Outcome | Detail |
 |---|---|---|
-[One row per gate in the `gate_ledger` — direct mode registers three (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE); empty otherwise. When any row is DEGRADED or SKIPPED_BY_USER, follow the table with a one-line warning naming what CI will check that this run did not — or, where a row's `ci_still_checks` says none runs, that nothing will.]
+[One row per gate in the `gate_ledger` — direct mode registers three (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE); empty otherwise. When any row is DEGRADED or SKIPPED_BY_USER, follow the table with a one-line warning naming what this run did not check. The warning names a CI check only where a row's `ci_still_checks` records one, and where that line says none runs, it says that nothing will. A SKIPPED_BY_USER row records no `ci_still_checks` (`references/gate-ledger.md` §3), so for that row the warning names the gate the user skipped and names no CI check in its place.]
 
 ### Assumptions & limitations
 - [list any]

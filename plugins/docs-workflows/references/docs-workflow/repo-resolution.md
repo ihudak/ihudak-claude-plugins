@@ -58,7 +58,7 @@ One list, tested by both entry points. **It is the docs-signal list `/document` 
 - `mkdocs.yml`;
 - `docusaurus.config.js`;
 - `antora.yml`;
-- `.vale.ini`;
+- a Vale configuration file, under any of the five names Vale reads one from — `.vale`, `_vale`, `vale.ini`, `.vale.ini` or `_vale.ini` (`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2, source 2, is where this plugin defines them) — since a site configured through any of them is linted by Vale all the same;
 - `DOCUMENTATION-GUIDELINES.md`;
 - an in-repo `.dev-workflows/docs-profile.yml`;
 - any `*/_content/` directory;

@@ -90,10 +90,15 @@ does not replace the step below.
 
 Accessibility rule sets are maintained by Deque (axe-core) and the W3C (ACT Rules), not by this
 plugin. A repo that configures `eslint-plugin-jsx-a11y` has already chosen its rule set, its
-severity policy, and its exceptions, and CI will run exactly that on the PR. Wrapping the repo's
-own configuration guarantees the local result matches what CI checks; re-encoding the rule set
-here would duplicate the canonical source and drift from it. This mirrors how `docs-style-checker`
-wraps a docs repo's own Vale rather than embedding a style guide.
+severity policy, and its exceptions. Wrapping the repo's own configuration means this step runs
+that rule set, as ESLint resolves it from each file's package directory (below), so a finding here
+is one the repository's own rules raise; re-encoding the rule set here would duplicate the
+canonical source and drift from it. It is not a guarantee that CI reports the same: CI reports the
+same findings where it lints those files from the same directory, or under the same
+configuration, with the same ESLint and plugin versions, and can report others where it does not
+— a CI job that lints a monorepo from its top level reads the configuration ESLint resolves there,
+not the one a package keeps for itself — and a repository may run no linter in CI at all. This mirrors how `docs-style-checker` wraps a docs
+repo's own Vale rather than embedding a style guide.
 
 ### What can and cannot run here — state this accurately
 
@@ -129,8 +134,8 @@ none is linted under the one ESLint finds above it — at the top level, say —
 packages are each linted under the config ESLint resolves for its own, and a repository whose
 config and `package.json` sit at its top level is linted from there, as it is when you are started
 in it. Your Bash tool starts every call in the session's directory, which need not be the reviewed
-repository, and a `cd` does not persist between calls — while `npx --no-install` finds ESLint, and
-ESLint finds its config, from the directory it runs in — so run every command below for a
+repository, and a `cd` does not persist between calls — while `npx --no-install` (or, under Yarn
+Plug'n'Play, `yarn`) finds ESLint, and ESLint finds its config, from the directory it runs in — so run every command below for a
 partition as one subshell, `(cd "<the partition's directory>" && …)`, inside a single Bash call,
 naming that partition's files by absolute path. Merge what the partitions report into one set of
 findings, each keyed by its file.
@@ -147,9 +152,20 @@ answers yes; it prints that file's resolved configuration as JSON:
 (cd "<the partition's directory>" && npx --no-install eslint --print-config "<one of the partition's files>")
 ```
 
+**Under Yarn Plug'n'Play, run ESLint through Yarn.** A Plug'n'Play install — Yarn 2 and later's
+default — keeps no `node_modules`, so `npx --no-install` finds no ESLint there and cancels. Where a
+`.pnp.cjs` sits in the partition's directory or in any directory above it, up to its repository's
+top level (in no repository, that directory alone), run every ESLint command in this branch —
+this probe and the lint below — as `yarn eslint …` in place of `npx --no-install eslint …`, from the
+same directory and with the same arguments. Plug'n'Play lets a workspace run only the binaries it
+declares itself, so where Yarn answers that it cannot find a script named `eslint` — ESLint is
+declared by the root workspace alone, as in a monorepo that keeps its linter at the top — run
+`yarn run -T eslint …` instead, which runs the root workspace's.
+
 ESLint answering that it can find no configuration file means none applies there: not detected.
-Where ESLint cannot answer at all — `npx --no-install` finds no ESLint installed, or ESLint fails
-to load the configuration — and an ESLint configuration file lies in that directory or any
+Where ESLint cannot answer at all — `npx --no-install` finds no ESLint installed, or under
+Plug'n'Play Yarn finds none either way or cannot run, or ESLint fails to load the
+configuration — and an ESLint configuration file lies in that directory or any
 directory above it (a flat `eslint.config.js` / `.mjs` / `.cjs` / `.ts`, or a legacy `.eslintrc`,
 `.eslintrc.js`, `.eslintrc.cjs`, `.eslintrc.json`, `.eslintrc.yml`, `.eslintrc.yaml`), the
 repository configures a linter that could not run: record the attempt in `a11y_attempt` and fall
@@ -160,13 +176,14 @@ lint script when it accepts file arguments (the partition directory's `package.j
 `lint`, `lint:js`, `lint:ts`, or `eslint`), selecting the package runner from the nearest lockfile at
 or above that directory (`pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `package-lock.json` /
 `npm-shrinkwrap.json` → `npm`, `bun.lockb` → `bun`). Otherwise invoke the repo's
-already-installed ESLint directly:
+already-installed ESLint directly — through Yarn, as above, under Plug'n'Play:
 
 ```bash
 (cd "<the partition's directory>" && npx --no-install eslint --format json <the partition's files>)
 ```
 
-`--no-install` is required: this step never installs anything. Parse the JSON array
+`--no-install` is required: this step never installs anything, and `yarn eslint` runs the ESLint
+the Plug'n'Play install already holds, installing none. Parse the JSON array
 (`filePath`, `messages[].ruleId`, `.line`, `.column`, `.message`, `.severity`), keep only messages
 whose `ruleId` starts with `jsx-a11y/`, and map severity `2` → **Critical**, `1` → **Warning**.
 Cap the run at 2 minutes.

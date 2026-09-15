@@ -36,7 +36,7 @@ Every recognized flag is stripped from `$ARGUMENTS` before the remaining token i
 | 4 — Vale | Create `.gitignore` or append the lines an existing one lacks; write `requirements-docs.txt` and `.vale.ini`, run `vale sync`, and seed the vocabulary with the product name and stub words. |
 | 5 — Branding | Run `/docs-brand --inline` on the new repo unless `--no-brand`. Its diff and contrast finding join this run's review and PR; if it cannot brand, the run continues as if `--no-brand` and says why. |
 | 6 — Profile | Write `.dev-workflows/docs-profile.yml`: the generator, both builds, both dev servers (each command carrying the `{port}` token), the commands, and the structured images block. |
-| 7 — Verify the scaffold | Public build strict, internal build strict, `vale docs/`, then the visibility gate against the **public build output** — in that order. |
+| 7 — Verify the scaffold | Public build strict, internal build strict, `vale docs/` on the repository's configuration alone, then the visibility gate against the **public build output** — in that order. |
 | 7.5 — Review gate | Dispatch `docs-scaffold-reviewer` at Opus over the written diff, triage its findings, and apply the survivors in the orchestrator. |
 | 8 — Finish | Commit on the branch and draft a pull-request message. Never pushes, never merges. |
 | 8.5 — Report | The consolidated report, including every verification outcome and the next step. |

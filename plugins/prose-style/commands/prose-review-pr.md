@@ -22,7 +22,7 @@ The command receives its input via `$ARGUMENTS`. Accepted formats:
 | Format | Example | Behaviour |
 |---|---|---|
 | PR number | `9089` | Finds merge commit or remote branch for that PR |
-| Branch name | `feat/improve-install-guide` | Diffs the branch against `main` |
+| Branch name | `feat/improve-install-guide` | Diffs the branch against the default branch (`main` unless the repository's is another) |
 | `--repo <path>` | `--repo /workspace/product-docs` | Override the repo path (default: current working directory) |
 | `--doc-type <type>` | `--doc-type product-docs` | Passed to prose-style-checker for severity calibration (default: `product-docs`) |
 | `--rules <path>` | `--rules ~/style/rules` | Override overlay discovery; passed to prose-style-checker as `rules_path` |
@@ -46,6 +46,18 @@ If no target is found, ask the user: "Please provide a PR number or source branc
 ### 2. Resolve changed files
 
 Run every git command with `git -C <repo_path>`.
+
+**The default branch.** Every diff below that names the default branch, and step 7's, writes it
+as `main`. Where the repository's is another, put its **name** in `main`'s place:
+`origin/<name>...origin/<branch>`, `<name>...<branch>`, `<name>...remotes/origin/<branch>`. Take
+the name from `git -C <repo_path> symbolic-ref --quiet --short refs/remotes/origin/HEAD`, which
+prints `origin/<name>`: the name is what follows `origin/`. Without `--short` the command prints
+`refs/remotes/origin/<name>`, which is not a name — in `origin/main`'s place it makes
+`origin/refs/remotes/origin/<name>`, a revision git rejects, and in the other two it turns a diff
+against the local branch into one against the remote. Where it prints nothing (`origin/HEAD` is
+unset), the name is `master` if
+`git -C <repo_path> rev-parse --verify --quiet origin/master >/dev/null` succeeds and the same
+probe of `origin/main` does not; otherwise it stays `main`.
 
 #### 2a. If target is a PR number
 
@@ -85,8 +97,8 @@ git -C <repo_path> diff origin/main...origin/<branch> --name-only -- '*.md'
 ```
 
 If the diff is empty, also try `main...<branch>` (local branch) and
-`main...remotes/origin/<branch>`. If the repository's default branch is not `main`,
-resolve it with `git -C <repo_path> symbolic-ref refs/remotes/origin/HEAD` and use that.
+`main...remotes/origin/<branch>`. Where the default branch is not `main`, each form takes its
+name instead (**The default branch**, above).
 
 ### 3. Filter to documentation files
 

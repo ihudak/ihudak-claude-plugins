@@ -6,6 +6,8 @@
 
 `skills/prose-style-rules/SKILL.md` and `commands/prose-style-refresh.md` both said `/prose-style-refresh` asks the skill for the baseline directory **because `${CLAUDE_PLUGIN_ROOT}` does not expand in a slash-command body**. That was verified false in a live run — the variable does expand there — and the marketplace's `CLAUDE.md` records the claim as retired. The mechanism is unchanged; the reason that holds is now the one both files state: the skill is where the baseline's location is written down together with the rule that nothing writes into it, so the one command that writes overlays takes the path from there rather than restating either.
 
+`/prose-review-pr` told a run whose repository's default branch is not `main` to resolve it with `git symbolic-ref refs/remotes/origin/HEAD` "and use that". That prints `refs/remotes/origin/<name>`, which is not a name: put in place of `main` inside `origin/main...origin/<branch>` it makes `origin/refs/remotes/origin/master`, a revision git rejects, and in the local-branch forms it quietly diffs against the remote instead. The instruction also sat in the branch-name path alone, so it did not cover the PR-number path or step 7's context diff. Step 2 now opens with **The default branch**: take the name from `symbolic-ref --quiet --short`, which prints `origin/<name>`, strip the `origin/`, and put that name in `main`'s place in every form that names the default branch; where `origin/HEAD` is unset, the name is `master` when only `origin/master` exists, else `main`. The command never switches branches, so nothing here moved HEAD; the defect was a diff that failed or read the wrong base.
+
 ## 0.3.0
 
 ### BREAKING

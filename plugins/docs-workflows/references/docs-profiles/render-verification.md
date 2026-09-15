@@ -308,7 +308,12 @@ functions — a POSIX utility, checked in bash, dash and BusyBox's `ash` — and
   has exited.
 - **A process's start time.** On Linux: field 22 of `/proc/<pid>/stat`, read after its last `)` as
   above — `command sed 's/.*)//' /proc/<pid>/stat | command awk '{ print $20 }'`, in clock ticks
-  since the host booted. Elsewhere: `command ps -o lstart= -p <pid>`. Both print nothing where the
+  since the host booted. Elsewhere: `LC_ALL=C TZ=UTC0 command ps -o lstart= -p <pid>`. `lstart`
+  prints the start in the reader's local time, with its locale's names for the day and the month,
+  so a later run under another `TZ`, or another `LC_ALL`, `LC_TIME` or `LANG` — a laptop whose time
+  zone changed, a terminal exporting its own — would print another string for the same process;
+  the two variables make every run print one (procps-ng 4.0.4: three time zones and four locales
+  gave twelve strings for one process, and this form one). Both print nothing where the
   process has exited, and neither changes while the process lives, an `exec` included, so a
   process that later takes the same pid prints another. This check reads none; `/docs-serve` reads
   it to tell the process group it started from one that reuses its id (its Phase 7).

@@ -17,6 +17,10 @@ Both were falsified by the `docs-workflows` cold-start increment, which added a 
 - `commands/create-prd.md` Phase 0 called this command *"the only one of the **twenty-six** `commit-artifacts` callers running no preflight"*. There are twenty-eight now. The count was doing no work in a sentence that is a historical note about a past defect, so it is **removed rather than corrected** — the claim it makes is about being the only one, not about how many there are.
 - `references/bundle-packaging.md` said `specs-repo-git.md` §2.1 *"bounds staging to three path shapes, all of them under `dev-workflows/**`"*. It is four directory shapes plus three single files, and the fourth (`documentation/<docs-repo-slug>/…`) is not under `dev-workflows/**` at that level. Restated as "a fixed, enumerated set of path shapes", which is what the paragraph's argument actually needs — the point is that a bundle matches **none** of them, not how many there are.
 
+### Fixed — the grounding agents read the repository they were handed
+
+A subagent's Bash tool starts every call in the session's directory — where `/prd-ground` stands — and a `cd` does not persist between calls. `code-grounder` wrote its three read primitives bare (`git show <commit>:<path>`, `git grep -n <pattern> <commit>`, `git ls-tree -r --name-only <commit>`) beside a citation of `workflows-core:read-only-repos` §4, where they carry `-C`; run from the session's directory they exit 128, the pinned commit not being there. `grounding-verifier` named `baseline-integrity`'s three steps as bare `rev-parse HEAD`, `diff --stat` and `status --porcelain`, which would compare the pin against the session's `HEAD`. Both now write `git -C "<repo_path>"`, and each is told why and to give `Grep` and `Glob` the handed root as their path.
+
 ## [3.5.0] — 2026-09-09
 
 Five open defects from a live-engagement defect register, found running the family across two

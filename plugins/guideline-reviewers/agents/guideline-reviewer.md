@@ -114,21 +114,37 @@ Never write, or imply, that axe ran.
 Read-only detection. First match sets `a11y_check`; the check is scoped to the files under
 review and never to the whole tree.
 
+**Where it looks, and where it runs.** Detection and the lint work in one directory, found for
+each reviewed file: the nearest directory at or above it, up to its repository's git top level
+(`git -C "<the file's directory>" rev-parse --show-toplevel`), that holds an ESLint config — any
+flat or legacy config file branch 1 lists — or a `package.json` that declares ESLint (`eslint` or
+`eslint-plugin-jsx-a11y` in `dependencies` / `devDependencies`, or an inline `eslintConfig`
+block). Where no directory up to the top level holds either, use the top level itself; where the
+file is in no repository, the deepest common parent of the reviewed files. So a monorepo package
+that keeps its own ESLint config is linted under it, and a repository whose config sits at its
+top level is linted from there, as it is when you are started in it. Files that resolve to the
+same directory are detected and linted together, once. Your Bash tool starts every call in the
+session's directory, which need not be the reviewed repository, and a `cd` does not persist
+between calls — while `npx --no-install` finds ESLint, and ESLint finds its config, from the
+directory it runs in — so run every command below as one subshell, `(cd "<that directory>" &&
+…)`, inside a single Bash call, naming the reviewed files by absolute path.
+
 **1. Static linter — `eslint-plugin-jsx-a11y`** (the useful case: it checks source)
 
-Detected when `jsx-a11y` appears in any of:
+Detected when `jsx-a11y` appears, in that directory, in any of:
 - `package.json` — `dependencies`, `devDependencies`, or an inline `eslintConfig` block
 - a flat config: `eslint.config.js` / `.mjs` / `.cjs` / `.ts`
 - a legacy config: `.eslintrc`, `.eslintrc.js`, `.eslintrc.cjs`, `.eslintrc.json`, `.eslintrc.yml`, `.eslintrc.yaml`
 
 When detected, run the repo's own lint over the reviewed files only. Prefer the repo's lint
-script when it accepts file arguments (`package.json` scripts named `lint`, `lint:js`, `lint:ts`,
-or `eslint`), selecting the package runner from the lockfile (`pnpm-lock.yaml` → `pnpm`,
-`yarn.lock` → `yarn`, `package-lock.json` / `npm-shrinkwrap.json` → `npm`, `bun.lockb` → `bun`).
-Otherwise invoke the repo's already-installed ESLint directly:
+script when it accepts file arguments (that directory's `package.json` scripts named `lint`,
+`lint:js`, `lint:ts`, or `eslint`), selecting the package runner from the nearest lockfile at or
+above that directory (`pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `package-lock.json` /
+`npm-shrinkwrap.json` → `npm`, `bun.lockb` → `bun`). Otherwise invoke the repo's
+already-installed ESLint directly:
 
 ```bash
-npx --no-install eslint --format json <files under review>
+(cd "<that directory>" && npx --no-install eslint --format json <files under review>)
 ```
 
 `--no-install` is required: this step never installs anything. Parse the JSON array

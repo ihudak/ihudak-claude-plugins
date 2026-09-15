@@ -37,6 +37,8 @@ Runs **before** the subagent's review passes, and wraps the target repo's own co
 | 2 | `jest-axe`, `cypress-axe`, `@axe-core/playwright`, or `@axe-core/cli` in `package.json` | Recorded only — **not run**. The report names the axe rule ids the repo's own suite could confirm | `harness-detected:<name>` |
 | 3 | Neither | Silent skip; the review proceeds unchanged | `none` |
 
+**Where the linter runs.** From the directory that holds its configuration: the nearest one above the reviewed files that carries an ESLint config or a `package.json` declaring ESLint, else the repository's top level — whichever directory the session stands in, since `npx --no-install` finds ESLint, and ESLint its config, from the directory it runs in. A monorepo package that keeps its own ESLint config is linted under it.
+
 **What does not run, and why.** axe-core needs a rendered DOM, so it cannot be pointed at source files, and a review has no rendered app to hand a runtime harness. Only branch 1 executes anything: `eslint-plugin-jsx-a11y` is the one accessibility rule set that checks source. Branch 2 records the harness and says plainly that it did not run it — the axe and ACT ids elsewhere in the report are a **vocabulary for naming findings**, never evidence that axe executed.
 
 **Merged, not duplicated.** A finding branch 1's linter reported deterministically is not re-raised by the review pass as a second finding; same file, same line, same underlying rule keeps the linter's version, with its rule id and the repo's own configured severity. Findings carry a `source: linter | review` tag so the two are distinguishable.

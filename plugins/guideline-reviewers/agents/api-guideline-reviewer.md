@@ -42,7 +42,9 @@ Load every guideline file listed below before reviewing — never skip one of th
 
 Run this **before** Pass 1. It is the only pass that produces machine-checked findings, and its findings are authoritative for the rules it covers.
 
-**1 — Resolve a CLI.** Try each in order and stop at the first that exits 0:
+**Where it runs.** Every command in this pass runs in one directory, found for each spec file: the nearest directory at or above it, up to its repository's git top level (`git -C "<the spec's directory>" rev-parse --show-toplevel`), that holds a Spectral ruleset of its own — `.spectral.yaml`, `.spectral.yml` or `.spectral.json` — or a `package.json` that declares `@stoplight/spectral-cli`; where none does, the top level itself, and where the spec is in no repository, its own directory. A monorepo package that keeps its own ruleset or its own Spectral CLI is linted from that package, and a repository that keeps them at its top level from there, as it is when you are started in it. Your Bash tool starts every call in the session's directory, which need not be the spec's repository, and a `cd` does not persist between calls — while `npx --no-install` resolves the CLI from the directory it runs in, and from any other finds none, or the wrong one — so run each probe and each lint below as one subshell, `(cd "<that directory>" && …)`, inside a single Bash call, naming the spec by absolute path.
+
+**1 — Resolve a CLI.** Try each in order, from that directory, and stop at the first that exits 0:
 
 | Order | Probe | `SPECTRAL` |
 |---|---|---|
@@ -52,7 +54,7 @@ Run this **before** Pass 1. It is the only pass that produces machine-checked fi
 
 Nothing resolved is **not an error**. Set `lint_source: none`, go straight to Pass 1, and record the skip in the output block. Never install anything, never prompt the user, never fail the run, and never say more about it than the `lint_source` line — this mirrors how `docs-style-checker` treats a missing linter.
 
-**2 — Choose the ruleset.** If the repository holding the spec has its own `.spectral.yaml` / `.spectral.yml` / `.spectral.json` at its root, use that one: an organization is expected to **extend** the bundled ruleset in its own file rather than edit the bundled file in place, so its file is the more specific one. Otherwise use the bundled ruleset:
+**2 — Choose the ruleset.** If the spec has a ruleset of its own — the `.spectral.yaml` / `.spectral.yml` / `.spectral.json` in the nearest directory at or above it, up to its repository's git top level, that holds one — use that one: an organization is expected to **extend** the bundled ruleset in its own file rather than edit the bundled file in place, so its file is the more specific one. Otherwise use the bundled ruleset:
 
 ```
 ${CLAUDE_PLUGIN_ROOT}/references/api-guidelines/spectral/ruleset.yaml
@@ -61,7 +63,7 @@ ${CLAUDE_PLUGIN_ROOT}/references/api-guidelines/spectral/ruleset.yaml
 **3 — Run it,** once per spec file:
 
 ```
-<SPECTRAL> lint <spec-file> --ruleset <ruleset> --format json --fail-severity hint
+(cd "<that directory>" && <SPECTRAL> lint <spec-file> --ruleset <ruleset> --format json --fail-severity hint)
 ```
 
 - **Exit code 1 means findings were reported, not that the tool failed.** Judge success by whether stdout carries a parseable JSON array, never by the exit code.

@@ -19,7 +19,7 @@ Surface the subagent's verdict to the user.
 
 ## Deterministic lint
 
-Before its LLM review passes, the subagent runs a **Spectral** lint of each spec file against the ruleset bundled with this plugin at `references/api-guidelines/spectral/ruleset.yaml` — forty rules that make the machine-checkable half of the guidelines executable, on top of `spectral:oas` (recommended). Where the spec's own repository carries a `.spectral.yaml` at its root, that file is used instead, on the assumption that an organization extends the bundled ruleset rather than editing it in place.
+Before its LLM review passes, the subagent runs a **Spectral** lint of each spec file against the ruleset bundled with this plugin at `references/api-guidelines/spectral/ruleset.yaml` — forty rules that make the machine-checkable half of the guidelines executable, on top of `spectral:oas` (recommended). Where the spec's own repository carries a `.spectral.yaml` — the nearest one above the spec, up to the repository's top level — that file is used instead, on the assumption that an organization extends the bundled ruleset rather than editing it in place.
 
 Two things follow, and both belong to the subagent — this command neither runs the linter nor post-processes its output:
 

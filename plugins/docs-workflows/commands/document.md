@@ -645,7 +645,7 @@ Every git call in this phase, and in Phase 6.3's commit and Phase 8.5, runs as `
    - **Normal case** (`profile_source` is `in-repo` or `built-in`, or a custom repo whose profiling did not create a branch): `git -C <docs_repo_path> switch -c <name>` from `base_branch`.
    - **Inline-profiling case** (`profile_source: generated`): Phase 0's `/docs-profile` already cut `profile_branch` and committed `.dev-workflows/docs-profile.yml` on it, so HEAD is already on that branch. Do NOT create a new branch — rename that one, by name: `git -C <docs_repo_path> branch -m <profile_branch> <name>`. Name the old branch every time: the one-argument `git branch -m <name>` renames whatever branch HEAD is on, `main` included, while the two-argument form fails where `profile_branch` does not exist rather than rename another. `profile_commit` is the commit profiling handed back (Phase 0 step 4(c)) — never a `git log --diff-filter=A` lookup, which names the newest commit that *added* the file, not necessarily the one this run made. Phase 8.5 squashes the docs commits onto `profile_commit`, keeping the profile-config commit as a distinct first commit. (Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §1.)
 
-No external CLI calls; all git operations are local.
+No external CLI calls, and nothing is pushed or sent: step 1's reads of the remote — `git fetch origin`, the `pull --ff-only` behind it, and `remote set-head origin --auto` where `origin/HEAD` is unset — only settle the base, and every write this phase makes is local.
 
 ---
 

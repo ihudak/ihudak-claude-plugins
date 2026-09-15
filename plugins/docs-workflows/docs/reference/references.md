@@ -35,7 +35,7 @@ The one handoff mechanic that belongs to a single command rather than to the fam
 
 Two further subtrees carry bundled guidance too large or too domain-specific to enumerate file-by-file; each is counted here instead.
 
-- `docs-profiles/` (5) — docs-profile authoring conventions for the built-in `example-docs` worked example (frontmatter, changelog, anchors, render verification, the docs-profile schema), consulted by `/docs-profile`, `/document`, `/docs-init` (the schema page, for the profile it writes), and the `docs-frontmatter` skill.
+- `docs-profiles/` (5) — docs-profile authoring conventions for the built-in `example-docs` worked example (frontmatter, changelog, anchors, render verification, the docs-profile schema). Who consults it is derived rather than listed here: `grep -rl docs-profiles plugins/docs-workflows/commands plugins/docs-workflows/agents plugins/docs-workflows/skills plugins/docs-workflows/hooks`, run from the repository root, returns every command, agent, skill and hook that reads a file in it, and that recipe is the authority on the set. A list kept here went stale as commands and agents gained citations, which is why none is kept.
 - `handoff/` (2) — one input/output document-format contract per agent, read by the agent itself rather than by the dispatching command: one for `diff-summarizer`, one for `release-notes-writer`.
 
 One of these subtrees (`docs-profiles/`) also holds the data and template files named in the introduction above, so its `*.md` count here is smaller than `find <dir> -type f` would report; `handoff/` and `docs-workflow/` are markdown only, and for them the two counts agree.

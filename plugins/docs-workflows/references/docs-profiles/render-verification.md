@@ -169,7 +169,7 @@ yet checked goes to the manual table. For each server:
    `<command>` is the server's `command` with every `{port}` in it replaced by that server's
    configured `port` — never run with the token unsubstituted, and never rewritten anywhere else
    (`docs-profile-schema.md`'s field rule for `dev_servers.servers[].command`) — and `<log>` is a
-   file outside every repository tree (`mktemp -t dw-smoke-XXXX.log` names one), where a server
+   file outside every repository tree (`command mktemp -t dw-smoke-XXXX.log` names one), where a server
    that fails to boot leaves its output. Inside the single-quoted script, write each `'` that
    `<command>`, `<docs_repo_path>` or `<log>` carries as `'\''`. **The line runs under an explicit
    `bash -c`, whatever shell the Bash tool itself uses** — zsh on a default macOS, or `dash`, which

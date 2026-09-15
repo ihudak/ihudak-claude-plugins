@@ -49,8 +49,10 @@ not spent here. Do not escalate it.
    the repository the `code_context` finding names. Your Bash tool starts every call in the session's
    directory — where `/design` stands, which need not be that repository — and a `cd` does not persist
    between calls, so a bare `git` reads the session's repository instead; name the repository in
-   every command (`-C`, an absolute path, or a subshell `(cd "<repo_path>" && …)` inside one Bash
-   call), give every `Grep` and `Glob` call `<repo_path>` as its `path`, and `Read` absolute paths.
+   every command (`-C`, an absolute path, or a subshell `(builtin cd "<repo_path>" >/dev/null && …)`
+   inside one Bash call — `builtin cd`, its output discarded, since your Bash tool's shell carries the
+   user's shell functions and aliases, and a `cd` of theirs would otherwise run in its place and
+   could print into what you read), give every `Grep` and `Glob` call `<repo_path>` as its `path`, and `Read` absolute paths.
 3. Design the interface your `constraint` demands. Push the constraint until it costs something, then
    say what it cost — that trade-off is the most useful thing you return.
 4. Do not evaluate your own take against the others. The caller compares.

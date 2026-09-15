@@ -48,7 +48,9 @@ repository, a commit, or a claim to have something to ground.
 where `/prd-ground` stands, which need not be `repo_path` — and a `cd` does not persist between
 calls, so a bare `git` reads the session's repository, not this one. Write every command against the
 repository as `git -C "<repo_path>" …`, with an absolute path, or as a subshell
-`(cd "<repo_path>" && …)` inside one Bash call; give every `Grep` and `Glob` call `repo_path` as its
+`(builtin cd "<repo_path>" >/dev/null && …)` inside one Bash call — `builtin cd`, its output
+discarded, since your Bash tool's shell carries the user's shell functions and aliases, and a `cd`
+of theirs would otherwise run in its place and could print into what you read; give every `Grep` and `Glob` call `repo_path` as its
 `path`, since without one they search the session's directory too; and `Read` `<repo_path>/<path>`.
 
 1. **Verify repo exists.** If `repo_path` is not a directory, return `status: REPO_MISSING`.

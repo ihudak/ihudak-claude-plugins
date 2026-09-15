@@ -80,8 +80,8 @@ de-duplicate by binary name.
    sets `StylesPath` — a `StylesPath =` line above its first `[section]` header, the one place
    Vale accepts the key (anywhere else it stops with `E201`):
 
-   - **It sets one:** `(cd "<that directory>" && unset VALE_CONFIG_PATH && vale --no-global <arguments>)`.
-   - **It sets none:** `(cd "<that directory>" && unset VALE_CONFIG_PATH && h=$(mktemp -d) && { XDG_CONFIG_HOME="$h" vale <arguments>; s=$?; rm -r "$h"; exit $s; })`,
+   - **It sets one:** `(builtin cd "<that directory>" >/dev/null && unset VALE_CONFIG_PATH && command vale --no-global <arguments>)`.
+   - **It sets none:** `(builtin cd "<that directory>" >/dev/null && unset VALE_CONFIG_PATH && h=$(command mktemp -d) && { XDG_CONFIG_HOME="$h" command vale <arguments>; s=$?; command rm -r -- "$h"; exit $s; })`,
      which removes the directory it made and exits with Vale's own status.
 
    Every part is there for a reason (Vale 3.21, measured, and read from its source). Vale merges
@@ -107,7 +107,15 @@ de-duplicate by binary name.
    file names; neither `--no-global` nor `XDG_CONFIG_HOME` stops it, and clearing it in the
    subshell does. The `cd` is there because Vale reads the first configuration it finds in the
    directory it runs in or one above it, never beside the files, and a Bash call starts in the
-   session's directory, which need not be the repository's. What neither form makes equal is the
+   session's directory, which need not be the repository's. It is `builtin cd`, its output
+   discarded, because the Bash tool's shell carries the user's aliases and shell functions
+   (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md` §2, **Portability**): a
+   `cd` of the user's would otherwise run in its place, and one that prints would put its output
+   ahead of Vale's. `builtin`, not `command`: that shell is bash or zsh, and zsh's `command` runs
+   no builtin, so `command cd` there is a command not found. For the same reason every utility
+   the forms run is `command <name>` — `mktemp`, `vale` and `rm`, whose `rm -i` or `rm -I` alias
+   would otherwise ask before removing the directory, be answered no from the Bash tool's empty
+   standard input, and leave the directory behind — and `--` ends `rm`'s options. What neither form makes equal is the
    styles themselves: the packages this machine synced are the versions it synced, and a runner
    syncs its own. `docs-style-checker`'s first rung, `docs-scaffold-reviewer`'s Vale dimension,
    and `/docs-init`'s Phase 4 sync and Phase 7 lint each run Vale this way.

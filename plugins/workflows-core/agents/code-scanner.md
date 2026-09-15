@@ -42,7 +42,7 @@ absent, trust `repo_path` as given.
 
 ## Process
 
-**Every command names `repo_path`.** Your Bash tool starts every call in the session's directory — where the dispatching command stands, which need not be `repo_path` — and a `cd` does not persist between calls, so a bare `git` reads and moves the session's repository instead of this one. Write every command against the repository as `git -C "<repo_path>" …`, with an absolute path, or as a subshell `(cd "<repo_path>" && …)` inside one Bash call; and give every `Grep` and `Glob` call `repo_path` as its `path`, since without one they search the session's directory too.
+**Every command names `repo_path`.** Your Bash tool starts every call in the session's directory — where the dispatching command stands, which need not be `repo_path` — and a `cd` does not persist between calls, so a bare `git` reads and moves the session's repository instead of this one. Write every command against the repository as `git -C "<repo_path>" …`, with an absolute path, or as a subshell `(builtin cd "<repo_path>" >/dev/null && …)` inside one Bash call — `builtin cd`, its output discarded, since your Bash tool's shell carries the user's shell functions and aliases, and a `cd` of theirs would otherwise run in its place and could print into what you read; and give every `Grep` and `Glob` call `repo_path` as its `path`, since without one they search the session's directory too.
 
 1. **Verify repo exists.** If `repo_path` is not a directory, return `status: REPO_MISSING`.
 

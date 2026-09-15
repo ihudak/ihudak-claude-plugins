@@ -18,7 +18,7 @@ The step now resolves `<base>` by `code-handoff.md` §2.8, the ladder Phase 4.6 
 
 ### Fixed — `interface-designer` reads the repository it was handed
 
-It measures how an interface is used with `git grep` and `git log` over the repository `code_context` names, and wrote them bare. A subagent's Bash tool starts every call in the session's directory — where `/design` stands — and a `cd` does not persist between calls, so those calls read the session's repository. They now carry `git -C "<repo_path>"`, and the agent is told why, and to give `Grep` and `Glob` that repository as their path.
+It measures how an interface is used with `git grep` and `git log` over the repository `code_context` names, and wrote them bare. A subagent's Bash tool starts every call in the session's directory — where `/design` stands — and a `cd` does not persist between calls, so those calls read the session's repository. They now carry `git -C "<repo_path>"`, and the agent is told why, and to give `Grep` and `Glob` that repository as their path. Where a call runs in the repository instead, it is a `(builtin cd "<repo_path>" >/dev/null && …)` subshell, so a `cd` function or alias of the user's, which the Bash tool's shell carries, neither runs in its place nor prints into what the agent reads.
 
 ### Fixed — `/upgrade` defines the base it offers to branch from
 

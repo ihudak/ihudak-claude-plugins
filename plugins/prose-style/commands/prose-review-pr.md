@@ -154,9 +154,9 @@ in one Bash call, in the form that configuration file decides — whether it set
 
 ```bash
 # The configuration sets StylesPath:
-(cd "<vale_root>" && unset VALE_CONFIG_PATH && vale --no-global --output=line <file1> <file2> ... 2>&1)
+(builtin cd "<vale_root>" >/dev/null && unset VALE_CONFIG_PATH && command vale --no-global --output=line <file1> <file2> ... 2>&1)
 # It sets none:
-(cd "<vale_root>" && unset VALE_CONFIG_PATH && h=$(mktemp -d) && { XDG_CONFIG_HOME="$h" vale --output=line <file1> <file2> ... 2>&1; s=$?; rm -r "$h"; exit $s; })
+(builtin cd "<vale_root>" >/dev/null && unset VALE_CONFIG_PATH && h=$(command mktemp -d) && { XDG_CONFIG_HOME="$h" command vale --output=line <file1> <file2> ... 2>&1; s=$?; command rm -r -- "$h"; exit $s; })
 ```
 
 Vale looks for its configuration in the directory it runs in and then in each directory above it,
@@ -166,7 +166,13 @@ configuration there. Run from a directory outside `<vale_root>`'s tree — the s
 the first configuration at or above that directory instead, which may be another repository's; where
 there is none, it stops with `E100 [.vale.ini not found]`, since both forms below set the user's
 global configuration aside. The subshell keeps the `cd` to this one call, and the file paths are
-step 4's absolute ones, so they resolve from `<vale_root>` too.
+step 4's absolute ones, so they resolve from `<vale_root>` too. It is `builtin cd`, its output
+discarded, because this command's shell carries the user's aliases and shell functions: a `cd` of
+theirs would otherwise run in its place, and one that prints would put its output ahead of Vale's.
+`builtin`, not `command`: the shell is bash or zsh, and zsh's `command` runs no builtin. For the
+same reason `mktemp`, `vale` and `rm` run as `command <name>` — an `rm -i` or `rm -I` alias would
+ask before removing the directory, be answered no from an empty standard input, and leave the
+directory behind — and `--` ends `rm`'s options.
 
 **This is the one definition of the form this plugin runs Vale in** — `/prose-review-docs` step 5
 cites it — **and every part of both forms is load-bearing** (Vale 3.21, measured, and read from

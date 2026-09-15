@@ -931,8 +931,8 @@ Cap: one fix cycle + one re-review maximum.
 ## Phase 8 — Post-implementation maintenance
 
 **First remove this run's temp files.** Nothing from here on reads one — Phase 6.3's `doc-writer`
-handoff file (the last one written, where a `BLOCKED` return had it rewritten) and, where Phase 7's
-BLOCK branch wrote one, its `claims_file`. Remove each as `command rm -f -- "<path>"`: `command`
+handoff file — one path, which a `BLOCKED` return has that phase rewrite in place — and, where
+Phase 7's BLOCK branch wrote one, its `claims_file`. Remove each as `command rm -f -- "<path>"`: `command`
 because the Bash tool's shell carries the user's aliases and shell functions, and an `rm -i` or `rm -I`
 of theirs would ask before removing the file, be answered no from that shell's empty standard input,
 and leave it behind; `--` ends `rm`'s options. Nothing else removes one — they sit under the system's

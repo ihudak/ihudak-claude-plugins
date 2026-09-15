@@ -87,7 +87,7 @@ So: **read a `findings` count as "what this run reported", never as "how many de
 
 | Gate id | Phase | Precondition | Primary | Fallback |
 |---|---|---|---|---|
-| `toolchain_preflight` | 0 | always (runs after profile resolution) | `command -v` / `test -x` / `test -d` over the required set (`toolchain-preflight.md` §2–§3) | none |
+| `toolchain_preflight` | 0 | always (runs after profile resolution) | the required set's checks, as `toolchain-preflight.md` §2–§3 define them | none |
 | `source_truth_verification` | 5.8 | ≥1 entry in `code_repos` | claim-class verification per `workflows-core:source-truth` §2–§3 | one supplementary direct grep against the resolved local path |
 | `style_check` | 6.4 | ≥1 file written | the repo linter ladder **plus** `prose-style-checker` complementary | `prose-style-checker` alone |
 | `repo_checklist` | 6.4 | the repo publishes authoring/verification guidance | `repo_verification_gates` applied to the written files | none |

@@ -122,7 +122,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      - gate: toolchain_preflight
        phase: "0"
        outcome: RAN
-       mechanism: command -v / test -x / test -d over the derived required set
+       mechanism: the derived required set's checks, per toolchain-preflight.md §2–§3
        findings: <count of tools with status: missing>
    ```
 

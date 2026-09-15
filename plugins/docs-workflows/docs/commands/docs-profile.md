@@ -12,7 +12,7 @@ Scans a documentation repository and writes or refreshes its machine-readable `.
 /docs-profile [<repo-path>] [--inline]
 ```
 
-`--inline` is stripped from `$ARGUMENTS` before the remaining token is read as the optional docs-repo path (Phase 0). `--inline` is the flag `/document` (keyed mode) passes when it invokes this flow itself, from its own Phase 0 — it skips the branch-name prompt in favour of a deterministic branch name, and hands the PR draft back to `/document` instead of reporting one itself.
+`--inline` is stripped from `$ARGUMENTS` before the remaining token is read as the optional docs-repo path (Phase 0). `--inline` is the flag `/document` (keyed mode) passes when it invokes this flow itself, from its own Phase 0 — it skips the branch-name prompt in favour of a deterministic branch name, and hands the PR draft back to `/document` instead of reporting one itself. Where a branch of that name is already there, left by an earlier inline run that stopped after profiling, it stops with `DOCS_PROFILE_BOOTSTRAP_BRANCH_EXISTS`, naming the branch, its base and where it forked, rather than switch onto it; delete or merge that branch, then re-run.
 
 ## What it needs
 

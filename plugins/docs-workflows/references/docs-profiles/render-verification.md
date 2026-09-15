@@ -132,7 +132,14 @@ boot no further server, signal the process group of one this run already booted 
 (exit 127) — `<space>`'s server was signalled, and its port could not be probed", and every page not
 yet checked goes to the manual table. For each server:
 
-1. Verify prerequisites (§4) — best-effort, never applied.
+1. Verify prerequisites (§4) — best-effort, never applied. **Then check the server's command's
+   tool** — the tool `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines, tested as
+   its §3 tests it, for a command that runs from `<docs_repo_path>`: the check `/docs-serve` makes
+   before it starts a server (its Phase 4), and the one §1 makes for a failed build's own servers.
+   Where it is missing, boot nothing for this server: record "smoke-check skipped for `<space>`:
+   `<tool>` is not installed", its pages fall back to the manual table (§5), and the check goes on
+   to the next server. A server that could never start is never booted, so the check never waits
+   out step 3's readiness timeout for it.
 2. **Probe the server's `port` before booting it.** Where it already answers, something this run did
    not start holds it: boot nothing there, signal nothing, and **boot no further server** — record
    "smoke-check stopped at `<space>`: port `<port>` was answering before its server booted", and
@@ -257,10 +264,10 @@ prerequisite `<x>` unmet" and use the manual table for that space.
 
 ## 5. Graceful fallback and the pages-to-visit table
 
-The smoke-check is best-effort. A prerequisite-unmet, boot-failure, or
-readiness-timeout outcome is recorded with its reason and falls back to the
-manual table for that space — on a space with two servers, for that server's
-pages — and it never blocks the run. Three outcomes end the smoke-check rather
+The smoke-check is best-effort. A prerequisite-unmet, missing-server-tool,
+boot-failure, or readiness-timeout outcome is recorded with its reason and falls
+back to the manual table for that space — on a space with two servers, for that
+server's pages — and it never blocks the run. Three outcomes end the smoke-check rather
 than one space's part of it: a port that answers before its server boots (§2
 step 2), a server §2 step 5 cannot confirm stopped — its port still answers, or
 its process group still runs — and a readiness timeout on a server started

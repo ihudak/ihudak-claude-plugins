@@ -758,7 +758,7 @@ Run each from `docs_repo_path`, the top level every command the profile records 
   ```
   choices: ["Proceed to smoke-check anyway", "Show remaining and fix manually", "Cancel"]
   ```
-- **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason and record the build as not run, with that reason; no `doc-fixer` loop. **Then test the registered fallback before anything is asked.** `build_check`'s fallback is the Step 2 dev-server boot (`gate-ledger.md` §4), and `UNAVAILABLE` means that neither the primary nor its fallback ran (`gate-ledger.md` §2), so a missing build tool alone does not make the gate `UNAVAILABLE`. The fallback can run where `command -v` finds `bash`, `curl` and `ps` — the smoke check's own tools — and the first token of the `command` of at least one server Step 2 would boot for an affected page, chosen as Step 2 chooses it.
+- **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason and record the build as not run, with that reason; no `doc-fixer` loop. **Then test the registered fallback before anything is asked.** `build_check`'s fallback is the Step 2 dev-server boot (`gate-ledger.md` §4), and `UNAVAILABLE` means that neither the primary nor a fallback ran (`gate-ledger.md` §2), so a build that will not run does not by itself make the gate `UNAVAILABLE`. The fallback can run where `command -v` finds `bash`, `curl` and `ps` — the smoke check's own tools — and the tool of the `command` of at least one server Step 2 would boot for an affected page, chosen as Step 2 chooses it. A command's tool is the one `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines — never a leading `cd`, which `command -v` finds on every host: `cd website && pnpm start` needs `pnpm`.
   - **The fallback can run** → ask nothing here and continue to Step 2, whose boot is now this gate's build proof; Ledger (final) records `build_check` from what Step 2 does. A `user_decision` Phase 0's preflight left on the row stays on it.
   - **The fallback cannot run** → neither the build nor its fallback can run, so the gate is `UNAVAILABLE`, and this is its `gate-ledger.md` §5 conversion, not an orchestrator decision:
     ```
@@ -1288,8 +1288,8 @@ No model-routing reminder is injected for this command — classification still 
 
    Then execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against it. Direct mode has no profile, so
    use **sources 2 and 3 only** (repo config signals and the repo's documented `Prerequisites`); the
-   only gate in scope is `style_check`, so `required_by` never names `build_check` or
-   `render_smoke_check`.
+   only gate in scope is `style_check`, so neither `required_by` nor `fallback_for` ever names
+   `build_check` or `render_smoke_check`.
 
    Append the `toolchain_preflight` row per
    `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3. Present the §5 prompt verbatim only when a

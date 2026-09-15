@@ -26,7 +26,7 @@ ends in one of six outcomes, and every non-run path terminates in a **named miss
 | `RAN` | The gate's primary mechanism executed. | evidence only |
 | `DEGRADED` | Only a fallback executed. Records what did not run, why, and what CI will still check. | evidence only |
 | `FAILED` | Ran and found blocking problems. Feeds the caller's existing fix loops. | evidence only |
-| `UNAVAILABLE` | Nothing ran and no fallback exists, with the precondition met. **Not a resting state** — see §5. | the orchestrator, but never as a final answer |
+| `UNAVAILABLE` | Neither the primary nor a fallback ran, with the precondition met. **Not a resting state** — see §5. | the orchestrator, but never as a final answer |
 | `SKIPPED_BY_USER` | The user chose to skip. Carries their decision quoted verbatim. | the user only |
 | `NOT_APPLICABLE` | A named precondition is unmet. | evidence only |
 
@@ -96,7 +96,7 @@ Direct mode has no `doc-planner`, so its orchestrator extracts `repo_verificatio
 
 ## 5. Converting `UNAVAILABLE`
 
-`UNAVAILABLE` means the precondition was met and neither the primary nor the fallback ran — a real
+`UNAVAILABLE` — neither the primary nor a fallback ran, with the precondition met (§2) — is a real
 coverage hole. The orchestrator converts it before the run continues, with a choice list bound by the
 "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules`:
 

@@ -26,10 +26,17 @@ discovers it one gate at a time, at Phase 6.4 and Phase 6.5, after the documenta
 Run this **after profile resolution** — the profile is what names the commands. Union three sources;
 de-duplicate by binary name.
 
-1. **The resolved profile.** Take the **first whitespace-separated token** of every `commands.*` value
-   (including every `commands.per_space.<space>.*` value), every `builds[].command`, and every
-   `dev_servers.servers[].command`.
-   `"pnpm docs:lint"` ⇒ `pnpm`. Where the profile records any `dev_servers.servers[]` entry, add
+1. **The resolved profile.** Take the **tool** of every `commands.*` value (including every
+   `commands.per_space.<space>.*` value), every `builds[].command`, and every
+   `dev_servers.servers[].command`. **A command's tool is its first whitespace-separated token that
+   is neither part of a leading `cd <dir> &&` nor a leading `VAR=value` assignment**, set aside in
+   whatever order they lead: `"pnpm docs:lint"` ⇒ `pnpm`; `"cd website && pnpm docs:build"` — the
+   form `/docs-profile` records for a script found below the top level — ⇒ `pnpm`;
+   `"NODE_ENV=production pnpm build"` ⇒ `pnpm`. The first token alone will not do: `cd` is a shell
+   builtin, so `command -v cd` exits 0 on every host and every command it leads would read as
+   runnable. This is the one definition of a command's tool; `docs-profiles/render-verification.md`
+   §1 and `/document` Phase 6.5 Step 1 cite it. Where the profile records any
+   `dev_servers.servers[]` entry, add
    `bash`, `curl` and `ps` too: the render smoke check that boots those servers starts and stops
    them under `bash`, probes their ports with `curl` and reads their process groups with `ps`, and
    cannot run without any of them (`docs-profiles/render-verification.md` §2). Add every entry in
@@ -38,7 +45,9 @@ de-duplicate by binary name.
 2. **Repo config signals**, checked at `repo_root` — and, where the caller resolved the site to a
    directory below it, in that directory as well: `/document` keyed mode passes `docs_repo_resolved`
    (its Phase 0 step 2). A monorepo's site keeps its `.vale.ini`, lockfile and lint configuration
-   beside itself, not at the top level, and a signal found in either directory implies its tool:
+   beside itself, not at the top level. A signal found in either directory implies its tool, and so
+   does a lockfile in any directory a profile command's leading `cd <dir>` names (source 1), taken
+   relative to `repo_root` — that is where the command runs its tool:
 
    | Signal file | Implies |
    |---|---|
@@ -73,25 +82,29 @@ toolchain:
   - tool: <binary name, or a directory signal such as "node_modules">
     status: present | missing
     source: <profile.commands | profile.prerequisites | .vale.ini | pnpm-lock.yaml | CONTRIBUTING.md Prerequisites | …>
-    required_by: [<gate ids from gate-ledger.md §4>]
+    required_by: [<gate ids from gate-ledger.md §4 whose primary mechanism runs this tool>]
+    fallback_for: [<gate ids whose registered fallback runs it>]   # omitted when there are none
 ```
 
-`required_by` maps each tool onto the gates it powers, which is what lets the preflight state the
-run's outcome before the run:
+`required_by` and `fallback_for` map each tool onto the gates it powers, which is what lets the
+preflight state the run's outcome before the run:
 
-| Tool | Typically required by |
-|---|---|
-| the repo's prose linter (`vale`, `markdownlint`, `remark`) | `style_check` |
-| the package manager (`pnpm` / `npm` / `yarn`) | `style_check`, `build_check`, `render_smoke_check` |
-| `node_modules` present | every gate the package manager powers |
-| `git` | `source_truth_verification` |
-| `bash`, `curl`, `ps` (the smoke check's own tools) | `render_smoke_check` |
+| Tool | Typically required by | Fallback for |
+|---|---|---|
+| the repo's prose linter (`vale`, `markdownlint`, `remark`) | `style_check` | — |
+| the package manager (`pnpm` / `npm` / `yarn`) | `style_check`, `build_check`, `render_smoke_check` | `build_check`, where a dev-server command runs it |
+| `node_modules` present | every gate the package manager powers | as the package manager |
+| `git` | `source_truth_verification` | — |
+| `bash`, `curl`, `ps` (the smoke check's own tools) | `render_smoke_check` | `build_check` |
 
-Derive `required_by` from where the tool came from: a binary that appears in a command `build_check`
-runs — a `builds[].command`, `commands.build`, or `commands.per_space.<space>.build`
-(`docs-profiles/render-verification.md` §1) — powers `build_check`; one that appears in a
-`dev_servers` command powers `render_smoke_check`, and so do `bash`, `curl` and `ps`, which that
-check runs itself. A tool with an empty `required_by` is reported but never blocks.
+Derive both from where the tool came from, a tool being a command's tool as §2 source 1 defines it:
+the tool of a command `build_check` runs — a `builds[].command`, `commands.build`, or
+`commands.per_space.<space>.build` (`docs-profiles/render-verification.md` §1) — powers
+`build_check`; the tool of a `dev_servers` command powers `render_smoke_check`, and so do `bash`,
+`curl` and `ps`, which that check runs itself. **Those same tools also run `build_check`'s
+registered fallback** — the Step 2 dev-server boot that stands in for a build that will not run
+(`gate-ledger.md` §4) — so each of them carries `fallback_for: [build_check]`. A tool with an empty
+`required_by` is reported but never blocks.
 
 ## 5. Reporting and the prompt
 
@@ -102,7 +115,11 @@ way the Phase 6.4 gate died.
 When one or more required tools are **missing**, print the `toolchain` rows (missing first), then the
 consequence — each affected gate and the outcome it will record: `DEGRADED` where the gate's
 registered fallback (`gate-ledger.md` §4) still runs without the missing tool, and `UNAVAILABLE`
-where neither the primary nor the fallback can (`gate-ledger.md` §2) — then ask:
+where neither the primary nor the fallback can (`gate-ledger.md` §2). A gate is affected where a
+missing tool's `required_by` names it, and its fallback still runs only where no missing tool's
+`fallback_for` names it: with the build tool and `curl` both missing, `build_check` is
+`UNAVAILABLE`, not `DEGRADED`, because the boot that stands in for the build probes its server with
+`curl`. Then ask:
 
 ```
 choices: ["Cancel — re-run in the docs container (Recommended)", "Continue anyway — record the degraded gates"]

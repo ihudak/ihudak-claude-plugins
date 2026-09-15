@@ -10,7 +10,7 @@ Profile the documentation repository: $ARGUMENTS
 
 `$ARGUMENTS` is an optional repo path (default: the current working directory), optionally followed by `--inline`. The `--inline` token is passed when `/document` (keyed mode) invokes this flow inline (its Phase 0 case (c)); it switches this command to **inline mode** — see Phase 4's "Keep existing, write nothing", Phase 5 step 1, step 2, step 6, and Phase 6.
 
-`/docs-profile` **bootstraps or refreshes** the machine-readable docs-profile that `/document` (keyed mode) consumes. It scans a documentation repository, synthesises a `.dev-workflows/docs-profile.yml` (and complementary CLAUDE.md guidance) that conforms to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`, then writes the result as a **reviewable PR** — branch + commit + a drafted PR message. It never pushes or auto-merges, and a refresh whose changes the operator declines writes nothing at all (Phase 4).
+`/docs-profile` **bootstraps or refreshes** the machine-readable docs-profile that `/document` (keyed mode) consumes. It scans a documentation repository, synthesises a `.dev-workflows/docs-profile.yml` (and complementary CLAUDE.md guidance) that conforms to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`, then writes the result as a **reviewable PR** — branch + commit + a drafted PR message. It never pushes or auto-merges, and a refresh whose changes the operator declines, or that finds nothing to change, writes nothing at all (Phase 4).
 
 The command is **generic** — it works on any docs repo. A repo publishing one documentation set gets a single `spaces[]` entry; a repo publishing several gets one entry per content root, plus the per-space dev-server and lint/build/format commands that go with them.
 
@@ -149,7 +149,9 @@ Typical gaps:
   - **`spaces[]` is kept, never emptied.** It is required and non-empty; where detection found no content root, the existing entries stand.
   - **Lists are compared entry by entry**, each entry by what identifies it — a `spaces[]` entry by its `id`, a `dev_servers.servers[]` entry by its `space`, an `announcement_pages[]` entry by its `path`, a `prerequisites[]` entry by its text — and leaf by leaf within a matched entry, so a key detection never produces inside an entry it did detect is carried over with it. Where one identifier matches more than one entry on either side — two servers sharing one space, told apart by a `visibility` detection never reads — propose nothing for that list: keep it as it stands, and say why in the diff.
 
-  Show the result as a **field-level diff** in two parts — every proposed change (`existing → new`) and addition, then every field **kept, not detected**, each named, so the operator sees what the refresh leaves alone — and confirm:
+  **Where the diff lists no change and no addition** — as built, or with the operator's edits folded in — every field is kept as it stands and the profile is up to date. Say so, list the kept fields, ask nothing, and end the run exactly as "Keep existing, write nothing" does below: no branch, no stash offer, no commit and no CLAUDE.md additions, with the Phase 6 report reading "up to date — nothing written", and, in inline mode, the existing profile returned to `/document` with no branch or commit to hand back (Phase 6). Asking anyway offers "Apply the diff", which cuts a branch whose commit then fails with nothing to commit.
+
+  Otherwise, show the result as a **field-level diff** in two parts — every proposed change (`existing → new`) and addition, then every field **kept, not detected**, each named, so the operator sees what the refresh leaves alone — and confirm:
   ```
   "A docs-profile already exists. Apply these field-level changes?"
   choices: ["Apply the diff — change the listed fields, keep the rest (Recommended)", "Keep existing, write nothing", "Edit specific fields first (you'll be prompted)"]
@@ -160,13 +162,13 @@ Typical gaps:
   - **"Edit specific fields first (you'll be prompted)"** → take the edits, show the diff again with them folded in, and ask this question again.
 - **Absent** → bootstrap: proceed to Phase 5 with the confirmed draft.
 
-Record the final, confirmed `docs-profile.yml` — on a refresh, the existing profile with the confirmed changes applied, or, where the operator kept it, the existing profile as it stands — and the CLAUDE.md additions, and tag each field `detected`, `user-supplied`, or, on a refresh, `kept, not detected` for the Phase 6 report.
+Record the final, confirmed `docs-profile.yml` — on a refresh, the existing profile with the confirmed changes applied, or, where the operator kept it or the refresh found nothing to change, the existing profile as it stands — and the CLAUDE.md additions, and tag each field `detected`, `user-supplied`, or, on a refresh, `kept, not detected` for the Phase 6 report.
 
 ---
 
 ## Phase 5 — Write as a reviewable PR
 
-Produce a reviewable PR in the **target repo** (never the plugin). **Never push or auto-merge** unless the user explicitly asks. A refresh answered "Keep existing, write nothing" never reaches this phase (Phase 4): there is nothing to write, so no branch is cut, no stash is offered and nothing is committed.
+Produce a reviewable PR in the **target repo** (never the plugin). **Never push or auto-merge** unless the user explicitly asks. A refresh answered "Keep existing, write nothing", or one whose diff lists no change, never reaches this phase (Phase 4): there is nothing to write, so no branch is cut, no stash is offered and nothing is committed.
 
 1. **Resolve the branch name.** **Inline mode** (`--inline`): skip the prompt and the confirmation entirely — use the deterministic name `dev-workflows/docs-profile-bootstrap`; `/document` (keyed mode) Phase 6.2 renames it to the docs-branch convention. **Standalone** (default):
    - If the repo documents a branch-naming convention (detected in Phase 2 / confirmed in Phase 4), fill its placeholders and use it.
@@ -202,7 +204,7 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
 
 ## Phase 6 — Final report
 
-**Inline mode** (`--inline`): skip this report — control returns to `/document` (keyed mode), which produces the consolidated report (its Phase 9), and hands it two values: `profile_branch`, the branch Phase 5 step 1 named, and `profile_commit`, the commit Phase 5 step 5 made — `git -C <repo-root> rev-parse HEAD`, read immediately after that commit succeeds. `/document` renames that branch and squashes onto that commit (its Phase 6.2 and Phase 8.5), so it takes both from here rather than looking either up. Where Phase 5 made no commit — the operator kept the existing profile (Phase 4) — neither is handed back. The rest of this section is the standalone report.
+**Inline mode** (`--inline`): skip this report — control returns to `/document` (keyed mode), which produces the consolidated report (its Phase 9), and hands it two values: `profile_branch`, the branch Phase 5 step 1 named, and `profile_commit`, the commit Phase 5 step 5 made — `git -C <repo-root> rev-parse HEAD`, read immediately after that commit succeeds. `/document` renames that branch and squashes onto that commit (its Phase 6.2 and Phase 8.5), so it takes both from here rather than looking either up. Where Phase 5 made no commit — the operator kept the existing profile, or the refresh found nothing to change (Phase 4) — neither is handed back. The rest of this section is the standalone report.
 
 Output a structured report — do NOT ask any closing confirmation:
 
@@ -216,7 +218,7 @@ SIGNIFICANT — cross-cutting synthesis of the whole docs repo; output steers al
 <resolved git root>  (<N> content root(s))
 
 ### Profile written
-<repo-root>/.dev-workflows/docs-profile.yml  (bootstrapped | refreshed | kept — nothing written)
+<repo-root>/.dev-workflows/docs-profile.yml  (bootstrapped | refreshed | kept — nothing written | up to date — nothing written)
 
 ### Fields: detected vs user-supplied
 - detected: [spaces, dev_servers, commands, tokens, internal_links, announcement_pages, branch_naming, images, prerequisites — list those that were detected]
@@ -228,7 +230,7 @@ SIGNIFICANT — cross-cutting synthesis of the whole docs repo; output steers al
 - fixed-port dev servers: [every dev_servers.servers[] entry in the written profile whose command carries no {port} token, by space — "none" when every command carries it. For each: "/docs-serve cannot fall forward from a collision on it, and --port cannot move it; add {port} by hand where its tool takes a port argument (docs-profile-schema.md, dev_servers.servers[].command)"]
 
 ### CLAUDE.md additions
-- [what was added to the repo's CLAUDE.md, or "none — all conventions covered by the docs-frontmatter skill", or "none — the existing profile was kept and nothing written"]
+- [what was added to the repo's CLAUDE.md, or "none — all conventions covered by the docs-frontmatter skill", or "none — the existing profile was kept, or was up to date, and nothing written"]
 
 ### Branch
 <branch name created> | none — nothing written
@@ -238,7 +240,7 @@ SIGNIFICANT — cross-cutting synthesis of the whole docs repo; output steers al
 
 <body>
 
-[or "none — nothing written" where the existing profile was kept]
+[or "none — nothing written" where the existing profile was kept or up to date]
 
 ### Model Routing
 - Classification: SIGNIFICANT
@@ -249,7 +251,7 @@ SIGNIFICANT — cross-cutting synthesis of the whole docs repo; output steers al
 
 ### Git state
 Branch <name> created with 1 commit on <repo-root>. NOT pushed and NOT merged — push and open the PR yourself when ready.
-[or, where the existing profile was kept: "Nothing written — no branch, no stash, no commit; <repo-root>/.dev-workflows/docs-profile.yml is unchanged."]
+[or, where the existing profile was kept or up to date: "Nothing written — no branch, no stash, no commit; <repo-root>/.dev-workflows/docs-profile.yml is unchanged."]
 
 ### Assumptions & limitations
 - [list any]
@@ -266,7 +268,7 @@ Branch <name> created with 1 commit on <repo-root>. NOT pushed and NOT merged �
 - ALWAYS treat `frontmatter:` as pointers to the docs-frontmatter skill; NEVER copy changelog/owners rules into the profile
 - ALWAYS show a field-level diff and confirm before overwriting an existing `.dev-workflows/docs-profile.yml` (idempotent refresh), and NEVER let a refresh propose changing or removing a field detection produced no value for — carry it forward verbatim, list it as kept, not detected, and never empty `spaces[]` (Phase 4)
 - ALWAYS write the profile to `.dev-workflows/docs-profile.yml` at the TARGET repo's git work-tree top level (`<repo-root>`, the schema's **Where the profile lives**) — never the plugin, and never a directory below that top level
-- NEVER push or auto-merge — output a reviewable PR (branch + commit + drafted PR message) for the user to push; and where a refresh is answered "Keep existing, write nothing", write nothing at all — no branch, no stash, no commit — and end on the Phase 6 report, or, in inline mode, return the existing profile to `/document` (Phase 4)
+- NEVER push or auto-merge — output a reviewable PR (branch + commit + drafted PR message) for the user to push; and where a refresh is answered "Keep existing, write nothing", or its diff lists no change, write nothing at all — no branch, no stash, no commit — and end on the Phase 6 report, or, in inline mode, return the existing profile to `/document` (Phase 4)
 - ALWAYS use `choices` arrays for decision points; recommended default first and labelled "(Recommended)"; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)
 - ALWAYS reference plugin paths with `${CLAUDE_PLUGIN_ROOT}`
 - ALWAYS produce the Phase 6 report as the final output, noting any §2.1/§2 model fallback

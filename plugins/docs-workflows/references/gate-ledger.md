@@ -45,9 +45,8 @@ feeds the caller's fix loop, and the degraded part is still recorded in the row'
 
 **`FAILED` also outranks a decision to proceed without another part.** Where one part failed on its
 content and another did not run and the user declined it — a §5 conversion answered "Proceed without
-this check" (`/document` Phase 6.5 Step 1 asks one for a build that neither its tool nor its
-fallback can run), the toolchain preflight's decision on the same missing tool kept in its place,
-or a Skip that declined that part's only remaining proof — the row is `FAILED`, not
+this check", the toolchain preflight's decision on the same missing tool kept in its place, or a
+Skip that declined that part's only remaining proof — the row is `FAILED`, not
 `SKIPPED_BY_USER`: a content failure is never hidden behind a skip. The declined part is recorded in
 `not_run` and `ci_still_checks` as a degraded part is, and the decision is kept in the row's
 `user_decision`, quoted verbatim.

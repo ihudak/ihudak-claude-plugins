@@ -36,10 +36,9 @@ de-duplicate by binary name.
    builtin, so `command -v cd` exits 0 on every host and every command it leads would read as
    runnable. This is the one definition of a command's tool, and §3 says how each is tested;
    `docs-profiles/render-verification.md` §1 and `/document` Phase 6.5 Step 1 cite both. Where the
-   profile records any
-   `dev_servers.servers[]` entry, add `bash`, `curl` and `ps` too: the render smoke check that boots
-   those servers starts and stops them under `bash`, probes their ports with `curl` and reads their
-   process groups with `ps`, and cannot run without any of them
+   profile records any `dev_servers.servers[]` entry, add `bash`, `curl` and `ps` too: the render
+   smoke check that boots those servers starts and stops them under `bash`, probes their ports with
+   `curl` and reads their process groups with `ps`, and cannot run without any of them
    (`docs-profiles/render-verification.md` §2). Add every entry in
    `profile.prerequisites` as a named prerequisite (these are prose, not binaries — record them for
    reporting, and check them only when the prose names a checkable path or binary).
@@ -148,6 +147,9 @@ Example consequence line:
 > `build_check` **UNAVAILABLE** (its fallback, the dev-server boot, runs `pnpm` too), and
 > `render_smoke_check` **DEGRADED** (no server can start without `pnpm`, so every affected page goes
 > to the manual pages-to-visit table, the fallback that needs no tool).
+
+The line names a linter or a build CI runs on the pull request only where the repository's CI runs
+it, as a `ci_still_checks` line does (`gate-ledger.md` §6).
 
 - **"Cancel"** → stop the run. Nothing has been written.
 - **"Continue anyway"** → for each gate named in the consequence line, **pre-seed** its ledger row's

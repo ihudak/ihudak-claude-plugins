@@ -35,7 +35,10 @@ This is also the path `/prose-style-refresh` asks this skill to resolve on its b
 
 1. `<repo-root>/.prose-style/rules/` — where `<repo-root>` is
    `git rev-parse --show-toplevel` for the content being written, falling back to the
-   working directory's repository, falling back to no overlay.
+   working directory's repository, falling back to no overlay. `prose-style-checker`
+   step 1b ends the same ladder at the deepest common parent of the files it was handed;
+   this one cannot, and the difference is the input rather than the rule — a checker is
+   given a file list, and content being written has no path yet to take a parent of.
 2. `$PROSE_STYLE_PATH` — an absolute path to a rules directory.
 3. Nothing — the baseline alone.
 

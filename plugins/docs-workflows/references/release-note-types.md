@@ -205,4 +205,4 @@ should carry one gets it from `release_notes_category` added to the PRD.
 
 **Both used to be dropdowns set outside the plugin and returned by an import**, which is why the
 Change Type ladder's first rung was authoritative and its second was a fallback. Nothing returns them now,
-so the PRD is the only place either can come from (see `workflows-core:prd-format`).
+so the PRD is the only place either can be authored (see `workflows-core:prd-format`).

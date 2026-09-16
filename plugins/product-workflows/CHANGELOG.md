@@ -6,6 +6,10 @@ Versions follow semver at the plugin level.
 
 ## [3.6.0] — 2026-09-10
 
+### Fixed — `docs/commands/epics.md` cited a line of `/epics` that carries a different gate (3.5.0)
+
+The optional PRD-level `specification.md` bullet cited *"Phase 2.6, `commands/epics.md:180`"*. Phase 2.6 begins at `:340` and executes its `require-on-main` at `:353`; `:180` is a Phase 0 coverage-ledger stop — a different phase, a different gate, and the one place `/epics` reads a ledger. The citation is inherited from `origin/main`, where the line held the same text, so it has never resolved. The line number is cut rather than renumbered, per this repository's own convention: the phase name does not go stale on the next edit above it. It was the only citation into a file of this tree, outside a changelog, that did not resolve — the other two, `changelog-owners-reminder.sh:7` and `cost-prices.yaml:22`, both do.
+
 ### Fixed — three HARD model gates tested the environment where they meant the session, and so missed the state they were written for (3.5.0)
 
 `/create-ard`, `/prd-proposal` and `/brd-proposal` each open with *"require an Opus session"* and then stop on `opus_available` being false. Those are not the same condition, and `workflows-core:model-routing/classification` §2 keeps them apart deliberately: `opus_available` is *"true if a §2 Opus model resolved"* — what the `task` tool can reach — while the session's own tier is the separate `current_model` field of the same block, which every one of these three records beside it. Reading the field as the session's tier broke the gate in both directions at once.

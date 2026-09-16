@@ -23,7 +23,7 @@ A companion outside the family is **convention + runtime-resolve + graceful fall
 
 ## External tools and services
 
-**No command in the PRD-authoring pipeline requires an external tool** — that pipeline reads and writes one markdown tree and calls no service. The commands outside it do reach the network, and saying otherwise would misdescribe them: `/dev-workflows:vuln` fetches CVE records from the NVD REST API and `/dev-workflows:upgrade` queries package registries, both by design; `docs-grounder` shells to `qmd` when it is installed, and `dev-workflows:code-handoff` §2.6 to `gh`, each degrading gracefully when it is absent. A user who wants their work in an issue tracker syncs it themselves; no plugin in this family ever learns whether one exists.
+**No command in the PRD-authoring pipeline requires an external tool** — each degrades where one is absent — but it is not tool-free, and saying otherwise would misdescribe it: `workflows-core:phase-handoff` §2.6 runs `gh` for every handoff that opens a pull request, `docs-grounder` shells to `qmd` when it is installed, and the commands that ground against code scan clones under `$REPOS_PATH`. The commands outside it reach the network by design: `/dev-workflows:vuln` fetches CVE records from the NVD REST API, `/dev-workflows:upgrade` queries package registries, and `dev-workflows:code-handoff` §2.6 calls `gh` in a code repo. A user who wants their work in an issue tracker syncs it themselves; no plugin in this family ever learns whether one exists.
 
 ## Attribution, not a companion
 

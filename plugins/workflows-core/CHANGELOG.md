@@ -46,6 +46,10 @@ One sentence in `phase-handoff.md` §3.7 enumerated the stopping rows twice and 
 
 `-c core.quotepath=false` is recorded in both sections as **not** a substitute: it suppresses only the octal escaping, and a path with a space is still quoted. Readers that only test the output for emptiness — `code-scanner`, `/ready` step 3, `require-on-main` row C′, the `docs-workflows` branch-prep checks — are unaffected and keep the plain form.
 
+### Fixed — `dependencies.md` said the PRD-authoring pipeline calls no service (1.5.0)
+
+*"That pipeline reads and writes one markdown tree and calls no service"* is false three ways, all inside it: every one of its commands hands off through `phase-handoff.md` §2.6, which runs `gh auth status` and `gh pr create` (and §3.5 `gh pr list`); five of them dispatch `docs-grounder`, which shells to `qmd` and reads a second markdown tree under `$DOCS_PATH`; and four scan clones under `$REPOS_PATH`, which is no markdown tree at all. What is true — that none of it *requires* an external tool, each degrading where one is absent — is kept, and §2.6 is now named on both sides of the `gh` sentence rather than only `dev-workflows:code-handoff`'s. The clause predates this branch; the narrowing that removed `diff-summarizer` from the same paragraph passed over it.
+
 ### Fixed — `classification.md` §8.2 described the fan-out's first step in retired vocabulary (1.5.0)
 
 *"the folder read reads each ticket folder (read-only) → themes, PR references (identifiers only), linked items"* — three stale terms in one line, in the file twenty-five commands load at their classification step. There is no ticket folder (the input is a resolved specs folder), no PR reference to collect (`/implement` Phase 1.7 step 1: *"there are no PR references until `implementation.md` exists"*), and no linked-items level (the `EPIC-` folders are the hierarchy). Rewritten against what step 1 actually reads. `docs-workflows` 1.2.0 and `dev-workflows` 4.0.4 carry the other two sites the same sweep found.

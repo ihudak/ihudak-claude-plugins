@@ -199,7 +199,7 @@ choices: ["Skip and continue without its refs", "I'll clone it — wait", "Cance
 
 ## Phase 5 — Diff summarisation (only if diff grounding is ON)
 
-Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent message, passing each resolved absolute `repo_path`, its `repo_url_slug`, and `refs[]` — the `{branch_from, branch_to, title}` elements Phase 3 built for that repo, which is the shape that agent's Inputs declare as the ordinary one. Collect the outputs into a `diff_summaries` array.
+Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent message, passing each resolved absolute `repo_path`, its `repo_url_slug`, and `refs[]` — the `{branch_from, branch_to, title}` elements Phase 3 built for that repo, which is the only element list that agent takes. Collect the outputs into a `diff_summaries` array.
 
 **Per-repo summarizer status.** Handle each returned status before continuing:
 

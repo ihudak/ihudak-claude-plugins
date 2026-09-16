@@ -5,7 +5,7 @@
 The mechanics for Phase 6.2's inline-profiling-branch handling and Phase 8.5's
 finish & handoff (squash → opt-in push → copy-paste PR draft). Generic git +
 PR-draft logic; the command cites this so it stays lean. Read repo specifics
-from the resolved `profile`. This flow does not open the pull request itself: docs repos here are Bitbucket-hosted, and Bitbucket offers no CLI that can create one. Where a host does — the GitHub-hosted specs repo — the plugin opens it via `gh`; see `workflows-core:phase-handoff` §2.6.
+from the resolved `profile`. This flow does not open the pull request itself: docs repos here are Bitbucket-hosted, and Bitbucket offers no CLI that can create one. Where a host does, the family opens one via `gh` — `workflows-core:phase-handoff` §2.6 in `$SPECS_PATH`, `dev-workflows:code-handoff` §2.6 in a code repo — but no command of this plugin opens one anywhere.
 
 ## 1. The branch entering Phase 8.5
 
@@ -82,4 +82,4 @@ Compose the draft and BOTH write and show it:
     `gh pr create --title "<title>" --body-file <pr-draft path>`.
   - other → "Open a pull request in your host and paste the title + body above."
 
-For a Bitbucket-hosted docs repo the plugin cannot open the pull request — there is no CLI for it — so it writes the draft and the user opens it. This is a host capability limit, not a policy: on a host with a CLI — the GitHub-hosted specs repo — the plugin does open the pull request, but that is a separate flow against `$SPECS_PATH`, never this docs repo (`workflows-core:phase-handoff` §2.6).
+For a Bitbucket-hosted docs repo there is no CLI to open the pull request with, so this flow writes the draft and the user opens it. This is a host capability limit, not a policy: the family does open one where a host offers a CLI (`workflows-core:phase-handoff` §2.6 in `$SPECS_PATH`, `dev-workflows:code-handoff` §2.6 in a code repo), and no command of this plugin opens one anywhere, this docs repo included.

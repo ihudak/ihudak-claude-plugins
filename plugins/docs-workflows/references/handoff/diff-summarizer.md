@@ -56,7 +56,7 @@ prep:
   ref_committed_at: <ISO-8601 timestamp of the ref's newest commit>
   head_divergence:  { branch: <working-tree branch>, ahead: <n>, behind: <n> }
 
-per_pr:                        # one entry per input element
+per_pr:                        # one entry per input element, the key-commit fallback included
   - ref:            <"<branch_to>...<branch_from>">
     resolved_via:   local_ref | key_commits | unresolved
     base:           <sha | null>
@@ -82,9 +82,9 @@ aggregate_summary: |
 
 | Status              | Meaning                                                                        |
 |---------------------|--------------------------------------------------------------------------------|
-| `OK`                | All elements resolved; summaries complete.                                     |
+| `OK`                | Every element resolved on its own ref; summaries complete.                     |
 | `REPO_MISSING`      | `repo_path` does not exist or is not a git repo.                              |
 | `DIRTY_TREE`        | Working tree is dirty and refresh was requested, on a **writable** mount; orchestrator must escalate. A read-only mount never returns this. |
 | `REFRESH_BLOCKED`   | `git fetch` or `git pull` genuinely failed (auth, network, non-fast-forward); orchestrator escalates. A read-only mount is NOT a cause — resolution proceeds at `prep.scanned_ref` with `prep.read_only: true`. |
 | `NO_PRS_RESOLVED`   | None of the provided `refs` elements could be resolved; `unresolved_prs` lists all of them.|
-| `PARTIAL`           | Some elements resolved, some unresolved; both `per_pr` and `unresolved_prs` populated. |
+| `PARTIAL`           | Some elements resolved and some did not (both `per_pr` and `unresolved_prs` populated), **or** at least one element resolved only through the key-commit fallback, whose content correctness is reduced. |

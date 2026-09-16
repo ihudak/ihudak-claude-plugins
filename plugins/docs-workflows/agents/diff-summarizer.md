@@ -46,8 +46,8 @@ repository. When `repo_url_slug` is absent, trust `repo_path` as given.
 
 Reached only where an element's own diff does not resolve — `branch_from` is neither a branch in the clone nor a commit in it, which is what a squash-merge leaves behind.
 
-If the caller supplied `keys_hierarchy`, for each key run `git -C "<repo_path>" log --all --grep="<key>" --oneline`. Treat matches as "commits associated with this feature" rather than a reconstruction of this element's own ref. Return every match's full diff (`git -C "<repo_path>" show --format= <sha>`) as a **separate `per_pr` entry** carrying this element's `ref` and `resolved_via: key_commits`. Annotate the `summary` explicitly:
-*"Diff reconstructed from commit <sha> matched on key <key>; this may not correspond to the ref's own content exactly."*
+If the caller supplied `keys_hierarchy`, for each key run `git -C "<repo_path>" log --all --grep="<key>" --oneline`. Treat matches as "commits associated with this feature" rather than a reconstruction of this element's own ref. Read every match's full diff (`git -C "<repo_path>" show --format= <sha>`) and return **one `per_pr` entry for this element** — `per_pr` is one entry per input element on every path, this one included — carrying the element's `ref`, `resolved_via: key_commits`, `head` = the newest matched sha, and `files_changed` / `insertions` / `deletions` summed over every commit read. Annotate the `summary` explicitly, naming each sha it drew on:
+*"Diff reconstructed from commits <sha>, <sha> … matched on key <key>; this may not correspond to the ref's own content exactly."*
 
 An element resolved this way is **partially resolved** — content is drawn from key-matched commits, and the output notes this clearly.
 
@@ -90,7 +90,7 @@ prep:
   scanned_ref:      <ref name, e.g. "origin/main"; the default branch name when writable>
   ref_committed_at: <ISO-8601 timestamp of the ref's newest commit>
   head_divergence:  { branch: <working-tree branch>, ahead: <n>, behind: <n> }
-per_pr:                        # one entry per input element
+per_pr:                        # one entry per input element, the key-commit fallback included
   - ref: <"<branch_to>...<branch_from>">
     resolved_via: local_ref | key_commits | unresolved
     base: <sha | null>

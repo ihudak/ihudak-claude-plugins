@@ -1043,7 +1043,7 @@ Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §4–§5:
 1. **Detect the host** from the docs repo's `git -C <docs_repo_path> remote get-url origin` (Bitbucket Cloud / Bitbucket Server / GitHub / other).
 2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.5 render-verification summary, deferred style/review/render items, a link to the PRD. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <KEY>-implementation-gaps.md is resolved.` A qualifying `document-as-code` decision (§7.5) does NOT get this banner even though it also produces a gaps file — the docs correctly describe what shipped, so the PR is mergeable; only the source ticket needs correcting.
 3. **Write + show**: write `pr-draft.md` to the resolved PRD folder (ask if none) AND print it.
-4. **Host footer**: Bitbucket → "open a PR in the web UI and paste the title + body"; GitHub → additionally offer `gh pr create --title "<title>" --body-file <pr-draft path>` that the user may run; other → "open a PR and paste the title + body". Bitbucket offers no CLI to open one — a host capability limit, not a policy: the plugin does open a pull request on a host with a CLI, but only in the separate GitHub-hosted specs repo (`$SPECS_PATH`), via a different flow — never in this docs repo (`workflows-core:phase-handoff` §2.6).
+4. **Host footer**: Bitbucket → "open a PR in the web UI and paste the title + body"; GitHub → additionally offer `gh pr create --title "<title>" --body-file <pr-draft path>` that the user may run; other → "open a PR and paste the title + body". Bitbucket offers no CLI to open one — a host capability limit, not a policy: the family does open a pull request where a host offers a CLI (`workflows-core:phase-handoff` §2.6 in `$SPECS_PATH`, `dev-workflows:code-handoff` §2.6 in a code repo), and no command of this plugin opens one anywhere, this docs repo included.
 
 Carry the squash result, push outcome, and PR-draft path into the Phase 9 report.
 
@@ -1111,7 +1111,7 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 
 ### Refs in scope
 [One line per **resolved** `per_pr` element `diff-summarizer` returned, then one per `unresolved_prs` element — an element that resolved to nothing is printed once, from the second list. Every field below is from that agent's own Output block: it returns **no per-element `status`** — its `status` is per repo, and Phase 4 step 1 has already said there is no PR status to filter on — and `ref` is the only thing that identifies an element, `refs[]` being the only element list that agent takes.]
-- <repo> — <ref> — resolved_via: [local_ref | key_commits | unresolved] — [files_changed] file(s), +[insertions]/-[deletions]
+- <repo> — <ref> — resolved_via: [local_ref | key_commits] — [files_changed] file(s), +[insertions]/-[deletions]
 - <repo> — <ref> — unresolved: [reason from `unresolved_prs`]
 - ...
 

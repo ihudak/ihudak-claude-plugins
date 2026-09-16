@@ -168,9 +168,10 @@ commit whose message names the key is findable, and no convention compels a huma
 a zero-match scan in a repository that has commits is a signal about the commit convention
 (`docs/reference/commit-convention.md`), not proof that no work happened.
 
-Hand each resolved ref to `diff-summarizer` as a `refs[]` element — `{repo_path, branch_from, branch_to}` — a
-shape its Inputs declare as `refs[]`, taken on the pure-local-git path. No URL,
-no host classification, no `gh` requirement.
+Hand each resolved ref to `diff-summarizer` as a `refs[]` element — `{branch_from, branch_to, title}`,
+the shape its Inputs declare for `refs[]`, `title` optional — taken on the pure-local-git path.
+`repo_path` is a top-level input of that agent, passed once at the Phase 5 dispatch and never
+repeated inside an element. No URL, no host classification, no `gh` requirement.
 
 
 When `focus_key` is set (the address resolved to an Epic folder), scope the **Phase 6 render input**

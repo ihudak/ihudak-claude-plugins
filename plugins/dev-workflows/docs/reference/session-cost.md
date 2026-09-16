@@ -37,7 +37,7 @@ Three commands emit a cost entry here: `/design`, `/implement`, and `/ready`. Ev
 
 The four correction commands in `workflows-core` infer differently: each resolves the **target command** whose output it is correcting or remarking on, and inherits that command's own fixed labels. A `/prompt` correcting a `/specify` output is priced as `specification`/`pe`, one correcting a `/design` output as `planning`/`dev` — the cost of fixing a phase's output belongs to that phase, so "what did specifying cost" includes the cost of making the spec right. Where no target resolves, where the target has no attribution row of its own, or where the target is itself a feedback command, the entry becomes [`plugin-feedback`](../roles-and-phases.md#plugin-feedback)/`n/a`. `n/a` is the absence of a role recorded rather than guessed; aggregation should treat it as unattributed rather than folding it into `dev`.
 
-**Why the other two do not.** `/vuln` and `/upgrade` have no Product Requirements Document to attribute spend to and sit outside the pipeline entirely. (Two more commands have never emitted one and both ship elsewhere: `/workflows-core:statusline` sets a configuration value rather than running a task, and `/docs-workflows:docs-profile` is a one-shot utility with no PRD either.)
+**Why the other two do not.** `/vuln` and `/upgrade` have no Product Requirements Document to attribute spend to and sit outside the pipeline entirely. (Commands that have never emitted one — as opposed to deferring one, above — ship elsewhere too, and each companion plugin's own session-cost page names the ones it holds; this page does not restate them.)
 
 ### Spend a command cannot measure itself
 

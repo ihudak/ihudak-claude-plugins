@@ -267,13 +267,16 @@ routable one, no prompt appears.
 State the inference, then ask:
 
 > This note reads like a `<proposed type>`, so the draft is shaped as `<shape>` and lands in
-> `<destination>`.
+> `<destination>` — confirm that route below, or pick another.
 
 ```
-choices: ["<proposed type> — <its shape>, under <its section> (Recommended)", "Feature update — titled section with a docs link, under ## Feature updates", "Breaking change — titled section with remediation steps, under ## Breaking changes", "Fix — one self-contained sentence, under ## Fixes"]
+choices: ["Feature update — titled section with a docs link, under ## Feature updates", "Breaking change — titled section with remediation steps, under ## Breaking changes", "Fix — one self-contained sentence, under ## Fixes"]
 ```
 
-The array is presented as written — the first option carries the proposal, so it never duplicates another (`workflows-core:escalation-rules`: there is no permitted adjustment). Apply the choice to
+The array is presented as written — it carries the three routes once each, and the proposal is the
+one the question above it names, never a further option repeating it, so no run renders a duplicate
+(`workflows-core:escalation-rules`: there is no permitted adjustment; a recommendation the array does
+not carry belongs in the prose beside it, which is where this one is). Apply the choice to
 `release_notes_block.change_type` (Feature update → `New technology support`, Breaking change →
 `Breaking change`, Fix → `Bug fix`) + `destination` and **re-render** the draft in the chosen shape —
 switching between `fixes` and a titled destination changes the body structure, not just a label. The

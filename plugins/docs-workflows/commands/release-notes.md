@@ -186,7 +186,7 @@ Capture `change_type` and `release_notes_category` from the resolved folder's `p
 carries them (null when absent). **Read them from the PRD, which is the reversal**: these were
 dropdowns set outside the plugin and returned by an import, so this step used to read the import and
 was told explicitly *not* to read the authored PRD. Nothing returns them now, and the PRD is the only
-place either can come from (`workflows-core:prd-format`).
+place either can be authored (`workflows-core:prd-format`).
 
 **`release_versions` — `--version <v>`, else ask.** The flag takes the release this note belongs to.
 Absent, the grill asks once; declined, the draft omits it. **Never invent one.** It is not parsed

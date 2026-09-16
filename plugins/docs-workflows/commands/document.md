@@ -10,7 +10,7 @@ Generate product documentation for the resolved Product Requirements Document: $
 
 Signature: one positional address — a key, or an `@<path>` naming a folder in the specs tree. Phase 5.5 resolves each write target against the content roots the resolved profile declares, and Phase 6.3 writes each page into the root that owns it.
 
-`/document` (keyed mode) is the **keyed feature-documentation** workflow. Given a PRD address, it reads the resolved PRD folder, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
+`/document` (keyed mode) is the **keyed feature-documentation** workflow. Given a PRD address, it reads the resolved PRD folder, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output into the docs repository Phase 0 step 2 resolves — the current working directory where it carries a docs signal, and otherwise `${DOCS_PATH:-/workspace/docs}`, a repository under `${REPOS_PATH:-/workspace}`, or a path you give: a run writes wherever that ladder answers, not wherever it was started (Phase 0 step 2, and step 3 for the profile).
 
 For small one-off doc edits, use direct mode (below). For writing child Epic drafts from a PRD, use `/epics`. For release notes, use `/release-notes` — this command never writes release-notes / what's-new pages, because those are generated from the tracker by the docs team's automation.
 

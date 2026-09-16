@@ -6,9 +6,9 @@ Versions follow semver at the plugin level.
 
 ## [3.6.0] — 2026-09-10
 
-### Fixed — `getting-started.md` said the pipeline calls no external service (3.5.0)
+### Fixed — `getting-started.md` said the pipeline reads one markdown tree and calls no external service (3.5.0)
 
-*"Nothing — the pipeline reads and writes one markdown tree and calls no external service."* The first half is right and the clause after it is not: a consented handoff opens a pull request through `gh` (`workflows-core:phase-handoff` §2), `docs-grounder` retrieves through the `qmd` CLI, and the commands that ground on code list and read clones under `$REPOS_PATH`. The same over-claim was retired from `workflows-core:dependencies` in 1.6.0 and this is the copy one file away. Cut rather than narrowed: the sentence answers *what you also need*, and the answer is still nothing.
+*"Nothing — the pipeline reads and writes one markdown tree and calls no external service."* **Neither half survives**, and the first correction of this entry cut only the second: a consented handoff opens a pull request through `gh` (`workflows-core:phase-handoff` §2.6) and `docs-grounder` retrieves through the `qmd` CLI, while *one markdown tree* is wrong in two further directions — `$DOCS_PATH` is a second markdown tree the grounding commands read, and the clones under `$REPOS_PATH` are no markdown tree at all. The same over-claim was retired from `workflows-core:dependencies` in 1.6.0 and this is the copy one file away. The answer is now `gh`, when present, with the two read-only sources named beside it — matching the sibling `dev-workflows` page, which answered the identical question differently.
 
 ### Fixed — `/specify`'s page said its repo candidates come from PR URLs (3.5.0)
 

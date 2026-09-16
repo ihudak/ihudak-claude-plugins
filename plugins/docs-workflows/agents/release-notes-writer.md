@@ -80,7 +80,7 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
    - **`fixes`** — render **one self-contained past-tense sentence**: symptom + resolution, per §4
      Fixes. NO category label line, NO `###` title, NO key. Skip the remaining bullets in this
      step; they apply only to the titled shapes.
-   - **Context label** (titled shapes only) — the value resolved in step 2, rendered verbatim. When it
+   - **Category label** (titled shapes only) — the value resolved in step 2, rendered verbatim. When it
      is null, omit the line.
    - **Feature title** — 5–10 words, sentence case, release-note headline style. No
      leading "New feature:", no trailing period.

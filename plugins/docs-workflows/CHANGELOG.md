@@ -155,6 +155,10 @@ Its `change_type` field comment said "an absent value is inferred", where the ag
 
 The list of what ends the whole smoke-check, rather than one space's part of it, was written out wherever it was needed and went stale at one site after another. Two were still wrong: `/document`'s `render_smoke_check` ledger row missed the ending a listener the probe cannot reach adds, and it and the Phase 9 report template both told a run to name "the port or process group left running and its command" for the one ending that boots no command and writes no log — so the row either misdescribed the ending or invented a command, under a `doc-reviewer` dimension that grades it. `render-verification.md` §2 now carries **The endings** — the four, what each records, and what that record names — and every other site cites it: §5, `/document` Step 2, its Outcomes, that ledger row, its `doc-reviewer` dispatch and its Phase 9 template.
 
+### Fixed — `release-notes-writer` calls the label by its own name
+
+1.1.3's step 6 named the titled shapes' first line the **Context label**, the last live use of the retired `{{#context}}` macro's vocabulary under `plugins/`. Every other site in that agent calls it the category label — its own step 2, its rendered `**Category:**` line, its hard rules and its frontmatter — as do `release-note-types.md` §7, the command and its page. The bullet now reads **Category label**; it named step 2's value and step 7 showed the render, so no run behaved differently.
+
 ## [1.1.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

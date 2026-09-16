@@ -120,7 +120,7 @@ de-duplicate by binary name.
    utility the forms run is `command <name>` — `mktemp`, `vale` and `rm`, whose `rm -i` or `rm -I` alias
    would otherwise ask before removing the directory, be answered no from the Bash tool's empty
    standard input, and leave the directory behind — and `--` ends `rm`'s options. So a `vale` that
-   only an alias or a function provides never runs here, which is why §3 tests `vale` as a binary. What neither form makes equal is the
+   only an alias or a function provides never runs here, which is why §3 tests `vale` by the test it gives a tool the run calls as `command <name>`, not by the one it gives a tool the Bash tool's own shell runs. What neither form makes equal is the
    styles themselves: the packages this machine synced are the versions it synced, and a runner
    syncs its own. **The second form keeps more of the machine than that, and this is its limit.**
    The default StylesPath it keeps is one directory for every project on this machine whose
@@ -150,10 +150,14 @@ sources **2 and 3 only**. It anchored on cwd unconditionally until a live run sh
 
 ## 3. Checking
 
-- **Binaries — each tested by the shell that will run it.** Every Bash call runs in the Bash
-  tool's own shell, bash or zsh, which carries the user's aliases and shell functions — Claude
-  Code's shell snapshot re-applies them — so whether a tool counts as present depends on what runs
-  it. **This is where the plugin says which test a tool takes**, and the tool checks its gates and
+- **Binaries — each tested by running `command -v` in the shell, and from the directory, that will
+  run it.** Every Bash call runs in the Bash tool's own shell, bash or zsh, which carries the
+  user's aliases and shell functions — Claude Code's shell snapshot re-applies them — while a
+  command the run starts inside an explicit `bash -c` gets a child shell that carries neither; and
+  every command the profile records runs from the docs repository, not from the session's
+  directory. So whether a tool counts as present depends on which shell asks and where it asks
+  from, and the way to find out is to ask **that** shell, from **there** — never to emulate it.
+  **This is where the plugin says which test a tool takes**, and the tool checks its gates and
   servers rest on cite this split: `/docs-serve`'s Mode dispatch and Phase 4, `/document` Phase
   6.5's Steps 1 and 2 with `docs-profiles/render-verification.md` §1 and §2, `docs-style-checker`'s
   third rung, and this preflight, `/docs-init`'s included.
@@ -164,60 +168,68 @@ sources **2 and 3 only**. It anchored on cwd unconditionally until a live run sh
     (`docs-profiles/render-verification.md` §2, **Portability**); the tool of every
     `dev_servers.servers[].command`, which `render-verification.md` §2 step 2 and `/docs-serve`
     Phase 4 start inside an explicit `command bash -c`; and `vale`, which every Vale run in this
-    plugin calls as `command vale` (§2, source 2). Neither runs an alias of the Bash tool's shell,
-    nor a function of it save one the user exported, which a child `bash` imports (below), so this
-    test takes neither for the tool:
-    `command sh -c 'unset -f "$1" 2>/dev/null; command -v "$1"' sh <binary>` — present when it
-    exits 0. **A bare `command -v <binary>` will not do**: it reports an alias or a function named
-    after the binary, exiting 0 where no such binary is installed. A child `sh` inherits no alias,
-    and its `unset -f` drops a function of the binary's name it may have taken in from the
-    environment: bash, which some hosts install as `sh`, imports exported functions. `command sh`
-    keeps an alias or a function named `sh` out of it too, as `command` keeps them out of the
-    process and socket reads. A bash function the user exported does reach a child `bash`, and this
-    test does not count it: an exported function standing in for a server's tool reads as missing
-    here though its server would start. Checked with bash, dash and BusyBox's `ash` as the calling
-    shell, each given an alias and a function named after an absent tool and bash an exported one as
-    well, and with dash and with bash as the `sh` it starts: the bare form passes every one of
-    them, and this form none, while a present tool shadowed the same way still passes. zsh 5.8, as
-    the calling shell, passes neither an alias nor a function named after the tool or after `sh`,
-    since it expands no alias on the word after `command`; a global alias (`alias -g`) on either
-    name, which zsh expands in any position, defeats it, and macOS's zsh 5.9 is unchecked.
+    plugin calls as `command vale` (§2, source 2) — is asked of a child `bash`, the shell an
+    explicit `bash -c` start gets:
+    `command bash -c 'builtin cd "<dir>" >/dev/null && command -v "<tool>"'` — present when it
+    exits 0. That child shell expands no alias of the user's and takes no shell function of theirs
+    save one they exported, which it imports and which a start inside one would run too — and a
+    tool the run calls as `command <name>` rather than starting inside `bash -c` needs a real
+    binary for the same reason, `command` keeping an alias and a function of that name out of it. `command bash` keeps an alias or a function named `bash` out of it, as
+    `command` keeps them out of the process and socket reads, and `builtin cd` keeps a `cd` alias
+    or a `cd` function out. **A bare `command -v <tool>` in the Bash tool's own shell will not do
+    here**: it reports an alias or a function of that name, exiting 0 where the start exits 127.
   - **Every other tool, which a gate runs in the Bash tool's own shell** — the tool of every
     `commands.*` and `builds[].command` value (`/document` Phase 6.5 Step 1's builds,
     `docs-style-checker`'s lint rungs), the tools §2's other signals imply — a lockfile's package
     manager, `markdownlint`, `remark` — and `/docs-init`'s `git`, `python3`, `pip` or `uv`, and
-    `mkdocs` — is present where that shell would run it: a binary on `PATH`, a shell function, or
-    an alias whose first word is itself present by this test, to one level:
-    `( w=$(command -v <tool>) && case $w in "alias "*) w=${w#*=}; w=${w#\'}; w=${w%%[[:space:]]*}; w=${w%\'}; command -v "$w" >/dev/null ;; esac )`
-    — present when it exits 0. In that shell `command -v` prints a binary's path, a function's
-    name, or an alias's definition, `alias <tool>=<value>`, in bash and zsh alike; for an alias the
-    form takes the first word of `<value>` and asks once more, and never follows that word through
-    a second alias. An alias whose first word cannot be found is not present by it. A dangling
-    alias it passes — one whose first word is another alias, say — still fails when the gate runs
-    it, and the gate records that failure as it records any environmental failure.
+    `mkdocs` — is tested in that same shell, from that same directory:
+    `( builtin cd "<dir>" >/dev/null && command -v "<tool>" )` — present when it exits 0. The
+    user's aliases and functions then apply exactly as they will when the gate runs the command,
+    and `command -v` reports each: a binary's path, a function's name, or an alias's definition,
+    in bash and zsh alike. The subshell and the `builtin` are what keep it honest — the
+    parentheses leave the session's own directory where it was, and `builtin` runs neither a `cd`
+    function nor a `cd` alias of the user's.
+  - **`<dir>`, either way, is the directory the command runs from** — `repo_root`, where every
+    command the profile records runs, or the directory a leading `cd <dir>` (§2 source 1) names
+    under it. That is what resolves a **path-valued** tool, `node_modules/.bin/vitepress` and the
+    like, a form a profile may record for a dev-server command: `command -v` resolves a name
+    containing `/` against the directory it runs in, so `node_modules/.bin/vitepress dev docs` is
+    asked from `repo_root` and `cd website && node_modules/.bin/vitepress dev` from
+    `<repo_root>/website`, each exactly as the run will resolve it, and an absolute path resolves
+    from anywhere. **Never ask from the session's directory**, which need not be the docs
+    repository (§6): a present path-valued tool then reads missing, and the preflight prompts on a
+    healthy container (§7). A `<dir>` that does not exist reads the tool missing in both forms,
+    which is what the command would meet there too.
+  - **A tool that resolves to something that is not there still fails when the gate runs it**, and
+    the gate records that as it records any other environmental failure: an alias whose value
+    names a wrapper that is not installed passes the own-shell test, exactly as it passes in the
+    shell that will expand it. The preflight's job is to catch what it can see from where the
+    command will run, not to prove the thing at the end of an alias chain exists.
   - **A tool both kinds run** — a package manager whose builds run in the Bash tool's own shell
     and whose dev servers start inside `command bash -c` — takes both tests, each for the gates
     its own commands power; where the two disagree, the `toolchain` block carries a row for each
     (§4).
 
-  Checked with bash 5.2, with `expand_aliases` on as the snapshot sets it, and with zsh 5.8, each
-  as the Bash tool's shell and given an alias-provided `vale` and `mkdocs` and a lazy-loading
-  `pnpm` function with neither binary on `PATH`: the first test reads all three missing and the
-  second present, and the gates agree — `pnpm run build`, `pnpm docs:lint` and `mkdocs build`
-  run in that shell, while the Vale form's `command vale` exits 127 and a dev server booted
-  through `command bash -c` finds neither `pnpm` nor `mkdocs`.
-- **A tool containing `/` is a path, not a name** — `node_modules/.bin/vitepress`, a form a
-  profile may record for a dev-server command. `command -v` resolves a name containing `/` against
-  the directory it runs in, and that is the session's directory, which need not be the docs
-  repository (§6). So test such a tool with `test -x` on that path, taken relative to the directory
-  the command runs from — `repo_root`, where every command the profile records runs, or the
-  directory a leading `cd <dir>` (§2 source 1) names under it:
-  `node_modules/.bin/vitepress dev docs` ⇒ `test -x "<repo_root>/node_modules/.bin/vitepress"`, and
-  `cd website && node_modules/.bin/vitepress dev` ⇒
-  `test -x "<repo_root>/website/node_modules/.bin/vitepress"`. An absolute path is tested as it
-  stands. **Never test it with `command -v` from the working directory**: run from anywhere but the
-  directory the command runs from, it reports a present tool missing, and the preflight prompts on a
-  healthy container (§7).
+  Measured with bash 5.2, with `expand_aliases` on as the snapshot sets it, and with zsh 5.8, each
+  as the Bash tool's shell, every form run as the Bash tool runs one and every tool checked against
+  the gate that would run it. An alias-provided `mkdocs` in five shapes — an absolute path, one
+  beginning `~/`, one beginning with an expansion of the home-directory variable, one led by
+  `NO_COLOR=1`, and a chain through a second alias — and a
+  function-provided one: the own-shell test and the build it gates agree on every one. An
+  alias-provided, a function-provided and an absent `mkdocs`: the child test and the boot that
+  child shell makes agree on every one, and so do they on an **exported** bash function, which both
+  run. A real `node_modules/.bin/vitepress` under a repository root: from a session directory that
+  is not that root, both tests find it and the boot runs it. `command bash` holds against a `bash`
+  alias and a `bash` function, and `builtin cd` against a `cd` alias and a `cd` function. What
+  these tests still cannot see is narrow, and is named here rather than counted: a zsh **global**
+  alias (`alias -g`) on `bash` is expanded in any position, so the test and the start alike run
+  something else — one on the tool's own name is no longer a limit, since the test reports it and
+  the shell expands it; an **exported** bash function named after a tool the run calls as
+  `command <name>` — `vale`, `curl`, and off Linux `lsof` and `ps` — reads present here though
+  `command <name>` bypasses it and exits 127; a shadow on `command` itself, an alias or a shell
+  function of that name, defeats the `command` prefix these forms rest on, as it defeats every
+  other `command <name>` read in this plugin (measured in both shells); and macOS's zsh 5.9 is
+  unchecked.
 - Directory signals (`node_modules/`): `test -d`; a Yarn Plug'n'Play `.pnp.cjs`: `test -f`.
 - Never install anything. Never modify the repo. This step is read-only.
 

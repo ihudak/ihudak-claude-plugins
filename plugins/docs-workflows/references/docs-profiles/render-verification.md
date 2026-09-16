@@ -49,8 +49,9 @@ a `builds[]` entry, the server whose `visibility` pairs with the entry's; for a 
 §2 boots. Another build's server is never the proof: it compiles another space or another
 configuration. A command's tool is the one
 `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines (never a leading `cd`, which
-every shell has), tested as its §3 tests it (a tool containing `/` by `test -x` from the directory
-the command runs from, never by `command -v` from the working directory), a package manager whose
+every shell has), tested as its §3 tests it — asked of the shell that will start the command, from
+the directory the command runs from, never from the working directory, which is what resolves a
+path-valued tool such as `node_modules/.bin/vitepress` — a package manager whose
 dependencies are not installed counting as missing (§2 step 1). That is `build_check`'s
 registered fallback running, recorded `DEGRADED` rather than skipped (`/document` Phase 6.5 Step 1).
 Either way it is a fallback, not a description of example-docs, which declares both builds and whose
@@ -159,7 +160,9 @@ yet checked goes to the manual table. For each server:
 
 1. Verify prerequisites (§4) — best-effort, never applied. **Then check the server's command's
    tool** — the tool `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines, tested as
-   its §3 tests it, for a command that runs from `<docs_repo_path>`: the check `/docs-serve` makes
+   its §3 tests it, from the directory the command runs from — `<docs_repo_path>`, or the directory
+   a leading `cd <dir>` names under it, which is what resolves a path-valued tool: the check
+   `/docs-serve` makes
    before it starts a server (its Phase 4), and the one §1 makes for a failed build's own servers.
    **A package manager whose dependencies are not installed counts as missing too**, since a server
    run through it fails as completely as one whose tool is absent; `/docs-serve` Phase 4 and

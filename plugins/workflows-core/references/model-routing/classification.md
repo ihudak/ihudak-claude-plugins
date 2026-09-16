@@ -431,12 +431,14 @@ risks.
 
 ---
 
-## 9. Per-step routing for multi-phase authoring pipelines
+## 9. Per-step routing (every command)
 
-The keyed authoring pipelines (`/document` and `/epics`) run a long sequence of phases — some
-judgment-heavy, some mechanical. They MUST NOT let every step inherit the
-session model. Apply this policy, resolving each model against the §2 (Opus)
-and §2.1 (Sonnet) fallback chains.
+Steps differ in nature — some judgment-heavy, some mechanical — and a command
+MUST NOT let every step inherit the session model. Apply this policy in every
+command, resolving each model against the §2 (Opus) and §2.1 (Sonnet) fallback
+chains. The keyed authoring pipelines (`/document` and `/epics`) run long phase
+sequences and are the motivating case, not the scope — §9.4 is the governing
+rule.
 
 ### 9.1 Principle
 

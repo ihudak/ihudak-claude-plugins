@@ -45,6 +45,14 @@ It preferred the repository's lint script where one accepts file arguments — a
 
 1.0.0's `docs/reference/references.md` opened by saying each subtree "also carries one vendored non-markdown file", while `api-guidelines/` carries two — `spectral/ruleset.yaml` and `template/openapi-template.yaml` — and the same page's arithmetic paragraph, below the subtree table, says so, so a reader who trusted the opening counted 37 files where 38 ship. The opening no longer states a per-subtree count at all and points at the arithmetic, which is where the counts are derived. No check in `scripts/` validates that clause: check 9 reads the same opening sentence, but only its `38` total, which was already right.
 
+### Fixed — the reference inventory's table header sits over the columns it describes
+
+1.0.0's `docs/reference/references.md` carried a three-column table whose header row was shifted one column against its body: the column headed **Markdown files** held a prose description, and the column headed **What it holds** held provenance. The markdown counts were never in the "Markdown files" column at all — they are the `(24)` / `(11)` parentheticals in column 1, which is where `check-docs.sh` check 4 reads them. As printed, the table stated that an OpenAPI template, a Spectral ruleset and a checker script are markdown files, three lines below the opening sentence that names all three as the corpus's non-markdown files and seven above the arithmetic paragraph that counts them as such. The header now reads **Subtree (markdown files) | What it holds | Derived from**, so each cell sits under its own heading and the counts stay in column 1 untouched. Each *What it holds* cell also says which of its items the count leaves out, since a cell describes the whole subtree while the parenthetical beside it counts only the markdown in it.
+
+### Fixed — the corpus's third non-markdown file is no longer called prose
+
+The same page closed on a trichotomy over the whole corpus — the Spectral ruleset *runs*, the checker script is *invoked*, *"Everything else is prose the agents read"* — which put `api-guidelines/template/openapi-template.yaml`, a starter OpenAPI document, in the prose bucket nine lines after the page named it as one of three vendored non-markdown files. `api-guideline-reviewer` agrees with the opening rather than the closing: it loads the template as its own labelled kind, listed apart from the guidance prose. The sentence now names all three and says what the template is.
+
 ## [1.0.0] — 2026-09-02
 
 ### Added — extracted from `dev-workflows` 3.25.0

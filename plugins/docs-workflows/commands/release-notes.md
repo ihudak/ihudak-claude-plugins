@@ -120,7 +120,7 @@ Also display: the resolved PRD folder, its `key`, `$REPOS_PATH` (or "N/A — PRD
 
 ## Phase 1.5 — Classify
 
-Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then classify the task. Release-notes drafting is **MODERATE** (bounded prose synthesis from a single ticket; no Opus planning or review gate). State the classification and a one-sentence reason.
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then classify the task. Release-notes drafting is **MODERATE** (bounded prose synthesis from a single ticket; no Opus planning or review gate). State the classification and a one-sentence reason, and record the `model_routing` block §4 defines — Phase 6 pastes it, and its `detection_model` (the §2.1 Sonnet chain) is what Phase 5's `diff-summarizer` batch and Phase 6's writer are pinned to.
 
 ---
 
@@ -168,7 +168,8 @@ repeated inside an element. No URL, no host classification, no `gh` requirement.
 
 
 When `focus_key` is set (the address resolved to an Epic folder), scope the **Phase 6 render input**
-to the focus Epic's subtree — the focus Epic plus its linked descendants — so the
+to that `EPIC-` folder and what it holds — its `epic.md`, `specification.md`, `design.md` and
+`implementation.md`; there is no Story / Sub-task level beneath it — so the
 release note covers that Epic's user-facing changes rather than the whole PRD. This
 scopes only what Phase 6 renders; it does not mutate the stored handoff that other
 phases read. When `focus_key` is null, the draft covers the whole ticket/PRD exactly as
@@ -199,7 +200,7 @@ choices: ["Skip and continue without its refs", "I'll clone it — wait", "Cance
 
 ## Phase 5 — Diff summarisation (only if diff grounding is ON)
 
-Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent message, passing each resolved absolute `repo_path`, its `repo_url_slug`, and `refs[]` — the `{branch_from, branch_to, title}` elements Phase 3 built for that repo, which is the only element list that agent takes. Collect the outputs into a `diff_summaries` array.
+Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent message, each pinned with ``model: `<detection_model — §9 / §2.1 Sonnet chain>` ``, passing each resolved absolute `repo_path`, its `repo_url_slug`, and `refs[]` — the `{branch_from, branch_to, title}` elements Phase 3 built for that repo, which is the only element list that agent takes. Collect the outputs into a `diff_summaries` array.
 
 **Per-repo summarizer status.** Handle each returned status before continuing:
 
@@ -238,10 +239,10 @@ already spans both levels.
 
 This is the same inference `emit-cost` already applies in Phase 11; do not add a question for it.
 
-→ Agent (subagent_type: "docs-workflows:release-notes-writer"):
+→ Agent (subagent_type: "docs-workflows:release-notes-writer", model: `<detection_model — §9.2 delegated writer / §2.1 Sonnet chain; this run is MODERATE (Phase 1.5)>`):
   > "Render the release-notes draft for this brief:
   >
-  > folder_read: [the Phase 3 handoff — scoped to the focus Epic's subtree when focus_key is set]
+  > folder_read: [the Phase 3 handoff — scoped to that `EPIC-` folder and what it holds when focus_key is set]
   > diff_summaries:      [the Phase 5 array, or omit when diff grounding was off]
   > docs_grounding:      [the Phase 5.5 digest, or omit when OFF/EMPTY]
   > change_type:            [from Phase 3, else null]

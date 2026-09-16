@@ -6,6 +6,10 @@ Versions follow semver at the plugin level.
 
 ## [4.0.4] — 2026-09-15
 
+### Fixed — `docs/reference/environment.md` named three slug-matching commands where seven do it, and put `/design` in the wrong class (4.0.3)
+
+Re-derived rather than extended: `grep -l 'slug→clone map' plugins/*/commands/*.md`, run from the repository root, returns `/design`, `/ready`, `/document`, `/release-notes`, `/epics`, `/prd-ground` and `/specify` — seven, of which the page named three. The second half was worse than short: it said `/design` *"lists the top-level directories under `$REPOS_PATH` and matches on their basenames"*, when Phase 3 step 1 builds the slug→clone map and step 3 resolves each confirmed repo against it, its candidates coming from the specification rather than from what is on disk. The basename class is real and now names the two commands that are in it, `/product-workflows:create-ard` and `/product-workflows:idea`. The page keeps the recipe instead of a list, for the reason the list went stale.
+
 ### Fixed — `docs/reference/follow-ups.md` taught a follow-up kind that can never fire (4.0.3)
 
 The what-qualifies paragraph ended its list with *"or an unresolved PR on a host the plugin can't reach and so must be documented by hand."* The only way a run met an unsupported host was a `diff-summarizer` `pr_refs` element whose `host` was `other`, and nothing in the tree ever built one; that half of the agent is now retired outright. Cut here in the same change as `workflows-core:followup-emission` §6's twin, so the page and the reference it documents do not disagree — the page is a different plugin's, which is exactly how the reference's own fix would have missed it.

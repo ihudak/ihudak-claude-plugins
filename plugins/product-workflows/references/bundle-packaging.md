@@ -127,12 +127,14 @@ mechanical stands behind this allow-list, which is why it is written out rather 
 
 ## 2. De-Obsidianising
 
-The working documents live in a vault and use its syntax. The bundle is a **rendered copy**,
+The working documents live in the specs repository, which is a git repository and not a vault, and
+carry wikilink syntax anyway — `[[KEY]]` is the specs tree's traceability form, and the customer's
+own source document arrives with whatever its author wrote. The bundle is a **rendered copy**,
 produced on the way out; the working documents keep their wikilinks and are never rewritten in
 place. A de-Obsidianising pass that edits the source is a data-loss bug wearing a formatting fix.
 
 **Wikilinks are rewritten to plain filename references.** `[[Some Document]]` resolves to nothing
-outside the vault: in every other reader it is literal text with brackets around it, and a reviewer
+outside a vault: in every other reader it is literal text with brackets around it, and a reviewer
 who clicks it, searches it, or asks an agent to open it gets nothing. It is worse than a missing
 link, because it looks like a link. The rewrite names the target file as the reviewer will actually
 see it, so it can be searched for.
@@ -188,7 +190,7 @@ worth translating.
 
 **Plain markdown plus images, and nothing else.** No canvas or database-view files, no query or
 dataview blocks that render as an empty region in any other tool, no plugin-specific embed syntax,
-no frontmatter that means nothing to a reader outside the vault. Anything that renders in exactly
+no frontmatter that means nothing to a reader outside a vault. Anything that renders in exactly
 one tool is either converted to something that renders everywhere or removed with a note saying what
 stood there. A block that silently renders as nothing is the same defect as the dead wikilink: the
 reviewer cannot see that they are missing something.

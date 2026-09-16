@@ -18,7 +18,9 @@ changelog entry, never as a comment in the markdown.
 
 **Scope: rendered product-docs pages** — the pages `/document` writes into a docs repo. This section
 does not govern **specs-tree documents**, such as the `epic.md` files `/epics` writes,
-where a `[[KEY]]` wikilink is the native idiom, resolves, and is the required traceability form.
+where a `[[KEY]]` wikilink is the native idiom and the required traceability form. It resolves
+nowhere — the specs tree is a git repository, not a vault — and does not need to: it names a key,
+not a page.
 
 | Where | Carries |
 |---|---|

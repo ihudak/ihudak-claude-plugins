@@ -1072,12 +1072,12 @@ is not one either — it is the gate working.
 5. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. Stages ONLY the §2.1 bounded artifact paths inside
    `$SPECS_PATH`, commits `<BRD-KEY> Add dev-workflows session artifacts (/brd-package)` with no
    `Co-Authored-By` trailer, and pushes to the branch the handoff phase created. NEVER touches a code
-   repo, a docs repo, the vault, or the current working directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the
+   repo, a docs repo, or the current working directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the
    run; skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice.
    Hold its §6 outcome line for the final report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is
-offered only in the handoff phase), and NEVER writes into a code/docs repo, the vault, or the current
+offered only in the handoff phase), and NEVER writes into a code/docs repo, or the current
 working directory, where it is not the specs repository; no user name is ever written.
 
 ---

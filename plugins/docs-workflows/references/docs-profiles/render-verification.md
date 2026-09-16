@@ -220,8 +220,9 @@ yet checked goes to the manual table. For each server:
 3. Readiness poll: GET `http://localhost:<port><base_path>/`, that server's own, until HTTP 200 or
    `profile.dev_servers.readiness_timeout_seconds` seconds elapse (fall back to **120** when the
    field is absent). **At every interval at which the GET gets no response** — it prints `000` —
-   **test the group too**, where step 2 holds a `<pgid>`, by step 5's test for a gone group:
-   `command bash -c 'kill -0 -- -<pgid>'` fails, or every member of the group is a zombie. **A gone group
+   **test the group too**, where step 2 holds a `<pgid>`, by step 5's test for a gone group: the
+   process table names no member of it, or every member it names is a zombie — never a failing
+   `kill -0` on its own, which a group this user may not signal also produces. **A gone group
    ends the poll at once**, as `/docs-serve` Phase 5's poll ends: the command exited without its
    port answering — a theme that is not installed, a configuration it cannot load, a script its
    package does not have — and nothing of its group is left to bind the port later, so the check
@@ -249,12 +250,25 @@ yet checked goes to the manual table. For each server:
       is not, `command bash -c 'kill -KILL -- -<pgid>'` and wait up to 5 seconds more, since a killed
       process stays in its group until its parent reaps it.
    2. **Confirm two things:** the group is gone and the port is quiet — the probe no longer finds it
-      answering. **The group is gone** where `command bash -c 'kill -0 -- -<pgid>'` fails, **or** where
-      every member of `<pgid>` is a zombie — the states **Portability** (below) reads for the
+      answering. **The group is gone where the process table names no member of `<pgid>` at all, or
+      where every member it names is a zombie** — the states **Portability** (below) reads for the
       group's members are all `Z`, or on a `ps` all begin with `Z`. A zombie runs nothing and holds
       no port; it has exited, and stays in its group only until its parent reaps it, which a parent
       that never reaps — a container whose PID 1 is `sleep infinity`, with no init — never does, so
-      `kill -0` alone would call that group running for good.
+      a signal test alone would call that group running for good. **`command bash -c 'kill -0 -- -<pgid>'`
+      answers one half of that and must never be read as the whole of it**: exit 0 says at least one
+      member is alive and this user may signal it, so the group is **not** gone, and that is the one
+      thing it settles. A non-zero exit means either that no such group exists **or** that this user
+      may signal no member of it — `EPERM`, which `kill(2)` returns for a group whose remaining
+      members run as another user, as a command run through `sudo` leaves them, and which bash exits
+      1 for exactly as it does for "no such process". Those are opposite answers, so **a failing
+      `kill -0` decides nothing and the process table decides**: it names another user's processes
+      too, on Linux from `/proc/[0-9]*/stat` and elsewhere from `command ps -A -o pgid=,stat=`, both
+      of which **Portability** defines. Reading a failing `kill -0` as a gone group reports a live
+      server as one that has ended (measured against a live root-owned group: `kill -0` exits 1 with
+      *Operation not permitted* while the table names a live, non-zombie member). The error text
+      itself is not the test — it is `strerror`'s, so a localised host prints it in its own language;
+      the members are.
    3. **Both confirmed** — the next server may boot.
    4. **Either not confirmed** — where the port still answers, a process outside the group holds it
       (one that left for a session of its own, or a server something restarted): read its listener's
@@ -326,7 +340,8 @@ functions — a POSIX utility, checked in bash, dash and BusyBox's `ash` — and
 `command curl`, and every call on a process group runs `bash` as `command bash`**: `command` runs the
 binary `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §3 tested for, where a `bash` function
 of the user's would otherwise answer `kill -0` for a group it never looked at (bash 5.2 and zsh 5.8:
-exit 0 for a gone group, where `command bash` exits 1).
+exit 0 for a gone group — the one answer `kill -0` settles, and the wrong one here — where
+`command bash` exits 1 and leaves the question to the process table, step 5's own authority).
 
 - **The processes holding a listening socket on `<port>`.** On Linux: the rows of `/proc/net/tcp`
   and `/proc/net/tcp6` in state `0A`, listening, whose local port — the four hex digits after the

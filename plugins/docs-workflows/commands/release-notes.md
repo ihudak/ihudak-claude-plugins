@@ -314,7 +314,9 @@ If violations are returned and the user chose auto-fix:
 
 → Agent (subagent_type: "prose-style:prose-fixer") to apply safe fixes to that scratch file.
 
-Then read the scratch file back as `combined_rendered`, and remove it with `command rm -f -- "<scratch file>"`: the Bash tool's shell carries the user's aliases and shell functions, and an `rm` of theirs — an `rm -i` alias answered no from an empty standard input, or a function — could otherwise leave the file behind.
+Then read the scratch file back as `combined_rendered`.
+
+**Remove the scratch file in every case** — after a fixer ran, after a report-only check, and where the checker returned no violations at all — with `command rm -f -- "<scratch file>"`: the Bash tool's shell carries the user's aliases and shell functions, and an `rm` of theirs — an `rm -i` alias answered no from an empty standard input, or a function — could otherwise leave the file behind.
 
 `prose-style` is a declared dependency of this plugin, so the only thing that skips this phase is the user's own "Skip style check" answer in Phase 1 — never a missing plugin. Record that answer in the report line below.
 

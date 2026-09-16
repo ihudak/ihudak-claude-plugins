@@ -143,6 +143,10 @@ Phase 8.5 told the run to write the pull-request draft to the resolved PRD folde
 
 `/document`'s `doc-writer` handoff file (Phase 6.3) and `doc-fixer` Fix Report (Phase 7), and `/release-notes`' scratch copy of the draft (Phase 7), were named with a bare `mktemp`, which the Bash tool's own shell resolves through any alias or shell function of that name before `mktemp` runs — so the path the run writes to and hands on is whatever that printed. All three now run `command mktemp`, as the smoke-check's own log already did.
 
+### Fixed — four sentences that described a neighbouring phase loosely
+
+`doc-planner` said `/document` Phase 5.7 settles "each such target" of its first return, where that step settles only a target whose `screenshots:` is non-empty, and that Phase 9 lists a staged screenshot's `upload_note`, where Phase 9 lists it only on the **Defer** path. `doc-reviewer`'s Inputs list did not declare `render_verification`, which Phase 7 passes it, though every other input in that dispatch was declared. And `/release-notes` Phase 7's "read the scratch file back … and remove it" sat under the auto-fix branch, so a report-only run could read the removal as that branch's, against its own invariant; the removal is now its own sentence and says it happens on every path.
+
 ## [1.1.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

@@ -163,7 +163,11 @@ The list of what ends the whole smoke-check, rather than one space's part of it,
 
 ### Fixed — `/release-notes`' command page opens on a sentence that parses
 
-1.1.3's `docs/commands/release-notes.md` opened *"…for the PM to publish wherever their release-notes field."*, a clause a de-vendoring edit truncated: it lost its verb along with the tracker field it named, and no check in `scripts/` validates a page's opening sentence. It now ends *"wherever their release notes are published"*, the formulation the same page's **What it produces** section, the command's own Usage line and its frontmatter already use.
+1.1.3's `docs/commands/release-notes.md` opened *"…for the PM to publish wherever their release-notes field."*, a clause a de-vendoring edit truncated: it lost its verb along with the tracker field it named, and no check in `scripts/` validates a command page's opening sentence. It now ends *"wherever their release notes are published"*, the formulation the same page's **What it produces** section, the command's own opening paragraph and its frontmatter already use.
+
+### Fixed — `/release-notes`' Change-Type picker offers each route once
+
+1.1.3's Phase 6 built the low-confidence Change-Type array as the proposal *plus* all three canonical routes, so whichever route was proposed was offered twice: a `Breaking change` proposal rendered option 1 and option 3 as the same Change Type under the same section, a `New technology support` proposal duplicated the Feature-update option, and a `Bug fix` proposal the Fix one. The sentence under the array asserted the opposite — *"the first option carries the proposal, so it never duplicates another"* — and cited `workflows-core:escalation-rules`' verbatim rule, so a run was both told the duplicate could not arise and forbidden from removing it. That sentence had replaced the instruction which used to handle the duplicate, *"Drop the option that duplicates the recommended one."*, in the `"Other… (describe)"` cleanup; the permitted adjustment was correctly removed and the array was never re-authored. The array now carries the three routes alone, each exactly once, and the question above it names the proposal and asks the user to confirm it — where a recommendation the array does not carry belongs. `check-docs.sh` check 12 gates an array's arity and its authored "Other", never whether two of its options resolve to the same answer, so nothing in `scripts/` saw this.
 
 ## [1.1.3] — 2026-09-09
 

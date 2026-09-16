@@ -6,6 +6,10 @@ Versions follow semver at the plugin level.
 
 ## [4.0.4] — 2026-09-15
 
+### Fixed — `docs/reference/follow-ups.md` taught a follow-up kind that can never fire (4.0.3)
+
+The what-qualifies paragraph ended its list with *"or an unresolved PR on a host the plugin can't reach and so must be documented by hand."* The only way a run met an unsupported host was a `diff-summarizer` `pr_refs` element whose `host` was `other`, and nothing in the tree ever built one; that half of the agent is now retired outright. Cut here in the same change as `workflows-core:followup-emission` §6's twin, so the page and the reference it documents do not disagree — the page is a different plugin's, which is exactly how the reference's own fix would have missed it.
+
 ### Fixed — `/ready` derived repo names from a URL `implementation.md` does not record (4.0.3)
 
 Phase 1(c) step 1 derived its candidate repo names from *"the repo-name segment of each URL, per the PR URL formats `diff-summarizer` accepts"*. `workflows-core:implementation-format` §1 records `repo` / `branch` / `base` / `commit` / `pushed` — there is no URL in the block to take a segment of, and with `diff-summarizer`'s pull-request half retired there are no PR URL formats either. The step now reads each entry's own `repo:` field, which is the name it was looking for.

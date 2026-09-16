@@ -1110,7 +1110,7 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 - ...
 
 ### Refs in scope
-[One line per `per_pr` element `diff-summarizer` returned, then one per `unresolved_prs` element. Every field below is from that agent's own Output block: it returns **no per-element `status`** — its `status` is per repo, and Phase 4 step 1 has already said there is no PR status to filter on — and `ref` is the only thing that identifies an element, `refs[]` being the only element list that agent takes.]
+[One line per **resolved** `per_pr` element `diff-summarizer` returned, then one per `unresolved_prs` element — an element that resolved to nothing is printed once, from the second list. Every field below is from that agent's own Output block: it returns **no per-element `status`** — its `status` is per repo, and Phase 4 step 1 has already said there is no PR status to filter on — and `ref` is the only thing that identifies an element, `refs[]` being the only element list that agent takes.]
 - <repo> — <ref> — resolved_via: [local_ref | key_commits | unresolved] — [files_changed] file(s), +[insertions]/-[deletions]
 - <repo> — <ref> — unresolved: [reason from `unresolved_prs`]
 - ...

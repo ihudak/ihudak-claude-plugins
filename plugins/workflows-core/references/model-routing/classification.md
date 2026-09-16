@@ -194,9 +194,14 @@ Sub-agents that receive a `model_routing` block:
 - Research / planning sub-agents (NVD lookup, detect, compatibility checks):
   record the block in their output; their tier is the `model:` argument on the
   dispatch, resolved by step nature per §9. Both agents this parenthetical names
-  run on the `detection_model` — `/upgrade`'s `upgrade-planner` and `/vuln`'s
-  `vuln-research` — because each is invoked before its command's per-unit
-  classification exists, so there is nothing yet to escalate on.
+  take the `detection_model` on their first dispatch, because each is invoked
+  before its command's per-unit classification exists — and they diverge once it
+  does. `/upgrade`'s `upgrade-planner` **always** runs on the `detection_model`:
+  for a `SIGNIFICANT`/`HIGH-RISK` component `/upgrade` escalates through the
+  separate `risk-planner` on Opus and does not re-invoke `upgrade-planner`
+  itself. `/vuln` re-invokes `vuln-research` on Opus once the per-CVE class is
+  final — MUST for `HIGH-RISK`, SHOULD for `SIGNIFICANT` where the major bump or
+  breaking-change surface is non-trivial (`/vuln` Step 2).
 - Executor / fixer sub-agents: **do not run tests** until the orchestrator
   has confirmed the Opus review has completed (when classification is
   SIGNIFICANT/HIGH-RISK). The orchestrator achieves this by invoking the

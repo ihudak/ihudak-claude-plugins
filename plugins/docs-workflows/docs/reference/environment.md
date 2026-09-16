@@ -20,7 +20,7 @@
 
 **When unset.** The `/workspace` default takes over silently — safe, because this is only ever a read/scan base, so a wrong or empty default finds nothing to scan rather than writing anywhere unexpected.
 
-**When it points somewhere unreadable or empty.** `/document` validates a user-supplied path for at least one directory before accepting it; `/release-notes` offers the same choice without documenting a validation step. Either way an unresolvable slug escalates to the user rather than being silently dropped. The default itself is never validated this strictly — an empty `/workspace` simply yields zero matched repos, which downstream turns into a diff-summary gap the run reports.
+**When it points somewhere unreadable or empty.** A user-supplied path is validated to contain at least one directory before it is accepted; `grep -rn 'at least one directory' plugins/*/commands/`, run from the repository root, is the authority on which commands document that step. An unresolvable slug escalates to the user rather than being silently dropped. The default itself is never validated this strictly — an empty `/workspace` simply yields zero matched repos, which downstream turns into a diff-summary gap the run reports.
 
 ## `$DOCS_PATH`
 

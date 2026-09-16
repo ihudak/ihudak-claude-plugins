@@ -89,7 +89,7 @@ Render exactly:
 <prose>
 ```
 
-Omit the category label entirely when no Solution label is available (§7).
+Omit the category label entirely when the PRD carries no `release_notes_category` (§7).
 
 ### `## Fixes`
 

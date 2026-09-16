@@ -63,7 +63,7 @@ $SPECS_PATH/                        # shared, team-visible store
     dev-workflows/                  # bookkeeping: feedback, cost, resume.md, follow-ups
 
 $REPOS_PATH/                        # code clones, one directory or a colon-separated list (default /workspace)
-  <repo>/                           # discovered by directory name; matched by origin slug for PR-URL resolution
+  <repo>/                           # discovered by directory name; matched by origin slug where the command was handed one
 
 $DOCS_PATH/                         # optional: a product-docs clone, read-only for grounding (default /workspace/docs)
   ...                               # searched for grounding; the plugin never writes here

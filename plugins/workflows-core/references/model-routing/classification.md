@@ -201,8 +201,8 @@ Sub-agents that receive a `model_routing` block:
   then running the review, then invoking the executor/fixer again to run tests.
   Equivalently, the orchestrator may invoke a single combined call with a
   `gate_tests_on_review: true` flag — both styles are acceptable.
-- `release-notes-writer`: receives the block and records the models it ran under;
-  behaviour is unchanged by it.
+- `release-notes-writer`: receives the block; behaviour is unchanged by it, and its
+  return declares no echo of it.
 - **A sub-agent whose handoff file declares no `model_routing:` input is sent
   none, and reads no field of one.** Its tier is fixed either by its own
   frontmatter `model:` pin (the Opus reviewers) or by the `model:` argument on

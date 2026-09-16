@@ -103,7 +103,6 @@ On the §2 powerful chain (`planning_model`), turn the detection report into a d
   >
   > Schema (the draft MUST conform exactly): `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`
   > Detection report: [paste the full Phase 2 report]
-  > model_routing: [paste the Phase 1 block]
   >
   > Rules:
   > - **Every path and every command is rooted at `repo_root`** (the schema's **Where the profile lives**): write each path relative to it, and each command in the form that runs from it. A script the report found in a `package.json` below `repo_root` runs in that file's directory, so record its command as `cd <that directory, relative to repo_root> && <the script invocation>` — run from `repo_root`, the bare invocation would read the wrong `package.json`, or none.

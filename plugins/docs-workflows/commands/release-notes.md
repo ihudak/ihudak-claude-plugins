@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: Release-notes drafting. Reads the resolved Product Requirements Document from the resolved folder in the specs tree, optionally grounds in PR diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to publish wherever release notes are published.
+description: Release-notes drafting. Reads the resolved Product Requirements Document from the resolved folder in the specs tree, optionally grounds in the recorded refs' diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to publish wherever release notes are published.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -10,7 +10,7 @@ Draft release notes for the resolved PRD: $ARGUMENTS
 
 `/release-notes` produces a **customer-facing release-notes draft** for a resolved
 Product Requirements Document (or any ticket) from the resolved PRD folder.
-It optionally grounds the prose in merged PR diffs, renders the example-docs authored
+It optionally grounds the prose in the diffs of the refs the implementation record and the commit scan name, renders the example-docs authored
 release-notes body — a plain **Category:** label + `### title` + prose for the `feature-updates` /
 `breaking-changes` destinations, or one bare past-tense sentence for `fixes` — with **no
 `{{#internal-note}}`, no identifiers, no PR links** (the docs automation adds the metadata
@@ -61,9 +61,9 @@ run — the terminal `commit-artifacts` step skips on it.
 
 - **Diff grounding** (default OFF — the PRD is usually enough for release notes):
   ```
-  choices: ["PRD content only (Recommended)", "Also ground in merged PR diffs (you'll pick repos)", "Cancel"]
+  choices: ["PRD content only (Recommended)", "Also ground in the recorded refs' diffs (you'll pick repos)", "Cancel"]
   ```
-  If "ground in PR diffs", additionally ask the `$REPOS_PATH` sub-question below.
+  If the user also grounds in diffs, additionally ask the `$REPOS_PATH` sub-question below.
 
 - **Repos search base (`$REPOS_PATH`)** (only if diff grounding is ON). Read `${REPOS_PATH:-/workspace}`; may be a colon-separated list. Ask:
   ```

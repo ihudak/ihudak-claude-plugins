@@ -305,7 +305,9 @@ one records — and what that record names — is its own. **This list is the de
 `/document` Phase 6.5 Step 2, its Outcomes, its `render_smoke_check` ledger row, its `doc-reviewer`
 dispatch and its Phase 9 template all cite it instead of restating it, and a site that needs one
 ending's wording inline quotes it from here and names which ending it is. It is a definition because
-the same list, maintained at several sites at once, went stale at each of them in turn.
+the same list, maintained at several sites at once, went stale at each of them in turn. **Those
+labels are positional**: a citing site names an ending by its number in this list, so a reordering
+here silently falsifies them and is not complete until it has rewritten them.
 
 1. **A port that is not free before a boot** (step 2) — answering, or with a listener the probe
    cannot reach. Its record names **the port**, and the listener's pid where the listening read

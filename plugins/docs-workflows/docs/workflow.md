@@ -41,7 +41,7 @@ Two nodes are drawn for continuity and are not this plugin's commands: `/dev-wor
 
 | Mode | Selected by | What it does | Gates |
 |---|---|---|---|
-| Keyed | a positional address — a key, or `@<path>` naming a folder in the specs tree | Reads the resolved PRD folder, resolves the repositories its implementation record and commit scan name to local clones, summarises the recorded refs' diffs in parallel, locates write targets, plans, writes | Style check, then an Opus `doc-reviewer` review |
+| Keyed | a positional address — a key, or `@<path>` naming a folder in the specs tree | Reads the resolved PRD folder, resolves the repos its implementation record and commit scan name, summarises the refs they record in parallel, locates write targets, plans, writes | Style check, then an Opus `doc-reviewer` review |
 | Direct | no positional address — an `@file`, free text, or a plain directory | A one-shot prose edit on whatever the argument names | Style check only — no reviewer, and Phase 3 creates no branch and no commit of the edit |
 
 A change that touches both code and docs is `/dev-workflows:implement`'s, not either mode of this command.

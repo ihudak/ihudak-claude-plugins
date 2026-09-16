@@ -18,7 +18,7 @@ Every one of the five is read by a reference this plugin ships rather than by a 
 
 - **`$REPOS_PATH`** — where your code clones live; one directory, or a colon-separated list. Defaults to `/workspace`.
 
-**Resolution.** The **command** resolves a repository under it and hands the agent an absolute `repo_path` — no agent reads `$REPOS_PATH` itself. The match is by `git remote get-url origin` slug where the command was handed the slug, and by directory basename where it lists candidates to offer you.
+**Resolution.** The **command** resolves a repository under it and hands the agent an absolute `repo_path` — no agent reads `$REPOS_PATH` itself. The match is by `git remote get-url origin` slug where the command was handed the slug; where it lists candidates to offer you instead, your answer is resolved against that listing rather than matched against a directory name, so a rename changes the name a clone is offered under, never whether it is offered.
 
 **When unset.** The default applies. A repository that is simply not mounted is reported as unresolvable rather than guessed at.
 

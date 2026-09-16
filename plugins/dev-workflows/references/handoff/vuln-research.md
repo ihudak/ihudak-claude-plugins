@@ -16,7 +16,7 @@ model_routing:            # optional; if present, echo back in output.
   classification: SIGNIFICANT      # See `workflows-core:model-routing/classification` for the full model-routing schema.
   # The orchestrator MUST re-invoke this agent under Opus for HIGH-RISK
   # CVEs, and SHOULD re-invoke for SIGNIFICANT CVEs involving a major bump
-  # or non-trivial breaking-change surface (per the `/vuln` command Step 0).
+  # or non-trivial breaking-change surface (per the `/vuln` command Step 2).
   # That re-invocation is the orchestrator's responsibility, not this
   # agent's.
 ```

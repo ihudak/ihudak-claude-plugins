@@ -54,5 +54,5 @@ whichever model the orchestrator selected via the `task` tool's `model:`
 argument. The orchestrator **MUST** re-invoke this agent under Opus for
 HIGH-RISK CVEs and **SHOULD** re-invoke it under Opus for SIGNIFICANT CVEs
 when a major version bump or non-trivial breaking-change surface is involved
-(per the `/vuln` command Step 0). No behavioural change beyond reporting.
+(per the `/vuln` command Step 2). No behavioural change beyond reporting.
 

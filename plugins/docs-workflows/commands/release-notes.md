@@ -135,9 +135,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 ## Phase 3 — Read the PRD folder
 
-**Read the resolved folder directly.** The PRD alone when diff grounding is OFF; the PRD plus the folder's `implementation.md` when ON, which is where the refs the diff grounding needs are recorded (`workflows-core:implementation-format` §1).
-
-**Read the resolved folder directly.** Read its `prd.md` for the product content.
+**Read the resolved folder directly** — its `prd.md` for the product content, and that alone when diff grounding is OFF; the PRD plus the folder's `implementation.md` when ON, which is where the refs the diff grounding needs are recorded (`workflows-core:implementation-format` §1).
 
 **Resolve the diff sources — two of them, merged.** **Only when diff grounding is ON** (Phase 1): it is opt-in and advisory here, so a run that declined it skips this step entirely and grounds its prose in the PRD alone. When it is on, invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4:
 

@@ -165,6 +165,18 @@ The list of what ends the whole smoke-check, rather than one space's part of it,
 
 1.1.3's `docs/commands/release-notes.md` opened *"…for the PM to publish wherever their release-notes field."*, a clause a de-vendoring edit truncated: it lost its verb along with the tracker field it named, and no check in `scripts/` validates a command page's opening sentence. It now ends *"wherever their release notes are published"*, the formulation the same page's **What it produces** section, the command's own opening paragraph and its frontmatter already use.
 
+### Fixed — `/release-notes`' page describes the diff-grounding fork the command actually has
+
+1.1.3's `docs/commands/release-notes.md` said the Phase 1 choice *"decides the folder read's `depth` before Phase 3 even runs (`prd-only` when off, `full` when on, so PR links are collected), and only Phase 4's repo resolution and Phase 5's `diff-summarizer` batches are actually skipped on the 'off' path."* Three claims, none of them the command's: no `depth` argument, `prd-only` or `full` value exists anywhere in `/release-notes`, in any reference it loads, or anywhere under `plugins/docs-workflows/` — Phase 3 reads the resolved folder inline and takes no depth — no phase collects a PR link, Phase 3 saying so where it builds the refs (*"No URL, no host classification, no `gh` requirement"*), and Phase 3's own diff-source step is skipped on the "off" path too, which is what its **only** falsified. All three are residue of the retired ticket-reader dispatch. The sentence now says what the fork decides: whether Phase 3's diff-source step runs at all, and Phase 4 and Phase 5 with it, the PRD read running either way.
+
+### Fixed — what `/release-notes` refuses, on its page and in `CLAUDE.md`
+
+Both said *"the run's one refusal is `RELEASE_NOTES_NEEDS_KEY`, on an address that does not resolve"*, which is wrong in both halves and contradicted the same page nineteen lines above it. `RELEASE_NOTES_NEEDS_KEY` fires on **no positional address at all**; an address that does not resolve is a different stop — the shared re-enter/cancel escalation — an ambiguous one a third, naming every match, and Phase 3 adds a fourth for a folder holding no PRD. Both sites now enumerate what Phase 0 and Phase 3 do. The point the sentence was making — that no *content* state refuses a draft — is unchanged and stands beside it.
+
+### Fixed — `/release-notes` Phase 3 has one lead-in, not the same one twice
+
+Two consecutive paragraphs opened **"Read the resolved folder directly."** with different continuations, in a phase an agent executes in order. They are one paragraph now, carrying both facts: `prd.md` for the product content, and `implementation.md` beside it when diff grounding is on.
+
 ### Fixed — `/release-notes` no longer asks for a PR-status filter nothing reads
 
 1.1.3's Phase 1 asked, whenever diff grounding was turned on, which pull-request statuses to include — *MERGED only* / *All PRs* / *Specific list*, the last of which prompts again for the list. No phase read the answer. Phase 3 builds its refs from `implementation.md` and a `git log --grep` scan, neither of which carries a status; Phase 4 resolves the slugs those two named; Phase 5 passes `repo_path`, `repo_url_slug` and `refs[]`, and never `pr_refs`, the only `diff-summarizer` input with a `status` field. The question is residue of the retired pull-request import path and is removed, rather than given a reader, because nothing in the run can produce a pull-request status to filter on. The same bullet told the user clones are matched against *"each PR's repo slug"*, where Phase 4 matches the slugs the implementation record and the commit scan named; it now says that.

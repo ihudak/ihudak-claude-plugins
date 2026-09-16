@@ -509,7 +509,7 @@ Invoke `doc-planner`:
 → Agent (subagent_type: "docs-workflows:doc-planner", model: `<planning_model — §9 / §2 Opus chain>`):
   > "Produce the documentation checklist for the brief:
   >
-  > folder_read: [paste full YAML from Phase 3; when focus_key is set, restrict linked items to focus_items]
+  > folder_read: [paste full YAML from Phase 3; when focus_key is set, restrict the folder read to focus_items]
   > diff_summaries:       [paste array of diff-summarizer outputs from Phase 5]
   > write_targets:        [paste confirmed list from Phase 5.5]
   > screenshots:          [selected candidate paths from Phase 5.6, possibly empty]

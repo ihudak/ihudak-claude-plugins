@@ -24,7 +24,7 @@ where a `[[KEY]]` wikilink is the native idiom, resolves, and is the required tr
 |---|---|
 | Rendered page | The customer-facing claim only. |
 | Commit message | The key and the summary (`profile.commit_convention`). |
-| Run handoff / final report | Per-claim attribution to resolved keys and PR URLs. |
+| Run handoff / final report | Per-claim attribution to resolved keys and to the refs `diff-summarizer` named. |
 
 A changelog entry is reader-visible "what changed on this page" prose, so it is covered by the rule
 above: a key never belongs in it. `docs-workflows:doc-writer`, `docs-workflows:doc-planner`, and `/docs-workflows:document`

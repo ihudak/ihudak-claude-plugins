@@ -284,9 +284,9 @@ two overlays.
 
 | Order | Source | Resolves when |
 |---|---|---|
-| 1 | `rules_path` input, when the caller supplied one (`--rules <path>`) | the path is a readable directory containing ≥1 `.md` file |
-| 2 | `<repo-root>/.dev-workflows/ui-guidelines/` | the directory exists, is readable, and contains ≥1 `.md` file |
-| 3 | `$UI_GUIDELINES_PATH` | the variable is set and names a readable directory containing ≥1 `.md` file |
+| 1 | `rules_path` input, when the caller supplied one (`--rules <path>`) | the path is a readable directory containing ≥1 `.md` file at its own top level |
+| 2 | `<repo-root>/.dev-workflows/ui-guidelines/` | the directory exists, is readable, and contains ≥1 `.md` file at its own top level |
+| 3 | `$UI_GUIDELINES_PATH` | the variable is set and names a readable directory containing ≥1 `.md` file at its own top level |
 | 4 | *(none)* | always — the baseline alone is the active rule set |
 
 Derive `<repo-root>` for order 2, taking the first that works:
@@ -333,7 +333,7 @@ including where a later order then resolved, since the skipped one still holds s
 rules_overlay_skipped:<absolute path> — readable, but holds no `.md` file at its top level; an overlay is flat
 ```
 
-Do not print any other warning, note, or question about the resolution outcome — those two lines are
+Do not print any other warning, note, or question about the resolution outcome — those lines are
 the entire report. Only when the baseline itself is missing or empty **and** no overlay resolved is
 that an error worth raising.
 

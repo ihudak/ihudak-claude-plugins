@@ -184,7 +184,7 @@ A command carrying `{port}` is walked. Never fail on this and never reuse the po
 - **A living recorded entry of another server is bound to it, or Phase 2's evidence finds another checkout or another of this repo's servers there** — whatever its page says, as in Phase 2 — **or nothing names a server there and it does not answer as this docs site, or another server is still starting on it, or something is listening on it** — walk on, naming what holds it in the Phase 6 report as Phase 2 names it.
 - **Phase 2's evidence finds the selected server there, whether or not its page names this docs site, or names no server while it answers as this docs site** — the selected server may already be running here, moved by an earlier run's Phase 3 whose record is gone. Phase 2's pre-scan has already re-adopted or reported such a port, unless `--port` skipped it. **Never walk past it to start a second copy**: what the evidence decides governs here exactly as at the configured port. Re-adopted, the report says it sits off the configured port, and its entry is keyed at this port with `requested_port` the port Phase 1 resolved; where nothing names a server and Phase 2 does not re-adopt it, it is unconfirmed, and nothing is started or recorded.
 
-Exhausting 20 attempts without a free port is reported, never guessed past.
+Exhausting the 20 attempts without serving on one of them is reported, never guessed past.
 
 ## Phase 4 — Start
 

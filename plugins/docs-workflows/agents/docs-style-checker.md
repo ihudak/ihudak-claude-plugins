@@ -85,6 +85,7 @@ the output you parse.
 
    `prose-style` is a declared dependency of `docs-workflows`, so its `prose-style-checker` agent is always available — an unsatisfied dependency disables the plugin rather than letting a run reach this step without it. Invoke it:
    - `subagent_type: "prose-style:prose-style-checker"`
+   - `model: <Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>` — a style check is mechanical, so the tier is pinned here rather than inherited
    - Input: `files: <the same files list>`, `doc_type: <"product-docs" for docs repos, "general" otherwise>`.
 
    Map the return into this agent's schema:

@@ -134,7 +134,7 @@ model_routing:
   classification: MODERATE        # typical; SIGNIFICANT possible for a large multi-Epic PRD
   reason: <one-line>
   current_model: <the model this orchestrator is running under>
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # the folder read (Phase 2); the Phase 3 deterministic skeleton is mechanical and runs orchestrator-inline, not delegated
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # the folder read (Phase 2) and the Phase 6 maintenance agents; the Phase 3 deterministic skeleton is mechanical and runs orchestrator-inline, not delegated
   review_model:    <§2 Opus chain>     # readiness-reviewer (frontmatter-pinned; recorded, no override)
   opus_available: <true if a §2 Opus model resolved, else false>
   notes: <any §2/§2.1 fallback or degradation>
@@ -465,7 +465,7 @@ Readiness verdict: [SUPPORTED | PARTIAL | NOT-SUPPORTED]
 Then spawn all four maintenance agents in a **single Agent message**. They are independent and run
 concurrently.
 
-**Agent 1 — Documentation** (general-purpose):
+**Agent 1 — Documentation** (general-purpose, model: `<detection_model — §2.1 Sonnet chain>`):
 > "Post-run documentation review. Change summary:
 > [paste change summary block]
 >
@@ -477,7 +477,7 @@ concurrently.
 > If an update is warranted: apply minimal edits.
 > Return: file updated and what changed, OR 'no update required (reason)'."
 
-**Agent 2 — Knowledge base** (general-purpose):
+**Agent 2 — Knowledge base** (general-purpose, model: `<detection_model — §2.1 Sonnet chain>`):
 > "Post-run knowledge review. Change summary:
 > [paste change summary block]
 >
@@ -494,7 +494,7 @@ concurrently.
 > - **Ref**: [first 60 chars of the key + PRD summary]
 > Return: file updated/created and summary of entry, OR 'no update required'."
 
-**Agent 3 — Instructions** (general-purpose):
+**Agent 3 — Instructions** (general-purpose, model: `<detection_model — §2.1 Sonnet chain>`):
 > "Post-run instructions review. Change summary:
 > [paste change summary block]
 >
@@ -505,7 +505,7 @@ concurrently.
 > If YES: apply minimal, additive, scoped changes only.
 > Return: what was changed and why, OR 'no update required'."
 
-**Agent 4 — Session maintenance** (workflows-core:impl-maintenance):
+**Agent 4 — Session maintenance** (workflows-core:impl-maintenance, model: `<detection_model — §2.1 Sonnet chain>`):
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:

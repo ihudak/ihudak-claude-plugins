@@ -142,7 +142,7 @@ prevent.
 
 ### SIGNIFICANT / HIGH-RISK path
 
-1. **Capture baseline at the orchestrator** using the existing `test-baseliner` agent. Keep the full baseline block (`passing_count` and `passing_tests`).
+1. **Capture baseline at the orchestrator** using the existing `test-baseliner` agent, dispatched with `model: <detection_model — §2.1 Sonnet chain>`. Keep the full baseline block (`passing_count` and `passing_tests`).
 2. **Invoke `vuln-fixer` with review gating enabled**:
 
 ```text <!-- vendor-token-ok: the no-address placeholder literals Step 1 detected, echoed into the handoff -->
@@ -248,7 +248,7 @@ Append a `### Model Routing` section summarising the per-CVE classification, why
 
 Append a `### Review triage` section with one line per CVE that went through Opus review: - **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"] — or "N/A (SIMPLE / MODERATE path, no Opus review)" for CVEs that never reached review.
 
-Then invoke `impl-maintenance` (subagent_type: `"workflows-core:impl-maintenance"`) with a compact session handoff covering the CVEs fixed, notable regressions, workarounds, and overall outcome. **Always pass `Command run: /vuln`** in that handoff — omitting it makes `impl-maintenance` default to `/implement`, mislabeling the run.
+Then invoke `impl-maintenance` (subagent_type: `"workflows-core:impl-maintenance"`, model: `<detection_model — §2.1 Sonnet chain>`) with a compact session handoff covering the CVEs fixed, notable regressions, workarounds, and overall outcome. **Always pass `Command run: /vuln`** in that handoff — omitting it makes `impl-maintenance` default to `/implement`, mislabeling the run.
 
 **Context hygiene.** This was a large run — consider **`/compact`** to free context before your next task (per `workflows-core:session-hygiene` §3 — non-pipeline, so `/compact` only; guidance only).
 

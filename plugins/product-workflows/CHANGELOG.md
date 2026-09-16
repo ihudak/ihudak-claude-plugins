@@ -6,7 +6,9 @@ Versions follow semver at the plugin level.
 
 ## [3.6.0] — 2026-09-10
 
-### Fixed — `getting-started.md` said the pipeline reads one markdown tree and calls no external service (3.5.0)
+### Fixed — six `/epics` dispatches carried no model tier, against the command's own invariant (3.5.0)
+
+`/epics` says twice that every subagent dispatch pins its §9 chain — as a role→chain map at Phase 1.5 and as an ALWAYS invariant naming `doc-fixer` among the mechanical steps — and `docs/reference/agents.md` states the same universal for every agent carrying no frontmatter pin. Phase 7's BLOCK branch and its "Manual fix notes" resolution dispatched `doc-fixer` bare, and Phase 8 spawned its four maintenance agents — three `general-purpose`, one `workflows-core:impl-maintenance` — bare. All six now pin the §2.1 Sonnet chain, and both the `detection_model` comment and the invariant name the Phase 8 maintenance agents they had left out of their consumer lists.
 
 *"Nothing — the pipeline reads and writes one markdown tree and calls no external service."* **Neither half survives**, and the first correction of this entry cut only the second: a consented handoff opens a pull request through `gh` (`workflows-core:phase-handoff` §2.6) and `docs-grounder` retrieves through the `qmd` CLI, while *one markdown tree* is wrong in two further directions — `$DOCS_PATH` is a second markdown tree the grounding commands read, and the clones under `$REPOS_PATH` are no markdown tree at all. The same over-claim was retired from `workflows-core:dependencies` in 1.6.0 and this is the copy one file away. The answer is now `gh`, when present, with the two read-only sources named beside it — matching the sibling `dev-workflows` page, which answered the identical question differently.
 

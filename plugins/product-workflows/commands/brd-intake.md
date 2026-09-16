@@ -119,7 +119,10 @@ Show, and confirm before writing anything:
 
 - The BRD folder (existing, or the derived `BRD-<BRD-KEY>-<slug>` to be created — the `BRD-`
   prefix included, per `workflows-core:addressing` §2).
-- The resolved absolute path to `@<brd-file>`.
+- The resolved absolute path to `@<brd-file>`, **and its own directory** — the one every link in it
+  resolves against, and the boundary Phase 2's capture stops at. Say that Phase 2 copies the
+  document **and every file it links from inside that directory** into `brd/source/`, so the
+  operator sees what is about to be copied out of their filesystem before consenting to it.
 - Whether `--sort-existing <dir>` is in play, and its resolved directory.
 - The `docs grounding:` line in the form `workflows-core:docs-grounding`
   resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build,
@@ -229,7 +232,7 @@ counts and the same list, each entry with its reason, in the final report.
 Dispatch `brd-reader`:
 
 → Agent (subagent_type: "product-workflows:brd-reader", model: `<detection_model — frontmatter-pinned to sonnet>`):
-  > "source_path: [absolute path to the copied file under `<BRD-dir>/brd/source/`]"
+  > "source_path: [absolute path to the copied source **document** under `<BRD-dir>/brd/source/` — that directory also holds the files it links (Phase 2), and this agent reads only the document]"
 
 Act on `status`:
 - **`OK`** — write `<BRD-dir>/brd/brd-inventory.md` per `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md`
@@ -258,7 +261,8 @@ Act on `status`:
 
   **Then check the inventory's coverage of its own source**, per
   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.2, before anything downstream treats the
-  inventory as the spine it is. Both relations read the anchors already written and the copied source;
+  inventory as the spine it is. Both relations read the anchors already written and the copied source
+  document — never a file it links, which carries no section and holds no `[BR#n]`;
   nothing else is stored and the agent is not re-dispatched.
 
   1. **Every `source_anchor` resolves to a section the source has** — by its section reference, or,
@@ -273,7 +277,7 @@ Act on `status`:
 
      Any **other** unresolvable anchor is named with its `[BR#n]`, and the run stops — a row nobody
      can trace back is a defect in the artifact whose job is traceability:
-     `BRD_INTAKE_DANGLING_ANCHOR: <N> inventory row(s) carry a source_anchor that resolves to no section of brd/source/ (<BR-id>: <anchor>, …), and none of them is a row this run preserved as no longer present. The row cannot be traced back to the customer's document, which is the one thing the anchor exists for. Correct the anchors by hand in <path> and re-run; do not re-run brd-reader over the whole document, which would renumber every row.`
+     `BRD_INTAKE_DANGLING_ANCHOR: <N> inventory row(s) carry a source_anchor that resolves to no section of the copied source document under brd/source/ (<BR-id>: <anchor>, …), and none of them is a row this run preserved as no longer present. The row cannot be traced back to the customer's document, which is the one thing the anchor exists for. Correct the anchors by hand in <path> and re-run; do not re-run brd-reader over the whole document, which would renumber every row.`
   2. **Every top-level section either holds a row or is accounted for.** Name each section that holds
      none, with what the source has under it, and ask — one question for the set, not one per section:
 

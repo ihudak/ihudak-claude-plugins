@@ -6,6 +6,10 @@ Versions follow semver at the plugin level.
 
 ## [4.0.4] — 2026-09-15
 
+### Fixed — `getting-started.md` said the pipeline calls no external service (4.0.3)
+
+*"Nothing beyond `gh`, when present, for pull-request metadata — the pipeline otherwise reads and writes one markdown tree plus the mounted code repositories, and calls no external service."* The `gh` carve-out does not reach the two commands that leave the machine on their ordinary path: `vuln-research` carries `WebFetch` and looks each CVE up in the NVD REST API (`references/fix-vuln/nvd-api.md`), and `upgrade-planner` carries `WebFetch` and runs the registry query commands `references/upgrade/ecosystems.md` defines. The page's question is *what you also need*, and network access is part of the answer, so the clause is cut and the two commands are named rather than the claim being narrowed.
+
 ### Fixed — `/implement` Phase 1.7 scoped a focus Epic to a Story / Sub-task subtree (4.0.3)
 
 Step 1 said to *"keep the focus Epic plus the items linked beneath it (its Stories / Sub-tasks)"* and claimed to mirror `/specify`, which says the opposite in as many words: *"There is no `linked_items` list and no Story/Sub-task subtree to filter"*. Two live contradictory instructions across the pair, one of them inside the step that builds the planner's input. The step now scopes to the focus `EPIC-` folder and what it holds, drops sibling `EPIC-` folders, and says where the hierarchy stops; the stale "themes/PRs" in the same sentence goes with it, the paragraph three lines above having already said there are no PR references until `implementation.md` exists. Found by the sweep behind `docs-workflows` 1.2.0's report-block fix.

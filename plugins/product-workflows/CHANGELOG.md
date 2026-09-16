@@ -6,6 +6,10 @@ Versions follow semver at the plugin level.
 
 ## [3.6.0] — 2026-09-10
 
+### Fixed — `getting-started.md` said the pipeline calls no external service (3.5.0)
+
+*"Nothing — the pipeline reads and writes one markdown tree and calls no external service."* The first half is right and the clause after it is not: a consented handoff opens a pull request through `gh` (`workflows-core:phase-handoff` §2), `docs-grounder` retrieves through the `qmd` CLI, and the commands that ground on code list and read clones under `$REPOS_PATH`. The same over-claim was retired from `workflows-core:dependencies` in 1.6.0 and this is the copy one file away. Cut rather than narrowed: the sentence answers *what you also need*, and the answer is still nothing.
+
 ### Fixed — `/specify`'s page said its repo candidates come from PR URLs (3.5.0)
 
 `docs/commands/specify.md` had the candidate repos *"auto-derived from the PRD's capability themes and linked PR URLs"*, and its BRD-route note contrasted `grounding/baselines.md` with *"PRD themes and PR URLs, which this route has none of"*. The command's own Phase 3 step 1 says the opposite in as many words — it builds the list from the Phase 2 capability themes and the resolved folder's `implementation.md` `repo:` entries, and *"There is no PR list to read: nothing here reads a tracker or a pull-request API"* — so the page and the command it documents were two live contradictory instructions. The page now names the implementation record.

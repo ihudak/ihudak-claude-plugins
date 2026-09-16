@@ -63,7 +63,7 @@ run — the terminal `commit-artifacts` step skips on it.
   ```
   choices: ["PRD content only (Recommended)", "Also ground in merged PR diffs (you'll pick repos)", "Cancel"]
   ```
-  If "ground in PR diffs", additionally ask the two sub-questions below.
+  If "ground in PR diffs", additionally ask the `$REPOS_PATH` sub-question below.
 
 - **Repos search base (`$REPOS_PATH`)** (only if diff grounding is ON). Read `${REPOS_PATH:-/workspace}`; may be a colon-separated list. Ask:
   ```

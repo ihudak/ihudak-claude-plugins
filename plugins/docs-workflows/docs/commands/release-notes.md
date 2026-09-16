@@ -63,7 +63,7 @@ The **section** is resolved from the PRD's `change_type` when it carries one tha
 
 **The run has no worthiness gate, and there is no content state in which it refuses to draft.** One existed and was retired: it read a `relevant_for_release_notes` flag off the PRD and stopped on an explicit `false` or `no`. Every PRD is relevant for release notes, so the flag asked a question with one answer and the only value that changed anything was one nobody should write; the field is retired in `workflows-core:prd-format` and a value left in an existing PRD is read by nothing. The run refuses only on its address: Phase 0 stops with `RELEASE_NOTES_NEEDS_KEY` where the prompt carries no positional address at all, stops naming every match where one resolves ambiguously, and raises the shared re-enter/cancel escalation where one resolves to nothing — as Phase 3 does again for a folder that holds no PRD. Whether a note is worth drafting is the decision of whoever runs the command.
 
-The run makes **zero external API calls**: PR URLs (when diff grounding is on) are identifiers only, GitHub resolution may use the `gh` CLI, Bitbucket is pure local `git`, and the folder read is strictly read-only.
+The run makes **zero external API calls**: Phase 3 builds its refs with no URL and no host classification, every diff is taken by local `git` against a clone under `$REPOS_PATH`, and the folder read is strictly read-only. A PR URL that appears anywhere in the inputs is an identifier and nothing more — never something the run fetches.
 
 ## Example
 

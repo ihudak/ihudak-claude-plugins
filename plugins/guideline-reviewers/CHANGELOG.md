@@ -43,7 +43,7 @@ It preferred the repository's lint script where one accepts file arguments — a
 
 ### Fixed — the reference inventory no longer says each subtree carries one vendored file
 
-1.0.0's `docs/reference/references.md` opened by saying each subtree "also carries one vendored non-markdown file", while `api-guidelines/` carries two — `spectral/ruleset.yaml` and `template/openapi-template.yaml` — and the same page's arithmetic three lines down says so, so a reader who trusted the opening counted 37 files where 38 ship. The opening no longer states a per-subtree count at all and points at the arithmetic, which is where the counts are derived. Nothing in `scripts/` sees either sentence; check 9 gates the 38 total, which was already right.
+1.0.0's `docs/reference/references.md` opened by saying each subtree "also carries one vendored non-markdown file", while `api-guidelines/` carries two — `spectral/ruleset.yaml` and `template/openapi-template.yaml` — and the same page's arithmetic paragraph, below the subtree table, says so, so a reader who trusted the opening counted 37 files where 38 ship. The opening no longer states a per-subtree count at all and points at the arithmetic, which is where the counts are derived. No check in `scripts/` validates that clause: check 9 reads the same opening sentence, but only its `38` total, which was already right.
 
 ## [1.0.0] — 2026-09-02
 

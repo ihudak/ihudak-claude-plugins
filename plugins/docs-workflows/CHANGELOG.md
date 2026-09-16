@@ -157,11 +157,11 @@ The list of what ends the whole smoke-check, rather than one space's part of it,
 
 ### Fixed — `release-notes-writer` calls the label by its own name
 
-1.1.3's step 6 named the titled shapes' first line the **Context label**, the last live use of the retired `{{#context}}` macro's vocabulary under `plugins/`. Every other site in that agent calls it the category label — its own step 2, its rendered `**Category:**` line, its hard rules and its frontmatter — as do `release-note-types.md` §7, the command and its page. The bullet now reads **Category label**; it named step 2's value and step 7 showed the render, so no run behaved differently.
+1.1.3's step 6 named the titled shapes' first line the **Context label**, the last live use of the retired `{{#context}}` macro's vocabulary under `plugins/` outside a changelog. Every other site in that agent calls it the category label — its own step 2, its rendered `**Category:**` line, its hard rules and its frontmatter — as do `release-note-types.md` §7, the command and its page. The bullet now reads **Category label**; it named step 2's value and step 7 showed the render, so no run behaved differently.
 
 ### Fixed — `/release-notes`' command page opens on a sentence that parses
 
-1.1.3's `docs/commands/release-notes.md` opened *"…for the PM to publish wherever their release-notes field."*, a clause a de-vendoring edit truncated: it lost its verb along with the tracker field it named, and nothing in `scripts/` reads a page's opening sentence. It now ends *"wherever their release notes are published"*, the formulation the same page's **What it produces** section, the command's own Usage line and its frontmatter already use.
+1.1.3's `docs/commands/release-notes.md` opened *"…for the PM to publish wherever their release-notes field."*, a clause a de-vendoring edit truncated: it lost its verb along with the tracker field it named, and no check in `scripts/` validates a page's opening sentence. It now ends *"wherever their release notes are published"*, the formulation the same page's **What it produces** section, the command's own Usage line and its frontmatter already use.
 
 ## [1.1.3] — 2026-09-09
 

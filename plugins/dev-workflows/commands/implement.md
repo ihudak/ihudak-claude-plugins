@@ -212,9 +212,9 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 
    Read each folder in turn. Collect the themes; there are no PR references until `implementation.md` exists.
 
-   When `focus_key` is set, scope the collected result to the focus Epic's subtree:
-   keep the focus Epic plus the items linked beneath it (its Stories / Sub-tasks) and
-   drop sibling Epics' subtrees before folding themes/PRs into the plan. the folder read
+   When `focus_key` is set, scope the collected result to that `EPIC-` folder and what it holds,
+   and drop every sibling `EPIC-` folder before folding themes into the plan. There is no Story /
+   Sub-task level to keep: the `EPIC-` folders on disk are the hierarchy. The folder read
    itself is not modified — the scoping is done here, mirroring `/specify`.
 
 2. **Read spec/design folders inline.** Read each spec-folder `.md` and fold its content into the themes and primary description.

@@ -6,6 +6,10 @@ Versions follow semver at the plugin level.
 
 ## [4.0.4] — 2026-09-15
 
+### Fixed — `/implement` Phase 1.7 scoped a focus Epic to a Story / Sub-task subtree (4.0.3)
+
+Step 1 said to *"keep the focus Epic plus the items linked beneath it (its Stories / Sub-tasks)"* and claimed to mirror `/specify`, which says the opposite in as many words: *"There is no `linked_items` list and no Story/Sub-task subtree to filter"*. Two live contradictory instructions across the pair, one of them inside the step that builds the planner's input. The step now scopes to the focus `EPIC-` folder and what it holds, drops sibling `EPIC-` folders, and says where the hierarchy stops; the stale "themes/PRs" in the same sentence goes with it, the paragraph three lines above having already said there are no PR references until `implementation.md` exists. Found by the sweep behind `docs-workflows` 1.2.0's report-block fix.
+
 ### Fixed — `docs/reference/environment.md` named three slug-matching commands where seven do it, and put `/design` in the wrong class (4.0.3)
 
 Re-derived rather than extended: `grep -l 'slug→clone map' plugins/*/commands/*.md`, run from the repository root, returns `/design`, `/ready`, `/document`, `/release-notes`, `/epics`, `/prd-ground` and `/specify` — seven, of which the page named three. The second half was worse than short: it said `/design` *"lists the top-level directories under `$REPOS_PATH` and matches on their basenames"*, when Phase 3 step 1 builds the slug→clone map and step 3 resolves each confirmed repo against it, its candidates coming from the specification rather than from what is on disk. The basename class is real and now names the two commands that are in it, `/product-workflows:create-ard` and `/product-workflows:idea`. The page keeps the recipe instead of a list, for the reason the list went stale.

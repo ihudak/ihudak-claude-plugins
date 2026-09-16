@@ -46,6 +46,10 @@ One sentence in `phase-handoff.md` §3.7 enumerated the stopping rows twice and 
 
 `-c core.quotepath=false` is recorded in both sections as **not** a substitute: it suppresses only the octal escaping, and a path with a space is still quoted. Readers that only test the output for emptiness — `code-scanner`, `/ready` step 3, `require-on-main` row C′, the `docs-workflows` branch-prep checks — are unaffected and keep the plain form.
 
+### Fixed — `classification.md` §8.2 described the fan-out's first step in retired vocabulary (1.5.0)
+
+*"the folder read reads each ticket folder (read-only) → themes, PR references (identifiers only), linked items"* — three stale terms in one line, in the file twenty-five commands load at their classification step. There is no ticket folder (the input is a resolved specs folder), no PR reference to collect (`/implement` Phase 1.7 step 1: *"there are no PR references until `implementation.md` exists"*), and no linked-items level (the `EPIC-` folders are the hierarchy). Rewritten against what step 1 actually reads. `docs-workflows` 1.2.0 and `dev-workflows` 4.0.4 carry the other two sites the same sweep found.
+
 ### Fixed — `docs/reference/environment.md` said agents resolve a repository under `$REPOS_PATH` (1.5.0)
 
 The sentence read *"`code-scanner` and the grounding agents resolve a repository under it"*, which omitted `diff-summarizer` — and the omission was the smaller half. No agent in this family reads `$REPOS_PATH` at all (`grep -l REPOS_PATH plugins/*/agents/*.md` returns nothing): the **command** builds the slug→clone map and hands the agent an absolute `repo_path`, which is why `code-scanner`'s and `diff-summarizer`'s handoff inputs both declare one. The page now says that, and names no set of agents, so nothing here goes stale when one is added.

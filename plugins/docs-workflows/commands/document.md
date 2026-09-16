@@ -1102,7 +1102,7 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 
 ### PRD folder summary
 - PRD: [<KEY>] [summary, 1 line]
-- Linked items: [count by type — e.g. "3 Epics, 7 Stories, 2 Sub-tasks, 1 Research"]
+- Epics: [count of `EPIC-` folders in the resolved PRD folder — the tree stops there (Phase 3)]
 - Themes: [2–4 bullet points from the folder read]
 
 ### Repos analysed

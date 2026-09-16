@@ -319,8 +319,9 @@ normal single-explorer path.
 
 ### 8.2 The fan-out pattern
 
-1. the folder read reads each ticket folder (read-only) → themes, PR references
-   (identifiers only), linked items.
+1. the folder read reads each resolved specs folder (read-only) → themes, plus
+   the `EPIC-` folders under a PRD folder, which are the whole of the hierarchy.
+   No PR reference is collected here: a run's refs live in `implementation.md`.
 2. Spec/design folders are read inline and folded into the themes.
 3. `code-scanner` is fanned out **one instance per repository, in a single
    response, capped at 4 concurrent**. Each instance receives the themes and

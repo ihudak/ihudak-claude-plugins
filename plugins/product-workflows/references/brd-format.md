@@ -30,7 +30,7 @@ becomes an invisible edit to an otherwise-immutable document.
 ### 1.1 What `brd/source/` holds, and what it could not hold
 
 `brd/source/` holds the customer's document at its own basename **and every file that document links
-from its own directory**, each at the same relative path the link names and each copied
+from its own directory**, each at its own path relative to that directory and each copied
 byte-for-byte, whatever its type. That is what makes the copy a record rather than a transcript: a
 customer's BRD routinely carries screenshots, diagrams and appendices beside it, and a link the copy
 did not follow resolves to nothing afterwards — no later command of the route captures it, and

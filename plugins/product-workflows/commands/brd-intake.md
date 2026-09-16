@@ -191,13 +191,19 @@ leaves every one of those links resolving to nothing while the run reports a fai
 
 **Which targets are copied.** Drop any `#fragment` and `?query` from the target and percent-decode
 it; a target that is empty after that is an in-document jump, not a file reference at all — neither
-copied nor logged. Copy the rest when, and only when, all four hold: it carries no URI scheme (`https:`, `http:`, `mailto:`, `data:`, …); it
-does not begin with `/`; it contains no `..` segment; and it names a readable existing file under
-the **source document's own directory**. Copy it to **that same relative path** under
-`<BRD-dir>/brd/source/`, creating intermediate directories as needed. The copied document sits at
-`brd/source/<basename>`, so every such link resolves from the copy exactly as it did from the
+copied nor logged. **Resolve what is left against the directory of the file the link sits in** — the
+source document's own directory for the document itself, the copied file's own directory on the
+transitive pass below — and normalise it as text, `..` segments collapsed, never by resolving
+symlinks. Copy it when, and only when, all four hold: it carries no URI scheme (`https:`, `http:`,
+`mailto:`, `data:`, …); it does not begin with `/`; **the normalised path is inside the source
+document's own directory**; and it names a readable existing file there. Copy it to **its path
+relative to that directory** under `<BRD-dir>/brd/source/`, creating intermediate directories as
+needed. The copied document sits at `brd/source/<basename>` and the copy mirrors the source tree's
+own layout beneath it, so every such link resolves from the copy exactly as it did from the
 customer's original — **with no edit to the copied text**: nothing here rewrites a link, and the
-`..` test is what keeps the literal path a link names inside `brd/source/` rather than above it.
+containment test is what keeps every copy inside `brd/source/` rather than above it. **A syntactic
+`..` test is not that test.** `../images/flow.png` written in `appendix/notes.md` resolves inside the
+boundary, so refusing it loses a file that is in scope and writes into the log a reason untrue of it.
 
 Copy each file **byte-for-byte, whatever its type** — an image, a PDF, a spreadsheet — never opened
 as text, never re-encoded, never resized. Phase 0 step 3's markdown-only rule is about the
@@ -216,7 +222,7 @@ the link sits in, and one of these reasons:
 
 | Reason | Fires when |
 |---|---|
-| `outside the source directory` | the target carries a `..` segment, so the file it names sits above the source document's own directory or is reached by walking out of it |
+| `outside the source directory` | the target, resolved and normalised, lands above the source document's own directory |
 | `absolute path` | the target begins with `/` |
 | `url` | the target carries a URI scheme |
 | `unreadable` | the target names no file under the source document's directory, or names one that cannot be read |

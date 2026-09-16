@@ -48,6 +48,10 @@ Seven pages under `docs/` change. Four name `/docs-workflows:docs-init` and `/do
 
 `/implement`, `/upgrade` and `/vuln` wrote their codebase summaries, plans, diffs, triaged review lists, claims files and research reports to `mktemp -t` paths outside every repository, and nothing removed any of them: every run left its own set under the system's temporary directory, where no later phase and no later run looks. `references/context-management.md`'s **Hand off by file, not paste** now carries the other half of the rule — remove each file once no later step reads it, and at the latest before the run ends, whichever way it ends, as `command rm -f -- "<path>"`, so an `rm -i` alias of the user's cannot leave it behind — and each command names its own: `/implement` at the top of Phase 4, `/vuln` at the top of Step 4, `/upgrade` at a new step 7.6, each with the stops that must remove first. `code-handoff.md` removes its commit-message file once the commit is made and its pull-request body file once `gh pr create` has read it, keeping that body only where §3.2's no-`gh` fallback names it for the user to paste, and saying so.
 
+### Fixed — `/ready` says what its final phases do not write, in the vocabulary it uses itself
+
+`/ready`'s feedback, follow-up and session-cost phases each said they "NEVER write into `prd_dir`" — a name this command defines nowhere, and one that elsewhere in the family means the resolved PRD folder, which is exactly where all three write (`<PRD-dir>/dev-workflows/…`, per `workflows-core:feedback-emission`, `followup-emission` and `cost-emission`). Each now says what the command's own Phase 7 and its invariants already said: never into a code or docs repository, or the current working directory, where it is not the specs repository.
+
 ## [4.0.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

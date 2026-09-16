@@ -542,7 +542,7 @@ ADDITIVE — this phase NEVER fails the run and NEVER commits its own output (st
 the maintenance/feedback artifacts, which the terminal `commit-artifacts` step in Phase 8 commits, per
 `workflows-core:specs-repo-git` §4; the only commit this run makes before Phase 8 is
 Phase 5 step 3's `_readiness.md` handoff, which is unrelated), and NEVER writes into
-`prd_dir`, or the current working directory, where it is not the specs repository.
+a code or docs repository, or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -573,7 +573,7 @@ phase NEVER fails the run and NEVER commits its own output (still true — it on
 files, which the terminal `commit-artifacts` step in Phase 8 commits, per
 `workflows-core:specs-repo-git` §4; unrelated to Phase 5 step 3's `_readiness.md`
 handoff, the only commit this run makes before Phase 8), and NEVER writes into
-`prd_dir`, or the current working directory, where it is not the specs repository.
+a code or docs repository, or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -613,7 +613,7 @@ branch (whichever of those happened, happened earlier, in Phase 5 step 3, behind
 choice — `ready/<KEY>-<slug>` is the only branch `/ready` ever creates, and this terminal step neither
 creates it nor undoes it; it only commits the bounded session-artifact paths in `$SPECS_PATH` onto
 whatever branch Phase 5 left checked out), and NEVER writes into
-`prd_dir`, or the current working directory, where it is not the specs repository; no user name is ever written (§10 privacy).
+a code or docs repository, or the current working directory, where it is not the specs repository; no user name is ever written (§10 privacy).
 
 ---
 

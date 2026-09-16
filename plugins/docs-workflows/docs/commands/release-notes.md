@@ -1,6 +1,6 @@
 # /release-notes
 
-Drafts a customer-facing release-notes summary for a resolved Product Requirements Document or ticket, for the PM to publish wherever their release-notes field.
+Drafts a customer-facing release-notes summary for a resolved Product Requirements Document or ticket, for the PM to publish wherever their release notes are published.
 
 ## Who runs it
 

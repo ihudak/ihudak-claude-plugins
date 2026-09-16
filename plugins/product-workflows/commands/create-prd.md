@@ -74,8 +74,8 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 
 3. **Resolve `idea.md` (ladder — stop at first hit). Skipped entirely on the BRD route**, where
    `prd-seed.md` is the seed and there is no `idea.md` to find: rung 1 would return `absent` on a
-   BRD folder that never held one, and rungs 3 and 4 would then offer an idea from some other
-   initiative — a picker over stray `idea.md` files is exactly the offer that names something
+   BRD folder that never held one, and rung 3 would then offer an idea from some other
+   initiative — a same-session `/idea` output is exactly the offer that names something
    this run has no business reading. An explicit `@<path>` supplied alongside the BRD route is still
    honoured, on rung 2's terms only (read where it sits, never relocated, never gated, reported once
    as out-of-contract) and as **additional grounding**, never as the seed. Without the BRD route the

@@ -50,7 +50,7 @@ Seven pages under `docs/` change. Four name `/docs-workflows:docs-init` and `/do
 
 ### Fixed — `/ready` says what its final phases do not write, in the vocabulary it uses itself
 
-`/ready`'s feedback, follow-up and session-cost phases each said they "NEVER write into `prd_dir`" — a name this command defines nowhere, and one that elsewhere in the family means the resolved PRD folder, which is exactly where all three write (`<PRD-dir>/dev-workflows/…`, per `workflows-core:feedback-emission`, `followup-emission` and `cost-emission`). Each now says what the command's own Phase 7 and its invariants already said: never into a code or docs repository, or the current working directory, where it is not the specs repository.
+`/ready`'s feedback, follow-up and session-cost phases each said they "NEVER write into `prd_dir`" — a name this command defines nowhere, and one that elsewhere in the family means the resolved PRD folder, which is exactly where all three write — feedback and cost under `<PRD-dir>/dev-workflows/`, follow-ups in the folder itself (`workflows-core:feedback-emission`, `followup-emission`, `cost-emission`). Each now says what the command's own Phase 7 and its invariants already said: never into a code or docs repository, or the current working directory, where it is not the specs repository.
 
 ### Fixed — every `mktemp` whose path a run reads runs as `command mktemp`
 

@@ -344,17 +344,18 @@ exit 0 for a gone group — the one answer `kill -0` settles, and the wrong one 
 
   ```
   i=$(command cat /proc/net/tcp /proc/net/tcp6 2>/dev/null | command awk -v p="$(command printf ':%04X' <port>)" '$4 == "0A" && substr($2, length($2) - 4) == p { printf "socket:[%s] ", $10 }')
-  [ -n "$i" ] && command printf 'listening\n'
   [ -n "$i" ] && QUOTING_STYLE=literal command ls -l /proc/[0-9]*/fd/ 2>/dev/null | command awk -v i="$i" 'BEGIN { n = split(i, s, " "); for (k = 1; k <= n; k++) w[s[k]] = 1 } /^\/proc\// { split($0, a, "/"); p = a[3] } ($NF in w) && !d[p]++ { print p }'
+  [ -n "$i" ] && command printf 'listening\n' || command printf 'free\n'
   ```
 
-  **The `listening` line decides whether the port is free; the pids after it only name who holds it**,
-  each printed once — an IPv4 and an IPv6 listener alike, and a process holding both. The two are
-  separate answers because a socket another user's process holds is in the table but named by no
-  process — its `fd` links cannot be read without root — so the line prints and no pid follows, and
-  the port is taken all the same. Elsewhere: `command lsof -t -iTCP:<port> -sTCP:LISTEN`, which prints
-  a pid per listener and nothing at all for another user's, so off Linux the pids *are* the answer and
-  a port only another user listens on reads as free.
+  **The call's last line is the answer — `listening` or `free` — and every line before it is a pid**,
+  each printed once: an IPv4 and an IPv6 listener alike, and a process holding both. The answer is
+  printed rather than inferred from the pids, and the call always exits 0, because the two are not
+  the same question: a socket another user's process holds is in the table but named by no process —
+  its `fd` links cannot be read without root — so the answer reads `listening` with no pid before it,
+  and the port is taken all the same. Elsewhere: `command lsof -t -iTCP:<port> -sTCP:LISTEN`, which
+  prints a pid per listener and nothing at all for another user's, so off Linux the pids *are* the
+  answer and a port only another user listens on reads as free.
 - **A process's parent, and its process group.** On Linux: `/proc/<pid>/stat`, read after its
   **last** `)`, since the process name in parentheses before it may itself hold spaces or
   parentheses — `command sed 's/.*)//' /proc/<pid>/stat` prints the state, then the parent's pid,

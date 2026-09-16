@@ -18,10 +18,9 @@ can choose which suggestions to act on.
 
 The caller passes a **compact session handoff**:
 
-- **Command run** — which command variant executed this session. One of
-  `/implement`, `/document` (direct mode), `/document` (keyed mode), `/epics`,
-  `/vuln`, `/upgrade`, `/design`, `/specify`, `/release-notes`, `/idea`,
-  `/create-prd`, `/create-ard`, `/ready`. This field
+- **Command run** — which command variant executed this session, named as the
+  caller names it (`/document` additionally naming its mode). The callers are the
+  authority on the value; it is not drawn from a list held here. This field
   scopes any "Command workflow improvements" suggestions to the right command.
 - **What was done** — 1-paragraph summary (classification, component/CVE/task, scope)
 - **Key events** — things that went unexpectedly: BLOCK reviews, test regressions,
@@ -113,7 +112,7 @@ Return this exact shape (no preamble, no chatter):
 - _or_ "No new agents suggested"
 
 #### Command workflow improvements
-- **Command**: [/implement | /document (direct mode) | /document (keyed mode) | /epics | /vuln | /upgrade | /design | /specify | /release-notes]
+- **Command**: [the command whose workflow would change, named as the handoff named it, e.g. /implement]
   **Section**: [Phase / step reference]
   **Change**: [what to change and why]
 - ...

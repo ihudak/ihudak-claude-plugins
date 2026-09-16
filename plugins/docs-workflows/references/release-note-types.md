@@ -82,7 +82,7 @@ destination:
 Render exactly:
 
 ```markdown
-**Category:** <Solution | Capability>
+**Category:** <category_label>
 
 ### <feature title>
 

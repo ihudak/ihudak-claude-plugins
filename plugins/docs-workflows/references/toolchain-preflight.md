@@ -171,7 +171,13 @@ sources **2 and 3 only**. It anchored on cwd unconditionally until a live run sh
     plugin calls as `command vale` (§2, source 2) — is asked of a child `bash`, the shell an
     explicit `bash -c` start gets:
     `command bash -c 'builtin cd "<dir>" >/dev/null && command -v "<tool>"'` — present when it
-    exits 0. That child shell expands no alias of the user's and takes no shell function of theirs
+    exits 0. **`bash` takes this test first, and an absent `bash` ends the form.** The call runs
+    *through* `bash`, so with none installed every tool asked this way exits 127 and reads missing
+    though it is installed — `vale` among them, and with it a `style_check` the run would have
+    passed (measured: on a `PATH` carrying `curl` and `vale` and no `bash`, this form exits 127 for
+    both, while the own-shell form below finds both). Report `bash` as the missing tool, once; the
+    tools it would have tested were never tested, so none of them is reported missing and no gate
+    is predicted from them (§5). That child shell expands no alias of the user's and takes no shell function of theirs
     save one they exported, which it imports and which a start inside one would run too — and a
     tool the run calls as `command <name>` rather than starting inside `bash -c` needs a real
     binary for the same reason, `command` keeping an alias and a function of that name out of it. `command bash` keeps an alias or a function named `bash` out of it, as

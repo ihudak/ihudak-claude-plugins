@@ -50,6 +50,10 @@ All fourteen commands said their final phase "NEVER writes into" the current wor
 
 `/epics` wrote `epic-writer`'s handoff file at Phase 6 and, on a BLOCK verdict, `doc-fixer`'s Fix Report at Phase 7, both to `mktemp` paths outside every repository and outside the specs tree, and nothing removed either: every run left them under the system's temporary directory, where no later phase and no later run looks. Phase 8 now removes both — `command rm -f -- "<path>"`, so an `rm -i` or `rm -I` alias of the user's cannot answer the prompt from an empty standard input and leave the file — and a run that stops before Phase 8 removes what it had made.
 
+### Fixed — `/epics` creates its temp files with `command mktemp`
+
+`epic-writer`'s handoff file (Phase 6) and `doc-fixer`'s Fix Report (Phase 7) were named with a bare `mktemp`, which the Bash tool's own shell resolves through any alias or shell function of that name before `mktemp` runs — so the path the run writes to and hands on is whatever that printed. Both now run `command mktemp`, the rule `dev-workflows:context-management` states.
+
 ## [3.5.0] — 2026-09-09
 
 Five open defects from a live-engagement defect register, found running the family across two

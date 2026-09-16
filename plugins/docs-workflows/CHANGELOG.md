@@ -139,6 +139,10 @@ Phase 8.5 told the run to write the pull-request draft to the resolved PRD folde
 
 **`/document` keyed mode says which repository it writes into.** Its opening sentence said the command "writes the output to the current working directory (a product docs repository)", which its own Phase 0 has not meant for several releases: step 2's ladder takes the working directory only where that directory carries a docs signal, and otherwise answers with `${DOCS_PATH:-/workspace/docs}` (rung a.5), a repository found under `${REPOS_PATH:-/workspace}` (rung b), or a path the operator gives — and step 2's closing paragraph then takes whichever it answered with to its git top level. A run started anywhere writes where the ladder answers. The sentence now names the ladder, and says that the working directory is one of its rungs rather than its destination.
 
+### Fixed — `/document` and `/release-notes` create their temp files with `command mktemp`
+
+`/document`'s `doc-writer` handoff file (Phase 6.3) and `doc-fixer` Fix Report (Phase 7), and `/release-notes`' scratch copy of the draft (Phase 7), were named with a bare `mktemp`, which the Bash tool's own shell resolves through any alias or shell function of that name before `mktemp` runs — so the path the run writes to and hands on is whatever that printed. All three now run `command mktemp`, as the smoke-check's own log already did.
+
 ## [1.1.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

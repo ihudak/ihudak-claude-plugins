@@ -194,7 +194,7 @@ lint script when it accepts file arguments (the partition directory's `package.j
 at or above that directory (`pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `package-lock.json` /
 `npm-shrinkwrap.json` → `npm`, `bun.lockb` → `bun`) and running it as `<runner> run <script>`, with
 `--` before the arguments under `npm`. Hand the script ESLint's `--format json --output-file "<file>"`
-ahead of the partition's files, `<file>` a fresh path outside every repository (`mktemp -t a11y-XXXXXX`
+ahead of the partition's files, `<file>` a fresh path outside every repository (`command mktemp -t a11y-XXXXXX`
 names one), and **read the JSON from that file, never from standard output**: a runner can print a
 banner of its own there ahead of anything the script prints — `npm run` writes `> <script>` and the
 command line it runs — and a banner is not JSON. Remove the file once it is read, with

@@ -33,6 +33,10 @@ Running `yarn` or `pnpm` let Corepack, which supplies both wherever Node.js enab
 
 It preferred the repository's lint script where one accepts file arguments — a script named `lint`, `lint:js`, `lint:ts` or `eslint` — and kept every `jsx-a11y/` message in the JSON the script produced. A script such as `"eslint": "eslint src"` lints all of `src/` beside the files it is handed, so the review reported accessibility findings in files outside the review, against its own rule that the check is scoped to the files under review. It now keeps only the entries whose `filePath` is one of the partition's reviewed files, whatever else the lint covered, and only then their `jsx-a11y/` messages. Measured with ESLint 9.39 and `eslint-plugin-jsx-a11y` 6.10 through `npm run eslint`: the script linted both files of `src/` when handed one, and the filter kept that one's `jsx-a11y/alt-text` alone, where the `ruleId` filter alone, 1.0.0's, kept both files' — wherever 1.0.0's parse succeeded at all, which under `npm`, `pnpm` and Yarn 1 it did not (above).
 
+### Fixed — the ESLint output file is created with `command mktemp`
+
+`guideline-reviewer`'s accessibility branch named the file it gives ESLint `--output-file` with a bare `mktemp`, which the agent's own shell resolves through any alias or shell function of that name before `mktemp` runs — so the path the linter writes to, and the agent then reads, is whatever that printed. It now runs `command mktemp`.
+
 ## [1.0.0] — 2026-09-02
 
 ### Added — extracted from `dev-workflows` 3.25.0

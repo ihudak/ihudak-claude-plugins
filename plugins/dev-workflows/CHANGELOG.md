@@ -52,6 +52,10 @@ Seven pages under `docs/` change. Four name `/docs-workflows:docs-init` and `/do
 
 `/ready`'s feedback, follow-up and session-cost phases each said they "NEVER write into `prd_dir`" — a name this command defines nowhere, and one that elsewhere in the family means the resolved PRD folder, which is exactly where all three write (`<PRD-dir>/dev-workflows/…`, per `workflows-core:feedback-emission`, `followup-emission` and `cost-emission`). Each now says what the command's own Phase 7 and its invariants already said: never into a code or docs repository, or the current working directory, where it is not the specs repository.
 
+### Fixed — every `mktemp` whose path a run reads runs as `command mktemp`
+
+`/implement`, `/upgrade` and `/vuln` named their summary, plan, diff, review, claims and research files with a bare `mktemp`, and `code-handoff.md` §2.3 and §2.7 named the commit-message and pull-request-body files the same way. Each call runs in the Bash tool's own shell, which carries the user's aliases and shell functions, so an `mktemp` of theirs prints its own text into the path the run then writes to and hands on — the reason `rm` already ran as `command rm`. `context-management.md`'s **Hand off by file, not paste** now states the rule beside that one, and every site that creates a file takes it.
+
 ## [4.0.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

@@ -135,7 +135,9 @@ subagent):**
   relaunching `/design` on Opus (the run is resumable from `_design-session.md`):
   `choices: ["I'll relaunch /dev-workflows:design on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel"]`
   Design authoring for risky work must be Opus — the Opus `design-reviewer` reviews, it cannot originate
-  good architecture.
+  good architecture. Where `opus_available` is **also** false there is nothing to relaunch onto, so per
+  `workflows-core:model-routing/classification` §9.3 the relaunch option is dropped and the array is
+  `choices: ["Proceed on the Sonnet floor — the degradation is recorded in `notes` and the final report (Recommended)", "Cancel"]`.
 - **SIMPLE / MODERATE + not Opus → soft advisory.** Recommend Opus but proceed; record the choice in
   `notes` and the final report.
 - **Opus session →** proceed (the intended case).

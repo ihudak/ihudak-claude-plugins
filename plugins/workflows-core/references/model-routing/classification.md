@@ -453,7 +453,7 @@ rule.
 - **Orchestrator-executed** judgment steps — the inline prose writing and the
   interactive gates, plus the orchestration itself — run on the session model
   and CANNOT be overridden from inside a running command. Handle them with an
-  **advisory** (recommend relaunching on the §2 chain), never an override. This advisory applies when the task is SIGNIFICANT/HIGH-RISK; for SIMPLE/MODERATE the writer runs on its detection pin without a relaunch advisory (per §3.1).
+  **advisory** (recommend relaunching on the §2 chain), never an override. This advisory applies when the task is SIGNIFICANT/HIGH-RISK, whether the authoring step is a delegated writer on its own pin or — as in `/design`, `/create-ard` and every inline-authoring command — the orchestrator itself. At SIMPLE/MODERATE §3.1 requires none, and requires nothing against one either: it asks only that no *mandatory* Opus step be added, so a command that offers a soft advisory anyway (`/design`) is stricter by its own choice and not in breach.
 
 ### 9.2 Role → chain map
 
@@ -471,6 +471,20 @@ When no Opus model is available (per §2), run the reasoning / review roles on t
 Sonnet floor, **skip** the relaunch advisory (there is nothing to relaunch onto),
 and announce the degradation in the `model_routing` record and the final report —
 the same rule as §2.
+
+**`opus_available` is a property of the environment, never of the session**, and
+the two are separate fields of the same block. §2 resolves it against what the
+`task` tool can reach; the session's own tier is `current_model`, which §2 names
+separately as "whatever the orchestrator itself is running under". Two
+consequences, and a command that confuses the fields gets both wrong at once.
+A gate that exists to **require an Opus session** — the inline-authoring
+commands' HARD gate — tests `current_model`, the tier a relaunch does change,
+and never `opus_available`, which is true on every Sonnet session that merely
+*could* dispatch Opus and so lets the gate miss the one state it was written
+for. And where such a gate fires with `opus_available` **also** false, the
+relaunch option is dropped rather than recommended: that is this section's skip
+rule, and the array offers only what remains reachable —
+`choices: ["Proceed on the Sonnet floor — the degradation is recorded in `notes` and the final report (Recommended)", "Cancel"]`.
 
 ### 9.4 One rule across commands (`/implement` included)
 

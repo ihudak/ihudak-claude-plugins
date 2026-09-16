@@ -6,6 +6,16 @@ Versions follow semver at the plugin level.
 
 ## [3.6.0] — 2026-09-10
 
+### Fixed — three HARD model gates tested the environment where they meant the session, and so missed the state they were written for (3.5.0)
+
+`/create-ard`, `/prd-proposal` and `/brd-proposal` each open with *"require an Opus session"* and then stop on `opus_available` being false. Those are not the same condition, and `workflows-core:model-routing/classification` §2 keeps them apart deliberately: `opus_available` is *"true if a §2 Opus model resolved"* — what the `task` tool can reach — while the session's own tier is the separate `current_model` field of the same block, which every one of these three records beside it. Reading the field as the session's tier broke the gate in both directions at once.
+
+**It missed the state it exists for.** On a Sonnet session with Opus reachable — `opus_available: true` — the gate did not fire at all, so a `SIGNIFICANT`/`HIGH-RISK` run authored an ARD, or a customer-facing estimate, inline on Sonnet with no advisory of any kind; each command's own line reserves the soft advisory for `SIMPLE`/`MODERATE`, and §9.1's third bullet requires one at SIGNIFICANT/HIGH-RISK. `/create-ard` declares its gate *"(like `/design`)"*, and `/design` tests `current_model`; the copy dropped the condition.
+
+**And where it did fire, its recommendation was impossible.** `opus_available: false` is the one state the gate reached, and in it the `(Recommended)` option was *"I'll relaunch … on Opus"* — a relaunch onto a chain the run had just established the environment does not carry, which §9.3 forbids.
+
+All three now test `current_model`, as `/design` does, and drop the relaunch option where `opus_available` is also false, leaving proceed-on-the-floor or cancel. `docs/reference/model-routing.md` described the retired condition for all three in one paragraph and is corrected with them. The semantics are stated once, in `workflows-core` 1.6.0's §9.3, and cited here rather than restated three times.
+
 ### Fixed — six `/epics` dispatches carried no model tier, against the command's own invariant (3.5.0)
 
 `/epics` says twice that every subagent dispatch pins its §9 chain — as a role→chain map at Phase 1.5 and as an ALWAYS invariant naming `doc-fixer` among the mechanical steps — and `docs/reference/agents.md` states the same universal for every agent carrying no frontmatter pin. Phase 7's BLOCK branch and its "Manual fix notes" resolution dispatched `doc-fixer` bare, and Phase 8 spawned its four maintenance agents — three `general-purpose`, one `workflows-core:impl-maintenance` — bare. All six now pin the §2.1 Sonnet chain, and both the `detection_model` comment and the invariant name the Phase 8 maintenance agents they had left out of their consumer lists.

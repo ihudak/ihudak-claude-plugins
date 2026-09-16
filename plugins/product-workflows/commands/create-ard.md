@@ -254,7 +254,7 @@ model_routing:
   notes: <any §2/§2.1 fallback or degradation>
 ```
 
-**Tiered HARD model gate (like `/design`):** for `SIGNIFICANT` / `HIGH-RISK`, require an Opus session — if `opus_available` is false, stop: `choices: ["I'll relaunch /product-workflows:create-ard on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel"]`. For `SIMPLE`/`MODERATE`, degradation is advisory (record in `notes`).
+**Tiered HARD model gate (like `/design`):** for `SIGNIFICANT` / `HIGH-RISK`, require an Opus session — if `current_model` is not an Opus-tier model, stop: `choices: ["I'll relaunch /product-workflows:create-ard on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel"]`. The condition is `current_model` and not `opus_available`, per `workflows-core:model-routing/classification` §9.3: the ARD is authored inline on the session's own model, and `opus_available` reports what the environment carries rather than what this session runs. Where that gate fires with `opus_available` **also** false there is nothing to relaunch onto, so §9.3 drops the relaunch option and the array is `choices: ["Proceed on the Sonnet floor — the degradation is recorded in `notes` and the final report (Recommended)", "Cancel"]`. For `SIMPLE`/`MODERATE`, degradation is advisory (record in `notes`).
 
 ---
 

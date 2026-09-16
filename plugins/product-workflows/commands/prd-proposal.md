@@ -185,8 +185,14 @@ Escalate to `HIGH-RISK` where the folder's own content warrants it — a contest
 reconciliation against a baseline the operator already believes is wrong.
 
 **Tiered HARD model gate.** For `SIGNIFICANT` / `HIGH-RISK`, require an Opus session — if
-`opus_available` is false, stop:
+`current_model` is not an Opus-tier model, stop:
 `choices: ["I'll relaunch /product-workflows:prd-proposal on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel"]`.
+The condition is `current_model` and not `opus_available`, per
+`workflows-core:model-routing/classification` §9.3: the proposal is authored inline on the session's
+own model, and `opus_available` reports what the environment carries rather than what this session
+runs. Where that gate fires with `opus_available` **also** false there is nothing to relaunch onto, so
+§9.3 drops the relaunch option and the array is
+`choices: ["Proceed on the Sonnet floor — the degradation is recorded in `notes` and the final report (Recommended)", "Cancel"]`.
 
 ---
 

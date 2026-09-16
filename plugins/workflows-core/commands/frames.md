@@ -255,7 +255,7 @@ For each frame set, in directory order:
    the run.
 
 Hold, per set: the index path **as a repo-relative path** — that is the form `deliverable_paths`
-takes in Phase 3, and `handoff-to-main` §2.3 matches it against `git status --porcelain` output, which
+takes in Phase 3, and `handoff-to-main` §2.3 matches it against `git status --porcelain -z` output, which
 is repo-relative; an absolute path there matches nothing and stages nothing, silently. Hold also how
 many rows it now holds, how many this run added, how many it
 preserved, how many carry each placeholder and why — `_no description on record_` (`cap`, `missing`,

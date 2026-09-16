@@ -364,7 +364,7 @@ Before writing any file:
      choices: ["Stash changes and continue (Recommended)", "Proceed anyway — pre-existing changes will appear in the diff and review outputs", "Cancel"]
      ```
    - **Stash**: run `git stash push -m "pre-impl stash"`, then continue. Record the resulting stash as `stash_ref` — Phase 4.6 names it in its outcome line and never drops it (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-out 2).
-   - **Proceed**: note in the Phase 5 report that the working tree was dirty at implementation start, **and record the `git status --porcelain --untracked-files=all` paths as `pre_existing_dirty`**. Phase 4.6 needs them to avoid sweeping somebody else's uncommitted work into this run's commit (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-out 1); a run that does not record them here cannot honour that carve-out later.
+   - **Proceed**: note in the Phase 5 report that the working tree was dirty at implementation start, **and record the `git status --porcelain -z --untracked-files=all` paths as `pre_existing_dirty`**. Phase 4.6 needs them to avoid sweeping somebody else's uncommitted work into this run's commit (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-out 1); a run that does not record them here cannot honour that carve-out later. **`-z` is what makes that subtraction work** — §2.2 enumerates in the same form, and without it a path carrying a space or a non-ASCII byte is recorded quoted here and read raw there, so it subtracts against nothing.
    - **Cancel**: stop and summarize what was planned.
 
    A clean tree records `pre_existing_dirty: null` and `stash_ref: null` — the state Phase 4.6's precondition assumes.

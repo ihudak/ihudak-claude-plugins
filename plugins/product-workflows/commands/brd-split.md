@@ -1152,7 +1152,7 @@ three paths again, named individually** —
 
 **Name files, never the folder.** §2.9 requires one literal repo-relative path each and §2.3 classifies
 a directory as OTHER, silently. On a removal that failure is invisible and total: `git status
---porcelain` reports three ` D` lines, a folder-shaped declaration matches none of them, so `slices.md`
+--porcelain -z` reports three ` D` records, a folder-shaped declaration matches none of them, so `slices.md`
 and the parent ledger land on the default branch while the removal does not — and the next run's
 Phase 0 step 9 re-enumerates the child as still standing. —
 §2.3's `-A` staging is what stages a removal, exactly as it does for `/idea`'s or `/update-prd`'s

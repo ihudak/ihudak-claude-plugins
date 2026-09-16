@@ -6,6 +6,12 @@ Versions follow semver at the plugin level.
 
 ## [4.0.4] — 2026-09-15
 
+### Fixed — the code repo's staging enumeration read the form `git status --porcelain` quotes (4.0.3)
+
+`code-handoff.md` §2.2 enumerates with `git status --porcelain --untracked-files=all` and, under carve-out 1, stages **the current porcelain set minus `pre_existing_dirty`** by literal path. `--porcelain` quotes a path carrying a space, a `"`, a `\` or a non-ASCII byte, so on the carve-out-1 path — the one a run takes after the operator proceeded past a dirty tree — such a path was handed to `git add` in its quoted form and matched no file: the run's own edit to it was not committed, which is the one loss `workflows-core:phase-handoff` §1 rule 5 exists to prevent. The enumeration now reads `--porcelain -z`.
+
+**Both sides of the subtraction had to move together**, which is why this reaches the three callers: `/implement` Pre-Phase 3 step 1, `/upgrade` Phase 2 prep step 1 and `/vuln` Step 3 all capture `pre_existing_dirty` from the same command, and `/vuln` compares against it again before deciding what to hand off. A raw current set beside a quoted recorded one fails to subtract, and the failure is worse than the one it replaces: somebody else's uncommitted work is swept into this run's commit, which is precisely what carve-out 1 exists to stop. All four sites now read `-z`, and each says why it is not decoration. `workflows-core:specs-repo-git` §2.1 and `workflows-core:phase-handoff` §2.3 take the same form in `workflows-core` 1.6.0.
+
 ### Fixed — `/implement` measures ahead commits against the base its pull request will target
 
 Pre-Phase 3 step 4 decided whether HEAD was on the default branch by a hard-coded list — `main` / `master` / `develop` — and read the ahead commits with `git log origin/HEAD..HEAD --oneline 2>/dev/null`. With `origin/HEAD` unset, that read exits 128 and the redirect hides *"fatal: ambiguous argument 'origin/HEAD..HEAD'"*, so the empty output read as "no ahead commits" and the question was silently never asked; the same happened with no `origin` remote, and with an `origin/HEAD` a pruning fetch left dangling. A local `develop` two commits ahead of a `main` default was in the list, so no check ran at all — while Phase 4.6's own ladder resolved the pull request's base to `main`. And *"Branch from default branch — fresh start"* named no branch to switch to.

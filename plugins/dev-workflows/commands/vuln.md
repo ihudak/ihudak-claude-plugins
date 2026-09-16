@@ -84,7 +84,7 @@ Process `READY` CVEs one at a time to avoid conflicting edits to the same depend
 
 For each `READY` CVE, before invoking the fixer, write its research report to a temp file (`command mktemp -t dw-vuln-research-XXXXXX`, never inside a repo tree) and record its absolute path as `research_file`; the fixer, code-review, and resume steps below receive this path instead of the pasted report.
 
-**Record the tree state once, before anything is applied.** On the first CVE, run `git -C "<repo>" status --porcelain --untracked-files=all` and record the result as `pre_existing_dirty`; carry it unchanged through every CVE in the run. `/vuln` never stashes, so `stash_ref` is always `null`. This capture is what lets Step 3.9 keep a bystander's work out of the commit (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-out 1) — `/vuln` offers no dirty-tree prompt, so the capture is the whole safeguard and must happen before the first edit.
+**Record the tree state once, before anything is applied.** On the first CVE, run `git -C "<repo>" status --porcelain -z --untracked-files=all` and record the result as `pre_existing_dirty`; carry it unchanged through every CVE in the run. **`-z` is not decoration**: §2.2 carve-out 1 enumerates in that form and subtracts this set from it, and without `-z` a path carrying a space or a non-ASCII byte is recorded quoted here, subtracts against nothing there, and is swept into this run's commit. `/vuln` never stashes, so `stash_ref` is always `null`. This capture is what lets Step 3.9 keep a bystander's work out of the commit (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-out 1) — `/vuln` offers no dirty-tree prompt, so the capture is the whole safeguard and must happen before the first edit.
 
 **Start each CVE from the base branch, not from the previous CVE's.** After the capture, resolve the base per `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.8 and run `git -C "<repo>" switch <base>` when HEAD is not already there. Every CVE gets its own branch and its own pull request, so a CVE that branches off its predecessor ships that predecessor's fix inside its own diff, its own review, and its own PR.
 
@@ -209,7 +209,7 @@ Runs after the fixer's last return for this CVE — after the `verify-resume` ca
 
 §2.4's choice is asked on the **first** CVE and reused for every later one (`code_handoff_choice`) — a ten-CVE run asks once, not ten times. Emit the §3.1 `Code repo:` line per CVE and carry its pull-request number into the Step 4 table's `PR` column.
 
-**What to hand off is decided by the tree, never by the status label.** Before skipping any CVE, run `git -C "<repo>" status --porcelain --untracked-files=all` and compare it against `pre_existing_dirty`:
+**What to hand off is decided by the tree, never by the status label.** Before skipping any CVE, run `git -C "<repo>" status --porcelain -z --untracked-files=all` — the same form the capture above used, because the two sets are compared — and compare it against `pre_existing_dirty`:
 
 - **Anything of this run's is present** ⇒ run Step 3.9. It does not matter which status the CVE carries.
 - **Nothing of this run's is present** ⇒ skip, and say why in the Step 4 table.

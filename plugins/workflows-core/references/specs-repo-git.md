@@ -63,7 +63,7 @@ set is ever staged.
 1. **The source string.** Read the resolved docs repository's `origin` remote (`git -C <docs-repo-root> remote get-url origin`) and derive `OWNER_REPO` from it exactly as `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6 derives it — the same `host` and `slug` expressions, and the same rule that only `github.com` drops the host. Where the repository has no `origin` remote, **or where that derivation comes out empty** — a nonsense remote such as `https://github.com/` names no owner and no repository — the source is the basename of its git root instead. Where the run's write target is not a git work tree at all, the source is the basename of the target path, resolved to absolute. Two runs' command bodies lead to that last case: `/document` in direct mode pointed at a directory outside any git work tree, and `/docs-init` when its operator cancels Phase 0 step 3's offer to create or initialise an absent or empty target — that command's emitter tail still runs, against a path that is not yet a repository.
 2. **The flattening — one substitution, per byte, in the C locale:** `printf '%s' "$source" | LC_ALL=C sed 's/[^A-Za-z0-9._-]/-/g'`. Every byte outside `A–Z`, `a–z`, `0–9`, `.`, `_` and `-` becomes one `-`. `/` is such a byte, so this one substitution is also what flattens `OWNER_REPO`'s separators; there is no second step to order it against. It is per **byte**, not per character: `ñ` is two bytes in UTF-8 and becomes `--`, so `Notes (draft) ñ` gives `Notes--draft----` wherever it is computed, where a per-character rule would give `Notes--draft---` and file one repository's record in two directories.
 
-So `git@github.com:acme/docs.git` gives `acme-docs`, and `ssh://git@git.example.com/team/docs.git` gives `git.example.com-team-docs`. **Every such byte is flattened, not only `/`,** because a directory name is the operator's to choose and may carry a space or a non-ASCII letter, and `git status --porcelain` wraps such a path in double quotes (with a non-ASCII byte octal-escaped), so step 2's classifier, reading the path as reported, would see `"documentation/…` and never stage it. **The one-segment property is the whole point, and it is why the flattening is not cosmetic**: step 2's classifier below admits exactly one segment between `documentation/` and `dev-workflows/` (`^documentation/[^/]+/dev-workflows/`), while an unflattened `OWNER_REPO` is two segments on GitHub and three anywhere else. An entry written under one would be classified OTHER — never staged, left dirty, and firing §3.3's G1 on every later preflight of every caller, which is exactly the failure each of the single-file shapes below was once found to cause. Every site that fills the placeholder — `feedback-emission.md` §2, `cost-emission.md` §8, and the `docs-workflows` commands whose runs emit there — cites this definition rather than restating the derivation; a second derivation is how two sites come to disagree about where one repository's record lives. The flattening can in principle map two remotes to one name (`a-b/c` and `a/b-c` both become `a-b-c`); that is accepted, since the alternative is a second derivation or a path the classifier cannot stage.
+So `git@github.com:acme/docs.git` gives `acme-docs`, and `ssh://git@git.example.com/team/docs.git` gives `git.example.com-team-docs`. **Every such byte is flattened, not only `/`,** because a directory name is the operator's to choose and may carry a space or a non-ASCII letter, and one substitution admitting no exception is the only kind two implementations reproduce byte for byte. **It is no longer flattened to keep the path out of the classifier's quoting, and that half of the reason is retired rather than the rule**: `git status --porcelain` does wrap such a path in double quotes (with a non-ASCII byte octal-escaped), and step 2's classifier, reading the path as reported, would have seen `"documentation/…` and never staged it — but step 1 above now reads `-z`, whose records are never quoted, so that is a form this procedure no longer meets. The flattening stands unnarrowed, because **the one-segment property is the whole point, and it is why the flattening is not cosmetic**: step 2's classifier below admits exactly one segment between `documentation/` and `dev-workflows/` (`^documentation/[^/]+/dev-workflows/`), while an unflattened `OWNER_REPO` is two segments on GitHub and three anywhere else. An entry written under one would be classified OTHER — never staged, left dirty, and firing §3.3's G1 on every later preflight of every caller, which is exactly the failure each of the single-file shapes below was once found to cause. Every site that fills the placeholder — `feedback-emission.md` §2, `cost-emission.md` §8, and the `docs-workflows` commands whose runs emit there — cites this definition rather than restating the derivation; a second derivation is how two sites come to disagree about where one repository's record lives. The flattening can in principle map two remotes to one name (`a-b/c` and `a/b-c` both become `a-b-c`); that is accepted, since the alternative is a second derivation or a path the classifier cannot stage.
 
 **The inner `dev-workflows/` in that path names the *family*, not the plugin — do not "correct" it per-plugin.** The shipped persistence ladder writes `<PRD-dir>/dev-workflows/cost/<sid8>.md` regardless of which plugin emitted the entry, and this shape is the same directory one level out. Renaming it to match the emitting plugin would fragment one repository's cost record across four directories and break every reader of it. **No new branch prefix goes with this shape**: §2.2's prefix authority governs branches the plugin creates *in* `$SPECS_PATH`, and the documentation family creates none there — its deliverable is the docs repository, where it branches, commits and drafts a pull request it never pushes.
 
@@ -105,7 +105,9 @@ of `git status` instead.** Its staging directory is, by default, the resolved PR
 reasons: it is a copy of the operator's own file, kept only until they upload it by hand, so a
 commit would make a temporary binary permanent in the specs repo's history through a prompt-free
 bookkeeping commit; the default subfolder, `Doc screenshots/`, carries a space, which
-`git status --porcelain` quotes, so step 2 below never reads it as a path in the specs tree; and
+`git status --porcelain` once quoted out of step 2's sight — a side effect step 1's `-z` retires,
+so the classifier now reads that path raw and places it in OTHER, and what keeps the copy out of
+`git status` at all is the local exclude named below, never the quoting; and
 the run may stage into an existing `Attachments/` subfolder holding the operator's own files, which
 a directory shape would sweep in. So `/document` keeps each copy it stages under `$SPECS_PATH` out
 of `git status` itself, through that repository's local exclude file (its Phase 6.3), and nothing
@@ -122,10 +124,25 @@ pull-request draft).
 **Staging is by enumeration, not by glob.** Pathspec glob magic (`:(glob)`) is
 fragile to express and to review. The procedure is:
 
-1. `git -C "$SPECS_PATH" status --porcelain --untracked-files=all`
+1. `git -C "$SPECS_PATH" status --porcelain -z --untracked-files=all`
    `--untracked-files=all` is **required** — the default collapses an untracked
    directory to a single `?? dir/` line, which would hide which files are being
-   staged.
+   staged. `-z` is **required** too: without it git wraps any path carrying a
+   space, a `"`, a `\` or a non-ASCII byte in double quotes and octal-escapes the
+   non-ASCII bytes, and step 2's regexes are anchored at `^`, so the leading `"`
+   alone puts such a path in OTHER. It is not a hypothetical shape: a feature
+   folder is `<KIND>-<KEY>-<slug>` and `<slug>` is a kebab of a title, so a
+   non-English title gives `specifications/PRD-ACME-1-zahlungsauslösung/`, under
+   which every bookkeeping file this section owns was classified OTHER, never
+   staged, and left permanently dirty — firing §3.3's G1 on every later preflight
+   of every caller. Under `-z` each record is terminated by a NUL and the path is
+   emitted raw: strip the two status bytes and the space and the remainder is the
+   path. A **rename or copy** record carries a second NUL-terminated field, the
+   original path, straight after it (`R  <new>\0<old>\0`) — consume it with the
+   record it belongs to, never as a record of its own. `-c core.quotepath=false`
+   is not a substitute: it suppresses only the octal escaping, and a path with a
+   space is still quoted. `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md`
+   §2.3 reads the same form, for the same reason, over a different path set.
 2. Classify each reported path: **ARTIFACT** if it matches
    `^(specs|specifications|vis)/.+/dev-workflows/` or
    `^documentation/[^/]+/dev-workflows/` or `^dev-workflows-feedback/`

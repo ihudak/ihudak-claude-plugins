@@ -516,8 +516,10 @@ git -C "<repo>" status --porcelain
 3. For every entry `status --porcelain` reports, compare its working-tree line count against
    `git show <sha>:<path> | wc -l` when the path exists at the pinned commit (an untracked path
    that exists nowhere at the pin has nothing to compare against and is not itself a dirty-pin
-   signal). A line-count mismatch is a non-empty content diff — stop with the same message above,
-   naming the porcelain-flagged path.
+   signal). Read that path from `git -C "<repo>" status --porcelain -z`, never from the quoting
+   form above — `workflows-core:grounding-format` §4 step 3 states why, and a quoted path resolves
+   to no file, so the comparison would be skipped in silence. A line-count mismatch is a non-empty
+   content diff — stop with the same message above, naming the porcelain-flagged path.
 
 **This gate is the orchestrator's, never delegated.** `code-grounder` and `grounding-verifier`
 each re-verify `HEAD` against the commit *they* are handed (their own step 1/2), but that check

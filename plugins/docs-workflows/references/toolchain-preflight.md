@@ -171,7 +171,8 @@ sources **2 and 3 only**. It anchored on cwd unconditionally until a live run sh
     plugin calls as `command vale` (§2, source 2) — is asked of a child `bash`, the shell an
     explicit `bash -c` start gets:
     `command bash -c 'builtin cd "<dir>" >/dev/null && command -v "<tool>"'` — present when it
-    exits 0. **`bash` takes this test first, and an absent `bash` ends the form.** The call runs
+    exits 0. **`bash` takes this test first, whether or not §2 put it in the required set, and an
+    absent `bash` ends the form.** The call runs
     *through* `bash`, so with none installed every tool asked this way exits 127 and reads missing
     though it is installed — `vale` among them, and with it a `style_check` the run would have
     passed (measured: on a `PATH` carrying `curl` and `vale` and no `bash`, this form exits 127 for

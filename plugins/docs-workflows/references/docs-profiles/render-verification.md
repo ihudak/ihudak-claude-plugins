@@ -120,7 +120,9 @@ closed listener left behind does not (measured on Linux 5.15: on a port holding 
 connection, `mkdocs serve -a 0.0.0.0:<port>` bound it and served it) — so predicting a bind from the
 socket table refuses starts that work. A bind that fails anyway is caught where it happens: the server
 exits, which step 3's gone-group branch reports with the command's log, as it reports any other boot
-failure. The wording of that failure is each tool's own, and nothing here matches it. Where the listening read cannot be made at all — off Linux with
+failure. The wording of that failure is each tool's own, and nothing in this check matches it — the
+other consumer, `/docs-serve`, does, and disposes of such an exit as a collision at that port (its
+Phase 5). Where the listening read cannot be made at all — off Linux with
 no `lsof` installed, which never ends this check on its own — the probe alone decides, as before.
 
 Every **GET** below — step 3's readiness poll and step 4's page requests — is

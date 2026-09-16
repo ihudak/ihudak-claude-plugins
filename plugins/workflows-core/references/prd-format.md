@@ -115,8 +115,8 @@ reversal.** They were dropdowns set outside the plugin and returned by an import
 forbade authoring them or asking for them — the question bought nothing when the answer already
 existed elsewhere. Nothing supplies them now, so each is authored where it is known. `/release-notes`
 reads `change_type` and `release_notes_category` from this file, and settles either where it is absent
-(`docs-workflows:release-note-types` §7): it infers `change_type`, confirming it in its own grill
-where the inference is uncertain, and it omits the category label, never inferring or asking for one.
+or, for `change_type`, not routable (`docs-workflows:release-note-types` §7): it infers `change_type`,
+confirming it in its own grill where the inference is uncertain, and it omits the category label, never inferring or asking for one.
 `release_versions` it does not read — it takes the release from its `--version` flag or that same
 grill — and no other command acts on it either, so the field records the release for the PRD's own
 readers. **Never invent one** — an unanswered field is omitted, not filled.

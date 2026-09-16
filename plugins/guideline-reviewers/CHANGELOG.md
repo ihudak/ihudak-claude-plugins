@@ -37,6 +37,10 @@ It preferred the repository's lint script where one accepts file arguments — a
 
 `guideline-reviewer`'s accessibility branch named the file it gives ESLint `--output-file` with a bare `mktemp`, which the agent's own shell resolves through any alias or shell function of that name before `mktemp` runs — so the path the linter writes to, and the agent then reads, is whatever that printed. It now runs `command mktemp`.
 
+### Fixed — the ESLint output file goes when branch 1 gives up, not only when it is read
+
+`guideline-reviewer`'s accessibility branch removed its `--output-file` only "once it is read", and the two-minute timeout — like any other branch-1 failure — falls through to branch 2 without reading it, so the file was left in the system's temporary directory with nothing to remove it. The removal now also fires where branch 1 gives up.
+
 ## [1.0.0] — 2026-09-02
 
 ### Added — extracted from `dev-workflows` 3.25.0

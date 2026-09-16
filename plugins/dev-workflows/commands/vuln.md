@@ -228,10 +228,12 @@ For orientation, the states that normally reach each outcome: `BASELINE_FAILED` 
 and every `review_diff_file` and `claims_file` this run wrote on the SIGNIFICANT / HIGH-RISK path.
 Remove each as `command rm -f -- "<path>"`, per
 `${CLAUDE_PLUGIN_ROOT}/references/context-management.md` (**Hand off by file, not paste**), which says
-why nothing else would. A run that stops before this step — an unreadable `research_file` or
-`review_diff_file`, the `review-fixer` `NEEDS HUMAN` stop, or a second verdict still `BLOCK` — removes
+why nothing else would. A run that stops before this step removes
 the files it had made before it stops, in the same way, save a file the stop itself named as
-unreadable, which stays for the operator to look at (that reference again).
+unreadable, which stays for the operator to look at (that reference again); a **CVE** that ended
+early — an unreadable `research_file` or `review_diff_file`, the `review-fixer` `NEEDS HUMAN` stop, a
+second verdict still `BLOCK`, each of which stops working that CVE and not the run — keeps its files
+until here, since the loop goes on to the next CVE.
 
 After all CVEs are processed, print a result table:
 

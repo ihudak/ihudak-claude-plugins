@@ -56,6 +56,10 @@ Seven pages under `docs/` change. Four name `/docs-workflows:docs-init` and `/do
 
 `/implement`, `/upgrade` and `/vuln` named their summary, plan, diff, review, claims and research files with a bare `mktemp`, and `code-handoff.md` §2.3 and §2.7 named the commit-message and pull-request-body files the same way. Each call runs in the Bash tool's own shell, which carries the user's aliases and shell functions, so an `mktemp` of theirs prints its own text into the path the run then writes to and hands on — the reason `rm` already ran as `command rm`. `context-management.md`'s **Hand off by file, not paste** now states the rule beside that one, and every site that creates a file takes it.
 
+### Fixed — `/vuln`'s temp-file removal calls a per-CVE stop what it is
+
+Step 4's removal paragraph called four stops "a run that stops before this step" — an unreadable `research_file` or `review_diff_file`, the `review-fixer` `NEEDS HUMAN` stop, and a second verdict still `BLOCK`. All four sit inside Step 3's per-CVE loop and say "stop working this CVE"; the run goes on to the next one and reaches Step 4, which prints the table that records them. Read literally, the paragraph told an orchestrator to remove the run's handoff files mid-batch. It now draws the distinction `/upgrade` step 7.6 already drew: a CVE that ended early keeps its files until here.
+
 ## [4.0.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

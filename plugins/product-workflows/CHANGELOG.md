@@ -54,6 +54,10 @@ All fourteen commands said their final phase "NEVER writes into" the current wor
 
 `epic-writer`'s handoff file (Phase 6) and `doc-fixer`'s Fix Report (Phase 7) were named with a bare `mktemp`, which the Bash tool's own shell resolves through any alias or shell function of that name before `mktemp` runs — so the path the run writes to and hands on is whatever that printed. Both now run `command mktemp`, the rule `dev-workflows:context-management` states.
 
+### Fixed — `/create-prd` says when `/release-notes` settles `change_type`
+
+The Phase 3 frontmatter step and the command's page both said `/release-notes` infers a type "where the PRD carries no `change_type`". It also infers one for a value that is present but not routable — `not applicable`, or `Bug fix` on a deprecating change (`docs-workflows:release-note-types` §7) — so both now say "no **routable** `change_type`".
+
 ## [3.5.0] — 2026-09-09
 
 Five open defects from a live-engagement defect register, found running the family across two

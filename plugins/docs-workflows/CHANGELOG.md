@@ -147,6 +147,10 @@ Phase 8.5 told the run to write the pull-request draft to the resolved PRD folde
 
 `doc-planner` said `/document` Phase 5.7 settles "each such target" of its first return, where that step settles only a target whose `screenshots:` is non-empty, and that Phase 9 lists a staged screenshot's `upload_note`, where Phase 9 lists it only on the **Defer** path. `doc-reviewer`'s Inputs list did not declare `render_verification`, which Phase 7 passes it, though every other input in that dispatch was declared. And `/release-notes` Phase 7's "read the scratch file back … and remove it" sat under the auto-fix branch, so a report-only run could read the removal as that branch's, against its own invariant; the removal is now its own sentence and says it happens on every path.
 
+### Fixed — the `release-notes-writer` handoff says when `change_type` is inferred
+
+Its `change_type` field comment said "an absent value is inferred", where the agent's own hard rule and §7 rung 1 also infer for a present value that does not route. The comment now says "absent or not routable".
+
 ## [1.1.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

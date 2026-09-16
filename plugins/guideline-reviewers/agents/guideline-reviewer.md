@@ -199,7 +199,8 @@ names one), and **read the JSON from that file, never from standard output**: a 
 banner of its own there ahead of anything the script prints — `npm run` writes `> <script>` and the
 command line it runs — and a banner is not JSON. Remove the file once it is read, with
 `command rm -f -- "<file>"`, so an `rm` alias or function of the user's in the Bash tool's shell
-never keeps it. Otherwise invoke
+never keeps it — and remove it the same way once branch 1 gives up instead, on the two-minute
+timeout below and on any other failure that falls through to branch 2, where nothing ever reads it. Otherwise invoke
 the repo's already-installed ESLint directly — through Yarn, as above, under Plug'n'Play — whose
 standard output is ESLint's JSON alone:
 

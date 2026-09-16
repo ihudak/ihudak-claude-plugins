@@ -439,8 +439,8 @@ Author `prd.md` live against `Skill(skill: "workflows-core:reference", args: "pr
    **Do NOT ask for `release_versions`, `change_type` or `release_notes_category` here.** They are
    authored fields now rather than tracker dropdowns returned by an import
    (`workflows-core:prd-format`), and `/release-notes` gets what it needs of them itself: where the
-   PRD carries no `change_type` it infers one, confirming it in its own grill where the inference is
-   uncertain, and it takes the release from its `--version` flag or that same grill, never from the
+   PRD carries no routable `change_type` it infers one, confirming it in its own grill where the
+   inference is uncertain, and it takes the release from its `--version` flag or that same grill, never from the
    PRD's `release_versions` — so never spend a question here on an answer that command gets anyway —
    and it omits the category label where `release_notes_category` is absent, never inferring or
    asking for one, so that field is optional: a draft without it is complete. Write whichever the

@@ -87,6 +87,10 @@ The file's opening said everything below it is reached only when the mount is re
 
 The **Declared dependencies** section called `docs-workflows`' `prose-style` declaration "what makes it different from every other plugin here", though `product-workflows`' manifest declares the same two names, and then called `prose-style` "an optional companion in `dev-workflows`", which the same file's own companion table contradicts eleven lines later ("no tie to it at all since `/epics`, `/create-prd` and `/update-prd` moved out") and a grep of that plugin confirms. Both claims shipped in 1.5.0. The paragraph now names the two plugins that declare it and says `dev-workflows` has no tie of either kind.
 
+### Fixed — `prd-format.md` says when `/release-notes` settles `change_type`
+
+It said that command settles the field "where it is absent". `docs-workflows:release-note-types` §7 rung 1 also drops two **present** values to inference — `not applicable`, and `Bug fix` on a change that trips the deprecation trigger — so a PM authoring `change_type: not applicable` was told the carried value governs, and it does not. The sentence now says "absent or, for `change_type`, not routable", which is the rule §7 states.
+
 ## [1.5.0] — 2026-09-09
 
 ### Added — `control`, a positive control on every grounding absence claim

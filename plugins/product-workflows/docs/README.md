@@ -26,7 +26,7 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 ## Commands
 
 - [`/prd-ground`](commands/prd-ground.md) — pin every mounted repository, ground a slice's `[BR#n]` requirements on the BRD route or a PRD's own `[AC#n]`/`[FR#n]` rows on the idea route (optional and ungated there), and independently re-derive every finding on Opus.
-- [`/brd-intake`](commands/brd-intake.md) — intake a customer BRD verbatim, extract its requirement inventory, and write a coverage ledger with every row unallocated.
+- [`/brd-intake`](commands/brd-intake.md) — intake a customer BRD verbatim, with the files it links, extract its requirement inventory, and write a coverage ledger with every row unallocated.
 - [`/brd-interview`](commands/brd-interview.md) — tag every open question `[G]`/`[V]`/`[C]` before it is asked, answer the `[G]`s from the findings, and record the delivery team's decisions.
 - [`/brd-package`](commands/brd-package.md) — attack the decided package, then render a plugin-free customer prompt and a de-Obsidianised bundle for a reviewer with nothing installed.
 - [`/brd-proposal`](commands/brd-proposal.md) — roll a BRD container's slice proposals into one programme umbrella: one row per included slice, the cross-slice effort that exists in no slice, and coverage computed from the root ledger.

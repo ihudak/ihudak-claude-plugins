@@ -168,7 +168,8 @@ and offers to branch, commit, push, and open a pull request.
 - `workflows-core:addressing` — the `<BRD-KEY>` grammar and folder
   resolution this command uses by name (`key-valid`, `resolve-address`).
 - [`brd-format.md`](../../references/brd-format.md) — the `[BR#n]` row shape, the immutability rule,
-  and the six defect classes this command confirms against.
+  §1.1's account of what `brd/source/` holds and of the link log beside it, and the six defect
+  classes this command confirms against.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the ledger row shape,
   the six dispositions, and the ledger line every command of the BRD-to-PRD route ends its final
   report with.

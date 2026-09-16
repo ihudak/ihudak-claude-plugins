@@ -438,10 +438,9 @@ The smoke-check is best-effort. A prerequisite-unmet, missing-server-tool,
 boot-failure, or readiness-timeout outcome is recorded with its reason and falls
 back to the manual table for that space — on a space with two servers, for that
 server's pages — and it never blocks the run. **What ends the whole check rather than one space's
-part of it is §2's `The endings`**, which is where the four are defined, with what each one records
-and what that record names — including which of them name a command and a log and which names
-neither. Every page not yet checked then falls back to the manual table, and none of the four blocks
-the run either.
+part of it is §2's The endings**, which is where the four are defined, with what each one records
+and what that record names. Every page not yet checked then falls back to the manual table, and none
+of the four blocks the run either.
 
 A 404 and a 5xx on an affected page are both surfaced, never silently dropped,
 and each has exactly one disposition:

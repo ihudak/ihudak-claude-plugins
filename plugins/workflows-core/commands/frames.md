@@ -256,7 +256,9 @@ For each frame set, in directory order:
 
 Hold, per set: the index path **as a repo-relative path** — that is the form `deliverable_paths`
 takes in Phase 3, and `handoff-to-main` §2.3 matches it against `git status --porcelain -z` output, which
-is repo-relative; an absolute path there matches nothing and stages nothing, silently. Hold also how
+is repo-relative; an absolute path there matches nothing and stages nothing. §2.3 step 4 names it in
+§4.1's *declaration unaccounted for* clause, so that failure is reported rather than silent — but the
+index still does not reach the default branch, which is the reason to hold the repo-relative form. Hold also how
 many rows it now holds, how many this run added, how many it
 preserved, how many carry each placeholder and why — `_no description on record_` (`cap`, `missing`,
 `not_a_frame`, or an agent status) and `_could not be read: <reason>_` (`unreadable`,

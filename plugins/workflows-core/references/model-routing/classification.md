@@ -458,7 +458,7 @@ rule.
 - **Orchestrator-executed** judgment steps — the inline prose writing and the
   interactive gates, plus the orchestration itself — run on the session model
   and CANNOT be overridden from inside a running command. Handle them with an
-  **advisory** (recommend relaunching on the §2 chain), never an override. This advisory applies when the task is SIGNIFICANT/HIGH-RISK. Where the authoring step is the orchestrator itself — `/design`, `/create-ard` and every inline-authoring command — it is the command's own gate. Where the writing is delegated to a writer on its own Opus pin, the writing is already off the session model and the residual risk is the orchestrator's own context window, so the advisory narrows there to a large non-Opus run, as in `/document`. At SIMPLE/MODERATE §3.1 requires none, and requires nothing against one either: it asks only that no *mandatory* Opus step be added, so a command that offers a soft advisory anyway (`/design`) is stricter by its own choice and not in breach.
+  **advisory** (recommend relaunching on the §2 chain), never an override. This advisory applies when the task is SIGNIFICANT/HIGH-RISK. Where the authoring step is the orchestrator itself, how it is discharged is the command's own to state and differs: `/design` and `/create-ard` make it a HARD gate on `current_model` that stops and offers a relaunch, while `/create-prd` degrades to the best available model and records the degradation instead of stopping. Read the command rather than assuming a gate. Where the writing is delegated to a writer on its own Opus pin, the writing is already off the session model and the residual risk is the orchestrator's own context window, so the advisory narrows there to a large non-Opus run, as in `/document`. At SIMPLE/MODERATE §3.1 requires none, and requires nothing against one either: it asks only that no *mandatory* Opus step be added, so a command that offers a soft advisory anyway (`/design`) is stricter by its own choice and not in breach.
 
 ### 9.2 Role → chain map
 
@@ -468,7 +468,7 @@ rule.
 | Reader / summarizer / locator / style-checker / fixer / maintenance (the folder read, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance agents) | §2.1 detection (Sonnet) |
 | Domain reviewer (`doc-reviewer`, `epic-reviewer`) | §2 review (Opus) — usually already frontmatter-pinned; the orchestrator records it and adds **no** override |
 | Delegated writer (`doc-writer` / `epic-writer`) | §2 reasoning (Opus) for SIGNIFICANT/judgment writing; §2.1 detection (Sonnet) for MODERATE writing |
-| Coordination + interactive gates (the orchestrator itself) | session model; narrowed window advisory for large non-Opus runs (§9.1) |
+| Coordination + interactive gates (the orchestrator itself) | session model; where the writing is delegated, a narrowed window advisory for large non-Opus runs; where the authoring is inline, the command's own (§9.1) |
 
 ### 9.3 No-Opus degradation
 
@@ -482,8 +482,8 @@ the two are separate fields of the same block. §2 resolves it against what the
 `task` tool can reach; the session's own tier is `current_model`, which §2 names
 separately as "whatever the orchestrator itself is running under". Two
 consequences, and a command that confuses the fields gets both wrong at once.
-A gate that exists to **require an Opus session** — the inline-authoring
-commands' HARD gate — tests `current_model`, the tier a relaunch does change,
+A gate that exists to **require an Opus session** — an inline-authoring
+command's HARD gate — tests `current_model`, the tier a relaunch does change,
 and never `opus_available`, which is true on every Sonnet session that merely
 *could* dispatch Opus and so lets the gate miss the one state it was written
 for. And where such a gate fires with `opus_available` **also** false, the

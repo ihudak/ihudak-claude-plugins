@@ -1,6 +1,6 @@
 ---
 name: document
-description: keyed feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Reads a Product Requirements Document hierarchy from the resolved folder in the specs tree, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
+description: keyed feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Reads a Product Requirements Document hierarchy from the resolved folder in the specs tree, summarises the diffs its implementation record names in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -10,7 +10,7 @@ Generate product documentation for the resolved Product Requirements Document: $
 
 Signature: one positional address — a key, or an `@<path>` naming a folder in the specs tree. Phase 5.5 resolves each write target against the content roots the resolved profile declares, and Phase 6.3 writes each page into the root that owns it.
 
-`/document` (keyed mode) is the **keyed feature-documentation** workflow. Given a PRD address, it reads the resolved PRD folder, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output into the docs repository Phase 0 step 2 resolves — the current working directory where it carries a docs signal, and otherwise `${DOCS_PATH:-/workspace/docs}`, a repository under `${REPOS_PATH:-/workspace}`, or cwd or a path you confirm: a run writes wherever that ladder answers, not wherever it was started (Phase 0 step 2, and step 4 for the profile).
+`/document` (keyed mode) is the **keyed feature-documentation** workflow. Given a PRD address, it reads the resolved PRD folder, resolves the implementation record's repo slugs to local clones, runs parallel diff summaries of the refs that record names, synthesises product documentation, runs style-check + Opus review gates, and writes the output into the docs repository Phase 0 step 2 resolves — the current working directory where it carries a docs signal, and otherwise `${DOCS_PATH:-/workspace/docs}`, a repository under `${REPOS_PATH:-/workspace}`, or cwd or a path you confirm: a run writes wherever that ladder answers, not wherever it was started (Phase 0 step 2, and step 4 for the profile).
 
 For small one-off doc edits, use direct mode (below). For writing child Epic drafts from a PRD, use `/epics`. For release notes, use `/release-notes` — this command never writes release-notes / what's-new pages, because those are generated from the tracker by the docs team's automation.
 
@@ -169,9 +169,9 @@ Ask about:
 - **Output filename / sub-path under the resolved `docs_repo_path`** (Phase 0) (default: `<KEY>-<slug>.md`; the `doc-location-finder` in Phase 5.5 may override this per target).
 - **Repo refresh policy**:
   ```
-  choices: ["fetch only (Recommended)", "fetch + pull default branch", "no refresh — resolve PRs from local objects only; a PR not yet fetched will not resolve, and a dirty clone stops blocking"]
+  choices: ["fetch only (Recommended)", "fetch + pull default branch", "no refresh — resolve refs from local objects only; a ref not yet fetched will not resolve, and a dirty clone stops blocking"]
   ```
-  The `fetch only` default matches the `diff-summarizer` default (`refresh.fetch: true, refresh.pull: false`) — historical PR diffs don't need the current branch tip, and pulling risks moving HEAD away from the merge commit we want to reach.
+  The `fetch only` default matches the `diff-summarizer` default (`refresh.fetch: true, refresh.pull: false`) — the diffs of refs the implementation record already named don't need the current branch tip, and pulling risks moving HEAD away from the commit we want to reach.
 - **Repos search base (`$REPOS_PATH`)**. Read `${REPOS_PATH:-/workspace}` (the container mounts every repo under `/workspace`). `$REPOS_PATH` may be a single directory or a colon-separated list. Ask:
   ```
   choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]
@@ -341,10 +341,10 @@ From the **implementation record** — the `implementation.md` blocks in the res
      ```
      Choice semantics follow the `Repo unresolved (zero matches) — /document` rule in `workflows-core:escalation-rules`, applied to the whole missing set at once:
      - **Mount now & re-scan** (≈ the rule's "I'll clone it — wait") — pause until the user confirms the clones are present under `$REPOS_PATH`, then re-run step 3's scan and re-render this gate. Loop until `missing` is empty or the user picks another option. This is how the operator gets per-repo control: mount whichever repos are available, re-scan, then choose "Proceed" for whatever remains.
-     - **Proceed without them** (≈ the rule's "Skip and continue without its PRs") — record every currently-missing repo's refs as `unresolved`, out of scope; continue. Identical downstream state to the previous per-slug skip.
+     - **Proceed without them** (≈ the rule's "Skip and continue without its refs") — record every currently-missing repo's refs as `unresolved`, out of scope; continue. Identical downstream state to the previous per-slug skip.
      - **Cancel** — abort the run.
      - **Specify a different absolute path for a missing repo** (≈ the rule's "Specify a different absolute path") — record the given path as that slug's `repo_path`, move it from `missing` to `mounted`, and re-render.
-6. A `refs[]` element carries no host and needs none — the diff is taken locally. Where a run was additionally given a genuine PR URL as `pr_refs` enrichment and its `host` is `other` (unsupported), record that element as `unresolved` and carry it into the Phase 9 report; do not block.
+6. A `refs[]` element carries no host and needs none — the diff is taken locally, and `refs[]` is the only element list Phase 5 builds. **This command passes no `pr_refs`**, so `diff-summarizer`'s host routing, its `gh` resolver and its `host: other` disposition are that agent's contract for a caller that has a pull-request URL, never a branch this run takes. Nothing here is expected to resolve a host, and a report of this run therefore names refs, not pull requests (Phase 9).
 
 ---
 
@@ -357,7 +357,7 @@ Spawn `diff-summarizer` instances in **batches of up to 4 concurrent agents** pe
 For each repo, in the same Agent message:
 
 → Agent (subagent_type: "docs-workflows:diff-summarizer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
-  > "Summarise this repo's PRs for the brief:
+  > "Summarise this repo's recorded refs for the brief:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 4>
   > repo_url_slug: <repo slug, e.g. "cluster">
@@ -383,11 +383,11 @@ After the batch returns, handle each per-repo status:
   choices: ["Continue with current local state", "Skip this repo", "Cancel"]
   ```
 - `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule in `workflows-core:escalation-rules` **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
-- `NO_PRS_RESOLVED` — record all that repo's PRs as unresolved; continue.
+- `NO_PRS_RESOLVED` — the agent's own declared return status, whatever the elements were called; record all that repo's refs as unresolved and continue.
 
-After every batch completes, if **every PR across every repo** is unresolved, present a single aggregate gate (not per-PR):
+After every batch completes, if **every ref across every repo** is unresolved, present a single aggregate gate (not per-ref):
 ```
-choices: ["Proceed with PRD-only content (Recommended — writer/planner draw from the folder read output; final report notes missing PR content)", "Review candidates one by one", "Cancel"]
+choices: ["Proceed with PRD-only content (Recommended — writer/planner draw from the folder read output; final report notes missing diff content)", "Review candidates one by one", "Cancel"]
 ```
 
 ---
@@ -989,7 +989,7 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > Session handoff:
 > - Command run: /document
 > - What was done: [one-paragraph summary of the documentation produced]
-> - Key events: [BLOCK reviews encountered and their reason, ambiguous image policies, unresolved PRs, style-check failures, branch-naming conflicts — or 'none']
+> - Key events: [BLOCK reviews encountered and their reason, ambiguous image policies, unresolved refs, style-check failures, branch-naming conflicts — or 'none']
 > - Workarounds used: [manual steps not automated by the workflow — or 'none']
 > - Review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK]
 > - Test result: N/A (no tests in /document)
@@ -1106,11 +1106,13 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 - Themes: [2–4 bullet points from the folder read]
 
 ### Repos analysed
-- <repo-1> (<resolved repo_path>) — [N PRs in scope, M resolved, K unresolved]
+- <repo-1> (<resolved repo_path>) — [N refs in scope, M resolved, K unresolved]
 - ...
 
-### PRs in scope
-- [PR URL] — status: [MERGED | OPEN | DECLINED | UNKNOWN], resolved_via: [pr_ref | branch_search | merge_commit | key_commits | gh_cli | unresolved]
+### Refs in scope
+[One line per `per_pr` element `diff-summarizer` returned, then one per `unresolved_prs` element. Every field below is from that agent's own Output block: it returns **no per-element `status`** — its `status` is per repo, and Phase 4 step 1 has already said there is no PR status to filter on — and on a keyed run every element came from `refs[]`, so `url` is null and `ref` is what identifies it.]
+- <repo> — <ref, or url on the element that carries one> — resolved_via: [local_ref | pr_ref | branch_search | merge_commit | key_commits | gh_cli | unresolved] — [files_changed] file(s), +[insertions]/-[deletions]
+- <repo> — <ref> — unresolved: [reason from `unresolved_prs`; candidates, where Strategy 4 found any]
 - ...
 
 ### Output file(s)
@@ -1261,8 +1263,7 @@ name is ever written (§10 privacy).
 
 - ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
 - ALWAYS run Phase 0 docs-repo detection; if 0 signals, require user confirmation before proceeding
-- NEVER call Bitbucket REST APIs for Cloud or self-hosted Server — Bitbucket URLs are identifiers only; all resolution is pure local git
-- GitHub URLs may use the `gh` CLI for head/base SHA resolution; no direct REST calls outside `gh`
+- NEVER call a forge's REST API directly over HTTPS, on any host. A keyed run has no forge URL to resolve in the first place: it passes `refs[]` only (Phase 4 step 6), and `diff-summarizer` takes a `refs` element's diff with pure local `git`. The one forge command this command names is the `gh pr create` Phase 8.5 offers the **user** for the run's own pull request, and `gh` wraps the API rather than calling it directly
 - NEVER write inside `_archive/` — that path is read-only by convention
 - NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0). Outside the docs repository and its remote the run writes these and nothing else: the resolved PRD folder's two drafts, the `<KEY>-implementation-gaps.md` bug-report draft and `pr-draft.md`; screenshots staged under `<screenshot_staging_dir>`, and, for each one staged under `$SPECS_PATH`, one line in that repository's local exclude file (Phase 6.3); its session bookkeeping under `$SPECS_PATH`, with the commits, pushes and branch moves `specs-preflight` and `commit-artifacts` make there (`workflows-core:specs-repo-git`), and the session-cost checkpoint Phase 11 advances under `~/.claude/dev-workflows/cost-state/` (`workflows-core:cost-emission` §3); its temporary files, each made by `mktemp` — Phase 6.3's handoff file and Phase 7's claims file, removed at the top of Phase 8, and Phase 6.5's smoke logs, each removed as `render-verification.md` §2 step 5 removes one, save a log that step keeps because it could not show its server stopped, which the record naming it leaves in place; the refresh Phase 1 chose for the resolved code clones, in their own git state (Phase 5's `diff-summarizer`, its Refresh step); whatever the tools it invokes write of their own accord — the repository's own linter, build and server commands, which Phases 6.4 and 6.5 run, above all; and, only behind Phase 8.6's own consent, each accepted Agent 2 or Agent 3 proposal, written to the file that proposal names — which may lie outside every repository, `~/.claude/CLAUDE.md` or `~/.claude/memory/` among them.
 - ALWAYS escalate missing repos before proceeding — never silent skip
@@ -1280,7 +1281,7 @@ name is ever written (§10 privacy).
 - ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)
 - ALWAYS produce the Phase 9 report as the final output
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`) — guidance only, never auto-invoked; omitted in direct doc-edit mode (Mode B)
-- ALL written claims must be traceable to a resolved key or to PR diffs — attribution goes in the run's return payload and the commit message, NEVER inline in the rendered page (`workflows-core:doc-structure-conventions` §1)
+- ALL written claims must be traceable to a resolved key or to a summarised diff — attribution goes in the run's return payload and the commit message, NEVER inline in the rendered page (`workflows-core:doc-structure-conventions` §1)
 - For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo — stage under `<screenshot_staging_dir>` — the resolved PRD folder's screenshot subfolder by default, else a directory the operator names (Phase 1); never the docs repo, never `/tmp` — and surface in the Phase 9 `### Screenshots to upload manually` section
 - ALWAYS end the Phase 9 report with a `### Context hygiene` block per `workflows-core:session-hygiene` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `workflows-core:session-hygiene` §1 — this block prints the guidance only), then a docs→PM handoff suggestion (`/clear`) + `/rename <PRD-ID>-<slug>-dev`; guidance only, never auto-run. **Mode B (direct doc-edit) omits this** — no PRD context.
 
@@ -1293,10 +1294,10 @@ Implement the following doc edit: $ARGUMENTS
 If the argument starts with `@`, treat it as a path to a markdown file. Resolve relative to the current working directory. Read its full content and use it as the description. Echo `📄 Reading prompt from \`<file>\`…` before proceeding. If the file cannot be read, stop and report the error immediately.
 
 `/document` (direct mode) is the **one-shot doc-editing** workflow — minor edits, formatting, small updates to existing pages, and single-file additions where the content comes from the user's description alone. It is the right tool when:
-- the change is small and the content is already in the user's head or the file, **not** scattered across PRD sections and PR diffs
+- the change is small and the content is already in the user's head or the file, **not** scattered across PRD sections and the diffs behind them
 - no tests, no branch (still true — the specs-repo preflight creates none, `workflows-core:specs-repo-git` §2.2), no code review, and no commit of the doc edit are warranted
 
-For net-new documentation assembled from a PRD folder plus PR diffs, use keyed mode (above). For writing child Epic drafts from a Product Requirements Document, use `/product-workflows:epics`.
+For net-new documentation assembled from a PRD folder plus the diffs its implementation record names, use keyed mode (above). For writing child Epic drafts from a Product Requirements Document, use `/product-workflows:epics`.
 
 No model-routing reminder is injected for this command — classification still happens but is always SIMPLE or MODERATE, and Opus is never invoked.
 

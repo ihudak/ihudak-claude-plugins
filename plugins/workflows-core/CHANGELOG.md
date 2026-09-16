@@ -8,6 +8,10 @@ Versions follow semver at the plugin level.
 
 Everything here is a shared contract another plugin reads, which is why the arrival of `docs-workflows`' cold-start commands (`/docs-init`, `/docs-brand`, `/docs-serve`) moves this plugin's version rather than only theirs.
 
+### Fixed — `escalation-rules.md`'s `/document` repo-unresolved array named PRs (1.5.0)
+
+The *Repo unresolved (zero matches) — /document* rule offered *"Skip and continue without its PRs"*. That command builds its `refs[]` from `implementation.md` and the `git log --grep` scan beside it and reads no pull request (`/document` Phase 4 step 1), so the option named something the run does not have; it now names **refs**, and the rule says why beneath it. The array's arity is unchanged. `docs-workflows` 1.2.0 corrects the same vocabulary in the command itself.
+
 ### Fixed — a path `git status --porcelain` quotes was silently never staged (1.5.0)
 
 `git status --porcelain` wraps a path carrying a space, a `"`, a `\` or a non-ASCII byte in double quotes and octal-escapes the non-ASCII bytes — measured on git 2.43.0, where `?? "brd/source/appendix/data table.csv"` is what a customer's linked file reports as. Both of this plugin's path classifiers read that output and matched the path as reported, and both are anchored at `^`, so the leading `"` alone put every such path in **OTHER**: never staged, never on a ref, and never mentioned. Step 1 of each now reads `--porcelain -z`, whose records are NUL-terminated and whose paths are emitted raw.

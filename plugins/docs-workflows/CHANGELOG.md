@@ -6,6 +6,16 @@ Versions follow semver at the plugin level.
 
 ## [1.2.0] — 2026-09-10
 
+### Fixed — `/document`'s Final Report asked for three things the run cannot produce (1.1.3)
+
+Phase 9's `### PRs in scope` block instructed the run to print, per element, a **PR URL**, a `status` of `MERGED | OPEN | DECLINED | UNKNOWN`, and a `resolved_via` drawn from a six-value list. None of the three survives contact with what the run holds. `diff-summarizer`'s Output declares no per-element `status` at all — its `status` is per repo — so the field had no source; a keyed run builds `refs[]` from `implementation.md` and the commit scan, for which that agent sets `url: null`; and the `resolved_via` list omitted `local_ref`, the one value a `refs` element can ever carry. The same file's Phase 4 step 1 already stated flatly that *"there is no `pull_requests[]` to filter and no PR `status` to filter on"* — two live contradictory instructions in one command body, which `workflows-core:instruction-file-maintenance` names as a defect in itself. The block is now `### Refs in scope`, its fields taken from that agent's Output and nothing else: `ref` (or `url` on an element carrying one), the full seven-value `resolved_via`, the change counts, and a second line shape for an `unresolved_prs` entry with its reason.
+
+### Fixed — the rest of `/document`'s pull-request vocabulary (1.1.3)
+
+The command resolves no pull request: it resolves the implementation record's **repo slugs** to clones and summarises the **refs** that record names. Thirteen sites still said otherwise and are corrected against what the run does — the frontmatter `description` and the opening summary (*"resolves PR URLs to local git repos"*), the refresh choice and its rationale, the `diff-summarizer` dispatch prompt (*"Summarise this repo's PRs"*), the `NO_PRS_RESOLVED` handling and the all-unresolved aggregate gate, the maintenance key-events line, the `### Repos analysed` counts, the traceability rule, and the two direct-mode boundary sentences. `NO_PRS_RESOLVED` keeps its name — it is the agent's own declared return status — and every remaining "PR" in the file is the run's **own** pull request (the Phase 8.5 draft, the profile PR, a repo's pre-PR checklist), which is correct. `workflows-core:escalation-rules`' *Repo unresolved (zero matches) — /document* array offered *"Skip and continue without its PRs"* and now names refs; four sentences on the command's own documentation page follow, including its zero-direct-API-calls paragraph, which described a `gh` resolution path a keyed run cannot reach.
+
+**Phase 4 step 6 is brought to the same standard rather than left inert.** It told the run what to do *"where a run was additionally given a genuine PR URL as `pr_refs` enrichment"* — a state nothing produces, since Phase 5 passes `refs[]` only. It now says that outright: `diff-summarizer`'s host routing, `gh` resolver and `host: other` disposition are that agent's contract for a caller holding a pull-request URL, and never a branch this run takes.
+
 ### Added — the cold-start scaffold: `/docs-init`, `/docs-brand`, `/docs-serve`
 
 Three commands answer the question the plugin previously could not: *there are no docs and no docs repo — what should exist?* Every existing command assumed documentation already existed, and documented a delta against it.

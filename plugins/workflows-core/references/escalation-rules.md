@@ -199,10 +199,12 @@ rule; a citer that names the rule uses the list written here.
 
 ## Repo unresolved (zero matches) — /document
 
-`choices: ["Skip and continue without its PRs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]`
+`choices: ["Skip and continue without its refs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]`
 
 Used in `/document` Phase 4 when a repo slug has zero matches in the
-slug→clone map.
+slug→clone map. The first option names **refs**, not PRs: that command builds
+its `refs[]` from `implementation.md` and the `git log --grep` scan beside it,
+and reads no pull request (`/document` Phase 4 step 1).
 
 ## Repo unresolved (zero matches) — /epics
 

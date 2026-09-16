@@ -1,6 +1,6 @@
 # References
 
-This plugin bundles the guidance it reviews against — 38 files under `references/` — so a review cites a file that ships with it rather than a page on the internet that may have moved. Two subtrees hold it: `api-guidelines/` for `/api-guideline-reviewer` and `guidelines/` for `/guideline-reviewer`. The counts below are **markdown files only** — each subtree also carries one vendored non-markdown file (a Spectral ruleset, an OpenAPI template, or a checker script) that is not a reference page a reader opens, so it is not counted here even though it ships with the corpus and moves with it.
+This plugin bundles the guidance it reviews against — 38 files under `references/` — so a review cites a file that ships with it rather than a page on the internet that may have moved. Two subtrees hold it: `api-guidelines/` for `/api-guideline-reviewer` and `guidelines/` for `/guideline-reviewer`. The counts below are **markdown files only** — the subtrees also carry vendored non-markdown files (a Spectral ruleset, an OpenAPI template and a checker script) that are not reference pages a reader opens, so they are not counted here even though they ship with the corpus and move with it. The arithmetic below counts them per subtree.
 
 | Subtree | Markdown files | What it holds |
 |---------|-------|---------------|

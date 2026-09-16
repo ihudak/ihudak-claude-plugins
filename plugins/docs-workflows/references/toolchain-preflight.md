@@ -266,11 +266,19 @@ registered fallback** — the Step 2 dev-server boot that stands in for a build 
 `required_by` is reported but never blocks.
 
 A tool §3 tests both ways — one a build or lint command and a dev-server command both run — takes
-one row where the two tests agree, and two where they do not: a `present` row whose `required_by`
-names the gates its build and lint commands power, and a `missing` row carrying the gates its dev
-servers power — `render_smoke_check` in `required_by`, `build_check` in `fallback_for`. So a
-`pnpm` that only a shell function provides predicts `render_smoke_check` `DEGRADED`, and leaves
-the builds it runs to run.
+one row where the two tests agree, and two where they do not: **one row per test, each carrying the
+gates the commands that take that test power, and each row's `status` that test's own answer**. The
+own-shell test's row carries the gates its build and lint commands power; the child-shell test's row
+carries the gates its dev servers power — `render_smoke_check` in `required_by`, `build_check` in
+`fallback_for`. **Which of the two is the `present` one is whatever the tests say, and both ways
+round are reachable.** A `pnpm` that only a shell function of the user's provides is present to
+their own shell and missing to the child: the dev-server row is the `missing` one, predicting
+`render_smoke_check` `DEGRADED`, and the build and lint row is `present`, leaving the builds it runs
+to run. A tool that only an **exported** bash function provides, on a host where the Bash tool's
+shell is zsh, is the other way about — zsh takes no bash function out of the environment, while the
+child `bash` imports it and runs it (measured, zsh 5.8): the build and lint row is the `missing`
+one and the dev-server row the `present` one, and each is right about its own commands. Never
+derive a row's `status` from the kind of gates it carries.
 
 ## 5. Reporting and the prompt
 

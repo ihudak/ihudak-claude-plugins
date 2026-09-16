@@ -41,7 +41,7 @@ The **shared, team-visible repository for the AI-authored documents** — the id
 
 ### `REPOS_PATH`
 
-Where your mounted implementation and design code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. `/create-ard` and `/idea` (with `--ground-code`) list top-level directories under `$REPOS_PATH` and match on their **basenames**, so a repo renamed on disk is not found by those two unless the rename is also reflected there. `/prd-ground` instead grounds against the repositories `grounding/baselines.md` pins by commit.
+Where your mounted implementation and design code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. `/create-ard` and `/idea` (with `--ground-code`) list top-level directories under `$REPOS_PATH` and offer them to you, so a repo renamed on disk is offered under its new name rather than lost — except where `/idea`'s `--ground-code <repo>,<repo>` names one, since every comma-separated part must match a top-level **basename** to be read as a repo at all. `/prd-ground` instead grounds against the repositories `grounding/baselines.md` pins by commit.
 
 ### `DOCS_PATH`
 

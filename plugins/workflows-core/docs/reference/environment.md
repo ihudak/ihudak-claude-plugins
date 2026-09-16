@@ -38,7 +38,7 @@ Every one of the five is read by a reference this plugin ships rather than by a 
 
 - **`$GIT_USER_INITIALS`** — your branch identity string; no default, and nothing fails when it is absent.
 
-**Resolution.** It is rung 1 of the identity ladder `branch-naming.md` applies for a code repository. The rungs run in order, stopping at the first non-empty result: this variable, then `git config user.initials`, then inference from existing branch names, then a prompt.
+**Resolution.** It is rung 1 of the identity ladder `branch-naming.md` applies wherever a command creates a git branch. The rungs run in order, stopping at the first non-empty result: this variable, then `git config user.initials`, then inference from existing branch names, then a prompt.
 
 **When unset.** The ladder falls through — there is no error, only degradation to a less certain source. Where the target repo's documented convention has no name-or-initials segment, the variable is simply unused for that repo.
 

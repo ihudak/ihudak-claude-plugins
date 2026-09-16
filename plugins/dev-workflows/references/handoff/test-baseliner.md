@@ -14,10 +14,9 @@ baseline:                  # required only for mode: verify
   passing_tests:           # may be [] if only count was available
     - com.example.FooTest#testCreate
     - com.example.BarTest#testLogin
-model_routing:             # optional; informational only — test-baseliner
-  classification: SIGNIFICANT  # ignores routing and runs under whichever
-  # model the caller selected. See `workflows-core:model-routing/classification` for the model-routing block schema.
 ```
+
+**No `model_routing:` block is passed.** The caller pins this agent's tier with `model:` on the dispatch, and nothing in the agent reads a field of that block.
 
 ## Output — capture mode
 

@@ -430,7 +430,7 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 ```
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = every file
-this run wrote under `<BRD-dir>` — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 classifies either as OTHER and stages it silently, so a declaration that looks complete ships nothing. That is each file this run actually copied into `brd/source/` — the customer's document **and every file it links** (Phase 2) — named individually (the copy step knows them; `brd/source/**` is not a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`, `brd/brd-link-log.md`,
+this run wrote under `<BRD-dir>` — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 stages neither, so a declaration that looks complete ships nothing — §2.3 step 4 names each in §4.1's *declaration unaccounted for* clause, so the failure is reported rather than silent, but nothing it names lands. That is each file this run actually copied into `brd/source/` — the customer's document **and every file it links** (Phase 2) — named individually (the copy step knows them; `brd/source/**` is not a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`, `brd/brd-link-log.md`,
 `coverage-ledger.md`, and — only when Phase 6 ran — `prd-seed.md`, `ard-seed.md`, `spec-seed.md`),
 `title: <BRD-KEY> Intake BRD source and requirement inventory`, and `body_facts` = the requirement
 count, the confirmed-defect count by class, and whether Phase 6 wrote seeds; emit its §4.1 outcome

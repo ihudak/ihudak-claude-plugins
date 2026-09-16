@@ -4,7 +4,17 @@ All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
-## [3.5.1] — 2026-09-10
+## [3.6.0] — 2026-09-10
+
+### Fixed — `/brd-intake` captures the files the customer's BRD links
+
+Phase 2 copied `@<brd-file>` byte-for-byte into `brd/source/<basename>` and copied nothing else, and 3.5.0 shipped that. A customer's BRD routinely carries screenshots, diagrams and appendices beside it; after intake every one of those links resolved to nothing, and `brd/source/` is the immutable record every `[BR#n]` anchors into (`references/brd-format.md` §1, D11) — nothing under it is ever written again, so what intake did not capture was outside the record permanently. The run meanwhile reported a faithful verbatim copy, which is what made the loss silent. Phase 2 now copies, byte-for-byte and whatever the type, **every file the document links from its own directory**, to the same relative path under `brd/source/`, so the copied text's links resolve exactly as the customer's did with no edit to the text. The forms covered are the ones a customer's markdown uses: markdown inline images and links, reference-style definitions, and HTML `<img src>`. A target is copied only where it carries no URI scheme, does not begin with `/`, contains no `..` segment, and names a readable file under the source document's directory — the `..` test being what keeps the literal path a link names inside `brd/source/` rather than above it. The capture then repeats over each markdown file it copied, to a fixed point, so a linked appendix's own links do not reproduce the loss one level down.
+
+**What could not be captured is named rather than dropped.** A new `brd/brd-link-log.md` carries the source document's basename, the run's counts, and one row per uncopied link — the target as written, the file it sits in, and one of four reasons (above the source document's own directory, an absolute path, a URL, unreadable) — and the final report says the same. It is written on every run, including one that captured everything, so its counts are the positive record that the capture ran. It is the **plugin's** record, not the customer's, which is why it sits in `brd/` beside `brd-inventory.md` and `brd-defect-log.md` and never under `brd/source/`, where every byte is the customer's own. `references/brd-format.md` gains §1.1 as the authority for all of it, Phase 7's `deliverable_paths` enumerates the copied files and the log, and `brd-reader` is told the linked files sit beside the source so a link is not a dead end — it still reads only `source_path`.
+
+One consequence is worth stating because a reader will meet it: `brd/source/` can now hold more than one markdown file, so **which file in it is the customer's document is read, never guessed** — `brd/brd-link-log.md`'s opening line names it, and a BRD intaken before that log existed holds exactly one file there. `brd-format.md` §2.1 says so where it fixes the `source:` header a slice's inventory carries, which is the one place that name is re-derived. What a screenshot *means* to the requirements — a `[BR#n]` anchored to an image, the defect walk reading one, grounding against one, a package returning one — is not in this release; this is capture and fidelity only.
+
+**Why this is 3.6.0 and not 3.5.1.** The run writes files it did not write before — every in-directory linked file, and the link log — so the artifact set a consumer sees is larger, which is added behaviour at the plugin level rather than a repair that leaves the output unchanged.
 
 ### Fixed — the workflow diagram renders again
 

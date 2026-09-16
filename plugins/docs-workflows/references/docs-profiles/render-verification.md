@@ -445,12 +445,17 @@ The smoke-check is best-effort. A prerequisite-unmet, missing-server-tool,
 boot-failure, or readiness-timeout outcome is recorded with its reason and falls
 back to the manual table for that space — on a space with two servers, for that
 server's pages — and it never blocks the run. Three outcomes end the smoke-check rather
-than one space's part of it: a port that answers before its server boots (§2
-step 2), a server §2 step 5 cannot confirm stopped — its port still answers, or
+than one space's part of it: a port taken before its server boots (§2
+step 2 — answering, or held by a socket a process holds as its local port), a
+server §2 step 5 cannot confirm stopped — its port still answers, or
 its process group still runs — and a readiness timeout on a server started
 without a process group of its own (§2 step 3). Every page not yet checked then
-falls back to the manual table, and the record names the port or process group
-left running and its command — it never blocks the run either. A fourth ending
+falls back to the manual table, and it never blocks the run either. **What the
+record names differs by ending, because the first of the three booted nothing**:
+it names the port and, where the socket read names one, the pid holding it —
+this check started no command there and made no log, so it names neither; the
+other two name the port or process group left running, its command and its log,
+which §2 step 5 keeps for exactly that reason. A fourth ending
 is the check being unavailable: `bash` or `curl` — or, off Linux, `ps` — cannot
 run (§2), and the check boots, probes and stops through them; every page not yet checked falls
 back to the manual table, and the record names the tool.

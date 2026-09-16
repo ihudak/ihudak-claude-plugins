@@ -30,7 +30,7 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 
 2. **Resolve requested targets** — Apply the `Version Resolution` section below to each requested token.
 
-3. **Delegate planning in parallel** — Spawn one planner task per requested component. Use a single agent message for the whole batch.
+3. **Delegate planning in parallel** — Spawn one planner task per requested component. Use a single agent message for the whole batch. Per-component classification does not happen until step 5 (`upgrade-planner.md` says so in its own words), so the `model_routing` block this dispatch carries is **provisional**: start at `MODERATE`, the rung `/vuln` Step 0 takes for the same reason, and let step 5's classification be the run's.
 
    Use this pattern for each component:
 

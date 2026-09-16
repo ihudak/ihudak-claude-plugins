@@ -298,10 +298,30 @@ yet checked goes to the manual table. For each server:
    running, one without a group of its own that timed out, or one it signalled when `curl` could not
    run — keeps its log, and the record that ends the check names it.
 
-   A missing `lsof` alone never ends the check. What ends it is a port that is not free before a
-   boot (step 2) — answering, or with a listener the probe cannot reach — a port still answering
-   after the stop, a group that will not go, a readiness timeout on a server without a group of its
-   own (step 3), or a probe that cannot run (above).
+**The endings.** A missing `lsof` alone never ends the whole check. Four things do, and what each
+one records — and what that record names — is its own. **This list is the definition**: §5 below,
+`/document` Phase 6.5 Step 2, its Outcomes, its `render_smoke_check` ledger row, its `doc-reviewer`
+dispatch and its Phase 9 template all cite it instead of restating it, and a site that needs one
+ending's wording inline quotes it from here and names which ending it is. It is a definition because
+the same list, maintained at several sites at once, went stale at each of them in turn.
+
+1. **A port that is not free before a boot** (step 2) — answering, or with a listener the probe
+   cannot reach. Its record names **the port**, and the listener's pid where the listening read
+   names one. It names **neither a command nor a log**: this ending booted nothing, so there is
+   neither to name.
+2. **A server step 5 cannot confirm stopped** — its port still answers, or its process group still
+   runs. Its record names **what it could not confirm stopped, left running — the port that still
+   answers, with its listener's pid where the socket table names one, or the process group that
+   still runs — with that server's command and its log**, which step 5 keeps for exactly that
+   reason.
+3. **A readiness timeout on a server started without a process group of its own** (step 3). Its
+   record names **the port that may still bind, the server's command and its log**.
+4. **The check cannot run** — `bash` or `curl`, or off Linux `ps`, is not installed, or a probe
+   exits 127 part-way through (above). Its record names **the tool**, and, for the 127, the server
+   it signalled and that server's log.
+
+On every one of them, every page not yet checked falls back to the manual table (§5), and none of
+them blocks the run.
 
 **Portability.** The shell semantics above are bash's, by step 2's and step 5's explicit `command bash -c`.
 `curl -s -o /dev/null --noproxy '*' --max-time 2`, the GET's
@@ -415,21 +435,11 @@ prerequisite `<x>` unmet" and use the manual table for that space.
 The smoke-check is best-effort. A prerequisite-unmet, missing-server-tool,
 boot-failure, or readiness-timeout outcome is recorded with its reason and falls
 back to the manual table for that space — on a space with two servers, for that
-server's pages — and it never blocks the run. Three outcomes end the smoke-check rather
-than one space's part of it: a port that is not free before its server boots (§2
-step 2 — answering, or with a listener the probe cannot reach), a
-server §2 step 5 cannot confirm stopped — its port still answers, or
-its process group still runs — and a readiness timeout on a server started
-without a process group of its own (§2 step 3). Every page not yet checked then
-falls back to the manual table, and it never blocks the run either. **What the
-record names differs by ending, because the first of the three booted nothing**:
-it names the port and, where the listening read names one, its listener's pid —
-this check started no command there and made no log, so it names neither; the
-other two name the port or process group left running, its command and its log,
-which §2 step 5 keeps for exactly that reason. A fourth ending
-is the check being unavailable: `bash` or `curl` — or, off Linux, `ps` — cannot
-run (§2), and the check boots, probes and stops through them; every page not yet checked falls
-back to the manual table, and the record names the tool.
+server's pages — and it never blocks the run. **What ends the whole check rather than one space's
+part of it is §2's `The endings`**, which is where the four are defined, with what each one records
+and what that record names — including which of them name a command and a log and which names
+neither. Every page not yet checked then falls back to the manual table, and none of the four blocks
+the run either.
 
 A 404 and a 5xx on an affected page are both surfaced, never silently dropped,
 and each has exactly one disposition:

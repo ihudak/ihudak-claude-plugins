@@ -151,6 +151,10 @@ Phase 8.5 told the run to write the pull-request draft to the resolved PRD folde
 
 Its `change_type` field comment said "an absent value is inferred", where the agent's own hard rule and §7 rung 1 also infer for a present value that does not route. The comment now says "absent or not routable".
 
+### Fixed — what ends `/document`'s render smoke-check is defined once and cited
+
+The list of what ends the whole smoke-check, rather than one space's part of it, was written out wherever it was needed and went stale at one site after another. Two were still wrong: `/document`'s `render_smoke_check` ledger row missed the ending a listener the probe cannot reach adds, and it and the Phase 9 report template both told a run to name "the port or process group left running and its command" for the one ending that boots no command and writes no log — so the row either misdescribed the ending or invented a command, under a `doc-reviewer` dimension that grades it. `render-verification.md` §2 now carries **The endings** — the four, what each records, and what that record names — and every other site cites it: §5, `/document` Step 2, its Outcomes, that ledger row, its `doc-reviewer` dispatch and its Phase 9 template.
+
 ## [1.1.3] — 2026-09-09
 
 ### Added — a recorded review verdict names the version it was taken against

@@ -36,8 +36,8 @@
 
 ## `$GIT_USER_INITIALS`
 
-- **`$GIT_USER_INITIALS`** — your branch identifier; optional, and rung 1 of the five-rung ladder `workflows-core:branch-naming` §2 fixes.
+- **`$GIT_USER_INITIALS`** — your branch identifier; optional, and rung 1 of the identity ladder `workflows-core:branch-naming` §2 fixes.
 
-**Resolution.** It is rung 1 of the identity ladder every branch-creating command here applies — `/document` in keyed mode (direct mode creates no branch and no commit), `/docs-profile`, `/docs-init`, and a standalone `/docs-brand`. The rungs run in order, stopping at the first non-empty result: `$GIT_USER_INITIALS` (used verbatim, never with a trailing `/`) → `git config user.initials` → inference from existing branch names → the per-command fallback prefix → a mandatory prompt if nothing above yields anything.
+**Resolution.** It is rung 1 of the identity ladder every branch-creating command here applies — `/document` in keyed mode (direct mode creates no branch and no commit), `/docs-profile`, `/docs-init`, and a standalone `/docs-brand`. The rungs run in order, stopping at the first non-empty result: `$GIT_USER_INITIALS` (used verbatim, never with a trailing `/`) → `git config user.initials` → inference from existing branch names → a mandatory prompt if none of the three yields anything, offering this command's fallback prefix (§2.4, `docs/` for all four) as its default.
 
 **When unset.** The ladder falls through to the rungs below it — there is no error, only degradation to a less certain source. Branch naming is repo-rule-first: where the target repo's documented convention has no name-or-initials segment at all, the variable is simply unused for that repo regardless of whether it is set.

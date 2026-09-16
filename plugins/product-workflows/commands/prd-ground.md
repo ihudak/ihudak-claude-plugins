@@ -897,8 +897,8 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
   getting the contract wrong is a plugin gap, unlike Phase 0's environment halts.
 - **`REPO_MISSING` / `FRAME_SET_MISSING` / `NO_INDEX` / `STALE_INDEX`** — the source this finding rests on is gone
   or unusable (a repository unmounted mid-run, a frame set removed or exported without an index
-  since it was ground). Stop, naming the finding and the path the agent reported — and, per the
-  four-part stop contract, the command that resolves it: on `NO_INDEX` that is
+  since it was ground). Stop, naming the finding and the path the agent reported — and the
+  command that resolves it: on `NO_INDEX` that is
   `/workflows-core:frames <this run's KEY>`, then re-run this command. **On `STALE_INDEX` it is
   not** — the index is there and its descriptions are intact; the frames are gone. Re-running
   `/frames` on an empty directory writes nothing (`workflows-core:grounding-format` §6.2 step 6 forbids it), so

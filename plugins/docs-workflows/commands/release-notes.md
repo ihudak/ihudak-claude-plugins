@@ -126,7 +126,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 ## Phase 2 — Plan + approval
 
-1. **Plan.** Before presenting the plan, run `resolve-docs-grounding release-notes` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's the folder read and Phase 4/5's diff resolution do any of the run's real work. Present: resolved `key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), style-check choice, and the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs). Ask:
+1. **Plan.** Before presenting the plan, run `resolve-docs-grounding release-notes` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's folder read and Phase 4/5's diff resolution do any of the run's real work. Present: resolved `key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), style-check choice, and the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs). Ask:
    ```
    choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
    ```

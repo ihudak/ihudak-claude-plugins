@@ -145,6 +145,10 @@ Phase 8.5 told the run to write the pull-request draft to the resolved PRD folde
 
 `/document`'s `doc-writer` handoff file (Phase 6.3) and `doc-fixer` Fix Report (Phase 7), and `/release-notes`' scratch copy of the draft (Phase 7), were named with a bare `mktemp`, which the Bash tool's own shell resolves through any alias or shell function of that name before `mktemp` runs — so the path the run writes to and hands on is whatever that printed. All three now run `command mktemp`, as the smoke-check's own log already did.
 
+### Fixed — a stray article in `/release-notes` Phase 2
+
+*"before Phase 3's the folder read"* now reads *"before Phase 3's folder read"*, in a command body an agent executes in order.
+
 ### Fixed — four sentences that described a neighbouring phase loosely
 
 `doc-planner` said `/document` Phase 5.7 settles "each such target" of its first return, where that step settles only a target whose `screenshots:` is non-empty, and that Phase 9 lists a staged screenshot's `upload_note`, where Phase 9 lists it only on the **Defer** path. `doc-reviewer`'s Inputs list did not declare `render_verification`, which Phase 7 passes it, though every other input in that dispatch was declared. And `/release-notes` Phase 7's "read the scratch file back … and remove it" sat under the auto-fix branch, so a report-only run could read the removal as that branch's, against its own invariant; the removal is now its own sentence and says it happens on every path, and the invariant, which keyed it to that same read-back, says so too.
@@ -172,6 +176,18 @@ The list of what ends the whole smoke-check, rather than one space's part of it,
 ### Fixed — what `/release-notes` refuses, on its page and in `CLAUDE.md`
 
 Both said *"the run's one refusal is `RELEASE_NOTES_NEEDS_KEY`, on an address that does not resolve"*, which is wrong in both halves and contradicted the same page nineteen lines above it. `RELEASE_NOTES_NEEDS_KEY` fires on **no positional address at all**; an address that does not resolve is a different stop — the shared re-enter/cancel escalation — an ambiguous one a third, naming every match, and Phase 3 adds a fourth for a folder holding no PRD. Both sites now enumerate what Phase 0 and Phase 3 do. The point the sentence was making — that no *content* state refuses a draft — is unchanged and stands beside it.
+
+### Fixed — `/document` no longer asks for a PR-status filter nothing reads either
+
+The same defect its sibling carried, in the command beside it. Phase 1 asked which pull-request statuses to include — *MERGED only* / *All PRs (MERGED + OPEN + DECLINED)* / *Specific list* — and Phase 2 carried the answer into the plan as *"PR filter (MERGED only / all / specific)"*, where it stopped. Nothing read it, and Phase 4 step 1 says so in as many words: *"There is no `pull_requests[]` to filter and no PR `status` to filter on"* — the record of what was implemented is `implementation.md` and the `git log --grep` scan beside it, neither of which carries a status. Phase 5's dispatch passes `repo_path`, `repo_url_slug`, `refs`, `context`, `keys_hierarchy` and `refresh`, and never `pr_refs`, the only `diff-summarizer` input with a `status` field. It is removed rather than given a reader, for the reason its sibling's removal records: building a producer for it would mean resolving a pull-request URL, which this command's own zero-API-calls invariant forbids. The command page's example, which listed the question among the three Phase 1 asks, now names the refresh policy in its place. Phase 5's one conditional about a `pr_refs` element a run *was additionally given* is left standing: it is an inert conditional about `diff-summarizer`'s own input contract, and it costs the operator nothing, where a question costs an answer.
+
+### Fixed — `/document` says which slugs its clone matching uses
+
+Phase 1's repos-search-base bullet told the user that clones are located *"by matching their `git remote` against each PR's repo slug"*. Phase 4 matches each in-scope `repo` slug the implementation record and the commit scan named, there being no pull request in the resolution at all. Both the bullet and the command page's *What it needs* entry now say that, and the page's example and its direct-mode paragraph say **repo** resolution where they said PR resolution.
+
+### Fixed — `/document` Phase 3 has one lead-in, not the same one twice
+
+The sibling of the `/release-notes` fix below, found by the same reading and left unfixed by it. Two consecutive paragraphs both opened **"Read the resolved folder directly"** — one parenthesising the depth, the other naming what to read — in a phase an agent executes in order. They are one paragraph now, carrying both.
 
 ### Fixed — `/release-notes` Phase 3 has one lead-in, not the same one twice
 

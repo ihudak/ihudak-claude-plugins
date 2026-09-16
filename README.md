@@ -96,7 +96,7 @@ claude plugin marketplace remove ihudak-plugins
 claude plugin marketplace add ihudak/ihudak-claude-plugins
 ```
 
-then reinstall the plugins you want, per step 4.
+then reinstall the plugins you want, per step 2.
 
 **`marketplace update` from the CLI refreshes the catalogue, not your installed plugins.** It updates what the marketplace advertises — which is what makes a newly added plugin installable — but an already-installed plugin stays at the version you installed. `claude plugin update <plugin>` is what upgrades one from the command line, and **it requires restarting Claude Code to apply.** Update only the plugins you actually have.
 

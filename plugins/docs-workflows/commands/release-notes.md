@@ -69,12 +69,7 @@ run — the terminal `commit-artifacts` step skips on it.
   ```
   choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]
   ```
-  Clones are located in Phase 4 by matching `git remote` against each PR's repo slug — not by assuming a `<base>/<slug>` directory name.
-
-- **PR status filter** (only if diff grounding is ON):
-  ```
-  choices: ["MERGED only (Recommended)", "All PRs (MERGED + OPEN + DECLINED)", "Specific list (you'll be prompted)"]
-  ```
+  Clones are located in Phase 4 by matching `git remote` against each repo slug the Phase 3 implementation record and its commit scan named — not by assuming a `<base>/<slug>` directory name. Nothing here asks which pull-request statuses to include: Phase 3 builds its refs from `implementation.md` and a `git log --grep` scan, neither of which carries one, and Phase 5 passes `refs[]`, never the `pr_refs` elements that have a `status` field at all.
 
 - **Output destination — derived, not asked.** The draft lands in **`release-notes.md` in the
   resolved PRD folder**, appended as a section. There is one home now, so the destination question

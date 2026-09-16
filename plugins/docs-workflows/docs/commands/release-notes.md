@@ -45,7 +45,7 @@ Three subagents are dispatched: `workflows-core:docs-grounder` (Phase 5.5, read-
 ## What it needs
 
 - **A resolved address** — a key or an `@<path>` naming a folder in the specs tree, resolved directory; `mode: direct` is rejected outright.
-- **Optional diff grounding** (default OFF) — when turned on, `$REPOS_PATH` and a PR-status filter are resolved the same way `/document` resolves them, and a repo that resolves to zero matches is put to you as a choice rather than resolved silently; a repo you then skip degrades the grounding for that repo and never the run.
+- **Optional diff grounding** (default OFF) — when turned on, `$REPOS_PATH` is resolved the same way `/document` resolves it, and clones are matched by `git remote` against the repo slugs the implementation record and the commit scan named; a repo that resolves to zero matches is put to you as a choice rather than resolved silently, and a repo you then skip degrades the grounding for that repo and never the run.
 - **Optional `$DOCS_PATH` grounding** (Phase 5.5), resolved once in Phase 2 alongside plan approval — read-only, never a gate.
 - **For a deprecating change, an end-of-life date.** A deprecation note is required whenever the PRD deprecates a capability or is itself a deprecation, and it always needs an end-of-life date — the end-of-support date is optional. A missing end-of-life date is never invented: it becomes a `deprecation_eol` gap the command asks the user about, with a `<!-- TODO: end-of-life date -->` placeholder in the draft until it's answered.
 

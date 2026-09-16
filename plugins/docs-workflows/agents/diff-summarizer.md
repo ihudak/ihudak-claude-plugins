@@ -1,6 +1,6 @@
 ---
 name: diff-summarizer
-description: Reads a single code repository's recorded refs and returns a documentation-focused summary. Pure local git — it takes each ref's diff in the clone and calls no service. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Reads a single code repository's recorded refs and returns a documentation-focused summary. Pure local git — it takes each ref's diff in the clone and makes no HTTPS / REST call to a forge. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Bash", "Skill"]
 ---
 

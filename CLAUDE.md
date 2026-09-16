@@ -290,7 +290,7 @@ Key invariants for `/document` (keyed mode) and `/epics`:
 
 Key invariants for `/release-notes`:
 
-- **Zero direct API calls** — the run has no forge URL to resolve in the first place: Phase 3 builds `refs[]` from `implementation.md` and the commit scan, and the opt-in diff grounding reuses `diff-summarizer`, which takes a ref's diff with pure local `git` and calls no forge at all; all resolution runs against clones under `$REPOS_PATH`
+- **Zero direct API calls** — the run has no forge URL to resolve in the first place: Phase 3 builds `refs[]` from `implementation.md` and the commit scan, and the opt-in diff grounding reuses `diff-summarizer`, which takes a ref's diff with pure local `git`; all resolution runs against clones under `$REPOS_PATH`
 - The draft is the **authored body only** — for a titled destination a **Category:** label, `### title`, and customer-facing prose; for `fixes` ONE bare past-tense sentence. NEVER a key or issue ID, a PR link, a `Change type:` line, or a `{{#internal-note}}` block (the docs automation adds the metadata wrapper)
 - The **Category:** label IS the PRD's own `release_notes_category`, used verbatim; absent ⇒ the line is omitted. Change Type is sourced from the PRD's `change_type` → infer, drives destination + shape only, and is confirmed with the user only on a low-confidence inference — by shape and destination, never by enum label
 - The Summary is shaped per its destination (breaking → present tense, what breaks, remediation; feature update → benefit-led, plus a docs/blog link on a dev-phase run only; fixes → one past-tense sentence, no hedging, no internal terms); exactly ONE Summary per run, and no title or prose names the release version

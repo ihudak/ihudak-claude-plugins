@@ -6,7 +6,7 @@ allowed-tools: Read Bash Glob Grep WebFetch
 
 Review OpenAPI specification files for compliance with REST API and IAM permission-naming guidelines: $ARGUMENTS
 
-**`--rules <path>`** (optional) — an organization's own API rule directory, layered over the bundled baseline. Set it aside from `$ARGUMENTS` before resolving the spec files, and pass it to the agent as `rules_path`. Absent, the agent resolves an overlay itself from `<repo-root>/.dev-workflows/api-guidelines/` then `$API_GUIDELINES_PATH`, falling back silently to the bundled baseline. The executable half has its own precedence: a repo's own Spectral ruleset — `.spectral.yaml`, `.spectral.yml` or `.spectral.json` — wins over the bundled one, which organizations are expected to `extend` rather than edit.
+**`--rules <path>`** (optional) — an organization's own API rule directory, layered over the bundled baseline. Set it aside from `$ARGUMENTS` before resolving the spec files, and pass it to the agent as `rules_path`. Absent, the agent resolves an overlay itself from `<repo-root>/.dev-workflows/api-guidelines/` then `$API_GUIDELINES_PATH`, falling back to the bundled baseline — silently where a candidate is absent or unreadable, and with a `rules_overlay_skipped:` line naming any candidate that is a readable directory holding no `.md` file of its own, since an overlay is flat and one whose rules sit in subdirectories would otherwise be lost without a word. The executable half has its own precedence: a repo's own Spectral ruleset — `.spectral.yaml`, `.spectral.yml` or `.spectral.json` — wins over the bundled one, which organizations are expected to `extend` rather than edit.
 
 If `$ARGUMENTS` is empty, ask the user which OpenAPI spec file(s) to review.
 

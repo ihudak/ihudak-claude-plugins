@@ -56,7 +56,7 @@ The bundled rules are a **vendor-neutral baseline** distilled from public standa
 | 3 | `$UI_GUIDELINES_PATH` |
 | 4 | the bundled baseline alone |
 
-An overlay file whose name matches a bundled one layers over it and wins on conflict; a file matching none is an additional rule source; an `## Allowed` section suppresses matching baseline rules; and a file whose first line is `<!-- ui-guidelines: replace -->` supersedes its baseline counterpart outright. Every miss falls through **silently** — a missing overlay is the normal case, not a problem. The report's `rules_source:` line records what actually resolved (`baseline`, or `overlay:<path>`).
+An overlay is a **flat** directory of `.md` files, matched to the baseline by file name alone. An overlay file whose name matches a bundled one layers over it and wins on conflict; a file matching none is an additional rule source; an `## Allowed` section suppresses matching baseline rules; and a file whose first line is `<!-- ui-guidelines: replace -->` supersedes its baseline counterpart outright. A candidate that is absent or unreadable falls through **silently** — a missing overlay is the normal case, not a problem — but one that is a readable directory holding no `.md` file of its own falls through with a `rules_overlay_skipped:` line naming it, since the usual way to produce one is to nest the rules in subdirectories, and an overlay set up that way would otherwise be lost without a word. The report's `rules_source:` line records what actually resolved (`baseline`, or `overlay:<path>`).
 
 This is the same mechanism the sibling `prose-style` plugin uses for its own rules, deliberately — one convention, not two.
 

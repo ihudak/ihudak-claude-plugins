@@ -183,11 +183,20 @@ git rev-parse --show-toplevel 2>/dev/null
 # no repository -- the deepest common parent of the reviewed files
 ```
 
-A candidate that does not exist, is unreadable, or holds no `.md` file falls through to the next
-order **silently**. A missing overlay is the normal case, not a problem.
+A candidate that does not exist or is unreadable falls through to the next order **silently**: a
+missing overlay is the normal case, not a problem. **A readable directory holding no `.md` file of
+its own is not that case** — someone made that directory, so falling through without a word loses
+their rules instead of finding none. Fall through to the next order and record it, per Step D. The
+usual way to reach this is a nested overlay: an overlay is a **flat** directory of `.md` files
+whatever shape the subtree it overlays has, because Step C matches an overlay file to a baseline
+file by name and never by path, so `.md` files laid out to mirror `references/api-guidelines/` —
+which is itself two levels deep — leave the candidate's own top level empty.
 
 **Step C — merge.** Only `.md` files are rule sources; any other file is ignored. The overlay
-**augments and overrides** the baseline, per file name:
+**augments and overrides** the baseline, per file name — the baseline file's **name**, wherever in
+the bundled subtree it sits. Two baseline files share a name: `Introduction.md`, under both
+`permission-guidelines/` and `rest-api-guidelines/`. An overlay file of that name matches **both**,
+under every bullet below — it layers over both, and a `replace` marker replaces both.
 
 - An overlay file whose name matches a baseline file is layered **on top of** it; both are in force.
 - On a conflict — the same component, the same rule, the same subject — **the overlay wins**.
@@ -205,8 +214,15 @@ baseline                      # no overlay resolved
 overlay:<absolute path>       # an overlay resolved, from any of orders 1-3
 ```
 
-Do not print a warning, a note, or a question about the resolution outcome — `rules_source` is the
-entire report. Only when the baseline itself is missing or empty **and** no overlay resolved is
+Beneath it, emit one line for **every** candidate Step B found readable and empty of `.md` files —
+including where a later order then resolved, since the skipped one still holds somebody's rules:
+
+```
+rules_overlay_skipped:<absolute path> — readable, but holds no `.md` file at its top level; an overlay is flat
+```
+
+Do not print any other warning, note, or question about the resolution outcome — those two lines are
+the entire report. Only when the baseline itself is missing or empty **and** no overlay resolved is
 that an error worth raising.
 
 ## Output Format

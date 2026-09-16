@@ -89,7 +89,7 @@ The **Declared dependencies** section called `docs-workflows`' `prose-style` dec
 
 ### Fixed — `prd-format.md` says when `/release-notes` settles `change_type`
 
-It said that command settles the field "where it is absent". `docs-workflows:release-note-types` §7 rung 1 also drops two **present** values to inference — `not applicable`, and `Bug fix` on a change that trips the deprecation trigger — so a PM authoring `change_type: not applicable` was told the carried value governs, and it does not. The sentence now says "absent or, for `change_type`, not routable", which is the rule §7 states.
+1.5.0 said each field is "inferred and confirmed in `/release-notes`'s own grill". The wording that replaced it settled the field "where it is absent", and `docs-workflows:release-note-types` §7 rung 1 also drops two **present** values to inference — `not applicable`, and `Bug fix` on a change that trips the deprecation trigger — so a PM authoring `change_type: not applicable` was told the carried value governs, and it does not. The sentence now says "absent or, for `change_type`, not routable", which is the rule §7 states.
 
 ## [1.5.0] — 2026-09-09
 

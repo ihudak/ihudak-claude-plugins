@@ -8,6 +8,10 @@ Versions follow semver at the plugin level.
 
 Everything here is a shared contract another plugin reads, which is why the arrival of `docs-workflows`' cold-start commands (`/docs-init`, `/docs-brand`, `/docs-serve`) moves this plugin's version rather than only theirs.
 
+### Changed — `grounding-format.md` §4 declares where its `baseline-integrity` triad is inlined
+
+Three files write the three commands out — `product-workflows:prd-ground` Phase 1, `product-workflows:brd-package` Part 4 and `product-workflows:grounding-verifier` step 1 — and only `/prd-ground` takes step 3's `-z` path read, because it alone goes on to read a reported path. That is correct in all three places, and nothing said so: an editor of §4 had three copies to keep in step and no way to tell a deliberate divergence from an omission. §4 now names the inliners and the reason the other two stay as they are, the same declared-divergence pattern `dev-workflows:code-handoff` §1 rule 5 uses so a reader does not "correct" it in either direction. No behaviour changes.
+
 ### Fixed — `followup-emission.md` §6 listed a follow-up category nothing can produce (1.5.0)
 
 The qualifying-predicate list carried *"Unresolved PRs on unsupported hosts (must be documented manually)."* The only way a run met an unsupported host was a `diff-summarizer` `pr_refs` element whose `host` was `other`, and nothing in the tree ever built one; with that half of the agent retired, the category is unreachable outright. Cut rather than narrowed, and the narrowing was tested first: no command emits a follow-up for a diff element it could not resolve. `/document` Phase 10 collects from four named Phase 9 sections — `### Screenshots to upload manually`, `### Implementation gaps (PRD vs source)`, `### Skipped items` and `### Deferred items` — and an unresolved ref appears in none of them (it is in `### Refs in scope`, which §6's own DO-NOT clause excludes as an item the report already tracks); `/release-notes` Phase 10 collects the manual publish step and implementation-gap signals only.

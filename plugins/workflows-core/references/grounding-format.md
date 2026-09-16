@@ -351,6 +351,8 @@ git -C "<repo>" status --porcelain                  # any entry -> line-count co
    emitted raw. The block above keeps the readable form deliberately: it is what the customer's
    reviewer runs and reads by hand (`product-workflows:brd-package` Part 4).
 
+**Three files inline this triad, so a change to it here is a change in three places — and two of those places diverge deliberately rather than by oversight:** `product-workflows:prd-ground` Phase 1, `product-workflows:brd-package` Part 4 and `product-workflows:grounding-verifier` step 1 each write the three commands out, and only `/prd-ground` takes step 3's `-z` path read, because it alone goes on to read a reported path — `/brd-package` prints the block for the customer's reviewer to run by hand, and `grounding-verifier` compares `HEAD` against a pinned commit and reads no path at all.
+
 **The failure this prevents:** without this check, every `file:line` this package produces is a
 citation into an unidentifiable snapshot — a reviewer, or the customer's own reviewer, cannot tell
 whether the line a finding names is the line that exists on disk today. Baseline integrity is what

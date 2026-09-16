@@ -42,7 +42,7 @@ The shared, team-visible repository holding the Product Requirements Document fo
 
 ### `REPOS_PATH`
 
-Where your code clones live — one directory, or a colon-separated list of them. It defaults to `/workspace`, so most readers never set it. A keyed `/document` run resolves each pull-request URL to a local clone under here, matched by `git remote get-url origin` slug and **never by directory name**, so a clone renamed on disk is still found as long as its `origin` remote is intact.
+Where your code clones live — one directory, or a colon-separated list of them. It defaults to `/workspace`, so most readers never set it. A keyed `/document` run resolves each repository its implementation record and commit scan name to a local clone under here, matched by `git remote get-url origin` slug and **never by directory name**, so a clone renamed on disk is still found as long as its `origin` remote is intact.
 
 ### `DOCS_PATH`
 

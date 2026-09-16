@@ -344,7 +344,7 @@ From the **implementation record** — the `implementation.md` blocks in the res
      - **Proceed without them** (≈ the rule's "Skip and continue without its refs") — record every currently-missing repo's refs as `unresolved`, out of scope; continue. Identical downstream state to the previous per-slug skip.
      - **Cancel** — abort the run.
      - **Specify a different absolute path for a missing repo** (≈ the rule's "Specify a different absolute path") — record the given path as that slug's `repo_path`, move it from `missing` to `mounted`, and re-render.
-6. A `refs[]` element carries no host and needs none — the diff is taken locally, and `refs[]` is the only element list Phase 5 builds. **This command passes no `pr_refs`**, so `diff-summarizer`'s host routing, its `gh` resolver and its `host: other` disposition are that agent's contract for a caller that has a pull-request URL, never a branch this run takes. Nothing here is expected to resolve a host, and a report of this run therefore names refs, not pull requests (Phase 9).
+6. A `refs[]` element carries no host and needs none — the diff is taken locally, and `refs[]` is the only element list `diff-summarizer` takes. Nothing here resolves a host, and a report of this run therefore names refs, not pull requests (Phase 9).
 
 ---
 
@@ -387,7 +387,7 @@ After the batch returns, handle each per-repo status:
 
 After every batch completes, if **every ref across every repo** is unresolved, present a single aggregate gate (not per-ref):
 ```
-choices: ["Proceed with PRD-only content (Recommended — writer/planner draw from the folder read output; final report notes missing diff content)", "Review candidates one by one", "Cancel"]
+choices: ["Proceed with PRD-only content (Recommended — writer/planner draw from the folder read output; final report notes missing diff content)", "Cancel"]
 ```
 
 ---
@@ -1110,9 +1110,9 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 - ...
 
 ### Refs in scope
-[One line per `per_pr` element `diff-summarizer` returned, then one per `unresolved_prs` element. Every field below is from that agent's own Output block: it returns **no per-element `status`** — its `status` is per repo, and Phase 4 step 1 has already said there is no PR status to filter on — and on a keyed run every element came from `refs[]`, so `url` is null and `ref` is what identifies it.]
-- <repo> — <ref, or url on the element that carries one> — resolved_via: [local_ref | pr_ref | branch_search | merge_commit | key_commits | gh_cli | unresolved] — [files_changed] file(s), +[insertions]/-[deletions]
-- <repo> — <ref> — unresolved: [reason from `unresolved_prs`; candidates, where Strategy 4 found any]
+[One line per `per_pr` element `diff-summarizer` returned, then one per `unresolved_prs` element. Every field below is from that agent's own Output block: it returns **no per-element `status`** — its `status` is per repo, and Phase 4 step 1 has already said there is no PR status to filter on — and `ref` is the only thing that identifies an element, `refs[]` being the only element list that agent takes.]
+- <repo> — <ref> — resolved_via: [local_ref | key_commits | unresolved] — [files_changed] file(s), +[insertions]/-[deletions]
+- <repo> — <ref> — unresolved: [reason from `unresolved_prs`]
 - ...
 
 ### Output file(s)

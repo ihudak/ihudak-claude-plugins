@@ -18,7 +18,7 @@ Every one of the five is read by a reference this plugin ships rather than by a 
 
 - **`$REPOS_PATH`** — where your code clones live; one directory, or a colon-separated list. Defaults to `/workspace`.
 
-**Resolution.** `code-scanner` and the grounding agents resolve a repository under it — by `git remote get-url origin` slug where a command starts from a pull-request URL, and by directory basename where a command lists candidates to offer you.
+**Resolution.** `code-scanner` and the grounding agents resolve a repository under it — by `git remote get-url origin` slug where a command was handed the slug, and by directory basename where a command lists candidates to offer you.
 
 **When unset.** The default applies. A repository that is simply not mounted is reported as unresolvable rather than guessed at.
 

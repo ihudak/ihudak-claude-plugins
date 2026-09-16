@@ -8,6 +8,18 @@ Versions follow semver at the plugin level.
 
 Everything here is a shared contract another plugin reads, which is why the arrival of `docs-workflows`' cold-start commands (`/docs-init`, `/docs-brand`, `/docs-serve`) moves this plugin's version rather than only theirs.
 
+### Fixed — `followup-emission.md` §6 listed a follow-up category nothing can produce (1.5.0)
+
+The qualifying-predicate list carried *"Unresolved PRs on unsupported hosts (must be documented manually)."* The only way a run met an unsupported host was a `diff-summarizer` `pr_refs` element whose `host` was `other`, and nothing in the tree ever built one; with that half of the agent retired, the category is unreachable outright. Cut rather than narrowed, and the narrowing was tested first: no command emits a follow-up for a diff element it could not resolve. `/document` Phase 10 collects from four named Phase 9 sections — `### Screenshots to upload manually`, `### Implementation gaps (PRD vs source)`, `### Skipped items` and `### Deferred items` — and an unresolved ref appears in none of them (it is in `### Refs in scope`, which §6's own DO-NOT clause excludes as an item the report already tracks); `/release-notes` Phase 10 collects the manual publish step and implementation-gap signals only.
+
+### Fixed — `dependencies.md` named `diff-summarizer` as a `gh` caller (1.5.0)
+
+The external-tools paragraph read *"`diff-summarizer` and `dev-workflows:code-handoff` §2.6 to `gh`, each degrading gracefully when it is absent."* That agent's `gh` resolver was reachable only through `pr_refs`, which nothing produces, and is now retired: it shells to no CLI at all and takes every diff with local `git`. `code-handoff` §2.6 remains, and is the whole of the claim.
+
+### Fixed — `docs/reference/environment.md` said a command starts from a pull-request URL (1.5.0)
+
+`$REPOS_PATH`'s resolution note read *"by `git remote get-url origin` slug where a command starts from a pull-request URL"*. No command in this family starts from one. The trigger is now what it actually is: a command that was handed the slug.
+
 ### Fixed — `escalation-rules.md`'s `/document` repo-unresolved array named PRs (1.5.0)
 
 The *Repo unresolved (zero matches) — /document* rule offered *"Skip and continue without its PRs"*. That command builds its `refs[]` from `implementation.md` and the `git log --grep` scan beside it and reads no pull request (`/document` Phase 4 step 1), so the option named something the run does not have; it now names **refs**, and the rule says why beneath it. The array's arity is unchanged. `docs-workflows` 1.2.0 corrects the same vocabulary in the command itself.

@@ -78,7 +78,6 @@ requires a MANUAL human step:
 - Manual publish steps: screenshots to upload (CDN), "publish the release notes",
   "create these Epics in your tracker manually", open-the-PR-by-hand.
 - SPEC-VS-PRD ("update the PRD to match the spec").
-- Unresolved PRs on unsupported hosts (must be documented manually).
 
 DO NOT emit tasks for in-scope items the report/draft already tracks: deferred
 review BLOCKERs, skipped tests, in-draft `<!-- TODO -->` markers. Those belong

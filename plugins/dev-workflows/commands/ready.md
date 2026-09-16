@@ -262,8 +262,8 @@ this run. This is the mechanical half of that dimension.
 
 **(c) Repo-availability presence-check (best-effort, presence only — never scanning).**
 
-1. Derive candidate repo names from: each in-scope Epic's `implementation.md` entries, where one exists (the repo-name
-   segment of each URL, per the PR URL formats `diff-summarizer` accepts); the confirmed-repos line of any `design.md`
+1. Derive candidate repo names from: each in-scope Epic's `implementation.md` entries, where one exists (each entry's
+   own `repo:` field — that record carries no URL, per `workflows-core:implementation-format` §1); the confirmed-repos line of any `design.md`
    found (`design-format.md`'s header `- **Repos**: <the confirmed implementation repos this design
    spans>`); and any ARD's `grounded_repos:` frontmatter list (`product-workflows:ard-format`). Dedupe.
 2. Build the slug→clone map **exactly as `epics.md` Phase 4 does**: for each top-level directory under

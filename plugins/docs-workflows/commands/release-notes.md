@@ -69,7 +69,7 @@ run — the terminal `commit-artifacts` step skips on it.
   ```
   choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]
   ```
-  Clones are located in Phase 4 by matching `git remote` against each repo slug the Phase 3 implementation record and its commit scan named — not by assuming a `<base>/<slug>` directory name. Nothing here asks which pull-request statuses to include: Phase 3 builds its refs from `implementation.md` and a `git log --grep` scan, neither of which carries one, and Phase 5 passes `refs[]`, never the `pr_refs` elements that have a `status` field at all.
+  Clones are located in Phase 4 by matching `git remote` against each repo slug the Phase 3 implementation record and its commit scan named — not by assuming a `<base>/<slug>` directory name. Nothing here asks which pull-request statuses to include: Phase 3 builds its refs from `implementation.md` and a `git log --grep` scan, neither of which carries one, and `refs[]` is the only element list `diff-summarizer` takes.
 
 - **Output destination — derived, not asked.** The draft lands in **`release-notes.md` in the
   resolved PRD folder**, appended as a section. There is one home now, so the destination question
@@ -465,7 +465,7 @@ current working directory, where it is not the specs repository; no user name is
 ## Invariants (always enforced)
 
 - ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation).
-- ZERO external API calls — PR URLs are identifiers only; all resolution is local `git`.
+- ZERO external API calls — this run has no forge URL to resolve in the first place: Phase 3 builds `refs[]` from `implementation.md` and the commit scan, and `diff-summarizer` takes a ref's diff with pure local `git`.
 - Every read of the specs tree is read-only.
 - The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block.
 - The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a plain **Category:** label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version — the version is the `#` heading the draft is filed under (Phase 1, `release-note-types.md` §1), which is the only thing that says which release a section belongs to now that the three destinations are three sections of one file. The prohibition survives for the body prose alone. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).

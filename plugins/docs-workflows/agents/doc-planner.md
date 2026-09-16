@@ -49,7 +49,7 @@ For each write target:
 
    When a topic's content presents mutually exclusive options (alternative setup paths, alternative configurations, and similarly-shaped either/or content), plan its callout placement per `workflows-core:doc-structure-conventions` §2: each option's callout is planned adjacent to that option, never as an **unqualified** trailing block after the whole set; a callout that applies to the whole set is planned into the lead-in, before the options. §2 rule 3 is an explicit alternative: when a callout must stay adjacent to the whole set, plan it to name its own scope in its first clause (e.g. *"This applies only to the built-in cluster registry."*). Record the placement in the topic's `notes`. Do not restate §2's rules here — cite it. (The one-line operational paraphrase above is deliberate and stays, as does its twin in `doc-writer.md` step 9: in this file pair the planner and the writer each carry their own short operational version of a cited rule, with §2 the authority both defer to. It is not duplication to collapse.)
 
-2. **Map topics to sources.** Each topic records which the folder read keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6.3 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
+2. **Map topics to sources.** Each topic records which the folder read keys and/or which `diff-summarizer` refs back it up, for the Phase 6.3 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
 
 3. **Plan frontmatter updates** (field rules: `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/frontmatter-guidelines.md`; changelog + owners keep their own references).
    - `changelog:` — append a dated entry with a customer-readable 1-line change summary and NO kea key. Create the field if it doesn't exist on an extended page. This is mandatory on every target. Per `workflows-core:doc-structure-conventions` §1 (verified against the repo convention — fewer than 5 of example-docs's 5500+ entries cite an issue key).
@@ -142,7 +142,7 @@ checklist:
     space:       <the profile.spaces[].id whose content_root/snippet_root prefixes target_path; null when none does>
     topics:
       - name:    <"How to use" | "Setup" | "Reference" | "Migration" | etc.>
-        sources: [<key | PR URL>, ...]
+        sources: [<key | ref>, ...]
         notes:   <optional 1-line guidance for the writer>
     frontmatter_updates:
       changelog: {action: append, entry: "<YYYY-MM-DD> <customer-readable 1-line summary; NO key>"}
@@ -195,7 +195,7 @@ The `component_patterns` bullet below (no fabricated `evidence`, no second scan)
 - For `image_policy == cdn_upload_required`, the `staging` path MUST be under the caller-provided `screenshot_staging_dir` (the persistent directory `/document` Phase 1 resolved: the resolved PRD folder's screenshot subfolder by default, else one the operator named). NEVER stage inside `repo_root` (a repo mounted as a docker repo-volume is not on the host and is lost on restart) and NEVER use `/tmp` (in-image, ephemeral). If `screenshot_staging_dir` is null while a screenshot needs cdn staging, emit a gap with `recommended_action: "ask user"`.
 - NEVER propose `dest` inside the repo when `image_policy == cdn_upload_required`, even as a fallback — the whole point of that policy is that local image files would break the repo's image-management invariant.
 - NEVER strip unknown YAML frontmatter fields from the `other` updates. If the target page has fields you don't recognise, leave them alone.
-- NEVER fabricate sources. Every `topics[].sources` entry must correspond to a key in the `folder_read` or a PR URL in `diff_summaries`.
+- NEVER fabricate sources. Every `topics[].sources` entry must correspond to a key in the `folder_read` or a `ref` in `diff_summaries`.
 - NEVER fabricate a `component_patterns` entry — `evidence` must cite a real file:line observed in the step-5 sample. NEVER add a second, independent scan for component patterns; it is the step-5 sibling sample's second job, not a new one.
 - NEVER collect or emit existing-image data — this agent does not build the stale-image list. It runs at Phase 5.7, after the Phase 5.6 image step that must already present it; the orchestrator owns that list (`existing_image_decisions[]`).
 - NEVER decide a topic is "done" without naming at least one source. If a topic has no source, it is a gap.

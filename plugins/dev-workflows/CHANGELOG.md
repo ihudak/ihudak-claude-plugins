@@ -6,6 +6,14 @@ Versions follow semver at the plugin level.
 
 ## [4.0.4] — 2026-09-15
 
+### Fixed — `/ready` derived repo names from a URL `implementation.md` does not record (4.0.3)
+
+Phase 1(c) step 1 derived its candidate repo names from *"the repo-name segment of each URL, per the PR URL formats `diff-summarizer` accepts"*. `workflows-core:implementation-format` §1 records `repo` / `branch` / `base` / `commit` / `pushed` — there is no URL in the block to take a segment of, and with `diff-summarizer`'s pull-request half retired there are no PR URL formats either. The step now reads each entry's own `repo:` field, which is the name it was looking for.
+
+### Fixed — `docs/reference/environment.md` said three commands resolve a repo from a pull-request URL (4.0.3)
+
+The `$REPOS_PATH` resolution note attributed slug matching to commands that *"resolve a repo from a pull-request URL"*, naming `/product-workflows:epics`, `/docs-workflows:document` and `/docs-workflows:release-notes`. None of the three reads a pull-request URL: each resolves a repo slug it was handed — from the PRD's own content, or from `implementation.md` and the commit scan beside it. The trigger is corrected; the matching rule and the three commands are unchanged.
+
 ### Fixed — the code repo's staging enumeration read the form `git status --porcelain` quotes (4.0.3)
 
 `code-handoff.md` §2.2 enumerates with `git status --porcelain --untracked-files=all` and, under carve-out 1, stages **the current porcelain set minus `pre_existing_dirty`** by literal path. `--porcelain` quotes a path carrying a space, a `"`, a `\` or a non-ASCII byte, so on the carve-out-1 path — the one a run takes after the operator proceeded past a dirty tree — such a path was handed to `git add` in its quoted form and matched no file: the run's own edit to it was not committed, which is the one loss `workflows-core:phase-handoff` §1 rule 5 exists to prevent. The enumeration now reads `--porcelain -z`.

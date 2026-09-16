@@ -6,6 +6,10 @@ Versions follow semver at the plugin level.
 
 ## [3.6.0] — 2026-09-10
 
+### Fixed — `/specify`'s page said its repo candidates come from PR URLs (3.5.0)
+
+`docs/commands/specify.md` had the candidate repos *"auto-derived from the PRD's capability themes and linked PR URLs"*, and its BRD-route note contrasted `grounding/baselines.md` with *"PRD themes and PR URLs, which this route has none of"*. The command's own Phase 3 step 1 says the opposite in as many words — it builds the list from the Phase 2 capability themes and the resolved folder's `implementation.md` `repo:` entries, and *"There is no PR list to read: nothing here reads a tracker or a pull-request API"* — so the page and the command it documents were two live contradictory instructions. The page now names the implementation record.
+
 ### Fixed — `/prd-ground`'s baseline gate skipped a path `git status --porcelain` quotes (3.5.0)
 
 Phase 1's baseline-integrity step 3 compares each porcelain-reported entry's working-tree line count against `git show <sha>:<path> | wc -l`. `--porcelain` quotes a path carrying a space, a `"`, a `\` or a non-ASCII byte, and `git show <sha>:"<quoted path>"` resolves to nothing — which step 3 reads as "exists nowhere at the pin", its own not-a-signal case. So a dirty tracked path with a space passed a gate whose whole purpose is that every `file:line` in the package cites an identifiable snapshot. The path is now read from `git -C "<repo>" status --porcelain -z`; `workflows-core:grounding-format` §4 step 3 is the authority and states why, and the readable three-command block is unchanged because `/brd-package` Part 4 hands it to the customer's reviewer to run by hand. `/brd-split`'s note on why a folder-shaped declaration stages no removal names the same `-z` form `workflows-core:phase-handoff` §2.3 now reads.

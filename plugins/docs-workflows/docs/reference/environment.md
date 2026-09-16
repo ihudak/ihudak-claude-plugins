@@ -16,7 +16,7 @@
 
 - **`$REPOS_PATH`** — where your code clones live; defaults to `/workspace` when unset.
 
-**Resolution.** `${REPOS_PATH:-/workspace}`, read fresh by each run that resolves PR diffs — there is no persisted override once a run ends. It may be a single directory or a colon-separated list. Repos are matched by `git remote get-url origin` slug, **never by directory name**, so a clone renamed on disk is still found as long as its `origin` remote is intact.
+**Resolution.** `${REPOS_PATH:-/workspace}`, read fresh by each run that resolves a code clone — there is no persisted override once a run ends. It may be a single directory or a colon-separated list. Repos are matched by `git remote get-url origin` slug, **never by directory name**, so a clone renamed on disk is still found as long as its `origin` remote is intact.
 
 **When unset.** The `/workspace` default takes over silently — safe, because this is only ever a read/scan base, so a wrong or empty default finds nothing to scan rather than writing anywhere unexpected.
 

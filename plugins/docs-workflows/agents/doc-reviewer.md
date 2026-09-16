@@ -44,7 +44,7 @@ Refuse to review without the written file paths, the `doc-planner` checklist, an
 
 | Dimension | Check |
 |---|---|
-| Factual correctness | Every claim matches the resolved item body(ies) and/or the PR diff summaries. Anything that can't be traced to either source is a finding. |
+| Factual correctness | Every claim matches the resolved item body(ies) and/or the diff summaries. Anything that can't be traced to either source is a finding. |
 | Completeness vs plan | Every item in the `doc-planner` checklist is addressed; nothing silently skipped. A gap that the planner flagged with `recommended_action: "mark TODO in draft"` must appear as a `<!-- TODO: … -->` comment in the written doc; gaps skipped with "skip with note in final report" must appear in the writer's `### Skipped items` Phase 9 section (the main command handles emitting that — this reviewer checks the TODOs are present). |
 | Coverage | "How to use" and "How to configure" sections are present when the feature needs them (inferred from the checklist's `topics`). Reference material is present when the feature introduces config keys, CLI flags, API routes, or UI controls. |
 | Audience fit | End-user clarity; technical jargon explained or linked; commands are copy-pasteable (backticks / code fences, no stray shell prompts). |

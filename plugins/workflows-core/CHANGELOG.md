@@ -83,6 +83,10 @@ The file's opening said everything below it is reached only when the mount is re
 
 `cost-emission.md` §11 said `emit-cost` never writes "into a docs/code repo or the current working directory", `feedback-emission.md` §6 and `followup-emission.md` §8 said the same of what their callers write, `/frames` said it of its final phase, and the session-cost page said the plugin "never writes into your current working directory". Where the session stands inside `$SPECS_PATH`, each of those writes lands in the working directory's own repository. Each now makes the claim only where the working directory is not the specs repository. The three ladders' rule for their report-only rung — nothing resolved, so never fall back to writing into the working directory — holds as written, and is unchanged.
 
+### Fixed — `dependencies.md` says who declares `prose-style`
+
+The **Declared dependencies** section called `docs-workflows`' `prose-style` declaration "what makes it different from every other plugin here", though `product-workflows`' manifest declares the same two names, and then called `prose-style` "an optional companion in `dev-workflows`", which the same file's own companion table contradicts eleven lines later ("no tie to it at all since `/epics`, `/create-prd` and `/update-prd` moved out") and a grep of that plugin confirms. Both claims shipped in 1.5.0. The paragraph now names the two plugins that declare it and says `dev-workflows` has no tie of either kind.
+
 ## [1.5.0] — 2026-09-09
 
 ### Added — `control`, a positive control on every grounding absence claim

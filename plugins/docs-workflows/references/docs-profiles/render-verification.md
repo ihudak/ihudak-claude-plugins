@@ -100,7 +100,7 @@ Then boot the chosen servers one at a time — the verification set's spaces in 
 space, its public server before its internal one — skipping any server no affected page was assigned
 to. On a profile with one server per space, that is one boot per space in the set.
 
-A port **answers** while something listens on it. The probe is
+A port **answers** while something listening on it takes a connection from `localhost`. The probe is
 `command curl -s -o /dev/null --noproxy '*' --max-time 2 http://localhost:<port>/`, read by its exit code
 alone:
 
@@ -111,23 +111,17 @@ alone:
   status, an error included, an empty reply or a reset, or 28 when `--max-time` runs out on a
   listener that never replies).
 
-**A port is free only where nothing answers on it and no socket a process holds uses it as its local
-port.** The probe settles the first half; **Portability**'s socket-state read (below) settles the
-second, in any state — a listener bound to an address `localhost` does not reach, an inbound
-connection, an outbound one. A port an outbound connection holds as its local end answers nothing and
-binds nothing: a server given it exits with *Address already in use* (measured on Linux 5.15 with a
-`curl --local-port` connection standing on the port, against `mkdocs serve -a 0.0.0.0:<port>` and
-`python3 -m http.server`), and every port in the kernel's ephemeral range — 32768–60999 on a default
-Linux — is one an outbound connection of any process on the host may be holding. **A socket no process
-holds is not one of these**: a connection in `TIME_WAIT`, or one whose process has already closed it,
-which `/proc/net/tcp` gives inode `0` and which `lsof` does not list at all. Counting those would take
-a port from the server that just left it — a server's own closed connections sit in `TIME_WAIT` on its
-port for up to a minute after it stops, and `mkdocs serve` and `python3 -m http.server` both bind such
-a port again at once (measured). What that leaves is a *client's* `TIME_WAIT` on the port, which does
-refuse a bind for that minute; a server started there exits with *Address already in use*, which step
-3's gone-group test reports with the command's log, as it reports any other boot failure. Where the
-socket-state read cannot be made at all — off Linux with no `lsof` installed, which never ends this
-check on its own — the probe alone decides, as before.
+**A port is free only where nothing answers on it and nothing is listening on it.** The probe settles
+the first half; **Portability**'s listening-socket read (below) settles the second, which catches a
+listener bound to an address `localhost` does not reach. **No other socket on the port counts.**
+Whether a connection's local end refuses a bind turns on `SO_REUSEADDR` on that standing socket, which
+no table exposes — an outbound connection's local end does refuse one, and an inbound connection a
+closed listener left behind does not (measured on Linux 5.15: on a port holding a `CLOSE_WAIT` inbound
+connection, `mkdocs serve -a 0.0.0.0:<port>` bound it and served it) — so predicting a bind from the
+socket table refuses starts that work. A bind that fails anyway is caught where it happens: the server
+exits with *Address already in use*, which step 3's gone-group branch reports with the command's log,
+as it reports any other boot failure. Where the listening read cannot be made at all — off Linux with
+no `lsof` installed, which never ends this check on its own — the probe alone decides, as before.
 
 Every **GET** below — step 3's readiness poll and step 4's page requests — is
 `command curl -sL -o /dev/null -w '%{http_code}' --noproxy '*' --max-time 10 <url>`, read by the status it
@@ -139,7 +133,7 @@ for a server on this machine: with `http_proxy` or `ALL_PROXY` set and no `no_pr
 on a port nothing listens on, so a free port reads as answering, and the proxy's own page in place
 of the server's.
 
-Every probe below is the exit-code probe defined first, and the probe itself needs no socket table; the free test above adds the socket-state read to it, which needs nothing installed on Linux and `lsof` off it — where that is missing the probe decides alone (above), and it never ends the check (§5). **A probe that
+Every probe below is the exit-code probe defined first, and the probe itself needs no socket table; the free test above adds the listening read to it, which needs nothing installed on Linux and `lsof` off it — where that is missing the probe decides alone (above), and it never ends the check (§5). **A probe that
 cannot run is never read as an answer or as silence**, so the check does not start without its
 tools: before the first boot, confirm that `bash` and `curl` are present and, where
 `test -r /proc/net/tcp` fails — off Linux — that `ps` is too, each tested as
@@ -184,10 +178,10 @@ yet checked goes to the manual table. For each server:
    nothing, and **boot no further server** — record
    "smoke-check stopped at `<space>`: port `<port>` was answering before its server booted", and
    every page not yet checked falls back to the manual table (§5). Where nothing answers but the
-   socket-state read (**Portability**) names a socket a process holds on the port as its local port —
-   an outbound connection's local end, which no server can bind — do exactly the same, recording
-   "smoke-check stopped at `<space>`: port `<port>` was held as a connection's local end before its
-   server booted", with that socket's pid where the read names one. Otherwise **boot the server in a
+   listening read (**Portability**) finds a socket in `LISTEN` on the port — a listener bound to an
+   address `localhost` does not reach — do exactly the same, recording
+   "smoke-check stopped at `<space>`: port `<port>` had a listener the probe could not reach before its
+   server booted", with that listener's pid where the read names one. Otherwise **boot the server in a
    process group of its own**, with this one Bash call:
 
    ```
@@ -304,10 +298,10 @@ yet checked goes to the manual table. For each server:
    running, one without a group of its own that timed out, or one it signalled when `curl` could not
    run — keeps its log, and the record that ends the check names it.
 
-   A missing `lsof` alone never ends the check. What ends it is a port that answers when it
-   should be silent — before a boot (step 2) or after the stop — a group that will not go, a
-   readiness timeout on a server without a group of its own (step 3), or a probe that cannot run
-   (above).
+   A missing `lsof` alone never ends the check. What ends it is a port that is not free before a
+   boot (step 2) — answering, or with a listener the probe cannot reach — a port still answering
+   after the stop, a group that will not go, a readiness timeout on a server without a group of its
+   own (step 3), or a probe that cannot run (above).
 
 **Portability.** The shell semantics above are bash's, by step 2's and step 5's explicit `command bash -c`.
 `curl -s -o /dev/null --noproxy '*' --max-time 2`, the GET's
@@ -350,41 +344,17 @@ exit 0 for a gone group — the one answer `kill -0` settles, and the wrong one 
 
   ```
   i=$(command cat /proc/net/tcp /proc/net/tcp6 2>/dev/null | command awk -v p="$(command printf ':%04X' <port>)" '$4 == "0A" && substr($2, length($2) - 4) == p { printf "socket:[%s] ", $10 }')
+  [ -n "$i" ] && command printf 'listening\n'
   [ -n "$i" ] && QUOTING_STYLE=literal command ls -l /proc/[0-9]*/fd/ 2>/dev/null | command awk -v i="$i" 'BEGIN { n = split(i, s, " "); for (k = 1; k <= n; k++) w[s[k]] = 1 } /^\/proc\// { split($0, a, "/"); p = a[3] } ($NF in w) && !d[p]++ { print p }'
   ```
 
-  It prints each pid once — an IPv4 and an IPv6 listener alike, and a process holding both.
-  Elsewhere: `command lsof -t -iTCP:<port> -sTCP:LISTEN`. Either way, a socket another user's
-  process holds is in the table but named by no process — its `fd` links cannot be read without
-  root, and `lsof` shows no other user's process either — so the read prints nothing for it.
-- **The sockets a process holds on `<port>` as their local port, in any state.** On Linux: the rows
-  of `/proc/net/tcp` and `/proc/net/tcp6` whose local port — the four hex digits after the `:` of the
-  second field — is `<port>` **and whose inode, the tenth field, is not `0`**; a row with inode `0` is
-  a connection no process holds any more, `TIME_WAIT` or one its process has closed, and is not one of
-  these. It is the listening read's own pipeline with the state test replaced by the inode test, so
-  both read the same table the same way. As one Bash call:
-
-  ```
-  i=$(command cat /proc/net/tcp /proc/net/tcp6 2>/dev/null | command awk -v p="$(command printf ':%04X' <port>)" 'substr($2, length($2) - 4) == p && $10 != "0" { printf "socket:[%s] ", $10 }')
-  [ -n "$i" ] && QUOTING_STYLE=literal command ls -l /proc/[0-9]*/fd/ 2>/dev/null | command awk -v i="$i" 'BEGIN { n = split(i, s, " "); for (k = 1; k <= n; k++) w[s[k]] = 1 } /^\/proc\// { split($0, a, "/"); p = a[3] } ($NF in w) && !d[p]++ { print p }'
-  ```
-
-  **The first line decides whether the port is free and the second only names who holds it**: a socket
-  another user's process holds is in the table, so the first line prints an inode for it while the
-  second names no process — the port is taken all the same. Elsewhere:
-  `command lsof -n -P -Fpn -iTCP:<port>`, filtered on the **local** end, since `lsof` matches
-  `-iTCP:<port>` at either end and a connection *to* another host's `<port>` holds an ephemeral local
-  port of its own:
-
-  ```
-  command lsof -n -P -Fpn -iTCP:<port> 2>/dev/null | command awk -v p=":<port>" '/^p/ { pid = substr($0, 2) } /^n/ { n = substr($0, 2); sub(/->.*/, "", n); if (n ~ (p "$")) print pid }' | command sort -u
-  ```
-
-  `-n` and `-P` keep addresses and ports numeric, so a well-known port is never printed as a service
-  name the filter would miss. `lsof` lists only sockets a process holds, and without root only this
-  user's, so a `TIME_WAIT` row is absent there as it is here, and another user's socket is invisible
-  rather than counted — the one place the two sources differ, and a port held that way reads as free
-  off Linux.
+  **The `listening` line decides whether the port is free; the pids after it only name who holds it**,
+  each printed once — an IPv4 and an IPv6 listener alike, and a process holding both. The two are
+  separate answers because a socket another user's process holds is in the table but named by no
+  process — its `fd` links cannot be read without root — so the line prints and no pid follows, and
+  the port is taken all the same. Elsewhere: `command lsof -t -iTCP:<port> -sTCP:LISTEN`, which prints
+  a pid per listener and nothing at all for another user's, so off Linux the pids *are* the answer and
+  a port only another user listens on reads as free.
 - **A process's parent, and its process group.** On Linux: `/proc/<pid>/stat`, read after its
   **last** `)`, since the process name in parentheses before it may itself hold spaces or
   parentheses — `command sed 's/.*)//' /proc/<pid>/stat` prints the state, then the parent's pid,
@@ -445,14 +415,14 @@ The smoke-check is best-effort. A prerequisite-unmet, missing-server-tool,
 boot-failure, or readiness-timeout outcome is recorded with its reason and falls
 back to the manual table for that space — on a space with two servers, for that
 server's pages — and it never blocks the run. Three outcomes end the smoke-check rather
-than one space's part of it: a port taken before its server boots (§2
-step 2 — answering, or held by a socket a process holds as its local port), a
+than one space's part of it: a port that is not free before its server boots (§2
+step 2 — answering, or with a listener the probe cannot reach), a
 server §2 step 5 cannot confirm stopped — its port still answers, or
 its process group still runs — and a readiness timeout on a server started
 without a process group of its own (§2 step 3). Every page not yet checked then
 falls back to the manual table, and it never blocks the run either. **What the
 record names differs by ending, because the first of the three booted nothing**:
-it names the port and, where the socket read names one, the pid holding it —
+it names the port and, where the listening read names one, its listener's pid —
 this check started no command there and made no log, so it names neither; the
 other two name the port or process group left running, its command and its log,
 which §2 step 5 keeps for exactly that reason. A fourth ending

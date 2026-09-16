@@ -159,7 +159,9 @@ The orchestrator MUST execute these steps in order:
 ## 4. The `model_routing` handoff block
 
 Every orchestrator MUST record its routing decision and pass it to every
-sub-agent it invokes. Format:
+sub-agent that reads one — the list below. An agent whose handoff file declares
+no `model_routing:` input is not sent one; its tier is pinned by the dispatch's
+own `model:` argument. Format:
 
 ```yaml
 model_routing:
@@ -199,13 +201,10 @@ Sub-agents that receive a `model_routing` block:
   then running the review, then invoking the executor/fixer again to run tests.
   Equivalently, the orchestrator may invoke a single combined call with a
   `gate_tests_on_review: true` flag — both styles are acceptable.
-- `risk-planner`, `code-review`, `epic-reviewer`: the orchestrator pins these to
-  the §2 fallback chain via the `task` tool's `model:` argument. They receive
-  the `model_routing` block for context validation and reporting.
-- `doc-fixer`, `doc-location-finder`, `doc-planner`, `docs-style-checker`,
-  `doc-reviewer`: receive the block for reporting; behaviour is unchanged.
-- `test-baseliner`, `impl-maintenance`: receive the block for reporting only;
-  behaviour is unchanged.
+- Every other sub-agent is sent **no block**, and reads no field of one: its tier
+  is fixed either by its own frontmatter `model:` pin (the Opus reviewers) or by
+  the `model:` argument on the dispatch. Its handoff file is the record of which,
+  and the orchestrator's own `model_routing` record names the chain it resolved.
 
 ---
 

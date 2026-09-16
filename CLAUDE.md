@@ -128,8 +128,8 @@ start of every invocation: `/design`, `/implement`, `/ready`, `/upgrade`, `/vuln
 all fourteen of `product-workflows`'s — plus
 five of `docs-workflows`'s six (`/document`, `/docs-profile`, `/release-notes`, `/docs-init`, `/docs-brand`) and
 `workflows-core`'s own `/frames`. The remaining utility commands (`/docs-serve`, `/feedback`, `/prompt`,
-`/prompt-brainstorm`, `/prompt-grill-me`, `/statusline` — one of `docs-workflows`'s six and five of `workflows-core`'s six) are exempt — `/docs-serve` starts a process and reports a URL, with no task to classify, and `/feedback` names `model-routing` only as one of its friction categories, which is not a load. Agents receive the `model_routing` block
-in their prompt; they do not re-read the file.
+`/prompt-brainstorm`, `/prompt-grill-me`, `/statusline` — one of `docs-workflows`'s six and five of `workflows-core`'s six) are exempt — `/docs-serve` starts a process and reports a URL, with no task to classify, and `/feedback` names `model-routing` only as one of its friction categories, which is not a load. An agent that reads a field of the `model_routing` block receives it
+in its prompt — its handoff file declares the input, and §4's list is the authority; every other agent is sent none and has its tier pinned by its own frontmatter or by the dispatch's `model:` argument. No agent re-reads the file either way.
 
 ## Source-truth reference
 

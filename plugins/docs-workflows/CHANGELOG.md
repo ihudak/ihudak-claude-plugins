@@ -34,6 +34,10 @@ The command resolves no pull request: it resolves the implementation record's **
 
 **Phase 4 step 6 is brought to the same standard rather than left inert.** It told the run what to do *"where a run was additionally given a genuine PR URL as `pr_refs` enrichment"* — a state nothing produces, since Phase 5 passes `refs[]` only. It now says that outright: `diff-summarizer`'s host routing, `gh` resolver and `host: other` disposition are that agent's contract for a caller holding a pull-request URL, and never a branch this run takes.
 
+### Fixed — `diff-summarizer`'s handoff declared a `model_routing:` input nothing sends (1.1.3)
+
+Measured on both halves before cutting it. No caller emits one: `/document` Phase 5 and `/release-notes` Phase 5 each pin the tier with `model:` on the dispatch and pass `repo_path` / `repo_url_slug` / `refs` / `context` / `keys_hierarchy` / `refresh` and nothing else. And no field of the block is read: the agent body names none of `classification`, `opus_available`, `planning_model` or `gate_tests_on_review`, and its own `description` already says the tier is *"assigned by the caller per the model-routing policy (no fixed pin)"*. Dropped, exactly as `pr_refs` was and for the same reason, with one sentence in its place so it is not re-added. `workflows-core` 1.6.0 drops the identical declaration from `code-scanner`'s handoff and narrows the §4 rule that licensed both.
+
 ### Added — the cold-start scaffold: `/docs-init`, `/docs-brand`, `/docs-serve`
 
 Three commands answer the question the plugin previously could not: *there are no docs and no docs repo — what should exist?* Every existing command assumed documentation already existed, and documented a delta against it.

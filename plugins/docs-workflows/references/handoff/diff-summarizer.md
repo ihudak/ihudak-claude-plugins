@@ -20,18 +20,11 @@ refresh:
   fetch: true   # default true
   pull:  false  # default false — a historical diff does not need the current branch tip;
                 # pulling risks moving HEAD away from the commit we want to reach.
-model_routing:
-  classification: SIGNIFICANT | MODERATE
-  reason: <from orchestrator>
-  current_model: <model name>
-  planning_model: <model name>
-  review_model: n/a
-  implementation_model: <model name>
-  opus_available: true | false
-  gate_tests_on_review: false
 ```
 
 Refuse to run without `repo_path` and at least one element in **`refs`**.
+
+**No `model_routing:` block is passed.** The caller pins this agent's tier with `model:` on the dispatch, and nothing in the agent reads a field of that block.
 
 **`refs` is the shape the callers have, and the only one.** `workflows-core:implementation-format` §1
 records `repo` / `branch` / `base` / `commit` / `pushed` — no URL, no host, no PR id — so there is no

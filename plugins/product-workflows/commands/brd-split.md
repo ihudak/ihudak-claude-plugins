@@ -1150,8 +1150,9 @@ standing child whose orphan row Step 2R's sweep re-pointed with it. Declare the 
 not all three, and never the folder; and, for a child Phase 4.5 removed as empty, **those same
 three paths again, named individually** —
 
-**Name files, never the folder.** §2.9 requires one literal repo-relative path each and §2.3 classifies
-a directory as OTHER, silently. On a removal that failure is invisible and total: `git status
+**Name files, never the folder.** §2.9 requires one literal repo-relative path each and §2.3 stages a
+directory for nothing — §2.3 step 4 names it in §4.1's *declaration unaccounted for* clause, so the
+failure is reported rather than silent, but nothing it names lands. On a removal that failure is total: `git status
 --porcelain -z` reports three ` D` records, a folder-shaped declaration matches none of them, so `slices.md`
 and the parent ledger land on the default branch while the removal does not — and the next run's
 Phase 0 step 9 re-enumerates the child as still standing. —

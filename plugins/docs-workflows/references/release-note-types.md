@@ -164,9 +164,10 @@ does not already state.
 
 ## 6. General rules (all destinations)
 
-- **No release version anywhere, and exactly one Summary.** The release version is a separate
-  field the PM sets, and it is obvious to customers. Never write "Starting with version 1.305…", "in
-  344", etc. Emit **one** Summary for the note — never one block per declared release version.
+- **No release version in the prose, and exactly one Summary.** The version is the `#` heading the
+  draft is filed under (§1), and it is obvious to customers besides. Never write "Starting with
+  version 1.305…", "in 344", etc. Emit **one** Summary for the note — never one block per declared
+  release version.
 - **The Change Type never appears as text in the draft.** It selects the destination and the shape;
   the PM sets the field on the PRD.
 - Translate the technical change into customer-value language (product and UI terms).

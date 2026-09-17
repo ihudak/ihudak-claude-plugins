@@ -24,7 +24,7 @@ It does ship six commands of its own, and one of them is worth running first —
 
 ## What you set on your machine
 
-`workflows-core` reads five environment variables, and every one of them is read by a reference this plugin ships — four of them nowhere else. `SPECS_PATH` is the exception: `/frames` gates on it in its own Phase 0 and refuses to run without it. One is required for anything in the family to have somewhere to write (`SPECS_PATH`); the rest are optional and each degrades to a documented default or a silent skip. [Environment](reference/environment.md) has the exact defaults and failure behaviour.
+`workflows-core` reads five environment variables, and every one of them is read by a reference this plugin ships — for four of the five, the only read anywhere in this plugin. `SPECS_PATH` is the exception: `/frames` gates on it in its own Phase 0 and refuses to run without it. One is required for anything in the family to have somewhere to write (`SPECS_PATH`); the rest are optional and each degrades to a documented default or a silent skip. [Environment](reference/environment.md) has the exact defaults and failure behaviour.
 
 ### `SPECS_PATH`
 

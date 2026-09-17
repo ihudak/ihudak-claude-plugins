@@ -471,8 +471,10 @@ abandoned at the block still records the gap. NEVER `emit-block` for an environm
 source-not-found, cancellation).
 
 **Session-hygiene invariant.** End Phase 5 with a `### Context hygiene` note per
-`workflows-core:session-hygiene` — a same-role `/compact` suggestion
-(no `resume.md`, no `/rename`: pre-PRD, short PM phase). Guidance only, never auto-run.
+`workflows-core:session-hygiene` — a same-role `/compact` suggestion, and neither a `resume.md`
+nor a `/rename` label. Two different reasons, neither of them a missing key: no pointer because
+this run hands its brief off in the same run rather than being a phase a later run resumes (§1),
+and no label because the ideation phase is short (§4). Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.

@@ -987,7 +987,7 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
-> - Command run: /document
+> - Command run: /document (keyed mode)
 > - What was done: [one-paragraph summary of the documentation produced]
 > - Key events: [BLOCK reviews encountered and their reason, ambiguous image policies, unresolved refs, style-check failures, branch-naming conflicts — or 'none']
 > - Workarounds used: [manual steps not automated by the workflow — or 'none']
@@ -1276,7 +1276,7 @@ name is ever written (§10 privacy).
 - ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — `doc-planner` to the §2 Opus chain, the mechanical steps (the folder read, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance) to the §2.1 Sonnet chain; `doc-reviewer` keeps its frontmatter Opus pin (no override); the inline writer + gates run on `current_model` (advisory only)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
-- ALWAYS pass `Command run: /document` in the Phase 8 Agent 4 session handoff
+- ALWAYS pass `Command run: /document (keyed mode)` in the Phase 8 Agent 4 session handoff — the mode-qualified name this run already passes `emit-auto` in the same phase and `emit-cost` in Phase 11, and what keeps a returned phase-numbered suggestion resolvable between two modes that each number from their own Phase 0
 - ALWAYS spawn Phase 8 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)
 - ALWAYS produce the Phase 9 report as the final output

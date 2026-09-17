@@ -125,8 +125,11 @@ Record the chosen model as `detection_model:` in the `model_routing` block.
 - Continue with the currently selected model.
 - Do **not** add mandatory Opus steps.
 - Proceed with normal planning, implementation, testing, and fixes.
-- Skip the dedicated Opus code review (the standard `risk-planner` consult
-  — when called — uses the workflow's default model selection).
+- Skip the dedicated Opus code review. **`risk-planner` is not dispatched on this path at
+  all** — §3.2 step 2 is its only route, and the agent's own file forbids the call in terms
+  (*"Do NOT use for SIMPLE / MODERATE tasks."*) — so nothing in this section selects its
+  tier: wherever it *is* called it runs on its frontmatter `model: opus` pin, per §4's
+  closing bullet.
 
 ### 3.2 SIGNIFICANT / HIGH-RISK — mandatory sequence
 
@@ -235,7 +238,7 @@ task(
 )
 ```
 
-**`risk-planner` and `code-review` belong to `dev-workflows`, not to the plugin that ships this file.** **`dev-workflows`'s own commands name them directly and nothing here conditions that** — `/implement` and `/upgrade` name them by that exact `dev-workflows:` form and `/vuln` dispatches `code-review` by bare name, and a command's own plugin is installed whenever that command runs, so the owning plugin is never the case this note is about. Any *other* plugin can count on naming them as a `subagent_type` only by declaring `dev-workflows` in its `dependencies`, which is what installs it alongside; a reader in `workflows-core` — or in any other plugin that neither ships those agents nor declares `dev-workflows` — has no such agent to count on and takes the `general-purpose` fallback below. For those readers the fallback is not a degraded path bolted on for a missing environment: it is the *normal* one, and the §6 checklist this file already carries is complete for them, because none of them hands `code-review` any of the three optional inputs that add a dimension beyond §6's eight — `applicable_ard` and `applicable_spec` (`/implement` only) and `claims_file` (all three of `dev-workflows`'s code-changing commands). **A caller that does pass one and still has to fall back — on the environment half of the trigger below — carries that dimension into the fallback prompt itself**, because §6 does not list it.
+**`risk-planner` and `code-review` belong to `dev-workflows`, not to the plugin that ships this file.** **`dev-workflows`'s own commands name them directly and nothing here conditions that** — some name them by that exact `dev-workflows:` form and some by bare name, and either reaches the agent because a command's own plugin is installed whenever that command runs, so the owning plugin is never the *dependency* case this note is about. **No per-command list of which form each uses stands here on purpose:** it would be a census of three commands' call sites inside a shared reference, going stale on the next edit to any of them, and the rule it was offered as evidence for does not turn on it. Any *other* plugin can count on naming them as a `subagent_type` only by declaring `dev-workflows` in its `dependencies`, which is what installs it alongside; a reader in `workflows-core` — or in any other plugin that neither ships those agents nor declares `dev-workflows` — has no such agent to count on and takes the `general-purpose` fallback below. For those readers the fallback is not a degraded path bolted on for a missing environment: it is the *normal* one, and the §6 checklist this file already carries is complete for them, because none of them hands `code-review` any of the three optional inputs that add a dimension beyond §6's eight — `applicable_ard` and `applicable_spec` (`/implement` only) and `claims_file` (all three of `dev-workflows`'s code-changing commands). **A caller that does pass one and still has to fall back — on the environment half of the trigger below — carries that dimension into the fallback prompt itself**, because §6 does not list it.
 
 - For **planning** on SIGNIFICANT/HIGH-RISK tasks, prefer `subagent_type: "dev-workflows:risk-planner"`
   with Opus, asking it to critique the proposed plan — available in `dev-workflows` itself, and

@@ -185,7 +185,7 @@ the variable the run is missing, never a generic placeholder.
 
 `/brd-intake` (Phase 0 step 5), `/prd-ground` (Phase 0 step 3 for `SPECS_PATH` and Phase 0 step 7
 for `REPOS_PATH`), `/brd-split` (Phase 0 step 2), `/brd-interview` (Phase 0 step 3),
-`/brd-package` (Phase 0 step 3), `/brd-reconcile` (Phase 0 step 3), `/frames` (Phase 0 step 1),
+`/brd-package` (Phase 0 step 3), `/brd-reconcile` (Phase 0 step 3), `/frames` (Phase 0 step 0),
 `/prd-proposal` (Phase 0 step 1) and `/brd-proposal` (Phase 0 step 1)
 cite this rule by name — for `/brd-interview`, `/brd-package`, `/brd-reconcile`, `/frames`,
 `/prd-proposal` and `/brd-proposal`, `SPECS_PATH` is the only path variable they need, since

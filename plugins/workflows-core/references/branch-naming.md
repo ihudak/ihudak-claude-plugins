@@ -155,7 +155,7 @@ Used for the description segment (§1.2) or the §1.4 `<slug>`:
 - `/vuln` — `<CVE-ID>`
 - `/upgrade` — `upgrade-<component>-to-<version>`, or `upgrade-<first>-and-<N>-more` for a batch
 
-When the documented pattern has **no** issue-key segment but the run has a key, the commands that are keyed (`/document` keyed mode, `/epics`-adjacent flows, `/implement` with a resolved key) prepend it to the slug — `<KEY>-<slug>` — matching their pre-existing behaviour. In the §1.4 no-convention case the same applies.
+When the documented pattern has **no** issue-key segment but the run has a key, the commands that are keyed (`/document` keyed mode, `/implement` with a resolved key) prepend it to the slug — `<KEY>-<slug>` — matching their pre-existing behaviour. In the §1.4 no-convention case the same applies.
 
 If the assembled name already exists, append the first 7 chars of HEAD's SHA: `<name>-<short-sha>`.
 

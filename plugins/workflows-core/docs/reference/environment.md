@@ -2,7 +2,7 @@
 
 [Getting started](../getting-started.md) says what each variable is *for* and what to export before your first use of this plugin. This page says what each variable **is** — its default, what happens when it is unset, and what happens when it points somewhere unreadable. The plugin reads five user-settable variables. The rest of the names its own inventory check encounters while scanning for `$VAR` reads are never user-settable and stay out of scope here: `CLAUDE_PLUGIN_ROOT` and `ARGUMENTS` are runtime plumbing Claude Code itself sets for every plugin invocation, and `OSTYPE`, `BASH_SOURCE`, `BASH_REMATCH`, `ROOT` and `OWNER_REPO` are shell built-ins or internal template names, not plugin configuration.
 
-Every one of the five is read by a reference this plugin ships rather than by a command of its own — the corpus is where the reads live, and the corpus is here. The set is the union of what any downstream plugin needs, plus the price-table override: `dev-workflows` and `docs-workflows` each read all four of the others (`$GIT_USER_INITIALS` included, since each branches a repository somewhere); `product-workflows` reads three of the four — it never creates a branch in a code or docs repo, so `$GIT_USER_INITIALS` is not among the variables its own commands or references touch.
+Every one of the five is read by a reference this plugin ships — the corpus is where the reads live, and the corpus is here — and four of the five are read nowhere else. `$SPECS_PATH` is the exception: `/frames` Phase 0 step 0 gates on it in the command's own body and stops the run on an unset one. Where any of this plugin's other commands names the variable, it is as the scope of the shared entry points they cite, which do the reading. The set is the union of what any downstream plugin needs, plus the price-table override: `dev-workflows` and `docs-workflows` each read all four of the others (`$GIT_USER_INITIALS` included, since each branches a repository somewhere); `product-workflows` reads three of the four — it never creates a branch in a code or docs repo, so `$GIT_USER_INITIALS` is not among the variables its own commands or references touch.
 
 ## `$SPECS_PATH`
 
@@ -10,7 +10,7 @@ Every one of the five is read by a reference this plugin ships rather than by a 
 
 **Resolution.** Used verbatim as a directory path. `specs-repo-git.md`'s preflight and terminal commit run every git call as `git -C "$SPECS_PATH"` and never change the working directory.
 
-**When unset.** Cost, feedback and follow-up entries fall through to their report-only tier — the run says what it would have written and writes nothing. Nothing is ever written into the current working directory instead, since it may be a code repository.
+**When unset.** Cost, feedback and follow-up entries fall through to their report-only tier — the run says what it would have written and writes nothing. Nothing is ever written into the current working directory instead, since it may be a code repository. **`/frames` does not degrade — it stops.** *"Every path this command reads or writes is under it"*, so its Phase 0 step 0 applies `escalation-rules.md`'s *Required path environment variable unset* rule and refuses the run — `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`, with no "continue without it".
 
 **When it points somewhere unreadable or unwritable.** The same degradation, reported rather than fatal.
 

@@ -166,7 +166,8 @@ An exhausted ladder (or no `origin`) means no pull request can be opened: report
 
 - an Opus review verdict still `BLOCK` after its single allowed fix cycle plus re-review;
 - test regressions the user chose to keep rather than fix or revert;
-- a unit of work the caller marked `BLOCKED` (a `/vuln` CVE, an `/upgrade` component) **that reached the repository** — a unit that stopped before writing anything (an unreadable input, a failed baseline) changed nothing and must not flip the flag for the rest of the batch.
+- a unit of work the caller marked `BLOCKED` (a `/vuln` CVE, an `/upgrade` component) **that reached the repository** — a unit that stopped before writing anything (an unreadable input, a failed baseline) changed nothing and must not flip the flag for the rest of the batch;
+- a verification that could not be made **at all** and that the caller proceeded on anyway — `/implement`'s accepted unverified run, `/vuln`'s and `/upgrade`'s `TESTS_NOT_RUN`. Kept regressions at least name what failed; here nothing is known about the tests in either direction, which is the stronger case for the banner, not a weaker one. A run whose comparison was merely *incomplete* — a `test-baseliner` `PARTIAL`, where every suite the baseline covered is green — is **not** this and does not flip the flag.
 
 **Commit and push run exactly as they would on a clean finish.** Unreviewed work that exists is recoverable; work that was never committed is not, and a failed gate is the case where losing it hurts most. What changes is only the pull request:
 

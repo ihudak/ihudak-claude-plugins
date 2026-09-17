@@ -507,9 +507,9 @@ $SPECS_PATH/dev-workflows-cost/pending-<date>-<sid8>.md
 **`/idea` is not an example of this tier and never reaches it.** The key is a mandatory
 argument — Phase 0 refuses the run without one (`IDEA_NEEDS_KEY`) — so an idea run always
 resolves a folder and always lands on §8 tier 1. What reaches pending is a run that resolved
-no folder at all: `/feedback` or `/prompt` invoked outside any PRD, `/implement` in direct
-mode, and a `/vuln` or `/upgrade` whose run resolved no key. Derive the set from §8 tier 2's
-`Otherwise` branch rather than from any list, here or elsewhere.
+no folder at all: `/feedback` or `/prompt` invoked outside any PRD, and `/implement` in
+direct mode. Derive the set from §8 tier 2's `Otherwise` branch rather than from any list,
+here or elsewhere.
 
 **Opportunistic suggest-and-confirm reconciliation.** Whenever any command
 resolves a PRD key **and** pending files exist, the cost phase lists them (each

@@ -40,9 +40,11 @@ printed suggestion.
 **direct** mode, `/document` **doc-edit** mode (Mode B), `/vuln`, `/upgrade`, `/frames`. There the
 durable state is the artifact / branch / PR already on disk; no resume pointer is written.
 
-**Two reasons sit in that list, and only one of them is "no PRD anchor".** `/implement` direct mode,
-`/document` Mode B, `/vuln` and `/upgrade` have no PRD directory to write into. `/idea` and `/frames`
-do — but neither is a pipeline *phase* that a later run resumes: `/idea` hands its brief off in the
+**Three reasons sit in that list, and only one of them is "no PRD anchor".** `/implement` direct mode
+and `/document` Mode B have no PRD directory to write into. `/vuln` and `/upgrade` are non-pipeline
+runs whose durable state is the branch or PR already on disk, which is the reason §3 gives for them —
+not a missing directory, since a keyed run of either resolves a folder and writes into it. `/idea` and
+`/frames` do resolve one — but neither is a pipeline *phase* that a later run resumes: `/idea` hands its brief off in the
 same run, and `/frames` rebuilds an index, which is a repair rather than a step with a next one. A
 pointer to a phase nobody resumes is a file that only goes stale, so state the exemption in the
 command rather than writing one.
@@ -154,9 +156,10 @@ folder, and carries no line there either.
 4. **Mode-aware** — direct / doc-edit / non-pipeline / pre-PRD runs → no
    `resume.md`, no `/rename`, and the suggestion degrades to a plain optional `/compact`
    note (or is omitted, consistent with `next-phase-offer`'s mode-aware omission).
-   **Two reasons sit in that set and only one of them is "no PRD anchor"**, exactly as §1
-   separates them: `/implement` direct mode, `/document` Mode B, `/vuln` and `/upgrade` have
-   no PRD directory to write into, while `/idea` and `/frames` do resolve one and are exempt
+   **Three reasons sit in that set and only one of them is "no PRD anchor"**, exactly as §1
+   separates them: `/implement` direct mode and `/document` Mode B have no PRD directory to
+   write into; `/vuln` and `/upgrade` are non-pipeline runs whose durable state is the branch
+   or PR already on disk (§3); and `/idea` and `/frames` do resolve one, and are exempt
    because neither is a phase a later run resumes.
 5. **Never blocks** — a nudge appended to the Final Report, exactly like the next-phase offer.
 

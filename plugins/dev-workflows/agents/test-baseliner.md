@@ -142,6 +142,8 @@ The caller must provide:
 
    Steps 1 and 2 return before this one — `COMMAND_NOT_FOUND` where detection selected no suite, `RUN_FAILED` where nothing pairs with the baseline — so neither is computed here.
 
+   **The `Status` carries regressions; it does not carry new failures.** A test failing now that was in neither baseline list is a **New failure** by step 5's table, and no value above counts one — so `OK` and `PARTIAL` are both reachable with `### New failures` non-empty. A caller whose own run wrote tests between the capture and this call reads that list as well as the `Status`, or it reads its own broken test as a pass.
+
 7. **Return this exact structure and nothing else:**
 
 ```markdown

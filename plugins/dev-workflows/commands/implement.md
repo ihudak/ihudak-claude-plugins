@@ -464,7 +464,7 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
      > Project root: [absolute path]
      > command_hint: [the recorded `test_command_hint` — include this line only where Pre-Phase 3.5 recorded one, and never a different value: a verify run over a different set of suites is not a comparison]"
 
-5. **Act on the verify report's `Status`.** Every value is handled here; none is passed over.
+5. **Act on the verify report.** **A non-empty `### New failures` list sends the run to the fix loop whatever the `Status` says.** A test this run's own `test-writer` just wrote has never been in any baseline list, so when it fails it is a **New failure** and nothing else — and `New failures` is not a `Status` value, so `OK` and `PARTIAL` are both reachable with one standing (`dev-workflows:test-baseliner` verify step 6). Branching on the `Status` alone reports a pass on the run's own broken test. Then act on the `Status`; every value is handled here, none is passed over.
    - `OK` → Phase 3.5 is done.
    - `PARTIAL` → no regressions, and a suite could not be run at either end. Record each such suite from `### Suites` in the Phase 5 `### Deferred items` section and continue — there is nothing to fix.
    - `RUN_FAILED` → **`Comparison status: invalid`: nothing was compared, so this is never a pass.** Surface the report's `Reason` line and ask:
@@ -475,18 +475,18 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
    - `COMMAND_NOT_FOUND` → the baseline named no framework; Pre-Phase 3.5's recorded `test_decision` stands and this run's tests are documented as skipped.
    - `REGRESSIONS` → the fix loop below.
 
-6. **Fix loop** — on `Status: REGRESSIONS`:
+6. **Fix loop** — on `Status: REGRESSIONS`, or on a non-empty `### New failures` list under any `Status`:
    - The **session model** (not a subagent) applies fixes. No `review-fixer`-style indirection is used here — the scope is narrow and the context is already fully in-session. Use the `test-baseliner` verify report as the authoritative list of what broke.
    - After each fix attempt, re-capture the diff (`git add -N . && git diff`) and re-run `test-baseliner` in verify mode against the **original** baseline (never re-baseline mid-loop — a mid-loop re-baseline would silently absorb a regression as the new normal).
-   - Cap at **2 fix attempts**. If regressions remain after the second attempt, surface to the user:
+   - Cap at **2 fix attempts**. If any regression or new failure remains after the second attempt, surface to the user:
      ```
-     choices: ["Investigate further", "Accept regressions and proceed (document in Phase 5 report)", "Cancel"]
+     choices: ["Investigate further", "Accept the remaining failures and proceed (document in Phase 5 report)", "Cancel"]
      ```
      - **Investigate further** → stop the automated loop; the session model diagnoses manually and re-runs verify when ready.
-     - **Accept regressions** → record each regression in the Phase 5 `### Deferred items` section with the user's rationale; proceed.
+     - **Accept the remaining failures** → record each regression and each new failure in the Phase 5 `### Deferred items` section with the user's rationale; proceed.
      - **Cancel** → stop and summarize.
 
-Once Phase 3.5 returns (passed, skipped, or accepted with regressions or without a comparison), return to Phase 3A step 7 (Verify outcome).
+Once Phase 3.5 returns (passed, skipped, or accepted with failures kept or without a comparison), return to Phase 3A step 7 (Verify outcome).
 
 ---
 
@@ -879,6 +879,7 @@ directory, where it is not the specs repository; no user name is ever written (�
 - NEVER run tests on SIGNIFICANT / HIGH-RISK work before the Opus code review returns a non-BLOCK verdict
 - NEVER skip Phase 3.5 — if no test framework is detected, ask the user at Pre-Phase 3.5, where a baseline can still be taken, rather than silently skipping; a "Skip" decision must be explicit and logged in the Phase 5 report
 - NEVER read a verify report as a pass on any value but `OK` or `PARTIAL` — `RUN_FAILED` means nothing was compared and `COMMAND_NOT_FOUND` means nothing was run, and each is surfaced (Phase 3.5 step 5), never passed over
+- NEVER read `OK` or `PARTIAL` as a pass while the report's `### New failures` list is non-empty — a test this run wrote and that fails now is in neither baseline list, so it moves no `Status` at all; Phase 3.5 step 5 tests the list before the `Status` and step 6's fix loop takes it
 - NEVER make assumptions that could have been asked — ask instead
 - NEVER end implementation with "Should I implement?" — if approved, implement
 - NEVER rewrite files wholesale when only an append/edit is needed
@@ -898,7 +899,7 @@ directory, where it is not the specs repository; no user name is ever written (�
 - ALWAYS pass `Change type: code` in the Phase 4 change summary block (scopes the four maintenance agents' suggestions to code-change territory — docs variants use `docs`)
 - AFTER one review-fixer pass + one re-review, if verdict is still BLOCK: stop and surface to user — do NOT loop
 - ALWAYS state, with the recorded review verdict, which version it was taken against — where any edit followed it (a review-fixer pass, a manual fix, a Phase 3.5 regression fix), the Phase 5 report says so and names the edits, per the `A recorded verdict names the version it was taken against` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`; where none did, it says that too
-- AFTER two Phase 3.5 fix-loop attempts, if regressions remain: stop and surface to user — do NOT loop
+- AFTER two Phase 3.5 fix-loop attempts, if any regression or new failure remains: stop and surface to user — do NOT loop
 - ALWAYS classify each `@path` input by inspection (Phase 0) — never by matching the path string
 - WHEN `fan_out` is true (multi-repo or any directory input): floor classification at SIGNIFICANT (overridable at plan approval), run Phase 1.7, and feed its synthesized summary to the planner instead of the single Explore subagent
 - WHEN `fan_out` is true and a theme stays inconclusive: run round 2 (§8.5) when round 1 left an evidence anchor to seed it, and name every still-unresolved theme — including one that never entered round 2 for lack of an anchor — in the summary's `## Unresolved` section and the risk-planner brief's `Unresolved scan themes:` field; NEVER fold it in as an ordinary gap

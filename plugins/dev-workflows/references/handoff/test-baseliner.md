@@ -141,6 +141,14 @@ proceeds or escalates, and **never reverts work on them**. Reverting on one of
 those rolls back a correct change in one language because a runner for another
 is not installed.
 
+**`### New failures` is outside that ladder, because it is not a `Status` value
+at all.** A test failing now that was in neither baseline list moves no value
+above, so `OK` and `PARTIAL` are both returned with that list non-empty. A caller
+that writes tests between its capture and its verify — `/implement`, through
+`test-writer` — reads the list as well as the `Status`, or it reads its own
+broken test as a pass; `/upgrade` and `/vuln` write none and branch on the
+`Status` alone.
+
 **Note:** `passing_count` / `regressions` / `new_passes` as bare YAML keys
 are a caller-side re-keying convenience, not literal fields this agent
 emits — see the field mapping above and each consumer's own handoff doc

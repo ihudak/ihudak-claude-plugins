@@ -1159,7 +1159,7 @@ rather than as a new file, since it is not in this command's produced-artifact s
 
 ## Phase 9 — Handoff
 
-Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — the **gated** variant (§4.0), **in every mode including `--no-code`**:
+Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — the **gated — stopping** variant (§4.1 bullet 1), **in every mode including `--no-code`**:
 
 ```
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]

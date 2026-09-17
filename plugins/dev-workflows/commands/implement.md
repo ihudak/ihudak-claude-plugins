@@ -648,9 +648,13 @@ into the code repo or the current working directory, where it is not the specs r
 
 A **silent no-op** when step 7.5 (Phase 3B) wrote no `- [ ]` notes — which covers every SIMPLE/MODERATE run (no `code-review`, so step 7.5 never runs) and every run with no spec/design in scope, direct-prompt or otherwise.
 
-When step 7.5 did write one or more notes: `prefix` = `spec` when only `specification.md` was annotated, otherwise `design`; `feature_folder` = the directory the annotated file(s) live in (the same specs-repo folder Phase 0 resolved them from); `deliverable_paths` = the annotated file(s) themselves. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim:
+When step 7.5 did write one or more notes: `prefix` = `spec` when only `specification.md` was annotated, otherwise `design`; `feature_folder` = the directory the annotated file(s) live in (the same specs-repo folder Phase 0 resolved them from); `deliverable_paths` = the annotated file(s) themselves. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — **two arrays, selected by the annotated set per §4.1's set rule, and the test is not the `prefix` test above.** Where `specification.md` is in the set (whether or not `design.md` is too), present §4.3's **gated — stopping** array (§4.1 bullet 1), because `/dev-workflows:design` stops on an un-landed `specification.md`:
 
 `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`
+
+Where the set is an annotated `design.md` **alone**, present §4.3's **gated — falling back** array (§4.1 bullet 2) instead, because the only §3.4 rows naming `design.md` are this command's own in-scope-only gate and `/dev-workflows:ready`'s coverage gap, neither of which stops:
+
+`choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase does not stop on this — it reports the artifact as un-landed and proceeds from the resolved folder)", "Cancel"]`
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix`, `feature_folder`, and `deliverable_paths` as above; `title: <KEY> Record spec/design conformance findings from /implement`; and `body_facts` = the count of escalated `- [ ]` notes, the code-review Spec/design-conformance dimension summary they came from, and the fact that whoever next reads this `specification.md`/`design.md` will not see them until this pull request is merged. Emit its §4.1 outcome line in the Phase 5 `### Spec/design conformance` section.
 

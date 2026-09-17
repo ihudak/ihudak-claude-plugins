@@ -387,7 +387,7 @@ every later run until those paths are committed or the handoff is taken.
 Report where `idea.md` was written and its `status`, and what Phase 4.5 vendored beside it, then offer
 the next phase — **adapted to status**:
 
-- **`status: refined`** — offer the handoff. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — the **gated** variant (§4.0), because `/product-workflows:create-prd <KEY>` runs `require-on-main` on this `idea.md` (§3.4's first row) — then on the
+- **`status: refined`** — offer the handoff. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — the **gated — falling back** variant (§4.1 bullet 2), because `/product-workflows:create-prd <KEY>` runs `require-on-main` on this `idea.md` (§3.4's first row), which settles the class as **gated**, and that row is the *only* one naming this file: it preserves the Phase 0 idea ladder instead of stopping, so §4.1's quantifier takes the falling-back half. The **gated — stopping** array would promise a refusal `/create-prd` does not make — on `absent` it reports the file and grills the PRD from scratch, which is what the outcome line this same run prints already says — then on the
   first option execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: idea`;
   `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = `idea.md`, **plus every file
   Phase 4.5 wrote or reused** — each copy under `attachments/`, each image copy under

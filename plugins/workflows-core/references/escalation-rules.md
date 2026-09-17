@@ -192,10 +192,10 @@ cite this rule by name — for `/brd-interview`, `/brd-package`, `/brd-reconcile
 none of them opens a repository. **Name them rather than counting from the end of the list**: the
 clause read "for the last four" until the list grew, at which point it silently described a
 different set. Derive the set rather than trusting this list:
-`grep -rl 'Required path environment variable unset' commands/`. It is a stop, not a
-degradation: there is no "continue without it" option, because the path is where the run's inputs
-and outputs live. Other commands reproduce the same two-option list inline without naming the
-rule; a citer that names the rule uses the list written here.
+`grep -rl 'Required path environment variable unset' plugins/*/commands/*.md`, run from the
+repository root. It is a stop, not a degradation: there is no "continue without it" option, because
+the path is where the run's inputs and outputs live. Other commands reproduce the same two-option
+list inline without naming the rule; a citer that names the rule uses the list written here.
 
 ## Repo unresolved (zero matches) — /document
 

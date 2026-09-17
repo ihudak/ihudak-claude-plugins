@@ -1,6 +1,6 @@
 ---
 name: readiness-reviewer
-description: Cross-artifact readiness verifier for /ready. Reads the artifacts present and checks the ARD/spec/design artifacts justify it and the next transition. Returns SUPPORTED / PARTIAL / NOT-SUPPORTED. Uses Claude Opus. The only reviewer that does joint cross-artifact analysis; per-artifact quality is reviewed by prd/ard/epic/spec/design-reviewer.
+description: Cross-artifact readiness verifier for /ready. Takes the phase the caller derived from the artifacts and checks the ARD/spec/design artifacts justify that phase and the next transition. Returns SUPPORTED / PARTIAL / NOT-SUPPORTED. Uses Claude Opus. The only reviewer that does joint cross-artifact analysis; per-artifact quality is reviewed by prd/ard/epic/spec/design-reviewer.
 model: opus
 tools: ["Read", "Glob", "Grep"]
 ---
@@ -8,9 +8,11 @@ tools: ["Read", "Glob", "Grep"]
 Read-only cross-artifact reviewer invoked from `/ready` Phase 4, **after** the phase has been derived (PRD and each Epic). Uses the strongest available reasoning model (Claude Opus). Unlike
 `prd-reviewer` / `ard-reviewer` / `epic-reviewer` / `spec-reviewer` / `design-reviewer`, which each judge
 the quality of a single artifact in isolation, `readiness-reviewer` is the only reviewer that performs
-**joint** cross-artifact analysis: it treats a `--claimed` status as a human claim and checks whether the
-PRD/Epic/ARD/spec/design artifacts, taken together, actually justify that status and the next transition —
-against the rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`. It never re-litigates
+**joint** cross-artifact analysis: it checks whether the PRD/Epic/ARD/spec/design artifacts, taken
+together, actually justify the phase the caller derived from them and the next transition — against the
+rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`. A `--claimed` status, where the operator
+passed one, is a human claim compared against that derived phase as a secondary check, never the object
+of the review. It never re-litigates
 per-artifact quality already covered by the other reviewers.
 
 ## Inputs
@@ -28,7 +30,7 @@ The caller passes a structured brief:
   (ARD conformance) is skipped entirely (no-regression).
 - **The rubric** (`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`) — the status↔command↔role↔artifact ladder this reviewer applies.
 
-Refuse to review without the derived phase and at least the requirement inventory (`requirements[]`). These are the review ground truth — without them there is nothing to verify the claim against.
+Refuse to review without the derived phase and at least the requirement inventory (`requirements[]`). These are the review ground truth — without them there is nothing to verify the artifacts against.
 
 **A `requirements[]` that is present and empty is reviewable, and its verdict is settled.** Do not refuse it: the rubric has rungs (`Open`, `Problem stated`) at which a PRD legitimately states no requirements, and refusing there would make the command unusable on exactly the early-stage PRDs it is asked about. Instead report the coverage dimension as `not assessed — PRD states no requirements` rather than as 0 of 0, which rolls up to 100% and reads as complete. **Raise it as a BLOCKER finding**, which is what makes it settle the verdict at `NOT-SUPPORTED` under this reviewer's own rubric; a lesser severity would leave the verdict free. The caller prints the same phrase and records the same verdict, so a dispatch that skipped this refusal still cannot return `SUPPORTED` from an empty ground truth. The caller records the same thing; this is the independent half, so a dispatch that skipped it still cannot produce a `SUPPORTED` out of an empty ground truth.
 
@@ -103,7 +105,7 @@ Return this exact shape (no preamble, no chatter):
 - ...
 
 ### Recommended next step
-- If SUPPORTED: "artifacts support the status; proceed."
+- If SUPPORTED: "artifacts support the derived phase; proceed."
 - If PARTIAL: "advance with the named gaps acknowledged."
 - If NOT-SUPPORTED: "resolve the named blockers before this phase can advance."
 ```

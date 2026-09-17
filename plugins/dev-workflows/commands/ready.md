@@ -8,10 +8,11 @@ Verify readiness for AI-driven development: $ARGUMENTS
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
-`/ready` is the **artifact-anchored readiness gate**. Given a PRD or Epic address, it reads the
-artifacts present — and, with `--claimed "<status>"`, compares them against a status the operator declares — and checks whether the
-ARD/spec/design artifacts that actually exist, taken together, justify that status and the *next*
-transition, against the rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`. It returns
+`/ready` is the **artifact-anchored readiness gate**. Given a PRD or Epic address, it derives the
+workflow phase from the artifacts present and checks whether the
+ARD/spec/design artifacts that actually exist, taken together, justify that phase and the *next*
+transition, against the rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md` — and, with
+`--claimed "<status>"`, additionally compares the phase the operator declares against the derived one. It returns
 `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` with a requirement coverage roll-up and named gaps, gated on
 the Opus `readiness-reviewer`.
 
@@ -104,7 +105,7 @@ best-effort-checks repos under `$REPOS_PATH`; cwd need not be inside either.
    wrote. Nothing in `$SPECS_PATH` writes such a file, so the read had no source — and D8 removed its
    purpose as well: the phase is **derived from the artifacts** (Phase 3(0)), and the only status
    anyone declares is the one the operator passes to `--claimed` (step 1a), which Phase 3 compares
-   against the derivation rather than displaying beside it. **Do not reconstruct it**: a second,
+   against the derivation. **Do not reconstruct it**: a second,
    softer statement of the phase beside the derived one is exactly the duplicated state D8 exists to
    remove.
 

@@ -1839,7 +1839,9 @@ three did not apply and are named below rather than ported blind.
 - **`/implement`'s post-branch stop exits all bypassed Phase 4.6** — including the persisting-`BLOCK`
   state Phase 4.6 itself names as a `clean_finish: false` case. Each now runs it before stopping.
   This edition's exit list differs from the upstream's and is written against its own: the repro
-  prompt sits in Phase 2B, *before* the branch exists, and there is no abandon-and-restore arm here.
+  prompt sits in Phase 2B, *before* the branch exists, and the persisting-`BLOCK` stop's own
+  abandon-and-restore arm is not a separate exit — that stop is already in the list, and it runs
+  Phase 4.6 before it presents anything.
 - **`/upgrade`'s per-component commit ran with no gate**, because the split sanctioned "§2.2–§2.3
   only". A caller whose branch creation had failed would commit its whole batch onto the default
   branch and only discover it at the terminal call. The gate is now inside the split.

@@ -1102,12 +1102,12 @@ Write `<BRD-dir>/slices.md`:
   the verbatim text is what lets them see whether the instruction or the reading was wrong.
   **On the re-cut path this same block records that same reading over the re-cut candidate set**, which is the set Phase 1.5 ran over there — no second instruction block is written, and none is needed: one instruction was read once, and only the set it was read against differs.
 
-- **One line for every frame set Phase 0 step 7b let through as `skipped: --no-design`**, naming the
+- **One line for every frame set Phase 0 step 7, test b let through as `skipped: --no-design`**, naming the
   set. That is the one route by which a slice this run carves can reach build with a design nobody
   reconciled, and the operator who chose it per-run is not the reader who will meet the slice later.
-  Where step 7b found nothing to record — no `design/` folder, or every set ground — write nothing
+  Where step 7, test b found nothing to record — no `design/` folder, or every set ground — write nothing
   here rather than a "none" line: this block exists to carry an exception. **On a `full` run there is
-  never anything to write**, and that is not the same absence: step 7b does not run there at all
+  never anything to write**, and that is not the same absence: step 7, test b does not run there at all
   (step 7 is `allocate-only` only), so this run checked no frame set rather than checking them and
   finding nothing to except.
 

@@ -362,9 +362,11 @@ a ledger, builds its claim list from the PRD's own `[AC#n]`/`[FR#n]` rows (repor
 the excluded prefixes), then runs the same repository resolution, pinning, fan-out, verification,
 and write as the BRD route. Its next-step offer names [`/create-ard`](create-ard.md) and
 [`/specify`](specify.md) side by side, with [`/update-prd`](update-prd.md) named first, marked
-`(Recommended)`, wherever a claim came back `CONFIRMED` — the one of `workflows-core:grounding-format`
-§3's six verdicts that says the premise holds with evidence, so a PRD asking for something the code
-already does is worth revising before an architecture or a specification is authored against it.
+`(Recommended)`, wherever a *requirement* claim came back `CONFIRMED` — the one of
+`workflows-core:grounding-format` §3's six verdicts that says the premise holds with evidence, so a
+PRD asking for something the code already does is worth revising before an architecture or a
+specification is authored against it. The count beside it is of distinct requirement claims; the
+baseline finding the run writes per repository is `CONFIRMED` too, and is not one of them.
 
 ## See also
 

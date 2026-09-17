@@ -10,7 +10,7 @@ Single source of truth for the two entry points that move a **phase deliverable*
 
 ## 1. Hard rules
 
-Inherited from `specs-repo-git.md`, unchanged:
+Inherited from `specs-repo-git.md` — the first three unchanged, and the fourth **widened** where it says so:
 
 1. **`git -C` always; `cd` never.** Every invocation is `git -C "$SPECS_PATH" …`. Most callers are running inside a *different* repository; a `cd` would corrupt their git state. The `gh` calls in §2.6 and §3.5 name the repository with `-R` for the same reason.
 2. **Bounded paths.** Only the calling command's own declared deliverable paths are staged, by enumeration (§2.3). `git add -A` is never issued at repository scope.

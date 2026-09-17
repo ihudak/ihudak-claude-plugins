@@ -69,8 +69,8 @@ single-suite repository's block is unchanged in every field, `### Suites` aside.
 - `RUN_FAILED` — **every** suite that was run aborted with no parseable counts,
   so the baseline records nothing for a later verify to compare against
 - `NO_TESTS` — every suite ran cleanly and the combined Total = 0
-- `COMMAND_NOT_FOUND` — detection selected no suite at all (**Framework** then
-  reads `not detected`)
+- `COMMAND_NOT_FOUND` — no candidate matched and no `command_hint` supplied one,
+  so nothing ran (**Framework** then reads `not detected`)
 
 **Field mapping for callers that need YAML-shaped fields** (e.g. `vuln-fixer`'s
 and `upgrade-executor`'s `baseline:` input — see their own handoff docs):
@@ -116,7 +116,10 @@ com.example.BarTest#testLogin
 ```
 
 **verify status values (the authoritative field callers branch on):**
-- `OK` — every detected suite ran and all previously-green tests are still green
+- `OK` — the comparison was possible and every previously-green test is still
+  green. It tolerates one kind of abort: a suite holding no baseline test that
+  could go missing — its baseline row `NO_TESTS`, or no row at all because the
+  suite is new since the baseline — which `### Notes` names
 - `REGRESSIONS` — one or more baseline tests now fail, or are missing from the
   run entirely; see the `### Regressions` / `### Missing from run` lists. A suite
   the baseline recorded `OK` and that aborts here lands here too, because every
@@ -128,10 +131,12 @@ com.example.BarTest#testLogin
 - `RUN_FAILED` — nothing was verified: no detected suite matches the baseline
   (**Comparison status**: `invalid`), or no suite produced counts in this run at
   all. It is tested **after** `REGRESSIONS`, so a run in which every suite aborted
-  is a regression where the baseline had run them
-- `COMMAND_NOT_FOUND` — detection selected no suite at all, so nothing ran
-  (**Framework** then reads `not detected`). Never emitted once a call reaches
-  the run step
+  is a regression where the baseline had run them, and what reaches this value is
+  a baseline holding no test that could go missing
+- `COMMAND_NOT_FOUND` — no candidate matched and no `command_hint` supplied one,
+  so nothing ran (**Framework** then reads `not detected`) — the same test capture
+  mode applies, a hint being something to run rather than nothing. Never emitted
+  once a call reaches the run step
 
 **What a consumer may do with each.** `REGRESSIONS` is the only value that is
 evidence about the change, and the only one on which reverting it is warranted.

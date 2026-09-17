@@ -562,9 +562,9 @@ BLOCKERs in Phase 7. If `clarifications_needed[]` is empty, this phase is a
 
 **Leftover disposition (refine / both only).** After the writer returns, read `_coverage.md`; every `❌ gap` row is a PRD requirement no refinement target covers. In ONE batched prompt, ask per gap:
 ```
-choices: ["Assign to Epic <KEY> (re-drafts that Epic to include it)", "Propose as a new (net-new, slug-named) Epic", "Defer (leave as an uncovered row)"]
+choices: ["Assign to Epic <KEY> (re-drafts that Epic to include it)", "Propose as a new (net-new) Epic", "Defer (leave as an uncovered row)"]
 ```
-Fold the results back: *assign* → re-dispatch `epic-writer` once (or Edit inline) to add the requirement to the named target's `## Covers` + scope; *new Epic* → add a slug-named net-new draft; *defer* → the row stays `❌ gap` in `_coverage.md` and is listed in the Phase 9 report. Reuses the same batched-gate pattern as the clarification resolution above; no gaps → silent no-op.
+Fold the results back: *assign* → re-dispatch `epic-writer` once (or Edit inline) to add the requirement to the named target's `## Covers` + scope; *new Epic* → add a net-new draft in its own `EPIC-<PRD-KEY>-NN-<eslug>/`, its key minted exactly as Phase 1 mints one — never a slug-named file, which the Invariants forbid; *defer* → the row stays `❌ gap` in `_coverage.md` and is listed in the Phase 9 report. Reuses the same batched-gate pattern as the clarification resolution above; no gaps → silent no-op.
 
 ---
 
@@ -763,7 +763,7 @@ into the current working directory, where it is not the specs repository.
 
 Output a structured report — do NOT ask any closing confirmation:
 
-**When `mode` is `refine`/`both`,** begin the report with a `Mode: <refine | both>` line and split the written-Epics listing into three labelled groups: **Refined** (identified by the target's `<EPIC-KEY>`; the file itself is that Epic folder's own `epic.md`, never `<EPIC-KEY>.md`), **Net-new** (slug-named), and **Deferred** (PRD requirements left uncovered via the Phase 6.1 leftover gate). In `generate` mode the report is unchanged.
+**When `mode` is `refine`/`both`,** begin the report with a `Mode: <refine | both>` line and split the written-Epics listing into three labelled groups: **Refined** (identified by the target's `<EPIC-KEY>`; the file itself is that Epic folder's own `epic.md`, never `<EPIC-KEY>.md`), **Net-new** (identified by the `<EPIC-KEY>` Phase 1 minted for it, in its own folder, on the same terms), and **Deferred** (PRD requirements left uncovered via the Phase 6.1 leftover gate). In `generate` mode the report is unchanged.
 
 ```
 ## keyed Epic Drafting Report

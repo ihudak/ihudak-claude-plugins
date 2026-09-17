@@ -29,8 +29,12 @@ except Exception:
     print('')
 " 2>/dev/null) || true
 
-# Exit early if this wasn't a test command
-if ! echo "$command" | grep -qE '(mvn test|gradlew test|gradle test|npm test|yarn test|pytest|make test)'; then
+# Exit early if this wasn't a test command.
+# A wrapper needs its own alternation: these are substrings, and "mvnw test"
+# does not contain "mvn test" any more than "gradlew test" contains "gradle
+# test" — which is why that one was already spelled out. Maven's was not, so
+# the ./mvnw test most Maven projects actually run never notified.
+if ! echo "$command" | grep -qE '(mvnw test|mvn test|gradlew test|gradle test|npm test|yarn test|pytest|make test)'; then
     exit 0
 fi
 

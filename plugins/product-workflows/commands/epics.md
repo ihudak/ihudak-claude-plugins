@@ -684,8 +684,7 @@ Change type: docs
 Classification: MODERATE
 Files changed:
 <list of new Epic file paths, one per line>
-Notable additions/removals: [new Epics by slug — one line each]
-(In `refine`/`both` mode, refined Epics are identified by key `<EPIC-KEY>`, not slug.)
+Notable additions/removals: [new Epics by key — one line each]
 Epic-review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK]
 ```
 

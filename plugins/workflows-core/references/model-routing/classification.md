@@ -225,8 +225,8 @@ The CLI's `task` tool accepts an explicit `model:` override. Use it like this:
 
 ```
 task(
-  # the two `dev-workflows:` forms are dispatchable only from a plugin that depends on
-  # `dev-workflows`; every other reader uses "general-purpose" — see the note below
+  # the two `dev-workflows:` forms are dispatchable from `dev-workflows`'s own commands, and
+  # from a plugin that depends on it; every other reader uses "general-purpose" — see the note below
   subagent_type: "dev-workflows:risk-planner" | "dev-workflows:code-review" | "general-purpose",
   model:      "claude-opus-5",   # or the highest available per §2
   prompt:     "<full self-contained context — sub-agent has no memory>",
@@ -235,17 +235,18 @@ task(
 )
 ```
 
-**`risk-planner` and `code-review` belong to `dev-workflows`, not to the plugin that ships this file.** Only a plugin that declares `dev-workflows` in its `dependencies` can name them as a `subagent_type`; a reader in `workflows-core` — or in any other dependent plugin that does not itself depend on `dev-workflows` — has no such agent to dispatch and takes the `general-purpose` fallback below. The fallback is not a degraded path bolted on for a missing environment: for those readers it is the *normal* one, and it is complete, because the §6 checklist this file already carries is the whole of what `code-review` is pinned to.
+**`risk-planner` and `code-review` belong to `dev-workflows`, not to the plugin that ships this file.** **`dev-workflows`'s own commands name them directly and nothing here conditions that** — `/implement` and `/upgrade` name them by that exact `dev-workflows:` form and `/vuln` dispatches `code-review` by bare name, and a command's own plugin is installed whenever that command runs, so the owning plugin is never the case this note is about. Any *other* plugin can count on naming them as a `subagent_type` only by declaring `dev-workflows` in its `dependencies`, which is what installs it alongside; a reader in `workflows-core` — or in any other plugin that neither ships those agents nor declares `dev-workflows` — has no such agent to count on and takes the `general-purpose` fallback below. For those readers the fallback is not a degraded path bolted on for a missing environment: it is the *normal* one, and the §6 checklist this file already carries is complete for them, because none of them hands `code-review` any of the three optional inputs that add a dimension beyond §6's eight — `applicable_ard` and `applicable_spec` (`/implement` only) and `claims_file` (all three of `dev-workflows`'s code-changing commands). **A caller that does pass one and still has to fall back — on the environment half of the trigger below — carries that dimension into the fallback prompt itself**, because §6 does not list it.
 
 - For **planning** on SIGNIFICANT/HIGH-RISK tasks, prefer `subagent_type: "dev-workflows:risk-planner"`
-  with Opus, asking it to critique the proposed plan — available only where the calling plugin
-  depends on `dev-workflows`.
+  with Opus, asking it to critique the proposed plan — available in `dev-workflows` itself, and
+  elsewhere only where the calling plugin depends on it.
 - For **post-implementation review** on SIGNIFICANT/HIGH-RISK tasks, use
   `subagent_type: "dev-workflows:code-review"` with Opus, passing the diff and §6 checklist —
-  again, only where the calling plugin depends on `dev-workflows`.
-- Where either agent is unreachable — the calling plugin does not depend on `dev-workflows`, or the
-  agent is unavailable in the environment — fall back to `subagent_type: "general-purpose"` with the
-  same Opus model, the same prompt, and the explicit §6 checklist embedded in that prompt.
+  again, in `dev-workflows` itself and elsewhere only where the calling plugin depends on it.
+- Where either agent is unreachable — the calling plugin neither ships it nor depends on
+  `dev-workflows`, or the agent is unavailable in the environment — fall back to
+  `subagent_type: "general-purpose"` with the same Opus model, the same prompt, and the explicit §6
+  checklist embedded in that prompt, plus any conditional dimension the caller's own inputs trigger.
 
 ---
 

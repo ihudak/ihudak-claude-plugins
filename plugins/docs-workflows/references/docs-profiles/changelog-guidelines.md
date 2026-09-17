@@ -71,6 +71,7 @@ changelog:
 - Ensure every ID in `default-owners.txt` is present in the page's `owners:`
   list. **Union only — never remove existing owners.**
 - `default-owners.txt` ships a placeholder ID as part of the built-in worked
-  example. A real docs repo replaces it — point `frontmatter.default_owners` at
-  the repo's own list, or edit this one (one ID per line) — no code change
-  required.
+  example. Both consumers — the `changelog-owners-reminder` hook and the
+  `docs-frontmatter` skill — read that bundled file directly, under
+  `${CLAUDE_PLUGIN_ROOT}`; a profile's `frontmatter.default_owners` records
+  where a repo keeps its own list, but no consumer resolves that pointer.

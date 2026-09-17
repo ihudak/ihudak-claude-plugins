@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Fires on every message submission. Matches /implement, /vuln, /upgrade —
-# bare or prefixed with this plugin's own namespace (e.g.
-# /dev-workflows:implement) — and routes per spec §3:
+# Fires on every message submission. Matches /implement and /vuln bare or
+# prefixed with this plugin's own namespace (e.g. /dev-workflows:implement),
+# and /upgrade in the QUALIFIED form only — see the note above the regexes for
+# why — and routes per spec §3:
 #   • /implement, /vuln, /upgrade       → full (model-routing + git status +
 #                                         recent commits + small-repo directory
 #                                         listing); /implement also preloads
@@ -16,14 +17,16 @@
 #
 # emit_specs_context surfaces $SPECS_PATH alongside $REPOS_PATH.
 #
-# Two sibling plugins each ship a hook of this name, one regex apiece:
-# docs-workflows covers /document and /release-notes; product-workflows covers
-# /epics. A UserPromptSubmit hook fires whichever plugin ships it, so all
-# three run on every prompt. Disjointness holds two ways at once: the three
-# bare-command alternations share no command name across the three plugins,
-# and the optional plugin-name prefix each regex now also accepts is a
-# literal, distinct string per plugin — so no single prompt can match more
-# than one of the three.
+# Two sibling plugins each ship a hook of this name, matching only their own
+# commands: docs-workflows covers /document and /release-notes;
+# product-workflows covers /epics. A UserPromptSubmit hook fires whichever
+# plugin ships it, so all three run on every prompt. Disjointness holds two
+# ways at once: the bare-command alternations share no command name across the
+# three plugins, and the plugin-name prefix each regex accepts is a literal,
+# distinct string per plugin — required rather than optional for the two
+# commands that collide with a Claude Code built-in (/upgrade here,
+# /release-notes in docs-workflows) — so no single prompt can match more than
+# one of the three.
 #
 # Exits immediately (near-zero overhead) if the message doesn't match.
 # Always exits 0 — must never block Claude.
@@ -67,8 +70,9 @@ cmd="${BASH_REMATCH[2]}"
 emit_model_routing() {
     echo "Model routing: classify task as SIMPLE / MODERATE / SIGNIFICANT / HIGH-RISK before planning."
     echo "  SIGNIFICANT / HIGH-RISK -> plan with risk-planner (Opus), code-review (Opus)"
-    echo "  BEFORE running tests. Invoke via Agent(subagent_type: general-purpose,"
-    echo "  model: opus) + prompt to read the plugin-installed agents/<name>.md."
+    echo "  BEFORE running tests. Invoke each by subagent_type — Agent(subagent_type:"
+    echo "  dev-workflows:risk-planner) and Agent(subagent_type: dev-workflows:code-review)"
+    echo "  — each frontmatter-pinned to Opus, so add no model: override."
     echo "  Full rules: invoke the workflows-core:model-routing skill, which loads"
     echo "  workflows-core:model-routing/classification from the companion plugin."
 }

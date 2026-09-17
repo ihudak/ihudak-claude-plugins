@@ -1215,10 +1215,12 @@ assert an order this design does not take a position on.
 `(Recommended)`.** A PRD asking for something the code already does is worth revising before an
 architecture or a specification is authored against a premise this run's own findings have already
 settled — and of `workflows-core:grounding-format` §3's closed six, `CONFIRMED` is the one that says
-that: *the premise holds, with evidence*. The other five each say the row was **not** simply true as
-written, and the two §3 names for an absent mechanism — `NOT-PROVABLE` and `REWRITTEN` — are what
-this route's greenfield case lands on, the case the `## Final report` section below already has its
-own `route: idea` headline for, rather than a reason to revise anything. The count is this run's own
+that: *the premise holds, with evidence*. **No other verdict of the six says it** — `AMENDED` says
+partly true, `REWRITTEN` materially wrong, `FALSE-FRIEND` a decoy, `NOT-PROVABLE` unsettleable from
+the repository, `SUPERSEDED` a finding a later one replaced — and the two §3 names for an absent
+mechanism, `NOT-PROVABLE` and `REWRITTEN`, are what this route's greenfield case lands on, the case
+the `## Final report` section below already has its own `route: idea` headline for, rather than a
+reason to revise anything. The count is this run's own
 `CONFIRMED` tally, which Phase 9's `body_facts` already carries and the Final report states for
 `[CG#n]` and `[DG#n]` separately; this is where it earns a next step instead of sitting as a fact
 nobody acted on (this command never edits `prd.md` itself, design §7).

@@ -706,7 +706,7 @@ now prices this folder against a settled architecture rather than an assumed one
 after this ARD narrows the range.** On the idea route neither input exists, so the folder stays at
 §5's tier-1 ceiling regardless of this ARD — `/product-workflows:prd-proposal <KEY>` is still worth
 naming, but it stays indicative until the folder is grounded and its register settled. Either way it
-is optional and ungated — nothing waits on a proposal, and no arrays above change. No merge wait: that
+is optional and ungated — nothing on the build ladder waits on a proposal, and no arrays above change. (`/product-workflows:brd-proposal` does wait on a slice's, but that is the proposal phase gating its own earlier run rather than anything this offer names.) No merge wait: that
 command gates on `prd.md`, which this run does not write.
 
 Guidance only — never auto-invokes another command. Per `workflows-core:next-phase-offer`.

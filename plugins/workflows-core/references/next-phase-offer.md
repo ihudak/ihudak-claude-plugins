@@ -159,7 +159,7 @@ array carries every option.
   the three carries `<merge-clause>`: none of them runs `require-on-main` against anything
   `/product-workflows:brd-reconcile` writes.
 
-**PM — effort proposals (optional, and they gate nothing)**
+**PM — effort proposals (optional, and they gate nothing on the build ladder)**
 
 - `/product-workflows:prd-proposal <PRD-KEY>` — **depth** → `/product-workflows:brd-proposal <BRD-KEY>`
   (PM), where the folder has a parent BRD, **carrying `<merge-clause>`**: that command runs

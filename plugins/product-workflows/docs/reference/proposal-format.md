@@ -99,7 +99,7 @@ Its tier is the minimum of its included slices' tiers, and it prints the mix. On
 
 ## What a proposal does not do
 
-**It gates nothing, and nothing on the build ladder waits on it.** No command of that ladder reads `proposal.md`, requires one, or behaves differently because one exists — [`/create-ard`](../commands/create-ard.md), [`/specify`](../commands/specify.md), [`/epics`](../commands/epics.md) and the design and implementation commands downstream each resolve the same folder and neither know nor care. No tier withholds permission to begin work. The one command that reads another folder's proposal is the sibling umbrella rolling a slice's into a programme-level one, which is a second proposal rather than a phase of the build.
+**It gates nothing, and nothing on the build ladder waits on it.** No command of that ladder reads `proposal.md`, requires one, or behaves differently because one exists — [`/create-ard`](../commands/create-ard.md), [`/specify`](../commands/specify.md), [`/epics`](../commands/epics.md) and the design and implementation commands downstream each resolve the same folder and neither know nor care. No tier withholds permission to begin work. The one command that reads another folder's proposal is the sibling umbrella rolling a slice's into a programme-level one, which is a second proposal rather than a phase of the build. Every other read is an own-folder one: a later run of the producing command, opening the proposal it left there as its re-estimate anchor, and the review agent inside the run that wrote it.
 
 **It is a document a vendor sends a customer.** It is not a phase, and it is never a prerequisite for building anything.
 

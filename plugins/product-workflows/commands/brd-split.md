@@ -1130,11 +1130,19 @@ that path this phase rewrites only what the removal changed — the removed slic
 
 ## Phase 6 — Handoff
 
-Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim:
+Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — **two arrays, selected by the `deliverable_paths` set below, per §4.0's strongest-class rule.** Where that set holds any **slice-level** `coverage-ledger.md` or `brd/brd-inventory.md` — every path but the ones named next — present §4.3's **gated — stopping** array (§4.1 bullet 1), because `/prd-ground` stops on both (`workflows-core:phase-handoff` §3.4):
 
 ```
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
+
+Where it holds **neither**, present §4.3's **advisory** array (§4.1 bullet 3) instead:
+
+```
+choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (no command stops on this; what reads it reads your working copy)", "Cancel"]
+```
+
+**The second branch is reachable and the run must not tell the operator otherwise.** It is the Phase 4.5-only path on which every standing empty child was **kept**: Phase 4 never ran, Phase 5 rewrites `slices.md` only on a removal, and a keep that wrote or updated a `reason:` therefore leaves the whole set at that child's `brd-link.md` — which §4.0's register classes **advisory**, read by BRD-route detection in `/product-workflows:create-prd`, `/product-workflows:create-ard` and `/product-workflows:specify`, by `/product-workflows:epics` step 1a and by this command's own Phase 0 step 5, and carrying no §3.4 row at all. It is also the branch the empty sets take — the no-op path, and a keep that changed nothing — so the two branches are exhaustive over every set this phase can reach. Presenting the stopping array there would promise a refusal no command makes, and the run would then print §4.1's **advisory** clause against its own prompt: a run that contradicts itself minutes apart teaches the operator to trust neither half (§4.3). Note that a **root's** own `coverage-ledger.md` and `slices.md` are advisory too (§4.0's register distinguishes a root's ledger from a slice's), so a `full` root run that carved nothing and deferred every row to this BRD takes the second branch as well.
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's
 table already lists `brd` as shared by every `/brd-*` command), `feature_folder` as resolved

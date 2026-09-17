@@ -30,8 +30,9 @@ folder that exists, which is the ordering `/create-prd` and `/create-ard` state 
 
 **This command gates nothing on the build ladder and nothing on it waits.** It gates its own input —
 each included slice's `proposal.md` — and nothing beyond it. **No command of the build ladder reads a
-proposal**, and the only reader of the umbrella this run writes is a later run of this same command,
-anchoring its re-estimate on it (§8): `/create-ard`, `/specify`, `/epics`,
+proposal**, and every read of the umbrella this run writes is an own-folder one — a later run of this
+same command, anchoring its re-estimate on it (§8), and `proposal-reviewer` inside this run
+(Phase 10): `/create-ard`, `/specify`, `/epics`,
 `/dev-workflows:design`, `/dev-workflows:implement` and `/dev-workflows:ready` each resolve a slice
 folder and neither know nor care whether anything above it holds a proposal, and no readiness tier
 withholds permission to build. **The umbrella offers no forward advance** — it is the end of this
@@ -696,7 +697,8 @@ the next-step recommendation.
 
 **Say plainly, at the end, that this document gates nothing and that nothing on the build ladder
 reads it.** No command of that ladder reads a proposal and no tier withholds permission to begin
-work; the one thing that ever reads an umbrella is a later run of this command, anchoring its own
-re-estimate on it (§8). It is the end of this branch rather than a phase in the ladder.
+work; every read of an umbrella is an own-folder one — a later run of this command, anchoring its own
+re-estimate on it (§8), and `proposal-reviewer` inside the run that wrote it. It is the end of this
+branch rather than a phase in the ladder.
 The residual risk `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §13 states is carried by the
 person who sends the document, and that person is the reader of this report.

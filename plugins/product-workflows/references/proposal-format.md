@@ -37,10 +37,14 @@ not produce, and a git-committed rate card is a disclosure waiting to happen.
 **A proposal gates nothing on the build ladder.** `/create-ard`, `/specify`, `/epics`, `/design`,
 `/implement` and `/ready` each resolve the same folder and neither know nor care whether it holds a
 proposal: none requires one, reads one, or behaves differently because one exists, and no grade in this
-file withholds permission to begin work. The one command that does read a proposal is `/brd-proposal`,
-which gates on a slice's in order to roll it into the umbrella — a second proposal rather than a phase
-of the build. A proposal is a document a vendor sends a customer; it is not a phase and never a
-prerequisite for building anything.
+file withholds permission to begin work. The one command that reads **another folder's** proposal is
+`/brd-proposal`, which gates on a slice's in order to roll it into the umbrella — a second proposal
+rather than a phase of the build. **Every other read is an own-folder one, and §0 above is the
+census**: a later run of either producing command, opening the `proposal.md` it left there as §8's
+stability anchor, and `agents/proposal-reviewer.md` inside the run that wrote it. Do not restate that
+census here as "the one reader" — an unscoped form of this sentence stood on six surfaces against §0,
+and this is the sentence it was copied from. A proposal is a document a vendor sends a customer; it is
+not a phase and never a prerequisite for building anything.
 
 ## 2. The two artifacts, where they live, and how a revision is archived
 

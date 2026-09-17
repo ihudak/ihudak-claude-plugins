@@ -121,7 +121,7 @@ The caller must provide:
    ```
    A baseline reading `Framework: not detected` names no suite at all, so nothing can pair with it and every verify call against it returns `invalid`. That baseline is what a `command_hint` on the **capture** call can prevent; a hint supplied here for the first time cannot repair it.
 
-3. **Run** — Execute each matched or new suite's command, under the same **per-suite** 10-minute bound as capture and in the same run order. Capture stdout and stderr combined per suite. If any suite aborts (non-zero exit, truncated output, or unrecognized runner output), set `Comparison status: best-effort`, record it in `### Suites` and `### Notes`, and still run the rest. **What that abort means is settled by the suite's own baseline row, and the two answers are opposite.** A suite whose baseline row reads `OK` or `NO_TESTS` ran before this change and does not now, so every baseline test of it falls out of step 5 as **Missing from run** and the run is a regression — the change is the only thing that moved. A suite whose baseline row reads `RUN_FAILED` or `not run` contributed no baseline tests, so nothing falls out: it could not run at either end, which is a fact about the environment and never evidence about the change.
+3. **Run** — Execute each matched or new suite's command, under the same **per-suite** 10-minute bound as capture and in the same run order. Capture stdout and stderr combined per suite. If any suite aborts (non-zero exit, truncated output, or unrecognized runner output), set `Comparison status: best-effort`, record it in `### Suites` and `### Notes`, and still run the rest. **What that abort means is settled by the suite's own baseline row.** `OK` — it ran and produced tests before this change and does not now, so every baseline test of it falls out of step 5 as **Missing from run** and the run is a regression; the change is the only thing that moved. `RUN_FAILED` or `not run` — it could not run at either end, so it contributed no baseline tests, nothing falls out, and step 6 reports `PARTIAL`: a fact about the environment, never evidence about the change. `NO_TESTS` — it ran clean with nothing in it, so there is nothing to lose either way; record the abort and let the other suites settle the status.
 
 4. **Parse** — Same patterns as capture mode.
 
@@ -136,7 +136,7 @@ The caller must provide:
 
 6. **Compute Status** — before returning, set the first that applies:
    - `RUN_FAILED` — **Comparison status** is `invalid`: step 2 found no detected suite matching the baseline, so no comparison was possible
-   - `REGRESSIONS` — **Regressions** count > 0 OR **Missing from run** count > 0 (both are regression-severity per the table above). This is where a suite that produced counts in the baseline and aborted here lands, since every baseline test of it is then unaccounted for
+   - `REGRESSIONS` — **Regressions** count > 0 OR **Missing from run** count > 0 (both are regression-severity per the table above). This is where a suite the baseline recorded `OK` and that aborted here lands, since every baseline test of it is then unaccounted for
    - `PARTIAL` — no regressions, and at least one detected suite produced no counts here **and none in the baseline either** — it aborted at both ends, or the `command_hint` left it `not run`. The comparison is sound as far as it reaches and says nothing at all about that suite
    - `OK` — otherwise (every detected suite ran, the comparison was possible, and it found no regressions)
 

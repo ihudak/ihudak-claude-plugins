@@ -20,10 +20,10 @@ baseline: |                # required for mode: verify — the full `## Test Bas
 ```
 
 **Hand verify the whole block, not a re-keyed digest of it.** Its `### Suites` rows are
-what verify pairs the current run against, and they are also what separates a suite that
-ran at baseline and aborts now (a regression — the change is the only thing that moved)
-from one that could not run at either end (`PARTIAL` — a fact about the environment). A
-caller that passes counts alone leaves verify unable to tell those apart.
+what verify pairs the current run against, and they are also what separates a suite the
+baseline recorded `OK` and that aborts now (a regression — the change is the only thing
+that moved) from one that could not run at either end (`PARTIAL` — a fact about the
+environment). A caller that passes counts alone leaves verify unable to tell those apart.
 
 **No `model_routing:` block is passed.** The caller pins this agent's tier with `model:` on the dispatch, and nothing in the agent reads a field of that block.
 
@@ -119,7 +119,7 @@ com.example.BarTest#testLogin
 - `OK` — every detected suite ran and all previously-green tests are still green
 - `REGRESSIONS` — one or more baseline tests now fail, or are missing from the
   run entirely; see the `### Regressions` / `### Missing from run` lists. A suite
-  that produced counts at baseline and aborts here lands here too, because every
+  the baseline recorded `OK` and that aborts here lands here too, because every
   baseline test of it is then unaccounted for — it ran before this change and
   does not now
 - `PARTIAL` — no regressions, and at least one detected suite produced no counts

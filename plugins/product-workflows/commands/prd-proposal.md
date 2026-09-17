@@ -27,9 +27,11 @@ folder that exists, which is the ordering `/create-prd` and `/create-ard` state 
 and nothing beyond it. **No command of the build ladder reads `proposal.md`** — `/create-ard`,
 `/specify`, `/epics`, `/dev-workflows:design`, `/dev-workflows:implement` and `/dev-workflows:ready`
 each resolve the same folder and neither know nor care whether it holds one — so nothing there is
-waiting on this run and no readiness tier withholds permission to build. Its one reader is the sibling
-umbrella `/product-workflows:brd-proposal`, which is a second proposal rather than a phase of the
-build. Running this is optional at every tier, in the same sense `/prd-ground` is optional and ungated
+waiting on this run and no readiness tier withholds permission to build. The one command that reads
+**another folder's** proposal is the sibling umbrella `/product-workflows:brd-proposal`, which is a
+second proposal rather than a phase of the build; the only other reader is **a later run of this
+command**, which opens the `proposal.md` it left in this same folder as §8's stability anchor
+(Phase 0's revision note, Phase 6 step 6). Running this is optional at every tier, in the same sense `/prd-ground` is optional and ungated
 on the idea route. A proposal is a document a vendor sends a customer — not a phase, not a
 prerequisite, and never a reason implementation cannot start.
 
@@ -509,10 +511,12 @@ Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and pre
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-**The array above is §4.3's `gated` one, and the class is named here rather than left to be inferred.**
-The proposal's one reader is the sibling umbrella `/product-workflows:brd-proposal`, which gates on the
-`proposal.md` this run writes, so declining the handoff costs that command its start — which is what
-the `gated` array's parenthetical tells the operator. `proposal-brief.md` and the archived revisions
+**The array above is §4.3's `gated — stopping` one (§4.1 bullet 1), and the class is named here rather
+than left to be inferred.** The one command that reads **another folder's** proposal is the sibling
+umbrella `/product-workflows:brd-proposal`, which gates on the `proposal.md` this run writes, so
+declining the handoff costs that command its start — which is what that array's parenthetical tells the
+operator. (A later run of **this** command reads the same file too, as §8's stability anchor, but that
+read is an own-folder one off the working tree and stops nothing, so it moves no class here.) `proposal-brief.md` and the archived revisions
 are themselves classed **unread** in §4.0's own table — nothing reads either — but they travel in the
 same `deliverable_paths` set, and §4.0's strongest-class rule gives one handoff one array carrying the
 strongest class in the set. That set holds a gated path, so the gated array is the one presented.

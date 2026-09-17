@@ -4,7 +4,7 @@ Rolls a BRD container's slice proposals into one programme-level effort proposal
 
 ## Who runs it
 
-`/brd-proposal` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution phase [proposal](../roles-and-phases.md#proposal) — the same role and the same phase as its sibling [`/prd-proposal`](prd-proposal.md), because pricing a programme and pricing a slice are the same activity at two altitudes. It is optional, it gates nothing, and nothing waits on it.
+`/brd-proposal` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution phase [proposal](../roles-and-phases.md#proposal) — the same role and the same phase as its sibling [`/prd-proposal`](prd-proposal.md), because pricing a programme and pricing a slice are the same activity at two altitudes. It is optional, it gates nothing on the build ladder, and nothing there waits on it — its one hard refusal on readiness is over its own input, under *Gates* below.
 
 ## Synopsis
 
@@ -76,7 +76,7 @@ Every figure in both artifacts is **hours of human delivery time**. Neither carr
 ## What it does not do
 
 - **It offers no forward advance.** The umbrella is the end of this branch, not a phase in the build ladder, so its next-step offer names only re-pricing a flagged slice and re-running the umbrella once those land — and no option carries a merge clause, because no command named there gates on anything this run wrote.
-- **It gates nothing, and nothing on the build ladder reads what it writes.** No command of that ladder reads a proposal; the one command that reads another folder's proposal is this one, and it reads a **slice's**, never an umbrella's. The umbrella it writes is read only by a later run of this command, which anchors its re-estimate on the prior figures — so its handoff presents the consent array for an artifact no command *stops* on, whose reader reads your working copy rather than the default branch.
+- **It gates nothing on the build ladder, and nothing on that ladder reads what it writes.** It does gate its own input — the `proposal.md` on each included slice, under *Gates* above — and nothing beyond it. No command of the build ladder reads a proposal; the one command that reads another folder's proposal is this one, and it reads a **slice's**, never an umbrella's. The umbrella it writes is read only by a later run of this command, which anchors its re-estimate on the prior figures — so its handoff presents the consent array for an artifact no command *stops* on, whose reader reads your working copy rather than the default branch.
 - **It prices nothing in money.** No rate card, no currency, no monetary total — those are contractual and belong in a document this pipeline does not produce.
 - **It never sweeps a slice's defect sources again.** Each slice's confirmed defects are already priced inside its own row, so re-sweeping them would price the same repair twice. The umbrella sweeps only what the container itself holds — normally nothing, since grounding findings, the code-defect log and a packaged self-review are all slice-level artifacts — and the report says what it found either way.
 - **It re-prices no slice and edits none.** A reviewer finding whose location is a slice document is recorded and reported with the slice named, never fixed from here: editing another phase's deliverable would leave that slice's own reviewer verdict standing over content it never saw.

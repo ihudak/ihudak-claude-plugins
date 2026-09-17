@@ -47,46 +47,66 @@ import sys, re
 cmd = sys.argv[1] if len(sys.argv) > 1 else ""
 out = sys.stdin.read()
 
-def first(pattern, text, default="0"):
+# first() and sumall() return None, never "0", where the pattern did not match
+# at all — a count the parser could not read must never be notified as a
+# measured one. Every runner behind "npm test" that is not jest prints no
+# "Tests:" line, and a green Gradle run prints no "N tests completed" line, so
+# a zero default put a genuinely red suite on screen as "0 failed", which reads
+# exactly like a green one. counts() turns a set of lookups into the numbers to
+# report, or into None where every one of them missed: a miss beside a hit IS a
+# real zero, because a runner omits the clause for a zero from a summary it did
+# print, but a miss beside nothing at all is no measurement.
+def first(pattern, text):
     m = re.findall(pattern, text)
-    return m[-1] if m else default
+    return m[-1] if m else None
 
-def sumall(pattern, text, default="0"):
+def sumall(pattern, text):
     vals = [int(x) for x in re.findall(pattern, text) if x.isdigit()]
-    return str(sum(vals)) if vals else default
+    return str(sum(vals)) if vals else None
+
+def counts(*found):
+    if all(v is None for v in found):
+        return None
+    return ["0" if v is None else v for v in found]
 
 if "mvn" in cmd:
     # Surefire prints a "Tests run:" line per test class AND a summary line per
     # module under "Results:". A per-class line continues past "Skipped: N" with
-    # a time/class suffix; a summary line ends there — so anchoring at end of
-    # line sums modules without counting every class a second time. Where
+    # a time/class suffix (TestSetStats.getTestSetSummary always appends the
+    # elapsed time and " -- in <class>"); a summary line ends at "Skipped: N",
+    # or at ", Flakes: N" where any test flaked — RunStatistics.getSummary()
+    # appends that one suffix and only when flakes > 0. Matching both endings at
+    # end of line sums modules without counting every class a second time. Where
     # nothing matches that anchored form, fall back to the unanchored counts.
     rows = re.findall(
-        r"Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: \d+[ \t]*\r?$",
+        r"Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: \d+"
+        r"(?:, Flakes: \d+)?[ \t]*\r?$",
         out, re.M)
     if rows:
-        total = str(sum(int(r[0]) for r in rows))
-        failures = str(sum(int(r[1]) for r in rows))
-        errors = str(sum(int(r[2]) for r in rows))
+        c = [str(sum(int(r[i]) for r in rows)) for i in range(3)]
     else:
-        total = sumall(r"Tests run: (\d+)", out)
-        failures = sumall(r"Failures: (\d+)", out)
-        errors = sumall(r"Errors: (\d+)", out)
-    print(f"{total} run, {failures} failed, {errors} errors")
+        c = counts(sumall(r"Tests run: (\d+)", out),
+                   sumall(r"Failures: (\d+)", out),
+                   sumall(r"Errors: (\d+)", out))
+    line = f"{c[0]} run, {c[1]} failed, {c[2]} errors" if c else None
 elif "gradlew" in cmd or "gradle" in cmd:
-    total = first(r"(\d+) tests? completed", out)
-    failed = first(r", (\d+) failed", out)
-    print(f"{total} completed, {failed} failed")
+    c = counts(first(r"(\d+) tests? completed", out),
+               first(r", (\d+) failed", out))
+    line = f"{c[0]} completed, {c[1]} failed" if c else None
 elif "pytest" in cmd:
-    passed = first(r"(\d+) passed", out)
-    failed = first(r"(\d+) failed", out)
-    print(f"{passed} passed, {failed} failed")
+    c = counts(first(r"(\d+) passed", out),
+               first(r"(\d+) failed", out))
+    line = f"{c[0]} passed, {c[1]} failed" if c else None
 elif "npm" in cmd or "yarn" in cmd:
-    passed = first(r"Tests:.*?(\d+) passed", out)
-    failed = first(r"Tests:.*?(\d+) failed", out)
-    print(f"{passed} passed, {failed} failed")
+    c = counts(first(r"Tests:.*?(\d+) passed", out),
+               first(r"Tests:.*?(\d+) failed", out))
+    line = f"{c[0]} passed, {c[1]} failed" if c else None
 else:
-    print("tests completed")
+    line = None
+
+# One disposition for "this run produced no count I can read", shared by an
+# unrecognised command and by a recognised one whose output nothing matched.
+print(line or "tests completed")
 PYEOF
 )
 

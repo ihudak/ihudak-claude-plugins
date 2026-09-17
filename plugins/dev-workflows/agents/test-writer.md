@@ -18,9 +18,9 @@ The caller passes a structured brief:
   On a read failure, follow the **read-failure contract** in
   `${CLAUDE_PLUGIN_ROOT}/references/context-management.md` — **Diff** is *evidence*: hard stop, return
   the `Diff: unreadable at <path>` shape below (see Output) — a distinct marker from
-  `Framework: not detected`, so the caller does not route an unreadable evidence file into the
-  missing-framework prompt — and **never re-derive the diff** with a tool of your own. **Plan**
-  is *context*: degrade to absent.
+  `Framework: not detected`, so the caller stops the run rather than applying the recorded
+  skip decision to a file it could not read — and **never re-derive the diff** with a tool of
+  your own. **Plan** is *context*: degrade to absent.
 - **Project root** — absolute path so files can be opened
 - **Baseline** — the `## Test Baseline` block captured by `test-baseliner` in Pre-Phase 3.5 (identifies the detected framework + the command used + the set of pre-existing passing / failing tests). It is the sole source of framework and command here, and the list of test names already taken
 
@@ -34,7 +34,7 @@ Refuse to write tests without a diff and a baseline — ask the caller to supply
 
    For a JS/TS framework, inspect `devDependencies` for `jest`, `vitest`, `mocha`, `playwright` to pick the conventions to write against — that is a question about *how* to write a test, not about which suite is the project's.
 
-2. **If `Framework: not detected`: return the "not detected" report immediately** (see Output shape below). Do NOT attempt to write generic tests. The caller will ask the user to specify a test command or skip.
+2. **If `Framework: not detected`: return the "not detected" report immediately** (see Output shape below). Do NOT attempt to write generic tests. The caller settled this where the baseline was captured, before any file was edited, and applies that decision rather than asking again — which is why this report carries no question.
 
 3. **Map changed behavior from the diff.** For each hunk:
    - **Include**: new public functions, new exported types, new branches in existing control flow, new API surfaces (routes, CLI flags, config keys), new error paths that can be observed.
@@ -102,7 +102,7 @@ The baseline records no framework at all — `test-baseliner` matched no candida
 
 If the **Diff** input could not be read, return this shape — its FIRST LINE is the literal
 marker `Diff: unreadable at <path>`, distinct from `Framework: not detected` so the caller
-does not route it into the missing-framework prompt — and STOP:
+stops the run rather than applying its recorded skip decision — and STOP:
 
 ```markdown
 Diff: unreadable at <path>

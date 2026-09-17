@@ -34,8 +34,12 @@ reconstruct it.
 > steps 1 through 4** — the baseline was captured (by the orchestrator), the
 > branch was created, the fix was applied, and the build was run on the prior
 > invocation. Resume at
-> step 5 (Verify), using the `baseline_tests: provided` + `baseline_passing`
-> + `baseline.passing_tests` re-supplied by the orchestrator in the input.
+> step 5 (Verify), which hands `test-baseliner` the **whole** `baseline_block`
+> the orchestrator re-supplied — `baseline_tests: provided`, `baseline_passing`
+> and `baseline.passing_tests` come with it and are the same re-keyed
+> convenience they are on a `full` call, never a substitute for the block: its
+> `### Suites` rows are what separate a suite that regressed from one that could
+> not run at either end.
 > Do **not** re-baseline (that would clobber the pre-fix snapshot) and do
 > **not** re-apply the version pin. Default phase (omitted or `phase: full`)
 > runs all steps.

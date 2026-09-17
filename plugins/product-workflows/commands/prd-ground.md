@@ -1250,7 +1250,7 @@ command"), so there is no gate for this run's handoff to make anyone wait on. Na
 does not exist would be the placeholder's own named failure — resolving it truthfully, not
 unconditionally.
 
-Neither array below needs `workflows-core:next-phase-offer`'s overflow rule for a fifth option: even
+Neither `route: idea` array below needs `workflows-core:next-phase-offer`'s overflow rule for a fifth option: even
 the `CONFIRMED` case tops out at four, the harness's own cap, so the array carries the whole menu
 and no route is demoted into prose.
 
@@ -1267,18 +1267,26 @@ choices: ["Revise the PRD first — /product-workflows:update-prd <KEY> (PM) (Re
 **On `route: brd`, this run always stands on a slice** — by the time Phase 10 runs, step 6's gates have already
 guaranteed `coverage-ledger.md` and `brd/brd-inventory.md` are both on main, which is positive
 evidence 5a's legacy-fallback test would have refused had this BRD been a root — so there is no
-level branch to take here. `/product-workflows:brd-split <BRD-KEY>` is always offered, unless the
-test below withholds it.
+level branch to take here. **Which of the two arrays below is presented** is settled by the test
+that follows.
 
-**That offer still carries one qualifying test, and this run holds the answer to it.** `/brd-split`'s
+**That offer carries one qualifying test, and this run holds the answer to it.** `/brd-split`'s
 Phase 0 step 7, test b stops on any `design/` subdirectory this run recorded `skipped: no index`, and on any
-it could not cover. So where Phase 8's `## Frame sets covered` section carries such a row, **do not
-offer `/brd-split` as Recommended** — it would refuse the key just ground. Offer the repair the stop
-itself names, in the same position: `/workflows-core:frames <BRD-KEY>` to write the missing index,
-then a `--no-code` re-run. The offer's wording is deliberately "its grounding is complete and
-verified" rather than the older "now that every finding carries a verifier outcome": the outcome
-count is one of four tests that command applies, and naming one of them as though it were the
-precondition is how this offer came to promise a pass it cannot deliver.
+it could not cover. So where Phase 8's `## Frame sets covered` section carries such a row, present
+the **second** array below in place of the first: `/brd-split` would refuse the key just ground, so
+the array recommending it is not the array to show. The second offers the repair that stop itself
+names — `/workflows-core:frames <BRD-KEY>` to write the missing index, after which a `--no-code`
+re-run of this command reconciles the set — and names `/brd-split` nowhere in its options, since
+neither half of that repair has run yet; the prose above the arrays still says where it sits in the
+route, which is what `workflows-core:next-phase-offer`'s universal minimum asks of a route the array
+does not carry. **Selecting between two written arrays is how this branch is taken, never by editing
+one**: `workflows-core:escalation-rules`' *Choice lists are presented verbatim* puts an array's
+options, their order, their wording and the `(Recommended)` marker outside the orchestrator's
+authority, and this phase's `route: idea` branch above already selects between two arrays the same
+way. **Neither array's marker names a precondition of `/brd-split`'s own gate.** That command applies
+four tests at step 7, and a marker naming one of them — an earlier wording of this offer read
+"once every finding carries a verifier outcome" — promises a pass the offer cannot deliver; each
+marker below states what the run it recommends will *do* instead.
 
 `/product-workflows:brd-split <BRD-KEY>` allocates this slice's own ledger, and it is the last step
 that has to run before this BRD's requirements all carry a recorded fate — **it is not the end
@@ -1286,15 +1294,15 @@ of the route**. `/product-workflows:brd-interview <BRD-KEY>` follows it, and `/b
 is what offers it, so it is not offered here: putting it in this list would name a step out of
 order, since it refuses a ledger that still holds an unallocated row. `/brd-split` will not start
 until this phase's findings are on the specs repo's default branch — its own Phase 0 gates
-`grounding/code-grounding.md` on `origin/<default>`; **which words state that wait are
-`<merge-clause>`'s**, resolved from this run's own `Phase handoff:` outcome line per
+`grounding/code-grounding.md` on `origin/<default>`; **which words state that wait, in the array that
+offers it, are `<merge-clause>`'s**, resolved from this run's own `Phase handoff:` outcome line per
 `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`, since a declined handoff opened no pull
 request to wait on — and it carries its own role and
 cost-attribution row (`docs/roles-and-phases.md`). Guidance only, per
 `workflows-core:next-phase-offer` — names only that `/brd-split` exists and
 where it sits in the route, never its behaviour, which `commands/brd-split.md` owns.
 
-**The offer says which of `/brd-split`'s two modes will run**, so nobody
+**The array that offers it says which of `/brd-split`'s two modes will run**, so nobody
 expects a fan-out that cannot happen: on a slice it runs `allocate-only`
 (`commands/brd-split.md` Phase 0 step 5) — it creates no child, because nesting is
 capped at one level (`workflows-core:addressing` §6), and walks this
@@ -1302,10 +1310,16 @@ slice's ledger to a recorded fate through its own four resolutions, `covered-by`
 one that command's walk does not offer on a slice. Allocating is what
 makes this slice PRD-eligible
 (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5), so it is a real next step, not a
-formality:
+formality.
 
+No frame set left unreconciled — every one on disk recorded `ground` or `skipped: --no-design`, or `design/` holds none:
 ```
 choices: ["Allocate this slice's ledger — /product-workflows:brd-split <BRD-KEY> (Recommended — allocate-only, so no child is created) <merge-clause>", "Ground another declared prerequisite first", "Stop here"]
+```
+
+At least one frame set recorded `skipped: no index`, or on disk and missing from Phase 8's census:
+```
+choices: ["Write the missing frame-set index — /workflows-core:frames <BRD-KEY> (Recommended — nothing can reconcile a frame set that has no index; re-ground it here with --no-code afterwards)", "Ground another declared prerequisite first", "Stop here"]
 ```
 
 ### Context hygiene

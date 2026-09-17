@@ -117,22 +117,28 @@ com.example.BarTest#testLogin
 
 **verify status values (the authoritative field callers branch on):**
 - `OK` — the comparison was possible and every previously-green test is still
-  green. It tolerates one kind of abort: a suite holding no baseline test that
-  could go missing — its baseline row `NO_TESTS`, or no row at all because the
-  suite is new since the baseline — which `### Notes` names
+  green. The aborts it tolerates are the ones that could lose no baseline
+  *passing* test: a suite whose baseline row is `NO_TESTS`, one with no row at
+  all because the suite is new since the baseline, and one whose baseline row is
+  `OK` but which contributed no passing test — each of which `### Notes` names
 - `REGRESSIONS` — one or more baseline tests now fail, or are missing from the
   run entirely; see the `### Regressions` / `### Missing from run` lists. A suite
-  the baseline recorded `OK` and that aborts here lands here too, because every
-  baseline test of it is then unaccounted for — it ran before this change and
-  does not now
+  the baseline recorded `OK` with at least one passing test and that aborts here
+  lands here too, because those tests are then unaccounted for — it ran before
+  this change and does not now
 - `PARTIAL` — no regressions, and at least one detected suite produced no counts
-  here **and none in the baseline either**. The comparison is sound as far as it
-  reaches and says nothing about that suite; `### Suites` names it
+  here **and no counts in the baseline either — its baseline row reads
+  `RUN_FAILED` or `not run`**, so it aborted at both ends or the `command_hint`
+  left it out at both. The comparison is sound as far as it reaches and says
+  nothing about that suite; `### Suites` names it. A suite whose baseline row is
+  `NO_TESTS`, or which has no row at all, is **not** this — that abort is `OK`'s
+  above, which is where the agent's own "set the first that applies" ladder
+  (verify step 6) puts it
 - `RUN_FAILED` — nothing was verified: no detected suite matches the baseline
   (**Comparison status**: `invalid`), or no suite produced counts in this run at
   all. It is tested **after** `REGRESSIONS`, so a run in which every suite aborted
   is a regression where the baseline had run them, and what reaches this value is
-  a baseline holding no test that could go missing
+  a baseline holding no passing test that could go missing
 - `COMMAND_NOT_FOUND` — no candidate matched and no `command_hint` supplied one,
   so nothing ran (**Framework** then reads `not detected`) — the same test capture
   mode applies, a hint being something to run rather than nothing. Never emitted

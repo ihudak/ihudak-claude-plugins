@@ -90,7 +90,9 @@ model_routing:           # echoed back when present in input
 ```
 
 **status values:**
-- `SUCCESS` — fix applied, tests green, branch created with the change on it, uncommitted
+- `SUCCESS` — fix applied, tests green, branch created with the change on it,
+  uncommitted. A `PARTIAL` verify is still `SUCCESS`: every suite the baseline
+  covered is green, and `notes` names the ones it does not cover
 - `BUILD_FAILED` — build failed after fix, changes reverted
 - `TEST_REGRESSION` — previously-green tests failed and were not auto-fixable;
   the fix is applied and built on the fix branch, uncommitted. This

@@ -84,7 +84,9 @@ model_routing:           # echoed back when present in input
 ```
 
 **status values:**
-- `OK` — all changes applied, all previously-green tests still green
+- `OK` — all changes applied, all previously-green tests still green. A `PARTIAL`
+  verify is still `OK`: every suite the baseline covered is green, and `notes`
+  names the ones it does not cover
 - `BUILD_FAILED` — build failed, all changes reverted for this component
 - `SKIPPED` — component was NOT_FOUND or user chose to skip
 - `TEST_REGRESSION` — regressions present, not auto-fixable, awaiting a user

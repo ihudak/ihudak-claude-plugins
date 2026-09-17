@@ -11,9 +11,13 @@ rules a reviewer checks, and — in §14 — what an umbrella run adds over a sl
 **Written by `commands/prd-proposal.md` and `commands/brd-proposal.md`; reviewed against by
 `agents/proposal-reviewer.md`.** The one command that reads **another folder's** proposal is
 `commands/brd-proposal.md`, which rolls each slice's into the umbrella; no command of the build
-ladder opens one at all. The two other readers are inside the pair and read only their own folder's:
-`commands/prd-proposal.md` opens the prior revision it archived, for §8's stability rule and §12's
-changelog, and the reviewer above opens the `proposal.md` it is handed and refuses without it.
+ladder opens one at all. The other readers open only their own folder's: `commands/prd-proposal.md`
+and `commands/brd-proposal.md` each open the canonical `proposal.md` a prior run of theirs left
+there — §8's stability anchor, read in Phase 6 and archived only in Phase 8, which is what lets §12's
+changelog name the cause of every figure that moved — and the reviewer above opens the `proposal.md`
+it is handed and refuses without it. **That own-folder read is why an umbrella's `proposal.md` is
+classed `advisory` rather than `unread`** in `workflows-core:phase-handoff` §4.0: a later run of the
+command that wrote it is a reader like any other.
 
 ## 1. What this format governs, and the two quantities it must never conflate
 

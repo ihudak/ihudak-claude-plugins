@@ -30,7 +30,8 @@ folder that exists, which is the ordering `/create-prd` and `/create-ard` state 
 
 **This command gates nothing on the build ladder and nothing on it waits.** It gates its own input —
 each included slice's `proposal.md` — and nothing beyond it. **No command of the build ladder reads a
-proposal**, and nothing reads the umbrella this run writes: `/create-ard`, `/specify`, `/epics`,
+proposal**, and the only reader of the umbrella this run writes is a later run of this same command,
+anchoring its re-estimate on it (§8): `/create-ard`, `/specify`, `/epics`,
 `/dev-workflows:design`, `/dev-workflows:implement` and `/dev-workflows:ready` each resolve a slice
 folder and neither know nor care whether anything above it holds a proposal, and no readiness tier
 withholds permission to build. **The umbrella offers no forward advance** — it is the end of this
@@ -534,16 +535,18 @@ survivors is indistinguishable from a reviewer that found less.
 Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim:
 
 ```
-choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (nothing downstream reads this, so no command stops on it)", "Cancel"]
+choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (no command stops on this; what reads it reads your working copy)", "Cancel"]
 ```
 
-**The array above is §4.3's `unread` one, and the class is named here rather than left to be
-inferred.** §4.3 asks a producer reaching for it to look for a reader first, so this run looked: no
-command of the build ladder reads a proposal, `/prd-proposal` reads only the profile and its own
-folder, and the one command that reads another folder's proposal — this one — reads a **slice's**,
-never an umbrella's. Nothing runs `require-on-main` on this file either, so §4.0's gated test fails as well.
-`proposal-brief.md` and the archived revisions travel in the same `deliverable_paths` set and take
-that same class with them (§4.0).
+**The array above is §4.3's `advisory` one, and the class is named here rather than left to be
+inferred.** §4.3 asks a producer reaching for the `unread` array to look for a reader first, and the
+reader is this command: Phase 0 step 5 notes an existing `proposal.md` in the resolved folder and
+Phase 6 step 9 anchors the re-run's figures on it (§8), so a later run of `/brd-proposal` reads what
+this one writes. That is the same relation §4.0 classes `customer-review-<YYYYMMDD>.md` advisory on.
+Nothing runs `require-on-main` on an umbrella's `proposal.md` — §3.4's `/brd-proposal` row targets a
+**slice's** — so §4.0's gated test fails, which rules out *gated* and settles nothing else.
+`proposal-brief.md` and the archived revisions are `unread` in their own right (§4.0), but a
+`deliverable_paths` set spanning classes takes the strongest class in it, and here that is advisory.
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd`
 (§2.9's table — the shared prefix every `/brd-*` command uses; the eight prefixes §1 rule 3 fixes are
@@ -689,8 +692,9 @@ USD, a different quantity from the hours above**; the `Phase handoff:` outcome l
 `commit-artifacts` (`workflows-core:specs-repo-git` §6), with any guard notice repeated in full; and
 the next-step recommendation.
 
-**Say plainly, at the end, that this document gates nothing and that nothing reads it.** No command of
-the build ladder reads a proposal, no tier withholds permission to begin work, and nothing — this
-command included — reads an umbrella: it is the end of this branch rather than a phase in the ladder.
+**Say plainly, at the end, that this document gates nothing and that nothing on the build ladder
+reads it.** No command of that ladder reads a proposal and no tier withholds permission to begin
+work; the one thing that ever reads an umbrella is a later run of this command, anchoring its own
+re-estimate on it (§8). It is the end of this branch rather than a phase in the ladder.
 The residual risk `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §13 states is carried by the
 person who sends the document, and that person is the reader of this report.

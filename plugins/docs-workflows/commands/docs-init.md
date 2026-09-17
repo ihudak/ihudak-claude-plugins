@@ -225,6 +225,7 @@ Source repos: <the confirmed set, or "none confirmed"> (used by this run only �
 Product / major: <product> / v<MAJOR>
 
 ### Scaffold
+(When Phase 2.5 was cancelled, this whole section reads instead: "cancelled at Phase 2.5 — Phases 3, 4 and 6 never ran; nothing scaffolded.")
 Pages written: <N>   Sections: <N>   Configs: <mkdocs.yml, mkdocs.internal.yml | mkdocs.yml only (--public-only)>
 Vale: <.vale.ini written; vale sync <succeeded | failed: reason>; accept.txt seeded with <product> and the stub vocabulary scaffold-tree.md §7 lists>
 .gitignore: <created | merged — N line(s) appended, none removed or rewritten>; <no written path ignored | left uncommitted, ignored by a project line: <path> (.gitignore:<N> `<line>`), config references removed: <the keys or nav entries> — the committed configs differ from the ones Phase 7 verified by exactly those>
@@ -233,13 +234,14 @@ Vale pin: <the resolved tag and asset name, or "UNRESOLVED — the substitution 
 Profile: .dev-workflows/docs-profile.yml — generator mkdocs-material, <2|1> build(s), <2|1> dev server(s), images.policy <policy>
 
 ### Branding
-<the extracted values and their sources, plus every contrast ratio and its PASS/FAIL, from the --inline /docs-brand run | "skipped — --no-brand" | "no branding applied: <reason> — continued as if --no-brand">
+<the extracted values and their sources, plus every contrast ratio and its PASS/FAIL, from the --inline /docs-brand run | "skipped — --no-brand" | "no branding applied: <reason> — continued as if --no-brand" | "cancelled at Phase 2.5 — Phase 5 never ran">
+(The `--no-brand` value asserts a flag the operator typed; never use it for a cancelled run, which typed none.)
 
 ### Verification
-1. public build --strict:   <PASS | FAIL: …>
-2. internal build --strict: <PASS | FAIL: … | N/A — --public-only>
-3. vale --no-global docs/:  <PASS — exit 0, N warning/suggestion alerts | FAIL — N error-level alerts: … | FAIL — configuration: …>
-4. visibility gate 2:       <PASS | FAIL: … | N/A — --public-only>
+1. public build --strict:   <PASS | FAIL: … | N/A — cancelled at Phase 2.5>
+2. internal build --strict: <PASS | FAIL: … | N/A — --public-only | N/A — cancelled at Phase 2.5>
+3. vale --no-global docs/:  <PASS — exit 0, N warning/suggestion alerts | FAIL — N error-level alerts: … | FAIL — configuration: … | N/A — cancelled at Phase 2.5>
+4. visibility gate 2:       <PASS | FAIL: … | N/A — --public-only | N/A — cancelled at Phase 2.5>
 <Where any step failed: "Reported and left unfixed. Nothing downstream may describe this scaffold as verified.">
 
 ### Review
@@ -253,6 +255,8 @@ Findings: <N reviewed, M survived triage, K applied, J deferred or overridden wi
 **Title:** <title>
 
 <body>
+
+(When Phase 2.5 was cancelled, this whole section reads instead: "none — no branch exists to open a pull request against.")
 
 ### Next step
 [per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. On a completed run: push the drafted pull request above and merge it, then `/docs-workflows:docs-serve <root>` to look at the portal, and `/docs-workflows:docs-brand <root>` to apply a brand where `--no-brand` skipped it or Phase 5 returned `no branding applied` — once the reason it gave is resolved. `/docs-audit`, which is to enumerate what is missing and seed the Vale vocabulary with the product's domain nouns (this run seeded only what the scaffold's own stubs need), ships in a later increment and is named here as the next thing rather than offered. Where Phase 2.5 was cancelled, state that plainly — nothing to serve, nothing to merge — and stop there.]

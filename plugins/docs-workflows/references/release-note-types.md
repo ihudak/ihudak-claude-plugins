@@ -53,8 +53,8 @@ first match, in this order:
 
 1. **Breaking change** — the change forces customers to act to avoid disruption.
 2. **Bug fix** — the change is a completed correction restoring intended behavior.
-3. **New technology support** — anything else that adds or enhances a capability. **For a Value
-   Increment this is the overwhelmingly common case**; do not reach for `Bug fix` because a PRD
+3. **New technology support** — anything else that adds or enhances a capability. **For a PRD this
+   is the overwhelmingly common case**; do not reach for `Bug fix` because a PRD
    mentions fixing something.
 
 Tie-breakers:

@@ -46,6 +46,11 @@ Apply the no-hard-wrap prose convention in `workflows-core:prose-formatting` to 
 For each new Epic, create `EPIC-<key>-<eslug>/` under the handoff `prd_dir` and emit `epic.md` inside it, carrying `kind: epic` and `key:` frontmatter (`workflows-core:addressing` §4):
 
 ```markdown
+---
+kind: epic
+key: <this Epic's key — must match the folder name>
+---
+
 # <Epic title>
 
 ## Goal

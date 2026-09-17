@@ -119,7 +119,7 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 
    **Store the returned `## Test Baseline` block whole** and re-supply it as `baseline_block` on every executor dispatch below — its `### Suites` rows are what let verify tell a suite that regressed from one that could not run at either end, and `passing_count` / `passing_tests` are re-keyed from it, never in place of it. Do not re-run baseline capture per component.
 
-   Act on its `Status` before executing anything: `PARTIAL` names the suites this batch's verification will not cover — list them in the Upgrade Summary and continue, since a runner that is not installed for one language is not a reason to leave another's component unupgraded. `RUN_FAILED` or `COMMAND_NOT_FOUND` means nothing was captured, so say so before executing: every component will come back `TESTS_NOT_RUN` rather than verified.
+   Act on its `Status` before executing anything: `PARTIAL` names the suites this batch's verification will not cover — list them in the Upgrade Summary and continue, since a runner that is not installed for one language is not a reason to leave another's component unupgraded. `RUN_FAILED` or `COMMAND_NOT_FOUND` means nothing was captured, so say so before executing — there is nothing for verify to compare against.
 
 ### Per-component loop (sequential, in requested order)
 

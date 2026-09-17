@@ -125,8 +125,10 @@ com.example.BarTest#testLogin
 - `PARTIAL` — no regressions, and at least one detected suite produced no counts
   here **and none in the baseline either**. The comparison is sound as far as it
   reaches and says nothing about that suite; `### Suites` names it
-- `RUN_FAILED` — no detected suite matches the baseline (**Comparison status**:
-  `invalid`), so no comparison was possible at all
+- `RUN_FAILED` — nothing was verified: no detected suite matches the baseline
+  (**Comparison status**: `invalid`), or no suite produced counts in this run at
+  all. It is tested **after** `REGRESSIONS`, so a run in which every suite aborted
+  is a regression where the baseline had run them
 - `COMMAND_NOT_FOUND` — detection selected no suite at all, so nothing ran
   (**Framework** then reads `not detected`). Never emitted once a call reaches
   the run step

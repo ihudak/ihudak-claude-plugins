@@ -114,7 +114,7 @@ The caller must provide:
    - **gone since the baseline** — in the baseline, not detected now. Its baseline tests fall out of step 5 as **Missing from run**, which is already regression-severity; `### Notes` records that the suite is gone.
    - **left out by this call's `command_hint`** — where the baseline's own row for it reads `not run` as well, it has no baseline tests and contributes `PARTIAL`. Where the baseline **ran** it, the hint has narrowed the scope between the two calls: that is not like-for-like, so its baseline tests are **Missing from run** and `### Notes` says the hint narrowed the run.
 
-   Only where **no** detected suite matches any baseline suite is there nothing to compare. Then run nothing and return:
+   Only where **no** detected suite matches any baseline suite is there nothing to compare. Then run nothing and return the step-7 structure with `Status: RUN_FAILED`, every count 0, and:
    ```
    Comparison status: invalid
    Reason: no detected suite matches the baseline — [baseline frameworks] became [current frameworks]. Manual comparison required.
@@ -135,12 +135,12 @@ The caller must provide:
    | **New failures** | Is failing now AND was not in baseline `### Pre-existing failures` AND was not in baseline `### Passing tests` (new test added and already failing) |
 
 6. **Compute Status** — before returning, set the first that applies:
-   - `RUN_FAILED` — **Comparison status** is `invalid`: step 2 found no detected suite matching the baseline, so no comparison was possible
-   - `REGRESSIONS` — **Regressions** count > 0 OR **Missing from run** count > 0 (both are regression-severity per the table above). This is where a suite the baseline recorded `OK` and that aborted here lands, since every baseline test of it is then unaccounted for
-   - `PARTIAL` — no regressions, and at least one detected suite produced no counts here **and none in the baseline either** — it aborted at both ends, or the `command_hint` left it `not run`. The comparison is sound as far as it reaches and says nothing at all about that suite
+   - `REGRESSIONS` — **Regressions** count > 0 OR **Missing from run** count > 0 (both are regression-severity per the table above). This is where a suite the baseline recorded `OK` and that aborted here lands, since every baseline test of it is then unaccounted for. **It is tested first**, so a run in which every suite aborted is a regression where the baseline had run them, rather than being written off as a run that did not happen
+   - `RUN_FAILED` — no suite produced counts in this run at all, so nothing was verified. Reached only where the baseline covered nothing either: any suite it recorded `OK` would have put its tests into **Missing from run** above
+   - `PARTIAL` — some suite produced counts, and at least one produced none here **and none in the baseline either** — it aborted at both ends, or the `command_hint` left it `not run`. The comparison is sound as far as it reaches and says nothing at all about that suite
    - `OK` — otherwise (every detected suite ran, the comparison was possible, and it found no regressions)
 
-   `COMMAND_NOT_FOUND` is emitted only from step 1, which returns there; a call that reached step 2 never emits it.
+   Steps 1 and 2 return before this one — `COMMAND_NOT_FOUND` where detection selected no suite, `RUN_FAILED` where nothing pairs with the baseline — so neither is computed here.
 
 7. **Return this exact structure and nothing else:**
 

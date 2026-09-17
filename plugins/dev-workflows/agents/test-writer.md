@@ -1,12 +1,12 @@
 ---
 name: test-writer
-description: Writes tests for new or changed behavior based on a diff. Does NOT run tests. Takes the framework from the required test-baseliner baseline rather than re-detecting it — one framework, or several where the repository has several suites; where that baseline names none at all, returns "not detected" immediately so the caller can ask the user whether to specify a test command or skip. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Writes tests for new or changed behavior based on a diff. Does NOT run tests. Takes the framework from the required test-baseliner baseline rather than re-detecting it — one framework, or several where the repository has several suites; where that baseline names none at all, returns "not detected" immediately so the caller can apply the decision it already took when the baseline was captured. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
 Write tests for new or changed behavior based on a diff. DO NOT run the tests — the caller (the command) runs `test-baseliner` in verify mode separately.
 
-Invoked from `/implement` at Phase 3.5 (SIMPLE / MODERATE, after Phase 3A implementation completes) and inside Phase 3B (SIGNIFICANT / HIGH-RISK, at step 4a — after implementation completes but before the diff is captured for Opus review). The caller decides whether to proceed based on the framework-detection outcome.
+Invoked from `/implement` at Phase 3.5 (SIMPLE / MODERATE, after Phase 3A implementation completes) and inside Phase 3B (SIGNIFICANT / HIGH-RISK, at step 4a — after implementation completes but before the diff is captured for Opus review). This agent runs after the edits, so it settles nothing about which framework the project has: it relays what the baseline recorded before them.
 
 ## Inputs
 
@@ -22,7 +22,7 @@ The caller passes a structured brief:
   missing-framework prompt — and **never re-derive the diff** with a tool of your own. **Plan**
   is *context*: degrade to absent.
 - **Project root** — absolute path so files can be opened
-- **Baseline** — the `## Test Baseline` block captured by `test-baseliner` in Pre-Phase 3.5 (identifies the detected framework + the command used + the set of pre-existing passing / failing tests). Used to confirm framework identity and to avoid shadowing pre-existing test names
+- **Baseline** — the `## Test Baseline` block captured by `test-baseliner` in Pre-Phase 3.5 (identifies the detected framework + the command used + the set of pre-existing passing / failing tests). It is the sole source of framework and command here, and the list of test names already taken
 
 Refuse to write tests without a diff and a baseline — ask the caller to supply them.
 
@@ -97,7 +97,7 @@ If `Framework: not detected`, return this truncated shape and STOP:
 - **Tests written**: 0
 
 ### Reason
-The baseline records no framework at all — `test-baseliner` matched no candidate. Caller: ask the user to specify a test command, re-dispatch `test-baseliner` with a `command_hint`, or skip tests for this run.
+The baseline records no framework at all — `test-baseliner` matched no candidate. Caller: this was settled where the baseline was captured, before any file was edited; apply that decision rather than asking again here. A `command_hint` supplied now cannot repair it, because a capture taken after the edits is not a baseline.
 ```
 
 If the **Diff** input could not be read, return this shape — its FIRST LINE is the literal

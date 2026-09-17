@@ -402,7 +402,21 @@ Invoke the `test-baseliner` agent in capture mode:
   > Mode: capture
   > Project root: [absolute path of the current working directory]"
 
-Store the returned `## Test Baseline` block verbatim — it will be passed to `test-baseliner` again in verify mode at Phase 3.5 and to `test-writer` as the baseline snapshot. On a repository with more than one test suite the agent baselines **all** of them and the block's `### Suites` section names each; store it whole, unsummarized, since the verify call diffs against every line of it. If `Framework: not detected`, note it in session memory but continue — Phase 3.5 will surface the missing-framework case to the user explicitly.
+Store the returned `## Test Baseline` block verbatim — it will be passed to `test-baseliner` again in verify mode at Phase 3.5 and to `test-writer` as the baseline snapshot. On a repository with more than one test suite the agent baselines **all** of them and the block's `### Suites` section names each; store it whole, unsummarized, since the verify call pairs against those rows.
+
+**Act on the block's `Status` here, before a single file is edited.** This is the last point in the run where the answer can still be honest: a capture is a baseline because nothing has changed yet, and a capture taken after the edits is just a test run.
+
+- `OK` / `NO_TESTS` → continue.
+- `PARTIAL` → continue, and record every suite `### Suites` does not mark `OK` or `NO_TESTS`, with the command that failed, in the Phase 5 `### Deferred items` section — this run's verification will not cover them and the Final Report says so. A suite whose runner is not installed is not a reason to stop work on the suites that do run.
+- `COMMAND_NOT_FOUND` (`Framework: not detected`) or `RUN_FAILED` → nothing was captured at all. Ask the user:
+  ```
+  choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /implement workflow)", "Cancel"]
+  ```
+  - **Specify test command** → take free-text, record it as `test_command_hint`, and re-dispatch the capture above **immediately**, adding the line `command_hint: [the answer]` to the prompt. Act on the returned block's `Status` by this same list. Ask at most twice in a run; after that record `test_decision: skip` with the last failure as its reason.
+  - **Skip tests** → take free-text rationale; record `test_decision: skip` with that rationale in the Phase 5 `### Deferred items` section.
+  - **Cancel** → stop and summarize.
+
+**Where `test_command_hint` was recorded, every later `test-baseliner` dispatch in this run carries it** — verify compares like with like only when both calls run the same set of suites.
 
 ---
 
@@ -436,13 +450,7 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
      > Project root: [absolute path]
      > Baseline: [paste the ## Test Baseline block captured in Pre-Phase 3.5]"
 
-2. **Handle a `test-writer` stop.** Check the report's first line before anything else. If it is `Diff: unreadable at <path>`, the orchestrator's own `test_diff_file` could not be read — this is an orchestrator bug, not a user choice: surface the unreadable path to the user and **stop the run**; do not run the framework prompt below, and do not offer to skip tests (skipping would silently proceed past evidence that could not be read). Otherwise, if the report shows `Framework: not detected`, ask the user:
-   ```
-   choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /implement workflow)", "Cancel"]
-   ```
-   - **Specify test command** → take free-text and pass it as the `command_hint` on the step 4 `test-baseliner` dispatch — the agent's own input for a run set the caller supplies; continue.
-   - **Skip tests** → take free-text rationale; record it in the Phase 5 `### Deferred items` section; skip steps 3–5 of Phase 3.5 and proceed to Phase 3A step 7 (Verify outcome).
-   - **Cancel** → stop and summarize.
+2. **Handle a `test-writer` stop.** Check the report's first line before anything else. If it is `Diff: unreadable at <path>`, the orchestrator's own `test_diff_file` could not be read — this is an orchestrator bug, not a user choice: surface the unreadable path to the user and **stop the run**; do not offer to skip tests (skipping would silently proceed past evidence that could not be read). Otherwise, if the report shows `Framework: not detected`, the baseline named no framework and **Pre-Phase 3.5 already put that to the user, before any file was edited**: apply the recorded `test_decision` rather than asking again. On `skip`, skip steps 3–6 and proceed to Phase 3A step 7 (Verify outcome). There is no second prompt here, and a command supplied here would not help: a capture taken after the edits is a test run, not a baseline.
 
 3. **Run linters and builds.** Use the project's standard lint/build commands as discovered in Phase 2A exploration. Do not run the full test suite here — that is step 4.
 
@@ -453,9 +461,21 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
      >
      > Mode: verify
      > Baseline: [paste the captured ## Test Baseline block]
-     > Project root: [absolute path]"
+     > Project root: [absolute path]
+     > command_hint: [the recorded `test_command_hint` — include this line only where Pre-Phase 3.5 recorded one, and never a different value: a verify run over a different set of suites is not a comparison]"
 
-5. **Fix loop** — if the verify report lists regressions or new failures:
+5. **Act on the verify report's `Status`.** Every value is handled here; none is passed over.
+   - `OK` → Phase 3.5 is done.
+   - `PARTIAL` → no regressions, and a suite could not be run at either end. Record each such suite from `### Suites` in the Phase 5 `### Deferred items` section and continue — there is nothing to fix.
+   - `RUN_FAILED` → **`Comparison status: invalid`: nothing was compared, so this is never a pass.** Surface the report's `Reason` line and ask:
+     ```
+     choices: ["Investigate further", "Accept an unverified run and proceed (document in Phase 5 report)", "Cancel"]
+     ```
+     **Investigate further** → diagnose manually and re-run step 4 when ready. **Accept** → record in the Phase 5 `### Deferred items` section that no comparison was made, with the report's `Reason`. **Cancel** → stop and summarize.
+   - `COMMAND_NOT_FOUND` → the baseline named no framework; Pre-Phase 3.5's recorded `test_decision` stands and this run's tests are documented as skipped.
+   - `REGRESSIONS` → the fix loop below.
+
+6. **Fix loop** — on `Status: REGRESSIONS`:
    - The **session model** (not a subagent) applies fixes. No `review-fixer`-style indirection is used here — the scope is narrow and the context is already fully in-session. Use the `test-baseliner` verify report as the authoritative list of what broke.
    - After each fix attempt, re-capture the diff (`git add -N . && git diff`) and re-run `test-baseliner` in verify mode against the **original** baseline (never re-baseline mid-loop — a mid-loop re-baseline would silently absorb a regression as the new normal).
    - Cap at **2 fix attempts**. If regressions remain after the second attempt, surface to the user:
@@ -466,7 +486,7 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
      - **Accept regressions** → record each regression in the Phase 5 `### Deferred items` section with the user's rationale; proceed.
      - **Cancel** → stop and summarize.
 
-Once Phase 3.5 returns (passed, skipped, or accepted-with-regressions), return to Phase 3A step 7 (Verify outcome).
+Once Phase 3.5 returns (passed, skipped, or accepted with regressions or without a comparison), return to Phase 3A step 7 (Verify outcome).
 
 ---
 
@@ -494,11 +514,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
      > Project root: [absolute path]
      > Baseline: [paste the ## Test Baseline block captured in Pre-Phase 3.5]"
 
-   Check the `test-writer` report's first line before invoking Opus review. If it is `Diff: unreadable at <path>`, the orchestrator's own `test_diff_file` could not be read — this is an orchestrator bug, not a user choice: surface the unreadable path to the user and **stop the run**; do not invoke Opus review and do not run the framework prompt below. Otherwise, if the report shows `Framework: not detected`, ask the user **before** invoking Opus review (mirrors the SIMPLE/MODERATE branch — keeps the Opus-review input deterministic):
-   ```
-   choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /implement workflow)", "Cancel"]
-   ```
-   Record the choice. A "Skip" decision must be explicit and logged in the Phase 5 report.
+   Check the `test-writer` report's first line before invoking Opus review. If it is `Diff: unreadable at <path>`, the orchestrator's own `test_diff_file` could not be read — this is an orchestrator bug, not a user choice: surface the unreadable path to the user and **stop the run**; do not invoke Opus review. Otherwise, if the report shows `Framework: not detected`, the baseline named no framework and Pre-Phase 3.5 already put that to the user before any file was edited (mirrors the SIMPLE/MODERATE branch): apply the recorded `test_decision`, and carry it into the Phase 5 report. On `skip`, step 8 below runs no part of the Phase 3.5 sequence. There is no prompt here — asking after the edits would be asking for a baseline that can no longer be taken.
 
 5. After all changes are written: **DO NOT run tests yet.** When `task_shape: bug`, first **strip every `[DEBUG-xxxx]` probe** added during diagnosis (per `${CLAUDE_PLUGIN_ROOT}/references/bug-diagnosis.md`); the review diff must contain no debug instrumentation. Capture the diff and the project root. Use `git add -N . && git diff` — this includes intent-to-add untracked new files so the diff is never empty for implementations that only create new files, and it now also includes the test files from step 4a. Write this diff to a temp file (`command mktemp -t dw-impl-diff-XXXXXX`, never inside a repo tree) and record its absolute path as `review_diff_file`; the code-review dispatch (step 6) receives this path. Also capture `git diff --stat` for the summary (small — kept inline).
 6. **Opus code review** — spawn.
@@ -540,7 +556,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
    - If the fix report contains any `DEFERRED — plan-conflict` finding, surface it to the user **immediately** (do not wait for the BLOCK-still-BLOCK path): show the finding beside the plan text it contradicts and ask `choices: ["Revise the plan (the finding governs)", "Apply the fix against the plan (the plan governs — logged in Phase 5)"]`. Act on the answer before re-running the review.
 
 7.5. **Spec/design conformance escalation.** For each unresolved `missing`/`contradicts` in-scope requirement from the code-review Spec/design-conformance dimension, write a `- [ ]` note back onto the source `specification.md`/`design.md` under an `## Engineering review` heading (the same escalation `/design` uses; annotate only — never mutate existing `[Uxx]`/`[ACxx]`/`[TCxx]` IDs). Never silently drop them, never invent new work. Record which of `specification.md`/`design.md` actually received a note — the handoff step needs to know whether only one, or both, were annotated. The notes are written here and handed off later — see the escalation handoff after Phase 4.
-8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence (lint/build, `test-baseliner` verify, fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes (first overwrite `review_diff_file` with a fresh `git add -N . && git diff` so the re-review reads the post-Phase-3.5 diff). If the reviewer WAS down-classified, skip the re-review.
+8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence — its steps 3–6 (lint/build, `test-baseliner` verify, the status branch, the fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes (first overwrite `review_diff_file` with a fresh `git add -N . && git diff` so the re-review reads the post-Phase-3.5 diff). If the reviewer WAS down-classified, skip the re-review.
 9. Verify the outcome matches the approved plan and the review verdict.
 10. Proceed to Phase 4.
 
@@ -668,9 +684,9 @@ Runs on **every** run that created a branch in Pre-Phase 3 — both classificati
 
 **The commit is prompt-free and the push and pull request are not** (§1 rule 5). There is no "leave it uncommitted" option in §2.4's choice, and a run that ends with the implementation sitting in a working tree is a defect rather than a style.
 
-**"Every run" includes every early stop that happens after the branch exists.** This command has exits that stop *after* Pre-Phase 3 created the branch and after files were written: the two unreadable-`test_diff_file` stops (Phase 3.5 step 2 and Phase 3B step 4a), the Cancel arms of both framework prompts, the Cancel and *Investigate further* arms of the Phase 3.5 regression prompt, the unreadable-`review_diff_file` stop (Phase 3B), the `review-fixer` `NEEDS HUMAN` stop, and a second verdict still `BLOCK`. **Each of those runs Phase 4.6 before it stops**, with `clean_finish: false` and the stop's reason as the blocking fact. Skipping it would leave a written, branched, sometimes fully-reviewed implementation uncommitted — which this command's own invariants call a defect, and which is the case where losing the work costs most. Phase 4 is skipped on these paths (its maintenance agents have nothing to summarise for an aborted run), so 4.6's "after every in-repo write" precondition is satisfied trivially. Report the §3.1 line with the stop, not in a Phase 5 report that will not be produced.
+**"Every run" includes every early stop that happens after the branch exists.** This command has exits that stop *after* Pre-Phase 3 created the branch and after files were written: the two unreadable-`test_diff_file` stops (Phase 3.5 step 2 and Phase 3B step 4a), the Cancel and *Investigate further* arms of both Phase 3.5 prompts (step 5's unverified-run prompt and step 6's regression prompt), the unreadable-`review_diff_file` stop (Phase 3B), the `review-fixer` `NEEDS HUMAN` stop, and a second verdict still `BLOCK`. **Each of those runs Phase 4.6 before it stops**, with `clean_finish: false` and the stop's reason as the blocking fact. Skipping it would leave a written, branched, sometimes fully-reviewed implementation uncommitted — which this command's own invariants call a defect, and which is the case where losing the work costs most. Phase 4 is skipped on these paths (its maintenance agents have nothing to summarise for an aborted run), so 4.6's "after every in-repo write" precondition is satisfied trivially. Report the §3.1 line with the stop, not in a Phase 5 report that will not be produced.
 
-**The Phase 2B repro prompt's Cancel is not in that set**, and the distinction is the branch: Phase 2B runs *before* Pre-Phase 3, so cancelling there leaves no branch and no written file — there is nothing for this phase to commit.
+**Two Cancels are not in that set, and the test is the written file rather than the branch.** Phase 2B's repro prompt runs *before* Pre-Phase 3, so cancelling there leaves no branch and no written file. Pre-Phase 3.5's framework prompt runs *after* the branch and still before the first edit — its Cancel leaves a branch with nothing on it, and there is as little for this phase to commit as in the Phase 2B case.
 
 Placement is load-bearing. Phase 4's maintenance agents edit files **inside the code repo** — `README.md`, `CHANGELOG.md`, `docs/`, `CLAUDE.md`, and any project-level memory entry — so a call placed before Phase 4 would commit a partial run and leave those edits behind (`code-handoff.md` §4 obligation 1). Phase 4.5 runs first because it commits a *different* repository (`$SPECS_PATH`), and interleaving the two would make the run's two outcome lines impossible to attribute.
 
@@ -861,7 +877,8 @@ directory, where it is not the specs repository; no user name is ever written (�
 - NEVER skip Phase 1.5 classification — every run must state the level
 - NEVER use Opus for routine implementation; reserve it for planning + review on SIGNIFICANT / HIGH-RISK
 - NEVER run tests on SIGNIFICANT / HIGH-RISK work before the Opus code review returns a non-BLOCK verdict
-- NEVER skip Phase 3.5 — if no test framework is detected, ask the user rather than silently skipping; a "Skip" decision must be explicit and logged in the Phase 5 report
+- NEVER skip Phase 3.5 — if no test framework is detected, ask the user at Pre-Phase 3.5, where a baseline can still be taken, rather than silently skipping; a "Skip" decision must be explicit and logged in the Phase 5 report
+- NEVER read a verify report as a pass on any value but `OK` or `PARTIAL` — `RUN_FAILED` means nothing was compared and `COMMAND_NOT_FOUND` means nothing was run, and each is surfaced (Phase 3.5 step 5), never passed over
 - NEVER make assumptions that could have been asked — ask instead
 - NEVER end implementation with "Should I implement?" — if approved, implement
 - NEVER rewrite files wholesale when only an append/edit is needed

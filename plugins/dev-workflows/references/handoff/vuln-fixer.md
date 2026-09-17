@@ -26,6 +26,12 @@ baseline_tests: provided           # "provided" | "run-fresh"
   # Step 3) so it can be replayed on the verify-resume call. The captured
   # baseline cannot survive the AWAITING_REVIEW boundary inside the fixer.
 baseline_passing: 47               # count of passing tests (required when "provided")
+baseline_block: |                  # required when "provided", and on verify-resume — the whole
+  ## Test Baseline                 # `## Test Baseline` block the orchestrator captured, verbatim,
+  …                                # `### Suites` included. It is what vuln-fixer hands
+                                   # test-baseliner verify, and its per-suite rows are what
+                                   # separate a suite that regressed from one that could not run
+                                   # at either end.
 baseline:                          # required when "provided"; may also be sent on verify-resume
   passing_tests:                   # the full list — needed for precise regression detection
     - com.example.FooTest#testCreate
@@ -68,7 +74,7 @@ files:
 
 ```markdown
 ## Vuln Fix Result: CVE-2023-46604
-status: SUCCESS         # SUCCESS | BUILD_FAILED | TEST_REGRESSION | REVERTED | SKIPPED_BY_USER | AWAITING_REVIEW | BASELINE_FAILED | BLOCKED
+status: SUCCESS         # SUCCESS | BUILD_FAILED | TEST_REGRESSION | TESTS_NOT_RUN | REVERTED | SKIPPED_BY_USER | AWAITING_REVIEW | BASELINE_FAILED | BLOCKED
 branch: fix/PROJ-2423-CVE-2023-46604
                         # no `pr_url` and no commit sha: this agent creates the branch and stops.
                         # The commit, the push, and the pull request are the orchestrator's, in
@@ -93,8 +99,18 @@ model_routing:           # echoed back when present in input
   orchestrator asks the user (per `/vuln` "Handling Test Failures"), then
   re-invokes this agent with `phase: regression-resume` +
   `regression_decision: keep-anyway | revert`.
+- `TESTS_NOT_RUN` — `test-baseliner` verify returned `RUN_FAILED` or
+  `COMMAND_NOT_FOUND`: no comparison was possible, so nothing is known about
+  this CVE's tests either way. The fix is applied and built on the fix branch,
+  uncommitted, and is **not** reverted — reverting needs evidence the fix is
+  bad, and a suite that could not be run is evidence about the environment.
+  `notes` carries the report's reason; the orchestrator decides. Distinct from
+  `SUCCESS`, which asserts the tests passed, and from `TEST_REGRESSION`, which
+  asserts they failed
 - `BASELINE_FAILED` — `test-baseliner` capture returned `RUN_FAILED` or
-  `COMMAND_NOT_FOUND` before any fix was applied; nothing was changed
+  `COMMAND_NOT_FOUND` before any fix was applied; nothing was changed. A
+  `PARTIAL` capture is **not** this: at least one suite produced counts, so
+  there is a baseline to verify against and the CVE is worked as normal
 - `REVERTED` — the `regression-resume` call's `regression_decision` was `revert`
 - `SKIPPED_BY_USER` — user chose to skip (set by the orchestrator; this agent
   is not re-invoked in that case)

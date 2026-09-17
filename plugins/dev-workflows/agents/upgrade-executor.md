@@ -44,10 +44,18 @@ reconstruct it.
 
 2. **Build** — Run the project build (compile only). On failure see "Build failure" below.
 
-3. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the `baseline` from the input handoff.
+3. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the input handoff's `baseline_block` —
+   the whole `## Test Baseline` block, whose `### Suites` rows are what separate a suite that regressed from
+   one that could not run at either end.
    - `status: OK` → all green, proceed to step 4.
-   - `status: REGRESSIONS` → follow "Test regression" below.
-   - `status: RUN_FAILED` → revert all changes, set `status: BUILD_FAILED`.
+   - `status: PARTIAL` → proceed to step 4, recording the uncovered suites in `notes`. **Never revert on it:**
+     a suite that could not run at either end is a fact about the environment, not evidence about this upgrade.
+   - `status: REGRESSIONS` → follow "Test regression" below. This is the one verify value that is evidence
+     about the upgrade, and the only one on which anything is reverted.
+   - `status: RUN_FAILED` or `COMMAND_NOT_FOUND` → nothing was compared. **Do not revert**: reverting needs
+     evidence the upgrade is bad, and this is evidence that the suites could not be run. Set
+     `status: TESTS_NOT_RUN` with the report's reason in `notes` and return — the changes stay applied and
+     the orchestrator decides.
 
 4. **Output** — Produce the summary record (see `${CLAUDE_PLUGIN_ROOT}/references/handoff/upgrade-executor.md`).
 

@@ -50,10 +50,17 @@ reconstruct it.
 > run-fresh` is invalid** because the captured baseline cannot survive the
 > AWAITING_REVIEW boundary.
 
-1. **Baseline** — If `baseline_tests: run-fresh`, invoke `test-baseliner` in `capture` mode.
-   If `baseline_tests: provided`, the orchestrator has already captured the baseline — skip this step.
+1. **Baseline** — If `baseline_tests: run-fresh`, invoke `test-baseliner` in `capture` mode and keep the
+   returned `## Test Baseline` block **whole** — step 5 passes it back verbatim, and its `### Suites` rows are
+   what separate a suite that regressed from one that could not run at either end.
+   If `baseline_tests: provided`, the orchestrator has already captured the baseline and supplied that block
+   as `baseline_block` — skip this step.
    - On `status: RUN_FAILED` or `COMMAND_NOT_FOUND`: set output `status: BASELINE_FAILED`, return —
      before step 2, so no branch is created for a CVE that was never worked.
+   - On `status: PARTIAL`: at least one suite produced counts, so there **is** a baseline to verify against.
+     Proceed, and record in `notes` every suite `### Suites` does not mark `OK` or `NO_TESTS`, with its
+     command, so the output says what this CVE's verification does not cover. A JavaScript runner that is not
+     installed is not a reason to leave a CVE in the Ruby half of the same repository unfixed.
    - On `status: NO_TESTS`: the project has no runnable test suite. Proceed with the branch and the fix
      (steps 2-4), then **skip step 5 (Verify) entirely** — there is nothing to diff against —
      and go straight to step 6, noting in the output that no test suite was found.
@@ -86,10 +93,17 @@ reconstruct it.
 
 4. **Build** — Run the project build (compile only, no tests). On failure see "Build failure" below.
 
-5. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the baseline from step 1.
+5. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the **whole** baseline block from step 1
+   (or the `baseline_block` the orchestrator supplied).
    - `status: OK` → proceed to step 6.
-   - `status: REGRESSIONS` → follow "Test regression" below.
-   - `status: RUN_FAILED` → revert fix, set `status: BUILD_FAILED`, return.
+   - `status: PARTIAL` → proceed to step 6, recording the uncovered suites in `notes`. **Never revert on it:**
+     a suite that could not run at either end is a fact about the environment, not evidence about this fix.
+   - `status: REGRESSIONS` → follow "Test regression" below. This is the one verify value that is evidence
+     about the fix, and the only one on which anything is reverted.
+   - `status: RUN_FAILED` or `COMMAND_NOT_FOUND` → nothing was compared. **Do not revert the fix**: reverting
+     needs evidence the fix is bad, and this is evidence that the suites could not be run. Set
+     `status: TESTS_NOT_RUN` with the report's reason in `notes` and return — the branch and the applied fix
+     stay on it, and the orchestrator decides.
 
 6. **Output** — Produce the result record (see `${CLAUDE_PLUGIN_ROOT}/references/handoff/vuln-fixer.md` output format).
 

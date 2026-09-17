@@ -61,9 +61,10 @@ Run every suite and return a baseline snapshot. Use this **before** making chang
 
    Also collect the names/identifiers of every passing test and every failing test from the verbose output, per suite. **Where more than one suite ran, prefix each identifier with its framework** — `[RSpec] spec/models/user_spec.rb:14` — so that no two suites can mint the same identifier and the verify diff compares like with like. A single-suite run carries no prefix.
 
-4. **Compute Status** — one Status for the run, the worst outcome across its suites:
+4. **Compute Status** — one Status for the run, computed from its per-suite outcomes:
    - `COMMAND_NOT_FOUND` — step 1 selected no suite at all, so nothing was run: no candidate matched and no `command_hint` supplied one (the "not detected" fallback). To a caller it means what it always meant: this agent has no command to give it
-   - `RUN_FAILED` — **any** suite aborted with no parseable pass/fail counts (see step 2). Any, not all: a baseline missing one of the repository's suites cannot detect a regression in that suite, and `OK` would hide exactly that. `### Suites` names which one failed and with what command, so a caller that means to proceed on the rest re-dispatches with a `command_hint` naming the others
+   - `RUN_FAILED` — **every** suite that was run aborted with no parseable pass/fail counts (see step 2), so this baseline records nothing and a later verify has nothing to compare against
+   - `PARTIAL` — at least one suite produced counts and at least one did not. The baseline covers exactly the suites `### Suites` marks `OK` or `NO_TESTS`, which is what a later verify compares against, and `### Suites` names each suite it does not cover with the command that failed. **`PARTIAL` is incompleteness, never a verdict on the code** — a caller that refuses to work on it is refusing because a runner is not installed, not because anything is wrong with what it was about to change
    - `NO_TESTS` — every suite ran cleanly and the combined Total = 0 (no test files/suite present, e.g. a CI-only YAML repo)
    - `OK` — otherwise (every suite ran and produced parseable counts, Total > 0)
 
@@ -72,7 +73,7 @@ Run every suite and return a baseline snapshot. Use this **before** making chang
 ```markdown
 ## Test Baseline
 - **Mode**: capture
-- **Status**: [OK | RUN_FAILED | COMMAND_NOT_FOUND | NO_TESTS]
+- **Status**: [OK | PARTIAL | RUN_FAILED | COMMAND_NOT_FOUND | NO_TESTS]
 - **Framework**: [name — with more than one suite, every name, comma-separated in run order — or "not detected"]
 - **Command**: `[command used — with more than one suite, each, comma-separated in the same order]`
 - **Total**: [n] | **Passing**: [n] | **Failing**: [n] | **Skipped**: [n]
@@ -105,16 +106,22 @@ The caller must provide:
 
 ### Steps
 
-1. **Detect every suite** — Same detection logic as capture mode, `command_hint` included.
+1. **Detect every suite** — Same detection logic as capture mode, `command_hint` included. Where detection selects no suite at all, run nothing and return the step-7 structure with `Status: COMMAND_NOT_FOUND`, `Comparison status: invalid` and every count 0.
 
-2. **Sanity check** — If the detected framework or command differs from the baseline, return:
+2. **Pair each detected suite with the baseline** — match on framework, against the baseline's `### Suites` rows:
+   - **matched** — compared normally in step 5. A differing **command** is a `### Notes` line, not a refusal: the identifiers still come from the same runner, so they remain comparable.
+   - **new since the baseline** — detected now, named nowhere in the baseline. Run it. It has no baseline, so nothing in it can be a regression and a failure in it is a **New failure**; `### Notes` records that it is new. This is the ordinary result when the run's own `test-writer` created the repository's first suite of that kind, so it is never a reason to refuse the comparison.
+   - **gone since the baseline** — in the baseline, not detected now. Its baseline tests fall out of step 5 as **Missing from run**, which is already regression-severity; `### Notes` records that the suite is gone.
+   - **left out by this call's `command_hint`** — where the baseline's own row for it reads `not run` as well, it has no baseline tests and contributes `PARTIAL`. Where the baseline **ran** it, the hint has narrowed the scope between the two calls: that is not like-for-like, so its baseline tests are **Missing from run** and `### Notes` says the hint narrowed the run.
+
+   Only where **no** detected suite matches any baseline suite is there nothing to compare. Then run nothing and return:
    ```
    Comparison status: invalid
-   Reason: framework changed from [baseline framework] to [current framework]. Manual comparison required.
+   Reason: no detected suite matches the baseline — [baseline frameworks] became [current frameworks]. Manual comparison required.
    ```
-   Do not run the test suites. With more than one suite that comparison is over the whole comma-separated **Framework** list: a suite gained or lost since the baseline is a changed framework, because the baseline holds nothing to diff the new one against.
+   A baseline reading `Framework: not detected` names no suite at all, so nothing can pair with it and every verify call against it returns `invalid`. That baseline is what a `command_hint` on the **capture** call can prevent; a hint supplied here for the first time cannot repair it.
 
-3. **Run** — Execute each suite's command, under the same **per-suite** 10-minute bound as capture and in the same run order. Capture stdout and stderr combined per suite. If any suite aborts (non-zero exit, truncated output, or unrecognized runner output), set `Comparison status: best-effort`, note which suite, and still run the rest — that suite's baseline tests then fall out of step 5 as **Missing from run**, which is already regression-severity, so nothing has to be added here to keep an aborted suite from passing silently.
+3. **Run** — Execute each matched or new suite's command, under the same **per-suite** 10-minute bound as capture and in the same run order. Capture stdout and stderr combined per suite. If any suite aborts (non-zero exit, truncated output, or unrecognized runner output), set `Comparison status: best-effort`, record it in `### Suites` and `### Notes`, and still run the rest. **What that abort means is settled by the suite's own baseline row, and the two answers are opposite.** A suite whose baseline row reads `OK` or `NO_TESTS` ran before this change and does not now, so every baseline test of it falls out of step 5 as **Missing from run** and the run is a regression — the change is the only thing that moved. A suite whose baseline row reads `RUN_FAILED` or `not run` contributed no baseline tests, so nothing falls out: it could not run at either end, which is a fact about the environment and never evidence about the change.
 
 4. **Parse** — Same patterns as capture mode.
 
@@ -127,19 +134,20 @@ The caller must provide:
    | **Newly fixed** | Was in baseline `### Pre-existing failures` AND is now passing |
    | **New failures** | Is failing now AND was not in baseline `### Pre-existing failures` AND was not in baseline `### Passing tests` (new test added and already failing) |
 
-6. **Compute Status** — before returning, set:
-   - `RUN_FAILED` — **Comparison status** is `invalid` (framework changed since baseline, no comparison possible) OR is `best-effort` with no parseable pass/fail data recovered at all
-   - `REGRESSIONS` — **Regressions** count > 0 OR **Missing from run** count > 0 (both are regression-severity per the table above)
-   - `OK` — otherwise (comparison was possible and found no regressions)
+6. **Compute Status** — before returning, set the first that applies:
+   - `RUN_FAILED` — **Comparison status** is `invalid`: step 2 found no detected suite matching the baseline, so no comparison was possible
+   - `REGRESSIONS` — **Regressions** count > 0 OR **Missing from run** count > 0 (both are regression-severity per the table above). This is where a suite that produced counts in the baseline and aborted here lands, since every baseline test of it is then unaccounted for
+   - `PARTIAL` — no regressions, and at least one detected suite produced no counts here **and none in the baseline either** — it aborted at both ends, or the `command_hint` left it `not run`. The comparison is sound as far as it reaches and says nothing at all about that suite
+   - `OK` — otherwise (every detected suite ran, the comparison was possible, and it found no regressions)
 
-   Note: `COMMAND_NOT_FOUND` is emitted here only from step 1, where detection selected no suite at all. A verify call that reached step 2 with a framework in hand emits only `OK` / `REGRESSIONS` / `RUN_FAILED`.
+   `COMMAND_NOT_FOUND` is emitted only from step 1, which returns there; a call that reached step 2 never emits it.
 
 7. **Return this exact structure and nothing else:**
 
 ```markdown
 ## Test Verify Report
 - **Mode**: verify
-- **Status**: [OK | REGRESSIONS | RUN_FAILED | COMMAND_NOT_FOUND]
+- **Status**: [OK | PARTIAL | REGRESSIONS | RUN_FAILED | COMMAND_NOT_FOUND]
 - **Framework**: [name — with more than one suite, every name, comma-separated in run order]
 - **Command**: `[command used — with more than one suite, each, comma-separated in the same order]`
 - **Comparison status**: [exact | best-effort | invalid]

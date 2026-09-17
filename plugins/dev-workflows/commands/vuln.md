@@ -142,7 +142,7 @@ prevent.
 
 ### SIGNIFICANT / HIGH-RISK path
 
-1. **Capture baseline at the orchestrator** using the existing `test-baseliner` agent, dispatched with `model: <detection_model — §2.1 Sonnet chain>`. Keep the full baseline block (`passing_count` and `passing_tests`).
+1. **Capture baseline at the orchestrator** using the existing `test-baseliner` agent, dispatched with `model: <detection_model — §2.1 Sonnet chain>`. **Keep the returned `## Test Baseline` block whole** — it is re-supplied as `baseline_block` on every dispatch below, because its `### Suites` rows are what let verify tell a suite that regressed from one that could not run at either end; `passing_count` and `passing_tests` are re-keyed from it, never in place of it. Where its `Status` is `PARTIAL`, name the suites `### Suites` does not mark `OK` or `NO_TESTS` in the Step 4 table and continue: a runner that is not installed for one language is not a reason to leave a CVE in another unfixed. Where it is `RUN_FAILED` or `COMMAND_NOT_FOUND`, say so before dispatching — the fixer will return `TESTS_NOT_RUN` rather than a verified result.
 2. **Invoke `vuln-fixer` with review gating enabled**:
 
 ```text <!-- vendor-token-ok: the no-address placeholder literals Step 1 detected, echoed into the handoff -->
@@ -155,6 +155,8 @@ task(
   phase: full
   baseline_tests: provided
   baseline_passing: [captured count]
+  baseline_block: |
+    [the captured ## Test Baseline block, verbatim and whole]
   baseline:
     passing_tests:
       - [captured test ids]
@@ -205,7 +207,7 @@ Runs after the fixer's last return for this CVE — after the `verify-resume` ca
 - `commit_template` — the "Commit message" template in this command's Git Workflow section below. `/vuln` is the one caller with a full template of its own, so §2.3 uses it verbatim rather than deriving a subject from the repo's log.
 - `title` — `fix(deps): <library> upgrade to remediate <CVE-ID>`, with ` [<key>]` appended when the CVE resolved one.
 - `body_facts` — the CVE summary, the vulnerable range, the version change applied, the classification, the Opus review verdict and triage where the CVE went through review, and the test counts before and after.
-- `clean_finish` — `false` when the CVE ended `BLOCKED`, when its review is still `BLOCK`, or when the user chose `keep-anyway` on a regression; `true` otherwise. Per §2.9 the commit and the push happen either way; only the pull request changes (draft, DO-NOT-MERGE banner).
+- `clean_finish` — `false` when the CVE ended `BLOCKED` or `TESTS_NOT_RUN`, when its review is still `BLOCK`, or when the user chose `keep-anyway` on a regression; `true` otherwise. Per §2.9 the commit and the push happen either way; only the pull request changes (draft, DO-NOT-MERGE banner).
 
 §2.4's choice is asked on the **first** CVE and reused for every later one (`code_handoff_choice`) — a ten-CVE run asks once, not ten times. Emit the §3.1 `Code repo:` line per CVE and carry its pull-request number into the Step 4 table's `PR` column.
 
@@ -216,7 +218,7 @@ Runs after the fixer's last return for this CVE — after the `verify-resume` ca
 
 This is deliberately not keyed on `status`, because **`BLOCKED` means two opposite things**. It is returned by the *first* fixer call when the research report cannot be read — nothing was created, nothing changed — and by a **resume** call (the SIMPLE/MODERATE path and steps 4 and 5 of the SIGNIFICANT path) when the re-supplied path cannot be read, at which point the branch exists and the fix is already applied to it. It is also the label this command writes into the Step 4 table for orchestrator-side gate stops, two of which (`NEEDS HUMAN`, a persisting review `BLOCK`) are explicitly required above to hand off. A skip list keyed on the label would strand an applied fix on a branch, and the next CVE's `git switch` would then either abort or carry it onto an unrelated branch.
 
-For orientation, the states that normally reach each outcome: `BASELINE_FAILED` and a first-call `BLOCKED` changed nothing; `SKIPPED_BY_USER` never invoked the fixer; `BUILD_FAILED` and `REVERTED` reverted their own change and normally leave the step-2 branch in place and empty — the plugin never deletes a branch (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §1 rule 3), so name the stray ref in the Step 4 table rather than leaving it unexplained. Each of these is still confirmed against the tree, not assumed.
+For orientation, the states that normally reach each outcome: `BASELINE_FAILED` and a first-call `BLOCKED` changed nothing; `SKIPPED_BY_USER` never invoked the fixer; `TESTS_NOT_RUN` applied its fix and left it on the branch unverified, so it hands off like any other applied fix; `BUILD_FAILED` and `REVERTED` reverted their own change and normally leave the step-2 branch in place and empty — the plugin never deletes a branch (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §1 rule 3), so name the stray ref in the Step 4 table rather than leaving it unexplained. Each of these is still confirmed against the tree, not assumed.
 
 **Never skipped for a CVE that failed a gate.** A CVE stopped at an unresolved review `BLOCK` or at `NEEDS HUMAN` **is** handed off with `clean_finish: false`: its fix is applied and sitting on a branch that exists precisely because the fixer created it before the first edit, and §2.9 is exactly the case for it.
 
@@ -274,6 +276,12 @@ interactive tools, even when one is listed in their `tools:`. When it returns
   the same choices — this loops here at the orchestrator until the user picks apply or revert.
 - Map the final choice to `regression_decision: keep-anyway | revert` and re-invoke
   `vuln-fixer` with `phase: regression-resume` (see Step 3).
+
+**`status: TESTS_NOT_RUN` is a different return and takes no `regression_decision`.** It means the
+verify call compared nothing — no failing tests to show, and nothing about this CVE's tests known either
+way. The fix stays on its branch. Report the reason the fixer recorded, mark the CVE unverified in the
+Step 4 table, and hand it off through Step 3.9 with `clean_finish: false`. Never map it onto `revert`:
+rolling a security fix back because a suite could not be started is a decision taken on no evidence at all.
 
 ---
 

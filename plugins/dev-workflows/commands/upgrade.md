@@ -117,7 +117,9 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
    )
    ```
 
-   Store the returned baseline; do not re-run baseline capture per component.
+   **Store the returned `## Test Baseline` block whole** and re-supply it as `baseline_block` on every executor dispatch below — its `### Suites` rows are what let verify tell a suite that regressed from one that could not run at either end, and `passing_count` / `passing_tests` are re-keyed from it, never in place of it. Do not re-run baseline capture per component.
+
+   Act on its `Status` before executing anything: `PARTIAL` names the suites this batch's verification will not cover — list them in the Upgrade Summary and continue, since a runner that is not installed for one language is not a reason to leave another's component unupgraded. `RUN_FAILED` or `COMMAND_NOT_FOUND` means nothing was captured, so say so before executing: every component will come back `TESTS_NOT_RUN` rather than verified.
 
 ### Per-component loop (sequential, in requested order)
 
@@ -131,6 +133,8 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
      prompt: "## Upgrade Execution Request
      repo: [absolute repo path]
      phase: full
+     baseline_block: |
+       [the captured ## Test Baseline block, verbatim and whole]
      baseline:
        passing_count: [captured count]
        passing_tests:
@@ -180,7 +184,7 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 
 7.5. **Code-repo handoff (push + PR, once for the batch)** — After the loop, cite `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` and execute the full `finish-code-branch` entry point (§2) inline. Step 6.5 already committed every component, so §2.2 takes its `nothing staged` path and the call continues into §2.4's consent choice and §2.5–§2.6 — the branch carries commits to push (§2.12). Skipped under `--no-commit`.
 
-   Pass the §2.11 inputs: `repo` and `branch` from Phase 2 prep step 1; `pre_existing_dirty` and `stash_ref` as recorded there; `key` and `workitem_key` from the resolved folder, or `null` for a run with neither; `title` = `upgrade <component> to <version> [<key>]` for a single component, or `upgrade <first> and <N> more [<key>]` for a batch, dropping the suffix in a run with no key; `body_facts` = the Upgrade Summary rows, each component's classification and review verdict, and the test result against the Phase 2 prep baseline; `clean_finish: false` when any component ended `BLOCKED`, or with a review still `BLOCK`, or with kept regressions, `true` otherwise; and `commit_template: null` — `/upgrade` documents no full template of its own, so §2.3 derives the rest of each subject from the repo's own `git log`. Emit the §3.1 `Code repo:` outcome line with the Step 7 results table — one line for the batch, never one per component. **Under `--no-commit`** neither step runs, and §3.1's `--no-commit` row is emitted in place of the outcome line.
+   Pass the §2.11 inputs: `repo` and `branch` from Phase 2 prep step 1; `pre_existing_dirty` and `stash_ref` as recorded there; `key` and `workitem_key` from the resolved folder, or `null` for a run with neither; `title` = `upgrade <component> to <version> [<key>]` for a single component, or `upgrade <first> and <N> more [<key>]` for a batch, dropping the suffix in a run with no key; `body_facts` = the Upgrade Summary rows, each component's classification and review verdict, and the test result against the Phase 2 prep baseline; `clean_finish: false` when any component ended `BLOCKED` or `TESTS_NOT_RUN`, or with a review still `BLOCK`, or with kept regressions, `true` otherwise; and `commit_template: null` — `/upgrade` documents no full template of its own, so §2.3 derives the rest of each subject from the repo's own `git log`. Emit the §3.1 `Code repo:` outcome line with the Step 7 results table — one line for the batch, never one per component. **Under `--no-commit`** neither step runs, and §3.1's `--no-commit` row is emitted in place of the outcome line.
 
 7.6. **Remove this run's handoff files** — nothing from here on reads one: each component's
    `plan_file`, and every `review_diff_file` and `claims_file` this run wrote. Remove each as
@@ -250,6 +254,13 @@ interactive tools, even when one is listed in their `tools:`. When it returns
   the same choices — this loops here at the orchestrator until the user picks keep or revert.
 - Map the final choice to `regression_decision: keep-anyway | revert` and re-invoke
   `upgrade-executor` with `phase: regression-resume` (see Phase 2 step 6).
+
+**`status: TESTS_NOT_RUN` is a different return and takes no `regression_decision`.** It means the
+verify call compared nothing — no failing tests to show, and nothing about this component's tests known
+either way. The changes stay applied. Report the reason the executor recorded, carry the component into
+the Upgrade Summary as unverified, and set `clean_finish: false` for the batch (step 7). Never map it
+onto `revert`: rolling an upgrade back because a suite could not be started is a decision taken on no
+evidence at all.
 
 ---
 

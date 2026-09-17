@@ -8,7 +8,10 @@
 ## Test Baseline Request
 repo: /absolute/path/to/repo
 mode: capture              # capture | verify
-command_hint: "mvn test"   # optional; overrides auto-detection
+command_hint: "./mvnw test -q"   # optional; one or more commands. Detection still runs —
+                                 # the hint narrows what is RUN, never what is DETECTED.
+                                 # Omitted (the only form any caller sends today) ⇒ every
+                                 # detected suite runs.
 baseline:                  # required only for mode: verify
   passing_count: 47
   passing_tests:           # may be [] if only count was available
@@ -28,7 +31,7 @@ The agent returns a Markdown block, not YAML — this is the exact structure
 - **Mode**: capture
 - **Status**: OK                 <!-- OK | RUN_FAILED | COMMAND_NOT_FOUND | NO_TESTS -->
 - **Framework**: Maven
-- **Command**: `mvn test -q`
+- **Command**: `./mvnw test -q`
 - **Total**: 47 | **Passing**: 47 | **Failing**: 0 | **Skipped**: 0
 
 ### Pre-existing failures
@@ -37,24 +40,36 @@ none
 ### Passing tests
 com.example.FooTest#testCreate
 com.example.BarTest#testLogin
+
+### Suites
+Maven | pom.xml | `./mvnw test -q` | OK | Total 47, Passing 47, Failing 0, Skipped 0
 ```
+
+**A repository with more than one suite baselines all of them**, which the block
+above expresses without changing shape: **Framework** and **Command** become
+comma-separated lists in run order, the counts are the sums, the two test lists
+are the union with each identifier prefixed `[<Framework>] `, and `### Suites`
+carries one line per detected suite — framework, marker, command, per-suite
+status, per-suite counts — including any the `command_hint` left `not run`. A
+single-suite repository's block is unchanged in every field, `### Suites` aside.
 
 **Field mapping for callers that need YAML-shaped fields** (e.g. `vuln-fixer`'s
 and `upgrade-executor`'s `baseline:` input — see their own handoff docs):
 `passing_count` = the **Passing** number; `passing_tests` = the `### Passing
-tests` list. The orchestrator re-keys these when constructing the next
-agent's prompt — this agent never emits raw YAML.
+tests` list — with several suites, that number and that list are already the
+totals across them, so neither caller changes. The orchestrator re-keys these
+when constructing the next agent's prompt — this agent never emits raw YAML.
 
 ## Output — verify mode
 
 ```markdown
 ## Test Verify Report
 - **Mode**: verify
-- **Status**: OK                       <!-- OK | REGRESSIONS | RUN_FAILED | COMMAND_NOT_FOUND -->
+- **Status**: REGRESSIONS              <!-- OK | REGRESSIONS | RUN_FAILED | COMMAND_NOT_FOUND -->
 - **Framework**: Maven
-- **Command**: `mvn test -q`
+- **Command**: `./mvnw test -q`
 - **Comparison status**: exact         <!-- exact | best-effort | invalid -->
-- **Total**: 45 | **Passing**: 45 | **Failing**: 2 | **Skipped**: 0
+- **Total**: 47 | **Passing**: 46 | **Failing**: 1 | **Skipped**: 0
 - **Baseline passing**: 47 | **Regressions**: 1 | **Missing from run**: 0
 
 ### Regressions (previously passing, now failing)
@@ -72,6 +87,9 @@ none
 ### Notes
 none
 
+### Suites
+Maven | pom.xml | `./mvnw test -q` | OK | Total 47, Passing 46, Failing 1, Skipped 0
+
 ### Current passing tests
 com.example.BarTest#testLogin
 ```
@@ -80,14 +98,14 @@ com.example.BarTest#testLogin
 - `OK` — all previously-green tests still green
 - `REGRESSIONS` — one or more baseline tests now fail, or are missing from
   the run entirely; see the `### Regressions` / `### Missing from run` lists
-- `RUN_FAILED` — test command exited with error, produced no parseable
-  output, or the framework changed since baseline (**Comparison status**:
-  `invalid`) so no comparison was possible
-- `COMMAND_NOT_FOUND` — detection selected no single framework, so nothing ran:
-  no candidate matched, or more than one did and the agent refused to guess
-  (**Framework** then reads `ambiguous — …` and names each candidate with the
-  command it would have run — re-dispatch with `command_hint` to settle it).
-  Never emitted once a call reaches the run step
+- `RUN_FAILED` — **any** suite's command exited with error or produced no
+  parseable output, or the framework set changed since baseline (**Comparison
+  status**: `invalid`) so no comparison was possible. Any, not all: a run
+  missing one of the repository's suites cannot detect a regression in it.
+  `### Suites` names which one, and with what command
+- `COMMAND_NOT_FOUND` — detection selected no suite at all, so nothing ran
+  (**Framework** then reads `not detected`). Never emitted once a call reaches
+  the run step
 
 **Note:** `passing_count` / `regressions` / `new_passes` as bare YAML keys
 are a caller-side re-keying convenience, not literal fields this agent

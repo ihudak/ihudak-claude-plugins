@@ -402,7 +402,7 @@ Invoke the `test-baseliner` agent in capture mode:
   > Mode: capture
   > Project root: [absolute path of the current working directory]"
 
-Store the returned `## Test Baseline` block verbatim — it will be passed to `test-baseliner` again in verify mode at Phase 3.5 and to `test-writer` as the baseline snapshot. If `Framework: not detected` or `ambiguous — …` (both mean the agent selected no single framework), note it in session memory but continue — Phase 3.5 will surface the missing-framework case to the user explicitly.
+Store the returned `## Test Baseline` block verbatim — it will be passed to `test-baseliner` again in verify mode at Phase 3.5 and to `test-writer` as the baseline snapshot. On a repository with more than one test suite the agent baselines **all** of them and the block's `### Suites` section names each; store it whole, unsummarized, since the verify call diffs against every line of it. If `Framework: not detected`, note it in session memory but continue — Phase 3.5 will surface the missing-framework case to the user explicitly.
 
 ---
 
@@ -440,7 +440,7 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
    ```
    choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /implement workflow)", "Cancel"]
    ```
-   - **Specify test command** → take free-text, use it as the test runner for step 4 below; continue.
+   - **Specify test command** → take free-text and pass it as the `command_hint` on the step 4 `test-baseliner` dispatch — the agent's own input for a run set the caller supplies; continue.
    - **Skip tests** → take free-text rationale; record it in the Phase 5 `### Deferred items` section; skip steps 3–5 of Phase 3.5 and proceed to Phase 3A step 7 (Verify outcome).
    - **Cancel** → stop and summarize.
 

@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: Writes tests for new or changed behavior based on a diff. Does NOT run tests. Takes the framework from the required test-baseliner baseline rather than re-detecting it; where that baseline names no single framework, returns "not detected" immediately so the caller can ask the user whether to specify a test command or skip. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Writes tests for new or changed behavior based on a diff. Does NOT run tests. Takes the framework from the required test-baseliner baseline rather than re-detecting it — one framework, or several where the repository has several suites; where that baseline names none at all, returns "not detected" immediately so the caller can ask the user whether to specify a test command or skip. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
@@ -28,7 +28,9 @@ Refuse to write tests without a diff and a baseline — ask the caller to supply
 
 ## Steps
 
-1. **Take the framework.** The **Baseline** block is a required input and already records what `test-baseliner` detected and ran — read **Framework** and **Command** from it rather than re-deriving them here. `test-baseliner` owns the marker→framework table; a second copy of it in this file would drift, and this agent refuses to run without the baseline that supersedes it anyway. A baseline reading `not detected` or `ambiguous — …` is a **not detected** result for step 2.
+1. **Take the framework.** The **Baseline** block is a required input and already records what `test-baseliner` detected and ran — read **Framework** and **Command** from it rather than re-deriving them here. `test-baseliner` owns the marker→framework table; a second copy of it in this file would drift, and this agent refuses to run without the baseline that supersedes it anyway. A baseline reading `not detected` is a **not detected** result for step 2.
+
+   **A baseline may name more than one suite** — a Rails and a JavaScript one, a Java and an Angular one — in which case **Framework** and **Command** are comma-separated lists in the same order and `### Suites` gives each one's own row. Write against **every** suite the diff touches, choosing per changed file by the suite whose own tests live alongside it: a change in the Ruby half gets Ruby tests, a change in the front-end half gets front-end ones. Writing both stacks' behaviour into one stack's suite is the same mistake as baselining one suite for both.
 
    For a JS/TS framework, inspect `devDependencies` for `jest`, `vitest`, `mocha`, `playwright` to pick the conventions to write against — that is a question about *how* to write a test, not about which suite is the project's.
 
@@ -39,7 +41,7 @@ Refuse to write tests without a diff and a baseline — ask the caller to supply
    - **Skip**: renames with no behavior change, comment-only edits, formatting-only changes, pure internal refactors that don't alter observable behavior.
    - **Flag as `### Skipped (pre-existing untested code)`**: files that clearly pre-existed and remain untested — this agent never retrofits tests for unchanged code.
 
-4. **Discover test patterns.** Read 2–3 representative test files from the project's conventional test location (e.g. `src/test/java/`, `tests/`, `__tests__/`, `spec/`). Note:
+4. **Discover test patterns.** Read 2–3 representative test files from the project's conventional test location, **once per suite you are writing against** (e.g. `src/test/java/`, `tests/`, `__tests__/`, `spec/`) — two suites have two sets of conventions and neither is evidence about the other. Note:
    - File naming (`*Test.java` vs `test_*.py` vs `*.test.ts` etc.)
    - Assertion style (`assertEquals` vs `expect(...).toBe(...)` vs `assert …`)
    - Fixture / setup patterns (`@BeforeEach`, `beforeAll`, pytest fixtures, etc.)
@@ -67,8 +69,8 @@ Return this exact shape (no preamble, no chatter):
 
 ```markdown
 ## Test Writer Report
-- **Framework**: [name | "not detected"]
-- **Command**: `[test command from baseline, or "n/a" if not detected]`
+- **Framework**: [name, or every suite written against, comma-separated | "not detected"]
+- **Command**: `[the matching test command(s) from the baseline, or "n/a" if not detected]`
 - **Tests written**: [N]
 - **Files touched**: [list of paths, relative to project root, or "none"]
 
@@ -95,7 +97,7 @@ If `Framework: not detected`, return this truncated shape and STOP:
 - **Tests written**: 0
 
 ### Reason
-The baseline records no single framework — `test-baseliner` matched no candidate, or matched more than one and refused to guess (its **Framework** field says which). Caller: ask the user to specify a test command, re-dispatch `test-baseliner` with a `command_hint`, or skip tests for this run.
+The baseline records no framework at all — `test-baseliner` matched no candidate. Caller: ask the user to specify a test command, re-dispatch `test-baseliner` with a `command_hint`, or skip tests for this run.
 ```
 
 If the **Diff** input could not be read, return this shape — its FIRST LINE is the literal

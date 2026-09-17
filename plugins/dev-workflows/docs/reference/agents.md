@@ -17,12 +17,12 @@ Opus-gated quality gates, plus the lighter-weight planners that feed or precede 
 
 ## Readers and scanners
 
-Read-only discovery and grounding — each returns a structured digest rather than editing anything. `test-baseliner` is the one that touches the working tree at all: it holds `Bash` because its job is to *run* the suite, so build and coverage output appears as a side effect.
+Read-only discovery and grounding — each returns a structured digest rather than editing anything. `test-baseliner` is the one that touches the working tree at all: it holds `Bash` because its job is to *run* the suites, so build and coverage output appears as a side effect.
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
 | `vuln-research` | per routing | Read, Glob, Grep, WebFetch, Skill | Read-only CVE research phase — NVD lookup, library detection in the repository, current-version discovery, and minimum-safe-version resolution. Has no side effects. | `/vuln` |
-| `test-baseliner` | per routing | Bash, Read, Glob | Runs the full test suite and returns structured results in two modes — capture a baseline, or verify a later run's result against a previously captured one. | `/implement`, `/upgrade`, `/vuln` |
+| `test-baseliner` | per routing | Bash, Read, Glob | Runs every test suite the repository has — a polyglot repo baselines all of them — and returns structured results in two modes: capture a baseline, or verify a later run against one. | `/implement`, `/upgrade`, `/vuln` |
 
 ## Writers
 
@@ -30,7 +30,7 @@ Produce artifact content from a structured handoff. None of these run git.
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
-| `test-writer` | per routing | Read, Glob, Grep, Write, Edit | Writes tests for new or changed behaviour based on a diff; does not run them, and reports "not detected" immediately where the baseline it is handed names no single framework. | `/implement` |
+| `test-writer` | per routing | Read, Glob, Grep, Write, Edit | Writes tests for new or changed behaviour based on a diff, against every suite the diff touches; does not run them, and reports "not detected" where the baseline names no framework at all. | `/implement` |
 
 ## Fixers
 

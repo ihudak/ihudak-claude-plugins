@@ -60,6 +60,8 @@ For a single module: `./gradlew :<module>:test`
 
 ## Maven
 
+Maven commands below are written `./mvnw`, as Gradle's are written `./gradlew`; fall back to `mvn` where the repo ships no wrapper.
+
 ### Detect library
 
 ```bash
@@ -79,8 +81,8 @@ Edit the version in the appropriate `pom.xml`. Prefer updating `<properties>` to
 ### Verify build
 
 ```bash
-mvn package -DskipTests    # build first
-mvn test                   # then test
+./mvnw package -DskipTests    # build first
+./mvnw test                   # then test
 ```
 
 ---
@@ -247,7 +249,7 @@ bundle exec rspec          # or rake test / bundle exec minitest
 
 When the vulnerable library is **not** a direct dependency but pulled in transitively:
 
-1. Identify which direct dependency introduces it (using `./gradlew dependencies`, `mvn dependency:tree`, `npm ls`, etc.).
+1. Identify which direct dependency introduces it (using `./gradlew dependencies`, `./mvnw dependency:tree`, `npm ls`, etc.).
 2. **First choice**: upgrade the direct dependency to a version that already uses the safe transitive version.
 3. **Second choice**: force/override the transitive version using the ecosystem mechanism (Gradle `resolutionStrategy`, Maven `dependencyManagement`, npm `overrides`, etc.).
 4. Document the override clearly in the commit message.
@@ -261,7 +263,7 @@ After updating, verify the vulnerable version is no longer on the classpath/bund
 ./gradlew dependencies | grep activemq
 
 # Maven
-mvn dependency:tree | grep activemq
+./mvnw dependency:tree | grep activemq
 
 # npm
 npm ls <package>

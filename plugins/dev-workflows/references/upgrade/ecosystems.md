@@ -78,6 +78,8 @@ Response: `.response.docs[].v` lists all versions. Filter to stable (no `-SNAPSH
 
 ## Maven (Java / Kotlin)
 
+Maven commands below are written `./mvnw`, as Gradle's are written `./gradlew`; fall back to `mvn` where the repo ships no wrapper.
+
 ### Version locations
 
 1. `<properties>` in `pom.xml` (e.g. `<spring-boot.version>3.1.4</spring-boot.version>`)
@@ -99,8 +101,8 @@ Or the `spring-boot.version` property if using the BOM without a parent.
 ### Build & test
 
 ```bash
-mvn package -DskipTests
-mvn test
+./mvnw package -DskipTests
+./mvnw test
 ```
 
 ---
@@ -433,7 +435,7 @@ Update all version declarations consistently. When changing Java major version (
 - Update `.sdkmanrc`, `.java-version`, `.tool-versions` if present
 - Update `Dockerfile` base image tags
 - Update `java-version` in GitHub Actions workflows
-- Check for and resolve any deprecated APIs (run `./gradlew compileJava` or `mvn compile` and inspect warnings)
+- Check for and resolve any deprecated APIs (run `./gradlew compileJava` or `./mvnw compile` and inspect warnings)
 
 ---
 

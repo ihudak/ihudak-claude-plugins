@@ -12,7 +12,7 @@ A long-running command ends by doing two separate things: it flushes a small poi
 - **Last completed:** <command> <args> — <phase or 'command complete'> (<ISO datetime>)
 - **Artifact:** <relative path to the deliverable just written/committed, or 'none (read-only)'>
 - **Next step:** <the exact next command from ### Next step, or 'PRD fully processed'>
-- **Suggested session name:** <PRD-ID>-<slug>-<role>   (omit this line when no PRD-Key exists yet — e.g. /idea)
+- **Suggested session name:** <PRD-ID>-<slug>-<role>   (omit this line for a command the rename aid below excludes — e.g. /idea, which is excluded for its phase length and not for want of a key: it takes one as a mandatory argument)
 - **Carry-forward decisions:** <0–N one-line decisions the next phase needs that are NOT already in the artifact; 'none' if none>
 ```
 
@@ -37,7 +37,7 @@ Every next-step option a command offers already carries a role label — see [Ro
 
 ## The `/rename` aid
 
-Within this rename-aid set, every PA/PE command that takes a `<PRD>` or `<EPIC>` argument (`/create-ard`, `/epics`, `/specify` here, and the companion plugins' `/dev-workflows:design`, `/dev-workflows:ready`, `/dev-workflows:implement`, `/docs-workflows:document`, and `/docs-workflows:release-notes`) prints a suggested `/rename <PRD-ID>-<slug>-<role>` line, so you can find this session again later in `claude --resume` by name instead of by scrolling. `<role>` is the lane tag of the command that just finished — pm, pa, or pe here. `/idea` and `/create-prd` are excluded from this aid: idea refinement is short, it usually runs before the handoff that lands the PRD key in the first place, so there is often no key yet to name the session after — and on the rarer runs that do carry one already, the phase is still short enough that naming the session isn't worth automatically suggesting. The same exclusion applies to every BRD-route command up through `/brd-package`: a BRD key exists from the first command, but the route's own short-phase reasoning still holds until a PRD-ladder command inherits it.
+Within this rename-aid set, every PA/PE command that takes a `<PRD>` or `<EPIC>` argument (`/create-ard`, `/epics`, `/specify` here, and the companion plugins' `/dev-workflows:design`, `/dev-workflows:ready`, `/dev-workflows:implement`, `/docs-workflows:document`, and `/docs-workflows:release-notes`) prints a suggested `/rename <PRD-ID>-<slug>-<role>` line, so you can find this session again later in `claude --resume` by name instead of by scrolling. `<role>` is the lane tag of the command that just finished — pm, pa, or pe here. `/idea` and `/create-prd` are excluded from this aid, and the reason is the phase rather than the key: each takes a mandatory key as its first argument and refuses without one, so a PM run always has a key it could name the session after — but idea refinement is short enough that naming the session isn't worth automatically suggesting. The same exclusion applies to every BRD-route command up through `/brd-package`: a BRD key exists from the first command, but the route's own short-phase reasoning still holds until a PRD-ladder command inherits it.
 
 ## Mid-phase checkpoints
 

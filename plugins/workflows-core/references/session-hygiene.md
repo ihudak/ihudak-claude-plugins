@@ -63,7 +63,7 @@ log). It is intentionally tiny:
 - **Last completed:** <command> <args> — <phase or 'command complete'> (<ISO datetime>)
 - **Artifact:** <relative path to the deliverable just written/committed, or 'none (read-only)'>
 - **Next step:** <the exact next command from ### Next step, or 'PRD fully processed'>
-- **Suggested session name:** <PRD-ID>-<slug>-<role>   (omit this line when no PRD-Key exists yet — e.g. /create-prd)
+- **Suggested session name:** <PRD-ID>-<slug>-<role>   (omit this line for any command §4 excludes from the rename aid — e.g. /create-prd, which is excluded for its phase length and not for want of a key: it takes one as a mandatory argument)
 - **Carry-forward decisions:** <0–N one-line decisions the next phase needs that are NOT already in the artifact; 'none' if none>
 ```
 
@@ -102,19 +102,19 @@ own `next-phase-offer` output already carries. The role graph is owned by
 
 ## 4. Session-name aid
 
-The PRD-Key is first available at **`/release-notes`** and is present for every PA/PE/Dev
-command (`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement`,
-`/document`, `/release-notes` — all take `<PRD>`). For those, print a suggested
+The PRD-Key is present for every PA/PE/Dev command (`/create-ard`, `/epics`, `/specify`,
+`/design`, `/ready`, `/implement`, `/document`, `/release-notes` — all take `<PRD>`).
+For those, print a suggested
 `/rename <PRD-ID>-<slug>-<role>` line so the user can relocate the session in
 `claude --resume` later (e.g. after going home). `<role>` is the just-finished command's
 lane tag (pm / pa / pe / dev). Guidance-only — a command cannot run `/rename` itself.
 
-**`/idea` and `/create-prd` are excluded** from the rename aid: the PM ideation phase is
-short, and on the common path it runs *before* the handoff
-that mints the PRD, so there is usually no PRD-ID to name a session after. Two runs do carry
-one — a `prd`-provenance `/idea` source, and a `prd_disposition: rewrite` run whose key is
-the PRD being rewritten — but the phase stays short enough that no label is auto-suggested
-either way; the PM names the session manually if they want one.
+**`/idea` and `/create-prd` are excluded** from the rename aid, and the reason is the phase
+rather than the key. It is **not** that a PM run has no PRD-ID to name a session after: both
+commands take a mandatory key as their first argument and refuse without one
+(`IDEA_NEEDS_KEY`, `CREATE_PRD_NEEDS_KEY`), so the key naming the folder is in hand before
+either writes anything. The exclusion stands because the PM ideation phase is short enough
+that no label is worth auto-suggesting; the PM names the session manually if they want one.
 
 ## 5. Contract (5 rules)
 

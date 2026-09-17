@@ -453,8 +453,9 @@ next-phase-offer contract; `/idea` is one reference implementation.)
 ### Context hygiene
 
 Continuing to `/product-workflows:create-prd` (still the PM phase)? → run **`/compact`** to free context; your
-`idea.md` is already on disk. (No resume pointer or `/rename` label here — the PRD-Key is
-minted later, and the ideation phase is short.) Guidance only — see
+`idea.md` is already on disk. (No resume pointer or `/rename` label here — not for want of a
+key, since Phase 0 required one before this run wrote anything, but because the ideation
+phase is short: `workflows-core:session-hygiene` §4.) Guidance only — see
 `workflows-core:session-hygiene`.
 
 ---

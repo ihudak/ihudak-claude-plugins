@@ -681,9 +681,10 @@ Guidance only — never auto-invokes another command. Per `workflows-core:next-p
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase (Phase 7), per
-`workflows-core:session-hygiene` §1 — the PRD-Key is minted by the
-handoff, so it **omits the session-name line**; name the session manually if
-useful. Then:
+`workflows-core:session-hygiene` §1 — and `/create-prd` is outside that
+reference's §4 rename-aid set, so it **omits the session-name line**. Not for want of a key:
+Phase 0 refuses this run without one. The PM phase is simply short enough that no label is
+auto-suggested; name the session manually if useful. Then:
 
 - **Continuing as PM (`/docs-workflows:release-notes <ADDRESS>`)?** → run **`/compact`**.
 - **Handing to PA (`/product-workflows:create-ard <PRD>`) or PE (`/product-workflows:epics <PRD>`), even yourself?** → run **`/clear`** for a clean slate.
@@ -704,7 +705,8 @@ Terminal phase — runs after Phase 6, NEVER interrupts an earlier phase.
 `workflows-core:session-hygiene` §1 — this block prints the
 guidance only),
 then a span suggestion (PM continue → `/compact`; PA/PE handoff → `/clear`). No `/rename`
-label yet (no PRD-Key). Guidance only, never auto-run.
+label — not for want of a key, since Phase 0 refuses this run without one, but because the
+PM phase is short (`workflows-core:session-hygiene` §4). Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/create-prd`; what was authored (PRD + profile); key events (source-ladder friction, unresolved clarifications, BLOCK reviews — or 'none'); workarounds; the `prd-reviewer` verdict; test result N/A; project root = the feature folder.
 2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /create-prd`, the run's `key` — which on the BRD route is the `<BRD-KEY>`, matching this PRD's own `$SPECS_PATH` folder, so the write stays on that reference's primary tier instead of dropping to the unfiled one — `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").

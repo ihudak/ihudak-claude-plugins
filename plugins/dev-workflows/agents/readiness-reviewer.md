@@ -42,15 +42,15 @@ Refuse to review without the derived phase and at least the requirement inventor
    `MINOR` / `NIT`) with `file:section` evidence — never a bare assertion.
 4. Skip a dimension only when it is genuinely not applicable (e.g. dimension 4 with no `applicable_ard`),
    and say so explicitly (`"N/A — reason"`) — never silently.
-5. Derive a single verdict: `SUPPORTED` (no findings above MINOR — the artifacts justify the declared
-   status and the next transition), `PARTIAL` (MAJOR / MINOR / NIT findings but no BLOCKER — the status
+5. Derive a single verdict: `SUPPORTED` (no findings above MINOR — the artifacts justify the derived
+   phase and the next transition), `PARTIAL` (MAJOR / MINOR / NIT findings but no BLOCKER — the phase
    is broadly justified with named gaps), `NOT-SUPPORTED` (at least one BLOCKER finding).
 
 ## Review dimensions
 
 | Dimension | Check |
 |---|---|
-| Status consistency | Do the artifacts justify the *declared* status and support the *next* transition, per that rubric? The headline dimension — a mismatch between what's declared and what the "Expected artifacts" column requires at that status is the primary signal for the verdict. |
+| Status consistency | Do the artifacts justify the *derived* phase and support the *next* transition, per that rubric? The headline dimension — a mismatch between the derived phase and what the "Expected artifacts" column requires at that rung is the primary signal for the verdict. Where `claimed_status` was passed, compare it too: a claim above the derived phase caps the verdict, a claim below is reported and does not cap. |
 | Coverage chain | Every PRD requirement traces to ≥1 Epic → a spec → a design (to the depth that exists). A PRD requirement with no Epic = MAJOR. An in-scope Epic missing a spec/design that the PRD's derived phase implies it should have = MAJOR. An absent artifact that is merely optional at this status = MINOR. |
 | Cross-artifact alignment | Terminology drift and outright contradictions across PRD ↔ ARD ↔ spec ↔ design. |
 | ARD conformance (conditional) | Only when `applicable_ard` is present: an artifact that violates an `AD#N` without a matching `- ARD deviation: … flag: architect` line = BLOCKER; with one = allowed-but-flagged. Absent `applicable_ard` → dimension skipped. |
@@ -68,8 +68,11 @@ Return this exact shape (no preamble, no chatter):
 ### Verdict
 [SUPPORTED | PARTIAL | NOT-SUPPORTED]
 
-### Declared status
-[PRD: <status>; Epics: <key>=<status>, …]
+### Derived phase
+[PRD: <phase>; Epics: <key>=<phase>, … — exactly as the caller's `derived_phase` supplied them]
+
+### Claimed status
+[the `claimed_status` value verbatim, and whether it sits above, at, or below the derived phase — _or_ "none — `--claimed` was not passed"]
 
 ### Summary
 [2–4 sentences: what was reviewed, overall judgement, major strengths / gaps.]
@@ -108,7 +111,7 @@ Return this exact shape (no preamble, no chatter):
 ## Hard rules
 
 - NEVER modify files. This reviewer reads; it never writes.
-- NEVER write a status, comment, or transition anywhere. This review reports and never setsput.
+- NEVER write a status, comment, or transition anywhere. This review reports and never sets.
 - NEVER return a `SUPPORTED` verdict if a BLOCKER finding exists.
 - NEVER skip a dimension silently — either report findings or say "N/A — reason".
 - A missing artifact is a finding (per the relevant dimension), not an error that stops the review.

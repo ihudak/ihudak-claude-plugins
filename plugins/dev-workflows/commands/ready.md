@@ -250,9 +250,9 @@ artifact". **Acknowledge the limitation** (carried to the final report's Assumpt
 ID-grep, not semantic matching — an artifact may cover a requirement thematically without repeating its
 literal ID; `readiness-reviewer` reads the full artifact text and can catch what the grep misses.
 
-**(b) Status-expectation checklist.** Look up the declared PRD status (and, when in scope, each Epic
-status) on the matching ladder in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`, list that
-status's "Expected artifacts" column, and mark each expected artifact present ✅, absent ❌, or — per
+**(b) Status-expectation checklist.** Look up the Phase 3(0) derived PRD phase (and, when in scope,
+each Epic's) on the matching ladder in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`, list that
+rung's "Expected artifacts" column, and mark each expected artifact present ✅, absent ❌, or — per
 Phase 1's `require-on-main` check and Phase 2.5's `status: unmerged` handling — ⚠, carrying forward
 whichever of Phase 1's three reasons applies (authored only on a branch, not merged; on `<default>` but
 locally unconfirmed; or unverifiable against any ref) against Phase 1's inventory. A ⚠ artifact of any of
@@ -301,13 +301,16 @@ and a pointer to the rubric.
   >   Epics:   [absolute path(s) in scope]
   >   specs:   [absolute path(s) in scope]
   >   designs: [absolute path(s) in scope]
-  > declared_status:         [PRD: <status>; Epics: <key>=<status>, …]
+  > derived_phase:           [PRD: <phase>; Epics: <key>=<phase>, … — each naming the artifacts that placed it, per Phase 3(0)]
+  > claimed_status:          [the --claimed value verbatim — omit this line entirely when the flag was absent]
   > applicable_ard:          [the Phase 2.5 invariants, or omit entirely if status was none]
   > workflow_states_rubric:  ${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md"
 
+**There is no `declared_status` field, and adding one back would be the defect this pair replaced.** Nothing in `$SPECS_PATH` declares a per-PRD or per-Epic status for this run to paste (Phase 1 step 3, Phase 2), so the two fields above are the whole of what the run holds: `derived_phase`, which Phase 3(0) derived from the artifacts, and `claimed_status`, which exists only on a `--claimed` run. The reviewer's own dimension 1 compares the second against the first; sending neither, or sending a field with nothing to fill it, silently degrades that comparison to "absent, there is nothing to diverge from".
+
 Carry back the verdict (`SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED`) and the full Findings section
-(by dimension) for Phase 5. `readiness-reviewer` never modifies files and never re-derives status — a
-run that returns without a verdict or without the declared-status/`requirements[]` ground truth is a
+(by dimension) for Phase 5. `readiness-reviewer` never modifies files and never re-derives the phase — a
+run that returns without a verdict or without the derived-phase/`requirements[]` ground truth is a
 plugin-gap halt (see Invariants).
 
 ---
@@ -315,9 +318,10 @@ plugin-gap halt (see Invariants).
 ## Phase 5 — Write report
 
 1. **Compose the readiness artifact.** Build the report content: a header stamping the run timestamp
-   (ISO 8601 UTC), the specs-repo git rev (`git -C $SPECS_PATH rev-parse --short HEAD`), the checked
-   the derived phase(s) exactly as read in Phase 2, the verdict, the coverage roll-up (N/M requirements
-   covered, P%, each ❌ gap requirement ID named), and the full Findings section from Phase 4.
+   (ISO 8601 UTC), the specs-repo git rev (`git -C $SPECS_PATH rev-parse --short HEAD`), the derived
+   phase(s) exactly as Phase 3(0) recorded them, any `--claimed` value verbatim, the verdict, the coverage
+   roll-up (N/M requirements covered, P%, each ❌ gap requirement ID named), and the full Findings section
+   from Phase 4.
 
 2. **Write `_readiness.md`**, **overwriting** any prior run, to the PRD dir (PRD-level) or the Epic subdir
    (Epic-level):
@@ -332,7 +336,8 @@ plugin-gap halt (see Invariants).
    # Readiness check — <run timestamp, ISO 8601 UTC>
 
    - Specs repo rev: <short HEAD>
-   - Checked status: PRD=<status>[, Epic <KEY>=<status>, …]
+   - Derived phase: PRD=<phase>[, Epic <KEY>=<phase>, …]
+   - Claimed status: <the --claimed value verbatim> — _or omit the line entirely when the flag was absent_
    - Verdict: SUPPORTED | PARTIAL | NOT-SUPPORTED
 
    ## Coverage roll-up
@@ -378,9 +383,10 @@ plugin-gap halt (see Invariants).
    - Epic: <FOCUS_KEY> — [summary] — _or_ "none — PRD-level check"
    - Specs repo rev: <short HEAD>
 
-   ### Declared status (Phase 2 — authoritative)
-   - PRD: <status>
-   - Epic <KEY>: <status> — _or omit when PRD-level_
+   ### Derived phase (Phase 3(0) — from the artifacts)
+   - PRD: <phase>
+   - Epic <KEY>: <phase> — _or omit when PRD-level_
+   - Claimed (`--claimed`): <value verbatim> — _or omit the line when the flag was absent_
 
    ### Artifact inventory (Phase 1)
    [present ✅ / absent ❌ / authored, not handed off ⚠ (branch/PR named) per artifact, one line each]
@@ -645,8 +651,8 @@ a code or docs repository, or the current working directory, where it is not the
 - ALWAYS resolve one positional address (Phase 0) and stop when none is given
 - ALWAYS require `$SPECS_PATH` — stop naming it explicitly if unset (like `/design`)
 - ALWAYS read artifacts from the specs repo's clean **main** — never a branch
-- ALWAYS pass the Phase 3(0) derived phase to `readiness-reviewer` with the artifacts that placed it there, plus any `--claimed` value verbatim — never
-  never re-derived
+- ALWAYS pass the Phase 3(0) derived phase to `readiness-reviewer` with the artifacts that placed it there, plus any `--claimed` value verbatim — never inferred,
+  never re-derived, and never as a `declared_status` field, which has no producer anywhere in this command
 - ALWAYS resolve the `model_routing` block at Phase 1.5 and pin the detection steps to the §2.1 Sonnet chain;
   `readiness-reviewer` keeps its frontmatter Opus pin (no override); coordination + the Phase 3
   deterministic skeleton run on `current_model`

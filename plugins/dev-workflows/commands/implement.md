@@ -467,12 +467,11 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
 5. **Act on the verify report.** **A non-empty `### New failures` list sends the run to the fix loop whatever the `Status` says.** A test this run's own `test-writer` just wrote has never been in any baseline list, so when it fails it is a **New failure** and nothing else — and `New failures` is not a `Status` value, so `OK` and `PARTIAL` are both reachable with one standing (`dev-workflows:test-baseliner` verify step 6). Branching on the `Status` alone reports a pass on the run's own broken test. Then act on the `Status`; every value is handled here, none is passed over.
    - `OK` → Phase 3.5 is done.
    - `PARTIAL` → no regressions, and a suite could not be run at either end. Record each such suite from `### Suites` in the Phase 5 `### Deferred items` section and continue — there is nothing to fix.
-   - `RUN_FAILED` → **`Comparison status: invalid`: nothing was compared, so this is never a pass.** Surface the report's `Reason` line and ask:
+   - `RUN_FAILED` or `COMMAND_NOT_FOUND` → **`Comparison status: invalid`: nothing was compared, so neither is a pass.** They differ only in how far the call got: `RUN_FAILED` means no detected suite paired with the baseline, or none produced counts; `COMMAND_NOT_FOUND` means **this run's** detection selected no suite at all, which after a baseline that named one says the edits removed its marker — a renamed `pom.xml`, a deleted `Makefile`. Neither is settled by anything Pre-Phase 3.5 recorded, and a run whose baseline named no framework never reaches this step. Surface the report's `Reason` line **where it carries one** — verify step 2's `invalid` return does, step 6's `RUN_FAILED` does not, and `Reason` is no field of the return structure — and the `### Suites` rows either way, then ask:
      ```
      choices: ["Investigate further", "Accept an unverified run and proceed (document in Phase 5 report)", "Cancel"]
      ```
-     **Investigate further** → diagnose manually and re-run step 4 when ready. **Accept** → record in the Phase 5 `### Deferred items` section that no comparison was made, with the report's `Reason`. **Cancel** → stop and summarize.
-   - `COMMAND_NOT_FOUND` → the baseline named no framework; Pre-Phase 3.5's recorded `test_decision` stands and this run's tests are documented as skipped.
+     **Investigate further** → diagnose manually and re-run step 4 when ready. **Accept** → record in the Phase 5 `### Deferred items` section that no comparison was made, with whatever the report gave as its reason, and set `clean_finish: false` for Phase 4.6. **Cancel** → stop and summarize.
    - `REGRESSIONS` → the fix loop below.
 
 6. **Fix loop** — on `Status: REGRESSIONS`, or on a non-empty `### New failures` list under any `Status`:

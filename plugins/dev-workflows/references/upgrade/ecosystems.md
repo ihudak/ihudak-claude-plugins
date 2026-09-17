@@ -141,7 +141,9 @@ GET https://registry.npmjs.org/<package>
 
 ```bash
 npm run build   # if build script exists
-npm test
+# CI=true, or a runner that watches by default never returns and the suite
+# is recorded as a failed run (dev-workflows:test-baseliner capture step 1)
+CI=true npm test
 ```
 
 ---

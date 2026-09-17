@@ -122,7 +122,9 @@ Or edit `package.json` manually and run `npm install`.
 ### Verify
 
 ```bash
-npm test
+# CI=true, or a runner that watches by default never returns and the suite
+# is recorded as a failed run (dev-workflows:test-baseliner capture step 1)
+CI=true npm test
 ```
 
 ---

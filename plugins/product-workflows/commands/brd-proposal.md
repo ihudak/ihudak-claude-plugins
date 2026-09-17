@@ -495,7 +495,9 @@ that file describes the archived revision and not this one.
 2. **The review gate.** Dispatch `proposal-reviewer` (Opus, frontmatter-pinned; recorded as
    `review_model`, no override). **It is the same reviewer the sibling dispatches, unchanged** — its
    check 9 (Coverage) applies on this run and is `N/A` on a slice's, and its check 2 carries an
-   umbrella-totals relation for the same reason; nothing else about it differs by folder kind:
+   umbrella-totals relation for the same reason; nothing else in that agent narrows a check to an
+   umbrella, though check 6's re-grade delegates to a tier ladder that grades no umbrella off it at
+   all (`${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5):
 
    → Agent (subagent_type: "product-workflows:proposal-reviewer", model: `<review_model — §2 Opus chain>`):
      > "Review the effort proposal:

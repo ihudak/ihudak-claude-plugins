@@ -1214,8 +1214,9 @@ assert an order this design does not take a position on.
 **Where any claim came back `SUPPORTED`, name `/product-workflows:update-prd <KEY>` first, marked
 `(Recommended)`.** A PRD asking for something the code already does is worth revising before an
 architecture or a specification is authored against a premise this run's own findings have already
-settled — step 8i's report carried the count; this is where it earns a next step instead of sitting
-as a fact nobody acted on (this command never edits `prd.md` itself, design §7).
+settled — the count is this run's own verdict tally, which Phase 9's `body_facts` already carries and
+the Final report states for `[CG#n]` and `[DG#n]` separately; this is where it earns a next step
+instead of sitting as a fact nobody acted on (this command never edits `prd.md` itself, design §7).
 
 **`/create-ard <KEY>` and `/specify <KEY>` each carry `<merge-clause>`** — both re-gate the same
 `prd.md` this run's own Phase 0 already required on main (step 6i), so an operator who runs either

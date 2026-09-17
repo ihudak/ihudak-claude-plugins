@@ -2,8 +2,9 @@
 # rule to (in the built-in example profile, self-hosted/_content/** pages).
 # Both consumers read THIS file at its bundled path: the
 # changelog-owners-reminder hook and the docs-frontmatter skill each resolve it
-# under ${CLAUDE_PLUGIN_ROOT}. A profile's frontmatter.default_owners records
-# where a repo keeps its list, but no consumer resolves that pointer, so it
+# under ${CLAUDE_PLUGIN_ROOT}. A profile's frontmatter.default_owners names this
+# same bundled file: it is the value both of its writers, /docs-profile and
+# /docs-init, are instructed to put there, and no consumer resolves it, so it
 # redirects neither of them.
 # One ID per line; blank lines and `#` comments are ignored.
 docs-owner-placeholder

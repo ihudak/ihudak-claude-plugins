@@ -73,5 +73,6 @@ changelog:
 - `default-owners.txt` ships a placeholder ID as part of the built-in worked
   example. Both consumers — the `changelog-owners-reminder` hook and the
   `docs-frontmatter` skill — read that bundled file directly, under
-  `${CLAUDE_PLUGIN_ROOT}`; a profile's `frontmatter.default_owners` records
-  where a repo keeps its own list, but no consumer resolves that pointer.
+  `${CLAUDE_PLUGIN_ROOT}`; a profile's `frontmatter.default_owners` names that
+  same bundled file — the value both of its writers, `/docs-profile` and
+  `/docs-init`, are instructed to put there — and no consumer resolves it.

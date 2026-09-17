@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: Writes tests for new or changed behavior based on a diff. Does NOT run tests. Framework detection mirrors test-baseliner; if no framework is detected, returns "not detected" immediately so the caller can ask the user whether to specify a test command or skip. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Writes tests for new or changed behavior based on a diff. Does NOT run tests. Takes the framework from the required test-baseliner baseline rather than re-detecting it; where that baseline names no single framework, returns "not detected" immediately so the caller can ask the user whether to specify a test command or skip. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
@@ -28,15 +28,9 @@ Refuse to write tests without a diff and a baseline — ask the caller to supply
 
 ## Steps
 
-1. **Detect framework.** Apply the same detection logic as `test-baseliner` against the project root:
-   - `pom.xml` → Maven
-   - `build.gradle` / `build.gradle.kts` → Gradle
-   - `package.json` → JS/TS (read `scripts.test`; inspect `devDependencies` for `jest`, `vitest`, `mocha`, `playwright` to pick conventions)
-   - `pyproject.toml` / `setup.py` / `pytest.ini` → pytest
-   - `Makefile` with a `test` target → Make-wrapped suite
-   - Else → **not detected**.
+1. **Take the framework.** The **Baseline** block is a required input and already records what `test-baseliner` detected and ran — read **Framework** and **Command** from it rather than re-deriving them here. `test-baseliner` owns the marker→framework table; a second copy of it in this file would drift, and this agent refuses to run without the baseline that supersedes it anyway. A baseline reading `not detected` or `ambiguous — …` is a **not detected** result for step 2.
 
-   Cross-check against the framework recorded in the baseline. If they disagree (e.g. baseline says pytest but current detection says Maven — implausible in a single run, but possible if the user moved dirs), prefer the baseline's framework and note the disagreement.
+   For a JS/TS framework, inspect `devDependencies` for `jest`, `vitest`, `mocha`, `playwright` to pick the conventions to write against — that is a question about *how* to write a test, not about which suite is the project's.
 
 2. **If `Framework: not detected`: return the "not detected" report immediately** (see Output shape below). Do NOT attempt to write generic tests. The caller will ask the user to specify a test command or skip.
 
@@ -101,7 +95,7 @@ If `Framework: not detected`, return this truncated shape and STOP:
 - **Tests written**: 0
 
 ### Reason
-No build/config file matched the detection set (`pom.xml`, `build.gradle(.kts)`, `package.json`, `pyproject.toml`, `setup.py`, `pytest.ini`, `Makefile` with `test` target). Caller: ask the user to specify a test command or skip tests for this run.
+The baseline records no single framework — `test-baseliner` matched no candidate, or matched more than one and refused to guess (its **Framework** field says which). Caller: ask the user to specify a test command, re-dispatch `test-baseliner` with a `command_hint`, or skip tests for this run.
 ```
 
 If the **Diff** input could not be read, return this shape — its FIRST LINE is the literal

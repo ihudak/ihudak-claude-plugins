@@ -402,7 +402,7 @@ Invoke the `test-baseliner` agent in capture mode:
   > Mode: capture
   > Project root: [absolute path of the current working directory]"
 
-Store the returned `## Test Baseline` block verbatim — it will be passed to `test-baseliner` again in verify mode at Phase 3.5 and to `test-writer` as the baseline snapshot. If `Framework: not detected`, note it in session memory but continue — Phase 3.5 will surface the missing-framework case to the user explicitly.
+Store the returned `## Test Baseline` block verbatim — it will be passed to `test-baseliner` again in verify mode at Phase 3.5 and to `test-writer` as the baseline snapshot. If `Framework: not detected` or `ambiguous — …` (both mean the agent selected no single framework), note it in session memory but continue — Phase 3.5 will surface the missing-framework case to the user explicitly.
 
 ---
 

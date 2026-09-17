@@ -83,8 +83,11 @@ com.example.BarTest#testLogin
 - `RUN_FAILED` — test command exited with error, produced no parseable
   output, or the framework changed since baseline (**Comparison status**:
   `invalid`) so no comparison was possible
-- `COMMAND_NOT_FOUND` — schema parity with capture mode; not emitted by the
-  current detection logic once a verify call reaches the run step
+- `COMMAND_NOT_FOUND` — detection selected no single framework, so nothing ran:
+  no candidate matched, or more than one did and the agent refused to guess
+  (**Framework** then reads `ambiguous — …` and names each candidate with the
+  command it would have run — re-dispatch with `command_hint` to settle it).
+  Never emitted once a call reaches the run step
 
 **Note:** `passing_count` / `regressions` / `new_passes` as bare YAML keys
 are a caller-side re-keying convenience, not literal fields this agent

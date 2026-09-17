@@ -16,15 +16,29 @@ Run the test suite and return a baseline snapshot. Use this **before** making ch
 
 ### Steps
 
-1. **Detect framework** — Search the working directory for build/config files in this order:
-   - `pom.xml` → Maven, command: `mvn test -q`
-   - `build.gradle` or `build.gradle.kts` → Gradle, command: `./gradlew test` (fall back to `gradle test` if no wrapper)
-   - `package.json` → read the `scripts.test` field; if absent, use `npm test`. Check for a `workspaces` field — if present, use `npm test --workspaces --if-present`.
-   - `pyproject.toml`, `setup.py`, or `pytest.ini` → pytest, command: `pytest -v`
-   - `Makefile` containing a `test` target → `make test`
-   - If no framework found: return the structure below with Framework = "not detected", all counts = 0, and a note explaining no runner was found. Do not fail.
+1. **Detect framework** — If the caller supplied a `command_hint`, that is the command: skip detection and record **Framework** as the runner it names. Otherwise scan the working directory for **every** marker below and **never stop at the first match** — first-match-wins is what made a Rails app carrying an asset-build `package.json` report a JavaScript baseline for a Ruby suite, a wrong number rather than a missing one. A marker becomes a **candidate** only where its own qualifier holds. Where a tool ships a pinned entry point, that is the command: `./mvnw`, `./gradlew`, and Ruby's `bin/` binstubs ahead of `bundle exec`.
 
-2. **Run** — Execute the detected command. Allow up to 10 minutes. Capture stdout and stderr combined. If the run aborts (non-zero exit, truncated output, or unrecognized runner output) with no parseable pass/fail counts, treat this as a failed run for the **Status** computation in step 4 (do not fail the tool call — still return the structure).
+   | Marker | Framework | Candidate when | Command |
+   |---|---|---|---|
+   | `pom.xml` | Maven | always | `./mvnw test -q` (fall back to `mvn test -q` if no wrapper) |
+   | `build.gradle` or `build.gradle.kts` | Gradle | always | `./gradlew test` (fall back to `gradle test` if no wrapper) |
+   | `Gemfile` | RSpec | `spec/` exists | `bin/rspec --format documentation` (fall back to `bundle exec rspec --format documentation` if no binstub) |
+   | `Gemfile` | minitest | `test/` exists, or `Rakefile` declares a `test` task | `bin/rails test -v` where `bin/rails` exists, else `bundle exec rake test TESTOPTS=-v` |
+   | `Package.swift` | SwiftPM | always | `swift test` |
+   | `*.xcodeproj` or `*.xcworkspace` | Xcode | always | `xcodebuild test -scheme <scheme>`, the scheme read from `xcodebuild -list` |
+   | `go.mod` | Go | always | `go test ./... -v` |
+   | `Cargo.toml` | Cargo | always | `cargo test` |
+   | `package.json` | Jest/npm | `scripts.test` is present and is not the `npm init` placeholder (`no test specified`) | `npm test`; with a `workspaces` field, `npm test --workspaces --if-present` |
+   | `pyproject.toml`, `setup.py`, or `pytest.ini` | pytest | always | `pytest -v` |
+   | `Makefile` | Make | a `test` target exists | `make test` |
+
+   Then decide, in this order:
+   - **`Make` plus exactly one other candidate whose runner its `test` recipe invokes** → the Makefile is that framework's pinned entry point, not a second suite: run `make test` and parse with that framework's row. Where the recipe's own flags suppress test names, the passing list may be empty and the verify diff falls back to counts.
+   - **Exactly one candidate** → that framework and its command.
+   - **No candidate** → return the structure below with Framework = "not detected", all counts = 0, and a note explaining no runner was found. Do not fail.
+   - **More than one candidate still standing** → do not choose, and run nothing. Return the structure below with Framework = `ambiguous — <candidate>, <candidate>`, all counts = 0, and a note naming each candidate with the command it would have run, so the caller can re-dispatch with a `command_hint`. Two genuine suites in one repository is not something this agent can resolve, and a baseline taken from the wrong one is worse than no baseline at all.
+
+2. **Run** — Execute the selected command (step 1 has already returned where it selected none). Allow up to 10 minutes. Capture stdout and stderr combined. If the run aborts (non-zero exit, truncated output, or unrecognized runner output) with no parseable pass/fail counts, treat this as a failed run for the **Status** computation in step 4 (do not fail the tool call — still return the structure).
 
 3. **Parse** — Extract from the output:
 
@@ -32,14 +46,21 @@ Run the test suite and return a baseline snapshot. Use this **before** making ch
    |-----------|--------------|---------------|---------------|
    | Maven | `Tests run: X` minus failures+errors per module, summed | `Failures: Y, Errors: Z` summed | `Skipped: N` summed |
    | Gradle | `X tests completed` minus failed | `, Y failed` | `, Z skipped` |
+   | RSpec | `X examples` minus failures and pending | `Y failure` / `Y failures` | `N pending` |
+   | minitest | `X runs` minus failures, errors and skips | `Y failures` plus `Z errors` | `N skips` |
+   | SwiftPM / Xcode | `Executed X tests` minus failures, summed over suites | `with Y failures` summed | count of `skipped` test-case lines |
+   | Go | count of `--- PASS:` lines | count of `--- FAIL:` lines | count of `--- SKIP:` lines |
+   | Cargo | `X passed` summed across crates | `Y failed` summed | `Z ignored` summed |
    | pytest | `X passed` | `Y failed` or `Y error` | `N skipped` |
    | Jest/npm | `X passed` | `Y failed` | `Y skipped` |
    | Make | best-effort: look for any `X passed` / `X failed` / `X pass` / `X fail` patterns. If no pattern is found, set counts to 0 and include a note. | same | same |
 
+   Where step 1 selected `make test` as another framework's entry point, parse with **that** framework's row, not the Make row — the Make row is for a `Makefile` that was the only candidate.
+
    Also collect the names/identifiers of every passing test and every failing test from the verbose output.
 
 4. **Compute Status** — before returning, set:
-   - `COMMAND_NOT_FOUND` — step 1 found no framework at all (the "not detected" fallback)
+   - `COMMAND_NOT_FOUND` — step 1 selected no single framework, so nothing was run: either no candidate at all (the "not detected" fallback) or more than one still standing (the `ambiguous — …` disposition). Both mean the same thing to a caller — this agent has no command to give it
    - `RUN_FAILED` — a framework was detected but the run aborted with no parseable pass/fail counts (see step 2)
    - `NO_TESTS` — the framework ran cleanly but Total = 0 (no test files/suite present, e.g. a CI-only YAML repo)
    - `OK` — otherwise (framework ran and produced parseable counts, Total > 0)
@@ -50,7 +71,7 @@ Run the test suite and return a baseline snapshot. Use this **before** making ch
 ## Test Baseline
 - **Mode**: capture
 - **Status**: [OK | RUN_FAILED | COMMAND_NOT_FOUND | NO_TESTS]
-- **Framework**: [name or "not detected"]
+- **Framework**: [name, "not detected", or `ambiguous — <candidate>, <candidate>`]
 - **Command**: `[command used]`
 - **Total**: [n] | **Passing**: [n] | **Failing**: [n] | **Skipped**: [n]
 
@@ -102,7 +123,7 @@ The caller must provide:
    - `REGRESSIONS` — **Regressions** count > 0 OR **Missing from run** count > 0 (both are regression-severity per the table above)
    - `OK` — otherwise (comparison was possible and found no regressions)
 
-   Note: `COMMAND_NOT_FOUND` is a valid **Status** value for verify mode too (schema parity with capture), but this agent's own detection logic (step 1) never leaves the framework fully undetected on a verify call that reached step 2 — so in practice this agent only ever emits `OK` / `REGRESSIONS` / `RUN_FAILED` here.
+   Note: `COMMAND_NOT_FOUND` is emitted here only from step 1, where detection selects no single framework — none matched, or more than one did. A verify call that reached step 2 with a framework in hand emits only `OK` / `REGRESSIONS` / `RUN_FAILED`.
 
 7. **Return this exact structure and nothing else:**
 

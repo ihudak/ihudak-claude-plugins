@@ -30,7 +30,7 @@ Produce artifact content from a structured handoff. None of these run git.
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
-| `test-writer` | per routing | Read, Glob, Grep, Write, Edit | Writes tests for new or changed behaviour based on a diff; does not run them, and reports "not detected" immediately when no test framework is found. | `/implement` |
+| `test-writer` | per routing | Read, Glob, Grep, Write, Edit | Writes tests for new or changed behaviour based on a diff; does not run them, and reports "not detected" immediately where the baseline it is handed names no single framework. | `/implement` |
 
 ## Fixers
 

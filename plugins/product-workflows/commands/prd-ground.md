@@ -1,6 +1,6 @@
 ---
 name: prd-ground
-description: Grounding workflow serving both routes into a PRD, its route detected from the resolved folder and never declared — the BRD-to-PRD route's PA phase, run once per slice `/brd-split` carves and again when a re-cut gives a slice a new row; and, optionally and ungated, once after `/create-prd` on the idea route. Pins every mounted repository to a verified commit and grounds every claim in the resolved folder's own claim list — a BRD slice's [BR#n] rows on the BRD route, a PRD's [AC#n]/[FR#n] rows (plus a [US#n] whose story carries neither) on the idea route, excluding [UC#n]/[SM#n]/[SMC#n] on either — against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and, on the BRD route, assigns each finding a current/will-change horizon against declared prerequisite BRDs (--depends-on; refused on the idea route, which has no decision register to freeze one against). Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (off with --no-docs, and under --no-code) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split on the BRD route; on the idea route, /create-ard and /specify, with /update-prd named first wherever a claim came back SUPPORTED.
+description: Grounding workflow serving both routes into a PRD, its route detected from the resolved folder and never declared — the BRD-to-PRD route's PA phase, run once per slice `/brd-split` carves and again when a re-cut gives a slice a new row; and, optionally and ungated, once after `/create-prd` on the idea route. Pins every mounted repository to a verified commit and grounds every claim in the resolved folder's own claim list — a BRD slice's [BR#n] rows on the BRD route, a PRD's [AC#n]/[FR#n] rows (plus a [US#n] whose story carries neither) on the idea route, excluding [UC#n]/[SM#n]/[SMC#n] on either — against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and, on the BRD route, assigns each finding a current/will-change horizon against declared prerequisite BRDs (--depends-on; refused on the idea route, which has no decision register to freeze one against). Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (off with --no-docs, and under --no-code) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split on the BRD route; on the idea route, /create-ard and /specify, with /update-prd named first wherever a claim came back CONFIRMED.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -1206,17 +1206,22 @@ only); emit its §4.1 outcome line in the final report.
 **On `route: idea`, the offer is `/product-workflows:create-ard` and `/product-workflows:specify`
 — the two consumers of what this run's Phase 0 gated and what its own findings can now seed —
 with `/product-workflows:update-prd` named first where any claim this run wrote came back
-`SUPPORTED`.** Neither `/create-ard` nor `/specify` is required the way `/brd-split`'s allocation is
+`CONFIRMED`.** Neither `/create-ard` nor `/specify` is required the way `/brd-split`'s allocation is
 below, and neither carries a `(Recommended)` marker over the other where both are simply offered
 side by side: a run has as much reason to specify first as to architect first, and marking one would
 assert an order this design does not take a position on.
 
-**Where any claim came back `SUPPORTED`, name `/product-workflows:update-prd <KEY>` first, marked
+**Where any claim came back `CONFIRMED`, name `/product-workflows:update-prd <KEY>` first, marked
 `(Recommended)`.** A PRD asking for something the code already does is worth revising before an
 architecture or a specification is authored against a premise this run's own findings have already
-settled — the count is this run's own verdict tally, which Phase 9's `body_facts` already carries and
-the Final report states for `[CG#n]` and `[DG#n]` separately; this is where it earns a next step
-instead of sitting as a fact nobody acted on (this command never edits `prd.md` itself, design §7).
+settled — and of `workflows-core:grounding-format` §3's closed six, `CONFIRMED` is the one that says
+that: *the premise holds, with evidence*. The other five each say the row was **not** simply true as
+written, and the two §3 names for an absent mechanism — `NOT-PROVABLE` and `REWRITTEN` — are what
+this route's greenfield case lands on, the case the `## Final report` section below already has its
+own `route: idea` headline for, rather than a reason to revise anything. The count is this run's own
+`CONFIRMED` tally, which Phase 9's `body_facts` already carries and the Final report states for
+`[CG#n]` and `[DG#n]` separately; this is where it earns a next step instead of sitting as a fact
+nobody acted on (this command never edits `prd.md` itself, design §7).
 
 **`/create-ard <KEY>` and `/specify <KEY>` each carry `<merge-clause>`** — both re-gate the same
 `prd.md` this run's own Phase 0 already required on main (step 6i), so an operator who runs either
@@ -1231,17 +1236,17 @@ does not exist would be the placeholder's own named failure — resolving it tru
 unconditionally.
 
 Neither array below needs `workflows-core:next-phase-offer`'s overflow rule for a fifth option: even
-the `SUPPORTED` case tops out at four, the harness's own cap, so the array carries the whole menu
+the `CONFIRMED` case tops out at four, the harness's own cap, so the array carries the whole menu
 and no route is demoted into prose.
 
-No claim `SUPPORTED`:
+No claim `CONFIRMED`:
 ```
 choices: ["Specify it — /product-workflows:specify <KEY> (PE) <merge-clause>", "Architect it — /product-workflows:create-ard <KEY> (PA, optional) <merge-clause>", "Stop here"]
 ```
 
-At least one claim `SUPPORTED`:
+At least one claim `CONFIRMED`:
 ```
-choices: ["Revise the PRD first — /product-workflows:update-prd <KEY> (PM) (Recommended — <N> claim(s) came back SUPPORTED)", "Specify it anyway — /product-workflows:specify <KEY> (PE) <merge-clause>", "Architect it anyway — /product-workflows:create-ard <KEY> (PA, optional) <merge-clause>", "Stop here"]
+choices: ["Revise the PRD first — /product-workflows:update-prd <KEY> (PM) (Recommended — <N> claim(s) came back CONFIRMED)", "Specify it anyway — /product-workflows:specify <KEY> (PE) <merge-clause>", "Architect it anyway — /product-workflows:create-ard <KEY> (PA, optional) <merge-clause>", "Stop here"]
 ```
 
 **On `route: brd`, this run always stands on a slice** — by the time Phase 10 runs, step 6's gates have already

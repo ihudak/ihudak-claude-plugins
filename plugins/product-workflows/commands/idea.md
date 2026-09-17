@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose links to other pages are followed two levels deep, in either syntax, and whose linked images are read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Copies the sources it actually read into the PRD folder (markdown into attachments/, images into design/idea-sources/ with the index that frame set requires) and rewrites idea.md's links onto the copies. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`workflows-core:phase-handoff` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose links to other pages are followed two levels deep — wikilinks, inline markdown links and images, reference-style definitions and HTML img src alike — and whose linked images are read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Copies the sources it actually read into the PRD folder (markdown into attachments/, images into design/idea-sources/ with the index that frame set requires) and rewrites idea.md's links onto the copies. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`workflows-core:phase-handoff` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -124,7 +124,9 @@ gets reported instead. **Carry each entry whole, `target` included.** Every link
 which it is forbidden to do.
 
 **What the digest now carries, and what it is worth.** The reader follows links **two levels
-deep**, in either syntax, under one total-file cap and **reads** the images the source links, returning a
+deep**, in every form its own `### The link forms` names — a `[[wikilink]]`, a markdown inline link or
+image, a reference-style definition, an HTML `<img src>` — under one total-file cap and **reads** the
+images the source links in any of them, returning a
 `description` of what each frame shows rather than a bare path. Both are **context**: they inform the
 grill and the prose Phase 4 writes. Neither is grounded evidence — an image here is never a `[DG#n]`
 finding and gets no verifier pass here (`workflows-core:grounding-format` §6 governs *that*; this
@@ -307,7 +309,11 @@ repairs where `idea.md` points.
    `/workflows-core:frames <KEY>`, which reads the frames themselves and fills exactly those rows.
 4. **Rewrite `idea.md`'s links onto the copies** — `[[wikilinks]]`, `![[embeds]]`, `[text](path)` and
    `![alt](path)`, absolute and relative alike — replacing the target, preserving the display text, and
-   **writing every rewritten link as standard markdown**. `$SPECS_PATH` is a git repo read on a forge and
+   **writing every rewritten link as standard markdown**. **Those four are the forms `idea.md` itself
+   carries**, and that is why the list here is shorter than the one `idea-reader`'s `### The link forms`
+   recognises: the reader's set is about the *source*, which this phase never re-reads, while this file
+   was authored by Phase 4 against `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` and every link this
+   phase writes into it is standard markdown. `$SPECS_PATH` is a git repo read on a forge and
    in editors, not an Obsidian vault: nothing there resolves `[[name]]`, so a link repointed into the repo
    but left in wikilink syntax still resolves nowhere the record is actually read. `[[rollout]]` becomes
    `[rollout](attachments/rollout.md)`, `[[rollout|the plan]]` becomes `[the plan](attachments/rollout.md)`,

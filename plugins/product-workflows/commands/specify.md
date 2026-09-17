@@ -552,10 +552,14 @@ five states and their treatment are `decision-register-format.md` §3's: a `deci
 **input** the specification is authored from and never a question; `superseded` and `withdrawn` are
 terminal and read for context only; `open`, `reopened` and an open `[AS#n]` are **gaps**, which may not
 be consumed downstream while open (§3) and reach the spec as `- [ ]` items under the relevant stage's
-`### Open questions` by id — which is also what keeps the header's `- **Open questions**: N` count
-honest (`${CLAUDE_PLUGIN_ROOT}/references/specification-format.md`). Carry each `decided` record's
-`altitude` with it: only `implementation` ones have a home here, and a `product` or `architecture`
-decision is read for context and **left for the command that authors at its altitude** —
+`Open questions` sub-heading by id, at the heading depth
+`${CLAUDE_PLUGIN_ROOT}/references/specification-format.md` fixes **for that stage** — never a depth
+chosen here, because the depths differ per stage and the renderer attributes an open-questions
+heading by depth alone, so a gap written at the wrong one is silently filed under the neighbouring
+criterion. Placing them there is also what keeps the header's `- **Open questions**: N` count honest.
+Carry each `decided` record's `altitude` with it: only `implementation` ones have a home here, and a
+`product` or `architecture` decision is read for context and **left for the command that authors at
+its altitude** —
 `/product-workflows:create-prd` and `/product-workflows:create-ard`, both of which read this same register and
 filter it by `altitude` exactly as this phase does, so the channel that carries it is `decisions.md`
 itself and never a seed file (`prd-seed.md` and `ard-seed.md` are written by nothing on this route).

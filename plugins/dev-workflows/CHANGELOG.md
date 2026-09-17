@@ -2412,7 +2412,7 @@ Two of the seven are defects the 3.3.2 round introduced; they are marked as such
 
 ## [3.3.2] — 2026-08-31
 
-### Fixed — thirteen defects from a whole-feature review of the BRD route
+### Fixed — defects from a whole-feature review of the BRD route
 
 A comprehensive review of everything the BRD-to-PRD route shipped, read against the tree rather
 than against the plan. All three gates were green before and after; every one of these is content
@@ -3732,7 +3732,7 @@ Fixes from a full internal-correctness audit (2 BLOCKER, 7 MAJOR, 26 MINOR findi
 
 ### Notes
 
-- `guideline-reviewer.md`/`api-guideline-reviewer.md`'s remaining bare `references/guidelines/…` mentions, and `create-vi.md`/`create-ard.md`'s description-frontmatter mentions of `references/*-format.md`, are confirmed **not** bugs — the former carry their own "all paths relative to `${CLAUDE_PLUGIN_ROOT}`" preamble, the latter are human-facing catalog text, not runtime citations (both already excluded by the prior `12c245a` cleanup).
+- `guideline-reviewer.md`/`api-guideline-reviewer.md`'s remaining bare `references/guidelines/…` mentions, and `create-vi.md`/`create-ard.md`'s description-frontmatter mentions of `references/*-format.md`, are confirmed **not** bugs — the former carry their own "all paths relative to `${CLAUDE_PLUGIN_ROOT}`" preamble, the latter are human-facing catalog text, not runtime citations (both already excluded by the prior `a650f5c0` bare-reference-path normalisation, which touched none of the four).
 
 ## [2.30.0] — 2026-07-13
 

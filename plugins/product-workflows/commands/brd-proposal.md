@@ -540,8 +540,8 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 **The array above is §4.3's `unread` one, and the class is named here rather than left to be
 inferred.** §4.3 asks a producer reaching for it to look for a reader first, so this run looked: no
 command of the build ladder reads a proposal, `/prd-proposal` reads only the profile and its own
-folder, and the one command that reads a proposal at all — this one — reads a **slice's**, never an
-umbrella's. Nothing runs `require-on-main` on this file either, so §4.0's gated test fails as well.
+folder, and the one command that reads another folder's proposal — this one — reads a **slice's**,
+never an umbrella's. Nothing runs `require-on-main` on this file either, so §4.0's gated test fails as well.
 `proposal-brief.md` and the archived revisions travel in the same `deliverable_paths` set and take
 that same class with them (§4.0).
 

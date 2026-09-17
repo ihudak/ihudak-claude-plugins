@@ -9,8 +9,11 @@ rules a reviewer checks, and — in §14 — what an umbrella run adds over a sl
 `docs/superpowers/specs/2026-09-08-proposal-commands-design.md`.
 
 **Written by `commands/prd-proposal.md` and `commands/brd-proposal.md`; reviewed against by
-`agents/proposal-reviewer.md`.** The one command that reads a proposal is `commands/brd-proposal.md`,
-which rolls each slice's into the umbrella; nothing else in the family opens one.
+`agents/proposal-reviewer.md`.** The one command that reads **another folder's** proposal is
+`commands/brd-proposal.md`, which rolls each slice's into the umbrella; no command of the build
+ladder opens one at all. The two other readers are inside the pair and read only their own folder's:
+`commands/prd-proposal.md` opens the prior revision it archived, for §8's stability rule and §12's
+changelog, and the reviewer above opens the `proposal.md` it is handed and refuses without it.
 
 ## 1. What this format governs, and the two quantities it must never conflate
 

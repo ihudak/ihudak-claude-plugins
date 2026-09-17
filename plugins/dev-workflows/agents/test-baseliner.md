@@ -146,7 +146,7 @@ The caller must provide:
    - `PARTIAL` — some suite produced counts, and at least one produced none here **and no counts in the baseline either** — its baseline row reads `RUN_FAILED` or `not run`, so it aborted at both ends or the `command_hint` left it out at both. The comparison is sound as far as it reaches and says nothing at all about that suite
    - `OK` — otherwise: the comparison was possible and found no regressions. **The one abort this value tolerates** is a suite that held no baseline test to lose — its baseline row `NO_TESTS`, or no row at all — which step 3 records in `### Notes` and `### Suites` and which moves nothing here; every other abort has already been taken by a value above
 
-   Steps 1 and 2 return before this one — `COMMAND_NOT_FOUND` where detection selected no suite, `RUN_FAILED` where nothing pairs with the baseline — so neither is computed here.
+   Steps 1 and 2 return before this one — `COMMAND_NOT_FOUND` where no candidate matched and no `command_hint` supplied one, `RUN_FAILED` where nothing pairs with the baseline — so neither is computed here.
 
    **The `Status` carries regressions; it does not carry new failures.** A test failing now that was in neither baseline list is a **New failure** by step 5's table, and no value above counts one — so `OK` and `PARTIAL` are both reachable with `### New failures` non-empty. A caller whose own run wrote tests between the capture and this call reads that list as well as the `Status`, or it reads its own broken test as a pass.
 

@@ -352,8 +352,12 @@ bounded, and by exactly one state** — Pre-Phase 3.5's skip on a
 report and writes nothing. The second and third hold on every **completion**,
 which is narrower than every path and deliberately so: every `/implement` exit
 that stops *after* the branch exists produces no Phase 5 report at all — its
-Phase 4.6 *"Every run"* paragraph enumerates them and says as much in as many
-words — so on those there is no `### Deferred items` section for the third clause
+Phase 4.6 *"Every run"* paragraph enumerates the ones that stop after files were
+written and says as much in as many words, and the one it deliberately leaves
+out, Pre-Phase 3.5's **Cancel**, is named in the paragraph below it as stopping
+after the branch and before the first edit, where the run stops and summarizes
+and no such report is produced either — so on those there is no `### Deferred
+items` section for the third clause
 to hold in, and nothing has completed for the second to be silent about. (No
 count here on purpose, and not because a count went wrong: the set is
 `implement.md`'s to enumerate, and a second copy of it in this file is exactly

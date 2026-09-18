@@ -65,8 +65,8 @@ reconstruct it.
      arm records there — each `### Notes` line the report opens with `CAVEAT: `. That mark is the baseliner's
      own (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so nothing here decides which note
      matters, and on a green return it is the report's own account of a comparison that is not what it
-     appears to be — a suite that aborted and lost no baseline test, a `Make` fold's identifiers or a
-     Cargo workspace's left unattributed; and where the status is `REGRESSIONS` it can say those identifiers reached **Missing from
+     appears to be — a suite that aborted and lost no baseline test, a `Make` fold's identifiers
+     left unattributed; and where the status is `REGRESSIONS` it can say those identifiers reached **Missing from
      run** without that being evidence this upgrade removed them. An unmarked
      note records where a command ran; leave it. `/upgrade` step 7 reads these off `notes` on every status.
 

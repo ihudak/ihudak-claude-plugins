@@ -102,14 +102,15 @@ repository's included** —
 `[<Framework>] ` where that framework names exactly one row of `### Suites`, and
 `[<Framework> <that row's marker value>] ` where it names more than one. That set
 is what a hint cannot narrow rather than what ran — every detected suite has a row
-whether the hint ran it or not, a candidate the workspaces division carved having
-one per workspace it runs rather than one of its own — so narrowing the run moves no prefix; and the marker
+whether the hint ran it or not, a candidate either the workspaces or the Cargo division
+carved having one per unit it runs rather than one of its own — so narrowing the run moves no prefix; and the marker
 of a row a hint adds is a position in that hint and nothing else, which is why the same
 commands are sent again in the same order (`agents/test-baseliner.md` capture steps 1
 and 3). And
 `### Suites` carries one line per suite the run has a row for — framework, the
 qualifying marker **as a path relative to the scan root** (that workspace's own
-`package.json` for each row of a workspaces division, never the candidate's; the
+`package.json` for each row of a workspaces division and that member's own
+`Cargo.toml` for each row of a Cargo division, never the candidate's; the
 lexicographically first of the folded candidates' marker paths where the `Make`
 wrapper rule folded more than one of that framework;
 `command_hint#<n>` where a hinted command matched no detected suite), command,
@@ -121,8 +122,9 @@ recording different markers disagree on the key verify pairs on. The marker of a
 marker qualified is a path rather than a bare filename, for two reasons. It tells apart two suites of one framework:
 qualifying markers of one row whose directories do not contain each other are
 siblings, and siblings are separate suites, so more than one row here can read
-`Jest/npm` — as do the rows a workspaces division carves, each holding its own
-workspace's `package.json` (`agents/test-baseliner.md` capture step 1). It tells
+`Jest/npm` — as do the rows either division carves, each holding its own unit's
+manifest, a workspace's `package.json` or a default member's `Cargo.toml`
+(`agents/test-baseliner.md` capture step 1). It tells
 apart suites and **not** the candidates a `Make` fold put inside one of them,
 whose row carries the first of their marker paths and whose `### Notes` line
 carries the rest, since `make test` runs once and its output does not attribute
@@ -135,7 +137,8 @@ whose run directory resolves to it"*) and the rule holding in **both** modes
 its own number): `pom.xml` for a suite at the scan root,
 `frontend/package.json` for one below it. **Three run directories are not a
 marker's own** — a suite the `Make` wrapper folded runs at the `Makefile`'s, a
-`--workspace` row of a workspaces division runs at the candidate's, and a hinted
+`--workspace` row of a workspaces division and a member row of a Cargo one run at
+the candidate's, and a hinted
 command matching no suite runs at the scan root — and the first two are named in
 `### Notes`, the third being what a `command_hint#<n>` marker value already says. A
 single-suite repository's block is unchanged in every field, `### Suites` aside
@@ -153,21 +156,20 @@ baseline row verify pairs with nothing is not rewritten, and its tests are
 
 **`### Notes` is present on every capture return, "none" included**, and it
 carries what no other field can: a suite whose watch carve-out did not fire and
-why, a qualifying marker whose directory another of its own row's contains — a
-workspace the division carved a row for being named in that row instead — the run directory
+why, a qualifying marker whose directory another of its own row's contains — a unit
+either division carved a row for being named in that row instead — the run directory
 of a suite that did not run at its own marker's (a folded `Make` suite's
 `Makefile`, the candidate's own for the `--workspace` rows of a workspaces
-division), every candidate a `Make` fold covering more than one of one framework
-holds, with the fact that its identifiers are not attributed to them, every member
-a Cargo workspace covering more than one of them holds, with that same fact, a `Make` wrapper one level did not
+division and for the member rows of a Cargo one), every candidate a `Make` fold
+covering more than one of one framework
+holds, with the fact that its identifiers are not attributed to them, a `Make` wrapper one level did not
 settle, "no runner found", a recipe whose output matched no parse pattern. **Two
 of those read, from the `Status` and `### Suites` alone, exactly like a suite
 that genuinely failed** — a carve-out that did not fire and a recipe whose output
 matched no pattern, each leaving a `RUN_FAILED` row with a command beside it — so
 a caller that reports a failed suite without reading this section reports the
-wrong cause. **Four more stand beside a return whose every row reads `OK`**: the
-unsettled `Make` wrapper, the fold's unattributed identifiers, a Cargo
-workspace's, and a qualifying
+wrong cause. **Three more stand beside a return whose every row reads `OK`**: the
+unsettled `Make` wrapper, the fold's unattributed identifiers, and a qualifying
 marker a non-recursing container kept out of the candidate set — which is what
 the marked lines below are for, and why they are read on every status rather than
 on the ones a caller already stops at. Verify mode has carried the same
@@ -179,16 +181,16 @@ moved between the two calls, never that anything about it failed.
 
 **A line opening with the literal `CAVEAT: ` is a note whose harm the `Status`,
 the counts and the test lists cannot show, and a caller surfaces every one of
-them on every status — `OK` and `NO_TESTS` included.** Four of the kinds that
+them on every status — `OK` and `NO_TESTS` included.** Three of the kinds that
 carry the mark can stand beside a green return: a `Make` fold's identifiers,
 which are not attributed to the candidates that printed them, so a test one of
-them stopped printing is masked by another's copy; a Cargo workspace's, which are
-not attributed to the members that printed them for the same reason and with no
-`Makefile` in it — `cargo test` at the root names no crate in a test line; a
+them stopped printing is masked by another's copy; a
 `Make` indirection one level
 did not settle, where two suites run and the same tests may be summed twice; and
 a qualifying marker a **non-recursing** container left out of the candidate set,
-where a real suite is never run and no row says so. The other two — a watch
+where a real suite is never run and no row says so — a `package.json` with no
+`workspaces` field over another, `go test ./...` over a nested `go.mod`, or a
+Cargo workspace member outside the default set `cargo test` at that root runs. The other two — a watch
 carve-out that did not fire on a suite whose row then reads `RUN_FAILED`, and a
 parser that recognised no count pattern — arrive on an arm the `Status` does
 flag, and there the mark is what reaches a caller that reads this section on none

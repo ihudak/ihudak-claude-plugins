@@ -17,6 +17,11 @@ phase: full                # full (default) | verify-resume | regression-resume 
 regression_decision: keep-anyway  # keep-anyway | revert — REQUIRED on phase: regression-resume only;
                             # the orchestrator obtains this from the user (subagents cannot prompt
                             # the user directly — see /upgrade "Handling Test Failures")
+baseline_block: |            # REQUIRED — the whole `## Test Baseline` block the
+  ## Test Baseline           # orchestrator captured, verbatim, `### Suites` included.
+  …                          # It is what the agent hands `test-baseliner` verify, and
+                             # its per-suite rows are what separate a suite that
+                             # regressed from one that could not run at either end.
 baseline:                    # The orchestrator (commands/upgrade.md Phase 2 prep, Step 2)
                              # ALWAYS captures the baseline before invoking this
                              # agent — this agent never re-baselines.
@@ -27,8 +32,10 @@ baseline:                    # The orchestrator (commands/upgrade.md Phase 2 pre
   passing_tests:             # REQUIRED — full list of passing test IDs so
                              # test-baseliner verify can detect regressions
                              # exactly. Also required on phase: verify-resume.
-    - com.example.OrderTest#testCreate
-    - com.example.UserTest#testLogin
+                             # Every identifier carries its suite's prefix,
+                             # single-suite repositories included.
+    - "[Maven] com.example.OrderTest#testCreate"
+    - "[Maven] com.example.UserTest#testLogin"
 model_routing:               # optional; set by orchestrator for SIGNIFICANT / HIGH-RISK
   classification: SIGNIFICANT
   gate_tests_on_review: true # if true: stop after Build, return AWAITING_REVIEW
@@ -63,7 +70,7 @@ related:
 
 ```markdown
 ## Upgrade Result: spring-boot
-status: OK              # OK | BUILD_FAILED | SKIPPED | TEST_REGRESSION | TEST_REGRESSION_KEPT | TEST_REGRESSION_REVERTED | AWAITING_REVIEW | BLOCKED
+status: OK              # OK | BUILD_FAILED | SKIPPED | TEST_REGRESSION | TEST_REGRESSION_KEPT | TEST_REGRESSION_REVERTED | TESTS_NOT_RUN | AWAITING_REVIEW | BLOCKED
 component: spring-boot
 from: "3.1.4"
 to: "3.3.11"
@@ -72,14 +79,20 @@ related_applied:
 tests_before: 142
 tests_after: 142
 regressions: 0
-notes: "Updated 2 test files: renamed @RunWith to @ExtendWith"
+notes: "Updated 2 test files: renamed @RunWith to @ExtendWith"   # it also carries, verbatim,
+                         # every `CAVEAT: ` line the test-baseliner verify marked — on EVERY
+                         # status this agent returns, `OK` included (the agent's step 3), since
+                         # that mark names what the comparison could not see rather than
+                         # anything that failed
 model_routing:           # echoed back when present in input
   classification: SIGNIFICANT
   gate_tests_on_review: true
 ```
 
 **status values:**
-- `OK` — all changes applied, all previously-green tests still green
+- `OK` — all changes applied, all previously-green tests still green. A `PARTIAL`
+  verify is still `OK`: every suite the baseline covered is green, and `notes`
+  names the ones it does not cover
 - `BUILD_FAILED` — build failed, all changes reverted for this component
 - `SKIPPED` — component was NOT_FOUND or user chose to skip
 - `TEST_REGRESSION` — regressions present, not auto-fixable, awaiting a user
@@ -90,6 +103,13 @@ model_routing:           # echoed back when present in input
   `regression_decision: keep-anyway | revert`.
 - `TEST_REGRESSION_KEPT` — the `regression-resume` call's `regression_decision` was `keep-anyway`
 - `TEST_REGRESSION_REVERTED` — the `regression-resume` call's `regression_decision` was `revert`
+- `TESTS_NOT_RUN` — `test-baseliner` verify returned `RUN_FAILED` or
+  `COMMAND_NOT_FOUND`: no comparison was possible, so nothing is known about
+  this component's tests either way. The changes are applied and **not**
+  reverted — reverting needs evidence the upgrade is bad, and a suite that
+  could not be run is evidence about the environment. `notes` carries the
+  report's reason; the orchestrator decides. Distinct from `OK`, which asserts
+  the tests passed, and from `TEST_REGRESSION`, which asserts they failed
 - `AWAITING_REVIEW` — `gate_tests_on_review: true` was set; changes are
   applied and the build succeeded, but tests have **not** been run yet.
   The orchestrator must perform the Opus code review, then re-invoke this
@@ -136,8 +156,9 @@ related_applied:
 tests_before: 142
 tests_after: 140
 regressions: 2
-failing_tests:                # full list — the orchestrator shows these to the user
-  - com.example.OrderTest#testCreate
+failing_tests:                # full list — the orchestrator shows these to the user,
+                              # prefixed as the verify report's own lists are
+  - "[Maven] com.example.OrderTest#testCreate"
 diagnosis: <one-line: likely cause, e.g. "Hibernate 6.4 changed default fetch type">
 notes: null
 model_routing:

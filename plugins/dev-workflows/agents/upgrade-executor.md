@@ -44,10 +44,31 @@ reconstruct it.
 
 2. **Build** — Run the project build (compile only). On failure see "Build failure" below.
 
-3. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the `baseline` from the input handoff.
+3. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the input handoff's `baseline_block` —
+   the whole `## Test Baseline` block, whose `### Suites` rows are what separate a suite that regressed from
+   one that could not run at either end — and a `Project root:` line set to the input handoff's own `repo:` value, which is the
+   root the orchestrator's capture scanned (`commands/upgrade.md` Phase 2 prep step 2 sends that same path).
+   **That root is required here and must be that one**: verify has no working-directory fallback, and
+   `### Suites` records each marker as a path relative to the scan root, so a verify rooted elsewhere makes
+   every marker path disagree with the baseline's
+   (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`, `repo:`).
    - `status: OK` → all green, proceed to step 4.
-   - `status: REGRESSIONS` → follow "Test regression" below.
-   - `status: RUN_FAILED` → revert all changes, set `status: BUILD_FAILED`.
+   - `status: PARTIAL` → proceed to step 4, recording the uncovered suites in `notes`. **Never revert on it:**
+     a suite that could not run at either end is a fact about the environment, not evidence about this upgrade.
+   - `status: REGRESSIONS` → follow "Test regression" below. This is the one verify value that is evidence
+     about the upgrade, and the only one on which anything is reverted.
+   - `status: RUN_FAILED` or `COMMAND_NOT_FOUND` → nothing was compared. **Do not revert**: reverting needs
+     evidence the upgrade is bad, and this is evidence that the suites could not be run. Set
+     `status: TESTS_NOT_RUN` with the report's reason in `notes` and return — the changes stay applied and
+     the orchestrator decides.
+   - **On every one of those values, `OK` included**, copy into `notes` — verbatim, beside whatever else that
+     arm records there — each `### Notes` line the report opens with `CAVEAT: `. That mark is the baseliner's
+     own (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so nothing here decides which note
+     matters, and on a green return it is the report's own account of a comparison that is not what it
+     appears to be — a suite that aborted and lost no baseline test, a `Make` fold's identifiers
+     left unattributed; and where the status is `REGRESSIONS` it can say those identifiers reached **Missing from
+     run** without that being evidence this upgrade removed them. An unmarked
+     note records where a command ran; leave it. `/upgrade` step 7 reads these off `notes` on every status.
 
 4. **Output** — Produce the summary record (see `${CLAUDE_PLUGIN_ROOT}/references/handoff/upgrade-executor.md`).
 
@@ -78,7 +99,7 @@ granted, so this agent can never ask the user directly. The orchestrator owns th
 - **Never commit, never push, never open a pull request.** Leave the changes in the working tree and return. This is a division of labour, not a policy that the work goes uncommitted: the orchestrator commits this component in `/upgrade` step 6.5 as soon as its gates settle, and pushes the branch once in step 7.5 (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.12). Committing here would strand the commit message outside the run's own report and, on a `gate_tests_on_review: true` call, commit work the Opus review has not seen.
 - Process one component per invocation.
 - The baseline provided by the orchestrator is authoritative; do not re-run it.
-- NEVER dispatch any subagent other than `test-baseliner`. That one dispatch is your entire `Task` authority. **Never dispatch a reviewer of your own.** Review is the caller's to schedule, not yours. Your caller deliberately runs no reviewer on some paths — a SIMPLE / MODERATE run is classified out of the Opus `code-review` gate on purpose — so a reviewer you spawn silently overrides the caller's own gate policy. Its verdict has no standing either: the caller never sees it, and you cannot act on it without exceeding your brief.
+- NEVER dispatch any subagent other than `test-baseliner`. That one dispatch is your entire `Task` authority. Pin it with `model: <Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>` — running a test suite is mechanical, so the tier is pinned here rather than left to inherit. **Never dispatch a reviewer of your own.** Review is the caller's to schedule, not yours. Your caller deliberately runs no reviewer on some paths — a SIMPLE / MODERATE run is classified out of the Opus `code-review` gate on purpose — so a reviewer you spawn silently overrides the caller's own gate policy. Its verdict has no standing either: the caller never sees it, and you cannot act on it without exceeding your brief.
 
 ## Model Routing
 

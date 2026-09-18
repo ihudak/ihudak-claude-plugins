@@ -1,12 +1,12 @@
 ---
 name: test-writer
-description: Writes tests for new or changed behavior based on a diff. Does NOT run tests. Framework detection mirrors test-baseliner; if no framework is detected, returns "not detected" immediately so the caller can ask the user whether to specify a test command or skip. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Writes tests for new or changed behavior based on a diff. Does NOT run tests. Takes the framework from the required test-baseliner baseline rather than re-detecting it — one framework, or several where the repository has several suites; where that baseline names none at all, returns "not detected" immediately so the caller can apply the decision it already took when the baseline was captured. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
 Write tests for new or changed behavior based on a diff. DO NOT run the tests — the caller (the command) runs `test-baseliner` in verify mode separately.
 
-Invoked from `/implement` at Phase 3.5 (SIMPLE / MODERATE, after Phase 3A implementation completes) and inside Phase 3B (SIGNIFICANT / HIGH-RISK, at step 4a — after implementation completes but before the diff is captured for Opus review). The caller decides whether to proceed based on the framework-detection outcome.
+Invoked from `/implement` at Phase 3.5 (SIMPLE / MODERATE, after Phase 3A implementation completes) and inside Phase 3B (SIGNIFICANT / HIGH-RISK, at step 4a — after implementation completes but before the diff is captured for Opus review). This agent runs after the edits, so it settles nothing about which framework the project has: it relays what the baseline recorded before them.
 
 ## Inputs
 
@@ -18,34 +18,30 @@ The caller passes a structured brief:
   On a read failure, follow the **read-failure contract** in
   `${CLAUDE_PLUGIN_ROOT}/references/context-management.md` — **Diff** is *evidence*: hard stop, return
   the `Diff: unreadable at <path>` shape below (see Output) — a distinct marker from
-  `Framework: not detected`, so the caller does not route an unreadable evidence file into the
-  missing-framework prompt — and **never re-derive the diff** with a tool of your own. **Plan**
-  is *context*: degrade to absent.
+  `Framework: not detected`, so the caller stops the run rather than applying the recorded
+  skip decision to a file it could not read — and **never re-derive the diff** with a tool of
+  your own. **Plan** is *context*: degrade to absent.
 - **Project root** — absolute path so files can be opened
-- **Baseline** — the `## Test Baseline` block captured by `test-baseliner` in Pre-Phase 3.5 (identifies the detected framework + the command used + the set of pre-existing passing / failing tests). Used to confirm framework identity and to avoid shadowing pre-existing test names
+- **Baseline** — the `## Test Baseline` block captured by `test-baseliner` in Pre-Phase 3.5 (identifies the detected framework + the command used + the set of pre-existing passing / failing tests). It is the sole source of framework and command here, and the list of test names already taken
 
 Refuse to write tests without a diff and a baseline — ask the caller to supply them.
 
 ## Steps
 
-1. **Detect framework.** Apply the same detection logic as `test-baseliner` against the project root:
-   - `pom.xml` → Maven
-   - `build.gradle` / `build.gradle.kts` → Gradle
-   - `package.json` → JS/TS (read `scripts.test`; inspect `devDependencies` for `jest`, `vitest`, `mocha`, `playwright` to pick conventions)
-   - `pyproject.toml` / `setup.py` / `pytest.ini` → pytest
-   - `Makefile` with a `test` target → Make-wrapped suite
-   - Else → **not detected**.
+1. **Take the framework.** The **Baseline** block is a required input and already records what `test-baseliner` detected and ran — read **Framework** and **Command** from it rather than re-deriving them here. `test-baseliner` owns the marker→framework table; a second copy of it in this file would drift, and this agent refuses to run without the baseline that supersedes it anyway. A baseline reading `not detected` is a **not detected** result for step 2.
 
-   Cross-check against the framework recorded in the baseline. If they disagree (e.g. baseline says pytest but current detection says Maven — implausible in a single run, but possible if the user moved dirs), prefer the baseline's framework and note the disagreement.
+   **A baseline may name more than one suite** — a Rails and a JavaScript one, a Java and an Angular one — in which case **Framework** and **Command** are comma-separated lists in the same order and `### Suites` gives each one's own row. Write against **every** suite the diff touches, choosing per changed file by the suite whose own tests live alongside it: a change in the Ruby half gets Ruby tests, a change in the front-end half gets front-end ones. Writing both stacks' behaviour into one stack's suite is the same mistake as baselining one suite for both.
 
-2. **If `Framework: not detected`: return the "not detected" report immediately** (see Output shape below). Do NOT attempt to write generic tests. The caller will ask the user to specify a test command or skip.
+   For a JS/TS framework, inspect `devDependencies` for `jest`, `vitest`, `mocha`, `playwright` to pick the conventions to write against — that is a question about *how* to write a test, not about which suite is the project's.
+
+2. **If `Framework: not detected`: return the "not detected" report immediately** (see Output shape below). Do NOT attempt to write generic tests. The caller settled this where the baseline was captured, before any file was edited, and applies that decision rather than asking again — which is why this report carries no question.
 
 3. **Map changed behavior from the diff.** For each hunk:
    - **Include**: new public functions, new exported types, new branches in existing control flow, new API surfaces (routes, CLI flags, config keys), new error paths that can be observed.
    - **Skip**: renames with no behavior change, comment-only edits, formatting-only changes, pure internal refactors that don't alter observable behavior.
    - **Flag as `### Skipped (pre-existing untested code)`**: files that clearly pre-existed and remain untested — this agent never retrofits tests for unchanged code.
 
-4. **Discover test patterns.** Read 2–3 representative test files from the project's conventional test location (e.g. `src/test/java/`, `tests/`, `__tests__/`, `spec/`). Note:
+4. **Discover test patterns.** Read 2–3 representative test files from the project's conventional test location, **once per suite you are writing against** (e.g. `src/test/java/`, `tests/`, `__tests__/`, `spec/`) — two suites have two sets of conventions and neither is evidence about the other. Note:
    - File naming (`*Test.java` vs `test_*.py` vs `*.test.ts` etc.)
    - Assertion style (`assertEquals` vs `expect(...).toBe(...)` vs `assert …`)
    - Fixture / setup patterns (`@BeforeEach`, `beforeAll`, pytest fixtures, etc.)
@@ -73,8 +69,8 @@ Return this exact shape (no preamble, no chatter):
 
 ```markdown
 ## Test Writer Report
-- **Framework**: [name | "not detected"]
-- **Command**: `[test command from baseline, or "n/a" if not detected]`
+- **Framework**: [name, or every suite written against, comma-separated | "not detected"]
+- **Command**: `[the matching test command(s) from the baseline, or "n/a" if not detected]`
 - **Tests written**: [N]
 - **Files touched**: [list of paths, relative to project root, or "none"]
 
@@ -101,12 +97,12 @@ If `Framework: not detected`, return this truncated shape and STOP:
 - **Tests written**: 0
 
 ### Reason
-No build/config file matched the detection set (`pom.xml`, `build.gradle(.kts)`, `package.json`, `pyproject.toml`, `setup.py`, `pytest.ini`, `Makefile` with `test` target). Caller: ask the user to specify a test command or skip tests for this run.
+The baseline records no framework at all — `test-baseliner` matched no candidate. Caller: this was settled where the baseline was captured, before any file was edited; apply that decision rather than asking again here. A `command_hint` supplied now cannot repair it, because a capture taken after the edits is not a baseline.
 ```
 
 If the **Diff** input could not be read, return this shape — its FIRST LINE is the literal
 marker `Diff: unreadable at <path>`, distinct from `Framework: not detected` so the caller
-does not route it into the missing-framework prompt — and STOP:
+stops the run rather than applying its recorded skip decision — and STOP:
 
 ```markdown
 Diff: unreadable at <path>

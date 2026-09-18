@@ -60,6 +60,8 @@ For a single module: `./gradlew :<module>:test`
 
 ## Maven
 
+Maven commands below are written `./mvnw`, as Gradle's are written `./gradlew`; fall back to `mvn` where the repo ships no wrapper.
+
 ### Detect library
 
 ```bash
@@ -79,8 +81,8 @@ Edit the version in the appropriate `pom.xml`. Prefer updating `<properties>` to
 ### Verify build
 
 ```bash
-mvn package -DskipTests    # build first
-mvn test                   # then test
+./mvnw package -DskipTests    # build first
+./mvnw test                   # then test
 ```
 
 ---
@@ -120,7 +122,26 @@ Or edit `package.json` manually and run `npm install`.
 ### Verify
 
 ```bash
-npm test
+# `test-baseliner` (verify mode) is what verifies this suite, and it carries
+# the watch carve-out. CI=true does NOT reach every watcher — not Karma,
+# started directly or through a grunt/gulp task, and not `ng test` — so on
+# those scripts the line below never returns, the per-suite bound truncates
+# it, and the suite is recorded as a failed run. Run it by hand only where
+# `scripts.test` REACHES neither of them -- not directly, and not through
+# another npm script or a grunt/gulp task, which is the indirection the
+# carve-out follows one level of. Otherwise let `test-baseliner` run the
+# suite (dev-workflows:test-baseliner capture step 1 is where the carve-out
+# and its replacement commands live).
+# On a repository whose root `package.json` carries a `workspaces` field this
+# line is the wrong one by hand too, and loudly: measured, it runs the ROOT's
+# own `scripts.test` and no workspace's, or exits 1 on
+# `npm error Missing script: "test"` where the root declares none. Run one
+# `CI=true npm test --if-present --workspace <name>` per workspace instead,
+# which is the division `test-baseliner` itself issues — where no `Makefile`
+# `test` target drives that runner. Where one does, the wrapper rule is asked
+# first, the agent folds rather than divides and runs `CI=true make test`, and
+# so should you: the recipe is the project's pinned entry point (the same step).
+CI=true npm test
 ```
 
 ---
@@ -247,7 +268,7 @@ bundle exec rspec          # or rake test / bundle exec minitest
 
 When the vulnerable library is **not** a direct dependency but pulled in transitively:
 
-1. Identify which direct dependency introduces it (using `./gradlew dependencies`, `mvn dependency:tree`, `npm ls`, etc.).
+1. Identify which direct dependency introduces it (using `./gradlew dependencies`, `./mvnw dependency:tree`, `npm ls`, etc.).
 2. **First choice**: upgrade the direct dependency to a version that already uses the safe transitive version.
 3. **Second choice**: force/override the transitive version using the ecosystem mechanism (Gradle `resolutionStrategy`, Maven `dependencyManagement`, npm `overrides`, etc.).
 4. Document the override clearly in the commit message.
@@ -261,7 +282,7 @@ After updating, verify the vulnerable version is no longer on the classpath/bund
 ./gradlew dependencies | grep activemq
 
 # Maven
-mvn dependency:tree | grep activemq
+./mvnw dependency:tree | grep activemq
 
 # npm
 npm ls <package>

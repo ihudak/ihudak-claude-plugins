@@ -9,9 +9,9 @@ Cost writes to a **`cost/` subdirectory with one file per session**, not one fil
 The write target is resolved by a specs-first ladder, walked top-down, stopping at the first tier that applies:
 
 1. `$SPECS_PATH` is writable and the PRD directory can be matched → `<PRD-dir>/dev-workflows/cost/<sid8>.md`. This is the primary case and the one the whole feature exists for.
-2. `$SPECS_PATH` is writable but no PRD directory matches (a keyless run, such as early idea refinement) → the entry goes to a **pending** file instead, at `$SPECS_PATH/dev-workflows-cost/pending-<date>-<sid8>.md`. The next time any command in the same or a later session resolves a real PRD key, it lists the pending files it finds and offers to relocate their entries into the now-known PRD's cost directory — same-session files are pre-selected as the likely match. A confirmed relocation moves the entries and deletes the pending file so it never resurfaces; a declined one is simply left in place and may be offered again later.
-3. The run's source is a folder in the specs tree and `$SPECS_PATH` is unavailable → the file lands beside that imported directory.
-4. Nothing resolvable → **report-only**: the entry stays only in the run's printed output. The plugin never writes into your current working directory, since it may be a code repository.
+2. `$SPECS_PATH` is writable but no PRD directory matches — a keyless run, such as `/implement` in direct mode, or `/feedback` invoked outside any PRD — → the entry goes to a **pending** file instead, at `$SPECS_PATH/dev-workflows-cost/pending-<date>-<sid8>.md`. The next time any command in the same or a later session resolves a real PRD key, it lists the pending files it finds and offers to relocate their entries into the now-known PRD's cost directory — same-session files are pre-selected as the likely match. A confirmed relocation moves the entries and deletes the pending file so it never resurfaces; a declined one is simply left in place and may be offered again later.
+3. The run's source is a folder in the specs tree and `$SPECS_PATH` is unavailable → the file lands beside that directory.
+4. Nothing resolvable → **report-only**: the entry stays only in the run's printed output. The plugin never writes into your current working directory, where it is not the specs repository, since it may be a code repository.
 
 None of this touches git — the cost entry is committed and pushed later, once, by the run's terminal `commit-artifacts` step, the same as every other session artifact this plugin writes into `$SPECS_PATH`.
 
@@ -37,7 +37,7 @@ Three commands emit a cost entry here: `/design`, `/implement`, and `/ready`. Ev
 
 The four correction commands in `workflows-core` infer differently: each resolves the **target command** whose output it is correcting or remarking on, and inherits that command's own fixed labels. A `/prompt` correcting a `/specify` output is priced as `specification`/`pe`, one correcting a `/design` output as `planning`/`dev` — the cost of fixing a phase's output belongs to that phase, so "what did specifying cost" includes the cost of making the spec right. Where no target resolves, where the target has no attribution row of its own, or where the target is itself a feedback command, the entry becomes [`plugin-feedback`](../roles-and-phases.md#plugin-feedback)/`n/a`. `n/a` is the absence of a role recorded rather than guessed; aggregation should treat it as unattributed rather than folding it into `dev`.
 
-**Why the other two do not.** `/vuln` and `/upgrade` have no Product Requirements Document to attribute spend to and sit outside the pipeline entirely. (Two more commands have never emitted one and both ship elsewhere: `/workflows-core:statusline` sets a configuration value rather than running a task, and `/docs-workflows:docs-profile` is a one-shot utility with no PRD either.)
+**Why the other two do not.** `/vuln` and `/upgrade` have no Product Requirements Document to attribute spend to and sit outside the pipeline entirely. (Commands that have never emitted one — as opposed to deferring one, above — ship elsewhere too, and each companion plugin's own session-cost page names the ones it holds; this page does not restate them.)
 
 ### Spend a command cannot measure itself
 

@@ -342,6 +342,16 @@ git -C "<repo>" status --porcelain                  # any entry -> line-count co
 3. **`status --porcelain`** — any entry it reports still needs a line-count comparison against the
    pinned commit before the repository is trusted, even when step 2 came back empty. `--porcelain`
    surfaces untracked and renamed paths that a `--stat` diff against `HEAD` would not.
+   **Take the path for that comparison from `git -C "<repo>" status --porcelain -z`, never from the
+   form printed above.** `--porcelain` wraps a path carrying a space, a `"`, a `\` or a non-ASCII
+   byte in double quotes and octal-escapes the non-ASCII bytes — `workflows-core:specs-repo-git`
+   §2.1 states the same hazard for its own classifier — and `git show <sha>:"<quoted path>"`
+   resolves to nothing, so the comparison is silently skipped for exactly the paths a person is
+   likeliest to have left lying about. Under `-z` each record is NUL-terminated and the path is
+   emitted raw. The block above keeps the readable form deliberately: it is what the customer's
+   reviewer runs and reads by hand (`product-workflows:brd-package` Part 4).
+
+**Four files carry this triad, so a change to it here is a change in four places — `grep -rln --exclude=CHANGELOG.md 'ignore-cr-at-eol' plugins/`, run from the repository root and less this file, is the recipe rather than a list to keep in step; the exclusion is not cosmetic, since the release record that states this recipe put the token into a changelog in the same commit — and two of the three that execute it diverge deliberately rather than by oversight:** `product-workflows:prd-ground` Phase 3, `product-workflows:brd-package` Part 4 and `product-workflows:grounding-verifier` step 1 each write the three commands out, and only `/prd-ground` takes step 3's `-z` path read, because it alone goes on to read a reported path — `/brd-package` prints the block for the customer's reviewer to run by hand, and `grounding-verifier` compares `HEAD` against a pinned commit and reads no path at all. The fourth executes nothing: `/prd-ground`'s own documentation page states the same three commands with the same flag, so it moves with them.
 
 **The failure this prevents:** without this check, every `file:line` this package produces is a
 citation into an unidentifiable snapshot — a reviewer, or the customer's own reviewer, cannot tell

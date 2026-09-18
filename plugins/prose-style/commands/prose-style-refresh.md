@@ -29,10 +29,7 @@ is whatever your `source.yml` declares, or whatever you pass on the command line
 
 ### 0. Resolve the baseline directory
 
-`${CLAUDE_PLUGIN_ROOT}` does **not** expand in a slash-command body. Invoke the
-`prose-style-rules` skill (Skill tool, `skill: "prose-style:prose-style-rules"`), which
-resolves it, and take from it the absolute path of the shipped baseline directory —
-the one holding `terminology.md`, `word-list.md`, and the other six reference files.
+Invoke the `prose-style-rules` skill (Skill tool, `skill: "prose-style:prose-style-rules"`), which states where the shipped baseline lives, and take from it the absolute path of the shipped baseline directory — the one holding `terminology.md`, `word-list.md`, and the other six reference files. The path is taken from the skill rather than restated here because the skill states it together with the rule that nothing writes into it, and this command — the one that writes overlays — is the one that has to honour that rule.
 
 Everything below calls that resolved path **`<baseline>`**. It is a read-only input to
 this command: the structure to map onto, and the one path that must never be written to.

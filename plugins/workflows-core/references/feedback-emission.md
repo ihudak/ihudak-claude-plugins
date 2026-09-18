@@ -102,18 +102,16 @@ capture, §5). Walk the ladder top-down and stop at the first tier that applies:
 2. **`$SPECS_PATH` writable but no PRD dir matched** (no `key`, or no
    matching spec dir) — two destinations, and the documentation branch is tried
    first:
-   - **The run is `/docs-init`, or `/docs-brand` on its standalone path**, and it resolved a documentation repository (design D19) → `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/feedback/<date>.md`, where `<docs-repo-slug>` is the one-segment name `specs-repo-git.md` §2.1 defines for that repo — cited, never re-derived here, because the staging classifier admits exactly one segment there. Filed, not unfiled: the docs repo is that family's unit of attribution exactly as the PRD directory is the pipeline's, so there is nothing to move it under later. **Per docs repo, not one flat bucket**, and the inner `dev-workflows/` names the *family*, not the emitting plugin. `specs-repo-git.md` §2.1's `<specs-root>/documentation/*/dev-workflows/**` shape stages it.
+   - **The run is `/docs-init`, `/docs-brand` on its standalone path, or `/document` in direct mode**, and it resolved the target it writes into (design D19) → `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/feedback/<date>.md`, where `<docs-repo-slug>` is the one-segment name `specs-repo-git.md` §2.1 defines for that repo — for direct mode, the write target its own Phase 0 step 3 resolved, which every direct-mode run holds from that step on — cited, never re-derived here, because the staging classifier admits exactly one segment there. Filed, not unfiled: the docs repo is that family's unit of attribution exactly as the PRD directory is the pipeline's, so there is nothing to move it under later. **Per docs repo, not one flat bucket**, and the inner `dev-workflows/` names the *family*, not the emitting plugin. `specs-repo-git.md` §2.1's `<specs-root>/documentation/*/dev-workflows/**` shape stages it.
    - **Otherwise** → `$SPECS_PATH/dev-workflows-feedback/<KEY-or-date>.md` at
      the specs-repo root. Still committed & aggregated; notice:
      `unfiled — move under the PRD dir if it belongs to one.`
 
-   **The branch names its two commands rather than testing "did the run resolve a
-   docs repo", and that narrowness is deliberate.** `/document` direct mode also
-   resolves a docs repo and resolves no PRD key, so it has exactly the problem
-   D19 describes — but it is a shipped command whose entries land unfiled at the
-   specs-repo root today and whose own body says so. Extending this branch to it
-   is a **deliberate follow-up, not an oversight**; until it is taken, that mode
-   keeps the destination it has always had.
+   **The branch names the runs it serves rather than testing "did the run resolve a
+   docs repo"** — the same three, for the same reasons, as `cost-emission.md` §8
+   gives. `/document` direct mode joined it after shipping outside it, when its
+   entries landed unfiled at the specs-repo root with no PRD to be moved under;
+   entries it filed there before then stay where they are.
 3. **`source = directory`** (a passed directory, no `$SPECS_PATH`) → beside that
    directory.
 4. **Nothing resolvable** → **report-only**: keep the feedback in the run's
@@ -187,7 +185,7 @@ signal the maintainer needs.
 Three named entry points. Every caller supplies `plugin_version` (§3) and lets
 this reference resolve the target (§2), dedupe/append (§3), and format the
 entry (§1). None of them commits; none writes into a docs/code repo or the
-current working directory. The artifacts are committed later, once, by the
+current working directory, where it is not the specs repository. The artifacts are committed later, once, by the
 run's terminal `commit-artifacts` step
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4).
 

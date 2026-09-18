@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Fires on every message submission. Matches the two commands this plugin ships
-# that inject context, /document and /release-notes — bare or prefixed with
-# this plugin's own namespace (e.g. /docs-workflows:document) — and routes
+# that inject context: /document bare or prefixed with this plugin's own
+# namespace (e.g. /docs-workflows:document), and /release-notes in the
+# QUALIFIED form only — see the note above the regexes for why. It routes
 # them:
 #   • /document                         → specs context iff the argument is an
 #                                         address (e.g. /document PRODUCT-1234);
@@ -17,14 +18,16 @@
 #
 # emit_specs_context surfaces $SPECS_PATH alongside $REPOS_PATH.
 #
-# Two sibling plugins each ship a hook of this name, one regex apiece:
-# dev-workflows covers /implement, /vuln and /upgrade; product-workflows covers
-# /epics. A UserPromptSubmit hook fires whichever plugin ships it, so all
-# three run on every prompt. Disjointness holds two ways at once: the three
-# bare-command alternations share no command name across the three plugins,
-# and the optional plugin-name prefix each regex now also accepts is a
-# literal, distinct string per plugin — so no single prompt can match more
-# than one of the three.
+# Two sibling plugins each ship a hook of this name, matching only their own
+# commands: dev-workflows covers /implement, /vuln and /upgrade;
+# product-workflows covers /epics. A UserPromptSubmit hook fires whichever
+# plugin ships it, so all three run on every prompt. Disjointness holds two
+# ways at once: the bare-command alternations share no command name across the
+# three plugins, and the plugin-name prefix each regex accepts is a literal,
+# distinct string per plugin — required rather than optional for the two
+# commands that collide with a Claude Code built-in (/release-notes here,
+# /upgrade in dev-workflows) — so no single prompt can match more than one of
+# the three.
 #
 # Exits immediately (near-zero overhead) if the message doesn't match.
 # Always exits 0 — must never block Claude.

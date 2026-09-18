@@ -19,7 +19,7 @@ Read-only discovery — each returns a structured digest rather than editing any
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
-| `diff-summarizer` | per routing | Read, Glob, Grep, Bash, Skill | Reads one repository's PR diff(s) and returns a documentation-focused summary; host-aware — `gh` CLI for GitHub when available, pure local git for Bitbucket and GitHub fallback. | `/document`, `/release-notes` |
+| `diff-summarizer` | per routing | Read, Glob, Grep, Bash, Skill | Reads one repository's recorded refs and returns a documentation-focused summary; pure local git, making no HTTPS / REST call to a forge and running no `gh` or `curl`. | `/document`, `/release-notes` |
 | `doc-location-finder` | per routing | Read, Glob, Grep | Finds the right place(s) in a docs repository to write new or extended documentation, returning a prioritised list of write targets with rationale; heuristic search, no content written. | `/document` |
 
 ## Writers

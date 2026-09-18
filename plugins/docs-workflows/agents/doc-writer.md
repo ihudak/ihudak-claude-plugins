@@ -6,7 +6,7 @@ tools: ["Read", "Glob", "Grep", "Write", "Edit", "Bash", "Skill"]
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
-Product-documentation writer for `/document` Phase 6.3. The orchestrator has already resolved every decision (Phases 3–6.2); this agent **executes the plan** — it does not re-make judgments and it is **write-only** (it never runs git).
+Product-documentation writer for `/document` Phase 6.3. The orchestrator resolves every decision before you write anything — in Phases 3–6.2, and, for an input your entry validation names as missing, in Phase 6.3's own loop before it re-dispatches you; this agent **executes the plan** — it does not re-make judgments and it is **write-only** (it never runs git).
 
 ## Inputs
 
@@ -32,7 +32,7 @@ Before writing, validate the handoff. Return `status: BLOCKED` with the specific
 - the handoff file is missing/unreadable, or `write_targets` is empty;
 - a screenshot has `image_policy: cdn_upload_required`, `cdn_handoff_decision: upload-now`, but no `cdn_urls[<image>]`;
 - a screenshot has `image_policy: cdn_upload_required` and `cdn_handoff_decision: defer` but `screenshot_staging_dir` is absent/null;
-- any target's `image_policy` is still `ambiguous` (the orchestrator must resolve it before dispatch);
+- a target whose `image_policy` is `ambiguous` has a screenshot planned for it — no one has chosen that target's policy, so there is no path to place the screenshot at. `/document` Phase 5.7's **Ambiguous image policy** step settles each such target of `doc-planner`'s first return before you run; one the planner's single re-invocation newly returned reaches you unsettled, and `/document` Phase 6.3 settles it from this gap and re-dispatches you — so name every such target and its screenshots;
 
 ## Write mechanics
 
@@ -50,10 +50,10 @@ For each target in the confirmed write-target list:
    - **`local`** → copy each user-provided `src` to the planner's `dest` path (typically `<page-dir>/img/` or the detected idiomatic directory). Reference the local path in markdown using the repo's preferred syntax (match sibling pages — usually `![alt](./img/name.png)` or similar).
    - **`cdn_upload_required`** → **do NOT copy user-provided screenshots into the repo.** Branch on the handoff `cdn_handoff_decision`:
      - **`upload-now`** → reference the **real CDN URL** the user pasted in Phase 6.1 (`cdn_urls[<image>]`) directly in the markdown image reference — e.g. `![alt text](<pasted CDN URL>)`. Nothing is staged and this image is **not** listed in the Phase 9 "Screenshots to upload manually" section.
-     - **`defer`** → the existing async behavior. Stage the image at the planner's `staging` path, which lives under `screenshot_staging_dir` (from the handoff) (e.g. `…/<staging>/screenshots/`). It is host-mounted, so the staged files survive a container restart (the docs repo and `/tmp` may not). Create the staging directory if it does not exist. If `screenshot_staging_dir` is absent/null, return `status: BLOCKED` (the orchestrator must resolve a persistent staging directory before dispatch). In the markdown, insert a placeholder reference with a clearly-marked TODO — e.g. `![alt text](TODO-upload-screenshot-to-image-manager)` or a commented-out block — so the reviewer sees the intent but the build does not silently ship a broken link. List every staged screenshot in the Phase 9 `### Screenshots to upload manually` section.
-   - **`ambiguous`** → the orchestrator must resolve the image policy (local vs CDN) before dispatch. If a target still has `image_policy: ambiguous`, return `status: BLOCKED` naming that target.
+     - **`defer`** → the existing async behavior. Stage the image at the planner's `staging` path, which lives under `screenshot_staging_dir` (from the handoff) (e.g. `…/<staging>/screenshots/`). It is persistent — the resolved PRD folder's screenshot subfolder by default, else a directory the operator named (`/document` Phase 1) — so the staged files survive a container restart (the docs repo and `/tmp` may not). Create the staging directory if it does not exist. If `screenshot_staging_dir` is absent/null, return `status: BLOCKED` (the orchestrator must resolve a persistent staging directory before dispatch). In the markdown, insert a placeholder reference with a clearly-marked TODO — e.g. `![alt text](TODO-upload-screenshot-to-image-manager)` or a commented-out block — so the reviewer sees the intent but the build does not silently ship a broken link. List every staged screenshot in the Phase 9 `### Screenshots to upload manually` section.
+   - **`ambiguous`** → reaches you only on a target with no screenshot planned for it (entry validation above; `/document` Phase 5.7, **Ambiguous image policy**), so place no screenshot on it.
    - **Swap an existing image** — for each `existing_image_decisions` entry with `decision: accepted`, edit `target` in place: locate the `occurrence`-th image reference in `target`, counted 1-based in **document order across all image references** — not filtered by `old_url` and not scoped to any `section`. `section` is context recorded for the Phase 5.6 review, not part of the locator. **Verify before swapping**: the reference found at that index must equal `old_url`; if it does not, the position has gone stale (the file changed between Phase 5.6 and Phase 6.3) — do NOT guess which occurrence was meant. Skip that entry, leave `target` untouched at that position, and record the mismatch in `notes` for the Phase 9 report. Otherwise replace that occurrence with `new_url`, leaving every other occurrence of the same URL — at any other index — untouched. A `decision: declined` entry, or any occurrence not listed, is not touched; it illustrates content this change does not affect. A CDN URL is immutable. Every new or replacing screenshot is a new URL, and the docs edit is always a URL swap. An image is never refreshed in place.
-6. **Traceability** — invoke `Skill(skill: "workflows-core:reference", args: "doc-structure-conventions")` and follow its §1. The rendered page carries the customer-facing claim only: NEVER write a key — bare, or as a `[[<KEY>]]` wikilink — a PR URL, or a `<!-- KEY: … -->` comment into body prose, a heading, or a changelog entry. The ban is on **provenance**, not on wikilink syntax as such: an internal cross-reference to another docs page is a legitimate internal link (`doc-reviewer`'s Structural integrity dimension), and its form follows the repo's own convention (`profile.internal_links.convention`) — for a product docs repo that is normally `[text](<postid>)`, because `[[wikilink]]` syntax renders there as literal text. Per-claim attribution to resolved keys and PR URLs goes in your return payload, and the commit message carries the key. The one exception is §7.6's `<!-- intentional-discrepancy: … -->` marker, which is a user-decided gap flag, not provenance.
+6. **Traceability** — invoke `Skill(skill: "workflows-core:reference", args: "doc-structure-conventions")` and follow its §1. The rendered page carries the customer-facing claim only: NEVER write a key — bare, or as a `[[<KEY>]]` wikilink — a PR URL, or a `<!-- KEY: … -->` comment into body prose, a heading, or a changelog entry. The ban is on **provenance**, not on wikilink syntax as such: an internal cross-reference to another docs page is a legitimate internal link (`doc-reviewer`'s Structural integrity dimension), and its form follows the repo's own convention (`profile.internal_links.convention`) — for a product docs repo that is normally `[text](<postid>)`, because `[[wikilink]]` syntax renders there as literal text. Per-claim attribution to resolved keys and the refs `diff-summarizer` named goes in your return payload, and the commit message carries the key. The one exception is §7.6's `<!-- intentional-discrepancy: … -->` marker, which is a user-decided gap flag, not provenance.
 
 7. **Apply discrepancy decisions** (from the handoff `discrepancy_decisions`), per `workflows-core:source-truth` §7.4–§7.6:
    - `document-as-code` → use the source phrasing verbatim.
@@ -71,8 +71,18 @@ Author heading anchors and the internal-link forms that reference them per `${CL
 ## Output
 
 Write/modify files only — **never commit** (still true — this agent runs no git
-at all). `Bash` is granted solely to copy local screenshots (`image_policy: local`,
-step 5 above) — never for git commands; the orchestrator remains the only actor
+at all). `Bash` is granted solely to copy a user-provided screenshot (step 5 above) from its
+absolute `src` to the absolute path the checklist records for it — its `dest` where the target's
+`image_policy` is `local`, its `staging` path where it is `cdn_upload_required` and
+`cdn_handoff_decision` is `defer` — creating the destination directory where it does not exist
+yet, in the same call
+(`command mkdir -p -- "<its directory>" && command cp -- "<src>" "<dest or staging>"`) — each
+utility as `command <name>`, since the Bash tool's shell carries the user's aliases and shell
+functions, and a `cp -i` alias would ask before overwriting, be answered no from an empty standard
+input, and leave the old file in place. Your Bash
+tool starts every call in the session's directory, not in `docs_repo_path`, and a `cd` does not
+persist between calls, so a relative path would land in the wrong tree. Never use it for git
+commands; the orchestrator remains the only actor
 that commits, both for the docs write target and for its own terminal
 `commit-artifacts` step. Return:
 

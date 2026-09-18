@@ -24,13 +24,13 @@ Both variables below are optional. Unset is the normal case for most readers —
 
 ### `UI_GUIDELINES_PATH`
 
-Your organization's own UI rules, as a directory of `.md` files. The bundled guidelines are a vendor-neutral baseline distilled from public standards (Apple HIG, Material Design 3, Fluent 2, WCAG 2.2, the ARIA APG); rules specific to your design system have no public equivalent and should not ship in a public plugin, so `/guideline-reviewer` layers this directory over the baseline instead. Unset is the normal case and degrades silently to the baseline alone.
+Your organization's own UI rules, as a **flat** directory of `.md` files — files at its top level, matched to the baseline by name. The bundled guidelines are a vendor-neutral baseline distilled from public standards (Apple HIG, Material Design 3, Fluent 2, WCAG 2.2, the ARIA APG); rules specific to your design system have no public equivalent and should not ship in a public plugin, so `/guideline-reviewer` layers this directory over the baseline instead. Unset is the normal case and degrades silently to the baseline alone.
 
 ### `API_GUIDELINES_PATH`
 
-The same idea for `/api-guideline-reviewer` — your own scope grammar, header spellings, or error-envelope contract, layered over the bundled public-source baseline. This governs the *prose* rules; the executable half is separate, where your repo's own `.spectral.yaml` takes precedence over the bundled Spectral ruleset. Unset degrades silently.
+The same idea for `/api-guideline-reviewer` — your own scope grammar, header spellings, or error-envelope contract, layered over the bundled public-source baseline. Flat here too, even though the subtree it overlays is nested: put the files at the top level. This governs the *prose* rules; the executable half is separate, where your repo's own `.spectral.yaml`, `.spectral.yml` or `.spectral.json` takes precedence over the bundled Spectral ruleset. Unset degrades silently.
 
-See [Environment](reference/environment.md) for the exact resolution order and what an unreadable path does.
+See [Environment](reference/environment.md) for the exact resolution order, the layout each variable expects, and what an unreadable path — or a readable one holding no `.md` file — does.
 
 ## Run it
 

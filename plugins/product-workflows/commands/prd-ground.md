@@ -1,6 +1,6 @@
 ---
 name: prd-ground
-description: Grounding workflow serving both routes into a PRD, its route detected from the resolved folder and never declared — the BRD-to-PRD route's PA phase, run once per slice `/brd-split` carves and again when a re-cut gives a slice a new row; and, optionally and ungated, once after `/create-prd` on the idea route. Pins every mounted repository to a verified commit and grounds every claim in the resolved folder's own claim list — a BRD slice's [BR#n] rows on the BRD route, a PRD's [AC#n]/[FR#n] rows (plus a [US#n] whose story carries neither) on the idea route, excluding [UC#n]/[SM#n]/[SMC#n] on either — against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and, on the BRD route, assigns each finding a current/will-change horizon against declared prerequisite BRDs (--depends-on; refused on the idea route, which has no decision register to freeze one against). Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (off with --no-docs, and under --no-code) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split on the BRD route; on the idea route, /create-ard and /specify, with /update-prd named first wherever a claim came back SUPPORTED.
+description: Grounding workflow serving both routes into a PRD, its route detected from the resolved folder and never declared — the BRD-to-PRD route's PA phase, run once per slice `/brd-split` carves and again when a re-cut gives a slice a new row; and, optionally and ungated, once after `/create-prd` on the idea route. Pins every mounted repository to a verified commit and grounds every claim in the resolved folder's own claim list — a BRD slice's [BR#n] rows on the BRD route, a PRD's [AC#n]/[FR#n] rows (plus a [US#n] whose story carries neither) on the idea route, excluding [UC#n]/[SM#n]/[SMC#n] on either — against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and, on the BRD route, assigns each finding a current/will-change horizon against declared prerequisite BRDs (--depends-on; refused on the idea route, which has no decision register to freeze one against). Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (off with --no-docs, and under --no-code) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split on the BRD route; on the idea route, /create-ard and /specify, with /update-prd named first wherever a requirement claim came back CONFIRMED.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -516,8 +516,10 @@ git -C "<repo>" status --porcelain
 3. For every entry `status --porcelain` reports, compare its working-tree line count against
    `git show <sha>:<path> | wc -l` when the path exists at the pinned commit (an untracked path
    that exists nowhere at the pin has nothing to compare against and is not itself a dirty-pin
-   signal). A line-count mismatch is a non-empty content diff — stop with the same message above,
-   naming the porcelain-flagged path.
+   signal). Read that path from `git -C "<repo>" status --porcelain -z`, never from the quoting
+   form above — `workflows-core:grounding-format` §4 step 3 states why, and a quoted path resolves
+   to no file, so the comparison would be skipped in silence. A line-count mismatch is a non-empty
+   content diff — stop with the same message above, naming the porcelain-flagged path.
 
 **This gate is the orchestrator's, never delegated.** `code-grounder` and `grounding-verifier`
 each re-verify `HEAD` against the commit *they* are handed (their own step 1/2), but that check
@@ -895,8 +897,8 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
   getting the contract wrong is a plugin gap, unlike Phase 0's environment halts.
 - **`REPO_MISSING` / `FRAME_SET_MISSING` / `NO_INDEX` / `STALE_INDEX`** — the source this finding rests on is gone
   or unusable (a repository unmounted mid-run, a frame set removed or exported without an index
-  since it was ground). Stop, naming the finding and the path the agent reported — and, per the
-  four-part stop contract, the command that resolves it: on `NO_INDEX` that is
+  since it was ground). Stop, naming the finding and the path the agent reported — and the
+  command that resolves it: on `NO_INDEX` that is
   `/workflows-core:frames <this run's KEY>`, then re-run this command. **On `STALE_INDEX` it is
   not** — the index is there and its descriptions are intact; the frames are gone. Re-running
   `/frames` on an empty directory writes nothing (`workflows-core:grounding-format` §6.2 step 6 forbids it), so
@@ -1157,7 +1159,7 @@ rather than as a new file, since it is not in this command's produced-artifact s
 
 ## Phase 9 — Handoff
 
-Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — the **gated** variant (§4.0), **in every mode including `--no-code`**:
+Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — the **gated — stopping** variant (§4.1 bullet 1), **in every mode including `--no-code`**:
 
 ```
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
@@ -1203,17 +1205,38 @@ only); emit its §4.1 outcome line in the final report.
 
 **On `route: idea`, the offer is `/product-workflows:create-ard` and `/product-workflows:specify`
 — the two consumers of what this run's Phase 0 gated and what its own findings can now seed —
-with `/product-workflows:update-prd` named first where any claim this run wrote came back
-`SUPPORTED`.** Neither `/create-ard` nor `/specify` is required the way `/brd-split`'s allocation is
+with `/product-workflows:update-prd` named first where any requirement claim this run wrote came
+back `CONFIRMED`.** Neither `/create-ard` nor `/specify` is required the way `/brd-split`'s allocation is
 below, and neither carries a `(Recommended)` marker over the other where both are simply offered
 side by side: a run has as much reason to specify first as to architect first, and marking one would
 assert an order this design does not take a position on.
 
-**Where any claim came back `SUPPORTED`, name `/product-workflows:update-prd <KEY>` first, marked
-`(Recommended)`.** A PRD asking for something the code already does is worth revising before an
+**Where any requirement claim came back `CONFIRMED`, name `/product-workflows:update-prd <KEY>`
+first, marked `(Recommended)`.** A PRD asking for something the code already does is worth revising before an
 architecture or a specification is authored against a premise this run's own findings have already
-settled — Phase 8i's report carried the count; this is where it earns a next step instead of sitting
-as a fact nobody acted on (this command never edits `prd.md` itself, design §7).
+settled — and of `workflows-core:grounding-format` §3's closed six, `CONFIRMED` is the one that says
+that: *the premise holds, with evidence*. **No other verdict of the six says it** — `AMENDED` says
+partly true, `REWRITTEN` materially wrong, `FALSE-FRIEND` a decoy, `NOT-PROVABLE` unsettleable from
+the repository, `SUPERSEDED` a finding a later one replaced — and the two §3 names for an absent
+mechanism, `NOT-PROVABLE` and `REWRITTEN`, are what this route's greenfield case lands on, the case
+the `## Final report` section below already has its own `route: idea` headline for, rather than a
+reason to revise anything. **`<N>` counts distinct requirement claims, not findings.** Read the
+requirement id off each `CONFIRMED` finding's own `claim` field — the field
+`workflows-core:grounding-format` §2 defines, which both grounders' own output contracts fill with
+the requirement id as given, ahead of the text — and count the **distinct ids**, so one claim confirmed
+in two repositories, or by a `[CG#n]` and a `[DG#n]` both, counts once. **A `CONFIRMED` finding whose
+`claim` names no requirement id contributes none**, which is where Phase 3's baseline `[CG#n]` falls
+out: its `claim` is not a requirement premise, so nothing resolves it back to a requirement row —
+`workflows-core:grounding-format` §4.1 rule 1, the same property on which that section already
+excludes baselines from the unconsumed-item report. A class-1 `[DG#n]` recorded `none — frame-only`
+falls out the same way. **That exclusion is what keeps this branch off the greenfield run the
+sentence above excludes by name:** a baseline finding is `CONFIRMED` by construction and Phase 3
+assigns one per repository that passes its gate, so counting them would hold `<N>` at one or more on
+an ordinary run and leave the no-claim array below unreachable. **Neither Phase 9's `body_facts` nor
+the Final report supplies this number** — both state *finding* counts by verdict, which count the
+baselines and count one requirement claim once per finding that answered it — so count it here, from
+the findings Phase 8 wrote. This is where it earns a next step instead of sitting as a fact
+nobody acted on (this command never edits `prd.md` itself, design §7).
 
 **`/create-ard <KEY>` and `/specify <KEY>` each carry `<merge-clause>`** — both re-gate the same
 `prd.md` this run's own Phase 0 already required on main (step 6i), so an operator who runs either
@@ -1227,35 +1250,43 @@ command"), so there is no gate for this run's handoff to make anyone wait on. Na
 does not exist would be the placeholder's own named failure — resolving it truthfully, not
 unconditionally.
 
-Neither array below needs `workflows-core:next-phase-offer`'s overflow rule for a fifth option: even
-the `SUPPORTED` case tops out at four, the harness's own cap, so the array carries the whole menu
+Neither `route: idea` array below needs `workflows-core:next-phase-offer`'s overflow rule for a fifth option: even
+the `CONFIRMED` case tops out at four, the harness's own cap, so the array carries the whole menu
 and no route is demoted into prose.
 
-No claim `SUPPORTED`:
+No requirement claim `CONFIRMED`:
 ```
 choices: ["Specify it — /product-workflows:specify <KEY> (PE) <merge-clause>", "Architect it — /product-workflows:create-ard <KEY> (PA, optional) <merge-clause>", "Stop here"]
 ```
 
-At least one claim `SUPPORTED`:
+At least one requirement claim `CONFIRMED`:
 ```
-choices: ["Revise the PRD first — /product-workflows:update-prd <KEY> (PM) (Recommended — <N> claim(s) came back SUPPORTED)", "Specify it anyway — /product-workflows:specify <KEY> (PE) <merge-clause>", "Architect it anyway — /product-workflows:create-ard <KEY> (PA, optional) <merge-clause>", "Stop here"]
+choices: ["Revise the PRD first — /product-workflows:update-prd <KEY> (PM) (Recommended — <N> requirement claim(s) came back CONFIRMED)", "Specify it anyway — /product-workflows:specify <KEY> (PE) <merge-clause>", "Architect it anyway — /product-workflows:create-ard <KEY> (PA, optional) <merge-clause>", "Stop here"]
 ```
 
 **On `route: brd`, this run always stands on a slice** — by the time Phase 10 runs, step 6's gates have already
 guaranteed `coverage-ledger.md` and `brd/brd-inventory.md` are both on main, which is positive
 evidence 5a's legacy-fallback test would have refused had this BRD been a root — so there is no
-level branch to take here. `/product-workflows:brd-split <BRD-KEY>` is always offered, unless the
-test below withholds it.
+level branch to take here. **Which of the two arrays below is presented** is settled by the test
+that follows.
 
-**That offer still carries one qualifying test, and this run holds the answer to it.** `/brd-split`'s
-Phase 0 step 7b stops on any `design/` subdirectory this run recorded `skipped: no index`, and on any
-it could not cover. So where Phase 8's `## Frame sets covered` section carries such a row, **do not
-offer `/brd-split` as Recommended** — it would refuse the key just ground. Offer the repair the stop
-itself names, in the same position: `/workflows-core:frames <BRD-KEY>` to write the missing index,
-then a `--no-code` re-run. The offer's wording is deliberately "its grounding is complete and
-verified" rather than the older "now that every finding carries a verifier outcome": the outcome
-count is one of four tests that command applies, and naming one of them as though it were the
-precondition is how this offer came to promise a pass it cannot deliver.
+**That offer carries one qualifying test, and this run holds the answer to it.** `/brd-split`'s
+Phase 0 step 7, test b stops on any `design/` subdirectory this run recorded `skipped: no index`, and on any
+it could not cover. So where Phase 8's `## Frame sets covered` section carries such a row, present
+the **second** array below in place of the first: `/brd-split` would refuse the key just ground, so
+the array recommending it is not the array to show. The second offers the repair that stop itself
+names — `/workflows-core:frames <BRD-KEY>` to write the missing index, after which a `--no-code`
+re-run of this command reconciles the set — and names `/brd-split` nowhere in its options, since
+neither half of that repair has run yet; the prose above the arrays still says where it sits in the
+route, which is what `workflows-core:next-phase-offer`'s universal minimum asks of a route the array
+does not carry. **Selecting between two written arrays is how this branch is taken, never by editing
+one**: `workflows-core:escalation-rules`' *Choice lists are presented verbatim* puts an array's
+options, their order, their wording and the `(Recommended)` marker outside the orchestrator's
+authority, and this phase's `route: idea` branch above already selects between two arrays the same
+way. **Neither array's marker names a precondition of `/brd-split`'s own gate.** That command applies
+four tests at step 7, and a marker naming one of them — an earlier wording of this offer read
+"once every finding carries a verifier outcome" — promises a pass the offer cannot deliver; each
+marker below states what the run it recommends will *do* instead.
 
 `/product-workflows:brd-split <BRD-KEY>` allocates this slice's own ledger, and it is the last step
 that has to run before this BRD's requirements all carry a recorded fate — **it is not the end
@@ -1263,15 +1294,15 @@ of the route**. `/product-workflows:brd-interview <BRD-KEY>` follows it, and `/b
 is what offers it, so it is not offered here: putting it in this list would name a step out of
 order, since it refuses a ledger that still holds an unallocated row. `/brd-split` will not start
 until this phase's findings are on the specs repo's default branch — its own Phase 0 gates
-`grounding/code-grounding.md` on `origin/<default>`; **which words state that wait are
-`<merge-clause>`'s**, resolved from this run's own `Phase handoff:` outcome line per
+`grounding/code-grounding.md` on `origin/<default>`; **which words state that wait, in the array that
+offers it, are `<merge-clause>`'s**, resolved from this run's own `Phase handoff:` outcome line per
 `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`, since a declined handoff opened no pull
 request to wait on — and it carries its own role and
 cost-attribution row (`docs/roles-and-phases.md`). Guidance only, per
 `workflows-core:next-phase-offer` — names only that `/brd-split` exists and
 where it sits in the route, never its behaviour, which `commands/brd-split.md` owns.
 
-**The offer says which of `/brd-split`'s two modes will run**, so nobody
+**The array that offers it says which of `/brd-split`'s two modes will run**, so nobody
 expects a fan-out that cannot happen: on a slice it runs `allocate-only`
 (`commands/brd-split.md` Phase 0 step 5) — it creates no child, because nesting is
 capped at one level (`workflows-core:addressing` §6), and walks this
@@ -1279,10 +1310,16 @@ slice's ledger to a recorded fate through its own four resolutions, `covered-by`
 one that command's walk does not offer on a slice. Allocating is what
 makes this slice PRD-eligible
 (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5), so it is a real next step, not a
-formality:
+formality.
 
+No frame set left unreconciled — every one on disk recorded `ground` or `skipped: --no-design`, or `design/` holds none:
 ```
 choices: ["Allocate this slice's ledger — /product-workflows:brd-split <BRD-KEY> (Recommended — allocate-only, so no child is created) <merge-clause>", "Ground another declared prerequisite first", "Stop here"]
+```
+
+At least one frame set recorded `skipped: no index`, or on disk and missing from Phase 8's census:
+```
+choices: ["Write the missing frame-set index — /workflows-core:frames <BRD-KEY> (Recommended — nothing can reconcile a frame set that has no index; re-ground it here with --no-code afterwards)", "Ground another declared prerequisite first", "Stop here"]
 ```
 
 ### Context hygiene
@@ -1331,13 +1368,13 @@ halts, never a plugin capability gap. `PRD_GROUND_DIRTY_TREE`, `PRD_GROUND_NEEDS
 5. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. Stages
    ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
    `<BRD-KEY> Add dev-workflows session artifacts (/prd-ground)` with no `Co-Authored-By` trailer,
-   and pushes to the branch Phase 9's handoff created. NEVER touches a code repo, or the current working directory; NEVER force-pushes; NEVER fails the run; skips entirely when the run
+   and pushes to the branch Phase 9's handoff created. NEVER touches a code repo, or the current working directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the run; skips entirely when the run
    carries `specs_git: blocked`, re-emitting that notice. Hold its §6 outcome line for the final
    report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable
 is offered only in Phase 9), and NEVER writes into a code repo, or the current working
-directory; no user name is ever written.
+directory, where it is not the specs repository; no user name is ever written.
 
 ---
 

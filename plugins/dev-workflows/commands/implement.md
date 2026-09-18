@@ -165,7 +165,7 @@ model_routing:
   classification: <SIMPLE | MODERATE | SIGNIFICANT | HIGH-RISK>
   reason: <one-line>
   current_model: <the model this orchestrator is running under>   # = the inline implementation coding
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # the folder read, code-scanner, Phase 2A exploration, test-writer, test-baseliner, review-fixer
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # the folder read, code-scanner, Phase 2A exploration, test-writer, test-baseliner, review-fixer, the Phase 4 maintenance agents
   planning_model: <§2 Opus chain>   # risk-planner (Phase 2B; SIGNIFICANT/HIGH-RISK only; frontmatter-pinned, recorded, no override)
   review_model:  <§2 Opus chain>    # code-review (Phase 3B; frontmatter-pinned, recorded, no override)
   implementation_model: <= current_model>   # coding done inline by the orchestrator
@@ -212,10 +212,10 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 
    Read each folder in turn. Collect the themes; there are no PR references until `implementation.md` exists.
 
-   When `focus_key` is set, scope the collected result to the focus Epic's subtree:
-   keep the focus Epic plus the items linked beneath it (its Stories / Sub-tasks) and
-   drop sibling Epics' subtrees before folding themes/PRs into the plan. the folder read
-   itself is not modified — the scoping is done here, mirroring `/specify`.
+   When `focus_key` is set, scope the collected result to that `EPIC-` folder and what it holds,
+   and drop every sibling `EPIC-` folder before folding themes into the plan. There is no Story /
+   Sub-task level to keep: the `EPIC-` folders on disk are the hierarchy. The folder read
+   itself is not modified — the scoping is done here.
 
 2. **Read spec/design folders inline.** Read each spec-folder `.md` and fold its content into the themes and primary description.
 
@@ -247,7 +247,7 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 
    **Round 2 — narrow and seeded (§8.5).** Invoke `Skill(skill: "workflows-core:reference", args: "model-routing/classification")` and apply its §8.5. A theme is **inconclusive** when its round-1 `classification` is `partial`, `absent`, or `error`, or when **two or more** scanners' per-theme `capability_map[].gap_summary` texts point at each other's repo in a cycle, or at a component/subsystem that no scanned repo covers — the shape that yields confident answers which together say nothing. For every inconclusive theme that round 1 left at least one evidence anchor for, dispatch `code-scanner` again on `detection_model` with `capability_themes` holding exactly **one** question — the single thing round 1 failed to settle, not the broad theme — and `search_hints.paths`/`.symbols`/`.keywords` seeded from that round's verified `evidence[].path` and `.symbols`; where an evidence entry carries `lines`, name the anchor as `<path>:<line>` in the `context` prose. Cap **4 dispatches, one round only** — there is no round 3. This matters more here than where §8.5 was first adopted: `/idea`'s summary feeds a grill with a human in it, while this one feeds a planner whose output becomes code. **A theme round 1 left with no evidence anchor never enters round 2** — it stays inconclusive with no round-2 attempt possible, and that absence of an attempt is not itself a resolution.
 
-4. **Synthesize.** Combine the folder read output, all `code-scanner` reports, and the spec into a single **multi-source codebase summary** (per-repo: relevant files, existing capabilities, gaps; plus the cross-repo picture and the PRD themes). This summary is the codebase context for Phase 2B — do **not** also run the single Explore subagent. Write this summary to a temp file (`mktemp -t dw-impl-summary-XXXX.md` — **never inside a repo working tree**, so a captured `git diff` never picks it up) and record its absolute path as `summary_file`; Phase 2B receives this path, not the pasted summary.
+4. **Synthesize.** Combine the folder read output, all `code-scanner` reports, and the spec into a single **multi-source codebase summary** (per-repo: relevant files, existing capabilities, gaps; plus the cross-repo picture and the PRD themes). This summary is the codebase context for Phase 2B — do **not** also run the single Explore subagent. Write this summary to a temp file (`command mktemp -t dw-impl-summary-XXXXXX` — **never inside a repo working tree**, so a captured `git diff` never picks it up) and record its absolute path as `summary_file`; Phase 2B receives this path, not the pasted summary.
 
    **Name what the scan did not settle.** The summary carries a `## Unresolved` section listing **every theme still inconclusive at the end of Phase 1.7** — this explicitly includes a theme that never entered round 2 because round 1 left no anchor to seed from, a theme classified `error`, and a mutual-deferral theme, whether or not either scanner logged an anchor. None of these becomes resolved merely by having had no round-2 attempt. Per `workflows-core:model-routing/classification` §8.5 Bounds, name **why** each theme is unresolved — mutual deferral / scan error / partial-or-absent with no anchor — and give the repos-and-conclusions detail only where scanners actually disagreed. An inconclusive theme is **never** folded in as an ordinary gap: a gap asserts the capability is absent with no deferral outside the scanned set, an unresolved theme asserts only that the scan could not tell, and once flattened the two are indistinguishable to the planner. Omit the section entirely when nothing is unresolved.
 
@@ -292,7 +292,7 @@ Then ask:
 choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 ```
 
-- **Approve** → write the approved plan to a temp file (`mktemp -t dw-impl-plan-XXXX.md`, never inside a repo tree) and record its absolute path as `plan_file`; proceed to Phase 3A
+- **Approve** → write the approved plan to a temp file (`command mktemp -t dw-impl-plan-XXXXXX`, never inside a repo tree) and record its absolute path as `plan_file`; proceed to Phase 3A
 - **Revise** → ask what to change, update, re-show, re-ask
 - **Cancel** → stop and summarize what was planned
 
@@ -300,7 +300,7 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 
 ## Phase 2B — Opus-planned (SIGNIFICANT / HIGH-RISK)
 
-**Codebase exploration** — If Phase 1.7 ran (`fan_out = true`), use its **multi-source codebase summary** (already written to `summary_file` in Phase 1.7 step 4) as the codebase context and skip the single Explore subagent. Otherwise, run the same exploration subagent call as Phase 2A (same prompt, same fallback rule), then write the Explore agent's returned output to a temp file (`mktemp -t dw-impl-summary-XXXX.md`, never inside a repo tree) recorded as `summary_file`. Either way, `summary_file` holds an absolute path before the planner is dispatched.
+**Codebase exploration** — If Phase 1.7 ran (`fan_out = true`), use its **multi-source codebase summary** (already written to `summary_file` in Phase 1.7 step 4) as the codebase context and skip the single Explore subagent. Otherwise, run the same exploration subagent call as Phase 2A (same prompt, same fallback rule), then write the Explore agent's returned output to a temp file (`command mktemp -t dw-impl-summary-XXXXXX`, never inside a repo tree) recorded as `summary_file`. Either way, `summary_file` holds an absolute path before the planner is dispatched.
 
 Once the file map is returned, delegate planning to Opus.
 
@@ -347,7 +347,7 @@ choices: ["Help construct a repro (you'll be prompted for what to try)", "Procee
 choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 ```
 
-- **Approve** → write the approved plan to a temp file (`mktemp -t dw-impl-plan-XXXX.md`, never inside a repo tree) and record its absolute path as `plan_file`; proceed to Phase 3B
+- **Approve** → write the approved plan to a temp file (`command mktemp -t dw-impl-plan-XXXXXX`, never inside a repo tree) and record its absolute path as `plan_file`; proceed to Phase 3B
 - **Revise** → ask what to change, then re-invoke risk-planner with the **complete** brief plus the additional constraint merged in (never send just a delta — the planner refuses to plan without a full brief). Re-show, re-ask.
 - **Cancel** → stop and summarize
 
@@ -363,8 +363,8 @@ Before writing any file:
      ```
      choices: ["Stash changes and continue (Recommended)", "Proceed anyway — pre-existing changes will appear in the diff and review outputs", "Cancel"]
      ```
-   - **Stash**: run `git stash push -m "pre-impl stash"`, then continue. Record the resulting stash as `stash_ref` — Phase 4.6 names it in its outcome line and never drops it (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-out 2).
-   - **Proceed**: note in the Phase 5 report that the working tree was dirty at implementation start, **and record the `git status --porcelain --untracked-files=all` paths as `pre_existing_dirty`**. Phase 4.6 needs them to avoid sweeping somebody else's uncommitted work into this run's commit (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-out 1); a run that does not record them here cannot honour that carve-out later.
+   - **Stash**: run `git stash push -m "pre-impl stash"`, then continue. Record the resulting stash as `stash_ref` — Phase 4.6 names it in its outcome line and never drops it (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-out 2). **Any stop from here on that does not reach Phase 4.6 names it in the stop message instead**, because no exit of this run may end without saying where the user's stashed work went — this phase's own step-4 Cancel and switch refusal, Pre-Phase 3.5's Cancel (the one post-branch exit Phase 4.6 excludes), and every stop between.
+   - **Proceed**: note in the Phase 5 report that the working tree was dirty at implementation start, **and record the `git status --porcelain -z --untracked-files=all` paths as `pre_existing_dirty`**. Phase 4.6 needs them to avoid sweeping somebody else's uncommitted work into this run's commit (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-out 1); a run that does not record them here cannot honour that carve-out later. **`-z` is what makes that subtraction work** — §2.2 enumerates in the same form, and without it a path carrying a space or a non-ASCII byte is recorded quoted here and read raw there, so it subtracts against nothing.
    - **Cancel**: stop and summarize what was planned.
 
    A clean tree records `pre_existing_dirty: null` and `stash_ref: null` — the state Phase 4.6's precondition assumes.
@@ -373,10 +373,18 @@ Before writing any file:
 
 3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`. When a `key` is resolved and the chosen shape has no separate issue-key segment, prefix it: `<KEY>-<slug>`.
 
-4. **Check HEAD context** — if HEAD is NOT on the default branch (`main` / `master` / `develop`), check for ahead commits: `git log origin/HEAD..HEAD --oneline 2>/dev/null`. If output is non-empty (branch has commits ahead), ask:
+4. **Check HEAD context** — resolve `<base>`, the default branch's name, by `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.8, with `<repo>` the repository this phase branches. It is the ladder Phase 4.6 resolves the pull request's base with, so the base it offers to branch from is the base its pull request targets. Never judge by a list of names: in a repository whose default is `main`, a local `develop` is a branch like any other, and the commits it carries are what this step asks about.
+   - **§2.8's ladder is exhausted** — no `origin`, or an `origin/HEAD` that is unset or names a ref that does not exist, and none of the branches it probes → there is no base to measure against or to branch from, so ask nothing: print `Base branch unresolved (<reason>) — branching from the current position.`, carry that line into the Phase 5 report's `### Branch` section, and go to step 5.
+   - **HEAD is on `<base>`** — `git branch --show-current` prints `<base>` → nothing to check; go to step 5.
+   - **HEAD is not on `<base>`** — it prints another name, or nothing on a detached HEAD → list the commits HEAD carries that the base does not: `git log origin/<base>..HEAD --oneline`. §2.8 yields a `<base>` only where `origin/<base>` exists, so this read has a ref to name. Non-empty output → ask the question below. Empty output with exit 0 → HEAD carries nothing the base lacks; go to step 5. **A non-zero exit is a failed read, never "no ahead commits"** — keep its error rather than redirecting it away, show it, and ask the question below anyway, saying beside it that the ahead commits could not be read.
+
+   The question names `<base>` beside it and lists the commits the read returned, or its error:
    ```
    choices: ["Branch from current position — continue on this work (Recommended)", "Branch from default branch — fresh start", "Cancel"]
    ```
+   - **Branch from current position** → step 5 cuts the branch from HEAD.
+   - **Branch from default branch** → `git switch <base>` and nothing more — no fetch and no pull, as at `/vuln` Step 3's switch onto the same base. It takes the name, which `git switch` accepts where it refuses an `origin/<name>` ref, and it creates a local `<base>` from `origin/<base>` where none exists. Step 5 then cuts from `<base>`. Where git refuses the switch — an uncommitted change it would overwrite — report its error and the paths it named, and stop as Cancel does: no branch exists yet, and step 5 must not cut one from the HEAD the user just declined.
+   - **Cancel** → stop and summarize what was planned.
 
 5. **Create and checkout** — `git checkout -b <prefix>/<key>-<slug>` on a keyed run, `<prefix>/<slug>` in direct mode. If that name already exists, append the first 7 chars of HEAD's SHA: `<prefix>/<slug>-<short-sha>`.
 
@@ -394,7 +402,23 @@ Invoke the `test-baseliner` agent in capture mode:
   > Mode: capture
   > Project root: [absolute path of the current working directory]"
 
-Store the returned `## Test Baseline` block verbatim — it will be passed to `test-baseliner` again in verify mode at Phase 3.5 and to `test-writer` as the baseline snapshot. If `Framework: not detected`, note it in session memory but continue — Phase 3.5 will surface the missing-framework case to the user explicitly.
+Store the returned `## Test Baseline` block verbatim — it will be passed to `test-baseliner` again in verify mode at Phase 3.5 and to `test-writer` as the baseline snapshot. On a repository with more than one test suite the agent baselines **all** of them and the block's `### Suites` section names each; store it whole, unsummarized, since the verify call pairs against those rows.
+
+**Act on the block's `Status` here, before a single file is edited.** This is the last point in the run where the answer can still be honest: a capture is a baseline because nothing has changed yet, and a capture taken after the edits is just a test run.
+
+- `OK` / `NO_TESTS` → continue.
+- `PARTIAL` → continue, and record every suite `### Suites` does not mark `OK` or `NO_TESTS`, with the command that failed, in the Phase 5 `### Deferred items` section — this run's verification will not cover them and the Final Report says so. A suite whose runner is not installed is not a reason to stop work on the suites that do run. **Surface the block's `### Notes` lines here as well, and carry what they say about a deferred suite into that suite's entry.** A watch carve-out the capture declined lands the run in this arm wherever its own suite produced no counts and some other suite did — the `RUN_FAILED` arm below is where it lands when none did — and a suite left unmarked because its watcher ran to the per-suite bound is not a suite whose runner failed, though the `Status` and the `### Suites` rows alone cannot tell the two apart (`dev-workflows:test-baseliner` capture step 1). Naming the reason is what keeps the Final Report from reporting a runner failure this run never saw.
+- `COMMAND_NOT_FOUND` (`Framework: not detected`) or `RUN_FAILED` → nothing was captured at all. **Surface the block's `### Notes` lines and its `### Suites` rows before asking** — the Phase 3.5 arm handling these same two values already does that for `### Suites`, and `### Notes` is where capture reports a watch carve-out it could not fire: which script it was, and what in it could not be resolved or rebuilt (`dev-workflows:test-baseliner` capture step 1). From the `Status` and the rows alone that state is indistinguishable from a suite that genuinely failed, and it is the state in which *Specify test command to use* has an answer to give — the runner's own single-run command, which the note has just named the script for. The section reads `none` where there is nothing to say, so on every other cause this costs one line. Then ask the user:
+  ```
+  choices: ["Specify test command to use", "Skip tests for this run (documented in the Phase 5 report's Deferred items)", "Cancel"]
+  ```
+  - **Specify test command** → take free-text, record it as `test_command_hint`, and re-dispatch the capture above **immediately**, adding the line `command_hint: [the answer]` to the prompt. Act on the returned block's `Status` by this same list. Ask at most twice in a run; after that record `test_decision: skip` with the last failure as its reason, **marked as the run's own record rather than the operator's answer**. The two provenances are not the same decision and Phase 4.6 reads which one this is: here the operator asked twice for a working command and never agreed to skip, so the run finishes `clean_finish: false` (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.9), where the *"Skip tests"* answer below finishes `true`.
+  - **Skip tests** → take free-text rationale; record `test_decision: skip` with that rationale in the Phase 5 `### Deferred items` section.
+  - **Cancel** → stop and summarize.
+
+**Every `### Notes` line the block opens with `CAVEAT: ` is surfaced here, and recorded in the Phase 5 `### Deferred items` section where the run reaches one, whatever the `Status` was** — `OK` and `NO_TESTS` included, which is the one arm above that carries no obligation of its own and is an arm three of the five marked kinds can arrive on (`dev-workflows:test-baseliner` capture step 5). A marked line says the baseline is not what its own numbers claim: a qualifying suite nothing ran because the candidate containing it does not recurse over it, counts a `Make` indirection may have summed twice, or an identifier list a `Make` fold leaves unattributed to what printed it — none of which the `Status` or the `### Suites` rows state. **The mark is the agent's and is not re-judged here**, and it is also the whole of the test: an unmarked note records where a command ran, and surfacing those on every run is how an operator learns to skip the section. The `PARTIAL` and `RUN_FAILED` / `COMMAND_NOT_FOUND` arms above still surface the **whole** section, marked lines included — more than this rule asks, and not narrowed by it.
+
+**Where `test_command_hint` was recorded, every later `test-baseliner` dispatch in this run carries it** — verify compares like with like only when both calls run the same set of suites.
 
 ---
 
@@ -417,7 +441,7 @@ Store the returned `## Test Baseline` block verbatim — it will be passed to `t
 
 Runs after Phase 3A step 5 completes (all code changes written), before the outcome-verification step.
 
-1. **Invoke `test-writer` agent.** First, at the orchestrator, capture the diff for the dispatch: write `git add -N . && git diff` (so new files are included) to a temp file (`mktemp -t dw-impl-diff-XXXX.patch`, never inside a repo tree) and record its absolute path as `test_diff_file`. `test-writer` has no shell tool — it can only `Read` the path it is given. Then spawn:
+1. **Invoke `test-writer` agent.** First, at the orchestrator, capture the diff for the dispatch: write `git add -N . && git diff` (so new files are included) to a temp file (`command mktemp -t dw-impl-diff-XXXXXX`, never inside a repo tree) and record its absolute path as `test_diff_file`. `test-writer` has no shell tool — it can only `Read` the path it is given. Then spawn:
 
    → Agent (subagent_type: "dev-workflows:test-writer", model: `<detection_model — §2.1 Sonnet chain>`):
      > "Write tests for this brief:
@@ -428,15 +452,9 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
      > Project root: [absolute path]
      > Baseline: [paste the ## Test Baseline block captured in Pre-Phase 3.5]"
 
-2. **Handle a `test-writer` stop.** Check the report's first line before anything else. If it is `Diff: unreadable at <path>`, the orchestrator's own `test_diff_file` could not be read — this is an orchestrator bug, not a user choice: surface the unreadable path to the user and **stop the run**; do not run the framework prompt below, and do not offer to skip tests (skipping would silently proceed past evidence that could not be read). Otherwise, if the report shows `Framework: not detected`, ask the user:
-   ```
-   choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /implement workflow)", "Cancel"]
-   ```
-   - **Specify test command** → take free-text, use it as the test runner for step 4 below; continue.
-   - **Skip tests** → take free-text rationale; record it in the Phase 5 `### Deferred items` section; skip steps 3–5 of Phase 3.5 and proceed to Phase 3A step 7 (Verify outcome).
-   - **Cancel** → stop and summarize.
+2. **Handle a `test-writer` stop.** Check the report's first line before anything else. If it is `Diff: unreadable at <path>`, the orchestrator's own `test_diff_file` could not be read — this is an orchestrator bug, not a user choice: surface the unreadable path to the user and **stop the run**; do not offer to skip tests (skipping would silently proceed past evidence that could not be read). Otherwise, **where Pre-Phase 3.5 recorded a `test_decision`, apply it** rather than asking again — that question was put to the user before any file was edited. On `skip`, run step 3 (linters and builds) and skip **steps 4–6**, then proceed to Phase 3A step 7 (Verify outcome). **The skip is scoped to the tests because that is what was asked**: Pre-Phase 3.5's option reads *"Skip tests for this run"*, and the lint and build gate is neither a test nor something a missing baseline prevents — a run that skips it commits code that was never compiled, which nobody consented to. There is no second prompt here, and a command supplied here would not help: a capture taken after the edits is a test run, not a baseline. **The gate is the recorded decision, not the report's `Framework` field**: `Framework: not detected` is emitted only where the capture was `COMMAND_NOT_FOUND` (`dev-workflows:test-baseliner` capture step 4), while the other capture that asked — `RUN_FAILED` — names the suites it could not run, so `test-writer` writes against them and reading the field alone would drop the recorded skip — of either provenance — and re-prompt at step 5.
 
-3. **Run linters and builds.** Use the project's standard lint/build commands as discovered in Phase 2A exploration. Do not run the full test suite here — that is step 4.
+3. **Run linters and builds.** Use the project's standard lint/build commands as discovered by whichever codebase exploration this run actually performed — Phase 2A's subagent, Phase 2B's Explore subagent, or the Phase 1.7 fan-out summary on a `fan_out` run — and, where none of them named one, read them from the repo's own build/lint configuration. **Do not cite Phase 2A here**: Phase 3B step 8 re-enters this step on the SIGNIFICANT / HIGH-RISK path, where Phase 2A never ran, and a Phase 2B `### Re-classification` the user accepts reaches Phase 3A with Phase 2A's own exploration deliberately not re-run. Do not run the full test suite here — that is step 4.
 
 4. **Invoke `test-baseliner` in verify mode** against the baseline captured in Pre-Phase 3.5:
 
@@ -445,20 +463,31 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
      >
      > Mode: verify
      > Baseline: [paste the captured ## Test Baseline block]
-     > Project root: [absolute path]"
+     > Project root: [the same absolute path Pre-Phase 3.5's capture sent, and never a different one — `### Suites` records each marker as a path relative to this root, so a verify rooted anywhere else reads every marker as moved and, where a framework names more than one detected suite, every identifier of it as missing (`dev-workflows:test-baseliner` capture step 1, measured there)]
+     > command_hint: [the recorded `test_command_hint` — include this line only where Pre-Phase 3.5 recorded one, and never a different value: a verify run over a different set of suites is not a comparison]"
 
-5. **Fix loop** — if the verify report lists regressions or new failures:
+5. **Act on the verify report.** **A non-empty `### New failures` list sends the run to the fix loop whatever the `Status` says.** A test this run's own `test-writer` just wrote has never been in any baseline list, so when it fails it is a **New failure** and nothing else — and `New failures` is not a `Status` value, so `OK` and `PARTIAL` are both reachable with one standing (`dev-workflows:test-baseliner` verify step 6). Branching on the `Status` alone reports a pass on the run's own broken test. **The list and the `Status` are read together, not one instead of the other**: work the `Status` arm below first, so its own record is written, and let the list decide where the run goes next. Every value is handled here, none is passed over. **And every `### Notes` line the report opens with `CAVEAT: ` is surfaced and recorded in the Phase 5 `### Deferred items` section whatever the `Status` says** — the same obligation Pre-Phase 3.5 carries over its own capture and for the same reason: a marked line is a note whose harm neither the `Status` nor this report's identifier lists show, and verify marks three of its own beside every one capture step 1's detection owed (`dev-workflows:test-baseliner` verify step 7). **On `REGRESSIONS`, read them before step 6 rather than after it**: two of verify's own three put baseline identifiers into `### Missing from run` without that being evidence this change removed them — a pairing nothing could resolve, and a `command_hint` that narrowed the run — and the fix loop would otherwise spend both its attempts chasing them.
+   - `OK` → the `Status` itself leaves nothing to do, **though the lead-in's `CAVEAT: ` obligation still holds here and this is the arm on which it earns its keep**: nothing else in a green report puts a marked line into the run's record, and one of them is a suite that aborted without losing a baseline test — an abort this value is defined to tolerate. With `### New failures` empty, Phase 3.5 is done; with it non-empty, step 6 takes the run.
+   - `PARTIAL` → no regressions, and a suite could not be run at either end. Record each such suite from `### Suites` in the Phase 5 `### Deferred items` section — **that record is this arm's own obligation and is made either way**, since step 6 records regressions and new failures and nothing about `### Suites`. **Read the report's `### Notes` beside those rows and carry what they say about a suite into its entry** — the same obligation Pre-Phase 3.5's own `PARTIAL` arm carries, and for the same reason: verify mode's `### Notes` carries capture step 1's detection notes as well as this call's aborts and pairing facts (`dev-workflows:test-baseliner` verify step 7), so a suite the watch carve-out never reached is recorded as that rather than as a runner that could not run. Then, with `### New failures` empty, there is nothing to fix and Phase 3.5 is done; with it non-empty, step 6 takes the run.
+   - `RUN_FAILED` or `COMMAND_NOT_FOUND` → **nothing was compared, so neither is a pass.** They differ only in how far the call got: `RUN_FAILED` means no detected suite paired with the baseline (**`Comparison status: invalid`** — verify step 2), or none produced counts (**`best-effort`**, not `invalid`: "none produced counts" means every suite aborted, and verify step 3 sets `best-effort` on the first abort with nothing resetting it, so quote the field the report actually carries rather than this arm's other half's); `COMMAND_NOT_FOUND` means **this run's** detection selected no suite at all (`invalid` as well — verify step 1), which after a baseline that named one says the edits removed its marker — a renamed `pom.xml`, a deleted `Makefile`. Neither is settled by anything Pre-Phase 3.5 recorded, and a run whose baseline named no framework never reaches this step. Surface the report's `Reason` line **where it carries one** — verify step 2's `invalid` return does, step 6's `RUN_FAILED` does not, and `Reason` is no field of the return structure — and the `### Suites` rows and the `### Notes` lines either way, the notes being where a watch carve-out that did not fire is named, which is what *Investigate further* would otherwise have to rediscover, then ask:
+     ```
+     choices: ["Investigate further", "Accept an unverified run and proceed (document in Phase 5 report)", "Cancel"]
+     ```
+     **Investigate further** → diagnose manually and re-run step 4 when ready. **Accept** → record in the Phase 5 `### Deferred items` section that no comparison was made, with whatever the report gave as its reason, and set `clean_finish: false` for Phase 4.6. **Cancel** → stop and summarize.
+   - `REGRESSIONS` → read the lead-in's `CAVEAT: ` lines first, since two of the kinds verify marks say these identifiers are in `### Missing from run` for something other than this change, then the fix loop below.
+
+6. **Fix loop** — on `Status: REGRESSIONS`, or on a non-empty `### New failures` list under any `Status`:
    - The **session model** (not a subagent) applies fixes. No `review-fixer`-style indirection is used here — the scope is narrow and the context is already fully in-session. Use the `test-baseliner` verify report as the authoritative list of what broke.
    - After each fix attempt, re-capture the diff (`git add -N . && git diff`) and re-run `test-baseliner` in verify mode against the **original** baseline (never re-baseline mid-loop — a mid-loop re-baseline would silently absorb a regression as the new normal).
-   - Cap at **2 fix attempts**. If regressions remain after the second attempt, surface to the user:
+   - Cap at **2 fix attempts**. If any regression or new failure remains after the second attempt, surface to the user:
      ```
-     choices: ["Investigate further", "Accept regressions and proceed (document in Phase 5 report)", "Cancel"]
+     choices: ["Investigate further", "Accept the remaining failures and proceed (document in Phase 5 report)", "Cancel"]
      ```
      - **Investigate further** → stop the automated loop; the session model diagnoses manually and re-runs verify when ready.
-     - **Accept regressions** → record each regression in the Phase 5 `### Deferred items` section with the user's rationale; proceed.
+     - **Accept the remaining failures** → record each regression and each new failure in the Phase 5 `### Deferred items` section with the user's rationale; proceed.
      - **Cancel** → stop and summarize.
 
-Once Phase 3.5 returns (passed, skipped, or accepted-with-regressions), return to Phase 3A step 7 (Verify outcome).
+Once Phase 3.5 returns (passed, skipped, or accepted with failures kept or without a comparison), return to Phase 3A step 7 (Verify outcome).
 
 ---
 
@@ -475,7 +504,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
 2. Make precise, surgical changes — do not modify unrelated code
 3. Follow existing code style and LF line endings
 4. If a **new ambiguity** emerges mid-implementation: STOP, ask with choices (2–4 options; the harness supplies the free-text escape), resume after answer
-4a. **Invoke `test-writer` agent** (inserted before the review diff capture in step 5 so the Opus review sees code and tests together — test adequacy is already a review dimension in `code-review.md`). First, at the orchestrator, capture the diff for the dispatch: write `git add -N . && git diff` (so new files are included) to a temp file (`mktemp -t dw-impl-diff-XXXX.patch`, never inside a repo tree) and record its absolute path as `test_diff_file`. `test-writer` has no shell tool — it can only `Read` the path it is given. Then spawn:
+4a. **Invoke `test-writer` agent** (inserted before the review diff capture in step 5 so the Opus review sees code and tests together — test adequacy is already a review dimension in `code-review.md`). First, at the orchestrator, capture the diff for the dispatch: write `git add -N . && git diff` (so new files are included) to a temp file (`command mktemp -t dw-impl-diff-XXXXXX`, never inside a repo tree) and record its absolute path as `test_diff_file`. `test-writer` has no shell tool — it can only `Read` the path it is given. Then spawn:
 
    → Agent (subagent_type: "dev-workflows:test-writer", model: `<detection_model — §2.1 Sonnet chain>`):
      > "Write tests for this brief:
@@ -486,13 +515,9 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
      > Project root: [absolute path]
      > Baseline: [paste the ## Test Baseline block captured in Pre-Phase 3.5]"
 
-   Check the `test-writer` report's first line before invoking Opus review. If it is `Diff: unreadable at <path>`, the orchestrator's own `test_diff_file` could not be read — this is an orchestrator bug, not a user choice: surface the unreadable path to the user and **stop the run**; do not invoke Opus review and do not run the framework prompt below. Otherwise, if the report shows `Framework: not detected`, ask the user **before** invoking Opus review (mirrors the SIMPLE/MODERATE branch — keeps the Opus-review input deterministic):
-   ```
-   choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /implement workflow)", "Cancel"]
-   ```
-   Record the choice. A "Skip" decision must be explicit and logged in the Phase 5 report.
+   Check the `test-writer` report's first line before invoking Opus review. If it is `Diff: unreadable at <path>`, the orchestrator's own `test_diff_file` could not be read — this is an orchestrator bug, not a user choice: surface the unreadable path to the user and **stop the run**; do not invoke Opus review. Otherwise, where Pre-Phase 3.5 recorded a `test_decision`, apply it and carry it into the Phase 5 report (mirrors the SIMPLE/MODERATE branch, gate included — the recorded decision, never the report's `Framework` field). On `skip`, step 8 below runs **only step 3 of the Phase 3.5 sequence — the lint and build — and none of steps 4–6**, exactly as the SIMPLE/MODERATE branch scopes it, and for the same reason: what was declined — or, on the run's own record, given up on — was the tests and not the build. There is no prompt here — asking after the edits would be asking for a baseline that can no longer be taken.
 
-5. After all changes are written: **DO NOT run tests yet.** When `task_shape: bug`, first **strip every `[DEBUG-xxxx]` probe** added during diagnosis (per `${CLAUDE_PLUGIN_ROOT}/references/bug-diagnosis.md`); the review diff must contain no debug instrumentation. Capture the diff and the project root. Use `git add -N . && git diff` — this includes intent-to-add untracked new files so the diff is never empty for implementations that only create new files, and it now also includes the test files from step 4a. Write this diff to a temp file (`mktemp -t dw-impl-diff-XXXX.patch`, never inside a repo tree) and record its absolute path as `review_diff_file`; the code-review dispatch (step 6) receives this path. Also capture `git diff --stat` for the summary (small — kept inline).
+5. After all changes are written: **DO NOT run tests yet.** When `task_shape: bug`, first **strip every `[DEBUG-xxxx]` probe** added during diagnosis (per `${CLAUDE_PLUGIN_ROOT}/references/bug-diagnosis.md`); the review diff must contain no debug instrumentation. Capture the diff and the project root. Use `git add -N . && git diff` — this includes intent-to-add untracked new files so the diff is never empty for implementations that only create new files, and it now also includes the test files from step 4a. Write this diff to a temp file (`command mktemp -t dw-impl-diff-XXXXXX`, never inside a repo tree) and record its absolute path as `review_diff_file`; the code-review dispatch (step 6) receives this path. Also capture `git diff --stat` for the summary (small — kept inline).
 6. **Opus code review** — spawn.
 
    → Agent (subagent_type: "dev-workflows:code-review"):  # review_model — §2 Opus chain; frontmatter-pinned, recorded in model_routing, no override added
@@ -511,13 +536,13 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
 
    **Check the review's first line before acting on the verdict.** If it is `Diff: unreadable at <path>`, the orchestrator's own `review_diff_file` could not be read — an orchestrator bug, not a user choice: surface the unreadable path to the user and stop the run. Do NOT triage the finding and do NOT dispatch `review-fixer`: the finding names a capture failure no fixer can act on, and running the cycle would spend a fix dispatch and a re-review to arrive back here.
    - **`### Re-classification` section** — the reviewer decided the change is actually `SIMPLE` or `MODERATE` on inspection. Surface it to the user and ask `choices: ["Accept revised classification (Recommended)", "Override and keep the BLOCK-gated review", "Cancel"]`. If accepted, treat the review as an implicit PASS: skip the BLOCK branch, proceed to step 8, and do NOT re-invoke the reviewer on later fix deltas. Record the revised classification for the Phase 5 report. If overridden, re-invoke code-review with an explicit note that the classification is intentional.
-   - **BLOCK** — invoke the review-fixer agent (see Review-fixer sub-step below). If `Stop condition flag` is `CLEAR`, re-run the Opus code review on the updated diff (one re-review only). If `Stop condition flag` is `NEEDS HUMAN`, do not re-review: surface the deferred BLOCKER(s) to the user with the reason `review-fixer` gave and stop. If the second verdict is still BLOCK, stop: surface the remaining blockers to the user and ask `choices: ["Investigate further", "Abandon implementation and restore to pre-impl state", "Cancel"]`. Do not run tests until the verdict is not BLOCK.
+   - **BLOCK** — invoke the review-fixer agent (see Review-fixer sub-step below). If `Stop condition flag` is `CLEAR`, re-run the Opus code review on the updated diff (one re-review only). If `Stop condition flag` is `NEEDS HUMAN`, do not re-review: surface the deferred BLOCKER(s) to the user with the reason `review-fixer` gave and stop. If the second verdict is still BLOCK, stop: surface the remaining blockers to the user, exactly as the `NEEDS HUMAN` stop above does. **This stop offers no arms, and the reason is worth stating so that one is not added back.** It is in Phase 4.6's `"Every run"` list, so by the time it presents anything the implementation is **already committed** on its own branch with `clean_finish: false` — and `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §1 rule 3 forbids every operation an *"abandon and restore to pre-impl state"* arm would need on that commit (`reset`, `checkout --`, `branch -D`, `--amend`). Such an arm was offered here and was unfollowable: no file defined what it did, and the one phase that could have undone it is the phase that had just made it durable. What replaces it is a report the user can act on themselves — nothing was merged and the base branch was never touched, so abandoning the work is `git switch <base>` in their own hands, and Phase 4.6's outcome line has already named the branch, the sha, the outstanding `stash_ref` where Pre-Phase 3 pushed one, and, where §2.4's consent choice, §2.8's base-branch ladder, §2.6's `gh` capability probe and §2.5's push all allowed one, the draft pull request whose DO-NOT-MERGE banner says not to merge it — or, where any of them did not, §3.1's own row saying so and what it names instead. **Four determinants, and still not a closed set**: §2.6 also emits *pushed to existing PR #<num>* on a re-run, where a pull request exists but is neither a draft nor this run's. §3.1's rows are the authority on which line the run emitted, never a determinant list written out here — state whichever line it did beside the blockers, and never the draft pull request as though it existed (§2.10). Do not run tests until the verdict is not BLOCK.
    - **PASS WITH RECOMMENDATIONS** — invoke the review-fixer agent for MAJOR findings (see Review-fixer sub-step below). MINOR / NIT findings may be deferred — note them in the Phase 5 report.
    - **PASS** — proceed.
 
    **Triage sub-step** (before any fixer dispatch): invoke `Skill(skill: "workflows-core:reference", args: "finding-triage")` and follow it. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
 
-   **Review-fixer sub-step** (for BLOCK and PASS WITH RECOMMENDATIONS): first write the **triaged survivor list** from the sub-step above — the surviving findings only, each with its severity, location, observation, and suggestion — to a temp file (`mktemp -t dw-impl-review-XXXX.md`, never inside a repo tree) and record its path as `review_file`. Dismissed findings NEVER enter that file; they go to the `### Review triage` report section instead.
+   **Review-fixer sub-step** (for BLOCK and PASS WITH RECOMMENDATIONS): first write the **triaged survivor list** from the sub-step above — the surviving findings only, each with its severity, location, observation, and suggestion — to a temp file (`command mktemp -t dw-impl-review-XXXXXX`, never inside a repo tree) and record its path as `review_file`. Dismissed findings NEVER enter that file; they go to the `### Review triage` report section instead.
 
    → Agent (subagent_type: "dev-workflows:review-fixer", model: `<fixes_model — = detection_model, §2.1 Sonnet chain>`):
      > "Fix the review findings for this brief:
@@ -527,12 +552,12 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
      > Project root: [absolute path]
      > Severities to fix: BLOCKER and MAJOR"
 
-   Wait for the fix report. Re-capture the diff after the fixer completes, **overwriting `review_diff_file`** (write a fresh `git add -N . && git diff` to that same path) — so the one re-review at step 7 reads the post-fix diff, not the stale step-5 capture. Also write the fixer's full Fix Report to a temp file (`mktemp -t dw-impl-claims-XXXX.md`, never inside a repo tree) and record its path as `claims_file` — the one re-review reads it as the deferred claims input, so the reviewer checks the fixer's account of its own work instead of assuming it.
+   Wait for the fix report. Re-capture the diff after the fixer completes, **overwriting `review_diff_file`** (write a fresh `git add -N . && git diff` to that same path) — so the one re-review at step 7 reads the post-fix diff, not the stale step-5 capture. Also write the fixer's full Fix Report to a temp file (`command mktemp -t dw-impl-claims-XXXXXX`, never inside a repo tree) and record its path as `claims_file` — the one re-review reads it as the deferred claims input, so the reviewer checks the fixer's account of its own work instead of assuming it.
 
    - If the fix report contains any `DEFERRED — plan-conflict` finding, surface it to the user **immediately** (do not wait for the BLOCK-still-BLOCK path): show the finding beside the plan text it contradicts and ask `choices: ["Revise the plan (the finding governs)", "Apply the fix against the plan (the plan governs — logged in Phase 5)"]`. Act on the answer before re-running the review.
 
 7.5. **Spec/design conformance escalation.** For each unresolved `missing`/`contradicts` in-scope requirement from the code-review Spec/design-conformance dimension, write a `- [ ]` note back onto the source `specification.md`/`design.md` under an `## Engineering review` heading (the same escalation `/design` uses; annotate only — never mutate existing `[Uxx]`/`[ACxx]`/`[TCxx]` IDs). Never silently drop them, never invent new work. Record which of `specification.md`/`design.md` actually received a note — the handoff step needs to know whether only one, or both, were annotated. The notes are written here and handed off later — see the escalation handoff after Phase 4.
-8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence (lint/build, `test-baseliner` verify, fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes (first overwrite `review_diff_file` with a fresh `git add -N . && git diff` so the re-review reads the post-Phase-3.5 diff). If the reviewer WAS down-classified, skip the re-review.
+8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence — its steps 3–6 (lint/build, `test-baseliner` verify, the status branch, the fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes (first overwrite `review_diff_file` with a fresh `git add -N . && git diff` so the re-review reads the post-Phase-3.5 diff). If the reviewer WAS down-classified, skip the re-review.
 9. Verify the outcome matches the approved plan and the review verdict.
 10. Proceed to Phase 4.
 
@@ -540,7 +565,17 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
 
 ## Phase 4 — Post-implementation maintenance (both branches)
 
-First gather the actual change context:
+**First remove this run's handoff files.** Nothing from here on reads one — `summary_file`, `plan_file`,
+every `test_diff_file` and `review_diff_file` this run wrote (a re-capture that overwrote a path leaves
+one file, a fresh `mktemp` another), `review_file` and `claims_file`. Remove each as
+`command rm -f -- "<path>"`, per `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`
+(**Hand off by file, not paste**), which says why nothing else would. A run that stops before this
+phase — the two unreadable-`test_diff_file` stops, the unreadable-`review_diff_file` stop, the
+`review-fixer` `NEEDS HUMAN` stop, a second verdict still `BLOCK`, or a Cancel — removes the files it
+had made before it stops, in the same way, save a file the stop itself named as unreadable, which
+stays for the operator to look at (that reference again).
+
+Then gather the actual change context:
 
 a. Run `git diff --stat` (or equivalent) and capture the list of changed files with line counts.
 b. Compose a **change summary block**:
@@ -557,7 +592,7 @@ Opus review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK — or "N/A (SIMP
 
 Then spawn all four agents. They are independent and can run in any order — spawn them all before waiting for any to complete:
 
-**Agent 1 — Documentation** (general-purpose):
+**Agent 1 — Documentation** (general-purpose, model: `<detection_model — §2.1 Sonnet chain>`):
 > "Post-implementation documentation review. Change summary:
 > [paste change summary block]
 >
@@ -568,7 +603,7 @@ Then spawn all four agents. They are independent and can run in any order — sp
 > Use the file list above to reason precisely about what changed. If an update is warranted: apply minimal edits to the relevant section(s).
 > Return: file updated and what changed, OR 'no update required (reason)'."
 
-**Agent 2 — Knowledge base** (general-purpose):
+**Agent 2 — Knowledge base** (general-purpose, model: `<detection_model — §2.1 Sonnet chain>`):
 > "Post-implementation knowledge review. Change summary:
 > [paste change summary block]
 >
@@ -583,7 +618,7 @@ Then spawn all four agents. They are independent and can run in any order — sp
 > - **Ref**: [first 60 chars of implementation description]
 > Return: file updated/created and summary of entry, OR 'no update required'."
 
-**Agent 3 — Instructions** (general-purpose):
+**Agent 3 — Instructions** (general-purpose, model: `<detection_model — §2.1 Sonnet chain>`):
 > "Post-implementation instructions review. Change summary:
 > [paste change summary block]
 >
@@ -593,7 +628,7 @@ Then spawn all four agents. They are independent and can run in any order — sp
 > If YES: apply minimal, additive, scoped changes only — do not rewrite sections wholesale.
 > Return: what was changed and why, OR 'no update required'."
 
-**Agent 4 — Session maintenance** (workflows-core:impl-maintenance):
+**Agent 4 — Session maintenance** (workflows-core:impl-maintenance, model: `<detection_model — §2.1 Sonnet chain>`):
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
@@ -622,7 +657,7 @@ report still appears in the report; this step NEVER fails the run, NEVER
 commits (still true — this step only writes the feedback file; those writes
 are committed by the terminal `commit-artifacts` step in Phase 7, per
 `workflows-core:specs-repo-git` §4), and NEVER writes
-into the code repo or the current working directory.
+into the code repo or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -630,9 +665,13 @@ into the code repo or the current working directory.
 
 A **silent no-op** when step 7.5 (Phase 3B) wrote no `- [ ]` notes — which covers every SIMPLE/MODERATE run (no `code-review`, so step 7.5 never runs) and every run with no spec/design in scope, direct-prompt or otherwise.
 
-When step 7.5 did write one or more notes: `prefix` = `spec` when only `specification.md` was annotated, otherwise `design`; `feature_folder` = the directory the annotated file(s) live in (the same specs-repo folder Phase 0 resolved them from); `deliverable_paths` = the annotated file(s) themselves. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim:
+When step 7.5 did write one or more notes: `prefix` = `spec` when only `specification.md` was annotated, otherwise `design`; `feature_folder` = the directory the annotated file(s) live in (the same specs-repo folder Phase 0 resolved them from); `deliverable_paths` = the annotated file(s) themselves. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — **two arrays, selected by the annotated set per §4.1's set rule, and the test is not the `prefix` test above.** Where `specification.md` is in the set (whether or not `design.md` is too), present §4.3's **gated — stopping** array (§4.1 bullet 1), because `/dev-workflows:design` stops on an un-landed `specification.md`:
 
 `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`
+
+Where the set is an annotated `design.md` **alone**, present §4.3's **gated — falling back** array (§4.1 bullet 2) instead, because the only §3.4 rows naming `design.md` are this command's own in-scope-only gate and `/dev-workflows:ready`'s coverage gap, neither of which stops:
+
+`choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase does not stop on this — it reports the artifact as un-landed and proceeds from the resolved folder)", "Cancel"]`
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix`, `feature_folder`, and `deliverable_paths` as above; `title: <KEY> Record spec/design conformance findings from /implement`; and `body_facts` = the count of escalated `- [ ]` notes, the code-review Spec/design-conformance dimension summary they came from, and the fact that whoever next reads this `specification.md`/`design.md` will not see them until this pull request is merged. Emit its §4.1 outcome line in the Phase 5 `### Spec/design conformance` section.
 
@@ -646,9 +685,11 @@ Runs on **every** run that created a branch in Pre-Phase 3 — both classificati
 
 **The commit is prompt-free and the push and pull request are not** (§1 rule 5). There is no "leave it uncommitted" option in §2.4's choice, and a run that ends with the implementation sitting in a working tree is a defect rather than a style.
 
-**"Every run" includes every early stop that happens after the branch exists.** This command has exits that stop *after* Pre-Phase 3 created the branch and after files were written: the two unreadable-`test_diff_file` stops (Phase 3.5 step 2 and Phase 3B step 4a), the Cancel arms of both framework prompts, the Cancel and *Investigate further* arms of the Phase 3.5 regression prompt, the unreadable-`review_diff_file` stop (Phase 3B), the `review-fixer` `NEEDS HUMAN` stop, and a second verdict still `BLOCK`. **Each of those runs Phase 4.6 before it stops**, with `clean_finish: false` and the stop's reason as the blocking fact. Skipping it would leave a written, branched, sometimes fully-reviewed implementation uncommitted — which this command's own invariants call a defect, and which is the case where losing the work costs most. Phase 4 is skipped on these paths (its maintenance agents have nothing to summarise for an aborted run), so 4.6's "after every in-repo write" precondition is satisfied trivially. Report the §3.1 line with the stop, not in a Phase 5 report that will not be produced.
+**"Every run" includes every early stop that happens after the branch exists.** This command has exits that stop *after* Pre-Phase 3 created the branch and after files were written: the two unreadable-`test_diff_file` stops (Phase 3.5 step 2 and Phase 3B step 4a), the **Cancel** arms of both Phase 3.5 prompts (step 5's unverified-run prompt and step 6's regression prompt), the unreadable-`review_diff_file` stop (Phase 3B), the `review-fixer` `NEEDS HUMAN` stop, and a second verdict still `BLOCK`. **Each of those runs Phase 4.6 before it stops**, with `clean_finish: false` and the stop's reason as the blocking fact. Skipping it would leave a written, branched, sometimes fully-reviewed implementation uncommitted — which this command's own invariants call a defect, and which is the case where losing the work costs most. Phase 4 is skipped on these paths (its maintenance agents have nothing to summarise for an aborted run), so 4.6's "after every in-repo write" precondition is satisfied trivially. Report the §3.1 line with the stop, not in a Phase 5 report that will not be produced.
 
-**The Phase 2B repro prompt's Cancel is not in that set**, and the distinction is the branch: Phase 2B runs *before* Pre-Phase 3, so cancelling there leaves no branch and no written file — there is nothing for this phase to commit.
+**Neither *Investigate further* arm is in that set, because neither stops the run.** Step 5's says *"diagnose manually and re-run step 4 when ready"* and step 6's *"stop the automated loop; the session model diagnoses manually and re-runs verify when ready"* — the loop ends, the run does not, and both come back through step 4 into Phase 4 and then into this phase in its ordinary place, where the Phase 5 report the paragraph above says will not be produced *is*. Calling 4.6 on them would commit the implementation before Phase 4, which this command's own invariant forbids outright. The list dropped both arms and dropped nothing else: every arm in it that actually ends the run is still in it.
+
+**Two Cancels are not in that set, and the test is the written file rather than the branch.** Phase 2B's repro prompt runs *before* Pre-Phase 3, so cancelling there leaves no branch and no written file. Pre-Phase 3.5's framework prompt runs *after* the branch and still before the first edit — its Cancel leaves a branch with nothing on it, and there is as little for this phase to commit as in the Phase 2B case. Neither loses a stash: any stop after Pre-Phase 3 step 1 names an outstanding `stash_ref` in its own message, which is that step's rule rather than this phase's.
 
 Placement is load-bearing. Phase 4's maintenance agents edit files **inside the code repo** — `README.md`, `CHANGELOG.md`, `docs/`, `CLAUDE.md`, and any project-level memory entry — so a call placed before Phase 4 would commit a partial run and leave those edits behind (`code-handoff.md` §4 obligation 1). Phase 4.5 runs first because it commits a *different* repository (`$SPECS_PATH`), and interleaving the two would make the run's two outcome lines impossible to attribute.
 
@@ -659,7 +700,7 @@ Pass the §2.11 inputs:
 - `key` and `workitem_key` — from the resolved folder (`workflows-core:addressing` §4); both `null` in direct mode. §2.3 turns them into the `[<key>]` subject suffix and the `Work-Item:` trailer that `workflows-core:implementation-format` §3 requires — **this is where the plugin writes that convention rather than teaching it**.
 - `title` — the commit subject and pull-request title: with a key, `<one-line summary of what was built> [<key>]`; in direct mode, the imperative summary alone.
 - `body_facts` — what was implemented; the files changed; the Opus review verdict and triage summary where Phase 3B produced one; the `test-baseliner` verify result against the Pre-Phase 3.5 baseline; and any deferred `MINOR`/`NIT` findings.
-- `clean_finish` — `false` when the Opus review is still `BLOCK` after its one fix cycle plus re-review, or when the Phase 3.5 fix loop ended with regressions the user chose to keep; `true` otherwise. Per §2.9 this changes only the pull request (draft, with a DO-NOT-MERGE banner) — **never** whether the commit and push happen.
+- `clean_finish` — `false` when **this call is being made from any of the early stops the `"Every run"` paragraph above enumerates**, when the Opus review is still `BLOCK` after its one fix cycle plus re-review, when the Phase 3.5 fix loop ended with failures the user chose to keep, when the user accepted an **unverified** run at Phase 3.5 step 5 (`RUN_FAILED` / `COMMAND_NOT_FOUND` — nothing was compared), or when Pre-Phase 3.5's `test_decision: skip` is **the run's own record** rather than the operator's answer (the two-failed-`command_hint` path); `true` otherwise. **That last one is a provenance test, not a token test**, and §2.9 says why: the operator's own *"Skip tests for this run"* is a typed decision taken up front and is honoured without penalty, while the run's own record after two failed hints is the same bullet's "attempted and could not complete, and proceeded on anyway" with nobody's consent attached. Pass the provenance, never the bare `test_decision` value. **The first condition is this command's form of the stopped-state one both siblings carry** — `/vuln`'s *"the CVE ended `BLOCKED`"*, `/upgrade`'s *"any component ended `BLOCKED`"* — and without it the paragraph above and this list disagreed on **six** stops that reach 4.6, each of which would have been handed `true` and opened an ordinary mergeable pull request. **Six of the seven that paragraph enumerates, and the arithmetic is worth keeping because a reader who counts the list instead gets seven**: the seventh, *a second verdict still `BLOCK`*, is the next condition's own state word for word, so it was already being handed `false` and was never in the disagreement. `NEEDS HUMAN` is, because the run does **not** re-review there and that condition's *"plus re-review"* is then unmet. Derive the number from the set the two lists disagree about, never from the length of either. It cites that paragraph and deliberately does **not** restate its members: a second copy of that list is exactly how the two came to disagree. The last is the same state `/upgrade` and `/vuln` set `false` on as `TESTS_NOT_RUN`, and it is the *stronger* case, not a weaker one: kept regressions at least know what failed. A `PARTIAL` verify is **not** in the list, deliberately and for the same reason those two map it onto `OK` / `SUCCESS` — every suite the baseline covered is green, and the ones it did not are named in `### Deferred items`. Per §2.9 this changes only the pull request (draft, with a DO-NOT-MERGE banner) — never whether the commit happens, and, **in this command**, never whether the push happens either. That second half needs its own reason rather than §2.9's: §2.4's first re-ask trigger fires wherever the `clean_finish` a call carries differs from the one the choice was answered under — in either direction — and `/implement` makes exactly one `finish-code-branch` call per run, with **every** condition above settled before it, so there is nothing left to differ from. (The count that stood here went stale in the commit that added the fifth condition; a construction cannot.) The trigger exists for `/vuln`, the one caller that makes more than one **full** `finish-code-branch` call in a run — one per CVE, because §2.12's *"Where each unit gets its own branch there is no split"* puts `/vuln` outside the split form — so a later CVE can carry a flag differing from the one an earlier CVE's answer was given under, and there it does re-ask the question rather than decide it. **`/upgrade` is not a second such caller, despite its per-component loop**: the split runs §2.1–§2.3 per component and the full entry point once at step 7.5, after every component has settled, so its §2.4 is asked once with `clean_finish` already final — the same structural reason it cannot fire here.
 - `commit_template: null` — `/implement` documents no full template of its own, so §2.3 derives the rest of the subject from the repo's own `git log`.
 
 Emit the §3.1 `Code repo:` outcome line in the Phase 5 report's `### Branch` section — once, and verbatim. **Under `--no-commit`** the entry point is not called at all, and §3.1's `--no-commit` row is emitted in its place, so the report still says where the work ended up.
@@ -705,6 +746,7 @@ Output a structured report — do NOT ask any closing confirmation:
 
 ### Branch
 [branch name created in Pre-Phase 3, e.g. feat/add-user-authentication]
+[Pre-Phase 3 step 4's `Base branch unresolved …` line, verbatim, when it printed one; omit the line otherwise]
 [the Phase 4.6 `Code repo:` outcome line, verbatim (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §3.1)]
 [any repo this run wrote into but never branched — path + dirty paths, flagged uncommitted; omit the line when there is none]
 
@@ -742,7 +784,14 @@ Output a structured report — do NOT ask any closing confirmation:
 - [list any]
 
 ### Deferred items (from review or tests)
-- [MINOR / NIT findings that were not applied] OR "none"
+[every line below that has content; "none" only where all of them are empty. Seven instructions in this file write test records here and the heading admits every one of them — they land in the six test bullets below, the two `CAVEAT: ` instructions (Pre-Phase 3.5's over its capture and Phase 3.5 step 5's over its verify) sharing one, and a template naming only the review half is how those records get dropped; this section is the run's only account of what it did not verify. Phase 6 deliberately does **not** turn these into follow-ups, on the ground that they are in-scope work already carried by this task — which holds only if they are written down here.]
+- [MINOR / NIT review findings that were not applied; omit the line where there are none]
+- [each suite the Pre-Phase 3.5 capture left unmarked `OK`/`NO_TESTS`, with the command that failed and whatever that block's `### Notes` said about it (Pre-Phase 3.5's `PARTIAL` arm); omit where none]
+- [the recorded `test_decision: skip` — the operator's rationale, or, on the run's own record, the capture failure that produced it (Pre-Phase 3.5); omit where none]
+- [each suite the Phase 3.5 verify could not run at either end, with whatever that report's `### Notes` said about it (step 5's `PARTIAL` arm); omit where none]
+- [an accepted unverified run, with whatever the report gave as its reason (step 5's `RUN_FAILED` / `COMMAND_NOT_FOUND` arm); omit where none]
+- [each kept regression and each kept new failure, with the user's rationale (step 6's Accept arm); omit where none]
+- [each `CAVEAT: ` line the Pre-Phase 3.5 capture block or a Phase 3.5 verify report carried, verbatim and with which of the two carried it — written whatever those returns' `Status` values were, `OK` and `NO_TESTS` included, since a marked line is exactly the kind of note a return that reports nothing wrong can still carry; omit where neither carried one]
 
 ### Next step
 [Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. keyed mode: finish the remaining Epics under the PRD (breadth) — `/dev-workflows:implement <SIBLING-EPIC>`, one address, the Epic's own (D4) — and, once **all** Epics are implemented, `/docs-workflows:document <PRD>` then `/docs-workflows:release-notes <PRD>` (both PRD-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
@@ -784,7 +833,7 @@ ADDITIVE — the follow-ups also remain in the Phase 5 report. This phase NEVER
 fails the run, NEVER commits (still true — this phase only writes follow-up
 files; those writes are committed by the terminal `commit-artifacts` step in
 Phase 7, per `workflows-core:specs-repo-git` §4), and
-NEVER writes into the code repo or the current working directory.
+NEVER writes into the code repo or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -816,9 +865,10 @@ guidance already appeared in the Phase 5 report.
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/implement)`, and pushes per §4
 step 5. It NEVER writes into the code repo this run just changed — that repo's
-own commit, push, and pull request were Phase 4.6's, through a different
-reference and against a different remote —
-NEVER touches a docs repo or the current working directory;
+own commit was Phase 4.6's, as were whatever push and pull request §2.4's
+consent choice, §2.8's base-branch ladder and §2.6's `gh` capability probe
+allowed, through a different reference and against a different remote —
+NEVER touches a docs repo or the current working directory, where it is not the specs repository;
 NEVER force-pushes;
 NEVER fails the run; and skips entirely when the run carries `specs_git:
 blocked` (§3.3 G0), re-emitting that notice. Because the Phase 5 report was
@@ -827,8 +877,8 @@ last output — prefixed `Specs repo:`, with any guard notice repeated in full.
 
 ADDITIVE — this phase NEVER fails the run and NEVER commits the deliverable itself
 (the terminal step above commits only the bounded session-artifact paths in
-`$SPECS_PATH`; the implementation itself was committed and pushed in Phase 4.6, in the code repo, via `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2; the spec/design conformance notes from step 7.5 are handed off separately, also before this phase, via `workflows-core:phase-handoff` §2), and NEVER writes into the code repo or the current working
-directory; no user name is ever written (§10 privacy).
+`$SPECS_PATH`; the implementation itself was committed in Phase 4.6, in the code repo, and pushed there where §2.4's consent choice, an `origin` and §2.5's push itself all allowed it — §3.1's rows rather than any list written out here are the authority on which line the run emitted, and its `push FAILED (<reason>)` row is a state in which that choice and an `origin` both allowed a push that did not happen — via `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2; the spec/design conformance notes from step 7.5 are handed off separately, also before this phase, via `workflows-core:phase-handoff` §2), and NEVER writes into the code repo or the current working
+directory, where it is not the specs repository; no user name is ever written (§10 privacy).
 
 ---
 
@@ -838,7 +888,9 @@ directory; no user name is ever written (§10 privacy).
 - NEVER skip Phase 1.5 classification — every run must state the level
 - NEVER use Opus for routine implementation; reserve it for planning + review on SIGNIFICANT / HIGH-RISK
 - NEVER run tests on SIGNIFICANT / HIGH-RISK work before the Opus code review returns a non-BLOCK verdict
-- NEVER skip Phase 3.5 — if no test framework is detected, ask the user rather than silently skipping; a "Skip" decision must be explicit and logged in the Phase 5 report
+- NEVER skip Phase 3.5 — where the Pre-Phase 3.5 capture returns `COMMAND_NOT_FOUND` (no framework detected) or `RUN_FAILED` (every suite the capture actually ran aborted with no parseable counts — *run*, not *detected*, since a `command_hint` can narrow one set against the other, and a suite that ran to completion printing unrecognised output never failed to start), ask the user there, where a baseline can still be taken, rather than silently skipping; a "Skip" decision must be explicit and logged in the Phase 5 report, and it drops steps 4–6 only — step 3's lint and build still run
+- NEVER read a verify report as a pass on any value but `OK` or `PARTIAL` — `RUN_FAILED` means nothing was compared and `COMMAND_NOT_FOUND` means nothing was run, and each is surfaced (Phase 3.5 step 5), never passed over
+- NEVER read `OK` or `PARTIAL` as a pass while the report's `### New failures` list is non-empty — a test this run wrote and that fails now is in neither baseline list, so it moves no `Status` at all; Phase 3.5 step 5 reads the list **beside** the `Status` rather than instead of it (the `PARTIAL` arm's `### Deferred items` record is still owed either way), and a non-empty list then sends the run into step 6's fix loop
 - NEVER make assumptions that could have been asked — ask instead
 - NEVER end implementation with "Should I implement?" — if approved, implement
 - NEVER rewrite files wholesale when only an append/edit is needed
@@ -848,7 +900,7 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS check for a clean working tree before branching; stash or get explicit user consent if dirty — and record `stash_ref` / `pre_existing_dirty` for Phase 4.6, which cannot honour `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2's carve-outs without them
 - ALWAYS run Phase 4.6 (`finish-code-branch`, per `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md`) after Phase 4 and before the Phase 5 report — the commit is prompt-free (§1 rule 5) and the push + pull request sit behind §2.4's choice; a run that ends with the implementation uncommitted is a defect, not a style, and `--no-commit` is its only opt-out
 - NEVER commit the implementation before Phase 4 — Phase 4's maintenance agents write into the same repo, and a commit ahead of them ships a partial run
-- NEVER skip Phase 4.6 because a gate failed — a run whose review is still `BLOCK` or whose regressions the user kept is committed and pushed like any other, and sets `clean_finish: false` so its pull request is a draft carrying the DO-NOT-MERGE banner (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.9)
+- NEVER skip Phase 4.6 because a gate failed — a run meeting **any** of the conditions Phase 4.6's own `clean_finish` input row lists is committed like any other and pushed behind the same §2.4 consent choice, and sets `clean_finish: false` so any pull request it opens is a draft carrying the DO-NOT-MERGE banner (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.9). That row is where they are enumerated; this line cites it rather than keeping a second copy, which is exactly how the row and the `"Every run"` paragraph above it came to disagree
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS spawn Phase 4 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)
@@ -858,7 +910,7 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS pass `Change type: code` in the Phase 4 change summary block (scopes the four maintenance agents' suggestions to code-change territory — docs variants use `docs`)
 - AFTER one review-fixer pass + one re-review, if verdict is still BLOCK: stop and surface to user — do NOT loop
 - ALWAYS state, with the recorded review verdict, which version it was taken against — where any edit followed it (a review-fixer pass, a manual fix, a Phase 3.5 regression fix), the Phase 5 report says so and names the edits, per the `A recorded verdict names the version it was taken against` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`; where none did, it says that too
-- AFTER two Phase 3.5 fix-loop attempts, if regressions remain: stop and surface to user — do NOT loop
+- AFTER two Phase 3.5 fix-loop attempts, if any regression or new failure remains: stop and surface to user — do NOT loop
 - ALWAYS classify each `@path` input by inspection (Phase 0) — never by matching the path string
 - WHEN `fan_out` is true (multi-repo or any directory input): floor classification at SIGNIFICANT (overridable at plan approval), run Phase 1.7, and feed its synthesized summary to the planner instead of the single Explore subagent
 - WHEN `fan_out` is true and a theme stays inconclusive: run round 2 (§8.5) when round 1 left an evidence anchor to seed it, and name every still-unresolved theme — including one that never entered round 2 for lack of an anchor — in the summary's `## Unresolved` section and the risk-planner brief's `Unresolved scan themes:` field; NEVER fold it in as an ordinary gap

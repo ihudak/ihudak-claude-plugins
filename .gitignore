@@ -19,3 +19,6 @@ __pycache__/
 
 # git worktrees (isolated workspaces for subagent-driven development)
 /.worktrees/
+
+# the mermaid gate's installed parser (pinned by scripts/mermaid/package-lock.json)
+/scripts/mermaid/node_modules/

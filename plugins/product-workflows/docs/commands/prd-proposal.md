@@ -69,12 +69,12 @@ Every figure in both artifacts is **hours of human delivery time**. Neither carr
 
 ## What it does not do
 
-- **It gates nothing on the build ladder, and nothing there waits on it.** No command of that ladder reads `proposal.md`, requires one to exist, or behaves differently because one does — [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/epics`](epics.md) and the `dev-workflows` commands below them each resolve the same folder and neither know nor care whether it holds a proposal. No readiness tier withholds permission to begin work. The one command that does read a proposal is the sibling umbrella that rolls a slice's into a programme-level one, which is a second proposal rather than a phase of the build.
+- **It gates nothing on the build ladder, and nothing there waits on it.** No command of that ladder reads `proposal.md`, requires one to exist, or behaves differently because one does — [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/epics`](epics.md) and the `dev-workflows` commands below them each resolve the same folder and neither know nor care whether it holds a proposal. No readiness tier withholds permission to begin work. The one command that reads **another folder's** proposal is the sibling umbrella that rolls a slice's into a programme-level one, which is a second proposal rather than a phase of the build; every other read is an own-folder one — a later run of this command, which opens the `proposal.md` it left in the same folder as the anchor its re-estimate carries figures forward from, and `proposal-reviewer` inside the run that wrote it, under *Gates* above.
 - **It prices nothing in money.** No rate card, no currency, no monetary total — those are contractual and belong in a document this pipeline does not produce.
 - **It requires no ARD and no specification.** Grading replaces that gate, which is the whole answer to the question of when a requirement set becomes estimable.
 - **It does no documentation grounding**, and takes no `--no-docs` flag. Shipped product documentation bears on how a feature is described and not at all on what it costs to build, so there is no flag to turn off and no `docs grounding:` line in the report.
 - **It never offers a defect repair as a scope lever.** Where the folder holds an unrepaired code defect, its repair becomes its own work package automatically and appears in neither the scope-lever nor the priced-options table. Asking a customer to authorise deferring a defect the vendor's own work found would return that deferral carrying the customer's authority on a question the vendor's policy has already answered.
-- **It writes no code repository, no docs repository and nothing in your current working directory.**
+- **It writes no code repository, no docs repository and nothing in your current working directory, where it is not the specs repository.**
 
 ## Example
 

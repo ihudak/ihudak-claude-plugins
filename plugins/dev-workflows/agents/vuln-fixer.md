@@ -34,8 +34,12 @@ reconstruct it.
 > steps 1 through 4** — the baseline was captured (by the orchestrator), the
 > branch was created, the fix was applied, and the build was run on the prior
 > invocation. Resume at
-> step 5 (Verify), using the `baseline_tests: provided` + `baseline_passing`
-> + `baseline.passing_tests` re-supplied by the orchestrator in the input.
+> step 5 (Verify), which hands `test-baseliner` the **whole** `baseline_block`
+> the orchestrator re-supplied — `baseline_tests: provided`, `baseline_passing`
+> and `baseline.passing_tests` come with it and are the same re-keyed
+> convenience they are on a `full` call, never a substitute for the block: its
+> `### Suites` rows are what separate a suite that regressed from one that could
+> not run at either end.
 > Do **not** re-baseline (that would clobber the pre-fix snapshot) and do
 > **not** re-apply the version pin. Default phase (omitted or `phase: full`)
 > runs all steps.
@@ -50,13 +54,43 @@ reconstruct it.
 > run-fresh` is invalid** because the captured baseline cannot survive the
 > AWAITING_REVIEW boundary.
 
-1. **Baseline** — If `baseline_tests: run-fresh`, invoke `test-baseliner` in `capture` mode.
-   If `baseline_tests: provided`, the orchestrator has already captured the baseline — skip this step.
+1. **Baseline** — If `baseline_tests: run-fresh`, invoke `test-baseliner` in `capture` mode with
+   a `Project root:` line set to this request's own `repo:` value, and keep the
+   returned `## Test Baseline` block **whole** — step 5 passes it back verbatim, and its `### Suites` rows are
+   what separate a suite that regressed from one that could not run at either end.
+   **Name that root rather than letting the capture fall back to the working directory**: step 5's verify has
+   no such fallback, and `### Suites` records each marker as a path relative to whatever root each call
+   scanned, so two roots make every marker path disagree between the two calls
+   (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`, `repo:`).
+   If `baseline_tests: provided`, the orchestrator has already captured the baseline and supplied that block
+   as `baseline_block` — skip this step.
    - On `status: RUN_FAILED` or `COMMAND_NOT_FOUND`: set output `status: BASELINE_FAILED`, return —
      before step 2, so no branch is created for a CVE that was never worked.
+     **This is the opposite disposition to step 5's on the same evidence, and the difference is what
+     each point has to lose, not what the evidence says.** The same two values at step 5 keep the fix
+     and return `TESTS_NOT_RUN`; here they abandon the CVE. Neither is a verdict on the code — an
+     unrunnable suite is a fact about the environment at both ends — but here nothing has been created
+     or changed yet, so stopping costs a re-run once the runner is installed, while at step 5 a fix is
+     already applied to a branch and discarding it would destroy work on evidence that says nothing
+     about it. Do **not** read this as licence to revert at step 5, and do not read step 5's tolerance
+     as licence to branch and edit here: the asymmetry is deliberate and is the whole of it.
+   - On `status: PARTIAL`: at least one suite produced counts, so there **is** a baseline to verify against.
+     Proceed, and record in `notes` every suite `### Suites` does not mark `OK` or `NO_TESTS`, with its
+     command, so the output says what this CVE's verification does not cover. A JavaScript runner that is not
+     installed is not a reason to leave a CVE in the Ruby half of the same repository unfixed.
    - On `status: NO_TESTS`: the project has no runnable test suite. Proceed with the branch and the fix
      (steps 2-4), then **skip step 5 (Verify) entirely** — there is nothing to diff against —
      and go straight to step 6, noting in the output that no test suite was found.
+   - **On every one of those values, `OK` and `NO_TESTS` included**, copy into `notes` — verbatim, beside
+     whatever else that arm records there — each `### Notes` line the block opens with `CAVEAT: `. That mark
+     is the baseliner's own (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so nothing here
+     decides which note matters, and on a green capture it is the block's own account of a baseline that is not
+     what its counts claim — a qualifying suite nothing ran, counts a `Make` indirection may have summed
+     twice, a `Make` fold's identifiers unattributed to what printed them, none of which the
+     `Status`, the counts or the `### Suites` rows state. An unmarked note records
+     where a command ran; leave it. On a `BASELINE_FAILED` return carry them too: `notes` is the only field
+     of that return a reader can learn them from. `/vuln`'s Step 4 table reads these off `notes` on every
+     status this agent returns.
 
 2. **Create the fix branch — before any file is touched** — `git checkout -b <the branch name the
    orchestrator supplied>`. The name is **always** supplied in the input (`branch:`); never derive
@@ -86,10 +120,29 @@ reconstruct it.
 
 4. **Build** — Run the project build (compile only, no tests). On failure see "Build failure" below.
 
-5. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the baseline from step 1.
+5. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the **whole** baseline block from step 1
+   (or the `baseline_block` the orchestrator supplied) and a `Project root:` line set to this request's own `repo:` value —
+   the same root step 1's capture scanned, and the one `/vuln` Step 3 scanned where it captured instead.
+   **It is required and it must be that one**, for the reason step 1 gives.
    - `status: OK` → proceed to step 6.
-   - `status: REGRESSIONS` → follow "Test regression" below.
-   - `status: RUN_FAILED` → revert fix, set `status: BUILD_FAILED`, return.
+   - `status: PARTIAL` → proceed to step 6, recording the uncovered suites in `notes`. **Never revert on it:**
+     a suite that could not run at either end is a fact about the environment, not evidence about this fix.
+   - `status: REGRESSIONS` → follow "Test regression" below. This is the one verify value that is evidence
+     about the fix, and the only one on which anything is reverted.
+   - `status: RUN_FAILED` or `COMMAND_NOT_FOUND` → nothing was compared. **Do not revert the fix**: reverting
+     needs evidence the fix is bad, and this is evidence that the suites could not be run. Set
+     `status: TESTS_NOT_RUN` with the report's reason in `notes` and return — the branch and the applied fix
+     stay on it, and the orchestrator decides. **Step 1 returns `BASELINE_FAILED` on these same two values
+     and that is not an inconsistency to correct here**: there nothing had been created yet and the cost of
+     stopping is a re-run, whereas here the fix exists and discarding it would destroy work on evidence
+     about the environment rather than about the change (step 1's own note says the same from its side).
+   - **On every one of those values, `OK` included**, copy into `notes` — verbatim, beside whatever else that
+     arm records there — each `### Notes` line the report opens with `CAVEAT: `, by the same rule and for the
+     same reason step 1 states. On a green verify it is the report's own account of a comparison that is not
+     what it appears to be: a suite that aborted and lost no baseline test, a `Make` fold's identifiers
+     left unattributed; and where the status is `REGRESSIONS` it can say those identifiers reached **Missing
+     from run** without that being evidence this fix removed them. It is **never** a reason to revert — a marked line says what the comparison could not see,
+     not that the fix is bad, which is the same disposition every value but `REGRESSIONS` already carries.
 
 6. **Output** — Produce the result record (see `${CLAUDE_PLUGIN_ROOT}/references/handoff/vuln-fixer.md` output format).
 
@@ -123,7 +176,7 @@ granted, so this agent can never ask the user directly. The orchestrator owns th
 - Process one CVE per invocation.
 - Never commit and never push — the orchestrator owns both (`/vuln` Step 3.9, via `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md`). Always create the dedicated fix branch **before** the first edit (step 2); never edit a file while HEAD is on `main`/`master`, and never delete a branch.
 - Never write a commit message — the `Co-authored-by: Claude` trailer and the whole template belong to the orchestrator's Step 3.9 commit (see `/vuln` "Git Workflow").
-- NEVER dispatch any subagent other than `test-baseliner`. That one dispatch is your entire `Task` authority. **Never dispatch a reviewer of your own.** Review is the caller's to schedule, not yours. Your caller deliberately runs no reviewer on some paths — a SIMPLE / MODERATE run is classified out of the Opus `code-review` gate on purpose — so a reviewer you spawn silently overrides the caller's own gate policy. Its verdict has no standing either: the caller never sees it, and you cannot act on it without exceeding your brief.
+- NEVER dispatch any subagent other than `test-baseliner`. That one dispatch is your entire `Task` authority. Pin it with `model: <Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>` — running a test suite is mechanical, so the tier is pinned here rather than left to inherit. **Never dispatch a reviewer of your own.** Review is the caller's to schedule, not yours. Your caller deliberately runs no reviewer on some paths — a SIMPLE / MODERATE run is classified out of the Opus `code-review` gate on purpose — so a reviewer you spawn silently overrides the caller's own gate policy. Its verdict has no standing either: the caller never sees it, and you cannot act on it without exceeding your brief.
 
 ## Model Routing
 

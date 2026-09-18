@@ -1,6 +1,6 @@
 ---
 name: brd-intake
-description: BRD-intake workflow (PM phase, entry point of the BRD-to-PRD flow). Copies a customer-supplied business requirements document into the specs repo verbatim, dispatches brd-reader to extract a [BR#n] requirement inventory, confirms its defect candidates interactively against the six brd-format.md classes, and writes a coverage-ledger.md with every row unallocated. Rejects a non-markdown source rather than converting it. Grounds on the shipped product documentation when $DOCS_PATH resolves (--no-docs off), consumed grill-rank over the defect walk. Optional --sort-existing migrates an already-hand-written package into seed files. Offers /brd-split as the next step.
+description: BRD-intake workflow (PM phase, entry point of the BRD-to-PRD flow). Copies a customer-supplied business requirements document into the specs repo verbatim — and with it, byte-for-byte, every file that document links from its own directory, naming in brd/brd-link-log.md each link it could not capture and why — dispatches brd-reader to extract a [BR#n] requirement inventory, confirms its defect candidates interactively against the six brd-format.md classes, and writes a coverage-ledger.md with every row unallocated. Rejects a non-markdown source rather than converting it. Grounds on the shipped product documentation when $DOCS_PATH resolves (--no-docs off), consumed grill-rank over the defect walk. Optional --sort-existing migrates an already-hand-written package into seed files. Offers /brd-split as the next step.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -119,7 +119,10 @@ Show, and confirm before writing anything:
 
 - The BRD folder (existing, or the derived `BRD-<BRD-KEY>-<slug>` to be created — the `BRD-`
   prefix included, per `workflows-core:addressing` §2).
-- The resolved absolute path to `@<brd-file>`.
+- The resolved absolute path to `@<brd-file>`, **and its own directory** — the one every link in it
+  resolves against, and the boundary Phase 2's capture stops at. Say that Phase 2 copies the
+  document **and every file it links from inside that directory** into `brd/source/`, so the
+  operator sees what is about to be copied out of their filesystem before consenting to it.
 - Whether `--sort-existing <dir>` is in play, and its resolved directory.
 - The `docs grounding:` line in the form `workflows-core:docs-grounding`
   resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build,
@@ -166,11 +169,67 @@ record** in `notes` and the final report — do not hard-block.
 ## Phase 2 — Copy the source
 
 Copy `@<brd-file>` **verbatim, byte-for-byte** into `<BRD-dir>/brd/source/<basename>` (creating the
-BRD folder now, if Phase 0 derived a new one, and `brd/source/` inside it). This is the only write
-this phase makes. Per `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, nothing under
+BRD folder now, if Phase 0 derived a new one, and `brd/source/` inside it). Per
+`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, nothing under
 `brd/source/` is ever edited, reworded, or reformatted after this point, no matter how badly worded
 a requirement inside it is — defects found in it are logged beside it (Phase 4), never corrected in
 it.
+
+**Then copy the files the source document links, byte-for-byte too** — this phase captures both, and
+`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.1 is the authority on what the result holds. A
+customer's BRD routinely carries screenshots, diagrams and appendices beside it, and `brd/source/`
+is the immutable record every `[BR#n]` anchors into: whatever this phase does not capture is outside
+that record permanently, because nothing under it is ever written again. Copying the text alone
+leaves every one of those links resolving to nothing while the run reports a faithful verbatim copy.
+
+**The link forms covered**, which are the ones a customer's markdown actually uses:
+
+- a markdown inline image or link — `![alt](<target>)` and `[text](<target>)`, angle-bracketed
+  (`[text](<my file.png>)`) or not, with any title after the target ignored;
+- a reference-style definition — `[label]: <target>`, wherever in the document the definition sits;
+- an HTML `<img src="<target>">`.
+
+**Which targets are copied.** Drop any `#fragment` and `?query` from the target and percent-decode
+it; a target that is empty after that is an in-document jump, not a file reference at all — neither
+copied nor logged. **Resolve what is left against the directory of the file the link sits in** — the
+source document's own directory for the document itself, the copied file's own directory on the
+transitive pass below — and normalise it as text, `..` segments collapsed, never by resolving
+symlinks. Copy it when, and only when, all four hold: it carries no URI scheme (`https:`, `http:`,
+`mailto:`, `data:`, …); it does not begin with `/`; **the normalised path is inside the source
+document's own directory**; and it names a readable existing file there. Copy it to **its path
+relative to that directory** under `<BRD-dir>/brd/source/`, creating intermediate directories as
+needed. The copied document sits at `brd/source/<basename>` and the copy mirrors the source tree's
+own layout beneath it, so every such link resolves from the copy exactly as it did from the
+customer's original — **with no edit to the copied text**: nothing here rewrites a link, and the
+containment test is what keeps every copy inside `brd/source/` rather than above it. **A syntactic
+`..` test is not that test.** `../images/flow.png` written in `appendix/notes.md` resolves inside the
+boundary, so refusing it loses a file that is in scope and writes into the log a reason untrue of it.
+
+Copy each file **byte-for-byte, whatever its type** — an image, a PDF, a spreadsheet — never opened
+as text, never re-encoded, never resized. Phase 0 step 3's markdown-only rule is about the
+*document* the inventory anchors into; a file it links is captured as it stands, and nothing in this
+run reads its content.
+
+**Then repeat the whole capture over each markdown file this step copied**, until a pass finds
+nothing new. A copied appendix's own links resolve from the copy exactly as the document's do, so
+leaving them uncaptured would reproduce this loss one level down; a file is copied once, so the walk
+terminates on any document, cycles included.
+
+**Every link not copied is named, never dropped in silence.** Write
+`<BRD-dir>/brd/brd-link-log.md` in the shape `brd-format.md` §1.1 fixes — the source document's
+basename, the counts, and one row per uncopied link carrying the target as written, the copied file
+the link sits in, and one of these reasons:
+
+| Reason | Fires when |
+|---|---|
+| `outside the source directory` | the target, resolved and normalised, lands above the source document's own directory |
+| `absolute path` | the target begins with `/` |
+| `url` | the target carries a URI scheme |
+| `unreadable` | the target names no file under the source document's directory, or names one that cannot be read |
+
+**Write the log on every run, including one that captured everything** — its counts are then the
+positive record that the capture ran, which an absent log and an empty one are not. Report the same
+counts and the same list, each entry with its reason, in the final report.
 
 ---
 
@@ -179,7 +238,7 @@ it.
 Dispatch `brd-reader`:
 
 → Agent (subagent_type: "product-workflows:brd-reader", model: `<detection_model — frontmatter-pinned to sonnet>`):
-  > "source_path: [absolute path to the copied file under `<BRD-dir>/brd/source/`]"
+  > "source_path: [absolute path to the copied source **document** under `<BRD-dir>/brd/source/` — that directory also holds the files it links (Phase 2), and this agent reads only the document]"
 
 Act on `status`:
 - **`OK`** — write `<BRD-dir>/brd/brd-inventory.md` per `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md`
@@ -208,7 +267,8 @@ Act on `status`:
 
   **Then check the inventory's coverage of its own source**, per
   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.2, before anything downstream treats the
-  inventory as the spine it is. Both relations read the anchors already written and the copied source;
+  inventory as the spine it is. Both relations read the anchors already written and the copied source
+  document — never a file it links, which carries no section and holds no `[BR#n]`;
   nothing else is stored and the agent is not re-dispatched.
 
   1. **Every `source_anchor` resolves to a section the source has** — by its section reference, or,
@@ -223,7 +283,7 @@ Act on `status`:
 
      Any **other** unresolvable anchor is named with its `[BR#n]`, and the run stops — a row nobody
      can trace back is a defect in the artifact whose job is traceability:
-     `BRD_INTAKE_DANGLING_ANCHOR: <N> inventory row(s) carry a source_anchor that resolves to no section of brd/source/ (<BR-id>: <anchor>, …), and none of them is a row this run preserved as no longer present. The row cannot be traced back to the customer's document, which is the one thing the anchor exists for. Correct the anchors by hand in <path> and re-run; do not re-run brd-reader over the whole document, which would renumber every row.`
+     `BRD_INTAKE_DANGLING_ANCHOR: <N> inventory row(s) carry a source_anchor that resolves to no section of the copied source document under brd/source/ (<BR-id>: <anchor>, …), and none of them is a row this run preserved as no longer present. The row cannot be traced back to the customer's document, which is the one thing the anchor exists for. Correct the anchors by hand in <path> and re-run; do not re-run brd-reader over the whole document, which would renumber every row.`
   2. **Every top-level section either holds a row or is accounted for.** Name each section that holds
      none, with what the source has under it, and ask — one question for the set, not one per section:
 
@@ -376,7 +436,7 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 ```
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = every file
-this run wrote under `<BRD-dir>` — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 classifies either as OTHER and stages it silently, so a declaration that looks complete ships nothing. That is each file this run actually copied into `brd/source/` named individually (the copy step knows them; `brd/source/**` is not a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`,
+this run wrote under `<BRD-dir>` — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 stages neither, so a declaration that looks complete ships nothing — §2.3 step 4 names each in §4.1's *declaration unaccounted for* clause, so the failure is reported rather than silent, but nothing it names lands. That is each file this run actually copied into `brd/source/` — the customer's document **and every file it links** (Phase 2) — named individually (the copy step knows them; `brd/source/**` is not a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`, `brd/brd-link-log.md`,
 `coverage-ledger.md`, and — only when Phase 6 ran — `prd-seed.md`, `ard-seed.md`, `spec-seed.md`),
 `title: <BRD-KEY> Intake BRD source and requirement inventory`, and `body_facts` = the requirement
 count, the confirmed-defect count by class, and whether Phase 6 wrote seeds; emit its §4.1 outcome
@@ -456,9 +516,10 @@ capability gap, so `emit-block` never fires from this command's own Phase 0.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/brd-intake`; what was
-   produced (the inventory, the confirmed defect log, the ledger skeleton); key events (a rejected
-   PDF, an `EMPTY` read, unresolved candidates left `open`, docs grounding OFF or a docs-raised
-   defect — or "none"); workarounds; test result
+   produced (the copied source and the files it links, the inventory, the confirmed defect log, the
+   link log, the ledger skeleton); key events (a rejected
+   PDF, an `EMPTY` read, a link the copy could not capture, unresolved candidates left `open`, docs
+   grounding OFF or a docs-raised defect — or "none"); workarounds; test result
    N/A; project root = the BRD folder.
 2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6)
    with the Lessons Learned report, `command: /brd-intake`, the run's `key` (the `<BRD-KEY>`),
@@ -472,19 +533,21 @@ capability gap, so `emit-block` never fires from this command's own Phase 0.
 5. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths
    inside `$SPECS_PATH`, commits `<BRD-KEY> Add dev-workflows session artifacts (/brd-intake)` with
    no `Co-Authored-By` trailer, and pushes to the branch Phase 7's handoff created. It NEVER touches
-   a code repo, a docs repo, or the current working directory; NEVER force-pushes; NEVER
+   a code repo, a docs repo, or the current working directory, where it is not the specs repository; NEVER force-pushes; NEVER
    fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting
    that notice. Hold its §6 outcome line for the final report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is
-offered only in Phase 7), and NEVER writes into a code/docs repo or the current working directory;
+offered only in Phase 7), and NEVER writes into a code/docs repo or the current working directory, where it is not the specs repository;
 no user name is ever written.
 
 ---
 
 ## Final report
 
-Report: the BRD folder + source path; the requirement count; the confirmed-defect count by class
+Report: the BRD folder + source path; how many files were copied beside the source and, per
+`brd/brd-link-log.md`, every link the copy could not capture with its reason (Phase 2); the
+requirement count; the confirmed-defect count by class
 (and how many candidates were rejected, and how many of the confirmed ones were raised from
 documentation rather than by `brd-reader`); the `docs grounding:` line from Phase 1 verbatim, and —
 when it was ON — the `docs_references` list of requirements the shipped documentation describes as

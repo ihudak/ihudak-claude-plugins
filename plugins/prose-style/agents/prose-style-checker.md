@@ -16,10 +16,11 @@ docs-style-checker finding schema.
 
 ## When to invoke
 
-- From `/document` (Jira mode) Phase 6.4 — dispatched inside `docs-style-checker` as the
+- From `/document` (keyed mode) Phase 6.4 — dispatched inside `docs-style-checker` as the
   complementary semantic pass alongside the repo's primary linter.
-- From `/epics` Phase 6.2 — as the primary style checker for Epic drafts (vault-internal,
-  no repo linter). Also from `/create-prd`, `/update-prd`, and `/release-notes`.
+- From `/epics` Phase 6.2 — as the primary style checker for Epic drafts, which live in the
+  specs tree, where no repo linter runs. Also from `/create-prd`, `/update-prd`, and
+  `/release-notes`.
 - From `/prose-review-pr` and `/prose-review-docs` in this plugin.
 - From any command that writes planning documents (PRDs, ARDs, and similar).
 
@@ -30,6 +31,9 @@ files:        [<absolute paths of files to check>]
 doc_type:     epic | prd | ard | product-docs | general
 rules_path:   <optional absolute path to an overlay rules directory — overrides
                discovery in step 1>
+repo_root:    <optional absolute path to the repository whose rules apply — for a caller
+               that checks a copy of a file kept outside its repository; replaces step 1b's
+               derivation of <repo-root>>
 ```
 
 `doc_type` affects severity calibration (see step 5). Default: `general`.
@@ -63,7 +67,10 @@ the first hit; do not merge two overlays.
 | 3 | `$PROSE_STYLE_PATH` | the variable is set and names a readable directory containing ≥1 `.md` file |
 | 4 | *(none)* | always — the baseline alone is the active rule set |
 
-Derive `<repo-root>` for order 2 as follows, taking the first that works:
+Where the caller supplied `repo_root`, that is `<repo-root>`, and nothing is derived: a
+caller that checks a copy of a file kept outside its repository — `/release-notes` checks
+its draft in a scratch file — names the repository the file belongs to, whose rules apply.
+Otherwise derive `<repo-root>` for order 2 as follows, taking the first that works:
 
 ```bash
 # a. the repository containing the files being checked
@@ -100,8 +107,10 @@ baseline                      # no overlay resolved
 overlay:<absolute path>       # an overlay resolved, from any of orders 1–3
 ```
 
-Do not print a warning, a note, or a question about the resolution outcome. The
-`rules_source` field is the entire report.
+Do not print a warning, a note, or a question about the resolution outcome. Its
+whole report is two fields of the output block (step 6), and nothing else:
+`rules_source`, the rule set that applied, and `repo_root`, the `<repo-root>` step 1b
+took.
 
 **Only when step 1a itself fails** — the baseline directory is missing or empty and no
 overlay resolved either — return:
@@ -110,6 +119,7 @@ overlay resolved either — return:
 status: ERROR
 checker: prose-style
 rules_source: none
+repo_root: <as step 6 defines it>
 violations: []
 error: "No rule set available: ${CLAUDE_PLUGIN_ROOT}/references/ is missing or empty and no overlay resolved."
 ```
@@ -165,6 +175,7 @@ status:         OK | VIOLATIONS_FOUND | ERROR
 checker:        prose-style
 checker_source: prose-style-checker
 rules_source:   baseline | overlay:<absolute path> | none
+repo_root:      <absolute path> | none
 violations:     [<array of violation records>]
 error:          <only when status == ERROR: one-line reason>
 ```
@@ -172,6 +183,14 @@ error:          <only when status == ERROR: one-line reason>
 The `checker_source` field lets consumers distinguish this output from
 `docs-style-checker` (which returns `linter:` instead). Both checkers share the same
 violation schema.
+
+`repo_root` echoes the `<repo-root>` step 1b took for order 2: the caller's `repo_root`
+input verbatim where it supplied one, else the one step 1b derived, rung c's directory
+included. Where `rules_path` resolved at order 1 and the caller supplied no `repo_root`,
+step 1b derives none, since order 2 is never reached, and the field reads `none`. Always
+return it. It is how a caller that handed `repo_root` knows its input was
+honoured: a checker from before this input existed ignores the input and returns no such
+field.
 
 - `status: OK` — all files checked, zero violations found.
 - `status: VIOLATIONS_FOUND` — at least one violation found.

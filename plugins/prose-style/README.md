@@ -51,8 +51,15 @@ stops there:
 | 3 | `$PROSE_STYLE_PATH` | same |
 | 4 | *(none)* | always — the baseline alone is the rule set |
 
-`<repo-root>` is `git rev-parse --show-toplevel` for the files being checked, falling
-back to the working directory's repository, falling back to no repo-local overlay.
+`<repo-root>` is the repository a caller names in the checker's `repo_root` input — a
+caller that checks a copy of a file kept outside its repository, as `/release-notes` does
+with its draft, names the repository the file belongs to — and otherwise
+`git rev-parse --show-toplevel` for the files being checked, falling back to the working
+directory's repository, and, where neither is in a repository, to the deepest directory that
+holds every file being checked, whose own `.prose-style/rules/` is then order 2. The checker's
+output echoes the `<repo-root>` it took as `repo_root` — `none` where a caller's `rules_path`
+resolved and it named no `repo_root`, since order 2 is then never reached — so a caller that named
+one can tell its input was honoured; the input and the echo arrived together, in 0.4.0.
 
 **Every miss is a silent, non-blocking fallback.** A missing `.prose-style/` directory,
 an unset `$PROSE_STYLE_PATH`, an unreadable path, a directory with no markdown in it —
@@ -220,7 +227,7 @@ conventions (finds PRs by number in `git log`) and also accepts source branch na
 **What it does:**
 1. Finds changed `.md` files from the PR diff.
 2. Runs `prose-style-checker` on those files.
-3. Runs Vale if `.vale.ini` is present in the repo and Vale is installed.
+3. Runs Vale if the repo carries a Vale configuration file (`.vale.ini`, or one of the other names Vale reads: `.vale`, `_vale`, `vale.ini`, `_vale.ini`) and Vale is installed — on that configuration, never merged with your global Vale configuration or replaced by `VALE_CONFIG_PATH`; where it sets no `StylesPath`, Vale's shared default styles directory is read with it, and `/prose-review-pr` step 6 says what that directory can hold.
 4. Reports violations with file, line, severity, and suggested fix.
 5. Shows violations in diff context so you see what changed alongside what violated.
 6. Offers to auto-fix via `prose-fixer`.
@@ -255,7 +262,7 @@ automatic fixes.
 **What it does:**
 1. Recursively finds all `.md` files in the specified path(s).
 2. Runs `prose-style-checker` on those files.
-3. Runs Vale if available.
+3. Runs Vale if available, on the repository's configuration, as `/prose-review-pr` does.
 4. Reports violations grouped by file.
 5. With `--fix`: applies safe fixes via `prose-fixer`, then re-checks to verify.
 
@@ -373,8 +380,8 @@ This plugin supplies the **complementary semantic pass** that the `docs-style-ch
   separately. `docs-workflows` declares this plugin as a dependency, so that complementary
   pass has no absent case — it is also what carries the check on a repo with no linter of
   its own.
-- **`/epics`** Phase 6.2 invokes `prose-style-checker` directly (Epic drafts are
-  vault-internal and have no repo linter). `/create-prd`, `/update-prd`, and
+- **`/epics`** Phase 6.2 invokes `prose-style-checker` directly (Epic drafts live in the
+  specs tree, where no repo linter runs). `/create-prd`, `/update-prd`, and
   `/release-notes` invoke it directly too.
 - **`/prose-review-pr` and `/prose-review-docs`** are standalone — invoke them directly
   without going through the `dev-workflows` pipeline.

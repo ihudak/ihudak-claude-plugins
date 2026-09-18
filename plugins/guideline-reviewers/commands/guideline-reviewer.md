@@ -8,7 +8,7 @@ Review app code and UI for compliance with public UI design-system and accessibi
 
 If `$ARGUMENTS` is empty, ask the user which files or components to review.
 
-**`--rules <path>`** (optional) — an organization's own UI rule directory, layered over the bundled baseline. Set it aside from `$ARGUMENTS` before resolving the files to review, and pass it to the agent as `rules_path`. Absent, the agent resolves an overlay itself from `<repo-root>/.dev-workflows/ui-guidelines/` then `$UI_GUIDELINES_PATH`, falling back silently to the bundled baseline.
+**`--rules <path>`** (optional) — an organization's own UI rule directory, layered over the bundled baseline. Set it aside from `$ARGUMENTS` before resolving the files to review, and pass it to the agent as `rules_path`. Absent, the agent resolves an overlay itself from `<repo-root>/.dev-workflows/ui-guidelines/` then `$UI_GUIDELINES_PATH`, falling back to the bundled baseline — silently where a candidate is absent or unreadable, and with a `rules_overlay_skipped:` line naming any candidate that is a readable directory holding no `.md` file of its own, since an overlay is flat and one whose rules sit in subdirectories would otherwise be lost without a word.
 
 Dispatch the review to the `guideline-reviewer` subagent:
 
@@ -21,8 +21,8 @@ Dispatch the review to the `guideline-reviewer` subagent:
   >
   > rules_path: [the --rules value, or omit]
   >
-  > Resolve the rule overlay per your `## Rule Overlay` section and open the report with the `rules_source:` and `a11y_check:` lines (`eslint-jsx-a11y` | `harness-detected:<name>` | `none`)."
+  > Resolve the rule overlay per your `## Rule Overlay` section and open the report with the `rules_source:` and `a11y_check:` lines (`eslint-jsx-a11y` | `harness-detected:<name>` | `none`) — one `a11y_check:` per lint directory where the files under review span more than one — plus a `rules_overlay_skipped:` line for every overlay candidate your Step B found readable and empty of `.md` files."
 
-Surface the subagent's verdict to the user, including its `a11y_check:` line and, when a runtime harness was detected, its statement that the harness was **not** executed. Never restate a detected-but-unrun harness as a check that ran.
+Surface the subagent's verdict to the user, including its `a11y_check:` line — one per lint directory where the reviewed files span more than one — and, when a runtime harness was detected, its statement that the harness was **not** executed. Never restate a detected-but-unrun harness as a check that ran.
 
 `a11y_check: none` is a normal outcome, not a problem to report: mention it once as the recorded value and do not suggest the user install tooling.

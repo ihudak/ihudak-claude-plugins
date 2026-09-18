@@ -35,8 +35,8 @@ the grounder and every finding carries one, so confirming it confirms nothing. F
 references; do not restate them here, and do not re-derive a rule you can cite.
 
 **Dispatched by `commands/prd-proposal.md` Phase 9, and unchanged by `commands/brd-proposal.md`** —
-the same review, over a `PRD-` slice's own proposal or the `BRD-` umbrella's, and only check 9 tells
-the two apart.
+the same review, over a `PRD-` slice's own proposal or the `BRD-` umbrella's; where a check tests
+the folder kind, it says so itself, at the point it applies.
 
 ## Inputs
 
@@ -234,10 +234,12 @@ which §9 says it is not.
    `path:line` (or section name, where the artifact carries no line the caller can act on) it names.
    A finding attacking three packages is three findings.
 4. **Severity is BLOCKER or RECOMMENDATION, nothing else.** Each of the eleven sections above states
-   which its own violations take; where a check names both (2, 6, 7), follow the rule stated there.
-   Everywhere else, a violation of an absolute rule §1–§13 states is a **BLOCKER**; a finding this
-   agent raises about something that is true but incompletely argued — and that no check above
-   already escalates — is a **RECOMMENDATION**.
+   which its own violations take; where a check names both, follow the rule stated there.
+   Everywhere else, a violation of an absolute rule
+   `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` states is a **BLOCKER** — every section of
+   it, not a range fixed here, so a section added to that contract needs no edit to this line; a
+   finding this agent raises about something that is true but incompletely argued — and that no
+   check above already escalates — is a **RECOMMENDATION**.
 5. **State, for each finding, what would have to be true for the artifact to stand as written.** A
    finding nobody can act on is a complaint, and this is also what the caller's triage falsifies
    each finding's claim against.
@@ -306,9 +308,12 @@ notes: |
   a BLOCKER to a RECOMMENDATION because the rest of the document is otherwise strong.
 - NEVER skip a check silently. Report all eleven passes, including an `N/A` with its reason (check 3
   with no anchor, check 7 or check 9 where the artifact each gates does not exist in this run).
-- NEVER let check 9 leak into any other check. A `PRD-` slice's own proposal is reviewed by checks 1,
-  2, 3, 4, 5, 6, 7, 8, 10 and 11 exactly as a `BRD-` umbrella's is; only check 9 differs by folder
-  kind.
+- NEVER let check 9 leak into any other check. Every other check is worked the same way on a `BRD-`
+  umbrella's proposal as on a `PRD-` slice's — apart from check 9, check 2's final bullet is the only
+  place this file narrows a check to an umbrella, and it says so where it stands. A rule a check
+  **delegates** to still carries its own scope: check 6 re-grades against
+  `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5, which grades no umbrella off its ladder
+  at all.
 - NEVER return an empty findings list without the per-check account Process step 6 requires.
 
 **Vendor neutrality binds this file as it binds every other:** any example inside it is invented,

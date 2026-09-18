@@ -1102,12 +1102,12 @@ Write `<BRD-dir>/slices.md`:
   the verbatim text is what lets them see whether the instruction or the reading was wrong.
   **On the re-cut path this same block records that same reading over the re-cut candidate set**, which is the set Phase 1.5 ran over there — no second instruction block is written, and none is needed: one instruction was read once, and only the set it was read against differs.
 
-- **One line for every frame set Phase 0 step 7b let through as `skipped: --no-design`**, naming the
+- **One line for every frame set Phase 0 step 7, test b let through as `skipped: --no-design`**, naming the
   set. That is the one route by which a slice this run carves can reach build with a design nobody
   reconciled, and the operator who chose it per-run is not the reader who will meet the slice later.
-  Where step 7b found nothing to record — no `design/` folder, or every set ground — write nothing
+  Where step 7, test b found nothing to record — no `design/` folder, or every set ground — write nothing
   here rather than a "none" line: this block exists to carry an exception. **On a `full` run there is
-  never anything to write**, and that is not the same absence: step 7b does not run there at all
+  never anything to write**, and that is not the same absence: step 7, test b does not run there at all
   (step 7 is `allocate-only` only), so this run checked no frame set rather than checking them and
   finding nothing to except.
 
@@ -1130,11 +1130,19 @@ that path this phase rewrites only what the removal changed — the removed slic
 
 ## Phase 6 — Handoff
 
-Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim:
+Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — **two arrays, selected by the `deliverable_paths` set below, per §4.0's strongest-class rule.** Where that set holds any **slice-level** `coverage-ledger.md` or `brd/brd-inventory.md` — every path but the ones named next — present §4.3's **gated — stopping** array (§4.1 bullet 1), because `/prd-ground` stops on both (`workflows-core:phase-handoff` §3.4):
 
 ```
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
+
+Where it holds **neither**, present §4.3's **advisory** array (§4.1 bullet 3) instead:
+
+```
+choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (no command stops on this; what reads it reads your working copy)", "Cancel"]
+```
+
+**The second branch is reachable and the run must not tell the operator otherwise.** It is the Phase 4.5-only path on which every standing empty child was **kept**: Phase 4 never ran, Phase 5 rewrites `slices.md` only on a removal, and a keep that wrote or updated a `reason:` therefore leaves the whole set at that child's `brd-link.md` — which §4.0's register classes **advisory**, read by BRD-route detection in `/product-workflows:create-prd`, `/product-workflows:create-ard` and `/product-workflows:specify`, by `/product-workflows:epics` step 1a and by this command's own Phase 0 step 5, and carrying no §3.4 row at all. It is also the branch the empty sets take — the no-op path, and a keep that changed nothing — so the two branches are exhaustive over every set this phase can reach. Presenting the stopping array there would promise a refusal no command makes, and the run would then print §4.1's **advisory** clause against its own prompt: a run that contradicts itself minutes apart teaches the operator to trust neither half (§4.3). Note that a **root's** own `coverage-ledger.md` and `slices.md` are advisory too (§4.0's register distinguishes a root's ledger from a slice's), so a `full` root run that carved nothing and deferred every row to this BRD takes the second branch as well.
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's
 table already lists `brd` as shared by every `/brd-*` command), `feature_folder` as resolved
@@ -1150,9 +1158,10 @@ standing child whose orphan row Step 2R's sweep re-pointed with it. Declare the 
 not all three, and never the folder; and, for a child Phase 4.5 removed as empty, **those same
 three paths again, named individually** —
 
-**Name files, never the folder.** §2.9 requires one literal repo-relative path each and §2.3 classifies
-a directory as OTHER, silently. On a removal that failure is invisible and total: `git status
---porcelain` reports three ` D` lines, a folder-shaped declaration matches none of them, so `slices.md`
+**Name files, never the folder.** §2.9 requires one literal repo-relative path each and §2.3 stages a
+directory for nothing — §2.3 step 4 names it in §4.1's *declaration unaccounted for* clause, so the
+failure is reported rather than silent, but nothing it names lands. On a removal that failure is total: `git status
+--porcelain -z` reports three ` D` records, a folder-shaped declaration matches none of them, so `slices.md`
 and the parent ledger land on the default branch while the removal does not — and the next run's
 Phase 0 step 9 re-enumerates the child as still standing. —
 §2.3's `-A` staging is what stages a removal, exactly as it does for `/idea`'s or `/update-prd`'s
@@ -1318,13 +1327,13 @@ never a capability this plugin lacks.
 5. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths
    inside `$SPECS_PATH`, commits `<BRD-KEY> Add dev-workflows session artifacts (/brd-split)` with
    no `Co-Authored-By` trailer, and pushes to the branch Phase 6's handoff created. It NEVER touches
-   a code repo, a docs repo, or the current working directory; NEVER force-pushes; NEVER
+   a code repo, a docs repo, or the current working directory, where it is not the specs repository; NEVER force-pushes; NEVER
    fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0),
    re-emitting that notice. Hold its §6 outcome line for the final report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable
 is offered only in Phase 6), and NEVER writes into a code/docs repo or the current working
-directory; no user name is ever written.
+directory, where it is not the specs repository; no user name is ever written.
 
 ---
 

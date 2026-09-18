@@ -185,24 +185,26 @@ the variable the run is missing, never a generic placeholder.
 
 `/brd-intake` (Phase 0 step 5), `/prd-ground` (Phase 0 step 3 for `SPECS_PATH` and Phase 0 step 7
 for `REPOS_PATH`), `/brd-split` (Phase 0 step 2), `/brd-interview` (Phase 0 step 3),
-`/brd-package` (Phase 0 step 3), `/brd-reconcile` (Phase 0 step 3), `/frames` (Phase 0 step 1),
+`/brd-package` (Phase 0 step 3), `/brd-reconcile` (Phase 0 step 3), `/frames` (Phase 0 step 0),
 `/prd-proposal` (Phase 0 step 1) and `/brd-proposal` (Phase 0 step 1)
 cite this rule by name — for `/brd-interview`, `/brd-package`, `/brd-reconcile`, `/frames`,
 `/prd-proposal` and `/brd-proposal`, `SPECS_PATH` is the only path variable they need, since
 none of them opens a repository. **Name them rather than counting from the end of the list**: the
 clause read "for the last four" until the list grew, at which point it silently described a
 different set. Derive the set rather than trusting this list:
-`grep -rl 'Required path environment variable unset' commands/`. It is a stop, not a
-degradation: there is no "continue without it" option, because the path is where the run's inputs
-and outputs live. Other commands reproduce the same two-option list inline without naming the
-rule; a citer that names the rule uses the list written here.
+`grep -rl 'Required path environment variable unset' plugins/*/commands/*.md`, run from the
+repository root. It is a stop, not a degradation: there is no "continue without it" option, because
+the path is where the run's inputs and outputs live. Other commands reproduce the same two-option
+list inline without naming the rule; a citer that names the rule uses the list written here.
 
 ## Repo unresolved (zero matches) — /document
 
-`choices: ["Skip and continue without its PRs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]`
+`choices: ["Skip and continue without its refs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]`
 
 Used in `/document` Phase 4 when a repo slug has zero matches in the
-slug→clone map.
+slug→clone map. The first option names **refs**, not PRs: that command builds
+its `refs[]` from `implementation.md` and the `git log --grep` scan beside it,
+and reads no pull request (`/document` Phase 4 step 1).
 
 ## Repo unresolved (zero matches) — /epics
 
@@ -274,7 +276,7 @@ uses the `/document` variant above, which is the one written under this heading.
 
 `choices: ["Use `<fallback>` (default for this command)", "Use my initials — I'll enter them"]`
 
-Used by every branch-creating command (`/implement`, `/document`, `/docs-profile`, `/docs-init`, `/docs-brand` standalone, `/upgrade`, `/vuln`) when the `branch-naming.md` §2 identity ladder — `$GIT_USER_INITIALS`, `git config user.initials`, then inference from existing branches — yields nothing. `<fallback>` is that command's own default (`feat/`, `docs/`, `fix/`, `chore/`).
+Used by every branch-creating command (`/implement`, `/document` (keyed mode only — a direct-mode run creates no branch), `/docs-profile`, `/docs-init`, `/docs-brand` standalone, `/upgrade`, `/vuln`) when the `branch-naming.md` §2 identity ladder — `$GIT_USER_INITIALS`, `git config user.initials`, then inference from existing branches — yields nothing. `<fallback>` is that command's own default (`feat/`, `docs/`, `fix/`, `chore/`).
 
 **Identity variant.** When the value is filling an **identity** placeholder in a convention documented by the repo itself (`<your-name-or-initials>`, `<user>`, …), the fallback choice is omitted — a generic prefix is not a name, and the documented convention requires a real identity:
 

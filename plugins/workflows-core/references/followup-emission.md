@@ -22,8 +22,8 @@ Obsidian-Tasks line — a Fibonacci effort checkbox, priority and date symbols, 
 a vault's own tag index — because its primary target was a file inside an Obsidian vault. It writes
 into the specs repo now, where none of that renders and all of it is noise a reader has to skip.
 
-**Link, never restate.** Where a follow-up refers to something the run already wrote — an
-`implementation-gaps.md`, a report section — the line links it rather than summarising it. A summary
+**Link, never restate.** Where a follow-up refers to something the run already wrote — a
+`<KEY>-implementation-gaps.md`, a report section — the line links it rather than summarising it. A summary
 in two places is a summary that drifts in one of them.
 
 ## 2. Where it lands
@@ -73,12 +73,11 @@ Emit a task ONLY for signals whose action lands OUTSIDE the current change or
 requires a MANUAL human step:
 
 - Files/pages owned by others (the owner was surfaced and the edit is theirs to make).
-- Implementation gaps (PRD vs source; the `implementation-gaps.md`
+- Implementation gaps (PRD vs source; the `<KEY>-implementation-gaps.md`
   draft) → the task links the draft; verbose context → a note (§3).
 - Manual publish steps: screenshots to upload (CDN), "publish the release notes",
   "create these Epics in your tracker manually", open-the-PR-by-hand.
 - SPEC-VS-PRD ("update the PRD to match the spec").
-- Unresolved PRs on unsupported hosts (must be documented manually).
 
 DO NOT emit tasks for in-scope items the report/draft already tracks: deferred
 review BLOCKERs, skipped tests, in-draft `<!-- TODO -->` markers. Those belong
@@ -114,7 +113,7 @@ The calling phase provides:
 The phase applies §6 (filter) → §4 (resolve target) → §1–§3 (render + place) →
 §5 (dedupe) → §7 (confirm), then writes. It is ADDITIVE: the follow-ups always
 also remain in the Final Report, the phase NEVER commits, and it NEVER writes
-into a docs/code repo or the current working directory. Follow-ups written
+into a docs/code repo or the current working directory, where it is not the specs repository. Follow-ups written
 into `$SPECS_PATH` are committed later, once, by the run's terminal
 `commit-artifacts` step (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
 §4).

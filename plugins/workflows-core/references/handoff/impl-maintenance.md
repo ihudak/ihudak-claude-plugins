@@ -15,9 +15,9 @@ Session handoff:
 - Project root: [absolute path]
 ```
 
-`Command run` is one of `/implement`, `/document` (direct mode), `/document`
-(keyed mode), `/epics`, `/vuln`, `/upgrade`, `/design`, `/specify`,
-`/release-notes`, `/idea`, `/create-prd`, `/create-ard`, or `/ready` — it
+`Command run` is the command variant that executed, named as the caller names it
+(`/document` additionally naming its mode). The callers are the authority on the
+value; it is not drawn from a list held here. It
 scopes any "Command workflow improvements" suggestions to the right command.
 If `Command run` is missing from the handoff, default to
 `/implement` (the canonical code workflow) and note the substitution in the
@@ -70,7 +70,7 @@ Return this exact shape (no preamble, no chatter):
 - _or_ "No new agents suggested"
 
 #### Command workflow improvements
-- **Command**: [/implement | /document (direct mode) | /document (keyed mode) | /epics | /vuln | /upgrade | /design | /specify | /release-notes]
+- **Command**: [the command whose workflow would change, named as the handoff named it, e.g. /implement]
   **Section**: [Phase / step reference]
   **Change**: [what to change and why]
 - ...

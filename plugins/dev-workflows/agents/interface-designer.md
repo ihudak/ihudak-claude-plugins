@@ -44,8 +44,15 @@ not spent here. Do not escalate it.
 1. Read `code_context` before proposing anything. An interface designed without knowing its callers is
    a guess.
 2. Establish how the current shape is actually used — how many callers, what they pass, what they do
-   with the result. `git grep -c`, `git grep -n`, and `git log` on the relevant paths are the fastest
-   way; use them.
+   with the result. `git -C "<repo_path>" grep -c`, `git -C "<repo_path>" grep -n`, and
+   `git -C "<repo_path>" log` on the relevant paths are the fastest way; use them, with `<repo_path>`
+   the repository the `code_context` finding names. Your Bash tool starts every call in the session's
+   directory — where `/design` stands, which need not be that repository — and a `cd` does not persist
+   between calls, so a bare `git` reads the session's repository instead; name the repository in
+   every command (`-C`, an absolute path, or a subshell `(builtin cd "<repo_path>" >/dev/null && …)`
+   inside one Bash call — `builtin cd`, its output discarded, since your Bash tool's shell carries the
+   user's shell functions and aliases, and a `cd` of theirs would otherwise run in its place and
+   could print into what you read), give every `Grep` and `Glob` call `<repo_path>` as its `path`, and `Read` absolute paths.
 3. Design the interface your `constraint` demands. Push the constraint until it costs something, then
    say what it cost — that trade-off is the most useful thing you return.
 4. Do not evaluate your own take against the others. The caller compares.

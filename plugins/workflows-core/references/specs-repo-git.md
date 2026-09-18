@@ -15,7 +15,7 @@ and must never touch git. This reference supplies the two steps that close the
 loop: a **run-start** flush and branch disposition (`specs-preflight`, §3) and a
 **terminal** commit (`commit-artifacts`, §4).
 
-**Scope.** ONLY the bounded artifact paths of §2.1, ONLY inside `$SPECS_PATH`. Nothing here ever touches a code repo, a docs repo, or the current working directory. The code repo a run just changed is finished by `dev-workflows:code-handoff` — a different repository, a different remote, and its own `Code repo:` outcome line. Neither entry point here opens a pull request: `specs-preflight` and `commit-artifacts` are prompt-free bookkeeping steps, and opening a pull request is outward-facing. Deliverable handoff — including `gh pr create` where the host supports it — lives in `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6, behind that reference's consent choice. `git push` here is git-protocol, already sanctioned by `docs-workflows:finish-and-handoff` §3.
+**Scope.** ONLY the bounded artifact paths of §2.1, ONLY inside `$SPECS_PATH`. Nothing here ever touches a code repo, a docs repo, or the current working directory, where it is not the specs repository. The code repo a run just changed is finished by `dev-workflows:code-handoff` — a different repository, a different remote, and its own `Code repo:` outcome line. Neither entry point here opens a pull request: `specs-preflight` and `commit-artifacts` are prompt-free bookkeeping steps, and opening a pull request is outward-facing. Deliverable handoff — including `gh pr create` where the host supports it — lives in `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6, behind that reference's consent choice. `git push` here is git-protocol, already sanctioned by `docs-workflows:finish-and-handoff` §3.
 
 ## 1. Hard rules
 
@@ -41,7 +41,7 @@ loop: a **run-start** flush and branch disposition (`specs-preflight`, §3) and 
 
 ### 2.1 Paths
 
-Exactly seven shapes, derived from the emission ladders — four directory shapes and the three single files §2.1 names below. Nothing outside this
+Exactly nine shapes, derived from the emission ladders and from the drafts the family writes for the operator — four directory shapes and the five single files §2.1 names below. Nothing outside this
 set is ever staged.
 
 ```
@@ -52,27 +52,38 @@ set is ever staged.
 <specs-root>/{specs|specifications|vis}/**/implementation.md  # implementation-format.md §1, appended by /implement
 <specs-root>/{specs|specifications|vis}/**/release-notes.md   # the /release-notes draft
 <specs-root>/{specs|specifications|vis}/**/follow-ups.md      # followup-emission.md §2, appended per PRD/Epic folder
+<specs-root>/{specs|specifications|vis}/**/pr-draft.md        # the /document (keyed mode) pull-request draft
+<specs-root>/{specs|specifications|vis}/**/*-implementation-gaps.md  # the <KEY>-implementation-gaps.md draft (source-truth.md §7.5)
 ```
 
 **The `documentation/` shape is the `docs-workflows` family's, and it exists because that family's normal run has no PRD and never will.** A documentation run against a repository nobody has written a PRD for would otherwise park every entry as *pending*, awaiting a reconciliation into a PRD directory that is never coming — so those entries accumulate forever and reconcile against nothing. The rung `feedback-emission.md` §2 and `cost-emission.md` §8 insert before pending writes instead to `<specs-root>/documentation/<docs-repo-slug>/dev-workflows/{cost,feedback}/`, where `<docs-repo-slug>` is the one-segment name the next paragraph defines. **Per docs repo, not one flat `documentation/` bucket**, for exactly the reason the PRD-directory rung exists for the pipeline: a person documenting two products must still be able to answer what documenting each one cost. The docs repo is that family's unit of attribution.
 
-**`<docs-repo-slug>` is defined here, once, and it is always exactly one path segment.** Read the resolved docs repository's `origin` remote (`git -C <docs-repo-root> remote get-url origin`) and derive `OWNER_REPO` from it exactly as `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6 derives it — the same `host` and `slug` expressions, and the same rule that only `github.com` drops the host — then replace every `/` in the result with `-`. So `git@github.com:acme/docs.git` gives `acme-docs`, and `ssh://git@git.example.com/team/docs.git` gives `git.example.com-team-docs`. Where the repository has no `origin` remote, the slug is the basename of its git root. **The one-segment property is the whole point, and it is why the flattening is not cosmetic**: step 2's classifier below admits exactly one segment between `documentation/` and `dev-workflows/` (`^documentation/[^/]+/dev-workflows/`), while an unflattened `OWNER_REPO` is two segments on GitHub and three anywhere else. An entry written under one would be classified OTHER — never staged, left dirty, and firing §3.3's G1 on every later preflight of every caller, which is exactly the failure the three single-file shapes below were once found to cause. Every site that fills the placeholder — `feedback-emission.md` §2, `cost-emission.md` §8, and the two `docs-workflows` commands that emit there — cites this paragraph rather than restating the derivation; a second derivation is how two sites come to disagree about where one repository's record lives. The flattening can in principle map two remotes to one name (`a-b/c` and `a/b-c` both become `a-b-c`); that is accepted, since the alternative is a second derivation or a path the classifier cannot stage.
+**`<docs-repo-slug>` is defined here, once, and it is always exactly one path segment.** It is derived in two steps, and two implementations that follow them produce the same directory for the same repository, byte for byte:
+
+1. **The source string.** Read the resolved docs repository's `origin` remote (`git -C <docs-repo-root> remote get-url origin`) and derive `OWNER_REPO` from it exactly as `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6 derives it — the same `host` and `slug` expressions, and the same rule that only `github.com` drops the host. Where the repository has no `origin` remote, **or where that derivation comes out empty** — a nonsense remote such as `https://github.com/` names no owner and no repository — the source is the basename of its git root instead. Where the run's write target is not a git work tree at all, the source is the basename of the target path, resolved to absolute. Two runs' command bodies lead to that last case: `/document` in direct mode pointed at a directory outside any git work tree, and `/docs-init` when its operator cancels Phase 0 step 3's offer to create or initialise an absent or empty target — that command's emitter tail still runs, against a path that is not yet a repository.
+2. **The flattening — one substitution, per byte, in the C locale:** `printf '%s' "$source" | LC_ALL=C sed 's/[^A-Za-z0-9._-]/-/g'`. Every byte outside `A–Z`, `a–z`, `0–9`, `.`, `_` and `-` becomes one `-`. `/` is such a byte, so this one substitution is also what flattens `OWNER_REPO`'s separators; there is no second step to order it against. It is per **byte**, not per character: `ñ` is two bytes in UTF-8 and becomes `--`, so `Notes (draft) ñ` gives `Notes--draft----` wherever it is computed, where a per-character rule would give `Notes--draft---` and file one repository's record in two directories.
+
+So `git@github.com:acme/docs.git` gives `acme-docs`, and `ssh://git@git.example.com/team/docs.git` gives `git.example.com-team-docs`. **Every such byte is flattened, not only `/`,** because a directory name is the operator's to choose and may carry a space or a non-ASCII letter, and a substitution that admits no exception is what lets two implementations reproduce this directory byte for byte. **It is no longer flattened to keep the path out of the classifier's quoting, and that half of the reason is retired rather than the rule**: `git status --porcelain` does wrap such a path in double quotes (with a non-ASCII byte octal-escaped), and step 2's classifier, reading the path as reported, would have seen `"documentation/…` and never staged it — but step 1 above now reads `-z`, whose records are never quoted, so that is a form this procedure no longer meets. The flattening stands unnarrowed, because **the one-segment property is the whole point, and it is why the flattening is not cosmetic**: step 2's classifier below admits exactly one segment between `documentation/` and `dev-workflows/` (`^documentation/[^/]+/dev-workflows/`), while an unflattened `OWNER_REPO` is two segments on GitHub and three anywhere else. An entry written under one would be classified OTHER — never staged, left dirty, and firing §3.3's G1 on every later preflight of every caller, which is exactly the failure each of the single-file shapes below was once found to cause. Every site that fills the placeholder — `feedback-emission.md` §2, `cost-emission.md` §8, and the `docs-workflows` commands whose runs emit there — cites this definition rather than restating the derivation; a second derivation is how two sites come to disagree about where one repository's record lives. The flattening can in principle map two remotes to one name (`a-b/c` and `a/b-c` both become `a-b-c`); that is accepted, since the alternative is a second derivation or a path the classifier cannot stage.
 
 **The inner `dev-workflows/` in that path names the *family*, not the plugin — do not "correct" it per-plugin.** The shipped persistence ladder writes `<PRD-dir>/dev-workflows/cost/<sid8>.md` regardless of which plugin emitted the entry, and this shape is the same directory one level out. Renaming it to match the emitting plugin would fragment one repository's cost record across four directories and break every reader of it. **No new branch prefix goes with this shape**: §2.2's prefix authority governs branches the plugin creates *in* `$SPECS_PATH`, and the documentation family creates none there — its deliverable is the docs repository, where it branches, commits and drafts a pull request it never pushes.
 
-**The `implementation.md`, `release-notes.md` and `follow-ups.md` shapes name three files, never their folder, and the distinction is the
-whole safety property.** All three sit in the feature folder rather than under `dev-workflows/`, because
-all three are read by *key* rather than by session — `implementation.md` is what `/document`,
+**The five single-file shapes name files, never their folder, and the distinction is the
+whole safety property.** All five sit in the feature folder rather than under `dev-workflows/`. The
+first three are read by *key* rather than by session — `implementation.md` is what `/document`,
 `/release-notes` and `epic-picker.md`'s ● marker read, and a record only one machine holds is a record
 the next run cannot use; `follow-ups.md` is `followup-emission.md` §2's "alongside the artifacts the
 follow-ups are about", which §3 makes explicit is about where a *reader* looking at the folder finds
-them. But that same folder holds the phase deliverables (`prd.md`, `ard.md`, `specification.md`,
+them. The last two are drafts for the operator, as `release-notes.md` is, written where the operator
+looks for them: `/docs-workflows:document` (keyed mode) writes `pr-draft.md` for the pull request it
+never opens itself, and it and `/docs-workflows:release-notes` write `<KEY>-implementation-gaps.md`,
+the bug-report draft `source-truth.md` §7.5 fixes — its name carries the key, so it is matched as
+`*-implementation-gaps.md`. But that same folder holds the phase deliverables (`prd.md`, `ard.md`, `specification.md`,
 `design.md`, `idea.md`, `_readiness.md`), which are `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md`'s
-to commit behind its own consent choice. Widening this shape to the folder would sweep them into a
-prompt-free bookkeeping commit and take the operator's choice away, so the two files are named
+to commit behind its own consent choice. Widening a shape to the folder would sweep them into a
+prompt-free bookkeeping commit and take the operator's choice away, so the five files are named
 literally and nothing else in that directory is ever staged here.
 
-**All three were outside this set until a review found them**, while `/implement` and `/release-notes`
+**The first three were outside this set until a review found them**, while `/implement` and `/release-notes`
 each told the operator the terminal step committed them. It did not: step 2 below classified each as
 OTHER, step 3 skipped it, and the file then sat permanently dirty — which fired §3.3's G1 dirty-tree
 guard on every later run of any of the twenty-eight callers, suppressing the leftover flush and the
@@ -81,27 +92,62 @@ found the same way, by a live run rather than by reading** — long after the fi
 this section's own comment claimed follow-ups were tier 1 under `dev-workflows/**` and its source
 citation pointed at a section of `followup-emission.md` that had been renumbered out from under it when
 that ladder was cut from four rungs to two. Two stale pointers agreeing with each other read exactly like
-a verified fact. When an emission ladder changes shape, re-derive this list against it rather than
+a verified fact. **The two drafts were the fourth and fifth instances**, found by classifying a real
+specs repo's status against this list after a keyed `/document` run: both came out OTHER beside a
+staged cost entry, and nothing else committed them. When an emission ladder changes shape, or a
+command starts writing a draft into the feature folder, re-derive this list against it rather than
 trusting either end. `/epics` is the deliberate contrast and stays as it is: it
 writes `epic.md` files this reference never stages, and says so in place.
+
+**A screenshot `/document` stages for manual upload is not a shape, and `/document` keeps it out
+of `git status` instead.** Its staging directory is, by default, the resolved PRD folder's screenshot subfolder
+(`/docs-workflows:document` Phase 1), which lies under `$SPECS_PATH`. No shape stages it, for three
+reasons: it is a copy of the operator's own file, kept only until they upload it by hand, so a
+commit would make a temporary binary permanent in the specs repo's history through a prompt-free
+bookkeeping commit; the default subfolder, `Doc screenshots/`, carries a space, which
+`git status --porcelain` once quoted out of step 2's sight — a side effect step 1's `-z` retires,
+so the classifier now reads that path raw and places it in OTHER, and what keeps the copy out of
+`git status` at all is the local exclude named below, never the quoting; and
+the run may stage into an existing `Attachments/` subfolder holding the operator's own files, which
+a directory shape would sweep in. So `/document` keeps each copy it stages under `$SPECS_PATH` out
+of `git status` itself, through that repository's local exclude file (its Phase 6.3), and nothing
+here stages or touches it. A staging directory the operator names outside `$SPECS_PATH` is outside
+this reference's scope.
 
 Sources: `feedback-emission.md` §2 tiers 1–2 including tier 2's documentation
 branch, `cost-emission.md` §8 tier 1, tier 2's documentation branch and
 §9 pending, `followup-emission.md` §2 (where it lands, per PRD/Epic folder),
-`session-hygiene.md` §1 (resume tier 1).
+`session-hygiene.md` §1 (resume tier 1), `source-truth.md` §7.5 (the
+implementation-gaps draft) and `docs-workflows:finish-and-handoff` §5 (the
+pull-request draft).
 
 **Staging is by enumeration, not by glob.** Pathspec glob magic (`:(glob)`) is
 fragile to express and to review. The procedure is:
 
-1. `git -C "$SPECS_PATH" status --porcelain --untracked-files=all`
+1. `git -C "$SPECS_PATH" status --porcelain -z --untracked-files=all`
    `--untracked-files=all` is **required** — the default collapses an untracked
    directory to a single `?? dir/` line, which would hide which files are being
-   staged.
+   staged. `-z` is **required** too: without it git wraps any path carrying a
+   space, a `"`, a `\` or a non-ASCII byte in double quotes and octal-escapes the
+   non-ASCII bytes, and step 2's regexes are anchored at `^`, so the leading `"`
+   alone puts such a path in OTHER. It is not a hypothetical shape: a feature
+   folder is `<KIND>-<KEY>-<slug>` and `<slug>` is a kebab of a title, so a
+   non-English title gives `specifications/PRD-ACME-1-zahlungsauslösung/`, under
+   which every bookkeeping file this section owns was classified OTHER, never
+   staged, and left permanently dirty — firing §3.3's G1 on every later preflight
+   of every caller. Under `-z` each record is terminated by a NUL and the path is
+   emitted raw: strip the two status bytes and the space and the remainder is the
+   path. A **rename or copy** record carries a second NUL-terminated field, the
+   original path, straight after it (`R  <new>\0<old>\0`) — consume it with the
+   record it belongs to, never as a record of its own. `-c core.quotepath=false`
+   is not a substitute: it suppresses only the octal escaping, and a path with a
+   space is still quoted. `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md`
+   §2.3 reads the same form, for the same reason, over a different path set.
 2. Classify each reported path: **ARTIFACT** if it matches
    `^(specs|specifications|vis)/.+/dev-workflows/` or
    `^documentation/[^/]+/dev-workflows/` or `^dev-workflows-feedback/`
    or `^dev-workflows-cost/` or
-   `^(specs|specifications|vis)/.+/(implementation|release-notes|follow-ups)\.md$`;
+   `^(specs|specifications|vis)/.+/(implementation|release-notes|follow-ups|pr-draft|[^/]+-implementation-gaps)\.md$`;
    **OTHER** otherwise.
 3. Stage the literal ARTIFACT paths only:
    `git -C "$SPECS_PATH" add -A -- <path> [<path>…]`.
@@ -150,7 +196,11 @@ Still **never fatal** (§1): the notice reports and the run continues. What chan
 ### 3.2 Resolution inputs
 
 **Default branch:** `git -C "$SPECS_PATH" symbolic-ref --quiet refs/remotes/origin/HEAD`,
-then strip the `refs/remotes/origin/` prefix. If unset, fall back to `main`,
+then strip the `refs/remotes/origin/` prefix. It counts only where
+`git -C "$SPECS_PATH" rev-parse --verify --quiet origin/<name> >/dev/null` succeeds for the name it
+yields: a remote that renamed its default branch, fetched with `--prune`, leaves `origin/HEAD`
+naming a branch the remote deleted, and every test below would then name a ref that does not
+exist. If unset, or naming a ref that does not exist, fall back to `main`,
 then `master`, then the current branch — in which case no branch switching
 occurs at all.
 

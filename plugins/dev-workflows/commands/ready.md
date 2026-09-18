@@ -8,10 +8,11 @@ Verify readiness for AI-driven development: $ARGUMENTS
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
-`/ready` is the **artifact-anchored readiness gate**. Given a PRD or Epic address, it reads the
-artifacts present — and, with `--claimed "<status>"`, compares them against a status the operator declares — and checks whether the
-ARD/spec/design artifacts that actually exist, taken together, justify that status and the *next*
-transition, against the rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`. It returns
+`/ready` is the **artifact-anchored readiness gate**. Given a PRD or Epic address, it derives the
+workflow phase from the artifacts present and checks whether the
+ARD/spec/design artifacts that actually exist, taken together, justify that phase and the *next*
+transition, against the rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md` — and, with
+`--claimed "<status>"`, additionally compares the phase the operator declares against the derived one. It returns
 `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` with a requirement coverage roll-up and named gaps, gated on
 the Opus `readiness-reviewer`.
 
@@ -104,7 +105,7 @@ best-effort-checks repos under `$REPOS_PATH`; cwd need not be inside either.
    wrote. Nothing in `$SPECS_PATH` writes such a file, so the read had no source — and D8 removed its
    purpose as well: the phase is **derived from the artifacts** (Phase 3(0)), and the only status
    anyone declares is the one the operator passes to `--claimed` (step 1a), which Phase 3 compares
-   against the derivation rather than displaying beside it. **Do not reconstruct it**: a second,
+   against the derivation. **Do not reconstruct it**: a second,
    softer statement of the phase beside the derived one is exactly the duplicated state D8 exists to
    remove.
 
@@ -134,7 +135,7 @@ model_routing:
   classification: MODERATE        # typical; SIGNIFICANT possible for a large multi-Epic PRD
   reason: <one-line>
   current_model: <the model this orchestrator is running under>
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # the folder read (Phase 2); the Phase 3 deterministic skeleton is mechanical and runs orchestrator-inline, not delegated
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # the folder read (Phase 2) and the Phase 6 maintenance agents; the Phase 3 deterministic skeleton is mechanical and runs orchestrator-inline, not delegated
   review_model:    <§2 Opus chain>     # readiness-reviewer (frontmatter-pinned; recorded, no override)
   opus_available: <true if a §2 Opus model resolved, else false>
   notes: <any §2/§2.1 fallback or degradation>
@@ -250,9 +251,9 @@ artifact". **Acknowledge the limitation** (carried to the final report's Assumpt
 ID-grep, not semantic matching — an artifact may cover a requirement thematically without repeating its
 literal ID; `readiness-reviewer` reads the full artifact text and can catch what the grep misses.
 
-**(b) Status-expectation checklist.** Look up the declared PRD status (and, when in scope, each Epic
-status) on the matching ladder in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`, list that
-status's "Expected artifacts" column, and mark each expected artifact present ✅, absent ❌, or — per
+**(b) Status-expectation checklist.** Look up the Phase 3(0) derived PRD phase (and, when in scope,
+each Epic's) on the matching ladder in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`, list that
+rung's "Expected artifacts" column, and mark each expected artifact present ✅, absent ❌, or — per
 Phase 1's `require-on-main` check and Phase 2.5's `status: unmerged` handling — ⚠, carrying forward
 whichever of Phase 1's three reasons applies (authored only on a branch, not merged; on `<default>` but
 locally unconfirmed; or unverifiable against any ref) against Phase 1's inventory. A ⚠ artifact of any of
@@ -262,8 +263,8 @@ this run. This is the mechanical half of that dimension.
 
 **(c) Repo-availability presence-check (best-effort, presence only — never scanning).**
 
-1. Derive candidate repo names from: each in-scope Epic's `implementation.md` entries, where one exists (the repo-name
-   segment of each URL, per the PR URL formats `diff-summarizer` accepts); the confirmed-repos line of any `design.md`
+1. Derive candidate repo names from: each in-scope Epic's `implementation.md` entries, where one exists (each entry's
+   own `repo:` field — that record carries no URL, per `workflows-core:implementation-format` §1); the confirmed-repos line of any `design.md`
    found (`design-format.md`'s header `- **Repos**: <the confirmed implementation repos this design
    spans>`); and any ARD's `grounded_repos:` frontmatter list (`product-workflows:ard-format`). Dedupe.
 2. Build the slug→clone map **exactly as `epics.md` Phase 4 does**: for each top-level directory under
@@ -301,13 +302,16 @@ and a pointer to the rubric.
   >   Epics:   [absolute path(s) in scope]
   >   specs:   [absolute path(s) in scope]
   >   designs: [absolute path(s) in scope]
-  > declared_status:         [PRD: <status>; Epics: <key>=<status>, …]
+  > derived_phase:           [PRD: <phase>; Epics: <key>=<phase>, … — each naming the artifacts that placed it, per Phase 3(0)]
+  > claimed_status:          [the --claimed value verbatim — omit this line entirely when the flag was absent]
   > applicable_ard:          [the Phase 2.5 invariants, or omit entirely if status was none]
   > workflow_states_rubric:  ${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md"
 
+**There is no `declared_status` field, and adding one back would be the defect this pair replaced.** Nothing in `$SPECS_PATH` declares a per-PRD or per-Epic status for this run to paste (Phase 1 step 3, Phase 2), so the two fields above are the whole of what the run holds: `derived_phase`, which Phase 3(0) derived from the artifacts, and `claimed_status`, which exists only on a `--claimed` run. The reviewer's own dimension 1 compares the second against the first; sending neither, or sending a field with nothing to fill it, silently degrades that comparison to "absent, there is nothing to diverge from".
+
 Carry back the verdict (`SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED`) and the full Findings section
-(by dimension) for Phase 5. `readiness-reviewer` never modifies files and never re-derives status — a
-run that returns without a verdict or without the declared-status/`requirements[]` ground truth is a
+(by dimension) for Phase 5. `readiness-reviewer` never modifies files and never re-derives the phase — a
+run that returns without a verdict or without the derived-phase/`requirements[]` ground truth is a
 plugin-gap halt (see Invariants).
 
 ---
@@ -315,9 +319,10 @@ plugin-gap halt (see Invariants).
 ## Phase 5 — Write report
 
 1. **Compose the readiness artifact.** Build the report content: a header stamping the run timestamp
-   (ISO 8601 UTC), the specs-repo git rev (`git -C $SPECS_PATH rev-parse --short HEAD`), the checked
-   the derived phase(s) exactly as read in Phase 2, the verdict, the coverage roll-up (N/M requirements
-   covered, P%, each ❌ gap requirement ID named), and the full Findings section from Phase 4.
+   (ISO 8601 UTC), the specs-repo git rev (`git -C $SPECS_PATH rev-parse --short HEAD`), the derived
+   phase(s) exactly as Phase 3(0) recorded them, any `--claimed` value verbatim, the verdict, the coverage
+   roll-up (N/M requirements covered, P%, each ❌ gap requirement ID named), and the full Findings section
+   from Phase 4.
 
 2. **Write `_readiness.md`**, **overwriting** any prior run, to the PRD dir (PRD-level) or the Epic subdir
    (Epic-level):
@@ -332,7 +337,8 @@ plugin-gap halt (see Invariants).
    # Readiness check — <run timestamp, ISO 8601 UTC>
 
    - Specs repo rev: <short HEAD>
-   - Checked status: PRD=<status>[, Epic <KEY>=<status>, …]
+   - Derived phase: PRD=<phase>[, Epic <KEY>=<phase>, …]
+   - Claimed status: <the --claimed value verbatim> — _or omit the line entirely when the flag was absent_
    - Verdict: SUPPORTED | PARTIAL | NOT-SUPPORTED
 
    ## Coverage roll-up
@@ -349,7 +355,7 @@ plugin-gap halt (see Invariants).
    see this run's terminal report for the outcome.
    ```
 
-3. **Hand off** `_readiness.md` (commit-when-asked — never automatic). Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — the **advisory** array, which is the class §4.0 puts `_readiness.md` in: read downstream (`/dev-workflows:implement` Phase 0.5's one-line, never-blocking advisory) and gated by nothing. The gated array would promise a downstream stop that cannot happen here, and the unread one would claim nothing reads a file that is read on every keyed `/dev-workflows:implement` run:
+3. **Hand off** `_readiness.md` (commit-when-asked — never automatic). Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — the **advisory** array, which is the class §4.0 puts `_readiness.md` in: read downstream (`/dev-workflows:implement` Phase 0.5's one-line, never-blocking advisory) and gated by nothing. The **gated** class is wrong outright — §3.4 names no row for `_readiness.md`, so neither of its two arrays applies, and its **stopping** one would promise a downstream stop that cannot happen here — and the unread one would claim nothing reads a file that is read on every keyed `/dev-workflows:implement` run:
    `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (no command stops on this; what reads it reads your working copy)", "Cancel"]`.
    On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2)
    with `prefix: ready`; `feature_folder` = the PRD dir or Epic subdir step 2 wrote into;
@@ -378,9 +384,10 @@ plugin-gap halt (see Invariants).
    - Epic: <FOCUS_KEY> — [summary] — _or_ "none — PRD-level check"
    - Specs repo rev: <short HEAD>
 
-   ### Declared status (Phase 2 — authoritative)
-   - PRD: <status>
-   - Epic <KEY>: <status> — _or omit when PRD-level_
+   ### Derived phase (Phase 3(0) — from the artifacts)
+   - PRD: <phase>
+   - Epic <KEY>: <phase> — _or omit when PRD-level_
+   - Claimed (`--claimed`): <value verbatim> — _or omit the line when the flag was absent_
 
    ### Artifact inventory (Phase 1)
    [present ✅ / absent ❌ / authored, not handed off ⚠ (branch/PR named) per artifact, one line each]
@@ -465,7 +472,7 @@ Readiness verdict: [SUPPORTED | PARTIAL | NOT-SUPPORTED]
 Then spawn all four maintenance agents in a **single Agent message**. They are independent and run
 concurrently.
 
-**Agent 1 — Documentation** (general-purpose):
+**Agent 1 — Documentation** (general-purpose, model: `<detection_model — §2.1 Sonnet chain>`):
 > "Post-run documentation review. Change summary:
 > [paste change summary block]
 >
@@ -477,7 +484,7 @@ concurrently.
 > If an update is warranted: apply minimal edits.
 > Return: file updated and what changed, OR 'no update required (reason)'."
 
-**Agent 2 — Knowledge base** (general-purpose):
+**Agent 2 — Knowledge base** (general-purpose, model: `<detection_model — §2.1 Sonnet chain>`):
 > "Post-run knowledge review. Change summary:
 > [paste change summary block]
 >
@@ -494,7 +501,7 @@ concurrently.
 > - **Ref**: [first 60 chars of the key + PRD summary]
 > Return: file updated/created and summary of entry, OR 'no update required'."
 
-**Agent 3 — Instructions** (general-purpose):
+**Agent 3 — Instructions** (general-purpose, model: `<detection_model — §2.1 Sonnet chain>`):
 > "Post-run instructions review. Change summary:
 > [paste change summary block]
 >
@@ -505,7 +512,7 @@ concurrently.
 > If YES: apply minimal, additive, scoped changes only.
 > Return: what was changed and why, OR 'no update required'."
 
-**Agent 4 — Session maintenance** (workflows-core:impl-maintenance):
+**Agent 4 — Session maintenance** (workflows-core:impl-maintenance, model: `<detection_model — §2.1 Sonnet chain>`):
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
@@ -542,7 +549,7 @@ ADDITIVE — this phase NEVER fails the run and NEVER commits its own output (st
 the maintenance/feedback artifacts, which the terminal `commit-artifacts` step in Phase 8 commits, per
 `workflows-core:specs-repo-git` §4; the only commit this run makes before Phase 8 is
 Phase 5 step 3's `_readiness.md` handoff, which is unrelated), and NEVER writes into
-`prd_dir`, or the current working directory.
+a code or docs repository, or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -573,7 +580,7 @@ phase NEVER fails the run and NEVER commits its own output (still true — it on
 files, which the terminal `commit-artifacts` step in Phase 8 commits, per
 `workflows-core:specs-repo-git` §4; unrelated to Phase 5 step 3's `_readiness.md`
 handoff, the only commit this run makes before Phase 8), and NEVER writes into
-`prd_dir`, or the current working directory.
+a code or docs repository, or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -603,7 +610,7 @@ Silent; the printed `### Context hygiene` guidance already appeared in the Phase
 
 **Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY
 the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts
-(/ready)`, and pushes per §4 step 5. It NEVER touches a code/docs repo, or the current working directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
+(/ready)`, and pushes per §4 step 5. It NEVER touches a code/docs repo, or the current working directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Because the Phase 5 report was
 composed before this phase, **print its §6 outcome line here**, as the run's last output — prefixed
 `Specs repo:`, with any guard notice repeated in full.
@@ -613,7 +620,7 @@ branch (whichever of those happened, happened earlier, in Phase 5 step 3, behind
 choice — `ready/<KEY>-<slug>` is the only branch `/ready` ever creates, and this terminal step neither
 creates it nor undoes it; it only commits the bounded session-artifact paths in `$SPECS_PATH` onto
 whatever branch Phase 5 left checked out), and NEVER writes into
-`prd_dir`, or the current working directory; no user name is ever written (§10 privacy).
+a code or docs repository, or the current working directory, where it is not the specs repository; no user name is ever written (§10 privacy).
 
 ---
 
@@ -645,8 +652,8 @@ whatever branch Phase 5 left checked out), and NEVER writes into
 - ALWAYS resolve one positional address (Phase 0) and stop when none is given
 - ALWAYS require `$SPECS_PATH` — stop naming it explicitly if unset (like `/design`)
 - ALWAYS read artifacts from the specs repo's clean **main** — never a branch
-- ALWAYS pass the Phase 3(0) derived phase to `readiness-reviewer` with the artifacts that placed it there, plus any `--claimed` value verbatim — never
-  never re-derived
+- ALWAYS pass the Phase 3(0) derived phase to `readiness-reviewer` with the artifacts that placed it there, plus any `--claimed` value verbatim — never inferred,
+  never re-derived, and never as a `declared_status` field, which has no producer anywhere in this command
 - ALWAYS resolve the `model_routing` block at Phase 1.5 and pin the detection steps to the §2.1 Sonnet chain;
   `readiness-reviewer` keeps its frontmatter Opus pin (no override); coordination + the Phase 3
   deterministic skeleton run on `current_model`

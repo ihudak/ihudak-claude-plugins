@@ -14,7 +14,7 @@ Each token is one of: `component:1.2.3` (exact), `component:minor` (latest patch
 
 `component` can be a library, framework, language runtime, build tool, or path like `.github/workflows`.
 
-Each component is committed on its own as soon as its gates pass; the branch is pushed once, and a pull request opened where the host allows one — see Phase 2's step 6.5 and step 7.5 (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md`). The commit is prompt-free; only the push and the pull request sit behind a consent choice, asked once for the batch. `--no-commit` skips both steps.
+Each component is committed on its own as soon as its gates pass — see Phase 2's step 6.5 and step 7.5 (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md`); the branch is pushed once for the batch where §2.4's consent choice, an `origin` and §2.5's push itself all allowed it, and a pull request opened where **§2.4's consent choice**, §2.8's base-branch ladder and §2.6's `gh` capability probe allowed one as well — §3.1's rows rather than any list written out here are the authority on which line the run emitted. **§2.4 is named in both halves rather than carried forward from the first**, because its second option (*"Push the branch only — no pull request"*) allows the push and refuses the pull request: a clause that let the push's own §2.4 term stand for the pull request's would assert one in a state §3.1 has its own row for. The commit is prompt-free; only the push and the pull request sit behind a consent choice, asked once for the batch. `--no-commit` skips both steps.
 
 ---
 
@@ -30,7 +30,7 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 
 2. **Resolve requested targets** — Apply the `Version Resolution` section below to each requested token.
 
-3. **Delegate planning in parallel** — Spawn one planner task per requested component. Use a single agent message for the whole batch.
+3. **Delegate planning in parallel** — Spawn one planner task per requested component. Use a single agent message for the whole batch. Per-component classification does not happen until step 5 (`upgrade-planner.md` says so in its own words), so the `model_routing` block this dispatch carries is **provisional**: start at `MODERATE`, the rung `/vuln` Step 0 takes for the same reason, and let step 5's classification be the run's.
 
    Use this pattern for each component:
 
@@ -66,7 +66,7 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
    - `NOT_FOUND` → warn and skip
    - `CONFLICT` → surface `conflict_details` and ranked `alternatives`; do not proceed until the conflict is resolved or the component is skipped
 
-   For each `READY` component, write its planner handoff to a temp file (`mktemp -t dw-upgrade-plan-XXXX.md`, never inside a repo tree) and record its absolute path as the component's `plan_file` (it persists into Phase 2); the risk-planner, executor, and resume steps below receive this path instead of the pasted handoff.
+   For each `READY` component, write its planner handoff to a temp file (`command mktemp -t dw-upgrade-plan-XXXXXX`, never inside a repo tree) and record its absolute path as the component's `plan_file` (it persists into Phase 2); the risk-planner, executor, and resume steps below receive this path instead of the pasted handoff.
 
 5. **Classify each READY component** — Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`) to load the classification rules, then apply them using the actual resolved change, related upgrades, and planner findings. Print one classification line per component. When in doubt, escalate to `SIGNIFICANT`.
 
@@ -96,9 +96,13 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 ### Phase 2 prep (once)
 
 1. **Create feature branch**
-   - Run `git status --porcelain`. If dirty, show the diff summary and ask whether to stash, proceed anyway, or cancel. On **stash**, record the resulting stash as `stash_ref`; on **proceed anyway**, record the `git status --porcelain --untracked-files=all` paths as `pre_existing_dirty`. Steps 6.5 and 7.5 need both (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-outs 1–2); a clean tree records `null` for each.
+   - Run `git status --porcelain`. If dirty, show the diff summary and ask whether to stash, proceed anyway, or cancel. On **stash**, record the resulting stash as `stash_ref`; on **proceed anyway**, record the `git status --porcelain -z --untracked-files=all` paths as `pre_existing_dirty` — `-z` because §2.2 enumerates in that form and subtracts this set from it, and a path carrying a space or a non-ASCII byte is quoted without it. Steps 6.5 and 7.5 need both (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-outs 1–2); a clean tree records `null` for each.
    - Resolve the branch name by invoking `Skill(skill: "workflows-core:reference", args: "branch-naming")` and following it — **the repo's own documented convention wins**. Read the repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` for a branch-naming section (§1.1) and fill its segments (§1.2): an **identity** placeholder from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference → the §2.5 prompt), an **issue-key** segment from the run's own resolved key when it has one (else the documented no-issue literal), and the **description** segment from the slug `upgrade-<component>-to-<version>` (or `upgrade-<first>-and-<N>-more` for a batch). Never add an identity segment the pattern does not ask for. Only when no convention is documented (§1.4) build `<prefix>/<slug>` with the §2 ladder's fallback `chore/`.
-   - If HEAD is on a non-default branch with ahead commits, ask whether to branch from current position, branch from default, or cancel.
+   - **Where the branch starts.** Resolve `<base>`, the default branch's name, by `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.8 — the ladder steps 6.5 and 7.5 resolve it with, so the base it offers to branch from is the base its pull request targets. Never judge by a list of names: a local `develop` in a repository whose default is `main` is a branch like any other.
+     - **§2.8's ladder is exhausted** — no `origin`, or an `origin/HEAD` that is unset or names a ref that does not exist, and none of the branches it probes → there is no base to measure against or to branch from: ask nothing, print `Base branch unresolved (<reason>) — branching from the current position.`, print it again with the Upgrade Summary beside step 7.5's `Code repo:` line, and cut the branch from HEAD.
+     - **HEAD is on `<base>`** (`git branch --show-current` prints it) → nothing to ask.
+     - **HEAD is not on `<base>`** (it prints another name, or nothing on a detached HEAD) → list the commits HEAD carries that the base does not: `git log origin/<base>..HEAD --oneline` (§2.8 yields a `<base>` only where `origin/<base>` exists). Non-empty output → ask, naming `<base>` and listing those commits, whether to branch from current position, branch from `<base>`, or cancel. Empty output with exit 0 → nothing to ask. A non-zero exit is a failed read, never "no ahead commits": keep its error rather than redirecting it away, show it, and ask the same question.
+     - **Branch from current position** cuts the branch from HEAD. **Branch from `<base>`** runs `git switch <base>` and nothing more — no fetch and no pull — before the branch is cut. Where git refuses the switch (an uncommitted change it would overwrite), report its error and the paths it named, and stop as cancel does: no branch exists yet, and none is cut from the HEAD the user just declined.
    - Run `git checkout -b <branch-name>`. If it exists, append `-<7-char-sha>`.
 
 2. **Capture baseline tests** — Invoke the existing test baseline agent once and reuse the result for the entire batch:
@@ -113,7 +117,9 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
    )
    ```
 
-   Store the returned baseline; do not re-run baseline capture per component.
+   **Store the returned `## Test Baseline` block whole** and re-supply it as `baseline_block` on every executor dispatch below — its `### Suites` rows are what let verify tell a suite that regressed from one that could not run at either end, and `passing_count` / `passing_tests` are re-keyed from it, never in place of it. Do not re-run baseline capture per component.
+
+   Act on its `Status` before executing anything: `PARTIAL` names the suites this batch's verification will not cover — list them on the Upgrade Summary's `Not verified:` line and continue, since a runner that is not installed for one language is not a reason to leave another's component unupgraded. `RUN_FAILED` or `COMMAND_NOT_FOUND` means nothing was captured, so say so before executing — there is nothing for verify to compare against. **And report every `### Notes` line the block opens with `CAVEAT: ` before executing, whatever the `Status` was** — `OK` included, which is the arm on which a marked line is the return's own account of a baseline that is not what its counts claim: a qualifying suite nothing ran, counts a `Make` indirection may have summed twice, a `Make` fold's identifiers unattributed to what printed them — three states the `Status` and the counts show nothing of (`dev-workflows:test-baseliner` capture step 5). The mark is the agent's, so nothing here judges which note matters; an unmarked note records where a command ran and is not carried. Each marked line goes onto the Upgrade Summary's `Caveats:` line, which is batch-level for the same reason `Not verified:` is.
 
 ### Per-component loop (sequential, in requested order)
 
@@ -127,6 +133,8 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
      prompt: "## Upgrade Execution Request
      repo: [absolute repo path]
      phase: full
+     baseline_block: |
+       [the captured ## Test Baseline block, verbatim and whole]
      baseline:
        passing_count: [captured count]
        passing_tests:
@@ -149,8 +157,8 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 3a. **Handle an `upgrade-executor` stop.** If the executor returns `status: BLOCKED`, the upgrade plan at `plan_file` could not be read — an orchestrator bug, not a user choice: report the unreadable path to the user, mark this component `BLOCKED` in the Step 7 results table, and stop working this component (do not retry with a fresh planning pass). This applies regardless of classification — skip steps 4–6 for this component and continue the per-component loop with the next one.
 
 4. **Review gate for SIGNIFICANT / HIGH-RISK** — If the executor returns `status: AWAITING_REVIEW`, run the Opus code-review gate before any test verification:
-   - Capture the diff to a temp file: write `git add -N . && git diff` to `mktemp -t dw-upgrade-diff-XXXX.patch` (never inside a repo tree) and record its path as `review_diff_file`
-   - Write the executor output to a temp file (`mktemp -t dw-upgrade-claims-XXXX.md`, never inside a repo tree) and record its path as `claims_file`. Invoke `code-review` using the approved risk plan, the diff (from `review_diff_file`), and `claims_file: [the path]` (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
+   - Capture the diff to a temp file: write `git add -N . && git diff` to `command mktemp -t dw-upgrade-diff-XXXXXX` (never inside a repo tree) and record its path as `review_diff_file`
+   - Write the executor output to a temp file (`command mktemp -t dw-upgrade-claims-XXXXXX`, never inside a repo tree) and record its path as `claims_file`. Invoke `code-review` using the approved risk plan, the diff (from `review_diff_file`), and `claims_file: [the path]` (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
    - **Check the review's first line before acting on the verdict.** If it is `Diff: unreadable at <path>`, the orchestrator's own `review_diff_file` could not be read — an orchestrator bug, not a user choice: surface the unreadable path to the user and stop working this component, marking it `BLOCKED` in the Step 7 results table. Do NOT triage the finding and do NOT dispatch `review-fixer`: the finding names a capture failure no fixer can act on, and running the cycle would spend a fix dispatch and a re-review to arrive back here.
    - **Triage sub-step** (before any fixer dispatch): invoke `Skill(skill: "workflows-core:reference", args: "finding-triage")` and follow it. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
    - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` with model: `<detection_model — §2.1 Sonnet chain>` for the surviving `BLOCKER` and `MAJOR` findings
@@ -172,19 +180,28 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 
    **"Stop and escalate" on a persisting `BLOCK` stops the component, not the run.** The loop continues with the next component; step 7.5 still runs at the end. A reading that stops the whole run would leave every earlier component committed but never pushed.
 
-7. **Collect results** — Accumulate one summary row per component. Preserve the classification, review verdict, related upgrades applied, any regression notes, and this component's commit sha (or "no changes").
+7. **Collect results** — Accumulate one summary row per component. Preserve the classification, review verdict, related upgrades applied, any regression notes, every `CAVEAT: ` line this component's executor copied into its `notes` (`${CLAUDE_PLUGIN_ROOT}/references/handoff/upgrade-executor.md`) — which its `status` does not gate, so read them on `OK` as on any other value — and this component's commit sha (or "no changes").
 
 7.5. **Code-repo handoff (push + PR, once for the batch)** — After the loop, cite `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` and execute the full `finish-code-branch` entry point (§2) inline. Step 6.5 already committed every component, so §2.2 takes its `nothing staged` path and the call continues into §2.4's consent choice and §2.5–§2.6 — the branch carries commits to push (§2.12). Skipped under `--no-commit`.
 
-   Pass the §2.11 inputs: `repo` and `branch` from Phase 2 prep step 1; `pre_existing_dirty` and `stash_ref` as recorded there; `key` and `workitem_key` from the resolved folder, or `null` for a run with neither; `title` = `upgrade <component> to <version> [<key>]` for a single component, or `upgrade <first> and <N> more [<key>]` for a batch, dropping the suffix in a run with no key; `body_facts` = the Upgrade Summary rows, each component's classification and review verdict, and the test result against the Phase 2 prep baseline; `clean_finish: false` when any component ended `BLOCKED`, or with a review still `BLOCK`, or with kept regressions, `true` otherwise; and `commit_template: null` — `/upgrade` documents no full template of its own, so §2.3 derives the rest of each subject from the repo's own `git log`. Emit the §3.1 `Code repo:` outcome line with the Step 7 results table — one line for the batch, never one per component. **Under `--no-commit`** neither step runs, and §3.1's `--no-commit` row is emitted in place of the outcome line.
+   Pass the §2.11 inputs: `repo` and `branch` from Phase 2 prep step 1; `pre_existing_dirty` and `stash_ref` as recorded there; `key` and `workitem_key` from the resolved folder, or `null` for a run with neither; `title` = `upgrade <component> to <version> [<key>]` for a single component, or `upgrade <first> and <N> more [<key>]` for a batch, dropping the suffix in a run with no key; `body_facts` = the Upgrade Summary rows, each component's classification and review verdict, and the test result against the Phase 2 prep baseline; `clean_finish: false` when any component ended `BLOCKED` or `TESTS_NOT_RUN`, or with a review still `BLOCK`, or with kept regressions, `true` otherwise; and `commit_template: null` — `/upgrade` documents no full template of its own, so §2.3 derives the rest of each subject from the repo's own `git log`. Emit the §3.1 `Code repo:` outcome line with the Step 7 results table — one line for the batch, never one per component. **Under `--no-commit`** neither step runs, and §3.1's `--no-commit` row is emitted in place of the outcome line.
 
-8. **Post-batch maintenance** — After all components finish, invoke `impl-maintenance` (subagent_type: `"workflows-core:impl-maintenance"`) with a compact session handoff summarising what was upgraded, key failures or workarounds, and the overall result. **Always pass `Command run: /upgrade`** in that handoff — omitting it makes `impl-maintenance` default to `/implement`, mislabeling the run.
+7.6. **Remove this run's handoff files** — nothing from here on reads one: each component's
+   `plan_file`, and every `review_diff_file` and `claims_file` this run wrote. Remove each as
+   `command rm -f -- "<path>"`, per `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`
+   (**Hand off by file, not paste**), which says why nothing else would. A run that stops before this
+   step removes the files it had made before it stops, in the same way — save a file the stop itself
+   named as unreadable, which stays for the operator to look at (that reference again); a component
+   that ended early (step 3a's unreadable `plan_file`, the `review-fixer` `NEEDS HUMAN` stop, a second
+   verdict still `BLOCK`) keeps its files until here, since the loop goes on to the next component.
+
+8. **Post-batch maintenance** — After all components finish, invoke `impl-maintenance` (subagent_type: `"workflows-core:impl-maintenance"`, model: `<detection_model — §2.1 Sonnet chain>`) with a compact session handoff summarising what was upgraded, key failures or workarounds, and the overall result. **Always pass `Command run: /upgrade`** in that handoff — omitting it makes `impl-maintenance` default to `/implement`, mislabeling the run.
 
 **Context hygiene.** This was a large run — consider **`/compact`** to free context before your next task (per `workflows-core:session-hygiene` §3 — non-pipeline, so `/compact` only; guidance only).
 
-9. **Persist plugin feedback (automatic)** — After `impl-maintenance` returns, project its plugin-facing slice into the specs repo by invoking `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and calling its `emit-auto` entry point (§6). Pass the Lessons Learned report, `command: /upgrade`, the run's `key` (or `null`) and `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only the report's **Command workflow improvements**, **New agents / skills**, and plugin **Reference docs** sections plus the **Key observations** that triggered them (§4 plugin-facing predicate) — never target-project `CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by stable `id` (§3), resolves the target via the §2 specs-first ladder, and writes silently. List the persisted path (or "no plugin-facing signal — nothing persisted") after the lessons-learned report. ADDITIVE — this step NEVER fails the run, NEVER commits (still true — the assertion is scoped to *this step*, which only writes the feedback file; those writes are committed by the separate terminal `commit-artifacts` step, per `workflows-core:specs-repo-git` §4), and NEVER writes into the code repo or the current working directory.
+9. **Persist plugin feedback (automatic)** — After `impl-maintenance` returns, project its plugin-facing slice into the specs repo by invoking `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and calling its `emit-auto` entry point (§6). Pass the Lessons Learned report, `command: /upgrade`, the run's `key` (or `null`) and `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only the report's **Command workflow improvements**, **New agents / skills**, and plugin **Reference docs** sections plus the **Key observations** that triggered them (§4 plugin-facing predicate) — never target-project `CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by stable `id` (§3), resolves the target via the §2 specs-first ladder, and writes silently. List the persisted path (or "no plugin-facing signal — nothing persisted") after the lessons-learned report. ADDITIVE — this step NEVER fails the run, NEVER commits (still true — the assertion is scoped to *this step*, which only writes the feedback file; those writes are committed by the separate terminal `commit-artifacts` step, per `workflows-core:specs-repo-git` §4), and NEVER writes into the code repo or the current working directory, where it is not the specs repository.
 
-10. **Commit session artifacts (terminal)** — Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/upgrade)` — or `NOISSUE …` when the run resolved no key — and pushes per §4 step 5. It NEVER touches the code repo this run just upgraded: that repo's per-component commits, its push, and its pull request were steps 6.5 and 7.5, through a different reference and against a different remote. It NEVER force-pushes, NEVER fails the run, and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Print its §6 outcome line as the run's last output, prefixed `Specs repo:`, with any guard notice repeated in full. No `resume.md` is written for `/upgrade` (`workflows-core:session-hygiene` §1 skip list).
+10. **Commit session artifacts (terminal)** — Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/upgrade)` — or `NOISSUE …` when the run resolved no key — and pushes per §4 step 5. It NEVER touches the code repo this run just upgraded: that repo's per-component commits were step 6.5, and whatever push and pull request §2.4's consent choice, §2.8's base-branch ladder and §2.6's `gh` capability probe allowed were step 7.5, through a different reference and against a different remote. It NEVER force-pushes, NEVER fails the run, and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Print its §6 outcome line as the run's last output, prefixed `Specs repo:`, with any guard notice repeated in full. No `resume.md` is written for `/upgrade` (`workflows-core:session-hygiene` §1 skip list).
 
 ---
 
@@ -213,7 +230,13 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 | redis      | -      | -      | -           | -      | SKIPPED | Not found in project        |
 
 Tests: 142 passed, 0 regressions (baseline: 142 passing)
+Not verified: Jest/npm (`CI=true npm test`, frontend/package.json) — baseline PARTIAL
+Caveats: none
 ```
+
+**`Not verified:` is the batch-level slot**, and the per-component `Notes` column is not a substitute for it: the baseline is captured once for the whole batch (Phase 2 prep), so a suite it could not cover is missed for **every** component and belongs on a line of its own. Fill it from the Phase 2 prep baseline's `### Suites` — each suite that row does not mark `OK` or `NO_TESTS`, with its command and its marker path — and write `none` where the baseline covered everything it detected. A component whose own verify left something uncovered is the `Notes` column's, not this line's.
+
+**`Caveats:` is the batch-level slot for a different thing, and the two are not merged**: `Not verified:` names a suite the baseline could not cover, which its `### Suites` rows already show, while a `CAVEAT: ` line names something those rows and the counts do **not** show — a suite nothing ran though nothing failed, counts that may be summed twice, a `Make` fold's unattributed identifiers. Fill it from the Phase 2 prep baseline's `### Notes`, verbatim, one marked line per entry, whatever that baseline's `Status` was; write `none` where it marked nothing, which is every batch whose repository has none of the shapes that mint one (`dev-workflows:test-baseliner` capture step 5). A marked line an `upgrade-executor` returned in its own `notes` is that **component's** and goes in its `Notes` cell instead, since only the baseline is captured once for the batch.
 
 Append a `### Review triage` section with one line per SIGNIFICANT/HIGH-RISK component that went through Opus review: - **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"] — or "N/A (SIMPLE / MODERATE, no Opus review)" for components that never reached review.
 
@@ -238,6 +261,13 @@ interactive tools, even when one is listed in their `tools:`. When it returns
 - Map the final choice to `regression_decision: keep-anyway | revert` and re-invoke
   `upgrade-executor` with `phase: regression-resume` (see Phase 2 step 6).
 
+**`status: TESTS_NOT_RUN` is a different return and takes no `regression_decision`.** It means the
+verify call compared nothing — no failing tests to show, and nothing about this component's tests known
+either way. The changes stay applied. Report the reason the executor recorded, carry the component into
+the Upgrade Summary as unverified, and set `clean_finish: false` for the batch (step 7). Never map it
+onto `revert`: rolling an upgrade back because a suite could not be started is a decision taken on no
+evidence at all.
+
 ---
 
 ## Invariants (always enforced)
@@ -252,7 +282,7 @@ interactive tools, even when one is listed in their `tools:`. When it returns
 - ALWAYS pass the same baseline block to `upgrade-executor` on `phase: verify-resume`
 - ALWAYS include classification in the final summary table
 - ALWAYS commit each component in step 6.5 as its gates settle, and run the full `finish-code-branch` once in step 7.5 (per `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.12's split form) — the commits are prompt-free (§1 rule 5), the push and pull request sit behind §2.4's choice, and a run that ends with the upgrade uncommitted is a defect, not a style
-- NEVER skip step 6.5 for a component that ended `BLOCKED` or with a review still `BLOCK` — it is committed like any other and sets `clean_finish: false`, which makes step 7.5's pull request a draft carrying the DO-NOT-MERGE banner (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.9)
+- NEVER skip step 6.5 for a component that ended `BLOCKED` or with a review still `BLOCK` — it is committed like any other and sets `clean_finish: false`, which makes any pull request step 7.5 opens a draft carrying the DO-NOT-MERGE banner (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.9); whether one is opened at all is §2.4's consent choice, §2.8's base-branch ladder, §2.6's `gh` capability probe and §2.5's push — a declined or failed push, a slug failing §2.6's `^[^/]+/[^/]+$` test, a `gh` that is absent or not authenticated, or a pull request already open on the branch all end the run with none opened by it, and §3.1's rows rather than any list written out here are the authority on which line it emitted — never this flag
 - NEVER push or ask for the pull request inside the per-component loop — one push, one pull request, one `Code repo:` line per run
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - After the run, suggest **`/compact`** (a big non-pipeline run) per `workflows-core:session-hygiene` §3 — compact-only, no clear/resume pointer; guidance only, never auto-run.

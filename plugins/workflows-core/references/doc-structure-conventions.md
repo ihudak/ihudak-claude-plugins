@@ -18,13 +18,15 @@ changelog entry, never as a comment in the markdown.
 
 **Scope: rendered product-docs pages** — the pages `/document` writes into a docs repo. This section
 does not govern **specs-tree documents**, such as the `epic.md` files `/epics` writes,
-where a `[[KEY]]` wikilink is the native idiom, resolves, and is the required traceability form.
+where a `[[KEY]]` wikilink is the native idiom and the required traceability form. It resolves
+nowhere — the specs tree is a git repository, not a vault — and does not need to: it names a key,
+not a page.
 
 | Where | Carries |
 |---|---|
 | Rendered page | The customer-facing claim only. |
 | Commit message | The key and the summary (`profile.commit_convention`). |
-| Run handoff / final report | Per-claim attribution to resolved keys and PR URLs. |
+| Run handoff / final report | Per-claim attribution to resolved keys and to the refs `diff-summarizer` named. |
 
 A changelog entry is reader-visible "what changed on this page" prose, so it is covered by the rule
 above: a key never belongs in it. `docs-workflows:doc-writer`, `docs-workflows:doc-planner`, and `/docs-workflows:document`

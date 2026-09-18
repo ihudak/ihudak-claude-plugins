@@ -17,6 +17,8 @@ spaces:
 dev_servers:
   concurrent: false
   readiness_timeout_seconds: 120
+  # Neither command carries a {port} token, so both are fixed-port: each binds the port its
+  # script names, and no consumer can move it (docs-profile-schema.md, dev_servers.servers[].command).
   servers:
     - space: cloud
       command: "pnpm cloud:start"

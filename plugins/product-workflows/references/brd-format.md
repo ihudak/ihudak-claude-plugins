@@ -27,6 +27,42 @@ faith: an unchecked machine conversion must not become the record a `[BR#n]` anc
 a conversion artifact (a dropped clause, a misplaced heading, a table read out of row order) then
 becomes an invisible edit to an otherwise-immutable document.
 
+### 1.1 What `brd/source/` holds, and what it could not hold
+
+`brd/source/` holds the customer's document at its own basename **and every file that document links
+from its own directory**, each at its own path relative to that directory and each copied
+byte-for-byte, whatever its type. That is what makes the copy a record rather than a transcript: a
+customer's BRD routinely carries screenshots, diagrams and appendices beside it, and a link the copy
+did not follow resolves to nothing afterwards — no later command of the route captures it, and
+`brd/source/` is never edited (§1), so no command closes the gap short of intaking the whole document
+again. `/brd-intake` Phase 2 is the only writer, and the link forms it covers and the test it applies
+to each target are stated there. **The markdown-only rule above is about the *document*** — the text
+a `[BR#n]` anchors into, and the one thing an unchecked conversion could silently rewrite; a file it
+links is captured as it stands, whatever its type, and the intake run reads only the document. On a
+re-run the copy is additive, as the document's own re-copy is: a file an earlier intake captured and
+the revised document no longer links stays where it is, because nothing under `brd/source/` is ever
+removed either — so the log's counts describe the run that wrote them rather than the directory's
+contents.
+
+**Whatever the copy could not capture is named in `brd/brd-link-log.md`**, never dropped in silence:
+a link above the source document's own directory, an absolute path, a URL, or a file that could not
+be read. That log is the **plugin's** record rather than the customer's, which is why it sits in
+`brd/` beside `brd-inventory.md` and `brd-defect-log.md` and never under `brd/source/`, where every
+byte is the customer's own and a plugin-written file would read as part of the document they handed
+over. It opens by naming the source document's basename, carries the run's counts — links found,
+files copied, links not copied — and then one row per uncopied link: the target as written, the
+copied file the link sits in, and the reason. **The three counts do not add up, and that is
+arithmetic rather than a slip**: two documents linking the same file are two links found and one
+file copied, so the first count is of links and the second of files. **It is written on every run,
+including one that captured everything**, so its counts are the positive record that the capture
+ran; an absent log and an empty one are not (§2.2 makes the same call for the inventory's coverage
+of its source).
+
+**Which file under `brd/source/` is the customer's document is read, never guessed.** The directory
+can hold several markdown files, since the document may link one beside it, so a reader that needs
+the document's own name takes it from `brd/brd-link-log.md`'s opening line. A BRD intaken before that
+log existed holds exactly one file under `brd/source/`, and that file is it.
+
 ## 2. The inventory
 
 The inventory (`brd/source/`'s companion `brd-inventory.md`) holds **one row per requirement**:
@@ -122,6 +158,10 @@ key: <this folder's key — must match the folder name>
 parent: <PARENT-KEY>
 source: <the parent's brd/source/<basename>, relative to the parent's folder>
 ```
+
+**`source:` names the parent's document itself, and §1.1 says which file in `brd/source/` that is** —
+the directory holds the files that document links as well, so the writer of this header reads the
+name off the parent's `brd/brd-link-log.md` rather than taking whatever it finds there.
 
 **`kind:` and `key:` open every inventory, a slice's and a source-owning BRD's alike** — a
 source-owning BRD's inventory carries the two and no `parent:`/`source:` pair, because it *is* the

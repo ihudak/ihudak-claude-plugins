@@ -463,7 +463,7 @@ subdir. Walk top-down; stop at the first tier that applies:
    `<PRD-dir>/dev-workflows/cost/<sid8>.md`. *[primary]*
 2. `$SPECS_PATH` writable but no PRD dir (or no key resolved) — two destinations,
    and the documentation branch is tried first:
-   - **The run is `/docs-init`, or `/docs-brand` on its standalone path**, and it resolved a documentation repository (design D19) -> `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`, where `<docs-repo-slug>` is the one-segment name `specs-repo-git.md` §2.1 defines for that repo — cited, never re-derived here, because the staging classifier admits exactly one segment there. **Per docs repo, not one flat bucket**, for the same reason the PRD-directory rung exists for the pipeline: a person documenting two products must still be able to answer what documenting each one cost. The inner `dev-workflows/` names the *family*, not the emitting plugin — `specs-repo-git.md` §2.1 says why — and that section's `<specs-root>/documentation/*/dev-workflows/**` shape is what stages it.
+   - **The run is `/docs-init`, `/docs-brand` on its standalone path, or `/document` in direct mode**, and it resolved the target it writes into (design D19) -> `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`, where `<docs-repo-slug>` is the one-segment name `specs-repo-git.md` §2.1 defines for that repo — for direct mode, the write target its own Phase 0 step 3 resolved, which every direct-mode run holds from that step on — cited, never re-derived here, because the staging classifier admits exactly one segment there. **Per docs repo, not one flat bucket**, for the same reason the PRD-directory rung exists for the pipeline: a person documenting two products must still be able to answer what documenting each one cost. The inner `dev-workflows/` names the *family*, not the emitting plugin — `specs-repo-git.md` §2.1 says why — and that section's `<specs-root>/documentation/*/dev-workflows/**` shape is what stages it.
    - **Otherwise** -> **pending** (§9).
 
    **Why this rung is inserted before pending rather than folded into it.**
@@ -472,15 +472,18 @@ subdir. Walk top-down; stop at the first tier that applies:
    forever. §9's opportunistic reconciliation is built for a *keyless* run that
    will later acquire a key; this one will not.
 
-   **The branch names its two commands rather than testing "did the run resolve a
-   docs repo", and that narrowness is deliberate.** `/document` direct mode also
-   resolves a docs repo, resolves no PRD key, and therefore has exactly the
-   problem D19 describes — but it is a shipped command whose bookkeeping lands
-   in **pending** today and says so in its own body, and moving where a shipped
-   command's entries land is a behaviour change with its own migration question.
-   Extending this branch to it is a **deliberate follow-up, not an oversight**;
-   until it is taken, `/document` direct mode keeps the pending destination it
-   has always had, and nothing here silently alters it.
+   **The branch names the runs it serves rather than testing "did the run resolve a
+   docs repo".** Each of the three works against a target it resolved — a repository,
+   or a path that is not one (`specs-repo-git.md` §2.1 names the runs that meet
+   that case) — and resolves no PRD folder: `/docs-init` and a standalone `/docs-brand` never resolve one, and
+   `/document` direct mode is the mode with no address, so its key is ordinarily
+   `null` — where one does resolve a PRD folder, tier 1 takes it first, as it
+   would for any run. `/document` in keyed mode resolves a PRD folder and so is
+   tier 1's. **Direct mode joined this branch after shipping outside it**, when
+   its entries went to pending and reconciled against nothing — exactly the
+   problem D19 describes. Pending files it wrote before then stay where they are:
+   nothing moves them automatically, and §9 treats them like any other pending
+   file.
 3. `source = directory` (a passed directory, no `$SPECS_PATH`) -> beside that
    directory.
 4. Nothing resolvable -> **report-only** in the run output. **NEVER write into the
@@ -492,14 +495,21 @@ mount / permission) drops to the next tier with the same notice.
 
 ## 9. Pending & reconciliation (keyless runs)
 
-When no PRD key resolves (idea refinement, pre-PRD work), write the entry to a
-pending file:
+When no PRD key resolves and §8 tier 2's documentation branch does not apply,
+write the entry to a pending file:
 
 ```
 $SPECS_PATH/dev-workflows-cost/pending-<date>-<sid8>.md
 ```
 
 (same `type: dev-workflows-cost` format; `prd: n/a`).
+
+**`/idea` is not an example of this tier and never reaches it.** The key is a mandatory
+argument — Phase 0 refuses the run without one (`IDEA_NEEDS_KEY`) — so an idea run always
+resolves a folder and always lands on §8 tier 1. What reaches pending is a run that resolved
+no folder at all: `/feedback` or `/prompt` invoked outside any PRD, and `/implement` in
+direct mode. Derive the set from §8 tier 2's `Otherwise` branch rather than from any list,
+here or elsewhere.
 
 **Opportunistic suggest-and-confirm reconciliation.** Whenever any command
 resolves a PRD key **and** pending files exist, the cost phase lists them (each
@@ -537,7 +547,7 @@ nothing). Every caller supplies `command`, `phase`, `role` (or the
 `null`), `source`, and `plugin_version`; the four feedback commands additionally
 supply `target_command` — `/prompt` and `/feedback` directly, `/prompt-brainstorm`
 and `/prompt-grill-me` through the §13 record a replay reads it from. `emit-cost` does the rest; it NEVER commits, NEVER writes
-into a docs/code repo or the current working directory, and NEVER fails the
+into a docs/code repo or the current working directory, where it is not the specs repository, and NEVER fails the
 run. The cost entry is committed later, once, by the run's terminal
 `commit-artifacts` step (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
 §4). Cost ALWAYS runs.
@@ -581,8 +591,9 @@ Behavior:
    Evaluate it **per built entry**, replayed ones included — §6.1 fires in every
    tier, and a claim dominated by an unpriced model is exactly as misleading as
    this run's would be.
-5. Resolve the target via the ladder (§8); on a keyless run write pending and run
-   opportunistic reconciliation (§9).
+5. Resolve the target via the ladder (§8) — on a keyless run, the documentation
+   branch where it applies and pending (§9) otherwise; on a keyed run, run §9's
+   opportunistic reconciliation of any pending files.
 6. Append the entry (create the file with frontmatter on first write), then
    append one entry per **matched claim** as §13.3 describes.
 7. **Write `new_checkpoint` back (§3) in EVERY tier**, including pending /

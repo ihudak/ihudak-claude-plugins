@@ -19,7 +19,7 @@ Every recognized flag is stripped from `$ARGUMENTS` before the remaining token i
 ## What it needs
 
 - **Somewhere to scaffold into** — resolved by `resolve-scaffold-target` (`docs-workflow/repo-resolution.md` §2), which is the **inverted** form of the ladder every sibling uses: the given path, else `$DOCS_PATH` *when it is absent or carries no documentation signal*, else the working directory. Every other command in this family accepts a directory because it already looks like a documentation repository; this one accepts it because it does not. The rung that answered is always reported.
-- **A git work tree, or an empty or absent directory** — the second is offered a `git init` before anything is written. A non-empty directory that is not a git work tree stops the run.
+- **A git work tree's top level, or an empty or absent directory outside every git work tree** — the second is offered a `git init` before anything is written. A non-empty directory that is not a git work tree stops the run, and so does a target below a work tree's top level, whether it exists yet or not: an absent one is tested through the nearest directory up its path that does exist, since a `git init` there would nest a second repository inside the first. A work tree that already has a `.gitignore` — a repository created from a template, say — keeps it: the scaffold appends only the lines it needs and never removes, reorders or rewrites one. Just before committing, every file the run wrote — the logo and stylesheet branding added included — is tested against it: a file one of the project's own lines ignores is left uncommitted rather than forced in, any config line naming it is removed so the committed site never points at a missing file, and both are named in the pull-request draft and the report.
 - **A directory carrying no documentation signal.** One signal is enough to refuse: scaffolding is for cold start, and describing a repository that already exists is `/docs-profile`'s job.
 - **The toolchain the scaffold's own gates invoke** — `git`, `python3` and `pip` (or `uv`), `mkdocs`, and `vale`. Checked at Phase 2, and the run prompts only when something is missing.
 - **`$SPECS_PATH`**, for its own session bookkeeping only. Nothing about the scaffold is read from there.
@@ -33,10 +33,10 @@ Every recognized flag is stripped from `$ARGUMENTS` before the remaining token i
 | 2 — Source repos and toolchain preflight | Confirm which code repositories the portal documents (used by this run only; nothing records the set), resolve the product name and current major version, and check the tools the later gates invoke. |
 | 2.5 — Branch | Create the branch, **before anything is written**, behind a clean-tree check that is only meaningful ahead of the first write. |
 | 3 — Scaffold | Write the tree, the stubs, the generated navigation, both build configs, the visibility markers, and the CI workflow, resolving every substitution including the pinned Vale release. |
-| 4 — Vale | Write `.gitignore`, `requirements-docs.txt` and `.vale.ini`, run `vale sync`, and create the project vocabulary, seeded with the product name and the scaffold's own words. |
+| 4 — Vale | Create `.gitignore` or append the lines an existing one lacks; write `requirements-docs.txt` and `.vale.ini`, run `vale sync`, and seed the vocabulary with the product name and stub words. |
 | 5 — Branding | Run `/docs-brand --inline` on the new repo unless `--no-brand`. Its diff and contrast finding join this run's review and PR; if it cannot brand, the run continues as if `--no-brand` and says why. |
-| 6 — Profile | Write `.dev-workflows/docs-profile.yml`: the generator, both builds, both dev servers, the commands, and the structured images block. |
-| 7 — Verify the scaffold | Public build strict, internal build strict, `vale docs/`, then the visibility gate against the **public build output** — in that order. |
+| 6 — Profile | Write `.dev-workflows/docs-profile.yml`: the generator, both builds, both dev servers (each command carrying the `{port}` token), the commands, and the structured images block. |
+| 7 — Verify the scaffold | Public build strict, internal build strict, `vale docs/` on the repository's configuration alone, then the visibility gate against the **public build output** — in that order. |
 | 7.5 — Review gate | Dispatch `docs-scaffold-reviewer` at Opus over the written diff, triage its findings, and apply the survivors in the orchestrator. |
 | 8 — Finish | Commit on the branch and draft a pull-request message. Never pushes, never merges. |
 | 8.5 — Report | The consolidated report, including every verification outcome and the next step. |
@@ -46,7 +46,7 @@ Every recognized flag is stripped from `$ARGUMENTS` before the remaining token i
 
 **Phase 7 — verification, and a failure is reported rather than worked around.** The four steps run in order, and the rule is stated in the command body rather than left as advice: no relaxed `--strict`, no dropped validation key, no deleted page, no silenced linter. A failing step is carried into the reviewer's brief, into the pull-request draft, and into the report, and nothing downstream describes the scaffold as verified. The run continues, because the branch and the diff still exist and are still worth reviewing.
 
-The Vale step passes or fails by **the same exit criterion the scaffold's CI workflow applies** — Vale's own exit code, which fails on an error-level alert or a configuration error and never on a warning or a suggestion — so a scaffold that passes here does not fail its first CI run. It passes because the scaffold seeds the project vocabulary with the product name and the handful of technical words its own stubs use; that seed is only what the scaffold needs to pass its own gate, and the product's domain vocabulary is a later command's job.
+The Vale step passes or fails by **the same exit criterion the scaffold's CI workflow applies** — Vale's own exit code, which fails on an error-level alert or a configuration error and never on a warning or a suggestion — so a scaffold that passes here does not fail its first CI run over the same files. (A file a project `.gitignore` line keeps out of the commit is one way the files can differ, and the report names it.) It passes because the scaffold seeds the project vocabulary with the product name and the handful of technical words its own stubs use; that seed is only what the scaffold needs to pass its own gate, and the product's domain vocabulary is a later command's job.
 
 **Phase 7.5 — the review gate.** `docs-scaffold-reviewer` runs on Opus over a fixed seven-item checklist whose cross-file items each assert a relationship *between two files* — the navigation against the tree, one config against the other, a workflow step against the profile field that parameterises it. That is exactly what a reviewer reading one diff hunk at a time cannot see, which is why the checklist is fixed rather than left to judgement. The run tells the reviewer which of the seven `--public-only` makes inapplicable, so an absent internal build is reported as by-design rather than as a defect.
 
@@ -57,14 +57,15 @@ Findings are triaged by the orchestrator before anything is applied: each is ver
 ## Outputs
 
 - **The scaffolded repository**, on a branch with one commit and a drafted pull-request message. Nothing is pushed and nothing is merged.
-- **`.dev-workflows/docs-profile.yml`** — the output the family's other docs-repo commands read: `/docs-serve` reads its `dev_servers` block, `/document` reads its content roots and commands, a standalone `/docs-brand` reads its branch-naming pattern, and the CI workflow's conditional image step is written against its `images.policy`. `/release-notes` reads no docs profile.
+- **`.dev-workflows/docs-profile.yml`** — the output the family's other docs-repo commands read: `/docs-serve` reads its `dev_servers` block — whose two commands carry `{port}` where a port would go, so `/docs-serve` can serve either build on another port after a collision or under `--port`, and every consumer substitutes the port it serves on — `/document` reads its content roots and commands, a standalone `/docs-brand` reads its branch-naming pattern, and the CI workflow's conditional image step is written against its `images.policy`. `/release-notes` reads no docs profile.
 - **A session cost entry and any feedback**, filed under `$SPECS_PATH/documentation/<docs-repo-slug>/` — per documentation repository rather than in the pending queue, because a documentation run frequently has no PRD and never will. See [Session cost](../reference/session-cost.md).
 
 ## Failure modes
 
 - `DOCS_INIT_UNKNOWN_GENERATOR` — `--generator` named something other than `mkdocs-material`. A second generator is a new template, not a flag value.
 - `DOCS_INIT_TARGET_NOT_WRITEABLE` — the resolved repository root is not writable.
-- `DOCS_INIT_NOT_A_GIT_WORKTREE` — the target is non-empty and is not inside a git work tree. Initialise it yourself, or point the command at an empty or absent directory.
+- `DOCS_INIT_NOT_A_GIT_WORKTREE` — the target is non-empty and is not inside a git work tree. Initialise it yourself, or point the command at an empty or absent directory outside any git work tree.
+- `DOCS_INIT_TARGET_BELOW_TOPLEVEL` — the target is inside a git work tree but below its top level, such as a `site/` in a monorepo — or does not exist yet and would be created there, which a `git init` would turn into a repository nested inside the first. A scaffold's profile, its CI workflow and every path it fixes sit at a work tree's top level, so the command scaffolds there or nowhere: point it at the top level, or at a directory outside that work tree.
 - `DOCS_INIT_EXISTING_DOCS_REPO` — the target already carries at least one documentation signal. Run [`/docs-profile`](docs-profile.md) to describe what is there, or [`/docs-brand`](docs-brand.md) to brand it.
 - `DOCS_INIT_TOOLCHAIN_INCOMPLETE` — a required tool is missing and the operator cancelled at the preflight prompt. Proceeding anyway is allowed; Phase 7 then reports the affected step as unrun rather than as passed.
 - `DOCS_INIT_UNRESOLVED_BLOCKER` — a BLOCKER finding from `docs-scaffold-reviewer` was neither fixed nor explicitly overridden.
@@ -88,7 +89,7 @@ The same run without the internal half — no `mkdocs.internal.yml`, no `interna
 ## See also
 
 - [`/docs-brand`](docs-brand.md) — run as a phase of this command, and separately whenever the brand changes.
-- [`/docs-serve`](docs-serve.md) — the natural next step: open the scaffolded portal in a browser.
+- [`/docs-serve`](docs-serve.md) — the natural next step: serve the scaffolded portal and get a URL to open in a browser.
 - [`/docs-profile`](docs-profile.md) — the command for a documentation repository that already exists, and where `DOCS_INIT_EXISTING_DOCS_REPO` sends you.
 - [Documentation visibility](../reference/docs-visibility.md) — the two-build model this scaffold implements, the traps that make the obvious checks useless, and the gates that assert on built output instead.
 - [Session cost](../reference/session-cost.md) — what this run charges to and where the file lands.

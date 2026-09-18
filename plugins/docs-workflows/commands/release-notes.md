@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: Release-notes drafting. Reads the resolved Product Requirements Document from the resolved folder in the specs tree, optionally grounds in PR diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to publish wherever release notes are published.
+description: Release-notes drafting. Reads the resolved Product Requirements Document from the resolved folder in the specs tree, optionally grounds in the recorded refs' diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to publish wherever release notes are published.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -10,7 +10,7 @@ Draft release notes for the resolved PRD: $ARGUMENTS
 
 `/release-notes` produces a **customer-facing release-notes draft** for a resolved
 Product Requirements Document (or any ticket) from the resolved PRD folder.
-It optionally grounds the prose in merged PR diffs, renders the example-docs authored
+It optionally grounds the prose in the diffs of the refs the implementation record and the commit scan name, renders the example-docs authored
 release-notes body — a plain **Category:** label + `### title` + prose for the `feature-updates` /
 `breaking-changes` destinations, or one bare past-tense sentence for `fixes` — with **no
 `{{#internal-note}}`, no identifiers, no PR links** (the docs automation adds the metadata
@@ -61,20 +61,15 @@ run — the terminal `commit-artifacts` step skips on it.
 
 - **Diff grounding** (default OFF — the PRD is usually enough for release notes):
   ```
-  choices: ["PRD content only (Recommended)", "Also ground in merged PR diffs (you'll pick repos)", "Cancel"]
+  choices: ["PRD content only (Recommended)", "Also ground in the recorded refs' diffs (you'll pick repos)", "Cancel"]
   ```
-  If "ground in PR diffs", additionally ask the two sub-questions below.
+  If the user also grounds in diffs, additionally ask the `$REPOS_PATH` sub-question below.
 
 - **Repos search base (`$REPOS_PATH`)** (only if diff grounding is ON). Read `${REPOS_PATH:-/workspace}`; may be a colon-separated list. Ask:
   ```
   choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]
   ```
-  Clones are located in Phase 4 by matching `git remote` against each PR's repo slug — not by assuming a `<base>/<slug>` directory name.
-
-- **PR status filter** (only if diff grounding is ON):
-  ```
-  choices: ["MERGED only (Recommended)", "All PRs (MERGED + OPEN + DECLINED)", "Specific list (you'll be prompted)"]
-  ```
+  Clones are located in Phase 4 by matching `git remote` against each repo slug the Phase 3 implementation record and its commit scan named — not by assuming a `<base>/<slug>` directory name. Nothing here asks which pull-request statuses to include: Phase 3 builds its refs from `implementation.md` and a `git log --grep` scan, neither of which carries one, and `refs[]` is the only element list `diff-summarizer` takes.
 
 - **Output destination — derived, not asked.** The draft lands in **`release-notes.md` in the
   resolved PRD folder**, appended as a section. There is one home now, so the destination question
@@ -85,21 +80,31 @@ run — the terminal `commit-artifacts` step skips on it.
   The taxonomy is unchanged and `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` remains its
   authority — only where a draft lands changed.
 
-  **The release version is the section heading**, under which those three sit:
+  **The release version is the heading those three sit under, one level above them** —
+  `release-note-types.md` §1 fixes the three levels, and Phase 8 appends by them:
 
   ```markdown
   # Release notes — ACME-77 billing
 
-  ## 1.24.0
+  # 1.24.0
 
-  ### Feature updates
-  …
+  ## Feature updates
+
+  **Category:** Capability
+
+  ### <feature title>
+
+  <prose>
+
+  ## Fixes
+
+  Fixed an issue where …
   ```
 
   Exactly one Summary per run, appended under the resolved version and type. A run whose version the
-  operator declined appends under `## Unreleased`.
+  operator declined appends under `# Unreleased`.
 
-  **NEVER write into a docs repo, a code repo, or the current working directory.** The PRD
+  **NEVER write into a docs repo, a code repo, or the current working directory, where it is not the specs repository.** The PRD
   folder is in `$SPECS_PATH`, which is where the terminal `commit-artifacts` step commits it with the
   rest of the run's artifacts.
 
@@ -115,13 +120,13 @@ Also display: the resolved PRD folder, its `key`, `$REPOS_PATH` (or "N/A — PRD
 
 ## Phase 1.5 — Classify
 
-Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then classify the task. Release-notes drafting is **MODERATE** (bounded prose synthesis from a single ticket; no Opus planning or review gate). State the classification and a one-sentence reason.
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then classify the task. Release-notes drafting is **MODERATE** (bounded prose synthesis from a single ticket; no Opus planning or review gate). State the classification and a one-sentence reason, and record the `model_routing` block §4 defines — Phase 6 pastes it, and its `detection_model` (the §2.1 Sonnet chain) is what Phase 5's `diff-summarizer` batch and Phase 6's writer are pinned to.
 
 ---
 
 ## Phase 2 — Plan + approval
 
-1. **Plan.** Before presenting the plan, run `resolve-docs-grounding release-notes` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's the folder read and Phase 4/5's diff resolution do any of the run's real work. Present: resolved `key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), style-check choice, and the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs). Ask:
+1. **Plan.** Before presenting the plan, run `resolve-docs-grounding release-notes` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's folder read and Phase 4/5's diff resolution do any of the run's real work. Present: resolved `key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), style-check choice, and the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs). Ask:
    ```
    choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
    ```
@@ -130,9 +135,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 ## Phase 3 — Read the PRD folder
 
-**Read the resolved folder directly.** The PRD alone when diff grounding is OFF; the PRD plus the folder's `implementation.md` when ON, which is where the refs the diff grounding needs are recorded (`workflows-core:implementation-format` §1).
-
-**Read the resolved folder directly.** Read its `prd.md` for the product content.
+**Read the resolved folder directly** — its `prd.md` for the product content, and that alone when diff grounding is OFF; the PRD plus the folder's `implementation.md` when ON, which is where the refs the diff grounding needs are recorded (`workflows-core:implementation-format` §1).
 
 **Resolve the diff sources — two of them, merged.** **Only when diff grounding is ON** (Phase 1): it is opt-in and advisory here, so a run that declined it skips this step entirely and grounds its prose in the PRD alone. When it is on, invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4:
 
@@ -158,13 +161,15 @@ commit whose message names the key is findable, and no convention compels a huma
 a zero-match scan in a repository that has commits is a signal about the commit convention
 (`docs/reference/commit-convention.md`), not proof that no work happened.
 
-Hand each resolved ref to `diff-summarizer` as a `refs[]` element — `{repo_path, branch_from, branch_to}` — a
-shape its Inputs declare as `refs[]`, taken on the pure-local-git path. No URL,
-no host classification, no `gh` requirement.
+Hand each resolved ref to `diff-summarizer` as a `refs[]` element — `{branch_from, branch_to, title}`,
+the shape its Inputs declare for `refs[]`, `title` optional — taken on the pure-local-git path.
+`repo_path` is a top-level input of that agent, passed once at the Phase 5 dispatch and never
+repeated inside an element. No URL, no host classification, no `gh` requirement.
 
 
 When `focus_key` is set (the address resolved to an Epic folder), scope the **Phase 6 render input**
-to the focus Epic's subtree — the focus Epic plus its linked descendants — so the
+to that `EPIC-` folder and what it holds — its `epic.md`, `specification.md`, `design.md` and
+`implementation.md`; there is no Story / Sub-task level beneath it — so the
 release note covers that Epic's user-facing changes rather than the whole PRD. This
 scopes only what Phase 6 renders; it does not mutate the stored handoff that other
 phases read. When `focus_key` is null, the draft covers the whole ticket/PRD exactly as
@@ -176,11 +181,11 @@ Capture `change_type` and `release_notes_category` from the resolved folder's `p
 carries them (null when absent). **Read them from the PRD, which is the reversal**: these were
 dropdowns set outside the plugin and returned by an import, so this step used to read the import and
 was told explicitly *not* to read the authored PRD. Nothing returns them now, and the PRD is the only
-place either can come from (`workflows-core:prd-format`).
+place either can be authored (`workflows-core:prd-format`).
 
 **`release_versions` — `--version <v>`, else ask.** The flag takes the release this note belongs to.
 Absent, the grill asks once; declined, the draft omits it. **Never invent one.** It is not parsed
-from anything, because nothing supplies it.
+from anything, and the PRD's `release_versions`, where `/create-prd` wrote one, is not read.
 
 ---
 
@@ -195,7 +200,7 @@ choices: ["Skip and continue without its refs", "I'll clone it — wait", "Cance
 
 ## Phase 5 — Diff summarisation (only if diff grounding is ON)
 
-Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent message, passing each resolved absolute `repo_path`, its `repo_url_slug`, and `refs[]` — the `{branch_from, branch_to, title}` elements Phase 3 built for that repo, which is the shape that agent's Inputs declare as the ordinary one. Collect the outputs into a `diff_summaries` array.
+Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent message, each pinned with ``model: `<detection_model — §9 / §2.1 Sonnet chain>` ``, passing each resolved absolute `repo_path`, its `repo_url_slug`, and `refs[]` — the `{branch_from, branch_to, title}` elements Phase 3 built for that repo, which is the only element list that agent takes. Collect the outputs into a `diff_summaries` array.
 
 **Per-repo summarizer status.** Handle each returned status before continuing:
 
@@ -234,10 +239,10 @@ already spans both levels.
 
 This is the same inference `emit-cost` already applies in Phase 11; do not add a question for it.
 
-→ Agent (subagent_type: "docs-workflows:release-notes-writer"):
+→ Agent (subagent_type: "docs-workflows:release-notes-writer", model: `<detection_model — §9.2 delegated writer / §2.1 Sonnet chain; this run is MODERATE (Phase 1.5)>`):
   > "Render the release-notes draft for this brief:
   >
-  > folder_read: [the Phase 3 handoff — scoped to the focus Epic's subtree when focus_key is set]
+  > folder_read: [the Phase 3 handoff — scoped to that `EPIC-` folder and what it holds when focus_key is set]
   > diff_summaries:      [the Phase 5 array, or omit when diff grounding was off]
   > docs_grounding:      [the Phase 5.5 digest, or omit when OFF/EMPTY]
   > change_type:            [from Phase 3, else null]
@@ -250,19 +255,23 @@ If `status: PARTIAL`, surface each `gaps` entry with `recommended_action: "ask u
 
 For a `field: change_type` gap, the destination was inferred with low confidence — and the
 destination decides the draft's whole shape. Confirm it by **consequence**, never by enum label.
-This fires ONLY when `change_type` was null; when the PRD already carries one, no
-prompt appears.
+This fires ONLY when the Change Type was inferred — `change_type` null, or one of the two values
+`release-note-types.md` §7 marks not routable, `not applicable` among them; when the PRD carries a
+routable one, no prompt appears.
 
 State the inference, then ask:
 
 > This note reads like a `<proposed type>`, so the draft is shaped as `<shape>` and lands in
-> `<destination>`.
+> `<destination>` — confirm that route below, or pick another.
 
 ```
-choices: ["<proposed type> — <its shape>, under <its section> (Recommended)", "Feature update — titled section with a docs link, under ## Feature updates", "Breaking change — titled section with remediation steps, under ## Breaking changes", "Fix — one self-contained sentence, under ## Fixes"]
+choices: ["Feature update — titled section with a docs link, under ## Feature updates", "Breaking change — titled section with remediation steps, under ## Breaking changes", "Fix — one self-contained sentence, under ## Fixes"]
 ```
 
-The array is presented as written — the first option carries the proposal, so it never duplicates another (`workflows-core:escalation-rules`: there is no permitted adjustment). Apply the choice to
+The array is presented as written — it carries the three routes once each, and the proposal is the
+one the question above it names, never a further option repeating it, so no run renders a duplicate
+(`workflows-core:escalation-rules`: there is no permitted adjustment; a recommendation the array does
+not carry belongs in the prose beside it, which is where this one is). Apply the choice to
 `release_notes_block.change_type` (Feature update → `New technology support`, Breaking change →
 `Breaking change`, Fix → `Bug fix`) + `destination` and **re-render** the draft in the chosen shape —
 switching between `fixes` and a titled destination changes the body structure, not just a label. The
@@ -295,9 +304,17 @@ Pass `code_repos` (the Phase-4 resolved map) to the writer when diff-grounding i
 
 If the user chose a style check in Phase 1:
 
-→ Agent (subagent_type: "prose-style:prose-style-checker") on the `combined_rendered` draft (write it to the destination first when the destination is a file, or pass it inline). If violations are returned and the user chose auto-fix:
+→ Agent (subagent_type: "prose-style:prose-style-checker", model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`) on the `combined_rendered` draft, written first to a scratch file of its own — `command mktemp -t rn-draft-XXXXXX` names one, outside every repository — since the checker and the fixer both take files, and hand the checker `repo_root`: the specs repository, `git -C <the resolved PRD folder> rev-parse --show-toplevel`, wherever that finds one. **Never to `release-notes.md`**: Phase 8 appends the draft there exactly once, and a checker or fixer handed that file would also check, and could edit, the sections earlier runs appended. **The rules that apply are the specs repository's, as for `release-notes.md` itself.** The checker takes its house-style overlay from `<repo-root>/.prose-style/rules/`, and where no `repo_root` names that repository it derives it from the files it is handed: for a scratch file outside every repository, that is the working directory's repository, or none — a code clone's rules, say, where the session stands in one. `repo_root` makes it the repository `release-notes.md` lives in, so the draft is checked under the rules that file would be checked under, the checker's later orders included. That is why the scratch copy stays rather than a check in place: it keeps the checker and the fixer off every earlier run's section and writes nothing into a repository mid-run, and `repo_root` costs neither.
 
-→ Agent (subagent_type: "prose-style:prose-fixer") to apply safe fixes.
+**Then, where Phase 7 handed the checker `repo_root`, read it back from the checker's output**, where `prose-style` 0.4.0, which added the input, echoes the `<repo-root>` it took. Where the echo is the path handed to it, the draft was checked under the specs repository's rules. Where the output carries no `repo_root` — a `prose-style` older than 0.4.0, which ignores the input and derives `<repo-root>` as though none were named, from the scratch copy and then the working directory — or carries another path, record the style check **`DEGRADED`** in the Phase 8 report: its reason says the specs repository's house-style rules may not have applied, names the rule set the checker did apply (its `rules_source`), and says to update `prose-style` to 0.4.0 or later. So an older checker never applies another repository's rules silently. This plugin declares `prose-style` by name alone, with no version range, so an older one can be installed beside it: the echo is the test that holds wherever this command runs.
+
+If violations are returned and the user chose auto-fix:
+
+→ Agent (subagent_type: "prose-style:prose-fixer", model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`) to apply safe fixes to that scratch file.
+
+Then read the scratch file back as `combined_rendered`.
+
+**Remove the scratch file in every case** — after a fixer ran, after a report-only check, and where the checker returned no violations at all — with `command rm -f -- "<scratch file>"`: the Bash tool's shell carries the user's aliases and shell functions, and an `rm` of theirs — an `rm -i` alias answered no from an empty standard input, or a function — could otherwise leave the file behind.
 
 `prose-style` is a declared dependency of this plugin, so the only thing that skips this phase is the user's own "Skip style check" answer in Phase 1 — never a missing plugin. Record that answer in the report line below.
 
@@ -305,22 +322,18 @@ If the user chose a style check in Phase 1:
 
 ## Phase 8 — Write + report
 
-1. **Write** the `combined_rendered` draft to the resolved destination:
-   - `file:<path>` → write it. If the file exists, ask: `["Overwrite", "Write to <path>.new", "Print to screen instead", "Skip"]`.
-   - `stdout` → include the full draft in the report under `### Release-notes draft`.
-   - `skip` → do not write.
-   NEVER write into a docs repo.
+1. **Append** the `combined_rendered` draft to `release-notes.md` in the resolved PRD folder — the one destination Phase 1 derives, laid out as Phase 1 lays it out. Where the file does not exist, create it with its `# Release notes — <KEY> <slug>` title. Where it has no `#` heading for the version this draft is filed under (Phase 1: the resolved version, or `# Unreleased`), add that heading at the end of the file; where that version has no `##` section for the draft's Change Type, add the section at the end of that version's part of the file, which runs to the next `#` heading; then add the draft at the end of that section, which runs to the next `##` or `#` heading. Those are the levels `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1 fixes, and they are why the append lands where it should: a draft's own `### <feature title>` sits below its section, so it never ends one. **The append is the whole write**: nothing already in the file is rewritten, reordered or removed, since every earlier section is an earlier run's note, so there is no question to ask and no option that replaces the file. NEVER write into a docs repo.
 
 2. **Report:**
    ```
    ## Release-notes draft — <KEY>
-   - Destination: <path | stdout | skipped>
-   - Shaped as: <Feature update | Breaking change | Fix> → <destination file>  (source: <imported | inferred>)
+   - Appended to: <the resolved PRD folder>/release-notes.md, under <version | Unreleased> → <## Breaking changes | ## Feature updates | ## Fixes>
+   - Shaped as: <Feature update | Breaking change | Fix>  (source: <PRD | inferred>)
    - Category label: <the value | none — omitted from the draft>
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
-   - Style check: <applied N safe fixes | report only (M findings) | skipped — you chose "Skip style check">
-   - Reminder: paste this wherever your release notes are published — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
+   - Style check: <applied N safe fixes | report only (M findings) | skipped — you chose "Skip style check"> — rules: <the checker's rules_source, where it ran><; DEGRADED — Phase 7's reason, where Phase 7 recorded it>
+   - Reminder: paste the draft just appended to <the resolved PRD folder>/release-notes.md, under <version | Unreleased> → <## Breaking changes | ## Feature updates | ## Fixes>, wherever your release notes are published — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
 
    ### Next step
    [leaf/closure per `workflows-core:next-phase-offer` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/product-workflows:create-ard <PRD>` or PE → `/product-workflows:epics <PRD>`; if the change is already built and documented, the PRD is fully processed.]
@@ -355,7 +368,7 @@ persists the plugin-facing slice of its report as session feedback.
    > - Workarounds used: [manual steps not automated by the workflow — or 'none']
    > - Review verdict: N/A (light gate only, no Opus review)
    > - Test result: N/A (no tests in /release-notes)
-   > - Project root: [the resolved prd_dir or the destination directory]"
+   > - Project root: [the resolved PRD folder]"
 2. **Persist plugin feedback (automatic).** Project the report's plugin-facing
    slice into the specs repo by invoking `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and calling its `emit-auto` entry point (§6). Pass the Lessons Learned report,
    `command: /release-notes`, the run's `key` and `source`, and
@@ -374,7 +387,7 @@ phase only writes the feedback file; those writes are committed by the terminal
 `commit-artifacts` step in Phase 11, per
 `workflows-core:specs-repo-git` §4), NEVER makes an
 external API call, and NEVER writes into a docs repo or the current working
-directory.
+directory, where it is not the specs repository.
 
 ---
 
@@ -398,7 +411,7 @@ fails the run, NEVER commits (still true — this phase only writes follow-up
 files; those writes are committed by the terminal `commit-artifacts` step in
 Phase 11, per `workflows-core:specs-repo-git` §4), NEVER
 makes an external API call, and NEVER writes into a docs repo or the current
-working directory.
+working directory, where it is not the specs repository.
 
 ---
 
@@ -432,33 +445,36 @@ guidance already appeared in the Phase 8 report.
 **Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/release-notes)`, and pushes per
-§4 step 5. It NEVER writes into a docs repo — the release-note draft is
-untouched — NEVER touches a code repo, or the current working directory; NEVER force-pushes; NEVER fails the run;
+§4 step 5. **The draft is one of those paths**: `release-notes.md` in the
+resolved PRD folder is §2.1's `/release-notes` draft, so this step commits
+and pushes it with the rest of the run's artifacts, and edits nothing in it.
+It NEVER writes into a docs repo, NEVER touches a code repo, or the current working directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the run;
 and skips entirely when the run carries `specs_git: blocked` (§3.3 G0),
 re-emitting that notice. Because the Phase 8 report was composed before this
 phase, **print its §6 outcome line here**, as the run's last output — prefixed
 `Specs repo:`, with any guard notice repeated in full.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (the
-release-notes draft is a plain file for manual publication; the terminal
-step above commits only the bounded session-artifact paths in `$SPECS_PATH`),
+ADDITIVE — this phase NEVER fails the run and makes no deliverable handoff
+commit: it opens no branch and no pull request for the draft, which the
+terminal step above commits in the specs repository as one of `$SPECS_PATH`'s
+bounded paths (§2.1), and never in a docs or code repository. It
 NEVER makes an external API call, and NEVER writes into a docs repo or the
-current working directory; no user name is ever written (§10).
+current working directory, where it is not the specs repository; no user name is ever written (§10).
 
 ---
 
 ## Invariants (always enforced)
 
 - ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation).
-- ZERO external API calls — PR URLs are identifiers only; all resolution is local `git`.
+- ZERO external API calls — this run has no forge URL to resolve in the first place: Phase 3 builds `refs[]` from `implementation.md` and the commit scan, and `diff-summarizer` takes a ref's diff with pure local `git`.
 - Every read of the specs tree is read-only.
 - The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block.
-- The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a plain **Category:** label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version — the version is the **section heading** the draft is filed under, which is the only thing that says which release a section belongs to now that the three destinations are three sections of one file. The prohibition survives for the body prose alone. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
+- The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a plain **Category:** label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version — the version is the `#` heading the draft is filed under (Phase 1, `release-note-types.md` §1), which is the only thing that says which release a section belongs to now that the three destinations are three sections of one file. The prohibition survives for the body prose alone. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
 - The category label IS the PRD's `release_notes_category`, used verbatim; when the PRD carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
 - The run has **no worthiness gate**: every PRD is relevant for release notes, so there is no content state in which this command refuses to draft. `relevant_for_release_notes` is retired (`workflows-core:prd-format`) and a value left in an existing PRD is read by nothing. Whether a note is drafted is the decision of whoever runs the command.
-- NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
+- NEVER write into a docs repo. The draft's one destination is `release-notes.md` in the resolved PRD folder, which is persistent (never `/tmp`), and it is appended to, never overwritten: no earlier section is ever rewritten or removed (Phase 8). The style gate's scratch copy is removed in every case, with `command rm -f --` (Phase 7).
 - ALWAYS use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
-- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`workflows-core:specs-repo-git` §2.2); it creates none), and no commit of the draft or of anything in a docs/code repo or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1).
+- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`workflows-core:specs-repo-git` §2.2); it creates none), and no commit of anything in a docs/code repo or the current working directory, where it is not the specs repository. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1) — the draft, `release-notes.md` in the resolved PRD folder, among them, so it is committed in the specs repository and nowhere else.
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the PRD is fully processed).
 - ALWAYS end the Phase 8 report with a `### Context hygiene` block per `workflows-core:session-hygiene` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `workflows-core:session-hygiene` §1 — this block prints the guidance only), then a leaf-aware suggestion (done → nothing; pending role → `/clear`) + `/rename <PRD-ID>-<slug>-<role>` using this run's inferred lane (`pm` or `dev`, per the Phase 6 inference); guidance only, never auto-run.

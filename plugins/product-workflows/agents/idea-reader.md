@@ -1,6 +1,6 @@
 ---
 name: idea-reader
-description: Ingests one idea source (inline prompt, a markdown file with links/images, a community post, or a saved file) from a path the caller supplies and returns a structured source digest for /idea. Follows links of either syntax up to two levels deep under one total-file cap with cycle protection, reads linked images as context and describes what each frame shows, enumerates (never opens) links to anything that is neither markdown nor an image, captures community-post demand signals, and summarises each followed reference so the caller need not re-read it. Read-only; never modifies files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Ingests one idea source (inline prompt, a markdown file with links/images, a community post, or a saved file) from a path the caller supplies and returns a structured source digest for /idea. Follows links in every form a markdown document uses — wikilinks, inline markdown links and images, reference-style definitions and HTML img src — up to two levels deep under one total-file cap with cycle protection, reads linked images as context and describes what each frame shows, enumerates (never opens) links to anything that is neither markdown nor an image, captures community-post demand signals, and summarises each followed reference so the caller need not re-read it. Read-only; never modifies files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Skill"]
 ---
 
@@ -40,20 +40,45 @@ that same frontmatter — `key` from `key:`, `status` from `status:`, `summary` 
 line. The caller passes `provenance_hint: markdown` for every existing `.md` path, so this upgrade is the
 only thing that ever produces `provenance: prd`, and `## Prior art` is written off nothing else.
 
+### The link forms
+
+**Every pass below reads the same set of forms.** The `[[wikilink]]` is this traversal's own; the rest
+are the list `/brd-intake` Phase 2 fixes for a customer's BRD, taken from there unchanged and restated
+in full here — nothing is loaded — because they are the forms a markdown document actually uses and
+because one statement cited twice beats two that drift:
+
+- a `[[wikilink]]` — bare, aliased (`[[notes|see this]]`), or embedded (`![[toggle-01.png]]`);
+- a markdown inline image or link — `![alt](<target>)` and `[text](<target>)`, angle-bracketed
+  (`[text](<my file.png>)`) or not, with any title after the target ignored;
+- a reference-style definition — `[label]: <target>`, wherever in the document the definition sits;
+- an HTML `<img src="<target>">`.
+
+**The form says only that something is a link; the extension says which pass takes it.** A target
+naming a `.md` file is followed by the traversal below, one naming an image extension is read by the
+image pass, and one naming anything else that exists is enumerated into `links_other` — whichever form
+carried it. So `<img src="shot.png">` is read exactly as `![shot](shot.png)` is, and a page reached
+only by `[label]: notes.md` is followed exactly as one reached by `[text](notes.md)` is. **No form has
+an array, a `reason`, or a cap of its own**: widening the set widens what is *found*, never what is
+taken, so a file a newly-recognised form reached is a `wikilinks_not_followed` entry with `reason: cap`
+past the total-file cap, an `images` entry with `read: false` and `reason: cap` past the image cap, and
+a `wikilinks_broken` entry where it resolves to nothing — exactly as the same file linked as
+`![alt](…)` would be.
+
 ### Link traversal
 
 Follow every link to another `.md` file **up to two levels deep**: the source file's own links
 (`depth: 1`) and the links on those pages (`depth: 2`). Depth 3 is never reached.
 
-**Both syntaxes are followed** — `[[wikilink]]` and standard markdown `[text](path.md)` alike. A source
-written outside a vault uses the second form, and a `.md` page reached only by it would otherwise be
-followed by nothing, copied by nothing and reported by nothing — which is exactly the state
+**Every form above is followed, not only the `[[wikilink]]`.** A source written outside a vault uses
+the markdown form, and a source that carries an image as `<img src>` or names a target in a
+reference-style definition is ordinary markdown too; a `.md` page reached only by one of those would
+otherwise be followed by nothing, copied by nothing and reported by nothing — which is exactly the state
 "a link nothing copied and nothing reported is indistinguishable from a link that was never there"
-forbids. `wikilinks_followed` keeps its name and carries both.
+forbids. `wikilinks_followed` keeps its name and carries every form.
 
 **So the three array names are the one place "wikilink" still means something narrower than "link".**
 They are kept because renaming a field every consumer reads buys nothing, and their contents are links
-of either syntax. Everywhere else in this file and in `/idea`'s chain, prose about what the traversal
+in every form above. Everywhere else in this file and in `/idea`'s chain, prose about what the traversal
 follows, reaches, or fails to resolve says **link** — reserve "wikilink" for the `[[...]]` syntax
 itself, which the rewriting rules genuinely are about.
 
@@ -77,8 +102,8 @@ by the small set of files that were read.
 
 ### Linked images
 
-Enumerate every linked image on the source file **and on every followed page** — extensions
-`.png/.jpg/.jpeg/.gif/.svg/.webp`, case-insensitive — in the same breadth-first, document order, then read
+Enumerate every image linked on the source file **and on every followed page**, in any of the forms above
+— extensions `.png/.jpg/.jpeg/.gif/.svg/.webp`, case-insensitive — in the same breadth-first, document order, then read
 them up to the image cap in `## Bounding`. `Read` renders an image, and what the frame shows is exactly the
 material an operator means when they link a mockup and write "like this". Describe each read image in
 ≤60 words: the screens, fields, states, labels and the flow between them — what is on the frame, not what
@@ -111,10 +136,10 @@ prose around the link — that is the very inference §6.1 exists to forbid.
 
 A read file may link something that is neither another `.md` page nor an image — a PDF, an archive, a
 spreadsheet, any other binary. **Enumerate each one and open none of them.** On the source file and on
-every followed page, a link whose target **resolves to an existing file** that the traversal will not
-follow (not `.md`) and the image pass will not read (not one of the image extensions above) goes into
-`links_other`, with the target as written, its resolved absolute path, the file that linked it, and its
-lowercased extension.
+every followed page, a link **in any of the forms above** whose target **resolves to an existing file**
+that the traversal will not follow (not `.md`) and the image pass will not read (not one of the image
+extensions above) goes into `links_other`, with the target as written, its resolved absolute path, the
+file that linked it, and its lowercased extension.
 
 This list exists so the caller can say what it is *not* carrying. `/idea` copies the sources it read
 into the PRD folder (`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`, *Vendored sources*) and copies
@@ -134,7 +159,7 @@ Note unresolved links/images in `wikilinks_broken` and continue — a broken lin
 
 ## Bounding
 
-- **Link depth — 2 levels.** The source's own links, and theirs, in either syntax. Depth 3 is some other document's neighbourhood, not this idea's context.
+- **Link depth — 2 levels.** The source's own links, and theirs, in every form `### The link forms` names. Depth 3 is some other document's neighbourhood, not this idea's context.
 - **Total files read — 12, the source counting as the first.** A **total** across the whole traversal, never a per-level allowance: at two levels the fan-out is the product of two branching factors, so a per-level bound is not a bound at all. Twelve rather than the 8 pages `docs-grounder` reads, because that traversal prunes a ranked candidate set while this one starts from a file the operator named — depth 1 *is* the source's own context, and a tighter cap would spend the whole budget there and never reach depth 2, which is the capability this bound exists to permit.
 - **Images read — 6.** An image is the most expensive item per unit of information in this digest. Six takes a short screen flow whole, which is the shape a linked mockup set usually has, and keeps the image budget under the twelve-file text budget beside it.
 - **A slot is spent only on a frame actually described.** `unreadable` and `not_an_image` do not

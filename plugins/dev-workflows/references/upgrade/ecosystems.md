@@ -78,6 +78,8 @@ Response: `.response.docs[].v` lists all versions. Filter to stable (no `-SNAPSH
 
 ## Maven (Java / Kotlin)
 
+Maven commands below are written `./mvnw`, as Gradle's are written `./gradlew`; fall back to `mvn` where the repo ships no wrapper.
+
 ### Version locations
 
 1. `<properties>` in `pom.xml` (e.g. `<spring-boot.version>3.1.4</spring-boot.version>`)
@@ -99,8 +101,8 @@ Or the `spring-boot.version` property if using the BOM without a parent.
 ### Build & test
 
 ```bash
-mvn package -DskipTests
-mvn test
+./mvnw package -DskipTests
+./mvnw test
 ```
 
 ---
@@ -139,7 +141,26 @@ GET https://registry.npmjs.org/<package>
 
 ```bash
 npm run build   # if build script exists
-npm test
+# `test-baseliner` (verify mode) is what verifies this suite, and it carries
+# the watch carve-out. CI=true does NOT reach every watcher — not Karma,
+# started directly or through a grunt/gulp task, and not `ng test` — so on
+# those scripts the line below never returns, the per-suite bound truncates
+# it, and the suite is recorded as a failed run. Run it by hand only where
+# `scripts.test` REACHES neither of them -- not directly, and not through
+# another npm script or a grunt/gulp task, which is the indirection the
+# carve-out follows one level of. Otherwise let `test-baseliner` run the
+# suite (dev-workflows:test-baseliner capture step 1 is where the carve-out
+# and its replacement commands live).
+# On a repository whose root `package.json` carries a `workspaces` field this
+# line is the wrong one by hand too, and loudly: measured, it runs the ROOT's
+# own `scripts.test` and no workspace's, or exits 1 on
+# `npm error Missing script: "test"` where the root declares none. Run one
+# `CI=true npm test --if-present --workspace <name>` per workspace instead,
+# which is the division `test-baseliner` itself issues — where no `Makefile`
+# `test` target drives that runner. Where one does, the wrapper rule is asked
+# first, the agent folds rather than divides and runs `CI=true make test`, and
+# so should you: the recipe is the project's pinned entry point (the same step).
+CI=true npm test
 ```
 
 ---
@@ -433,7 +454,7 @@ Update all version declarations consistently. When changing Java major version (
 - Update `.sdkmanrc`, `.java-version`, `.tool-versions` if present
 - Update `Dockerfile` base image tags
 - Update `java-version` in GitHub Actions workflows
-- Check for and resolve any deprecated APIs (run `./gradlew compileJava` or `mvn compile` and inspect warnings)
+- Check for and resolve any deprecated APIs (run `./gradlew compileJava` or `./mvnw compile` and inspect warnings)
 
 ---
 

@@ -2,9 +2,9 @@
 
 The AI container mounts repositories from the host, and some arrive **read-only** — verified 2026-08-11, 2 of 12 clones under `/workspace` are (`docs`, `observability-requirements`). Every agent that prepares a clone before reading it must work on those mounts rather than fail on them.
 
-This file is the single source of truth for that behavior. Consumers: `code-scanner`, `diff-summarizer`, `docs-grounder`, `code-grounder` and `grounding-verifier` — the first two also emit the §6 `prep` block; the other three return a digest or a finding instead, and `docs-grounder` consumes §1–§4 only.
+This file is the single source of truth for that behavior. Consumers: `code-scanner`, `diff-summarizer`, `docs-grounder`, `code-grounder` and `grounding-verifier` — the first two also emit the §6 `prep` block; the other three return a digest or a finding instead, and `docs-grounder` consumes §1–§4 only. §3 also defines, for these callers, the default branch they switch onto or cut a branch from (**A switch takes the name**): `code-scanner`'s and `diff-summarizer`'s writable refresh, and `/document`, `/docs-profile`, `/docs-brand` and `/docs-init` where each bases a branch in a docs repository. Two ladders stay outside it, each with its own reason: `dev-workflows:code-handoff` §2.8 adds `develop` for the code-changing commands, and `specs-repo-git.md` §3.2 serves the specs repository.
 
-**Nothing here changes behavior on a writable mount.** `git switch` and `git pull --ff-only` remain sanctioned prep on a writable clone — they change which committed revision is present, not the content of it. Everything below is reached only when the mount is read-only.
+**Nothing here restricts a writable mount.** `git switch` and `git pull --ff-only` remain sanctioned prep on a writable clone — they change which committed revision is present, not the content of it. §2's skips and §5's escalation are for a read-only mount. A writable run reaches more of this file than §1's detection: §3's chain, which a writable caller that switches onto the default branch follows for that branch's name; §3's three recorded facts and §6's `prep` block, which `code-scanner` and `diff-summarizer` report on every run, `read_only: false` included; and §7's caller contract, which binds a caller on any mount.
 
 ## 1. Detection
 
@@ -31,7 +31,12 @@ In order, stopping at the first that succeeds:
 
 1. `git -C "<repo_path>" symbolic-ref --quiet --short refs/remotes/origin/HEAD` — `--quiet` is
    required, or a clone whose `origin/HEAD` is unset leaks `fatal: ref refs/remotes/origin/HEAD is not
-   a symbolic ref` into the run's output.
+   a symbolic ref` into the run's output. **It succeeds only where the ref it prints exists:**
+   `git -C "<repo_path>" rev-parse --verify --quiet origin/<name> >/dev/null`, with `origin/<name>`
+   what it printed. Where that probe fails, rung 1 has failed; go on to rung 2. A remote that renames
+   its default branch — `master` to `main` — and a clone that then fetches with `--prune` leave
+   `origin/HEAD` naming a branch the remote deleted: rung 1 still prints `origin/master` and exits 0,
+   while `origin/master` is gone and `origin/main` is what rung 2 finds.
 2. `git -C "<repo_path>" rev-parse --verify --quiet origin/main >/dev/null`
 3. `git -C "<repo_path>" rev-parse --verify --quiet origin/master >/dev/null`
 
@@ -47,6 +52,20 @@ Then record three facts, all pure reads:
 - `git -C "<repo_path>" log -1 --format=%cI <ref>` → `ref_committed_at`
 - `git -C "<repo_path>" rev-list --left-right --count <ref>...HEAD` → `behind` then `ahead`, tab-separated
 - `git -C "<repo_path>" rev-parse --abbrev-ref HEAD` → the working-tree branch name
+
+**A switch takes the name; a read may take the ref.** The chain yields a **ref**: rung 1 prints
+`origin/<name>` — `origin/main` — and rungs 2–3 probe `origin/main` and `origin/master`. A caller that
+only **reads** a tree, a file or a log may use that ref as it stands, as §4 does. A caller that
+**switches to** the default branch, or **cuts a branch from** it, uses the branch's **name**: rung 1's
+output with its leading `origin/` removed, or the literal `main` or `master` whose ref rung 2 or 3
+found. The ref will not do in its place: `git switch origin/main` exits 128 (*"fatal: a branch is
+expected, got remote branch 'origin/main'"*), and `git switch -c <new> origin/main` sets `<new>` to
+track `origin/main`, where a branch cut from `main` tracks nothing. Such a caller is on a writable
+clone — read-only mode switches nothing (§2) — so it may go further than this chain: where rung 1
+fails, run `git remote set-head origin --auto` and retry rung 1 before rungs 2–3 — it resets an unset
+`origin/HEAD` and a dangling one alike to the branch the remote names now — or fall back past rung 3
+when the chain is exhausted. Neither is part of the chain, and a caller that does either says so where
+it cites this rule.
 
 ## 4. Reading at the ref
 

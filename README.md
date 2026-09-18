@@ -19,8 +19,9 @@ Ivan Gudak's open-source Claude Code plugin marketplace.
 
 - **Claude Code** — the plugins install into Claude Code (some `obsidian-llm-wiki` commands also support GitHub Copilot).
 - **`superpowers`** *(recommended)* — the Claude Code plugin `workflows-core` leans on for `/prompt-brainstorm`, and that the whole family uses for its brainstorm → plan → subagent-driven-development flow. No hard dependency; commands degrade gracefully without it.
-- **`gh` + `gh auth login`** *(recommended)* — enables reading GitHub PR diffs (`/document`, `/release-notes`); without it those commands fall back to local-git strategies.
+- **`gh` + `gh auth login`** *(recommended)* — lets the family open the pull requests it drafts — a phase handoff's in the specs repo, `/implement`, `/vuln` and `/upgrade`'s in the code repo, and the `gh pr create` `/document` offers you for the docs branch it wrote. It buys nothing for diff reading, which is pure local `git` on any host.
 - **`vale`** *(optional for `/document`; required by `/docs-init`)* — a prose linter for docs. `/document` falls back to a repo lint script, then the `prose-style` plugin, when `vale` is absent. `/docs-init` cannot: the repository it scaffolds lints with Vale in its own verification phase and in CI, so its toolchain preflight requires `vale`, together with `mkdocs`, `python3` and `pip` (or `uv`).
+- **`curl`** and **`bash`** *(required by `/docs-serve`)* — it judges a dev server's port with `curl`, and starts, tests and signals the process group it runs each server in with `bash`. Off Linux it also needs `lsof` and `ps`, which macOS ships; on Linux it reads the socket and process tables from `/proc`, so a slim container needs nothing beyond those two. `/document`'s opt-in render check uses both too, and without either falls back to a table of pages to check by hand.
 - **Recommended environment: [`ihudak/ai-containers`](https://github.com/ihudak/ai-containers)** — mounts every repository and your specs repo under one `/workspace` umbrella (repos at `/workspace/<repo>`, the specs repo at `/workspace/specs`), so the default `$REPOS_PATH` (`/workspace`) and an exported `SPECS_PATH` just work; it also installs `gh` and mounts the host `gh` auth. Outside a container the commands still work — set `$REPOS_PATH` yourself and manage `gh` login.
 
 ## Installation
@@ -56,7 +57,7 @@ export GIT_USER_INITIALS="iv-gu"       # optional: branch prefix for every comma
 ```
 
 - **`SPECS_PATH`** — the shared, team-visible store for a ticket's `specification.md` / `design.md` / ARD under `specifications/<KIND>-<KEY>-<slug>/…` (kind `BRD`/`PRD`/`EPIC`). Required by the specs-authoring commands (`/create-prd`, `/create-ard`, `/specify`, `/design`, `/ready`); advisory for `/implement`; additive for `/document`.
-- **`REPOS_PATH`** — where code clones live; a single directory or a colon-separated list. Defaults to `/workspace`. Repos are matched by their `git remote get-url origin` slug, not by directory name.
+- **`REPOS_PATH`** — where code clones live; a single directory or a colon-separated list. Defaults to `/workspace`. The match is by `git remote get-url origin` slug where a command was handed the slug; where a command lists candidates to offer you instead (`/create-ard`, bare `/idea --ground-code`, `/docs-init`, `/docs-brand`), your answer is resolved against that listing, so a rename changes the name a clone is offered under, never whether it is offered.
 - **`DOCS_PATH`** *(optional)* — your product documentation's clone (default `/workspace/docs`), in **two roles**. As a **grounding root** it is read-only: when it is an existing directory containing markdown, the commands that ground on shipped docs — among them `/idea`, `/create-prd`, `/specify`, `/epics` and `/release-notes` — read it through the read-only `docs-grounder` agent, never write to it, and treat every miss as a silent, non-blocking skip. Disable grounding per run with `--no-docs`, or override the root with `--docs <path>`. As a **write target** it is a docs repository like any other: `/docs-init` scaffolds one there when nothing is there yet, and `/document`, `/docs-profile` and `/docs-brand` write into the docs repository they resolve there. The two roles are different uses of one variable, not a contradiction; `plugins/workflows-core/references/docs-grounding.md` owns the first and `plugins/docs-workflows/references/docs-workflow/repo-resolution.md` the second.
 - **`GIT_USER_INITIALS`** *(optional)* — your branch identifier, used verbatim (no trailing `/`) by every command that creates a branch in a code or documentation repository; `plugins/workflows-core/references/branch-naming.md` names them. Branch naming is **repo-rule-first**: each command reads the target repo's own `CONTRIBUTING.md` / `README.md` / `DOCUMENTATION-GUIDELINES.md` / `CLAUDE.md` and follows the convention documented there. Where that convention has a name/initials segment — as `example-docs` does (`<your-name-or-initials>/<JIRA-ISSUE-KEY>-<short-branch-name>`) — this variable fills it, giving `iv-gu/PRODUCT-1234-add-oauth`. Where it has none (say a plain `feat/<slug>` repo), the convention is followed as written and no initials are injected. Only when a repo documents no convention at all does this variable become the whole prefix. When unset, the commands fall back to `git config user.initials`, then infer from existing branch names, then ask. Full algorithm: `plugins/workflows-core/references/branch-naming.md`.
 
@@ -95,7 +96,7 @@ claude plugin marketplace remove ihudak-plugins
 claude plugin marketplace add ihudak/ihudak-claude-plugins
 ```
 
-then reinstall the plugins you want, per step 4.
+then reinstall the plugins you want, per step 2.
 
 **`marketplace update` from the CLI refreshes the catalogue, not your installed plugins.** It updates what the marketplace advertises — which is what makes a newly added plugin installable — but an already-installed plugin stays at the version you installed. `claude plugin update <plugin>` is what upgrades one from the command line, and **it requires restarting Claude Code to apply.** Update only the plugins you actually have.
 
@@ -110,7 +111,7 @@ $SPECS_PATH/                      # shared, team-visible store
   specifications/PRD-<KEY>-<slug>/  # prd.md, ard.md (+ EPIC-<KEY>-NN-<slug>/ holding specification.md, design.md)
 
 $REPOS_PATH/                      # code clones (default /workspace)
-  <repo>/                         # matched by git remote slug, not directory name
+  <repo>/                         # discovered by directory name; matched by origin slug where the command was handed one
 
 $DOCS_PATH/                       # optional: product docs clone (default /workspace/docs)
   ...                             # e.g. an example-docs checkout; read-only for grounding, written by the docs commands

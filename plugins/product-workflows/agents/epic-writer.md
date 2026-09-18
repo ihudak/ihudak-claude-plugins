@@ -46,6 +46,11 @@ Apply the no-hard-wrap prose convention in `workflows-core:prose-formatting` to 
 For each new Epic, create `EPIC-<key>-<eslug>/` under the handoff `prd_dir` and emit `epic.md` inside it, carrying `kind: epic` and `key:` frontmatter (`workflows-core:addressing` §4):
 
 ```markdown
+---
+kind: epic
+key: <this Epic's key — must match the folder name>
+---
+
 # <Epic title>
 
 ## Goal
@@ -117,12 +122,12 @@ the draft INSTEAD of silently guessing. Rules:
 When `mode` is `refine` or `both`, treat every entry in `refinement_targets[]` as an Epic to **fill in**, not a duplicate to avoid:
 
 - **Iterate, don't regenerate.** Read the target's `current_body_path` (that Epic's existing draft) first. Preserve any real scope/acceptance content already there; fill the gaps and improve — never blow away existing substance.
-- **Keyless filename, keyed folder.** Write each Epic to `EPIC-<key>-<eslug>/epic.md` — the folder carries the key and the filename carries the kind (`workflows-core:addressing` §2). Never `<key>.md` (e.g. `PROJ-12573.md`) — NOT a slug. Slug-named files (`<slug>.md`) are reserved for net-new Epics with no work-item ID yet.
+- **Keyless filename, keyed folder.** Write each Epic to `EPIC-<key>-<eslug>/epic.md`, refined and net-new alike — the folder carries the key and the filename carries the kind (`workflows-core:addressing` §2). Never `<key>.md` (e.g. `PROJ-12573.md`), and **never `<slug>.md`**: `/epics` mints a key for every Epic it confirms (its Phase 1 key-minting step), so a net-new Epic that has no key yet is a state nothing here reaches, and a slug-named file dropped in the PRD folder is invisible to every `EPIC-` enumeration downstream — `/epics`'s own re-refine detection, `/ready`'s per-Epic inventory, and the Epic picker `/specify`, `/design` and `/implement` share.
 - **Partition the PRD.** Distribute the PRD `requirements[]` across the refinement targets; each target's `## Covers` lists only its slice. Two targets must not silently claim the same requirement.
 - **Inter-target dependencies are expected.** When one refined Epic depends on another (e.g. a framework Epic that must land first), name the other Epic by key in `## Dependencies`. Such inter-target dependencies are legal (they encode build order) — do not suppress them.
 - **Undrawable boundaries** → a `[NEEDS CLARIFICATION]` marker in the affected Epic + a `clarifications_needed[]` entry (subject to the ≤3-per-Epic cap).
 
-In `mode: both`, also draft net-new Epics for scope no target covers (slug-named, per the normal generate flow). In `mode: generate` (or when `refinement_targets[]` is empty) behaviour is exactly as before.
+In `mode: both`, also draft net-new Epics for scope no target covers — keyed and foldered exactly as the generate flow writes them. In `mode: generate` (or when `refinement_targets[]` is empty) behaviour is exactly as before.
 
 ## Coverage matrix (`_coverage.md`)
 
@@ -137,7 +142,7 @@ _source: native | derived_
 
 | Req  | Type      | Text (short) | Covered by                           | Status |
 |------|-----------|--------------|--------------------------------------|--------|
-| [US#1] | story     | …            | Epic: <slug-a> (new); <KEY> (exist)  | ✅     |
+| [US#1] | story     | …            | Epic: <NEW-KEY> (new); <KEY> (exist) | ✅     |
 | [AC#3] | criterion | …            | —                                    | ❌ gap |
 ```
 
@@ -151,7 +156,7 @@ _source: native | derived_
 - **Focus mode:** when the handoff `scope` targets a single focus Epic, still
   recompute `_coverage.md` PRD-holistically (all existing Epics + the re-drafted
   focus Epic) — never a single-Epic view.
-- **Refinement mode:** refined targets appear in "Covered by" as `<KEY> (refined)`; net-new drafts as `<slug> (new)`; untouched existing Epics as `<KEY> (exist)`. Requirements no target covers are `❌ gap` rows — the leftover the `/epics` Phase 6.1 gate routes.
+- **Refinement mode:** refined targets appear in "Covered by" as `<KEY> (refined)`; net-new drafts as `<KEY> (new)`, under the key minted for them — every Epic here has one, so no row is identified by a slug; untouched existing Epics as `<KEY> (exist)`. Requirements no target covers are `❌ gap` rows — the leftover the `/epics` Phase 6.1 gate routes.
 
 ## ARD conformance (only when `applicable_ard` is present)
 

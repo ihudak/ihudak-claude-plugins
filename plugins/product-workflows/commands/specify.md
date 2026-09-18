@@ -552,10 +552,14 @@ five states and their treatment are `decision-register-format.md` §3's: a `deci
 **input** the specification is authored from and never a question; `superseded` and `withdrawn` are
 terminal and read for context only; `open`, `reopened` and an open `[AS#n]` are **gaps**, which may not
 be consumed downstream while open (§3) and reach the spec as `- [ ]` items under the relevant stage's
-`### Open questions` by id — which is also what keeps the header's `- **Open questions**: N` count
-honest (`${CLAUDE_PLUGIN_ROOT}/references/specification-format.md`). Carry each `decided` record's
-`altitude` with it: only `implementation` ones have a home here, and a `product` or `architecture`
-decision is read for context and **left for the command that authors at its altitude** —
+`Open questions` sub-heading by id, at the heading depth
+`${CLAUDE_PLUGIN_ROOT}/references/specification-format.md` fixes **for that stage** — never a depth
+chosen here, because the depths differ per stage and the renderer attributes an open-questions
+heading by depth alone, so a gap written at the wrong one is silently filed under the neighbouring
+criterion. Placing them there is also what keeps the header's `- **Open questions**: N` count honest.
+Carry each `decided` record's `altitude` with it: only `implementation` ones have a home here, and a
+`product` or `architecture` decision is read for context and **left for the command that authors at
+its altitude** —
 `/product-workflows:create-prd` and `/product-workflows:create-ard`, both of which read this same register and
 filter it by `altitude` exactly as this phase does, so the channel that carries it is `decisions.md`
 itself and never a seed file (`prd-seed.md` and `ard-seed.md` are written by nothing on this route).
@@ -918,7 +922,7 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits (still true — git f
 the deliverable is offered only in Phase 7, and this phase itself runs no git;
 those writes are committed by the terminal `commit-artifacts` step in Phase 9,
 per `workflows-core:specs-repo-git` §4), and NEVER writes
-into the current working directory. The specs-first ladder writes the feedback
+into the current working directory, where it is not the specs repository. The specs-first ladder writes the feedback
 file inside `$SPECS_PATH`, alongside the feature folder — the intended home.
 
 ## Phase 9 — Session cost
@@ -951,14 +955,14 @@ stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/specify)` with no `Co-Authored-By`
 trailer, and pushes to the branch this run's handoff phase created (§4.1). It
 NEVER touches a code repo, a docs repo, or the current working
-directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
+directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its
 §6 outcome line for the Final report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git
 for the deliverable is offered only in Phase 7; the terminal step above commits
 only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes
-into a docs/code repo or the current working directory; no user name is ever
+into a docs/code repo or the current working directory, where it is not the specs repository; no user name is ever
 written (§10 privacy).
 
 ## Final report

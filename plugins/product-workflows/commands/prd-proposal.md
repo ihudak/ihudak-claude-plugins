@@ -27,9 +27,12 @@ folder that exists, which is the ordering `/create-prd` and `/create-ard` state 
 and nothing beyond it. **No command of the build ladder reads `proposal.md`** — `/create-ard`,
 `/specify`, `/epics`, `/dev-workflows:design`, `/dev-workflows:implement` and `/dev-workflows:ready`
 each resolve the same folder and neither know nor care whether it holds one — so nothing there is
-waiting on this run and no readiness tier withholds permission to build. Its one reader is the sibling
-umbrella `/product-workflows:brd-proposal`, which is a second proposal rather than a phase of the
-build. Running this is optional at every tier, in the same sense `/prd-ground` is optional and ungated
+waiting on this run and no readiness tier withholds permission to build. The one command that reads
+**another folder's** proposal is the sibling umbrella `/product-workflows:brd-proposal`, which is a
+second proposal rather than a phase of the build; every other read is an own-folder one — **a later
+run of this command**, which opens the `proposal.md` it left in this same folder as §8's stability
+anchor (Phase 0's revision note, Phase 6 step 6), and `proposal-reviewer` inside the run that wrote
+it (Phase 9). Running this is optional at every tier, in the same sense `/prd-ground` is optional and ungated
 on the idea route. A proposal is a document a vendor sends a customer — not a phase, not a
 prerequisite, and never a reason implementation cannot start.
 
@@ -185,8 +188,14 @@ Escalate to `HIGH-RISK` where the folder's own content warrants it — a contest
 reconciliation against a baseline the operator already believes is wrong.
 
 **Tiered HARD model gate.** For `SIGNIFICANT` / `HIGH-RISK`, require an Opus session — if
-`opus_available` is false, stop:
+`current_model` is not an Opus-tier model, stop:
 `choices: ["I'll relaunch /product-workflows:prd-proposal on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel"]`.
+The condition is `current_model` and not `opus_available`, per
+`workflows-core:model-routing/classification` §9.3: the proposal is authored inline on the session's
+own model, and `opus_available` reports what the environment carries rather than what this session
+runs. Where that gate fires with `opus_available` **also** false there is nothing to relaunch onto, so
+§9.3 drops the relaunch option and the array is
+`choices: ["Proceed on the Sonnet floor — the degradation is recorded in `notes` and the final report (Recommended)", "Cancel"]`.
 
 ---
 
@@ -503,13 +512,15 @@ Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and pre
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-**The array above is §4.3's `gated` one, and the class is named here rather than left to be inferred.**
-The proposal's one reader is the sibling umbrella `/product-workflows:brd-proposal`, which gates on the
-`proposal.md` this run writes, so declining the handoff costs that command its start — which is what
-the `gated` array's parenthetical tells the operator. `proposal-brief.md` and the archived revisions
+**The array above is §4.3's `gated — stopping` one (§4.1 bullet 1), and the class is named here rather
+than left to be inferred.** The one command that reads **another folder's** proposal is the sibling
+umbrella `/product-workflows:brd-proposal`, which gates on the `proposal.md` this run writes, so
+declining the handoff costs that command its start — which is what that array's parenthetical tells the
+operator. (A later run of **this** command reads the same file too, as §8's stability anchor, but that
+read is an own-folder one off the working tree and stops nothing, so it moves no class here.) `proposal-brief.md` and the archived revisions
 are themselves classed **unread** in §4.0's own table — nothing reads either — but they travel in the
 same `deliverable_paths` set, and §4.0's strongest-class rule gives one handoff one array carrying the
-strongest class in the set. That set holds a gated path, so the gated array is the one presented.
+strongest class in the set. That set holds a gated path, so the **gated — stopping** array above is the one presented — named by its half rather than as "the gated array", which since §4.1's split identifies two (§5 rule 4).
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: prd`
 (§2.9's table — the proposal opens on the shared `prd` prefix rather than a ninth of its own; the eight
@@ -632,7 +643,7 @@ either: that is the gate working.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is
 offered only in Phase 10; the terminal step above commits only the bounded session-artifact paths in
-`$SPECS_PATH`), and NEVER writes into a code repo, a docs repo, or the current working directory; no
+`$SPECS_PATH`), and NEVER writes into a code repo, a docs repo, or the current working directory, where it is not the specs repository; no
 user name is ever written.
 
 ---
@@ -664,7 +675,8 @@ guard notice repeated in full; and the next-step recommendation.
 
 **Say plainly, at the end, that this document gates nothing on the build ladder.** No command of that
 ladder reads a proposal, no tier withholds permission to begin work, and nothing there is waiting on
-this run; the one command that does read one is the sibling umbrella, which is a second proposal rather
-than a phase of the build. The residual risk
+this run; the one command that reads **another folder's** is the sibling umbrella, which is a second
+proposal rather than a phase of the build, and every other read is an own-folder one — a later run of
+this command, and `proposal-reviewer` inside the run that wrote it. The residual risk
 `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §13 states is carried by the person who sends
 the document, and that person is the reader of this report.

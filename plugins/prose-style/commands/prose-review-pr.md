@@ -4,7 +4,7 @@ description: >
   Reviews documentation changes from a pull request against the active prose style
   rules. Accepts a PR number (merge-commit convention) or a source branch name.
   Extracts changed markdown files, runs prose-style-checker, and optionally runs Vale
-  if the repo has a .vale.ini. Reports violations with file, line, severity, and
+  if the repo has a Vale configuration file. Reports violations with file, line, severity, and
   suggested fix.
 allowed-tools: Read Bash Glob Grep Task
 ---
@@ -22,7 +22,7 @@ The command receives its input via `$ARGUMENTS`. Accepted formats:
 | Format | Example | Behaviour |
 |---|---|---|
 | PR number | `9089` | Finds merge commit or remote branch for that PR |
-| Branch name | `feat/improve-install-guide` | Diffs the branch against `main` |
+| Branch name | `feat/improve-install-guide` | Diffs the branch against the default branch (`main` unless the repository's is another) |
 | `--repo <path>` | `--repo /workspace/product-docs` | Override the repo path (default: current working directory) |
 | `--doc-type <type>` | `--doc-type product-docs` | Passed to prose-style-checker for severity calibration (default: `product-docs`) |
 | `--rules <path>` | `--rules ~/style/rules` | Override overlay discovery; passed to prose-style-checker as `rules_path` |
@@ -46,6 +46,22 @@ If no target is found, ask the user: "Please provide a PR number or source branc
 ### 2. Resolve changed files
 
 Run every git command with `git -C <repo_path>`.
+
+**The default branch.** Every diff below that names the default branch, and step 7's, writes it
+as `main`. Where the repository's is another, put its **name** in `main`'s place:
+`origin/<name>...origin/<branch>`, `<name>...<branch>`, `<name>...remotes/origin/<branch>`. Take
+the name from `git -C <repo_path> symbolic-ref --quiet --short refs/remotes/origin/HEAD`, which
+prints `origin/<name>`: the name is what follows `origin/`. Without `--short` the command prints
+`refs/remotes/origin/<name>`, which is not a name — in `origin/main`'s place it makes
+`origin/refs/remotes/origin/<name>`, a revision git rejects, and in the other two it turns a diff
+against the local branch into one against the remote. It counts only where
+`git -C <repo_path> rev-parse --verify --quiet origin/<name> >/dev/null` succeeds for that name: a
+remote that renamed its default branch, fetched with `--prune`, leaves `origin/HEAD` naming the
+branch it deleted, and each diff below that names the default branch would then name a ref git
+rejects. Where it prints nothing
+(`origin/HEAD` is unset), or a name that probe rejects, the name is `master` if
+`git -C <repo_path> rev-parse --verify --quiet origin/master >/dev/null` succeeds and the same
+probe of `origin/main` does not; otherwise it stays `main`.
 
 #### 2a. If target is a PR number
 
@@ -85,8 +101,8 @@ git -C <repo_path> diff origin/main...origin/<branch> --name-only -- '*.md'
 ```
 
 If the diff is empty, also try `main...<branch>` (local branch) and
-`main...remotes/origin/<branch>`. If the repository's default branch is not `main`,
-resolve it with `git -C <repo_path> symbolic-ref refs/remotes/origin/HEAD` and use that.
+`main...remotes/origin/<branch>`. Where the default branch is not `main`, each form takes its
+name instead (**The default branch**, above).
 
 ### 3. Filter to documentation files
 
@@ -119,18 +135,78 @@ Collect the violation report, including its `rules_source` field.
 
 ### 6. Run Vale (optional)
 
-Check if `<repo_path>/.vale.ini` exists. If it does:
+Find the Vale configuration: look in `<repo_path>` and then in each directory above it up to
+`<repo_root>`, the nearest first, where `<repo_root>` is what
+`git -C <repo_path> rev-parse --show-toplevel` prints — the order Vale's own search takes, climbing
+from the directory it runs in. In each directory look for all five names Vale reads its
+configuration from, not only `.vale.ini`: `.vale`, `_vale`, `vale.ini`, `.vale.ini` and
+`_vale.ini`, of which Vale takes, in one directory, the first in that order (Vale 3.21) — so a
+repository whose only one is `_vale.ini` is linted all the same. The nearest directory holding one
+is the one Vale must read from, and `<vale_root>` is that directory. If there is one:
 
 ```bash
 which vale 2>/dev/null || echo "NOT_INSTALLED"
 ```
 
-If Vale is installed and `.vale.ini` exists, run it on the changed files:
+If Vale is installed and a configuration file was found, run it on the changed files **from `<vale_root>`**,
+in one Bash call, in the form that configuration file decides — whether it sets `StylesPath`, a
+`StylesPath` key, written with `=` or `:`, with the case as written, above its first `[section]`
+header, the one place Vale accepts the key (a key in any other case Vale ignores, with `W101`):
 
 ```bash
-git -C <repo_path> rev-parse --show-toplevel  # confirm the root, then:
-vale --output=line <file1> <file2> ... 2>&1
+# The configuration sets StylesPath:
+(builtin cd "<vale_root>" >/dev/null && unset VALE_CONFIG_PATH && command vale --no-global --output=line <file1> <file2> ... 2>&1)
+# It sets none:
+(builtin cd "<vale_root>" >/dev/null && unset VALE_CONFIG_PATH && h=$(command mktemp -d) && { XDG_CONFIG_HOME="$h" command vale --output=line <file1> <file2> ... 2>&1; s=$?; command rm -r -- "$h"; exit $s; })
 ```
+
+Vale looks for its configuration in the directory it runs in and then in each directory above it,
+uses the first it finds, and never looks beside the files; this command's shell stands wherever the
+session does — which is what `--repo` exists to differ from. Run from `<vale_root>`, Vale reads its
+configuration there. Run from a directory outside `<vale_root>`'s tree — the session's, say — it reads
+the first configuration at or above that directory instead, which may be another repository's; where
+there is none, it falls back to a configuration in the home directory — the first of the same five
+names — which neither form above sets aside, and only where the home directory holds none either
+does it stop with `E100 [.vale.ini not found]`. The subshell keeps the `cd` to this one call, and the file paths are
+step 4's absolute ones, so they resolve from `<vale_root>` too. It is `builtin cd`, its output
+discarded, because this command's shell carries the user's aliases and shell functions: a `cd` of
+theirs would otherwise run in its place, and one that prints would put its output ahead of Vale's.
+`builtin`, not `command`: the shell is bash or zsh, and zsh's `command` runs no builtin, only a
+`cd` found on `PATH` — Linux has none, so `command cd` there is a command not found, and macOS has
+`/usr/bin/cd`, which changes only its own child process's directory, so `command cd` there exits 0
+and Vale runs wherever the session stands. For the
+same reason `mktemp`, `vale` and `rm` run as `command <name>` — an `rm -i` or `rm -I` alias would
+ask before removing the directory, be answered no from an empty standard input, and leave the
+directory behind — and `--` ends `rm`'s options.
+
+**This is the one definition of the form this plugin runs Vale in** — `/prose-review-docs` step 5
+cites it — **and every part of both forms is load-bearing** (Vale 3.21, measured, and read from
+its source). The run reads the repository's configuration with no global Vale configuration and no
+`VALE_CONFIG_PATH`, and with the styles that configuration reads. Vale merges the user's global configuration file —
+`~/.config/vale/.vale.ini` on Linux, wherever `vale ls-dirs` names it elsewhere — under the
+repository's, so a style enabled only on this machine raises findings the repository's rules never
+would, and a rule turned off only on this machine goes silent where the repository enables it.
+`--no-global` drops that file **and Vale's default StylesPath with it**: Vale adds its default path
+only where `--no-global` is absent, and `VALE_STYLES_PATH` does not bring it back. That is right
+only where the configuration names a StylesPath of its own, whose styles are then the repository's.
+Where it sets none, its synced packages and custom styles live in the default path, a layout Vale
+documents as valid, and `--no-global` stops the run with
+`E100 … style '<name>' does not exist on StylesPath` in place of the findings. So that form keeps
+the default path and sets aside the global file alone: Vale looks for that file under
+`XDG_CONFIG_HOME`, a fresh, empty directory there holds none, and the default StylesPath comes from
+`XDG_DATA_HOME`, or `VALE_STYLES_PATH` where that is set, which the form leaves as they are; it
+removes the directory it made and exits with Vale's status. **That is also the second form's
+limit**: the default StylesPath is one directory for every project on the machine whose
+configuration sets no `StylesPath`, and Vale reads every configuration file in its
+`.vale-config/`, ahead of the repository's own — the configuration a package such as `Hugo` or
+`MDX` ships, which `vale sync` writes there after clearing what the last sync into it left. So
+what it holds is whatever the machine's latest `vale sync` into that directory wrote, another
+project's included, and until this repository is synced again the run can raise what a clean
+runner does not, or stay silent where one raises. This command never syncs to cure it; the
+remedy is `vale sync` for this repository, in the same form. And `VALE_CONFIG_PATH`, where the
+environment sets it, names a file Vale reads **instead** of searching, so the repository's own is
+never read; neither `--no-global` nor `XDG_CONFIG_HOME` stops that, and clearing it in the subshell
+does.
 
 Collect Vale findings separately. If Vale is not installed, note:
 "Vale is not installed — skipping automated linting. Style check is based on

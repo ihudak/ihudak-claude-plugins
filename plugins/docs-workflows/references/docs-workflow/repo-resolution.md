@@ -51,15 +51,16 @@ Resolve to absolute and print which rung answered, exactly as §1 does.
 
 ## 3. The signal set
 
-One list, tested by both entry points. **It is close to the set `/document` Phase 0 applies, and not identical to it, in two ways that both matter:** it adds one entry that set lacks — any `*/_content/` directory — and it omits one `/document` accepts at its `$DOCS_PATH` and `$REPOS_PATH` rungs, an in-repo `.dev-workflows/docs-profile.yml`, which `/document` takes as an alternative to a signal rather than as one of them. So a directory can resolve as a docs repository for one and not the other. That difference is recorded here rather than reconciled; closing it changes which directories `/document` adopts or which ones `/docs-init` refuses, which is a behaviour change to be made deliberately in one place or the other, not by a sentence claiming the two already agree. A directory carries a signal when any of these is present:
+One list, tested by both entry points. **It is the docs-signal list `/document` Phase 0 step 2 applies, plus two entries — and only one of the two is a difference in what the two accept.** The in-repo `.dev-workflows/docs-profile.yml` is not one: `/document` accepts it too, as an alternative to a signal at its `$DOCS_PATH` and `$REPOS_PATH` rungs (not at its working-directory rung), and this list carries it as a signal because a profiled repository is a documentation repository however it builds. A profiled Sphinx repository carries none of the other entries below, and without this one `resolve-docs-repo`'s signal-tested rungs would pass over it and `/docs-init` would scaffold over it. **The difference that remains is any `*/_content/` directory**, which this list accepts and `/document`'s does not, so a directory whose only signal is a `_content/` tree resolves as a docs repository here and not there. That difference is recorded here rather than reconciled; closing it changes which directories `/document` adopts, which is a behaviour change to be made deliberately in `/document`, not by a sentence claiming the two already agree. A directory carries a signal when any of these is present:
 
 - a `*:start`, `*:build`, `*:lint`, or `docs:*` script in `package.json`;
 - a `.docstack/` directory;
 - `mkdocs.yml`;
 - `docusaurus.config.js`;
 - `antora.yml`;
-- `.vale.ini`;
+- a Vale configuration file, under any of the five names Vale reads one from — `.vale`, `_vale`, `vale.ini`, `.vale.ini` or `_vale.ini` (`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2, source 2, is where this plugin defines them) — since a site configured through any of them is linted by Vale all the same;
 - `DOCUMENTATION-GUIDELINES.md`;
+- an in-repo `.dev-workflows/docs-profile.yml`;
 - any `*/_content/` directory;
 - any `_snippets/` directory.
 

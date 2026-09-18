@@ -40,9 +40,11 @@ printed suggestion.
 **direct** mode, `/document` **doc-edit** mode (Mode B), `/vuln`, `/upgrade`, `/frames`. There the
 durable state is the artifact / branch / PR already on disk; no resume pointer is written.
 
-**Two reasons sit in that list, and only one of them is "no PRD anchor".** `/implement` direct mode,
-`/document` Mode B, `/vuln` and `/upgrade` have no PRD directory to write into. `/idea` and `/frames`
-do — but neither is a pipeline *phase* that a later run resumes: `/idea` hands its brief off in the
+**Three reasons sit in that list, and only one of them is "no PRD anchor".** `/implement` direct mode
+and `/document` Mode B have no PRD directory to write into. `/vuln` and `/upgrade` are non-pipeline
+runs whose durable state is the branch or PR already on disk, which is the reason §3 gives for them —
+not a missing directory, since a keyed run of either resolves a folder and writes into it. `/idea` and
+`/frames` do resolve one — but neither is a pipeline *phase* that a later run resumes: `/idea` hands its brief off in the
 same run, and `/frames` rebuilds an index, which is a repair rather than a step with a next one. A
 pointer to a phase nobody resumes is a file that only goes stale, so state the exemption in the
 command rather than writing one.
@@ -63,7 +65,7 @@ log). It is intentionally tiny:
 - **Last completed:** <command> <args> — <phase or 'command complete'> (<ISO datetime>)
 - **Artifact:** <relative path to the deliverable just written/committed, or 'none (read-only)'>
 - **Next step:** <the exact next command from ### Next step, or 'PRD fully processed'>
-- **Suggested session name:** <PRD-ID>-<slug>-<role>   (omit this line when no PRD-Key exists yet — e.g. /create-prd)
+- **Suggested session name:** <KEY>-<slug>-<role>   (omit this line on a run whose own `### Context hygiene` block carries no `/rename` suggestion — that block is this command's own, so the test is decidable from the command being executed and needs no list to look up; §4 names which commands carry the line and why the rest do not)
 - **Carry-forward decisions:** <0–N one-line decisions the next phase needs that are NOT already in the artifact; 'none' if none>
 ```
 
@@ -102,19 +104,36 @@ own `next-phase-offer` output already carries. The role graph is owned by
 
 ## 4. Session-name aid
 
-The PRD-Key is first available at **`/release-notes`** and is present for every PA/PE/Dev
-command (`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement`,
-`/document`, `/release-notes` — all take `<PRD>`). For those, print a suggested
-`/rename <PRD-ID>-<slug>-<role>` line so the user can relocate the session in
-`claude --resume` later (e.g. after going home). `<role>` is the just-finished command's
-lane tag (pm / pa / pe / dev). Guidance-only — a command cannot run `/rename` itself.
+**A command prints the aid where its own `### Context hygiene` block carries the line — that block,
+not any argument shape, is what settles it.** Read off those blocks, the set is the PA/PE/Dev ladder —
+`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement`, `/document`,
+`/release-notes` — plus the two PM effort-proposal commands, `/prd-proposal` and `/brd-proposal`.
+For those, print a suggested `/rename <KEY>-<slug>-<role>` line so the user can relocate the session
+in `claude --resume` later (e.g. after going home). `<KEY>` is the key that named the folder this run
+resolved — a PRD key on the ladder, the root BRD key for `/brd-proposal` — and `<role>` is the
+just-finished command's lane tag (pm / pa / pe / dev). Guidance-only — a command cannot run
+`/rename` itself.
 
-**`/idea` and `/create-prd` are excluded** from the rename aid: the PM ideation phase is
-short, and on the common path it runs *before* the handoff
-that mints the PRD, so there is usually no PRD-ID to name a session after. Two runs do carry
-one — a `prd`-provenance `/idea` source, and a `prd_disposition: rewrite` run whose key is
-the PRD being rewritten — but the phase stays short enough that no label is auto-suggested
-either way; the PM names the session manually if they want one.
+**Do not restate that set as "every command that takes a `<PRD>`".** Argument shape does not settle
+it: `/implement`'s address is optional (absent → the run is **direct**) and `/document`'s Mode B
+takes none at all, so the phrase is false of two of the commands named above — both of those modes
+sit in §1's `**Skipped**` list and write no pointer, so the aid question never reaches them; and
+`/brd-proposal` resolves a BRD container rather than a PRD, so the phrase excludes a command that
+does print the line. The block a command carries is the whole of the test.
+
+**`/idea` and `/create-prd` are excluded** from the rename aid, and the reason is the phase
+rather than the key. It is **not** that a PM run has no key to name a session after: both
+commands take a mandatory key as their first argument and refuse without one
+(`IDEA_NEEDS_KEY`, `CREATE_PRD_NEEDS_KEY`), so the key naming the folder is in hand before
+either writes anything. The exclusion stands because the PM ideation phase is short enough
+that no label is worth auto-suggesting; the PM names the session manually if they want one.
+
+**`/update-prd` and all six commands of the BRD-to-PRD route carry no `/rename` line either** —
+`/brd-intake`, `/brd-split`, `/prd-ground`, `/brd-interview`, `/brd-package`, `/brd-reconcile`.
+Each of the seven writes a resume pointer, so §1's omit-condition has to dispose of them, and it
+does so off their own blocks rather than off this list. None of them states a reason of its own and
+none is invented here; `/prd-ground` is the one that also runs off the route, on an idea-route PRD
+folder, and carries no line there either.
 
 ## 5. Contract (5 rules)
 
@@ -134,9 +153,14 @@ either way; the PM names the session manually if they want one.
    (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4).
 3. **Role-aware via a single graph** — the compact/clear split reads
    `next-phase-offer.md`'s role labels; the role graph is not duplicated here.
-4. **Mode-aware** — direct / doc-edit / non-pipeline / pre-PRD runs (no PRD anchor) → no
+4. **Mode-aware** — direct / doc-edit / non-pipeline / pre-PRD runs → no
    `resume.md`, no `/rename`, and the suggestion degrades to a plain optional `/compact`
    note (or is omitted, consistent with `next-phase-offer`'s mode-aware omission).
+   **Three reasons sit in that set and only one of them is "no PRD anchor"**, exactly as §1
+   separates them: `/implement` direct mode and `/document` Mode B have no PRD directory to
+   write into; `/vuln` and `/upgrade` are non-pipeline runs whose durable state is the branch
+   or PR already on disk (§3); and `/idea` and `/frames` do resolve one, and are exempt
+   because neither is a phase a later run resumes.
 5. **Never blocks** — a nudge appended to the Final Report, exactly like the next-phase offer.
 
 ## Surface

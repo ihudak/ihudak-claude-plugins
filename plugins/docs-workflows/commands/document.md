@@ -1,6 +1,6 @@
 ---
 name: document
-description: keyed feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Reads a Product Requirements Document hierarchy from the resolved folder in the specs tree, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
+description: keyed feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Reads a Product Requirements Document hierarchy from the resolved folder in the specs tree, summarises the diffs its implementation record names in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -10,7 +10,7 @@ Generate product documentation for the resolved Product Requirements Document: $
 
 Signature: one positional address — a key, or an `@<path>` naming a folder in the specs tree. Phase 5.5 resolves each write target against the content roots the resolved profile declares, and Phase 6.3 writes each page into the root that owns it.
 
-`/document` (keyed mode) is the **keyed feature-documentation** workflow. Given a PRD address, it reads the resolved PRD folder, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
+`/document` (keyed mode) is the **keyed feature-documentation** workflow. Given a PRD address, it reads the resolved PRD folder, resolves the implementation record's repo slugs to local clones, runs parallel diff summaries of the refs that record names, synthesises product documentation, runs style-check + Opus review gates, and writes the output into the docs repository Phase 0 step 2 resolves — the current working directory where it carries a docs signal, and otherwise `${DOCS_PATH:-/workspace/docs}`, a repository under `${REPOS_PATH:-/workspace}`, or cwd or a path you confirm: a run writes wherever that ladder answers, not wherever it was started (Phase 0 step 2, and step 4 for the profile).
 
 For small one-off doc edits, use direct mode (below). For writing child Epic drafts from a PRD, use `/epics`. For release notes, use `/release-notes` — this command never writes release-notes / what's-new pages, because those are generated from the tracker by the docs team's automation.
 
@@ -50,7 +50,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
 2. **Resolve the docs repo (cwd-preferred).** This command writes feature documentation into a product docs repository; running it outside such a repository is almost always a mistake. The **docs signals** checked throughout this step are:
    - `package.json` with any script matching `*:start`, `*:build`, `*:lint`, `docs:*`, or
-   - any of `.docstack/`, `mkdocs.yml`, `docusaurus.config.js`, `antora.yml`, `.vale.ini`, `DOCUMENTATION-GUIDELINES.md`, or
+   - any of `.docstack/`, `mkdocs.yml`, `docusaurus.config.js`, `antora.yml`, a Vale configuration file under any of the five names Vale reads (`.vale`, `_vale`, `vale.ini`, `.vale.ini`, `_vale.ini` — `toolchain-preflight.md` §2 source 2), `DOCUMENTATION-GUIDELINES.md`, or
    - a `_snippets/` directory at any level under the repo root.
 
    Resolve `docs_repo_path` in this order:
@@ -62,25 +62,29 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      ```
      "No product-docs-repo signals in this working tree and no docs repo found under ${REPOS_PATH:-/workspace}. The signals I checked in cwd:
       - package.json scripts matching *:start, *:build, *:lint, docs:*
-      - .docstack/, mkdocs.yml, docusaurus.config.js, antora.yml, .vale.ini, DOCUMENTATION-GUIDELINES.md
+      - .docstack/, mkdocs.yml, docusaurus.config.js, antora.yml, a Vale configuration (.vale, _vale, vale.ini, .vale.ini or _vale.ini), DOCUMENTATION-GUIDELINES.md
       - any _snippets/ directory under the repo root
       Where should I write the documentation?"
      choices: ["Use cwd anyway — I confirm this is a docs repo (Recommended)", "Enter the docs repo path", "Cancel — switch to a docs repo first"]
      ```
      "Use cwd anyway" sets `docs_repo_path` = the git root of cwd (or cwd itself if not a git tree) and carries the user's confirmation forward. "Enter the docs repo path" takes a free-text absolute path and validates it exists.
 
+   **Then take it to its top level.** Record the directory the rung answered with as `docs_repo_resolved`, and set `docs_repo_path` to its git work-tree top level — `git -C <docs_repo_resolved> rev-parse --show-toplevel`, or `docs_repo_resolved` itself where it is in no git work tree. That top level is where the profile lives, where every path it records is rooted and where every command it records runs (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`, **Where the profile lives**), so every later use of `docs_repo_path` in this command means it. Rungs (a) and (b), and "Use cwd anyway", already answer with a top level; `$DOCS_PATH` at (a.5) and a path entered at (c) can name a site below one — a monorepo's `website/` — whose profile step 4 would otherwise look for in the wrong place. `docs_repo_resolved` is kept for what the site's own directory decides: step 4(c) hands it to inline profiling, step 6's `.obsidian/` walk starts from it, and step 7's preflight and Phase 6.4's style check look there, and in each directory above it, before the top level, for the configuration a site keeps beside itself or above it.
+
    **Confirm writeable.** Once `docs_repo_path` is resolved, run `test -w <docs_repo_path>`. If it fails, stop with the named error `REPO_NOT_WRITEABLE: <docs_repo_path> is not writeable.`
 
 3. **Does the built-in default profile apply?** Set `is_known_docs_repo` = `true` only when the resolved `docs_repo_path` matches the **built-in default profile's own layout** — it contains every `spaces[].content_root` and `snippet_root` that profile declares. This is a narrow test for "this repo is shaped like the bundled example", not a test for "this is a docs repo"; a real repo almost always answers `false` here and is served by its own in-repo profile at step 4(a), or by on-demand profiling at 4(c). Directory name is **never** a factor.
 
 4. **Resolve the profile** (record `profile_source`). The profile steers all later phases' conventions. Resolve in this order:
-   - **(a) In-repo profile →** `in-repo`. If `<docs_repo_path>/.dev-workflows/docs-profile.yml` exists, load it. `profile_source: in-repo`.
+   - **(a) In-repo profile →** `in-repo`. If `<docs_repo_path>/.dev-workflows/docs-profile.yml` exists — the profile's one home, since step 2 took `docs_repo_path` to the top level — load it. `profile_source: in-repo`.
    - **(b) Built-in default profile →** `built-in`. Else, if `is_known_docs_repo`, load `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile.default.yml`. `profile_source: built-in`.
-   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/docs-profile` flow against `docs_repo_path` (Skill tool, `skill: "docs-workflows:docs-profile"`, with `docs_repo_path --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to write `<docs_repo_path>/.dev-workflows/docs-profile.yml`. Then load that file. `profile_source: generated`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /docs-workflows:docs-profile or switch to a profiled repo.`
+   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/docs-profile` flow against `docs_repo_resolved` (Skill tool, `skill: "docs-workflows:docs-profile"`, with `docs_repo_resolved --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to return. Pass the directory step 2's rung answered with, not its top level: profiling's Phase 0 step 3 tests the directory it is handed and that directory's top level for a docs signal, so handed the top level of a monorepo whose site sits in `docs/` it tests one signal-less directory twice and asks "Profile it anyway?" about a repository this command has just found by its signal. It resolves the same top level (its Phase 0 step 2) and, finding no profile there — (a) has just looked — bootstraps one: it cuts its branch, writes `<docs_repo_path>/.dev-workflows/docs-profile.yml`, commits it, and hands back that branch as `profile_branch` and that commit as `profile_commit` (its Phase 6). Load the file, and record `profile_source: generated` with both values — Phase 6.2 renames `profile_branch` and Phase 8.5 squashes onto `profile_commit`. It also hands back two lists, `fixed_port_servers` and `server_command_defects`, the lines its standalone report would carry: print both to the operator now, as prose under a `Profile notes:` line, before the run goes on, and carry them into Phase 9's `### Assumptions & limitations`. Each is `none` where no server qualifies, and then one line says so. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /docs-workflows:docs-profile or switch to a profiled repo.` Where profiling stops on a named error of its own instead — `DOCS_PROFILE_BOOTSTRAP_BRANCH_EXISTS`, which it raises on a bootstrap branch an earlier run left behind — stop with that error as it stands, since it names what to fix.
+
+     **Where profiling hands back no commit** — it made none, as its refresh does when answered "Keep existing, write nothing" or when it finds nothing to change — it cut no branch either. (a) and profiling look for the profile in the same place, so profiling starts from none here and that refresh does not arise; should profiling hand back no commit anyway and leave a profile at `<docs_repo_path>/.dev-workflows/docs-profile.yml`, load it and record `profile_source: in-repo`, never `generated`. The two lists above are handed back here too, and shown the same way, since the profile this run loads is the final one either way. The in-repo base guard below then tests whether that profile is on the base, and Phase 6.2 takes its normal case: its inline-profiling case renames `profile_branch`, a branch this run did not cut, and Phase 8.5 has no `profile_commit` to squash onto.
 
    Hold the loaded profile for later phases.
 
-   **In-repo-profile-not-on-base guard.** When `profile_source: in-repo`, confirm the profile is committed on the base branch before relying on a docs branch cut from it. Resolve the base (`git -C <docs_repo_path> symbolic-ref --short refs/remotes/origin/HEAD`; fall back to `main`, then `master`) and run `git -C <docs_repo_path> cat-file -e <base>:.dev-workflows/docs-profile.yml`:
+   **In-repo-profile-not-on-base guard.** When `profile_source: in-repo`, confirm the profile is committed on the base branch before relying on a docs branch cut from it. Resolve `<base>` exactly as Phase 6.2 step 1 does — `workflows-core:read-only-repos` §3's chain run against `<docs_repo_path>`, its `git -C <docs_repo_path> remote set-head origin --auto` retry where rung 1 fails, and its local fallback where the chain is exhausted — so the base this guard reads is the base Phase 6.2 cuts from. Step 2 has already confirmed the repository writable, which that retry needs: without it, a clone whose `origin/HEAD` was never set can read `origin/main` here while Phase 6.2's retry finds the remote's default is `develop`. Then take the **ref** that stands for `<base>` — `origin/<base>` where the chain found one, or, where step 1 falls back to a local branch, that branch itself: `<base>`, or HEAD where step 1 would switch nothing — and run `git -C <docs_repo_path> cat-file -e <base-ref>:.dev-workflows/docs-profile.yml`. This check is a read, so it takes the ref rather than the name (§3's **A switch takes the name**): Phase 6.2 pulls `<base>` up to `origin/<base>` before it cuts the docs branch, and this guard runs before that pull, when the local `<base>` may not yet hold a profile merged upstream:
    - **exit 0 (present on base)** → proceed (the common case — the profile was merged earlier).
    - **non-zero (absent on base)** → the profile is only in the working tree / on an unmerged branch, so the docs branch Phase 6.2 cuts from `<base>` will not include it. Warn and ask:
      ```
@@ -98,14 +102,17 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
    `$SPECS_PATH/…/<KEY>…/` folder, or the directory they were found in), or
    `none` when `specs` is empty.
 
-6. **Classify write context** for later branch/write decisions — computed against the resolved `docs_repo_path` (not necessarily cwd). Walk up from `docs_repo_path` looking for `.obsidian/`; if found, context = `obsidian`. Else if `git -C <docs_repo_path> rev-parse --show-toplevel` succeeds AND at least one docs signal from step 2 is present, context = `docs_repo`. Else if it succeeds with no docs signals, context = `non_docs_repo` (step 2 has already asked the user; their confirmation promotes this to `docs_repo` behaviour). Else context = `plain_dir`. In a normal run, Phase 0's docs-repo resolution (steps 2–3) yields a real docs repo (`docs_repo`) or a user-confirmed `non_docs_repo`; `obsidian` and `plain_dir` are **defensive guards** (they forbid branch/commit) rather than expected write targets.
+6. **Classify write context** for later branch/write decisions — computed against the resolved `docs_repo_path` (not necessarily cwd). Walk up from `docs_repo_resolved` — the directory step 2's rung answered with, at or below `docs_repo_path` — looking for `.obsidian/`; if found, context = `obsidian`. Else if `git -C <docs_repo_path> rev-parse --show-toplevel` succeeds AND at least one docs signal from step 2 is present — or an in-repo `.dev-workflows/docs-profile.yml`, which step 2's rungs (a.5) and (b) accept as a docs repository in a signal's place — context = `docs_repo`. Else if it succeeds with neither, context = `non_docs_repo` (step 2 has already asked the user; their confirmation promotes this to `docs_repo` behaviour). Counting the profile here is what keeps that parenthetical true: a repo whose only marker is its profile is adopted at (a.5) or (b) without the question being asked, so a classification that ignored the profile would leave it a `non_docs_repo` whose Phase 6.3 row assumes a confirmation that was never asked for. Else context = `plain_dir`. In a normal run, Phase 0's docs-repo resolution (steps 2–3) yields a real docs repo (`docs_repo`) or a user-confirmed `non_docs_repo`; `obsidian` and `plain_dir` are **defensive guards** (they forbid branch/commit) rather than expected write targets.
 
    Record the resolved context — it drives Phase 6.2 (branch setup) and Phase 6.3 write rules. When `docs_repo_path` differs from cwd, record **both** and note that Phase 6.3 consumes `docs_repo_path`, not cwd, for every write.
 
 7. **Toolchain preflight.** Execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against
-   the resolved `docs_repo_path` and the profile loaded in step 4. Derive the required set from all
-   three sources (profile commands including `commands.per_space`, repo config signals, the repo's
-   documented `Prerequisites`), check each, and build the `toolchain` block.
+   the resolved `docs_repo_path` and the profile loaded in step 4 — with `docs_repo_resolved` as the
+   site directory its source 2 also checks, where step 2 resolved one below the top level. Derive
+   the required set from all three sources (profile commands including `commands.per_space` and
+   `builds[]`, together with `bash` and `curl`, and off Linux `ps`, which the smoke check runs
+   (`render-verification.md` §2), wherever the profile records a dev server; repo config signals;
+   the repo's documented `Prerequisites`), check each, and build the `toolchain` block.
 
    Initialize the run's `gate_ledger` (schema:
    `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3) and append its first row:
@@ -115,7 +122,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      - gate: toolchain_preflight
        phase: "0"
        outcome: RAN
-       mechanism: command -v / test -d over the derived required set
+       mechanism: the derived required set's checks, per toolchain-preflight.md §2–§3
        findings: <count of tools with status: missing>
    ```
 
@@ -141,7 +148,7 @@ Before clarification, show a readiness table summarizing what Phase 0 resolved:
 | Item | Resolved |
 |---|---|
 | Address | the resolved folder |
-| Docs repo | `<docs_repo_path>` (`is_known_docs_repo`: yes/no) — write context `<obsidian \| docs_repo \| non_docs_repo \| plain_dir>` |
+| Docs repo | `<docs_repo_path>` (`is_known_docs_repo`: yes/no)[ — the top level of `<docs_repo_resolved>`] — write context `<obsidian \| docs_repo \| non_docs_repo \| plain_dir>` |
 | Profile | `profile_source`: `<in-repo \| built-in \| generated>` |
 | Toolchain | `<all required tools present>` OR `<N missing: vale, pnpm — user chose to continue>`; writing into `<docs_repo_path>`[ (cwd is `<cwd>`)] |
 | Specs | `<specs_dir>` or `none` |
@@ -160,25 +167,21 @@ Group questions where possible; use `choices` arrays; 2–4 options, and never a
 Ask about:
 
 - **Output filename / sub-path under the resolved `docs_repo_path`** (Phase 0) (default: `<KEY>-<slug>.md`; the `doc-location-finder` in Phase 5.5 may override this per target).
-- **PR status filter**:
-  ```
-  choices: ["MERGED only (Recommended)", "All PRs (MERGED + OPEN + DECLINED)", "Specific list (you'll be prompted)"]
-  ```
 - **Repo refresh policy**:
   ```
-  choices: ["fetch only (Recommended)", "fetch + pull default branch", "no refresh — resolve PRs from local objects only; a PR not yet fetched will not resolve, and a dirty clone stops blocking"]
+  choices: ["fetch only (Recommended)", "fetch + pull default branch", "no refresh — resolve refs from local objects only; a ref not yet fetched will not resolve, and a dirty clone stops blocking"]
   ```
-  The `fetch only` default matches the `diff-summarizer` default (`refresh.fetch: true, refresh.pull: false`) — historical PR diffs don't need the current branch tip, and pulling risks moving HEAD away from the merge commit we want to reach.
+  The `fetch only` default matches the `diff-summarizer` default (`refresh.fetch: true, refresh.pull: false`) — the diffs of refs the implementation record already named don't need the current branch tip, and pulling risks moving HEAD away from the commit we want to reach.
 - **Repos search base (`$REPOS_PATH`)**. Read `${REPOS_PATH:-/workspace}` (the container mounts every repo under `/workspace`). `$REPOS_PATH` may be a single directory or a colon-separated list. Ask:
   ```
   choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]
   ```
-  If "different path", take free-text input (single dir or colon-separated list) and validate that at least one directory exists under it. Record the resolved value as `$REPOS_PATH`. Individual clones are located in Phase 4 by matching their `git remote` against each PR's repo slug — not by assuming a `<base>/<slug>` directory name.
+  If "different path", take free-text input (single dir or colon-separated list) and validate that at least one directory exists under it. Record the resolved value as `$REPOS_PATH`. Individual clones are located in Phase 4 by matching their `git remote` against each in-scope `repo` slug the implementation record and the commit scan named — not by assuming a `<base>/<slug>` directory name.
 - **Screenshots** — this question seeds the **add-list** only; it never skips Phase 5.6. The candidate list itself is built later in **Phase 5.6** (by which point `specs_dir`, the folder read `attachments[]`, and the resolved repos are all available), and Phase 5.6 **always** runs — it also reviews the images already on the pages this run is about to edit, regardless of this answer:
   ```
   choices: ["Yes — I have new screenshots to add (you'll pick the sources in Phase 5.6) (Recommended)", "No new screenshots", "Cancel"]
   ```
-  Record the answer as `new_images_wanted` (true/false). When `false`, Phase 5.6 skips its **add** list only and still reviews existing images on the edited pages. The downstream `doc-planner` (Phase 5.7) detects the repo's `image_policy` and decides per screenshot whether the writer will copy it locally or stage it for manual upload.
+  Record the answer as `new_images_wanted` (true/false). When `false`, Phase 5.6 skips its **add** list only and still reviews existing images on the edited pages. The downstream `doc-planner` (Phase 5.7) detects the repo's `image_policy` and decides per screenshot whether the writer will copy it locally or stage it for manual upload — except where the policy is `ambiguous`, which Phase 5.7's **Ambiguous image policy** step settles with you — or, for a target the planner's one re-invocation newly returns `ambiguous`, Phase 6.3, with the same question.
 
   **Resolve `<screenshot_staging_dir>`.** No longer gated on `new_images_wanted`: Phase 5.6 always runs and its existing-image review can need a durable location for a replacement source regardless of this answer, so `<project_dir>` (set below) must be resolved on every run, not only an add-list one. **This unconditional resolution is deliberate and stays**, including the "Not found" prompt it can raise on a run that turns out to have no image work at all: Phase 1 runs long before `write_targets` exist, so any narrower precondition ("only when this run will touch images") is undecidable here. The occasional needless prompt is the accepted cost of closing a container-restart data-loss gap — do not re-gate this on `new_images_wanted` or on a guess about image work. For the `cdn_upload_required` case the staged copies must live somewhere that survives a container restart — a host-mounted directory the operator names survives it, the docs repo (often a docker repo-volume) and `/tmp` are not. Use the resolved PRD folder:
   ```bash
@@ -243,7 +246,6 @@ Present a concise plan:
 - The resolved address and the folder it resolved to
 - Output filename / path under the resolved `docs_repo_path` (from Phase 1)
 - `$REPOS_PATH` and the slug→clone resolution for the repos that will be examined (inferred from the folder read output in Phase 3; if Phase 3 hasn't run yet, list "TBD — resolved after the folder read")
-- PR filter (MERGED only / all / specific)
 - Parallelism plan (up to 4 `diff-summarizer` instances per batch; up to 4 repos per Agent message)
 - Write context + whether branching will happen
 - Screenshots: `new_images_wanted` (yes/no, from Phase 1). Phase 5.6 always runs: when yes, its add-list candidates are gathered and confirmed there (specs scan + folder `attachments[]` + manual paths) — list "candidates resolved in Phase 5.6"; either way, Phase 5.6 also reviews the images already on the edited pages for staleness.
@@ -262,10 +264,8 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 ## Phase 3 — Read the PRD folder
 
-**Read the resolved folder directly** (full depth — the PRD, its Epics, and every artifact present):
-
-**Read the resolved folder directly.** Read its `prd.md` for the product content, and the `specs`
-files Phase 0 resolved alongside it.
+**Read the resolved folder directly** — full depth: the PRD, its Epics, and every artifact present.
+Read its `prd.md` for the product content, and the `specs` files Phase 0 resolved alongside it.
 
 **Resolve the diff sources — two of them, merged.** Invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4:
 
@@ -291,9 +291,10 @@ commit whose message names the key is findable, and no convention compels a huma
 a zero-match scan in a repository that has commits is a signal about the commit convention
 (`docs/reference/commit-convention.md`), not proof that no work happened.
 
-Hand each resolved ref to `diff-summarizer` as a `refs[]` element — `{repo_path, branch_from, branch_to}` — a
-shape its Inputs declare as `refs[]`, taken on the pure-local-git path. No URL,
-no host classification, no `gh` requirement.
+Hand each resolved ref to `diff-summarizer` as a `refs[]` element — `{branch_from, branch_to, title}`,
+the shape its Inputs declare for `refs[]`, `title` optional — taken on the pure-local-git path.
+`repo_path` is a top-level input of that agent, passed once at the Phase 5 dispatch and never
+repeated inside an element. No URL, no host classification, no `gh` requirement.
 
 
 If the folder is missing or holds no PRD, surface the `key dir not found` rule in `workflows-core:escalation-rules` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
@@ -340,10 +341,10 @@ From the **implementation record** — the `implementation.md` blocks in the res
      ```
      Choice semantics follow the `Repo unresolved (zero matches) — /document` rule in `workflows-core:escalation-rules`, applied to the whole missing set at once:
      - **Mount now & re-scan** (≈ the rule's "I'll clone it — wait") — pause until the user confirms the clones are present under `$REPOS_PATH`, then re-run step 3's scan and re-render this gate. Loop until `missing` is empty or the user picks another option. This is how the operator gets per-repo control: mount whichever repos are available, re-scan, then choose "Proceed" for whatever remains.
-     - **Proceed without them** (≈ the rule's "Skip and continue without its PRs") — record every currently-missing repo's refs as `unresolved`, out of scope; continue. Identical downstream state to the previous per-slug skip.
+     - **Proceed without them** (≈ the rule's "Skip and continue without its refs") — record every currently-missing repo's refs as `unresolved`, out of scope; continue. Identical downstream state to the previous per-slug skip.
      - **Cancel** — abort the run.
      - **Specify a different absolute path for a missing repo** (≈ the rule's "Specify a different absolute path") — record the given path as that slug's `repo_path`, move it from `missing` to `mounted`, and re-render.
-6. A `refs[]` element carries no host and needs none — the diff is taken locally. Where a run was additionally given a genuine PR URL as `pr_refs` enrichment and its `host` is `other` (unsupported), record that element as `unresolved` and carry it into the Phase 9 report; do not block.
+6. A `refs[]` element carries no host and needs none — the diff is taken locally, and `refs[]` is the only element list `diff-summarizer` takes. Nothing here resolves a host, and a report of this run therefore names refs, not pull requests (Phase 9).
 
 ---
 
@@ -356,7 +357,7 @@ Spawn `diff-summarizer` instances in **batches of up to 4 concurrent agents** pe
 For each repo, in the same Agent message:
 
 → Agent (subagent_type: "docs-workflows:diff-summarizer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
-  > "Summarise this repo's PRs for the brief:
+  > "Summarise this repo's recorded refs for the brief:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 4>
   > repo_url_slug: <repo slug, e.g. "cluster">
@@ -382,11 +383,11 @@ After the batch returns, handle each per-repo status:
   choices: ["Continue with current local state", "Skip this repo", "Cancel"]
   ```
 - `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule in `workflows-core:escalation-rules` **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
-- `NO_PRS_RESOLVED` — record all that repo's PRs as unresolved; continue.
+- `NO_PRS_RESOLVED` — the agent's own declared return status, whatever the elements were called; record all that repo's refs as unresolved and continue.
 
-After every batch completes, if **every PR across every repo** is unresolved, present a single aggregate gate (not per-PR):
+After every batch completes, if **every ref across every repo** is unresolved, present a single aggregate gate (not per-ref):
 ```
-choices: ["Proceed with PRD-only content (Recommended — writer/planner draw from the folder read output; final report notes missing PR content)", "Review candidates one by one", "Cancel"]
+choices: ["Proceed with PRD-only content (Recommended — writer/planner draw from the folder read output; final report notes missing diff content)", "Cancel"]
 ```
 
 ---
@@ -508,7 +509,7 @@ Invoke `doc-planner`:
 → Agent (subagent_type: "docs-workflows:doc-planner", model: `<planning_model — §9 / §2 Opus chain>`):
   > "Produce the documentation checklist for the brief:
   >
-  > folder_read: [paste full YAML from Phase 3; when focus_key is set, restrict linked items to focus_items]
+  > folder_read: [paste full YAML from Phase 3; when focus_key is set, restrict the folder read to focus_items]
   > diff_summaries:       [paste array of diff-summarizer outputs from Phase 5]
   > write_targets:        [paste confirmed list from Phase 5.5]
   > screenshots:          [selected candidate paths from Phase 5.6, possibly empty]
@@ -522,10 +523,21 @@ Handle the `status` and `gaps`:
 
 - **`status: OK`, `gaps: []`** → proceed to the approval prompt.
 - **`status: OK` or `PARTIAL` with `gaps` entries** — for each gap, act on its `recommended_action`:
-  - `"ask user"` → prompt inline **before** showing the checklist-approval choice. Free-text prompt scoped to the gap; feed the answer back to the planner via a single re-invocation (pass the user's answer as an additional `gap_resolution` field in the brief). If the user declines, fall back to `"mark TODO in draft"`.
+  - `"ask user"` → prompt inline **before** showing the checklist-approval choice. Free-text prompt scoped to the gap; feed the answer back to the planner via a single re-invocation (pass the user's answer as an additional `gap_resolution` field in the brief — `[{gap, answer}]`, one entry per answered gap, the shape `doc-planner`'s input contract gives it). If the user declines, fall back to `"mark TODO in draft"`, and keep that fallback: a declined gap has no entry in `gap_resolution`, so the re-invoked planner returns it again as `"ask user"`, and it is not asked about again — it stays `"mark TODO in draft"`. A gap the re-invocation **newly** returns as `"ask user"` — one the planner's first return did not carry — is not asked about either, since no re-invocation remains to take the answer: mark it `"mark TODO in draft"` and list it in the checklist display as a visible TODO, as the next bullet says.
   - `"mark TODO in draft"` → surface in the checklist display as a visible TODO; the writer at Phase 6.3 emits `<!-- TODO: … -->` markers. Does not block approval.
   - `"skip with note in final report"` → list in the checklist display; carry forward into the Phase 9 `### Skipped items`. Does not block approval.
-- **`status: PARTIAL`** alone (without user-asked gaps) is presented to the user alongside the checklist so the approval decision is informed.
+- **Ambiguous image policy** — a checklist target whose `image_policy` is `ambiguous` and whose `screenshots:` is non-empty. The planner found no dominant image convention among the target's sibling pages (mixed references, or none), so it planned neither a `dest` nor a `staging` path, and `doc-writer` cannot ask the user: it is a subagent. Resolve each such target in the planner's first return here, **before** the checklist-approval choice and so before Phase 6.1 and Phase 6.3 — never leave one of those to the writer. For each, show the target path and the screenshots planned for it, then ask (no option is safe to recommend without a convention, so no `(Recommended)` marker):
+  ```
+  choices: ["Copy them into the repository beside the page", "Stage for manual upload to the repo's image-management tool", "Leave these screenshots off this page", "Cancel"]
+  ```
+  - **Copy them into the repository beside the page** → record `local` for that target.
+  - **Stage for manual upload to the repo's image-management tool** → record `cdn_upload_required` for that target. Where `<screenshot_staging_dir>` is null — Phase 1's **Not found** branch was skipped — first take an absolute staging directory from the user, rejecting `/tmp` and any path inside the docs repo as that branch does, and record it as `<screenshot_staging_dir>`.
+  - **Leave these screenshots off this page** → once the checklist is final — after the re-invocation below, where there is one — remove that target's `screenshots:` entries from it; the writer places no screenshot on that page, and each screenshot is listed in Phase 9's `### Deferred items` as a user-declined screenshot.
+  - **Cancel** → stop and summarise.
+  - A free-text answer is mapped onto one of the first three, or the question is asked again; it is never written through as a policy of its own.
+
+  Pass every `local` / `cdn_upload_required` answer to the planner as `image_policy_resolution` — `{<target_path>: local | cdn_upload_required}`, with the current `<screenshot_staging_dir>` — in the same single re-invocation that carries any `gap_resolution`, and take the checklist it returns: it plans each named target's `dest` or `staging` path under the chosen policy, exactly as it would have for a detected one. That re-invocation is made once, so a target it newly returns `ambiguous` with a screenshot is not asked about here: it reaches the operator instead as `doc-writer`'s named `BLOCKED` gap at Phase 6.3, whose loop settles it with this step's own question and plans its screenshots' paths before the one re-dispatch (Phase 6.3, **`status: BLOCKED`**). A target left `ambiguous` with no screenshot needs no answer — no screenshot is placed on it, so its policy decides nothing.
+- **`status: PARTIAL`** — returned for a user-asked gap or an ambiguous policy, each resolved by the bullets above, save a target the one re-invocation newly returns `ambiguous`, which Phase 6.3 settles — is presented to the user alongside the checklist so the approval decision is informed.
 
 Present the checklist (with any gaps + dispositions, and — when the planner returned a non-empty `repo_authoring_guidance` — the repo-specific authoring rules it extracted from the repo's own guidance files, so the user sees "this repo's CONTRIBUTING.md / CLAUDE.md requires …" before approving):
 ```
@@ -589,7 +601,7 @@ Pass `discrepancy_decisions` to Phase 6.3.
 
 ## Phase 6.1 — CDN image handoff
 
-Run this phase when, in the Phase 5.7 `doc-planner` return, **any** screenshot has `image_policy: cdn_upload_required` — **or** the user picked "Stage for manual upload" under an `ambiguous` target in Phase 6.3 — **or** any Phase 5.6 `existing_image_decisions[]` entry has `decision: accepted`. (When the only image policy in play is `local` and there is no accepted existing-image replacement, skip this phase: local images are copied into the repo at Phase 6.3 with no handoff needed.)
+Run this phase when, in the checklist Phase 5.7 settled, **any** screenshot has `image_policy: cdn_upload_required` — a target whose ambiguous policy Phase 5.7's **Ambiguous image policy** step resolved to "Stage for manual upload to the repo's image-management tool" included, since the planner's re-invocation returns it as `cdn_upload_required` — **or** any Phase 5.6 `existing_image_decisions[]` entry has `decision: accepted`. (When the only image policy in play is `local` and there is no accepted existing-image replacement, skip this phase: local images are copied into the repo at Phase 6.3 with no handoff needed.)
 
 1. **List each affected image** so the decision is informed — one row per image:
    - target page / anchor it belongs on (from the planner's per-screenshot placement, or — for an existing-image replacement — the `target` / `section` recorded in Phase 5.6);
@@ -615,17 +627,19 @@ Run this phase when, in the Phase 5.7 `doc-planner` return, **any** screenshot h
 
 Run this phase only when write context = `docs_repo` (or `non_docs_repo` after user confirmed at Phase 0 step 2) AND the user confirmed branching at plan approval. Never for `obsidian` or `plain_dir`.
 
-1. **Update the base branch.** Resolve the default branch by running `git symbolic-ref --short refs/remotes/origin/HEAD`; this returns the remote's default (`main` or `master`; legacy repos frequently still use `master`). If the command fails (unset `origin/HEAD`), run `git remote set-head origin --auto` and retry; if it still fails, try `main`, then `master`, in that order. If the user picked a `release/*` branch earlier in Phase 1, use that instead. Once the base is resolved: `git fetch origin`. Then update the base working copy **only outside the inline-profiling case**: when `profile_source` is NOT `generated`, `git switch <base> && git pull --ff-only`. **In the inline-profiling case (`profile_source: generated`), do NOT switch** — HEAD must stay on the generated profile branch so step 5's `git branch -m <name>` renames *that* branch (the profile branch was created off the base in Phase 0, so it is already current). When a switch happened and the fast-forward pull fails:
+Every git call in this phase, and in Phase 6.3's commit and Phase 8.5, runs as `git -C <docs_repo_path>` — the docs repository's top level (Phase 0 step 2), never the working directory — so every path given to git is relative to that top level.
+
+1. **Update the base branch.** `<base>` is a branch **name**, never an `origin/<name>` ref, which `git switch` refuses — the name the ladder below resolves: whichever branch `origin/HEAD` names, else `main` or `master` where the remote has one, and otherwise a local `main` or `master`, or the branch HEAD is on. Resolve it by `workflows-core:read-only-repos` §3's chain, run against `<docs_repo_path>`, and its **A switch takes the name** rule: rung 1, `git -C <docs_repo_path> symbolic-ref --quiet --short refs/remotes/origin/HEAD`, prints `origin/<name>`, and `<base>` is what follows `origin/`; where rung 1 fails — `origin/HEAD` unset, or naming a ref that no longer exists (§3 rung 1) — `<base>` is the literal `main` or `master` whose ref rungs 2–3 find. Two steps are this command's own, beside that chain. Where rung 1 fails, run `git -C <docs_repo_path> remote set-head origin --auto` and retry it before rungs 2–3. Where the chain is exhausted — no `origin`, or one holding neither branch — `<base>` is the local `main`, then `master`, whichever `git -C <docs_repo_path> rev-parse --verify --quiet refs/heads/<name> >/dev/null` finds, and the fetch and the pull below are skipped, there being no remote branch to bring it up to; with neither, `<base>` is the branch HEAD is on and nothing is switched. Once the base is resolved: `git -C <docs_repo_path> fetch origin`. Then update the base working copy **only outside the inline-profiling case**: when `profile_source` is NOT `generated`, `git -C <docs_repo_path> switch <base> && git -C <docs_repo_path> pull --ff-only`. **In the inline-profiling case (`profile_source: generated`), do NOT switch** — HEAD must stay on `profile_branch`, the branch Phase 0's profiling cut off the base and committed the profile on, so this run's docs commits land on it after step 5 renames it. When a switch happened and the fast-forward pull fails:
    ```
    choices: ["Stash local changes and continue (Recommended)", "Proceed from current base state", "Cancel"]
    ```
 
-2. **Clean-tree check.** `git status --porcelain`; if non-empty:
+2. **Clean-tree check.** `git -C <docs_repo_path> status --porcelain`; if non-empty:
    ```
    choices: ["Stash changes and continue (Recommended)", "Proceed anyway — pre-existing changes will appear in the diff", "Cancel"]
    ```
 
-3. **Derive branch name from repo conventions.** In priority order, look at repo root for `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`. Grep each for a branch-naming section (case-insensitive, patterns like "Branch name", "Branch naming", "naming your branch"). If a pattern like `<user>/<KEY>-<slug>` or `<prefix>/<name>` is documented, derive the branch name by filling placeholders with known values (key from Phase 0, slug from the feature summary, and any **identity** placeholder (`<user>`, `<your-name-or-initials>`, `<initials>`, …) from the §2 ladder in `Skill(skill: "workflows-core:reference", args: "branch-naming")` — `$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → its §2.5 prompt). Classify the pattern's segments per §1.2 and never add an identity segment it does not ask for. If multiple patterns are documented, offer them all to the user. When no pattern is documented (§1.4), take the whole prefix from the same ladder, whose fallback for this command is `docs/`.
+3. **Derive branch name from repo conventions.** In priority order, look at the repo root — `docs_repo_path` — for `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`. Grep each for a branch-naming section (case-insensitive, patterns like "Branch name", "Branch naming", "naming your branch"). If a pattern like `<user>/<KEY>-<slug>` or `<prefix>/<name>` is documented, derive the branch name by filling placeholders with known values (key from Phase 0, slug from the feature summary, and any **identity** placeholder (`<user>`, `<your-name-or-initials>`, `<initials>`, …) from the §2 ladder in `Skill(skill: "workflows-core:reference", args: "branch-naming")` — `$GIT_USER_INITIALS` → `git -C <docs_repo_path> config user.initials` → inference from existing branches → its §2.5 prompt). Classify the pattern's segments per §1.2 and never add an identity segment it does not ask for. If multiple patterns are documented, offer them all to the user. When no pattern is documented (§1.4), take the whole prefix from the same ladder, whose fallback for this command is `docs/`.
 
 4. **Confirm the branch name** — always, even when derived from conventions (initials and slugs are subjective):
    ```
@@ -634,10 +648,10 @@ Run this phase only when write context = `docs_repo` (or `non_docs_repo` after u
    Fallback default when no convention is found: `<prefix>/<key>-<slug>`, where `<prefix>` comes from `workflows-core:branch-naming` §2 (fallback `docs/`).
 
 5. **Create or adopt the branch, and record handoff anchors.** Record `base_branch` = the base resolved in step 1 (the Phase 8.5 squash uses it).
-   - **Normal case** (`profile_source` is `in-repo` or `built-in`, or a custom repo whose profiling did not create a branch): `git switch -c <name>` from `base_branch`.
-   - **Inline-profiling case** (`profile_source: generated`): Phase 0's `/docs-profile` already ran `git switch -c <profile-branch>` and committed `.dev-workflows/docs-profile.yml`, so HEAD is already on that branch. Do NOT create a new branch — rename it with `git branch -m <name>`. Record `profile_commit` = the commit that introduced the profile config: `git log --diff-filter=A --format=%H -- .dev-workflows/docs-profile.yml | head -1`. Phase 8.5 squashes the docs commits onto `profile_commit`, keeping the profile-config commit as a distinct first commit. (Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §1.)
+   - **Normal case** (`profile_source` is `in-repo` or `built-in`, or a custom repo whose profiling did not create a branch): `git -C <docs_repo_path> switch -c <name>` from `base_branch`.
+   - **Inline-profiling case** (`profile_source: generated`): Phase 0's `/docs-profile` already cut `profile_branch` and committed `.dev-workflows/docs-profile.yml` on it, so HEAD is already on that branch. Do NOT create a new branch — rename that one, by name: `git -C <docs_repo_path> branch -m <profile_branch> <name>`. Name the old branch every time: the one-argument `git branch -m <name>` renames whatever branch HEAD is on, `main` included, while the two-argument form fails where `profile_branch` does not exist rather than rename another. `profile_commit` is the commit profiling handed back (Phase 0 step 4(c)) — never a `git log --diff-filter=A` lookup, which names the newest commit that *added* the file, not necessarily the one this run made. Phase 8.5 squashes the docs commits onto `profile_commit`, keeping the profile-config commit as a distinct first commit. (Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §1.)
 
-No external CLI calls; all git operations are local.
+No external CLI calls, and nothing is pushed or sent: step 1's reads of the remote — `git fetch origin`, the `pull --ff-only` behind it, and `remote set-head origin --auto` where rung 1 fails — only settle the base, and every write this phase makes is local.
 
 ---
 
@@ -645,7 +659,7 @@ No external CLI calls; all git operations are local.
 
 The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opus reasoning chain — see `workflows-core:model-routing/classification` §9.2). The orchestrator prepares a structured handoff and dispatches; it does not write pages itself.
 
-1. **Write the handoff file.** Create a temp file (`mktemp`, e.g. `$(mktemp -t dw-<KEY>-XXXX.yml)` — never the specs tree, never the docs repo) containing the `doc-writer` input contract: `folder_read`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `repo_authoring_guidance` (the planner's extracted repo-specific rules), `component_patterns` (the planner's recurring content-shape → dominant-component evidence, per `workflows-core:doc-structure-conventions` §3 — like `repo_authoring_guidance`, a top-level sibling of the planner's `checklist:`, so it must be carried explicitly; `[]` when the sibling sample showed no established pattern), `discrepancy_decisions` (Phase 5.8), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` + `existing_image_decisions` (Phase 5.6 / 6.1), `profile`, `docs_repo_path`, and `bug_report_destination`. Record its absolute path.
+1. **Write the handoff file.** Create a temp file (`command mktemp`, e.g. `$(command mktemp -t dw-<KEY>-XXXXXX)` — never the specs tree, never the docs repo) containing the `doc-writer` input contract: `folder_read`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `repo_authoring_guidance` (the planner's extracted repo-specific rules), `component_patterns` (the planner's recurring content-shape → dominant-component evidence, per `workflows-core:doc-structure-conventions` §3 — like `repo_authoring_guidance`, a top-level sibling of the planner's `checklist:`, so it must be carried explicitly; `[]` when the sibling sample showed no established pattern), `discrepancy_decisions` (Phase 5.8), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` + `existing_image_decisions` (Phase 5.6 / 6.1), `profile`, `docs_repo_path`, and `bug_report_destination`. Record its absolute path.
 
 2. **Dispatch the writer:**
 
@@ -655,19 +669,25 @@ The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opu
   > handoff_file: [absolute path of the temp handoff file from step 1]"
 
 3. **Handle the return.**
-   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.4 / 6.5 / 7 / 8. Then **commit** per the branch/commit policy below.
+   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.4 / 6.5 / 7 / 8. Then **commit** per the branch/commit policy below — `git -C <docs_repo_path> add -- <each path in files_written that lies under docs_repo_path>`, then `git -C <docs_repo_path> commit`. `files_written` also names what the writer put outside the docs repository — the `<KEY>-implementation-gaps.md` draft in the resolved PRD folder, and screenshots staged under `screenshot_staging_dir` — and those are never staged here: git refuses a path outside the repository (`fatal: … is outside repository`) and then stages nothing at all, so the commit would have nothing to commit. The gaps draft, like Phase 8.5's `pr-draft.md`, is `$SPECS_PATH`'s, and the terminal `commit-artifacts` step commits it (`workflows-core:specs-repo-git` §2.1). The run commits a staged screenshot nowhere — it is a copy kept only until the operator uploads it — so keep each one that lies under `$SPECS_PATH` out of that repository's `git status`, where `$SPECS_PATH` is a git work tree, lest every later run's `specs-preflight` meet it as a dirty path (that reference's §3.3 G1). Take `<rel>`, the staged path with its leading `$SPECS_PATH/` removed — a path that does not begin with it is outside the specs repository, and nothing is done for it — and where `git -C "$SPECS_PATH" check-ignore -q --no-index -- "<rel>"` exits 1, no rule matching it, append one anchored line naming it, its glob characters escaped, to the repository's local exclude file:
+
+     ```
+     f=$(git -C "$SPECS_PATH" rev-parse --git-path info/exclude) && case $f in /*) ;; *) f="$SPECS_PATH/$f" ;; esac && mkdir -p "$(dirname "$f")" && printf '\n/%s\n' "$(printf '%s' "<rel>" | sed -e 's/[][*?\\]/\\&/g' -e 's/ $/\\ /')" >> "$f"
+     ```
+
+     `--git-path` prints its path relative to the directory git ran in — `.git/info/exclude` at a top level — hence the `case`. That exclude file is the repository's own and never committed, so the line changes nothing anyone else sees. Exit 0 — a rule already ignores it — appends nothing, and so does any other exit, which is git failing rather than answering. Then run the same `check-ignore` again, and where it still does not exit 0, name the path in the Phase 9 report as left untracked in `$SPECS_PATH`.
    - **`status: BLOCKED`** — surface the named gap to the user:
      ```
      choices: ["Provide the missing input (you'll be prompted)", "Cancel"]
      ```
-     On a provided value, rewrite the handoff file and re-dispatch once.
+     On a provided value, rewrite the handoff file and re-dispatch once. **Where the gap is a target left `ambiguous` with a screenshot planned for it** — one Phase 5.7's single planner re-invocation newly returned, which that phase does not ask about — the value is that target's image policy: ask Phase 5.7's **Ambiguous image policy** question for each such target the writer names, taking each answer as that step takes one, then rewrite the run's checklist as the planner would have planned it — the `doc_planner_checklist` the handoff file carries, which is also the checklist Phase 7 hands `doc-reviewer`, so the reviewer judges each page against the plan as this loop leaves it — **Copy them into the repository beside the page**: set the target's `image_policy` to `local` and each screenshot's `dest` under the target's `image_dir`, the idiomatic directory `doc-planner` step 5 found among its sibling pages' local image references, where the checklist records one, and under `<page-dir>/img/` otherwise, as `doc-planner` step 6 plans one; **Stage for manual upload**: set `cdn_upload_required` and each screenshot's `staging` under `<screenshot_staging_dir>`, taking one from the user first where it is null, as Phase 5.7's step does, keeping the `upload_note` the planner wrote for each screenshot, which Phase 9's `### Screenshots to upload manually` quotes, and settle their upload as Phase 6.1 settles one — under the run's `cdn_handoff_decision` where Phase 6.1 made one, collecting each screenshot's `cdn_urls` entry as its **Upload now** does where that decision is `upload-now`, and asking Phase 6.1's question for them where it made none; **Leave these screenshots off this page**: remove the target's `screenshots:` entries and list each screenshot in Phase 9's `### Deferred items` — and re-dispatch once.
 
-Write context governs branch/commit (Phase 0 step 6); **the orchestrator commits the writer's output** (the writer never commits (still true — `doc-writer` runs no git at all; it only writes files)):
+Write context governs branch/commit (Phase 0 step 6); **the orchestrator commits the writer's output in the docs repository** (the writer never commits (still true — `doc-writer` runs no git at all; it only writes files)):
 
 | Write context | Branch | Commit |
 |---|---|---|
 | `obsidian` | NEVER | NEVER |
-| `docs_repo` | YES (opt-in confirmed at plan approval) — see Phase 6.2 | YES (orchestrator commits doc-writer's `files_written`) |
+| `docs_repo` | YES (opt-in confirmed at plan approval) — see Phase 6.2 | YES (orchestrator commits doc-writer's `files_written` that lie in the docs repo) |
 | `non_docs_repo` | Phase 0 step 2 already asked user to confirm; if confirmed, behave as `docs_repo` | YES (if user confirmed at Phase 0) |
 | `plain_dir` | NEVER | NEVER |
 
@@ -687,6 +707,7 @@ Invoke `docs-style-checker` on the files written in Phase 6.3:
   > "Run the style check for this brief:
   >
   > repo_root: [the resolved docs_repo_path (Phase 0)]
+  > site_root: [docs_repo_resolved (Phase 0 step 2), where it differs from docs_repo_path — the site's own .vale.ini, package.json and lint configuration are looked for there first, then in each directory above it up to docs_repo_path; omit the key otherwise]
   > files:     [absolute paths of every file written or modified in Phase 6.3]
   > spaces:    [one entry per space in profile.spaces that has a profile.commands.per_space entry — {id, content_root, lint}; omit the key entirely when the profile declares no per_space commands]"
 
@@ -696,7 +717,7 @@ Write the `style_check` ledger row before acting on the return — rewriting the
 
 - no file was written in Phase 6.3 → `NOT_APPLICABLE`, `precondition_unmet: "no files written"`.
 - a primary rung succeeded → `RAN`, `mechanism: <primary_linter> + prose-style-checker` (the complementary pass always runs; name `<primary_linter>` alone only when the return carries a `complementary_error`), `findings:` = the number of merged violations returned.
-- no primary rung produced a result — every detected rung failed, or none was ever detected — but `prose-style-checker` ran → `DEGRADED`, `not_run:` one entry per rung from `primary_attempts`, and `findings:` = the number of merged violations returned. `ci_still_checks:` depends on which of those two happened: where a rung was **detected and failed**, write `"<the repo's own linter> runs on the PR in CI"`; where **no rung was ever detected** there is no repo linter to name and CI checks nothing here, so write `"no repo-level linter is configured; the complementary semantic pass was the only coverage"`. §6 makes an empty `ci_still_checks` a BLOCKER, so the field is filled either way — but never by a claim about CI the repository cannot support.
+- no primary rung produced a result — every detected rung failed, or none was ever detected — but `prose-style-checker` ran → `DEGRADED`, `not_run:` one entry per rung from `primary_attempts`, and `findings:` = the number of merged violations returned. `ci_still_checks:` depends on which of those two happened: where a rung was **detected and failed**, name the linter the repository's CI runs on the pull request — `"<that linter> runs on the PR in CI"` — or say that none runs where the repository's CI runs none, with its reason (`"none runs: the repository has no CI build"`, or `"none runs: the repository's CI runs no linter"`); where **no rung was ever detected** there is no repo linter to name and CI checks nothing here, so write `"no repo-level linter is configured; the complementary semantic pass was the only coverage"`. §6 makes an empty `ci_still_checks` a BLOCKER, so the field is filled either way — but never by a claim about CI the repository cannot support.
 - `status: ERROR` → `UNAVAILABLE`; convert it per `gate-ledger.md` §5.
 
 Also write the `repo_checklist` row (creating it, or rewriting it in place if one exists): `NOT_APPLICABLE` with
@@ -730,7 +751,7 @@ Then act on the return:
 
 ## Phase 6.5 — Render verification
 
-**Ledger first — before the run-condition below.** Both gates this phase owns must carry a row on every run, including runs where the phase does not execute. Per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3 each gate holds exactly one row, so **rewrite** the row Phase 0's preflight pre-seeded rather than appending beside it — and when that pre-seeded row carries a `user_decision`, keep it: the user already decided to proceed without this tooling, and that decision stands until the gate itself proves otherwise. Create the row here only when the preflight did not pre-seed one:
+**Ledger first — before the run-condition below.** Both gates this phase owns must carry a row on every run, including runs where the phase does not execute. Per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3 each gate holds exactly one row, so **rewrite** the row Phase 0's preflight pre-seeded rather than appending beside it — and when that pre-seeded row carries a `user_decision`, keep it: the user already decided to proceed without this tooling, and that decision stands until the gate itself proves otherwise, or until a later answer of the user's decides the gate — Step 2's Skip (`gate-ledger.md` §3). Ledger (final) quotes that Skip on `render_smoke_check` whenever it is chosen, and on `build_check` only where a build did not run, Step 1 did not already decide the row, and the Skip declined that build's only remaining proof. A `build_check` row whose builds all ran keeps its own outcome and decision, and so does a row Step 1 left `SKIPPED_BY_USER` — except that wherever another build failed on its content, the row is `FAILED`, whatever was declined beside it. Create the row here only when the preflight did not pre-seed one:
 
 - Write context is `obsidian` or `plain_dir` → append BOTH `build_check` and `render_smoke_check` as `NOT_APPLICABLE` with `precondition_unmet` naming the actual context — `"write context is obsidian"` or `"write context is plain_dir"`. These rows are final; the phase does not run.
 - Write context is `docs_repo` or a confirmed `non_docs_repo` → append both provisionally as `RAN`, then rewrite each at the end of this phase per **Ledger (final)** below.
@@ -739,59 +760,112 @@ Run this phase after Phase 6.4 **only** when Phase 6.3 wrote files into a builda
 
 ### Step 1 — Build check (gating)
 
-Resolve the build command per space — `profile.commands.per_space.<space>.build`, else the flat `profile.commands.build` — and run it for every space in the **verification set** (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md` §2): every space whose `content_root` holds at least one affected page. Do NOT re-run the Phase 6.4 prose linter. Classify any failure:
-- **Content failure** (the template won't compile, unresolved snippet include, broken postid/internal link, malformed token) → invoke `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`; Severities: BLOCKER and MAJOR), then re-run the build once. If failures remain:
+Resolve the builds to run, most specific first (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md` §1 — the precedence `/docs-serve --build` uses):
+- **The profile records `builds[]`** → run **every** entry's `command`, in list order. They are the builds one content root renders into — the profile `/docs-init` writes records a public and an internal one — and an internal-only page is compiled by the internal build alone, so running one of them would pass a page the other cannot build.
+- **Otherwise** → `profile.commands.per_space.<space>.build`, else the flat `profile.commands.build`, run for every space in the **verification set** (`render-verification.md` §2): every space whose `content_root` holds at least one affected page.
+
+Run each from `docs_repo_path`, the top level every command the profile records runs from (Phase 0 step 2). Record **each build on its own** — its `builds[]` `id` (or, without `builds[]`, its space), its command, its exit code and, on a failure, its output — so a failure names the build that failed. Do NOT re-run the Phase 6.4 prose linter. Classify each failing build:
+- **Content failure** (the template won't compile, unresolved snippet include, broken postid/internal link, malformed token) → invoke `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`, model: `<detection_model — §9 / §2.1 Sonnet chain>`; Severities: BLOCKER and MAJOR), handing it **the failing build's output** as its `Reviewer or style-checker output` — each failing build under its `id` (or space), with its command and its output verbatim, every error it reports a BLOCKER at the file it names — then re-run every build this step resolved, once. If failures remain:
   ```
   choices: ["Proceed to smoke-check anyway", "Show remaining and fix manually", "Cancel"]
   ```
-- **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason; no `doc-fixer` loop:
-  ```
-  choices: ["Install <the missing tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run"]
-  ```
-  This is the `gate-ledger.md` §5 conversion for `build_check`, not an orchestrator decision: "Proceed without this check" writes `SKIPPED_BY_USER` with the chosen option quoted verbatim in `user_decision`. Do NOT present this list when the `build_check` row already carries a `user_decision` from Phase 0's preflight naming the same missing tool — the user answered this question before anything was written, and that answer stands. Record the failure reason in the row, keep the existing `user_decision`, and continue to Step 2 without prompting.
+- **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason and record the build as not run, with that reason; no `doc-fixer` loop. **Then test the registered fallback before anything is asked.** `build_check`'s fallback is the Step 2 dev-server boot (`gate-ledger.md` §4), and `UNAVAILABLE` means that neither the primary nor a fallback ran (`gate-ledger.md` §2), so a build that will not run does not by itself make the gate `UNAVAILABLE`. The fallback can run for that build where `bash` and `curl` are present, and off Linux `ps` — the smoke check's own tools, tested as Step 2's pre-check tests them — and the tool of the `command` of at least one of **that build's own servers** is present — a package manager with no installed dependencies counting as missing (`render-verification.md` §2 step 1). A build's own servers are the servers that publish what it compiles, among those Step 2 would boot for an affected page, chosen as Step 2 chooses them: for a `builds[]` entry, the server whose `visibility` pairs with the entry's (`docs-profile-schema.md`'s field rules); for a space's `commands.per_space.<space>.build`, that space's servers; for the flat `commands.build` — and, where the profile records no build command at all, for the proof Step 2 stands in for — every server Step 2 boots across the verification set. Never another build's server: it compiles another space or another configuration, so its boot proves nothing about this build. A command's tool is the one `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines — never a leading `cd`, which `command -v` finds on every host: `cd website && pnpm start` needs `pnpm` — and it is tested as that file's §3 tests it: by the form §3 gives a tool the run starts inside `bash -c`, as it starts every server, never a bare `command -v` in the Bash tool's own shell, which an alias or a shell function of that name passes — and asked from the directory the command runs from, `docs_repo_path` or the leading `cd <dir>` under it, never from the working directory, which reports a path-valued tool such as `node_modules/.bin/vitepress` missing from anywhere else.
+  - **The fallback can run** → ask nothing here and continue to Step 2, whose boot of that build's own servers is now its build proof; Ledger (final) records `build_check` from what Step 2 does. A `user_decision` Phase 0's preflight left on the row stays on it.
+  - **The fallback cannot run** → neither that build nor its fallback can run, so the gate is `UNAVAILABLE`, and this is its `gate-ledger.md` §5 conversion, not an orchestrator decision:
+    ```
+    choices: ["Install <the missing tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run"]
+    ```
+    "Proceed without this check" writes `SKIPPED_BY_USER` with the chosen option quoted verbatim in `user_decision` — where another build failed on its content, Ledger (final) records the row `FAILED` and keeps this decision on it (`gate-ledger.md` §2). Do NOT present this list when the `build_check` row already carries a `user_decision` from Phase 0's preflight naming the same missing tool — the user answered this question before anything was written, and that answer stands. Record the failure reason in the row, keep the existing `user_decision`, and continue to Step 2 without prompting.
 
-When the profile declares **no** build command at either level, record "no build command in profile; build proof deferred to the dev-server boot (Step 2)" and proceed. Under the built-in example-docs profile this branch does not apply — `commands.per_space.cloud.build` and `commands.per_space.self-hosted.build` are both defined.
+When the profile declares **no** build command at any of the three levels — no `builds[]`, no `commands.per_space.<space>.build`, no `commands.build` — record "no build command in profile; build proof deferred to the dev-server boot (Step 2)" and proceed. Under the built-in example-docs profile this branch does not apply — `commands.per_space.cloud.build` and `commands.per_space.self-hosted.build` are both defined — and under a profile `/docs-init` wrote it does not either, since that profile records `builds[]`.
 
 ### Step 2 — Dev-server smoke-check (opt-in, best-effort)
 
-Offer it. Present this list **verbatim** — the "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules` forbids moving `(Recommended)`, reordering the options, or re-wording them. Dev-server flakiness and a clean static check are reasons to say something in prose beside the list; they are never reasons to recommend Skip.
+Offer it. Present this list **verbatim** — the "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules` forbids moving `(Recommended)`, reordering the options, or re-wording them. Dev-server flakiness and a clean static check are reasons to say something in prose beside the list; they are never reasons to recommend Skip. Where Step 1 could not run a build — the profile records none, or a build would not run for an environmental reason and the fallback can run — say so beside the list too: the boot of that build's own servers (Step 1) is then the only proof for what it compiles, so Skip declines the build check with it (Ledger (final)).
 ```
 choices: ["Run smoke-check (Recommended)", "Skip — use the manual table only", "Cancel"]
 ```
 
-When run, boot each space in the **verification set** — every space whose `content_root` holds at least one affected page (see `render-verification.md` §2) — **sequentially** (`profile.dev_servers.concurrent: false` forbids overlap). Full mechanics in `render-verification.md`:
-1. **Prerequisites (best-effort, never auto-applied).** Verify `profile.prerequisites`. The `.docstack` shim is a local, gitignored dev-environment workaround — check it, NEVER apply it. Unmet → record "smoke-check skipped for `<space>`: prerequisite `<x>` unmet" and use the manual table for that space.
-2. **Boot** `profile.dev_servers.servers[<space>].command` in the background; record the process id.
-3. **Readiness poll** — GET `http://localhost:<port><base_path>/` until HTTP 200 or `profile.dev_servers.readiness_timeout_seconds` seconds (fall back to **120** when absent). On timeout → stop the process, record "smoke-check skipped for `<space>`: not ready", use the manual table for that space.
-4. For each affected page in `<space>`, GET its derived URL (Step 3 route rule) → assert **HTTP 200**.
-5. **Stop the server** (kill the recorded process id) before the next space.
+When run, check each space in the **verification set** — every space whose `content_root` holds at least one affected page (see `render-verification.md` §2) — **one server at a time** (`profile.dev_servers.concurrent: false` forbids overlap). **Choose the server per affected page, never by the space alone** (`render-verification.md` §2): `dev_servers.servers[]` is not keyed by space, and the two-build profile `/docs-init` writes records two servers for its one space. Among the `servers[]` entries whose `space` is the space's `id`:
+- **one** — it checks every affected page in the space;
+- **one tagged `visibility: public` and one tagged `visibility: internal`** — a page is checked on the public server unless the public build excludes it, and then on the internal server; `${CLAUDE_PLUGIN_ROOT}/references/docs-workflow/visibility.md` §1 (**the model**) decides which pages the public build excludes;
+- **any other set of more than one** — nothing tells them apart, and a guessed server is a false result either way: record "smoke-check skipped for `<space>`: `<n>` servers share it and nothing tells them apart" and use the manual table for that space;
+- **none** — record "smoke-check skipped for `<space>`: no dev server is recorded for it" and use the manual table for that space.
+
+Boot a space's public server before its internal one, and skip a server no affected page was assigned to. A port **answers** while something listening on it takes a connection from `localhost`. The probe is `command curl -s -o /dev/null --noproxy '*' --max-time 2 http://localhost:<port>/`, read by its exit code alone: **7**, a refused connection, is a port that does not answer; **127** means curl could not run — no answer either way, never an answering port and never a quiet one; **any other code** is a port that answers — a listener took the connection or left it waiting, an HTTP error, an empty reply, a reset and a 28 (`--max-time` running out on a silent listener) included. The probe itself needs no socket table; the free test in Step 2 below adds the listening read to it (`render-verification.md` §2), which needs nothing installed on Linux and `lsof` off it, and where that is missing the probe decides alone. Every **GET** below — the readiness poll and the page requests — is `command curl -sL -o /dev/null -w '%{http_code}' --noproxy '*' --max-time 10 <url>`, read by the status it prints: the last response's, since `-L` follows a redirect (`mkdocs serve` answers a route without its trailing slash with a 302), or `000` where no response came. **Every request this check makes carries `--noproxy '*'`**: with `http_proxy` or `ALL_PROXY` set and no `no_proxy` naming `localhost`, curl hands a request for `localhost` to the proxy, which answers it — exit 0 on a port nothing listens on, and its own page in place of the server's. **Before the first boot, confirm that `bash` and `curl` are present and, where `test -r /proc/net/tcp` fails — off Linux — that `ps` is too**, each tested as `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §3 tests a tool run through `bash -c` or as `command <name>`, never by a bare `command -v`, which an alias or a shell function of that name passes: step 2 reads the process group it made, and step 5 that group's members and a listener's parents, from `/proc` on Linux, which needs nothing installed, and with `ps` elsewhere (`render-verification.md` §2, **Portability**, defines each read). Where one is missing, the check cannot run — boot nothing, record "smoke-check unavailable: `<tool>` is not installed" (`render-verification.md` §2, **The endings**, ending 4), and every page uses the manual table. A probe that exits 127 anyway, part-way through, ends the check the same way: boot no further server, signal the process group of one this run already booted as step 5 does, record "smoke-check unavailable: curl could not run (exit 127) — `<space>`'s server was signalled, and its port could not be probed; its log is `<log>`" (ending 4's other form), and every page not yet checked uses the manual table. For each server booted — full mechanics in `render-verification.md` §2:
+1. **Prerequisites (best-effort, never auto-applied).** Verify `profile.prerequisites`. The `.docstack` shim is a local, gitignored dev-environment workaround — check it, NEVER apply it. Unmet → record "smoke-check skipped for `<space>`: prerequisite `<x>` unmet" and use the manual table for that space. **Then check the server's command's tool** — the tool `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 defines, tested as its §3 tests it, asked from the directory the command runs from — `docs_repo_path`, or the directory a leading `cd <dir>` names under it, which is what resolves a path-valued tool — the same check `/docs-serve` makes before it starts one (its Phase 4) and Step 1 makes for a failed build's own servers. A `pnpm`, `npm` or `yarn` whose lockfile, the nearest at or above the directory the command runs from, has no `node_modules/` beside it — nor, for Yarn, a `.pnp.cjs` — counts as missing too: its dependencies are not installed, and the server would fail as surely (`render-verification.md` §2 step 1 states the rule). Missing → boot nothing for this server: record "smoke-check skipped for `<space>`: `<tool>` is not installed", or, for missing dependencies, "smoke-check skipped for `<space>`: `<tool>`'s dependencies are not installed (`<lockfile>` has none beside it)", use the manual table for this server's pages, and go on to the next server. A server whose tool is missing could never start, so it is never booted, and the check never waits out a readiness timeout for it.
+2. **Probe, then boot — a port is free only where nothing answers on it and nothing is listening on it** (`render-verification.md` §2, which defines free and gives the listening read). Where the server's `port` already answers, something this run did not start holds it: boot nothing, signal nothing, and **boot no further server** — record "smoke-check stopped at `<space>`: port `<port>` was answering before its server booted" (ending 1), and every page not yet checked uses the manual table. Where nothing answers but the listening read finds a socket in `LISTEN` on the port — a listener bound to an address `localhost` does not reach — do the same, recording "smoke-check stopped at `<space>`: port `<port>` had a listener the probe could not reach before its server booted" (ending 1's other form), with that listener's pid where the read names one. Otherwise boot the chosen server **in a process group of its own**, with one Bash call — `command bash -c 'set -m; (cd <docs_repo_path> && <command>) > <log> 2>&1 & echo $!'` — where `<command>` is its `command` with every `{port}` replaced by that server's configured `port` — never run with the token unsubstituted (`docs-profile-schema.md`'s field rule) — and `<log>` is a file outside every repository tree (`command mktemp -t dw-smoke-XXXXXX` names one), where a server that fails to boot leaves its output; inside the single-quoted script, write each `'` those three carry as `'\''`. The explicit `command bash -c` makes job control, `$!` and step 5's group signals bash's whatever shell the Bash tool uses — Claude Code runs that tool in bash or in zsh, zsh on a default macOS, whose `/bin/bash` (3.2) has all three. With job control on, the printed pid is the id of a new process group that every wrapper and child of the command inherits (an `npm` or `pnpm` script, the `sh` it runs, the server itself) unless one leaves it for a session of its own, which step 5 meets only by a port it already holds; and the job outlives the call. The command keeps its server in the foreground (`docs-profile-schema.md`'s field rule for `dev_servers.servers[].command`): one that detaches it — `setsid`, `nohup … &`, a trailing `&`, `docker run -d`, or a tool that detaches itself, as Astro 7 does under an agent unless `ASTRO_DEV_BACKGROUND` — or, for `astro preview`, since 7.2, `ASTRO_PREVIEW_BACKGROUND` — is set (that field rule names each opt-out) — is a profile defect, and a server it moves out of the group — as `setsid` and `docker run -d` do — is one this check can neither stop nor see bind late. Confirm it: `<pid>`'s process group, read as `render-verification.md` §2's **Portability** paragraph reads one — from `/proc/<pid>/stat` on Linux, with `command ps -o pgid= -p <pid>` elsewhere — is `<pid>`, or nothing where the job has already exited — and that pid is the `<pgid>` step 5 signals. Any other number means job control gave it no group of its own: hold the pid alone, and step 5 stops it by its no-group path.
+3. **Readiness poll** — GET `http://localhost:<port><base_path>/`, this server's own, until HTTP 200 or `profile.dev_servers.readiness_timeout_seconds` seconds (fall back to **120** when absent). **At every interval at which the GET gets no response (`000`), test the group too**, where step 2 holds a `<pgid>`, by step 5's gone-group test — the process table names no member of the group, or every member it names is a zombie, never a failing `kill -0` on its own — and **a gone group ends the poll at once**, as `/docs-serve` Phase 5's poll ends: the command exited without its port answering (a theme not installed, a configuration it cannot load, a script its package lacks) and nothing of its group is left to bind the port, so the check never waits out the timeout for it. Record "smoke-check skipped for `<space>`: its server exited before it was ready — its command was `<command>`", with the last twenty lines of `<log>`, and use the manual table for this server's pages; then probe the port — the group being gone already, the probe decides: quiet → go on to the next server; still answering → a process outside the group holds it, and step 5's **Either not confirmed** applies: that process is signalled first, then both things are confirmed again, as `render-verification.md` §2 step 5, sub-step 4, the authority, says. Without a `<pgid>` the poll has no group to test and runs to its timeout. On timeout → stop it as step 5 says. Confirmed stopped → record "smoke-check skipped for `<space>`: not ready", use the manual table for this server's pages, and go on to the next server — nothing of its group survives to bind the port later. Not confirmed → step 5's record ends the check. **Without a group of its own, a timeout ends the check**, since nothing can tell whether a process of it will bind the port after the check has moved on: stop what the run holds (step 5), **boot no further server**, record "smoke-check stopped at `<space>`: not ready, and started without a process group of its own — port `<port>` may still bind; its command was `<command>`, its log `<log>`" (ending 3), and every page not yet checked uses the manual table.
+4. For each affected page assigned to this server, GET its derived URL (Step 3 route rule) → **HTTP 200** passes; a 404 or a 5xx is recorded as Outcomes below says.
+5. **Stop the server by signalling its process group** — after its pages and after a readiness timeout alike: `command bash -c 'kill -TERM -- -<pgid>'`, wait up to 5 seconds for the group to be gone, and where it is not, `command bash -c 'kill -KILL -- -<pgid>'` and wait up to 5 seconds more (a killed process stays in its group until its parent reaps it). **Confirm two things**: the group is gone and the port is quiet (the probe). The group is gone where the process table names **no** member of `<pgid>` at all, or where every member it names is a zombie — the states `render-verification.md` §2's **Portability** paragraph reads for the group's members, from `/proc/[0-9]*/stat` on Linux and with `command ps -A -o pgid=,stat=` elsewhere, are all `Z`, or on a `ps` all begin with `Z`: a zombie runs nothing and holds no port, and under a parent that never reaps — a container whose PID 1 is `sleep infinity` — it stays in the group for good. `command bash -c 'kill -0 -- -<pgid>'` settles only the other half: exit 0 means a member is alive and signallable, so the group is **not** gone; a non-zero exit means either no such group or one this user may signal no member of — `EPERM`, which a `sudo`'d command's group gives and which bash exits 1 for exactly as it does for "no such process" — so a failing `kill -0` is never read as a gone group, and the process table, which names another user's processes too, decides (`render-verification.md` §2 step 5). Both → the next server may boot. **Either not confirmed** → where the port still answers, a process outside the group holds it: read its listener's pid from the socket table, as `/docs-serve` Phase 5 does, by `${CLAUDE_PLUGIN_ROOT}/commands/docs-serve.md` Phase 2's definition (**The evidence**, item 1's opening paragraph: the processes `render-verification.md` §2's **Portability** socket-table read names for the port, from `/proc` on Linux and with `lsof` elsewhere; the one the others descend from where several are named; no listener where it names none, or where off Linux no `lsof` is installed to read it) — and by nothing else of it: not its checkout test, because this run started the server on a port it found silent, and not its living-entry test, because this command keeps no state file and uses the pid once, in this stop, without recording it — then `SIGTERM` it, wait up to 5 seconds for the port to stop answering, `SIGKILL` it if it still answers, and confirm both things again. Where either is still not confirmed after that → **boot no further server**: record "smoke-check stopped after `<space>`: `<what>` — left running; its command was `<command>`, its log `<log>`" (ending 2), where `<what>` is "port `<port>` still answers" (with its listener's pid where the socket table names one) or "process group `<pgid>` still runs", and every page not yet checked uses the manual table. **Without a group of its own**, stop what the run holds: `SIGTERM` the pid step 2 holds and, where the port answers, its listener; wait up to 5 seconds for the port to stop answering; `SIGKILL` both if it still answers; then the probe decides — quiet, the next server may boot unless this stop followed a timeout (step 3 ends the check); still answering, boot no further server, recorded as above. **Remove a server's `<log>` once it is confirmed stopped** — both things confirmed, after its pages, after a readiness timeout or after step 3 found its group gone, or, without a group of its own, its port quiet with no timeout behind it — with `command rm -f -- "<log>"`, once any record has quoted what it needs from it; a server the check cannot show stopped keeps its log, and the record that ends the check names it (`render-verification.md` §2 step 5). A missing `lsof` alone never ends the check; what ends it, what each ending records and what that record names are `render-verification.md` §2's **The endings**, the definition this command cites and never restates.
+
+Where a space has two servers, `<space>` in each record above names the server as well — `docs (internal)`.
 
 Outcomes:
-- **404/500** on an affected page = render defect → treat as a Step 1 content failure (offer `doc-fixer` / surface).
-- Any **boot / prerequisite / readiness** problem is best-effort → never blocks; that space falls back to the manual table.
+- **404** on an affected page → ❌ with its URL, and the page stays on the manual table. **Never a content failure by itself, and never a `doc-fixer` dispatch**: the route is best-effort (Step 3), so a 404 cannot tell a wrong route from a missing page, and Step 1's build check — every build that compiles an affected page — owns compile failures.
+- **5xx** on an affected page = render defect → treat as a Step 1 content failure (offer `doc-fixer` / surface): a server error is not a routing question.
+- A **boot / prerequisite / missing server tool / readiness** problem is best-effort → never blocks; that space falls back to the manual table — on a space with two servers, that server's pages — unless it is one of the endings below.
+- Each of the endings `render-verification.md` §2's **The endings** defines ends the whole smoke-check rather than one space's part of it → never blocks; every page not yet checked falls back to the manual table, and `render_smoke_check` records the ending among its `DEGRADED` reasons and never `UNAVAILABLE` (Ledger (final)). **What each ending records, and what that record names, is that list's to say.** Write the record it gives, and nothing it does not.
 
 ### Step 3 — "Pages to visit" table (always)
 
-Emit a table, one row per affected page — its URL (`http://localhost:<port><base_path>/<route>`, derived against its own space's dev server) and what to verify ("confirm the page renders as intended"). When the smoke-check ran, annotate each row ✅ 200 / ⚠️ skipped (reason) / ❌ failed.
+Emit a table, one row per affected page — its URL (`http://localhost:<port><base_path>/<route>`, derived against the server Step 2 chose for it; a page Step 2 chose no server for gets its route on each of its space's servers, or the route alone where the space records none) and what to verify ("confirm the page renders as intended"). When the smoke-check ran, annotate each row ✅ 200 / ⚠️ skipped (reason) / ❌ with its status.
 
-**Route derivation (best-effort):** `<route>` = the page path relative to its space's `content_root` with a trailing `index.md`/`.md` removed. Approximate — a wrong route that 404s in Step 2 simply downgrades that page to the manual table.
+**Route derivation (best-effort):** `<route>` = the page path relative to its space's `content_root` with a trailing `index.md`/`.md` removed. Approximate — so a 404 in Step 2, a wrong route or a missing page alike, is ❌ with its URL and leaves that page on the manual table; it is never a content failure by itself (Step 2's Outcomes).
 
 Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render verification` section, and pass a one-paragraph `render_verification` summary to Phase 7.
 
-**Ledger (final).** Rewrite the two rows appended at the top of this phase (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3). A row already written as `NOT_APPLICABLE` is never reached here — this phase did not run:
+**Ledger (final).** Rewrite the two rows appended at the top of this phase (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3). A row already written as `NOT_APPLICABLE` is never reached here — this phase did not run. Where one part of a gate `FAILED` and another only `DEGRADED` — one build failed on its content while another did not run, or one space answered a 5xx while another fell back — the row is `FAILED` and records the degraded part in its `not_run` and `ci_still_checks` (`gate-ledger.md` §2). A content `FAILED` also outranks a decision to proceed without another part — Step 1's §5 conversion, the preflight's decision Step 1 kept, or Step 2's Skip: the row is still `FAILED`, records the declined part the same way, and keeps that decision in `user_decision`, because a content failure is never hidden behind a skip (`gate-ledger.md` §2):
 
-- `build_check` — `RAN` when a build command executed; `DEGRADED` when no build command exists and the
-  Step 2 boot served as the proof, with `ci_still_checks: "the repo's build runs on the PR in CI"`;
-  `FAILED` on a content failure. A row Step 1 already wrote as `SKIPPED_BY_USER` (its §5 conversion,
-  when the build tool would not run and the user chose to proceed) is **final — do not rewrite it**.
-  `UNAVAILABLE` applies only when the build could not be attempted AND Step 1 did not already convert
-  it: no build command exists **and** Step 2 did not run. That is the coverage hole
-  `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5 predicts — convert per
-  `gate-ledger.md` §5. When the user has just declined the Step 2 smoke-check, fold this conversion into that same decision rather than prompting twice — record `SKIPPED_BY_USER` carrying their Step 2 choice, since declining the only remaining source of build proof is declining the build check.
-- `render_smoke_check` — `RAN` when the smoke-check completed for every space in scope;
-  `DEGRADED` when at least one space fell back to the manual table, with `not_run:` naming the space
-  and its reason (prerequisite unmet / boot failure / readiness timeout);
+- `build_check` — `RAN` when every build Step 1 resolved executed; `FAILED` on a content failure.
+  `mechanism` names every build Step 1 ran, each by its `id` (or space) with its result —
+  `public: pass; internal: fail` — so a `FAILED` row names the build that failed.
+  `DEGRADED` when a build did not run — the profile records no build command, or Step 1 met an
+  environmental failure (its tool missing, a missing `.docstack` shim, any reason the build tool
+  would not run) and found the fallback able to run — and, for every build that did not run, the
+  Step 2 boot served as its proof: one of **that build's own servers** (Step 1 defines them — every
+  server Step 2 booted, where the profile records no build command) answered its readiness poll
+  with a 200, which proves what that build compiles (`render-verification.md` §1). A server of
+  another build answering proves nothing about this one. `not_run:` names each build that did not
+  run and why (`no build command in profile`, or the environmental failure Step 1 recorded, such as
+  `<tool> is not installed`), and `ci_still_checks:` names the build CI runs on the pull request, or
+  says that none runs where the repository has no CI build.
+  A `user_decision` Phase 0's preflight left on the row stays on it.
+  A row Step 1 leaves as `SKIPPED_BY_USER` — its §5 conversion, when neither the build nor its
+  fallback could run and the user chose to proceed, or the preflight's decision on that same missing
+  tool, which Step 1 kept — is **final — do not rewrite it**, except where another build failed on
+  its content: the row is then `FAILED` (above), with that decision kept in `user_decision` and the
+  build that did not run in `not_run` and `ci_still_checks`.
+  `UNAVAILABLE` applies only when a build did not run, Step 1 did not already convert it, and the
+  Step 2 boot did not serve as its proof. **Where that is because the user chose Skip at Step 2**,
+  their Step 2 choice is the decision this row quotes, in place of any decision Phase 0's preflight
+  left on the row: record `SKIPPED_BY_USER` with it (`FAILED` with it, where another build failed on
+  its content — above), and ask nothing more. Declining the only remaining source of build proof is
+  declining the build check, and it is the decision that removed the proof. **Otherwise** — Step 2
+  ran and none of that build's own servers it booted became ready, or it booted none of them — this
+  is the coverage hole `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5 predicts: convert
+  per `gate-ledger.md` §5, except where the row carries Phase 0's decision on the same missing tool,
+  which stands, as it does in Step 1, and the row records `SKIPPED_BY_USER` with it — in either case
+  `FAILED` with the decision, where another build failed on its content (above).
+- `render_smoke_check` — `RAN` when the smoke-check completed for every space in scope — a 404 does
+  not change that, since the page's server booted and was checked and the 404 is no content failure:
+  `findings:` counts the affected pages annotated ❌, each already surfaced with its URL; `FAILED`
+  when an affected page answered a 5xx — a render defect, handled as a Step 1 content failure and
+  recorded on this row, never on `build_check`'s;
+  `DEGRADED` when at least one space — or one server of a space with two — fell back to the manual
+  table, with `not_run:` naming the space (and the server) and its reason (prerequisite unmet / its
+  command's tool not installed / boot failure / readiness timeout / servers nothing tells apart / no
+  server recorded / one of the endings `render-verification.md` §2's **The endings** defines, whose
+  reason and named detail are that ending's own row there — quoted from it, never widened to what
+  another ending names), and with a `ci_still_checks:` line naming the build CI runs on the pull request, or
+  saying that none runs where the repository has no CI build — never a claim that CI renders these
+  pages;
   `SKIPPED_BY_USER` with the chosen option quoted verbatim when the user selected Skip.
+  Each reason `DEGRADED` lists falls back to the manual table, and that table is this gate's
+  registered fallback (`gate-ledger.md` §4), which Step 3 always emits and which needs no tool — so
+  `render_smoke_check` never records `UNAVAILABLE`, and no ending of it asks the `gate-ledger.md` §5
+  conversion. A `user_decision` Phase 0's preflight pre-seeded on this row stays on it (this phase's
+  opening paragraph), unless the user selected Skip, whose choice the row then quotes in its place.
 
 ---
 
@@ -806,23 +880,24 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
   > Written doc file paths: [absolute paths of every file written in Phase 6.3]
   > PRD folder path:        [the resolved folder]
   > Diff summaries:         [array of diff-summarizer outputs from Phase 5]
-  > doc-planner checklist:  [the full YAML from Phase 5.7]
+  > doc-planner checklist:  [the full YAML from Phase 5.7 — as Phase 6.3's `BLOCKED` loop left it, where that loop rewrote it]
   > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or prose-style-checker; same violation schema regardless of source]
   > gate_ledger:        [the complete gate_ledger block — one row per gate in references/gate-ledger.md §4, including the Phase 0 toolchain_preflight row]
-  > render_verification: [the Phase 6.5 summary — build result; smoke-check per space (passed / skipped with reason)]
+  > render_verification: [the Phase 6.5 summary — each build's result, named by its `id` (or space); smoke-check per space, and per server where a space has two (passed / skipped with reason / stopped, naming what that ending's own record names — `render-verification.md` §2, **The endings**), with every ❌ page's URL and status — a 404 left on the manual table, a 5xx a render defect]
   > code_repos:         [the Phase-4 resolved {slug, path} map; [] if none resolved]
   > existing_image_decisions: [the Phase 5.6/6.1 stale-image-swap array, one entry per **reviewed occurrence** and each {target, occurrence, old_url, new_url, section, decision}. `[]` when the per-item existing-image review did not run — the existing-image list was empty, or the user chose "Add-list only" / "Nothing to do" at the Phase 5.6 merged prompt. An all-declined review is NOT `[]`: every reviewed occurrence appends an entry, `decision: declined` included. Supplies the swap-completeness evidence for the 'Screenshots' dimension]
+  > cdn_upload_resolutions: [one entry per screenshot that checklist places on a target whose `image_policy` is `cdn_upload_required` — {target, image, resolution, cdn_url}, `image` being the key Phase 6.1 records its `cdn_urls` entry under: `resolution: uploaded` with that `cdn_urls[<image>]` as `cdn_url` where the run's `cdn_handoff_decision` was `upload-now` — Phase 6.1's, or, where that phase made none, the one Phase 6.3's loop took with Phase 6.1's question — and `resolution: deferred` with `cdn_url: null` where it was `defer`. `[]` when no screenshot has that policy. Tells the 'Screenshots' dimension which form each such image must take: its real CDN URL, or a TODO placeholder listed for manual upload]
   > profile:            [the resolved docs-profile from Phase 0 — supplies frontmatter.changelog_guidelines and spaces[]]"
 
 Act on the verdict:
 
 **Triage sub-step** (before any fixer dispatch): invoke `Skill(skill: "workflows-core:reference", args: "finding-triage")` and follow it. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
 
-- **BLOCK** — invoke `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`) with `Severities to fix: BLOCKER and MAJOR`. Write the `doc-fixer` Fix Report to a temp file (`mktemp -t dw-doc-claims-XXXX.md`, never inside a repo tree or the specs tree), record its path as `claims_file`, then **check `doc-fixer`'s `Stop condition flag` before re-invoking anything**. If it is `NEEDS HUMAN`, the fixer deferred at least one BLOCKER as needing a human decision: do NOT re-invoke `doc-reviewer` — a re-review can only re-find the BLOCKER the fixer has just reported it could not resolve — and instead surface each deferred BLOCKER with the reason the fixer gave, then escalate it individually per the `Review verdict BLOCK (unresolved after one fix cycle) — /document` rule in `workflows-core:escalation-rules`, which names this entry point alongside the second-BLOCK one. Only when the flag is `CLEAR` do you re-invoke `doc-reviewer` once **passing `claims_file`** — so the re-review falsifies the fixer's account rather than assuming it. If the second verdict is still BLOCK, escalate for each unresolved BLOCKER individually per the `Review verdict BLOCK (unresolved after one fix cycle) — /document` rule in `workflows-core:escalation-rules`:
+- **BLOCK** — invoke `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`, model: `<detection_model — §9 / §2.1 Sonnet chain>`) with `Severities to fix: BLOCKER and MAJOR`. Write the `doc-fixer` Fix Report to a temp file (`command mktemp -t dw-doc-claims-XXXXXX`, never inside a repo tree or the specs tree), record its path as `claims_file`, then **check `doc-fixer`'s `Stop condition flag` before re-invoking anything**. If it is `NEEDS HUMAN`, the fixer deferred at least one BLOCKER as needing a human decision: do NOT re-invoke `doc-reviewer` — a re-review can only re-find the BLOCKER the fixer has just reported it could not resolve — and instead surface each deferred BLOCKER with the reason the fixer gave, then escalate it individually per the `Review verdict BLOCK (unresolved after one fix cycle) — /document` rule in `workflows-core:escalation-rules`, which names this entry point alongside the second-BLOCK one. Only when the flag is `CLEAR` do you re-invoke `doc-reviewer` once **passing `claims_file`** — so the re-review falsifies the fixer's account rather than assuming it. If the second verdict is still BLOCK, escalate for each unresolved BLOCKER individually per the `Review verdict BLOCK (unresolved after one fix cycle) — /document` rule in `workflows-core:escalation-rules`:
   ```
   choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run"]
   ```
-  "Manual fix notes" → take free-text from the user; apply via `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`) in a bounded one-shot pass (no further re-review cycle). "Defer" → record in Phase 9 `### Deferred items` without an override flag. "Override" → record in `### Deferred items` with the user's rationale. "Cancel" aborts.
+  "Manual fix notes" → take free-text from the user; apply via `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`, model: `<detection_model — §9 / §2.1 Sonnet chain>`) in a bounded one-shot pass (no further re-review cycle). "Defer" → record in Phase 9 `### Deferred items` without an override flag. "Override" → record in `### Deferred items` with the user's rationale. "Cancel" aborts.
 
 - **PASS WITH RECOMMENDATIONS** — invoke `doc-fixer` for MAJOR findings only:
 
@@ -846,7 +921,16 @@ Cap: one fix cycle + one re-review maximum.
 
 ## Phase 8 — Post-implementation maintenance
 
-First gather the change context:
+**First remove this run's temp files.** Nothing from here on reads one — Phase 6.3's `doc-writer`
+handoff file — one path, which a `BLOCKED` return has that phase rewrite in place — and, where
+Phase 7's BLOCK branch wrote one, its `claims_file`. Remove each as `command rm -f -- "<path>"`: `command`
+because the Bash tool's shell carries the user's aliases and shell functions, and an `rm -i` or `rm -I`
+of theirs would ask before removing the file, be answered no from that shell's empty standard input,
+and leave it behind; `--` ends `rm`'s options. Nothing else removes one — they sit under the system's
+temporary directory, outside every repository, where no later phase and no later run looks. A run that
+stops before this phase removes the files it had made, in the same way.
+
+Then gather the change context:
 
 a. Run `git -C <docs_repo_path> diff --stat` against the base branch (if branching happened at Phase 6.2) or against HEAD (if no branching) and capture the list of changed files.
 b. Compose a **change summary block**:
@@ -903,9 +987,9 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
-> - Command run: /document
+> - Command run: /document (keyed mode)
 > - What was done: [one-paragraph summary of the documentation produced]
-> - Key events: [BLOCK reviews encountered and their reason, ambiguous image policies, unresolved PRs, style-check failures, branch-naming conflicts — or 'none']
+> - Key events: [BLOCK reviews encountered and their reason, ambiguous image policies, unresolved refs, style-check failures, branch-naming conflicts — or 'none']
 > - Workarounds used: [manual steps not automated by the workflow — or 'none']
 > - Review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK]
 > - Test result: N/A (no tests in /document)
@@ -929,7 +1013,7 @@ report still appears in the report; this step NEVER fails the run, NEVER
 commits (still true — this step only writes the feedback file; those writes
 are committed by the separate terminal `commit-artifacts` step, per
 `workflows-core:specs-repo-git` §4), and NEVER writes
-into the docs repo or the current working directory.
+into the docs repo or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -939,27 +1023,27 @@ Run this phase only when Phase 6.3 wrote + committed in a git repo (write contex
 
 ### Step 1 — Squash (always)
 
-Fold the run into clean history before handoff:
+Fold the run into clean history before handoff, every git call as `git -C <docs_repo_path>` (Phase 6.2):
 1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) may have edited without committing; the Phase 6.2 clean-tree check means everything uncommitted is this run's work.
-2. Compute the squash base: if Phase 6.2 recorded `profile_commit` (inline-profiling run), base = `profile_commit` (keeps the profile-config commit as a distinct first commit → two commits); otherwise base = `git merge-base <base_branch> HEAD` (one commit).
-3. `git add` the docs-repo changes → `git reset --soft <squash-base>` → one `git commit`. The message follows `profile.commit_convention` when present (example-docs: `<KEY> <summary>`); for a repo with no such field, infer from recent `git log` / `CONTRIBUTING`, else fall back to `<KEY> <summary>`. NEVER put the key in a reader-visible changelog — see `workflows-core:doc-structure-conventions` §1.
+2. Compute the squash base: if Phase 0 recorded `profile_commit` (inline-profiling run), base = `profile_commit` (keeps the profile-config commit as a distinct first commit → two commits); otherwise base = `git -C <docs_repo_path> merge-base <base_branch> HEAD` (one commit).
+3. `git -C <docs_repo_path> add -- <each path under docs_repo_path this run wrote or edited>` → `git -C <docs_repo_path> reset --soft <squash-base>` → one `git -C <docs_repo_path> commit`. Never a path outside the docs repository — the implementation-gaps draft, a staged screenshot, or Phase 8's feedback file under `$SPECS_PATH` — which git refuses along with every other path in the same `add`. The message follows `profile.commit_convention` when present (example-docs: `<KEY> <summary>`); for a repo with no such field, infer from recent `git -C <docs_repo_path> log` / `CONTRIBUTING`, else fall back to `<KEY> <summary>`. NEVER put the key in a reader-visible changelog — see `workflows-core:doc-structure-conventions` §1.
 
 ### Step 2 — Offer push
 
 ```
 choices: ["Push <branch> to origin now", "Skip — I'll push later", "Cancel"]
 ```
-- **Push** → `git push -u origin <branch>`; report the result. (`git push` is git-protocol, not a REST API — the zero-external-API invariant is preserved.)
+- **Push** → `git -C <docs_repo_path> push -u origin <branch>`; report the result. (`git push` is git-protocol, not a REST API — the zero-external-API invariant is preserved.)
 - **Skip** → "Branch `<branch>` ready with N commit(s). Push when ready."
 - **Cancel** → stop and summarise.
 
 ### Step 3 — Copy-paste PR draft (always; no API)
 
 Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §4–§5:
-1. **Detect the host** from the docs repo's `git remote get-url origin` (Bitbucket Cloud / Bitbucket Server / GitHub / other).
+1. **Detect the host** from the docs repo's `git -C <docs_repo_path> remote get-url origin` (Bitbucket Cloud / Bitbucket Server / GitHub / other).
 2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.5 render-verification summary, deferred style/review/render items, a link to the PRD. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <KEY>-implementation-gaps.md is resolved.` A qualifying `document-as-code` decision (§7.5) does NOT get this banner even though it also produces a gaps file — the docs correctly describe what shipped, so the PR is mergeable; only the source ticket needs correcting.
-3. **Write + show**: write `pr-draft.md` to the resolved PRD folder (`ignore: legacy find $x -maxdepth 5 -type d -name "<KEY>*"`; ask if none) AND print it.
-4. **Host footer**: Bitbucket → "open a PR in the web UI and paste the title + body"; GitHub → additionally offer `gh pr create --title "<title>" --body-file <pr-draft path>` that the user may run; other → "open a PR and paste the title + body". Bitbucket offers no CLI to open one — a host capability limit, not a policy: the plugin does open a pull request on a host with a CLI, but only in the separate GitHub-hosted specs repo (`$SPECS_PATH`), via a different flow — never in this docs repo (`workflows-core:phase-handoff` §2.6).
+3. **Write + show**: write `pr-draft.md` to the resolved PRD folder (ask if none) AND print it.
+4. **Host footer**: Bitbucket → "open a PR in the web UI and paste the title + body"; GitHub → additionally offer `gh pr create --title "<title>" --body-file <pr-draft path>` that the user may run; other → "open a PR and paste the title + body". Bitbucket offers no CLI to open one — a host capability limit, not a policy: the family does open a pull request where a host offers a CLI (`workflows-core:phase-handoff` §2.6 in `$SPECS_PATH`, `dev-workflows:code-handoff` §2.6 in a code repo), and no command of this plugin opens one anywhere, this docs repo included.
 
 Carry the squash result, push outcome, and PR-draft path into the Phase 9 report.
 
@@ -1018,15 +1102,17 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 
 ### PRD folder summary
 - PRD: [<KEY>] [summary, 1 line]
-- Linked items: [count by type — e.g. "3 Epics, 7 Stories, 2 Sub-tasks, 1 Research"]
+- Epics: [count of `EPIC-` folders in the resolved PRD folder — the tree stops there (Phase 3)]
 - Themes: [2–4 bullet points from the folder read]
 
 ### Repos analysed
-- <repo-1> (<resolved repo_path>) — [N PRs in scope, M resolved, K unresolved]
+- <repo-1> (<resolved repo_path>) — [N refs in scope, M resolved, K unresolved]
 - ...
 
-### PRs in scope
-- [PR URL] — status: [MERGED | OPEN | DECLINED | UNKNOWN], resolved_via: [pr_ref | branch_search | merge_commit | key_commits | gh_cli | unresolved]
+### Refs in scope
+[One line per **resolved** `per_pr` element `diff-summarizer` returned, then one per `unresolved_prs` element — an element that resolved to nothing is printed once, from the second list. Every field below is from that agent's own Output block: it returns **no per-element `status`** — its `status` is per repo, and Phase 4 step 1 has already said there is no PR status to filter on — and `ref` is the only thing that identifies an element, `refs[]` being the only element list that agent takes.]
+- <repo> — <ref> — resolved_via: [local_ref | key_commits] — [files_changed] file(s), +[insertions]/-[deletions]
+- <repo> — <ref> — unresolved: [reason from `unresolved_prs`]
 - ...
 
 ### Output file(s)
@@ -1039,11 +1125,11 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 ### Verification gates
 | Gate | Outcome | Mechanism | Detail |
 |---|---|---|---|
-[One row per gate in the `gate_ledger`, in registry order (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE) — empty otherwise. When any row is DEGRADED, follow the table with a one-line warning naming what CI will check that this run did not.]
+[One row per gate in the `gate_ledger`, in registry order (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED, or FAILED with a degraded or declined part — `gate-ledger.md` §2), `user_decision` (SKIPPED_BY_USER, or FAILED with a declined part), or `precondition_unmet` (NOT_APPLICABLE) — empty otherwise. When any row carries a `ci_still_checks`, follow the table with a one-line warning naming what CI will check that this run did not — or, where a row's `ci_still_checks` says none runs, that nothing will.]
 
 ### Render verification
-- Build: [ran — pass/fail | unverified (reason) | no build command in profile — boot served as the proof (does NOT apply to example-docs, which defines per-space build commands)]
-- Smoke-check: [per space — passed (N pages, HTTP 200) | skipped (reason)] OR "not run (user skipped)"
+- Build: [one entry per build Step 1 resolved, named by its `id` (or space) — ran — pass/fail | not run (the environmental failure, e.g. `<tool>` is not installed) — the boot of its own server served as the proof | unverified (reason)] OR "no build command in profile — boot served as the proof" (does NOT apply to example-docs, which defines per-space build commands)
+- Smoke-check: [per space, and per server where a space has two — passed (N pages, HTTP 200) | skipped (reason) | stopped (reason, and what that ending's own record names — `render-verification.md` §2, **The endings**); then every ❌ page with its URL — 404: on the manual table | 5xx: render defect] OR "not run (user skipped)"
 - Pages to visit: [the Phase 6.5 Step 3 table]
 
 ### Doc review verdict
@@ -1068,7 +1154,7 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 - [top suggestions from impl-maintenance agent, or "no suggestions — routine session"]
 
 ### Screenshots to upload manually
-[Only populated for the **Defer** path of Phase 6.1 — i.e. a target used image_policy: cdn_upload_required (or the user selected "Stage for manual upload" under the ambiguous branch) AND the user chose "Defer — stage with TODO placeholders" at the Phase 6.1 CDN handoff. For each staged screenshot: src (original user-provided path), staging path under <screenshot_staging_dir> (the staging directory), the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged — including when the user chose "Upload now" in Phase 6.1 (those images carry real CDN URLs in the markdown and need no manual step).]
+[Only populated for the **Defer** path of Phase 6.1 — i.e. a target used image_policy: cdn_upload_required (a target whose ambiguous policy Phase 5.7's **Ambiguous image policy** step, or Phase 6.3's `BLOCKED` loop after it, resolved to "Stage for manual upload to the repo's image-management tool" included) AND the user chose "Defer — stage with TODO placeholders" at the Phase 6.1 CDN handoff, or where Phase 6.3's loop asked it. For each staged screenshot: src (original user-provided path), staging path under <screenshot_staging_dir> (the staging directory), the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged — including when the user chose "Upload now" in Phase 6.1 (those images carry real CDN URLs in the markdown and need no manual step).]
 
 ### Implementation gaps (PRD vs source)
 [Populated when Phase 5.8 produced any `document-as-spec` / `skip-and-report` decision, **or** any qualifying `document-as-code` decision (per `workflows-core:source-truth` §7.5 — the PRD phrasing asserts a specific value that contradicts the source). All three write the same bug-report draft, so all three are listed here; the status line differs by decision:
@@ -1084,7 +1170,7 @@ List each gap (claim, decision) with its own status line — never print the DO-
 [List first, each tagged **MAJOR — incomplete swap, invisible in the diff**: any accepted existing-image swap `doc-writer` skipped because the file's occurrence no longer matched `old_url` (its `notes` return — the position went stale between Phase 5.6 and Phase 6.3). This is distinct from the items below — it's a race that left an already-accepted decision unfulfilled, not a routine low-priority deferral. Then: MINOR / NIT findings that were not applied, OR user-declined screenshots, OR doc-reviewer BLOCK findings that were overridden / deferred — one line each; or "none"]
 
 ### Assumptions & limitations
-- [list any]
+- [list any — including, where Phase 0 step 4(c)'s inline profiling handed them back, its `fixed_port_servers` and `server_command_defects` lines, each as it was printed there]
 
 ### Git state
 [When Phase 8.5 ran: "Branch <name> — squashed to N commit(s); pushed to origin: <yes/no>; PR draft: <pr-draft path>." When Phase 8.5 was skipped (no branch/commits): "Working tree has uncommitted changes. /document (keyed mode) writes but does not commit the docs write target in non-git contexts; this run's $SPECS_PATH session artifacts are committed separately by the terminal step."]
@@ -1126,7 +1212,7 @@ behaviour). This phase NEVER fails the run, NEVER commits (still true — this
 phase only writes follow-up files; those writes are committed by the separate
 terminal `commit-artifacts` step, per
 `workflows-core:specs-repo-git` §4), and NEVER writes
-into the docs repo or the current working directory.
+into the docs repo or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -1144,9 +1230,7 @@ transcript + subagents (§1), loads and **advances the chained checkpoint** (§3
 computes the per-model token-cost delta against
 the price table (§4), records the optional statusline cross-check (§5), and
 appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via
-the specs-first ladder (§8) — pending + opportunistic move-then-delete
-reconciliation (§9) when no PRD key resolves. **The checkpoint advances even in
-the pending / report-only tiers.** Surface the persisted path (or the
+the specs-first ladder (§8). Keyed mode always resolves its folder — an absent one is a stop in the Mode detection section — so that is where the entry lands whenever `$SPECS_PATH` is writable, never in pending; with a key resolved, §9's opportunistic move-then-delete reconciliation offers any pending files earlier keyless runs left. **The checkpoint advances in every tier, report-only included.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 
 **Then write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` and, per its §1, write/overwrite
@@ -1170,7 +1254,7 @@ repeated in full.
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (the
 documentation commit, branch, and PR are handled in Phase 8.5; the terminal
 step above commits only the bounded session-artifact paths in `$SPECS_PATH`),
-and NEVER writes into the docs repo or the current working directory; no user
+and NEVER writes into the docs repo or the current working directory, where it is not the specs repository; no user
 name is ever written (§10 privacy).
 
 ---
@@ -1179,10 +1263,9 @@ name is ever written (§10 privacy).
 
 - ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
 - ALWAYS run Phase 0 docs-repo detection; if 0 signals, require user confirmation before proceeding
-- NEVER call Bitbucket REST APIs for Cloud or self-hosted Server — Bitbucket URLs are identifiers only; all resolution is pure local git
-- GitHub URLs may use the `gh` CLI for head/base SHA resolution; no direct REST calls outside `gh`
+- NEVER call a forge's REST API directly over HTTPS, on any host. A keyed run has no forge URL to resolve in the first place: it passes `refs[]` only (Phase 4 step 6), and `diff-summarizer` takes a `refs` element's diff with pure local `git`. The one forge command this command names is the `gh pr create` Phase 8.5 offers the **user** for the run's own pull request, and `gh` wraps the API rather than calling it directly
 - NEVER write inside `_archive/` — that path is read-only by convention
-- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the resolved PRD folder (the `implementation-gaps.md` bug-report draft, the `<KEY>-pr-draft.md`, and screenshot staging) — never anywhere else.
+- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0). Outside the docs repository and its remote the run writes these and nothing else: the resolved PRD folder's two drafts, the `<KEY>-implementation-gaps.md` bug-report draft and `pr-draft.md`; screenshots staged under `<screenshot_staging_dir>`, and, for each one staged under `$SPECS_PATH`, one line in that repository's local exclude file (Phase 6.3); its session bookkeeping under `$SPECS_PATH`, with the commits, pushes and branch moves `specs-preflight` and `commit-artifacts` make there (`workflows-core:specs-repo-git`), and the session-cost checkpoint Phase 11 advances under `~/.claude/dev-workflows/cost-state/` (`workflows-core:cost-emission` §3); its temporary files, each made by `mktemp` — Phase 6.3's handoff file and Phase 7's claims file, removed at the top of Phase 8, and Phase 6.5's smoke logs, each removed as `render-verification.md` §2 step 5 removes one, save a log that step keeps because it could not show its server stopped, which the record naming it leaves in place; the refresh Phase 1 chose for the resolved code clones, in their own git state (Phase 5's `diff-summarizer`, its Refresh step); whatever the tools it invokes write of their own accord — the repository's own linter, build and server commands, which Phases 6.4 and 6.5 run, above all; and, only behind Phase 8.6's own consent, each accepted Agent 2 or Agent 3 proposal, written to the file that proposal names — which may lie outside every repository, `~/.claude/CLAUDE.md` or `~/.claude/memory/` among them.
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `docs-style-checker` (Phase 6.4) before `doc-reviewer` (Phase 7)
 - ALWAYS run the Phase 0 toolchain preflight (`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md`) after profile resolution and before Phase 1; it prompts only when a required tool is missing
@@ -1193,13 +1276,13 @@ name is ever written (§10 privacy).
 - ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — `doc-planner` to the §2 Opus chain, the mechanical steps (the folder read, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance) to the §2.1 Sonnet chain; `doc-reviewer` keeps its frontmatter Opus pin (no override); the inline writer + gates run on `current_model` (advisory only)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
-- ALWAYS pass `Command run: /document` in the Phase 8 Agent 4 session handoff
+- ALWAYS pass `Command run: /document (keyed mode)` in the Phase 8 Agent 4 session handoff — the mode-qualified name this run already passes `emit-auto` in the same phase and `emit-cost` in Phase 11, and what keeps a returned phase-numbered suggestion resolvable between two modes that each number from their own Phase 0
 - ALWAYS spawn Phase 8 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)
 - ALWAYS produce the Phase 9 report as the final output
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`) — guidance only, never auto-invoked; omitted in direct doc-edit mode (Mode B)
-- ALL written claims must be traceable to a resolved key or to PR diffs — attribution goes in the run's return payload and the commit message, NEVER inline in the rendered page (`workflows-core:doc-structure-conventions` §1)
-- For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo — stage under `<screenshot_staging_dir>`, a persistent directory the operator named (never the docs repo, never `/tmp`) — and surface in the Phase 9 `### Screenshots to upload manually` section
+- ALL written claims must be traceable to a resolved key or to a summarised diff — attribution goes in the run's return payload and the commit message, NEVER inline in the rendered page (`workflows-core:doc-structure-conventions` §1)
+- For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo — stage under `<screenshot_staging_dir>` — the resolved PRD folder's screenshot subfolder by default, else a directory the operator names (Phase 1); never the docs repo, never `/tmp` — and surface in the Phase 9 `### Screenshots to upload manually` section
 - ALWAYS end the Phase 9 report with a `### Context hygiene` block per `workflows-core:session-hygiene` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `workflows-core:session-hygiene` §1 — this block prints the guidance only), then a docs→PM handoff suggestion (`/clear`) + `/rename <PRD-ID>-<slug>-dev`; guidance only, never auto-run. **Mode B (direct doc-edit) omits this** — no PRD context.
 
 ---
@@ -1211,10 +1294,10 @@ Implement the following doc edit: $ARGUMENTS
 If the argument starts with `@`, treat it as a path to a markdown file. Resolve relative to the current working directory. Read its full content and use it as the description. Echo `📄 Reading prompt from \`<file>\`…` before proceeding. If the file cannot be read, stop and report the error immediately.
 
 `/document` (direct mode) is the **one-shot doc-editing** workflow — minor edits, formatting, small updates to existing pages, and single-file additions where the content comes from the user's description alone. It is the right tool when:
-- the change is small and the content is already in the user's head or the file, **not** scattered across PRD sections and PR diffs
+- the change is small and the content is already in the user's head or the file, **not** scattered across PRD sections and the diffs behind them
 - no tests, no branch (still true — the specs-repo preflight creates none, `workflows-core:specs-repo-git` §2.2), no code review, and no commit of the doc edit are warranted
 
-For net-new documentation assembled from a PRD folder plus PR diffs, use keyed mode (above). For writing child Epic drafts from a Product Requirements Document, use `/product-workflows:epics`.
+For net-new documentation assembled from a PRD folder plus the diffs its implementation record names, use keyed mode (above). For writing child Epic drafts from a Product Requirements Document, use `/product-workflows:epics`.
 
 No model-routing reminder is injected for this command — classification still happens but is always SIMPLE or MODERATE, and Opus is never invoked.
 
@@ -1232,12 +1315,15 @@ No model-routing reminder is injected for this command — classification still 
 
    — **never `git rev-parse --show-toplevel` from cwd.** Anchoring on cwd is how a run derives its toolchain and its checklist from one repository while writing into another, which is exactly what it did when invoked as `/docs-workflows:document /workspace/docs` from a different clone: the preflight read the repo it was standing in and the style check ran against the repo it was editing.
 
+   `site_root` is the site the target sits in, where the target is in a git work tree and that site lies below `repo_root`: walk up from `<target>` towards `repo_root` and take the first directory that itself holds one of the docs signals Mode A's Phase 0 step 2 lists. A monorepo's `website/` keeps its `.vale.ini`, lockfile and lint configuration beside itself, not at the top level — the reason keyed mode hands its `docs_repo_resolved` on as well (Mode A's Phase 0 step 7, Phase 6.4). Where the first such directory is `repo_root` itself, or none is found below it, there is no site below the top level, and `site_root` is not set.
+
    **Confirm writeable.** Run `test -w <repo_root>`. If it fails, stop with the named error `REPO_NOT_WRITEABLE: <repo_root> is not writeable.` — the same stop Mode A raises in its own Phase 0, for the same reason. Direct mode writes files, so a read-only mount otherwise surfaces as a raw `EROFS` from the editor in Phase 3, **after** the exploration and the plan have already been paid for, naming a temp file rather than the condition.
 
-   Then execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against it. Direct mode has no profile, so
+   Then execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against it — with `site_root`, where
+   one was set, as the site directory its source 2 also checks. Direct mode has no profile, so
    use **sources 2 and 3 only** (repo config signals and the repo's documented `Prerequisites`); the
-   only gate in scope is `style_check`, so `required_by` never names `build_check` or
-   `render_smoke_check`.
+   only gate in scope is `style_check`, so neither `required_by` nor `fallback_for` ever names
+   `build_check` or `render_smoke_check`.
 
    Append the `toolchain_preflight` row per
    `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3. Present the §5 prompt verbatim only when a
@@ -1302,7 +1388,7 @@ State the classification and a one-line reason, then proceed to Phase 2A.
 
 **Repo exploration** — Before writing the plan, spawn an exploration subagent to map the relevant docs and any sibling conventions:
 
-→ Agent (subagent_type: "general-purpose", tools: Read/Glob/Grep only — no Bash, no Edit):
+→ Agent (subagent_type: "general-purpose", tools: Read/Glob/Grep only — no Bash, no Edit, model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`):
   "Given this doc-edit description: [paste the full description from Phase 0 or Phase 1 here], find and return:
    - Target file(s) and their current structure (headings, frontmatter, approximate size)
    - Sibling / adjacent pages that may need matching updates (cross-references, navigation files, index pages)
@@ -1360,19 +1446,20 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 
 ## Phase 3.5 — Style check (mandatory)
 
-**Skip this entire phase** when Phase 0 recorded direct mode's gates as `NOT_APPLICABLE` (cwd is not a git repository): do not dispatch `docs-style-checker`, do not check the repo checklist, and write no rows — the ledger is already complete and final. Proceed to Phase 4.
+**Skip this entire phase** when Phase 0 recorded direct mode's gates as `NOT_APPLICABLE` (the resolved target is not a git repository): do not dispatch `docs-style-checker`, do not check the repo checklist, and write no rows — the ledger is already complete and final. Proceed to Phase 4.
 
-After writing the edits and before Phase 4, dispatch `docs-style-checker` on the changed file(s):
+After writing the edits and before Phase 4, dispatch `docs-style-checker` on the changed file(s), against the repository Phase 0 step 3 resolved from the edit target, whichever repository cwd sits in:
 
-→ Agent (subagent_type: "docs-workflows:docs-style-checker"):
-  > repo_root: [cwd's git root]
+→ Agent (subagent_type: "docs-workflows:docs-style-checker", model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`):
+  > repo_root: [the `repo_root` Phase 0 step 3 resolved]
+  > site_root: [the `site_root` Phase 0 step 3 resolved, where it set one — the site's own .vale.ini, package.json and lint configuration are looked for there first, then in each directory above it up to repo_root; omit the key otherwise]
   > files:     [the files edited in Phase 3]
 
-- `VIOLATIONS_FOUND` → apply safe fixes via `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`, one fix cycle), then check the fixer's `Stop condition flag`. On `NEEDS HUMAN` it deferred a blocking violation it could not safely fix: surface each deferred BLOCKER with the fixer's reason and ask the user whether to fix it by hand and re-run, or skip the check — direct mode runs no reviewer, so nothing downstream would catch it. Record the `style_check` row from that answer per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` (`RAN` after a hand fix and re-run, `SKIPPED_BY_USER` with the choice quoted verbatim). Only on `CLEAR` re-run once.
+- `VIOLATIONS_FOUND` → apply safe fixes via `doc-fixer` (`subagent_type: "workflows-core:doc-fixer"`, model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`, one fix cycle), then check the fixer's `Stop condition flag`. On `NEEDS HUMAN` it deferred a blocking violation it could not safely fix: surface each deferred BLOCKER with the fixer's reason and ask the user whether to fix it by hand and re-run, or skip the check — direct mode runs no reviewer, so nothing downstream would catch it. Record the `style_check` row from that answer per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` (`RAN` after a hand fix and re-run, `SKIPPED_BY_USER` with the choice quoted verbatim). Only on `CLEAR` re-run once.
 - `OK` → proceed to Phase 4.
 - `ERROR` → neither a primary rung nor the `prose-style-checker` pass produced a result, so the gate has no coverage. Record `style_check` as `UNAVAILABLE` and convert it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 before proceeding. Direct mode has no reviewer gate, so this prompt is the only place the gap surfaces — never proceed past it silently.
 
-Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `prose-style-checker` always runs on top as a complementary semantic pass — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Write the `style_check` ledger row here — rewriting the preflight's pre-seeded row if there is one, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3's one-row-per-gate rule (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), carrying the returned `primary_attempts`: `RAN` when a primary rung succeeded; `DEGRADED` when no primary rung produced a result — every detected rung failed, or none was ever detected — but `prose-style-checker` ran, with `not_run:` one `{mechanism, reason}` entry per rung and a `ci_still_checks:` line — naming the repo's own linter where a rung was detected and failed, and recording that no repo-level linter is configured where none was ever detected, never a CI claim the repository cannot support; `UNAVAILABLE` per the bullets above; `NOT_APPLICABLE` with `precondition_unmet: "no files edited"` when Phase 3 changed nothing.
+Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `prose-style-checker` always runs on top as a complementary semantic pass — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Write the `style_check` ledger row here — rewriting the preflight's pre-seeded row if there is one, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3's one-row-per-gate rule (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), carrying the returned `primary_attempts`: `RAN` when a primary rung succeeded; `DEGRADED` when no primary rung produced a result — every detected rung failed, or none was ever detected — but `prose-style-checker` ran, with `not_run:` one `{mechanism, reason}` entry per rung and a `ci_still_checks:` line — where a rung was detected and failed, naming the linter the repository's CI runs on the pull request, or saying that none runs, with its reason, where its CI runs none; where none was ever detected, recording that no repo-level linter is configured — never a CI claim the repository cannot support; `UNAVAILABLE` per the bullets above; `NOT_APPLICABLE` with `precondition_unmet: "no files edited"` when Phase 3 changed nothing.
 
 After the style check, hold the edited files against the `repo_verification_gates` block extracted in Phase 0 (`${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §5) and append the `repo_checklist` ledger row: `RAN` with `findings:` = the number of entries that failed, or `NOT_APPLICABLE` with `precondition_unmet: "the repo publishes no pre-PR checklist"` when the block is empty. Report any failed entry to the user with its `source` citation — direct mode has no reviewer gate, so this is where the repo's own rules surface.
 
@@ -1382,7 +1469,7 @@ After the style check, hold the edited files against the `repo_verification_gate
 
 First gather the actual change context:
 
-a. Run `git diff --stat` (or equivalent) and capture the list of changed files with line counts. Note: the user has not committed, so `git diff --stat` will reflect unstaged changes.
+a. Run `git -C <repo_root> diff --stat` (or equivalent) — in the repository Phase 0 step 3 resolved, whichever one cwd sits in — and capture the list of changed files with line counts. Note: the user has not committed, so `git diff --stat` will reflect unstaged changes.
 b. Compose a **change summary block**:
 
 ```
@@ -1397,7 +1484,7 @@ Validation result: [PASS | PARTIAL — with note on what's still broken]
 
 Then spawn all four Phase 4 agents. They are independent and can run in any order — spawn them all before waiting for any to complete:
 
-**Agent 1 — Documentation** (general-purpose):
+**Agent 1 — Documentation** (general-purpose, model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`):
 > "Post-doc-edit documentation review. Change summary:
 > [paste change summary block]
 >
@@ -1408,7 +1495,7 @@ Then spawn all four Phase 4 agents. They are independent and can run in any orde
 > If an update is warranted: apply minimal edits to the relevant section(s).
 > Return: file updated and what changed, OR 'no update required (reason)'."
 
-**Agent 2 — Knowledge base** (general-purpose):
+**Agent 2 — Knowledge base** (general-purpose, model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`):
 > "Post-doc-edit knowledge review. Change summary:
 > [paste change summary block]
 >
@@ -1423,7 +1510,7 @@ Then spawn all four Phase 4 agents. They are independent and can run in any orde
 > - **Ref**: [first 60 chars of the doc-edit description]
 > Return: `{file, anchor, replacement, reason}` — `anchor` is the exact existing text to change, or the section to append to; `replacement` is the entry above in full; `reason` is why it's warranted — OR 'no update required'."
 
-**Agent 3 — Instructions** (general-purpose):
+**Agent 3 — Instructions** (general-purpose, model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`):
 > "Post-doc-edit instructions review. Change summary:
 > [paste change summary block]
 >
@@ -1433,7 +1520,7 @@ Then spawn all four Phase 4 agents. They are independent and can run in any orde
 > If YES: keep it minimal, additive, and scoped — do not propose rewriting sections wholesale — and return a proposed edit — write nothing.
 > Return: `{file, anchor, replacement, reason}` — `anchor` is the exact existing text to change, or the section to append to; `replacement` is the proposed new/changed text; `reason` is what this edit revealed that warrants it — OR 'no update required'."
 
-**Agent 4 — Session maintenance** (workflows-core:impl-maintenance):
+**Agent 4 — Session maintenance** (workflows-core:impl-maintenance, model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`):
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
@@ -1443,7 +1530,7 @@ Then spawn all four Phase 4 agents. They are independent and can run in any orde
 > - Workarounds used: [manual steps not automated by the workflow — or 'none']
 > - Review verdict: N/A (no review gate in /document direct mode)
 > - Test result: N/A (no tests in /document direct mode)
-> - Project root: [absolute path]"
+> - Project root: [the `repo_root` Phase 0 step 3 resolved, or the resolved target itself where it is not a git repository]"
 
 Collect all four summaries for the Phase 5 report.
 
@@ -1456,14 +1543,14 @@ the report's **Command workflow improvements**, **New agents / skills**, and
 plugin **Reference docs** sections plus the **Key observations** that
 triggered them (§4 plugin-facing predicate) — never target-project
 `CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by stable `id`
-(§3), resolves the target via the §2 specs-first ladder, and writes silently.
+(§3), resolves the target via the §2 specs-first ladder, and writes silently. A direct-mode run with no PRD folder takes that ladder's documentation branch (design D19): `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/feedback/<date>.md`, where `<docs-repo-slug>` is `workflows-core:specs-repo-git` §2.1's name for the write target Phase 0 step 3 resolved — filed against the repository this run edited, never left unfiled at the specs-repo root.
 List the persisted path (or "no plugin-facing signal — nothing persisted") in
 the Phase 5 `### Session learnings (Agent 4)` line. ADDITIVE — the
 impl-maintenance report still appears in the report; this step NEVER fails the
 run, NEVER commits (still true — this step only writes the feedback file;
 those writes are committed by the separate terminal `commit-artifacts` step,
 per `workflows-core:specs-repo-git` §4), and NEVER writes
-into the docs repo or the current working directory.
+into the docs repo or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -1488,7 +1575,7 @@ choices: ["Skip — report only (Recommended)", "Apply all", "Choose per proposa
 - **Choose per proposal** — ask accept/decline for each proposal; apply the accepted ones (`applied-uncommitted`), leave the rest `declined`.
 - **Cancel** — apply nothing; every proposal's disposition is `proposed`. Unlike every other "Cancel" in this command, **Cancel here does not abort the run**: direct mode never branches or commits the doc edits (Phase 3), so there is nothing upstream to unwind (still true — what still commits after this point is the terminal `commit-artifacts` step, bounded to `$SPECS_PATH`'s artifact paths per `workflows-core:specs-repo-git` §2.1). Cancel only declines this phase's proposals; the run proceeds to Phase 5 and the Final Report is produced exactly as it would be after Skip.
 
-**Apply mechanism.** For each accepted proposal, re-dispatch the agent that produced it — Agent 2 or Agent 3, same general-purpose agent as Phase 4, no new agent type — in apply mode, carrying its own proposal back verbatim:
+**Apply mechanism.** For each accepted proposal, re-dispatch the agent that produced it — Agent 2 or Agent 3, same general-purpose agent and model as Phase 4, no new agent type — in apply mode, carrying its own proposal back verbatim:
 
 > "Apply this proposed edit exactly as returned — do not re-derive it:
 > `{file, anchor, replacement, reason}`: [paste the proposal]
@@ -1539,7 +1626,7 @@ Output a structured report — do NOT ask any closing confirmation:
 ### Verification gates
 | Gate | Outcome | Detail |
 |---|---|---|
-[One row per gate in the `gate_ledger` — direct mode registers three (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE); empty otherwise. When any row is DEGRADED or SKIPPED_BY_USER, follow the table with a one-line warning naming what CI will check that this run did not.]
+[One row per gate in the `gate_ledger` — direct mode registers three (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE); empty otherwise. When any row is DEGRADED or SKIPPED_BY_USER, follow the table with a one-line warning naming what this run did not check. The warning names a CI check only where a row's `ci_still_checks` records one, and where that line says none runs, it says that nothing will. A SKIPPED_BY_USER row records no `ci_still_checks` (`references/gate-ledger.md` §3), so for that row the warning names the gate the user skipped and names no CI check in its place.]
 
 ### Assumptions & limitations
 - [list any]
@@ -1548,7 +1635,7 @@ Output a structured report — do NOT ask any closing confirmation:
 - [anything the user asked to defer, OR validation failures the user accepted, OR "none"]
 
 ### Git state
-The working tree has uncommitted changes. `/document` (direct mode) never commits your doc edits — you manage git manually. Run `git status` to review, then commit when ready. (This run's `$SPECS_PATH` session artifacts are committed separately — see the terminal step's outcome line at the end of the run.)
+The working tree has uncommitted changes. `/document` (direct mode) never commits your doc edits — you manage git manually. Run `git -C <repo_root> status` to review, then commit when ready. (This run's `$SPECS_PATH` session artifacts are committed separately — see the terminal step's outcome line at the end of the run.)
 ```
 
 ---
@@ -1572,7 +1659,7 @@ fails the run, NEVER commits (still true — this phase only writes follow-up
 files, and the user manages git manually for the doc edits; those writes are
 committed by the separate terminal `commit-artifacts` step, per
 `workflows-core:specs-repo-git` §4), and NEVER writes
-into the docs repo or the current working directory.
+into the docs repo or the current working directory, where it is not the specs repository.
 
 ---
 
@@ -1580,7 +1667,7 @@ into the docs repo or the current working directory.
 
 Terminal phase — the NEW final operational phase; runs after Phase 6 (the
 follow-up phase) and NEVER interrupts an earlier phase. Records this command's
-token-cost contribution to the PRD by invoking `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and calling its single `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
+token-cost contribution by invoking `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and calling its single `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
 nothing".
 
 Call `emit-cost` with `command: /document (direct mode)`, `phase: documenting`,
@@ -1590,10 +1677,7 @@ and `plugin_version` (read from
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
 computes the per-model token-cost delta against
 the price table (§4), records the optional statusline cross-check (§5), and
-appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via
-the specs-first ladder (§8) — pending + opportunistic move-then-delete
-reconciliation (§9) when no PRD key resolves. **The checkpoint advances even in
-the pending / report-only tiers.** Surface the persisted path (or the
+appends one per-invocation entry via the specs-first ladder (§8). A direct-mode run with no PRD folder — the ordinary case — takes that ladder's documentation branch (design D19): `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`, where `<docs-repo-slug>` is the one-segment name `workflows-core:specs-repo-git` §2.1 defines for the write target Phase 0 step 3 resolved, whether or not that target is a git work tree. Every direct-mode run resolves a write target, so none parks an entry in pending; a run whose key does resolve a PRD folder lands in `<PRD-dir>/dev-workflows/cost/<sid8>.md` instead. **The checkpoint advances in every tier, report-only included.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 
 **Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It
@@ -1613,7 +1697,7 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable
 (direct-mode doc edits remain uncommitted — the user manages git manually;
 the terminal step above commits only the bounded session-artifact paths in
 `$SPECS_PATH`), and NEVER writes into the docs repo or the current working
-directory; no user name is ever written (§10 privacy).
+directory, where it is not the specs repository; no user name is ever written (§10 privacy).
 
 ---
 
@@ -1624,7 +1708,7 @@ directory; no user name is ever written (§10 privacy).
 - NEVER create a git branch — this mode never branches. `specs-preflight` may switch `$SPECS_PATH` between branches that already exist, and only ones the plugin created (`workflows-core:specs-repo-git` §2.2); it creates none.
 - NEVER run tests (this command has no test phase)
 - NEVER invoke Opus (no planning agent, no review agent — docs edits are always SIMPLE or MODERATE)
-- NEVER commit the doc edits, or anything else in a docs/code repo or the current working directory — the user manages git manually there. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1).
+- NEVER commit the doc edits, or anything else in a docs/code repo or the current working directory, where it is not the specs repository — the user manages git manually there. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1).
 - ALWAYS run `specs-preflight` in the shared `## Mode detection` section, before dispatching to either mode — so it runs for Mode B as well as Mode A — and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - NEVER make assumptions that could have been asked — ask instead
 - NEVER end implementation with "Should I implement?" — if approved, implement

@@ -24,24 +24,40 @@ ends in one of six outcomes, and every non-run path terminates in a **named miss
 | Outcome | Means | Assignable by |
 |---|---|---|
 | `RAN` | The gate's primary mechanism executed. | evidence only |
-| `DEGRADED` | Only a fallback executed. Records what did not run, why, and what CI will still check. | evidence only |
+| `DEGRADED` | Only a fallback executed. Records what did not run, why, and what CI will still check, or that nothing will. | evidence only |
 | `FAILED` | Ran and found blocking problems. Feeds the caller's existing fix loops. | evidence only |
-| `UNAVAILABLE` | Nothing ran and no fallback exists, with the precondition met. **Not a resting state** — see §5. | the orchestrator, but never as a final answer |
+| `UNAVAILABLE` | Neither the primary nor a fallback ran, with the precondition met. **Not a resting state** — see §5. | the orchestrator, but never as a final answer |
 | `SKIPPED_BY_USER` | The user chose to skip. Carries their decision quoted verbatim. | the user only |
 | `NOT_APPLICABLE` | A named precondition is unmet. | evidence only |
 
 There is no orchestrator-assignable "skipped". "Flaky, and the static analysis was sufficient" has
 nowhere to go.
 
-`DEGRADED` proceeds — a weaker check is not a documentation defect, and the final report names what
-CI will check that the run did not. Total absence of coverage does not proceed.
+`DEGRADED` proceeds — a weaker check is not a documentation defect, and the final report prints the
+row's `ci_still_checks` line: what CI will check that the run did not, or that nothing will (§6).
+Total absence of coverage does not proceed.
+
+**One gate, one outcome: `FAILED` outranks `DEGRADED`.** A gate that runs in parts — `build_check`
+over several builds, `render_smoke_check` over several spaces — can end with one part `FAILED` and
+another `DEGRADED`: one build fails on its content while another build's tool is missing, or one
+space answers a 5xx while another times out. The row is `FAILED`, because a content failure is what
+feeds the caller's fix loop, and the degraded part is still recorded in the row's `not_run` and
+`ci_still_checks`, which such a row fills as a `DEGRADED` row does.
+
+**`FAILED` also outranks a decision to proceed without another part.** Where one part failed on its
+content and another did not run and the user declined it — a §5 conversion answered "Proceed without
+this check", the toolchain preflight's decision on the same missing tool kept in its place, or a
+Skip that declined that part's only remaining proof — the row is `FAILED`, not
+`SKIPPED_BY_USER`: a content failure is never hidden behind a skip. The declined part is recorded in
+`not_run` and `ci_still_checks` as a degraded part is, and the decision is kept in the row's
+`user_decision`, quoted verbatim.
 
 ## 3. Row schema
 
 The ledger is an in-context YAML block. The orchestrator **appends a row at the moment each gate
 completes** — never reconstructs the ledger at report time from memory.
 
-**One row per gate, created once.** The first writer to reach a gate creates its row; every later writer **rewrites that row in place** and never appends a second one. A row Phase 0's toolchain preflight pre-seeded is that gate's row — carry its `user_decision` forward rather than discarding it, and let the gate's own phase rewrite the outcome around it. Two rows for one gate id is a defect even though §6 does not name it: the report table reads every row, so a duplicate silently misstates what happened.
+**One row per gate, created once.** The first writer to reach a gate creates its row; every later writer **rewrites that row in place** and never appends a second one. A row Phase 0's toolchain preflight pre-seeded is that gate's row — carry its `user_decision` forward rather than discarding it, whatever outcome the gate's own phase then rewrites around it, until the user answers a later question that itself decides that gate's outcome, or the part of it a `FAILED` row records as declined (§2): the row then quotes that answer in its place. Two rows for one gate id is a defect even though §6 does not name it: the report table reads every row, so a duplicate silently misstates what happened.
 
 A phase whose outcome is not yet known at append time may write a **provisional** row, but only when a named later step in that same phase rewrites it before the phase ends — Phase 5.8's `Ledger (final)` and Phase 6.5's `Ledger (final)` are the two sanctioned cases. A provisional row is never the outcome a later reader sees.
 
@@ -51,12 +67,15 @@ gate_ledger:
     phase: "<the phase that owns it>"
     outcome: RAN | DEGRADED | FAILED | UNAVAILABLE | SKIPPED_BY_USER | NOT_APPLICABLE
     mechanism: <what actually executed; omitted when nothing did>
-    not_run:                                        # DEGRADED only, non-empty
+    not_run:                                        # DEGRADED, or FAILED with a degraded or declined part (§2); non-empty
       - mechanism: <the primary mechanism that did not run>
         reason:    <why>
-    ci_still_checks: <one line>                     # DEGRADED only, non-empty
+    ci_still_checks: <one line>                     # wherever not_run is; non-empty
     precondition_unmet: <the named precondition>    # NOT_APPLICABLE only, non-empty
-    user_decision: "<the user's choice, verbatim>"  # SKIPPED_BY_USER only, non-empty
+    user_decision: "<the user's choice, verbatim>"  # SKIPPED_BY_USER, or FAILED with a declined part
+                                                    # (§2): required, non-empty. Any other outcome: kept
+                                                    # where Phase 0's toolchain preflight pre-seeded the
+                                                    # row (above)
     findings: <count>                               # RAN / DEGRADED / FAILED -- see below
 ```
 
@@ -68,12 +87,12 @@ So: **read a `findings` count as "what this run reported", never as "how many de
 
 | Gate id | Phase | Precondition | Primary | Fallback |
 |---|---|---|---|---|
-| `toolchain_preflight` | 0 | always (runs after profile resolution) | `command -v` / `test -d` over the required set (`toolchain-preflight.md` §2) | none |
+| `toolchain_preflight` | 0 | always (runs after profile resolution) | the required set's checks, as `toolchain-preflight.md` §2–§3 define them | none |
 | `source_truth_verification` | 5.8 | ≥1 entry in `code_repos` | claim-class verification per `workflows-core:source-truth` §2–§3 | one supplementary direct grep against the resolved local path |
 | `style_check` | 6.4 | ≥1 file written | the repo linter ladder **plus** `prose-style-checker` complementary | `prose-style-checker` alone |
 | `repo_checklist` | 6.4 | the repo publishes authoring/verification guidance | `repo_verification_gates` applied to the written files | none |
-| `build_check` | 6.5 S1 | write context is a buildable repo | `commands.per_space.<space>.build` for every space in the render verification set (`docs-profiles/render-verification.md` §2), else whole-repo `commands.build` | the Step 2 dev-server boot |
-| `render_smoke_check` | 6.5 S2 | buildable repo with ≥1 affected page | the dev server of every space that owns an affected page | the manual pages-to-visit table |
+| `build_check` | 6.5 S1 | write context is a buildable repo — `docs_repo`, or a confirmed `non_docs_repo`; a profile that records no build command still meets it | every `builds[]` entry's `command` where the profile records `builds[]`; else `commands.per_space.<space>.build` for every space in the render verification set, else whole-repo `commands.build` (`docs-profiles/render-verification.md` §1–§2) | the Step 2 dev-server boot |
+| `render_smoke_check` | 6.5 S2 | buildable repo with ≥1 affected page | the dev server that publishes each affected page — one per page, never picked by space alone (`docs-profiles/render-verification.md` §2) | the manual pages-to-visit table |
 | `image_review` | 5.6 | ≥1 candidate image (to add or possibly-stale) | the two-list review with per-occurrence decisions | none |
 
 The registry mixes three shapes. Most entries are **output-verification** gates — they hold written (or about-to-be-written) content against a source of truth: `source_truth_verification`, `style_check`, `repo_checklist`, `build_check`, `render_smoke_check`. `toolchain_preflight` is an **environment preflight** — it runs before the run has any content at all, and checks the tools the other gates need rather than any output. `image_review` is an **input-side** gate — it accounts for a decision about what goes in, not a check on what came out. All three shapes are registered because the accountability need is identical: an unattributed image skip, like an unattributed missing tool, is exactly the failure mode this ledger exists to prevent.
@@ -96,7 +115,7 @@ Direct mode has no `doc-planner`, so its orchestrator extracts `repo_verificatio
 
 ## 5. Converting `UNAVAILABLE`
 
-`UNAVAILABLE` means the precondition was met and neither the primary nor the fallback ran — a real
+`UNAVAILABLE` — neither the primary nor a fallback ran, with the precondition met (§2) — is a real
 coverage hole. The orchestrator converts it before the run continues, with a choice list bound by the
 "Choice lists are presented verbatim" rule in `workflows-core:escalation-rules`:
 
@@ -106,7 +125,8 @@ choices: ["Install <named tool> and retry this gate", "Proceed without this chec
 
 - "Install and retry" → re-run the gate and rewrite its row.
 - "Proceed without this check" → rewrite the row as `SKIPPED_BY_USER` with the user's choice quoted
-  verbatim in `user_decision`.
+  verbatim in `user_decision` — or, where another part of the gate failed on its content, as
+  `FAILED` with that choice in `user_decision` and the declined part in `not_run` (§2).
 - "Cancel the run" → stop.
 
 The orchestrator never selects among these on the user's behalf.
@@ -119,9 +139,17 @@ of these holds:
 
 - a registry gate has **no row** in the ledger;
 - a row's outcome is `UNAVAILABLE` (§5 never converted it);
-- `SKIPPED_BY_USER` with an empty or absent `user_decision`;
+- `SKIPPED_BY_USER`, or `FAILED` with a declined part (§2), with an empty or absent `user_decision`;
 - `NOT_APPLICABLE` with an empty or absent `precondition_unmet`;
-- `DEGRADED` with an empty `not_run` or an empty `ci_still_checks`.
+- `DEGRADED`, or `FAILED` with a degraded or declined part (§2), with an empty `not_run` or an empty
+  `ci_still_checks` — wherever §2 requires those fields, whatever the row's outcome.
+
+**A `ci_still_checks` line that says no CI check runs, and why, is filled, not empty.** Where CI
+runs nothing in the gate's place — the repository has no CI build, its CI runs no linter, or it
+configures no repo-level linter at all — a line saying so with its reason ("none runs: the
+repository has no CI build") is the record §2 asks for. Only an absent or blank field is empty. What
+the line must never carry is a claim about CI that the repository cannot support: a line that names
+a build or a linter CI runs on the pull request names one the repository's CI actually runs.
 
 `DEGRADED` is otherwise not a finding — the reviewer notes it, and the final report prints its
 `ci_still_checks` line.

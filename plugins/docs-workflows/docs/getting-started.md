@@ -20,16 +20,17 @@ Two other plugins arrive with it, because they are **declared dependencies** rat
 
 **What you do not need.** The companion `dev-workflows` pipeline plugin is not a dependency in either direction. `/document` and `/release-notes` read a folder in a specs tree; whether the plugin that authored that folder is installed on *your* machine makes no difference. Install it if you also author PRDs, specifications and designs.
 
-**What you also need, and it is not a plugin.** A prose linter helps but is not required — `vale`, a repo lint script, `markdownlint` or `remark` are all detected if present, and `prose-style` covers the run when none of them is. Because `prose-style` arrives as a declared dependency, a repository with no linter of its own is still style-checked rather than waved through; what a missing `vale` costs you is the lexical pass CI will run on your PR, which is why the Phase 0 toolchain preflight names it. **`/docs-init` is the exception, and needs `vale` outright** — together with `git`, `python3` and `pip` (or `uv`), and `mkdocs` — because the repository it scaffolds lints with Vale both in its own verification phase and in its CI workflow; its preflight reports any of them missing before a single file is written.
+**What you also need, and it is not a plugin.** A prose linter helps but is not required — `vale`, a repo lint script, `markdownlint` or `remark` are all detected if present, and `prose-style` covers the run when none of them is. Because `prose-style` arrives as a declared dependency, a repository with no linter of its own is still style-checked rather than waved through; what a missing `vale` costs you is its lexical pass — the one your CI runs on your pull request, where your CI runs Vale — which is why the Phase 0 toolchain preflight names it. **`/docs-init` is the exception, and needs `vale` outright** — together with `git`, `python3` and `pip` (or `uv`), and `mkdocs` — because the repository it scaffolds lints with Vale both in its own verification phase and in its CI workflow; its preflight reports any of them missing before a single file is written. **`/docs-serve` needs `curl` and `bash`**, and off Linux `lsof` and `ps` too, both of which macOS ships; on Linux it reads which process holds a port from `/proc`, so a Linux container that ships neither `lsof` nor `ps` — even one that drops root before you could install them — runs it as it is, given `curl` and `bash`.
 
 ## Update
 
 ```bash
 claude plugin marketplace update ihudak-plugins
 claude plugin update docs-workflows@ihudak-plugins
+claude plugin update prose-style@ihudak-plugins
 ```
 
-**Both steps are needed, and the second is the one that changes what runs.** `marketplace update` refreshes the catalogue — what the marketplace advertises — while an already-installed plugin stays at the version you installed. `claude plugin update` upgrades it, and **requires restarting Claude Code to apply.** The interactive `/plugins` interface does the same with a picker. This page used to say the first line alone was enough; it is not, and the symptom is quiet — `claude plugins list` keeps reporting the old version while the catalogue advertises the new one.
+**Both kinds of step are needed, and the `plugin update` lines are the ones that change what runs.** `marketplace update` refreshes the catalogue — what the marketplace advertises — while an already-installed plugin stays at the version you installed. `claude plugin update` upgrades it, and **requires restarting Claude Code to apply.** The interactive `/plugins` interface does the same with a picker. This page used to say the first line alone was enough; it is not, and the symptom is quiet — `claude plugins list` keeps reporting the old version while the catalogue advertises the new one. **Update `prose-style` with it**: 0.4.0 is the release whose checker applies the specs repository's house-style rules to `/release-notes`' draft, and beside an older one that command records its style check `DEGRADED` and says to update `prose-style`.
 
 ## What you set on your machine
 
@@ -41,7 +42,7 @@ The shared, team-visible repository holding the Product Requirements Document fo
 
 ### `REPOS_PATH`
 
-Where your code clones live — one directory, or a colon-separated list of them. It defaults to `/workspace`, so most readers never set it. A keyed `/document` run resolves each pull-request URL to a local clone under here, matched by `git remote get-url origin` slug and **never by directory name**, so a clone renamed on disk is still found as long as its `origin` remote is intact.
+Where your code clones live — one directory, or a colon-separated list of them. It defaults to `/workspace`, so most readers never set it. A keyed `/document` run resolves each repository its implementation record and commit scan name to a local clone under here, matched by `git remote get-url origin` slug and **never by directory name**, so a clone renamed on disk is still found as long as its `origin` remote is intact.
 
 ### `DOCS_PATH`
 
@@ -59,9 +60,9 @@ If there is no documentation repository yet, `/docs-init` makes one:
 /docs-workflows:docs-init /workspace/docs
 ```
 
-It resolves the target (and refuses outright if that directory already looks like a documentation repository — pointing you at `/docs-profile` instead, which is the command for one that already exists), offers to `git init` an empty or absent directory, confirms which code repositories the portal will document, branches, then writes the page skeleton, both build configs, `.vale.ini` with a project vocabulary seeded with the product name and the few technical words the scaffold's own pages use (so the scaffold passes its own lint gate, locally and in CI alike), a CI workflow carrying the visibility gates, and `.dev-workflows/docs-profile.yml`. It runs `/docs-brand --inline` to pick up a logo and colours from the product's own code, verifies that both builds and the linter actually work, gates the whole diff on an Opus review, and leaves it on a branch with a drafted pull request. It never pushes and never merges.
+It resolves the target (and refuses outright if that directory already looks like a documentation repository — pointing you at `/docs-profile` instead, which is the command for one that already exists), offers to `git init` an empty or absent directory outside every git work tree (a target below a work tree's top level, existing or not, stops the run), confirms which code repositories the portal will document, branches, then writes the page skeleton, both build configs, `.vale.ini` with a project vocabulary seeded with the product name and the few technical words the scaffold's own pages use (so the scaffold passes its own lint gate, locally and in CI alike), a CI workflow carrying the visibility gates, and `.dev-workflows/docs-profile.yml`. It runs `/docs-brand --inline` to pick up a logo and colours from the product's own code, verifies that both builds and the linter actually work, gates the whole diff on an Opus review, and leaves it on a branch with a drafted pull request. It never pushes and never merges.
 
-Then `/docs-workflows:docs-serve` opens the result in a browser, and `/document` starts filling it in. Skip straight to the next section if your documentation repository already exists.
+Then `/docs-workflows:docs-serve` serves the result and reports a URL you can open in your browser — it opens nothing itself — and `/document` starts filling it in. Skip straight to the next section if your documentation repository already exists.
 
 ## Your first run
 
@@ -79,6 +80,6 @@ Then document a feature from its PRD:
 /docs-workflows:document ACME-77
 ```
 
-Here is what to expect. The run resolves the docs repository and its profile, reads the resolved PRD folder, resolves the pull requests named there to local clones, summarises their diffs in parallel, finds where each page belongs, plans the documentation, writes it, runs the style check, and gates the result on an Opus review before finishing on a branch with a copy-paste pull-request draft. For a one-off typo fix, pass a file or a description instead of a key — `/docs-workflows:document @note.md` — and the run takes the much shorter direct-mode path.
+Here is what to expect. The run resolves the docs repository and its profile, reads the resolved PRD folder, resolves the repositories its implementation record and commit scan name to local clones, summarises their diffs in parallel, finds where each page belongs, plans the documentation, writes it, runs the style check, and gates the result on an Opus review before finishing on a branch with a copy-paste pull-request draft. For a one-off typo fix, pass a file or a description instead of a key — `/docs-workflows:document @note.md` — and the run takes the much shorter direct-mode path.
 
 From here, [Workflow overview](workflow.md) shows where `/release-notes` fits, and the [documentation index](README.md) links every command page and inventory.

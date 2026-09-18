@@ -18,7 +18,7 @@ claude plugin install product-workflows@ihudak-plugins
 
 `product-workflows` is the plugin this documentation covers. It declares two hard dependencies, installed automatically alongside it: `workflows-core`, its shared foundation, and `prose-style`, whose `prose-style-checker` is `/epics`'s primary style checker and the unconditional Phase 3.5 pass every PRD-authoring command here runs. Neither is optional here — an absent `prose-style` would leave those commands with no absent case to degrade into, which is why the plugin declares it rather than reaching for it at runtime. The companion `dev-workflows` plugin is not a dependency in either direction: it produces `specification.md`'s downstream consumer (`/dev-workflows:design`), but `product-workflows` installs and runs without it, against a specs tree someone else's engineering work will eventually fill in.
 
-**What you also need, and it is not a plugin.** Nothing — the pipeline reads and writes one markdown tree and calls no external service. If you keep your work in a tracker as well, syncing the two is yours to arrange; no command here learns whether one exists.
+**What you also need, and it is not a plugin.** Nothing beyond `gh`, when present, for opening the pull requests it drafts — without it a run reports the branch it pushed and leaves the pull request to you. The specs repo is the one markdown tree the pipeline *writes*; it also reads your product-docs clone under `$DOCS_PATH` and, where a command grounds on code, the clones under `$REPOS_PATH`, which are no markdown tree at all. If you keep your work in a tracker as well, syncing the two is yours to arrange; no command here learns whether one exists.
 
 **What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki` and `acli` — neither is used by `product-workflows`. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
 
@@ -41,7 +41,7 @@ The **shared, team-visible repository for the AI-authored documents** — the id
 
 ### `REPOS_PATH`
 
-Where your mounted implementation and design code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. `/create-ard` and `/idea` (with `--ground-code`) list top-level directories under `$REPOS_PATH` and match on their **basenames**, so a repo renamed on disk is not found by those two unless the rename is also reflected there. `/prd-ground` instead grounds against the repositories `grounding/baselines.md` pins by commit.
+Where your mounted implementation and design code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. `/create-ard` and `/idea` (with `--ground-code`) list top-level directories under `$REPOS_PATH` and offer them to you, so a repo renamed on disk is offered under its new name rather than lost — except where `/idea`'s `--ground-code <repo>,<repo>` names one, since every comma-separated part must match a top-level **basename** to be read as a repo at all. `/prd-ground` instead grounds against the repositories `grounding/baselines.md` pins by commit.
 
 ### `DOCS_PATH`
 

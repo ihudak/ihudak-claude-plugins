@@ -24,15 +24,15 @@ It does ship six commands of its own, and one of them is worth running first —
 
 ## What you set on your machine
 
-`workflows-core` reads five environment variables, and every one of them is read by a reference this plugin ships rather than by a command of its own. One is required for anything in the family to have somewhere to write (`SPECS_PATH`); the rest are optional and each degrades to a documented default or a silent skip. [Environment](reference/environment.md) has the exact defaults and failure behaviour.
+`workflows-core` reads five environment variables, and every one of them is read by a reference this plugin ships — for four of the five, the only read anywhere in this plugin. `SPECS_PATH` is the exception: `/frames` gates on it in its own Phase 0 and refuses to run without it. One is required for anything in the family to have somewhere to write (`SPECS_PATH`); the rest are optional and each degrades to a documented default or a silent skip. [Environment](reference/environment.md) has the exact defaults and failure behaviour.
 
 ### `SPECS_PATH`
 
-The **shared, team-visible store for the AI-authored documents** and for every run's bookkeeping — cost entries, session feedback, follow-ups. It has no default: nothing is guessed, and with it unset those entries degrade to report-only rather than being written somewhere else.
+The **shared, team-visible store for the AI-authored documents** and for every run's bookkeeping — cost entries, session feedback, follow-ups. It has no default: nothing is guessed, and with it unset those entries degrade to report-only rather than being written somewhere else. `/frames` is the exception among this plugin's commands — *"every path this command reads or writes is under it"* — so it stops in Phase 0 rather than degrading.
 
 ### `REPOS_PATH`
 
-Where your code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it. `code-scanner` resolves repositories under it.
+Where your code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it. The command resolves a repository under it and hands `code-scanner` an absolute `repo_path` — no agent reads `REPOS_PATH` itself.
 
 ### `DOCS_PATH`
 

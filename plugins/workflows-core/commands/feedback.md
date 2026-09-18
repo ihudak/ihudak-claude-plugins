@@ -93,7 +93,7 @@ cost -> `resume.md` -> `commit-artifacts`; this command has no follow-ups or
 artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session
 artifacts (/feedback)` — or `NOISSUE …` when no `key` resolved — and
 pushes. It NEVER touches a code/docs repo, or the current working
-directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
+directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its
 §6 outcome line for Phase 4.
 
@@ -104,6 +104,6 @@ Surface the persisted path and any degradation notice (e.g. the report-only tier
 with any guard notice repeated in full.
 
 This command NEVER commits into a docs/code repo, or the current
-working directory. The terminal `commit-artifacts` step commits ONLY
+working directory, where it is not the specs repository. The terminal `commit-artifacts` step commits ONLY
 `$SPECS_PATH`'s bounded artifact paths
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).

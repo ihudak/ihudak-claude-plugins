@@ -22,8 +22,8 @@ The entry points that bound every write into the specs repo and every phase boun
 
 - `specs-repo-git.md` — the two git entry points every bookkeeping write against the specs repo runs through: a start-of-run preflight and a terminal artifact commit, both bounded to plugin-created branches and enumerated paths, never fatal.
 - `phase-handoff.md` — the two phase-boundary git entry points: a producer step that lands a phase's deliverable on the specs repo's default branch, and a consumer gate that requires the deliverable be there before expensive work starts.
-- `branch-naming.md` — how a command that branches in a code repo decides a branch name: the target repo's own documented convention always wins, and this doc supplies one only when the repo documents none.
-- `read-only-repos.md` — how to detect a read-only repository mount, what to skip when one is found, and how to resolve a ref and read from it without ever attempting a write.
+- `branch-naming.md` — how every command that creates a git branch decides the branch name: the target repo's own documented convention always wins, and this doc supplies one only when the repo documents none.
+- `read-only-repos.md` — how to detect a read-only repository mount, what to skip when one is found, and how to resolve a ref and read from it without ever attempting a write. Its resolution also names the default branch that the scanners and the docs-repository commands switch onto or cut a branch from — by its name (`main`) rather than the `origin/main` ref, since `git switch` refuses a remote-tracking ref.
 - `implementation-format.md` — the append-only implementation record a keyed run writes: one block per run, one entry per repository, holding refs and never a summary. Its §3 owns the commit convention, and its §4 the two-source read a documenting run performs over that record plus a commit-message scan.
 - `next-phase-offer.md` — the family-wide contract for the next-phase offer every pipeline command surfaces at the end of its run, naming the natural next command(s), including the `<merge-clause>` placeholder and its overflow rule.
 

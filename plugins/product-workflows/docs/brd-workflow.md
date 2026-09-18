@@ -111,7 +111,9 @@ split is visible to them. **That is the line.** A slice too large for one delive
 not reach the customer, is an Epics problem and stays one. A slice whose split must reach the
 customer — a separate package, a separate conversation — is what the re-cut is for.
 
-`/brd-intake` copies the customer's document in verbatim and immutably, extracts a `[BR#n]`
+`/brd-intake` copies the customer's document in verbatim and immutably — and with it every file that
+document links from its own directory, since `brd/source/` is never written again and an uncaptured
+screenshot is gone for good — extracts a `[BR#n]`
 requirement inventory, confirms candidate defects with a human, and writes a coverage ledger with
 every row `unallocated`. `/brd-split`, run on the root, proposes candidate slices from a mandatory
 slicing instruction — a root is never ground, so the instruction is the only grouping signal there
@@ -235,7 +237,9 @@ shares):
 specifications/BRD-<BRD-KEY>-<slug>/
 ├── brd/
 │   ├── source/<basename>        # the customer's file, copied verbatim — never edited again
+│   ├── source/<paths it links>  # every file that document links from its own directory, byte-for-byte
 │   ├── brd-inventory.md         # [BR#n] rows, /brd-intake
+│   ├── brd-link-log.md          # the links the copy could not capture, with reasons, /brd-intake
 │   └── brd-defect-log.md        # confirmed [DEF#n] entries, /brd-intake and /brd-reconcile
 ├── coverage-ledger.md           # one row per [BR#n]; /brd-intake writes it, /brd-split resolves it
 ├── grounding/

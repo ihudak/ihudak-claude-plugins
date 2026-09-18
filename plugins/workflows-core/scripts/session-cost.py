@@ -184,7 +184,7 @@ def load_namespace_map(path):
     reading is routinely a DIFFERENT plugin from the one that ships this script and
     the reference that invokes it, so a ${CLAUDE_PLUGIN_ROOT}/commands path resolves
     to the WRONG plugin's command set -- the reference's own six utility commands
-    while the emitting run is one of a sibling's twenty. That was live, and no
+    while the emitting run is a command of a sibling plugin. That was live, and no
     assertion could see it: the path resolved, just to the wrong files.
 
     The manifest is DERIVED, never hand-maintained: scripts/check-docs.sh asserts it

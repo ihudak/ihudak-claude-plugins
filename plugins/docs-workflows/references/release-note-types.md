@@ -9,7 +9,7 @@ the per-section prose rules, the deprecation-note rule, and Change Type sourcing
 the documentation-link rule) but never re-derives the writer's decision; the agent applies it and returns a proposed
 destination plus any gaps.
 
-The Change Type is a **field on the PRD, inferred and confirmed where the PRD does not carry one** (§7). It is never written into the draft
+The Change Type is a **field on the PRD, inferred where the PRD does not carry a routable one, and confirmed where that inference is uncertain** (§7). It is never written into the draft
 and never collected as a field — the agent resolves it only to pick the destination and the shape.
 
 ## 1. The section map
@@ -20,8 +20,15 @@ breaking change / feature update / fix is universal, and every rule below about 
 deprecation applies to a section exactly as it applied to a file. Only *where a draft lands* changed.
 
 **The release version is the heading those three sit under**, because in one file nothing else says
-which release a section belongs to. A run whose version the operator declined files under
-`## Unreleased`.
+which release a section belongs to — and it sits **one level above them**, `# <version>`, since
+each section is `## …` and each titled draft opens with its own `### <feature title>` (§3). Those
+three levels are the file's whole outline, and they are what `/release-notes` Phase 8 appends by: a
+version's part of the file runs from its `#` heading to the next `#` heading, and a section runs from
+its `##` heading to the next `##` or `#` heading, so a draft appended at the end of its section, or a
+section at the end of its version's part, never lands inside the next. A version at the sections'
+own level would end at the first section, and a section at the drafts' title level at the first
+draft. A run whose version the operator declined files under `# Unreleased`. The file's title,
+`# Release notes — <KEY> <slug>`, is its first line and names no version.
 
 
 The Change Type selects the **section** of that one file:
@@ -31,7 +38,7 @@ The Change Type selects the **section** of that one file:
 | `Breaking change` | `## Breaking changes` | plain **Category:** label + `### title` + prose |
 | `New technology support` | `## Feature updates` | plain **Category:** label + `### title` + prose |
 | `Bug fix` | `## Fixes` | one self-contained sentence — **no label, no title** |
-| `not applicable` | — | no note is authored; the command's Phase 2 gate stops the run |
+| `not applicable` | — | not routable: inferred as for an absent value (§7), and the draft lands in the section the inference picks |
 
 **The three-file model this replaced is gone, not merely renamed.** Drafts once landed in generated
 snippet files under `<space>/_snippets/release-notes/<product>/<sprint>/`, written into a docs repo by
@@ -46,8 +53,8 @@ first match, in this order:
 
 1. **Breaking change** — the change forces customers to act to avoid disruption.
 2. **Bug fix** — the change is a completed correction restoring intended behavior.
-3. **New technology support** — anything else that adds or enhances a capability. **For a Value
-   Increment this is the overwhelmingly common case**; do not reach for `Bug fix` because a PRD
+3. **New technology support** — anything else that adds or enhances a capability. **For a PRD this
+   is the overwhelmingly common case**; do not reach for `Bug fix` because a PRD
    mentions fixing something.
 
 Tie-breakers:
@@ -62,7 +69,7 @@ Tie-breakers:
 Emit the classification with a confidence signal. When confidence is low (the source supports two
 destinations roughly equally), record a `gaps[]` entry (`field: change_type`,
 `recommended_action: "ask user"`) carrying the proposed value. The command confirms it by
-**consequence** — the shape and the destination file — never by presenting the bare enum labels.
+**consequence** — the shape and the section it lands under — never by presenting the bare enum labels.
 
 ## 3. Draft shape per section
 
@@ -75,14 +82,14 @@ destination:
 Render exactly:
 
 ```markdown
-**Category:** <Solution | Capability>
+**Category:** <category_label>
 
 ### <feature title>
 
 <prose>
 ```
 
-Omit the category label entirely when no Solution label is available (§7).
+Omit the category label entirely when the PRD carries no `release_notes_category` (§7).
 
 ### `## Fixes`
 
@@ -157,9 +164,10 @@ does not already state.
 
 ## 6. General rules (all destinations)
 
-- **No release version anywhere, and exactly one Summary.** The release version is a separate
-  field the PM sets, and it is obvious to customers. Never write "Starting with version 1.305…", "in
-  344", etc. Emit **one** Summary for the note — never one block per declared release version.
+- **No release version in the prose, and exactly one Summary.** The version is the `#` heading the
+  draft is filed under (§1), and it is obvious to customers besides. Never write "Starting with
+  version 1.305…", "in 344", etc. Emit **one** Summary for the note — never one block per declared
+  release version.
 - **The Change Type never appears as text in the draft.** It selects the destination and the shape;
   the PM sets the field on the PRD.
 - Translate the technical change into customer-value language (product and UI terms).
@@ -175,12 +183,13 @@ does not already state.
    present, no confirmation prompt fires.
 
    Two values are **not routable** and fall through to rung 2 (§2 inference): `not applicable`
-   (§1 maps it to no destination — the command's relevance gate, not this ladder, is what stops such a
-   run), and `Bug fix` on a change that trips §5's deprecation trigger (§2's third tie-breaker bars a
-   deprecation from `fixes`, and §5's required end-of-life note has nowhere to live there).
-2. **Infer** — classify per §2, then **confirm with the operator by shape and destination, never by
-   enum label**. This was the fallback rung and is now the ordinary one: nothing supplies the field
-   from outside, so most runs reach it.
+   (§1 maps it to no section, and nothing stops such a run — `/release-notes` has no gate that reads
+   the field — so it is inferred like an absent value and a note is drafted), and `Bug fix` on a
+   change that trips §5's deprecation trigger (§2's third tie-breaker bars a deprecation from
+   `fixes`, and §5's required end-of-life note has nowhere to live there).
+2. **Infer** — classify per §2, then, where the inference is low-confidence, **confirm it with the
+   operator by shape and destination, never by enum label**. This was the fallback rung and is now
+   the ordinary one: nothing supplies the field from outside, so most runs reach it.
 
 **The category label — one rung.** It is your organization's product/solution taxonomy (e.g. `Platform`,
 `Application Observability | Distributed Tracing`, `Infrastructure Observability | Kubernetes`) and it
@@ -188,11 +197,12 @@ is exactly the PRD's `release_notes_category`:
 
 1. **Authored PRD frontmatter** — `release_notes_category`, where the PRD carries one. Use it
    verbatim as the label.
-2. **Absent → infer it from the work's subject area and confirm it in the same grill** that confirms
-   the Change Type. Never guess it silently, and never invent a taxonomy term the operator has not
-   seen.
 
-**Both used to be dropdowns set outside the plugin and returned by an import**, which is why this
-ladder's first rung was authoritative and its second was a fallback. Nothing returns them now, so the
-PRD is the only place either can come from, and an absent field is a question rather than a silence
-(see `workflows-core:prd-format`).
+**Absent, the draft carries no category label**: the line is omitted, and the label is never
+inferred, guessed or asked for — a taxonomy term is the organization's, and one the operator has not
+chosen is one this plugin would be inventing. A draft without the line is complete; a note that
+should carry one gets it from `release_notes_category` added to the PRD.
+
+**Both used to be dropdowns set outside the plugin and returned by an import**, which is why the
+Change Type ladder's first rung was authoritative and its second was a fallback. Nothing returns them now,
+so the PRD is the only place either can be authored (see `workflows-core:prd-format`).

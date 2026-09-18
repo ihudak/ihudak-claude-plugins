@@ -17,11 +17,13 @@ folder_read:    <the YAML the orchestrator assembled by reading the resolved fol
 diff_summaries:         <array of diff-summarizer outputs; one entry per repo>
 write_targets:          <confirmed list from doc-location-finder + user; each has kind, section, path, rationale>
 screenshots:            [<array of user-provided absolute image paths; possibly empty>]
-screenshot_staging_dir: <absolute dir the command resolved for cdn_upload_required staging — a persistent directory the operator named, never inside a repo; null when no screenshots were provided>
+screenshot_staging_dir: <absolute dir /document Phase 1 resolved for cdn_upload_required staging — by default the resolved PRD folder's screenshot subfolder, under $SPECS_PATH; else a directory the operator named; never inside the docs repo, never /tmp. Null only where Phase 1 found no PRD folder and the operator named none>
 code_repos:             <array of {slug, path} for source-truth verification; the clones resolved for diff-summarizer; [] when unavailable>
 specs_dir:              <absolute path to the PRD's spec folder (PRODUCT-NNNN*), or null; the authoritative intended-behavior source>
 repo_root:              <absolute path to the docs repo root>
 profile:                <the resolved docs-profile (built-in example-docs default, in-repo, or generated); supplies spaces[], tokens, internal_links>
+gap_resolution:         <present only on the re-invocation /document Phase 5.7 makes after asking the user about your "ask user" gaps: [{gap: <the gap's description, as you returned it>, answer: <the user's answer, verbatim>}] for each gap the user answered; absent otherwise>
+image_policy_resolution: <present only on the re-invocation /document Phase 5.7 makes after its Ambiguous image policy step: {<target_path>: local | cdn_upload_required} for each target the user settled; absent otherwise>
 ```
 
 Refuse to run without `folder_read`, `write_targets`, and `repo_root`. **`folder_read` is assembled by the orchestrator** from the resolved folder — it is not an agent's return value, and no schema file defines it; the dispatch names its keys.
@@ -47,7 +49,7 @@ For each write target:
 
    When a topic's content presents mutually exclusive options (alternative setup paths, alternative configurations, and similarly-shaped either/or content), plan its callout placement per `workflows-core:doc-structure-conventions` §2: each option's callout is planned adjacent to that option, never as an **unqualified** trailing block after the whole set; a callout that applies to the whole set is planned into the lead-in, before the options. §2 rule 3 is an explicit alternative: when a callout must stay adjacent to the whole set, plan it to name its own scope in its first clause (e.g. *"This applies only to the built-in cluster registry."*). Record the placement in the topic's `notes`. Do not restate §2's rules here — cite it. (The one-line operational paraphrase above is deliberate and stays, as does its twin in `doc-writer.md` step 9: in this file pair the planner and the writer each carry their own short operational version of a cited rule, with §2 the authority both defer to. It is not duplication to collapse.)
 
-2. **Map topics to sources.** Each topic records which the folder read keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6.3 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
+2. **Map topics to sources.** Each topic records which the folder read keys and/or which `diff-summarizer` refs back it up, for the Phase 6.3 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
 
 3. **Plan frontmatter updates** (field rules: `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/frontmatter-guidelines.md`; changelog + owners keep their own references).
    - `changelog:` — append a dated entry with a customer-readable 1-line change summary and NO kea key. Create the field if it doesn't exist on an extended page. This is mandatory on every target. Per `workflows-core:doc-structure-conventions` §1 (verified against the repo convention — fewer than 5 of example-docs's 5500+ entries cite an issue key).
@@ -76,8 +78,10 @@ For each write target:
 
    Pick the policy:
    - `local` count > 0 and `cdn` count is 0 (or negligible) → `image_policy: local`; identify the idiomatic directory (most common pattern — typically `<page-dir>/img/` or `<page-dir>/images/`).
-   - `cdn` count > 0 and `local` count is 0 (or negligible) → `image_policy: cdn_upload_required` — the writer MUST NOT copy user-provided screenshots into the repo; they are staged outside the repo and surfaced in the Phase 9 report for manual upload to the repo's image-management tool (e.g. CDN, Image Manager, CMS).
-   - Mixed or zero references → `image_policy: ambiguous` — the writer asks the user at Phase 6.3 which approach to use for this specific feature.
+   - `cdn` count > 0 and `local` count is 0 (or negligible) → `image_policy: cdn_upload_required` — the writer MUST NOT copy user-provided screenshots into the repo; each is referenced by the CDN URL the user pastes at `/document` Phase 6.1, or, where the user defers its upload there, staged outside the repo at the `staging` path planned below and listed in the Phase 9 report for manual upload to the repo's image-management tool (e.g. CDN, Image Manager, CMS).
+   - Mixed or zero references → `image_policy: ambiguous`. `/document` Phase 5.7's **Ambiguous image policy** step settles each such target of your first return whose `screenshots:` is non-empty with the user and re-invokes you at most once, where an answer needs it, the answers passed as `image_policy_resolution`; a target that re-invoked pass newly returns `ambiguous` is not asked about there, and `/document` Phase 6.3 settles it from `doc-writer`'s `BLOCKED` gap. Where the sample's local references show an idiomatic directory, as for `local`, record it as the target's `image_dir`: Phase 6.3 copies a screenshot there when the user settles the target as local.
+
+   Where `image_policy_resolution` names the target, take the policy it gives in place of the one this detection picks, and plan the target's screenshots under it in step 6.
 
    Concrete threshold for "negligible": treat counts ≤ 1 (in a sample of 5–10) as negligible unless they align with the dominant pattern.
 
@@ -85,8 +89,8 @@ For each write target:
 
 6. **Plan screenshot placement per target.** For each user-provided screenshot that belongs on this target:
    - `image_policy: local` → set `dest` to an absolute path under `<page-dir>/img/` (or the detected idiomatic directory).
-   - `image_policy: cdn_upload_required` → set `staging` to an absolute path under the caller-provided `screenshot_staging_dir` (the staging directory; e.g. `<screenshot_staging_dir>/<original-filename>`). NEVER place it inside `repo_root` and NEVER use `/tmp` — both are lost on container restart for repo-volume mounts / in-image `/tmp`, whereas a host-mounted directory the operator names is not. Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
-   - `image_policy: ambiguous` → leave both `dest` and `staging` null; the writer prompts the user at Phase 6.3.
+   - `image_policy: cdn_upload_required` → set `staging` to an absolute path under the caller-provided `screenshot_staging_dir` (the staging directory; e.g. `<screenshot_staging_dir>/<original-filename>`). NEVER place it inside `repo_root` and NEVER use `/tmp` — both are lost on container restart for repo-volume mounts / in-image `/tmp`, whereas the staging directory `/document` Phase 1 resolves is not. Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
+   - `image_policy: ambiguous` → leave both `dest` and `staging` null (`/document` Phase 5.7, **Ambiguous image policy**), and populate `upload_note` as for `cdn_upload_required`: `/document` Phase 6.3 keeps it for a screenshot it stages when the user settles the target there, and Phase 9 lists it where that screenshot's upload is deferred.
    - In all cases, populate `alt` with a proposed alt-text derived from the feature summary and the image filename.
 
    If the user provided zero screenshots, `screenshots: []` on every target.
@@ -103,7 +107,7 @@ For each write target:
    - "Feature is mentioned in the PRD goal but no PR was merged yet; only PRD content is available."
 
    For each gap, set a `recommended_action`:
-   - `"ask user"` — the caller prompts inline before approval.
+   - `"ask user"` — the caller prompts inline before approval, and re-invokes you at most once, where an answer needs it, with the answers as `gap_resolution`. Plan from each answer as from any other input, and do not return a gap it answers. A gap the user declined has no entry there, so you return it again as `"ask user"`; the caller keeps the fallback it chose on the decline, `"mark TODO in draft"`, and does not ask about it again. A gap you first return on that re-invocation it does not ask about either, since no re-invocation remains to take the answer: it marks it `"mark TODO in draft"`.
    - `"mark TODO in draft"` — the writer emits a `<!-- TODO: … -->` marker in the output.
    - `"skip with note in final report"` — the gap is recorded in the Phase 9 `### Skipped items` section.
 
@@ -138,23 +142,24 @@ checklist:
     space:       <the profile.spaces[].id whose content_root/snippet_root prefixes target_path; null when none does>
     topics:
       - name:    <"How to use" | "Setup" | "Reference" | "Migration" | etc.>
-        sources: [<key | PR URL>, ...]
+        sources: [<key | ref>, ...]
         notes:   <optional 1-line guidance for the writer>
     frontmatter_updates:
-      changelog: {action: append, entry: "<YYYY-MM-DD> <customer-readable 1-line summary; NO keey>"}
+      changelog: {action: append, entry: "<YYYY-MM-DD> <customer-readable 1-line summary; NO key>"}
       other:     {<field>: <value>, ...}   # only fields needing change
     snippets:
       reuse:   [<relative snippet path>]
       extract: [<description of content to extract + proposed snippet path>]
     image_policy: local | cdn_upload_required | ambiguous
+    image_dir:    <ambiguous only: the absolute idiomatic directory the sample's local image references show (step 5a); null where they show none>
     screenshots:
       - src:         <user-provided absolute path>
         # When image_policy == local:
         dest:        <absolute path under <page-dir>/img/ or the detected idiomatic directory>
         # When image_policy == cdn_upload_required:
-        staging:     <absolute path under the caller-provided screenshot_staging_dir (a persistent directory the operator named); NOT inside the repo, never /tmp>
+        staging:     <absolute path under the caller-provided screenshot_staging_dir (the persistent directory /document Phase 1 resolved); NOT inside the docs repo, never /tmp>
         upload_note: <1-line instruction for the user, e.g. "Upload via <repo's image-management process>; replace placeholder URL in page">
-        # When image_policy == ambiguous: both dest and staging are null; the writer prompts the user at Phase 6.3.
+        # When image_policy == ambiguous: both dest and staging are null (/document Phase 5.7, Ambiguous image policy); upload_note is set, as for cdn_upload_required.
         alt:         <proposed alt-text>
     cross_links:
       from:  [<page paths that should link here>]
@@ -175,7 +180,7 @@ verification_warnings:        # source-truth findings; resolved by the orchestra
 
 `finding: SPEC-VS-PRD` flags a spec-vs-PRD drift — the spec markdown differs from the PRD narrative (regardless of whether the code matches the spec). The spec is authoritative, so this verdict surfaces that the PRD should be updated to match the spec. It can only occur when `specs_dir` is non-null; when no spec was provided, `spec_phrasing` is `"(no spec)"` and `SPEC-VS-PRD` never appears.
 
-`status: PARTIAL` is returned when the checklist is usable but at least one gap has `recommended_action: "ask user"` or the image policy is `ambiguous` for at least one target — the caller must surface those to the user before approval.
+`status: PARTIAL` is returned when the checklist is usable but at least one gap has `recommended_action: "ask user"`, or at least one target whose `image_policy` is `ambiguous` has a screenshot planned for it — the caller must surface those to the user before approval (`/document` Phase 5.7). A target with no screenshot is never `PARTIAL` for its policy: no screenshot is placed on it.
 
 ## Hard rules
 
@@ -187,10 +192,10 @@ The `component_patterns` bullet below (no fabricated `evidence`, no second scan)
 - NEVER let a cross-product "minimal touch" parity reference introduce content specific to the OTHER product's implementation. When extending product X's page about a feature shipped by product Y, plan `topics[].notes` as a one-line cross-link to Y's dedicated page — do NOT inline Y's implementation detail (throttling rules, enum values, precedence). Example: noting on `host-agent-update` that update windows are shared with the gateway component is fine; copying the per-pool gateway throttling rule onto the host-agent page is not.
 - NEVER write or modify files. This agent plans; the writer writes.
 - NEVER copy screenshots anywhere — only compute `dest` / `staging` paths and record them. The writer performs the actual file moves.
-- For `image_policy == cdn_upload_required`, the `staging` path MUST be under the caller-provided `screenshot_staging_dir` (a persistent, host-mounted directory the operator named). NEVER stage inside `repo_root` (a repo mounted as a docker repo-volume is not on the host and is lost on restart) and NEVER use `/tmp` (in-image, ephemeral). If `screenshot_staging_dir` is null while a screenshot needs cdn staging, emit a gap with `recommended_action: "ask user"`.
+- For `image_policy == cdn_upload_required`, the `staging` path MUST be under the caller-provided `screenshot_staging_dir` (the persistent directory `/document` Phase 1 resolved: the resolved PRD folder's screenshot subfolder by default, else one the operator named). NEVER stage inside `repo_root` (a repo mounted as a docker repo-volume is not on the host and is lost on restart) and NEVER use `/tmp` (in-image, ephemeral). If `screenshot_staging_dir` is null while a screenshot needs cdn staging, emit a gap with `recommended_action: "ask user"`.
 - NEVER propose `dest` inside the repo when `image_policy == cdn_upload_required`, even as a fallback — the whole point of that policy is that local image files would break the repo's image-management invariant.
 - NEVER strip unknown YAML frontmatter fields from the `other` updates. If the target page has fields you don't recognise, leave them alone.
-- NEVER fabricate sources. Every `topics[].sources` entry must correspond to a key in the `folder_read` or a PR URL in `diff_summaries`.
+- NEVER fabricate sources. Every `topics[].sources` entry must correspond to a key in the `folder_read` or a `ref` in `diff_summaries`.
 - NEVER fabricate a `component_patterns` entry — `evidence` must cite a real file:line observed in the step-5 sample. NEVER add a second, independent scan for component patterns; it is the step-5 sibling sample's second job, not a new one.
 - NEVER collect or emit existing-image data — this agent does not build the stale-image list. It runs at Phase 5.7, after the Phase 5.6 image step that must already present it; the orchestrator owns that list (`existing_image_decisions[]`).
 - NEVER decide a topic is "done" without naming at least one source. If a topic has no source, it is a gap.

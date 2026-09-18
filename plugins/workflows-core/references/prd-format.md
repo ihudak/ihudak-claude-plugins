@@ -113,11 +113,13 @@ this paragraph used to police belonged to a tracker-minted key, and no tracker m
 **`release_versions`, `change_type` and `release_notes_category` are authored here, and that is a
 reversal.** They were dropdowns set outside the plugin and returned by an import, so this file
 forbade authoring them or asking for them — the question bought nothing when the answer already
-existed elsewhere. Nothing supplies them now, so each is authored where it is known and asked for
-where it is not: `change_type` and `release_notes_category` are inferred and confirmed in
-`/release-notes`'s own grill (`docs-workflows:release-note-types` §7), and `release_versions` comes
-from that command's `--version` flag or the same grill. **Never invent one** — an unanswered field is
-omitted, not filled.
+existed elsewhere. Nothing supplies them now, so each is authored where it is known. `/release-notes`
+reads `change_type` and `release_notes_category` from this file, and settles either where it is absent
+or, for `change_type`, not routable (`docs-workflows:release-note-types` §7): it infers `change_type`,
+confirming it in its own grill where the inference is uncertain, and it omits the category label, never inferring or asking for one.
+`release_versions` it does not read — it takes the release from its `--version` flag or that same
+grill — and no other command acts on it either, so the field records the release for the PRD's own
+readers. **Never invent one** — an unanswered field is omitted, not filled.
 
 ## Spine (always, every profile)
 

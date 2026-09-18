@@ -458,7 +458,7 @@ path nobody else can reproduce; the copy is the record.
    the plugin has no record to check against and inventing one would be the failure this whole
    admission exists to avoid.
 
-5. **Hand it off.** Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — the **advisory** array, which is the class §4.0 puts the returned review in: read (by this run's own reader dispatch, and by a later run's step-2 overwrite refusal) and gated by nothing, since §3.4's row for this command targets the *sent prompt* rather than the returned review. That is the same fact the *Declining does not stop the ingest* paragraph below states, and the gated array contradicted it in the operator's own prompt.
+5. **Hand it off.** Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim — the **advisory** array, which is the class §4.0 puts the returned review in: read (by this run's own reader dispatch, and by a later run's step-2 overwrite refusal) and gated by nothing, since §3.4's row for this command targets the *sent prompt* rather than the returned review. That is the same fact the *Declining does not stop the ingest* paragraph below states, and the **gated — stopping** array contradicted it in the operator's own prompt.
    ```
    choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (no command stops on this; what reads it reads your working copy)", "Cancel"]
    ```
@@ -1485,12 +1485,12 @@ working.
 5. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. Stages ONLY the §2.1 bounded artifact paths inside
    `$SPECS_PATH`, commits `<BRD-KEY> Add dev-workflows session artifacts (/brd-reconcile)` with no
    `Co-Authored-By` trailer, and pushes to the branch the handoff phases created. NEVER touches a code
-   repo, a docs repo or the current working directory; NEVER force-pushes; NEVER fails the
+   repo, a docs repo or the current working directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the
    run; skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice.
    Hold its §6 outcome line for the final report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is
-offered only in the two handoff phases), and NEVER writes into a code/docs repo, or the current working directory; no user name is ever written.
+offered only in the two handoff phases), and NEVER writes into a code/docs repo, or the current working directory, where it is not the specs repository; no user name is ever written.
 
 ---
 

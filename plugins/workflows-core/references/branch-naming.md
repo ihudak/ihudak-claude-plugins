@@ -4,7 +4,7 @@ Single source of truth for how every command that creates a git branch decides t
 
 **The repository's own documented convention always wins.** This doc's job is to find that convention, fill its placeholders, and supply a name only when the repo documents none.
 
-Commands that consume this: `/implement`, `/document` (both modes), `/docs-profile`, `/docs-init`, `/docs-brand` (standalone only — an `--inline` run writes on its caller's branch and creates none), `/upgrade`, and `/vuln` (applied by `vuln-fixer` per the `/vuln` "Git Workflow" spec).
+Commands that consume this: `/implement`, `/document` (keyed mode only — a direct-mode run creates no branch), `/docs-profile`, `/docs-init`, `/docs-brand` (standalone only — an `--inline` run writes on its caller's branch and creates none), `/upgrade`, and `/vuln` (applied by `vuln-fixer` per the `/vuln` "Git Workflow" spec).
 
 ---
 
@@ -107,7 +107,6 @@ Tie-breaking:
 | Command | Fallback prefix |
 |---|---|
 | `/implement` | `feat/` |
-| `/document` (doc-edit mode) | `docs/` |
 | `/document` (keyed mode) | `docs/` |
 | `/docs-profile` | `docs/` |
 | `/docs-init` | `docs/` |
@@ -149,7 +148,6 @@ Then surface, once, without persisting anything:
 Used for the description segment (§1.2) or the §1.4 `<slug>`:
 
 - `/implement` — derived from the description: lowercase kebab-case, max 40 chars, punctuation and special characters stripped
-- `/document` (doc-edit mode) — derived from the description: lowercase kebab-case, max 40 chars, punctuation and special characters stripped
 - `/document` (keyed mode) — first 4–6 content words of the PRD summary, kebab-case
 - `/docs-profile` — `docs-profile`
 - `/docs-init` — `docs-init`
@@ -157,7 +155,7 @@ Used for the description segment (§1.2) or the §1.4 `<slug>`:
 - `/vuln` — `<CVE-ID>`
 - `/upgrade` — `upgrade-<component>-to-<version>`, or `upgrade-<first>-and-<N>-more` for a batch
 
-When the documented pattern has **no** issue-key segment but the run has a key, the commands that are keyed (`/document` keyed mode, `/epics`-adjacent flows, `/implement` with a resolved key) prepend it to the slug — `<KEY>-<slug>` — matching their pre-existing behaviour. In the §1.4 no-convention case the same applies.
+When the documented pattern has **no** issue-key segment but the run has a key, the commands that are keyed (`/document` keyed mode, `/implement` with a resolved key) prepend it to the slug — `<KEY>-<slug>` — matching their pre-existing behaviour. In the §1.4 no-convention case the same applies.
 
 If the assembled name already exists, append the first 7 chars of HEAD's SHA: `<name>-<short-sha>`.
 

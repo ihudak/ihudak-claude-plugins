@@ -28,7 +28,7 @@ flowchart TD
         epics["/epics"]
         specify["/specify"]
     end
-    subgraph EST["PM — effort proposals (optional, gates nothing)"]
+    subgraph EST["PM — effort proposals (optional, gates nothing on the build ladder)"]
         prdproposal["/prd-proposal"]
         brdproposal["/brd-proposal"]
     end
@@ -44,13 +44,13 @@ flowchart TD
     createvi -->|PRD-level spec| specify
     specify -->|specification.md| design
     ready -. verifies ARD/spec/design .-> implement
-    brdsplitroot -->|each confirmed slice — claims are its [BR#n] rows| prdground
-    prdground -->|verified [CG#n]/[DG#n] — required before the walk| brdsplitslice
-    createvi -.->|optional — claims are the PRD's own [AC#n]/[FR#n]| prdground
+    brdsplitroot -->|"each confirmed slice — claims are its [BR#n] rows"| prdground
+    prdground -->|"verified [CG#n]/[DG#n] — required before the walk"| brdsplitslice
+    createvi -.->|"optional — claims are the PRD's own [AC#n]/[FR#n]"| prdground
     createvi -.->|optional — priced from whatever readiness the folder has reached| prdproposal
     prdproposal -->|each included slice's proposal.md| brdproposal
-    prdground -.->|verified [CG#n]/[DG#n]| createard
-    prdground -.->|verified [CG#n]/[DG#n]| specify
+    prdground -.->|"verified [CG#n]/[DG#n]"| createard
+    prdground -.->|"verified [CG#n]/[DG#n]"| specify
     brdpackage -->|bundle sent| brdreview
     brdreview -->|answers come back as one file| brdreconcile
     brdreconcile -.->|a decision reopened, or a question askable again| brdinterview
@@ -94,7 +94,7 @@ The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command'
 | Role | Runs | Produces → lands at |
 |---|---|---|
 | **PM** | `/idea`, `/create-prd`, `/update-prd` (and an early `/docs-workflows:release-notes`); also `/brd-intake`, `/brd-split`, `/brd-interview`, `/brd-package`, `/brd-reconcile` | `idea.md`, then the PRD, in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/`; on the BRD route, the inventory, ledger, decision register, customer package and reconciliation record |
-| **PM** *(effort proposals — optional, gates nothing)* | `/prd-proposal`, `/brd-proposal` | `proposal.md` and its rationale brief: in the `PRD-` slice folder for one slice, and in the `BRD-` container above a set of priced slices for the programme umbrella |
+| **PM** *(effort proposals — optional, gates nothing on the build ladder)* | `/prd-proposal`, `/brd-proposal` | `proposal.md` and its rationale brief: in the `PRD-` slice folder for one slice, and in the `BRD-` container above a set of priced slices for the programme umbrella |
 | **PA** | `/create-ard` (optional); also `/prd-ground` (PM-initiated, PA/Dev-executed, either route) | the ARD, in the same specs feature folder as the PRD; `[CG#n]`/`[DG#n]` grounding findings in the resolved folder — a BRD slice's on the BRD route, a PRD's on the idea route |
 | **PE** | `/epics`, `/specify` | `epic.md` per `EPIC-` folder under the PRD folder; `specification.md` on the specs repo's default branch |
 

@@ -346,10 +346,15 @@ The run resolves the slice, gates its inventory and ledger on main, resolves the
 scope and the documentation root, pins and proves each repository clean, grounds every `[BR#n]`
 claim against code and any exported design frames, independently re-derives every finding on Opus,
 assigns horizons against any declared prerequisites, writes the findings, and offers to branch,
-commit, push, and open a pull request. Its next-step offer always names
+commit, push, and open a pull request. Its next-step offer names
 [`/brd-split`](brd-split.md) running in `allocate-only` mode: this slice's ledger is walked to a
-recorded fate, but no child is created, because nesting is capped at one level. `/brd-split` is not
-where the route ends: it hands on to [`/brd-interview`](brd-interview.md).
+recorded fate, but no child is created, because nesting is capped at one level. The exception is a
+slice holding a design frame set the run could not reconcile, which `/brd-split` refuses: there the
+offer recommends `/workflows-core:frames` — which ships in the companion plugin — to write the
+missing index, and a `--no-code` re-run here to ground the set, before `/brd-split` can be taken at
+all.
+`/brd-split` is not where the route ends: it hands on to
+[`/brd-interview`](brd-interview.md).
 
 On the idea route, ground a PRD once [`/create-prd`](create-prd.md)'s handoff has merged:
 
@@ -362,8 +367,11 @@ a ledger, builds its claim list from the PRD's own `[AC#n]`/`[FR#n]` rows (repor
 the excluded prefixes), then runs the same repository resolution, pinning, fan-out, verification,
 and write as the BRD route. Its next-step offer names [`/create-ard`](create-ard.md) and
 [`/specify`](specify.md) side by side, with [`/update-prd`](update-prd.md) named first, marked
-`(Recommended)`, wherever a claim came back `SUPPORTED` — a PRD asking for something the code
-already does is worth revising before an architecture or a specification is authored against it.
+`(Recommended)`, wherever a *requirement* claim came back `CONFIRMED` — the one of
+`workflows-core:grounding-format` §3's six verdicts that says the premise holds with evidence, so a
+PRD asking for something the code already does is worth revising before an architecture or a
+specification is authored against it. The count beside it is of distinct requirement claims; the
+baseline finding the run writes per repository is `CONFIRMED` too, and is not one of them.
 
 ## See also
 

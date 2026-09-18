@@ -1,8 +1,9 @@
 # /brd-intake
 
-Copies a customer-supplied business requirements document into the specs repo verbatim, extracts a
-`[BR#n]` requirement inventory, confirms the document's defects with a human, and writes a coverage
-ledger where every requirement starts `unallocated`.
+Copies a customer-supplied business requirements document into the specs repo verbatim — and with
+it every file that document links from its own directory, so the copy's links still resolve —
+extracts a `[BR#n]` requirement inventory, confirms the document's defects with a human, and writes
+a coverage ledger where every requirement starts `unallocated`.
 
 ## Who runs it
 
@@ -88,6 +89,13 @@ Under `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` — the `BRD-` kind pre
 name the run creates ([addressing](../reference/references.md) §2):
 
 - `brd/source/<basename>` — the customer's source, copied byte-for-byte and never edited again.
+- `brd/source/<the paths it links>` — every file that document links from its own directory, copied
+  byte-for-byte to the same relative path, so the copied text's links resolve exactly as the
+  customer's did. Screenshots are the usual case, and capturing them is the only chance there is:
+  nothing under `brd/source/` is ever written again.
+- `brd/brd-link-log.md` — the links the copy could **not** capture, each with its reason (above the
+  source document's own directory, an absolute path, a URL, or unreadable), plus the run's counts.
+  Written on every run, including one that captured everything.
 - `brd/brd-inventory.md` — one row per `[BR#n]`, each with its `source_anchor` and any confirmed
   `[DEF#n]` defects.
 - `brd/brd-defect-log.md` — one entry per confirmed `[DEF#n]`, resolution `open`.
@@ -147,10 +155,11 @@ Intake a synthetic customer BRD for a new BRD key:
 /product-workflows:brd-intake ACME-001 @customer-brd.md
 ```
 
-The run resolves or creates the BRD folder, copies `customer-brd.md` verbatim into `brd/source/`,
-dispatches `brd-reader` to extract the `[BR#n]` inventory, walks its defect candidates with you
-class by class, writes the coverage ledger with every row `unallocated`, and offers to branch,
-commit, push, and open a pull request.
+The run resolves or creates the BRD folder, copies `customer-brd.md` verbatim into `brd/source/`
+together with every file it links from its own directory, records in `brd/brd-link-log.md` each link
+it could not capture and why, dispatches `brd-reader` to extract the `[BR#n]` inventory, walks its
+defect candidates with you class by class, writes the coverage ledger with every row `unallocated`,
+and offers to branch, commit, push, and open a pull request.
 
 ## See also
 
@@ -159,7 +168,8 @@ commit, push, and open a pull request.
 - `workflows-core:addressing` — the `<BRD-KEY>` grammar and folder
   resolution this command uses by name (`key-valid`, `resolve-address`).
 - [`brd-format.md`](../../references/brd-format.md) — the `[BR#n]` row shape, the immutability rule,
-  and the six defect classes this command confirms against.
+  §1.1's account of what `brd/source/` holds and of the link log beside it, and the six defect
+  classes this command confirms against.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the ledger row shape,
   the six dispositions, and the ledger line every command of the BRD-to-PRD route ends its final
   report with.

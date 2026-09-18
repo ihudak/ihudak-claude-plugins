@@ -44,13 +44,13 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
 
 1. **Resolve the destination.** Per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §7:
    `change_type` is authoritative, with two **not routable** exceptions that fall through to
-   inference (§2) instead: `not applicable` (§1 maps it to no destination — the command's Phase 2
-   relevance gate is what stops such a run, not this step) and `Bug fix` on a change that trips the §5
+   inference (§2) instead: `not applicable` (§1 maps it to no section, and nothing stops such a run —
+   `/release-notes` has no gate that reads the field — so it is inferred like an absent value) and `Bug fix` on a change that trips the §5
    deprecation trigger (apply that trigger's scan now, ahead of Process step 3's full detection — §2's
    deprecation tie-breaker bars a deprecation from `fixes`, where the required end-of-life note would
    have nowhere to live). Otherwise, `change_type` → infer per §2. Set
    `release_notes_block.change_type` to one of `Breaking change` / `New technology support` /
-   `Bug fix`, and `release_notes_block.destination` to the matching file from §1. Only when the value
+   `Bug fix`, and `release_notes_block.destination` to the matching section from §1. Only when the value
    had to be **inferred** and is low-confidence, emit `gaps[]` (`field: change_type`,
    `recommended_action: "ask user"`) carrying the proposed value — the command confirms it by shape
    and destination, not by enum label. The Change Type is NEVER written as text into the draft.
@@ -78,9 +78,9 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
 
 6. **Build the authored body, shaped by the destination (§3, §4):**
    - **`fixes`** — render **one self-contained past-tense sentence**: symptom + resolution, per §4
-     Fixes. NO the category label line, NO `###` title, NO keey. Skip the remaining bullets in this
+     Fixes. NO category label line, NO `###` title, NO key. Skip the remaining bullets in this
      step; they apply only to the titled shapes.
-   - **Context label** (titled shapes only) — the value resolved in step 2, rendered verbatim. When it
+   - **Category label** (titled shapes only) — the value resolved in step 2, rendered verbatim. When it
      is null, omit the line.
    - **Feature title** — 5–10 words, sentence case, release-note headline style. No
      leading "New feature:", no trailing period.
@@ -154,7 +154,7 @@ Return YAML exactly as defined in `${CLAUDE_PLUGIN_ROOT}/references/handoff/rele
   inference (§2) instead: `not applicable`, and `Bug fix` on a change that trips the §5 deprecation
   trigger — see `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §7.
 - ALWAYS set `release_notes_block.change_type` to one of `Breaking change` /
-  `New technology support` / `Bug fix`, and `release_notes_block.destination` to the matching file
+  `New technology support` / `Bug fix`, and `release_notes_block.destination` to the matching section
   per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1; when the value was inferred with
   low confidence, still set it and record a `field: change_type` gap.
 - NEVER write the Change Type as text anywhere in the draft. It selects the destination and the shape

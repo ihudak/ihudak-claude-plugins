@@ -135,7 +135,9 @@ subagent):**
   relaunching `/design` on Opus (the run is resumable from `_design-session.md`):
   `choices: ["I'll relaunch /dev-workflows:design on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel"]`
   Design authoring for risky work must be Opus — the Opus `design-reviewer` reviews, it cannot originate
-  good architecture.
+  good architecture. Where `opus_available` is **also** false there is nothing to relaunch onto, so per
+  `workflows-core:model-routing/classification` §9.3 the relaunch option is dropped and the array is
+  `choices: ["Proceed on the Sonnet floor — the degradation is recorded in `notes` and the final report (Recommended)", "Cancel"]`.
 - **SIMPLE / MODERATE + not Opus → soft advisory.** Recommend Opus but proceed; record the choice in
   `notes` and the final report.
 - **Opus session →** proceed (the intended case).
@@ -400,7 +402,7 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits (still true — git f
 the deliverable is offered only in Phase 7, and this phase itself runs no git;
 those writes are committed by the terminal `commit-artifacts` step in Phase 9,
 per `workflows-core:specs-repo-git` §4), and NEVER writes
-into the current working directory. The specs-first ladder writes the feedback
+into the current working directory, where it is not the specs repository. The specs-first ladder writes the feedback
 file inside `$SPECS_PATH`, alongside the feature folder — the intended home.
 
 ## Phase 9 — Session cost
@@ -433,14 +435,14 @@ stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/design)` with no `Co-Authored-By`
 trailer, and pushes to the branch this run's handoff phase created (§4.1). It
 NEVER touches a code repo, a docs repo, or the current working
-directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
+directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its
 §6 outcome line for the Final report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git
 for the deliverable is offered only in Phase 7; the terminal step above commits
 only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes
-into a docs/code repo or the current working directory; no user name is ever
+into a docs/code repo or the current working directory, where it is not the specs repository; no user name is ever
 written (§10 privacy).
 
 ## Final report

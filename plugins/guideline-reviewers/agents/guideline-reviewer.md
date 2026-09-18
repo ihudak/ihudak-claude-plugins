@@ -40,8 +40,9 @@ Load only the references needed for the components found. Do NOT load all refere
 ### 3. Run the Deterministic Accessibility Check
 Before any LLM review pass, detect and wrap whatever accessibility tooling the target repo
 already configures — see **Deterministic Accessibility Check** below for the detection order,
-what each branch does, and the merge rule. Record the outcome as `a11y_check`. No tooling
-detected ⇒ skip **silently** and continue to step 4 exactly as if this step did not exist.
+what each branch does, and the merge rule. Record the outcome as `a11y_check`, one per lint
+partition (below). A partition with no tooling detected is skipped **silently**: its files continue
+to step 4 exactly as if this step did not exist.
 
 ### 4. Check Compliance
 For each component, verify against the mandatory rules in the guideline:
@@ -89,10 +90,15 @@ does not replace the step below.
 
 Accessibility rule sets are maintained by Deque (axe-core) and the W3C (ACT Rules), not by this
 plugin. A repo that configures `eslint-plugin-jsx-a11y` has already chosen its rule set, its
-severity policy, and its exceptions, and CI will run exactly that on the PR. Wrapping the repo's
-own configuration guarantees the local result matches what CI checks; re-encoding the rule set
-here would duplicate the canonical source and drift from it. This mirrors how `docs-style-checker`
-wraps a docs repo's own Vale rather than embedding a style guide.
+severity policy, and its exceptions. Wrapping the repo's own configuration means this step runs
+that rule set, as ESLint resolves it from each file's package directory (below), so a finding here
+is one the repository's own rules raise; re-encoding the rule set here would duplicate the
+canonical source and drift from it. It is not a guarantee that CI reports the same: CI reports the
+same findings where it lints those files from the same directory, or under the same
+configuration, with the same ESLint and plugin versions, and can report others where it does not
+— a CI job that lints a monorepo from its top level reads the configuration ESLint resolves there,
+not the one a package keeps for itself — and a repository may run no linter in CI at all. This mirrors how `docs-style-checker` wraps a docs
+repo's own Vale rather than embedding a style guide.
 
 ### What can and cannot run here — state this accurately
 
@@ -111,29 +117,105 @@ Never write, or imply, that axe ran.
 
 ### Detection order
 
-Read-only detection. First match sets `a11y_check`; the check is scoped to the files under
-review and never to the whole tree.
+Read-only detection, made once per lint partition (below). First match sets that partition's
+`a11y_check`; the check is scoped to the files under review and never to the whole tree.
+
+**Where it looks, and where it runs.** Partition the reviewed files by their package directory, and
+detect and lint each partition on its own, from that directory. A file's package directory is the
+nearest directory at or above it, up to its repository's git top level
+(`git -C "<the file's directory>" rev-parse --show-toplevel`), that holds a `package.json` — the
+project whose ESLint Node resolves there. A file with none up to the top level belongs to its
+repository's top-level partition, detected and linted from the top level itself; files in no
+repository have no top level to walk up to, and form one partition in the deepest directory that
+holds them all. **A `package.json` that declares ESLint is not a configuration**, and nothing here
+looks for the configuration by hand: ESLint finds its own, looking upward from the directory it
+runs in. So a package that keeps its own ESLint config is linted under it, a package that keeps
+none is linted under the one ESLint finds above it — at the top level, say — files from two
+packages are each linted under the config ESLint resolves for its own, and a repository whose
+config and `package.json` sit at its top level is linted from there, as it is when you are started
+in it. Your Bash tool starts every call in the session's directory, which need not be the reviewed
+repository, and a `cd` does not persist between calls — while `npx --no-install` (or, under Yarn
+Plug'n'Play, `yarn`) finds ESLint, and ESLint finds its config, from the directory it runs in — so run every command below for a
+partition as one subshell, `(builtin cd "<the partition's directory>" >/dev/null && …)`, inside a
+single Bash call, naming that partition's files by absolute path — `builtin cd`, its output
+discarded, since your Bash tool's shell carries the user's shell functions and aliases, and a `cd`
+of theirs would otherwise run in its place and could print into what you read. Merge what the
+partitions report into one set of findings, each keyed by its file.
 
 **1. Static linter — `eslint-plugin-jsx-a11y`** (the useful case: it checks source)
 
-Detected when `jsx-a11y` appears in any of:
-- `package.json` — `dependencies`, `devDependencies`, or an inline `eslintConfig` block
-- a flat config: `eslint.config.js` / `.mjs` / `.cjs` / `.ts`
-- a legacy config: `.eslintrc`, `.eslintrc.js`, `.eslintrc.cjs`, `.eslintrc.json`, `.eslintrc.yml`, `.eslintrc.yaml`
-
-When detected, run the repo's own lint over the reviewed files only. Prefer the repo's lint
-script when it accepts file arguments (`package.json` scripts named `lint`, `lint:js`, `lint:ts`,
-or `eslint`), selecting the package runner from the lockfile (`pnpm-lock.yaml` → `pnpm`,
-`yarn.lock` → `yarn`, `package-lock.json` / `npm-shrinkwrap.json` → `npm`, `bun.lockb` → `bun`).
-Otherwise invoke the repo's already-installed ESLint directly:
+Detected when the configuration ESLint itself resolves for any of the partition's files carries
+`jsx-a11y` — a `jsx-a11y` entry in its `plugins`, or a rule whose id starts with `jsx-a11y/` —
+and never from one directory's `package.json` or config file read by hand, which ESLint's upward
+lookup, an `extends` or a shared config each defeat. Ask ESLint, one file at a time until one
+answers yes; it prints that file's resolved configuration as JSON:
 
 ```bash
-npx --no-install eslint --format json <files under review>
+(builtin cd "<the partition's directory>" >/dev/null && COREPACK_ENABLE_NETWORK=0 npx --no-install eslint --print-config "<one of the partition's files>")
 ```
 
-`--no-install` is required: this step never installs anything. Parse the JSON array
-(`filePath`, `messages[].ruleId`, `.line`, `.column`, `.message`, `.severity`), keep only messages
-whose `ruleId` starts with `jsx-a11y/`, and map severity `2` → **Critical**, `1` → **Warning**.
+**Under Yarn Plug'n'Play, run ESLint through Yarn.** A Plug'n'Play install — Yarn 2 and later's
+default — keeps no `node_modules`, so `npx --no-install` finds no ESLint there and cancels. Where a
+`.pnp.cjs` sits in the partition's directory or in any directory above it, up to its repository's
+top level (in no repository, that directory alone), run every ESLint command in this branch —
+this probe and the lint below — as `yarn run -B eslint …` in place of `npx --no-install eslint …`,
+from the same directory and with the same arguments. **`-B` (`--binaries-only`) is what makes it the
+ESLint binary**: without it Yarn runs a package script named `eslint` in the binary's place wherever
+`package.json` defines one — `"eslint": "eslint src"` is a common one — and that script, handed the
+probe's arguments, exits 2 with *"The --print-config option must be used with exactly one file
+name"*, which this step would read as ESLint unable to answer (Yarn 4.9.2). Plug'n'Play lets a
+workspace run only the binaries it declares itself, so where Yarn answers that it cannot find a
+script named `eslint` — ESLint is declared by the root workspace alone, as in a monorepo that keeps
+its linter at the top — run `yarn run -T -B eslint …` instead, which runs the root workspace's
+binary, and never a script the root workspace names `eslint`.
+
+**Never let a package runner fetch itself.** Corepack, which supplies `yarn` and `pnpm` wherever a
+Node.js install enables it, downloads the release a repository's `packageManager` field pins where
+that release is not already on the machine — an install this step must never make. So every command
+in this branch runs with `COREPACK_ENABLE_NETWORK=0` in its environment, as the commands shown here
+carry it; Corepack reads it and refuses the download instead, and a runner Corepack does not manage
+ignores it. A runner refused that way — it exits non-zero with Corepack's *"Network access disabled
+by the environment"* — is a runner that cannot run: the probe above and the lint below treat it as
+they treat one, recording the attempt in `a11y_attempt` with Corepack's message as the reason
+wherever they record one, and nothing is installed.
+
+ESLint answering that it can find no configuration file means none applies there: not detected.
+Where ESLint cannot answer at all — `npx --no-install` finds no ESLint installed, or under
+Plug'n'Play Yarn finds none either way or cannot run, or ESLint fails to load the
+configuration — and an ESLint configuration file lies in that directory or any
+directory above it (a flat `eslint.config.js` / `.mjs` / `.cjs` / `.ts`, or a legacy `.eslintrc`,
+`.eslintrc.js`, `.eslintrc.cjs`, `.eslintrc.json`, `.eslintrc.yml`, `.eslintrc.yaml`), the
+repository configures a linter that could not run: record the attempt in `a11y_attempt` and fall
+through to branch 2. Where no such file does, not detected.
+
+When detected, run the repo's own lint over the partition's reviewed files only. Prefer the repo's
+lint script when it accepts file arguments (the partition directory's `package.json` scripts named
+`lint`, `lint:js`, `lint:ts`, or `eslint`), selecting the package runner from the nearest lockfile
+at or above that directory (`pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `package-lock.json` /
+`npm-shrinkwrap.json` → `npm`, `bun.lockb` → `bun`) and running it as `<runner> run <script>`, with
+`--` before the arguments under `npm`. Hand the script ESLint's `--format json --output-file "<file>"`
+ahead of the partition's files, `<file>` a fresh path outside every repository (`command mktemp -t a11y-XXXXXX`
+names one), and **read the JSON from that file, never from standard output**: a runner can print a
+banner of its own there ahead of anything the script prints — `npm run` writes `> <script>` and the
+command line it runs — and a banner is not JSON. Remove the file once it is read, with
+`command rm -f -- "<file>"`, so an `rm` alias or function of the user's in the Bash tool's shell
+never keeps it — and remove it the same way once branch 1 gives up instead, on the two-minute
+timeout below and on any other failure that falls through to branch 2, where nothing ever reads it. Otherwise invoke
+the repo's already-installed ESLint directly — through Yarn, as above, under Plug'n'Play — whose
+standard output is ESLint's JSON alone:
+
+```bash
+(builtin cd "<the partition's directory>" >/dev/null && COREPACK_ENABLE_NETWORK=0 npx --no-install eslint --format json <the partition's files>)
+```
+
+`--no-install` is required: this step never installs anything, and `yarn run -B eslint` runs the
+ESLint the Plug'n'Play install already holds, installing none. Parse the JSON array
+(`filePath`, `messages[].ruleId`, `.line`, `.column`, `.message`, `.severity`), **keep only the
+entries whose `filePath` is one of the partition's reviewed files**, compared as the absolute paths
+ESLint prints and this step hands it, whatever else the lint covered — a lint script can lint more
+than the files it is handed, as `"eslint": "eslint src"` lints all of `src/` beside them, and a
+finding in a file outside the review is not this review's — then keep only their messages whose
+`ruleId` starts with `jsx-a11y/`, and map severity `2` → **Critical**, `1` → **Warning**.
 Cap the run at 2 minutes.
 
 Set `a11y_check: eslint-jsx-a11y`. A non-zero ESLint exit code means violations were found and is
@@ -143,7 +225,9 @@ the attempt in `a11y_attempt`, fall through to branch 2, and never fail the run.
 **2. Runtime harness — detect only, never run**
 
 Detected when any of `jest-axe`, `cypress-axe`, `@axe-core/playwright`, `@axe-core/cli` appears in
-`package.json` `dependencies` / `devDependencies`.
+the `dependencies` / `devDependencies` of a `package.json` in the partition's directory or in any
+directory above it, up to the top level (in no repository, that directory alone), where a
+workspace often keeps its test tooling.
 
 **Do not attempt to run it.** There is no rendered app in a review. Set
 `a11y_check: harness-detected:<name>` and state in the report, in these terms:
@@ -157,9 +241,10 @@ List the axe `ruleId`s the review's own findings cite. Never present them as res
 run without this step. Skipping is silent: no prompt, no warning, no finding, no failure. Record
 the value and say nothing further about it.
 
-When branch 1 ran **and** a runtime harness is also present, `a11y_check` keeps the first-match
-value `eslint-jsx-a11y` and the harness is recorded separately as `harness_present: <name>` — the
-information is not lost, and the single `a11y_check` value still says which check executed.
+When branch 1 ran **and** a runtime harness is also present, the partition's `a11y_check` keeps
+the first-match value `eslint-jsx-a11y` and the harness is recorded separately as
+`harness_present: <name>` — the information is not lost, and the partition's single `a11y_check`
+value still says which check executed.
 
 ### Merge, do not duplicate
 
@@ -177,7 +262,7 @@ rule. Never promote a linter Warning to Critical — the repo's configured sever
 ### Hard rules
 
 - NEVER modify files in the target repo. This agent reports; it does not fix.
-- NEVER install a package, start a server, or run a test suite.
+- NEVER install a package, start a server, or run a test suite — nor let Corepack download a package-manager release: every command the deterministic check runs through a package runner carries `COREPACK_ENABLE_NETWORK=0`.
 - NEVER claim axe-core, `jest-axe`, `cypress-axe`, `@axe-core/playwright`, or `@axe-core/cli` ran.
 - NEVER fail the run or prompt the user because tooling is absent. Absence sets `a11y_check: none`.
 - NEVER lint the whole tree when a file-scoped invocation is available.
@@ -199,9 +284,9 @@ two overlays.
 
 | Order | Source | Resolves when |
 |---|---|---|
-| 1 | `rules_path` input, when the caller supplied one (`--rules <path>`) | the path is a readable directory containing ≥1 `.md` file |
-| 2 | `<repo-root>/.dev-workflows/ui-guidelines/` | the directory exists, is readable, and contains ≥1 `.md` file |
-| 3 | `$$UI_GUIDELINES_PATH` | the variable is set and names a readable directory containing ≥1 `.md` file |
+| 1 | `rules_path` input, when the caller supplied one (`--rules <path>`) | the path is a readable directory containing ≥1 `.md` file at its own top level |
+| 2 | `<repo-root>/.dev-workflows/ui-guidelines/` | the directory exists, is readable, and contains ≥1 `.md` file at its own top level |
+| 3 | `$UI_GUIDELINES_PATH` | the variable is set and names a readable directory containing ≥1 `.md` file at its own top level |
 | 4 | *(none)* | always — the baseline alone is the active rule set |
 
 Derive `<repo-root>` for order 2, taking the first that works:
@@ -212,11 +297,18 @@ git rev-parse --show-toplevel 2>/dev/null
 # no repository -- the deepest common parent of the reviewed files
 ```
 
-A candidate that does not exist, is unreadable, or holds no `.md` file falls through to the next
-order **silently**. A missing overlay is the normal case, not a problem.
+A candidate that does not exist or is unreadable falls through to the next order **silently**: a
+missing overlay is the normal case, not a problem. **A readable directory holding no `.md` file of
+its own is not that case** — someone made that directory, so falling through without a word loses
+their rules instead of finding none. Fall through to the next order and record it, per Step D. The
+usual way to reach this is a nested overlay: an overlay is a **flat** directory of `.md` files
+whatever shape the subtree it overlays has, because Step C matches an overlay file to a baseline
+file by name and never by path, so `.md` files laid out in subdirectories leave the candidate's own
+top level empty.
 
 **Step C — merge.** Only `.md` files are rule sources; any other file is ignored. The overlay
-**augments and overrides** the baseline, per file name:
+**augments and overrides** the baseline, per file name — the baseline file's **name**, wherever in
+the bundled subtree it sits (`references/guidelines/` is flat and holds no repeated name):
 
 - An overlay file whose name matches a baseline file is layered **on top of** it; both are in force.
 - On a conflict — the same component, the same rule, the same subject — **the overlay wins**.
@@ -234,8 +326,15 @@ baseline                      # no overlay resolved
 overlay:<absolute path>       # an overlay resolved, from any of orders 1-3
 ```
 
-Do not print a warning, a note, or a question about the resolution outcome — `rules_source` is the
-entire report. Only when the baseline itself is missing or empty **and** no overlay resolved is
+Beneath it, emit one line for **every** candidate Step B found readable and empty of `.md` files —
+including where a later order then resolved, since the skipped one still holds somebody's rules:
+
+```
+rules_overlay_skipped:<absolute path> — readable, but holds no `.md` file at its top level; an overlay is flat
+```
+
+Do not print any other warning, note, or question about the resolution outcome — those lines are
+the entire report. Only when the baseline itself is missing or empty **and** no overlay resolved is
 that an error worth raising.
 
 ## Documentation Lookup (design-system MCP, optional)
@@ -291,7 +390,10 @@ harness_present: <harness name, only when a harness was detected alongside a lin
 a11y_attempt:    <one line, only when a detected linter failed to produce parseable output>
 ```
 
-`a11y_command` is `null` whenever no command executed — never fabricate one.
+`a11y_command` is `null` whenever no command executed — never fabricate one. Where the reviewed
+files fall into more than one lint partition, the block appears once per partition, each copy
+opening with `a11y_dir: <the partition's directory>`; with one partition it is the block above,
+unchanged.
 
 ### Quick Review
 Brief summary with pass/fail per guideline and critical issues only.

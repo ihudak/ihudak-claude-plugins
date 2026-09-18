@@ -9,8 +9,17 @@ rules a reviewer checks, and — in §14 — what an umbrella run adds over a sl
 `docs/superpowers/specs/2026-09-08-proposal-commands-design.md`.
 
 **Written by `commands/prd-proposal.md` and `commands/brd-proposal.md`; reviewed against by
-`agents/proposal-reviewer.md`.** The one command that reads a proposal is `commands/brd-proposal.md`,
-which rolls each slice's into the umbrella; nothing else in the family opens one.
+`agents/proposal-reviewer.md`.** The one command that reads **another folder's** proposal is
+`commands/brd-proposal.md`, which rolls each slice's into the umbrella; no command of the build
+ladder opens one at all. The other readers open only their own folder's: `commands/prd-proposal.md`
+and `commands/brd-proposal.md` each open the canonical `proposal.md` a prior run of theirs left
+there — §8's stability anchor, read in Phase 6 and archived only in the `proposal.md`-authoring phase
+that follows it, **Phase 7 in `/prd-proposal` and Phase 8 in `/brd-proposal`** (the two do not share
+the number: `/prd-proposal`'s Phase 8 authors the *brief*), which is what lets §12's changelog name
+the cause of every figure that moved — and the reviewer above opens the `proposal.md`
+it is handed and refuses without it. **That own-folder read is why an umbrella's `proposal.md` is
+classed `advisory` rather than `unread`** in `workflows-core:phase-handoff` §4.0: a later run of the
+command that wrote it is a reader like any other.
 
 ## 1. What this format governs, and the two quantities it must never conflate
 
@@ -28,10 +37,14 @@ not produce, and a git-committed rate card is a disclosure waiting to happen.
 **A proposal gates nothing on the build ladder.** `/create-ard`, `/specify`, `/epics`, `/design`,
 `/implement` and `/ready` each resolve the same folder and neither know nor care whether it holds a
 proposal: none requires one, reads one, or behaves differently because one exists, and no grade in this
-file withholds permission to begin work. The one command that does read a proposal is `/brd-proposal`,
-which gates on a slice's in order to roll it into the umbrella — a second proposal rather than a phase
-of the build. A proposal is a document a vendor sends a customer; it is not a phase and never a
-prerequisite for building anything.
+file withholds permission to begin work. The one command that reads **another folder's** proposal is
+`/brd-proposal`, which gates on a slice's in order to roll it into the umbrella — a second proposal
+rather than a phase of the build. **Every other read is an own-folder one, and §0 above is the
+census**: a later run of either producing command, opening the `proposal.md` it left there as §8's
+stability anchor, and `agents/proposal-reviewer.md` inside the run that wrote it. Do not restate that
+census here as "the one reader" — an unscoped form of this sentence stood on six surfaces against §0,
+and this is the sentence it was copied from. A proposal is a document a vendor sends a customer; it is
+not a phase and never a prerequisite for building anything.
 
 ## 2. The two artifacts, where they live, and how a revision is archived
 

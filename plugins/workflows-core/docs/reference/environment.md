@@ -2,7 +2,7 @@
 
 [Getting started](../getting-started.md) says what each variable is *for* and what to export before your first use of this plugin. This page says what each variable **is** — its default, what happens when it is unset, and what happens when it points somewhere unreadable. The plugin reads five user-settable variables. The rest of the names its own inventory check encounters while scanning for `$VAR` reads are never user-settable and stay out of scope here: `CLAUDE_PLUGIN_ROOT` and `ARGUMENTS` are runtime plumbing Claude Code itself sets for every plugin invocation, and `OSTYPE`, `BASH_SOURCE`, `BASH_REMATCH`, `ROOT` and `OWNER_REPO` are shell built-ins or internal template names, not plugin configuration.
 
-Every one of the five is read by a reference this plugin ships rather than by a command of its own — the corpus is where the reads live, and the corpus is here. The set is the union of what any downstream plugin needs, plus the price-table override: `dev-workflows` and `docs-workflows` each read all four of the others (`$GIT_USER_INITIALS` included, since each branches a repository somewhere); `product-workflows` reads three of the four — it never creates a branch in a code or docs repo, so `$GIT_USER_INITIALS` is not among the variables its own commands or references touch.
+Every one of the five is read by a reference this plugin ships — the corpus is where the reads live, and the corpus is here — and for four of the five that is the only read anywhere in this plugin. `$SPECS_PATH` is the exception: `/frames` Phase 0 step 0 gates on it in the command's own body and stops the run on an unset one. Where any of this plugin's other commands names the variable, it is as the scope of the shared entry points they cite, which do the reading. The set is the union of what any downstream plugin needs, plus the price-table override: `dev-workflows` and `docs-workflows` each read all four of the others (`$GIT_USER_INITIALS` included, since each branches a repository somewhere); `product-workflows` reads three of the four — it never creates a branch in a code or docs repo, so `$GIT_USER_INITIALS` is not among the variables its own commands or references touch.
 
 ## `$SPECS_PATH`
 
@@ -10,7 +10,7 @@ Every one of the five is read by a reference this plugin ships rather than by a 
 
 **Resolution.** Used verbatim as a directory path. `specs-repo-git.md`'s preflight and terminal commit run every git call as `git -C "$SPECS_PATH"` and never change the working directory.
 
-**When unset.** Cost, feedback and follow-up entries fall through to their report-only tier — the run says what it would have written and writes nothing. Nothing is ever written into the current working directory instead, since it may be a code repository.
+**When unset.** Cost, feedback and follow-up entries fall through to their report-only tier — the run says what it would have written and writes nothing. Nothing is ever written into the current working directory instead, since it may be a code repository. **`/frames` does not degrade — it stops.** *"Every path this command reads or writes is under it"*, so its Phase 0 step 0 applies `escalation-rules.md`'s *Required path environment variable unset* rule and refuses the run — `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`, with no "continue without it".
 
 **When it points somewhere unreadable or unwritable.** The same degradation, reported rather than fatal.
 
@@ -18,7 +18,7 @@ Every one of the five is read by a reference this plugin ships rather than by a 
 
 - **`$REPOS_PATH`** — where your code clones live; one directory, or a colon-separated list. Defaults to `/workspace`.
 
-**Resolution.** `code-scanner` and the grounding agents resolve a repository under it — by `git remote get-url origin` slug where a command starts from a pull-request URL, and by directory basename where a command lists candidates to offer you.
+**Resolution.** The **command** resolves a repository under it and hands the agent an absolute `repo_path` — no agent reads `$REPOS_PATH` itself. The match is by `git remote get-url origin` slug where the command was handed the slug; where it lists candidates to offer you instead, your answer is resolved against that listing rather than matched against a directory name, so a rename changes the name a clone is offered under, never whether it is offered.
 
 **When unset.** The default applies. A repository that is simply not mounted is reported as unresolvable rather than guessed at.
 
@@ -38,7 +38,7 @@ Every one of the five is read by a reference this plugin ships rather than by a 
 
 - **`$GIT_USER_INITIALS`** — your branch identity string; no default, and nothing fails when it is absent.
 
-**Resolution.** It is rung 1 of the identity ladder `branch-naming.md` applies for a code repository. The rungs run in order, stopping at the first non-empty result: this variable, then `git config user.initials`, then inference from existing branch names, then a prompt.
+**Resolution.** It is rung 1 of the identity ladder `branch-naming.md` applies wherever a command creates a git branch. The rungs run in order, stopping at the first non-empty result: this variable, then `git config user.initials`, then inference from existing branch names, then a prompt.
 
 **When unset.** The ladder falls through — there is no error, only degradation to a less certain source. Where the target repo's documented convention has no name-or-initials segment, the variable is simply unused for that repo.
 

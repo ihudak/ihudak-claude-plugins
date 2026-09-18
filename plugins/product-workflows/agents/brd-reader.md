@@ -38,7 +38,11 @@ repo for "something that looks like a BRD."
 1. **Read the source verbatim** with `Read`. This is the only content this agent treats as
    authoritative. `Grep` may help locate headings or numbered items while walking the structure;
    `Glob` is only for confirming the given path resolves to a single file, never for discovering a
-   different candidate file when the given one is missing.
+   different candidate file when the given one is missing. The files the source links from its own
+   directory were copied beside it at the same relative paths before this dispatch
+   (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.1), so such a link names something that is
+   there rather than a dead end — this agent still reads only `source_path`, and reading a linked
+   file's content is no part of its job.
 
 2. **Walk the source structurally** — headings, numbered items, bulleted items, and standalone
    paragraphs — to find each discrete customer obligation. A heading or a list label is not itself

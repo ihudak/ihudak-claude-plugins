@@ -26,7 +26,7 @@ Read-only discovery and grounding — each returns a structured digest rather th
 | `code-grounder` | opus | Read, Glob, Grep, Bash, Skill | Grounds specific BRD claims against one repository at a pinned commit — one `[CG#n]` finding per claim, verifying `HEAD` matches the pin before grounding anything. | `/prd-ground` |
 | `customer-review-reader` | per routing | Read, Glob, Grep | Reads a returned customer review in two modes — parses a schema-shaped file, or drafts that schema from prose; every free-text inference returns an unconfirmed candidate. | `/brd-reconcile` |
 | `design-grounder` | opus | Read, Glob, Grep, Skill | Reconciles a BRD against an exported design frame set — one `[DG#n]` per divergence in four classes; refuses without an index file; the code-capture class cites a `[CG#n]` instead of asserting it. | `/prd-ground` |
-| `idea-reader` | per routing | Read, Glob, Grep, Skill | Ingests one idea source into a source digest for `/idea`: links two levels deep in either syntax, linked images read and described as context, every other linked file enumerated but never opened. | `/idea` |
+| `idea-reader` | per routing | Read, Glob, Grep, Skill | Ingests one idea source into a digest for `/idea`: links two levels deep in every form a markdown source uses, linked images read and described as context, other linked files named, never opened. | `/idea` |
 
 ## Writers
 

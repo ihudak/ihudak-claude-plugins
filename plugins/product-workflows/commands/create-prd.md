@@ -74,8 +74,8 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 
 3. **Resolve `idea.md` (ladder — stop at first hit). Skipped entirely on the BRD route**, where
    `prd-seed.md` is the seed and there is no `idea.md` to find: rung 1 would return `absent` on a
-   BRD folder that never held one, and rungs 3 and 4 would then offer an idea from some other
-   initiative — a picker over stray `idea.md` files is exactly the offer that names something
+   BRD folder that never held one, and rung 3 would then offer an idea from some other
+   initiative — a same-session `/idea` output is exactly the offer that names something
    this run has no business reading. An explicit `@<path>` supplied alongside the BRD route is still
    honoured, on rung 2's terms only (read where it sits, never relocated, never gated, reported once
    as out-of-contract) and as **additional grounding**, never as the seed. Without the BRD route the
@@ -344,7 +344,7 @@ Read the resolved `idea.md` **directly** (it is the plugin's own format — `ide
 
 Optionally ground in the idea's cited sources and any strategy/vision docs the user points to. **No code scan; no repos.**
 
-**Text sources only — an image citation is carried, never opened here.** `## Signals & evidence` may cite images the idea's original source linked, because `idea-reader` reads those on the `/idea` run and describes them to that run's grill. Its bounds — two wikilink levels, twelve files, six images, every exclusion reported — belong to that agent and do **not** travel with the file, so opening an image path found here would be an unbounded read this phase has no cap or reporting line for. What those frames showed has already been put to the operator and survives in the idea's prose; treat the path as provenance and read the prose.
+**Text sources only — an image citation is carried, never opened here.** `## Signals & evidence` may cite images the idea's original source linked, because `idea-reader` reads those on the `/idea` run and describes them to that run's grill. Its bounds — two link levels, twelve files, six images, every exclusion reported — belong to that agent and do **not** travel with the file, so opening an image path found here would be an unbounded read this phase has no cap or reporting line for. What those frames showed has already been put to the operator and survives in the idea's prose; treat the path as provenance and read the prose.
 
 If `--from-prd` was resolved (Phase 0 step 2a), also read the **seed PRD** (body + comments) as read-only
 grounding — structure, personas, scope shape, and metrics to *adapt* (never copy) to the new PRD.
@@ -438,11 +438,13 @@ Author `prd.md` live against `Skill(skill: "workflows-core:reference", args: "pr
 
    **Do NOT ask for `release_versions`, `change_type` or `release_notes_category` here.** They are
    authored fields now rather than tracker dropdowns returned by an import
-   (`workflows-core:prd-format`), but the place each is *known* is
-   `/release-notes` — it infers and confirms `change_type` and `release_notes_category` in its own
-   grill, and takes `release_versions` from its `--version` flag or that same grill. Write whichever
-   the operator volunteers; never invent one, and never spend a question here on an answer that
-   command asks for anyway. An unanswered field is omitted, not filled.
+   (`workflows-core:prd-format`), and `/release-notes` gets what it needs of them itself: where the
+   PRD carries no routable `change_type` it infers one, confirming it in its own grill where the
+   inference is uncertain, and it takes the release from its `--version` flag or that same grill, never from the
+   PRD's `release_versions` — so never spend a question here on an answer that command gets anyway —
+   and it omits the category label where `release_notes_category` is absent, never inferring or
+   asking for one, so that field is optional: a draft without it is complete. Write whichever the
+   operator volunteers; never invent one. An unanswered field is omitted, not filled.
 
    **`key` was for a time omitted on the BRD route**, deferred to a tracker step — long retired — that once minted a separate identity and wrote it back. Once that step was gone nothing wrote the field at all, so it stayed permanently unset — which is the defect the spine item above closes by writing `key` on every route. Left unset, a folder whose only `kind:`+`key:` carrier is `brd-link.md` (`kind: brd`) resolves as a BRD rather than a PRD (`workflows-core:addressing` §4), while `/document` and `/release-notes` build their commit scan from a `key` that is empty and silently match nothing. There is no second identity to keep straight any more: one namespace, one grammar, and the folder's key is the key.
 2. **Problem**
@@ -679,9 +681,10 @@ Guidance only — never auto-invokes another command. Per `workflows-core:next-p
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase (Phase 7), per
-`workflows-core:session-hygiene` §1 — the PRD-Key is minted by the
-handoff, so it **omits the session-name line**; name the session manually if
-useful. Then:
+`workflows-core:session-hygiene` §1 — and `/create-prd` is outside that
+reference's §4 rename-aid set, so it **omits the session-name line**. Not for want of a key:
+Phase 0 refuses this run without one. The PM phase is simply short enough that no label is
+auto-suggested; name the session manually if useful. Then:
 
 - **Continuing as PM (`/docs-workflows:release-notes <ADDRESS>`)?** → run **`/compact`**.
 - **Handing to PA (`/product-workflows:create-ard <PRD>`) or PE (`/product-workflows:epics <PRD>`), even yourself?** → run **`/clear`** for a clean slate.
@@ -694,7 +697,7 @@ Guidance only — nothing is auto-run. See `workflows-core:session-hygiene`.
 
 Terminal phase — runs after Phase 6, NEVER interrupts an earlier phase.
 
-**Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `workflows-core:feedback-emission`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (missing key, unset `$SPECS_PATH`, cancellation) or a work-quality review BLOCK. **The three BRD-route refusals are of that second class, not the first**: `CREATE_PRD_BRD_NOT_SLICED` (structural, step 5a), `CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE` (slice-only, step 7) each report the state of the operator's own BRD tree, not a capability this plugin lacks, so none of them `emit-block`s. `CREATE_PRD_NEEDS_KEY` and `CREATE_PRD_TWO_SEEDS` are the same.
+**Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `workflows-core:feedback-emission`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (missing key, unset `$SPECS_PATH`, cancellation) or a work-quality review BLOCK. **The three BRD-route refusals are of that second class, not the first**: `CREATE_PRD_BRD_NOT_SLICED` (structural, step 5a), `CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE` (slice-only, step 7) each report the state of the operator's own BRD tree, not a capability this plugin lacks, so none of them `emit-block`s. `CREATE_PRD_NEEDS_KEY` is the same.
 
 **Session-hygiene invariant.** End Phase 6 with a `### Context hygiene` block per
 `workflows-core:session-hygiene` — prepare-first (the
@@ -702,7 +705,8 @@ Terminal phase — runs after Phase 6, NEVER interrupts an earlier phase.
 `workflows-core:session-hygiene` §1 — this block prints the
 guidance only),
 then a span suggestion (PM continue → `/compact`; PA/PE handoff → `/clear`). No `/rename`
-label yet (no PRD-Key). Guidance only, never auto-run.
+label — not for want of a key, since Phase 0 refuses this run without one, but because the
+PM phase is short (`workflows-core:session-hygiene` §4). Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/create-prd`; what was authored (PRD + profile); key events (source-ladder friction, unresolved clarifications, BLOCK reviews — or 'none'); workarounds; the `prd-reviewer` verdict; test result N/A; project root = the feature folder.
 2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /create-prd`, the run's `key` — which on the BRD route is the `<BRD-KEY>`, matching this PRD's own `$SPECS_PATH` folder, so the write stays on that reference's primary tier instead of dropping to the unfiled one — `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").
@@ -710,7 +714,7 @@ label yet (no PRD-Key). Guidance only, never auto-run.
 4. **Write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` and, per its §1, write/overwrite `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the pointer reflects the completed run, and before the commit step below, so it is included in it. Redact per §1. Silent; the printed `### Context hygiene` guidance already appeared in the report.
 5. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/create-prd)` — or `NOISSUE …` when the run resolved no key at all — with no `Co-Authored-By` trailer. **On the BRD route that `<KEY>` is the BRD key, not `NOISSUE`**: this is a specs-repo commit-message prefix, not a tracker lookup, and the BRD key is the key this run resolved and the name of the folder the staged artifacts sit in. A key the handoff has not yet minted is missing from `key`, which is a different field for a different purpose, and pushes to the branch this run's handoff phase created (§4.1). It NEVER touches anything outside `$SPECS_PATH`; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its §6 outcome line for the Final report.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is offered only in Phase 5; the terminal step above commits only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into a code/docs repo or the current working directory; no user name is ever written.
+ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is offered only in Phase 5; the terminal step above commits only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into a code/docs repo or the current working directory, where it is not the specs repository; no user name is ever written.
 
 ---
 

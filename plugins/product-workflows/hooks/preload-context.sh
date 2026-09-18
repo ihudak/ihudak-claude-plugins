@@ -18,13 +18,15 @@
 # the reading plugin, so a hook cannot source a sibling plugin's file — a
 # dependency grants installation, never file access.
 #
-# Two sibling plugins each ship a hook of this name, one regex apiece:
-# dev-workflows covers /implement, /vuln and /upgrade; docs-workflows covers
-# /document and /release-notes. A UserPromptSubmit hook fires whichever
-# plugin ships it, so all three run on every prompt. Disjointness holds two
-# ways at once: the three bare-command alternations share no command name
-# across the three plugins, and the optional plugin-name prefix each regex
-# now also accepts is a literal, distinct string per plugin — so no single
+# Two sibling plugins each ship a hook of this name, matching only their own
+# commands: dev-workflows covers /implement, /vuln and /upgrade;
+# docs-workflows covers /document and /release-notes. A UserPromptSubmit hook
+# fires whichever plugin ships it, so all three run on every prompt.
+# Disjointness holds two ways at once: the bare-command alternations share no
+# command name across the three plugins, and the plugin-name prefix each regex
+# accepts is a literal, distinct string per plugin — required rather than
+# optional for the two commands that collide with a Claude Code built-in
+# (/upgrade in dev-workflows, /release-notes in docs-workflows) — so no single
 # prompt can match more than one of the three.
 #
 # Exits immediately (near-zero overhead) if the message doesn't match.

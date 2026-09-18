@@ -255,8 +255,10 @@ For each frame set, in directory order:
    the run.
 
 Hold, per set: the index path **as a repo-relative path** — that is the form `deliverable_paths`
-takes in Phase 3, and `handoff-to-main` §2.3 matches it against `git status --porcelain` output, which
-is repo-relative; an absolute path there matches nothing and stages nothing, silently. Hold also how
+takes in Phase 3, and `handoff-to-main` §2.3 matches it against `git status --porcelain -z` output, which
+is repo-relative; an absolute path there matches nothing and stages nothing. §2.3 step 4 names it in
+§4.1's *declaration unaccounted for* clause, so that failure is reported rather than silent — but the
+index still does not reach the default branch, which is the reason to hold the repo-relative form. Hold also how
 many rows it now holds, how many this run added, how many it
 preserved, how many carry each placeholder and why — `_no description on record_` (`cap`, `missing`,
 `not_a_frame`, or an agent status) and `_could not be read: <reason>_` (`unreadable`,
@@ -282,7 +284,7 @@ set empty — has no deliverable, offers no handoff, and says so; offering one w
 request for nothing.
 
 Report what each set now holds, then present
-`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim — the **advisory** variant (§4.0), whose second option says no command stops on this and that what reads it reads your working copy. **Nothing gates a frame-set index, but something reads one**: `product-workflows:design-grounder` refuses to run on a frame set holding no index at all, and `product-workflows:grounding-verifier` returns `NO_INDEX`/`STALE_INDEX` on one — both from the working tree, neither off a ref. The **gated** variant would promise a stop no consumer makes, and the **unread** variant — which this phase presented until §4.0's register was verified against the tree — told the operator to ignore a file `/prd-ground` refuses a frame set without, three lines above a paragraph of this same phase saying the set stays `NO_INDEX` for everybody else. That contradiction is the reason §4.3 asks a producer to name its reader rather than infer the class from the absence of a §3.4 row. On the first
+`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim — the **advisory** variant (§4.0), whose second option says no command stops on this and that what reads it reads your working copy. **Nothing gates a frame-set index, but something reads one**: `product-workflows:design-grounder` refuses to run on a frame set holding no index at all, and `product-workflows:grounding-verifier` returns `NO_INDEX`/`STALE_INDEX` on one — both from the working tree, neither off a ref. The **gated** class is wrong outright — §3.4 names no row for a frame-set index, so neither of its two arrays applies, and its **stopping** one would promise a refusal no consumer makes — and the **unread** variant — which this phase presented until §4.0's register was verified against the tree — told the operator to ignore a file `/prd-ground` refuses a frame set without, three lines above a paragraph of this same phase saying the set stays `NO_INDEX` for everybody else. That contradiction is the reason §4.3 asks a producer to name its reader rather than infer the class from the absence of a §3.4 row. On the first
 option, execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: frames`;
 `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = **every `index.md` this run
 wrote, one literal path each, repo-relative as Phase 2 held them**; `title: <KEY> Index design frame sets`; and
@@ -370,14 +372,14 @@ gap** (a capability the run needed but the plugin lacked), `emit-block` (per
    and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages
    ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session
    artifacts (/frames)` and pushes. It NEVER touches a code/docs repo or the current working
-   directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries
+   directory, where it is not the specs repository; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries
    `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its §6 outcome line for the Final
    report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits a deliverable (each `index.md` is handed off
 separately, before this phase, via `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2, behind
 Phase 3's §4.3 consent choice), and NEVER writes into a code/docs repo or the current working
-directory; no user name is ever written.
+directory, where it is not the specs repository; no user name is ever written.
 
 ---
 

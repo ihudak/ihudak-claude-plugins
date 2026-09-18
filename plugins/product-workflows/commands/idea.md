@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose links to other pages are followed two levels deep, in either syntax, and whose linked images are read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Copies the sources it actually read into the PRD folder (markdown into attachments/, images into design/idea-sources/ with the index that frame set requires) and rewrites idea.md's links onto the copies. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`workflows-core:phase-handoff` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose links to other pages are followed two levels deep — wikilinks, inline markdown links and images, reference-style definitions and HTML img src alike — and whose linked images are read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Copies the sources it actually read into the PRD folder (markdown into attachments/, images into design/idea-sources/ with the index that frame set requires) and rewrites idea.md's links onto the copies. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`workflows-core:phase-handoff` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -124,7 +124,9 @@ gets reported instead. **Carry each entry whole, `target` included.** Every link
 which it is forbidden to do.
 
 **What the digest now carries, and what it is worth.** The reader follows links **two levels
-deep**, in either syntax, under one total-file cap and **reads** the images the source links, returning a
+deep**, in every form its own `### The link forms` names — a `[[wikilink]]`, a markdown inline link or
+image, a reference-style definition, an HTML `<img src>` — under one total-file cap and **reads** the
+images the source links in any of them, returning a
 `description` of what each frame shows rather than a bare path. Both are **context**: they inform the
 grill and the prose Phase 4 writes. Neither is grounded evidence — an image here is never a `[DG#n]`
 finding and gets no verifier pass here (`workflows-core:grounding-format` §6 governs *that*; this
@@ -183,7 +185,7 @@ Runs only when `--ground-code` was given; otherwise take the OFF branch at the e
 
 Handle every returned status through the list `workflows-core:escalation-rules` already carries for it — `REPO_MISSING` → *Repo missing (after resolution)*. `prep.read_only: true` is **not** a failure: the scan ran at `prep.scanned_ref`; escalate per *Read-only mount — ref stale or diverged* **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, and cite evidence at `prep.scanned_ref` either way. With `switch_to_default_branch` and `pull` both false, every repo is scanned read-only as it stands, at `prep.scanned_ref`, without switching branches or pulling — `code-scanner`'s dirty-tree status is gated on `pull: true`, a condition never met here, so this scan never produces it.
 
-**3. Round 2 — narrow.** Apply §8.5 of the model-routing reference: for each theme round 1 left **inconclusive** (`classification` `partial` / `absent` / `error`, or **two or more** scanners' per-theme `capability_map[].gap_summary` texts point at each other's repo in a cycle, or at a component/subsystem that no scanned repo covers), and for which round 1 produced at least one evidence anchor, dispatch `code-scanner` again with `capability_themes` holding exactly **one** question and `search_hints.paths` / `.symbols` / `.keywords` seeded from that round's verified `evidence[].path` and `.symbols`; where an evidence entry carries `lines`, name the anchor as `<path>:<line>` in the round-2 `context` prose, since `search_hints` has no line-number field. Round 2 reuses round 1's `refresh:` block verbatim — `switch_to_default_branch: false`, `pull: false` — so the read-only posture and the "dirty-tree status never produced here" claim at `:162` hold for both rounds. Cap **4 dispatches, one round only** — there is no round 3, and a theme still inconclusive is carried to Phase 4 as a `[NEEDS CLARIFICATION]`, never guessed at. A theme confirmed `absent` — by round 2, or by round 1 when no anchor existed to seed a round 2 — is a **resolved** finding: it belongs in Section 7's *What's missing*, not in Open questions. `[NEEDS CLARIFICATION]` is for a theme the scan could not settle — mutual deferral, or `error`.
+**3. Round 2 — narrow.** Apply §8.5 of the model-routing reference: for each theme round 1 left **inconclusive** (`classification` `partial` / `absent` / `error`, or **two or more** scanners' per-theme `capability_map[].gap_summary` texts point at each other's repo in a cycle, or at a component/subsystem that no scanned repo covers), and for which round 1 produced at least one evidence anchor, dispatch `code-scanner` again with `capability_themes` holding exactly **one** question and `search_hints.paths` / `.symbols` / `.keywords` seeded from that round's verified `evidence[].path` and `.symbols`; where an evidence entry carries `lines`, name the anchor as `<path>:<line>` in the round-2 `context` prose, since `search_hints` has no line-number field. Round 2 reuses round 1's `refresh:` block verbatim — `switch_to_default_branch: false`, `pull: false` — so the read-only posture and that round's claim that `code-scanner`'s dirty-tree status is gated on `pull: true` and so is never produced here hold for both rounds. Cap **4 dispatches, one round only** — there is no round 3, and a theme still inconclusive is carried to Phase 4 as a `[NEEDS CLARIFICATION]`, never guessed at. A theme confirmed `absent` — by round 2, or by round 1 when no anchor existed to seed a round 2 — is a **resolved** finding: it belongs in Section 7's *What's missing*, not in Open questions. `[NEEDS CLARIFICATION]` is for a theme the scan could not settle — mutual deferral, or `error`.
 
 **OFF branch** (no `--ground-code`). Run one detection and print at most one line. Tokenise the raw argument and the digest's `raw_context`; match tokens case-insensitively against the basenames of the **git repositories** (a `.git` entry present) directly under each `${REPOS_PATH:-/workspace}` entry, excluding `$DOCS_PATH` and `$SPECS_PATH`. Exact token match only — no substring, no stemming. On ≥1 match print:
 
@@ -307,7 +309,11 @@ repairs where `idea.md` points.
    `/workflows-core:frames <KEY>`, which reads the frames themselves and fills exactly those rows.
 4. **Rewrite `idea.md`'s links onto the copies** — `[[wikilinks]]`, `![[embeds]]`, `[text](path)` and
    `![alt](path)`, absolute and relative alike — replacing the target, preserving the display text, and
-   **writing every rewritten link as standard markdown**. `$SPECS_PATH` is a git repo read on a forge and
+   **writing every rewritten link as standard markdown**. **Those four are the forms `idea.md` itself
+   carries**, and that is why the list here is shorter than the one `idea-reader`'s `### The link forms`
+   recognises: the reader's set is about the *source*, which this phase never re-reads, while this file
+   was authored by Phase 4 against `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` and every link this
+   phase writes into it is standard markdown. `$SPECS_PATH` is a git repo read on a forge and
    in editors, not an Obsidian vault: nothing there resolves `[[name]]`, so a link repointed into the repo
    but left in wikilink syntax still resolves nowhere the record is actually read. `[[rollout]]` becomes
    `[rollout](attachments/rollout.md)`, `[[rollout|the plan]]` becomes `[the plan](attachments/rollout.md)`,
@@ -381,7 +387,7 @@ every later run until those paths are committed or the handoff is taken.
 Report where `idea.md` was written and its `status`, and what Phase 4.5 vendored beside it, then offer
 the next phase — **adapted to status**:
 
-- **`status: refined`** — offer the handoff. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — the **gated** variant (§4.0), because `/product-workflows:create-prd <KEY>` runs `require-on-main` on this `idea.md` (§3.4's first row) — then on the
+- **`status: refined`** — offer the handoff. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — the **gated — falling back** variant (§4.1 bullet 2), because `/product-workflows:create-prd <KEY>` runs `require-on-main` on this `idea.md` (§3.4's first row), which settles the class as **gated**, and that row is the *only* one naming this file: it preserves the Phase 0 idea ladder instead of stopping, so §4.1's quantifier takes the falling-back half. The **gated — stopping** array would promise a refusal `/create-prd` does not make — on `absent` it reports the file and grills the PRD from scratch, which is what the outcome line this same run prints already says — then on the
   first option execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: idea`;
   `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = `idea.md`, **plus every file
   Phase 4.5 wrote or reused** — each copy under `attachments/`, each image copy under
@@ -447,8 +453,11 @@ next-phase-offer contract; `/idea` is one reference implementation.)
 ### Context hygiene
 
 Continuing to `/product-workflows:create-prd` (still the PM phase)? → run **`/compact`** to free context; your
-`idea.md` is already on disk. (No resume pointer or `/rename` label here — the PRD-Key is
-minted later, and the ideation phase is short.) Guidance only — see
+`idea.md` is already on disk. (No resume pointer or `/rename` label here — not for want of a
+key, since Phase 0 required one before this run wrote anything, but for two different reasons:
+no pointer because this run hands its brief off in the same run rather than being a phase a
+later run resumes (`workflows-core:session-hygiene` §1), and no label because the ideation
+phase is short (§4).) Guidance only — see
 `workflows-core:session-hygiene`.
 
 ---
@@ -464,8 +473,10 @@ abandoned at the block still records the gap. NEVER `emit-block` for an environm
 source-not-found, cancellation).
 
 **Session-hygiene invariant.** End Phase 5 with a `### Context hygiene` note per
-`workflows-core:session-hygiene` — a same-role `/compact` suggestion
-(no `resume.md`, no `/rename`: pre-PRD, short PM phase). Guidance only, never auto-run.
+`workflows-core:session-hygiene` — a same-role `/compact` suggestion, and neither a `resume.md`
+nor a `/rename` label. Two different reasons, neither of them a missing key: no pointer because
+this run hands its brief off in the same run rather than being a phase a later run resumes (§1),
+and no label because the ideation phase is short (§4). Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
@@ -491,11 +502,11 @@ source-not-found, cancellation).
 4. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages
    ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows
    session artifacts (/idea)` — the key is mandatory here, so `NOISSUE` never applies — and pushes. It NEVER
-   touches a code/docs repo, or the current working directory; NEVER force-pushes; NEVER
+   touches a code/docs repo, or the current working directory, where it is not the specs repository; NEVER force-pushes; NEVER
    fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting
    that notice. Hold its §6 outcome line for the Final report.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (idea.md itself is handed off separately, before this phase, via `workflows-core:phase-handoff` §2, behind Phase 5's §4.3 consent choice; the terminal step above commits only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into a code/docs repo or the current working directory; no user name is ever written.
+ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (idea.md itself is handed off separately, before this phase, via `workflows-core:phase-handoff` §2, behind Phase 5's §4.3 consent choice; the terminal step above commits only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into a code/docs repo or the current working directory, where it is not the specs repository; no user name is ever written.
 
 ---
 

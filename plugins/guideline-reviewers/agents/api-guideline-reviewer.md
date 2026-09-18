@@ -42,32 +42,36 @@ Load every guideline file listed below before reviewing — never skip one of th
 
 Run this **before** Pass 1. It is the only pass that produces machine-checked findings, and its findings are authoritative for the rules it covers.
 
-**1 — Resolve a CLI.** Try each in order and stop at the first that exits 0:
+**Where it runs.** Partition the spec files by their lint directory, and run steps 1–4 once per partition, in that directory. A spec's lint directory is the nearest directory at or above it, up to its repository's git top level (`git -C "<the spec's directory>" rev-parse --show-toplevel`), that holds a Spectral ruleset of its own — `.spectral.yaml`, `.spectral.yml` or `.spectral.json` — or a `package.json` that declares `@stoplight/spectral-cli`. A spec with no such ancestor belongs to its repository's top-level partition, linted from the top level itself; a spec in no repository has no top level to bound the walk, so the walk stops at the spec's own directory, and the spec is linted from there, with any other spec in that directory. A monorepo package that keeps its own ruleset or its own Spectral CLI is linted from that package, specs from two such packages are each linted from their own package, and a repository that keeps them at its top level from there, as it is when you are started in it. Your Bash tool starts every call in the session's directory, which need not be the spec's repository, and a `cd` does not persist between calls — while `npx --no-install` resolves the CLI from the directory it runs in, and from any other finds none, or the wrong one — so run each probe and each lint below as one subshell, `(builtin cd "<the partition's directory>" >/dev/null && …)`, inside a single Bash call, naming the partition's specs by absolute path — `builtin cd`, its output discarded, since your Bash tool's shell carries the user's shell functions and aliases, and a `cd` of theirs would otherwise run in its place and could print into what you read. Merge what the partitions report into one set of findings, each keyed by its spec file.
+
+**1 — Resolve a CLI.** Try each in order, from the partition's directory, and stop at the first that exits 0:
 
 | Order | Probe | `SPECTRAL` |
 |---|---|---|
 | 1 | `spectral --version` | `spectral` |
 | 2 | `npx --no-install @stoplight/spectral-cli --version` | `npx --no-install @stoplight/spectral-cli` |
-| 3 | *neither answered* | — skip Pass 0 |
+| 3 | *neither answered* | — skip Pass 0 for this partition |
 
-Nothing resolved is **not an error**. Set `lint_source: none`, go straight to Pass 1, and record the skip in the output block. Never install anything, never prompt the user, never fail the run, and never say more about it than the `lint_source` line — this mirrors how `docs-style-checker` treats a missing linter.
+Nothing resolved is **not an error**. Set the partition's `lint_source: none`, skip its steps 2–4 — its specs go to Pass 1 unlinted — and record the skip in the output block. Never install anything, never prompt the user, never fail the run, and never say more about it than the `lint_source` line — this mirrors how `docs-style-checker` treats a missing linter.
 
-**2 — Choose the ruleset.** If the repository holding the spec has its own `.spectral.yaml` / `.spectral.yml` / `.spectral.json` at its root, use that one: an organization is expected to **extend** the bundled ruleset in its own file rather than edit the bundled file in place, so its file is the more specific one. Otherwise use the bundled ruleset:
+**2 — Choose the ruleset.** If the partition's specs have a ruleset of their own — the `.spectral.yaml` / `.spectral.yml` / `.spectral.json` in the nearest directory at or above the partition's directory, up to its repository's git top level, that holds one, which is also the nearest one at or above every spec in the partition; for specs in no repository, whose partition's directory is the specs' own, the search stops at that directory and looks in it alone — use that one, named by its absolute path: an organization is expected to **extend** the bundled ruleset in its own file rather than edit the bundled file in place, so its file is the more specific one. Otherwise use the bundled ruleset:
 
 ```
 ${CLAUDE_PLUGIN_ROOT}/references/api-guidelines/spectral/ruleset.yaml
 ```
 
-**3 — Run it,** once per spec file:
+**3 — Run it,** once per partition, over every spec in it:
 
 ```
-<SPECTRAL> lint <spec-file> --ruleset <ruleset> --format json --fail-severity hint
+(builtin cd "<the partition's directory>" >/dev/null && <SPECTRAL> lint <the partition's spec files> --ruleset "<the ruleset's absolute path>" --format json --fail-severity hint)
 ```
+
+Name the ruleset by its absolute path, as the specs are named: the lint runs from the partition's directory, so a path relative to anywhere else — the session's directory, or the repository's top level — names no file there, and Spectral stops with `Error running Spectral!`, which is treated as no CLI resolved (below), so the partition would be reviewed without its lint. The bundled ruleset's `${CLAUDE_PLUGIN_ROOT}` path is already absolute.
 
 - **Exit code 1 means findings were reported, not that the tool failed.** Judge success by whether stdout carries a parseable JSON array, never by the exit code.
-- If Spectral errors out (`Error running Spectral!`, an unparseable ruleset, a timeout of roughly two minutes), treat it exactly like "no CLI resolved": set `lint_source: none`, note the reason in one clause on the `lint_source` line, and continue. Pass 0 never blocks the review.
+- If Spectral errors out (`Error running Spectral!`, an unparseable ruleset, a timeout of roughly two minutes), treat it exactly like "no CLI resolved": set the partition's `lint_source: none`, note the reason in one clause on its `lint_source` line, and continue. Pass 0 never blocks the review.
 
-**4 — Parse the JSON.** Each element carries `code` (the rule id), `message`, `path`, `range`, `severity` (`0` error, `1` warn, `2` info, `3` hint) and `source`. Map severity onto this agent's output vocabulary:
+**4 — Parse the JSON.** Each element carries `code` (the rule id), `message`, `path`, `range`, `severity` (`0` error, `1` warn, `2` info, `3` hint) and `source`, the file the finding was found in. Map severity onto this agent's output vocabulary:
 
 | Spectral severity | Section |
 |---|---|
@@ -78,7 +82,7 @@ The ruleset already encodes the RFC 2119 mapping (`error` ← MUST, `warn` ← S
 
 ### What Pass 0 covers, and what it therefore removes from Passes 1 and 2
 
-**Spectral findings are authoritative for the rules it covers.** When `lint_source` is a Spectral ruleset, Passes 1 and 2 **must not** re-check the following — a defect Spectral already reported must appear exactly once in the review:
+**Spectral findings are authoritative for the rules it covers.** For a spec whose partition's `lint_source` is a Spectral ruleset, Passes 1 and 2 **must not** re-check the following in that spec — a defect Spectral already reported must appear exactly once in the review:
 
 - **Version consistency** — `info.version` is full semver (`api-info-version-semver`); every `servers[].url` carries a `/v<major>` segment (`api-server-url-major-version`); every `x-gateway-url` carries one (`api-gateway-url-major-version`); no version segment in `paths` (`api-no-version-in-path`); supported `openapi` version (`api-openapi-version-supported`, `api-openapi-version-3-1-preferred`)
 - **Required elements** — `info.x-audience` present and one of the four values (`api-audience-declared`); only an `oauth2`-typed scheme is declared (`api-security-scheme-oauth2-only`); only the `clientCredentials` flow (`api-oauth2-client-credentials-only`); the org-wide scheme name (`api-security-scheme-name-consistent`); `Authorization` not declared as a parameter (`api-authorization-header-not-declared`); every operation covered by a `security` requirement (`api-security-requirement-present`, `api-operation-security-explicit`); `requestBody` carries a description (`api-request-body-description`)
@@ -98,11 +102,11 @@ The ruleset already encodes the RFC 2119 mapping (`error` ← MUST, `warn` ← S
 6. **Resource modelling and documentation adequacy.** Whether the resource decomposition, standard-vs-custom method choice, pagination and filtering design fit the guidelines; whether the descriptions that exist are actually informative; whether tags group operations logically rather than technically; whether documentation leaks internal concepts (`Swagger Documentation.md`).
 7. **IAM scope CORRECTNESS.** Spectral checks a scope's grammar, not its meaning. Verify the scope's `{service}` against the `servers.url` (or `x-gateway-url`) path, its `{resource}` against the resource collection in the URL, and its `{action}` against the HTTP method — `read` (GET/HEAD), `write` (POST/PUT/PATCH), `delete` (DELETE), or the custom method name.
 
-**When `lint_source` is `none`**, none of the above is removed: Passes 1 and 2 check *everything* in the two lists, exactly as this agent did before the ruleset existed. The review is never silently narrower than the machine's absence made it.
+**For a spec whose partition's `lint_source` is `none`**, none of the above is removed: Passes 1 and 2 check *everything* in the two lists for that spec, exactly as this agent did before the ruleset existed. The review is never silently narrower than the machine's absence made it.
 
 ### Pass 1: Comprehensive Analysis
 
-Work through the areas below. Skip any check the "What Pass 0 covers" list above assigns to Spectral **when Spectral actually ran**; check all of them otherwise.
+Work through the areas below. Skip any check the "What Pass 0 covers" list above assigns to Spectral **for a spec Spectral actually ran on**; check all of them otherwise.
 
 1. **Version Consistency Check**
    - `info.version` must contain full semantic version
@@ -166,9 +170,9 @@ two overlays.
 
 | Order | Source | Resolves when |
 |---|---|---|
-| 1 | `rules_path` input, when the caller supplied one (`--rules <path>`) | the path is a readable directory containing ≥1 `.md` file |
-| 2 | `<repo-root>/.dev-workflows/api-guidelines/` | the directory exists, is readable, and contains ≥1 `.md` file |
-| 3 | `$$API_GUIDELINES_PATH` | the variable is set and names a readable directory containing ≥1 `.md` file |
+| 1 | `rules_path` input, when the caller supplied one (`--rules <path>`) | the path is a readable directory containing ≥1 `.md` file at its own top level |
+| 2 | `<repo-root>/.dev-workflows/api-guidelines/` | the directory exists, is readable, and contains ≥1 `.md` file at its own top level |
+| 3 | `$API_GUIDELINES_PATH` | the variable is set and names a readable directory containing ≥1 `.md` file at its own top level |
 | 4 | *(none)* | always — the baseline alone is the active rule set |
 
 Derive `<repo-root>` for order 2, taking the first that works:
@@ -179,11 +183,20 @@ git rev-parse --show-toplevel 2>/dev/null
 # no repository -- the deepest common parent of the reviewed files
 ```
 
-A candidate that does not exist, is unreadable, or holds no `.md` file falls through to the next
-order **silently**. A missing overlay is the normal case, not a problem.
+A candidate that does not exist or is unreadable falls through to the next order **silently**: a
+missing overlay is the normal case, not a problem. **A readable directory holding no `.md` file of
+its own is not that case** — someone made that directory, so falling through without a word loses
+their rules instead of finding none. Fall through to the next order and record it, per Step D. The
+usual way to reach this is a nested overlay: an overlay is a **flat** directory of `.md` files
+whatever shape the subtree it overlays has, because Step C matches an overlay file to a baseline
+file by name and never by path, so `.md` files laid out to mirror `references/api-guidelines/` —
+which is itself two levels deep — leave the candidate's own top level empty.
 
 **Step C — merge.** Only `.md` files are rule sources; any other file is ignored. The overlay
-**augments and overrides** the baseline, per file name:
+**augments and overrides** the baseline, per file name — the baseline file's **name**, wherever in
+the bundled subtree it sits. Two baseline files share a name: `Introduction.md`, under both
+`permission-guidelines/` and `rest-api-guidelines/`. An overlay file of that name matches **both**,
+under every bullet below — it layers over both, and a `replace` marker replaces both.
 
 - An overlay file whose name matches a baseline file is layered **on top of** it; both are in force.
 - On a conflict — the same component, the same rule, the same subject — **the overlay wins**.
@@ -201,8 +214,15 @@ baseline                      # no overlay resolved
 overlay:<absolute path>       # an overlay resolved, from any of orders 1-3
 ```
 
-Do not print a warning, a note, or a question about the resolution outcome — `rules_source` is the
-entire report. Only when the baseline itself is missing or empty **and** no overlay resolved is
+Beneath it, emit one line for **every** candidate Step B found readable and empty of `.md` files —
+including where a later order then resolved, since the skipped one still holds somebody's rules:
+
+```
+rules_overlay_skipped:<absolute path> — readable, but holds no `.md` file at its top level; an overlay is flat
+```
+
+Do not print any other warning, note, or question about the resolution outcome — those lines are
+the entire report. Only when the baseline itself is missing or empty **and** no overlay resolved is
 that an error worth raising.
 
 ## Output Format
@@ -231,6 +251,8 @@ Deviations from SHOULD/SHOULD NOT recommendations. Same format.
 ## Correctly Implemented
 What the specification does well.
 ```
+
+Where the specs fall into more than one lint partition (Pass 0), the `lint_source` and `lint_findings` lines appear once per partition, each pair preceded by `lint_dir:` and that partition's directory; with one partition they are the two lines above, unchanged.
 
 ## Classification Rules
 

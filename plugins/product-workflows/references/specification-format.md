@@ -71,7 +71,7 @@ separated by `---`, in the form `As a [role], I want [capability], so that [bene
   behaviour (displayed/stored/rejected/transmitted/recorded/changed).
 - Ordered by contribution to the problem (core-value story first, then supporting, then
   lifecycle/visibility/auditability).
-- `### Open questions` per story only for assumptions/decisions needing stakeholder input; omit if none.
+- `#### Open questions` per story only for assumptions/decisions needing stakeholder input; omit if none. Four hashes, not three: the renderer attributes an open-questions heading by depth, and `###` is the story-heading level, so a three-hash heading here is read as neither the story's nor the criterion's.
 
 ## Stage 4 — Acceptance criteria (EARS)
 
@@ -93,7 +93,7 @@ Validation:
   timestamp, failure message, acting user, identifier, change type).
 - No implementation *how*; split any criterion with `and` between two verbs; `While` for runtime
   state, `Where` for static/data conditions.
-- AC-level `Open questions` under the criterion; story-level after the last AC.
+- AC-level `##### Open questions` under the criterion; story-level `#### Open questions` after the last AC.
 
 ## Stage 5 — Test cases
 

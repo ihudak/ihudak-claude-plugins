@@ -1,6 +1,6 @@
 # Agents reference
 
-`dev-workflows` bundles 12 reusable subagents under `agents/`, dispatched internally by the invoking command via `subagent_type: "dev-workflows:<name>"` — none of them is a user entry point. Four carry a `model: opus` frontmatter pin (shown as **opus** below) and run on Opus every time, regardless of the dispatching command's own model tier for that run; the remaining eight carry no pin (shown as **per routing**) and are assigned a tier by the dispatching command per the task-complexity classification in the model-routing classification reference. Two further agents this plugin's commands dispatch — `code-scanner` and `impl-maintenance` — ship in the companion `workflows-core` plugin and are listed in its own agents reference, not here. Twelve agents that used to sit in the tables below — `ard-reviewer`, `brd-package-reviewer`, `brd-reader`, `code-grounder`, `customer-review-reader`, `design-grounder`, `epic-reviewer`, `epic-writer`, `grounding-verifier`, `idea-reader`, `prd-reviewer`, and `spec-reviewer` — ship in the companion `product-workflows` plugin now, alongside the twelve commands that dispatched them; the seven documentation agents that moved before them — `diff-summarizer`, `doc-location-finder`, `doc-planner`, `doc-reviewer`, `doc-writer`, `docs-style-checker` and `release-notes-writer` — ship in the companion `docs-workflows` plugin, whose own agents reference lists them and names the command that dispatches each. **That plugin now carries eight**: `docs-scaffold-reviewer` was created there rather than moved from here, which is why it is absent from the list above and present on that page. Agents are grouped below by role — reviewers and planners, readers and scanners, writers, and fixers — and each row's **Used by** column lists only the commands that actually dispatch that agent as a subagent; a command that merely names another command's agent in passing (for example, `/implement` noting that a design was already reviewed upstream by `design-reviewer`) is not counted as a dispatch.
+`dev-workflows` bundles 12 reusable subagents under `agents/`, dispatched internally by the invoking command via `subagent_type: "dev-workflows:<name>"` — none of them is a user entry point. Four carry a `model: opus` frontmatter pin (shown as **opus** below) and run on Opus every time, regardless of the dispatching command's own model tier for that run; the remaining eight carry no pin (shown as **per routing**) and are assigned a tier by the dispatching command per the task-complexity classification in the model-routing classification reference. Two further agents this plugin's commands dispatch — `code-scanner` and `impl-maintenance` — ship in the companion `workflows-core` plugin and are listed in its own agents reference, not here. Twelve agents that used to sit in the tables below — `ard-reviewer`, `brd-package-reviewer`, `brd-reader`, `code-grounder`, `customer-review-reader`, `design-grounder`, `epic-reviewer`, `epic-writer`, `grounding-verifier`, `idea-reader`, `prd-reviewer`, and `spec-reviewer` — ship in the companion `product-workflows` plugin now, alongside the commands that dispatched them; the seven documentation agents that moved before them — `diff-summarizer`, `doc-location-finder`, `doc-planner`, `doc-reviewer`, `doc-writer`, `docs-style-checker` and `release-notes-writer` — ship in the companion `docs-workflows` plugin, whose own agents reference lists them and names the command that dispatches each. **That plugin now carries eight**: `docs-scaffold-reviewer` was created there rather than moved from here, which is why it is absent from the list above and present on that page. Agents are grouped below by role — reviewers and planners, readers and scanners, writers, and fixers — and each row's **Used by** column lists only the commands that actually dispatch that agent as a subagent; a command that merely names another command's agent in passing (for example, `/implement` noting that a design was already reviewed upstream by `design-reviewer`) is not counted as a dispatch.
 
 ## Reviewers and planners
 
@@ -17,12 +17,12 @@ Opus-gated quality gates, plus the lighter-weight planners that feed or precede 
 
 ## Readers and scanners
 
-Read-only discovery and grounding — each returns a structured digest rather than editing anything. `test-baseliner` is the one that touches the working tree at all: it holds `Bash` because its job is to *run* the suite, so build and coverage output appears as a side effect.
+Read-only discovery and grounding — each returns a structured digest rather than editing anything. `test-baseliner` is the one that touches the working tree at all: it holds `Bash` because its job is to *run* the suites, so build and coverage output appears as a side effect.
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
 | `vuln-research` | per routing | Read, Glob, Grep, WebFetch, Skill | Read-only CVE research phase — NVD lookup, library detection in the repository, current-version discovery, and minimum-safe-version resolution. Has no side effects. | `/vuln` |
-| `test-baseliner` | per routing | Bash, Read, Glob | Runs the full test suite and returns structured results in two modes — capture a baseline, or verify a later run's result against a previously captured one. | `/implement`, `/upgrade`, `/vuln` |
+| `test-baseliner` | per routing | Bash, Read, Glob | Runs every test suite the repository has — a polyglot repo baselines all of them — and returns structured results in two modes: capture a baseline, or verify a later run against one. | `/implement`, `/upgrade`, `/vuln` |
 
 ## Writers
 
@@ -30,7 +30,7 @@ Produce artifact content from a structured handoff. None of these run git.
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
-| `test-writer` | per routing | Read, Glob, Grep, Write, Edit | Writes tests for new or changed behaviour based on a diff; does not run them, and reports "not detected" immediately when no test framework is found. | `/implement` |
+| `test-writer` | per routing | Read, Glob, Grep, Write, Edit | Writes tests for new or changed behaviour based on a diff, against every suite the diff touches; does not run them, and reports "not detected" where the baseline names no framework at all. | `/implement` |
 
 ## Fixers
 

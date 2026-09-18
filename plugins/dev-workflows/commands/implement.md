@@ -874,7 +874,7 @@ last output — prefixed `Specs repo:`, with any guard notice repeated in full.
 
 ADDITIVE — this phase NEVER fails the run and NEVER commits the deliverable itself
 (the terminal step above commits only the bounded session-artifact paths in
-`$SPECS_PATH`; the implementation itself was committed in Phase 4.6, in the code repo, and pushed there behind §2.4's consent choice where that choice and an `origin` allowed it, via `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2; the spec/design conformance notes from step 7.5 are handed off separately, also before this phase, via `workflows-core:phase-handoff` §2), and NEVER writes into the code repo or the current working
+`$SPECS_PATH`; the implementation itself was committed in Phase 4.6, in the code repo, and pushed there where §2.4's consent choice, an `origin` and §2.5's push itself all allowed it — §3.1's rows rather than any list written out here are the authority on which line the run emitted, and its `push FAILED (<reason>)` row is a state in which that choice and an `origin` both allowed a push that did not happen — via `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2; the spec/design conformance notes from step 7.5 are handed off separately, also before this phase, via `workflows-core:phase-handoff` §2), and NEVER writes into the code repo or the current working
 directory, where it is not the specs repository; no user name is ever written (§10 privacy).
 
 ---

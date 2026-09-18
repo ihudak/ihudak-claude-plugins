@@ -1,6 +1,6 @@
 ---
 name: brd-intake
-description: BRD-intake workflow (PM phase, entry point of the BRD-to-PRD flow). Copies a customer-supplied business requirements document into the specs repo verbatim — and with it, byte-for-byte, every file that document links from its own directory, naming in brd/brd-link-log.md each link it could not capture and why — dispatches brd-reader to extract a [BR#n] requirement inventory, confirms its defect candidates interactively against the six brd-format.md classes, and writes a coverage-ledger.md with every row unallocated. Rejects a non-markdown source rather than converting it. Grounds on the shipped product documentation when $DOCS_PATH resolves (--no-docs off), consumed grill-rank over the defect walk. Optional --sort-existing migrates an already-hand-written package into seed files. Offers /brd-split as the next step.
+description: BRD-intake workflow (PM phase, entry point of the BRD-to-PRD flow). Walks every link a customer-supplied business requirements document makes — wikilinks included — read-only, shows the operator the list and asks before capturing anything outside the document's folder or anything it cannot read, then copies the document and every file it takes into the specs repo byte-for-byte, naming in brd/brd-link-log.md each link it did not copy and why. figure-reader transcribes every linked image into brd/brd-figures.md, and brd-reader extracts a [BR#n] requirement inventory from the document, its linked markdown and those transcriptions; its defect candidates are confirmed interactively against the six brd-format.md classes, and a coverage-ledger.md is written with every row unallocated. Rejects a non-markdown source rather than converting it. Grounds on the shipped product documentation when $DOCS_PATH resolves (--no-docs off), consumed grill-rank over the defect walk. Optional --sort-existing migrates an already-hand-written package into seed files. Offers /brd-split as the next step.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -193,17 +193,19 @@ model_routing:
   classification: MODERATE        # typical; SIGNIFICANT for an unusually long or heavily-conflicting BRD
   reason: <one-line>
   current_model: <the model this orchestrator is running under>
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # brd-reader (frontmatter-pinned to sonnet; recorded, no override); docs-grounder (Phase 3.5)
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # docs-grounder (Phase 3.5)
+  extraction_model: <§2 Opus chain>   # figure-reader (Phase 2.5) and brd-reader (Phase 3) — both frontmatter-pinned to opus; recorded, no override
   authoring_model: <= current_model>   # Phase 1's confirmation and Phase 4's interactive defect classification (session model, not a delegated subagent)
   opus_available: <true if a §2 Opus model resolved, else false>
   notes: <any §2/§2.1 fallback or degradation>
 ```
 
-`brd-reader` runs on Sonnet regardless of `classification` — its extraction work is mechanical, per
-its own frontmatter pin. If no Opus resolves for `current_model`, **degrade to best-available +
-record** in `notes` and the final report — do not hard-block.
+`figure-reader` and `brd-reader` run on Opus regardless of `classification`, per their own frontmatter
+pins. A misread label, a missed annotation or an unproposed conflict yields no candidate, so Phase 4's
+human never sees it — the tier is bought where a miss is silent. If no Opus resolves, **degrade to
+best-available + record** in `notes` and the final report — do not hard-block.
 
-**Collect `brd-reader`'s own `notes` too, and report them** — an unusually structured source, a passage that could not be confidently split. The inventory is the spine every later command walks, so a `[BR#n]` split out of a passage the reader was unsure of must not read as confidently extracted.
+**Collect `figure-reader`'s and `brd-reader`'s own `notes` too, and report them** — an image too low in resolution for its small text, an unusually structured source, a passage that could not be confidently split. The inventory is the spine every later command walks, so a `[BR#n]` split out of a passage the reader was unsure of must not read as confidently extracted.
 
 ---
 
@@ -278,12 +280,45 @@ counts and the same list, each entry with its reason, in the final report.
 
 ---
 
+## Phase 2.5 — Read the figures
+
+**Every image Phase 2 copied is read here, and there is no cap on how many.** A cap would leave an
+image's obligations outside the record exactly as not reading it did (`brd-format.md` §1.2).
+
+1. **Re-use before reading.** Compute each copied image's SHA-256. Where
+   `<BRD-dir>/brd/brd-figures.md` already holds a section for that image whose *Content hash* matches,
+   keep that section's transcription — the lines `brd-format.md` §1.2 names — **verbatim** and do not
+   dispatch the image — a writer preserves what it did not produce, as
+   `workflows-core:grounding-format` §6.2 has an index writer do with a row. On a first intake there
+   is no file and nothing is re-used.
+2. **Dispatch `figure-reader` over the rest**, at most 10 images per dispatch and at most 4 dispatches
+   in a single response, in further waves until none remain:
+
+   → Agent (subagent_type: "product-workflows:figure-reader", model: `<extraction_model — frontmatter-pinned to opus>`):
+     > "figures: [absolute path of each image in this batch, in Phase 2's capture order]"
+
+   An `INPUT_MISSING` return is this run's defect — it sent an empty batch — and is fixed and
+   re-dispatched, never recorded as an unread image.
+3. **Write `<BRD-dir>/brd/brd-figures.md`** per `brd-format.md` §1.2: one section per image Phase 2
+   copied, in capture order — re-used transcriptions verbatim, new ones from the agent's return, an
+   image returned `read: false` with its reason and no transcription. Write *Linked from* afresh for
+   every image Phase 2 copied, re-used or not, from the copied files Phase 1's walk found linking
+   it. A section already on file for an image the current document no longer links stays, marked
+   as §1.2 says. Leave every *Rows* line empty; Phase 5 completes them.
+
+Where Phase 2 copied no image, this phase dispatches nothing, writes no file, and says so in the
+final report.
+
+---
+
 ## Phase 3 — Extract the inventory
 
 Dispatch `brd-reader`:
 
-→ Agent (subagent_type: "product-workflows:brd-reader", model: `<detection_model — frontmatter-pinned to sonnet>`):
-  > "source_path: [absolute path to the copied source **document** under `<BRD-dir>/brd/source/` — that directory also holds the files it links (Phase 2), and this agent reads only the document]"
+→ Agent (subagent_type: "product-workflows:brd-reader", model: `<extraction_model — frontmatter-pinned to opus>`):
+  > "source_path: [absolute path to the copied document at `<BRD-dir>/brd/source/<basename>`]
+  >  appendices:  [absolute path of every linked markdown file Phase 2 copied — under `brd/source/` or `brd/source-external/` — in Phase 2's capture order; `[]` when none]
+  >  figures_path: [absolute path to `<BRD-dir>/brd/brd-figures.md`; omit when Phase 2.5 wrote none]"
 
 Act on `status`:
 - **`OK`** — write `<BRD-dir>/brd/brd-inventory.md` per `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md`
@@ -306,43 +341,58 @@ Act on `status`:
   after the highest already in use — never a gap-filling reuse of a retired one. Report the
   reconciliation: how many ids were preserved, how many minted, and any existing row this source no
   longer contains (which keeps its id and is reported, never renumbered away).
+
+  **Map every id the agent returned through that reconciliation, not only the row ids** — each
+  candidate's `names`, and each `figures` entry's `illustrates`. The agent numbers its own read from
+  `BR#1`; a `conflict` naming its `BR#7`, or an image said to illustrate its `BR#7`, means whatever row
+  the reconciliation matched to that `BR#7`, and writing the agent's number through would attach the
+  candidate or the image to a different requirement.
+
   Leave each row's `defects` column empty for now — it is filled in Phase 4, once a candidate is
   actually confirmed into a `[DEF#n]`, never before. Carry every returned `defect_candidates` entry
   forward into Phase 4; nothing here treats a candidate as a decision.
 
   **Then check the inventory's coverage of its own source**, per
   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.2, before anything downstream treats the
-  inventory as the spine it is. Both relations read the anchors already written and the copied source
-  document — never a file it links, which carries no section and holds no `[BR#n]`;
+  inventory as the spine it is. The three relations read the anchors already written, the copied
+  document and linked markdown, `brd/brd-figures.md`, and the `figures` list the agent returned;
   nothing else is stored and the agent is not re-dispatched.
 
-  1. **Every `source_anchor` resolves to a section the source has** — by its section reference, or,
-     where it carries none, by the line it names (`brd-format.md` §2.2 fixes the order). **Except the
-     rows the reconciliation above deliberately kept**: a re-run over a revised source preserves any
-     existing row *"this source no longer contains"*, id retained and reported, and such a row's
-     anchor points into a section the new document may well have dropped. That is a recorded state,
-     not an untraceable one, and stopping on it would hard-stop a supported path — a customer sending
-     a revised BRD — with a remedy nobody can perform, since correcting the anchor by hand is
-     impossible when the content it named is gone. Exclude them by the reconciliation's own list and
-     name them in the report instead.
+  1. **Every `source_anchor` resolves**, in whichever of `brd-format.md` §2's three forms it takes —
+     by the rules `brd-format.md` §2.2 fixes for each form, which this command applies and does not
+     restate. **Except the rows the reconciliation above deliberately kept**: a re-run over a
+     revised source preserves any existing row *"this source no longer contains"*, id retained and
+     reported, and such a row's anchor points into a section the new document may well have dropped.
+     That is a recorded state, not an untraceable one, and stopping on it would hard-stop a
+     supported path — a customer sending a revised BRD — with a remedy nobody can perform, since
+     correcting the anchor by hand is impossible when the content it named is gone. Exclude them by
+     the reconciliation's own list and name them in the report instead.
 
      Any **other** unresolvable anchor is named with its `[BR#n]`, and the run stops — a row nobody
      can trace back is a defect in the artifact whose job is traceability:
-     `BRD_INTAKE_DANGLING_ANCHOR: <N> inventory row(s) carry a source_anchor that resolves to no section of the copied source document under brd/source/ (<BR-id>: <anchor>, …), and none of them is a row this run preserved as no longer present. The row cannot be traced back to the customer's document, which is the one thing the anchor exists for. Correct the anchors by hand in <path> and re-run; do not re-run brd-reader over the whole document, which would renumber every row.`
-  2. **Every top-level section either holds a row or is accounted for.** Name each section that holds
-     none, with what the source has under it, and ask — one question for the set, not one per section:
+     `BRD_INTAKE_DANGLING_ANCHOR: <N> inventory row(s) carry a source_anchor that resolves to nothing in the copied source under brd/ (<BR-id>: <anchor>, …), and none of them is a row this run preserved as no longer present. The row cannot be traced back to the customer's document, which is the one thing the anchor exists for. Correct the anchors by hand in <path> and re-run; do not re-run brd-reader over the whole document, which would renumber every row.`
+  2. **Every top-level section — of the document and of each linked markdown file Phase 2 copied —
+     either holds a row or is accounted for** (`brd-format.md` §2.2 fixes what holds one, including
+     a section that links an image yielding a row, and a linked file with no heading as one
+     section). Name each section that holds none, with what the source has under it.
+  3. **Every image Phase 2 copied yields a row, illustrates one, or is accounted for**
+     (`brd-format.md` §2.2). Name each image that does neither — with its *Depicts* sentence from
+     `brd/brd-figures.md`, or its reason where it was not read.
+
+  Ask about relations 2 and 3 together — one question for the whole set, not one per section or image:
 
 ```
 choices: ["Re-read the named sections — re-dispatch brd-reader over the whole document and reconcile ids (Recommended)", "They hold no obligation — record that and continue", "Cancel"]
 ```
 
-  **The first option re-reads the whole document and reconciles**, because `brd-reader` takes only a
-  source path and numbers from `BR#1` on every read — there is no narrower re-dispatch, and the
-  reconciliation is the one the re-run branch above already performs. The second records the
-  operator's account in the final report. **Report the outcome either way, including "every
-  top-level section accounted for"** — an unreported clean result is indistinguishable from an unrun
-  check. **Where no anchor parses at all, say that and stop**: that is a read failure, not a document
-  with no coverage.
+  **The first option re-reads the whole document and reconciles**, because `brd-reader` takes the
+  whole set — the document, every linked markdown file Phase 2 copied, and the figures file — and
+  still numbers from `BR#1` on every read: there is no narrower re-dispatch, so it is re-dispatched
+  with the same three inputs, and the reconciliation, id mapping included, is the one the re-run
+  branch above already performs. The second records the operator's account in the final report.
+  **Report the outcome either way, including "every top-level section and every image accounted
+  for"** — an unreported clean result is indistinguishable from an unrun check. **Where no anchor
+  parses at all, say that and stop**: that is a read failure, not a document with no coverage.
 - **`EMPTY`** — report that the source contained no identifiable requirement. Skip Phase 4 (nothing
   to classify) and write an empty `brd/brd-inventory.md` and `coverage-ledger.md` in Phase 5; the
   final report's ledger line reads
@@ -354,9 +404,10 @@ choices: ["Re-read the named sections — re-dispatch brd-reader over the whole 
   whose requirements `brd-reader` can identify — and does **not** offer grounding, because offering a
   command that would refuse this BRD is worse than offering nothing. Carry the `EMPTY` result forward
   to Phase 8 as the flag that picks its choice list.
-- **`NOT_FOUND`** — surface the agent's exact message and stop; this should not occur (Phase 0/2
-  already confirmed the source exists and is markdown), so treat its appearance as worth
-  investigating rather than retrying blindly.
+- **`NOT_FOUND`** — surface the agent's exact message and stop; this should not occur (Phase 0
+  confirmed the document is markdown, Phase 1's walk classified every appendix as markdown, and
+  every path handed over is a file Phase 2 copied or Phase 2.5 wrote), so treat its appearance as
+  worth investigating rather than retrying blindly.
 
 ---
 
@@ -412,6 +463,11 @@ confirm each candidate individually via `AskUserQuestion`:
 choices: ["Confirm as written (Recommended)", "Confirm with an edited reason", "Reject — not a defect", "Cancel"]
 ```
 
+**A candidate on a row drawn from an image is put with its picture.** Show the image's path relative to
+`brd/` and its transcription from `brd/brd-figures.md` beside the candidate, and tell the operator to
+open the image before answering: the transcription is the plugin's reading of the customer's picture
+(`brd-format.md` §1.2), and the picture is what the candidate is about.
+
 On confirmation, assign the next `[DEF#n]` id contiguously across the whole document (ids are never
 reused or renumbered, per `brd-format.md` §3–§4) and record it against every `[BR#n]` it was raised
 on. A `conflict` or `duplicate` entry always names its counterpart `[BR#n]`, carried straight from
@@ -432,6 +488,14 @@ Write `<BRD-dir>/coverage-ledger.md` per `${CLAUDE_PLUGIN_ROOT}/references/cover
 mirrored from the inventory, `evidence` empty (grounding has not run yet — that is `/prd-ground`'s
 job), and **`disposition: unallocated` on every row**, per §3: "the initial state; the only one of
 the six that blocks §4." No row is ever written in any other disposition here.
+
+**Then complete `brd/brd-figures.md`'s *Rows* line for every image**, from the final inventory — after
+Phase 3's reconciliation mapping, never from the agent's own numbering: `yields` every row whose
+`source_anchor` names the image, `illustrates` every row the agent returned for it, or
+`accounted for — <the operator's Phase 3 account>` where it does neither. A section marked *No longer
+linked by the current source* gets no agent entry and no Phase 3 account: its *Linked from* and *Rows*
+take the values `brd-format.md` §1.2 fixes for such a section. A run that wrote no figures file skips
+this.
 
 **On a re-run this phase rewrites every disposition, and it does so unconditionally by design.**
 Where Phase 0 step 7 resolved an **existing** folder, the ledger that folder holds is replaced row
@@ -481,7 +545,7 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 ```
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = every file
-this run wrote under `<BRD-dir>` — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 stages neither, so a declaration that looks complete ships nothing — §2.3 step 4 names each in §4.1's *declaration unaccounted for* clause, so the failure is reported rather than silent, but nothing it names lands. That is each file this run actually copied into `brd/source/` or `brd/source-external/` — the customer's document **and every file it links** (Phase 2) — named individually (the copy step knows them; neither `brd/source/**` nor `brd/source-external/**` is a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`, `brd/brd-link-log.md`,
+this run wrote under `<BRD-dir>` — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 stages neither, so a declaration that looks complete ships nothing — §2.3 step 4 names each in §4.1's *declaration unaccounted for* clause, so the failure is reported rather than silent, but nothing it names lands. That is each file this run actually copied into `brd/source/` or `brd/source-external/` — the customer's document **and every file it links** (Phase 2) — named individually (the copy step knows them; neither `brd/source/**` nor `brd/source-external/**` is a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`, `brd/brd-link-log.md`, `brd/brd-figures.md` when Phase 2.5 wrote it,
 `coverage-ledger.md`, and — only when Phase 6 ran — `prd-seed.md`, `ard-seed.md`, `spec-seed.md`),
 `title: <BRD-KEY> Intake BRD source and requirement inventory`, and `body_facts` = the requirement
 count, the confirmed-defect count by class, and whether Phase 6 wrote seeds; emit its §4.1 outcome
@@ -557,15 +621,17 @@ Terminal phase — runs after Phase 8, NEVER interrupts an earlier phase.
 reference gap**, `emit-block` (per `workflows-core:feedback-emission`) at that
 halt **before** escalating. None of Phase 0's stops qualify — a missing key, a missing source, a
 non-markdown source, and an unset `$SPECS_PATH` are all environment / user halts, never a plugin
-capability gap, so `emit-block` never fires from this command's own Phase 0.
+capability gap, so `emit-block` never fires from this command's own Phase 0. Nor does Phase 1's
+`BRD_INTAKE_UNREAD_ATTACHMENTS`: linked files the operator must convert first are an operator halt,
+as Phase 1 says where it stops.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/brd-intake`; what was
-   produced (the copied source and the files it links, the inventory, the confirmed defect log, the
-   link log, the ledger skeleton); key events (a rejected
-   PDF, an `EMPTY` read, a link the copy could not capture, unresolved candidates left `open`, docs
-   grounding OFF or a docs-raised defect — or "none"); workarounds; test result
-   N/A; project root = the BRD folder.
+   produced (the copied source and the files it links, the figures transcriptions, the inventory,
+   the confirmed defect log, the link log, the ledger skeleton); key events (a rejected PDF, an
+   *other* file the operator accounted for, an `EMPTY` read, a link the copy could not capture, an
+   `ambiguous` wikilink, an image not read, unresolved candidates left `open`, docs grounding OFF or
+   a docs-raised defect — or "none"); workarounds; test result N/A; project root = the BRD folder.
 2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6)
    with the Lessons Learned report, `command: /brd-intake`, the run's `key` (the `<BRD-KEY>`),
    `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`).
@@ -590,9 +656,12 @@ no user name is ever written.
 
 ## Final report
 
-Report: the BRD folder + source path; how many files were copied beside the source and, per
-`brd/brd-link-log.md`, every link the copy could not capture with its reason (Phase 2); the
-requirement count; the confirmed-defect count by class
+Report: the BRD folder + source path; how many files were copied beside the source — inside its
+directory and into `brd/source-external/` — and, per `brd/brd-link-log.md`, every link the copy
+could not capture with its reason (Phase 2), with Phase 1's answers and any *other* file the
+operator accounted for; how many images were transcribed, re-used and not read, with each reason
+(Phase 2.5); how many linked markdown files were read beside the document (Phase 3); the coverage
+outcome for sections and images; the requirement count; the confirmed-defect count by class
 (and how many candidates were rejected, and how many of the confirmed ones were raised from
 documentation rather than by `brd-reader`); the `docs grounding:` line from Phase 1 verbatim, and —
 when it was ON — the `docs_references` list of requirements the shipped documentation describes as

@@ -1,9 +1,10 @@
 # /brd-intake
 
 Copies a customer-supplied business requirements document into the specs repo verbatim — and with
-it every file that document links from its own directory, so the copy's links still resolve —
-extracts a `[BR#n]` requirement inventory, confirms the document's defects with a human, and writes
-a coverage ledger where every requirement starts `unallocated`.
+it every file that document links, wikilinks included, after showing you the list — transcribes every
+linked image, extracts a `[BR#n]` requirement inventory from the document, its linked markdown and
+those transcriptions, confirms the document's defects with a human, and writes a coverage ledger
+where every requirement starts `unallocated`.
 
 ## Who runs it
 
@@ -45,7 +46,8 @@ flowchart TD
     p0["Phase 0 — Resolve inputs"] --> p1["Phase 1 — Confirm"]
     p1 --> p15["Phase 1.5 — Classify + model routing"]
     p15 --> p2["Phase 2 — Copy the source"]
-    p2 --> p3["Phase 3 — Extract the inventory"]
+    p2 --> p25["Phase 2.5 — Read the figures"]
+    p25 --> p3["Phase 3 — Extract the inventory"]
     p3 --> p35["Phase 3.5 — Documentation grounding (optional)"]
     p35 --> p4["Phase 4 — Confirm defects"]
     p4 --> p5["Phase 5 — Write the coverage ledger"]
@@ -55,15 +57,22 @@ flowchart TD
     p8 --> p9["Phase 9 — Session maintenance, feedback & cost"]
 ```
 
-Two subagents are dispatched: `brd-reader` (Phase 3, frontmatter-pinned to Sonnet —
-its extraction work is mechanical) and `workflows-core:docs-grounder` (Phase 3.5, read-only grounding on the
-shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate).
-`workflows-core:impl-maintenance` also runs, in Phase 9, for session lessons-learned.
+Three subagents are dispatched: `figure-reader` (Phase 2.5, frontmatter-pinned to Opus — it transcribes
+every linked image, in parallel batches, without reading the document that links it), `brd-reader`
+(Phase 3, frontmatter-pinned to Opus — its defect candidates are judgement over a long, contradictory
+document, and a conflict it never proposes reaches no one) and `workflows-core:docs-grounder`
+(Phase 3.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves,
+advisory, never a gate). `workflows-core:impl-maintenance` also runs, in Phase 9, for session
+lessons-learned.
 
 ## What it needs
 
 - **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_INTAKE_NEEDS_KEY`.
 - **`@<brd-file>`** — mandatory; absent stops the run with `BRD_INTAKE_NEEDS_SOURCE`.
+- **Your answer about what the document links.** Phase 1 walks every link first, read-only, and shows
+  you what it found. Where anything lies outside the document's own folder it asks whether to capture
+  it; where anything is neither markdown nor an image it asks you to convert it first
+  (`BRD_INTAKE_UNREAD_ATTACHMENTS` on *Stop*), because nothing reads such a file.
 - **A markdown source.** A non-markdown source (a PDF chief among them) stops the run with
   `BRD_INTAKE_NEEDS_MARKDOWN` rather than being converted automatically — the source becomes
   immutable the moment it is intaken, and every `[BR#n]` this run writes anchors into it, so an
@@ -93,9 +102,14 @@ name the run creates ([addressing](../reference/references.md) §2):
   byte-for-byte to the same relative path, so the copied text's links resolve exactly as the
   customer's did. Screenshots are the usual case, and capturing them is the only chance there is:
   nothing under `brd/source/` is ever written again.
-- `brd/brd-link-log.md` — the links the copy could **not** capture, each with its reason (above the
-  source document's own directory, an absolute path, a URL, or unreadable), plus the run's counts.
-  Written on every run, including one that captured everything.
+- `brd/source-external/<basename>` — every file the document links from outside its own folder, where
+  you chose to capture it, by basename; immutable exactly as `brd/source/` is.
+- `brd/brd-link-log.md` — the links the copy could **not** capture, each with its reason (a URL, an
+  unreadable target, a wikilink matching several files, or — where you chose the document's own folder
+  only — one above it or an absolute path), the run's counts, and a table mapping every captured link
+  that does not resolve as written (a wikilink, an external file) to its copy. Written on every run.
+- `brd/brd-figures.md` — what the plugin read in each linked image: a verbatim transcription, the
+  customer's annotations and what they point at, and the rows each image yields or illustrates.
 - `brd/brd-inventory.md` — one row per `[BR#n]`, each with its `source_anchor` and any confirmed
   `[DEF#n]` defects.
 - `brd/brd-defect-log.md` — one entry per confirmed `[DEF#n]`, resolution `open`.
@@ -108,27 +122,32 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
 
 ## Gates
 
-- **Phase 3 — `brd-reader`** (Sonnet, frontmatter-pinned). Read-only extraction: it proposes a
-  `[BR#n]` row per requirement plus unconfirmed `defect_candidates`; it never decides a defect
-  itself. `EMPTY` (no identifiable requirement) short-circuits Phase 4 and writes an empty ledger —
-  and the run says so plainly, because the route stops on a claimless BRD: Phase 8 then offers a
-  re-run of this command with a corrected source instead of offering `/prd-ground`, which would
-  refuse the BRD. `NOT_FOUND` stops the run and surfaces the agent's exact message.
+- **Phase 3 — `brd-reader`** (Opus, frontmatter-pinned). Read-only extraction from the document, its
+  linked markdown and the image transcriptions: it proposes a `[BR#n]` row per requirement plus
+  unconfirmed `defect_candidates` — an `ambiguity` on any obligation only an image states — and
+  never decides a defect itself. `EMPTY` (no identifiable requirement) short-circuits Phase 4 and
+  writes an empty ledger — and the run says so plainly, because the route stops on a claimless BRD:
+  Phase 8 then offers a re-run of this command with a corrected source instead of offering
+  `/prd-ground`, which would refuse the BRD. `NOT_FOUND` stops the run and surfaces the agent's
+  exact message.
 
-  **The inventory's coverage of its own source is then checked, both directions, from the anchors
-  already written.** Every `source_anchor` must resolve to a section the copied source actually has —
-  by its section reference, or by the line it names where it carries none, since the format sanctions
-  both anchor forms. One that resolves to nothing is a row nobody can trace back and the run stops,
-  **except a row a re-run deliberately preserved as no longer present in a revised source**: that is
-  a recorded state, and stopping on it would refuse a customer's revised BRD with a remedy nobody
-  could perform. And every **top-level section**
-  must either hold a row or be accounted for: one that holds none is a question rather than a stop,
-  since only a person can say whether a section binds the delivery team to anything, so the run names
-  each with what the source has under it and asks once for the set. **Section granularity is the point
-  and was measured**: real BRDs carry fifty or sixty headings under about fifteen top-level sections,
-  of which nine or so legitimately hold nothing, so the operator answers nine questions rather than
-  fifty — and on a real package the sections carrying no row included the user stories and the
-  acceptance tests, which is exactly the pair worth putting to a human.
+  **The inventory's coverage of its own source is then checked, both directions, from what the run
+  already holds** — the anchors written, the image transcriptions, and the rows `brd-reader` said
+  each image illustrates. Every `source_anchor` must resolve, in whichever of the format's three
+  forms it takes — the document, a linked markdown file, or an image — by
+  [`brd-format.md`](../../references/brd-format.md) §2.2's rules. One that resolves to nothing is a
+  row nobody can trace back and the run stops, **except a row a re-run deliberately preserved as no
+  longer present in a revised source**: that is a recorded state, and stopping on it would refuse a
+  customer's revised BRD with a remedy nobody could perform. And every **top-level section** — of
+  the document and of each linked markdown file — and every **image** must either hold or illustrate
+  a row or be accounted for: one that does neither is a question rather than a stop, since only a
+  person can say whether it binds the delivery team to anything, so the run names each — a section
+  with what the source has under it, an image with what the plugin read in it — and asks once for
+  the set. **Section granularity is the point and was measured**: real BRDs carry fifty or sixty
+  headings under about fifteen top-level sections, of which nine or so legitimately hold nothing, so
+  the operator answers nine questions rather than fifty — and on a real package the sections
+  carrying no row included the user stories and the acceptance tests, which is exactly the pair
+  worth putting to a human.
 - **Phase 3.5 — `docs-grounder`** (optional). Read-only, advisory, never a gate. Its digest is
   consumed grill-rank: `docs_challenges` are ranked into the order Phase 4 walks its candidates,
   and one may be *raised* as an additional defect candidate — but only as `unsourced` (the
@@ -155,11 +174,12 @@ Intake a synthetic customer BRD for a new BRD key:
 /product-workflows:brd-intake ACME-001 @customer-brd.md
 ```
 
-The run resolves or creates the BRD folder, copies `customer-brd.md` verbatim into `brd/source/`
-together with every file it links from its own directory, records in `brd/brd-link-log.md` each link
-it could not capture and why, dispatches `brd-reader` to extract the `[BR#n]` inventory, walks its
-defect candidates with you class by class, writes the coverage ledger with every row `unallocated`,
-and offers to branch, commit, push, and open a pull request.
+The run resolves or creates the BRD folder, shows you every file `customer-brd.md` links, copies it
+verbatim into `brd/source/` together with the files you took, records in `brd/brd-link-log.md` each
+link it did not copy and why, transcribes the linked images, dispatches `brd-reader` to extract the
+`[BR#n]` inventory from all of it, walks its defect candidates with you class by class, writes the
+coverage ledger with every row `unallocated`, and offers to branch, commit, push, and open a pull
+request.
 
 ## See also
 
@@ -168,14 +188,17 @@ and offers to branch, commit, push, and open a pull request.
 - `workflows-core:addressing` — the `<BRD-KEY>` grammar and folder
   resolution this command uses by name (`key-valid`, `resolve-address`).
 - [`brd-format.md`](../../references/brd-format.md) — the `[BR#n]` row shape, the immutability rule,
-  §1.1's account of what `brd/source/` holds and of the link log beside it, and the six defect
-  classes this command confirms against.
+  §1.1's account of what `brd/source/` and `brd/source-external/` hold and of the link log beside
+  them, §1.2's figures file, and the six defect classes this command confirms against.
+- [`linked-sources.md`](../../references/linked-sources.md) — how Phase 1 finds, resolves and walks
+  the document's links.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the ledger row shape,
   the six dispositions, and the ledger line every command of the BRD-to-PRD route ends its final
   report with.
 - `workflows-core:docs-grounding` — the `$DOCS_PATH` resolution gate,
   the `docs grounding:` line this command shows verbatim, and the grill-rank consumption mode.
-- [Agents](../reference/agents.md) — `brd-reader`'s and `docs-grounder`'s full contracts.
+- [Agents](../reference/agents.md) — `figure-reader`'s, `brd-reader`'s and `docs-grounder`'s full
+  contracts.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md),
   and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 9
   bookkeeping every run emits.

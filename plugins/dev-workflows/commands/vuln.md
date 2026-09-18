@@ -129,6 +129,8 @@ read — an orchestrator bug, not a user choice: report the unreadable path to t
 this CVE `BLOCKED` in the Step 4 summary table, and stop working this CVE. Do not retry with
 a fresh research pass — that would re-derive the evidence instead of surfacing the failure.
 
+**Read the fixer's `notes` on whatever it returns, not only on a stop.** This path captures no baseline of its own — the fixer does, inside — so its `notes` is the run's **only** account of a suite that could not be run, and a capture or verify `PARTIAL` returns `status: SUCCESS` with those suites named there (`${CLAUDE_PLUGIN_ROOT}/references/handoff/vuln-fixer.md`). Carry them into this CVE's `Notes` cell in the Step 4 table. A `SUCCESS` whose `notes` nobody read is a CVE reported fixed with a stack silently unverified.
+
 Otherwise, if the fixer returns `status: TEST_REGRESSION`, follow "Handling Test Failures"
 below, then re-invoke `vuln-fixer` with `phase: regression-resume` + the chosen
 `regression_decision`, passing the same CVE input with the original research report
@@ -142,7 +144,7 @@ prevent.
 
 ### SIGNIFICANT / HIGH-RISK path
 
-1. **Capture baseline at the orchestrator** using the existing `test-baseliner` agent, dispatched with `model: <detection_model — §2.1 Sonnet chain>`. **Keep the returned `## Test Baseline` block whole** — it is re-supplied as `baseline_block` on every dispatch below, because its `### Suites` rows are what let verify tell a suite that regressed from one that could not run at either end; `passing_count` and `passing_tests` are re-keyed from it, never in place of it. Where its `Status` is `PARTIAL`, name the suites `### Suites` does not mark `OK` or `NO_TESTS` in the Step 4 table and continue: a runner that is not installed for one language is not a reason to leave a CVE in another unfixed. Where it is `RUN_FAILED` or `COMMAND_NOT_FOUND`, say so before dispatching — there is nothing for verify to compare against.
+1. **Capture baseline at the orchestrator** using the existing `test-baseliner` agent, dispatched with `model: <detection_model — §2.1 Sonnet chain>`. **Keep the returned `## Test Baseline` block whole** — it is re-supplied as `baseline_block` on every dispatch below, because its `### Suites` rows are what let verify tell a suite that regressed from one that could not run at either end; `passing_count` and `passing_tests` are re-keyed from it, never in place of it. Where its `Status` is `PARTIAL`, name the suites `### Suites` does not mark `OK` or `NO_TESTS`, each with the command that failed, in **this CVE's `Notes` cell in the Step 4 table**, and continue: a runner that is not installed for one language is not a reason to leave a CVE in another unfixed. Where it is `RUN_FAILED` or `COMMAND_NOT_FOUND`, say so before dispatching — there is nothing for verify to compare against.
 2. **Invoke `vuln-fixer` with review gating enabled**:
 
 ```text <!-- vendor-token-ok: the no-address placeholder literals Step 1 detected, echoed into the handoff -->
@@ -240,11 +242,13 @@ until here, since the loop goes on to the next CVE.
 After all CVEs are processed, print a result table:
 
 ```
-| CVE            | Library         | Change         | Class        | Result  | PR  |
-|----------------|-----------------|----------------|--------------|---------|-----|
-| CVE-2023-46604 | activemq-broker | 5.15.5→5.15.16 | MODERATE     | OK      | #42 |
-| CVE-2024-99999 | (not in repo)   | —              | —            | SKIP    | —   |
+| CVE            | Library         | Change         | Class        | Result  | PR  | Notes                                      |
+|----------------|-----------------|----------------|--------------|---------|-----|--------------------------------------------|
+| CVE-2023-46604 | activemq-broker | 5.15.5→5.15.16 | MODERATE     | OK      | #42 | not verified: RSpec (`bin/rspec`)          |
+| CVE-2024-99999 | (not in repo)   | —              | —            | SKIP    | —   |                                            |
 ```
+
+**The `Notes` column is where a suite this run did not verify is named, and it is filled on both paths.** A CVE can otherwise be reported `OK` with a whole stack unverified, which is exactly what this column exists to prevent. On the **SIMPLE / MODERATE** path the source is `vuln-fixer`'s own `notes` field — read it on **every** return and not only on `TESTS_NOT_RUN`, because a `PARTIAL` at either end comes back as `status: SUCCESS` with the uncovered suites in `notes` (the agent's step 1 and step 5, and `${CLAUDE_PLUGIN_ROOT}/references/handoff/vuln-fixer.md`'s own `SUCCESS` gloss). On the **SIGNIFICANT / HIGH-RISK** path there are two sources and both are read: step 1's own baseline, every suite its `### Suites` does not mark `OK` or `NO_TESTS`; and the resumed fixer's `notes`, which is where a verify `PARTIAL` records a suite the baseline **did** cover and this verify could not run — a suite can stop being runnable between the two calls, and the baseline cannot know that. Name each suite and its command, or leave the cell empty where the run verified everything it detected — never a bare "partial", which says a stack was missed without saying which.
 
 Append a `### Model Routing` section summarising the per-CVE classification, why it was chosen, the models used, and any Opus review verdicts.
 

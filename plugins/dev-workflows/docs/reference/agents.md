@@ -17,12 +17,12 @@ Opus-gated quality gates, plus the lighter-weight planners that feed or precede 
 
 ## Readers and scanners
 
-Read-only discovery and grounding — each returns a structured digest rather than editing anything. `test-baseliner` is the one that touches the working tree at all: it holds `Bash` because its job is to *run* the suites, so build and coverage output appears as a side effect.
+Read-only discovery and grounding — each returns a structured digest rather than editing anything. `test-baseliner` is the one that touches the working tree at all: it holds `Bash` because its job is to *run* the suites, so build and coverage output appears as a side effect. **What it runs is what its detection table covers** — eleven marker rows, published in full at [Test suite detection](test-suite-detection.md) — rather than whatever suites a repository happens to hold: a stack with no row in that table (PHP, .NET, Scala, Elixir, Dart, C++/CTest) qualifies on none of its own build files, and where the repository carries nothing else the table lists — a `Makefile` with a `test` target among them — the agent returns `Framework: not detected` with every count 0 rather than failing the call. That is surfaced rather than skipped silently — `/implement` acts on it at Pre-Phase 3.5, after the branch is cut and before any file is edited, and asks you for a test command, a documented skip, or a cancel.
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
 | `vuln-research` | per routing | Read, Glob, Grep, WebFetch, Skill | Read-only CVE research phase — NVD lookup, library detection in the repository, current-version discovery, and minimum-safe-version resolution. Has no side effects. | `/vuln` |
-| `test-baseliner` | per routing | Bash, Read, Glob | Runs every test suite the repository has — a polyglot repo baselines all of them — and returns structured results in two modes: capture a baseline, or verify a later run against one. | `/implement`, `/upgrade`, `/vuln` |
+| `test-baseliner` | per routing | Bash, Read, Glob | Runs every test suite its [detection table](test-suite-detection.md) covers — all of them where a repository has several — in two modes: capture a baseline, or verify a later run against one. | `/implement`, `/upgrade`, `/vuln` |
 
 ## Writers
 

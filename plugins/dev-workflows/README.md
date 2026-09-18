@@ -26,6 +26,7 @@ Every command owns one role's step in the pipeline and hands a concrete artifact
 | [Workflow overview](docs/workflow.md) | The whole pipeline as one diagram. |
 | [Roles and phases](docs/roles-and-phases.md) | What each role owns and hands off. |
 | [Agents](docs/reference/agents.md) | The subagent inventory the commands dispatch internally. |
+| [Test suite detection](docs/reference/test-suite-detection.md) | Which test stacks a run finds and runs, and what happens to one it does not. |
 | [References](docs/reference/references.md) | The reference-doc inventory under `references/`. |
 | [Environment](docs/reference/environment.md) | Every environment variable the plugin reads. |
 | [Hooks](docs/reference/hooks.md) | The bundled hooks and what each does. |

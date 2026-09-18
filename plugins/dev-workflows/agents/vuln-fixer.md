@@ -61,6 +61,14 @@ reconstruct it.
    as `baseline_block` — skip this step.
    - On `status: RUN_FAILED` or `COMMAND_NOT_FOUND`: set output `status: BASELINE_FAILED`, return —
      before step 2, so no branch is created for a CVE that was never worked.
+     **This is the opposite disposition to step 5's on the same evidence, and the difference is what
+     each point has to lose, not what the evidence says.** The same two values at step 5 keep the fix
+     and return `TESTS_NOT_RUN`; here they abandon the CVE. Neither is a verdict on the code — an
+     unrunnable suite is a fact about the environment at both ends — but here nothing has been created
+     or changed yet, so stopping costs a re-run once the runner is installed, while at step 5 a fix is
+     already applied to a branch and discarding it would destroy work on evidence that says nothing
+     about it. Do **not** read this as licence to revert at step 5, and do not read step 5's tolerance
+     as licence to branch and edit here: the asymmetry is deliberate and is the whole of it.
    - On `status: PARTIAL`: at least one suite produced counts, so there **is** a baseline to verify against.
      Proceed, and record in `notes` every suite `### Suites` does not mark `OK` or `NO_TESTS`, with its
      command, so the output says what this CVE's verification does not cover. A JavaScript runner that is not
@@ -107,7 +115,10 @@ reconstruct it.
    - `status: RUN_FAILED` or `COMMAND_NOT_FOUND` → nothing was compared. **Do not revert the fix**: reverting
      needs evidence the fix is bad, and this is evidence that the suites could not be run. Set
      `status: TESTS_NOT_RUN` with the report's reason in `notes` and return — the branch and the applied fix
-     stay on it, and the orchestrator decides.
+     stay on it, and the orchestrator decides. **Step 1 returns `BASELINE_FAILED` on these same two values
+     and that is not an inconsistency to correct here**: there nothing had been created yet and the cost of
+     stopping is a re-run, whereas here the fix exists and discarding it would destroy work on evidence
+     about the environment rather than about the change (step 1's own note says the same from its side).
 
 6. **Output** — Produce the result record (see `${CLAUDE_PLUGIN_ROOT}/references/handoff/vuln-fixer.md` output format).
 

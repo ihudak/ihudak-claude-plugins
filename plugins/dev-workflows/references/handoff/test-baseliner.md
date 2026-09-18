@@ -23,9 +23,9 @@ command_hint: "./mvnw test -q"   # optional; one or more commands. Detection sti
                                  # suite it matches, or at the scan root (`repo:`, or the
                                  # working directory where a capture call omits it) where
                                  # it matches none — every other suite runs where capture
-                                 # step 2's four sources put it, not at the scan root, and
-                                 # that holds in BOTH modes (agents/test-baseliner.md
-                                 # capture step 2, verify step 3).
+                                 # step 2's four sources put it, not at the scan root by
+                                 # default, and that holds in BOTH modes
+                                 # (agents/test-baseliner.md capture step 2, verify step 3).
 baseline: |                # required for mode: verify — the full `## Test Baseline` block
   ## Test Baseline         # from the capture call, verbatim, `### Suites` included
   - **Mode**: capture

@@ -10,6 +10,7 @@
 | document it, then announce it | `/docs-workflows:document`, `/docs-workflows:release-notes` — both ship in the companion `docs-workflows` plugin |
 | check whether a ticket is really ready | [`/ready`](commands/ready.md) |
 | fix a CVE or upgrade a dependency | [`/vuln`](commands/vuln.md), [`/upgrade`](commands/upgrade.md) |
+| find out whether my test stack is covered | [Test suite detection](reference/test-suite-detection.md) |
 | understand what a run cost | [Session cost](reference/session-cost.md) |
 | turn a raw idea into a PRD, or work the BRD-to-PRD route | Moved to the sibling `product-workflows` plugin |
 
@@ -28,6 +29,7 @@ The PM/PA/PE commands that used to sit here — `/idea`, `/create-prd`, `/update
 ## Reference
 
 - [Agents](reference/agents.md) — the subagent inventory: what each helper agent does and which command calls it.
+- [Test suite detection](reference/test-suite-detection.md) — the eleven marker rows `test-baseliner` scans for, what each one runs, what happens to a stack the table does not list, and what adding one takes.
 - [References](reference/references.md) — the reference-doc inventory under `references/`, grouped by subtree.
 - Skills — this plugin ships 0 bundled skills of its own. The `model-routing` skill every pipeline command loads at its classification step ships in `workflows-core`, alongside the classification reference it resolves; `docs-frontmatter`, the one skill that used to ship here, moved to `docs-workflows` with the `docs-profiles/` conventions it applies.
 - [Environment](reference/environment.md) — every environment variable the plugin reads, and what it configures.

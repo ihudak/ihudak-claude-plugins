@@ -1,10 +1,10 @@
 ---
 name: test-baseliner
-description: Run every test suite the repository has and return structured results for regression comparison. Operates in two modes — "capture" (run tests, record baseline) and "verify" (run tests again, diff against a provided baseline, return a structured regression report). Model tier assigned by the caller per the model-routing policy (no fixed pin — does not require Opus).
+description: Run every test suite step 1's detection table covers — all of them where a repository has several — and return structured results for regression comparison. Operates in two modes — "capture" (run tests, record baseline) and "verify" (run tests again, diff against a provided baseline, return a structured regression report). Model tier assigned by the caller per the model-routing policy (no fixed pin — does not require Opus).
 tools: ["Bash", "Read", "Glob"]
 ---
 
-Run every test suite the project has and return a structured result for regression comparison.
+Run every test suite step 1's detection table covers and return a structured result for regression comparison. A stack with no row there qualifies on none of its own build files: the run returns `Framework: not detected` with counts 0 rather than failing, and the caller decides what to do about it.
 
 Operates in two modes. The caller must specify which mode to use.
 

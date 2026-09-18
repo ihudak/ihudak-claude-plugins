@@ -47,6 +47,9 @@ none
 com.example.FooTest#testCreate
 com.example.BarTest#testLogin
 
+### Notes
+none
+
 ### Suites
 Maven | pom.xml | `./mvnw test -q` | OK | Total 47, Passing 47, Failing 0, Skipped 0
 ```
@@ -58,6 +61,16 @@ are the union with each identifier prefixed `[<Framework>] `, and `### Suites`
 carries one line per detected suite — framework, marker, command, per-suite
 status, per-suite counts — including any the `command_hint` left `not run`. A
 single-suite repository's block is unchanged in every field, `### Suites` aside.
+
+**`### Notes` is present on every capture return, "none" included**, and it
+carries what no other field can: a suite whose watch carve-out did not fire and
+why, a `Make` wrapper one level did not settle, "no runner found", a recipe whose
+output matched no parse pattern. Each of those reads, from **Status** and
+`### Suites` alone, exactly like a suite that genuinely failed — a `RUN_FAILED`
+row with a command beside it — so a caller that reports a failed suite without
+reading this section reports the wrong cause. Verify mode has carried the same
+section since before capture did, and it is the same section: capture's detection
+is what verify step 1 re-runs, so a note owed at one end is owed at both.
 
 **capture status values:**
 - `OK` — every detected suite ran and produced counts, Total > 0

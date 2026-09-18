@@ -110,13 +110,16 @@ Run every suite and return a baseline snapshot. Use this **before** making chang
 ### Passing tests
 [one test identifier per line]
 
+### Notes
+[one per line: anything step 1 or step 3 was told to name here — a watch carve-out that did not fire and what in the script could not be resolved or rebuilt, a `Make` indirection one level did not settle, "no runner found", a parser that recognised no count pattern — or "none"]
+
 ### Suites
 [one line per DETECTED suite, in run order, whether or not it ran:
 `<Framework> | <the marker that qualified it> | `<command>` | <OK | RUN_FAILED | NO_TESTS | not run> | Total [n], Passing [n], Failing [n], Skipped [n]`
 — or "none detected"]
 ```
 
-**Total** / **Passing** / **Failing** / **Skipped** are the sums across every suite that ran, and the two lists their union, prefixed per step 3. `### Suites` is always present, single-suite runs included: it is how a caller learns what else it could have run, what this baseline does and does not cover, and the set a `command_hint` narrows from.
+**Total** / **Passing** / **Failing** / **Skipped** are the sums across every suite that ran, and the two lists their union, prefixed per step 3. `### Suites` is always present, single-suite runs included: it is how a caller learns what else it could have run, what this baseline does and does not cover, and the set a `command_hint` narrows from. **`### Notes` is always present too, reading "none" where there is nothing to say.** It is where every rule above that says "name it in the notes" lands, and it is not decoration: the states it carries — a carve-out that did not fire, a wrapper that may double-count, a recipe whose output no parse pattern matched — are each indistinguishable, from the `Status` and `### Suites` alone, from a suite that genuinely failed. A rule that reports into a section the structure does not define is a rule that cannot be followed, since step 5 admits nothing else.
 
 ---
 
@@ -195,7 +198,7 @@ The caller must provide:
 [one test identifier per line — or "none"]
 
 ### Notes
-[any parser confidence issues, aborted runs, or "none"]
+[any parser confidence issues, aborted runs, suite pairing facts from step 2, anything step 1's detection was told to name here (it is capture step 1's detection, so its notes are owed here too), or "none"]
 
 ### Suites
 [same shape as capture mode — one line per detected suite, in run order, whether or not it ran]

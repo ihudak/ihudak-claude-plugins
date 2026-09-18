@@ -58,7 +58,7 @@ Fix one CVE tied to an address and one bare CVE in the same run:
 /dev-workflows:vuln PROJ-2423:CVE-2023-46604 CVE-2024-99999
 ```
 
-Both CVEs are researched in parallel via `vuln-research`; each `READY` result is finalized to a classification and fixed sequentially — `PROJ-2423:CVE-2023-46604` typically as a dependency-only `MODERATE` bump with tests run fresh, `CVE-2024-99999` escalated if its fix requires code changes, gated by Opus review and triage before tests. Each CVE is committed in Step 3.9 — and pushed there if you said so, the consent choice being asked on the first CVE and reused for the second — with its own `Code repo:` outcome line; Step 4 prints the result table, review triage, and the `impl-maintenance` report; the run closes with the `Specs repo:` outcome line for the bounded session-artifact commit.
+Both CVEs are researched in parallel via `vuln-research`; each `READY` result is finalized to a classification and fixed sequentially — `PROJ-2423:CVE-2023-46604` typically as a dependency-only `MODERATE` bump with tests run fresh, `CVE-2024-99999` escalated if its fix requires code changes, gated by Opus review and triage before tests. Each CVE is committed in Step 3.9 — and pushed there if you said so, the consent choice being asked on the first CVE and reused for the second, unless the second ends blocked while the first did not, which puts the choice to you again — with its own `Code repo:` outcome line; Step 4 prints the result table, review triage, and the `impl-maintenance` report; the run closes with the `Specs repo:` outcome line for the bounded session-artifact commit.
 
 ## See also
 

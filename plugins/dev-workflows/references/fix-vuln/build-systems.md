@@ -122,8 +122,14 @@ Or edit `package.json` manually and run `npm install`.
 ### Verify
 
 ```bash
-# CI=true, or a runner that watches by default never returns and the suite
-# is recorded as a failed run (dev-workflows:test-baseliner capture step 1)
+# `test-baseliner` (verify mode) is what verifies this suite, and it carries
+# the watch carve-out. CI=true does NOT reach every watcher — not Karma,
+# started directly or through a grunt/gulp task, and not `ng test` — so on
+# those scripts the line below never returns, the per-suite bound truncates
+# it, and the suite is recorded as a failed run. Run it by hand only where
+# `scripts.test` names none of them; otherwise let `test-baseliner` run the
+# suite (dev-workflows:test-baseliner capture step 1 is where the carve-out
+# and its replacement commands live).
 CI=true npm test
 ```
 

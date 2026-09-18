@@ -36,12 +36,14 @@ customer's BRD routinely carries screenshots, diagrams and appendices beside it,
 did not follow resolves to nothing afterwards — no later command of the route captures it, and
 `brd/source/` is never edited (§1), so no command closes the gap short of intaking the whole document
 again. `/brd-intake` Phase 2 is the only writer; how a link is found and resolved is
-`references/linked-sources.md`'s, and what Phase 2 copies where is stated there. **The markdown-only
+`references/linked-sources.md`'s, and what Phase 2 copies where is stated in `commands/brd-intake.md`
+Phase 2. **The markdown-only
 rule above is about the *document*** — the text
 a `[BR#n]` anchors into, and the one thing an unchecked conversion could silently rewrite; a file it
 links is captured as it stands, whatever its type. **The intake run reads the document, every
-markdown file it links, and every image it links** (`commands/brd-intake.md` Phases 2.5 and 3); a linked
-file of any other kind is captured, named to the operator before anything is copied, and not read. On a
+markdown file it links that Phase 2 copied, and every image it links that Phase 2 copied**
+(`commands/brd-intake.md` Phases 2.5 and 3); a linked file of any other kind is captured, named to the
+operator before anything is copied, and not read. On a
 re-run the copy is additive, as the document's own re-copy is: a file an earlier intake captured and
 the revised document no longer links stays where it is, because nothing under `brd/source/` is ever
 removed either — so the log's counts describe the run that wrote them rather than the directory's
@@ -63,11 +65,13 @@ ran; an absent log and an empty one are not (§2.2 makes the same call for the i
 of its source).
 
 **The log also maps every captured link that does not resolve as written.** Its second table,
-*Captured links that do not resolve as written*, carries one row per link whose copy cannot be reached
-by reading the target as a path relative to the file it sits in — every file copied into
-`brd/source-external/`, and every `[[wikilink]]`, which names a file rather than a path — with the
-target as written, the file the link sits in, and the copy's path relative to `brd/`. **It is the only
-way any reader resolves such a link**: nothing rewrites the verbatim document to point at its copy.
+*Captured links that do not resolve as written*, carries one row per **link** whose copy cannot be
+reached by reading the target as a path relative to the file it sits in — including every link to a
+file copied into `brd/source-external/`, every `[[wikilink]]`, which names a file rather than a path,
+an absolute path to a file inside the folder, and a link inside a `source-external/` file whose target
+lies inside the document's own folder — with the target as written, the file the link sits in, and the
+copy's path relative to `brd/`. **It is the only way any reader resolves such a link**: nothing
+rewrites the verbatim document to point at its copy.
 
 **`brd/source-external/` holds what the document links from outside its own directory**, where the
 operator chose to capture it (`commands/brd-intake.md` Phase 1). Each file sits at its **basename** —
@@ -86,12 +90,13 @@ log existed holds exactly one file under `brd/source/`, and that file is it.
 
 ### 1.2 `brd/brd-figures.md` — what the plugin read in the customer's images
 
-`/brd-intake` Phase 2.5 has `product-workflows:figure-reader` transcribe every image the document links,
-and writes what it returns here. **A transcription is the plugin's reading of the customer's image, not
-the customer's words** — which is why a requirement drawn from an image anchors on the *image* (§2),
-never on this file, and why `/brd-intake` Phase 4's human and the customer's own review both check a
-row drawn from an image against the picture. It is the plugin's record, so it sits in `brd/` beside
-`brd-link-log.md` and never under `brd/source/`.
+`/brd-intake` Phase 2.5 has `product-workflows:figure-reader` transcribe every image the document
+links that Phase 2 copied, and writes what it returns here. **A transcription is the plugin's
+reading of the customer's image, not the customer's words** — which is why a requirement drawn
+from an image anchors on the *image* (§2), never on this file, and why `/brd-intake` Phase 4's
+human and the customer's own review both check a row drawn from an image against the picture. It
+is the plugin's record, so it sits in `brd/` beside `brd-link-log.md` and never under
+`brd/source/`.
 
 ```markdown
 ---
@@ -139,9 +144,12 @@ none
   path of the passage that links it.
 - **Read** is `yes`, or `no — <reason>` with `figure-reader`'s reason (`missing`, `not_an_image`,
   `unreadable`); an image not read carries no transcription sections, only its header lines.
-- **Content hash** is the SHA-256 of the image's bytes. A later intake run keeps a section whose hash
-  still matches its file **verbatim** and does not read that image again; one whose hash no longer
-  matches is re-read and replaced.
+- **Content hash** is the SHA-256 of the image's bytes. A later intake run keeps the section's
+  **transcription** — Read, Content hash, Appearance, Depicts, and the Text/Annotations/Flow/Illegible
+  subsections — verbatim wherever the hash still matches the file, and does not read that image
+  again; a hash that no longer matches is re-read and its transcription replaced. *Linked from*,
+  *Rows*, and the no-longer-linked line below are rewritten by the run regardless, because they
+  describe the current document rather than the image's own content.
 - **Rows** is completed by `/brd-intake` Phase 5, once the inventory is final: `yields` the rows
   anchored on this image, `illustrates` the rows whose prose the image restates, or
   `accounted for — <the operator's account>` where it does neither. **It names requirements of the BRD
@@ -149,7 +157,8 @@ none
   `references/bundle-packaging.md` §6.2 relation 1 reads it.
 - **A section is never deleted.** An image the revised document no longer links keeps its section,
   with a line `- **No longer linked by the current source.**` under its header: an inventory row the
-  re-run preserved may anchor on it.
+  re-run preserved may anchor on it. §2.2 relation 3 does not ask about it — a no-longer-linked image
+  is outside the current document's walk.
 
 ## 2. The inventory
 
@@ -158,7 +167,7 @@ The inventory (`brd/source/`'s companion `brd-inventory.md`) holds **one row per
 | Field | Meaning |
 |---|---|
 | `id` | `[BR#1]`, `[BR#2]`, … — contiguous, assigned once, never renumbered |
-| `text` | the requirement, verbatim, or its first sentence plus a `source_anchor` when quoting it whole would be unwieldy |
+| `text` | the requirement, verbatim, or its first sentence plus a `source_anchor` when quoting it whole would be unwieldy; for a row anchored on an image, the obligation in words, quoting the transcribed element verbatim — the plugin's words, told apart from the customer's by the row's image anchor |
 | `source_anchor` | where the requirement is stated — in the document, an appendix, or an image, in one of the three forms below |
 | `defects` | a `[DEF#n]` list (§3) — empty when the requirement carries none |
 
@@ -181,6 +190,10 @@ id is permanent even if the row it names is later split, superseded, or found de
   the image's transcription (`source/images/report.png › "Net total" column`), or
   `<path relative to brd/> › annotation <n>`, the n-th annotation in its §1.2 section.
 
+**A reader tells the three forms apart by the anchor's text before ` › `**: text beginning `source/`
+or `source-external/` names a linked-markdown or image anchor — which of the two, by the linked
+file's extension — and any other anchor is a document anchor.
+
 **Rows are numbered in reading order across all three**: the document's first, in source order; then
 each linked markdown file's, in the order `/brd-intake` Phase 2 captured it; and a row drawn from an
 image at the passage that links the image — its first link, where several do.
@@ -198,19 +211,20 @@ accounts of "this section holds context", which buries the one case worth seeing
 Three relations — the first two over the **top-level section** of the document and of every linked
 markdown file, the third over the images:
 
-1. **Every `source_anchor` resolves to a section the source actually has.** An anchor naming a
-   section the document does not hold is a row nobody can trace back, in the artifact whose whole
-   job is traceability.
-2. **Every top-level section of the document and of each linked markdown file either holds a row
-   or is accounted for.** A section is held where any anchor names it or names a section beneath
-   it. One with none is not a defect and is not a stop — only a person can say whether a section
-   binds the delivery team to anything — so `/brd-intake` names each with what the source has
-   under it and asks.
+1. **Every `source_anchor` naming the document or a linked markdown file resolves to a section that
+   file actually has.** An anchor naming a section the file does not hold is a row nobody can trace
+   back, in the artifact whose whole job is traceability. An image anchor is relation 3's, not this
+   one's, and resolves by its own rule, below.
+2. **Every top-level section of the document and of each linked markdown file Phase 2 copied either
+   holds a row or is accounted for.** A section is held where any anchor names it, names a section
+   beneath it, or links an image that yields a row (§1.2 *Linked from*). One with none is not a
+   defect and is not a stop — only a person can say whether a section binds the delivery team to
+   anything — so `/brd-intake` names each with what the source has under it and asks.
 3. **Every image yields a row, illustrates one, or is accounted for.** It *yields* a row where any
-   anchor names it, and *illustrates* one where `brd-reader` returned it in that row's `illustrates`.
-   An image that does neither — a logo, a decorative banner, a screenshot whose content no
-   obligation bears on, or an image that could not be read — is named with its `Depicts` sentence or
-   its reason, in the same question relation 2 asks.
+   anchor names it, and *illustrates* one where `brd-reader` returned that row in the image's
+   `illustrates`. An image that does neither — a logo, a decorative banner, a screenshot whose
+   content no obligation bears on, or an image that could not be read — is named with its `Depicts`
+   sentence or its reason, in the same question relation 2 asks.
 
 **The granularity is the finding, not a detail.** Real BRDs run to fifty or sixty headings under
 fourteen or fifteen top-level sections, and on a careful intake nine of those fifteen legitimately
@@ -220,8 +234,9 @@ on a real package the sections carrying no row included the **user stories** and
 tests**, which is exactly the pair a reader would expect to have been inventoried and exactly the
 question worth putting to a human.
 
-**Both relations resolve an anchor to a section, and §2's anchor is a heading path *or* a line range,
-so both forms resolve — in this order:**
+**Relations 1 and 2 resolve a document or linked-markdown anchor to a section, and §2's anchor is a
+heading path *or* a line range, so both forms resolve — in this order** (an image anchor never
+reaches this test; it resolves by the rule below):
 
 1. **A leading section reference** — `§` and a section number — resolves directly. This is the form
    every anchor carried across the corpora this rule was measured on, which is why it is tried first
@@ -234,6 +249,11 @@ so both forms resolve — in this order:**
 3. **Neither** — no section reference, and no line that lands in a section — and the anchor does not
    resolve. It may be perfectly well formed; what it is, is unresolvable against *this* source, which
    is what relation 1 reports it as, per row.
+
+**A linked markdown file with no heading at all is one section — the whole file.** Obsidian notes
+routinely carry none, the title being the filename: branch 2 above resolves any line in such a file
+to that one section rather than falling to branch 3, and relation 2 counts the file held wherever the
+inventory anchors anything in it.
 
 **The ordering matters more than it looks.** An earlier draft of this section asserted that a leading
 section reference is *the* form an anchor carries. It is what every measured anchor happened to have,

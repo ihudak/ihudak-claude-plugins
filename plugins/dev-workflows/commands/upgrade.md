@@ -14,7 +14,7 @@ Each token is one of: `component:1.2.3` (exact), `component:minor` (latest patch
 
 `component` can be a library, framework, language runtime, build tool, or path like `.github/workflows`.
 
-Each component is committed on its own as soon as its gates pass; the branch is pushed once, and a pull request opened where the host allows one — see Phase 2's step 6.5 and step 7.5 (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md`). The commit is prompt-free; only the push and the pull request sit behind a consent choice, asked once for the batch. `--no-commit` skips both steps.
+Each component is committed on its own as soon as its gates pass — see Phase 2's step 6.5 and step 7.5 (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md`); the branch is pushed once for the batch where §2.4's consent choice, an `origin` and §2.5's push itself all allowed it, and a pull request opened where §2.8's base-branch ladder and §2.6's `gh` capability probe allowed one as well — §3.1's rows rather than any list written out here are the authority on which line the run emitted. The commit is prompt-free; only the push and the pull request sit behind a consent choice, asked once for the batch. `--no-commit` skips both steps.
 
 ---
 

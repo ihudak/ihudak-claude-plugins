@@ -145,19 +145,21 @@ of every write and every dispatch.
 decides the set the next question is asked over:
 
 ```
-choices: ["Capture all <n> (Recommended)", "Only the document's own folder — log the rest, as today", "Stop"]
+choices: ["Capture all <n> (Recommended)", "Only the document's own folder — capture nothing outside it", "Stop"]
 ```
 
 *Capture all* takes every file the walk reached — `<n>` is how many distinct files that is, the
 document itself not counted — and Phase 2 copies the outside ones into `brd/source-external/`.
-*Only the document's own folder* takes the files inside it and leaves every outside file `excluded`,
-with everything reachable only through one (`linked-sources.md` §7). Phase 2 then logs each link
-**sitting in a copied file** whose target that answer left `excluded` — reason `absolute path` where
-the target as written begins with `/`, `outside the source directory` otherwise. By
-`linked-sources.md` §7 those are exactly a copied file's links to files outside the directory. A link
-sitting inside an excluded file is not logged: the file holding it is not in the record. *Stop* ends
-the run with nothing written. Where nothing lies outside the directory, this question is not asked,
-and every file the walk reached is taken.
+*Only the document's own folder* takes the files inside the directory that a chain of taken markdown
+files reaches from the document, and leaves everything else `excluded` (`linked-sources.md` §7):
+every outside file, and **an inside file reachable only through an outside one, which this answer
+drops** — it is neither copied nor logged. Name each such file by path beside the question, because
+the operator is otherwise never told. Phase 2 then logs each link a copied file makes to an excluded
+file, with its one reason — `absolute path` where the target as written begins with `/`,
+`outside the source directory` otherwise; by `linked-sources.md` §7 those are exactly a copied
+file's links to files outside the directory. A link sitting inside an excluded file is not logged,
+because the file holding it is not copied. *Stop* ends the run with nothing written. Where nothing
+lies outside the directory, this question is not asked, and every file the walk reached is taken.
 
 **Where the taken set holds an *other* file — neither markdown nor an image — ask next:**
 
@@ -166,7 +168,7 @@ choices: ["Stop and convert them first — nothing has been written (Recommended
 ```
 
 *Stop and convert* ends the run with nothing written:
-`BRD_INTAKE_UNREAD_ATTACHMENTS: <n> linked file(s) are neither markdown nor an image and would be copied but never read: <paths>. Convert each (markdown for a document, PNG for a picture), check the conversion against the original, replace the link to the original, in the file that links it, with a link to the converted file, and re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>'.`
+`BRD_INTAKE_UNREAD_ATTACHMENTS: <k> linked file(s) are neither markdown nor an image and would be copied but never read: <paths>. Convert each (markdown for a document, PNG for a picture), check the conversion against the original, replace the link to the original, in the file that links it, with a link to the converted file, and re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>'.`
 It is an operator halt, not a plugin gap, so `emit-block` does not fire — Phase 9 makes the same call
 for every Phase 0 stop. **Converting is the operator's checked step for the same reason Phase 0 step 3
 refuses to convert the document**: an unchecked conversion would silently become part of the record.

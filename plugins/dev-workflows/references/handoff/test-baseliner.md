@@ -6,7 +6,13 @@
 
 ```markdown
 ## Test Baseline Request
-repo: /absolute/path/to/repo
+repo: /absolute/path/to/repo   # the project root, and the scan root in BOTH modes.
+                               # Callers send it under their own label — `/implement`
+                               # Pre-Phase 3.5 and `/upgrade`'s batch capture each send
+                               # `Project root:` — and it is this field either way.
+                               # Required for `mode: verify`; on `mode: capture` a caller
+                               # may omit it (`vuln-fixer` step 1 does) and the scan falls
+                               # back to the working directory.
 mode: capture              # capture | verify
 command_hint: "./mvnw test -q"   # optional; one or more commands. Detection still runs —
                                  # the hint narrows what is RUN, never what is DETECTED.
@@ -14,9 +20,12 @@ command_hint: "./mvnw test -q"   # optional; one or more commands. Detection sti
                                  # capture call is sent again on every verify call against
                                  # that baseline, or the two runs have nothing to pair.
                                  # A hinted command runs in the directory of the detected
-                                 # suite it matches, or at `repo:` where it matches none —
-                                 # every other suite runs where its own marker sits, not
-                                 # at `repo:` (agents/test-baseliner.md capture step 2).
+                                 # suite it matches, or at the scan root (`repo:`, or the
+                                 # working directory where a capture call omits it) where
+                                 # it matches none — every other suite runs where capture
+                                 # step 2's four sources put it, not at the scan root, and
+                                 # that holds in BOTH modes (agents/test-baseliner.md
+                                 # capture step 2, verify step 3).
 baseline: |                # required for mode: verify — the full `## Test Baseline` block
   ## Test Baseline         # from the capture call, verbatim, `### Suites` included
   - **Mode**: capture
@@ -60,22 +69,37 @@ Maven | pom.xml | `./mvnw test -q` | OK | Total 47, Passing 47, Failing 0, Skipp
 
 **A repository with more than one suite baselines all of them**, which the block
 above expresses without changing shape: **Framework** and **Command** become
-comma-separated lists in run order, the counts are the sums, the two test lists
-are the union with each identifier prefixed `[<Framework>] `, and `### Suites`
+comma-separated lists in run order — positionally paired, so a framework repeats
+where the run holds more than one suite of it rather than being de-duplicated —
+the counts are the sums, the two test lists are the union with each identifier
+prefixed `[<Framework>] `, or `[<Framework> <marker path>] ` where that framework
+names more than one suite in the run (`agents/test-baseliner.md` capture step 3),
+and `### Suites`
 carries one line per detected suite — framework, the qualifying marker **as a
 path relative to the scan root**, command, per-suite status, per-suite counts —
 including any the `command_hint` left `not run`. The marker is a path rather than
-a bare filename because each suite's command is issued from the directory that
-marker sits in, not from the project root (`agents/test-baseliner.md` capture
-step 2), so the path is what says where a row's command ran: `pom.xml` for a
-suite at the scan root, `frontend/package.json` for one below it. A
+a bare filename for two reasons. It tells apart two suites of one framework:
+qualifying markers of one row whose directories do not contain each other are
+siblings, and siblings are separate suites, so more than one row here can read
+`Jest/npm` (`agents/test-baseliner.md` capture step 1). And for every suite whose
+run directory is its marker's own, the path says where that row's command ran,
+which is not the project root — the rule holding in **both** modes
+(`agents/test-baseliner.md` capture step 2 and verify step 3, each stating it at
+its own number): `pom.xml` for a suite at the scan root,
+`frontend/package.json` for one below it. **Three run directories are not a
+marker's own** — a suite the `Make` wrapper folded runs at the `Makefile`'s, a
+workspace the watch carve-out fired on runs at that workspace's, and a hinted
+command matching no suite runs at the scan root — and the first two are named in
+`### Notes`, the third being what a `command_hint` marker value already says. A
 single-suite repository's block is unchanged in every field, `### Suites` aside.
 
 **`### Notes` is present on every capture return, "none" included**, and it
 carries what no other field can: a suite whose watch carve-out did not fire and
-why, a deeper qualifying marker of a row whose shallowest one became the
-candidate, a `Make` wrapper one level did not settle, "no runner found", a recipe
-whose output matched no parse pattern. Each of those reads, from **Status** and
+why, a qualifying marker whose directory another of its own row's contains, the run directory
+of a suite that did not run at its own marker's (a folded `Make` suite's
+`Makefile`, a carve-out workspace's own), a `Make` wrapper one level did not
+settle, "no runner found", a recipe whose output matched no parse pattern. Each
+of those reads, from **Status** and
 `### Suites` alone, exactly like a suite that genuinely failed — a `RUN_FAILED`
 row with a command beside it — so a caller that reports a failed suite without
 reading this section reports the wrong cause. Verify mode has carried the same

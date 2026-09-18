@@ -137,7 +137,10 @@ Or edit `package.json` manually and run `npm install`.
 # own `scripts.test` and no workspace's, or exits 1 on
 # `npm error Missing script: "test"` where the root declares none. Run one
 # `CI=true npm test --if-present --workspace <name>` per workspace instead,
-# which is the division `test-baseliner` itself issues (the same step).
+# which is the division `test-baseliner` itself issues — where no `Makefile`
+# `test` target drives that runner. Where one does, the wrapper rule is asked
+# first, the agent folds rather than divides and runs `CI=true make test`, and
+# so should you: the recipe is the project's pinned entry point (the same step).
 CI=true npm test
 ```
 

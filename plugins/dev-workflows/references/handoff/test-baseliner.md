@@ -112,7 +112,9 @@ qualifying marker **as a path relative to the scan root** (that workspace's own
 `package.json` for each row of a workspaces division and that member's own
 `Cargo.toml` for each row of a Cargo division, never the candidate's; the
 lexicographically first of the folded candidates' marker paths where the `Make`
-wrapper rule folded more than one of that framework;
+wrapper rule folded more than one of that framework, which is the folded
+candidate's own where it folded one — a candidate a division would have carved
+included, since that rule is asked first and no row is then carved at all;
 `command_hint#<n>` where a hinted command matched no detected suite), command,
 per-suite status, per-suite
 counts — including any the `command_hint` left `not run`. Where more than one of that
@@ -125,10 +127,13 @@ siblings, and siblings are separate suites, so more than one row here can read
 `Jest/npm` — as do the rows either division carves, each holding its own unit's
 manifest, a workspace's `package.json` or a default member's `Cargo.toml`
 (`agents/test-baseliner.md` capture step 1). It tells
-apart suites and **not** the candidates a `Make` fold put inside one of them,
-whose row carries the first of their marker paths and whose `### Notes` line
-carries the rest, since `make test` runs once and its output does not attribute
-(the same step). And for every suite whose
+apart suites and **not** what a `Make` fold put inside one of them — the
+candidates it folded, or the units of a divided candidate it took, that rule
+being asked before either division so that such a candidate is folded and never
+carved — whose row carries the first of the folded candidates' marker paths,
+that candidate's own where it folded one, and whose `### Notes` line names the
+others and the units of a divided one, since `make test` runs once and its
+output does not attribute (the same step). And for every suite whose
 run directory is its marker's own, the path says where that row's command ran —
 **the project root only where that marker sits at the scan root**, which is the
 agent's own qualified form (*"The project root is that directory only for a suite
@@ -162,7 +167,8 @@ of a suite that did not run at its own marker's (a folded `Make` suite's
 `Makefile`, the candidate's own for the `--workspace` rows of a workspaces
 division and for the member rows of a Cargo one), every candidate a `Make` fold
 covering more than one of one framework
-holds, with the fact that its identifiers are not attributed to them, a `Make` wrapper one level did not
+holds and every unit of a divided candidate such a fold took, with the fact that
+its identifiers are not attributed to them, a `Make` wrapper one level did not
 settle, "no runner found", a recipe whose output matched no parse pattern. **Two
 of those read, from the `Status` and `### Suites` alone, exactly like a suite
 that genuinely failed** — a carve-out that did not fire and a recipe whose output
@@ -183,8 +189,10 @@ moved between the two calls, never that anything about it failed.
 the counts and the test lists cannot show, and a caller surfaces every one of
 them on every status — `OK` and `NO_TESTS` included.** Three of the kinds that
 carry the mark can stand beside a green return: a `Make` fold's identifiers,
-which are not attributed to the candidates that printed them, so a test one of
-them stopped printing is masked by another's copy; a
+which are not attributed to what printed them — the candidates it folded, or
+the units of a divided candidate it took, the wrapper rule being asked before
+either division — so a test one of them stopped printing is masked by another's
+copy; a
 `Make` indirection one level
 did not settle, where two suites run and the same tests may be summed twice; and
 a qualifying marker a **non-recursing** container left out of the candidate set,

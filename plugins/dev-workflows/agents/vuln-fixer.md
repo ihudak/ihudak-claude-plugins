@@ -86,7 +86,7 @@ reconstruct it.
      is the baseliner's own (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so nothing here
      decides which note matters, and on a green capture it is the block's own account of a baseline that is not
      what its counts claim — a qualifying suite nothing ran, counts a `Make` indirection may have summed
-     twice, a `Make` fold's identifiers unattributed to the candidates that printed them, none of which the
+     twice, a `Make` fold's identifiers unattributed to what printed them, none of which the
      `Status`, the counts or the `### Suites` rows state. An unmarked note records
      where a command ran; leave it. On a `BASELINE_FAILED` return carry them too: `notes` is the only field
      of that return a reader can learn them from. `/vuln`'s Step 4 table reads these off `notes` on every

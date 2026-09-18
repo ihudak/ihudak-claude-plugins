@@ -1,8 +1,10 @@
 # `/brd-intake` reads what it captures — figures, appendices, and the defect questions nobody asked — design
 
-**Status:** approved in brainstorming 2026-09-18, not yet implemented. Opens no ledger item; it closes a shipped defect (§1.3) and adds a capability (§1.1, §1.2).
+**Status:** approved in brainstorming 2026-09-18, amended the same day (§14 — the shared link walk, which widens the scope to `/idea`), not yet implemented. Opens no ledger item; it closes two shipped defects (§1.3, and §14.1's silently dropped wikilinks) and adds a capability (§1.1, §1.2, §14).
 
-**Plugin:** `product-workflows` only, unless the §9 sweep of `workflows-core:grounding-format` §6.1 changes that file. One new agent, `product-workflows/agents/brd-figure-reader.md`. One new plugin-written artifact per BRD, `brd/brd-figures.md`. No new reference file: the artifact's format is a new §1.2 of `product-workflows:brd-format`. No new command, hook, skill or environment variable.
+**Plugin:** `product-workflows` only, unless the §9 sweep of `workflows-core:grounding-format` §6.1 changes that file. One new agent, `product-workflows/agents/figure-reader.md`, shared by `/brd-intake` and `/idea` (§14.4). One new reference file, `product-workflows/references/linked-sources.md` (§14.2). One new plugin-written artifact per BRD, `brd/brd-figures.md`, whose format is a new §1.2 of `product-workflows:brd-format`, and one new BRD directory, `brd/source-external/` (§14.3). No new command, hook, skill or environment variable.
+
+**Where §14 and an earlier section disagree, §14 governs** — the earlier sections are the design as first approved, and §14 records what the amendment changed in them rather than rewriting their reasoning.
 
 **Derivation.** Every decision below traces to an answer the operator gave in brainstorming, recorded in §2 with the question that produced it. Where the design goes past an answer it says so and why.
 
@@ -56,7 +58,7 @@ choices: ["Stop and convert them first — nothing has been written (Recommended
 
 **Phase 2 — Copy.** Unchanged, plus: each copied file carries its kind from Phase 1's enumeration.
 
-**Phase 2.5 — Read the figures (new).** Dispatch `product-workflows:brd-figure-reader` over every copied image, ≤10 per dispatch, ≤4 dispatches in a single response, further waves until none remain. **Re-use before reading**: where `brd/brd-figures.md` already holds a section for an image whose content hash matches, that section is kept verbatim and the image is not dispatched — the preserve-what-you-did-not-produce rule `grounding-format` §6.2 applies to an index row. Write `brd/brd-figures.md` (§5). An image the agent could not read gets its section with the reason and no transcription.
+**Phase 2.5 — Read the figures (new).** Dispatch `product-workflows:figure-reader` over every copied image, ≤10 per dispatch, ≤4 dispatches in a single response, further waves until none remain. **Re-use before reading**: where `brd/brd-figures.md` already holds a section for an image whose content hash matches, that section is kept verbatim and the image is not dispatched — the preserve-what-you-did-not-produce rule `grounding-format` §6.2 applies to an index row. Write `brd/brd-figures.md` (§5). An image the agent could not read gets its section with the reason and no transcription.
 
 **Phase 3 — Extract.** Dispatch `brd-reader` (§6) with the document, the copied appendices in Phase 2's capture order, and `brd/brd-figures.md`. The reconciliation on a re-run is unchanged — match by `source_anchor`, else by `text` — and is applied to **every** id the agent returns: row ids, every `names` entry, and every `illustrates` entry (§6). A mapping applied to row ids alone would leave a candidate or a figure pointing at the agent's numbering rather than the inventory's.
 
@@ -70,7 +72,7 @@ choices: ["Stop and convert them first — nothing has been written (Recommended
 
 **Phase 9 and the final report.** The `impl-maintenance` handoff and the final report gain: images read / reused / not read with reasons, appendices read, any *other* file and the operator's Phase 1 account, and the figure-coverage outcome.
 
-## 4. The new agent — `product-workflows:brd-figure-reader`
+## 4. The new agent — `product-workflows:figure-reader`
 
 **Job:** state exactly what is written and drawn in each image. Never what it obliges.
 
@@ -230,7 +232,7 @@ Swept by subject and by phrase per `CLAUDE.md`'s refinements (scope `plugins/` p
 
 | Surface | Change |
 |---|---|
-| `product-workflows/agents/brd-figure-reader.md` | new (§4) |
+| `product-workflows/agents/figure-reader.md` | new (§4) |
 | `product-workflows/agents/brd-reader.md` | inputs, step 1, numbering, image rules, output, hard rules, `model: opus`, description (§6) |
 | `product-workflows/commands/brd-intake.md` | frontmatter description; Phases 1, 1.5, 2, 2.5 (new), 3, 4, 5, 7, 9; final report (§3) |
 | `product-workflows/commands/brd-interview.md` | Phase 2 change test and re-open cause; Phase 3 seventh source; Phase 4 tagging; Phase 7 entry; every count of the sources |
@@ -246,15 +248,15 @@ Swept by subject and by phrase per `CLAUDE.md`'s refinements (scope `plugins/` p
 | `product-workflows/docs/**` | agents page (new row, count, `brd-reader`'s tier), `brd-intake`/`brd-interview`/`brd-reconcile`/`brd-package` pages, `brd-workflow.md`, references page |
 | `dev-workflows/docs/reference/agents.md` | names `brd-reader`; check |
 | `product-workflows/README.md`, `plugin.json`, `.claude-plugin/marketplace.json` | agent count where stated; version 3.7.0; description only if it names what changed, and replaced rather than appended (1024-char budget) |
-| `CLAUDE.md` | *thirteen subagents* (twice) → fourteen; the `/brd-intake` map line; the agent tree gains `brd-figure-reader`; the `/brd-interview` map line if it lists sources |
+| `CLAUDE.md` | *thirteen subagents* (twice) → fourteen; the `/brd-intake` map line; the agent tree gains `figure-reader`; the `/brd-interview` map line if it lists sources |
 | `product-workflows/CHANGELOG.md` | 3.7.0 entry, including the §1.3 fix stated as a fix |
 
 ## 10. Non-goals — each with its reason, so it is not re-proposed without new evidence
 
 - **Design grounding of the customer's images.** They are not copied into `design/`, and no `[DG#n]` is minted from one. `design-grounder`'s four classes are written for a design team's frames: class 1 (*a frame shows a field no requirement asks for*) fires on every column of a current-product screenshot. The obligations reach grounding as `[BR#n]` text instead. `brd/brd-figures.md` is the index a later increment would start from, if one is ever wanted.
 - **Reading PDFs and spreadsheets.** Named at Phase 1 and converted by the operator (D7).
-- **Links the capture cannot follow** — URLs, absolute paths, targets outside the source directory. Logged as today; not read.
-- **`/idea`, `/frames`, `frame-describer`.** Unchanged: `/idea` already reads its images, and `/frames` indexes a design team's frames, a different job.
+- **URLs.** Logged as today; not fetched and not read. (Absolute paths and targets outside the source directory were in this list as first approved; §14.3 now captures them behind the operator's consent.)
+- **`/frames` and `frame-describer`.** Unchanged: `/frames` indexes a design team's frames, a different job. (`/idea` was in this list as first approved; §14.5 changes it.)
 - **A per-row `figures` column in the inventory.** The image-to-row relation lives in `brd-figures.md`'s *Rows* line so the inventory's row shape, which a dozen commands read, does not move.
 
 ## 11. Verification
@@ -275,3 +277,85 @@ Swept by subject and by phrase per `CLAUDE.md`'s refinements (scope `plugins/` p
 - **D5's tier.** Opus for both agents is a default taken on an asymmetric-cost argument, not a comparison. A comparison on real customer screenshots, hand-checked, would settle it.
 - **Transcription fidelity on real images** — low resolution, scribbled mark-up, where an arrow lands. Caught, when it is caught, by Phase 4's human and by the customer's review of `brd-figures.md`.
 - **§8's existing-slice population.** Unknown; the remedy is cheap either way.
+
+## 14. Amendment — the shared link walk
+
+Approved in brainstorming 2026-09-18, after the operator's note that *"idea and BRD may also link other markdowns, and they should also be a part of the BRD / idea"*. Where this section and an earlier one disagree, this section governs.
+
+### 14.1 What prompted it
+
+- **`/brd-intake` recognises no `[[wikilink]]` — a shipped defect.** Phase 2's link forms are the inline link or image, the reference-style definition and the HTML `<img src>`; `[[` occurs in neither `commands/brd-intake.md` nor `references/brd-format.md`. A wikilink is therefore not copied, not read and **not logged**, which breaks Phase 2's own rule that *"every link not copied is named, never dropped in silence"*. It is the likeliest shape to meet: Obsidian writes a pasted image as `![[Pasted image ….png]]` and saves it to the vault's attachment folder, usually outside the note's own folder — so an operator who converts a Word BRD in Obsidian produces a BRD whose every screenshot the route loses silently.
+- **`idea-reader` recognises wikilinks but never states how `[[name]]` resolves** — a bare name carries no path, so two runs can resolve it differently. Its *"Total files read — 12"* label also reads as counting images, where line 164 calls it *"the twelve-file text budget"* with the six-image budget *"beside it"*.
+- **The operator chose three widenings**: capture BRD files linked from outside the document's folder; lift `/idea`'s 12-file / 2-level cap; lift its 6-image cap.
+
+| # | Decision | Why |
+|---|---|---|
+| D10 | **One link walk, defined once**, in a new `product-workflows:linked-sources` reference both commands cite | `/brd-intake` Phase 2 defines the link forms today and `idea-reader` restates them *"unchanged and restated in full here"* — two copies of one rule, which is how copies drift |
+| D11 | **A wikilink resolves relative to its file, then by filename across the vault; an ambiguous match is reported, never guessed** | Obsidian's own resolution, bounded by `CLAUDE.md`'s rule to resolve against a known set and never guess |
+| D12 | **The bound is the operator's consent over an enumerated list, asked only where an old bound would have cut** | A walk with no bound reaches a whole vault the moment one note links a hub; a numeric cap is what the operator asked to remove. A run inside the old bounds sees no new prompt |
+| D13 | **BRD files from outside the folder go to `brd/source-external/`**, by basename with `/idea`'s `_NN` collision rule, mapped in `brd-link-log.md` | Keeps `brd-format` §1.1's definition of `brd/source/` true; cannot collide with a folder the customer's tree contains; never writes the operator's absolute path — their home directory — into the specs repo |
+| D14 | **One figure reader for both commands, `figure-reader`**, still `model: opus` | One job, one agent. Its rule generalises from "never reads the BRD" to "never reads the document that links the image" |
+| D15 | **`idea-reader` stays on its caller-routed Sonnet tier** | Unlike a BRD extraction, everything it returns passes through a grill with the operator before `idea.md` states any of it, so a miss is not silent there |
+
+### 14.2 `product-workflows:linked-sources` (new reference)
+
+The one authority for how a document's links are found, resolved and walked. `/brd-intake` Phase 1–2 and `/idea` Phase 1.5 execute it; `idea-reader` and `brd-reader` cite it and restate nothing.
+
+- **Link forms** — the four `/brd-intake` Phase 2 fixes today, plus the `[[wikilink]]`: bare, aliased (`[[notes|see this]]`) and embedded (`![[shot.png]]`).
+- **Target normalisation** — drop `#fragment` and `?query`, percent-decode; for a wikilink, drop the alias half and any `#heading` or `^block` suffix. A target empty after that is an in-document jump: neither followed nor logged.
+- **Resolution, in order:** a target carrying a URI scheme is a `url` and is not followed. Otherwise resolve it against the directory of the file the link sits in, normalised as text with `..` collapsed and symlinks never resolved; an absolute path resolves as itself. A wikilink that resolved to nothing — trying `<name>.md` where the name carries no extension — is looked up in the **vault**, the nearest ancestor of the **starting document** holding `.obsidian/`: a name carrying a `/` resolves against the vault root, a bare name by filename anywhere under it. **Exactly one match resolves; several are `ambiguous`**, reported with every candidate and never chosen between; none is `unreadable`. With no vault, the vault step is skipped.
+- **The walk** — breadth-first, in document order within each file; a visited set of resolved absolute paths, the starting document first; transitive through every markdown file reached, inside the starting folder or out of it; each reached file sorted into **markdown** (`.md`, `.markdown`), **image** (`workflows-core:grounding-format` §6.2 step 1's extensions) or **other**. Every reached target records the target as written, the file it sits in, its resolved path, its kind, its depth, and whether it lies **inside** the starting document's own directory. It terminates on any tree, cycles included, because a file is visited once.
+- **Read-only and first.** The walk reads markdown to find links and nothing else; it copies nothing, dispatches nothing, and runs before any agent is handed a file — which is what lets an operator decline for free.
+- **Not-taken reasons**, shared: `url`, `unreadable`, `ambiguous`, and `excluded` (the operator's consent answer left it out).
+
+### 14.3 `/brd-intake` under the amendment
+
+- **Phase 1** runs the walk. Where it reached anything outside the document's folder, it names every such file and asks, **before** the §3 gate on *other* files, which it precedes because it decides the set that gate is asked over:
+
+  ```
+  choices: ["Capture all <n> (Recommended)", "Only the document's own folder — log the rest, as today", "Stop"]
+  ```
+
+  *Only the document's own folder* reproduces today's behaviour exactly, each outside target logged with the reason it carries today (`outside the source directory`, `absolute path`). *Stop* writes nothing.
+- **Phase 2** copies inside files as today and outside files into `<BRD-dir>/brd/source-external/<basename>`, with `/idea`'s collision rule (`_NN` on the original basename, byte-identical content reused). `brd-link-log.md` gains a table, *Captured from outside the document's folder*: the target as written, the file it sits in, and the copy's path. `ambiguous` joins the log's reasons.
+- **`brd-format` §1.1** defines `brd/source-external/`: the customer's material the document linked from outside its own directory, immutable exactly as `brd/source/` is, written only by `/brd-intake` Phase 2, and resolved **only through the link log's mapping** — a link in the verbatim document that points outside does not resolve on disk from the copy, and nothing rewrites it.
+- **Every path in `brd/brd-figures.md` and in §7's two new anchor forms is relative to `brd/`** — `source/appendix/fields.md`, `source-external/glossary.md`, `source/images/report.png` — superseding the `brd/source/`-relative examples in §5 and §7, so one form names a file under either directory.
+- **§2.1's one-hop resolution** covers `source-external/` exactly as it covers `source/`.
+- **Phase 7's `deliverable_paths`** names each file copied into `source-external/` individually.
+- **The bundle** — an outside image the verbatim document references cannot resolve from the bundle's copy either; `bundle-packaging`'s existing *fix it beside the file, never inside it* rule is what carries it, and the plan confirms that rule reaches a file resolved through the mapping.
+
+### 14.4 `figure-reader`
+
+The §4 agent under its shared name. **Inputs change**: `figures` carries absolute paths, ≤10, and there is no `source_dir` — `/idea` reads images where they stand, before anything is vendored, and the caller's list is the whole of what the agent may open, exactly as `frame-describer`'s `frames` list is. `outside_source` is dropped from the `read: false` reasons; `missing`, `not_an_image` and `unreadable` remain. Everything else in §4 stands, including `model: opus` for both callers.
+
+### 14.5 `/idea` under the amendment
+
+- **Phase 1.5 (new) — Walk the links.** For a markdown source only (a prompt has no links), run §14.2's walk from the source. Where it reached past what the old bounds allowed — deeper than 2 levels, more than 12 markdown files counting the source, or more than 6 images — name what lies past them and ask:
+
+  ```
+  choices: ["Read all <n> (Recommended)", "Only what the source links directly", "Stop"]
+  ```
+
+  *Only what the source links directly* takes depth 1 — the source's own links, markdown and images — and marks the rest `excluded`. Inside the old bounds the phase is silent.
+- **Phase 2** dispatches `figure-reader` over the taken images (≤10 per dispatch, ≤4 concurrent, in waves) and then `idea-reader`, handing it the taken markdown pages and the transcriptions explicitly. `idea-reader` **discovers nothing**: its traversal, its `## Bounding` section and its `cap` and `depth` reasons are removed; its link-form list is replaced by a citation of `linked-sources`; it reads every page it is handed and treats a transcription as it treats a linked page. Its digest keeps its field names — `wikilinks_followed` is the taken markdown, `wikilinks_not_followed` the `excluded`, `wikilinks_broken` the `unreadable` and `ambiguous`, `links_other` the *other* kind — and `images[].description` becomes `figure-reader`'s `depicts`, the 60-word rule with it.
+- **Phase 4.5**'s copy set is everything the walk took, `excluded` aside; `idea-format`'s *"inherits `idea-reader`'s caps — 12 files in total, 6 images"* is rewritten. The frame-set index row for an image is its `depicts` sentence; `/idea` writes no figures file — its images are grill context, and the grill confirms what the brief states.
+
+### 14.6 Surfaces, counts and verification the amendment adds
+
+| Surface | Change |
+|---|---|
+| `product-workflows/references/linked-sources.md` | new (§14.2) |
+| `product-workflows/agents/figure-reader.md` | the §4 agent under its shared name, with §14.4's inputs |
+| `product-workflows/commands/brd-intake.md` | Phase 1's walk and consent; Phase 2's link forms replaced by a citation; `source-external/`; the link log's mapping table and `ambiguous` reason; Phase 7 |
+| `product-workflows/references/brd-format.md` | §1.1 `source-external/`; §2 and §5 paths relative to `brd/` |
+| `product-workflows/commands/idea.md` | frontmatter description; Phase 1.5 (new); Phase 2 (lines ~100–148); Phase 4.5 (line ~281) |
+| `product-workflows/agents/idea-reader.md` | inputs; link forms → citation; traversal and `## Bounding` removed; output; hard rules (lines ~246–247); description |
+| `product-workflows/references/idea-format.md` | the copy-set sentence (line ~189) |
+| `product-workflows/docs/commands/idea.md` | lines ~45, 47, 76, 164 — the depth, the cap and the "only what was read" claims |
+| `product-workflows/docs/reference/agents.md` | `idea-reader`'s row; `figure-reader`'s row |
+| `product-workflows/docs/reference/references.md` | `linked-sources`'s row |
+| `product-workflows/references/bundle-packaging.md` | §14.3's outside-image interaction, if the plan finds the existing rule does not reach it |
+
+**Counts:** `product-workflows` goes to **fourteen agents** and **twelve reference files**; every counted sentence moves, `CLAUDE.md`'s *"eleven reference files"* and *"their eleven references"* among them. **Sweep strings** beyond §9's: `12 files`, `twelve`, `6 images`, `six images`, `two levels`, `Total files read`, `reason: cap`, `reason: depth`, `restated in full here`, `outside the source directory`.
+
+**Verification additions** to §11's fixture: a `.obsidian/` at the fixture root and a vault attachment folder outside the BRD's folder holding a `![[Pasted image ….png]]` target — captured under *Capture all* into `source-external/` with its mapping row, logged under *own folder only*; two notes sharing one name, linked bare — reported `ambiguous` with both candidates, neither chosen; a hub note linking a dozen more — the Phase 1 consent fires. An `/idea` fixture of 14 linked notes reaching depth 3 and 8 images: Phase 1.5 fires; *Read all* reads and vendors all 14 and all 8; *Only what the source links directly* reads depth 1 and reports the rest `excluded`; a fixture inside the old bounds prompts nothing.

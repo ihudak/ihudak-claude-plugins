@@ -251,8 +251,8 @@ Key invariants for `/implement` specifically:
 - Phase 4.6 (`finish-code-branch`) runs **after** Phase 4, never before it — Phase 4's maintenance agents write `README.md`, `CHANGELOG.md`, `CLAUDE.md`, and in-repo memory files into the same repository, so a commit ahead of them ships a partial run. A multi-source run that wrote into a repo it never branched names that repo and its dirty paths in the Phase 5 report rather than inventing a branch for it
 - Test baseline captured **before** any source edits, using `test-baseliner`
 - `test-writer` writes tests for **new or changed behaviour** — mandatory for code changes
-- If no test framework is detected — or if every detected suite failed to start, the other capture that asks — surface that explicitly at Pre-Phase 3.5; test-writing is never silently skipped
-- Phase 3.5 verifies against the captured baseline before the workflow is considered complete, and **names what it did not cover rather than assuming it** — which is the honest form of the "full test suite is verified" this line used to claim, and which three reachable completions denied: a suite that could not run at either end (verify `PARTIAL`) is recorded in `### Deferred items` and the run continues; a comparison that could not be made at all (`RUN_FAILED` / `COMMAND_NOT_FOUND`) is surfaced, never read as a pass, and accepting it finishes `clean_finish: false`, so any pull request it opens carries the DO-NOT-MERGE banner; and a run whose Pre-Phase 3.5 capture returned `COMMAND_NOT_FOUND` **or `RUN_FAILED`** carries the operator's explicit, logged `test_decision: skip` from that prompt, taken before any edit and while a baseline could still have been taken — **the gate being the recorded decision, never the baseline's `Framework` field**, which is why a `RUN_FAILED` capture (whose `Framework` names the suites it could not run) reaches this completion too. That skip is scoped to steps 4–6: the lint and build of step 3 still run, because "Skip tests for this run" is what was asked. A test the run itself wrote and that fails is in **none** of those: it is a New failure, which moves no `test-baseliner` status, and Phase 3.5 reads that list beside the status precisely so it cannot pass as one
+- If no test framework is detected — or if every suite the capture actually ran aborted with no parseable pass/fail counts, the other capture that asks — surface that explicitly at Pre-Phase 3.5; test-writing is never silently skipped. **`RUN_FAILED` is about the suites that were *run*, not the ones that were *detected***, which are two different sets wherever a `command_hint` narrowed the run (`dev-workflows:test-baseliner` capture step 4), and a suite that started, finished, and printed output the parse table does not recognise is `RUN_FAILED` without having failed to start at all
+- Phase 3.5 verifies against the captured baseline before the workflow is considered complete, and **names what it did not cover rather than assuming it** — which is the honest form of the "full test suite is verified" this line used to claim, and which three reachable completions denied: a suite that could not run at either end (verify `PARTIAL`) is recorded in `### Deferred items` and the run continues; a comparison that could not be made at all (`RUN_FAILED` / `COMMAND_NOT_FOUND`) is surfaced, never read as a pass, and accepting it finishes `clean_finish: false`, so any pull request it opens carries the DO-NOT-MERGE banner; and a run whose Pre-Phase 3.5 capture returned `COMMAND_NOT_FOUND` **or `RUN_FAILED`** carries a `test_decision: skip` from that prompt, taken before any edit and while a baseline could still have been taken — **the gate being the recorded decision, never the baseline's `Framework` field**, which is why a `RUN_FAILED` capture (whose `Framework` names the suites it could not run) reaches this completion too. **That skip has two provenances and they finish differently**: the operator's own logged answer is honoured without penalty, while the run's own record after two failed `command_hint` attempts sets `clean_finish: false`, because nothing was typed and nothing was declined there (`dev-workflows:code-handoff` §2.9). Either way it is scoped to steps 4–6: the lint and build of step 3 still run, because "Skip tests for this run" is what was asked. A test the run itself wrote and that fails is in **none** of those: it is a New failure, which moves no `test-baseliner` status, and Phase 3.5 reads that list beside the status precisely so it cannot pass as one
 - Multi-source input (more than one repo, or any directory input — an exported-ticket folder or a spec folder) floors classification at SIGNIFICANT (overridable at plan approval) and triggers the Phase 1.7 fan-out scan
 - The fan-out reads the resolved folder and runs per-repo `code-scanner` (single response, cap 4 concurrent); its synthesized summary feeds the planner instead of the single Explore subagent
 - A theme round 1 leaves inconclusive — `partial`/`absent`/`error`, or two scanners each naming the other's repo — gets ONE narrow round 2 seeded with round 1's verified anchors (`classification.md` §8.5, cap 4, no round 3). A theme still unresolved after round 2 is named in the summary's `## Unresolved` section and carried into the plan's risks; it is NEVER flattened into an ordinary gap, because a gap asserts absence while an unresolved theme asserts only that the scan could not tell
@@ -343,24 +343,35 @@ Key invariants for specs-repo git (`workflows-core:specs-repo-git`):
 
 ## Test-writing requirement for code changes
 
-Any `/implement` invocation that touches source code **must** produce at least one
-test for each new or changed behaviour, and **must never complete silently on one
-that fails**. It does not guarantee the test passes, and that distinction is the
-whole of what this section promises — **stated as what the tree enforces rather
-than as the aspiration it carried**, which two reachable completions falsified and
-which a third round would have inherited unchanged. A test the run wrote that is
-still failing after the Phase 3.5 fix loop's two attempts is surfaced, and the run
-continues only on the user's own *"Accept the remaining failures and proceed"*,
-recorded with their rationale in the Phase 5 `### Deferred items` section and
-setting `clean_finish: false` — so any pull request the run opens is a draft
-carrying the DO-NOT-MERGE banner. Changing the tree to meet the stronger claim was
-the alternative and was rejected: it would have to remove that option, and a
+Any `/implement` invocation that touches source code **must** write at least one
+test for each new or changed behaviour, **must never complete silently on one that
+fails**, and **must name in the Phase 5 `### Deferred items` section every test it
+could not write, could not run, or left failing**. It is the third clause that
+holds on every path; the first two are bounded, and the bullets below say by what.
+**The boundary is three kinds, and they are exhaustive by construction** — a test
+is written or it is not; written, it runs or it does not; run, it passes or it
+does not — so this section needs no census of completions and keeps none. The kinds
+are: **no test written** (Pre-Phase 3.5's skip on a `COMMAND_NOT_FOUND` capture,
+the only one of the three that writes none); **a test written but never run** (the
+same skip on a `RUN_FAILED` capture, an accepted unverified run at Phase 3.5 step
+5, and a suite that could not run at either end); and **a test written, run and
+still failing**. That last is the one this section was built around: a test the
+run wrote and that is still failing after the Phase 3.5 fix loop's two attempts is
+surfaced, and the run continues only on the user's own *"Accept the remaining
+failures and proceed"*, recorded with their rationale and setting
+`clean_finish: false` — so any pull request the run opens is a draft carrying the
+DO-NOT-MERGE banner. Changing the tree to meet an unqualified first clause was the
+alternative and was rejected: it would have to remove **both** escapes a user can
+choose — that option and Pre-Phase 3.5's *"Skip tests for this run"* — and a
 gate-failed run that cannot finish is a run that leaves the implementation
-uncommitted, which `dev-workflows:code-handoff` §1 rule 5 exists to prevent.
+uncommitted, which `dev-workflows:code-handoff` §1 rule 5 exists to prevent. The
+completions nobody chooses are not options to remove at all: a suite that will not
+start is the environment's answer, not the operator's.
 
 - Prefer unit tests; use integration or end-to-end tests only if that is the project's established pattern
 - Tests must be meaningful (assert specific behaviour), deterministic, and follow existing project conventions
-- **The other completion that writes no passing test is the operator's own, and it is never a silent skip.** Where Pre-Phase 3.5's capture returns `COMMAND_NOT_FOUND` (no framework detected at all) **or `RUN_FAILED`** (every detected suite failed to start), the run surfaces it and asks before the first edit — while a baseline can still be taken — and a `test_decision: skip` is that question's typed, logged answer. On `COMMAND_NOT_FOUND` `test-writer` returns its "not detected" report and writes nothing; on `RUN_FAILED` it writes against the suites the baseline named and those tests are then never run. Either way the Final Report says so
+- **Pre-Phase 3.5's skip is where the first two kinds come from, and it is never a silent one.** Where that capture returns `COMMAND_NOT_FOUND` (no framework detected at all) **or `RUN_FAILED`** (every suite the capture actually ran aborted with no parseable counts), the run surfaces it and asks before the first edit — while a baseline can still be taken. `test_decision: skip` is that question's logged answer **or the run's own record after two `command_hint` attempts that also failed**, and the two are different decisions: the operator's is typed, carries their rationale, and is honoured without penalty, while the run's carries the last capture failure and sets `clean_finish: false`, because nobody consented to shipping unverified work (`dev-workflows:code-handoff` §2.9). On `COMMAND_NOT_FOUND` `test-writer` returns its "not detected" report and **writes nothing** — the one kind with no test at all; on `RUN_FAILED` it writes against the suites the baseline named and those tests are then never run. Either way the Final Report says so
+- **The third kind is environmental and nobody picks it: a Phase 3.5 verify `PARTIAL` whose unrunnable suite is the one this run's tests were written into.** `test-writer` writes against every suite the diff touches, so on a multi-suite repository whose broken stack is that stack, the new tests sit in a suite that produced no counts at either end. Phase 3.5 step 5's `PARTIAL` arm records that suite in `### Deferred items` and the run continues; `clean_finish` stays `true` and no banner is raised, because every suite the baseline *did* cover is green. **Population: narrow** — it needs a multi-suite baseline, one suite unrunnable at both ends, and a diff touching only that stack. It is named because the three kinds above are a closed set and this is one of them, not because it is common. An accepted unverified run at step 5 is the other member of the same kind and does flip the flag, since there the comparison was attempted and failed rather than merely being incomplete
 - Docs-only changes (`/document`) are exempt from this requirement
 
 ## Updating installed plugins after editing

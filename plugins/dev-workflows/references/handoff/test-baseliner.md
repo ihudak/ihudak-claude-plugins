@@ -17,12 +17,16 @@ repo: /absolute/path/to/repo   # the project root, and the scan root in BOTH mod
                                # omitted it, the verify sends that same working directory —
                                # or the two runs have nothing to pair: `### Suites` records
                                # each marker as a path relative to THIS root, so the root is
-                               # an operand of what verify pairs on and of what the prefix
-                               # adds to the framework. Two roots report a tree that did not
+                               # an operand of what verify PAIRS on — the half nothing
+                               # downstream repairs, since verify step 5 rewrites a moved
+                               # prefix onto the suite step 2 paired it with, and two roots
+                               # move every marker path at once, which is more than step 2's
+                               # one-of-each fallback can pair where a framework names more
+                               # than one suite. So two roots report a tree that did not
                                # change as every suite moved, and — where a framework names
                                # more than one detected suite — every identifier of it as
-                               # missing (agents/test-baseliner.md capture step 1, measured
-                               # there).
+                               # missing, with that rewrite and without it alike
+                               # (agents/test-baseliner.md capture step 1, measured there).
 mode: capture              # capture | verify
 command_hint: "./mvnw test -q"   # optional; one or more commands. Detection still runs —
                                  # the hint narrows what is RUN, never what is DETECTED.
@@ -43,10 +47,15 @@ baseline: |                # required for mode: verify — the full `## Test Bas
 ```
 
 **Hand verify the whole block, not a re-keyed digest of it.** Its `### Suites` rows are
-what verify pairs the current run against, and they are also what separates a suite the
+what verify pairs the current run against; they are what separates a suite the
 baseline recorded `OK` and that aborts now (a regression — the change is the only thing
 that moved) from one that could not run at either end (`PARTIAL` — a fact about the
-environment). A caller that passes counts alone leaves verify unable to tell those apart.
+environment); and they are what verify step 5 reads the baseline's **own** identifier
+prefixes off before it rewrites them onto this run's, since a framework's prefix there is
+`[<Framework>] ` or `[<Framework> <marker path>] ` according to how many rows that
+framework has in this very section. A caller that passes counts alone leaves verify unable
+to tell those apart, and a caller that passes the two test lists without `### Suites`
+leaves it unable to rewrite them at all.
 
 **No `model_routing:` block is passed.** The caller pins this agent's tier with `model:` on the dispatch, and nothing in the agent reads a field of that block.
 
@@ -115,10 +124,14 @@ single-suite repository's block is unchanged in every field, `### Suites` aside
 — **the identifier prefix included**, which is why the example at the head of
 this section carries `[Maven] ` on each of its two lists and why the prefix is
 no longer one of the multi-suite deltas above. What retired that condition is
-measured where the rule lives (`agents/test-baseliner.md` capture step 3): a
-prefix conditioned on the suite count moves the moment a suite comes into
-existence between a capture and its verify, and a moved prefix is every baseline
-identifier in **Missing from run**.
+measured where the rule lives (`agents/test-baseliner.md` capture step 3), and
+**a prefix that moves between a capture and its verify no longer makes a
+regression of its own**: the condition that remains still reads each call's own
+detected set, so it moves whenever that set does, and verify step 5 rewrites
+every baseline identifier's prefix onto its paired suite's current one before it
+compares — three states, each measured there with that rewrite and without it. A
+baseline row verify pairs with nothing is not rewritten, and its tests are
+**Missing from run** exactly as they always were.
 
 **`### Notes` is present on every capture return, "none" included**, and it
 carries what no other field can: a suite whose watch carve-out did not fire and
@@ -131,7 +144,10 @@ of those reads, from **Status** and
 row with a command beside it — so a caller that reports a failed suite without
 reading this section reports the wrong cause. Verify mode has carried the same
 section since before capture did, and it is the same section: capture's detection
-is what verify step 1 re-runs, so a note owed at one end is owed at both.
+is what verify step 1 re-runs, so a note owed at one end is owed at both. What
+verify adds to it is its own — this call's aborts, step 2's pairing facts, and
+each prefix rewrite step 5 made — so a rewrite line there says a suite's prefix
+moved between the two calls, never that anything about it failed.
 
 **capture status values:**
 - `OK` — every detected suite ran and produced counts, Total > 0

@@ -32,7 +32,7 @@ The diagram above shows where each command sits in the pipeline; [Roles and phas
 
 | Role | Runs | Produces → lands at |
 |---|---|---|
-| **Dev** | `/design`, `/implement`, `/ready` (then `/docs-workflows:document` and a final `/docs-workflows:release-notes`); off the spine, `/docs-workflows:docs-init` and `/docs-workflows:docs-brand` | `design.md` on the specs repo's default branch; code committed on a branch in `$REPOS_PATH`, pushed with a PR on consent; a read-only readiness verdict that sets no status |
+| **Dev** | `/design`, `/implement`, `/ready` (then `/docs-workflows:document` and a final `/docs-workflows:release-notes`); off the spine, `/docs-workflows:docs-init` and `/docs-workflows:docs-brand` | `design.md` on the specs repo's default branch; code committed on a branch in `$REPOS_PATH`, the push and the pull request behind a consent choice; a read-only readiness verdict that sets no status |
 | **Anytime** | `/vuln`, `/upgrade` | a fixed CVE or a completed upgrade, committed on a feature branch in `$REPOS_PATH` |
 
 The PM, PA, and PE roles that produce this plugin's own input — `specification.md` — ship in the companion `product-workflows` plugin; see [Roles and phases](roles-and-phases.md) for where this plugin's spine picks up and that plugin's own Roles and phases page for what each of those three roles owns.

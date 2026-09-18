@@ -35,18 +35,22 @@ byte-for-byte, whatever its type. That is what makes the copy a record rather th
 customer's BRD routinely carries screenshots, diagrams and appendices beside it, and a link the copy
 did not follow resolves to nothing afterwards — no later command of the route captures it, and
 `brd/source/` is never edited (§1), so no command closes the gap short of intaking the whole document
-again. `/brd-intake` Phase 2 is the only writer, and the link forms it covers and the test it applies
-to each target are stated there. **The markdown-only rule above is about the *document*** — the text
+again. `/brd-intake` Phase 2 is the only writer; how a link is found and resolved is
+`references/linked-sources.md`'s, and what Phase 2 copies where is stated there. **The markdown-only
+rule above is about the *document*** — the text
 a `[BR#n]` anchors into, and the one thing an unchecked conversion could silently rewrite; a file it
-links is captured as it stands, whatever its type, and the intake run reads only the document. On a
+links is captured as it stands, whatever its type. **The intake run reads the document, every
+markdown file it links, and every image it links** (`commands/brd-intake.md` Phases 2.5 and 3); a linked
+file of any other kind is captured, named to the operator before anything is copied, and not read. On a
 re-run the copy is additive, as the document's own re-copy is: a file an earlier intake captured and
 the revised document no longer links stays where it is, because nothing under `brd/source/` is ever
 removed either — so the log's counts describe the run that wrote them rather than the directory's
 contents.
 
 **Whatever the copy could not capture is named in `brd/brd-link-log.md`**, never dropped in silence:
-a link above the source document's own directory, an absolute path, a URL, or a file that could not
-be read. That log is the **plugin's** record rather than the customer's, which is why it sits in
+a URL, a file that could not be read, a wikilink matching more than one file in the vault — and, where
+the operator chose to capture only the document's own folder, a link above that folder or an absolute
+path. That log is the **plugin's** record rather than the customer's, which is why it sits in
 `brd/` beside `brd-inventory.md` and `brd-defect-log.md` and never under `brd/source/`, where every
 byte is the customer's own and a plugin-written file would read as part of the document they handed
 over. It opens by naming the source document's basename, carries the run's counts — links found,
@@ -58,10 +62,94 @@ including one that captured everything**, so its counts are the positive record 
 ran; an absent log and an empty one are not (§2.2 makes the same call for the inventory's coverage
 of its source).
 
+**The log also maps every captured link that does not resolve as written.** Its second table,
+*Captured links that do not resolve as written*, carries one row per link whose copy cannot be reached
+by reading the target as a path relative to the file it sits in — every file copied into
+`brd/source-external/`, and every `[[wikilink]]`, which names a file rather than a path — with the
+target as written, the file the link sits in, and the copy's path relative to `brd/`. **It is the only
+way any reader resolves such a link**: nothing rewrites the verbatim document to point at its copy.
+
+**`brd/source-external/` holds what the document links from outside its own directory**, where the
+operator chose to capture it (`commands/brd-intake.md` Phase 1). Each file sits at its **basename** —
+never at a path mirroring where it came from, which for an absolute link would write the operator's
+own directory layout, home directory included, into the specs repository — with a `_NN` suffix on the
+original basename where two collide, and byte-identical content reused rather than copied twice. It is
+**immutable exactly as `brd/source/` is**, written only by `/brd-intake` Phase 2, and never removed
+from; it sits beside `brd/source/` rather than inside it so that this section's first sentence stays
+true — `brd/source/` holds what the document links *from its own directory* — and so that no folder
+the customer's own tree happens to contain can collide with it.
+
 **Which file under `brd/source/` is the customer's document is read, never guessed.** The directory
 can hold several markdown files, since the document may link one beside it, so a reader that needs
 the document's own name takes it from `brd/brd-link-log.md`'s opening line. A BRD intaken before that
 log existed holds exactly one file under `brd/source/`, and that file is it.
+
+### 1.2 `brd/brd-figures.md` — what the plugin read in the customer's images
+
+`/brd-intake` Phase 2.5 has `product-workflows:figure-reader` transcribe every image the document links,
+and writes what it returns here. **A transcription is the plugin's reading of the customer's image, not
+the customer's words** — which is why a requirement drawn from an image anchors on the *image* (§2),
+never on this file, and why `/brd-intake` Phase 4's human and the customer's own review both check a
+row drawn from an image against the picture. It is the plugin's record, so it sits in `brd/` beside
+`brd-link-log.md` and never under `brd/source/`.
+
+```markdown
+---
+kind: brd-figures
+key: <the run's <BRD-KEY> as Phase 0 validated it — never parsed from the folder name>
+source: <the document's basename, as brd/brd-link-log.md names it>
+written_by: brd-intake
+---
+
+# Figures: <BRD-KEY>
+
+Images captured <n> · read <n> · reused from an earlier run <n> · not read <n>
+
+## source/images/report.png
+
+- **Linked from:** `source/appendix/notes.md` › Reporting
+- **Read:** yes
+- **Content hash:** sha256:<hex>
+- **Appearance:** screenshot · **Depicts:** <one sentence>
+- **Rows:** yields [BR#14], [BR#15]; illustrates [BR#6]
+
+### Text
+
+<verbatim, as figure-reader returned it>
+
+### Annotations
+
+| Says | Points at |
+|---|---|
+| "add a filter here" | the column header row |
+
+### Flow
+
+<diagrams only; otherwise "none">
+
+### Illegible
+
+none
+```
+
+- **One section per image `/brd-intake` Phase 2 copied**, in capture order, headed by the image's path
+  **relative to `brd/`** — `source/…` or `source-external/…`. Every path in this file is relative to
+  `brd/`, so one form names a file under either directory.
+- **Linked from** names every file that links the image, each relative to `brd/`, with the heading
+  path of the passage that links it.
+- **Read** is `yes`, or `no — <reason>` with `figure-reader`'s reason (`missing`, `not_an_image`,
+  `unreadable`); an image not read carries no transcription sections, only its header lines.
+- **Content hash** is the SHA-256 of the image's bytes. A later intake run keeps a section whose hash
+  still matches its file **verbatim** and does not read that image again; one whose hash no longer
+  matches is re-read and replaced.
+- **Rows** is completed by `/brd-intake` Phase 5, once the inventory is final: `yields` the rows
+  anchored on this image, `illustrates` the rows whose prose the image restates, or
+  `accounted for — <the operator's account>` where it does neither. **It names requirements of the BRD
+  that owns this file — on a slice, the parent's, one hop (§2.1)**, which is how
+  `references/bundle-packaging.md` §6.2 relation 1 reads it.
+- **A section is never deleted.** An image the revised document no longer links keeps its section,
+  with a line `- **No longer linked by the current source.**` under its header: an inventory row the
+  re-run preserved may anchor on it.
 
 ## 2. The inventory
 
@@ -71,7 +159,7 @@ The inventory (`brd/source/`'s companion `brd-inventory.md`) holds **one row per
 |---|---|
 | `id` | `[BR#1]`, `[BR#2]`, … — contiguous, assigned once, never renumbered |
 | `text` | the requirement, verbatim, or its first sentence plus a `source_anchor` when quoting it whole would be unwieldy |
-| `source_anchor` | a heading path or line range locating the requirement inside `brd/source/` |
+| `source_anchor` | where the requirement is stated — in the document, an appendix, or an image, in one of the three forms below |
 | `defects` | a `[DEF#n]` list (§3) — empty when the requirement carries none |
 
 **A requirement carrying more than one obligation is split.** When one numbered item in the source
@@ -84,24 +172,45 @@ that it did.
 `[BR#n]` numbers are never reused and never renumbered, including across a split: once assigned, an
 id is permanent even if the row it names is later split, superseded, or found defective.
 
+**`source_anchor` takes one of three forms**, by where the requirement is stated:
+
+- **In the document** — a heading path or a line range inside it, as it always has.
+- **In a linked markdown file** — `<path relative to brd/> › <heading path or line range>`, for
+  instance `source/appendix/fields.md › Report columns` or `source-external/glossary.md › L12-L18`.
+- **In an image** — `<path relative to brd/> › "<element>"`, the element a string quoted verbatim from
+  the image's transcription (`source/images/report.png › "Net total" column`), or
+  `<path relative to brd/> › annotation <n>`, the n-th annotation in its §1.2 section.
+
+**Rows are numbered in reading order across all three**: the document's first, in source order; then
+each linked markdown file's, in the order `/brd-intake` Phase 2 captured it; and a row drawn from an
+image at the passage that links the image — its first link, where several do.
+
 ### 2.2 The inventory's coverage of its source is checkable from the inventory alone
 
 **A section the read skipped and a section that genuinely holds no obligation come out of an
 inventory identically — as a section with no row — so the difference cannot be read off the
-artifact.** It is made visible at intake instead, and the whole of it is derivable from `source_anchor`
-and the source document: **nothing new is stored, and no agent returns a new field.** A first design
+artifact.** It is made visible at intake instead, and nothing is stored to do it: the sections are checked
+from `source_anchor`, the document and its linked markdown, and the images from `brd/brd-figures.md`
+and the `illustrates` list `brd-reader` returns beside its rows. A first design
 had the reader account for every heading it passed; measured against real intakes that is fifty-odd
 accounts of "this section holds context", which buries the one case worth seeing.
 
-Two relations, both over the **top-level section**:
+Three relations — the first two over the **top-level section** of the document and of every linked
+markdown file, the third over the images:
 
 1. **Every `source_anchor` resolves to a section the source actually has.** An anchor naming a
    section the document does not hold is a row nobody can trace back, in the artifact whose whole
    job is traceability.
-2. **Every top-level section of the source either holds a row or is accounted for.** A section is
-   held where any anchor names it or names a section beneath it. One with none is not a defect and is
-   not a stop — only a person can say whether a section binds the delivery team to anything — so
-   `/brd-intake` names each with what the source has under it and asks.
+2. **Every top-level section of the document and of each linked markdown file either holds a row
+   or is accounted for.** A section is held where any anchor names it or names a section beneath
+   it. One with none is not a defect and is not a stop — only a person can say whether a section
+   binds the delivery team to anything — so `/brd-intake` names each with what the source has
+   under it and asks.
+3. **Every image yields a row, illustrates one, or is accounted for.** It *yields* a row where any
+   anchor names it, and *illustrates* one where `brd-reader` returned it in that row's `illustrates`.
+   An image that does neither — a logo, a decorative banner, a screenshot whose content no
+   obligation bears on, or an image that could not be read — is named with its `Depicts` sentence or
+   its reason, in the same question relation 2 asks.
 
 **The granularity is the finding, not a detail.** Real BRDs run to fifty or sixty headings under
 fourteen or fifteen top-level sections, and on a careful intake nine of those fifteen legitimately
@@ -131,6 +240,12 @@ section reference is *the* form an anchor carries. It is what every measured anc
 and §2 above plus `product-workflows:brd-reader` both sanction the line-range form — so the assertion
 promoted an observation about one corpus into a rule the producers do not follow, and would have
 stopped a correct intake as a read failure on the first anchor written the other way.
+
+**The two new anchor forms resolve by their own rule.** A linked-markdown anchor resolves where its path
+names a file `/brd-intake` Phase 2 copied and the part after `›` resolves against *that* file by the
+three branches above. An image anchor resolves where its path names an image `brd/brd-figures.md`
+records as read, and the quoted element appears verbatim in that image's *Text* or *Annotations* — or,
+for `annotation <n>`, where the image has an n-th annotation.
 
 **Where no anchor in the whole inventory resolves, that is a read failure and is reported as one** —
 never as a document with no coverage (`workflows-core:grounding-format` §2.1).
@@ -175,6 +290,10 @@ why the header names the parent's. A slice inventory is never re-extracted from 
 `brd-reader` and never renumbered; copying is the only way it is ever produced, because
 re-extraction would mint a second set of ids for text that already has them.
 
+**The same one hop reaches `brd/source-external/`, `brd/brd-figures.md` and `brd/brd-link-log.md`.** A
+slice holds none of them: an appendix or image anchor in its inventory resolves against the parent's
+files, exactly as a document anchor resolves against the parent's `brd/source/`.
+
 **`/brd-split` writes a slice's inventory**, at the moment it creates the slice's folder — it is
 the only command holding both the parent's inventory and the allocation that says which rows the
 slice claims. `/brd-intake` never runs on a slice: there is no document to intake.
@@ -201,6 +320,17 @@ A single `[BR#n]` may carry more than one defect (a requirement can be both `amb
 `scope-leak` at once); a defect entry is never split across two classes to force a single-class
 read.
 
+**A requirement drawn from an image is tested the same way, and two rules follow from where it came
+from.** An obligation an image states and **no prose anywhere in the document or its linked markdown**
+states carries an `ambiguity` — *"stated only in `<image>` — binding force unknown"* — because one
+competent reader builds what is drawn and another does not, and both are defensible; **unless** the
+passage linking the image makes it binding by its own words (*"must match the attached"*, *"as shown
+in figure 3"*, *"according to the diagram"*). An illustrative or current-state framing (*"for
+example"*, *"today the screen looks like"*) does not. And a row drawn from an image that cannot hold
+at the same time as a prose row is an ordinary `conflict`, naming that row — both are `[BR#n]`s, so
+the rule above that every `conflict` names its counterpart needs no exception. **The classes stay
+six.**
+
 ## 4. Defect resolution
 
 A defect is **never fixed in the source** (§1). Its `brd-defect-log.md` entry carries exactly one
@@ -210,7 +340,7 @@ of these resolutions:
 |---|---|
 | `customer-amended <date>` | the customer supplied corrected text; the amendment is held in the ledger beside the original, never written back into `brd/source/` |
 | `withdrawn` | the customer withdrew the requirement the defect was raised against |
-| `resolved-by: [CG#n]` | a code- or design-grounding finding settled the defect (typically closing an `unsourced` entry) |
+| `resolved-by: [CG#n]` · `resolved-by: [CD#n]` | a code- or design-grounding finding settled the defect (typically closing an `unsourced` entry), or a customer decision did — the answer to the question the defect raised (`commands/brd-interview.md`, the requirement-defect question source), frozen by `/brd-reconcile` |
 | `open` | none of the above has happened yet |
 
 There is exactly one **requirement** defect log per source document, held by the BRD that owns that

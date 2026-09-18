@@ -32,7 +32,12 @@ command_hint: "./mvnw test -q"   # optional; one or more commands. Detection sti
                                  # the hint narrows what is RUN, never what is DETECTED.
                                  # Omitted ⇒ every detected suite runs. A hint sent on the
                                  # capture call is sent again on every verify call against
-                                 # that baseline, or the two runs have nothing to pair.
+                                 # that baseline — the same commands IN THE SAME ORDER —
+                                 # or the two runs have nothing to pair: a command that
+                                 # matches no detected suite is a suite whose `### Suites`
+                                 # marker is `command_hint#<n>` for its position in the
+                                 # hint, which is what tells two such suites apart and
+                                 # what verify pairs them by.
                                  # A hinted command runs in the directory of the detected
                                  # suite it matches, or at the scan root (`repo:`, or the
                                  # working directory where a capture call omits it) where
@@ -52,8 +57,8 @@ baseline recorded `OK` and that aborts now (a regression — the change is the o
 that moved) from one that could not run at either end (`PARTIAL` — a fact about the
 environment); and they are what verify step 5 reads the baseline's **own** identifier
 prefixes off before it rewrites them onto this run's, since a framework's prefix there is
-`[<Framework>] ` or `[<Framework> <marker path>] ` according to how many rows that
-framework has in this very section. A caller that passes counts alone leaves verify unable
+`[<Framework>] ` or `[<Framework> <that row's marker value>] ` according to how many rows
+that framework has in this very section. A caller that passes counts alone leaves verify unable
 to tell those apart, and a caller that passes the two test lists without `### Suites`
 leaves it unable to rewrite them at all.
 
@@ -94,18 +99,21 @@ the counts are the sums and the two test lists are the union. **The identifier
 prefix on those lists is not one of this paragraph's deltas: every identifier
 carries it — in this block and in verify mode's own lists alike, a single-suite
 repository's included** —
-`[<Framework>] ` where that framework names exactly one **detected** suite, and
-`[<Framework> <marker path>] ` where it names more than one, which is
-`### Suites`' own set and not what ran, so a `command_hint` cannot move the
-prefix between a capture and its verify (`agents/test-baseliner.md` capture
-step 3). And `### Suites`
-carries one line per detected suite — framework, the qualifying marker **as a
-path relative to the scan root**, command, per-suite status, per-suite counts —
-including any the `command_hint` left `not run`. Where more than one of that
+`[<Framework>] ` where that framework names exactly one row of `### Suites`, and
+`[<Framework> <that row's marker value>] ` where it names more than one. That set
+is what a hint cannot narrow rather than what ran — every detected suite has a row
+whether the hint ran it or not — so narrowing the run moves no prefix; and the marker
+of a row a hint adds is a position in that hint and nothing else, which is why the same
+commands are sent again in the same order (`agents/test-baseliner.md` capture steps 1
+and 3). And
+`### Suites` carries one line per suite the run has a row for — framework, the
+qualifying marker **as a path relative to the scan root** (`command_hint#<n>` where
+a hinted command matched no detected suite), command, per-suite status, per-suite
+counts — including any the `command_hint` left `not run`. Where more than one of that
 row's markers qualified in the one directory, which of them the column records
 is fixed by capture step 1 rather than by the scan's order, since two calls
-recording different markers disagree on the key verify pairs on. The marker is a path rather than
-a bare filename for two reasons. It tells apart two suites of one framework:
+recording different markers disagree on the key verify pairs on. The marker of a row a
+marker qualified is a path rather than a bare filename, for two reasons. It tells apart two suites of one framework:
 qualifying markers of one row whose directories do not contain each other are
 siblings, and siblings are separate suites, so more than one row here can read
 `Jest/npm` (`agents/test-baseliner.md` capture step 1). And for every suite whose
@@ -119,7 +127,7 @@ its own number): `pom.xml` for a suite at the scan root,
 marker's own** — a suite the `Make` wrapper folded runs at the `Makefile`'s, a
 workspace the watch carve-out fired on runs at that workspace's, and a hinted
 command matching no suite runs at the scan root — and the first two are named in
-`### Notes`, the third being what a `command_hint` marker value already says. A
+`### Notes`, the third being what a `command_hint#<n>` marker value already says. A
 single-suite repository's block is unchanged in every field, `### Suites` aside
 — **the identifier prefix included**, which is why the example at the head of
 this section carries `[Maven] ` on each of its two lists and why the prefix is
@@ -127,7 +135,7 @@ no longer one of the multi-suite deltas above. What retired that condition is
 measured where the rule lives (`agents/test-baseliner.md` capture step 3), and
 **a prefix that moves between a capture and its verify no longer makes a
 regression of its own**: the condition that remains still reads each call's own
-detected set, so it moves whenever that set does, and verify step 5 rewrites
+`### Suites` rows, so it moves whenever that set does, and verify step 5 rewrites
 every baseline identifier's prefix onto its paired suite's current one before it
 compares — three states, each measured there with that rewrite and without it. A
 baseline row verify pairs with nothing is not rewritten, and its tests are

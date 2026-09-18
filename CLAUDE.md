@@ -354,8 +354,8 @@ which is narrower than every path and deliberately so: every `/implement` exit
 that stops *after* the branch exists produces no Phase 5 report at all — its
 Phase 4.6 *"Every run"* paragraph enumerates the ones that stop after files were
 written and says as much in as many words, and the one it deliberately leaves
-out, Pre-Phase 3.5's **Cancel**, is named in that phase's *"Two Cancels are not
-in that set"* paragraph as stopping after the branch and before the first edit,
+out, Pre-Phase 3.5's **Cancel**, is named in Phase 4.6's own *"Two Cancels are
+not in that set"* paragraph as stopping after the branch and before the first edit,
 where the run stops and summarizes and no such report is produced either — so on
 those there is no `### Deferred items` section for the third clause
 to hold in, and nothing has completed for the second to be silent about. (No

@@ -355,8 +355,9 @@ that stops *after* the branch exists produces no Phase 5 report at all — its
 Phase 4.6 *"Every run"* paragraph enumerates them and says as much in as many
 words — so on those there is no `### Deferred items` section for the third clause
 to hold in, and nothing has completed for the second to be silent about. (No
-count here on purpose: that paragraph's own count said six against a list of
-seven from the commit that wrote it.) What the
+count here on purpose, and not because a count went wrong: the set is
+`implement.md`'s to enumerate, and a second copy of it in this file is exactly
+how two lists come to disagree.) What the
 section is about is wider than that one exception, though: the completions that
 leave **no passing test** behind, and those are **three kinds, exhaustive by
 construction** — a test is written or it is not; written, it runs or it does

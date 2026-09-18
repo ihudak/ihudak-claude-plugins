@@ -14,7 +14,7 @@ Each token is one of: `component:1.2.3` (exact), `component:minor` (latest patch
 
 `component` can be a library, framework, language runtime, build tool, or path like `.github/workflows`.
 
-Each component is committed on its own as soon as its gates pass — see Phase 2's step 6.5 and step 7.5 (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md`); the branch is pushed once for the batch where §2.4's consent choice, an `origin` and §2.5's push itself all allowed it, and a pull request opened where §2.8's base-branch ladder and §2.6's `gh` capability probe allowed one as well — §3.1's rows rather than any list written out here are the authority on which line the run emitted. The commit is prompt-free; only the push and the pull request sit behind a consent choice, asked once for the batch. `--no-commit` skips both steps.
+Each component is committed on its own as soon as its gates pass — see Phase 2's step 6.5 and step 7.5 (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md`); the branch is pushed once for the batch where §2.4's consent choice, an `origin` and §2.5's push itself all allowed it, and a pull request opened where **§2.4's consent choice**, §2.8's base-branch ladder and §2.6's `gh` capability probe allowed one as well — §3.1's rows rather than any list written out here are the authority on which line the run emitted. **§2.4 is named in both halves rather than carried forward from the first**, because its second option (*"Push the branch only — no pull request"*) allows the push and refuses the pull request: a clause that let the push's own §2.4 term stand for the pull request's would assert one in a state §3.1 has its own row for. The commit is prompt-free; only the push and the pull request sit behind a consent choice, asked once for the batch. `--no-commit` skips both steps.
 
 ---
 
@@ -119,7 +119,7 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 
    **Store the returned `## Test Baseline` block whole** and re-supply it as `baseline_block` on every executor dispatch below — its `### Suites` rows are what let verify tell a suite that regressed from one that could not run at either end, and `passing_count` / `passing_tests` are re-keyed from it, never in place of it. Do not re-run baseline capture per component.
 
-   Act on its `Status` before executing anything: `PARTIAL` names the suites this batch's verification will not cover — list them in the Upgrade Summary and continue, since a runner that is not installed for one language is not a reason to leave another's component unupgraded. `RUN_FAILED` or `COMMAND_NOT_FOUND` means nothing was captured, so say so before executing — there is nothing for verify to compare against.
+   Act on its `Status` before executing anything: `PARTIAL` names the suites this batch's verification will not cover — list them on the Upgrade Summary's `Not verified:` line and continue, since a runner that is not installed for one language is not a reason to leave another's component unupgraded. `RUN_FAILED` or `COMMAND_NOT_FOUND` means nothing was captured, so say so before executing — there is nothing for verify to compare against.
 
 ### Per-component loop (sequential, in requested order)
 
@@ -230,7 +230,10 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 | redis      | -      | -      | -           | -      | SKIPPED | Not found in project        |
 
 Tests: 142 passed, 0 regressions (baseline: 142 passing)
+Not verified: Jest/npm (`CI=true npm test`, frontend/package.json) — baseline PARTIAL
 ```
+
+**`Not verified:` is the batch-level slot**, and the per-component `Notes` column is not a substitute for it: the baseline is captured once for the whole batch (Phase 2 prep), so a suite it could not cover is missed for **every** component and belongs on a line of its own. Fill it from the Phase 2 prep baseline's `### Suites` — each suite that row does not mark `OK` or `NO_TESTS`, with its command and its marker path — and write `none` where the baseline covered everything it detected. A component whose own verify left something uncovered is the `Notes` column's, not this line's.
 
 Append a `### Review triage` section with one line per SIGNIFICANT/HIGH-RISK component that went through Opus review: - **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"] — or "N/A (SIMPLE / MODERATE, no Opus review)" for components that never reached review.
 

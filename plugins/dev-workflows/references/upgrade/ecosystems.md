@@ -146,7 +146,9 @@ npm run build   # if build script exists
 # started directly or through a grunt/gulp task, and not `ng test` — so on
 # those scripts the line below never returns, the per-suite bound truncates
 # it, and the suite is recorded as a failed run. Run it by hand only where
-# `scripts.test` names none of them; otherwise let `test-baseliner` run the
+# `scripts.test` REACHES neither of them -- not directly, and not through
+# another npm script or a grunt/gulp task, which is the indirection the
+# carve-out follows one level of. Otherwise let `test-baseliner` run the
 # suite (dev-workflows:test-baseliner capture step 1 is where the carve-out
 # and its replacement commands live).
 CI=true npm test

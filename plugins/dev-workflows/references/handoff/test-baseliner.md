@@ -102,13 +102,16 @@ repository's included** —
 `[<Framework>] ` where that framework names exactly one row of `### Suites`, and
 `[<Framework> <that row's marker value>] ` where it names more than one. That set
 is what a hint cannot narrow rather than what ran — every detected suite has a row
-whether the hint ran it or not — so narrowing the run moves no prefix; and the marker
+whether the hint ran it or not, a candidate the workspaces division carved having
+one per workspace rather than one of its own — so narrowing the run moves no prefix; and the marker
 of a row a hint adds is a position in that hint and nothing else, which is why the same
 commands are sent again in the same order (`agents/test-baseliner.md` capture steps 1
 and 3). And
 `### Suites` carries one line per suite the run has a row for — framework, the
-qualifying marker **as a path relative to the scan root** (`command_hint#<n>` where
-a hinted command matched no detected suite), command, per-suite status, per-suite
+qualifying marker **as a path relative to the scan root** (that workspace's own
+`package.json` for each row of a workspaces division, never the candidate's;
+`command_hint#<n>` where a hinted command matched no detected suite), command,
+per-suite status, per-suite
 counts — including any the `command_hint` left `not run`. Where more than one of that
 row's markers qualified in the one directory, which of them the column records
 is fixed by capture step 1 rather than by the scan's order, since two calls
@@ -116,7 +119,8 @@ recording different markers disagree on the key verify pairs on. The marker of a
 marker qualified is a path rather than a bare filename, for two reasons. It tells apart two suites of one framework:
 qualifying markers of one row whose directories do not contain each other are
 siblings, and siblings are separate suites, so more than one row here can read
-`Jest/npm` (`agents/test-baseliner.md` capture step 1). And for every suite whose
+`Jest/npm` — as do the rows a workspaces division carves, each holding its own
+workspace's `package.json` (`agents/test-baseliner.md` capture step 1). And for every suite whose
 run directory is its marker's own, the path says where that row's command ran —
 **the project root only where that marker sits at the scan root**, which is the
 agent's own qualified form (*"The project root is that directory only for a suite
@@ -125,7 +129,7 @@ whose run directory resolves to it"*) and the rule holding in **both** modes
 its own number): `pom.xml` for a suite at the scan root,
 `frontend/package.json` for one below it. **Three run directories are not a
 marker's own** — a suite the `Make` wrapper folded runs at the `Makefile`'s, a
-workspace the watch carve-out fired on runs at that workspace's, and a hinted
+`--workspace` row of a workspaces division runs at the candidate's, and a hinted
 command matching no suite runs at the scan root — and the first two are named in
 `### Notes`, the third being what a `command_hint#<n>` marker value already says. A
 single-suite repository's block is unchanged in every field, `### Suites` aside
@@ -143,9 +147,11 @@ baseline row verify pairs with nothing is not rewritten, and its tests are
 
 **`### Notes` is present on every capture return, "none" included**, and it
 carries what no other field can: a suite whose watch carve-out did not fire and
-why, a qualifying marker whose directory another of its own row's contains, the run directory
+why, a qualifying marker whose directory another of its own row's contains — a
+workspace the division carved a row for being named in that row instead — the run directory
 of a suite that did not run at its own marker's (a folded `Make` suite's
-`Makefile`, a carve-out workspace's own), a `Make` wrapper one level did not
+`Makefile`, the candidate's own for the `--workspace` rows of a workspaces
+division), a `Make` wrapper one level did not
 settle, "no runner found", a recipe whose output matched no parse pattern. Each
 of those reads, from **Status** and
 `### Suites` alone, exactly like a suite that genuinely failed — a `RUN_FAILED`

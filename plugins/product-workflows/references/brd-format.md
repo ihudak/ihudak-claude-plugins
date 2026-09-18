@@ -214,8 +214,9 @@ linked markdown file Phase 2 copied, the third over the images:
    linked-markdown anchor resolves to a section that file actually has; an image anchor resolves
    by its own rule, below. Whichever form it takes, an anchor that does not resolve is a row
    nobody can trace back, in the artifact whose whole job is traceability.
-2. **Every top-level section of the document and of each linked markdown file Phase 2 copied
-   either holds a row or is accounted for.** A section is held where any anchor names it, names a
+2. **Every top-level section of the document and of each linked markdown file Phase 2 copied (a
+   linked file with no heading at all is one section, the whole file — branch 3 below) either
+   holds a row or is accounted for.** A section is held where any anchor names it, names a
    section beneath it, or links an image that yields a row (§1.2 *Linked from*). One with none is
    not a defect and is not a stop — only a person can say whether a section binds the delivery
    team to anything — so `/brd-intake` names each with what the source has under it and asks.
@@ -234,27 +235,32 @@ on a real package the sections carrying no row included the **user stories** and
 tests**, which is exactly the pair a reader would expect to have been inventoried and exactly the
 question worth putting to a human.
 
-**Relation 1 resolves a document or linked-markdown anchor against the right file first: the
-document itself for a document anchor, or, for a linked-markdown anchor, the file `/brd-intake`
-Phase 2 copied at the path before ` › ` — only the part after it is then tested below. §2's
-anchor into that file is a heading path *or* a line range, so both forms resolve there — in this
-order** (an image anchor never reaches this test; it resolves by the rule below):
+**Relations 1 and 2 resolve a document or linked-markdown anchor against the right file first:
+the document itself for a document anchor, or, for a linked-markdown anchor, the file
+`/brd-intake` Phase 2 copied at the path before ` › ` — only the part after it is then tested
+below (a path naming no file Phase 2 copied does not resolve). §2's anchor into that file is a
+heading path *or* a line range, so both forms resolve there — in this order** (an image anchor
+never reaches this test; it resolves by the rule below):
 
 1. **A leading section reference** — `§` and a section number — resolves directly. This is the
    form every anchor carried across the corpora this rule was measured on, which is why it is
    tried first and not why it is the only branch.
-2. **A heading path naming no `§` number** resolves where its heading — or, for a nested path,
-   each heading in order beneath the one before it — matches the file's own heading titles,
-   compared as text, to the section of the last one named. Appendices and Obsidian notes rarely
-   number their headings, and §2's own example, `source/appendix/fields.md › Report columns`, is
-   exactly this form.
+2. **A heading path naming no `§` number** — written, for a nested path, with ` › ` between
+   headings after the file's own path in the two path-prefixed forms (`source/appendix/fields.md
+   › Reports › Columns` names the file, then the heading path `Reports › Columns`) — resolves
+   only where it matches **exactly one** heading in the file, together with its named ancestors,
+   each in order beneath the one before it, compared as text, to the section of the last one
+   named. A path matching more than one heading falls to branch 4, whose remedy the operator can
+   actually carry out: correct the anchor by hand, naming a parent heading to disambiguate it.
+   Appendices and Obsidian notes rarely number their headings, and §2's own example,
+   `source/appendix/fields.md › Report columns`, is exactly this form.
 3. **Otherwise, the line the anchor names** resolves it: a line in the file's body falls inside
    exactly one section, so a line-range anchor is section-resolvable without the writer having
-   named a section at all — and where the file has no heading at all, its whole body is that one
-   section (Obsidian notes routinely have none, the title being the filename), so any line in it
-   resolves here. A line **above the first heading**, in a file that has one — frontmatter, a
-   title block — is inside no section, and an anchor naming only such a line falls to branch 4
-   rather than resolving to the first section by proximity.
+   named a section at all — and where the file has no heading at all, its whole body, after any
+   frontmatter block, is that one section (Obsidian notes routinely have none, the title being
+   the filename), so any line there resolves here. A line **above the first heading**, in a file
+   that has one — frontmatter, a title block — is inside no section, and an anchor naming only
+   such a line falls to branch 4 rather than resolving to the first section by proximity.
 4. **Neither** — no section reference, no heading-path match, and no line that lands in a section
    — and the anchor does not resolve. It may be perfectly well formed; what it is, is
    unresolvable against *this* file, which is what relation 1 reports it as, per row.
@@ -265,11 +271,12 @@ and §2 above plus `product-workflows:brd-reader` both sanction the line-range f
 promoted an observation about one corpus into a rule the producers do not follow, and would have
 stopped a correct intake as a read failure on the first anchor written the other way.
 
-**An image anchor resolves by its own rule.** Its path names an image `brd/brd-figures.md`
-records as read, and the quoted element appears verbatim in that image's *Text* or *Annotations*
-— or, for `annotation <n>`, where the image has an n-th annotation. An anchor on an image
-recorded as *not* read, or whose quoted element or annotation number is absent, does not resolve
-— relation 1's, not relation 3's, to report.
+**An image anchor resolves where** its path names an image `brd/brd-figures.md` records as read,
+and the quoted element appears verbatim in that image's *Text*, an annotation's *Says*, or its
+*Flow* — or, for `annotation <n>`, where the image has an n-th annotation. An anchor naming an
+image `brd/brd-figures.md` does not record, an image recorded as *not* read, or whose quoted
+element or annotation number is absent, does not resolve — relation 1's, not relation 3's, to
+report.
 
 **Where no anchor in the whole inventory resolves, that is a read failure and is reported as one** —
 never as a document with no coverage (`workflows-core:grounding-format` §2.1).

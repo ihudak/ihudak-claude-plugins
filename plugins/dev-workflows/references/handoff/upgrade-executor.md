@@ -32,8 +32,10 @@ baseline:                    # The orchestrator (commands/upgrade.md Phase 2 pre
   passing_tests:             # REQUIRED — full list of passing test IDs so
                              # test-baseliner verify can detect regressions
                              # exactly. Also required on phase: verify-resume.
-    - com.example.OrderTest#testCreate
-    - com.example.UserTest#testLogin
+                             # Every identifier carries its suite's prefix,
+                             # single-suite repositories included.
+    - "[Maven] com.example.OrderTest#testCreate"
+    - "[Maven] com.example.UserTest#testLogin"
 model_routing:               # optional; set by orchestrator for SIGNIFICANT / HIGH-RISK
   classification: SIGNIFICANT
   gate_tests_on_review: true # if true: stop after Build, return AWAITING_REVIEW
@@ -150,8 +152,9 @@ related_applied:
 tests_before: 142
 tests_after: 140
 regressions: 2
-failing_tests:                # full list — the orchestrator shows these to the user
-  - com.example.OrderTest#testCreate
+failing_tests:                # full list — the orchestrator shows these to the user,
+                              # prefixed as the verify report's own lists are
+  - "[Maven] com.example.OrderTest#testCreate"
 diagnosis: <one-line: likely cause, e.g. "Hibernate 6.4 changed default fetch type">
 notes: null
 model_routing:

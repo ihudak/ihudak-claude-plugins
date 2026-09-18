@@ -57,8 +57,8 @@ The agent returns a Markdown block, not YAML — this is the exact structure
 none
 
 ### Passing tests
-com.example.FooTest#testCreate
-com.example.BarTest#testLogin
+[Maven] com.example.FooTest#testCreate
+[Maven] com.example.BarTest#testLogin
 
 ### Notes
 none
@@ -71,11 +71,15 @@ Maven | pom.xml | `./mvnw test -q` | OK | Total 47, Passing 47, Failing 0, Skipp
 above expresses without changing shape: **Framework** and **Command** become
 comma-separated lists in run order — positionally paired, so a framework repeats
 where the run holds more than one suite of it rather than being de-duplicated —
-the counts are the sums, the two test lists are the union with each identifier
-prefixed `[<Framework>] `, or `[<Framework> <marker path>] ` where that framework
-names more than one **detected** suite — `### Suites`' own set, not what ran, so
-a `command_hint` cannot move the prefix between a capture and its verify
-(`agents/test-baseliner.md` capture step 3) — and `### Suites`
+the counts are the sums and the two test lists are the union. **The identifier
+prefix on those lists is not one of this paragraph's deltas: every identifier
+carries it — in this block and in verify mode's own lists alike, a single-suite
+repository's included** —
+`[<Framework>] ` where that framework names exactly one **detected** suite, and
+`[<Framework> <marker path>] ` where it names more than one, which is
+`### Suites`' own set and not what ran, so a `command_hint` cannot move the
+prefix between a capture and its verify (`agents/test-baseliner.md` capture
+step 3). And `### Suites`
 carries one line per detected suite — framework, the qualifying marker **as a
 path relative to the scan root**, command, per-suite status, per-suite counts —
 including any the `command_hint` left `not run`. The marker is a path rather than
@@ -92,7 +96,14 @@ marker's own** — a suite the `Make` wrapper folded runs at the `Makefile`'s, a
 workspace the watch carve-out fired on runs at that workspace's, and a hinted
 command matching no suite runs at the scan root — and the first two are named in
 `### Notes`, the third being what a `command_hint` marker value already says. A
-single-suite repository's block is unchanged in every field, `### Suites` aside.
+single-suite repository's block is unchanged in every field, `### Suites` aside
+— **the identifier prefix included**, which is why the example at the head of
+this section carries `[Maven] ` on each of its two lists and why the prefix is
+no longer one of the multi-suite deltas above. What retired that condition is
+measured where the rule lives (`agents/test-baseliner.md` capture step 3): a
+prefix conditioned on the suite count moves the moment a suite comes into
+existence between a capture and its verify, and a moved prefix is every baseline
+identifier in **Missing from run**.
 
 **`### Notes` is present on every capture return, "none" included**, and it
 carries what no other field can: a suite whose watch carve-out did not fire and
@@ -142,7 +153,7 @@ it:** whatever else a caller sends, the `verify` call gets the whole block.
 - **Baseline passing**: 47 | **Regressions**: 1 | **Missing from run**: 0
 
 ### Regressions (previously passing, now failing)
-com.example.FooTest#testCreate
+[Maven] com.example.FooTest#testCreate
 
 ### Missing from run (previously passing, not present in current run)
 none
@@ -160,7 +171,7 @@ none
 Maven | pom.xml | `./mvnw test -q` | OK | Total 47, Passing 46, Failing 1, Skipped 0
 
 ### Current passing tests
-com.example.BarTest#testLogin
+[Maven] com.example.BarTest#testLogin
 ```
 
 **verify status values (the authoritative field callers branch on):**

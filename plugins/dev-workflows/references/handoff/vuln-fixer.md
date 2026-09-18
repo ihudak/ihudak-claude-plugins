@@ -33,9 +33,11 @@ baseline_block: |                  # required when "provided", and on verify-res
                                    # separate a suite that regressed from one that could not run
                                    # at either end.
 baseline:                          # required when "provided"; may also be sent on verify-resume
-  passing_tests:                   # the full list — needed for precise regression detection
-    - com.example.FooTest#testCreate
-    - com.example.BarTest#testLogin
+  passing_tests:                   # the full list — needed for precise regression detection.
+                                   # Every identifier carries its suite's prefix, single-suite
+                                   # repositories included (handoff/test-baseliner.md).
+    - "[Maven] com.example.FooTest#testCreate"
+    - "[Maven] com.example.BarTest#testLogin"
 no_address_placeholder: NOISSUE   # the literal the repo already writes; omit if it uses none
 regression_decision: keep-anyway   # keep-anyway | revert — REQUIRED on phase: regression-resume only;
                                     # the orchestrator obtains this from the user (subagents cannot
@@ -159,9 +161,10 @@ branch: fix/PROJ-2423-CVE-2023-46604
 tests_before: 47
 tests_after: 45
 regressions: 2
-failing_tests:                # full list — the orchestrator shows these to the user
-  - com.example.FooTest#testCreate
-  - com.example.BarTest#testLogin
+failing_tests:                # full list — the orchestrator shows these to the user,
+                              # prefixed as the verify report's own lists are
+  - "[Maven] com.example.FooTest#testCreate"
+  - "[Maven] com.example.BarTest#testLogin"
 diagnosis: <one-line: likely cause, e.g. "API signature changed in v5.15.16">
 notes: null
 model_routing:

@@ -158,14 +158,16 @@ workspace the division carved a row for being named in that row instead — the 
 of a suite that did not run at its own marker's (a folded `Make` suite's
 `Makefile`, the candidate's own for the `--workspace` rows of a workspaces
 division), every candidate a `Make` fold covering more than one of one framework
-holds, with the fact that its identifiers are not attributed to them, a `Make` wrapper one level did not
+holds, with the fact that its identifiers are not attributed to them, every member
+a Cargo workspace covering more than one of them holds, with that same fact, a `Make` wrapper one level did not
 settle, "no runner found", a recipe whose output matched no parse pattern. **Two
 of those read, from the `Status` and `### Suites` alone, exactly like a suite
 that genuinely failed** — a carve-out that did not fire and a recipe whose output
 matched no pattern, each leaving a `RUN_FAILED` row with a command beside it — so
 a caller that reports a failed suite without reading this section reports the
-wrong cause. **Three more stand beside a return whose every row reads `OK`**: the
-unsettled `Make` wrapper, the fold's unattributed identifiers, and a qualifying
+wrong cause. **Four more stand beside a return whose every row reads `OK`**: the
+unsettled `Make` wrapper, the fold's unattributed identifiers, a Cargo
+workspace's, and a qualifying
 marker a non-recursing container kept out of the candidate set — which is what
 the marked lines below are for, and why they are read on every status rather than
 on the ones a caller already stops at. Verify mode has carried the same
@@ -177,10 +179,13 @@ moved between the two calls, never that anything about it failed.
 
 **A line opening with the literal `CAVEAT: ` is a note whose harm the `Status`,
 the counts and the test lists cannot show, and a caller surfaces every one of
-them on every status — `OK` and `NO_TESTS` included.** Three of the kinds that
+them on every status — `OK` and `NO_TESTS` included.** Four of the kinds that
 carry the mark can stand beside a green return: a `Make` fold's identifiers,
 which are not attributed to the candidates that printed them, so a test one of
-them stopped printing is masked by another's copy; a `Make` indirection one level
+them stopped printing is masked by another's copy; a Cargo workspace's, which are
+not attributed to the members that printed them for the same reason and with no
+`Makefile` in it — `cargo test` at the root names no crate in a test line; a
+`Make` indirection one level
 did not settle, where two suites run and the same tests may be summed twice; and
 a qualifying marker a **non-recursing** container left out of the candidate set,
 where a real suite is never run and no row says so. The other two — a watch

@@ -3,6 +3,7 @@
 All notable changes to the **workflows-core** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
+A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
 ## [1.7.0] — Unreleased
 
@@ -34,7 +35,7 @@ Separately, the command gate listed `gradlew test` beside `gradle test` — so w
 
 `session-hygiene.md` carried two more. Its resume-pointer omit-condition was keyed on membership of §4's rename-aid set: §4 enumerates eight commands, **eighteen** commands execute the template, and nine of those eighteen appear in neither list. The condition now reads a property the run already holds — omit the line where this command's own `### Context hygiene` block carries no `/rename` suggestion — which is decidable for all eighteen and correct for all eighteen. And §4 justified excluding `/idea` and `/create-prd` from the rename aid by their running *"before the handoff that mints the PRD, so there is usually no PRD-ID to name a session after"*: both now take a mandatory key and refuse without one, so a PM run always has one. **A reason that no longer holds needs a new reason rather than a deletion** — the exclusion stands on phase length alone, and five further sites carrying the retired premise, in `product-workflows` and `dev-workflows` as well as here, were swept by subject and corrected with it. A third claim, that `/vuln` and `/upgrade` *"have no PRD directory to write into"*, is refuted by name in `cost-emission.md`: both run `specs-preflight` and `commit-artifacts` and do write into `$SPECS_PATH`, and a keyed run of either resolves a folder. The partition is three ways rather than two.
 
-## [1.6.0] — 2026-09-10
+## [1.6.0] — Unreleased
 
 Everything here is a shared contract another plugin reads, which is why the arrival of `docs-workflows`' cold-start commands (`/docs-init`, `/docs-brand`, `/docs-serve`) moves this plugin's version rather than only theirs.
 

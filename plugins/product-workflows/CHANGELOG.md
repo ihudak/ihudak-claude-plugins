@@ -3,6 +3,7 @@
 All notable changes to the **product-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
+A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
 ## [3.6.1] — Unreleased
 
@@ -26,7 +27,7 @@ Phase 5's register partition told the run to place every open gap as a `- [ ]` i
 
 **Eleven documentation pages describe only the successful handoff, not the ways a consented one still does not land.** `docs/commands/{brd-intake,brd-interview,brd-package,brd-proposal,brd-split,create-ard,create-prd,prd-ground,prd-proposal,specify,update-prd}.md` each carry one template sentence of the shape *"Behind Phase N's consent choice, these are committed, pushed, and a pull request opened against the specs repo's default branch"*. Consent is a real condition and the sentence states it, so this is not the unconditional claim the sibling `dev-workflows` pages carried and had corrected — but it is the **success row** of `workflows-core:phase-handoff` §4.1 and nothing else, and that table carries several outcomes besides it — *PR already existed*, *PR not opened*, *Push failed* and *No remote* among them, over and above the declined case the sentence's own condition already covers — the last of which is an ordinary state (a specs tree kept locally, or a clone whose remote was removed) in which the commit still happens, nothing is pushed, no pull request is opened, and the run reports the phase as **not handed off**. So a reader of one of these pages can consent expecting a pull request and correctly get none. **Nothing misbehaves**: each command's own run says which row it took, on its `Phase handoff:` outcome line, and prints every path it staged beneath it. What these eleven pages owe is the rest of that table, and the sweep is deferred to a later release rather than half-done here — the correction has to be made against §4.3's four consent classes, which cost different things on a decline, and a per-page rewrite that flattens them would replace one incomplete claim with a wrong one.
 
-## [3.6.0] — 2026-09-10
+## [3.6.0] — Unreleased
 
 ### Fixed — `/brd-split` Phase 6 quoted the **stopping** consent array unconditionally, for a set that is advisory-only on a reachable path (1.0.0)
 

@@ -86,7 +86,8 @@ reconstruct it.
      is the baseliner's own (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so nothing here
      decides which note matters, and on a green capture it is the block's own account of a baseline that is not
      what its counts claim — a qualifying suite nothing ran, counts a `Make` indirection may have summed
-     twice, a `Make` fold's identifiers unattributed to the candidates that printed them, none of which the
+     twice, a `Make` fold's identifiers unattributed to the candidates that printed them or a Cargo
+     workspace's to the members that did, none of which the
      `Status`, the counts or the `### Suites` rows state. An unmarked note records
      where a command ran; leave it. On a `BASELINE_FAILED` return carry them too: `notes` is the only field
      of that return a reader can learn them from. `/vuln`'s Step 4 table reads these off `notes` on every
@@ -139,8 +140,8 @@ reconstruct it.
    - **On every one of those values, `OK` included**, copy into `notes` — verbatim, beside whatever else that
      arm records there — each `### Notes` line the report opens with `CAVEAT: `, by the same rule and for the
      same reason step 1 states. On a green verify it is the report's own account of a comparison that is not
-     what it appears to be: a suite that aborted and lost no baseline test, a `Make` fold whose identifiers
-     are unattributed; and where the status is `REGRESSIONS` it can say those identifiers reached **Missing
+     what it appears to be: a suite that aborted and lost no baseline test, a `Make` fold's identifiers or
+     a Cargo workspace's left unattributed; and where the status is `REGRESSIONS` it can say those identifiers reached **Missing
      from run** without that being evidence this fix removed them. It is **never** a reason to revert — a marked line says what the comparison could not see,
      not that the fix is bad, which is the same disposition every value but `REGRESSIONS` already carries.
 

@@ -103,7 +103,7 @@ repository's included** —
 `[<Framework> <that row's marker value>] ` where it names more than one. That set
 is what a hint cannot narrow rather than what ran — every detected suite has a row
 whether the hint ran it or not, a candidate the workspaces division carved having
-one per workspace rather than one of its own — so narrowing the run moves no prefix; and the marker
+one per workspace it runs rather than one of its own — so narrowing the run moves no prefix; and the marker
 of a row a hint adds is a position in that hint and nothing else, which is why the same
 commands are sent again in the same order (`agents/test-baseliner.md` capture steps 1
 and 3). And

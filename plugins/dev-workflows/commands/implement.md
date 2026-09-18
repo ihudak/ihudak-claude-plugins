@@ -410,7 +410,7 @@ Store the returned `## Test Baseline` block verbatim — it will be passed to `t
 - `PARTIAL` → continue, and record every suite `### Suites` does not mark `OK` or `NO_TESTS`, with the command that failed, in the Phase 5 `### Deferred items` section — this run's verification will not cover them and the Final Report says so. A suite whose runner is not installed is not a reason to stop work on the suites that do run.
 - `COMMAND_NOT_FOUND` (`Framework: not detected`) or `RUN_FAILED` → nothing was captured at all. Ask the user:
   ```
-  choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /implement workflow)", "Cancel"]
+  choices: ["Specify test command to use", "Skip tests for this run (documented in the Phase 5 report's Deferred items)", "Cancel"]
   ```
   - **Specify test command** → take free-text, record it as `test_command_hint`, and re-dispatch the capture above **immediately**, adding the line `command_hint: [the answer]` to the prompt. Act on the returned block's `Status` by this same list. Ask at most twice in a run; after that record `test_decision: skip` with the last failure as its reason, **marked as the run's own record rather than the operator's answer**. The two provenances are not the same decision and Phase 4.6 reads which one this is: here the operator asked twice for a working command and never agreed to skip, so the run finishes `clean_finish: false` (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.9), where the *"Skip tests"* answer below finishes `true`.
   - **Skip tests** → take free-text rationale; record `test_decision: skip` with that rationale in the Phase 5 `### Deferred items` section.
@@ -782,7 +782,13 @@ Output a structured report — do NOT ask any closing confirmation:
 - [list any]
 
 ### Deferred items (from review or tests)
-- [MINOR / NIT findings that were not applied] OR "none"
+[every line below that has content; "none" only where all of them are empty. Five phases write here and the heading admits all five — a template naming only the review half is how their records get dropped, and Phase 6 reads this section to emit follow-ups, so a dropped record is a dropped follow-up.]
+- [MINOR / NIT review findings that were not applied; omit the line where there are none]
+- [each suite the Pre-Phase 3.5 capture left unmarked `OK`/`NO_TESTS`, with the command that failed (Pre-Phase 3.5's `PARTIAL` arm); omit where none]
+- [the recorded `test_decision: skip` — the operator's rationale, or, on the run's own record, the capture failure that produced it (Pre-Phase 3.5); omit where none]
+- [each suite the Phase 3.5 verify could not run at either end (step 5's `PARTIAL` arm); omit where none]
+- [an accepted unverified run, with whatever the report gave as its reason (step 5's `RUN_FAILED` / `COMMAND_NOT_FOUND` arm); omit where none]
+- [each kept regression and each kept new failure, with the user's rationale (step 6's Accept arm); omit where none]
 
 ### Next step
 [Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. keyed mode: finish the remaining Epics under the PRD (breadth) — `/dev-workflows:implement <SIBLING-EPIC>`, one address, the Epic's own (D4) — and, once **all** Epics are implemented, `/docs-workflows:document <PRD>` then `/docs-workflows:release-notes <PRD>` (both PRD-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
@@ -856,8 +862,9 @@ guidance already appeared in the Phase 5 report.
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/implement)`, and pushes per §4
 step 5. It NEVER writes into the code repo this run just changed — that repo's
-own commit, push, and pull request were Phase 4.6's, through a different
-reference and against a different remote —
+own commit was Phase 4.6's, as were whatever push and pull request §2.4's
+consent choice, §2.8's base-branch ladder and §2.6's `gh` capability probe
+allowed, through a different reference and against a different remote —
 NEVER touches a docs repo or the current working directory, where it is not the specs repository;
 NEVER force-pushes;
 NEVER fails the run; and skips entirely when the run carries `specs_git:
@@ -878,7 +885,7 @@ directory, where it is not the specs repository; no user name is ever written (�
 - NEVER skip Phase 1.5 classification — every run must state the level
 - NEVER use Opus for routine implementation; reserve it for planning + review on SIGNIFICANT / HIGH-RISK
 - NEVER run tests on SIGNIFICANT / HIGH-RISK work before the Opus code review returns a non-BLOCK verdict
-- NEVER skip Phase 3.5 — where the Pre-Phase 3.5 capture returns `COMMAND_NOT_FOUND` (no framework detected) or `RUN_FAILED` (every detected suite failed to start), ask the user there, where a baseline can still be taken, rather than silently skipping; a "Skip" decision must be explicit and logged in the Phase 5 report, and it drops steps 4–6 only — step 3's lint and build still run
+- NEVER skip Phase 3.5 — where the Pre-Phase 3.5 capture returns `COMMAND_NOT_FOUND` (no framework detected) or `RUN_FAILED` (every suite the capture actually ran aborted with no parseable counts — *run*, not *detected*, since a `command_hint` can narrow one set against the other, and a suite that ran to completion printing unrecognised output never failed to start), ask the user there, where a baseline can still be taken, rather than silently skipping; a "Skip" decision must be explicit and logged in the Phase 5 report, and it drops steps 4–6 only — step 3's lint and build still run
 - NEVER read a verify report as a pass on any value but `OK` or `PARTIAL` — `RUN_FAILED` means nothing was compared and `COMMAND_NOT_FOUND` means nothing was run, and each is surfaced (Phase 3.5 step 5), never passed over
 - NEVER read `OK` or `PARTIAL` as a pass while the report's `### New failures` list is non-empty — a test this run wrote and that fails now is in neither baseline list, so it moves no `Status` at all; Phase 3.5 step 5 reads the list **beside** the `Status` rather than instead of it (the `PARTIAL` arm's `### Deferred items` record is still owed either way), and a non-empty list then sends the run into step 6's fix loop
 - NEVER make assumptions that could have been asked — ask instead

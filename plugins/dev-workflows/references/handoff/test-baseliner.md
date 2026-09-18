@@ -7,12 +7,22 @@
 ```markdown
 ## Test Baseline Request
 repo: /absolute/path/to/repo   # the project root, and the scan root in BOTH modes.
-                               # Callers send it under their own label — `/implement`
-                               # Pre-Phase 3.5 and `/upgrade`'s batch capture each send
-                               # `Project root:` — and it is this field either way.
+                               # Callers send it under their own label — `Project root:`
+                               # throughout this plugin — and it is this field either way.
                                # Required for `mode: verify`; on `mode: capture` a caller
-                               # may omit it (`vuln-fixer` step 1 does) and the scan falls
-                               # back to the working directory.
+                               # may omit it and the scan falls back to the working
+                               # directory, which no shipped caller relies on.
+                               # The root sent on the capture call is sent again on every
+                               # verify call against that baseline — and where a capture
+                               # omitted it, the verify sends that same working directory —
+                               # or the two runs have nothing to pair: `### Suites` records
+                               # each marker as a path relative to THIS root, so the root is
+                               # an operand of what verify pairs on and of what the prefix
+                               # adds to the framework. Two roots report a tree that did not
+                               # change as every suite moved, and — where a framework names
+                               # more than one detected suite — every identifier of it as
+                               # missing (agents/test-baseliner.md capture step 1, measured
+                               # there).
 mode: capture              # capture | verify
 command_hint: "./mvnw test -q"   # optional; one or more commands. Detection still runs —
                                  # the hint narrows what is RUN, never what is DETECTED.
@@ -82,13 +92,18 @@ prefix between a capture and its verify (`agents/test-baseliner.md` capture
 step 3). And `### Suites`
 carries one line per detected suite — framework, the qualifying marker **as a
 path relative to the scan root**, command, per-suite status, per-suite counts —
-including any the `command_hint` left `not run`. The marker is a path rather than
+including any the `command_hint` left `not run`. Where more than one of that
+row's markers qualified in the one directory, which of them the column records
+is fixed by capture step 1 rather than by the scan's order, since two calls
+recording different markers disagree on the key verify pairs on. The marker is a path rather than
 a bare filename for two reasons. It tells apart two suites of one framework:
 qualifying markers of one row whose directories do not contain each other are
 siblings, and siblings are separate suites, so more than one row here can read
 `Jest/npm` (`agents/test-baseliner.md` capture step 1). And for every suite whose
-run directory is its marker's own, the path says where that row's command ran,
-which is not the project root — the rule holding in **both** modes
+run directory is its marker's own, the path says where that row's command ran —
+**the project root only where that marker sits at the scan root**, which is the
+agent's own qualified form (*"The project root is that directory only for a suite
+whose run directory resolves to it"*) and the rule holding in **both** modes
 (`agents/test-baseliner.md` capture step 2 and verify step 3, each stating it at
 its own number): `pom.xml` for a suite at the scan root,
 `frontend/package.json` for one below it. **Three run directories are not a

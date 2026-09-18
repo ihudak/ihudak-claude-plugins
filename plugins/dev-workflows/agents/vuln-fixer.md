@@ -54,9 +54,14 @@ reconstruct it.
 > run-fresh` is invalid** because the captured baseline cannot survive the
 > AWAITING_REVIEW boundary.
 
-1. **Baseline** — If `baseline_tests: run-fresh`, invoke `test-baseliner` in `capture` mode and keep the
+1. **Baseline** — If `baseline_tests: run-fresh`, invoke `test-baseliner` in `capture` mode with
+   a `Project root:` line set to this request's own `repo:` value, and keep the
    returned `## Test Baseline` block **whole** — step 5 passes it back verbatim, and its `### Suites` rows are
    what separate a suite that regressed from one that could not run at either end.
+   **Name that root rather than letting the capture fall back to the working directory**: step 5's verify has
+   no such fallback, and `### Suites` records each marker as a path relative to whatever root each call
+   scanned, so two roots make every marker path disagree between the two calls
+   (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`, `repo:`).
    If `baseline_tests: provided`, the orchestrator has already captured the baseline and supplied that block
    as `baseline_block` — skip this step.
    - On `status: RUN_FAILED` or `COMMAND_NOT_FOUND`: set output `status: BASELINE_FAILED`, return —
@@ -106,7 +111,9 @@ reconstruct it.
 4. **Build** — Run the project build (compile only, no tests). On failure see "Build failure" below.
 
 5. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the **whole** baseline block from step 1
-   (or the `baseline_block` the orchestrator supplied).
+   (or the `baseline_block` the orchestrator supplied) and a `Project root:` line set to this request's own `repo:` value —
+   the same root step 1's capture scanned, and the one `/vuln` Step 3 scanned where it captured instead.
+   **It is required and it must be that one**, for the reason step 1 gives.
    - `status: OK` → proceed to step 6.
    - `status: PARTIAL` → proceed to step 6, recording the uncovered suites in `notes`. **Never revert on it:**
      a suite that could not run at either end is a fact about the environment, not evidence about this fix.

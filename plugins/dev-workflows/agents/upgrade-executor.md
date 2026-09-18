@@ -46,7 +46,12 @@ reconstruct it.
 
 3. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the input handoff's `baseline_block` —
    the whole `## Test Baseline` block, whose `### Suites` rows are what separate a suite that regressed from
-   one that could not run at either end.
+   one that could not run at either end — and a `Project root:` line set to the input handoff's own `repo:` value, which is the
+   root the orchestrator's capture scanned (`commands/upgrade.md` Phase 2 prep step 2 sends that same path).
+   **That root is required here and must be that one**: verify has no working-directory fallback, and
+   `### Suites` records each marker as a path relative to the scan root, so a verify rooted elsewhere makes
+   every marker path disagree with the baseline's
+   (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`, `repo:`).
    - `status: OK` → all green, proceed to step 4.
    - `status: PARTIAL` → proceed to step 4, recording the uncovered suites in `notes`. **Never revert on it:**
      a suite that could not run at either end is a fact about the environment, not evidence about this upgrade.

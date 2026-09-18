@@ -461,7 +461,7 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
      >
      > Mode: verify
      > Baseline: [paste the captured ## Test Baseline block]
-     > Project root: [absolute path]
+     > Project root: [the same absolute path Pre-Phase 3.5's capture sent, and never a different one — `### Suites` records each marker as a path relative to this root, so a verify rooted anywhere else reads every marker as moved and, where a framework names more than one detected suite, every identifier of it as missing (`dev-workflows:test-baseliner` capture step 1, measured there)]
      > command_hint: [the recorded `test_command_hint` — include this line only where Pre-Phase 3.5 recorded one, and never a different value: a verify run over a different set of suites is not a comparison]"
 
 5. **Act on the verify report.** **A non-empty `### New failures` list sends the run to the fix loop whatever the `Status` says.** A test this run's own `test-writer` just wrote has never been in any baseline list, so when it fails it is a **New failure** and nothing else — and `New failures` is not a `Status` value, so `OK` and `PARTIAL` are both reachable with one standing (`dev-workflows:test-baseliner` verify step 6). Branching on the `Status` alone reports a pass on the run's own broken test. **The list and the `Status` are read together, not one instead of the other**: work the `Status` arm below first, so its own record is written, and let the list decide where the run goes next. Every value is handled here, none is passed over.

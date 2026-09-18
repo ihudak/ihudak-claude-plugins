@@ -13,6 +13,10 @@ command_hint: "./mvnw test -q"   # optional; one or more commands. Detection sti
                                  # Omitted ⇒ every detected suite runs. A hint sent on the
                                  # capture call is sent again on every verify call against
                                  # that baseline, or the two runs have nothing to pair.
+                                 # A hinted command runs in the directory of the detected
+                                 # suite it matches, or at `repo:` where it matches none —
+                                 # every other suite runs where its own marker sits, not
+                                 # at `repo:` (agents/test-baseliner.md capture step 2).
 baseline: |                # required for mode: verify — the full `## Test Baseline` block
   ## Test Baseline         # from the capture call, verbatim, `### Suites` included
   - **Mode**: capture

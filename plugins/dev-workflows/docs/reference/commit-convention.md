@@ -52,7 +52,7 @@ trailer is a convention nobody sees.
 
 | | |
 |---|---|
-| [`/vuln`](../commands/vuln.md) | commits and opens a PR itself, so it writes a compliant subject |
+| [`/vuln`](../commands/vuln.md) | commits for you without asking, writing the subject itself; only the push and the pull request are put to you. It has no `--no-commit` |
 | [`/implement`](../commands/implement.md), [`/upgrade`](../commands/upgrade.md) | commit for you without asking, writing the subject themselves; only the push and the pull request are put to you. `--no-commit` opts out, and then **you** write that commit |
 
 So the convention is documented here rather than left implicit in what the plugin emits: whenever

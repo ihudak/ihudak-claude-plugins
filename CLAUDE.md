@@ -346,13 +346,16 @@ Key invariants for specs-repo git (`workflows-core:specs-repo-git`):
 Any `/implement` invocation that touches source code **must** write at least one
 test for each new or changed behaviour, **must never complete silently on one that
 fails**, and **must name in the Phase 5 `### Deferred items` section every test it
-could not write, could not run, or left failing**. It is the third clause that
-holds on every path; the first two are bounded, and the bullets below say by what.
-**The boundary is three kinds, and they are exhaustive by construction** — a test
-is written or it is not; written, it runs or it does not; run, it passes or it
-does not — so this section needs no census of completions and keeps none. The kinds
-are: **no test written** (Pre-Phase 3.5's skip on a `COMMAND_NOT_FOUND` capture,
-the only one of the three that writes none); **a test written but never run** (the
+could not write, could not run, or left failing**. **Only the first clause is
+bounded, and by exactly one state** — Pre-Phase 3.5's skip on a
+`COMMAND_NOT_FOUND` capture, where `test-writer` returns its "not detected"
+report and writes nothing. The second and third hold on every path. What the
+section is about is wider than that one exception, though: the completions that
+leave **no passing test** behind, and those are **three kinds, exhaustive by
+construction** — a test is written or it is not; written, it runs or it does
+not; run, it passes or it does not — so this section needs no census of
+completions and keeps none. The kinds are: **no test written** (that same
+`COMMAND_NOT_FOUND` skip, the only member); **a test written but never run** (the
 same skip on a `RUN_FAILED` capture, an accepted unverified run at Phase 3.5 step
 5, and a suite that could not run at either end); and **a test written, run and
 still failing**. That last is the one this section was built around: a test the

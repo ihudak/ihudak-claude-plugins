@@ -159,16 +159,45 @@ of a suite that did not run at its own marker's (a folded `Make` suite's
 `Makefile`, the candidate's own for the `--workspace` rows of a workspaces
 division), every candidate a `Make` fold covering more than one of one framework
 holds, with the fact that its identifiers are not attributed to them, a `Make` wrapper one level did not
-settle, "no runner found", a recipe whose output matched no parse pattern. Each
-of those reads, from **Status** and
-`### Suites` alone, exactly like a suite that genuinely failed — a `RUN_FAILED`
-row with a command beside it — so a caller that reports a failed suite without
-reading this section reports the wrong cause. Verify mode has carried the same
+settle, "no runner found", a recipe whose output matched no parse pattern. **Two
+of those read, from the `Status` and `### Suites` alone, exactly like a suite
+that genuinely failed** — a carve-out that did not fire and a recipe whose output
+matched no pattern, each leaving a `RUN_FAILED` row with a command beside it — so
+a caller that reports a failed suite without reading this section reports the
+wrong cause. **Three more stand beside a return whose every row reads `OK`**: the
+unsettled `Make` wrapper, the fold's unattributed identifiers, and a qualifying
+marker a non-recursing container kept out of the candidate set — which is what
+the marked lines below are for, and why they are read on every status rather than
+on the ones a caller already stops at. Verify mode has carried the same
 section since before capture did, and it is the same section: capture's detection
 is what verify step 1 re-runs, so a note owed at one end is owed at both. What
 verify adds to it is its own — this call's aborts, step 2's pairing facts, and
 each prefix rewrite step 5 made — so a rewrite line there says a suite's prefix
 moved between the two calls, never that anything about it failed.
+
+**A line opening with the literal `CAVEAT: ` is a note whose harm the `Status`,
+the counts and the test lists cannot show, and a caller surfaces every one of
+them on every status — `OK` and `NO_TESTS` included.** Three of the kinds that
+carry the mark can stand beside a green return: a `Make` fold's identifiers,
+which are not attributed to the candidates that printed them, so a test one of
+them stopped printing is masked by another's copy; a `Make` indirection one level
+did not settle, where two suites run and the same tests may be summed twice; and
+a qualifying marker a **non-recursing** container left out of the candidate set,
+where a real suite is never run and no row says so. The other two — a watch
+carve-out that did not fire on a suite whose row then reads `RUN_FAILED`, and a
+parser that recognised no count pattern — arrive on an arm the `Status` does
+flag, and there the mark is what reaches a caller that reads this section on none
+of its arms. Verify marks three more of its own: an abort of a suite whose
+baseline row could lose no passing test, step 2's *"more than one of each for a
+framework, none of them pairs"* outcome, and a `command_hint` that narrowed the
+run over a suite the baseline ran — the last two putting baseline identifiers
+into **Missing from run** without that being evidence the change removed them. **The mark is the agent's, so no caller judges which note matters**,
+and an unmarked note is a record of where a command ran or which file was
+collapsed into which: a caller that surfaced those on every run would teach its
+operator to skip the section. A caller that can only return a record rather than
+print one — `vuln-fixer`, `upgrade-executor` — copies each marked line into its
+own `notes` verbatim, and its orchestrator carries it from there
+(`agents/test-baseliner.md` capture step 5 and verify step 7).
 
 **capture status values:**
 - `OK` — every detected suite ran and produced counts, Total > 0

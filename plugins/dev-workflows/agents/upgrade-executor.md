@@ -61,6 +61,14 @@ reconstruct it.
      evidence the upgrade is bad, and this is evidence that the suites could not be run. Set
      `status: TESTS_NOT_RUN` with the report's reason in `notes` and return — the changes stay applied and
      the orchestrator decides.
+   - **On every one of those values, `OK` included**, copy into `notes` — verbatim, beside whatever else that
+     arm records there — each `### Notes` line the report opens with `CAVEAT: `. That mark is the baseliner's
+     own (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so nothing here decides which note
+     matters, and on a green return it is the report's own account of a comparison that is not what it
+     appears to be — a suite that aborted and lost no baseline test, a `Make` fold whose identifiers are
+     unattributed; and where the status is `REGRESSIONS` it can say those identifiers reached **Missing from
+     run** without that being evidence this upgrade removed them. An unmarked
+     note records where a command ran; leave it. `/upgrade` step 7 reads these off `notes` on every status.
 
 4. **Output** — Produce the summary record (see `${CLAUDE_PLUGIN_ROOT}/references/handoff/upgrade-executor.md`).
 

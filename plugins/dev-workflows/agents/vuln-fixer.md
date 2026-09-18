@@ -81,6 +81,16 @@ reconstruct it.
    - On `status: NO_TESTS`: the project has no runnable test suite. Proceed with the branch and the fix
      (steps 2-4), then **skip step 5 (Verify) entirely** — there is nothing to diff against —
      and go straight to step 6, noting in the output that no test suite was found.
+   - **On every one of those values, `OK` and `NO_TESTS` included**, copy into `notes` — verbatim, beside
+     whatever else that arm records there — each `### Notes` line the block opens with `CAVEAT: `. That mark
+     is the baseliner's own (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so nothing here
+     decides which note matters, and on a green capture it is the block's own account of a baseline that is not
+     what its counts claim — a qualifying suite nothing ran, counts a `Make` indirection may have summed
+     twice, a `Make` fold's identifiers unattributed to the candidates that printed them, none of which the
+     `Status`, the counts or the `### Suites` rows state. An unmarked note records
+     where a command ran; leave it. On a `BASELINE_FAILED` return carry them too: `notes` is the only field
+     of that return a reader can learn them from. `/vuln`'s Step 4 table reads these off `notes` on every
+     status this agent returns.
 
 2. **Create the fix branch — before any file is touched** — `git checkout -b <the branch name the
    orchestrator supplied>`. The name is **always** supplied in the input (`branch:`); never derive
@@ -126,6 +136,13 @@ reconstruct it.
      and that is not an inconsistency to correct here**: there nothing had been created yet and the cost of
      stopping is a re-run, whereas here the fix exists and discarding it would destroy work on evidence
      about the environment rather than about the change (step 1's own note says the same from its side).
+   - **On every one of those values, `OK` included**, copy into `notes` — verbatim, beside whatever else that
+     arm records there — each `### Notes` line the report opens with `CAVEAT: `, by the same rule and for the
+     same reason step 1 states. On a green verify it is the report's own account of a comparison that is not
+     what it appears to be: a suite that aborted and lost no baseline test, a `Make` fold whose identifiers
+     are unattributed; and where the status is `REGRESSIONS` it can say those identifiers reached **Missing
+     from run** without that being evidence this fix removed them. It is **never** a reason to revert — a marked line says what the comparison could not see,
+     not that the fix is bad, which is the same disposition every value but `REGRESSIONS` already carries.
 
 6. **Output** — Produce the result record (see `${CLAUDE_PLUGIN_ROOT}/references/handoff/vuln-fixer.md` output format).
 

@@ -119,7 +119,7 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 
    **Store the returned `## Test Baseline` block whole** and re-supply it as `baseline_block` on every executor dispatch below — its `### Suites` rows are what let verify tell a suite that regressed from one that could not run at either end, and `passing_count` / `passing_tests` are re-keyed from it, never in place of it. Do not re-run baseline capture per component.
 
-   Act on its `Status` before executing anything: `PARTIAL` names the suites this batch's verification will not cover — list them on the Upgrade Summary's `Not verified:` line and continue, since a runner that is not installed for one language is not a reason to leave another's component unupgraded. `RUN_FAILED` or `COMMAND_NOT_FOUND` means nothing was captured, so say so before executing — there is nothing for verify to compare against.
+   Act on its `Status` before executing anything: `PARTIAL` names the suites this batch's verification will not cover — list them on the Upgrade Summary's `Not verified:` line and continue, since a runner that is not installed for one language is not a reason to leave another's component unupgraded. `RUN_FAILED` or `COMMAND_NOT_FOUND` means nothing was captured, so say so before executing — there is nothing for verify to compare against. **And report every `### Notes` line the block opens with `CAVEAT: ` before executing, whatever the `Status` was** — `OK` included, which is the arm on which a marked line is the return's own account of a baseline that is not what its counts claim: a qualifying suite nothing ran, counts a `Make` indirection may have summed twice, a `Make` fold's identifiers unattributed to the candidates that printed them — three states the `Status` and the counts show nothing of (`dev-workflows:test-baseliner` capture step 5). The mark is the agent's, so nothing here judges which note matters; an unmarked note records where a command ran and is not carried. Each marked line goes onto the Upgrade Summary's `Caveats:` line, which is batch-level for the same reason `Not verified:` is.
 
 ### Per-component loop (sequential, in requested order)
 
@@ -180,7 +180,7 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 
    **"Stop and escalate" on a persisting `BLOCK` stops the component, not the run.** The loop continues with the next component; step 7.5 still runs at the end. A reading that stops the whole run would leave every earlier component committed but never pushed.
 
-7. **Collect results** — Accumulate one summary row per component. Preserve the classification, review verdict, related upgrades applied, any regression notes, and this component's commit sha (or "no changes").
+7. **Collect results** — Accumulate one summary row per component. Preserve the classification, review verdict, related upgrades applied, any regression notes, every `CAVEAT: ` line this component's executor copied into its `notes` (`${CLAUDE_PLUGIN_ROOT}/references/handoff/upgrade-executor.md`) — which its `status` does not gate, so read them on `OK` as on any other value — and this component's commit sha (or "no changes").
 
 7.5. **Code-repo handoff (push + PR, once for the batch)** — After the loop, cite `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` and execute the full `finish-code-branch` entry point (§2) inline. Step 6.5 already committed every component, so §2.2 takes its `nothing staged` path and the call continues into §2.4's consent choice and §2.5–§2.6 — the branch carries commits to push (§2.12). Skipped under `--no-commit`.
 
@@ -231,9 +231,12 @@ Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-pre
 
 Tests: 142 passed, 0 regressions (baseline: 142 passing)
 Not verified: Jest/npm (`CI=true npm test`, frontend/package.json) — baseline PARTIAL
+Caveats: none
 ```
 
 **`Not verified:` is the batch-level slot**, and the per-component `Notes` column is not a substitute for it: the baseline is captured once for the whole batch (Phase 2 prep), so a suite it could not cover is missed for **every** component and belongs on a line of its own. Fill it from the Phase 2 prep baseline's `### Suites` — each suite that row does not mark `OK` or `NO_TESTS`, with its command and its marker path — and write `none` where the baseline covered everything it detected. A component whose own verify left something uncovered is the `Notes` column's, not this line's.
+
+**`Caveats:` is the batch-level slot for a different thing, and the two are not merged**: `Not verified:` names a suite the baseline could not cover, which its `### Suites` rows already show, while a `CAVEAT: ` line names something those rows and the counts do **not** show — a suite nothing ran though nothing failed, counts that may be summed twice, a `Make` fold's unattributed identifiers. Fill it from the Phase 2 prep baseline's `### Notes`, verbatim, one marked line per entry, whatever that baseline's `Status` was; write `none` where it marked nothing, which is every batch whose repository has none of the shapes that mint one (`dev-workflows:test-baseliner` capture step 5). A marked line an `upgrade-executor` returned in its own `notes` is that **component's** and goes in its `Notes` cell instead, since only the baseline is captured once for the batch.
 
 Append a `### Review triage` section with one line per SIGNIFICANT/HIGH-RISK component that went through Opus review: - **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"] — or "N/A (SIMPLE / MODERATE, no Opus review)" for components that never reached review.
 

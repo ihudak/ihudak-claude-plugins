@@ -79,7 +79,11 @@ related_applied:
 tests_before: 142
 tests_after: 142
 regressions: 0
-notes: "Updated 2 test files: renamed @RunWith to @ExtendWith"
+notes: "Updated 2 test files: renamed @RunWith to @ExtendWith"   # it also carries, verbatim,
+                         # every `CAVEAT: ` line the test-baseliner verify marked — on EVERY
+                         # status this agent returns, `OK` included (the agent's step 3), since
+                         # that mark names what the comparison could not see rather than
+                         # anything that failed
 model_routing:           # echoed back when present in input
   classification: SIGNIFICANT
   gate_tests_on_review: true

@@ -85,7 +85,11 @@ branch: fix/PROJ-2423-CVE-2023-46604
 tests_before: 47
 tests_after: 47
 regressions: 0
-notes: null             # or description of any auto-fixed test changes
+notes: null             # or description of any auto-fixed test changes. It also carries,
+                        # verbatim, every `CAVEAT: ` line the test-baseliner capture or verify
+                        # marked — on EVERY status this agent returns, `SUCCESS` included
+                        # (the agent's steps 1 and 5), since that mark names what the
+                        # comparison could not see rather than anything that failed
 model_routing:           # echoed back when present in input
   classification: SIGNIFICANT
   gate_tests_on_review: true

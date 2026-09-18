@@ -73,8 +73,9 @@ comma-separated lists in run order — positionally paired, so a framework repea
 where the run holds more than one suite of it rather than being de-duplicated —
 the counts are the sums, the two test lists are the union with each identifier
 prefixed `[<Framework>] `, or `[<Framework> <marker path>] ` where that framework
-names more than one suite in the run (`agents/test-baseliner.md` capture step 3),
-and `### Suites`
+names more than one **detected** suite — `### Suites`' own set, not what ran, so
+a `command_hint` cannot move the prefix between a capture and its verify
+(`agents/test-baseliner.md` capture step 3) — and `### Suites`
 carries one line per detected suite — framework, the qualifying marker **as a
 path relative to the scan root**, command, per-suite status, per-suite counts —
 including any the `command_hint` left `not run`. The marker is a path rather than

@@ -408,7 +408,7 @@ Store the returned `## Test Baseline` block verbatim — it will be passed to `t
 
 - `OK` / `NO_TESTS` → continue.
 - `PARTIAL` → continue, and record every suite `### Suites` does not mark `OK` or `NO_TESTS`, with the command that failed, in the Phase 5 `### Deferred items` section — this run's verification will not cover them and the Final Report says so. A suite whose runner is not installed is not a reason to stop work on the suites that do run.
-- `COMMAND_NOT_FOUND` (`Framework: not detected`) or `RUN_FAILED` → nothing was captured at all. Ask the user:
+- `COMMAND_NOT_FOUND` (`Framework: not detected`) or `RUN_FAILED` → nothing was captured at all. **Surface the block's `### Notes` lines and its `### Suites` rows before asking** — the Phase 3.5 arm handling these same two values already does that for `### Suites`, and `### Notes` is where capture reports a watch carve-out it could not fire: which script it was, and what in it could not be resolved or rebuilt (`dev-workflows:test-baseliner` capture step 1). From the `Status` and the rows alone that state is indistinguishable from a suite that genuinely failed, and it is the state in which *Specify test command to use* has an answer to give — the runner's own single-run command, which the note has just named the script for. The section reads `none` where there is nothing to say, so on every other cause this costs one line. Then ask the user:
   ```
   choices: ["Specify test command to use", "Skip tests for this run (documented in the Phase 5 report's Deferred items)", "Cancel"]
   ```

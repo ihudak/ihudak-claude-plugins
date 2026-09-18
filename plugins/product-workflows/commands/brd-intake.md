@@ -93,7 +93,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    ```
    choices: ["Re-run: re-extract the inventory and rewrite the ledger, discarding the <n> recorded dispositions above", "Cancel — leave this BRD as it stands"]
    ```
-   **Here and not in Phase 5, because this is the last point at which declining is free.** By
+   **Here and not in Phase 5, because declining is free only until Phase 2's first write.** By
    Phase 5 the source has been re-copied and the inventory re-extracted, so a decline there would
    leave the folder holding an inventory its standing ledger no longer matches — a worse state than
    either answer to this question. On `Cancel` nothing is written at all. Where the folder holds no
@@ -119,10 +119,14 @@ Show, and confirm before writing anything:
 
 - The BRD folder (existing, or the derived `BRD-<BRD-KEY>-<slug>` to be created — the `BRD-`
   prefix included, per `workflows-core:addressing` §2).
-- The resolved absolute path to `@<brd-file>`, **and its own directory** — the one every link in it
-  resolves against, and the boundary Phase 2's capture stops at. Say that Phase 2 copies the
-  document **and every file it links from inside that directory** into `brd/source/`, so the
-  operator sees what is about to be copied out of their filesystem before consenting to it.
+- The resolved absolute path to `@<brd-file>`, **and its own directory**. **Run the walk
+  `${CLAUDE_PLUGIN_ROOT}/references/linked-sources.md` §4 defines, from the document, now** — it is
+  read-only: it copies nothing, writes nothing and dispatches nothing. Show what it found: how many
+  linked files of each kind — **markdown**, **image**, **other** — inside the document's own directory
+  and outside it, and every target it could not resolve, with its reason (`url`, `unreadable`, or
+  `ambiguous` with every candidate). Name by path every file outside the directory and every *other*
+  file. This is the list Phase 2 copies from, so the operator consents to exactly what is about to be
+  copied out of their filesystem.
 - Whether `--sort-existing <dir>` is in play, and its resolved directory.
 - The `docs grounding:` line in the form `workflows-core:docs-grounding`
   resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build,
@@ -136,6 +140,35 @@ consent-bearing step (`commands/epics.md` Phase 2). `/brd-intake` runs no `requi
 all — it is the route's first command and consumes no prior phase's deliverable (Phase 0) — so
 resolving here, in the ordinary confirmation step, already puts the one consent-bearing step ahead
 of every write and every dispatch.
+
+**Where the walk reached any file outside the document's own directory, ask first** — the answer
+decides the set the next question is asked over:
+
+```
+choices: ["Capture all <n> (Recommended)", "Only the document's own folder — log the rest, as today", "Stop"]
+```
+
+*Capture all* takes every file the walk reached; Phase 2 copies the outside ones into
+`brd/source-external/`. *Only the document's own folder* takes the files inside it and leaves every
+outside file `excluded` — with everything reachable only through one (`linked-sources.md` §7) — and
+Phase 2 logs each with the reason this command gave it before it could capture them: exactly the
+behaviour a run had before this question existed. *Stop* ends the run with nothing written. Where
+nothing lies outside the directory, this question is not asked.
+
+**Where the taken set holds an *other* file — neither markdown nor an image — ask next:**
+
+```
+choices: ["Stop and convert them first — nothing has been written (Recommended)", "Proceed — none of them carries an obligation (recorded)", "Use a different key or path (you'll be prompted)"]
+```
+
+*Stop and convert* ends the run with nothing written:
+`BRD_INTAKE_UNREAD_ATTACHMENTS: <n> linked file(s) are neither markdown nor an image and would be copied but never read: <paths>. Convert each (markdown for a document, PNG for a picture), link the converted file from the BRD, check the conversion against the original, and re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>'.`
+It is an operator halt, not a plugin gap, so `emit-block` does not fire — Phase 9 makes the same call
+for every Phase 0 stop. **Converting is the operator's checked step for the same reason Phase 0 step 3
+refuses to convert the document**: an unchecked conversion would silently become part of the record.
+*Proceed* copies them, reads none of them, and records the operator's account in the final report,
+exactly as Phase 3's *"They hold no obligation"* answer is recorded. Where the taken set holds no
+*other* file, this question is not asked.
 
 ```
 choices: ["Proceed with <folder> (Recommended)", "Use a different key or path (you'll be prompted)", "Cancel"]
@@ -177,55 +210,54 @@ it.
 
 **Then copy the files the source document links, byte-for-byte too** — this phase captures both, and
 `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.1 is the authority on what the result holds. A
-customer's BRD routinely carries screenshots, diagrams and appendices beside it, and `brd/source/`
-is the immutable record every `[BR#n]` anchors into: whatever this phase does not capture is outside
-that record permanently, because nothing under it is ever written again. Copying the text alone
-leaves every one of those links resolving to nothing while the run reports a faithful verbatim copy.
+customer's BRD routinely carries screenshots, diagrams and appendices beside it, and `brd/source/`,
+with `brd/source-external/`, is the immutable record every `[BR#n]` anchors into: whatever this phase
+does not capture is outside that record permanently, because nothing under either is ever written
+again. Copying the text alone leaves every one of those links resolving to nothing while the run
+reports a faithful verbatim copy.
 
-**The link forms covered**, which are the ones a customer's markdown actually uses:
+**The links were found, resolved and walked in Phase 1**, by `linked-sources.md` — this phase copies
+what that walk took and never walks again. The walk's record says, per target, what kind of file it
+reached and whether it lies inside the document's own directory; Phase 1's answers say which are taken.
 
-- a markdown inline image or link — `![alt](<target>)` and `[text](<target>)`, angle-bracketed
-  (`[text](<my file.png>)`) or not, with any title after the target ignored;
-- a reference-style definition — `[label]: <target>`, wherever in the document the definition sits;
-- an HTML `<img src="<target>">`.
+**Where each taken file lands.**
 
-**Which targets are copied.** Drop any `#fragment` and `?query` from the target and percent-decode
-it; a target that is empty after that is an in-document jump, not a file reference at all — neither
-copied nor logged. **Resolve what is left against the directory of the file the link sits in** — the
-source document's own directory for the document itself, the copied file's own directory on the
-transitive pass below — and normalise it as text, `..` segments collapsed, never by resolving
-symlinks. Copy it when, and only when, all four hold: it carries no URI scheme (`https:`, `http:`,
-`mailto:`, `data:`, …); it does not begin with `/`; **the normalised path is inside the source
-document's own directory**; and it names a readable existing file there. Copy it to **its path
-relative to that directory** under `<BRD-dir>/brd/source/`, creating intermediate directories as
-needed. The copied document sits at `brd/source/<basename>` and the copy mirrors the source tree's
-own layout beneath it, so every such link resolves from the copy exactly as it did from the
-customer's original — **with no edit to the copied text**: nothing here rewrites a link, and the
-containment test is what keeps every copy inside `brd/source/` rather than above it. **A syntactic
-`..` test is not that test.** `../images/flow.png` written in `appendix/notes.md` resolves inside the
-boundary, so refusing it loses a file that is in scope and writes into the log a reason untrue of it.
+- **Inside the document's own directory** → at **its path relative to that directory** under
+  `<BRD-dir>/brd/source/`, creating intermediate directories as needed. The copied document sits at
+  `brd/source/<basename>` and the copy mirrors the source tree's own layout beneath it, so every
+  relative link resolves from the copy exactly as it did from the customer's original — **with no edit
+  to the copied text**. `../images/flow.png` written in `appendix/notes.md` resolves inside the
+  directory and is copied like any other; a syntactic `..` test would have refused a file in scope.
+- **Outside it** — taken only on Phase 1's *Capture all* → into `<BRD-dir>/brd/source-external/`, at its
+  **basename**, never at a path mirroring where it came from. A second file with the same basename
+  takes the lowest free `_NN` suffix on the original basename; byte-identical content already there is
+  reused rather than copied twice. `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.1 says why.
 
 Copy each file **byte-for-byte, whatever its type** — an image, a PDF, a spreadsheet — never opened
-as text, never re-encoded, never resized. Phase 0 step 3's markdown-only rule is about the
-*document* the inventory anchors into; a file it links is captured as it stands, and nothing in this
-run reads its content.
+as text, never re-encoded, never resized. Phase 0 step 3's markdown-only rule is about the *document*
+the inventory anchors into; a file it links is captured as it stands. **What is read, and by whom, is
+Phase 2.5's and Phase 3's** — this phase copies and reads nothing.
 
-**Then repeat the whole capture over each markdown file this step copied**, until a pass finds
-nothing new. A copied appendix's own links resolve from the copy exactly as the document's do, so
-leaving them uncaptured would reproduce this loss one level down; a file is copied once, so the walk
-terminates on any document, cycles included.
-
-**Every link not copied is named, never dropped in silence.** Write
-`<BRD-dir>/brd/brd-link-log.md` in the shape `brd-format.md` §1.1 fixes — the source document's
-basename, the counts, and one row per uncopied link carrying the target as written, the copied file
-the link sits in, and one of these reasons:
+**Every link not copied is named, never dropped in silence.** Write `<BRD-dir>/brd/brd-link-log.md`
+in the shape `brd-format.md` §1.1 fixes — the source document's basename, the counts, and one row per
+uncopied link carrying the target as written, the copied file the link sits in, and one of these
+reasons:
 
 | Reason | Fires when |
 |---|---|
-| `outside the source directory` | the target, resolved and normalised, lands above the source document's own directory |
-| `absolute path` | the target begins with `/` |
+| `outside the source directory` | the target resolves above the document's own directory, and Phase 1's answer was *Only the document's own folder* |
+| `absolute path` | the target begins with `/`, and Phase 1's answer was *Only the document's own folder* |
 | `url` | the target carries a URI scheme |
-| `unreadable` | the target names no file under the source document's directory, or names one that cannot be read |
+| `unreadable` | the target resolves to no readable file (`linked-sources.md` §3) |
+| `ambiguous` | a `[[wikilink]]` matched more than one file in the vault; the row names every candidate |
+
+**Then map every captured link that does not resolve as written**, in the log's second table,
+*Captured links that do not resolve as written* — columns `Target as written | Linked from | Copy` —
+one row per link whose copy cannot be reached by reading its target as a path relative to the file it
+sits in — the rule and its cases are `brd-format.md` §1.1's (a link to a file copied into
+`source-external/`, a `[[wikilink]]`, an absolute path, a link inside a `source-external/` file whose
+target lies inside the document's own folder). `Copy` is the copy's path relative to `brd/`. The
+table is written, with a header and no rows, even where nothing needs mapping.
 
 **Write the log on every run, including one that captured everything** — its counts are then the
 positive record that the capture ran, which an absent log and an empty one are not. Report the same
@@ -436,7 +468,7 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 ```
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = every file
-this run wrote under `<BRD-dir>` — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 stages neither, so a declaration that looks complete ships nothing — §2.3 step 4 names each in §4.1's *declaration unaccounted for* clause, so the failure is reported rather than silent, but nothing it names lands. That is each file this run actually copied into `brd/source/` — the customer's document **and every file it links** (Phase 2) — named individually (the copy step knows them; `brd/source/**` is not a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`, `brd/brd-link-log.md`,
+this run wrote under `<BRD-dir>` — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 stages neither, so a declaration that looks complete ships nothing — §2.3 step 4 names each in §4.1's *declaration unaccounted for* clause, so the failure is reported rather than silent, but nothing it names lands. That is each file this run actually copied into `brd/source/` or `brd/source-external/` — the customer's document **and every file it links** (Phase 2) — named individually (the copy step knows them; neither `brd/source/**` nor `brd/source-external/**` is a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`, `brd/brd-link-log.md`,
 `coverage-ledger.md`, and — only when Phase 6 ran — `prd-seed.md`, `ard-seed.md`, `spec-seed.md`),
 `title: <BRD-KEY> Intake BRD source and requirement inventory`, and `body_facts` = the requirement
 count, the confirmed-defect count by class, and whether Phase 6 wrote seeds; emit its §4.1 outcome

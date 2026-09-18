@@ -132,6 +132,12 @@ Or edit `package.json` manually and run `npm install`.
 # carve-out follows one level of. Otherwise let `test-baseliner` run the
 # suite (dev-workflows:test-baseliner capture step 1 is where the carve-out
 # and its replacement commands live).
+# On a repository whose root `package.json` carries a `workspaces` field this
+# line is the wrong one by hand too, and loudly: measured, it runs the ROOT's
+# own `scripts.test` and no workspace's, or exits 1 on
+# `npm error Missing script: "test"` where the root declares none. Run one
+# `CI=true npm test --if-present --workspace <name>` per workspace instead,
+# which is the division `test-baseliner` itself issues (the same step).
 CI=true npm test
 ```
 

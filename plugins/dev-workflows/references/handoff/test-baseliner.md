@@ -109,7 +109,9 @@ commands are sent again in the same order (`agents/test-baseliner.md` capture st
 and 3). And
 `### Suites` carries one line per suite the run has a row for — framework, the
 qualifying marker **as a path relative to the scan root** (that workspace's own
-`package.json` for each row of a workspaces division, never the candidate's;
+`package.json` for each row of a workspaces division, never the candidate's; the
+lexicographically first of the folded candidates' marker paths where the `Make`
+wrapper rule folded more than one of that framework;
 `command_hint#<n>` where a hinted command matched no detected suite), command,
 per-suite status, per-suite
 counts — including any the `command_hint` left `not run`. Where more than one of that
@@ -120,7 +122,11 @@ marker qualified is a path rather than a bare filename, for two reasons. It tell
 qualifying markers of one row whose directories do not contain each other are
 siblings, and siblings are separate suites, so more than one row here can read
 `Jest/npm` — as do the rows a workspaces division carves, each holding its own
-workspace's `package.json` (`agents/test-baseliner.md` capture step 1). And for every suite whose
+workspace's `package.json` (`agents/test-baseliner.md` capture step 1). It tells
+apart suites and **not** the candidates a `Make` fold put inside one of them,
+whose row carries the first of their marker paths and whose `### Notes` line
+carries the rest, since `make test` runs once and its output does not attribute
+(the same step). And for every suite whose
 run directory is its marker's own, the path says where that row's command ran —
 **the project root only where that marker sits at the scan root**, which is the
 agent's own qualified form (*"The project root is that directory only for a suite
@@ -151,7 +157,8 @@ why, a qualifying marker whose directory another of its own row's contains — a
 workspace the division carved a row for being named in that row instead — the run directory
 of a suite that did not run at its own marker's (a folded `Make` suite's
 `Makefile`, the candidate's own for the `--workspace` rows of a workspaces
-division), a `Make` wrapper one level did not
+division), every candidate a `Make` fold covering more than one of one framework
+holds, with the fact that its identifiers are not attributed to them, a `Make` wrapper one level did not
 settle, "no runner found", a recipe whose output matched no parse pattern. Each
 of those reads, from **Status** and
 `### Suites` alone, exactly like a suite that genuinely failed — a `RUN_FAILED`

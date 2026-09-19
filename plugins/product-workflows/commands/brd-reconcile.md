@@ -699,11 +699,14 @@ Write one `[CD#n]` per confirmed candidate **that is not completing a record tha
 The *Confirm every candidate* phase's rule is the carve-out and it is repeated here because the mint
 and the exception live in two different phases, which is precisely where this would regress: a
 candidate confirmed against a target already carrying an **`open`** `[CD#n]` **mints nothing** — its
-reason is written as the `argumentation` of that record, which moves to `decided`. Ids are assigned
-once and never reused (§1), and one record holds one `chosen`. **Where the package was built by
-this route, the register is on file here** — `/product-workflows:brd-interview` writes it on every
-run that records a round, as its header line alone where no round recorded a decision (§1), and
-`/product-workflows:brd-package` gated on it — so a `[CD#n]` is added after whatever records it
+reason is written as the `argumentation` of that record, which moves to `decided`. Where the held
+entry it answers gained a `- **Requirement defect:**` line after that record was frozen
+(`/product-workflows:brd-interview`, *One question per row*), the record's `settles` is written from
+that line in the same step — copied, as the `settles` row below copies it, never inferred. Ids are
+assigned once and never reused (§1), and one record holds one `chosen`. **Where the package was
+built by this route, the register is on file here** — `/product-workflows:brd-interview` writes it
+on every run that records a round, as its header line alone where no round recorded a decision (§1),
+and `/product-workflows:brd-package` gated on it — so a `[CD#n]` is added after whatever records it
 holds, and the first one in a header-only register is `[CD#1]`. Everything else in this phase is
 about a genuinely new record, and each carries every field `decision-register-format.md` §1 defines:
 
@@ -711,10 +714,10 @@ about a genuinely new record, and each carries every field `decision-register-fo
 |---|---|
 | `id` | `[CD#n]`, contiguous within its own prefix, continuing from the highest `[CD#n]` on file, **never renumbered and never reused** — a re-run continues the sequence and never restarts it |
 | `statement` | the decision, one sentence, as confirmed |
-| `options_considered` | what the package actually put in front of the customer, taken from the `[C]` question, the `[AS#n]`, or the escalated `[SR#n]` — never reconstructed from the answer, and never widened to take in an answer outside it |
+| `options_considered` | what the package actually put in front of the customer, taken from the `[C]` question, the `[AS#n]`, or the escalated `[SR#n]` — never reconstructed from the answer, and never widened to take in an answer outside it. A `[C]` question put as yes or no, listing no options, records `["yes", "no"]` (`decision-register-format.md` §1) |
 | `chosen` | the customer's answer: one member of `options_considered`, or, where the customer answered outside them (*Confirm every candidate*), their answer quoted after the fixed marker `decision-register-format.md` §1 gives that case |
 | `argumentation` | **the customer's own reason, quoted**, never paraphrased and never supplied |
-| `evidence` | the `[CG#n]`/`[DG#n]` the question was put against, as the question set recorded them |
+| `evidence` | the `[CG#n]`/`[DG#n]` the question was put against, as the question set recorded them — `evidence: []` where it recorded none, never omitted (`decision-register-format.md` §1) |
 | `defects` | the `[CDF#n]` the answered position turns on, as the `[C]` question, the `[AS#n]` or the escalated `[SR#n]` recorded them; omitted when none. Never in `evidence` (§1), and **never minted here** — `${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` makes `/product-workflows:brd-interview` the log's only writer, so this phase carries an existing id forward and writes no entry |
 | `settles` | the `[DEF#n]` on the answered `[C]` question's `- **Requirement defect:**` line in `interview/customer-questions.md`, copied from that line and from nothing else in the entry, whose context may name other `[DEF#n]`s (`references/decision-register-format.md` §1); omitted where the entry has no such line. **Never inferred from the review**: which question an answer answers is already fixed by the round and position it cites, and the entry is the record of what that question was raised by or carries |
 | `altitude` | copied, never judged, wherever there is one to copy: the answered `[C]` question's `- **Altitude:**` line in `interview/customer-questions.md`, an `[AS#n]`'s own `altitude`, or, for an escalated `[SR#n]`, which carries none, the altitude of the record or question its `target` names. Where there is none — a `[C]` entry written before 3.7.0, an `[SR#n]` whose target is a document passage, or an `unmatched` answer — decide it by the test `decision-register-format.md` §1 gives the field, and name it in the reconciliation record as decided here rather than copied |
@@ -924,7 +927,7 @@ That is why the list above names no round record.
 |---|---|
 | `customer-amended <date>` | the review supplies corrected text for the requirement the defect was raised against. The `<date>` is the **review's**, not this run's — the amendment is the customer's act |
 | `withdrawn` | the customer withdrew the requirement the defect was raised against |
-| `resolved-by: <SLICE-KEY>/[CD#n]` | a `[CD#n]` this run froze `settles` the defect, and neither row above applies — the customer said which reading they meant. The `[CD#n]` named is the one whose `settles` names the defect, never one that merely looks related, and `<SLICE-KEY>` is this run's own slice |
+| `resolved-by: <SLICE-KEY>/[CD#n]` | a `[CD#n]` this run froze, or completed from `open`, `settles` the defect, and neither row above applies — the customer said which reading they meant. The `[CD#n]` named is the one whose `settles` names the defect, never one that merely looks related, and `<SLICE-KEY>` is this run's own slice |
 
 **`resolved-by` is always written qualified, with this slice's key** —
 `resolved-by: <SLICE-KEY>/[CD#n]`, the one spelling `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md`

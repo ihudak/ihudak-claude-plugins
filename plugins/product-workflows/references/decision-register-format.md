@@ -61,10 +61,10 @@ round: 2
 |---|---|
 | `id` | `[VD#n]` or `[CD#n]` — contiguous within its own prefix, assigned once, never renumbered, never reused after a terminal status |
 | `statement` | one sentence, stating the decision itself and not the discussion that produced it |
-| `options_considered` | what was actually on the table, including the one chosen — save on a `[CD#n]` whose customer answered outside it (below) |
+| `options_considered` | what was actually on the table, including the one chosen — save on a `[CD#n]` whose customer answered outside it (below). **A question put as yes or no, listing no options, records `["yes", "no"]`**; one that listed its options records them as put — the set a customer answering yes or no was offered, written down rather than left for a reader to infer |
 | `chosen` | exactly one member of `options_considered` — **or, on a `[CD#n]` only, where the customer answered with none of the options put, their answer quoted after one fixed marker**: `chosen: "outside the options: <the customer's answer, verbatim>"`. `options_considered` then stays exactly as put and is never widened to take the answer in: it records what the customer was offered, and an option added afterwards would claim they were offered what they volunteered. The marker is the only way a `chosen` may name no member, so a reader tells the two cases apart by the field alone. A `[VD#n]` never takes it: an option the operator names joins `options_considered` before it is chosen (`commands/brd-interview.md`, *Put each `[V]` to the operator*) |
 | `argumentation` | why — **mandatory**, §2 |
-| `evidence` | the `[CG#n]`/`[DG#n]` findings the decision rests on, per `workflows-core:grounding-format` §2; the list is what §6 inspects |
+| `evidence` | the `[CG#n]`/`[DG#n]` findings the decision rests on, per `workflows-core:grounding-format` §2; the list is what §6 inspects. **Never omitted: a decision resting on no finding writes `evidence: []`**, the one form, so a record with no evidence is never mistaken for one whose field was lost. The field applies to every decision, so `[]` is a known value — a list with nothing in it — and not the not-applicable case `workflows-core:grounding-format` §2.1 omits a field for. An `[AS#n]` carries its why-no-evidence statement here instead (§7) |
 | `defects` | the `[CDF#n]` code-defect entries this record turns on, per `references/code-defect-log-format.md`; omitted when absent. **Never in `evidence`** — §6's will-change rule inspects that list, and a non-finding id in it would silently change what D19 fires on |
 | `settles` | the `[DEF#n]` requirement-defect entries a `[CD#n]` answers — the one the `[C]` question it answers was raised by (`references/interview-tagging.md` §1), or, for a question about a row rejected on a defect, the one it carries (`commands/brd-interview.md`, *Round 1 is generated from the grounding*), copied by `/brd-reconcile` from that question's held entry — its `- **Requirement defect:**` line, and nothing else in it — never inferred from the customer's answer. **Only ever on a `[CD#n]`**: a requirement defect is in the customer's statement and is settled by the customer. Omitted when absent |
 | `altitude` | which level the decision sits at, so the spec's §7 altitude routing can send it to the right downstream artifact. **A `[CD#n]` copies it** from what its answer answers — the held `[C]` question's own `- **Altitude:**` line, which `commands/brd-interview.md` decides by this same test when it holds the question, or an `[AS#n]`'s field — because the customer's answer carries no altitude of its own (`commands/brd-reconcile.md`, *Freeze the customer decisions*) |
@@ -218,11 +218,13 @@ Three resolutions, and exactly three:
 | Make it explicitly conditional on the prerequisite | `conditional_on: <BRD-KEY>/<decision-id>` |
 | Defer it until the prerequisite ships | `status: open`, with the blocking prerequisite named |
 
-Two things the rule does not say. It does **not** forbid a `will-change` finding in an `evidence`
+Three things the rule does not say. It does **not** forbid a `will-change` finding in an `evidence`
 list — a decision resting on one `current` finding and two `will-change` ones is not caught, because
-the `current` finding is ground that holds. And it is **not** satisfied by deleting the
-`will-change` finding from the list: a decision whose evidence was thinned until the rule stopped
-firing rests on exactly what it rested on before, minus the record of it.
+the `current` finding is ground that holds. It does **not** fire on `evidence: []`: a decision that
+rests on no finding rests on no `will-change` finding either, and "every finding in the list" is not
+read as true of an empty one. And it is **not** satisfied by deleting the `will-change` finding from
+the list: a decision whose evidence was thinned until the rule stopped firing — to nothing, or to
+something — rests on exactly what it rested on before, minus the record of it.
 
 ## 7. Assumptions — `[AS#n]`
 

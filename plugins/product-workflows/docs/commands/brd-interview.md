@@ -61,10 +61,12 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   **Every row this BRD rejected becomes a question for the customer too**, always a `[C]`: nothing
   on the route records why a requirement was rejected, so whether the customer accepts not getting
   it is theirs to say. It carries the defect the rejection cites wherever this slice owns that
-  defect, so the customer's answer settles it. A rejected row raises nothing where the customer
-  withdrew it themselves, or where the defect it cites is already answered, already asked, or
-  another slice's to ask. A deferred row raises a question only where no rationale for the deferral
-  was ever recorded.
+  defect, so the customer's answer settles it — and where that row's question was already put and is
+  still held for the customer, the defect is added to that question as one more line rather than
+  asked beside it; only a question the customer has already answered leaves the defect to a question
+  of its own, which names that answer. A rejected row raises nothing where the customer withdrew it
+  themselves, or where the defect it cites is already answered, already asked, or another slice's to
+  ask. A deferred row raises a question only where no rationale for the deferral was ever recorded.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).
@@ -214,11 +216,13 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   restarting the round.
 - `interview/customer-questions.md` — the `[C]` questions held for the customer, each with the
   findings that bear on it and any `[G]` answer that already narrowed it; its altitude — `product`,
-  `architecture` or `implementation` — on its own line labelled `- **Altitude:**`, which the `[CD#n]`
-  answering it copies; and — for a question a requirement defect raised, or a rejected row's
-  question carrying the defect it cites — the `[DEF#n]` it asks about, on its own line labelled
-  `- **Requirement defect:**`, which `/brd-reconcile` copies into the `settles` field of the `[CD#n]`
-  that answers it and every slice reads to know the defect is asked.
+  `architecture` or `implementation` — on its own line labelled `- **Altitude:**`, which the
+  `[CD#n]` answering it copies; for a rejected row's question, that row, on its own line labelled
+  `- **Rejected row:**`, which is how a later run finds it; and — for a question a requirement
+  defect raised, or a rejected row's question carrying the defect it cites — the `[DEF#n]` it asks
+  about, on its own line labelled `- **Requirement defect:**`, which `/brd-reconcile` copies into
+  the `settles` field of the `[CD#n]` that answers it and every slice reads to know the defect is
+  asked.
 - `code-defect-log.md` — the code-defect log: one `[CDF#n]` per defect in the code that a decision
   turns on, each citing the verified `[CG#n]` that established the behaviour and naming separately
   what the code is supposed to do and what says so. Written where a round raised one **or

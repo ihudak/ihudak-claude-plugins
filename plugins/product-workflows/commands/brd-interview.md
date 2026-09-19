@@ -259,7 +259,10 @@ and nothing downstream can tell the difference afterwards.
    requires — may be re-taken by the *Put each `[V]` to the operator* phase and written by the *Write
    the register and the round record* phase, because `open` and `conditional` are holding states that
    would otherwise have no exit at all. Nothing else on that record moves, and no other record here
-   carries an exception.
+   carries an exception. **An addition is not a rewrite, and one is made to another run's entry**:
+   the `- **Requirement defect:**` line *Resolve the round* appends to a held `[C]` entry in
+   `interview/customer-questions.md` (*One question per row*), which changes nothing already written
+   in it.
 
 ---
 
@@ -465,6 +468,25 @@ owns, that is open and that is not asked belongs in**; nothing else decides it:
     defects became a question source*. A round this run opens or resumes for any other cause
     proceeds without them, and the *Next steps* phase offers the re-open.
 
+**One question per row, whichever branch above places the defect.** A defect this BRD owns as its
+carrier (*Round 1 is generated from the grounding*) is asked on its rejected row's question, never
+beside it. So where some round already holds that row's question — the
+`interview/customer-questions.md` entry whose `- **Rejected row:**` line names it, or, on an entry
+written before 3.7.0, which carries no such line, the one held entry whose question names that row's
+`[BR#n]` and asks about its rejection — and that question is still *held for the customer*, the
+defect is asked by **appending its `- **Requirement defect:** [DEF#n]` line to that entry**, not by
+a question of its own. The question text is not rewritten; the line is an addition, and it is what
+makes the defect **asked** and lets `/brd-reconcile` settle it from the answer. The run that works
+the round holding the entry makes the addition and records the defect asked in that round's account
+line; a run working another round leaves it for that one, and reports it as waiting on that round.
+Where no held entry is the row's — none names it, more than one could be it, or its question was
+already answered — a question is raised in the round the branches above place it in, and the final
+report names any candidates it could not choose between. **An earlier answer does not settle it**:
+`/brd-reconcile` copies `settles` from the entry's labelled line when it freezes the answer, and an
+answer frozen before the line existed carried none, so the defect is asked anew — its question
+states what the defect records and names that earlier `[CD#n]` as context, so the customer sees what
+they already said about the row.
+
 Carry the resolved round number for the whole run. Every decision, assumption and question this run
 records is stamped with it.
 
@@ -571,24 +593,24 @@ would have to state:
   it owns it, it is open, and it is not asked.** A `[DEF#n]` is **asked** exactly where some slice
   under the same parent — found by the positive `brd-link.md` parent test (`commands/brd-split.md`
   Phase 0), this one included — has an `interview/customer-questions.md` entry whose
-  `- **Requirement defect:**` line carries it, the line the *Hold every `[C]`* phase writes, and no
-  other mention in the entry. That is a structured fact read across the slices, never a search of
-  round records for the id, so a defect asked once is never asked again, whichever slice asked it
-  and whoever owns it now. **Three states make the answer undecidable, and each withholds the
-  defect**: a listed row still `unallocated` — in the parent's ledger, or in the ledger of the slice
-  the parent names — which may become live later and take it; a sibling ledger that cannot be read;
-  and a sibling `customer-questions.md` that exists and cannot be read — an absent one holds no
-  entry. This BRD raises nothing about such a defect and reports it with the row or the sibling
-  named — never a guess, because a guess asks the customer twice or not at all. **Which round a
-  raised defect goes into is *Resolve the round*'s to decide**, by round 1's account line alone.
-  Every other row the defect lists, and every counterpart a `conflict` or `duplicate` names, is
-  context for the question. **The question states what the defect records** — the two readings, the
-  two requirements that cannot both hold, the missing observable outcome — and, where the row is
-  drawn from an image (`brd-format.md` §2), names the image's path, which the customer holds in the
-  bundle. **It cites a passage of the customer's by its captured path and locator** —
-  `source/<basename> › § 4.2`, never a bare `§ 4.2`, which `/brd-package`'s plugin-free scan stops
-  on and whose path form `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.3 rule 1 exempts.
-  It is `[C]` (`interview-tagging.md` §1);
+  `- **Requirement defect:**` line carries it, the line the *Hold every `[C]`* phase writes or *One
+  question per row* appends, and no other mention in the entry. That is a structured fact read
+  across the slices, never a search of round records for the id, so a defect asked once is never
+  asked again, whichever slice asked it and whoever owns it now. **Three states make the answer
+  undecidable, and each withholds the defect**: a listed row still `unallocated` — in the parent's
+  ledger, or in the ledger of the slice the parent names — which may become live later and take it;
+  a sibling ledger that cannot be read; and a sibling `customer-questions.md` that exists and cannot
+  be read — an absent one holds no entry. This BRD raises nothing about such a defect and reports it
+  with the row or the sibling named — never a guess, because a guess asks the customer twice or not
+  at all. **Which round a raised defect goes into is *Resolve the round*'s to decide**, by round 1's
+  account line alone. Every other row the defect lists, and every counterpart a `conflict` or
+  `duplicate` names, is context for the question. **The question states what the defect records** —
+  the two readings, the two requirements that cannot both hold, the missing observable outcome —
+  and, where the row is drawn from an image (`brd-format.md` §2), names the image's path, which the
+  customer holds in the bundle. **It cites a passage of the customer's by its captured path and
+  locator** — `source/<basename> › § 4.2`, never a bare `§ 4.2`, which `/brd-package`'s plugin-free
+  scan stops on and whose path form `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md`
+  §6.3 rule 1 exempts. It is `[C]` (`interview-tagging.md` §1);
 - anything the package will have to **assert without evidence** — that is not a question at all but
   an `[AS#n]`, and the *Write the register and the round record* phase records it as one
   (`decision-register-format.md` §7).
@@ -758,15 +780,15 @@ this route builds anything and no command here can observe a repair, so a defect
 keeps whatever disposition it had (§4).
 
 Record each answered question as **terminally disposed** *decided*, with a `[VD#n]` held for the
-register phase, carrying every field
-`decision-register-format.md` §1 defines — including `evidence` (the findings this position rests
-on), `altitude`, `round` (this run's), `consumed_by: none`, and `conditional_on` **written now by
-whoever takes the decision, never reconstructed later** (§5), when the position is correct only while
-a named decision of a named prerequisite BRD holds — for instance `conditional_on: EPIC-008/[VD#3]`,
-naming one specific decision in that BRD's register and never the BRD as a whole. Which prefix a
-decision gets is fixed by the tag of the question it answers, never by who typed it (§1): a question
-tagged `[V]` produces a `[VD#n]`, and it does not become a `[CD#n]` because the customer later nods
-at it.
+register phase, carrying every field `decision-register-format.md` §1 defines — including `evidence`
+(the findings this position rests on, written `evidence: []` where it rests on none, never omitted —
+§1), `options_considered` (`["yes", "no"]` for a question put as yes or no — §1), `altitude`,
+`round` (this run's), `consumed_by: none`, and `conditional_on` **written now by whoever takes the
+decision, never reconstructed later** (§5), when the position is correct only while a named decision
+of a named prerequisite BRD holds — for instance `conditional_on: EPIC-008/[VD#3]`, naming one
+specific decision in that BRD's register and never the BRD as a whole. Which prefix a decision gets
+is fixed by the tag of the question it answers, never by who typed it (§1): a question tagged `[V]`
+produces a `[VD#n]`, and it does not become a `[CD#n]` because the customer later nods at it.
 
 **Deferring is a recorded holding state, not a disposition and not a skip.** It records the reason
 the question is not answerable yet, keeps the round **open**, and never converts the question to
@@ -792,8 +814,11 @@ labelled exactly `- **Altitude:**`** — `product`, `architecture` or `implement
 test `decision-register-format.md` §1 gives a record's `altitude`, the level the answer will sit at
 and so the downstream artifact it must reach, because the `[CD#n]` that answers the question copies
 it (`/brd-reconcile`, *Freeze the customer decisions*) and a customer answer has no other source for
-it; **for a question the requirement-defect source raised, or a `rejected` row's question carrying
-the defect it cites, the `[DEF#n]` it asks about, on a line of its own labelled exactly
+it; **for a `rejected` row's question, that row, on a line of its own labelled exactly
+`- **Rejected row:** [BR#n]`**, which is how a later run finds the row's question rather than
+raising a second one (*One question per row*, in *Resolve the round*); **for a question the
+requirement-defect source raised, or a `rejected` row's question carrying the defect it cites, the
+`[DEF#n]` it asks about, on a line of its own labelled exactly
 `- **Requirement defect:** [DEF#n]`**, and, where the defect sits on a row drawn from an image, that
 image's path relative to `brd/`. **That labelled line is the one both readers read, and nothing else
 in the entry**, whose context may name other `[DEF#n]`s: `/brd-reconcile` copies its id into the
@@ -829,7 +854,8 @@ Before any `[VD#n]` this run took is written as `decided`, test its `evidence` l
 `decision-register-format.md` §6 (D19): **a decision may not rest solely on a `will-change`
 finding.** The test fires when *every* finding in the list carries `horizon: will-change`
 (`workflows-core:grounding-format` §5). It does **not** fire on a decision resting on one `current` finding and
-two `will-change` ones — the `current` finding is ground that holds.
+two `will-change` ones — the `current` finding is ground that holds — nor on `evidence: []`, which
+rests on no `will-change` finding either (§6).
 
 Where it fires, the decision may not be closed. Offer the three resolutions §6 defines — exactly
 three, drawn from that section's own table the way the `[V]` picker draws its options from §1:
@@ -948,8 +974,9 @@ wherever an in-scope row carries a defect a sibling asks. *Resolve the round* re
 and no other — whether round 1's record carries it is what tells a slice interviewed before this
 source existed from one interviewed after.
 
-**`<BRD-dir>/interview/customer-questions.md`** — written by the *Hold every `[C]`* phase; listed
-here because it is one of this run's deliverables.
+**`<BRD-dir>/interview/customer-questions.md`** — written by the *Hold every `[C]`* phase, and
+appended to by *Resolve the round* where a defect's line joins a held entry (*One question per
+row*); listed here because it is one of this run's deliverables.
 
 **`<BRD-dir>/code-defect-log.md`** — every `[CDF#n]` this round raised, appended after any already on
 file, each carrying every field `${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §2
@@ -993,14 +1020,15 @@ On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:re
 the `/brd-*` commands share), `feature_folder` as resolved in the *Resolve inputs and gate the
 grounded BRD* phase, `deliverable_paths` = every file this run wrote or updated under `<BRD-dir>`
 (`decisions.md`, `interview/round-<N>.md`, `interview/customer-questions.md` when this round held a
-`[C]`, and `code-defect-log.md` when this round raised a `[CDF#n]` **or re-dispositioned one already
-on file** — a run that only re-dispositioned still wrote the file, and leaving it out of the set would
-hand off a register naming a disposition no ref carries), `title: <BRD-KEY> Record round
-<N> interview decisions`, and `body_facts` = the round number and whether it opened, resumed or
-re-opened; the question counts by tag; the `[G]` answers and the re-tags with their causes; the
-`[VD#n]`, `[AS#n]` and `[CDF#n]` ids written and every `[CDF#n]` re-dispositioned, each with its old
-and new disposition; the `[C]` count held; and every will-change resolution
-taken. Emit its §4.1 outcome line in the final report.
+`[C]` or appended a defect line to a held entry already on file, and `code-defect-log.md` when this
+round raised a `[CDF#n]` **or re-dispositioned one already on file** — a run that only
+re-dispositioned still wrote the file, and leaving it out of the set would hand off a register
+naming a disposition no ref carries), `title: <BRD-KEY> Record round <N> interview decisions`, and
+`body_facts` = the round number and whether it opened, resumed or re-opened; the question counts by
+tag; the `[G]` answers and the re-tags with their causes; the `[VD#n]`, `[AS#n]` and `[CDF#n]` ids
+written and every `[CDF#n]` re-dispositioned, each with its old and new disposition; the `[C]` count
+held, and every defect line appended to a held entry; and every will-change resolution taken. Emit
+its §4.1 outcome line in the final report.
 
 The no-new-round path in *Resolve the round* — every round closed and nothing changed — reaches this
 phase with nothing staged where the register was already on file, so it reports the
@@ -1208,7 +1236,9 @@ every split, with the parts each original became; the `[G]` answers, each naming
 never a re-tag reported without its cause; every question recorded *needs grounding*, named, with
 `/product-workflows:prd-ground <BRD-KEY>` as the fix; the round's requirement-defect account line,
 and every defect withheld, with its cause — one that belongs to a closed round 1 with its re-open,
-and one waiting on an open round with the round it will be asked in;
+and one waiting on an open round with the round it will be asked in; every defect asked by a line
+appended to its rejected row's held question, naming that question, and every one raised as a
+question of its own because the held entry could not be chosen, naming the candidates;
 the `[VD#n]` decided this run and any deferred; the `[AS#n]` recorded; the `[CDF#n]` raised this
 round and the `[CDF#n]` re-dispositioned, each with its old and new disposition, when any; the `[C]` count held and the file
 holding them, stated together with the fact that

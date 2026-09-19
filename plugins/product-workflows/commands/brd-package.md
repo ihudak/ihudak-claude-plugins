@@ -708,6 +708,15 @@ question to the customer that never went through the tag test — the failure `i
 §2 exists to prevent, arriving one command later. The escalated finding travels under its `[SR#n]`,
 and the answer comes back in the review's section 7 like any other.
 
+**Each held `[C]` entry is rendered with what the customer needs to answer it and to cite it**: the
+question as it will be put; its round and position, which the review's section 7 cites it by; the
+findings that bear on it; and, where the entry carries them, the `[DEF#n]` on its
+`- **Requirement defect:**` line and the path on its `- **Defect image:**` line
+(`/product-workflows:brd-interview`, *Hold every `[C]`*). The image path is how the reviewer finds
+the picture a question about an image-drawn requirement is about — the manifest maps it to the
+image's bundled filename (*Assemble the bundle* rule 6) — so an entry rendered without it asks about
+a picture the reviewer cannot locate.
+
 **Part 7 and part 9 both carry every open `[AS#n]`, and that duplication is deliberate.** They ask
 for different things. Part 7 asks the customer to **decide** — an assumption is corrected in one
 sentence while it is still an assumption, and that is the cheapest correction in the whole loop.
@@ -788,6 +797,15 @@ below.
    than renumber around it. Every plain "section N" that remains inside the body is a section of the
    **review being written**, numbered 1 to 12, which is the schema's own rule and the reason a bare
    number there is never ambiguous to the reader who matters.
+
+   **Verify, the same way, that the body holds no identifier with a number in it** — no match for
+   `\[[A-Z]+#[0-9]+\]`. That file's section 1 writes every example in the placeholder form, `[BR#n]`,
+   because the prompt is a bundle document and *Assemble the bundle* rule 8 resolves every numbered
+   identifier in it against this package's own records: an example code finding numbered twelve
+   stops every package holding fewer than twelve, and an example requirement numbered four resolves,
+   silently, to whatever requirement this package numbered 4. Any match → stop, before anything is
+   rendered:
+   `BRD_PACKAGE_SCHEMA_EXAMPLE_ID: customer-review-schema.md's rendered body carries <id> — an identifier with a number in it, in text rendered into every customer prompt, resolves against the packaged BRD's own records: to a record nobody meant, or to nothing. Write the example in the placeholder form that file's section 1 fixes, [BR#n].`
 5. Render the result under a heading of the prompt's own, introduced in one line as the rules the
    returned review must satisfy.
 
@@ -829,16 +847,18 @@ headings and links, in the positions §6.3 recognises them in, this package's ow
 hit inside either is not a leak this package committed. It is the customer having written the token
 themselves, in a document, a screenshot, a heading or a folder name — because they were told what
 tooling the delivery team uses, or because their own numbering happens to look like ours, a `§ 4.2`
-in a specification or a `D3` in a diagram. Report it, grouped as §6.3 fixes, and **let the operator
-decide** whether to ship; where §6.3 counts it no hit at all, there is nothing to report. Stopping
-outright would make that BRD permanently unpackageable, since the only repair left would falsify the
-record — an edit to an immutable file, an anchor that no longer names where the requirement is
-stated, a transcription saying something the image does not, or a quotation saying something the
-customer did not — and every other span's hit stays a hard stop exactly as above. **These two sets
-are the plugin-free scan's only exemptions, and each covers a class of content rather than one
-file** — the citation-resolution check (Phase 8 rule 8, `bundle-packaging.md` §6) carries the same
-two over the same spans, and one of a different shape for `[SR#n]` (§6.3) — and they exist because
-the alternatives are a deadlock or a falsified record.
+in a specification or a `D3` in a diagram. Report it, grouped as §6.3 fixes, and **put it to the
+operator on the one question §6.3's *The operator's ruling* fixes** — ship it as the customer's own,
+recommended, or hold the package, which stops with `BRD_PACKAGE_CUSTOMER_CONTENT_HELD` — asked once
+per pass and never again for a hit an earlier ruling in this run covered; where §6.3 counts it no
+hit at all, there is nothing to report or ask. Stopping outright would make that BRD permanently
+unpackageable, since the only repair left would falsify the record — an edit to an immutable file,
+an anchor that no longer names where the requirement is stated, a transcription saying something the
+image does not, or a quotation saying something the customer did not — and every other span's hit
+stays a hard stop exactly as above. **These two sets are the plugin-free scan's only exemptions, and
+each covers a class of content rather than one file** — the citation-resolution check (Phase 8 rule
+8, `bundle-packaging.md` §6) carries the same two over the same spans, and one of a different shape
+for `[SR#n]` (§6.3) — and they exist because the alternatives are a deadlock or a falsified record.
 
 Identifiers are **not** in the scan's classes and are meant to travel: the classes
 `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.1's table enumerates are how the returned
@@ -852,27 +872,45 @@ second copy would fare better.
 
 ## Phase 7 — Render the delivery note
 
-**First, settle the delivery route — this is the only phase that may know it.** The repository route
-is available only where the *Handoff* phase's §4.3 consent choice was **accepted and the handoff
-pushed the bundle**: a declined handoff leaves it on no ref, and an accepted one that did not push
-leaves it where no customer can pull from, so the archive is the only route there is. Key it on the
-`Phase handoff:` line that phase emitted (`workflows-core:phase-handoff` §4.1), never on the choice
-alone. Do not ask a question whose answer the run already holds.
+**First, settle the delivery route — this is the only phase that may know it, and it settles it from
+what the run holds here, never from the *Handoff* phase's outcome.** That phase runs two phases
+later, and the note this phase writes is one of the files it commits, so the note cannot wait on its
+`Phase handoff:` line. What the repository route depends on is the bundle reaching a ref a customer
+can pull, and three facts decide whether this run will put it there, all of them held before
+anything is committed: whether the specs repository can take a commit at all — `$SPECS_PATH`
+managed, and the run not carrying `specs_git: blocked`; whether it has a remote to push to; and
+whether the operator consents to the handoff. The run carries the first from its preflight; take the
+other two here:
 
-- **Handoff pushed** — the outcome line is *Committed, pushed, PR opened*, *PR already existed* or
-  *PR not opened* → ask, once:
+1. **Take the handoff's consent now.** Invoke
+   `Skill(skill: "workflows-core:reference", args: "phase-handoff")`, run its §4.3 push-target probe
+   — printing the no-remote line above the array where the probe found no `origin` — and present its
+   §4.3 choice array verbatim:
 
-  ```
-  choices: ["They pull the specs repository (Recommended)", "Send them an archive"]
-  ```
+   ```
+   choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
+   ```
 
-  The recommendation stands because a bundle that is pushed is already where a customer with
-  repository access can reach it, and the archive is then a copy of a thing they have.
-- **Any other outcome — the handoff declined, `$SPECS_PATH` unmanaged, or an accepted handoff whose
-  line is *Push failed*, *No remote*, *Gate failed* or *Nothing to commit*** → do not ask. Take the
-  archive route and say why in the Final report: this run pushed nothing, so it cannot tell the
-  customer anywhere to pull the bundle from — *Push failed* and *No remote* left it on a commit this
-  machine alone holds, and *Gate failed* committed nothing.
+   Carry the answer. The *Handoff* phase executes on it and does not ask again, so the operator
+   answers once and the note and the commit follow the same answer.
+2. **Settle the route from those facts.** Do not ask a question whose answer the run already holds.
+   - **The first option taken, the probe found `origin`, and the specs repository managed and not
+     blocked** → ask, once:
+
+     ```
+     choices: ["They pull the specs repository (Recommended)", "Send them an archive"]
+     ```
+
+     The recommendation stands because a bundle the handoff pushes is where a customer with
+     repository access can reach it, and the archive is then a copy of a thing they have.
+   - **Any other state — the handoff declined, no `origin` remote, or `$SPECS_PATH` unmanaged or
+     blocked** → do not ask. Take the archive route and say why in the Final report: nothing this
+     run does will put the bundle where a customer can pull it — a declined handoff commits nothing,
+     and with no remote a commit stays on this machine.
+
+**The push is the one fact this phase cannot hold**, because it happens after the note is written.
+So the repository route is a promise the *Handoff* phase then checks against its own outcome line,
+and reports in the Final report where the push did not happen — the note is not rewritten for it.
 
 Write `<BRD-dir>/customer-delivery-note-<YYYYMMDD>.md` — the covering letter that goes in the email
 body. **It is not part of the bundle** (`bundle-packaging.md` §4): it is the email, not a package
@@ -897,7 +935,8 @@ puts the two facts that must not be missed back inside the thing they were lifte
 **It is not a per-file table.** The manifest inside the bundle covers per-file detail, and
 duplicating it here guarantees the two disagree after the first correction.
 
-Run the plugin-free scan over the finished note, exactly as over the prompt, and stop on any hit —
+Run the plugin-free scan over the finished note, exactly as over the prompt, and stop on any hit
+save one `bundle-packaging.md` §6.3 covers, which is put to the operator as it is over the prompt —
 the note is read by the same reader, on the same footing, before they open anything.
 
 Print the note **in full** in the final report, so it can be pasted into an email without opening a
@@ -948,14 +987,18 @@ self-review is free of them while being the most internal document this command 
    and the bundle will be extracted, renamed, re-zipped and mailed on. So each document's bundle
    filename begins `<BRD-KEY>-` and is unique within the bundle, and every reference from one
    bundle document to another, and every instruction in the prompt that sends the reviewer to a
-   document, names that filename and tells them to search for it. **The `<BRD-KEY>` is the key of
-   the package the document belongs to, not this run's key applied uniformly:** a prerequisite
-   package copied in under rule 5 arrives already named from the packaging run that built it, and
-   those keyed filenames are kept on the way in — nothing renames them. That is what keeps one
-   bundle's two `[CG#7]`s apart, because it is the same key rule 8's check partitions the corpus on
-   (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.1); re-prefixing every document with
-   this run's key would collapse the corpus to one partition and let a cross-package citation
-   resolve to the wrong finding while the check went green.
+   document, names that filename and tells them to search for it. **Every file the bundle carries
+   takes the prefix, images included** — an image copied in is named `<BRD-KEY>-` followed by its
+   own basename, unique within the bundle as every bundled name is, and an embedded image in a
+   rendered document points at that name (rule 2) — and the manifest maps each captured file,
+   image or markdown, from its path relative to `brd/` to that name (rule 6). **The `<BRD-KEY>` is
+   the key of the package the document belongs to, not this run's key applied uniformly:** a
+   prerequisite package copied in under rule 5 arrives already named from the packaging run that
+   built it, and those keyed filenames are kept on the way in — nothing renames them. That is what
+   keeps one bundle's two `[CG#7]`s apart, because it is the same key rule 8's check partitions the
+   corpus on (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.1); re-prefixing every
+   document with this run's key would collapse the corpus to one partition and let a cross-package
+   citation resolve to the wrong finding while the check went green.
 2. **De-Obsidianise every copied document — except the customer's own files, the source document and
    every other markdown file `/brd-intake` captured, which are copied byte for byte**
    (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §2.1). Every `[BR#n]` drawn from their
@@ -1096,11 +1139,9 @@ acknowledged cost is a derived duplicate in the repository, and it is deliberate
 
 ## Phase 9 — Handoff
 
-Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim:
-
-```
-choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
-```
+The *Render the delivery note* phase has already presented `workflows-core:phase-handoff` §4.3's
+choice array, verbatim, and carried the answer — the one consent this run takes for its handoff,
+taken there because the note's route depends on it. This phase does not ask again.
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's
 table, where `brd` is the prefix every `/brd-*` command shares), `feature_folder` as resolved in the
@@ -1111,6 +1152,16 @@ when this run added a prerequisite to it), `title: <BRD-KEY> Package for custome
 <YYYYMMDD>`, and `body_facts` = the degradation tier; the `[SR#n]` counts by disposition; the count
 of `[C]` questions and open `[AS#n]` the prompt carries; every prerequisite named under *what could
 still move*; and the repo→SHA table. Emit its §4.1 outcome line in the final report.
+
+**Then read that line against the route the *Render the delivery note* phase settled.** On the
+archive route there is nothing to read: the note names what is attached. On the repository route
+the note, already written and among the files just declared, tells the customer to pull a bundle
+this phase was to push. Where the line records a push — *Committed, pushed, PR opened*, *PR already
+existed* or *PR not opened* — the note is true as written. Where it records none — *Push failed*,
+*Gate failed*, or any other line — it is not true yet: say so in the Final report beside the outcome
+line, and name what makes it true before the note is sent — the branch pushed by hand, or, where
+nothing was committed, the declared files committed and pushed first. Do not rewrite the note: it
+names the route the operator chose, and what is missing is the push.
 
 ---
 
@@ -1163,13 +1214,15 @@ Terminal phase — runs after *Next steps*, and NEVER interrupts an earlier phas
 
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
 gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt before
-escalating. Two of this command's stops **do** qualify and are the reason the invariant is named
-here: `BRD_PACKAGE_SCHEMA_BOUNDARY` and `BRD_PACKAGE_PROMPT_LEAK` are both reference-integrity gaps —
-a rendered authority whose boundary moved, and a package artifact carrying a citation that should
-never have been written into it. None of the others do: a missing or malformed key, an unresolved
-BRD, a resolved root BRD, an ungated or absent register, an unsettled round, a bundle directory that
-already exists, and an unset `$SPECS_PATH` are environment or sequencing halts. `BRD_PACKAGE_UNDISPOSED`
-is not one either — it is the gate working.
+escalating. Three of this command's stops **do** qualify and are the reason the invariant is named
+here: `BRD_PACKAGE_SCHEMA_BOUNDARY`, `BRD_PACKAGE_SCHEMA_EXAMPLE_ID` and `BRD_PACKAGE_PROMPT_LEAK`
+are all reference-integrity gaps — a rendered authority whose boundary moved, a rendered authority
+carrying an example identifier with a number in it, and a package artifact carrying a citation that
+should never have been written into it. None of the others do: a missing or malformed key, an
+unresolved BRD, a resolved root BRD, an ungated or absent register, an unsettled round, a bundle
+directory that already exists, and an unset `$SPECS_PATH` are environment or sequencing halts.
+`BRD_PACKAGE_UNDISPOSED` is not one either — it is the gate working — and nor is
+`BRD_PACKAGE_CUSTOMER_CONTENT_HELD`, which is the operator's own ruling on the customer's words.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-package`; what was produced (the
@@ -1215,12 +1268,14 @@ package of its own was copied in; the four artifacts written, by path; **the cit
 outcome** — how many identifier references resolved, across how many source packages, how many
 named another BRD and were discharged, and every hit inside verbatim customer content or a
 customer-derived locator — this check's and the plugin-free scan's alike — that the operator was
-asked to rule on, grouped as `bundle-packaging.md` §6.3 fixes, **or an explicit "none"**; **the
+asked to rule on, under the *Customer content:* outcome line `bundle-packaging.md` §6.3's *The
+operator's ruling* fixes and grouped as that section fixes, **or `Customer content: none`**; **the
 delivery note, printed in full**; **the delivery route settled in Phase 7 and why** — naming the
 archive command with an absolute path on the archive route, and on the repository route saying that
 none was produced because the customer pulls the committed bundle, so a reader of this report cannot
-mistake its absence for a step that failed; the feedback + cost paths; the `Phase handoff:` outcome
-line (`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line
+mistake its absence for a step that failed, and, where the *Handoff* phase then pushed nothing, that
+the route is not yet true and what makes it true (*Handoff*); the feedback + cost paths; the
+`Phase handoff:` outcome line (`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line
 (`workflows-core:specs-repo-git` §6); the next-step recommendation; and — before the ledger line —
 the **repo→SHA table**:
 

@@ -325,9 +325,14 @@ load-bearing: the `conditional_on` pass is the complete one, found mechanically 
 running the incomplete textual pass first makes the complete one an afterthought. A dependent whose
 own register is in flight is **recorded, never written**, so nothing overwrites somebody else's open
 pull request and no downstream BRD can stall the prerequisite's customer loop. Every id a sweep
-write names carries the key of the BRD whose numbering it is — `<BRD-KEY> [CD#n]` in prose,
-`<BRD-KEY>/[CD#n]` in a field, a reopened record's cause included — because the dependent's
-register numbers its own records, and a bare id there names one of them or none.
+write names carries the key of the BRD whose numbering it is, always in prose as `<BRD-KEY> [CD#n]`
+— never the `<BRD-KEY>/[CD#n]` shape of a declared field such as `conditional_on`, since no sweep
+write writes one — because the dependent's register numbers its own records, and a bare id there
+names one of them or none. Each write says where the id goes: a `reverted`, `reopened` or
+`withdrawn` record takes it — a reopened record's cause included — in a closing paragraph appended
+to its `argumentation`, opening `Reverted`, `Reopened` or `Withdrawn` and the date, beneath the
+customer's quoted reason on a customer decision and never inside it; an `inherited-unchanged` item
+is left unwritten, and its row, naming both records, is in this run's reconciliation record.
 
 **Stale cross-references.** Rooted at the **parent's** folder, so a sibling slice is reached. Two
 searches: the changed ids, matched whitespace-tolerantly because an identifier is routinely broken

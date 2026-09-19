@@ -245,9 +245,11 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   `[CD#n]` answering it copies; for a rejected row's question, that row, on its own line labelled
   `- **Rejected row:**`, which is how a later run finds it; and — for a question a requirement
   defect raised, or a rejected row's question carrying the defect it cites — the `[DEF#n]` it asks
-  about, on its own line labelled `- **Requirement defect:**`, which `/brd-reconcile` copies into
-  the `settles` field of the `[CD#n]` that answers it and every slice reads to know the defect is
-  asked.
+  about, alone on its own line labelled `- **Requirement defect:**`, which `/brd-reconcile` copies
+  into the `settles` field of the `[CD#n]` that answers it and every slice reads to know the defect
+  is asked; and, where that defect sits on a row drawn from an image, the image's path relative to
+  `brd/` on the next line, labelled `- **Defect image:**`, which
+  [`/brd-package`](brd-package.md) renders so the customer can find the picture.
 - `code-defect-log.md` — the code-defect log: one `[CDF#n]` per defect in the code that a decision
   turns on, each citing the verified `[CG#n]` that established the behaviour and naming separately
   what the code is supposed to do and what says so. Written where a round raised one **or

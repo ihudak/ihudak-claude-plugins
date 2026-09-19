@@ -36,11 +36,12 @@ in order to review what was sent to them. Four rules follow, and every one of th
 bundle may assume of the machine it lands on.
 
 1. **The prompt is self-contained.** No path rooted at the plugin's install directory, no slash
-   commands, no skill invocations, no MCP assumptions. The review schema is **inlined in full** —
-   rendered from `references/customer-review-schema.md` at build time rather than quoted,
-   summarised, or linked, so the shipped prompt and the authority cannot drift apart. That file
-   carries its own plugin-free constraint and states which part of it is rendered; nothing here
-   overrides it.
+   commands, no skill invocations, no MCP assumptions. The review schema is **inlined** — rendered
+   from `references/customer-review-schema.md` at build time rather than quoted, summarised, or
+   linked, so the shipped prompt and the authority cannot drift apart — and **never the whole
+   file**: that file states which part of it is rendered, and `commands/brd-package.md`'s
+   `render-schema` entry point states what the prompt's part 10 takes. That file also carries its
+   own plugin-free constraint; nothing here overrides it.
 2. **No harness-specific instructions.** The prompt is written in the vocabulary any agent has —
    *read the file named X*, *search this bundle for a file whose name contains Y*, *run this in a
    terminal*. It states its assumed capability set in one line at the top, so a reviewer on a weaker
@@ -94,7 +95,9 @@ Exactly this, and nothing else:
 Plain markdown and images — nothing else (§2). The manifest lists documents by filename, for the
 same reason rule 4 does, **and maps every file `/brd-intake` captured that the bundle carries — each
 markdown file and each image from `brd/source/` and `brd/source-external/` — from its path relative
-to `brd/` to its bundled filename.** That path is the form every reference to a captured file takes:
+to `brd/` to its bundled filename**, the name carrying the `<BRD-KEY>-` prefix that
+`commands/brd-package.md`'s *Assemble the bundle* rule 1 gives every bundled file, an image's
+included. That path is the form every reference to a captured file takes:
 a figures section's heading, an appendix or image `source_anchor`, and an interview question naming
 an image (`references/brd-format.md` §1.2, §2). None of them is a bundle filename, so without the map
 a reviewer who searches by filename, as rule 4 tells them to, finds nothing.
@@ -336,9 +339,12 @@ command** — producing a single archive of the whole dated directory, in a form
 open without installing anything. One command, because the population that cannot pull the
 repository is exactly the population that will not assemble an archive command themselves.
 **It is produced only where the archive is the route actually being used**, which the calling
-command settles once, at the delivery note, and only where the handoff was accepted and pushed the
-bundle is the repository route available at all — a bundle on no ref, or on a commit only the
-packaging machine holds, is a bundle nobody can pull.
+command settles once, at the delivery note. The repository route is true only once the handoff has
+pushed the bundle — a bundle on no ref, or on a commit only the packaging machine holds, is a bundle
+nobody can pull — but the note is itself one of the files that handoff commits, so the route is
+settled from what the run holds before it: the handoff's consent, taken there, and whether the specs
+repository has a remote to push to. The push is checked afterwards, against the route, and reported
+where it did not happen (`commands/brd-package.md`'s *Render the delivery note* and *Handoff*).
 
 **The committed copy is the permanent record of exactly what was sent.** This is the point of D18
 and the reason the cost is worth paying: it is what makes the byte-identical property behind the
@@ -371,7 +377,9 @@ prose rather than a link, to a document §1.1 excludes by rule or has already re
 in. Three stops carry it: `BRD_PACKAGE_DEAD_CITATION` for a reference that resolves to nothing
 (§6.1's unkeyed-document case, §6.2's relations 1 and 3), `BRD_PACKAGE_CITATION_MISMATCH` for
 one that resolves to the wrong requirement (§6.2's relation 2), and
-`BRD_PACKAGE_CORPUS_UNREADABLE` for a corpus that cannot be parsed (§6.1). Design authority:
+`BRD_PACKAGE_CORPUS_UNREADABLE` for a corpus that cannot be parsed (§6.1). A fourth,
+`BRD_PACKAGE_CUSTOMER_CONTENT_HELD`, is no failure of the check: it is the operator holding the
+package over a hit in the customer's own words, on the question §6.3 fixes. Design authority:
 `docs/superpowers/specs/2026-09-08-bundle-citation-resolution-design.md` §3–§7.
 
 ### 6.1 The corpus is built per source package, and never crossed
@@ -512,6 +520,15 @@ qualified citation written into a sentence is exactly such a rendering choice. T
 live ambiguity the check merely surfaces: today a reviewer reading a copied prerequisite's grounding
 file meets `[CG#7]` with nothing telling them whose numbering it is.
 
+**An identifier reference carries a number.** A placeholder — `[BR#n]`, a bracketed prefix with `n`
+where the number would stand — names a class and no record, so relation 1 has nothing in it to
+resolve. That is the only form an example takes in text the run copies in verbatim — the schema body
+the prompt's part 10 inlines (`references/customer-review-schema.md` §1) and every fixed sentence
+`commands/brd-package.md` renders — so that text needs no exemption here. An example written with a
+number is not an example to this relation: it resolves against the package's own records, to a
+record nobody meant or to nothing, and no operator edit can repair text the run renders from a
+reference on every run.
+
 **A structured field is already qualified, and relation 1 reads it rather than refusing it.** Where
 an identifier reaches the bundle inside a **structured field whose format another authority fixes**,
 and that authority defines the field to name a record of another BRD, relation 1 treats it as a
@@ -651,8 +668,10 @@ the customer's own words, copied or transcribed rather than written by this pack
   whole, an image-drawn row's only in the element it quotes — because each ledger row's `text`
   mirrors its inventory row's (`references/coverage-ledger-format.md` §2);
 - and in `decisions.md`, a `[CD#n]`'s `argumentation`, the customer's own reason quoted and never
-  paraphrased (`commands/brd-reconcile.md`, *Freeze the customer decisions*), and its `chosen` where
-  that quotes an answer outside the options put — the answer only, not the fixed marker before it
+  paraphrased (`commands/brd-reconcile.md`, *Freeze the customer decisions*) — the quotation only,
+  not a closing `Reopened`, `Reverted` or `Withdrawn` paragraph after it, which is the plugin's
+  (`references/decision-register-format.md` §4) — and its `chosen` where that quotes an answer
+  outside the options put — the answer only, not the fixed marker before it
   (`references/decision-register-format.md` §1).
 
 Each table span is read **decoded** (`references/brd-format.md` §2.3): a `\|` or a `<br>` in the
@@ -665,10 +684,10 @@ spans inherit the plugin-free scan's treatment of the same content, for the iden
 stopping outright would make that BRD permanently unpackageable, since the only repair left would
 falsify the record — an edit to an immutable file, a transcription saying something the image does
 not, or a quotation saying something the customer did not. So a relation 1 or relation 3 hit inside
-one is reported, grouped as the last rule below fixes, and the operator decides whether to ship.
-Outside these spans and the customer-derived locators below, every hit stays a hard stop, in the
-figures file, the inventory, the ledger and the register as anywhere else: the rest of each is the
-plugin's own writing.
+one is reported, grouped as rule 4 below fixes, and put to the operator on the one question *The
+operator's ruling* below fixes. Outside these spans and the customer-derived locators below, every
+hit stays a hard stop, in the figures file, the inventory, the ledger and the register as anywhere
+else: the rest of each is the plugin's own writing.
 
 **A customer-derived locator is the customer's naming, wherever it appears.** It is one of four
 things: a captured file's path relative to `brd/`, with whatever follows its ` › ` — the `source/`
@@ -714,6 +733,33 @@ relation 3's (§6.2). Four rules follow, for the plugin-free scan and this check
    sat in verbatim content or in a locator. A `"D3"` quoted in an image anchor, in that row's
    `text`, in its ledger row's `text` and in the figures file's *Flow* is three lines, not four
    reports.
+
+**The operator's ruling — one question per pass, never one per hit.** A pass that reports a hit this
+section covers — the plugin-free scan over the prompt, over the delivery note or over the finished
+bundle (`commands/brd-package.md`'s *Render the customer prompt*, *Render the delivery note* and
+*Assemble the bundle* rule 7), or this check (that phase's rule 8) — prints its grouped report
+(rule 4) and then asks once, over the whole of it:
+
+```
+choices: ["Ship it — these are the customer's own words and naming, left exactly as they wrote them (Recommended)", "Hold the package — hand nothing off until the customer has seen these"]
+```
+
+The recommendation stands because every hit reported here is, by the definitions above, a token the
+customer wrote, and its only repair would falsify the record. *Ship it* continues the run. *Hold the
+package* stops it:
+
+`BRD_PACKAGE_CUSTOMER_CONTENT_HELD: you held <BRD-KEY>'s package over <n> hit(s) inside the customer's own words or naming — nothing was handed off. What the report names is the customer's and is never edited here: take it up with the customer, then re-run. Where this run already wrote bundle-<YYYYMMDD>/, it was never sent — move it aside first, or the re-run stops with BRD_PACKAGE_BUNDLE_EXISTS.`
+
+A free-text answer is read onto one of the two, or the question is asked again; it never becomes a
+third outcome. **A hit an earlier ruling in this run already covered — the same token, from the same
+source artifact — is listed under that ruling and not asked about again**, so the prompt's hits are
+not put a second time when the bundle pass meets the prompt among the bundle's documents. A pass
+that reports nothing asks nothing. The run's final report records the rulings as one outcome line,
+above the grouped lines:
+
+`Customer content: <n> hit(s) in <m> file(s) — shipped as the customer's own, on the operator's ruling`
+
+or, where no pass reported a hit, `Customer content: none`.
 
 ### 6.4 What §6 cannot see
 
@@ -825,8 +871,10 @@ the bundle. Three qualifications, each of which a real package would otherwise f
   all — a marker written into a superseded bundle to say it was never sent is the case that occurs.
   The test is *review document*, not *markdown file*.
 - **Images are out of scope.** The manifest names frames in prose where it names them, and does not
-  always name them; requiring it to would fire on a correct package. The design findings cite frames
-  by filename and §6's relation 3 already reaches those.
+  always name them; requiring it to would fire on a correct package. A design finding's citation of
+  a frame by filename is not checked here, and not by §6 either, whose relation 3 reads a bare
+  `<name>.md` token only: it is review's. A captured image is a different case — §1.1's map names
+  every one the bundle carries — and this relation still does not test it.
 
 **Relation 3 — the delivery note's repositories and pins are the bundle's own baselines'.** The note
 restates which repositories, at which commits; the bundle's baselines document is where those were

@@ -261,7 +261,8 @@ and nothing downstream can tell the difference afterwards.
    the register and the round record* phase, because `open` and `conditional` are holding states that
    would otherwise have no exit at all. Nothing else on that record moves, and no other record here
    carries an exception. **An addition is not a rewrite, and one is made to another run's entry**:
-   the `- **Requirement defect:**` line *Resolve the round* appends to a held `[C]` entry in
+   the `- **Requirement defect:**` line — with its `- **Defect image:**` line, where the defect sits
+   on a row drawn from an image — that *Resolve the round* appends to a held `[C]` entry in
    `interview/customer-questions.md` (*One question per row*), which changes nothing already written
    in it.
 
@@ -477,11 +478,13 @@ beside it. So where some round already holds that row's question — the
 `interview/customer-questions.md` entry whose `- **Rejected row:**` line names it, or, on an entry
 written before 3.7.0, which carries no such line, the one held entry whose question names that row's
 `[BR#n]` and asks about its rejection — and that question is still *held for the customer*, the
-defect is asked by **appending its `- **Requirement defect:** [DEF#n]` line to that entry**, not by
-a question of its own. The question text is not rewritten; the line is an addition, and it is what
-makes the defect **asked** and lets `/brd-reconcile` settle it from the answer. The run that works
-the round holding the entry makes the addition and records the defect asked in that round's account
-line; a run working another round leaves it for that one, and reports it as waiting on that round.
+defect is asked by **appending its `- **Requirement defect:** [DEF#n]` line to that entry** — with
+its `- **Defect image:**` line after it where the defect sits on a row drawn from an image (*Hold
+every `[C]`*) — not by a question of its own. The question text is not rewritten; the line is an
+addition, and it is what makes the defect **asked** and lets `/brd-reconcile` settle it from the
+answer. The run that works the round holding the entry makes the addition and records the defect
+asked in that round's account line; a run working another round leaves it for that one, and reports
+it as waiting on that round.
 Where no held entry is the row's — none names it, more than one could be it, or its question was
 already answered — a question is raised in the round the branches above place it in, and the final
 report names any candidates it could not choose between. **An earlier answer does not settle it**:
@@ -880,13 +883,17 @@ source for it; **for a `rejected` row's question, that row, on a line of its own
 raising a second one (*One question per row*, in *Resolve the round*); **for a question the
 requirement-defect source raised, or a `rejected` row's question carrying the defect it cites, the
 `[DEF#n]` it asks about, on a line of its own labelled exactly
-`- **Requirement defect:** [DEF#n]`**, and, where the defect sits on a row drawn from an image, that
-image's path relative to `brd/`. **That labelled line is the one both readers read, and nothing else
-in the entry**, whose context may name other `[DEF#n]`s: `/brd-reconcile` copies its id into the
-answering `[CD#n]`'s `settles` field, and every slice under the parent reads it to know the defect
-is **asked** (*Round 1 is generated from the grounding*); and, where a `[G]` part of the same
-original question was answered first, that answer — because the business question it leaves is
-materially different from the one that would have been asked without it (§4).
+`- **Requirement defect:** [DEF#n]`**, carrying that id and nothing else; **and, where the defect
+sits on a row drawn from an image, that image's path relative to `brd/`, on the next line, labelled
+exactly `- **Defect image:** <path relative to brd/>`** — the form an image anchor names it by
+(`brd-format.md` §2), which the bundle's manifest maps to the image's bundled filename, so the
+customer can find the picture the question is about. The path never goes on the defect's line,
+whose one value a reader copies. **The `- **Requirement defect:**` line is the one both readers
+read, and nothing else in the entry**, whose context may name other `[DEF#n]`s: `/brd-reconcile`
+copies its id into the answering `[CD#n]`'s `settles` field, and every slice under the parent reads
+it to know the defect is **asked** (*Round 1 is generated from the grounding*); and, where a `[G]`
+part of the same original question was answered first, that answer — because the business question
+it leaves is materially different from the one that would have been asked without it (§4).
 
 Each `[C]` is recorded in the round with the **holding state** *held for the customer*. **Holding a
 question is not an answer to it**: the terminal disposition *answered by the customer* is reached

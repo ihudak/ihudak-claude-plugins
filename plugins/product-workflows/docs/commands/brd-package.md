@@ -168,14 +168,19 @@ an anchor or a question names it by — to its bundled filename. The customer's 
 for byte, unrendered. A document reaches the bundle only where a part of the prompt sends the
 reviewer to it — everything else in the folder is a working record and stays.
 
-Behind the handoff phase's consent choice, these are committed, pushed, and a pull request opened
-against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix. The
-committed bundle serves both delivery routes, and the run settles which one at the delivery note:
-where the handoff was accepted and pushed the bundle it asks, recommending that the customer pull
-it; where it was declined, or accepted but pushed nothing (no remote, a failed push), there is
-nothing to pull, so it takes the archive route without asking and says so. The archive command is printed only on the archive route. **The prompt itself names no
-route** — it is handed on to a reader the run cannot see, and a path is correct exactly once, so
-only the delivery note names where the bundle is.
+Behind a consent choice, these are committed, pushed, and a pull request opened against the specs
+repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix. The committed bundle
+serves both delivery routes, and the run settles which one at the delivery note — which is why the
+consent is asked there rather than at the handoff phase that acts on it: the note is one of the
+files the handoff commits, so its route cannot wait on the handoff's outcome. Where the operator
+consents and the specs repo has a remote to push to, the run asks, recommending that the customer
+pull the bundle; where the handoff is declined, or there is no remote, nothing this run does puts the
+bundle where a customer can pull it, so it takes the archive route without asking and says so. The
+push itself is checked after the handoff: on the repository route, where it did not happen — a
+failed push — the report says the note's route is not yet true and what makes it true. The archive
+command is printed only on the archive route. **The prompt itself names no route** — it is handed on
+to a reader the run cannot see, and a path is correct exactly once, so only the delivery note names
+where the bundle is.
 
 ## The prompt's eleven parts
 
@@ -244,7 +249,12 @@ attack.
   with `BRD_PACKAGE_SCHEMA_BOUNDARY` if that file no longer declares where its boundary falls. The
   rendered headings are renumbered so the customer's copy runs from 1 rather than visibly beginning
   at 2; that is safe because the schema refers to its own sections by name and never by number, which
-  the render verifies by requiring the extracted body to contain no `§` at all.
+  the render verifies by requiring the extracted body to contain no `§` at all. It verifies, too,
+  that the body holds no identifier with a number in it, and stops with
+  `BRD_PACKAGE_SCHEMA_EXAMPLE_ID` on one: the schema writes every example as a placeholder,
+  `[BR#n]`, because the prompt is a bundle document and the citation-resolution check would resolve
+  an example number against this package's own records — to a requirement or finding nobody meant,
+  or to nothing.
 - **Phases 6, 7 and 8 — the plugin-free scan.** Run over the finished prompt, the finished note and
   every bundle document. A hit stops the run with `BRD_PACKAGE_PROMPT_LEAK`, naming the token, the
   part it landed in and the artifact it came from — except inside the customer's own verbatim
@@ -252,12 +262,16 @@ attack.
   ledger and the register that quote them) or a locator naming their own files, headings and links,
   in the positions where `bundle-packaging.md` §6.3 recognises one; both sets are defined there,
   once. There a `§ 4.2` or a `D3` is the customer's own and the only fix would falsify it, so the
-  hit is reported, grouped as that section fixes, and the operator decides whether to ship — or,
-  where that section says so, it is no hit at all. The identifiers the package's own registers, logs
-  and grounding files mint are **not** in the scan's classes and are meant to travel — the classes
-  are enumerated once, in `bundle-packaging.md` §6.1's table, rather than restated here. They are
-  how the returned review cites the package without minting identifiers of its own; whether each one
-  actually lands is what the citation-resolution check below verifies.
+  hit is reported, grouped as that section fixes, and put to the operator on one question per pass —
+  ship it as the customer's own (recommended), or hold the package, which stops with
+  `BRD_PACKAGE_CUSTOMER_CONTENT_HELD` and hands nothing off; a hit an earlier ruling in the run
+  covered is not asked about again, and the report opens its list of them with a
+  `Customer content:` line — or, where that section says so, it is no hit at all. The identifiers
+  the package's own registers, logs and grounding files mint are **not** in the scan's classes and
+  are meant to travel — the classes are enumerated once, in `bundle-packaging.md` §6.1's table,
+  rather than restated here. They are how the returned review cites the package without minting
+  identifiers of its own; whether each one actually lands is what the citation-resolution check
+  below verifies.
 - **Phase 7 — the delivery note's 200-word ceiling.** A ceiling, not a target. Over it, the note is
   shortened and re-rendered; the two facts that are never trimmed are which file is the prompt and
   which file comes back.
@@ -339,12 +353,13 @@ Package a synthetic customer BRD once its interview round has settled, declaring
 
 The run gates on `decisions.md` being merged and on every question carrying a terminal disposition or
 being held for the customer, dispatches the adversarial reviewer, walks each `[SR#n]` to a
-disposition, asks which tier the customer can be given, renders the prompt and the note, assembles
-`bundle-<date>/` with the prerequisite's package copied in and marked *not for re-review*, and offers
-to branch, commit, push and open a pull request. The report prints the delivery note in full, the
-delivery route and why — the archive command with an absolute path on the archive route, or a line
-saying none was produced because the customer pulls the committed bundle — the repo→SHA table, and
-the ledger line.
+disposition, asks which tier the customer can be given, renders the prompt, asks whether to branch,
+commit, push and open a pull request — and, on a yes with a remote to push to, how the customer gets
+the bundle — renders the note, assembles `bundle-<date>/` with the prerequisite's package copied in
+and marked *not for re-review*, and hands it off as answered. The report prints the delivery note in
+full, the delivery route and why — the archive command with an absolute path on the archive route,
+or a line saying none was produced because the customer pulls the committed bundle — the repo→SHA
+table, and the ledger line.
 
 ## See also
 

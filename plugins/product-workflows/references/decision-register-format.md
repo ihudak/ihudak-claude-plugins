@@ -168,14 +168,27 @@ also what the eventual re-decision is argued against under §2: it names what ch
 `argumentation` can say why that change moves the answer — or, just as legitimately, why it does not
 and the original `chosen` stands.
 
-**A cause from another BRD is named with that BRD's key.** That is the propagation sweep's case:
-`commands/brd-reconcile.md` reopens a dependent's record on a `[CD#n]` the prerequisite's own
-reconciliation froze. A structured field names it in §5's cross-BRD shape, `<BRD-KEY>/[CD#n]`, and
-prose in the one qualified spelling `references/bundle-packaging.md` §6.2 fixes, `<BRD-KEY> [CD#n]`.
-A bare `[CD#n]` names a record of the register it sits in — the wrong one where this register holds
-that id, none where it does not — and this register ships in its own BRD's package, whose citation
-check resolves a bare id the same way. An unnamed cause and a cause naming the wrong record fail
-alike: neither says what changed.
+**The cause is written in the record's `argumentation`**, as a closing paragraph appended beneath
+what the field already holds and opening `Reopened <YYYYMMDD>:` — never in place of the reasoning
+the re-decision has to argue against. None of §1's thirteen fields is a cause, and `argumentation`
+is the one that already answers *why*. On a `[CD#n]`, whose `argumentation` is the customer's own
+reason quoted, the paragraph follows the quotation and leaves it exactly as written; its opening
+marker is what tells the plugin's words from the customer's (`references/bundle-packaging.md` §6.3).
+
+**A cause from another BRD is named with that BRD's key, in prose.** That is the propagation
+sweep's case: `commands/brd-reconcile.md` reopens a dependent's record on a `[CD#n]` the
+prerequisite's own reconciliation froze, and its `Reopened` paragraph names it `<BRD-KEY> [CD#n]`,
+the one qualified prose spelling `references/bundle-packaging.md` §6.2 fixes. The same sweep's
+`reverted` and `withdrawn` writes name the changed id the same way, in a closing paragraph opening
+`Reverted <YYYYMMDD>:` or `Withdrawn <YYYYMMDD>:` — the reason a withdrawn record carries (§3), in
+the withdrawn case. **Never §5's slash shape, `<BRD-KEY>/[CD#n]`**: that is the spelling of a
+structured field whose owning authority declares it — `conditional_on` is the one in this register —
+and `references/bundle-packaging.md` §6.2's relation 1 reads it as qualified only in a field its
+table lists. No sweep write writes one of those fields, so none uses the shape. A bare `[CD#n]`
+names a record of the register it sits in — the wrong one where this register holds that id, none
+where it does not — and this register ships in its own BRD's package, whose citation check resolves
+a bare id the same way. An unnamed cause and a cause naming the wrong record fail alike: neither
+says what changed.
 
 The rule's purpose is not ceremony. A register that can be reopened freely is a register whose
 `decided` status means nothing, and a customer who signed off on a set of decisions signed off on

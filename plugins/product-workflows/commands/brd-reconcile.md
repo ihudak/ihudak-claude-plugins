@@ -1254,10 +1254,10 @@ run to inherit-unchanged its way through a sweep whose whole purpose is to find 
 
 | Disposition | Recorded as |
 |---|---|
-| `inherited-unchanged` | the record is unchanged; the sweep row names the changed id that was considered, qualified (below), and why it does not move the position. **The row is written even so** — an item checked and found unaffected and an item never reached are different facts |
-| `reverted` | the record's `chosen` and `argumentation` return to the position that stood before the prerequisite moved it, recorded against the changed id, qualified (below) |
-| `reopened` | `status: reopened` on that record, naming this run's `[CD#n]` as its cause, qualified (below) — an incoming customer decision is exactly one of the two causes §4 admits |
-| `withdrawn` | `status: withdrawn` — the question stopped applying rather than being answered differently. It is **not** a tidier spelling of `superseded` (§3), and it is what stops a request from reappearing in the next customer package after the customer has already dealt with it |
+| `inherited-unchanged` | **nothing is written into the dependent's record**, which is unchanged; the row is this run's, in the reconciliation record (*Write the reconciliation record*, *The sweeps*), naming the dependent's record and the changed id that was considered, each qualified (below), and why the change does not move the position. **The row is written even so** — an item checked and found unaffected and an item never reached are different facts |
+| `reverted` | the record's `chosen` and `argumentation` return to the position that stood before the prerequisite moved it, and the changed id, qualified (below), is named in a closing `Reverted <YYYYMMDD>:` paragraph appended to that `argumentation` (`decision-register-format.md` §4) |
+| `reopened` | `status: reopened` on that record, its cause — this run's `[CD#n]`, qualified (below) — named in the closing `Reopened <YYYYMMDD>:` paragraph `decision-register-format.md` §4 appends to its `argumentation`: an incoming customer decision is exactly one of the two causes §4 admits |
+| `withdrawn` | `status: withdrawn`, its reason — naming the changed id, qualified (below) — in a closing `Withdrawn <YYYYMMDD>:` paragraph appended to its `argumentation` (`decision-register-format.md` §4): the question stopped applying rather than being answered differently. It is **not** a tidier spelling of `superseded` (§3), and it is what stops a request from reappearing in the next customer package after the customer has already dealt with it |
 
 **Every id a sweep write names carries the key of the BRD whose numbering it is**, because the write
 lands in a dependent's register, which numbers its own records: a bare `[CD#3]` there resolves
@@ -1266,10 +1266,17 @@ and to nothing where it does not — and that register ships in the dependent's 
 citation check resolves a bare id the same way (`bundle-packaging.md` §6.2's relation 1). The key
 is this run's own `<BRD-KEY>` for a `[CD#n]`, `[VD#n]`, `[AS#n]` or `[SR#n]`, each numbered in this
 slice's own register or self-review, and `<PARENT-KEY>` for a `[BR#n]` or `[DEF#n]`, which are the
-parent's ids on a slice (`brd-format.md` §2.1). A structured field takes the cross-BRD shape
-`decision-register-format.md` §5 fixes, `<BRD-KEY>/[CD#n]`; prose takes the one qualified spelling
-`bundle-packaging.md` §6.2 fixes, `<BRD-KEY> [CD#n]`. A `reopened` record's cause is named the same
-way (`decision-register-format.md` §4).
+parent's ids on a slice (`brd-format.md` §2.1). **Every such id is written in prose, in the one
+qualified spelling `bundle-packaging.md` §6.2 fixes, `<BRD-KEY> [CD#n]`, and the table above names
+where each write puts it**: the closing `Reverted`, `Reopened` or `Withdrawn` paragraph of the
+dependent record's `argumentation` (`decision-register-format.md` §4), and, for an
+`inherited-unchanged` item, which writes nothing into the record, the sweep row of this run's
+reconciliation record, where the dependent's own record is named with the dependent's key the same
+way. **Never the cross-BRD slash shape `decision-register-format.md` §5 fixes, `<BRD-KEY>/[CD#n]`**:
+that is the spelling of a structured field an authority declares — `conditional_on` among them — and
+§6.2's relation 1 reads it as qualified only in a field its table lists. This sweep writes no such
+field — the one of a record's thirteen (`decision-register-format.md` §1) that takes its ids is
+`argumentation`, which is prose — so no sweep write uses the shape.
 
 **A dependent BRD whose register is in flight is recorded, never written.** This is the *cross-BRD
 write guard* above, applied to each dependent's `decisions.md`: `require-on-main` first, and on any
@@ -1428,7 +1435,8 @@ changed, why, which ids, and what still needs a human:
   `[VD#n]` reopened here; every correction with its disposition; every banner added; every defect
   resolution, with the log's path; every ledger row moved.
 - **The sweeps** — the changed-id set as fixed; per dependent BRD, every `conditional_on` position
-  and every citing item with its disposition and reason, and every dependent recorded-not-written
+  and every citing item with its disposition and reason, each id in the qualified prose form the
+  propagation sweep fixes, and every dependent recorded-not-written
   with its state; per stale-reference hit, the file, what was found, and its outcome.
 - **What still needs a human** — every question the review did not answer, in **all three** of the
   id shapes the package put to it, so an escalated `[SR#n]` the customer passed over is not lost

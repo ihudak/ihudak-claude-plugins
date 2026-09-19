@@ -110,8 +110,9 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   set is derived from those two sources rather than from the **interview/** listing, which is what
   makes a partial merge visible — enumerating the directory finds the rounds that landed and never
   learns a third was owed.
-- **An interview that happened at all.** A BRD with no `[VD#n]` and no **interview/** directory stops
-  with `BRD_PACKAGE_NOT_INTERVIEWED`, naming `/brd-interview`, rather than being reported as a
+- **An interview that happened at all.** A BRD whose **interview/** holds no round record stops
+  with `BRD_PACKAGE_NOT_INTERVIEWED`, naming `/brd-interview`, whatever its register holds — an open
+  `[AS#n]` that [`/create-prd`](create-prd.md) wrote included — rather than being reported as a
   finished state it never reached.
 - **Every interview question settled, or held for the customer.** Any question still *deferred*,
   *needs grounding* or *untagged* stops with `BRD_PACKAGE_ROUND_UNSETTLED` — see

@@ -203,13 +203,17 @@ correctly to the customer if it ends up there — plainly, without hedging and w
 shorthand — because you do not control which ones do.
 
 **So its `target`, `attack` and `what_would_settle_it` are written in words a customer can read
-without this plugin.** That package's plugin-free scan stops the run on any token a reader with
-nothing installed cannot resolve (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1), and a
-finding carrying one could then never ship, since nothing downstream may change its words:
+without this plugin.** Two checks read the finished package and stop the run on what a reader with
+nothing installed cannot follow: its plugin-free scan, on a `§` reference, a command, agent or skill
+name, or a decision-row name (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1), and its
+citation-resolution check, on a working filename, which names no document in the bundle (§6.2 there,
+relation 3). A finding carrying either could then never ship, since nothing downstream may change
+its words:
 
 - no `§` reference to a plugin file, and no reference, command, agent, skill or decision-row name —
   state the test or the rule you apply in words; a section of the customer's own document is cited
-  with its captured path, `source/<basename> › § 4.2`, which that scan exempts (its §6.3 rule 1);
+  with its captured path, `source/<basename> › § 4.2`, which the plugin-free scan exempts
+  (§6.3 rule 1 there);
 - no working filename — `decisions.md`, `code-grounding.md` — since the bundle renames every
   document it carries, and its bundled filename is minted after this review: name a package
   document by what it is, *the decision register*, *the code-grounding findings*;

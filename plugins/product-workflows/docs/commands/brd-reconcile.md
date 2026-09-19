@@ -155,9 +155,18 @@ canonicalisation step calls ordinary — without it, two `decided` answers to on
 register with nothing to adjudicate between them.
 
 And it updates, in place: `decisions.md` (the new `[CD#n]`, the superseded `[AS#n]`, the reopened
-`[VD#n]`), the round record and the `[C]` question set, `coverage-ledger.md`, the defect log — **the
-parent's**, when the run stands on a slice — every dated artifact it banners, every dependent BRD's
-register the propagation sweep wrote, and every artifact the stale-reference sweep corrected.
+`[VD#n]`), the `[C]` question set, `coverage-ledger.md`, the defect log — **the parent's**, when the
+run stands on a slice — every dated artifact it banners, every dependent BRD's register the
+propagation sweep wrote, and every artifact the stale-reference sweep corrected. The round record is
+**appended to**, never bannered: each answered question's terminal disposition, and, where the run
+answered a round's last held question, a closing `Status:` line — a round's state being its last
+one.
+
+Each new `[CD#n]` copies its `altitude` from what it answers — the held question's own
+`- **Altitude:**` line, or an assumption's field — and where there is nothing to copy the run decides
+it and says so in the reconciliation record. An answer outside the options the question put is
+frozen as the customer gave it: `chosen` carries it after the register's one fixed marker, and
+`options_considered` stays as it was put.
 
 The run makes **two** handoff offers, and they are two different questions: the first hands off the
 customer's document, the second hands off what the run decided about it. Both land on one `brd/`
@@ -325,9 +334,10 @@ under the parent, which is exactly why the carve-out has to be written down.
   named with `--rebaseline` as the fix; a supersession written here would have nothing on the other
   side of it.
 - **It never allocates.** It may move a ledger row to `deferred-to`, `rejected` or `superseded-by`
-  on a frozen customer decision, but `covered-here` and `covered-by` stay `/brd-split`'s walk — a
-  customer decision is not a statement about which BRD in the delivery organisation owns the work —
-  and no row ever returns to `unallocated`.
+  on a frozen customer decision — a withdrawn requirement is `rejected`, citing the defect-log entry
+  resolved `withdrawn`, or, where no entry was, the `[CD#n]` that withdrew it — but `covered-here`
+  and `covered-by` stay `/brd-split`'s walk — a customer decision is not a statement about which BRD
+  in the delivery organisation owns the work — and no row ever returns to `unallocated`.
 - **It never writes into another BRD's ledger, and it never mints a `[BR#n]`.** A requirement the
   customer asked for that no `[BR#n]` covers is recorded as needing a human, naming the two real
   routes: an amendment logged against the defect log, or a fresh source document through

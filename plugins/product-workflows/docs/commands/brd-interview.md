@@ -42,19 +42,29 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   ambiguity, a conflict, a duplicate, or an untestable or scope-leaking requirement confirmed at
   intake, including an obligation only an image states — and always a `[C]`: the defect is in the
   customer's own words. At most one slice owns a defect — the one holding the lowest-numbered row
-  the defect is listed on that is still built or deferred there; where no listed row is, nobody owns
-  it, and a slice whose in-scope rows list it says so in its round record, naming the rows and their
-  fates — and a defect is asked once across all the slices: where any slice's `[C]` question set
-  already carries it, none asks it again. Where that cannot be told yet — a listed row still
-  unallocated, or a sibling's ledger or question set unreadable — the run withholds the defect and
-  says why. **Round 1's record decides which round a defect goes into.** On a slice interviewed
-  before this source existed, round 1's record has no requirement-defect line, so its defects belong
-  in round 1: an open round 1 takes them at once, and a closed one is re-opened with `--round 1` and
-  the cause *requirement defects became a question source* — a bare run names those defects and
-  offers that re-open rather than asking them itself, and a new round it opens for a changed finding
-  or decision proceeds without them. On a slice interviewed since, a defect that becomes its to ask
-  later goes into a new round; while a round is still open it waits, and the run names it as waiting
-  rather than letting a package go out silent about it.
+  the defect is listed on that is still built or deferred there; where no listed row is, the one
+  holding the lowest-numbered listed row it rejected citing that defect, which asks it on that row's
+  question; where there is neither, nobody owns it, and a slice whose in-scope rows list it says so
+  in its round record, naming the rows and their fates — and a defect is asked once across all the
+  slices: where any slice's `[C]` question set already carries it, none asks it again. Where that
+  cannot be told yet — a listed row still unallocated, or a sibling's ledger or question set
+  unreadable — the run withholds the defect and says why. **Round 1's record decides which round a
+  defect goes into.** On a slice interviewed before this source existed, round 1's record has no
+  requirement-defect line, so its defects belong in round 1: an open round 1 takes them at once, and
+  a closed one is re-opened with `--round 1` and the cause *requirement defects became a question
+  source* — a bare run names those defects and offers that re-open rather than asking them itself,
+  and a new round it opens for a changed finding or decision proceeds without them. On a slice
+  interviewed since, a defect that becomes its to ask later goes into a new round; while a round is
+  still open it waits, and the run names it as waiting rather than letting a package go out silent
+  about it.
+
+  **Every row this BRD rejected becomes a question for the customer too**, always a `[C]`: nothing
+  on the route records why a requirement was rejected, so whether the customer accepts not getting
+  it is theirs to say. It carries the defect the rejection cites wherever this slice owns that
+  defect, so the customer's answer settles it. A rejected row raises nothing where the customer
+  withdrew it themselves, or where the defect it cites is already answered, already asked, or
+  another slice's to ask. A deferred row raises a question only where no rationale for the deferral
+  was ever recorded.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).
@@ -116,9 +126,11 @@ flowchart TD
 
 A run that finds every round closed and nothing changed since the last one proposes no new round: it
 reports that plainly — with any requirement defect that belongs to a closed round 1, and the re-open
-that asks it — and reaches the handoff with nothing to commit. `workflows-core:impl-maintenance` runs in the
-terminal phase for session lessons-learned; no other subagent is dispatched — every finding this
-command reads was already independently re-derived by `/prd-ground`'s own verifier pass.
+that asks it — and reaches the handoff with nothing to commit where the register is already on file;
+where none is, it writes `decisions.md` as its header line alone and hands that off.
+`workflows-core:impl-maintenance` runs in the terminal phase for session lessons-learned; no other
+subagent is dispatched — every finding this command reads was already independently re-derived by
+`/prd-ground`'s own verifier pass.
 
 ## What it needs
 
@@ -185,19 +197,26 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   account of which of them mean something different on an assumption. Ids are contiguous within their
   own prefix, assigned once, never renumbered, and never reused after a terminal status. **Written
   on every run that records a round**, even one that produced no record — a round of `[C]` questions
-  alone, or one with nothing to ask — as the single header line `# Decision register: <BRD-KEY>`, so
-  `/brd-package` finds the register it gates on.
+  alone, or one with nothing to ask — **and on a run that finds every round closed and nothing
+  changed, where none is on file**: as the single header line `# Decision register: <BRD-KEY>`
+  wherever no round recorded a decision, so `/brd-package` finds the register it gates on.
 - `interview/round-<N>.md` — the round's append-only record: every question in the order it was
   written, its tag, every re-tag with the finding that caused it, every split with the parts it
   became, and each question's state — either a **terminal disposition** (*answered from findings*,
   *decided*, *answered by the customer*, *re-tagged*, *split*) or a **holding state** (*held for the
   customer*, *deferred*, *needs grounding*, *untagged*) — plus one line naming the requirement
   defects the round asked and those it withheld, each with its cause, or saying there were none for
-  this BRD to ask. This file is what makes a round resumable — an interrupted run returns to the first
-  question carrying no terminal disposition rather than restarting the round.
+  this BRD to ask. Every write of it ends with a `Status:` line — `open`, naming what the round
+  waits on, or `closed` with the date and why — and, the file being append-only, the round's state
+  is its **last** `Status:` line; [`/brd-reconcile`](brd-reconcile.md) appends the closing one when
+  it answers a round's last held question. This file is what makes a round resumable — an
+  interrupted run returns to the first question carrying no terminal disposition rather than
+  restarting the round.
 - `interview/customer-questions.md` — the `[C]` questions held for the customer, each with the
-  findings that bear on it and any `[G]` answer that already narrowed it, and — for a question a
-  requirement defect raised — the `[DEF#n]` it asks about, on its own line labelled
+  findings that bear on it and any `[G]` answer that already narrowed it; its altitude — `product`,
+  `architecture` or `implementation` — on its own line labelled `- **Altitude:**`, which the `[CD#n]`
+  answering it copies; and — for a question a requirement defect raised, or a rejected row's
+  question carrying the defect it cites — the `[DEF#n]` it asks about, on its own line labelled
   `- **Requirement defect:**`, which `/brd-reconcile` copies into the `settles` field of the `[CD#n]`
   that answers it and every slice reads to know the defect is asked.
 - `code-defect-log.md` — the code-defect log: one `[CDF#n]` per defect in the code that a decision

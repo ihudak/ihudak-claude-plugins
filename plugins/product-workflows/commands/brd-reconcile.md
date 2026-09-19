@@ -310,8 +310,9 @@ write would re-ask a question already answered.
    is an input, never scratch: nothing below deletes, renames or rewrites a dated artifact another
    run wrote.
 9. **Fix the run's date.** One `<YYYYMMDD>` stamp, taken once, used for the reconciliation record
-   this run writes. It is **not** the stamp on the canonicalised review, which carries the
-   customer's date — the *Canonicalise the returned review* phase says why.
+   this run writes and for the `Status:` line of any round it closes. It is **not** the stamp on the
+   canonicalised review, which carries the customer's date — the *Canonicalise the returned review*
+   phase says why.
 
 ---
 
@@ -584,6 +585,8 @@ the operator, **one at a time, never batched**, with:
 - the statement as it would be registered, and the answer;
 - the **verbatim quotation** from the review it rests on — always, in both modes;
 - what it appears to answer, in one of the three id shapes above, or `unmatched`;
+- whether the answer is one of the options that question, assumption or finding put, or outside
+  them;
 - the reason the customer gave, or `not stated` as the plain fact it is;
 - in free-text mode, the agent's own `confidence`, and every `conflict` flag naming the other
   candidate this one pulls against.
@@ -644,6 +647,15 @@ a conflict flag, a low confidence the quotation does not carry, and an answer th
 question nobody put. Both are recorded with their reason; **nothing is silently dropped**, because a
 candidate that vanishes is indistinguishable from one nobody looked at.
 
+**An answer outside the options put is a decision like any other, and *Confirm* is its route.**
+Where the customer answered with none of the options the `[C]` question, the `[AS#n]` or the
+escalated `[SR#n]` put — they chose neither reading, or dropped the requirement instead — the answer
+is still theirs and still clear, so *Confirm* freezes it, and the *Freeze the customer decisions*
+phase writes `chosen` in the one marked form `decision-register-format.md` §1 fixes for an answer
+outside the options, with `options_considered` left exactly as it was put. It is not *Correct it*,
+which is for a row that misreads its own quotation, and not *Ask the customer*, which is for an
+answer that is unclear; an answer outside the options is neither.
+
 **A candidate whose reason is `not stated` cannot be frozen as `decided`, by anyone in this run.**
 `argumentation` is mandatory (`decision-register-format.md` §2) and on a `[CD#n]` it is the
 customer's own reason for their own decision. Where *Confirm* is chosen on such a candidate, exactly
@@ -699,13 +711,13 @@ about a genuinely new record, and each carries every field `decision-register-fo
 |---|---|
 | `id` | `[CD#n]`, contiguous within its own prefix, continuing from the highest `[CD#n]` on file, **never renumbered and never reused** — a re-run continues the sequence and never restarts it |
 | `statement` | the decision, one sentence, as confirmed |
-| `options_considered` | what the package actually put in front of the customer, taken from the `[C]` question, the `[AS#n]`, or the escalated `[SR#n]` — never reconstructed from the answer |
-| `chosen` | the customer's answer, one member of `options_considered` |
+| `options_considered` | what the package actually put in front of the customer, taken from the `[C]` question, the `[AS#n]`, or the escalated `[SR#n]` — never reconstructed from the answer, and never widened to take in an answer outside it |
+| `chosen` | the customer's answer: one member of `options_considered`, or, where the customer answered outside them (*Confirm every candidate*), their answer quoted after the fixed marker `decision-register-format.md` §1 gives that case |
 | `argumentation` | **the customer's own reason, quoted**, never paraphrased and never supplied |
 | `evidence` | the `[CG#n]`/`[DG#n]` the question was put against, as the question set recorded them |
 | `defects` | the `[CDF#n]` the answered position turns on, as the `[C]` question, the `[AS#n]` or the escalated `[SR#n]` recorded them; omitted when none. Never in `evidence` (§1), and **never minted here** — `${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` makes `/product-workflows:brd-interview` the log's only writer, so this phase carries an existing id forward and writes no entry |
-| `settles` | the `[DEF#n]` on the answered `[C]` question's `- **Requirement defect:**` line in `interview/customer-questions.md`, copied from that line and from nothing else in the entry, whose context may name other `[DEF#n]`s (`references/decision-register-format.md` §1); omitted where the entry has no such line. **Never inferred from the review**: which question an answer answers is already fixed by the round and position it cites, and the entry is the record of what that question was raised by |
-| `altitude` | the altitude the question carried |
+| `settles` | the `[DEF#n]` on the answered `[C]` question's `- **Requirement defect:**` line in `interview/customer-questions.md`, copied from that line and from nothing else in the entry, whose context may name other `[DEF#n]`s (`references/decision-register-format.md` §1); omitted where the entry has no such line. **Never inferred from the review**: which question an answer answers is already fixed by the round and position it cites, and the entry is the record of what that question was raised by or carries |
+| `altitude` | copied, never judged, wherever there is one to copy: the answered `[C]` question's `- **Altitude:**` line in `interview/customer-questions.md`, an `[AS#n]`'s own `altitude`, or, for an escalated `[SR#n]`, which carries none, the altitude of the record or question its `target` names. Where there is none — a `[C]` entry written before 3.7.0, an `[SR#n]` whose target is a document passage, or an `unmatched` answer — decide it by the test `decision-register-format.md` §1 gives the field, and name it in the reconciliation record as decided here rather than copied |
 | `conditional_on` | written only where the customer's answer is itself correct only while a named prerequisite decision holds, and named as `<BRD-KEY>/<decision-id>` (§5) — for instance `conditional_on: EPIC-014/[CD#2]` |
 | `status` | `decided`, or `open` where the reason is absent and the *Confirm every candidate* phase took that resolution |
 | `consumed_by` | `none` |
@@ -727,6 +739,14 @@ Then, in the same phase and from the same confirmed set:
    customer answering it, and the customer answering it is not the register recording an answer
    (`interview-tagging.md` §5, `decision-register-format.md` §1). Mark the same question answered in
    `interview/customer-questions.md`, naming the `[CD#n]`.
+
+   **Where that closes the round's last held question** — every question in it now carrying a
+   terminal disposition — append `Status: closed <YYYYMMDD> — <why>` after it, with this run's date
+   and, for `<why>`, the held questions this run's answers closed. A round's state is its **last**
+   `Status:` line (`/product-workflows:brd-interview`, *Write the register and the round record*), so
+   any `Status: open` line `/brd-interview` wrote above stays where it is, as history. Where a
+   question in the round stays held, append no `Status:` line: the round was open and stays open,
+   and its last line already names what it waits on.
 
    **A question whose `[CD#n]` is `open` is not answered, and its holding state does not move.** The
    terminal disposition is reached when the answer came back *and* an operator confirmed it, and a
@@ -885,9 +905,13 @@ bundle itself. The overturned bundle document is named in the reconciliation rec
 banner on the folder-level prompt says outright that the bundle's own copy is the unbannered
 original and is the one to quote from.
 
-**The round records are bannered too, not corrected.** `interview/round-<N>.md` is append-only by
-`/brd-interview`'s own rule, and the terminal disposition this run appends to it is an addition, not
-a rewrite — the questions and tags it recorded stand exactly as they were asked.
+**The round records are neither bannered nor corrected: they are appended to.**
+`interview/round-<N>.md` is append-only by `/brd-interview`'s own rule, and this run appends the
+terminal disposition each answered question reaches, plus the `Status:` line that closes the round
+where it does (*Freeze the customer decisions*) — the questions and tags it recorded stand exactly as
+they were asked. An append is how an append-only record moves on, and the record states its own
+state in its last `Status:` line, so a banner above it would only repeat that line out of order.
+That is why the list above names no round record.
 
 ---
 
@@ -917,6 +941,14 @@ survives in another is not this case (below); `customer-amended <date>` where th
 corrected text for it; otherwise `resolved-by: <SLICE-KEY>/[CD#n]`. **A `[CD#n]` frozen `open`
 resolves nothing** — its question stays held for the customer (*Freeze the customer decisions*), and
 so does its defect.
+
+**A requirement this ledger already reads `rejected: [DEF#n]` is not dropped by the answer.** The
+delivery side dropped it, and `/product-workflows:brd-interview` put that rejection to the customer
+in a question carrying its defect; a customer who answers it — accepting the rejection, or not — has
+answered the question the defect raised, not withdrawn anything. The defect is
+`resolved-by: <SLICE-KEY>/[CD#n]`, whichever rung of the order above the answer's wording would
+otherwise reach, and the row does not move: where the answer asks for it to be built after all, that
+is an allocation, which the *Update the coverage ledger* phase names rather than writes.
 
 **A `conflict` or a `duplicate` settled by keeping one row and dropping the other** names two rows,
 and only one of them lists the defect. **`withdrawn` — and the *Update the coverage ledger* phase's
@@ -982,6 +1014,7 @@ this phase is the translation between the two.
 |---|---|
 | `deferred-to: <this BRD>` | a `[CD#n]` defers the requirement — a live obligation, not built now |
 | `rejected: [DEF#n]` | a `[CD#n]` withdrew it, citing the defect-log entry the previous phase resolved `withdrawn` |
+| `rejected: <SLICE-KEY>/[CD#n]` | a `[CD#n]` withdrew it and the previous phase resolved no entry `withdrawn` for it — the requirement carried no defect, or none that answer settled — citing that decision, qualified by this slice's key exactly as `resolved-by` is (`coverage-ledger-format.md` §3) |
 | `superseded-by: [BR#n]` | a `[CD#n]` replaced it with another requirement — a `[BR#n]` of the parent's inventory, which this slice need not claim or hold a row for, so a sibling slice's row qualifies (`coverage-ledger-format.md` §3) |
 
 **`covered-here` and `covered-by` are not.** Allocation — which BRD builds a requirement — is
@@ -998,6 +1031,12 @@ but the inventory is extracted from an immutable source by `/brd-intake`, and a 
 invented would be a requirement with no anchor into the document the customer actually signed. It is
 recorded in *what still needs a human*, naming the two real routes: an amendment logged against the
 defect log, or a fresh source document through `/product-workflows:brd-intake`.
+
+**A withdrawal the review states only in its section 4 moves nothing.** A requirement marked
+`withdrawn` there with no section-7 row behind it carries no decision the operator confirmed, and a
+row moves here only on a frozen `[CD#n]`. The schema asks a reviewer who withdraws a requirement to
+give it a section-7 row as well (`customer-review-schema.md` §4), so one without is a decision the
+review did not record: name the requirement in *what still needs a human*.
 
 **The roll-up, and what this phase must not do with it** (D23, `coverage-ledger-format.md` §6.1).
 The ledger line resolves every `covered-by: <BRD-KEY>` row **one hop** through the named BRD's
@@ -1221,9 +1260,11 @@ any of them would contradict that rule rather than correct a stale sentence:
 | any file under `brd/source/` or `brd/source-external/` — the customer's document and every file captured with it, **any line of it** | `needs-a-human`, and the file is **never touched at all** — the *Apply the required corrections* phase's class 3 (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, §1.1). A stale position there is the customer's own wording; what the answer changed is recorded beside it, as a defect resolution or in *what still needs a human*, never as an edit in it |
 
 **What `updated` is for is the route's own prose**, and only that: a sentence in a seed, a rationale
-in `slices.md`, a summary in a round record, an `argumentation` paragraph that still argues the old
-position. Those have no other authority over them, which is why the correction is safe there and is
-refused everywhere above — the customer's prose included, which is prose but not the route's.
+in `slices.md`, an `argumentation` paragraph that still argues the old position. Those have no
+other authority over them, which is why the correction is safe there and is refused everywhere above
+— the customer's prose included, which is prose but not the route's. A round record's prose is not
+among them either: the record is a dated snapshot and append-only, so a hit in it is
+`needs-a-human`, like a hit in any other dated snapshot.
 **Saying so is not belt-and-braces.** The scope sentence names "the ledger" and "the inventory"
 outright, and a reader working the outcome table against a hit in one of them has no reason to stop
 — the guard on `updated` is `require-on-main`, which passes on a merged file and would license
@@ -1248,9 +1289,10 @@ changed, why, which ids, and what still needs a human:
   states, the evidence limitations as stated — or the plain fact that they were not stated — and
   every anomaly, unrepaired.
 - **What changed** — every `[CD#n]` frozen, with its quotation, what it answers, and how it was
-  confirmed; every candidate rejected or sent back to the customer, with its reason; every `[AS#n]`
-  superseded; every `[VD#n]` reopened here; every correction with its disposition; every banner
-  added; every defect resolution, with the log's path; every ledger row moved.
+  confirmed, and, where its `altitude` had nothing to copy, that this run decided it; every
+  candidate rejected or sent back to the customer, with its reason; every `[AS#n]` superseded; every
+  `[VD#n]` reopened here; every correction with its disposition; every banner added; every defect
+  resolution, with the log's path; every ledger row moved.
 - **The sweeps** — the changed-id set as fixed; per dependent BRD, every `conditional_on` position
   and every citing item with its disposition and reason, and every dependent recorded-not-written
   with its state; per stale-reference hit, the file, what was found, and its outcome.
@@ -1266,7 +1308,8 @@ changed, why, which ids, and what still needs a human:
   defects the review settled*), with that BRD named; and every `duplicate` settled by keeping the
   part, with the obligations the kept row does not cover named; and every inventory row drawn from an
   image whose quoted element an `applied` transcription correction changed, with the row and the
-  corrected element named — any defect the row carries stays open for its own question.
+  corrected element named — any defect the row carries stays open for its own question; and every
+  requirement the review marks `withdrawn` in its section 4 with no section-7 row behind it.
 
 **A second reconciliation on the same day appends, and never overwrites.** Where
 `reconciliation-<YYYYMMDD>.md` already exists, this run adds a new pass beneath what is there, under

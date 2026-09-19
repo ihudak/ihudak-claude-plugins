@@ -240,13 +240,15 @@ cannot review, and they will not tell you that — they will review it anyway, b
    not about the tree — a hand-committed set lands partially, which is exactly the case above.
 
    **Where neither the register's records nor any held `[C]` entry name a round, the set is empty,
-   and this gate is silent on it** — there is nothing to require. That state reaches step 8's
-   `BRD_PACKAGE_NOTHING_TO_REVIEW`, which reads its rounds as **settled** ("every question its rounds
-   asked was settled from verified findings"). That reading is right for a BRD that was interviewed
-   and settled, and wrong for one that was never interviewed at all — the two are indistinguishable
-   from the register alone, and the difference is whether `interview/` holds anything. Step 8 says
-   which of the two it is by testing that directory, so the message does not congratulate an
-   operator on finishing work nobody started.
+   and this gate is silent on it** — there is nothing to require. That state reaches step 8, which
+   stops it unless `interview/` holds a round record and an open `[AS#n]` leaves something to
+   review. Where it stops it for want of anything to review, its `BRD_PACKAGE_NOTHING_TO_REVIEW`
+   reads the rounds as **settled** ("every question its rounds asked was settled from verified
+   findings"). That reading is right for a BRD that was interviewed and settled, and wrong for one
+   that was never interviewed at all — the two are indistinguishable from the register alone, and
+   the difference is whether `interview/` holds anything. Step 8 says which of the two it is by
+   testing that directory first, so the message does not congratulate an operator on finishing work
+   nobody started.
 
    Then, over the rounds that exist: stop unless **every question in every round
    carries either a terminal disposition or the holding state *held for the customer*** — the
@@ -712,11 +714,14 @@ listing them as blockers.
 `accepted-risk`, each in the reviewer agent's own words rather than re-summarised — that agent
 writes its findings knowing they may end up here, and writes their `target`, `attack` and
 `what_would_settle_it` for a customer to read, with no `§` of a plugin file, working filename,
-command or agent name in them (`agents/brd-package-reviewer.md`), so they pass the plugin-free scan
-as quoted. A token that reaches the prompt this way anyway stops that scan like any other; the
-finding's words are still not this command's to change. Nothing disposed `fixed` appears (it is no
-longer true of the package), and nothing disposed `rejected-with-reason` appears (the rejection is
-ours to own, and shipping an attack the team has already argued against invites the customer to
+command or agent name in them (`agents/brd-package-reviewer.md`), so they pass both checks that read
+the finished prompt as quoted: the plugin-free scan stops on a `§`, a command or an agent name, and
+the citation-resolution check (Phase 8 rule 8,
+`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.2 relation 3) on a working filename. A
+token that reaches the prompt this way anyway stops whichever of the two catches it, like any other;
+the finding's words are still not this command's to change. Nothing disposed `fixed` appears (it is
+no longer true of the package), and nothing disposed `rejected-with-reason` appears (the rejection
+is ours to own, and shipping an attack the team has already argued against invites the customer to
 referee an internal disagreement). **A package that names its own weak points gets a review worth
 having; one that does not gets a rubber stamp** — which is the entire reason this part is assembled
 rather than written.

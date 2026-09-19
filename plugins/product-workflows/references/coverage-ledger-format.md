@@ -69,12 +69,20 @@ Exactly six. Only the last one blocks the gate in §4.
 | `covered-here` | This folder builds it; a `PRD-` slice folder carrying one is therefore PRD-eligible (§5). Never written on a root: a container builds nothing itself |
 | `covered-by: <BRD-KEY>` | A named BRD owns it. On a BRD that owns its source document the key is a **child**; on a slice it is a **sibling under the same parent, or that parent** — never a child, because none can exist below a slice (see below) |
 | `deferred-to: <this BRD>` | Kept as a live obligation of this BRD, not built now |
-| `rejected: [DEF#n]` | Not built, citing the `[DEF#n]` that justifies rejecting it |
+| `rejected: [DEF#n]` · `rejected: <SLICE-KEY>/[CD#n]` | Not built, citing what justifies it: the `[DEF#n]` a rejection rests on, or the customer decision that withdrew the requirement. The second is written only by `commands/brd-reconcile.md`, onto its own slice's ledger, where a customer withdrew a requirement and no defect-log entry was resolved `withdrawn` for it — qualified by that slice's key, as a `resolved-by` value is (`references/brd-format.md` §4), because the row is also read from other folders: one hop from its parent's line (§6.1) and from a sibling's interview |
 | `superseded-by: [BR#n]` | Replaced by another requirement, named by its `[BR#n]` |
 | `unallocated` | The initial state; the only one of the six that blocks §4 |
 
 **`unallocated` is the state every row is written in when its ledger is first built** — no row
 starts in any other disposition.
+
+**`rejected` has two spellings and one meaning**: nobody builds the requirement, and the ledger
+line counts both as `rejected` (§6). What tells a customer's withdrawal apart from a rejection the
+delivery side made is the citation, never the disposition. `rejected: <SLICE-KEY>/[CD#n]` is always
+the customer's; `rejected: [DEF#n]` is the customer's where the defect log resolves that entry
+`withdrawn`, and otherwise the delivery side's, written by `/brd-split`'s walk. A reader that
+parses a `rejected` row's value therefore accepts both spellings, and a slice resolves a
+`[DEF#n]` one hop up (below) and a `[CD#n]` in the register of the slice the key names.
 
 **Two commands create a ledger, one per level, and both seed every row `unallocated`:**
 
@@ -296,7 +304,7 @@ that carves the slices.
 - **Eligible.** At least one `covered-here` row exists. The folder may go on to author its own
   `prd.md`, which is what `/create-prd` on the BRD route runs against it to write.
 - **Not eligible.** No row is `covered-here`. Every row therefore resolves to one of the other four
-  terminal dispositions — `covered-by: <BRD-KEY>`, `deferred-to: <this BRD>`, `rejected: [DEF#n]`
+  terminal dispositions — `covered-by: <BRD-KEY>`, `deferred-to: <this BRD>`, `rejected` (§3)
   or `superseded-by: [BR#n]` — in any mix, and **all four reach this case equally**: eligibility is
   the presence of a `covered-here` row and nothing else, so a disposition bears on it exactly by not
   being `covered-here`. A folder whose every row is `rejected` is ineligible owing nobody
@@ -315,7 +323,7 @@ that carves the slices.
   |---|---|
   | **The folder is a `BRD-` container** — decided on the folder, before a row is read | Every row of a root's ledger ends `covered-by`, `deferred-to`, `rejected` or `superseded-by`; `covered-here` is not among them, and a root row carrying one is a ledger written before a BRD became a container, or edited by hand. Refuse on the level and name the `PRD-` slices under the container, one PRD each — enumerated by `/brd-split` Phase 0 step 9's positive test (an immediate subdirectory whose `brd-link.md` `parent:` names this BRD), never by a name match. Where the container holds no slice at all, the run that carves one is `/brd-split <BRD-KEY> "<how to cut it>"` — a run with rows still to place has no findings to group them by and refuses without the instruction — and it is a **no-op** on a ledger with no `unallocated` row (§4), so a consumer naming it must say what the operator does then rather than leaving the offer to fail silently |
   | Some rows are `covered-by: <SLICE-KEY>` — the ordinary shape on a parent | Name those slices — and, per §6.1, which of them did not build the row delegated to it. A slice that deferred, rejected or has not allocated it is not somewhere to send the reader |
-  | No row is `covered-by` | Name no slice, because none holds one of these rows — and say what the rows *did* resolve to rather than calling them all obligations. The three remaining dispositions say different things: a `deferred-to` row is a live obligation of this folder, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. This is also the only shape a **slice** reaches, for the reason the paragraph below gives: no row of the set eligibility is read over on a slice can be `covered-by`. On a slice, add that a PRD needs one row resolved `covered-here` first |
+  | No row is `covered-by` | Name no slice, because none holds one of these rows — and say what the rows *did* resolve to rather than calling them all obligations. The three remaining dispositions say different things: a `deferred-to` row is a live obligation of this folder, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it or the customer decision that withdrew it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. This is also the only shape a **slice** reaches, for the reason the paragraph below gives: no row of the set eligibility is read over on a slice can be `covered-by`. On a slice, add that a PRD needs one row resolved `covered-here` first |
 
 
   **A root row `covered-here` is repairable one row at a time, and the narrow repair is named before

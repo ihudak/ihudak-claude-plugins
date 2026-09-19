@@ -530,8 +530,10 @@ For every slice Phase 2 confirmed:
    **On the re-cut path all of that is unchanged and still exactly true.** Phase 4's walk is still the step that actually moves a row's disposition — there it is Step 2R — so a slice this run keys as a receiver holds a provisional `claims:` entry until that walk writes the row, exactly as any other confirmed slice does. **The seeding does not change either, and this is the sentence a reader will get wrong.** Step 5 still writes one `unallocated` ledger row per claimed `[BR#n]`, and that row is `unallocated` because it is **a new row born in the initial state — never an existing row returned to it**, which no command may write (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). **State it in that general form and not as "a new row on a new ledger"**, because the receiver need not be a slice this phase keys: where the confirmed target is a **standing** child, this phase writes nothing for it at all and the new `unallocated` row is written onto that child's **existing** ledger by Phase 4's reconcile step instead. Both are rows that did not exist before, and neither is a row moved backwards, which is the whole reason the re-cut leaves §4's gate intact: the donor's row moves from one terminal disposition to another, and the receiver's row is born in the state every ledger row is born in. **That first half is a guarantee bought in Phase 0 and not an assumption made here**, which is worth saying because a standing child's ledger is exactly where a row for that `[BR#n]` could already be: step 9a's second per-row clause makes a child already holding a ledger row for a candidate's `[BR#n]` ineligible as that row's receiver, so the row this step or Step 3 seeds onto a standing receiver is always the first row that ledger has ever held for that id (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2). Without that clause the sentence above would be false on an ordinary tree, and the alternatives are the two the clause exists to forbid — `unallocated` written over a terminal row, or a claim added to a row that names somebody else.
 4. **Write the child's `brd/brd-inventory.md`** — the subset of *this* BRD's inventory rows the
    `claims:` list above names, copied row-for-row (`id`, `text`, `source_anchor`, `defects`
-   verbatim), under the `parent:`/`source:` header
-   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1 fixes. **Copy; never re-extract.** Ids are
+   verbatim, each cell exactly as it stands in this BRD's file), in the layout
+   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2 fixes, under the frontmatter §2.1 fixes for a
+   slice — `kind: brd`, the child's `key:`, and the `parent:`/`source:` pair, `source:` read off this
+   BRD's `brd/brd-link-log.md` (§1.1). **Copy; never re-extract.** Ids are
    the parent's and stay the parent's, and every `source_anchor` copied here keeps resolving
    against the parent's files — its `brd/source/`, `brd/source-external/` or `brd/brd-figures.md`,
    by the anchor's form (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — the child holds no
@@ -540,10 +542,11 @@ For every slice Phase 2 confirmed:
    and any reader who has to resolve one while standing on the child looks it up in the parent's log
    (`brd-format.md` §4). That resolution is always one hop, never a chase: the cap in
    `workflows-core:addressing` §6 makes this child's parent — this BRD — the source-owning root.
-5. **Write the child's `coverage-ledger.md`** — one row per `[BR#n]` in the inventory just written,
-   `disposition: unallocated` on every one, per
-   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3, whose creator table names this
-   phase as the writer of a slice's ledger. `defects` mirrors the copied inventory row; `evidence`
+5. **Write the child's `coverage-ledger.md`** — in the layout
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2 fixes, its `key:` the child's —
+   one row per `[BR#n]` in the inventory just written, `disposition: unallocated` on every one, per
+   §3, whose creator table names this phase as the writer of a slice's ledger. `text` and `defects`
+   mirror the copied inventory row, cell for cell; `evidence`
    is empty — the child has not been ground yet, and this BRD's `[CG#n]`/`[DG#n]` findings were
    derived against this BRD's claim list, not the child's.
 
@@ -956,7 +959,7 @@ per claim. **"Re-derive" means reconcile, not rebuild from scratch.** This walk 
 ends with is the union of the rows it already claimed and the rows this walk newly resolved to it,
 minus only the rows this walk moved off `covered-by: <that child>` to something else. A rebuild
 from this walk's resolutions alone would silently strip every earlier claim. **That conclusion is unchanged by the widening and is what the widening is for**: a re-pointed row is one this walk newly resolved to the receiver and one it moved off `covered-by: <the donor>`, so both halves of the union reach it — the receiver gains the claim and the donor loses it — where a set defined by `unallocated` alone would have left the receiver claiming nothing it was given and the donor claiming a row it no longer holds. A row added to a child
-here gains its inventory and ledger rows here, the receiver on the re-cut path included, whether that receiver is a slice Phase 3 keyed this run or a child that already stood (Phase 3 step 3).
+here gains its inventory and ledger rows here, written as Phase 3 steps 4 and 5 write them, the receiver on the re-cut path included, whether that receiver is a slice Phase 3 keyed this run or a child that already stood (Phase 3 step 3).
 
 **The second half of that selector is what puts the re-cut's donor in this step's set, and without it the donor is never visited.** A donor is a pre-existing child this walk took a row *from* and gave none *to*, so a selector reading only *"given a row by this walk"* skips it — and the withdrawal below would then never run against the one child that most needs it, leaving a `claims:` entry and a copied inventory row for a `[BR#n]` whose own ledger row reads `covered-by: <B-KEY>`. Nothing detects that afterwards: a slice's inventory is defined as the subset its `claims:` list names (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1), so the two stale files agree with each other and disagree only with a ledger nobody re-reads. It surfaces later as a slice claiming work it does not own. The relation the selector names is the same one this paragraph already turns on — *the rows this walk moved off `covered-by: <that child>`* — so the two halves cover the two directions a row can travel, and the ordinary path's withdrawn-claim children were always in the set by the first half.
 
@@ -1003,7 +1006,8 @@ seeded `unallocated` in Phase 3 step 5 moments earlier, so the two rules never c
 `split_mode: full` only — `allocate-only` has no children and can create none.
 
 **A child claiming nothing is a folder nothing on this route can act on.** It has an empty
-`brd-link.md` `claims:` list and, beside it, an empty `brd/brd-inventory.md`. **Its
+`brd-link.md` `claims:` list and, beside it, a `brd/brd-inventory.md` holding its header and no
+row. **Its
 `coverage-ledger.md` is not necessarily empty**: a child keeps one orphan row per withdrawn claim
 (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), each already terminal, and both of
 that section's routes to an orphan row reach this set — a child Phase 3 created this run whose every

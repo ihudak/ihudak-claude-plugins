@@ -96,7 +96,10 @@ inside a source file is never followed — the caller walked the links already
    linked more than once:
    - `id` — `[BR#n]`.
    - `text` — the requirement verbatim, or its first sentence when quoting the whole passage would be
-     unwieldy.
+     unwieldy; for a row a split produced (step 5), the one fixed form `<lead-in> … <item>`
+     `brd-format.md` §2 gives it — never a blank line or a list marker between the parts, and never
+     a different shape for one sibling than for another. Return the customer's text as it stands,
+     line breaks and `|` included: the caller encodes it into its table (`brd-format.md` §2.3).
    - `source_anchor` — in one of `brd-format.md` §2's three forms, precise enough that a later reader
      finds the exact passage or element without this agent's help, and written so it resolves by
      `brd-format.md` §2.2's rules: a heading path names **exactly one** heading, with ` › ` between
@@ -111,8 +114,10 @@ inside a source file is never followed — the caller walked the links already
      `<BRD-dir>/brd/`.
 
 5. **Apply the splitting rule** (`brd-format.md` §2): one numbered item binding the delivery team to
-   two or more separable obligations becomes one `[BR#n]` per obligation, each carrying a `duplicate`
-   candidate naming the other rows the split produced.
+   two or more separable obligations becomes one `[BR#n]` per obligation. **A split is one
+   defect**: propose **one** `duplicate` candidate for it, on the **first** row the split produced,
+   naming every other row it produced — and none for the split on those other rows, which would
+   turn one split into as many defects as it has parts.
 
 6. **Propose defect candidates per row**, applying the six one-line tests of `brd-format.md` §3 as
    written there. A row may carry zero, one or several candidates, and more than one class at once.
@@ -132,7 +137,7 @@ status: OK | EMPTY | NOT_FOUND
 source_path: <as received>
 inventory:
   - id: BR#<n>
-    text: <verbatim requirement, or its first sentence; for an image-derived row, the obligation in words quoting the element>
+    text: <verbatim requirement, or its first sentence; for a split row, "<lead-in> … <item>"; for an image-derived row, the obligation in words quoting the element>
     source_anchor: <one of brd-format.md §2's three forms>
     defect_candidates:                # UNCONFIRMED — proposals only
       - class: ambiguity | conflict | untestable | unsourced | duplicate | scope-leak

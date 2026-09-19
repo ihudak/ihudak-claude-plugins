@@ -239,7 +239,7 @@ shares):
 ```
 specifications/BRD-<BRD-KEY>-<slug>/
 ├── brd/
-│   ├── source/<basename>        # the customer's file, copied verbatim — never edited again
+│   ├── source/<basename>        # the customer's file, copied verbatim — never edited; a revised re-intake replaces it
 │   ├── source/<paths it links>  # every file the run took from the document's own directory, byte-for-byte
 │   ├── source-external/<name>   # files the document links from outside its folder, when captured
 │   ├── brd-inventory.md         # [BR#n] rows, /brd-intake

@@ -342,7 +342,8 @@ cannot review, and they will not tell you that — they will review it anyway, b
     **`<basename>` is read off `brd/brd-link-log.md`, one hop up on a slice as the three above are** —
     its opening line names which file under `brd/source/` is the customer's document, since that
     directory also holds the files the document links; a BRD intaken before the log existed holds
-    exactly one file there, and that file is it (`brd-format.md` §1.1). The log is not a bundle
+    exactly one file there, and that file is it; and a log written before its layout was fixed is
+    read by the rule that section gives for one (`brd-format.md` §1.1). The log is not a bundle
     document. The *Assemble the bundle* phase reads it once more: its *Captured links that do not
     resolve as written* table is how an image a captured file reaches through a `[[wikilink]]` or
     from outside the document's own directory is found (`bundle-packaging.md` §2.1), and where the

@@ -212,11 +212,12 @@ say anything; the customer's files are not.
 
 **An image a captured file reaches through a `[[wikilink]]`, or from outside the document's own
 directory, is found through `brd/brd-link-log.md`'s *Captured links that do not resolve as written*
-table** (`references/brd-format.md` §1.1) — on a slice the parent's log, one hop, as the document is
+table** (`references/brd-format.md` §1.1), its cells decoded before a target is compared
+(`references/brd-format.md` §2.3) — on a slice the parent's log, one hop, as the document is
 (`references/brd-format.md` §2.1). Its copy is in `brd/source/` or `brd/source-external/`, at a path
 the target as written does not name. It is copied into the bundle like any other image, and its
-manifest line (§1.1) names the target as written as well as its path relative to `brd/`: the file the
-link sits in is never edited to point there.
+manifest line (§1.1) names the target as written as well as its path relative to `brd/`: the file
+the link sits in is never edited to point there.
 
 **Callouts are kept.** A `> [!note]` block degrades to an ordinary blockquote in any markdown reader
 — the reader loses the label's styling and keeps every word. Nothing that survives untranslated is
@@ -437,6 +438,11 @@ in a `code-grounding.md` padded its `id:` colon for alignment and the next did n
 scan run here, over a bundle's copied corpus files, would report every reference in the bundle as
 dead.
 
+**A table corpus is parsed by its owner's layout** — the inventory's and the defect log's
+(`references/brd-format.md` §2, §4): a row splits into cells on an unescaped `|` only, and each
+cell is decoded (§2.3 there) before it is read, so a requirement quoting a row of the customer's own
+table never shifts a column, and an id is never read out of the wrong one.
+
 **The two rows a slice reads differently differ in opposite directions, and both are stated because
 a reader meeting one will assume the other matches.** `[DEF#n]` widens one hop: §1.1 ships the
 **parent's** defect log into a slice's bundle, so the parent's log *is* that partition's corpus for
@@ -626,12 +632,17 @@ the customer's own words, copied or transcribed rather than written by this pack
   immutable by rule (§2.1, `references/brd-format.md` §1, §1.1);
 - in `brd/brd-figures.md`, each section's *Text*, the *Says* column of its *Annotations* and its
   *Flow*, which are the image's own words transcribed verbatim (`references/brd-format.md` §1.2);
-- in `brd/brd-inventory.md`, a prose row's `text` whole — the requirement verbatim — but an
-  image-drawn row's `text` only in the element it quotes, the rest of that text being the plugin's
-  words (`references/brd-format.md` §2);
+- in `brd/brd-inventory.md`, a prose row's `text` whole — the requirement verbatim, or, for a row a
+  split produced, both its parts, the ` … ` between them being the plugin's — but an image-drawn
+  row's `text` only in the element it quotes, the rest of that text being the plugin's words
+  (`references/brd-format.md` §2);
 - and in `coverage-ledger.md`, a row's `text`, treated exactly as the inventory's — a prose row's
   whole, an image-drawn row's only in the element it quotes — because each ledger row's `text`
   mirrors its inventory row's (`references/coverage-ledger-format.md` §2).
+
+Each table span is read **decoded** (`references/brd-format.md` §2.3): a `\|` or a `<br>` in the
+file is the table's encoding, not the customer's words, so a token is sought, and a span's extent
+judged, in the text the customer wrote.
 
 A `[BR#n]` or a filename visible in the customer's screenshot is the customer's, not a citation this
 package made. Those spans inherit the plugin-free scan's treatment of the same content, for the

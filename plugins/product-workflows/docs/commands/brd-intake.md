@@ -97,7 +97,9 @@ in Phase 9, for session lessons-learned.
 Under `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` — the `BRD-` kind prefix is part of the
 name the run creates ([addressing](../reference/references.md) §2):
 
-- `brd/source/<basename>` — the customer's source, copied byte-for-byte and never edited again.
+- `brd/source/<basename>` — the customer's source, copied byte-for-byte and never edited. A re-run
+  over a revised document replaces the copy of each file whose bytes changed, git keeping the
+  earlier one, and names each file it replaced; an unchanged file is left untouched.
 - `brd/source/<the paths it links>` — every file the run takes from the document's own directory,
   copied byte-for-byte to the same relative path, so the copied text's links resolve exactly as the
   customer's did. Screenshots are the usual case, and this run is where they are captured: no later
@@ -105,7 +107,8 @@ name the run creates ([addressing](../reference/references.md) §2):
   until the document is intaken again.
 - `brd/source-external/<basename>` — every file the document links from outside its own folder, where
   you chose to capture it, by basename (a different file under a name already taken there gets a
-  numbered suffix; an identical one is re-used); immutable exactly as `brd/source/` is.
+  numbered suffix; an identical one is re-used); immutable as `brd/source/` is, and never replaced
+  by a re-run either, since a changed file lands under a new name.
 - `brd/brd-link-log.md` — every link in a captured file whose target the copy did **not**
   capture, each with its reason (a URL, an unreadable target, a wikilink matching several files,
   or — where you chose the document's own folder only — a link to a file outside it), the run's
@@ -115,11 +118,18 @@ name the run creates ([addressing](../reference/references.md) §2):
   transcription, the customer's annotations and what they point at, and the rows each image yields
   or illustrates.
 - `brd/brd-inventory.md` — one row per `[BR#n]`, each with its `source_anchor` and any confirmed
-  `[DEF#n]` defects.
+  `[DEF#n]` defects — a `conflict` or `duplicate` on the row it was raised on only. A re-run keeps
+  every id, and keeps a row's wording wherever the file its anchor points into is unchanged; a row
+  the new read does not find again is kept, never renumbered away.
 - `brd/brd-defect-log.md` — one entry per confirmed `[DEF#n]`, resolution `open`. A re-run keeps
   every entry already there, id and resolution unchanged, and adds only the defects it newly
   confirms.
 - `coverage-ledger.md` — one row per `[BR#n]`, disposition `unallocated` on every row.
+
+The link log, the inventory, the defect log and the ledger each have one fixed layout — frontmatter,
+an opening line where a reader needs one, and a markdown table — and share one cell encoding: a
+literal `|` is written `\|` and a line break `<br>`, and the requirement text is verbatim once those
+two are decoded ([`brd-format.md`](../../references/brd-format.md) §2.3).
 - With `--sort-existing <dir>`: `prd-seed.md`, `ard-seed.md`, `spec-seed.md`, sorted by altitude
   from the hand-written package — seeds only, never findings.
 
@@ -131,10 +141,12 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
 - **Phase 3 — `brd-reader`** (Opus, frontmatter-pinned). Read-only extraction from the document, its
   linked markdown and the image transcriptions: it proposes a `[BR#n]` row per requirement plus
   unconfirmed `defect_candidates` — an `ambiguity` on any obligation only an image states — and
-  never decides a defect itself. `EMPTY` (no identifiable requirement) short-circuits Phase 4 and
-  writes an empty ledger — and the run says so plainly, because the route stops on a claimless BRD:
-  Phase 8 then offers a re-run of this command with a corrected source instead of offering
-  `/brd-split`, which would refuse the BRD. `NOT_FOUND` stops the run and surfaces the agent's
+  never decides a defect itself. `EMPTY` (no identifiable requirement) short-circuits Phase 4. On a
+  first intake it writes the inventory and the ledger with no row — and the run says so plainly,
+  because the route stops on a claimless BRD: Phase 8 then offers a re-run of this command with a
+  corrected source instead of offering `/brd-split`, which would refuse the BRD. Over an inventory
+  an earlier intake filled it changes nothing — the inventory, the defect log and the ledger stand
+  as they were, since an empty read has not shown any requirement gone. `NOT_FOUND` stops the run and surfaces the agent's
   exact message.
 
   **The inventory's coverage of its own source is then checked, both directions, from what the run
@@ -142,9 +154,9 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   each image illustrates. Every `source_anchor` must resolve, in whichever of the format's three
   forms it takes — the document, a linked markdown file, or an image — by
   [`brd-format.md`](../../references/brd-format.md) §2.2's rules. One that resolves to nothing is a
-  row nobody can trace back and the run stops, **except a row a re-run deliberately preserved as no
-  longer present in a revised source**: that is a recorded state, and stopping on it would refuse a
-  customer's revised BRD with a remedy nobody could perform. And every **top-level section** — of
+  row nobody can trace back and the run stops, **except a row a re-run kept because its anchor no
+  longer resolves — the revised source dropped what it named**: that is a recorded state, and
+  stopping on it would refuse a customer's revised BRD with a remedy nobody could perform. And every **top-level section** — of
   the document and of each linked markdown file, the sections at the shallowest level beneath its
   title where one heading titles it — and every **image** must either hold or illustrate a row or be
   accounted for, a section holding one where it links an image or an appendix that yields a row: one
@@ -168,8 +180,11 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
 - **Phase 4 — interactive defect confirmation**, not an agent gate: every `defect_candidates` entry
   not already logged (below) is walked one class at a time, in the fixed order
   [`brd-format.md`](../../references/brd-format.md) §3 lists its six classes, via `AskUserQuestion`,
-  and only a confirmed candidate is assigned a `[DEF#n]` id. A rejected candidate is dropped, not
-  recorded. **A re-run does not ask again about a defect already logged**: a candidate with the same
+  each put with the same facts — its class, its row and that row's text, its reason, the rows a
+  `conflict` or `duplicate` names, and an image-drawn row's picture. A split of one requirement into
+  several rows is one `duplicate`, asked once. Only a confirmed candidate is assigned a `[DEF#n]` id,
+  once the walk ends, in the order of the row it was raised on — never in the order the questions
+  were asked. A rejected candidate is dropped, not recorded. **A re-run does not ask again about a defect already logged**: a candidate with the same
   class and row as an entry on file is that entry — a `conflict` or `duplicate` matching where the
   entries on file already join the same rows, raised from either end — keeping its id, reason and
   resolution; only the rest are walked, taking ids after the highest in use; and an entry this read

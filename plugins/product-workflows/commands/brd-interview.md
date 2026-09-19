@@ -575,9 +575,12 @@ would have to state:
   one hop — `brd-format.md` §4) whose resolution is `open` and whose class grounding cannot settle:
   `ambiguity`, `conflict`, `duplicate`, `untestable` or `scope-leak`. `unsourced` is not in the
   list: grounding settles it, and a finding that could not is already a question under the
-  `NOT-PROVABLE` bullet above. **Which BRD asks is read off the inventory and the ledgers, never off
-  the log**, whose entry does not say which rows list it: the defect's rows are the rows whose
-  `defects` column lists it in the log-owning BRD's inventory (the parent's, on a slice).
+  `NOT-PROVABLE` bullet above. **Which BRD asks is read off the inventory and the ledgers**: the
+  defect's rows are the rows whose `defects` column lists it in the log-owning BRD's inventory (the
+  parent's, on a slice) — the one row its log entry is raised on, since a `conflict` or `duplicate`
+  is listed on that row only and names its counterparts in the entry (`brd-format.md` §4); an
+  inventory written before that rule was fixed may list one on a counterpart too, and such a row
+  counts as listed.
   **Ownership is decided over the live ones only.** A listed row is **live** where the parent's
   `coverage-ledger.md` records it `covered-by` a slice and that slice records it `covered-here` or
   `deferred-to` in its own ledger — read one hop, from each such slice under the same parent, this

@@ -182,10 +182,12 @@ it had opened anyway — which this rule used to allow — could return either f
 order puts `brd-link.md` first, which is the reading the family's container refusals already give as
 their reason for testing a directory prefix rather than an asserted kind: a slice asserts `brd`.
 
-**Why step 2 exists.** `/brd-intake` creates a root BRD folder whose only keyed artifact, until a
-later command writes one at the top level, is the inventory it writes inside `brd/`
-(`product-workflows:brd-format` §2.1) — so step 1 alone finds nothing in that folder, and a strict
-reading of this rule left every root BRD unresolvable. It is **one named file, not an enumeration of
+**Why step 2 exists.** `/brd-intake` creates a root BRD folder whose only artifact naming a folder
+kind, until a later command writes one at the top level, is the inventory it writes inside `brd/`
+(`product-workflows:brd-format` §2.1) — the `coverage-ledger.md` it writes at the top level carries
+`key:` beside a `kind:` naming its own document (`product-workflows:coverage-ledger-format` §2),
+which step 1 passes over — so step 1 alone finds nothing in that folder, and a strict reading of
+this rule left every root BRD unresolvable. It is **one named file, not an enumeration of
 carriers per kind**: such a list would go stale the first time a command writes a new artifact, and
 nothing in `scripts/` would catch it, while this exception names the single place the family's own
 reserved subdirectory holds the folder's identity.

@@ -52,6 +52,34 @@ every source-owning BRD, which is every parent.
 | `defects` | a `[DEF#n]` list — the defects (`brd-format.md` §3) raised against this requirement, empty when it carries none |
 | `evidence` | a `[CG#n]` / `[DG#n]` list — the grounding findings that bear on this requirement, empty until grounding has run |
 
+**The file's layout is fixed**, its cells written by the one encoding every table file of the route
+shares (`references/brd-format.md` §2.3):
+
+````markdown
+---
+kind: coverage-ledger
+key: <this ledger's BRD's key>
+---
+
+# Coverage ledger: <that key>
+
+| id | text | disposition | defects | evidence |
+|---|---|---|---|---|
+| [BR#1] | The monthly report lists every invoice. | unallocated | [DEF#1] | |
+| [BR#2] | Every monthly report must include these fields: … Invoice number | covered-by: EPIC-008-01 | [DEF#2] | |
+````
+
+`kind: coverage-ledger` names this document, not the folder: a kind outside `brd`, `prd` and `epic`,
+so `workflows-core:addressing` §4 passes over it even at the folder's top level, where this file
+sits, and never reads the folder's identity off it. The title line names the same key. The table
+carries the five fields above as its five columns, in that order, one row per `[BR#n]` in id order —
+`id` bracketed, `text` copied from the inventory row it mirrors as that cell stands, `disposition`
+written exactly as §3 spells it (`covered-by: <BRD-KEY>`, `rejected: [DEF#n]`, …), and `defects`
+and `evidence` as `brd-format.md` §2.3 writes a list. **A ledger holding no row** is its
+frontmatter, its title and the table's header — what `/brd-intake` writes after an `EMPTY` read on a
+first intake (`commands/brd-intake.md` Phase 3). A ledger written before this layout was fixed is
+read as it stands (`brd-format.md` §2.3).
+
 A row's `id` is permanent for the same reason its inventory counterpart is (`brd-format.md` §2):
 once a ledger row exists for a `[BR#n]`, it is never deleted and never renumbered, even after the
 row reaches a terminal disposition.

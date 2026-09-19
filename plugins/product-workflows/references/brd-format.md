@@ -15,11 +15,17 @@ hands the delivery team, typically long, typically internally contradictory, and
 as written. It is not authored by the delivery team and it is not a PRD.
 
 Once intaken, the source is **immutable** (D11): nothing under `brd/source/` is ever edited,
-reworded, or reformatted after intake, no matter how badly worded a requirement inside it is. Every
-`[BR#n]` anchors into this text by `source_anchor` (§2); if the source moved, every anchor in the
-inventory would silently point at the wrong place. Defects found in it are logged beside it (§3,
-§4), never corrected in it — that is the only way to say precisely what the customer gave the
-delivery team and what changed afterward.
+reworded, or reformatted, no matter how badly worded a requirement inside it is. **It is written by
+`/brd-intake` Phase 2 alone, and only ever as a byte-for-byte copy of the customer's file.** A
+re-run over a **revised** document is the one time a copy is written again: each file whose bytes
+changed — the document itself, or a file at the same path beside it — has its copy replaced whole,
+git keeping the earlier one, and the run names each file it replaced; nothing is ever removed
+(`commands/brd-intake.md` Phase 2). Every `[BR#n]` anchors into this text by `source_anchor` (§2);
+if the source moved under an inventory nobody re-read, every anchor would silently point at the
+wrong place, which is why a replacement happens only inside the run that re-reads the source and
+reconciles every row against it (`commands/brd-intake.md` Phase 3). Defects found in it are logged
+beside it (§3, §4), never corrected in it — that is the only way to say precisely what the customer
+gave the delivery team and what changed afterward.
 
 The source is **markdown only**. A BRD arriving as a PDF, a Word document, or a slide deck is
 converted to markdown before intake, and that conversion is never a bare mechanical pass taken on
@@ -44,10 +50,11 @@ text a `[BR#n]` anchors into, and the one thing an unchecked conversion could si
 file it links is captured as it stands, whatever its type. **The intake run reads the document,
 every markdown file Phase 2 copied, and every image Phase 2 copied** (`commands/brd-intake.md`
 Phases 2.5 and 3); a linked file of any other kind is captured, named to the operator before
-anything is copied, and not read. On a re-run the copy is additive, as the document's own re-copy
-is: a file an earlier intake captured and the revised document no longer links stays where it is,
-because nothing under `brd/source/` is ever removed either — so the log's counts describe the run
-that wrote them rather than the directory's contents.
+anything is copied, and not read. **On a re-run nothing is removed, and a copy is replaced only where
+its file's bytes changed** (§1): a file an earlier intake captured and the revised document no longer
+links stays where it is, a file whose bytes are unchanged is left untouched, and a file at the same
+path with different bytes — the document included — has its copy replaced, git keeping the earlier
+one. So the log's counts describe the run that wrote them rather than the directory's contents.
 
 **Every link in a captured file whose target the copy did not capture is named in
 `brd/brd-link-log.md`**, never dropped in silence: a URL, a file that could not be read, a wikilink
@@ -60,18 +67,24 @@ to it sits inside a file nobody reads (`references/linked-sources.md` §7), so i
 instead. That log is the **plugin's** record rather than the customer's, which is why it sits in
 `brd/` beside `brd-inventory.md` and `brd-defect-log.md` and never under `brd/source/`, where every
 byte is the customer's own and a plugin-written file would read as part of the document they handed
-over. It opens by naming the source document's basename, carries the run's counts — links found,
-files copied, links not copied — and then one row per uncopied link: the target as written, the
-copied file the link sits in, and the reason. **No path a row writes is the operator's own**: a row
-names the captured file a link sits in by its path relative to `brd/`, and an `ambiguous` wikilink's
-candidates by their paths relative to the vault root the walk searched
+over. It names the source document's basename, carries the run's counts — links found, files copied,
+links not copied — and then one row per uncopied link: the target as written, the copied file the
+link sits in, and the reason, in the layout fixed below. **No path a row writes is the operator's
+own**: a row names the captured file a link sits in by its path relative to `brd/`, and an
+`ambiguous` wikilink's candidates by their paths relative to the vault root the walk searched
 (`references/linked-sources.md` §3) — never by an absolute path, which would write the operator's
 directory layout, home directory included, into the specs repository, the reason
 `brd/source-external/` below keeps basenames only. A target is quoted as written — the text between
 the link's own delimiters, less whatever follows a wikilink's `|`, as `references/linked-sources.md`
 §5 defines it — because that is the customer's own text. **The three counts do not add up, and that
 is arithmetic rather than a slip**: two documents linking the same file are two links found and one
-file copied, so the first count is of links and the second of files. **It is written on every run,
+file copied, so the first count is of links and the second of files. **`files copied` leaves the
+document itself out**, as `commands/brd-intake.md` Phase 1's `<n>` does: it counts the files this
+run copied beside the document — into `brd/source/` or `brd/source-external/`, a file whose
+identical copy already stood counting as copied, whether collision rule 1 re-used it (below) or a
+re-run left it untouched under `brd/source/` — so a capture of the document alone reads
+`files copied 0`. `links found` counts every link in every file this run copied, the document
+included, and `links not copied` the rows of the first table below. **It is written on every run,
 including one that captured everything**, so its counts are the positive record that the capture
 ran; an absent log and an empty one are not (§2.2 makes the same call for the inventory's coverage
 of its source).
@@ -85,6 +98,51 @@ file whose target lies inside the document's own folder — with the target as w
 link sits in, and the copy's path relative to `brd/`. **It is the only way any reader resolves such a
 link**: nothing rewrites the verbatim document to point at its copy.
 
+**The log's layout is fixed**, one file form every writer produces and every reader parses, its
+cells written by §2.3's encoding:
+
+````markdown
+---
+kind: brd-link-log
+key: <the run's <BRD-KEY> as Phase 0 validated it>
+---
+
+Source document: <the document's basename, exactly as copied into brd/source/>
+
+Links found <n> · files copied <n> · links not copied <n>
+
+## Links not copied
+
+| Target as written | Linked from | Reason | Candidates |
+|---|---|---|---|
+| glossary | source/brd.md | ambiguous | archive/glossary.md, notes/glossary.md |
+| https://example.com/terms | source/appendix/terms.md | url | |
+
+## Captured links that do not resolve as written
+
+| Target as written | Linked from | Copy |
+|---|---|---|
+| Pasted image 20260918.png | source/brd.md | source-external/Pasted image 20260918.png |
+````
+
+- **`kind: brd-link-log` names this document, not the folder** — a kind outside `brd`, `prd` and
+  `epic`, which `workflows-core:addressing` §4 passes over, so the log is never mistaken for the
+  folder's carrier.
+- **The opening line is the one a reader takes the document's name from**: the first line after the
+  frontmatter, `Source document: ` and then the basename, to the end of the line — no quoting, so a
+  basename carrying any character is read back exactly.
+- **The counts line** carries the three labels in that order, each followed by its number.
+- **Both tables are always written**, each under its heading, each with its header row and no rows
+  where it has nothing to hold. *Reason* is one of the reasons `commands/brd-intake.md` Phase 2's
+  table fixes; *Candidates* lists an `ambiguous` target's candidates and is empty on every other row.
+
+**A log written before this layout was fixed** — 3.6.0 introduced the log without one — carries no
+frontmatter and whatever opening line and tables its run chose. A reader needing the document's name
+takes it from that opening line where the line names exactly one markdown file under `brd/source/`,
+and otherwise, where `brd/source/` holds exactly one markdown file, takes that file; where neither
+settles it, the reader names the log and asks the operator which file is the document, and never
+chooses. The next `/brd-intake` run over the folder rewrites the log in this layout.
+
 **`brd/source-external/` holds what the document links from outside its own directory**, where the
 operator chose to capture it (`commands/brd-intake.md` Phase 1). Each file sits at its **basename** —
 never at a path mirroring where it came from, which for an absolute link would write the operator's
@@ -92,8 +150,10 @@ own directory layout, home directory included, into the specs repository — and
 `references/idea-format.md` *The collision rule*, rules 1–3, never rule 4, which overwrites a copy. A
 file rule 1 re-uses — its identical bytes already on file, so nothing is written — counts as copied
 wherever this file says Phase 2 copied a file (`commands/brd-intake.md` Phase 2). It is
-**immutable exactly as `brd/source/` is**, written only by `/brd-intake` Phase 2, and never removed
-from; it sits beside `brd/source/` rather than inside it so that this section's first sentence stays
+**immutable as `brd/source/` is**, written only by `/brd-intake` Phase 2 and never removed from — and
+stricter in one respect: **a copy here is never replaced either**, since rule 1 re-uses a file whose
+bytes are already on file and rules 2–3 give a changed one a new name beside the old. It sits beside
+`brd/source/` rather than inside it so that this section's first sentence stays
 true — `brd/source/` holds only files *from the document's own directory* — and so that no folder
 the customer's own tree happens to contain can collide with it.
 
@@ -196,8 +256,8 @@ none
   the ones that are, so one row of such a table is complete, not partial; each row of the other
   kind may state an obligation of its own, so dropping one would lose it unflagged.
 - **Annotations** is the table above, one row per mark in `figure-reader`'s order — `annotation <n>`
-  (§2) counts them — with an unlabelled mark's *Says* written `""`; an image carrying no mark has
-  `none` in place of the table.
+  (§2) counts them — with an unlabelled mark's *Says* written `""`, and its cells written by §2.3's
+  encoding; an image carrying no mark has `none` in place of the table.
 - **Flow** is one list item per edge, `- <edge>`, each edge in the notation
   `agents/figure-reader.md` fixes — no mark around a label — and `none` for an image that is not a
   diagram. An image anchor quotes an edge exactly as it reads, without the list marker (§2).
@@ -215,13 +275,15 @@ none
   such as *"Approval must follow the attached flow."* states no obligation beyond binding the ones
   the image draws — either half left out where its list is empty — `yields [BR#3]`,
   `illustrates [BR#6]` — or `accounted for — <the operator's answer>` where it does neither, the
-  answer's substance and never an option's label: `accounted for — they hold no obligation` where the
-  operator picked that option at `/brd-intake` Phase 3, or their own words where they typed an answer
-  to the same effect in the harness's free-text option (`workflows-core:escalation-rules` §0) — and
-  `none — no requirement extracted` where `brd-reader` returned `EMPTY`, so the inventory holds no
-  row and nothing was put to the operator. **It names requirements of the BRD that owns this file —
-  on a slice, the parent's, one hop (§2.1)**, which is how `references/bundle-packaging.md` §6.2
-  relation 1 reads it.
+  answer's substance and never an option's label: `accounted for — they hold no obligation` where
+  the operator picked that option at `/brd-intake` Phase 3, or their own words where they typed an
+  answer to the same effect in the harness's free-text option (`workflows-core:escalation-rules` §0)
+  — and `none — no requirement extracted` where `brd-reader` returned `EMPTY` — nothing is then put
+  to the operator, and the inventory holds no row, or only the rows an earlier intake wrote, which
+  that read leaves as it stands (`commands/brd-intake.md` Phase 3); where it holds such a row
+  anchored on this image, the line is `yields [BR#n], …` for those rows instead. **It names
+  requirements of the BRD that owns this file — on a slice, the parent's, one hop (§2.1)**, which is
+  how `references/bundle-packaging.md` §6.2 relation 1 reads it.
 - **A section is never deleted.** An image the current run did not capture keeps its section, with
   a line `- **Not captured by the current run.**` under its header. The marker covers every cause —
   for instance the revised document no longer links the image, or it still links it and this run
@@ -238,16 +300,50 @@ The inventory (`brd/source/`'s companion `brd-inventory.md`) holds **one row per
 | Field | Meaning |
 |---|---|
 | `id` | `[BR#1]`, `[BR#2]`, … — contiguous, assigned once, never renumbered |
-| `text` | the requirement, verbatim, or its first sentence plus a `source_anchor` when quoting it whole would be unwieldy; for a row anchored on an image, the obligation in words, quoting the transcribed element verbatim — the plugin's words, told apart from the customer's by the row's image anchor |
+| `text` | the requirement, verbatim, or its first sentence plus a `source_anchor` when quoting it whole would be unwieldy; for a row a split produced, the one fixed form below; for a row anchored on an image, the obligation in words, quoting the transcribed element verbatim — the plugin's words, told apart from the customer's by the row's image anchor |
 | `source_anchor` | where the requirement is stated — in the document, an appendix, or an image, in one of the three forms below |
-| `defects` | a `[DEF#n]` list (§3) — empty when the requirement carries none |
+| `defects` | a `[DEF#n]` list (§3) — empty when the requirement carries none; a `conflict` or `duplicate` is listed on the row it is raised on only (§4) |
+
+**The file's layout is fixed**, its cells written by §2.3's encoding:
+
+````markdown
+---
+kind: brd
+key: <this folder's key>
+---
+
+# Inventory: <this folder's key>
+
+| id | text | source_anchor | defects |
+|---|---|---|---|
+| [BR#1] | The monthly report lists every invoice. | 2. Monthly report | [DEF#1] |
+| [BR#2] | Every monthly report must include these fields: … Invoice number | source/appendix/fields.md › Required report fields | [DEF#2] |
+| [BR#3] | Every monthly report must include these fields: … Customer name | source/appendix/fields.md › Required report fields | |
+````
+
+The frontmatter is the folder's carrier on a source-owning BRD, and a slice's adds `parent:` and
+`source:` (§2.1); the title line names the same key; the table carries the four fields above as its
+four columns, in that order, one row per `[BR#n]` in id order. `id` is written bracketed, and
+`defects` as §2.3 writes a list. **An inventory holding no row** is that frontmatter, the title and
+the table's header — what `/brd-intake` Phase 2 writes before anything is copied, and what it leaves
+after an `EMPTY` read on a first intake — never an empty file, which on a source-owning BRD would
+leave the folder keyless.
 
 **A requirement carrying more than one obligation is split.** When one numbered item in the source
 binds the delivery team to two or more separable obligations, each obligation becomes its own
-`[BR#n]` rather than being inventoried as one row with a compound `text`. The split itself is
-recorded as a `[DEF#n]` of class `duplicate` (§3) naming the sibling rows it produced — the
-inventory does not silently multiply one source requirement into several without a defect marking
-that it did.
+`[BR#n]` rather than being inventoried as one row with a compound `text`. **The split is one defect,
+however many rows it yields**: one `[DEF#n]` of class `duplicate` (§3), raised on the first row the
+split produced and naming every other row it produced — never one per row — so the inventory does
+not silently multiply one source requirement into several without a defect marking that it did, and
+does not turn one act of splitting into several defects a customer is asked about separately.
+
+**A split row's `text` takes one fixed form, `<lead-in> … <item>`**: the words the split obligations
+share — a list's lead-in, or the subject of a sentence carrying several clauses — then ` … `, then
+the words that are this row's own obligation — its list item, less its list marker, or its own
+clause — each part a verbatim span of the source, and ` … ` the only thing the plugin writes. Where
+the obligations share no words, the row's `text` is its own part alone. The form makes every row one
+split produced differ from its siblings in `text`, which is what lets a later read tell them apart
+where they share one `source_anchor` (`commands/brd-intake.md` Phase 3).
 
 `[BR#n]` numbers are never reused and never renumbered, including across a split: once assigned, an
 id is permanent even if the row it names is later split, superseded, or found defective.
@@ -387,7 +483,8 @@ stopped a correct intake as a read failure on the first anchor written the other
 
 **An image anchor resolves where** its path names an image `brd/brd-figures.md` records as read, and
 the quoted element appears verbatim in the content of that image's *Text* fence, an annotation's
-*Says*, or its *Flow* — or, for `annotation <n>`, where the image has an n-th annotation. An anchor
+*Says*, or its *Flow* — the anchor and a *Says* cell each decoded first (§2.3) — or, for
+`annotation <n>`, where the image has an n-th annotation. An anchor
 naming an image `brd/brd-figures.md` does not record, an image recorded as *not* read, or whose
 quoted element or annotation number is absent, does not resolve — relation 1's, not relation 3's, to
 report.
@@ -407,9 +504,11 @@ cites it rather than minting its own.
 
 A slice **does** hold its own `brd/brd-inventory.md`: the subset of its parent's rows its
 `brd-link.md` claims, copied row-for-row with `id`, `text`, `source_anchor`, and `defects` verbatim
-from the parent's inventory. **"Its parent" is literal and unambiguous**: nesting is capped at one
-level (`workflows-core:addressing` §6), so a slice's parent is always the BRD that owns the
-source document — there is no chain to walk and no case in which the named parent holds neither.
+from the parent's inventory, in §2's layout — each cell exactly as it stands in the parent's file,
+since §2.3's encoding is the same at both levels and a cell copied as written needs no decoding.
+**"Its parent" is literal and unambiguous**: nesting is capped at one level
+(`workflows-core:addressing` §6), so a slice's parent is always the BRD that owns the source
+document — there is no chain to walk and no case in which the named parent holds neither.
 The file opens with frontmatter — between `---` lines, as every keyed artifact's is — carrying the
 folder's identity and the two facts a reader needs to follow an anchor out of it:
 
@@ -429,9 +528,11 @@ name off the parent's `brd/brd-link-log.md` rather than taking whatever it finds
 **`kind:` and `key:` open every inventory, a slice's and a source-owning BRD's alike** — a
 source-owning BRD's inventory carries the two and no `parent:`/`source:` pair, because it *is* the
 source owner. They are how the folder asserts its own identity: `workflows-core:addressing` §4 reads
-them off this file wherever no top-level artifact carries the pair, which in a source-owning BRD is
-from the moment `/brd-intake` creates the folder — that command writes this header, with no row,
-before it copies anything into a new folder, so the folder is never keyless (its Phase 2). The
+them off this file wherever no top-level artifact carries `key:` beside a `kind:` naming a folder
+kind, which in a source-owning BRD is so from the moment `/brd-intake` creates the folder: that
+command writes this header, with no row, before it copies anything into a new folder, so the folder
+is never keyless (its Phase 2), and the `coverage-ledger.md` it later writes at the top level names
+its own document (`references/coverage-ledger-format.md` §2), which §4 passes over. The
 `brd/source/` document itself carries neither and never will, because it is the customer's and is
 immutable (§1).
 
@@ -448,6 +549,45 @@ files, exactly as a document anchor resolves against the parent's `brd/source/`.
 **`/brd-split` writes a slice's inventory**, at the moment it creates the slice's folder — it is
 the only command holding both the parent's inventory and the allocation that says which rows the
 slice claims. `/brd-intake` never runs on a slice: there is no document to intake.
+
+### 2.3 The table files, and the one cell encoding they share
+
+Four of the route's files are markdown tables: `brd/brd-link-log.md` (§1.1), `brd/brd-inventory.md`
+(§2), `brd/brd-defect-log.md` (§4) and `coverage-ledger.md`
+(`references/coverage-ledger-format.md` §2). Each owner fixes its file's frontmatter, its opening
+lines and its columns; **this section fixes the one rule every cell of every one of them is written
+by**, and the *Annotations* table of `brd/brd-figures.md` (§1.2) is written by it too. A requirement
+quoted verbatim routinely holds what a table cell cannot — a row of the customer's own table, a
+multi-line list item — so two things are encoded, and nothing else is:
+
+- a literal `|` is written `\|`;
+- a line break is written `<br>`.
+
+Nothing else in a cell is escaped, rewritten or reflowed. **"Verbatim" means verbatim after decoding
+those two** — each `\|` read back as `|`, each `<br>` as a line break — and **every comparison
+decodes first**: `commands/brd-intake.md` Phase 3's match of a returned row against one on file,
+relation 1's test of an anchor (§2.2), and `references/bundle-packaging.md` §6's corpus parse,
+verbatim spans and relation 1. A cell copied from one of these files into another — a slice's
+inventory from its parent's, a ledger row's `text` from its inventory row — is copied as it stands,
+never decoded and re-encoded. Where the customer's text itself carries `\|`, encoding writes `\\|`,
+which decodes back to it. **The one sequence the encoding cannot tell apart is a `<br>` the customer
+wrote**, as a cell of a table in their own document may: it reads back as the line break it renders
+as there too, and a text comparison collapses whitespace after decoding (`commands/brd-intake.md`
+Phase 3), so the two never compare differently.
+
+**A markdown link inside a quoted requirement is quotation**: kept as written, never followed and
+never repaired, although its target — relative to the file the customer wrote it in — resolves to
+nothing from `brd/`. `[fields](appendix/fields.md)` stays exactly that; the copy under `brd/source/`
+is where it resolves, and rewriting it here would change the customer's words in the one place they
+are mirrored.
+
+**A list in a cell** — `defects`, `names`, `evidence`, *Candidates* — is its values separated by
+`, `, and an empty list is an empty cell.
+
+**A file written before this layout was fixed is read as it stands**: each reader takes the fields
+it needs as that file gives them, and the next run that writes the file writes it in its owner's
+layout. §1.1 says what a reader of a pre-layout link log does where the document's name is not
+plain.
 
 ## 3. Defect classes
 
@@ -489,9 +629,9 @@ of these resolutions:
 
 | Resolution | Meaning |
 |---|---|
-| `customer-amended <date>` | the customer supplied corrected text; the amendment is held in the ledger beside the original, never written back into `brd/source/` |
+| `customer-amended <date>` | the customer supplied corrected text; the amendment is the returned review `/brd-reconcile` read it from (`commands/brd-reconcile.md`, *Resolve the defects the review settled*) — never written back into `brd/source/`, and never into the inventory's or the ledger's `text`, which stay the customer's original |
 | `withdrawn` | the customer withdrew the requirement the defect was raised against |
-| `resolved-by: <SLICE-KEY>/[CG#n]` · `resolved-by: <SLICE-KEY>/[CD#n]` | a code- or design-grounding finding settled the defect (typically closing an `unsourced` entry), or a customer decision did — the answer to the question the defect raised (`commands/brd-interview.md`, the requirement-defect question source), frozen by `/brd-reconcile` |
+| `resolved-by: <SLICE-KEY>/[CG#n]` · `resolved-by: <SLICE-KEY>/[CD#n]` | a code- or design-grounding finding settled the defect (typically closing an `unsourced` entry), or a customer decision did — the answer to the question the defect raised, or to a rejected row's question that carries it (`commands/brd-interview.md`, *Round 1 is generated from the grounding*), frozen by `/brd-reconcile` |
 | `open` | none of the above has happened yet |
 
 **`resolved-by` names its slice, in one spelling.** Grounding and deciding are both slice-only, and
@@ -502,12 +642,46 @@ value is qualified by the key of the slice whose finding or decision it is, in t
 (`conditional_on: <BRD-KEY>/<decision-id>`): `resolved-by: EPIC-008-01/[CD#2]`, never
 `resolved-by: [CD#2]`.
 
+**The defect log's layout is fixed** — one entry per `[DEF#n]`, one table row each, its cells
+written by §2.3's encoding:
+
+````markdown
+---
+kind: brd-defect-log
+key: <the key of the BRD that owns the source document>
+---
+
+# Defect log: <that key>
+
+| id | class | raised on | names | reason | resolution |
+|---|---|---|---|---|---|
+| [DEF#1] | ambiguity | [BR#1] | | "every invoice" does not say which invoices one month's report covers | open |
+| [DEF#2] | duplicate | [BR#2] | [BR#3], [BR#4] | one list item per field, split from "Every monthly report must include these fields:" | open |
+````
+
+`kind: brd-defect-log` names this document, a kind `workflows-core:addressing` §4 passes over, as
+§1.1 says of the link log. `id` is the entry's `[DEF#n]`; `class` one of §3's six; `raised on` the
+**one** `[BR#n]` the defect was raised on; `names` the counterparts a `conflict` or `duplicate`
+names, empty for every other class; `reason` the confirmed reason, as `/brd-intake` Phase 4's
+operator confirmed or edited it; `resolution` one of the four values above. **A log holding no
+entry** is its frontmatter, its title and the table's header.
+
+**A `conflict` or `duplicate` is listed in the `defects` column of the row it is raised on only.**
+Its counterparts are named in its entry, never given the id in their own `defects` column — so a
+defect's rows are read the same way whatever its class: the row the entry is raised on, which lists
+it, and the rows the entry names, which are its context (`commands/brd-interview.md` reads them so;
+`commands/brd-reconcile.md`, *Resolve the defects the review settled*, turns on which is which).
+
 **A `[DEF#n]` id is permanent, as a `[BR#n]` is (§2)** — never reused, never renumbered, and never
-deleted, its entry with it. Ids are assigned once, in order across the whole log. Every
-`rejected: [DEF#n]` in a ledger, every `defects` column and every held question naming a defect
-depends on it: an id that moved, vanished or came back naming another defect would re-point each of
-them without a trace. `commands/brd-intake.md` Phase 4 holds it on a re-run, by matching what a new
-extraction proposes against the entries already on file.
+deleted, its entry with it. Ids are assigned once, in one order across the whole log: **the
+inventory order of the row a defect is raised on, then §3's class order within that row, then —
+within one row and class — the order `brd-reader` returned its candidates in, a candidate raised
+from documentation after them.** A re-run numbers the entries it adds the same way, after the
+highest id on file. So the numbering is a property of the inventory and the confirmed set, never of
+the order a walk put questions in. Every `rejected: [DEF#n]` in a ledger, every `defects` column and
+every held question naming a defect depends on it: an id that moved, vanished or came back naming
+another defect would re-point each of them without a trace. `commands/brd-intake.md` Phase 4 holds
+it on a re-run, by matching what a new extraction proposes against the entries already on file.
 
 There is exactly one **requirement** defect log per source document, held by the BRD that owns that
 document; a slice reads its parent's rather than keeping one of its own (§2.1). That is a statement

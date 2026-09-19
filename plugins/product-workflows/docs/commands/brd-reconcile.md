@@ -324,7 +324,10 @@ swept whether or not they cite a changed id — that is what the field is for, a
 load-bearing: the `conditional_on` pass is the complete one, found mechanically by a field, and
 running the incomplete textual pass first makes the complete one an afterthought. A dependent whose
 own register is in flight is **recorded, never written**, so nothing overwrites somebody else's open
-pull request and no downstream BRD can stall the prerequisite's customer loop.
+pull request and no downstream BRD can stall the prerequisite's customer loop. Every id a sweep
+write names carries the key of the BRD whose numbering it is — `<BRD-KEY> [CD#n]` in prose,
+`<BRD-KEY>/[CD#n]` in a field, a reopened record's cause included — because the dependent's
+register numbers its own records, and a bare id there names one of them or none.
 
 **Stale cross-references.** Rooted at the **parent's** folder, so a sibling slice is reached. Two
 searches: the changed ids, matched whitespace-tolerantly because an identifier is routinely broken

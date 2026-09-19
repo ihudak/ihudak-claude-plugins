@@ -57,15 +57,28 @@ folder and what it carries. Then:
   PRD above it used to have a branch of its own here, nested — unreachably — inside this one;
   `/product-workflows:epics` is the only command that creates an `EPIC-` folder and it writes every one
   of them under a PRD folder, so an Epic address is always the bullet above.
-  - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
+  - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed, with the
+    one-line notice `workflows-core:epic-picker` requires of an auto-selection — **unless the PRD
+    folder also holds a flat `specification.md`**, a broad PRD-level slice: the shape
+    `/dev-workflows:design` designs as one unit and then offers to this command by the PRD's key.
+    Auto-selecting the Epic there would never offer that slice, so ask, the Epic's row carrying its
+    marker by the done-predicate in the next bullet:
+    `choices: ["<marker> <EPIC-KEY> <title>", "Implement one broad PRD-level slice instead"]`
+    The first sets `focus_key` to that Epic; the second leaves it null (specs resolve PRD-level). No
+    `(Recommended)` marker: a flat specification beside an Epic means two units were specified, and
+    which one this run implements is the operator's to say — the silent choice is the one this
+    prompt replaces.
   - **PRD with ≥2 Epics** → render the picker per `Skill(skill: "workflows-core:reference", args: "epic-picker")`,
-    honouring that file's *The cap*: every Epic listed as prose, the array carrying at most three rows
-    plus *"Another Epic from the list above — name its key"*. **`/implement`'s done-predicate is now the artifacts
-    present in each Epic folder**, which is the mechanism `/design`'s own Epic picker already uses:
+    honouring that file's *The cap*, which counts this command's own option against the four: every
+    Epic listed as prose, the array carrying **at most two** Epic rows, the explicit broad-slice
+    choice below and *"Another Epic from the list above — name its key"*. **`/implement`'s
+    done-predicate is now the artifacts present in each Epic folder**, which is the mechanism
+    `/design`'s own Epic picker already uses:
     `specification.md` but no `design.md` → ○; `design.md` present, no `implementation.md` → ◐;
     `implementation.md` present → ● (greyed, not default-selectable; selecting offers "implement
-    anyway"). All three markers are determinable, because `/implement` writes that record itself
-    (Phase 4.7). Reading the artifacts rather than a status field is
+    anyway"). All three markers are determinable, because `/implement` writes that record itself,
+    into the Epic's own folder however the Epic was chosen (Phase 4.7). Reading the artifacts rather
+    than a status field is
     strictly better than what it replaces: a declared status is a human's claim about the work and
     could lag it, which is why the old picker had to print the raw status text as a hedge. Include the explicit choice
     **"Implement one broad PRD-level slice instead"** (`focus_key` stays null → specs
@@ -76,7 +89,7 @@ folder and what it carries. Then:
     PRD-level slice (`focus_key` stays null). Nothing follows `/epics` before this command sees its Epics — it
     writes into the tree this command reads.
 
-When the picker (or the 1-Epic auto-path) sets `focus_key` that was initially null,
+When the picker, or the one-Epic path or its choice, sets `focus_key` that was initially null,
 **re-resolve `specs`** per the shared reference §Specs-resolution now that `focus_key`
 is set — the front-end's first pass resolved `specs` with `focus_key` null, so it must
 run again to pick up the Epic's nested per-Epic home.
@@ -727,10 +740,12 @@ Record what this phase actually did — the commit sha, and whether the push hap
 **Skipped entirely when `mode: direct`** — there is no resolved folder to append to, and a
 directly-implemented change has no block, exactly as before.
 
-**Write `implementation.md`** in the resolved folder. Invoke
+**Write `implementation.md`** in the folder of the unit this run implemented — the Epic's folder
+wherever `focus_key` is set, whether the address named that Epic or Phase 0's picker or one-Epic
+path chose it, and the resolved folder for a broad PRD-level slice. Invoke
 `Skill(skill: "workflows-core:reference", args: "implementation-format")` and append one block per
-run against its §1: one entry per repository this run touched, each naming `repo`, `branch`,
-`base`, `commit` and `pushed`. Append-only — never edit or
+run against its §1, which says why the record lives with its unit: one entry per repository this
+run touched, each naming `repo`, `branch`, `base`, `commit` and `pushed`. Append-only — never edit or
 remove an earlier block, and a re-run adds a block rather than replacing one.
 
 **It records refs and nothing else.** No summary of what was implemented: a summary is a

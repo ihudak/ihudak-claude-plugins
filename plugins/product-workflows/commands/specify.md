@@ -635,9 +635,11 @@ Resolve any ARD for this item by invoking `Skill(skill: "workflows-core:referenc
 ## Phase 3 — Derive repos + soft gate
 
 1. **Auto-derive candidate repos.** From the Phase 2 capability themes and any repositories the
-   resolved folder's `implementation.md` records (`workflows-core:implementation-format`
-   §1 — its `repo` entries), build a candidate repo-slug list. There is no PR list to read: nothing here
-   reads a tracker or a pull-request API. **Under
+   `implementation.md` records in the folders Step B read name
+   (`workflows-core:implementation-format` §1 — their `repo` entries; a record lives in the folder
+   of the unit implemented, so that is the focus Epic's where `focus_key` is set, and the PRD
+   folder's and every `EPIC-` folder's where it is null), build a candidate repo-slug list. There
+   is no PR list to read: nothing here reads a tracker or a pull-request API. **Under
    the BRD route there is no implementation record either; derive the list from the resolved slice
    folder's `grounding/baselines.md` instead**, which already records repository → pinned commit for
    every repo `/product-workflows:prd-ground` read, plus the Phase 2 themes. That is a stronger starting

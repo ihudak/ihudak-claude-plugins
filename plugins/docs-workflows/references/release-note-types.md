@@ -31,6 +31,20 @@ draft. A run whose version the operator declined files under `# Unreleased`. The
 `# Release notes — <PRD> <slug>`, is its first line, names the PRD folder's key and slug — on a run
 addressed to an Epic as on one addressed to the PRD — and names no version.
 
+**Each draft records its scope, on the line above it:**
+`<!-- release-note scope: <KEY> <YYYY-MM-DD> -->`, `<KEY>` the PRD folder's key on a run addressed
+to the PRD and the Epic's on one addressed to an Epic, and the date the run appended the draft. The
+file is one per PRD and a note may be drafted for one Epic, so without the line nothing in the file
+says whose work a note described, and the line is what `/release-notes` takes its block boundary
+from — a PRD's note covering every implementation record under the PRD, and an Epic's that Epic's
+record alone (`workflows-core:implementation-format` §4). An HTML comment renders as nothing and is
+not a heading, so it moves none of the boundaries above, and it is **not part of the draft**: every
+rule below binds the draft beneath it, and the operator's paste starts there. **A draft with no
+scope line — every one appended before `docs-workflows` 1.2.2 — counts as the PRD's**, which is how
+the file's one boundary treated it then, and is dated by the file's last write before a scope line
+first reached it: the latest commit to the file whose version carries none, or, where the file
+carries no scope line yet, its own last-written date, as before.
+
 
 The Change Type selects the **section** of that one file:
 

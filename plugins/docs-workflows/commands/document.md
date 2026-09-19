@@ -289,10 +289,12 @@ alongside it.
 **Resolve the diff sources — two of them, merged.** Invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4:
 
 1. **The record.** Read `implementation.md` in the PRD folder and in every `EPIC-` folder under it,
-   wherever one stands — `/dev-workflows:implement` writes it into the folder its address resolved,
-   so a run addressed to an Epic records its work in that Epic's folder. **Read every block under
-   the PRD** — this command documents the feature as it now stands, so every change that reached it
-   is in scope.
+   wherever one stands — `/dev-workflows:implement` writes it into the folder of the unit it
+   implemented, so a run that implemented an Epic records its work in that Epic's folder, and a
+   broad PRD-level slice in the PRD folder (`workflows-core:implementation-format` §1, which also
+   says whose a block an earlier run left in the PRD folder is). **Read every block under the PRD**
+   — this command documents the feature as it now stands, so every change that reached it is in
+   scope.
 2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
    repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
    already holds:

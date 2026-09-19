@@ -5,8 +5,10 @@ run, and the commit convention that makes work findable when the plugin was not 
 Design authority: `docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` §7.3 and §7.3.1.
 
 **Written by `/implement`. Read by `/document` and `/release-notes`**, which hand the refs it records
-to `diff-summarizer`. §3's commit convention is a separate thing with a wider writer set — all three
-of the commands that change code — and §3 says how each of them writes it.
+to `diff-summarizer`; and, for whether it exists or for the repositories its entries name, by
+`references/epic-picker.md`'s ● marker, `/ready`, `/specify` and `/epics`. §3's commit convention is
+a separate thing with a wider writer set — all three of the commands that change code — and §3 says
+how each of them writes it.
 
 ## 1. The block
 
@@ -30,6 +32,23 @@ One `## <YYYY-MM-DD> — /implement` block per run, one entry per repository the
 
 **Append-only.** A block is never edited and never removed, and a re-run adds a block rather than
 replacing one. This is the shape `grounding/baselines.md` already uses, one layer up.
+
+**Where it lives: in the folder of the unit the run implemented.** `/implement` implements one unit
+per run — an Epic, whether its address named the Epic's folder or the run chose the Epic under a
+PRD address, or a broad PRD-level slice — and the record is that Epic's folder's, or the PRD
+folder's for the slice. A file the run creates opens with `# Implementation — <key> <slug>`, the
+key and slug of the folder it sits in. **A block names no unit**: nothing in the shape above says
+which, so the folder is what attributes a block to one, and no reader infers a unit from a branch
+name. That is what lets an Epic-level reader read its Epic's record alone, the picker mark an Epic
+done from its own folder, and a PRD-level reader take the PRD folder's record and every Epic's
+under it.
+
+**A block an earlier run left in the PRD folder for an Epic is the PRD folder's.** Until
+`dev-workflows` 4.1.2 `/implement` wrote into the folder its address resolved, so a PRD-addressed
+run that chose an Epic — through its picker, or as the PRD's only Epic — appended its block to the
+PRD folder's record. That block says nothing of the Epic, so it is read as every PRD-folder block
+is: by a PRD-level reader, and by no Epic-level one. No run moves or copies it — the file is
+append-only — and the picker's ● marker, which reads the Epic's own folder, does not count it.
 
 **Branch for convenience, commit for durability.** A merged branch is deleted; the squashed commit
 stays reachable from the base. `diff-summarizer` accepts either, and recording both is what makes the
@@ -112,12 +131,19 @@ commits into the recorded set makes the record look more complete than it is.
 
 **The two consumers take different boundaries, and the difference is not stylistic:**
 
-- **`/document` reads every block under the PRD.** It documents the feature as it now stands, so
-  every change that reached it is in scope.
-- **`/release-notes` reads only blocks appended since its last section was written.** A second
-  release must not re-describe the first one's work, and with no imported release field the file's
-  own last-written date is the only honest boundary — so **the run names the blocks it used**, which
-  makes a wrong boundary visible rather than silent.
+- **`/document` reads every block under its scope** — the PRD's, which is the PRD folder's record
+  and every Epic's under it, or, on an Epic address, that Epic's (§1). It documents the feature as
+  it now stands, so every change that reached it is in scope.
+- **`/release-notes` reads only the blocks no earlier note covers.** A second release must not
+  re-describe the first one's work, and with no imported release field the notes already in
+  `release-notes.md` are the only honest boundary. Each records its scope and date
+  (`docs-workflows:release-note-types` §1): a note for the PRD covers every record under it, and a
+  note for an Epic that Epic's record alone. So for each record the run reads — by the same scope
+  as `/document` — it takes the blocks dated after the latest note covering that record, which for
+  an Epic's record is the later of that Epic's latest note and the PRD's; a note drafted for one
+  Epic moves no other Epic's boundary. A block dated the day of that note is read too, since a date
+  cannot order the two, and a block read twice shows in the report where a block skipped would not.
+  **The run names the blocks it used**, which makes a wrong boundary visible rather than silent.
 
 **What is honestly still lost, and what a run therefore says out loud:** only a commit whose message
 names the key is findable, no convention compels a human to follow one, and so **the run reports how

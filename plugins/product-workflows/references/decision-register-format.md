@@ -168,6 +168,15 @@ also what the eventual re-decision is argued against under §2: it names what ch
 `argumentation` can say why that change moves the answer — or, just as legitimately, why it does not
 and the original `chosen` stands.
 
+**A cause from another BRD is named with that BRD's key.** That is the propagation sweep's case:
+`commands/brd-reconcile.md` reopens a dependent's record on a `[CD#n]` the prerequisite's own
+reconciliation froze. A structured field names it in §5's cross-BRD shape, `<BRD-KEY>/[CD#n]`, and
+prose in the one qualified spelling `references/bundle-packaging.md` §6.2 fixes, `<BRD-KEY> [CD#n]`.
+A bare `[CD#n]` names a record of the register it sits in — the wrong one where this register holds
+that id, none where it does not — and this register ships in its own BRD's package, whose citation
+check resolves a bare id the same way. An unnamed cause and a cause naming the wrong record fail
+alike: neither says what changed.
+
 The rule's purpose is not ceremony. A register that can be reopened freely is a register whose
 `decided` status means nothing, and a customer who signed off on a set of decisions signed off on
 something that can drift underneath them. Bounding reopening to two external causes is what makes

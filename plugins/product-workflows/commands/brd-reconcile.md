@@ -1254,10 +1254,22 @@ run to inherit-unchanged its way through a sweep whose whole purpose is to find 
 
 | Disposition | Recorded as |
 |---|---|
-| `inherited-unchanged` | the record is unchanged; the sweep row names the changed id that was considered and why it does not move the position. **The row is written even so** — an item checked and found unaffected and an item never reached are different facts |
-| `reverted` | the record's `chosen` and `argumentation` return to the position that stood before the prerequisite moved it, recorded against the changed id |
-| `reopened` | `status: reopened` on that record, naming this run's `[CD#n]` as its cause — an incoming customer decision is exactly one of the two causes §4 admits |
+| `inherited-unchanged` | the record is unchanged; the sweep row names the changed id that was considered, qualified (below), and why it does not move the position. **The row is written even so** — an item checked and found unaffected and an item never reached are different facts |
+| `reverted` | the record's `chosen` and `argumentation` return to the position that stood before the prerequisite moved it, recorded against the changed id, qualified (below) |
+| `reopened` | `status: reopened` on that record, naming this run's `[CD#n]` as its cause, qualified (below) — an incoming customer decision is exactly one of the two causes §4 admits |
 | `withdrawn` | `status: withdrawn` — the question stopped applying rather than being answered differently. It is **not** a tidier spelling of `superseded` (§3), and it is what stops a request from reappearing in the next customer package after the customer has already dealt with it |
+
+**Every id a sweep write names carries the key of the BRD whose numbering it is**, because the write
+lands in a dependent's register, which numbers its own records: a bare `[CD#3]` there resolves
+against the dependent's own register — to the wrong record where that register holds a `[CD#3]`,
+and to nothing where it does not — and that register ships in the dependent's own package, whose
+citation check resolves a bare id the same way (`bundle-packaging.md` §6.2's relation 1). The key
+is this run's own `<BRD-KEY>` for a `[CD#n]`, `[VD#n]`, `[AS#n]` or `[SR#n]`, each numbered in this
+slice's own register or self-review, and `<PARENT-KEY>` for a `[BR#n]` or `[DEF#n]`, which are the
+parent's ids on a slice (`brd-format.md` §2.1). A structured field takes the cross-BRD shape
+`decision-register-format.md` §5 fixes, `<BRD-KEY>/[CD#n]`; prose takes the one qualified spelling
+`bundle-packaging.md` §6.2 fixes, `<BRD-KEY> [CD#n]`. A `reopened` record's cause is named the same
+way (`decision-register-format.md` §4).
 
 **A dependent BRD whose register is in flight is recorded, never written.** This is the *cross-BRD
 write guard* above, applied to each dependent's `decisions.md`: `require-on-main` first, and on any
@@ -1348,7 +1360,7 @@ captured files.
 
 | Outcome | Meaning |
 |---|---|
-| `updated` | the sentence is corrected, naming the `[CD#n]` that changed it. **Where the artifact belongs to another BRD** — the parent's own, or a sibling slice's — the *cross-BRD write guard* applies: `require-on-main` first, and on a stopping row the hit becomes `needs-a-human` naming that state, never `updated` |
+| `updated` | the sentence is corrected, naming the `[CD#n]` that changed it. **Where the artifact belongs to another BRD** — the parent's own, or a sibling slice's — it names it `<BRD-KEY> [CD#n]`, for the reason the propagation sweep's qualification gives, and the *cross-BRD write guard* applies: `require-on-main` first, and on a stopping row the hit becomes `needs-a-human` naming that state, never `updated` |
 | `still-true` | the sentence survives the change; **why** it survives is recorded, because "I looked and it was fine" and "I did not look" leave the same trace otherwise |
 | `needs-a-human` | the correction is a judgement this run cannot take, or the hit is inside a dated snapshot; it travels into *what still needs a human* |
 

@@ -79,6 +79,7 @@ Exactly this, and nothing else:
 | the customer's own source document — `brd/source/<basename>`, **the parent's on a slice** (`references/brd-format.md` §2.1) | requirement traceability: the review's own section 4 asks whether the package read the customer's document correctly, which is unanswerable without that document |
 | `brd/brd-inventory.md` | *Review scope* |
 | `brd/brd-defect-log.md` — **the parent's on a slice**, one hop, exactly as an inherited `[DEF#n]` already resolves (`references/brd-format.md` §4) | *Review scope*: a ledger row reading `rejected: [DEF#n]` cites an id the reviewer must be able to resolve |
+| `brd/brd-figures.md` — **the parent's on a slice**, one hop, as the defect log is, and only where the BRD links an image | requirement traceability: the review's section 4 asks the customer to confirm or correct the package's reading of their document, and this file is its reading of their images (`references/brd-format.md` §1.2) |
 | `coverage-ledger.md` | *Review scope*, and *what this session cannot settle* |
 | `code-defect-log.md`, when the folder holds one | *Review scope*, *what could still move*, and *what this session cannot settle* — a defect disposed `in-scope` **is** the delivery boundary |
 | `grounding/code-grounding.md` and `grounding/design-grounding.md` | *the single most important claim to verify first* |
@@ -183,6 +184,14 @@ Where that leaves something a plain reader cannot open — an embedded image, a 
 fix is **beside the file, never inside it**: copy the image in as §2 already requires, and say in the
 manifest what the reader may not be able to see. The manifest is prose this package wrote and may
 say anything; the source document is not.
+
+**An image the document reaches through a `[[wikilink]]`, or from outside its own directory, is found
+through `brd/brd-link-log.md`'s *Captured links that do not resolve as written* table**
+(`references/brd-format.md` §1.1) — on a slice the parent's log, one hop, as the document is
+(`references/brd-format.md` §2.1). Its copy is in `brd/source/` or `brd/source-external/`, at a path
+the link as written does not name. It is copied into the bundle like any other image, and the manifest
+names the link as written beside the bundled file it resolves to: the source document itself is never
+edited to point there.
 
 **Callouts are kept.** A `> [!note]` block degrades to an ordinary blockquote in any markdown reader
 — the reader loses the label's styling and keeps every word. Nothing that survives untranslated is
@@ -409,8 +418,9 @@ a reader meeting one will assume the other matches.** `[DEF#n]` widens one hop: 
 the class. `[BR#n]` does not widen: §1.1 ships the slice's own inventory, which is defined over
 `claims:` (`references/brd-format.md` §2.1), and the parent's is not a bundle document at all. So a
 `[BR#n]` that a structured field names one hop up — an orphan row's own `id`, a `superseded-by`, a
-parent defect entry's counterpart — has no corpus here to resolve against, and §6.2's relation 1
-discharges it as a qualified cross-package reference rather than reporting it dead.
+parent defect entry's counterpart, the *Rows* line of the parent's figures file — has no corpus here
+to resolve against, and §6.2's relation 1 discharges it as a qualified cross-package reference rather
+than reporting it dead.
 
 **A corpus that yields zero ids is one of two states, and only one of them is a failure.** A corpus
 file holding **record-shaped content** — at least one block the format would recognise as a record,
@@ -484,14 +494,16 @@ moment it does. Those that exist today:
 | `conditional_on: <BRD-KEY>/<decision-id>` | `references/decision-register-format.md` §5 | one specific decision in a named prerequisite's own register |
 | `blocked_on: <BRD-KEY>/<decision-id>` | `references/code-defect-log-format.md` §5 | one specific decision in a named prerequisite's own register — the decision that would settle a `conditional` `[CDF#n]`'s scope question. Its other spelling is prose naming no bracketed identifier, which no relation ever meets |
 | `prerequisite` | `workflows-core:grounding-format` §2, §5 | the prerequisite BRD's decision a `will-change` finding's horizon turns on |
-| `resolved-by: [CG#n]` | `references/brd-format.md` §4 | the grounding finding that settled a defect; grounding is slice-only, so it is whichever slice settled it |
+| `resolved-by: [CG#n]`, `resolved-by: [CD#n]` | `references/brd-format.md` §4 | the grounding finding or the customer decision that settled a defect; grounding and deciding are both slice-only, so it is whichever slice settled it |
 | the `[BR#n]` a defect entry is raised against, and a `conflict` / `duplicate` entry's counterpart `[BR#n]` | `references/brd-format.md` §3 | a requirement in the log-owning BRD's inventory — the parent's on a slice |
 | `superseded-by: [BR#n]`, and an orphan row's own `id: [BR#n]` | `references/coverage-ledger-format.md` §2, §3 | a requirement of the parent's, one this slice "need not claim or hold a row for" |
+| the *Rows* line of `brd/brd-figures.md` — every `[BR#n]` it yields or illustrates | `references/brd-format.md` §1.2 | a requirement in the figures file's owning BRD's inventory — the parent's on a slice |
 
-**The last three are routine rather than exotic**, which is why refusing them would stop the
-ordinary package rather than a rare one. §1.1 ships the **parent's** defect log whole into a slice's
-bundle, and a parent that split into several slices carries defects — and requirements superseding
-one another — across all of them, while the slice's own inventory is defined over `claims:`
+**The last four are routine rather than exotic**, which is why refusing them would stop the
+ordinary package rather than a rare one. §1.1 ships the **parent's** defect log and figures file
+whole into a slice's bundle, and a parent that split into several slices carries defects — and
+requirements superseding one another, and images yielding or illustrating requirements — across all
+of them, while the slice's own inventory is defined over `claims:`
 (`references/brd-format.md` §2.1) and its `covered-by` rows are exactly its orphan rows
 (`references/coverage-ledger-format.md` §3). Every one of those references is correct content whose
 target sits one hop up, outside this partition's corpus by §1.1's own allow-list.

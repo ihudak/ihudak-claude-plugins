@@ -94,8 +94,9 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   (`BRD_PACKAGE_NEEDS_INTERVIEW`, run [`/brd-interview`](brd-interview.md)), while a register in the
   folder means the interview ran and its handoff was declined
   (`BRD_PACKAGE_REGISTER_NOT_HANDED_OFF`, land the files that are already on disk). The second must
-  **not** send the operator back to `/brd-interview`: on an unchanged BRD that command opens no new
-  round, stages nothing, and opens no pull request.
+  **not** send the operator back to `/brd-interview`: that command hands off only the files its own
+  run writes — nothing at all where it finds nothing new to ask — and never the round records
+  already on disk.
 - **Every round the register names, on the default branch.** The rounds this BRD has are the distinct
   `round` values `decisions.md` records, and each one's **interview/round-`<N>`.md** is gated with
   `require-on-main`; any on no ref stop the run together with `BRD_PACKAGE_ROUNDS_NOT_ON_MAIN`. The
@@ -109,12 +110,17 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   *needs grounding* or *untagged* stops with `BRD_PACKAGE_ROUND_UNSETTLED` — see
   [Gates](#gates) for why *held for the customer* is the one holding state this command admits.
 - **Something for the customer to decide.** No `[C]` question, no open `[AS#n]` and no `[VD#n]` at
-  all stops with `BRD_PACKAGE_NOTHING_TO_REVIEW` — reported as a **finished** state rather than a
-  missing step, since every question was settled from verified findings and there is nothing to ask
-  a customer. The stop says outright that another interview round is not the fix (it opens one only
-  on a changed finding or a moved decision) and names the action that can change it:
-  `/prd-ground <BRD-KEY> --rebaseline`, or a decision reopened or superseded in the register. A
-  package carrying `[VD#n]` positions and no `[C]` question is legitimate and is packaged.
+  all stops with `BRD_PACKAGE_NOTHING_TO_REVIEW`: every question the rounds asked was settled from
+  verified findings, so there is nothing in them to ask a customer. Whether that leaves the BRD
+  decided is [`/brd-interview`](brd-interview.md)'s to say, and the stop does not guess — when that
+  command opens a round is its own rule, which the stop cites rather than restates. Where
+  `/brd-interview` would open a new round — the findings or decisions have moved, or a requirement
+  defect has become this BRD's to ask, since its last round closed — or names the `--round 1`
+  re-open for open requirement defects no round has asked, running it is the fix; a bare run says
+  which, and hands off nothing where neither applies. `/prd-ground <BRD-KEY> --rebaseline`, or a
+  decision reopened or superseded in the register, can also make a round askable. Where none of
+  that applies, the BRD is decided — a **finished** state rather than a missing step. A package
+  carrying `[VD#n]` positions and no `[C]` question is legitimate and is packaged.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
 - **No repository, and no `$REPOS_PATH`.** Every commit this package cites was pinned and proven
   clean by `/prd-ground`; the repo→SHA table is read from that run's `baselines.md`, and the three
@@ -142,12 +148,12 @@ the `[SR#n]` content the customer may see reaches them **filtered** — `accepte
 make*. Shipping the file would defeat that filter and hand the customer an internal disagreement to
 referee. What the bundle *does* hold is an allow-list, not a deny-list, and
 [`bundle-packaging.md`](../../references/bundle-packaging.md) §1.1 is its authority: the prompt; the
-customer's own source document and defect log (the parent's on a slice); the inventory; the coverage
-ledger; the three grounding files; the decision register; the code-defect log where the folder holds
-one; the `[C]` question set; each prerequisite package; the images those reference; and the
-manifest. A document reaches the bundle only where a
-part of the prompt sends the reviewer to it — everything else in the folder is a working record and
-stays.
+customer's own source document, defect log and — where it links an image — the transcription of each
+image (the parent's on a slice); the inventory; the coverage ledger; the three grounding files; the
+decision register; the code-defect log where the folder holds one; the `[C]` question set; each
+prerequisite package; the images those reference; and the manifest. A document reaches the bundle
+only where a part of the prompt sends the reviewer to it — everything else in the folder is a
+working record and stays.
 
 Behind the handoff phase's consent choice, these are committed, pushed, and a pull request opened
 against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix. The

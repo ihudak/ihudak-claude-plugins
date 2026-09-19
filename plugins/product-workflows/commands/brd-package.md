@@ -172,13 +172,14 @@ cannot review, and they will not tell you that — they will review it anyway, b
    - **No `decisions.md` in the folder at all** — no interview has ever run for this BRD.
      `BRD_PACKAGE_NEEDS_INTERVIEW: no decision register on file for <BRD-KEY> — run /product-workflows:brd-interview <BRD-KEY> first.`
    - **A register is in the folder, and on no ref** — the interview ran and its handoff was
-     declined. **Do not send the operator back to `/brd-interview`**: its *Resolve the round* phase
-     opens a new round only on a changed finding, a changed verifier outcome or a moved decision, so
-     on an unchanged BRD it takes the no-new-round path, reaches its handoff phase with nothing
-     staged, reports `nothing to commit` and opens no pull request — `handoff-to-main` stages only
-     the paths *that* run declared (`workflows-core:phase-handoff` §2.3), and the
-     register already on disk is not among them. What is needed is the register already written,
-     landed:
+     declined. **Do not send the operator back to `/brd-interview`**: whether it opens a new round is
+     its *Resolve the round* phase's own test of what changed since the last round closed — that
+     phase's to state, and cited, never restated here — and where the test finds nothing it takes
+     the no-new-round path, reaches its handoff phase with nothing staged, reports `nothing to
+     commit` and opens no pull request, while where it finds something the round it opens is handed
+     off with its own record and not the earlier ones. Either way `handoff-to-main` stages only the
+     paths *that* run declared (`workflows-core:phase-handoff` §2.3), and the round records already
+     on disk are not among them. What is needed is the register already written, landed:
      `BRD_PACKAGE_REGISTER_NOT_HANDED_OFF: <BRD-KEY>'s decision register is written at <path> but is on no branch — its handoff was declined. Commit and merge decisions.md and the interview/ round records to the specs repo's default branch, then re-run; do not re-run /product-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
 7. **Gate on the interview's rounds — and read the precondition the only way that is not a
    deadlock.** Read every `interview/round-<N>.md`.
@@ -221,7 +222,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
 
    **A register in which no record of any kind carries a `round` names no rounds, and this gate is silent on it** — the
    derived set is empty and there is nothing to require. That state reaches step 8's
-   `BRD_PACKAGE_NOTHING_TO_REVIEW`, which reads it as a **finished** BRD ("every question its rounds
+   `BRD_PACKAGE_NOTHING_TO_REVIEW`, which reads its rounds as **settled** ("every question its rounds
    asked was settled from verified findings"). That reading is right for a BRD that was interviewed
    and settled, and wrong for one that was never interviewed at all — the two are indistinguishable
    from the register alone, and the difference is whether `interview/` holds anything. Step 8 says
@@ -248,7 +249,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
 8. **Gate on there being something to review — and report it as a finished state, not a missing
    step.** A package with **no** `[C]` question, **no** open `[AS#n]`, and **no** `[VD#n]` in the
    register has nothing for a customer to confirm, correct or attack. Stop rather than sending it:
-   `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — every question its rounds asked was settled from verified findings, so there is nothing for a customer to confirm, correct or attack. This is a finished state, not a missing step: the delivery team owes the customer no decision here, and a package built from it would ask for a review of nothing. Re-running /product-workflows:brd-interview <BRD-KEY> is NOT the fix — it opens a new round only when the findings or the decisions have moved, so on an unchanged BRD it reports that nothing is askable and asks nothing. What makes a round askable again is new evidence or a moved position: '/product-workflows:prd-ground <BRD-KEY> --rebaseline' re-derives the findings against current commits, and a decision reopened or superseded in decisions.md has the same effect. Absent either, this BRD is decided and needs no customer review.`
+   `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — every question its rounds asked was settled from verified findings, so there is nothing in them for a customer to confirm, correct or attack, and a package built from it would ask for a review of nothing. Whether that leaves this BRD decided is /product-workflows:brd-interview's to say: where it would open a new round — the findings or the decisions have moved, or a requirement defect has become this BRD's to ask, since its last round closed — or names the '/product-workflows:brd-interview <BRD-KEY> --round 1' re-open for open requirement defects no round has asked, that run is the fix, and a bare '/product-workflows:brd-interview <BRD-KEY>' says which, handing off nothing where neither applies. New evidence can make a round askable too: '/product-workflows:prd-ground <BRD-KEY> --rebaseline' re-derives the findings against current commits, and a decision reopened or superseded in decisions.md has the same effect. Where none of that applies, this BRD is decided — a finished state, not a missing step, and the delivery team owes the customer no decision here.`
    **Test `interview/` FIRST, and independently of what the register holds.** This was once a branch
    *inside* the stop above — reached only where there was nothing to review — and that placement had a
    hole the moment a second command gained the power to write an `[AS#n]`:
@@ -260,18 +261,23 @@ cannot review, and they will not tell you that — they will review it anyway, b
    register holds**, so where `interview/` is absent or holds no round record, stop here before the
    test above runs:
    `BRD_PACKAGE_NOT_INTERVIEWED: <BRD-KEY> has no interview/ round record — this BRD has not been interviewed, so there is nothing yet to put in front of a customer, whatever its register holds. Where it holds an open [AS#n] written by /product-workflows:create-prd, that assumption still needs the interview it never had: a package carries a customer's decisions against a record of what was asked, and there is no such record here. Run '/product-workflows:brd-interview <BRD-KEY>' first.`
-   The finished-state message above then stays exactly as it is for the case it was written for: an
-   `interview/` that holds rounds whose every question a verified finding settled.
+   The nothing-to-review stop above then serves only the case it was written for: an `interview/`
+   that holds rounds whose every question a verified finding settled.
 
-   **Why the message names grounding rather than another interview round.** The register is reached
-   through `/brd-interview`, so naming it is the reflex — but its *Resolve the round* phase opens a
-   new round only on a changed finding, a changed verifier outcome, or a moved decision, and reports
-   plainly that there is nothing to ask otherwise. Sending an operator there on an unchanged BRD is a
-   next-step offer pointing at a no-op, which is the thing
-   `workflows-core:next-phase-offer` exists to keep out of this route. The
-   condition itself is that phase's to state and is cited, never restated here; what this message
-   owes the operator is the **one action that can satisfy it**, which is a grounding pass, and the
-   plain fact that stopping is a legitimate outcome.
+   **Why the message hands the verdict to `/brd-interview`, and names grounding beside it.** Whether
+   a settled BRD still has something to ask is decided by `/brd-interview`'s *Resolve the round*
+   phase — its test of what changed since the last round closed, which opens a new round, and its
+   round-1 test, which names the `--round 1` re-open for requirement defects a slice interviewed
+   before that question source existed has never asked. Both are that phase's to state and are
+   cited, never restated here: this command cannot evaluate either without a second copy of the
+   question sources behind them, and that phase already says why this command tests for its round
+   record rather than re-deriving those sources — a second copy is how the two commands drift apart.
+   So the message does not call the BRD decided on its own authority, which would tell an operator
+   whose slice holds unasked requirement defects that no customer review is owed. It names the one
+   run that decides and says what that run does where neither test fires — it hands off nothing — so
+   the operator is never sent there expecting work it will not do, the no-op offer
+   `workflows-core:next-phase-offer` exists to keep out of this route; and beside it, the grounding
+   pass that can make a round askable, and the plain fact that stopping is a legitimate outcome.
 
    Note what this gate does **not** require: a package with `[VD#n]` decisions and no `[C]` question
    at all is legitimate and is packaged. Positions the delivery team took and argued are exactly the
@@ -298,14 +304,23 @@ cannot review, and they will not tell you that — they will review it anyway, b
     inputs, never scratch: nothing below deletes, renames or rewrites a dated artifact another run
     wrote.
 
-    **Resolve `brd/source/<basename>` and `brd/brd-defect-log.md` here too**, even though nothing in
-    this run reads their *content*: both go into the bundle
-    (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1), and on a **slice** neither is in
-    this folder at all — each resolves one hop up, through the `parent:` this step just read
-    (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4). Resolving them now rather than at
-    assembly is what lets an absent one be reported before the run has built a prompt: a bundle
-    missing the customer's own document cannot answer the review's requirement-traceability section,
-    and finding that out at the copy step is finding it out too late to say so cheaply.
+    **Resolve `brd/source/<basename>`, `brd/brd-defect-log.md` and — where the BRD links an image —
+    `brd/brd-figures.md` here too**, even though nothing in this run reads their *content*: all three
+    go into the bundle (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1), and on a
+    **slice** none is in this folder at all — each resolves one hop up, through the `parent:` this
+    step just read (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4). Resolving them now
+    rather than at assembly is what lets an absent one be reported before the run has built a prompt:
+    a bundle missing the customer's own document cannot answer the review's requirement-traceability
+    section, and finding that out at the copy step is finding it out too late to say so cheaply. An
+    absent figures file is never a gate, any more than an absent `code-defect-log.md` is: an intake
+    that copied no image writes none (`commands/brd-intake.md` Phase 2.5).
+
+    **`<basename>` is read off `brd/brd-link-log.md`, one hop up on a slice as the three above are** —
+    its opening line names which file under `brd/source/` is the customer's document, since that
+    directory also holds the files the document links; a BRD intaken before the log existed holds
+    exactly one file there, and that file is it (`brd-format.md` §1.1). The log is not a bundle
+    document. The *Assemble the bundle* phase reads it once more, for any image the document reaches
+    through a `[[wikilink]]` or from outside its own directory (`bundle-packaging.md` §2.1).
 11. **Fix the run's date.** One `<YYYYMMDD>` stamp, taken once, used for every artifact this run
     writes. If `bundle-<YYYYMMDD>/` already exists in the BRD folder, stop:
     `BRD_PACKAGE_BUNDLE_EXISTS: <BRD-dir>/bundle-<YYYYMMDD>/ already exists — a dated bundle is never rewritten. Move or rename the existing directory if it was never sent, or package on the next date.`
@@ -820,14 +835,16 @@ the working documents keep their wikilinks and are never rewritten in place
 (`bundle-packaging.md` §2).
 
 **What goes in is `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1's allow-list,
-applied verbatim** — the rendered prompt; the customer's own source document and the defect log
-(**the parent's on a slice**, one hop, since a slice holds neither —
-`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4); `brd/brd-inventory.md`;
-`coverage-ledger.md`; `code-defect-log.md`, when the folder holds one;
+applied verbatim** — the rendered prompt; the customer's own source document, the defect log and,
+only where the BRD links an image, `brd/brd-figures.md` (**the parent's on a slice**, one hop, since
+a slice holds none of them — `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4);
+`brd/brd-inventory.md`; `coverage-ledger.md`; `code-defect-log.md`, when the folder holds one;
 `grounding/code-grounding.md`, `grounding/design-grounding.md` and `grounding/baselines.md`;
 `decisions.md`; `interview/customer-questions.md`; every prerequisite package resolved above,
-copied in and marked **not for re-review**; every image those documents reference; and a
-manifest. Plain markdown and images, and nothing else.
+copied in and marked **not for re-review**; every image those documents reference — including one
+the customer's document reaches through a `[[wikilink]]` or from outside its own directory, found
+through the link log and named in the manifest beside the link as written (`bundle-packaging.md`
+§2.1); and a manifest. Plain markdown and images, and nothing else.
 
 **What does not go in:** the delivery note; **`self-review-<YYYYMMDD>.md`**; every other working
 record in this BRD folder (`slices.md`, `brd-link.md`, the seeds, the round records, an earlier

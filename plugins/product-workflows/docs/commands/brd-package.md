@@ -240,15 +240,15 @@ attack.
   every bundle document. A hit stops the run with `BRD_PACKAGE_PROMPT_LEAK`, naming the token, the
   part it landed in and the artifact it came from — except inside the customer's own verbatim
   content (their captured files, and the parts of the transcription and the inventory that quote
-  them) or a locator naming their own files, headings and links, wherever it sits: both sets are
-  defined once, in `bundle-packaging.md` §6.3. There a `§ 4.2` or a `D3` is the customer's own and
-  the only fix would falsify it, so the hit is reported, grouped as that section fixes, and the
-  operator decides whether to ship — or, where that section says so, it is no hit at all. The
-  identifiers the package's own registers, logs and grounding files mint are **not** in the scan's
-  classes and are meant to travel — the classes are enumerated once, in `bundle-packaging.md`
-  §6.1's table, rather than restated here. They are how the returned review cites the package
-  without minting identifiers of its own; whether each one actually lands is what the
-  citation-resolution check below verifies.
+  them) or a locator naming their own files, headings and links, in the positions where
+  `bundle-packaging.md` §6.3 recognises one; both sets are defined there, once. There a `§ 4.2` or a
+  `D3` is the customer's own and the only fix would falsify it, so the hit is reported, grouped as
+  that section fixes, and the operator decides whether to ship — or, where that section says so, it
+  is no hit at all. The identifiers the package's own registers, logs and grounding files mint are
+  **not** in the scan's classes and are meant to travel — the classes are enumerated once, in
+  `bundle-packaging.md` §6.1's table, rather than restated here. They are how the returned review
+  cites the package without minting identifiers of its own; whether each one actually lands is what
+  the citation-resolution check below verifies.
 - **Phase 7 — the delivery note's 200-word ceiling.** A ceiling, not a target. Over it, the note is
   shortened and re-rendered; the two facts that are never trimmed are which file is the prompt and
   which file comes back.

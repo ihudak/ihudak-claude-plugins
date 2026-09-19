@@ -769,8 +769,8 @@ so rather than deadlock.** `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md
 sets of span this covers: **verbatim customer content** — the customer's own files, copied byte for
 byte and immutable by rule (§2.1 there, `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1), and
 the parts of the figures file and the inventory that transcribe or quote their words — and
-**customer-derived locators**, the customer's names for their own files, headings and links,
-wherever the line carrying one sits, this package's own writing included. A hit inside either is
+**customer-derived locators**, the customer's names for their own files, headings and links, in
+the positions §6.3 recognises them in, this package's own writing included. A hit inside either is
 not a leak this package committed. It is the customer having written the token themselves, in a
 document, a screenshot, a heading or a folder name — because they were told what tooling the
 delivery team uses, or because their own numbering happens to look like ours, a `§ 4.2` in a

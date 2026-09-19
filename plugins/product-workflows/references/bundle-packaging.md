@@ -627,33 +627,38 @@ customer-derived locators below, every hit stays a hard stop, in the figures fil
 as anywhere else: the rest of both is the plugin's own writing.
 
 **A customer-derived locator is the customer's naming, wherever it appears.** It is one of four
-things: a captured file's path relative to `brd/` — the `source/` or `source-external/` prefix is
-ours, and everything below it is the customer's layout and names (`references/brd-format.md` §1.1),
-as is that name where a captured file's bundled filename carries it after the `<BRD-KEY>-` that
-`commands/brd-package.md`'s *Assemble the bundle* rule 1 adds; a heading path or heading text quoted
-from a captured file; a link target as written, in a captured file or in the manifest's map; and an
-inventory row's `source_anchor`. The naming is the customer's whoever wrote the line it sits in, so
-a locator counts in text this package wrote exactly as in a customer's file — a figures section's
-heading and its *Linked from* line, a manifest line, an inventory row, an interview question, and
-the prompt parts rendered from them. **It is recognised by where it sits or by what it names, never
-by its shape.** In a field whose format fixes it as one — a `source_anchor`, a figures heading, a
-*Linked from* line, the manifest's map — it counts as written. Anywhere else a path counts only with
-its prefix and only where the capture holds that file, and a quoted heading only where that file
-has it, resolved as `references/brd-format.md` §2.2 resolves an anchor. So a plugin-written citation
-dressed as a locator is still a hit, and so is a bare `<name>.md` in this package's own prose, which
-is no path in that form and stays relation 3's (§6.2). Four rules follow, for the plugin-free scan
-and this check alike:
+things: a captured file's path relative to `brd/`, with whatever follows its ` › ` — the `source/`
+or `source-external/` prefix is ours, and everything below it is the customer's layout and names
+(`references/brd-format.md` §1.1), as is the heading path or line range after the ` › `; a captured
+file's bundled filename, which `commands/brd-package.md`'s *Assemble the bundle* rule 1 fixes and
+which carries the customer's basename after the `<BRD-KEY>-` it adds; a link target as written, in a
+captured file or in the manifest's map; and an inventory row's `source_anchor`, whose document form
+names no path. The naming is the customer's whoever wrote the line it sits in, so a locator counts
+in text this package wrote exactly as in a customer's file — a figures section's heading and its
+*Linked from* line, a manifest line, an inventory row, an interview question, the note that stands
+in for the figures file's frontmatter (§1.1), and the prompt parts rendered from them. **It is
+recognised by where it sits or by what it names, never by its shape.** In a fixed field — a
+`source_anchor`, a figures section heading, a *Linked from* line, a manifest map line — it counts
+as written. Anywhere else in this package's writing only two things count: a path carrying its
+prefix and naming a file the capture holds, with whatever follows its ` › `, and a filename that is
+the bundled name of a captured file. **Nothing else in this package's own prose is a locator.** A
+pathless heading or section number there — `see §3.4 of brd-format`, `(see §3.4)` — is none, so its
+`§` is a hit like any other `§` the plugin writes, whatever sections the customer's document happens
+to have; and a bare `<name>.md` is no path in that form and stays relation 3's (§6.2). Four rules
+follow, for the plugin-free scan and this check alike:
 
-1. **A leading section reference inside a locator is no hit** — the `§` and section number that
-   open a document anchor, the part after ` › `, or a quoted heading. It is the locator's own form,
-   in the one position `references/brd-format.md` §2.2 fixes for it, and the reader resolves it by
-   opening the customer's file the bundle carries: nothing in it assumes a reader who has this
-   plugin. Every anchor that section was measured on opens with one, so reporting it would put a
-   line per requirement in every package's report and bury the real leak among them.
+1. **A leading section reference is no hit in a locator's fixed position, and only there** — the
+   `§` and section number that open a `source_anchor`, or that open what follows the ` › ` after a
+   prefixed captured path, in a fixed field or wherever that path appears. Those are the positions
+   `references/brd-format.md` §2.2 fixes for it, and the reader resolves it by opening the
+   customer's file the anchor or the path points into, which the bundle carries: nothing in it
+   assumes a reader who has this plugin. Every anchor that section was measured on opens with one,
+   so reported they would put a grouped count of expected `§`s in every package's report, and that
+   count would absorb, and so hide, a real one.
 2. **Any other hit inside a locator is reported, never a stop** — a `references/` folder in a
-   captured path, a quoted `"D3"`, a `§` inside heading text or a link target. It is the customer's
-   naming, and the only repair would rename their files, retitle their headings or re-point an
-   anchor away from where the requirement is stated, each of which falsifies the record.
+   captured path, a quoted `"D3"`, a `§` inside heading text, a filename or a link target. It is the
+   customer's naming, and the only repair would rename their files, retitle their headings or
+   re-point an anchor away from where the requirement is stated, each of which falsifies the record.
 3. **A bare `<name>.md` link inside a captured file is outside relation 3** where it resolves — as
    written, or through the link log's *Captured links that do not resolve as written* table (§2.1)
    — to a captured file the manifest maps. The manifest already resolves it, which is the reason

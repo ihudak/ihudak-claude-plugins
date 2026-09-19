@@ -645,11 +645,11 @@ by what it names, never by its shape.** In a fixed field — a `source_anchor` (
 column, or the anchor an inventory or ledger row's `text` carries, `references/brd-format.md` §2,
 `references/coverage-ledger-format.md` §2), a figures section heading, a *Linked from* line, a
 manifest map line — it counts as written. Anywhere else in this package's writing only two things
-count: a path carrying its prefix and naming a file the capture holds, with whatever follows its ` ›
-`, and a filename that is the bundled name of a captured file. **Nothing else in this package's own
-prose is a locator.** A pathless heading or section number there — `see §3.4 of brd-format`, `(see
-§3.4)` — is none, so its `§` is a hit like any other `§` the plugin writes, whatever sections the
-customer's document happens to have; and a bare `<name>.md` is no path in that form and stays
+count: a path carrying its prefix and naming a file the capture holds, with whatever follows its
+` › `, and a filename that is the bundled name of a captured file. **Nothing else in this package's
+own prose is a locator.** A pathless heading or section number there — `see §3.4 of brd-format`,
+`(see §3.4)` — is none, so its `§` is a hit like any other `§` the plugin writes, whatever sections
+the customer's document happens to have; and a bare `<name>.md` is no path in that form and stays
 relation 3's (§6.2). Four rules follow, for the plugin-free scan and this check alike:
 
 1. **A leading section reference is no hit in a locator's fixed position, and only there** — the

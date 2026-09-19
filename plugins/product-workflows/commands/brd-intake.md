@@ -660,7 +660,7 @@ as Phase 1 says where it stops.
    `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/brd-intake`; what was
    produced (the copied source and the files it links, the figures transcriptions, the inventory,
    the confirmed defect log, the link log, the ledger skeleton); key events (a rejected PDF, an
-   *other* file the operator accounted for, an `EMPTY` read, a link the copy could not capture, an
+   *other* file the operator accounted for, an `EMPTY` read, a link the copy did not capture, an
    `ambiguous` wikilink, an image not read, unresolved candidates left `open`, docs grounding OFF or
    a docs-raised defect — or "none"); workarounds; test result N/A; project root = the BRD folder.
 2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6)
@@ -689,7 +689,7 @@ no user name is ever written.
 
 Report: the BRD folder + source path; how many files were copied beside the source — inside its
 directory and into `brd/source-external/` — and, per `brd/brd-link-log.md`, every link the copy
-could not capture with its reason (Phase 2), with Phase 1's answers and any *other* file the
+did not capture with its reason (Phase 2), with Phase 1's answers and any *other* file the
 operator accounted for; how many images were transcribed, re-used and not read, with each reason,
 and how many sections on file carry the *Not captured by the current run* marker (Phase 2.5); how
 many linked markdown files were read beside the document (Phase 3); the coverage outcome for

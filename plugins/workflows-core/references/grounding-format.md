@@ -485,21 +485,21 @@ descriptions, or either writer's index as itself being that reconciliation: a fr
 evidence only once `/prd-ground` grounds it, never at the moment it is written or indexed.
 
 **Reading a picture is not design grounding, and the family's picture readers do the first without
-the second.** `product-workflows:figure-reader` transcribes the images an idea source or a customer's
-BRD links, for `/idea` and `/brd-intake`; `frame-describer` reads the frames of a set being indexed.
-Each returns an account of what it saw, and neither account is evidence: `frame-describer`'s, and
-`figure-reader`'s on the `/idea` route, are **context** for a description or a grill, and
-`figure-reader`'s on the BRD route is the plugin's reading of the customer's own image, from which
-requirements are extracted (`product-workflows:brd-format` §1.2). Neither agent produces a
-`[DG#n]` or reaches a verifier, so none of this section's *finding* requirements applies to them: the
-index rule above exists because a *filename* is not a reliable statement of what a frame depicts,
-which is the right standard for a finding someone will act on and the wrong one for an account whose
-whole job is to say what an image the operator or the customer handed over shows. What the two index
-writers, `/idea` and `/frames`, inherit from this section is the index obligation alone — because
-that one is about the directory, which they create or repair, rather than about a finding, which
-neither makes. `brd/brd-figures.md`, which `/brd-intake` writes from `figure-reader`'s
-transcriptions, is not a frame-set index and sits in no `design/` directory, so that obligation
-does not reach it.
+the second.** `product-workflows:figure-reader` transcribes the images an idea source or a
+customer's BRD links, directly or through a page it links, for `/idea` and `/brd-intake`;
+`frame-describer` reads the frames of a set being indexed. Each returns an account of what it saw,
+and neither account is evidence: `frame-describer`'s, and `figure-reader`'s on the `/idea` route,
+are **context** for a description or a grill, and `figure-reader`'s on the BRD route is the plugin's
+reading of the customer's own image, from which requirements are extracted
+(`product-workflows:brd-format` §1.2). Neither agent produces a `[DG#n]` or reaches a verifier, so
+none of this section's *finding* requirements applies to them: the index rule above exists because a
+*filename* is not a reliable statement of what a frame depicts, which is the right standard for a
+finding someone will act on and the wrong one for an account whose whole job is to say what an image
+the operator or the customer handed over shows. What the two index writers, `/idea` and `/frames`,
+inherit from this section is the index obligation alone — because that one is about the directory,
+which they create or repair, rather than about a finding, which neither makes. `brd/brd-figures.md`,
+which `/brd-intake` writes from `figure-reader`'s transcriptions, is not a frame-set index and sits
+in no `design/` directory, so that obligation does not reach it.
 
 ### 6.2 The frame-set index
 
@@ -659,10 +659,11 @@ never finish.
 | `/idea` | each image it copied into `design/idea-sources/` this run | `idea-reader`'s per-image `description` — `figure-reader`'s `depicts` sentence for that image |
 | `/frames` | each frame `frame-describer` read for the set this run | that agent's per-frame `description` |
 
-Neither invents one. An image `/idea` never had transcribed is not copied, so it is in the set only
-where an earlier run or a person left a copy there, and this run accounts for that copy nowhere; a
-frame `/frames` could not describe, or did not reach before its cap bit, is accounted for nowhere
-either. Both land on step 4, and both are reported.
+Neither invents one. An image `/idea` never had transcribed is not copied, so it reaches step 4
+only as a copy an earlier run or a person left in the set **without a row** — one with a row is
+preserved at step 2 — and this run accounts for that copy nowhere; a frame `/frames` could not
+describe, or did not reach before its cap bit, is accounted for nowhere either. Both land on step 4,
+and both are reported.
 
 ### 6.3 The four reconciliation classes
 

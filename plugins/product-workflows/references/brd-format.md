@@ -102,7 +102,11 @@ copied, and writes what it returns here. **A transcription is the plugin's readi
 customer's image, not the customer's words** — which is why a requirement drawn from an image
 anchors on the *image* (§2), never on this file, and why `/brd-intake` Phase 4's human and the
 customer's own review both check a row drawn from an image against the picture. It is the
-plugin's record, so it sits in `brd/` beside `brd-link-log.md` and never under `brd/source/`.
+plugin's record, so it sits in `brd/` beside `brd-link-log.md` and never under `brd/source/`. **A
+transcription the customer corrects is corrected here**, by `/brd-reconcile`'s required-corrections
+phase (`commands/brd-reconcile.md` Phase 6), in a section's *Text*, *Annotations* or *Flow* only —
+its hash, *Linked from* and *Rows* stay `/brd-intake`'s — and a later intake keeps the corrected
+section for as long as the image's bytes, and so its content hash, are unchanged.
 
 ```markdown
 ---

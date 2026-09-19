@@ -104,9 +104,9 @@ name the run creates ([addressing](../reference/references.md) §2):
   command of the route writes under `brd/source/`, so a file left behind here stays out of the record
   until the document is intaken again.
 - `brd/source-external/<basename>` — every file the document links from outside its own folder, where
-  you chose to capture it, by basename (a name already taken there gets a numbered suffix); immutable
-  exactly as `brd/source/` is.
-- `brd/brd-link-log.md` — every link in a captured file whose target the copy could **not**
+  you chose to capture it, by basename (a different file under a name already taken there gets a
+  numbered suffix; an identical one is re-used); immutable exactly as `brd/source/` is.
+- `brd/brd-link-log.md` — every link in a captured file whose target the copy did **not**
   capture, each with its reason (a URL, an unreadable target, a wikilink matching several files,
   or — where you chose the document's own folder only — a link to a file outside it), the run's
   counts, and a table mapping every captured link that does not resolve as written (a wikilink, an

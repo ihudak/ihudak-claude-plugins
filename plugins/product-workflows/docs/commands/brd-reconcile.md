@@ -221,7 +221,15 @@ unmatched row can be told apart from a question set nobody passed.
   [`/brd-split`](brd-split.md) walk, or a later [`/brd-interview`](brd-interview.md) round, whose
   operator owns every code-defect disposition. **What is
   refused is the edit, not the change** — and saying so is the difference between a refusal the
-  customer accepts and one they re-request next round.
+  customer accepts and one they re-request next round. **A correction to the transcription of a
+  customer's image is applied**: the review's section 4 asks the customer to confirm or correct it,
+  and a correction the transcription itself must carry comes back as a section-12 row naming the
+  figures file, whose *Text*, *Annotations* or *Flow* the run corrects in place — it is the plugin's
+  reading of the picture, not the customer's document. The image is never touched, the file's hash,
+  *Linked from* and *Rows* lines are refused as [`/brd-intake`](brd-intake.md)'s, and an inventory
+  row quoting the corrected element is not rewritten: its amendment is a `customer-amended`
+  resolution where it carries a defect, and otherwise an entry in *what still needs a human*. A later
+  intake keeps the corrected transcription for as long as the image's bytes are unchanged.
 - **Phase 4 — the confirmation gate.** No `[CD#n]` is written while any decision the reader returned
   is unconfirmed. The four values are `confirm`, `correct`, `reject` and `ask-the-customer`; the
   picker carries no bulk confirmation, and a free-text answer is **normalised into those four or the
@@ -250,9 +258,10 @@ unmatched row can be told apart from a question set nobody passed.
   it changes. Rewriting a dated prompt or self-review to match a later position falsifies the record
   the customer's review responds to, and every quotation in that review then points at a sentence
   that no longer exists.
-- **Every phase that writes into another BRD — one guard, not three.** Defect resolutions into a
-  parent's log, sweep dispositions into a dependent's register, and stale-reference corrections into a
-  sibling slice's artifacts are all cross-BRD writes, and each runs `require-on-main` against the
+- **Every phase that writes into another BRD — one guard, not four.** A transcription correction
+  into a parent's figures file, defect resolutions into a parent's log, sweep dispositions into a
+  dependent's register, and stale-reference corrections into a sibling slice's artifacts are all
+  cross-BRD writes, and each runs `require-on-main` against the
   target first. Any stopping row — including the artifact being on no ref at all — means **record,
   never write**, naming the intended change and the branch/PR state. It never stops the run: letting
   a dependent's open pull request block the prerequisite's own customer loop is the D20 failure
@@ -286,12 +295,15 @@ cannot be reduced to a pattern, and it is the one that matters — **updating a 
 document still states the old position is the characteristic failure of this step**, and the
 contradiction is invisible from the register, which is the only place anybody looks.
 
-A hit is corrected only where it is **prose**. Inside a coverage ledger's `disposition`, an inventory
-row's `id`/`text`/`source_anchor`, or a register record's `status`/`chosen`/`evidence`, it becomes
-`needs-a-human` instead: each of those is fixed by a rule the sweep does not own — allocation belongs
-to [`/brd-split`](brd-split.md)'s walk, an inventory row mirrors an immutable source, and a decision
-moves only through the four sweep dispositions or the two reopening causes. The scope is every
-markdown file under the parent, which is exactly why the carve-out has to be written down.
+A hit is corrected only where it is **prose** that nothing else owns. Inside a coverage ledger's
+`disposition`, an inventory row's `id`/`text`/`source_anchor`, a register record's
+`status`/`chosen`/`evidence`, any entry of the code-defect log, or any line of the figures file, it
+becomes `needs-a-human` instead: each of those is fixed by a rule the sweep does not own — allocation
+belongs to [`/brd-split`](brd-split.md)'s walk, an inventory row mirrors an immutable source, a
+decision moves only through the four sweep dispositions or the two reopening causes, every
+code-defect disposition is the operator's, and a transcription records what the customer's image
+shows, which no decision changes. The scope is every markdown file under the parent, which is
+exactly why the carve-out has to be written down.
 
 ## What it does not do
 

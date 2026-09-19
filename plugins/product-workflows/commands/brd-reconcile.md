@@ -100,16 +100,17 @@ the customer's own voice.
 
 ## The cross-BRD write guard
 
-**Three phases below write outside the BRD folder this run was given, and all three take the same
+**Four phases below write outside the BRD folder this run was given, and all four take the same
 guard.** They are:
 
 | Phase | What it writes, and where |
 |---|---|
+| *Apply the required corrections* | an `applied` correction to an image's transcription in the **parent's** `brd/brd-figures.md`, when this run stands on a slice |
 | *Resolve the defects the review settled* | `customer-amended`, `withdrawn` and `resolved-by: [CD#n]` rows into the **parent's** `brd/brd-defect-log.md`, when this run stands on a slice |
 | *The propagation sweep* | sweep dispositions into a **dependent BRD's** `decisions.md` |
 | *The stale cross-reference sweep* | `updated` corrections into any artifact under the parent, including a **sibling slice's** |
 
-**The rule, once, for all three.** Before writing into an artifact that belongs to a BRD other than
+**The rule, once, for all four.** Before writing into an artifact that belongs to a BRD other than
 the one this run was given, execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against that artifact. Any **stopping** row → **record, never write**: the intended change, the
 artifact, and the concrete branch/PR state the gate reported all go into the reconciliation record
 and the final report, and the file is left exactly as it was. Row F (`absent` — the artifact is on no
@@ -120,12 +121,12 @@ artifact somebody is still working on. `pass`, `pass_amending` and `unmanaged` �
 letting a dependent's open pull request block it would let any downstream BRD stall the BRD its own
 positions rest on — the D20 failure, arriving from the other direction.
 
-**Why the guard is one rule and not three.** Writing over a register, a defect log or a value
+**Why the guard is one rule and not one per path.** Writing over a register, a defect log or a value
 document that is sitting on somebody else's branch silently overwrites an in-flight run, and the
 person whose work is lost finds out at their next `git status`, not here. That failure does not care
-which of the three paths reached it, so neither does the guard: a rule written once for the
-propagation sweep alone would have left the other two paths open, which is exactly how the second and
-third came to exist.
+which of the paths reached it, so neither does the guard: a rule written once for the propagation
+sweep alone would have left the other paths open, which is exactly how the second and third came to
+exist.
 
 **What is *not* covered, deliberately:** every artifact inside the BRD folder this run was given.
 Those are gated once, in the *Resolve inputs and gate the sent package* phase, and re-gating each
@@ -800,7 +801,7 @@ Any row still undisposed when this phase would end → stop:
 **Three classes of target, and they are not treated alike:**
 
 1. **A live working document.** Corrected in place — these are the documents the route works on,
-   and they are supposed to move. **But "live" is not "unowned", and five of them carry fields
+   and they are supposed to move. **But "live" is not "unowned", and six of them carry fields
    another rule fixes.** A section-12 row is the customer instructing an edit; it is not a licence to
    write a field this command may not write, and the customer cannot know which those are. Split the
    class:
@@ -809,17 +810,19 @@ Any row still undisposed when this phase would end → stop:
    |---|---|
    | `slices.md`, a seed file, and the **prose** of any document below | Corrected in place. Nothing else owns these |
    | `coverage-ledger.md` — a row's `disposition` | **`refused-with-reason`**, naming the ledger phase as where a `[CD#n]` may move a row and `/product-workflows:brd-split` as the only allocator (`coverage-ledger-format.md` §3, §4). A customer asking for a row to be built here is asking for an allocation, and this command writes exactly three dispositions and never `covered-here` or `covered-by` |
-   | `brd/brd-inventory.md` — a row's `id`, `text` or `source_anchor` | **`refused-with-reason`**, for the reason class 3 gives about `brd/source/` itself: `text` is the requirement **verbatim** from the immutable source and `source_anchor` locates it there (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, §2), so rewriting the row edits the customer's document in the one place it is mirrored. The amendment is a `customer-amended` defect resolution, which the *Resolve the defects the review settled* phase writes |
+   | `brd/brd-inventory.md` — a row's `id`, `text` or `source_anchor` | **`refused-with-reason`**, for the reason class 3 gives about `brd/source/` itself: `text` is the requirement **verbatim** from the immutable source — on a row drawn from an image, the element it quotes from that image's transcription — and `source_anchor` locates it there (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, §2), so rewriting the row edits the customer's document in the one place it is mirrored. The amendment is a `customer-amended` defect resolution, which the *Resolve the defects the review settled* phase writes |
+   | `brd/brd-figures.md` — a section's *Text*, *Annotations* or *Flow* — **the parent's on a slice**, one hop, as the defect log is (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) | **`applied`**, in place: it is the plugin's reading of the customer's image, not the customer's document, and the reviewer is the reader certain to know what their own picture says. The image itself is class 3 below and never touched, and on a slice this write takes the cross-BRD write guard above. A later `/product-workflows:brd-intake` run keeps the corrected section while the image's bytes are unchanged, since its Phase 2.5 re-uses a section whose content hash still matches; a changed image is re-transcribed and the correction does not carry over. **Where the correction changes the element an image-drawn inventory row quotes, that row is not rewritten** — it takes the row above's `refused-with-reason`, and its amendment is a `customer-amended` resolution where the row carries a defect (the *Resolve the defects the review settled* phase), and otherwise an entry in *what still needs a human* |
+   | `brd/brd-figures.md` — a section's *Content hash*, *Linked from* or *Rows* line | **`refused-with-reason`**, naming `/product-workflows:brd-intake` as their writer: the hash is of the image's bytes, and *Linked from* and *Rows* are recomputed by every intake from its own walk and the final inventory (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2), so an edit here says something the next intake overwrites |
    | `decisions.md` — a record's `status`, `chosen`, `evidence` or `argumentation` | **`refused-with-reason`** where the row asks for a direct edit. Those move only through this command's own freeze, §4's two reopening causes, or the propagation sweep's four dispositions. A customer who wants a decision changed has already changed it: their answer is a `[CD#n]`, frozen in the *Freeze the customer decisions* phase, which reopens what it contradicts |
    | `code-defect-log.md` — a `[CDF#n]`'s `disposition` or `blocked_on`, **and its `statement`/`intent` prose too** | **`refused-with-reason`**, and alone among the rows here its prose is not corrected in place either: every disposition on this log is the **operator's** (`${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §4), and `/product-workflows:brd-interview` is its only writer. The customer sees every entry because the log ships in the bundle (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1) — seeing is not deciding. Surface the row to the operator naming the entry and what was asked, so a later interview round settles it on the record rather than the customer's channel writing a disposition nobody on the delivery side took |
    | `brd-link.md` — `parent:` or `claims:` | **`refused-with-reason`**. Both are written by `/product-workflows:brd-split`, and `claims:` disagreeing with the ledger is the state the whole allocation gate exists to prevent. `depends-on:` is prose-adjacent and merged additively by two other commands; a row asking to add one is `applied` |
 
    **A refusal here is not a refusal of the customer's point.** In every row above the substance
    reaches the register through the channel that owns it — a `[CD#n]`, a defect resolution, a
-   `/brd-split` walk, a later `/brd-interview` round — and the refusal says which, so the next
-   package shows the customer their point landed rather than that it was declined. What is refused
-   is the *edit*, not the *change*. Saying so is the difference between a refusal the customer
-   accepts and one they re-request next round.
+   `/brd-split` walk, a later `/brd-interview` round, the next intake — and the refusal says which,
+   so the next package shows the customer their point landed rather than that it was declined. What
+   is refused is the *edit*, not the *change*. Saying so is the difference between a refusal the
+   customer accepts and one they re-request next round.
 
    **This is the same carve-out the stale cross-reference sweep carries**, and it is written twice
    deliberately: that sweep reaches these files by a text match this command made, while this phase
@@ -830,11 +833,13 @@ Any row still undisposed when this phase would end → stop:
    `bundle-<YYYYMMDD>/` or under `customer-sent-<YYYYMMDD>/`, an earlier
    `reconciliation-<YYYYMMDD>.md`. **Never rewritten.** The next
    phase says what happens instead and why.
-3. **`brd/source/`** — the customer's own document. **Never touched at all** (D11). A correction to
-   the source is a defect resolution beside it, which the *Resolve the defects the review settled*
-   phase writes. Editing the customer's document destroys the ability to say precisely what they gave
-   us and what we changed, and a review row asking for it is asking for something this workflow does
-   not do — refuse it with that reason, and say where the amendment is held instead.
+3. **`brd/source/` and `brd/source-external/`** — the customer's own document and every file
+   captured with it, images included. **Never touched at all** (D11,
+   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.1). A correction to the source is a defect
+   resolution beside it, which the *Resolve the defects the review settled* phase writes. Editing
+   the customer's document destroys the ability to say precisely what they gave us and what we
+   changed, and a review row asking for it is asking for something this workflow does not do —
+   refuse it with that reason, and say where the amendment is held instead.
 
 **A correction that would change a `[CG#n]` or a `[DG#n]` is not applied here.** The review's
 sections 5 and 6 challenge code and design claims, and the delivery side re-adjudicates them
@@ -1117,8 +1122,8 @@ root bounds everything here except search 1's literal-id pass, which also reads 
 already-resolved dependent set (below). The root is the
 source-owning BRD's directory and every slice inside it — so that a *sibling* slice still asserting a
 superseded position is reached. Every markdown file under it is in scope:
-the seeds, `slices.md`, the inventory, the ledger, the grounding files, every register, the
-code-defect log, every round record, and every dated snapshot.
+the seeds, `slices.md`, the inventory, the figures file, the ledger, the grounding files, every
+register, the code-defect log, every round record, and every dated snapshot.
 
 **Two searches, and the second is the one that matters.**
 
@@ -1189,7 +1194,7 @@ snapshots* phase where that phase's rules reach it, and inside `bundle-<YYYYMMDD
 edited nor bannered — it is recorded, for the byte-identical reason that phase gives.
 
 **Nor is a hit inside a structured record ever `updated`.** The scope above is deliberately every
-markdown file under the parent, which is what reaches a sibling's seed — but four of the file kinds
+markdown file under the parent, which is what reaches a sibling's seed — but five of the file kinds
 it names carry content another rule already fixes, and `updated` on one of them would contradict that
 rule rather than correct a stale sentence:
 
@@ -1198,7 +1203,8 @@ rule rather than correct a stale sentence:
 | a `coverage-ledger.md` `disposition` — **any** ledger's, this BRD's included | `needs-a-human`. Allocation is `/product-workflows:brd-split`'s walk and nothing else's, and the *Update the coverage ledger* phase writes only the three `[CD#n]`-driven dispositions onto **this** ledger and never reaches one hop down or across (`coverage-ledger-format.md` §3, §4) |
 | a `brd/brd-inventory.md` row's `id`, `text` or `source_anchor` | `needs-a-human`. `text` is the requirement verbatim from an immutable source and `source_anchor` locates it there; an id is assigned once and never renumbered (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, §2). A sweep that reflowed one would edit the record of what the customer actually wrote |
 | a `decisions.md` record's `status`, `chosen` or `evidence` | `needs-a-human` unless it is this run's own propagation-sweep write. Those three move only through the four dispositions the previous phase fixes, or through §4's two reopening causes — never because a sentence nearby went stale |
-| a `code-defect-log.md` entry — **any field of it, its `statement` and `intent` prose included** | `needs-a-human`. Every disposition on that log is the operator's and `/product-workflows:brd-interview` is its only writer (`${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §4), so there is no field of a `[CDF#n]` this sweep may write — which is why this row, alone in this table, covers prose too |
+| a `code-defect-log.md` entry — **any field of it, its `statement` and `intent` prose included** | `needs-a-human`. Every disposition on that log is the operator's and `/product-workflows:brd-interview` is its only writer (`${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §4), so there is no field of a `[CDF#n]` this sweep may write — which is why this row, like the figures file's below it, covers prose too |
+| a `brd/brd-figures.md` section — **any line of it** | `needs-a-human`. Its transcription records what the customer's image shows, which no decision changes, and its hash, *Linked from* and *Rows* lines are `/product-workflows:brd-intake`'s to write (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2). A correction to a transcription arrives only as a section-12 row, which the *Apply the required corrections* phase disposes of; a hit here means the customer's own picture still shows a position the answer moved, which is for a person to take up with them |
 
 **What `updated` is for is prose**, and only prose: a sentence in a seed, a rationale in `slices.md`,
 a summary in a round record, an `argumentation` paragraph that still argues the old position. Those
@@ -1240,10 +1246,12 @@ changed, why, which ids, and what still needs a human:
   fix; every `will-change` finding needing a rebaseline; every dependent recorded-not-written, with a
   re-run of `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>` on this same review as the fix,
   once that dependent's register is on the default branch; every
-  `needs-a-human` prose hit; every requirement the customer asked for that no `[BR#n]` covers; and
-  every row the customer dropped that another BRD holds (*Resolve the defects the review settled*),
-  with that BRD named; and every `duplicate` settled by keeping the part, with the obligations the
-  kept row does not cover named.
+  `needs-a-human` hit, in prose or in a structured record; every requirement the customer asked for
+  that no `[BR#n]` covers; and every row the customer dropped that another BRD holds (*Resolve the
+  defects the review settled*), with that BRD named; and every `duplicate` settled by keeping the
+  part, with the obligations the kept row does not cover named; and every inventory row drawn from an
+  image whose quoted element an `applied` transcription correction changed, where the row carries no
+  defect for a `customer-amended` resolution to hold the amendment, with the corrected element named.
 
 **A second reconciliation on the same day appends, and never overwrites.** Where
 `reconciliation-<YYYYMMDD>.md` already exists, this run adds a new pass beneath what is there, under
@@ -1264,12 +1272,14 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's
 table), `feature_folder` as resolved in the *Resolve inputs and gate the sent package* phase,
 `deliverable_paths` = the canonicalised review at its resolved name and, where `--sent` was given,
-`customer-sent-<YYYYMMDD>/` (both still listed, so a run whose
-first handoff was declined lands them here), `decisions.md`, `interview/round-<N>.md` and
+every file beneath `customer-sent-<YYYYMMDD>/`, one literal path each and never the directory (both
+still listed, so a run whose first handoff was declined lands them here), `decisions.md`, `interview/round-<N>.md` and
 `interview/customer-questions.md`, `coverage-ledger.md`, the requirement defect log's path
 (**the parent's**, on a slice — the slice-owned `code-defect-log.md` is written by nothing here),
-every dated artifact this run bannered, `reconciliation-<YYYYMMDD>.md`, every dependent
-BRD's `decisions.md` the sweep wrote, and every artifact the stale-reference sweep updated;
+every artifact the *Apply the required corrections* phase changed — a transcription correction on a
+slice lands in the parent's `brd/brd-figures.md`, and a correction nobody declares here is a
+correction that never reaches the default branch — every dated artifact this run bannered,
+`reconciliation-<YYYYMMDD>.md`, every dependent BRD's `decisions.md` the sweep wrote, and every artifact the stale-reference sweep updated;
 `title: <BRD-KEY> Reconcile the returned customer review <YYYYMMDD>`; and `body_facts` = what the
 review was reconciled against (a handed-off package, or `--sent` material with its committed path);
 the mode the

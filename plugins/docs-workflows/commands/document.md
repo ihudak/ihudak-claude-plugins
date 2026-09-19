@@ -1,6 +1,6 @@
 ---
 name: document
-description: keyed feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Reads a Product Requirements Document hierarchy from the resolved folder in the specs tree, summarises the diffs its implementation record names in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
+description: keyed feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Reads a Product Requirements Document hierarchy from its PRD folder in the specs tree — the folder the address resolves to, or the one above it for an Epic address — summarises the diffs its implementation record names in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -10,7 +10,7 @@ Generate product documentation for the resolved Product Requirements Document: $
 
 Signature: one positional address — a key, or an `@<path>` naming a folder in the specs tree. Phase 5.5 resolves each write target against the content roots the resolved profile declares, and Phase 6.3 writes each page into the root that owns it.
 
-`/document` (keyed mode) is the **keyed feature-documentation** workflow. Given a PRD address, it reads the resolved PRD folder, resolves the implementation record's repo slugs to local clones, runs parallel diff summaries of the refs that record names, synthesises product documentation, runs style-check + Opus review gates, and writes the output into the docs repository Phase 0 step 2 resolves — the current working directory where it carries a docs signal, and otherwise `${DOCS_PATH:-/workspace/docs}`, a repository under `${REPOS_PATH:-/workspace}`, or cwd or a path you confirm: a run writes wherever that ladder answers, not wherever it was started (Phase 0 step 2, and step 4 for the profile).
+`/document` (keyed mode) is the **keyed feature-documentation** workflow. Given a PRD address — or an Epic's, which scopes the repositories it resolves, the diff summaries and the documentation plan to that Epic — it reads the resolved PRD folder, resolves the implementation record's repo slugs to local clones, runs parallel diff summaries of the refs that record names, synthesises product documentation, runs style-check + Opus review gates, and writes the output into the docs repository Phase 0 step 2 resolves — the current working directory where it carries a docs signal, and otherwise `${DOCS_PATH:-/workspace/docs}`, a repository under `${REPOS_PATH:-/workspace}`, or cwd or a path you confirm: a run writes wherever that ladder answers, not wherever it was started (Phase 0 step 2, and step 4 for the profile).
 
 For small one-off doc edits, use direct mode (below). For writing child Epic drafts from a PRD, use `/epics`. For release notes, use `/release-notes` — this command never writes release-notes / what's-new pages, because those are generated from the tracker by the docs team's automation.
 
@@ -47,6 +47,24 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
    absent from the argument list → `mode: direct`, and the rest of this phase's keyed steps are
    skipped. Carry the resolved `path`, `kind`, `key`, and the `specs` files found in that folder
    forward.
+
+   **Place the folder, and carry the PRD folder and the focus.** An `EPIC-` address documents one
+   Epic, and its folder holds no `prd.md`: the PRD it belongs to is the folder above it. So place the
+   resolved folder at a level as `workflows-core:addressing` §4.1 does — by its prefix, never by the
+   kind it asserts, which on a BRD-route slice is `brd` — taking its container test first, and carry
+   forward:
+   - `<PRD>` — the **PRD folder's** `key`, read off its carrier (§4): the resolved folder's own where
+     §4.1 places it at PRD level, its parent's where §4.1 places it at Epic level. That folder is
+     **the PRD folder** — what every later phase of this mode means by *the resolved PRD folder* —
+     and Phase 3 reads it.
+   - `focus_key` — the resolved folder's `key` where §4.1 places it at Epic level, `null` where it
+     places it at PRD level. Phase 3 derives `focus_items` from it.
+
+   A folder §4.1 places as a BRD container holds no PRD — a BRD's PRDs are authored in its `PRD-`
+   slices — and one it places at no level is not guessed at. Stop on either here, before Phase 1 asks
+   anything, with the `key dir not found` rule in `workflows-core:escalation-rules`
+   (`["Re-enter key", "Cancel"]`), naming the folder and what it carries and, for a container, each
+   slice under it — found by the positive test §4.1 names — as an address to re-enter.
 
 2. **Resolve the docs repo (cwd-preferred).** This command writes feature documentation into a product docs repository; running it outside such a repository is almost always a mistake. The **docs signals** checked throughout this step are:
    - `package.json` with any script matching `*:start`, `*:build`, `*:lint`, `docs:*`, or
@@ -147,7 +165,7 @@ Before clarification, show a readiness table summarizing what Phase 0 resolved:
 
 | Item | Resolved |
 |---|---|
-| Address | the resolved folder |
+| Address | the resolved folder[ — an Epic folder, whose PRD folder is the one above it] |
 | Docs repo | `<docs_repo_path>` (`is_known_docs_repo`: yes/no)[ — the top level of `<docs_repo_resolved>`] — write context `<obsidian \| docs_repo \| non_docs_repo \| plain_dir>` |
 | Profile | `profile_source`: `<in-repo \| built-in \| generated>` |
 | Toolchain | `<all required tools present>` OR `<N missing: vale, pnpm — user chose to continue>`; writing into `<docs_repo_path>`[ (cwd is `<cwd>`)] |
@@ -264,12 +282,17 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 ## Phase 3 — Read the PRD folder
 
-**Read the resolved folder directly** — full depth: the PRD, its Epics, and every artifact present.
-Read its `prd.md` for the product content, and the `specs` files Phase 0 resolved alongside it.
+**Read the PRD folder directly** (Phase 0 step 1) — full depth: the PRD, its Epics, and every
+artifact present. Read its `prd.md` for the product content, and the `specs` files Phase 0 resolved
+alongside it.
 
 **Resolve the diff sources — two of them, merged.** Invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4:
 
-1. **The record.** Read `implementation.md` in the resolved folder. **Read every block under the PRD** — this command documents the feature as it now stands, so every change that reached it is in scope.
+1. **The record.** Read `implementation.md` in the PRD folder and in every `EPIC-` folder under it,
+   wherever one stands — `/dev-workflows:implement` writes it into the folder its address resolved,
+   so a run addressed to an Epic records its work in that Epic's folder. **Read every block under
+   the PRD** — this command documents the feature as it now stands, so every change that reached it
+   is in scope.
 2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
    repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
    already holds:
@@ -278,9 +301,10 @@ Read its `prd.md` for the product content, and the `specs` files Phase 0 resolve
    git -C <repo> log --grep='<key>' --grep='<workitem_key>' --extended-regexp --regexp-ignore-case
    ```
 
-   The keys come from the resolved folder's own `key:` and its `workitem_key`; **nothing is parsed
-   out of a commit message.** This is what finds work the plugin did not do — a commit written by
-   hand after a session ended, a colleague's push, a follow-up nobody ran a command for.
+   The keys come from the resolved folder's own `key:` — the Epic's, where the address named an Epic
+   folder — and its `workitem_key`; **nothing is parsed out of a commit message.** This is what finds
+   work the plugin did not do — a commit written by hand after a session ended, a colleague's push, a
+   follow-up nobody ran a command for.
 
 **Merge and dedupe by SHA.** Anything the scan finds beyond the recorded blocks is reported as
 **unrecorded work**, named as such with its commits listed: folding hand-made commits silently into
@@ -297,14 +321,15 @@ the shape its Inputs declare for `refs[]`, `title` optional — taken on the pur
 repeated inside an element. No URL, no host classification, no `gh` requirement.
 
 
-If the folder is missing or holds no PRD, surface the `key dir not found` rule in `workflows-core:escalation-rules` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
+If the PRD folder holds no PRD, surface the `key dir not found` rule in `workflows-core:escalation-rules` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
 
-When `focus_key` is set (the address resolved to an Epic folder), also derive `focus_items` = **that
-`EPIC-` folder and what it holds** — its `epic.md`, `specification.md`, `design.md` and
-`implementation.md`. There is no Story / Sub-task level beneath it: those were rows of a tracker export
-that no command produces any more, and the tree stops at the Epic folder (§4.1). The
-change-scoped phases below consume `focus_items` in place of the full hierarchy —
-Phase 5 (diff summarisation) and Phase 5.7 (doc planning) — while every phase that
+When `focus_key` is set (Phase 0 step 1 — the address named an Epic folder), also derive
+`focus_items` = **that `EPIC-` folder and what it holds** — its `epic.md`, `specification.md`,
+`design.md` and `implementation.md`. There is no Story / Sub-task level beneath it: those were rows of
+a tracker export that no command produces any more, and the tree stops at the Epic folder
+(`workflows-core:addressing` §2). The
+change-scoped phases below consume `focus_items` in place of the full hierarchy — Phase 4 (repo
+resolution), Phase 5 (diff summarisation) and Phase 5.7 (doc planning) — while every phase that
 describes the PRD as a whole keeps the full handoff. When `focus_key`
 is null, every phase uses the full hierarchy exactly as today.
 
@@ -312,7 +337,7 @@ is null, every phase uses the full hierarchy exactly as today.
 
 ## Phase 4 — Resolve repos
 
-From the **implementation record** — the `implementation.md` blocks in the resolved folder, plus the commit scan that complements them (`workflows-core:implementation-format` §4):
+From the **implementation record** — the `implementation.md` blocks Phase 3 read, only the focus Epic's own where `focus_key` is set (Phase 3's `focus_items`), plus the commit scan that complements them (`workflows-core:implementation-format` §4):
 
 1. Take every entry's `repo`, `branch`, `base` and `commit`. **There is no `pull_requests[]` to filter and no PR `status` to filter on** — nothing in this plugin reads a tracker or a pull-request API, so the record of what was implemented is `implementation.md` and the `git log --grep` scan beside it. An entry with `pushed: false` is still in scope: it is local to one machine, which the run reports rather than skipping.
 2. Group the entries by `repo` (short repo name).
@@ -878,7 +903,7 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
   >
   > Task description: [one-paragraph summary of the feature and <KEY>]
   > Written doc file paths: [absolute paths of every file written in Phase 6.3]
-  > PRD folder path:        [the resolved folder]
+  > PRD folder path:        [the PRD folder (Phase 0 step 1)]
   > Diff summaries:         [array of diff-summarizer outputs from Phase 5]
   > doc-planner checklist:  [the full YAML from Phase 5.7 — as Phase 6.3's `BLOCKED` loop left it, where that loop rewrote it]
   > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or prose-style-checker; same violation schema regardless of source]

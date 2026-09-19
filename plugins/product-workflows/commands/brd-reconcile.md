@@ -1460,7 +1460,8 @@ table), `feature_folder` as resolved in the *Resolve inputs and gate the sent pa
 `deliverable_paths` = the canonicalised review at its resolved name and, where `--sent` was given,
 every file beneath `customer-sent-<YYYYMMDD>/`, one literal path each and never the directory (both
 still listed, so a run whose first handoff was declined lands them here), `decisions.md`, `interview/round-<N>.md` and
-`interview/customer-questions.md`, `coverage-ledger.md`, the requirement defect log's path
+`interview/customer-questions.md` where on file (a slice never interviewed holds neither, and a
+`--sent` run admits one — Phase 0 step 2), `coverage-ledger.md`, the requirement defect log's path
 (**the parent's**, on a slice — the slice-owned `code-defect-log.md` is written by nothing here),
 every artifact the *Apply the required corrections* phase changed — a transcription correction on a
 slice lands in the parent's `brd/brd-figures.md`, and a correction nobody declares here is a

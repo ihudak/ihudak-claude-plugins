@@ -209,7 +209,9 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   resolution; where several share one class and row they pair in order, and a candidate left over is
   asked with those entries shown beside it, so a restatement is rejected rather than logged twice,
   and a `conflict` or `duplicate` some but not all of whose pairs the log already joins is asked
-  with each entry joining one of them, for the same reason;
+  with each entry joining one of them and, confirmed, records only the pairs none of them joins,
+  which its question says, so a pair on file is not logged twice and one nothing joins is not
+  dropped;
   only the rest are walked, taking ids after the highest in use; and an entry this read did not
   propose again — for a `conflict` or `duplicate`, one no pair of whose rows a candidate joins — is
   kept, and reported as not re-raised, while one only some of whose pairs a candidate joins counts

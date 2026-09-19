@@ -779,7 +779,10 @@ every row in the test below as Phase 3's reconciliation numbered it.
   names, and it matches where every one of those pairs is already joined, by some entry on file of
   its class raised from either end — those entries are what it matches. One some but not all of
   whose pairs are joined is walked with each entry on file of its class joining any of them shown
-  beside it (the *On file* line below), for the same reason.
+  beside it (the *On file* line below), and **confirmed, it records only the pairs no entry on file
+  joins**: each joined pair is a defect on file already, so recording the whole candidate would log
+  it twice, while *Reject — not a defect* would drop the pairs nothing on file joins. Its question
+  names both sets, so the operator answers for the pairs a confirmation records and for no other.
 
 **A match is that entry, or those entries**: the candidate is not put to the operator again, and
 nothing is written for it — each entry keeps its `[DEF#n]`, its reason and its resolution exactly as
@@ -816,7 +819,11 @@ and its place in every order below, are those of the group's candidate raised on
 where none is, of the candidate `brd-format.md` §4's numbering order puts first; every other
 candidate of the group is **folded** into it and not walked, its reason carried on the *Also
 raised* line below, so one answer decides the group. The report names each folded candidate beside
-the one walked in its place.
+the one walked in its place. **The candidate a group of two or more is walked as is then matched
+against the log on file as the bullets above match one**, since its pairs — its row with each other
+row the group joins — need not be any of its members' pairs: where entries on file of its class join
+every one of them, it is a match like any other and is not walked, and where they join some, it is
+walked as such a candidate is.
 
 **Before the first candidate, print `brd-reader`'s `notes`** (Phase 1.5 collects them), with every
 `[BR#n]` in them mapped through Phase 3's reconciliation: an observation the agent made and did not
@@ -846,17 +853,21 @@ Names: [BR#m] — "<that row's text>", …
 Image: <its path relative to brd/> — transcription below; open the image before answering.
 Also raised: [BR#m] — <that folded candidate's reason>, …
 On file: [DEF#k] — <that entry's reason> (<its resolution>), … — if this candidate is one of these, answer "Reject — not a defect".
+On file: [DEF#k] — <that entry's reason> (<its resolution>), joining [BR#a] and [BR#b], … — logged already; confirming records only [BR#n] with [BR#m], …, the pairs none of these joins, so answer for those pairs alone.
 ```
 
 The *Names* line is written for a `conflict` or `duplicate` only, one entry per counterpart the
 candidate names — for a group walked as one, every other row the group joins; the *Image* line only
 for a row drawn from an image (below); the *Also raised* line only for a candidate another was
 folded into, one item per folded candidate, naming the row it was raised on; the *On file* line only
-where an entry on file bears on the candidate, one item per such entry — for an `ambiguity`,
-`untestable`, `unsourced` or `scope-leak` candidate the pairing above left over, each entry on file
-of its class raised on its row; for a `conflict` or `duplicate`, each entry on file of its class
-joining any pair of rows the candidate joins (for a group walked as one, the group's pairs), since a
-candidate some of whose pairs the log already joins is walked all the same; a candidate Phase 3.5
+where an entry on file bears on the candidate, one item per such entry — in its first form for an
+`ambiguity`, `untestable`, `unsourced` or `scope-leak` candidate the pairing above left over, each
+entry on file of its class raised on its row; in its second for a `conflict` or `duplicate`, each
+entry on file of its class joining any pair of rows the candidate joins (for a group walked as one,
+the group's pairs), since a candidate some of whose pairs the log already joins is walked all the
+same — each item naming the pairs of those rows it joins, and the line ending with the candidate's
+own pairs, its row with each counterpart it names, that no entry on file joins: the pairs a
+confirmation records (above); a candidate Phase 3.5
 raised from documentation ends its first line with `(raised from documentation)`.
 Then present:
 
@@ -885,8 +896,9 @@ id, class, rows, reason and resolution, carried into this layout where an earlie
 log in another (§2.3), the first row a pre-layout entry was recorded against becoming its
 `raised on` and any other its `names` (§4) — then one entry per newly confirmed `[DEF#n]` — its
 class, the one row it was raised on, the counterparts a `conflict` or `duplicate` names (carried
-straight from the candidate walked — for a group, every other row it joins), its reason, and
-resolution `open` (none of the other three resolutions has happened to it yet). Then update
+straight from the candidate walked — for a group, every other row it joins — less each counterpart
+whose pair with that row an entry on file already joins, as the matching above records it), its
+reason, and resolution `open` (none of the other three resolutions has happened to it yet). Then update
 `brd/brd-inventory.md`'s `defects` column with each newly confirmed `[DEF#n]` **on the row it was
 raised on, and on that row only** — a counterpart row does not list it, since the entry names it
 (`brd-format.md` §4) — beside the ids Phase 3 carried over.

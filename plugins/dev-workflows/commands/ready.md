@@ -326,7 +326,7 @@ and a pointer to the rubric.
   > status_expectation:      [paste Phase 3(b), plus the workflow-states.md rubric reference]
   > repo_availability:       [paste Phase 3(c)]
   > artifact paths:
-  >   PRD:      [<PRD-dir>/<PRD>.md if read, or the PRD folder's prd.md summary]
+  >   PRD:      [<PRD-dir>/prd.md if read, or a summary of it]
   >   ARD:     [absolute path(s), or 'none']
   >   Epics:   [absolute path(s) in scope]
   >   specs:   [absolute path(s) in scope]
@@ -409,13 +409,13 @@ plugin-gap halt (see Invariants).
    - Opus available: [yes | no]
 
    ### Scope
-   - PRD: <KEY> — [summary]
-   - Epic: <FOCUS_KEY> — [summary] — _or_ "none — PRD-level check"
+   - PRD: <PRD> — [summary]
+   - Epic: <EPIC> — [summary] — _or_ "none — PRD-level check"
    - Specs repo rev: <short HEAD>
 
    ### Derived phase (Phase 3(0) — from the artifacts)
    - PRD: <phase>
-   - Epic <KEY>: <phase> — _or omit when PRD-level_
+   - Epic <EPIC>: <phase> — _or omit when PRD-level_
    - Claimed (`--claimed`): <value verbatim> — _or omit the line when the flag was absent_
 
    ### Artifact inventory (Phase 1)
@@ -489,7 +489,7 @@ a. `project_root` = `$SPECS_PATH` for this run (where `_readiness.md` was writte
 b. Compose a **change summary block**:
 
 ```
-Implementation: [one-sentence: readiness check for <PRD> [<Epic>], verdict SUPPORTED | PARTIAL | NOT-SUPPORTED]
+Implementation: [one-sentence: readiness check for <PRD> [<EPIC>], verdict SUPPORTED | PARTIAL | NOT-SUPPORTED]
 Change type: docs
 Classification: MODERATE
 Files changed:

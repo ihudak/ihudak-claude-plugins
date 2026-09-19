@@ -158,7 +158,8 @@ register with nothing to adjudicate between them.
 
 And it updates, in place: `decisions.md` (the new `[CD#n]`, the superseded `[AS#n]`, the reopened
 `[VD#n]` — created first, as its header line alone, where a `--sent` run finds none), the `[C]`
-question set, `coverage-ledger.md`, the defect log — **the parent's**, when the
+question set where one is on file — a slice never interviewed holds none, nor any round record —
+`coverage-ledger.md`, the defect log — **the parent's**, when the
 run stands on a slice — every dated artifact it banners, every dependent BRD's register the
 propagation sweep wrote, and every artifact the stale-reference sweep corrected. The round record is
 **appended to**, never bannered: each answered question's terminal disposition, and, where the run's

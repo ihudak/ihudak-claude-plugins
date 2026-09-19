@@ -28,7 +28,8 @@ its `##` heading to the next `##` or `#` heading, so a draft appended at the end
 section at the end of its version's part, never lands inside the next. A version at the sections'
 own level would end at the first section, and a section at the drafts' title level at the first
 draft. A run whose version the operator declined files under `# Unreleased`. The file's title,
-`# Release notes — <KEY> <slug>`, is its first line and names no version.
+`# Release notes — <PRD> <slug>`, is its first line, names the PRD folder's key and slug — on a run
+addressed to an Epic as on one addressed to the PRD — and names no version.
 
 
 The Change Type selects the **section** of that one file:

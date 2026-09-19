@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: Release-notes drafting. Reads the resolved Product Requirements Document from the resolved folder in the specs tree, optionally grounds in the recorded refs' diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to publish wherever release notes are published.
+description: Release-notes drafting. Reads the Product Requirements Document from its PRD folder in the specs tree — the folder the address resolves to, or the one above it for an Epic address — optionally grounds in the recorded refs' diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to publish wherever release notes are published.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -39,6 +39,24 @@ This command makes **zero external API calls** and **never writes into the docs 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Carry the resolved `path`, `kind` and
    `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command.
+
+   **Place the folder, and carry the PRD folder and the focus.** An `EPIC-` address drafts the note
+   for one Epic, and its folder holds no `prd.md`: the PRD it belongs to is the folder above it. So
+   place the resolved folder at a level as `workflows-core:addressing` §4.1 does — by its prefix,
+   never by the kind it asserts, which on a BRD-route slice is `brd` — taking its container test
+   first, and carry forward:
+   - `<PRD>` — the **PRD folder's** `key`, read off its carrier (§4): the resolved folder's own where
+     §4.1 places it at PRD level, its parent's where §4.1 places it at Epic level. That folder is
+     **the PRD folder** — what every later phase means by *the resolved PRD folder* — and Phase 3
+     reads it.
+   - `focus_key` — the resolved folder's `key` where §4.1 places it at Epic level, `null` where it
+     places it at PRD level.
+
+   A folder §4.1 places as a BRD container holds no PRD — a BRD's PRDs are authored in its `PRD-`
+   slices — and one it places at no level is not guessed at. Stop on either here, before Phase 1 asks
+   anything, with the same `key dir not found` rule, naming the folder and what it carries and, for a
+   container, each slice under it — found by the positive test §4.1 names — as an address to
+   re-enter.
 
    With no positional address, stop with
    `RELEASE_NOTES_NEEDS_KEY: /release-notes needs a PRD or Epic address — a key, or an @<path> to its folder.` —
@@ -135,11 +153,11 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 ## Phase 3 — Read the PRD folder
 
-**Read the resolved folder directly** — its `prd.md` for the product content, and that alone when diff grounding is OFF; the PRD plus the folder's `implementation.md` when ON, which is where the refs the diff grounding needs are recorded (`workflows-core:implementation-format` §1).
+**Read the PRD folder directly** (Phase 0 step 1) — its `prd.md` for the product content, and, where `focus_key` is set, the Epic folder the address named and what it holds; that alone when diff grounding is OFF. When ON, read the `implementation.md` records too, which is where the refs the diff grounding needs are recorded (`workflows-core:implementation-format` §1) — `/dev-workflows:implement` writes one into the folder its address resolved, so read the focus Epic's own where `focus_key` is set, and otherwise the PRD folder's and every `EPIC-` folder's under it, wherever one stands.
 
 **Resolve the diff sources — two of them, merged.** **Only when diff grounding is ON** (Phase 1): it is opt-in and advisory here, so a run that declined it skips this step entirely and grounds its prose in the PRD alone. When it is on, invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4:
 
-1. **The record.** Read `implementation.md` in the resolved folder. **Read only the blocks appended since the last section was written to `release-notes.md`** — a second release must not re-describe the first one's work, and with no imported release field that file's own last-written date is the only honest boundary. **Name the blocks this run used**, so a wrong boundary is visible rather than silent.
+1. **The record.** Read the `implementation.md` records named above. **Read only the blocks appended since the last section was written to `release-notes.md`** — a second release must not re-describe the first one's work, and with no imported release field that file's own last-written date is the only honest boundary. **Name the blocks this run used**, so a wrong boundary is visible rather than silent.
 2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
    repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
    already holds:
@@ -148,9 +166,10 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
    git -C <repo> log --grep='<key>' --grep='<workitem_key>' --extended-regexp --regexp-ignore-case
    ```
 
-   The keys come from the resolved folder's own `key:` and its `workitem_key`; **nothing is parsed
-   out of a commit message.** This is what finds work the plugin did not do — a commit written by
-   hand after a session ended, a colleague's push, a follow-up nobody ran a command for.
+   The keys come from the resolved folder's own `key:` — the Epic's, where the address named an Epic
+   folder — and its `workitem_key`; **nothing is parsed out of a commit message.** This is what finds
+   work the plugin did not do — a commit written by hand after a session ended, a colleague's push, a
+   follow-up nobody ran a command for.
 
 **Merge and dedupe by SHA.** Anything the scan finds beyond the recorded blocks is reported as
 **unrecorded work**, named as such with its commits listed: folding hand-made commits silently into
@@ -167,17 +186,16 @@ the shape its Inputs declare for `refs[]`, `title` optional — taken on the pur
 repeated inside an element. No URL, no host classification, no `gh` requirement.
 
 
-When `focus_key` is set (the address resolved to an Epic folder), scope the **Phase 6 render input**
-to that `EPIC-` folder and what it holds — its `epic.md`, `specification.md`, `design.md` and
-`implementation.md`; there is no Story / Sub-task level beneath it — so the
-release note covers that Epic's user-facing changes rather than the whole PRD. This
-scopes only what Phase 6 renders; it does not mutate the stored handoff that other
-phases read. When `focus_key` is null, the draft covers the whole ticket/PRD exactly as
-today.
+When `focus_key` is set (Phase 0 step 1 — the address named an Epic folder), scope the **Phase 6
+render input** to that `EPIC-` folder and what it holds — its `epic.md`, `specification.md`,
+`design.md` and `implementation.md`; there is no Story / Sub-task level beneath it — so the release
+note covers that Epic's user-facing changes rather than the whole PRD. This scopes only what Phase 6
+renders; it does not mutate the stored handoff that other phases read. When `focus_key` is null, the
+draft covers the whole ticket/PRD exactly as today.
 
-If the folder is missing or holds no PRD, surface `choices: ["Re-enter key", "Cancel"]`.
+If the PRD folder holds no PRD, surface `choices: ["Re-enter key", "Cancel"]`.
 
-Capture `change_type` and `release_notes_category` from the resolved folder's `prd.md`, where it
+Capture `change_type` and `release_notes_category` from the PRD folder's `prd.md`, where it
 carries them (null when absent). **Read them from the PRD, which is the reversal**: these were
 dropdowns set outside the plugin and returned by an import, so this step used to read the import and
 was told explicitly *not* to read the authored PRD. Nothing returns them now, and the PRD is the only
@@ -225,7 +243,7 @@ Diff grounding is opt-in and advisory here: a repo the user skips degrades the g
 **Resolve `run_phase`.** `/release-notes` runs at two points in a PRD's life, and the
 `release-note-types.md` §4 documentation-link rule depends on which. Reuse the existing signal from
 `workflows-core:cost-emission` §7 — resolve the PRD's specs dir
-by calling `resolve-address <KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), then glob it for `specification.md` and `design.md`. That entry point searches every level §3 bounds and carries §5's legacy fallback; §7 records why this command is one of its adopters.
+by calling `resolve-address <PRD>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), then glob it for `specification.md` and `design.md`. That entry point searches every level §3 bounds and carries §5's legacy fallback; §7 records why this command is one of its adopters.
 A flat glob alone would also be **narrower than the signal this step says it reuses**: §7 defers to
 the specs-dir matching `workflows-core:feedback-emission` and `workflows-core:followup-emission` perform, whose pattern
 already spans both levels.
@@ -322,7 +340,7 @@ Then read the scratch file back as `combined_rendered`.
 
 ## Phase 8 — Write + report
 
-1. **Append** the `combined_rendered` draft to `release-notes.md` in the resolved PRD folder — the one destination Phase 1 derives, laid out as Phase 1 lays it out. Where the file does not exist, create it with its `# Release notes — <KEY> <slug>` title. Where it has no `#` heading for the version this draft is filed under (Phase 1: the resolved version, or `# Unreleased`), add that heading at the end of the file; where that version has no `##` section for the draft's Change Type, add the section at the end of that version's part of the file, which runs to the next `#` heading; then add the draft at the end of that section, which runs to the next `##` or `#` heading. Those are the levels `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1 fixes, and they are why the append lands where it should: a draft's own `### <feature title>` sits below its section, so it never ends one. **The append is the whole write**: nothing already in the file is rewritten, reordered or removed, since every earlier section is an earlier run's note, so there is no question to ask and no option that replaces the file. NEVER write into a docs repo.
+1. **Append** the `combined_rendered` draft to `release-notes.md` in the resolved PRD folder — the one destination Phase 1 derives, laid out as Phase 1 lays it out. Where the file does not exist, create it with its `# Release notes — <PRD> <slug>` title, `<slug>` the PRD folder's. Where it has no `#` heading for the version this draft is filed under (Phase 1: the resolved version, or `# Unreleased`), add that heading at the end of the file; where that version has no `##` section for the draft's Change Type, add the section at the end of that version's part of the file, which runs to the next `#` heading; then add the draft at the end of that section, which runs to the next `##` or `#` heading. Those are the levels `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1 fixes, and they are why the append lands where it should: a draft's own `### <feature title>` sits below its section, so it never ends one. **The append is the whole write**: nothing already in the file is rewritten, reordered or removed, since every earlier section is an earlier run's note, so there is no question to ask and no option that replaces the file. NEVER write into a docs repo.
 
 2. **Report:**
    ```

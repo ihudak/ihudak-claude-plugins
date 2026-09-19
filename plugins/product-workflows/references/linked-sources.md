@@ -93,16 +93,19 @@ the visited set is of files):
 ```yaml
 - target:     <the link target exactly as written, alias half dropped>
   from:       <absolute path of the file the link sits in>
-  path:       <resolved absolute path — absent when reason is set>
-  kind:       markdown | image | other     # absent when reason is set
+  path:       <resolved absolute path — absent only when the walk itself sets reason>
+  kind:       markdown | image | other     # absent only when the walk itself sets reason
   depth:      <1 for the starting document's own links, 2 for theirs, …>
-  inside:     true | false                 # resolved path lies within the starting document's own directory; absent when reason is set
-  reason:     url | unreadable | ambiguous # present iff the target resolved to no single file
+  inside:     true | false                 # resolved path lies within the starting document's own directory; absent only when the walk itself sets reason
+  reason:     url | unreadable | ambiguous # set by the walk iff the target resolved to no single file
   candidates: [<absolute path>, …]         # present iff reason: ambiguous
 ```
 
 `depth` is the depth at which the file was **first** reached. `inside` compares the resolved `path`
-with the starting document's own directory by normalised text, exactly as step 2 of §3 resolves.
+with the starting document's own directory by normalised text, exactly as step 2 of §3 resolves. A
+caller may add `reason: excluded` afterwards, beside `taken: false`, on an entry that **did** resolve
+(§6, §7) — that entry keeps its `path`, `kind` and `inside`, because `excluded` is not one of the
+three reasons above and never means the walk found no file.
 
 ## 6. Not-taken reasons
 

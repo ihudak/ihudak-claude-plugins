@@ -108,10 +108,19 @@ Phase 2 hands the readers, so nothing after this phase finds a link on its own.
 
 **Ask only where an older bound would have cut.** This command once read pages at most two levels of
 links deep, twelve markdown files counting the source, and six images, and reported the rest unread.
-Where the walk stayed inside all three, take everything it reached, print one line of counts, and ask
-nothing. Where it reached past any of them — a markdown file deeper than 2, more than 12 markdown
-files (the source among them), or more than 6 images — say which, name every file past that bound
-(in the walk's order, the files the old bound would have left unread), and ask:
+Where the walk stayed inside all three, take everything it reached, print the counts line, and ask
+nothing. The counts line gives: how many files the walk reached (the source counted first), the
+markdown pages among them by depth, the images, and anything unresolved (a reason `linked-sources.md`
+§6 names) or `other` — for example:
+
+```
+6 files reached (source + 5): markdown by depth — depth 1: 3, depth 2: 1; images: 1; unresolved: 0; other: 0.
+```
+
+Where it reached past any of them, name the set that is past a bound — the union of every markdown
+file deeper than 2 (the depth bound is on pages, never on images), the markdown files after the
+twelfth in the walk's order (the source counted first), and the images after the sixth in the walk's
+order — each file named once, in the walk's order, saying for each which bound it is past, and ask:
 
 ```
 choices: ["Read all <n> (Recommended)", "Only what the source links directly", "Stop"]

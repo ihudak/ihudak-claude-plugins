@@ -900,6 +900,17 @@ obligation only an image stated; `customer-amended <date>` where the review supp
 for it; otherwise `resolved-by: [CD#n]`. **A `[CD#n]` frozen `open` resolves nothing** — its
 question stays held for the customer (*Freeze the customer decisions*), and so does its defect.
 
+**A `conflict` or a `duplicate` settled by keeping one row and dropping the other** names two rows,
+and only one of them lists the defect. Where the row dropped is the one the defect is listed on, the
+rule above already applies: `withdrawn`, and that row takes `rejected: [DEF#n]`. Where the row
+dropped is the **counterpart** — the row the defect names but is not listed on — the defect is
+`resolved-by: [CD#n]`, and the dropped counterpart takes the *Update the coverage ledger* phase's
+`superseded-by: [BR#kept]`, because a `[CD#n]` replaced it with another requirement this inventory
+already holds. That write lands only where the counterpart is a row of this BRD's own ledger; where
+a sibling slice holds it, that phase writes nothing there — it never writes into another BRD's
+ledger — and the reconciliation record names the sibling and the row for that slice's own
+reconciliation.
+
 `resolved-by: [CG#n]` is a grounding outcome and this command produces no finding, so it is never
 written here. `open` is the state a defect is already in and is never written *back* over a
 resolution — a resolution recorded is not un-recorded by a later reading of it.

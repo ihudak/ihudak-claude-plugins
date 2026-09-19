@@ -42,8 +42,11 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   ambiguity, a conflict, a duplicate, or an untestable or scope-leaking requirement confirmed at
   intake, including an obligation only an image states — and always a `[C]`: the defect is in the
   customer's own words. A slice interviewed before this source existed gets its questions with
-  `--round 1`, re-opened with the cause *requirement defects became a question source*; a bare run
-  says so rather than opening a new round.
+  `--round 1`, re-opened with the cause *requirement defects became a question source*: a bare run
+  names those defects and offers that re-open rather than asking them itself, and a new round it
+  opens for a changed finding or decision proceeds without them. Only one slice asks each defect —
+  the one holding the lowest-numbered row the defect is listed on that is still built or deferred
+  there — and a re-open never asks one a round has already asked.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).
@@ -274,12 +277,15 @@ to branch, commit, push, and open a pull request. Its next-step offer names
 every question in every round carrying a terminal disposition or held for the customer, *and* the
 register actually holding something for a customer to decide. A round still holding a deferred,
 needs-grounding or untagged question is offered another interview round or a re-grounding pass
-instead. A BRD whose questions were all settled from the findings — nothing left for a customer at
-all — is told plainly that it is decided and needs no customer review, and is offered a
-`--rebaseline` grounding pass as the one thing that could make a new round askable; neither the
-packaging step nor another round of this command is offered, because both would stop or report a
-no-op. Re-opening a closed round
-later, with its cause recorded:
+instead. A BRD whose rounds predate the requirement-defect question source and hold defects nobody
+has asked is not offered the packaging step either: it is offered the `--round 1` re-open that asks
+them, recommended, because a package built first would go out without them. A BRD whose questions
+were all settled from the findings — nothing left for a customer at all — is told plainly that it is
+decided and needs no customer review, and is offered a `--rebaseline` grounding pass as the one
+thing this command can offer that could make a new round askable (the other, a requirement defect
+confirmed after the last round, comes only from a revised source document); neither the packaging
+step nor another round of this command is offered, because both would stop or report a no-op.
+Re-opening a closed round later, with its cause recorded:
 
 ```
 /product-workflows:brd-interview EPIC-008 --round 1

@@ -27,10 +27,10 @@ re-read, every anchor would silently point at the wrong place. **A replacement a
 reconciliation that re-reads it need not land in one run** — a run can stop between Phase 2's copy
 and Phase 3's write, and a read that finds no requirement keeps the inventory as it stands
 (`commands/brd-intake.md` Phase 3) — so what each row was last reconciled against is recorded in the
-inventory itself, as its `captured:` map (§2), and a later run judges a file unchanged or replaced
-against that record, never against the copy it finds on disk. Defects found in it are logged beside
-it (§3, §4), never corrected in it — that is the only way to say precisely what the customer gave the
-delivery team and what changed afterward.
+inventory itself, as its `document:` and its `captured:` map (§2), and a later run judges the
+document and each file unchanged or replaced against that record, never against the copy it finds on
+disk. Defects found in it are logged beside it (§3, §4), never corrected in it — that is the only
+way to say precisely what the customer gave the delivery team and what changed afterward.
 
 The source is **markdown only**. A BRD arriving as a PDF, a Word document, or a slide deck is
 converted to markdown before intake, and that conversion is never a bare mechanical pass taken on
@@ -168,7 +168,11 @@ the customer's own tree happens to contain can collide with it.
 can hold several markdown files, since the document may link one beside it and an earlier
 document's copy stays beside one revised under a new filename (§1), so a reader that needs the
 document's own name takes it from `brd/brd-link-log.md`'s opening line. A BRD intaken before that
-log existed holds exactly one file under `brd/source/`, and that file is it.
+log existed holds exactly one file under `brd/source/`, and that file is it. **The next intake reads
+another record, for another question**: it judges a revised document against the one the
+inventory's rows were last reconciled against — the inventory's own `document:` (§2), never this
+log, which names the document the latest capture ran on whether or not a row was reconciled against
+it.
 
 ### 1.2 `brd/brd-figures.md` — what the plugin read in the customer's images
 
@@ -322,6 +326,7 @@ The inventory (`brd/source/`'s companion `brd-inventory.md`) holds **one row per
 ---
 kind: brd
 key: <this folder's key>
+document: "source/brd.md"
 captured:
   "source/brd.md": sha256:<hex>
   "source/appendix/fields.md": sha256:<hex>
@@ -341,28 +346,33 @@ The frontmatter is the folder's carrier on a source-owning BRD, and a slice's ad
 `source:` (§2.1); the title line names the same key; the table carries the four fields above as its
 four columns, in that order, one row per `[BR#n]` in id order. `id` is written bracketed, and
 `defects` as §2.3 writes a list. **An inventory holding no row** is that frontmatter less its
-`captured:` map, which records what rows were reconciled against and so has nothing to record, the
-title and the table's header — what `/brd-intake` Phase 2 writes before anything is copied, and what
-it leaves after an `EMPTY` read on a first intake — never an empty file, which on a source-owning
-BRD would leave the folder keyless.
+`document:` and its `captured:` map, which record what the rows were reconciled against and so have
+nothing to record, the title and the table's header — what `/brd-intake` Phase 2 writes before
+anything is copied, and what it leaves after an `EMPTY` read on a first intake — never an empty file,
+which on a source-owning BRD would leave the folder keyless.
 
-**`captured:` records what the rows were last reconciled against**, on a source-owning BRD's
-inventory only: one entry per file under `brd/source/` or `brd/source-external/`, keyed by its path
-relative to `brd/` as a double-quoted YAML string, its value the SHA-256 of the file's bytes written
-`sha256:<hex>`, as §1.2 writes an image's *Content hash*. `/brd-intake` Phase 3 writes it whenever it
-writes the inventory's rows — each file that run captured at the SHA-256 of its copy, and each
-entry already on file for a file that run did not capture, kept as it stands — and nothing else
-writes it; a run that keeps the inventory as it stands keeps the map with it. A later intake's
-Phase 2 judges each file it captures **unchanged**, **replaced** or **new** against this map, never
-against the copy on disk (§1), and judges the document against the entry of the earlier document
-`brd/brd-link-log.md`'s opening line names, whatever the new one is called
-(`commands/brd-intake.md` Phase 2). `captured:` is not an identity field: `kind: brd` and `key:`
-alone are what `workflows-core:addressing` §4 reads (§2.1). **An inventory written before 3.7.0
-carries no map**, so nothing records what its rows were reconciled against: the next intake over it
-records every file whose copy already stands **replaced**, once — its matched rows take the new
-read's wording, each change reported — and writes the map, which every later run judges against. A
-slice's inventory carries no map: it is copied from its parent's rows and never reconciled against a
-source (§2.1).
+**`document:` and `captured:` record what the rows were last reconciled against**, on a
+source-owning BRD's inventory only. `document:` names the document the rows were read from, by its
+path relative to `brd/` — `source/<basename>` — as a double-quoted YAML string. `captured:` holds one
+entry per file under `brd/source/` or `brd/source-external/`, keyed by its path relative to `brd/` as
+a double-quoted YAML string, its value the SHA-256 of the file's bytes written `sha256:<hex>`, as
+§1.2 writes an image's *Content hash*. `/brd-intake` Phase 3 writes both whenever it writes the
+inventory's rows — `document:` naming the document that run read, and the map holding each file that
+run captured at the SHA-256 of its copy, and each entry already on file for a file that run did not
+capture, kept as it stands — and nothing else writes them; a run that keeps the inventory as it
+stands keeps both with it. A later intake's Phase 2 judges each file it captures **unchanged**,
+**replaced** or **new** against this map, never against the copy on disk (§1), and judges the
+document against the map's entry for the file `document:` names, whatever the new one is called — a
+document whose bytes differ from that entry is **replaced**, whatever its name, and never new
+(`commands/brd-intake.md` Phase 2). **Never against the document `brd/brd-link-log.md`'s opening line
+names**: every intake's Phase 2 rewrites the log, so after a run that stopped between its copy and
+Phase 3's write the log names a document no row was reconciled against. Neither field is an identity
+field: `kind: brd` and `key:` alone are what `workflows-core:addressing` §4 reads (§2.1). **An
+inventory written before 3.7.0 carries neither**, so nothing records what its rows were reconciled
+against: the next intake over it records every file whose copy already stands **replaced**, once,
+and the document whatever its name — its matched rows take the new read's wording, each change
+reported — and writes both, which every later run judges against. A slice's inventory carries
+neither: it is copied from its parent's rows and never reconciled against a source (§2.1).
 
 **A requirement carrying more than one obligation is split.** When one numbered item in the source
 binds the delivery team to two or more separable obligations, each obligation becomes its own
@@ -604,7 +614,11 @@ multi-line list item — so two things are encoded, and nothing else is:
 - a line break is written `<br>`.
 
 Nothing else in a cell is escaped, rewritten or reflowed: a backslash anywhere but directly before a
-`|` is written as it stands.
+`|` is written as it stands. **And every cell sits between its delimiters with one space on each
+side** — `| <cell> | <cell> |`, an empty cell one space between two delimiters — as every layout
+example in these files shows, so no delimiter ever has a character of a cell directly before it. That
+is what keeps a cell the customer's text ends with a backslash — `C:\reports\` — from escaping the
+`|` that closes it: it is written `| C:\reports\ |`.
 
 **Every read of a cell parses and decodes it by one rule, whatever it reads the cell for** — to show
 it to the operator (`commands/brd-intake.md` Phase 4's question, `commands/brd-split.md` Phase 4's
@@ -614,11 +628,14 @@ to compare it (`commands/brd-intake.md` Phase 3's match of a returned row agains
 relation 1's test of an anchor (§2.2), and `references/bundle-packaging.md` §6's corpus parse,
 verbatim spans and relation 1):
 
-1. **A row splits into cells on every unescaped `|`** — one with no backslash directly before it,
-   or an even number of them. A `|` with an odd number of backslashes directly before it is part of
-   the cell: the encoding wrote it.
-2. **Each cell is then decoded**: a run of `2k + 1` backslashes directly before a `|` reads back as
-   `k` backslashes and the `|`, and each `<br>` as a line break.
+1. **A row splits into cells on every delimiting `|`** — one that opens the row or has a space
+   directly before it, the space the writer puts on each side of a cell. A `|` inside a cell never
+   has one: the encoding wrote every literal `|` behind a backslash. So a cell ending in the
+   customer's backslash, written `| C:\reports\ |`, still ends at its closing `|`. The separator
+   line under a table's header holds no cell, and no read parses it.
+2. **Each cell is then decoded**: the one space on each side of it, which is the delimiters', is
+   dropped; a run of `2k + 1` backslashes directly before a `|` reads back as `k` backslashes and the
+   `|`; and each `<br>` reads back as a line break.
 
 **"Verbatim" means verbatim after that decoding**, and a reader that shows, hands over or compares a
 cell undecoded shows, hands over or compares the table's encoding rather than the customer's words.
@@ -662,10 +679,10 @@ Exactly six. Each fires on a one-line test a reader applies to a single `[BR#n]`
 | Class | Fires when |
 |---|---|
 | `ambiguity` | Two competent readers can implement it differently and both be right |
-| `conflict` | It cannot hold at the same time as another `[BR#n]`, which it names |
+| `conflict` | It cannot hold at the same time as another `[BR#n]`; raised on the row the paragraph below fixes, naming the other |
 | `untestable` | No externally observable outcome would distinguish success from failure |
 | `unsourced` | It asserts system behaviour that grounding must confirm before it can be built on |
-| `duplicate` | It restates, or is a part of, another `[BR#n]`, which it names |
+| `duplicate` | It and another `[BR#n]` restate one another, or one is a part of the other; raised on the row the paragraph below fixes, naming the other |
 | `scope-leak` | It specifies implementation rather than the outcome required |
 
 `conflict` and `duplicate` always name the other `[BR#n]` involved — a defect of either class

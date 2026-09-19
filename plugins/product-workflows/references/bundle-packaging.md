@@ -448,7 +448,7 @@ dead.
 **A table corpus is parsed by its owner's layout** — the inventory's, the defect log's and the
 ledger's (`references/brd-format.md` §2, §4; `references/coverage-ledger-format.md` §2) — and by the
 one parse-and-decode rule `references/brd-format.md` §2.3 fixes for every read: a row splits into
-cells on an unescaped `|` only, as that section defines one, and each cell is decoded before it is
+cells on a delimiting `|` only, as that section defines one, and each cell is decoded before it is
 read, so a requirement quoting a row of the customer's own table never shifts a column, and an id is
 never read out of the wrong one.
 

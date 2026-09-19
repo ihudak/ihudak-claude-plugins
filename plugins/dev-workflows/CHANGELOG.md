@@ -29,6 +29,10 @@ Phase 0 step 1a validated `--claimed` against `workflow-states.md`'s ladder "for
 
 The input table recognised a specs folder as a directory asserting a `key:` in `prd.md`, `epic.md` or `specification.md`, citing `workflows-core:addressing` §4. §4 reads a folder's identity off its carrier — the first top-level file whose `kind:` names a folder kind — and passes `specification.md` over, while the list left out `brd-link.md`, a slice's carrier, and `idea.md`. The row now says what it means: a directory `resolve-address` resolves, its `kind:` and `key:` read off the folder's carrier. **Population: every `/implement` run handed by path a specs folder whose only keyed artifact is one the list left out — a slice before its PRD is written, or an idea-route folder holding `idea.md` alone — and every reader of the table.**
 
+### Fixed — `/design` tested a `focus_key` it never set
+
+Phase 0 step 1 sets `<EPIC>` — the resolved `EPIC-` folder's key, or `null` for a `PRD-` folder — while steps 3 and 4, the step-4 picker, the ARD resolution and the handoff all tested and set `focus_key`, a name this command defined nowhere, so a literal run had no value to test. **Population: every `/design` run, and every reader of its Phase 0.** The command now uses `<EPIC>` throughout, defined where step 1 sets it and set again by the step-4 picker; its documentation page says what the value tracks — whether the address named an Epic folder — rather than naming a variable. No run's behaviour changed where the name was read as the one step 1 sets.
+
 ## [4.1.1] — 2026-09-18
 
 ### Fixed — the agents page promised coverage the detection table does not deliver

@@ -228,6 +228,19 @@ never off `claims:`** — the same trap `references/coverage-ledger-format.md` �
 `commands/create-prd.md`'s gate set already spell out. Intersecting with `claims:` here would read an
 empty set on every source-owning BRD and put *nothing* in scope.
 
+**On a slice, an orphan row (§2) is out of scope as a subject whatever it reads, and that one test
+reads `claims:`.** An orphan row is the slice's record of a claim its parent's walk withdrew, and it
+carries the fate that walk settled — `covered-by` another BRD, or, across unchanged, the parent's
+`rejected: [DEF#n]` or `superseded-by: [BR#n]` (§3's orphan table) — so a `rejected` or
+`superseded-by` orphan row reads exactly like a row the slice settled itself, and the disposition
+column cannot tell the two apart. `claims:` can: it is the record that the claim was withdrawn. So a
+consumer standing on a slice — `commands/brd-interview.md`'s question scope and
+`commands/brd-package.md`'s review scope — takes the four dispositions above less every row whose
+`[BR#n]` `claims:` no longer names, and reads `claims:` for that test and for nothing else; the
+decision an orphan row records is the parent's, and a slice that put it to the customer would put a
+question nobody on that slice is answerable for. A source-owning BRD holds no orphan row, so the
+test never reaches the trap above.
+
 **Deferring is itself an allocation.**
 `deferred-to: <this BRD>` discharges the gate exactly as the other four terminal dispositions do;
 the ledger's job is to record a requirement's fate, not to force every requirement to be built.

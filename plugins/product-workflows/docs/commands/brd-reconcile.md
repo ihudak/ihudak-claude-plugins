@@ -158,9 +158,10 @@ And it updates, in place: `decisions.md` (the new `[CD#n]`, the superseded `[AS#
 `[VD#n]`), the `[C]` question set, `coverage-ledger.md`, the defect log — **the parent's**, when the
 run stands on a slice — every dated artifact it banners, every dependent BRD's register the
 propagation sweep wrote, and every artifact the stale-reference sweep corrected. The round record is
-**appended to**, never bannered: each answered question's terminal disposition, and, where the run
-answered a round's last held question, a closing `Status:` line — the round's state being what its
-questions' dispositions decide, and its last `Status:` line the record of it.
+**appended to**, never bannered: each answered question's terminal disposition, and, where the run's
+answers leave every question in a round with a terminal disposition, a closing `Status:` line — the
+round's state being what its questions' dispositions decide, and its last `Status:` line the record
+of it.
 
 Each new `[CD#n]` copies its `altitude` from what it answers — the held question's own
 `- **Altitude:**` line, an assumption's field, or, for an escalated self-review finding, the altitude
@@ -169,7 +170,10 @@ downstream artifact the answer must reach, and says so in the reconciliation rec
 outside the options the question put is frozen as the customer gave it: `chosen` carries it after
 the register's one fixed marker, and `options_considered` stays as it was put — `["as assumed", "not
 as assumed"]` for an assumption, which puts no options. **An answer matching no question the package
-put is never frozen**: the operator records it for a human, quoting the customer, or rejects it.
+put is never frozen**: the operator records it for a human, quoting the customer, or rejects it —
+or, where the reader mis-matched it, names the question it does answer, which re-points it and puts
+it to the operator again on the full confirmation picker, the re-point recorded in the
+reconciliation record.
 
 The run makes **two** handoff offers, and they are two different questions: the first hands off the
 customer's document, the second hands off what the run decided about it. Both land on one `brd/`
@@ -253,9 +257,10 @@ unmatched row can be told apart from a question set nobody passed.
 - **Phase 4 — the confirmation gate.** No `[CD#n]` is written while any decision the reader returned
   is unconfirmed. The four values are `confirm`, `correct`, `reject` and `ask-the-customer`, and a
   candidate answering no question the package put takes one of two instead — recorded for a human,
-  quoting the customer, or rejected — and is never frozen; the picker carries no bulk confirmation,
-  and a free-text answer is **normalised into those values or the candidate is re-asked** — never
-  written through as another.
+  quoting the customer, or rejected — and is never frozen on that form, save that a free-text answer
+  naming the question it does answer re-points it onto the four; the picker carries no bulk
+  confirmation, and a free-text answer is otherwise **normalised into those values or the candidate
+  is re-asked** — never written through as another.
   `workflows-core:escalation-rules` names this picker for that reason:
   the prompt's free-text option is supplied by the harness and no picker can decline it, so the one
   picker through which customer authority enters the register is protected by what the run does with
@@ -348,14 +353,17 @@ under the parent, which is exactly why the carve-out has to be written down.
   and `covered-by` stay `/brd-split`'s walk — a customer decision is not a statement about which BRD
   in the delivery organisation owns the work — and no row of its ledger ever returns to
   `unallocated`. So a row the customer asks to be built after it was rejected, deferred or
-  superseded has no command to name: [`/brd-split`](brd-split.md) walks only `unallocated` rows. It
-  is recorded, with the customer's words, as needing a human. A row still `unallocated` is named for
-  `/brd-split` — an interviewed slice never holds one, but a `--sent` review of a slice never
-  interviewed can.
+  superseded has no command to name: [`/brd-split`](brd-split.md) on the slice walks only
+  `unallocated` rows, and its sibling re-cut, run on the parent, moves only a row a slice deferred,
+  on an instruction a person gives. It is recorded, with the customer's words, as needing a human. A
+  row still `unallocated` is named for `/brd-split` — an interviewed slice never holds one, but a
+  `--sent` review of a slice never interviewed can.
 - **It never writes into another BRD's ledger, and it never mints a `[BR#n]`.** A requirement the
-  customer asked for that no `[BR#n]` covers is recorded as needing a human, naming the two real
-  routes: an amendment logged against the defect log, or a fresh source document through
-  `/brd-intake`.
+  customer asked for that no `[BR#n]` covers is recorded as needing a human, naming the one route a
+  command takes — a revised source document from the customer, intaken over the root BRD with
+  [`/brd-intake`](brd-intake.md), whose read extracts it as a new `[BR#n]` at the cost of returning
+  every row of the root's ledger to `unallocated` — and otherwise leaving it to a person to take up
+  with the customer. No command logs an amendment for a requirement the inventory never held.
 - **It never edits `brd/source/`.** The customer's document stays immutable; an amendment stays in
   the slice's returned review it came from, which the defect's `customer-amended <SLICE-KEY> <date>`
   resolution names.

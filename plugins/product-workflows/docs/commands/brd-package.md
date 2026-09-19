@@ -186,7 +186,7 @@ Assembled from the package, never hand-written, in a fixed order that is not re-
 | 3 | Documents to review | the manifest, by its bundled filename, then every other document the bundle admits, by the bundled filename it carries — the names the manifest lists |
 | 4 | Code baselines and the verification procedure | `baselines.md`, with the three pin commands written out |
 | 5 | The single most important claim to verify first | the finding the most decisions rest on, else the most-relied-on open assumption, else the finding the most held `[C]` questions bear on — or a statement that none rests on one |
-| 6 | Review scope | the coverage ledger's dispositions — the rows this BRD is answerable for, with every `covered-by` row named as another BRD's and explicitly not for review here — plus every `in-scope` `[CDF#n]` |
+| 6 | Review scope | the ledger's dispositions — the rows this slice answers for, every orphan row (a claim the parent withdrew) named as another BRD's and not for review here — plus every `in-scope` `[CDF#n]` |
 | 7 | The decisions the customer must make | the `[C]` question set, every open `[AS#n]`, every escalated `[SR#n]` |
 | 8 | What could still move | prerequisites not yet customer-reviewed, every `conditional_on` position, and every `conditional` `[CDF#n]` |
 | 9 | Where to attack us hardest | every open `[AS#n]`, and every `accepted-risk` `[SR#n]` |

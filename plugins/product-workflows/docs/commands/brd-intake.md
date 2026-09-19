@@ -102,7 +102,7 @@ name the run creates ([addressing](../reference/references.md) §2):
   one, and leaves an unchanged file untouched; a document revised under a new filename is copied at
   that name beside the earlier copy, which stays, and is read as a revision of it rather than as a
   new document. The run names each file it records replaced, and each slice whose inventory still
-  names the earlier document.
+  names an earlier document.
 - `brd/source/<the paths it links>` — every file the run takes from the document's own directory,
   copied byte-for-byte to the same relative path, so the copied text's links resolve exactly as the
   customer's did. Screenshots are the usual case, and this run is where they are captured: no later
@@ -122,14 +122,16 @@ name the run creates ([addressing](../reference/references.md) §2):
   or illustrates.
 - `brd/brd-inventory.md` — one row per `[BR#n]`, each with its `source_anchor` and any confirmed
   `[DEF#n]` defects — a `conflict` or `duplicate` on the row it was raised on only — and, in its
-  frontmatter, the hash of every file the rows were last reconciled against. A re-run keeps every
-  id, and keeps a row's wording wherever the file its anchor points into is unchanged since then —
-  judged against those hashes, never against the copy on disk; where the new read returns a row over
-  an unchanged file that could be a kept row reworded, it asks you whether it is the same
-  requirement; a row the new read does not find again is kept, never renumbered away; and every id
-  it mints is reported by id. An inventory written before 3.7.0 carries no hashes, so the first
-  re-run over it on 3.7.0 rewords every row it matches to the new read's wording, once, reporting
-  each change, and keeps the hashes from then on.
+  frontmatter, which file the rows were last reconciled against as the document and the hash of
+  every file they were reconciled against. A re-run keeps every id, and keeps a row's wording
+  wherever the file its anchor points into is unchanged since then — judged against that record,
+  never against the copy on disk or the link log, so a revised document is recognised as one
+  whatever it is called, even after a run that copied it stopped before reconciling; where the new
+  read returns a row over an unchanged file that could be a kept row reworded, it asks you whether it
+  is the same requirement; a row the new read does not find again is kept, never renumbered away;
+  and every id it mints is reported by id. An inventory written before 3.7.0 carries no such record,
+  so the first re-run over it on 3.7.0 rewords every row it matches to the new read's wording, once,
+  reporting each change, and keeps the record from then on.
 - `brd/brd-defect-log.md` — one entry per confirmed `[DEF#n]`, resolution `open`. A re-run keeps
   every entry already there, id and resolution unchanged, and adds only the defects it newly
   confirms.
@@ -194,8 +196,9 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   each put with the same facts — its class, its row and that row's text, its reason, the rows a
   `conflict` or `duplicate` names, and an image-drawn row's picture. A split of one requirement into
   several rows is one `duplicate`, asked once, and any other `conflict` or `duplicate` is raised from
-  one end only; where one read raises the same relation from both ends anyway, the two are asked as
-  one question. Only a confirmed candidate is assigned a `[DEF#n]` id,
+  one end only; where one read raises one relation more than once anyway — from both ends, or
+  among three or more rows as several candidates — they are asked as one question, naming every row
+  they join. Only a confirmed candidate is assigned a `[DEF#n]` id,
   once the walk ends, in the order of the row it was raised on — never in the order the questions
   were asked. A rejected candidate is dropped, not recorded. **A re-run does not ask again about a defect already logged**: a candidate with the same
   class and row as an entry on file is that entry — a `conflict` or `duplicate` matching where the

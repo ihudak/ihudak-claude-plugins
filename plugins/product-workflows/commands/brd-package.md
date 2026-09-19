@@ -180,9 +180,10 @@ cannot review, and they will not tell you that — they will review it anyway, b
      four, and the next `/brd-interview` run writes the register in three of them: a BRD never
      interviewed, where it writes it with round 1; one interviewed before that command always wrote
      it, over rounds that recorded no decision, whose round still open is resumed and whose rounds
-     all closed take the no-new-round path — both write it. The fourth is a BRD every row of which
-     is delegated: that command stops with `BRD_INTERVIEW_ALL_DELEGATED` and writes nothing,
-     because this BRD kept no requirement of its own and there is nothing to package.
+     all closed take the no-new-round path — both write it. The fourth is a slice every row of which
+     is an orphan row, its parent's walk having withdrawn every claim it made: that command stops
+     with `BRD_INTERVIEW_ALL_DELEGATED` and writes nothing, because this slice kept no requirement of
+     its own and there is nothing to package.
      `BRD_PACKAGE_NEEDS_INTERVIEW: no decision register on file for <BRD-KEY> — run /product-workflows:brd-interview <BRD-KEY>; it writes the register, with nothing in it where its rounds recorded no decision, and hands it off. Where it stops with BRD_INTERVIEW_ALL_DELEGATED instead, <BRD-KEY> kept no requirement of its own and has nothing to package.`
    - **A register is in the folder, and on no ref** — the interview ran and its handoff was
      declined. **Do not send the operator back to `/brd-interview`**: whether it opens a new round is
@@ -570,7 +571,7 @@ to. Then:
   neither the prompt, which must state the tier and the evidence sentence §3's table pairs with it,
   nor a returned review's own section 1, which is written against that sentence. Its vocabulary is closed, and holding it
   closed is **required rather than merely permitted**, which is why
-  `workflows-core:escalation-rules` names this picker among the six whose
+  `workflows-core:escalation-rules` names this picker among the arrays whose
   free-text answer is normalised into their own vocabulary rather than written through. Nobody is
   trapped: that free-text option is always present, and an answer that lands on none of the listed
   values re-asks rather than inventing a value no consumer handles. No `(Recommended)` marker, and the reason is stated beside
@@ -627,18 +628,22 @@ cannot be obtained after all — *review the documents and record in your sectio
 was independently verified; do not skip the review*; and, once, the rule that governs the whole
 session: **read the bundle, write exactly one new file, and modify nothing in the package** (D13).
 
-**Part 6 — Review scope.** State what this
-BRD is answerable for and what it is not, from `coverage-ledger.md`'s `disposition` column: the rows
-reading `covered-here`, `deferred-to`, `rejected` or `superseded-by` are this package's scope, and a
-row reading `covered-by: <OTHER-KEY>` is **out of it** —
-`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.1. Name those requirements and the
-BRD that owns each, in one line apiece, and say plainly that they are covered by a separate package
-and are not for review here. **Both halves matter to the customer.** Omitting the delegated rows
-entirely reads as scope the delivery team dropped, which is the reading a customer is most likely to
-take and the most expensive one to correct later; putting them in for review gets the same
-requirement answered twice, in two packages, by the same person — the contradiction one `[CD#n]`
-record cannot hold (`${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` §5). Naming them as
-somebody else's is the only reading that is both complete and true.
+**Part 6 — Review scope.** State what this BRD is answerable for and what it is not, from
+`coverage-ledger.md`'s `disposition` column: the rows reading `covered-here`, `deferred-to`,
+`rejected` or `superseded-by` are this package's scope, and a row reading `covered-by: <OTHER-KEY>`
+is **out of it**, as is every **orphan row** whatever it reads — a row for a `[BR#n]` this slice's
+`claims:` no longer names, which carries the fate its parent's walk settled —
+`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.1, which says why the orphan test
+alone reads `claims:`. Name those requirements and the BRD that holds each, in one line apiece, and
+say plainly that they are not for review here: a row another slice holds is reviewed in that
+slice's own package, and one the parent kept or settled itself is the parent's, with the fate it
+gave it.
+**Both halves matter to the customer.** Omitting the delegated rows entirely reads as scope the
+delivery team dropped, which is the reading a customer is most likely to take and the most expensive
+one to correct later; putting them in for review gets the same requirement answered twice, in two
+packages, by the same person — the contradiction one `[CD#n]` record cannot hold
+(`${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` §5). Naming them as somebody else's is the
+only reading that is both complete and true.
 
 **And every `[CDF#n]` disposed `in-scope`**, named by id with its `statement` and its `intent`, under
 one line saying plainly that repairing it is inside this package's scope and that the requirements
@@ -933,21 +938,24 @@ self-review is free of them while being the most internal document this command 
    (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.1); re-prefixing every document with
    this run's key would collapse the corpus to one partition and let a cross-package citation
    resolve to the wrong finding while the check went green.
-2. **De-Obsidianise every copied document — except the customer's own files, the source document
-   and every other markdown file `/brd-intake` captured, which are copied byte for byte**
+2. **De-Obsidianise every copied document — except the customer's own files, the source document and
+   every other markdown file `/brd-intake` captured, which are copied byte for byte**
    (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §2.1). Every `[BR#n]` drawn from their
-   text anchors into them, in the forms `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2 fixes, so
-   a rendered copy breaks the traceability they are in the bundle to support; they are immutable by rule; and they
-   are the customer's own writing going back to them. Anything in them a plain reader cannot open is
-   named **in the manifest**, never fixed in the file. For every *other* document: rewrite wikilinks to plain filename references, and get
-   the three cases `bundle-packaging.md` §2 names right: an **aliased** link keeps the alias as the
-   visible text *and* names the file; an **embedded image** becomes an ordinary markdown image
-   reference to the image copied in beside it, or — when the image is not copied — a plain sentence
-   saying what was there and that it is not included; and a link whose **target is not in the
-   bundle** is never rewritten into a bare filename, but becomes a plain description of the target
-   and an explicit statement that it is not included. A filename that is not in the bundle is the
-   failure the whole pass exists to prevent: it looks resolvable, the reviewer searches, finds
-   nothing, and cannot tell whether the file was forgotten, withheld or renamed.
+   text anchors into them, in the forms `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2 fixes,
+   so a rendered copy breaks the traceability they are in the bundle to support; they are immutable
+   by rule; and they are the customer's own writing going back to them. Anything in them a plain
+   reader cannot open is named **in the manifest**, never fixed in the file. For every *other*
+   document: rewrite wikilinks to plain filename references — save a `[[…]]` or a link quoted in an
+   inventory or ledger `text` cell, which is the customer's own words and stays exactly as written
+   (`bundle-packaging.md` §2.1) — and get the three cases `bundle-packaging.md` §2 names right: an
+   **aliased** link keeps the alias as the visible text *and* names the file; an **embedded image**
+   becomes an ordinary markdown image reference to the image copied in beside it, or — when the
+   image is not copied — a plain sentence saying what was there and that it is not included; and a
+   link whose **target is not in the bundle** is never rewritten into a bare filename, but becomes a
+   plain description of the target and an explicit statement that it is not included. A filename
+   that is not in the bundle is the failure the whole pass exists to prevent: it looks resolvable,
+   the reviewer searches, finds nothing, and cannot tell whether the file was forgotten, withheld or
+   renamed.
 3. **Keep callouts.** A callout block degrades to an ordinary blockquote in any reader — the label's
    styling is lost and every word is kept. Nothing that survives untranslated is worth translating.
 4. **Remove anything that renders in exactly one tool** — canvas or database-view files, query or

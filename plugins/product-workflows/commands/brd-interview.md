@@ -504,7 +504,7 @@ needs settled rather than by what would be convenient to route.
 nothing again.** That phase's no-round-record branch runs the scoping below and *Round 1 is
 generated from the grounding* to learn whether there is a round to open at all, so both have run
 once already, and a second pass would write a second copy of the same questions. **Nor does it
-generate on a round it resumes, or on round 1 re-opened for requirement defects**: a resumed round's
+generate on a round it resumes or re-opens, whatever the cause**: a resumed or re-opened round's
 questions are on file, and the only questions a run adds to one — round 1 open or re-opened
 included — are those the round-1 test and *One question per row* append (*Resolve the round*), so
 this phase generates nothing beyond them. Everything else this phase fixes — how a question is
@@ -513,35 +513,58 @@ one generated here.
 
 **Scope the set to the rows this BRD is answerable for, before generating anything.** Read
 `<BRD-dir>/coverage-ledger.md` and take the rows whose `disposition` is `covered-here`,
-`deferred-to`, `rejected` or `superseded-by`. **A row `covered-by: <OTHER-KEY>` is out of scope as a
-subject**: §3 of `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` says that BRD *owns*
-the requirement, and §3.1 there is the authority for what that means here — the owning BRD's own
-round asks about it, and a question raised at both levels reaches the customer twice, which
+`deferred-to`, `rejected` or `superseded-by`, **less every orphan row** — a ledger row for a
+`[BR#n]` this slice's `brd-link.md` `claims:` no longer names (`coverage-ledger-format.md` §2's
+term). **A row `covered-by: <OTHER-KEY>` is out of scope as a subject**: §3 of
+`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` says that BRD *owns* the requirement,
+and §3.1 there is the authority for what that means here — the owning BRD's own round asks about it,
+and a question raised at both levels reaches the customer twice, which
 `${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` §5 names as an invitation to two
-contradictory answers one `[CD#n]` cannot hold.
+contradictory answers one `[CD#n]` cannot hold. **An orphan row is out of scope whatever it reads**
+(§3.1 there), for the same reason: the parent's walk withdrew this slice's claim and settled the row elsewhere, so
+where it settled it `rejected: [DEF#n]` or `superseded-by: [BR#n]` the orphan row carries that
+disposition across unchanged (§3's orphan table) and reads exactly like a row this slice rejected or
+superseded itself — and the decision it records is the parent's, not this slice's to put to anyone.
 
-**Read the `disposition` column, not the inventory and not `claims:`.** This slice's own inventory
-already excludes every orphan row `/brd-split`'s parent walk withdrew — the `claims:` entry and the
-copied inventory row are withdrawn together (`coverage-ledger-format.md` §2) — so reading the
-`disposition` column is what keeps that true rather than assuming it: a stale inventory or a
-`claims:` list edited out of step with the ledger would otherwise put a withdrawn row back in scope.
-Report the scope in the
-round record and the final report — how many rows this round covers and how many were left to the
-BRDs that own them, named — so a short round reads as scoped rather than as thin.
+**Read the `disposition` column for a row's fate, never the inventory — and `claims:` for exactly
+one test, the orphan test above, and for nothing else.** A row's fate is the ledger's to say, and a
+stale inventory would otherwise put a withdrawn row back in scope. The orphan test is the one
+question this slice's ledger cannot answer, since an orphan row's disposition is the parent's
+settled fate copied onto it, and `claims:` is the record that says the claim was withdrawn — the
+`claims:` entry and the copied inventory row are withdrawn together (`coverage-ledger-format.md`
+§2). Every other test of a row's fate this command makes — the live and carrier tests below among
+them — reads a ledger's `disposition` column. Report the scope in the round record and the final
+report — how many rows this round covers, how many were left to the BRDs that own them, named, and
+each orphan row passed over, with the disposition it carries — so a short round reads as scoped
+rather than as thin.
 
 **A delegated row is still readable as context.** What this BRD keeps may turn on what it gave away,
 and a question about a `covered-here` row may cite a delegated one to make sense. What is forbidden
 is the delegated row being the thing asked about; the test is whose answer would settle it.
 
-**An empty in-scope set is a finished state, and scoping is what makes it reachable.** A BRD whose
-every ledger row reads `covered-by` — one that delegated all of its requirements to children and kept
-none — has nothing of its own to decide, and this is the state that gate could not see before, since
-its inventory is not empty and the *Resolve inputs and gate the grounded BRD* phase's
-`BRD_INTERVIEW_EMPTY_INVENTORY` therefore never fires on it. Do not open a round for it and do not
-write an empty round record: a round record is append-only and permanent (`interview-tagging.md` §5),
-and an empty one would sit on file forever recording that nothing was asked, which reads
-indistinguishably from a round nobody finished. Report it and stop gracefully:
-`BRD_INTERVIEW_ALL_DELEGATED: every row of <BRD-KEY>'s coverage-ledger.md is covered-by another BRD, so this BRD is answerable for no requirement and has nothing to decide — its questions belong to <the named BRDs>, and each is interviewed on its own key. This is a finished state, not a missing step: a BRD that kept nothing also holds no PRD of its own (coverage-ledger-format.md §5). If that is not what was intended, re-running the bare '/product-workflows:brd-split <BRD-KEY>' moves nothing: it walks only unallocated rows, and this ledger has none. Adding an instruction, '/product-workflows:brd-split <BRD-KEY> "<what to peel off>"', can re-point a delegated row onto another child of <BRD-KEY> that has not been interviewed — one already standing, or a slice that same run carves for it — but only where the child now holding it has recorded deferred-to against it in its own ledger, which is that child writing down that it will not build it. A row its holder is still committed to is moved by no command: un-delegating that one is a decision taken with the customer.`
+**A row this slice does not claim is cited qualified, as `<PARENT-KEY> [BR#n]`** — the one prose
+spelling `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.2 gives another BRD's id,
+`<PARENT-KEY>` being this slice's `parent:`, the BRD whose numbering every `[BR#n]` is. The package
+carries this slice's own inventory, which holds only the rows the slice claims (`brd-format.md`
+§2.1), so a bare `[BR#n]` naming an orphan row, a sibling's row or a row the root settled resolves
+to nothing there and `/product-workflows:brd-package` stops on it as a dead citation; relation 1
+there discharges the qualified form. Which form a row takes is read off that same inventory, the
+corpus relation 1 resolves against — a row it holds is cited bare — and never off `claims:`. This
+binds every question this run writes and everything written from one — the held entry the *Hold
+every `[C]`* phase writes, and the `[VD#n]` or `[AS#n]` a question becomes — and above all the
+context rows a requirement defect's question names (below), which routinely sit in another slice.
+
+**An empty in-scope set is a finished state, and scoping is what makes it reachable.** A slice
+every one of whose ledger rows is an orphan row — each claim it made withdrawn by its parent's walk,
+the row now `covered-by` another BRD or carrying a fate the parent settled — kept none of its
+requirements and has nothing of its own to decide. Its inventory holds no row, each claim's row
+having been withdrawn with it, but the *Resolve inputs and gate the grounded BRD* phase counts
+inventory rows only where the grounding is on no ref at all, so `BRD_INTERVIEW_EMPTY_INVENTORY`
+never fires on a slice whose grounding is on main, and this is the gate that sees it. Do not open a
+round for it and do not write an empty round record: a round record is append-only and permanent
+(`interview-tagging.md` §5), and an empty one would sit on file forever recording that nothing was
+asked, which reads indistinguishably from a round nobody finished. Report it and stop gracefully:
+`BRD_INTERVIEW_ALL_DELEGATED: every row of <BRD-KEY>'s coverage-ledger.md is an orphan row — a claim the walk of its parent <PARENT-KEY> withdrew, now covered-by another BRD or given a fate <PARENT-KEY> settled — so this slice is answerable for no requirement and has nothing to decide: a row covered by another BRD is asked there, on its own key, and a fate the parent settled is not this slice's to put to the customer. This is a finished state, not a missing step: a slice that kept nothing also holds no PRD of its own (coverage-ledger-format.md §5). Re-running '/product-workflows:brd-split <BRD-KEY>' on this slice moves nothing: it walks only unallocated rows, and this ledger has none. Re-run /product-workflows:brd-split on <PARENT-KEY> instead: it resolves every standing empty child, so it will offer to remove this slice or to keep it against a recorded reason — the bare '/product-workflows:brd-split <PARENT-KEY>' where that ledger leaves no row unallocated, and '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' where it does. Where it leaves none, an instruction on that run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can also re-cut onto this slice a row a sibling has recorded, in its own ledger, that it will not build — only while this slice has never been interviewed. A row its holder is still committed to is moved by no command: un-delegating that one is a decision taken with the customer.`
 This stop is an allocation outcome, never a plugin gap, so it does not fire `emit-block`.
 
 **Round 1 is generated from the grounding.** Work the verified findings and the in-scope rows
@@ -566,22 +589,29 @@ would have to state:
   decision withdrew it (`coverage-ledger-format.md` §3) — or where the `[DEF#n]` it cites is no
   longer `open` in the log, is **asked** (the next bullet's test), is **owned through a live row by
   any slice under the same parent, this one included**, or is carried by another slice (below). A
-  defect owned through a live row is raised by the next bullet in the slice that owns it, and its
-  question names every row the defect joins as context, this row among them — so a question of this
-  row's own would put one row to the customer twice, in this slice or across two. **A row
-  `rejected: [DEF#n]` carries that defect** on its question's `- **Requirement defect:**` line (*Hold
-  every `[C]`*) where this BRD is the defect's **carrier**: no row the defect joins is live (the next
-  bullet's test), and of the rows it joins that a slice records `rejected` citing it, this BRD holds
-  the lowest-numbered — which makes this BRD its owner, whatever the defect's class (the account
-  line counts a carried defect of any class, *Write the register and the round record*). The
-  question then states what the defect records, exactly as the next bullet's question does, counts
-  as asking it, and `/brd-reconcile` settles it, `resolved-by: <SLICE-KEY>/[CD#n]`, on the
-  customer's answer. One question, never two: the next bullet raises no second one for a defect this
-  row carries. Where the next bullet's undecidable states hold, the row is withheld with its defect,
-  for the reason that bullet gives. **A `deferred-to` row raises no question where its consequence
-  is stated** — in the `slices.md` block `/brd-split` writes for each row it defers, or in the
-  `[CD#n]` whose customer deferred it; one carrying neither raises a question, tagged by the *Tag
-  every question* phase's test like any other;
+  defect of the five classes the next bullet asks, owned through a live row, is raised by that
+  bullet in the slice that owns it, and its question names every row the defect joins as context,
+  this row among them — so a question of this row's own would put one row to the customer twice, in
+  this slice or across two. An `unsourced` defect joins a live row as well only in a log entry
+  written before the one-row listing, which records every row in one list (`brd-format.md` §4); it
+  is grounding's to settle, where the requirement is still live — the owning slice's findings on
+  that row decide whether its premise holds, and one they cannot decide is already a question under
+  the `NOT-PROVABLE` bullet above — so this row raises nothing for it either, and its log entry
+  stays `open`, since no command writes a grounding resolution into the log. **A row
+  `rejected: [DEF#n]` carries that defect** on its question's `- **Requirement defect:**` line
+  (*Hold every `[C]`*) where this BRD is the defect's **carrier**: no row the defect joins is live
+  (the next bullet's test), and of the rows it joins that a slice claims and records `rejected`
+  citing it, this BRD holds the lowest-numbered (the next bullet's carrier test, which never counts
+  an orphan row) — which makes this BRD its owner, whatever the defect's class (the account line
+  counts a carried defect of any class, *Write the register and the round record*). The question
+  then states what the defect records, exactly as the next bullet's question does, counts as asking
+  it, and `/brd-reconcile` settles it, `resolved-by: <SLICE-KEY>/[CD#n]`, on the customer's answer.
+  One question, never two: the next bullet raises no second one for a defect this row carries. Where
+  the next bullet's undecidable states hold, the row is withheld with its defect, for the reason
+  that bullet gives. **A `deferred-to` row raises no question where its consequence is stated** — in
+  the `slices.md` block `/brd-split` writes for each row it defers, or in the `[CD#n]` whose
+  customer deferred it; one carrying neither raises a question, tagged by the *Tag every question*
+  phase's test like any other;
 - an **open requirement defect** — a `[DEF#n]` in `brd/brd-defect-log.md` (the parent's on a slice,
   one hop — `brd-format.md` §4) whose resolution is `open` and whose class grounding cannot settle:
   `ambiguity`, `conflict`, `duplicate`, `untestable` or `scope-leak`. `unsourced` is not in the
@@ -598,37 +628,43 @@ would have to state:
   slice holding the **lowest-numbered live row** it joins. A row the parent never delegated (no
   `covered-by`), or whose owning slice records it `rejected` or `superseded-by`, is not live.
   **Where no row it joins is live, the defect's carrier owns it** — the slice holding the
-  lowest-numbered row it joins that the slice records `rejected: [DEF#n]` citing this defect — and
-  asks it on that row's question (the bullet above), carrying it on the labelled line; this bullet
-  raises no second question for it, in whichever round it is asked. Where there is no carrier either
-  — every row it joins `superseded-by`, never delegated, or rejected citing something else — **no
-  slice owns it, and this route never puts it to the customer**: the defect stays `open` in the log,
-  and the account line of a slice holding one of its rows withholds it as `no live row`, naming each
-  row and its disposition. **One such defect is named by no account line at all**: where every row
-  it joins was settled by the root's own walk — deferred, rejected or superseded there, never
-  delegated — none is in any slice's ledger, so no slice's in-scope set holds it, and the root is
-  never interviewed (Phase 0, `BRD_INTERVIEW_ROOT_LEVEL`). That is a limit of the route, stated
-  rather than worked around: the root's ledger records each row's fate, and the defect stays `open`
-  beside it. **This BRD raises the defect only where it owns it, it is open, and it is not asked.**
-  A `[DEF#n]` is **asked** exactly where some slice under the same parent — found by the positive
-  `brd-link.md` parent test (`commands/brd-split.md` Phase 0), this one included — has an
-  `interview/customer-questions.md` entry whose `- **Requirement defect:**` line carries it, the
-  line the *Hold every `[C]`* phase writes or *One question per row* appends, and no other mention
-  in the entry. That is a structured fact read across the slices, never a search of round records
-  for the id, so a defect asked once is never asked again, whichever slice asked it and whoever owns
-  it now. **Three states make the answer undecidable, and each withholds the defect**: a row it
-  joins still `unallocated` — in the parent's ledger, or in the ledger of the slice the parent names
-  — which may become live later and take it; a sibling ledger that cannot be read; and a sibling
-  `customer-questions.md` that exists and cannot be read — an absent one holds no entry. This BRD
-  raises nothing about such a defect and reports it with the row or the sibling named — never a
-  guess, because a guess asks the customer twice or not at all. **Which round a raised defect goes
-  into is *Resolve the round*'s to decide**, by round 1's account line alone. Every other row the
-  defect joins is context for the question, a rejected row of any slice included. **The question
-  states what the defect records** — the two readings, the two requirements that cannot both hold,
-  the missing observable outcome — and, where the row is drawn from an image (`brd-format.md` §2),
-  names the image's path, which the customer holds in the bundle. **It cites a passage of the
-  customer's by its captured path and locator** — `source/<basename> › § 4.2`, never a bare `§ 4.2`,
-  which `/brd-package`'s plugin-free scan stops on and whose path form
+  lowest-numbered row it joins that the parent's ledger records `covered-by` that slice and the
+  slice records `rejected: [DEF#n]` citing this defect, so an orphan row carrying the parent's own
+  rejection never makes its slice a carrier — and asks it on that row's question (the bullet above),
+  carrying it on the labelled line; this bullet raises no second question for it, in whichever round
+  it is asked. Where there is no carrier either — every row it joins `superseded-by`, never
+  delegated, or rejected citing something else — **no slice owns it, and this route never puts it to
+  the customer**: the defect stays `open` in the log, and the account line of a slice whose in-scope
+  set holds one of its rows withholds it as `no live row`, naming each row and its disposition.
+  **One such defect is named by no account line at all**: where every row it joins was settled by
+  the root's own walk — deferred, rejected or superseded there, never delegated — no slice's
+  in-scope set holds any of them. Such a row sits in no slice's ledger save as an **orphan row** of
+  a slice that once claimed it — reading the root's `rejected` or `superseded-by`, or `covered-by`
+  the root where the root kept it — and an orphan row is out of scope there (*Scope the set*,
+  above), so it is not asked there either; and the root is never interviewed (Phase 0,
+  `BRD_INTERVIEW_ROOT_LEVEL`). That is a limit of the route, stated rather than worked around: the
+  root's ledger records each row's fate, and the defect stays `open` beside it. **This BRD raises
+  the defect only where it owns it, it is open, and it is not asked.** A `[DEF#n]` is **asked**
+  exactly where some slice under the same parent — found by the positive `brd-link.md` parent test
+  (`commands/brd-split.md` Phase 0), this one included — has an `interview/customer-questions.md`
+  entry whose `- **Requirement defect:**` line carries it, the line the *Hold every `[C]`* phase
+  writes or *One question per row* appends, and no other mention in the entry. That is a structured
+  fact read across the slices, never a search of round records for the id, so a defect asked once is
+  never asked again, whichever slice asked it and whoever owns it now. **Three states make the
+  answer undecidable, and each withholds the defect**: a row it joins still `unallocated` — in the
+  parent's ledger, or in the ledger of the slice the parent names — which may become live later and
+  take it; a sibling ledger that cannot be read; and a sibling `customer-questions.md` that exists
+  and cannot be read — an absent one holds no entry. This BRD raises nothing about such a defect and
+  reports it with the row or the sibling named — never a guess, because a guess asks the customer
+  twice or not at all. **Which round a raised defect goes into is *Resolve the round*'s to decide**,
+  by round 1's account line alone. Every other row the defect joins is context for the question, a
+  rejected row of any slice included — each one this slice does not claim cited as
+  `<PARENT-KEY> [BR#n]` (*A row this slice does not claim*, above). **The question states what the
+  defect records** — the two readings, the two requirements that cannot both hold, the missing
+  observable outcome — and, where the row is drawn from an image (`brd-format.md` §2), names the
+  image's path, which the customer holds in the bundle. **It cites a passage of the customer's by
+  its captured path and locator** — `source/<basename> › § 4.2`, never a bare `§ 4.2`, which
+  `/brd-package`'s plugin-free scan stops on and whose path form
   `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.3 rule 1 exempts. It is `[C]`
   (`interview-tagging.md` §1);
 - anything the package will have to **assert without evidence** — that is not a question at all but
@@ -828,17 +864,20 @@ A `[C]` is a genuine business decision and reaches the customer **only via the r
 through the operator standing in for them. This phase therefore asks nobody anything. It writes.
 
 For each `[C]` in the round, write an entry to `<BRD-dir>/interview/customer-questions.md` carrying:
-the question as it will be put; its round and position; the findings that bear on it, so the
-customer is asked against what is known rather than in the abstract; **its altitude, on a line of
-its own labelled exactly `- **Altitude:**`** — `product`, `architecture` or `implementation`,
-decided by the mapping `decision-register-format.md` §1 gives a record's `altitude` from the
-downstream artifact the answer must reach — the PRD, the ARD or the specification — because the
-`[CD#n]` that answers the question copies it (`/brd-reconcile`, *Freeze the customer decisions*) and
-a customer answer has no other source for it; **for a `rejected` row's question, that row, on a line
-of its own labelled exactly `- **Rejected row:** [BR#n]`**, which is how a later run finds the row's
-question rather than raising a second one (*One question per row*, in *Resolve the round*); **for a
-question the requirement-defect source raised, or a `rejected` row's question carrying the defect it
-cites, the `[DEF#n]` it asks about, on a line of its own labelled exactly
+the question as it will be put, every row it names that this slice does not claim cited as
+`<PARENT-KEY> [BR#n]` (*A row this slice does not claim*, in *Generate the round's question set*) —
+the entry ships in the package, and `/brd-package` resolves a bare `[BR#n]` against this slice's
+inventory alone; its round and position; the findings that bear on it, so the customer is asked
+against what is known rather than in the abstract; **its altitude, on a line of its own labelled
+exactly `- **Altitude:**`** — `product`, `architecture` or `implementation`, decided by the mapping
+`decision-register-format.md` §1 gives a record's `altitude` from the downstream artifact the answer
+must reach — the PRD, the ARD or the specification — because the `[CD#n]` that answers the question
+copies it (`/brd-reconcile`, *Freeze the customer decisions*) and a customer answer has no other
+source for it; **for a `rejected` row's question, that row, on a line of its own labelled exactly
+`- **Rejected row:** [BR#n]`**, which is how a later run finds the row's question rather than
+raising a second one (*One question per row*, in *Resolve the round*); **for a question the
+requirement-defect source raised, or a `rejected` row's question carrying the defect it cites, the
+`[DEF#n]` it asks about, on a line of its own labelled exactly
 `- **Requirement defect:** [DEF#n]`**, and, where the defect sits on a row drawn from an image, that
 image's path relative to `brd/`. **That labelled line is the one both readers read, and nothing else
 in the entry**, whose context may name other `[DEF#n]`s: `/brd-reconcile` copies its id into the
@@ -889,7 +928,7 @@ specific decision of the prerequisite (`EPIC-008/[VD#3]`, never `EPIC-008` alone
 `status: open` with the blocking prerequisite named.
 
 **This picker's vocabulary is closed, and holding it closed is required here rather than merely
-permitted.** `workflows-core:escalation-rules` names this picker among the six
+permitted.** `workflows-core:escalation-rules` names this picker among the arrays
 whose free-text answer is normalised into their own vocabulary rather than written through — the
 harness supplies that option on every array and no picker can decline it, so the discipline is in
 what the run does with the answer, not in the array's shape. The rule being applied admits
@@ -960,18 +999,22 @@ carrying no terminal disposition — the same test, in the same words, that *Res
 resumes on.
 
 **Every write of a round record ends with one `Status:` line, which records the round's state; the
-dispositions decide it.** The line reads `Status: open — waiting on <each holding state a question
-in it is in>` or `Status: closed <YYYYMMDD> — <why>`, dated the day of the write; which of the two is
-the closure rule's to say (below), never a separate judgement. The record is append-only, so a write
-that changes the round's state appends a new line and never edits the one before it: an earlier
-`Status:` line is history, and a reader takes the last. **Where the last line and the dispositions
-disagree, the dispositions win** — a line an interrupted write left behind, one a hand edit
-changed, or one a run before 3.7.0 wrote in another sense never keeps a round open or closes one —
-and the next write appends a line that agrees. **`/product-workflows:brd-reconcile` is the one other
-writer**: it appends `Status: closed <YYYYMMDD> — <why>` when it closes the round's last held `[C]`
-question, and no line when it answers fewer, because the round was open, stays open, and its last
-line already names what it waits on. A record carrying no `Status:` line at all is read off its
-questions' dispositions the same way, and the next write of it adds one.
+dispositions decide it.** The line reads
+`Status: open — waiting on <each holding state a question in it is in>` or
+`Status: closed <YYYYMMDD> — <why>`, dated the day of the write; which of the two is the closure
+rule's to say (below), never a separate judgement. The record is append-only, so a write that
+changes the round's state appends a new line and never edits the one before it: an earlier `Status:`
+line is history, and a reader takes the last. **Where the last line and the dispositions disagree,
+the dispositions win** — a line an interrupted write left behind, one a hand edit changed, or one a
+run before 3.7.0 wrote in another sense never keeps a round open or closes one — and the next write
+appends a line that agrees. **`/product-workflows:brd-reconcile` is the one other writer**: it
+appends `Status: closed <YYYYMMDD> — <why>` where its answers leave every question in the round with
+a terminal disposition, and no line otherwise, the round being open and staying open. Where it
+answered fewer than all of a round's questions, the last line it leaves may still name a holding
+state no question is in any more — *held for the customer* after it answered the last held `[C]`,
+with a *deferred* question still open beside it — and the dispositions win over it, as above; the
+next `/brd-interview` write of the record appends a line that agrees. A record carrying no `Status:`
+line at all is read off its questions' dispositions the same way, and the next write of it adds one.
 
 **Every round record this command writes carries one line accounting for the requirement-defect
 source**, whether or not the round raised a question. It accounts for every open requirement defect

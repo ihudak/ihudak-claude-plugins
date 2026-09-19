@@ -667,8 +667,21 @@ choices: ["Record it for a human — name the requirement it bears on and quote 
 The first writes it into the reconciliation record's *what still needs a human*: the `[BR#n]` or
 other identifier the customer's row names, where it names one — never one inferred from its prose —
 and the customer's words verbatim, so the person who takes it up — in a later interview round, or
-with the customer directly — has what the customer actually wrote. A typed answer is normalised into one of the two or the candidate is
-re-asked, as above; it never becomes a `[CD#n]`.
+with the customer directly — has what the customer actually wrote.
+
+**A reader can mis-match, and the typed answer is the route for that.** `unmatched` is the reader's
+verdict, not the customer's, and a candidate that does answer a question the package put — the
+reader missed the question's round and position, or the customer cited it loosely — would otherwise
+have only these two options, neither of which freezes what the customer decided. So a typed answer
+**naming the question the candidate answers** — a held `[C]` question by its round and position, an
+`[AS#n]` or an escalated `[SR#n]`, resolved against the three sets the package put and never parsed
+out of the customer's prose — **re-points the candidate onto that question**: it is shown again
+with that target, on the four-option array above, and takes whichever of the four the operator then
+chooses, exactly as a candidate the reader matched would. The re-point is recorded in the
+reconciliation record — the candidate, the target the reader returned, and the question the
+operator named — so a later reader can see that the match was the operator's and not the reader's. A
+typed answer naming no question the package put, or naming none at all, is normalised into one of
+the two options or the candidate is re-asked, as above; it never becomes a `[CD#n]` on this form.
 
 **An answer outside the options put is a decision like any other, and *Confirm* is its route.**
 Where the customer answered with none of the options the `[C]` question, the `[AS#n]` or the
@@ -766,14 +779,19 @@ Then, in the same phase and from the same confirmed set:
    (`interview-tagging.md` §5, `decision-register-format.md` §1). Mark the same question answered in
    `interview/customer-questions.md`, naming the `[CD#n]`.
 
-   **Where that closes the round's last held question** — every question in it now carrying a
-   terminal disposition — append `Status: closed <YYYYMMDD> — <why>` after it, with this run's date
-   and, for `<why>`, the held questions this run's answers closed. A round's state is decided by its
-   questions' dispositions, and its **last** `Status:` line is where each write records it
+   **Where that leaves every question in the round with a terminal disposition** — its last held
+   question closed, and no question in another holding state — append
+   `Status: closed <YYYYMMDD> — <why>` after it, with this run's date and, for `<why>`, the held
+   questions this run's answers closed. A round's state is decided by its questions' dispositions,
+   and its **last** `Status:` line is where each write records it
    (`/product-workflows:brd-interview`, *Write the register and the round record*), so any
-   `Status: open` line `/brd-interview` wrote above stays where it is, as history. Where a
-   question in the round stays held, append no `Status:` line: the round was open and stays open,
-   and its last line already names what it waits on.
+   `Status: open` line `/brd-interview` wrote above stays where it is, as history. Where any
+   question in the round is left without a terminal disposition — still held, or in another holding
+   state — append no `Status:` line: the round was open and stays open. Its last line may then name
+   a holding state no question is in any more, *held for the customer* after this run answered the
+   last held question; the dispositions win over it, and the next `/brd-interview` write of the
+   record appends a line that agrees (`/product-workflows:brd-interview`, *Write the register and
+   the round record*).
 
    **A question whose `[CD#n]` is `open` is not answered, and its holding state does not move.** The
    terminal disposition is reached when the answer came back *and* an operator confirmed it, and a
@@ -860,7 +878,7 @@ Any row still undisposed when this phase would end → stop:
    | Target | Disposition |
    |---|---|
    | `slices.md`, a seed file, and the **prose** of any document below | Corrected in place. Nothing else owns these |
-   | `coverage-ledger.md` — a row's `disposition` | **`refused-with-reason`**, naming the ledger phase as where a `[CD#n]` may move a row and `/product-workflows:brd-split` as the only allocator (`coverage-ledger-format.md` §3, §4). A customer asking for a row to be built here is asking for an allocation, and this command writes exactly three dispositions and never `covered-here` or `covered-by`. **Name no command for a row that already carries a fate**: `/brd-split` walks only `unallocated` rows, so no command allocates it, and the row goes to *what still needs a human* with the customer's words (*Update the coverage ledger*). Only a row still `unallocated` is `/product-workflows:brd-split <BRD-KEY>`'s — a slice this route interviewed never holds one, `/brd-interview` refusing an unallocated ledger, but a `--sent` review of a slice never interviewed can find one |
+   | `coverage-ledger.md` — a row's `disposition` | **`refused-with-reason`**, naming the ledger phase as where a `[CD#n]` may move a row and `/product-workflows:brd-split` as the only allocator (`coverage-ledger-format.md` §3, §4). A customer asking for a row to be built here is asking for an allocation, and this command writes exactly three dispositions and never `covered-here` or `covered-by`. **Name no command for a row that already carries a fate**: `/brd-split` on this slice walks only `unallocated` rows, and its sibling re-cut runs on the parent, moving only a row a slice deferred and only on an instruction a person gives (`coverage-ledger-format.md` §3.2), so no run this record could name allocates it, and the row goes to *what still needs a human* with the customer's words (*Update the coverage ledger*). Only a row still `unallocated` is `/product-workflows:brd-split <BRD-KEY>`'s — a slice this route interviewed never holds one, `/brd-interview` refusing an unallocated ledger, but a `--sent` review of a slice never interviewed can find one |
    | `brd/brd-inventory.md` — a row's `id`, `text` or `source_anchor` | **`refused-with-reason`**, for the reason class 3 gives about `brd/source/` itself: `text` is the requirement **verbatim** from the immutable source — on a row drawn from an image, the element it quotes from that image's transcription — and `source_anchor` locates it there (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, §2), so rewriting the row edits the customer's document in the one place it is mirrored. The amendment is a `customer-amended` defect resolution, which the *Resolve the defects the review settled* phase writes |
    | `brd/brd-figures.md` — a section's *Text*, *Annotations*, *Flow*, *Illegible* or *Depicts* — **the parent's on a slice**, one hop, as the defect log is (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) | **`applied`**, in place: it is the plugin's reading of the customer's image, not the customer's document, and the reviewer is the reader certain to know what their own picture says — text the transcription recorded as illegible is the likeliest correction. The corrected part is written in the form `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2 fixes for it — *Text* the image's own strings only, inside its fenced `text` block, *Flow* one list item per edge in `figure-reader`'s notation, a label with no mark around it — so a corrected labelled edge cannot bring a bracketed label back. The image itself is class 3 below and never touched. On a slice this write takes the cross-BRD write guard above, and **where the guard stops it the row is `deferred-to-next-round`**, naming the branch/PR state the gate reported — never `applied`, because a row marked `applied` whose artifact is unchanged is not applied. A later `/product-workflows:brd-intake` run keeps the corrected section while the image's bytes are unchanged, since its Phase 2.5 re-uses a section whose content hash still matches; a changed image is re-transcribed and the correction does not carry over. **Where the correction changes the element an image-drawn inventory row quotes, that row is not rewritten and no defect is closed**: a corrected transcription is not corrected requirement text, so the *Resolve the defects the review settled* phase writes nothing for it, and any defect the row carries — typically an `ambiguity` about whether the image binds at all — stays open for its own question. The row goes to *what still needs a human*, named with the corrected element. A section-12 row asking to edit the inventory row itself still takes the row above's `refused-with-reason` |
    | `brd/brd-figures.md` — a section's *Read*, *Appearance*, *Content hash*, *Linked from* or *Rows* line | **`refused-with-reason`**, naming `/product-workflows:brd-intake` as their writer: *Read* and *Appearance* record what `figure-reader` could open and what the image looks like, the hash is of the image's bytes, and *Linked from* and *Rows* are written by every intake from its own walk and the final inventory — *Rows* kept as it stood only by an `EMPTY` read, which extracted nothing to write it from (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2) — none of them is a reading of the picture a customer can correct, and an edit to the last two says something a later intake overwrites |
@@ -979,11 +997,14 @@ delivery side dropped it, and `/product-workflows:brd-interview` put that reject
 in a question carrying its defect; a customer who answers it — accepting the rejection, or not — has
 answered the question the defect raised, not withdrawn anything. The defect is
 `resolved-by: <SLICE-KEY>/[CD#n]`, whichever rung of the order above the answer's wording would
-otherwise reach, and the row does not move. **Where the answer asks for it to be built after all, no
-command reverses a `rejected` disposition**: no row of a slice's ledger returns to `unallocated`
-(`coverage-ledger-format.md` §3), and `/brd-split` walks no row that already carries a fate, so no
-route is named. The row goes into the reconciliation record's *what still needs a human*, with the
-customer's words quoted, for a person to take up with them.
+otherwise reach — save a `conflict` or `duplicate` settled by keeping one row and dropping the other,
+where the two rules meet (below) — and the row does not move. **Where the answer asks for it to be
+built after all, no command reverses a `rejected` disposition**: no row of a slice's ledger returns
+to `unallocated` (`coverage-ledger-format.md` §3), and no `/brd-split` run moves a `rejected` row —
+its walk takes only `unallocated` rows, and its sibling re-cut only a row a slice deferred
+(`coverage-ledger-format.md` §3.2) — so no route is named. The row goes into the reconciliation
+record's *what still needs a human*, with the customer's words quoted, for a person to take up with
+them.
 
 **A `conflict` or a `duplicate` settled by keeping one row and dropping the other** names two rows,
 and only one of them lists the defect. **`withdrawn` — and the *Update the coverage ledger* phase's
@@ -1004,6 +1025,17 @@ what survives:
   into the reconciliation record's *what still needs a human*, with the obligations the kept part
   does not cover named. Keeping the whole and dropping the part is treated as the bullet above
   treats a restatement: the whole covers the part, so the obligation survives in the row kept.
+
+**Where the two rules meet — such a `conflict` or `duplicate`, one of whose rows this ledger already
+reads `rejected` — this is their order, and it is stated once, here.** The `rejected` row never
+moves: where the answer drops it, it already records that nobody builds it, and nothing is written
+over it; where the answer keeps it, the customer wants it built after all, and it goes to *what still
+needs a human* exactly as the paragraph on a row already reading `rejected` says. **The defect's
+resolution and the other row's write follow the bullets above**, that paragraph notwithstanding: a
+`conflict` whose listed row is the one dropped is `withdrawn`, and every other case is
+`resolved-by: <SLICE-KEY>/[CD#n]`; and the dropped row, where it is not the rejected one, takes what
+its bullet gives it, the rejected row kept beside it still reading `rejected` until a person acts on
+the customer's words.
 
 **That ledger write lands only where the dropped row is a row of this BRD's own ledger.** Where a
 sibling slice holds it, it stays `covered-here` there; where the root holds it, never delegated, it
@@ -1053,13 +1085,20 @@ this phase is the translation between the two.
 | `rejected: <SLICE-KEY>/[CD#n]` | a `[CD#n]` withdrew it and the previous phase resolved no entry `withdrawn` for it — no defect still `open` was raised on the requirement, since the previous phase resolves every such one `withdrawn` whatever the answer's `settles` names — citing that decision, qualified by this slice's key exactly as `resolved-by` is (`coverage-ledger-format.md` §3) |
 | `superseded-by: [BR#n]` | a `[CD#n]` replaced it with another requirement — a `[BR#n]` of the parent's inventory, which this slice need not claim or hold a row for, so a sibling slice's row qualifies (`coverage-ledger-format.md` §3) |
 
+**A row this ledger already reads `rejected` is never rewritten here**, whatever the answer: the
+*Resolve the defects the review settled* phase says why, and what happens to it instead, where its
+two rules meet.
+
 **`covered-here` and `covered-by` are not.** Allocation — which BRD builds a requirement — is
 `/brd-split`'s walk and nothing else's (`coverage-ledger-format.md` §4), and a customer decision is
 not a statement about which BRD in the delivery organisation owns the work. **A row this run would
 otherwise want to allocate is named in the reconciliation record's *what still needs a human*, with
 the customer's words — and no command is named for it where it already carries a fate**: `/brd-split`
-walks only `unallocated` rows, and a row `rejected`, `deferred-to` or `superseded-by` is not one, so
-naming it would send the operator to a run that moves nothing. Only a row still `unallocated` is
+on this slice walks only `unallocated` rows, and a row `rejected`, `deferred-to` or `superseded-by` is
+not one, so naming it would send the operator to a run that moves nothing. Its sibling re-cut, which
+runs on the parent, re-points only a row a slice deferred, onto a sibling not yet interviewed, on an
+instruction the operator gives (`coverage-ledger-format.md` §3.2) — a person's call, which is why the
+record names the row for a human rather than a command. Only a row still `unallocated` is
 named with `/product-workflows:brd-split <BRD-KEY>`: a slice this route interviewed never holds one,
 since `/brd-interview` refuses an unallocated ledger, but a `--sent` review of a slice never
 interviewed can find one, and that run is the one that walks it.
@@ -1070,10 +1109,16 @@ source-owning BRD's ledger and never a slice's (`coverage-ledger-format.md` §3)
 
 **A requirement the customer asked for that no `[BR#n]` covers is not minted here.** The review's
 section 4 is about intent, and a requirement the package missed entirely is its highest-value row —
-but the inventory is extracted from an immutable source by `/brd-intake`, and a `[BR#n]` this command
-invented would be a requirement with no anchor into the document the customer actually signed. It is
-recorded in *what still needs a human*, naming the two real routes: an amendment logged against the
-defect log, or a fresh source document through `/product-workflows:brd-intake`.
+but the inventory is extracted from an immutable source by `/brd-intake`, and a `[BR#n]` this
+command invented would be a requirement with no anchor into the document the customer actually
+signed. It is recorded in *what still needs a human*, naming the one route a command takes: a
+revised source document from the customer, intaken over the root with
+`/product-workflows:brd-intake <PARENT-KEY> @<revised-file>`, whose read extracts the requirement as
+a new `[BR#n]` — a re-run that, where its read finds a requirement, puts every row of the root's
+ledger back to `unallocated`, which its Phase 0 step 7 names before anything is copied. Short of
+that, a person takes it up with the customer. No command logs an amendment for it:
+`customer-amended` resolves a defect raised on a `[BR#n]` the inventory already holds
+(`brd-format.md` §4), and this requirement has none.
 
 **A withdrawal answering no question the package put moves nothing.** A row moves here only on a
 frozen `[CD#n]`, and an answer matching no question is never frozen (*Confirm every candidate*):
@@ -1172,7 +1217,7 @@ choices: ["Inherited unchanged — the change does not move this position; say w
 **Not an escalation array either**: the four options are the four dispositions the design fixes for
 this sweep, in that order, and a fifth would be a disposition nothing downstream can read — which is
 why `workflows-core:escalation-rules`'s *Closed-vocabulary pickers must normalise the free-text answer* section names this
-picker among the six whose free-text answer must be normalised into their own vocabulary rather than
+picker among the arrays whose free-text answer must be normalised into their own vocabulary rather than
 written through. No `(Recommended)`
 marker, and the reason is stated beside the list per the
 `When no option is safe to recommend` guidance in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`: which one is right is a
@@ -1337,7 +1382,9 @@ changed, why, which ids, and what still needs a human:
   every anomaly, unrepaired.
 - **What changed** — every `[CD#n]` frozen, with its quotation, what it answers, and how it was
   confirmed, and, where its `altitude` had nothing to copy, that this run decided it; every
-  candidate rejected or sent back to the customer, with its reason; every `[AS#n]` superseded; every
+  candidate rejected or sent back to the customer, with its reason; every candidate the operator
+  re-pointed onto a question the package put, with the target the reader returned and the question
+  named (*Confirm every candidate*); every `[AS#n]` superseded; every
   `[VD#n]` reopened here; every correction with its disposition; every banner added; every defect
   resolution, with the log's path; every ledger row moved.
 - **The sweeps** — the changed-id set as fixed; per dependent BRD, every `conditional_on` position
@@ -1357,10 +1404,12 @@ changed, why, which ids, and what still needs a human:
   image whose quoted element an `applied` transcription correction changed, with the row and the
   corrected element named — any defect the row carries stays open for its own question; every
   answer matching no question the package put that the operator recorded for a human, a withdrawal
-  among them, with the identifier its row names, where it names one, and the customer's words quoted (*Confirm every
-  candidate*, *Update the coverage ledger*); and every row the customer asked to be built that
-  already carries a fate, a `rejected` one after all among them, with the row and the customer's
-  words, naming no command, because none allocates it.
+  among them, with the identifier its row names, where it names one, and the customer's words quoted
+  (*Confirm every candidate*, *Update the coverage ledger*); every requirement the review marks
+  `withdrawn` in its section 4 alone, with the customer's words (*Update the coverage ledger*); and
+  every row the customer asked to be built that already carries a fate, a `rejected` one after all
+  among them, with the row and the customer's words, naming no command, because no run the record
+  could name allocates it (*Update the coverage ledger*).
 
 **A second reconciliation on the same day appends, and never overwrites.** Where
 `reconciliation-<YYYYMMDD>.md` already exists, this run adds a new pass beneath what is there, under
@@ -1661,7 +1710,8 @@ Report: the BRD folder and which level it sits at; the classification and model 
 what decided it, the verdict, the readiness statement quoted verbatim, and the evidence limitations
 as stated or the fact that they were not; **every anomaly**, unrepaired, because each one changes how
 the rest of the review should be read; **every `[CD#n]` frozen**, with what it answers and its
-status, and every candidate rejected or sent back to the customer with its reason; the `[C]`
+status, every candidate rejected or sent back to the customer with its reason, and every candidate
+the operator re-pointed onto a question, with the target the reader returned; the `[C]`
 questions closed and every one still open, with the round each sits in; every `[AS#n]` superseded and
 every `[VD#n]` reopened here; the corrections grouped by disposition, with every refusal's reason
 stated in full; every dated artifact bannered, and every overturned bundle document named rather than

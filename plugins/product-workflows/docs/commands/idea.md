@@ -170,7 +170,7 @@ Here the run walks every link that note makes, has each linked image transcribed
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off at the `prd-creation` seam.
-- [`/create-prd`](create-prd.md) — the next phase; finds `idea.md` in the folder `/idea` wrote it into, once `/idea` has handed it off.
+- [`/create-prd`](create-prd.md) — the next phase; finds `idea.md` in the folder `/idea` wrote it into, once `/idea` has handed it off. Before that — a declined handoff, or a draft — `/create-prd <KEY>` names the file without reading it in contract, and `/create-prd <KEY> @<path>` reads it where it sits: the form `/idea` offers in both cases.
 - [Model routing](../reference/model-routing.md) — the classification and model-fallback rules `/idea` applies in Phase 0.
 - [Session cost](../reference/session-cost.md) and [Session feedback](../reference/session-feedback.md) — the terminal Phase 6 bookkeeping every run emits.
 - [`idea-format.md`](../../references/idea-format.md) — the canonical structure `idea.md` is authored against, and the *Vendored sources* rules for `attachments/`, `design/idea-sources/`, the collision suffix, and the link rewriting. The frame-set index format is not its — that moved to `workflows-core:grounding-format` §6.2 when `/workflows-core:frames` became a second writer.

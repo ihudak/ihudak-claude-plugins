@@ -522,14 +522,17 @@ written_by: <the command that last wrote this file>
 
 # Frame set: <frame-set>
 
-Every frame this set holds. The set accumulates across runs and across commands, so a row may well
-predate the run that last wrote this file. Each description is the describing agent's own account of
-what the frame shows — **context, not evidence**: what somebody drew, not what anything does.
+Every frame this set holds. The set accumulates across runs and across commands, so a row may well predate the run that last wrote this file. Each description is the describing agent's own account of what the frame shows — **context, not evidence**: what somebody drew, not what anything does.
 
 | Frame | Linked from | What the frame shows |
 |---|---|---|
 | `toggle-01.png` | `attachments/dark-mode.md` | <the description, verbatim> |
 ```
+
+**The paragraph under the heading is one line, and a writer copies it as one line.** An index is an
+artifact a person reads, so `workflows-core:prose-formatting` governs it — never hard-wrap prose —
+whatever the wrap of this reference around it; the template carried the paragraph wrapped at this
+file's width until 1.7.1, and a writer copying it verbatim wrote hard-wrapped prose into every index.
 
 **`index.md` is the name a *writer* writes.** §6.1 lets a *reader* accept whatever name the frame-set
 convention used, because a set exported elsewhere may already carry a manifest under another name. A

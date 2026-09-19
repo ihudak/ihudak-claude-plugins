@@ -57,8 +57,8 @@ touches no filesystem — a pure string test, safe to call before `$SPECS_PATH` 
    name without reading its parent, and the tree is at most three levels deep.
 
 **Reserved subdirectory names are not folder kinds.** A folder under `specifications/` may hold
-fixed-name subdirectories that carry no key and are never resolved by one — `brd/`, `grounding/`,
-`interview/`, `dev-workflows/`, `design/` (exported frame sets, one per immediate subdirectory, each
+fixed-name subdirectories whose names carry no key and that are never resolved by one — `brd/`,
+`grounding/`, `interview/`, `dev-workflows/`, `design/` (exported frame sets, one per immediate subdirectory, each
 indexed per `references/grounding-format.md` §6.1–§6.2), and `attachments/` (the text and markdown sources a run copied
 into the folder — `product-workflows:idea-format`, *Vendored sources*). None matches §3's `*-<KEY>-*` glob,
 so resolution passes over them without a rule of its own, and none carries a `brd-link.md`, so
@@ -159,22 +159,45 @@ falsifies it. More fundamentally, a key re-derived by pattern is a key nothing i
 asserted — `CLAUDE.md`'s standing rule — so every match is a guess that a longer or differently-shaped
 identifier defeats. Reading the field turns the guess into an assertion.
 
-**Which artifact carries it is not a fixed filename**, and must not be written down as one. The rule is:
+**Which artifact carries it is not a fixed filename at the folder's top level**, and must not be
+written down as one there. The rule is:
 
 > The command that creates a folder writes a keyed artifact into it in the same act, so a folder is
 > never keyless — not even between its creation and its first document. A resolver reads `kind:` and
-> `key:` off whichever artifact it had to open anyway; where it has opened none yet, it reads the first
-> artifact in the folder carrying both fields.
+> `key:` off the folder's **carrier**, found in this order:
+>
+> 1. **The folder's top level.** Take its files in byte-wise order of name, and the carrier is the
+>    first whose frontmatter holds `key:` and a `kind:` naming a folder kind — `brd`, `prd` or
+>    `epic`, §2's three kinds as the resolution record (§3) spells them.
+> 2. **Else `brd/brd-inventory.md`.** Where no top-level file qualifies, the carrier is the
+>    inventory inside the reserved `brd/` subdirectory — the one file below the top level that is
+>    ever read for this.
 
-An enumeration of carriers per kind would be a list that goes stale the first time a command writes a
-new artifact, and nothing in `scripts/` would catch it.
+**Why a kind outside the three is passed over.** A document's `kind:` names what that document is —
+`ard`, `specification`, `design` — and an idea-route PRD folder holding an `ard.md` would otherwise
+resolve as kind `ard`, a value the resolution record (§3) has no place for. **Why byte-wise order.**
+"The first artifact" meant nothing until an order was fixed, and a slice shows why it matters: its
+`brd-link.md` asserts `kind: brd` and its `prd.md` `kind: prd`, and a resolver that read whichever
+it had opened anyway — which this rule used to allow — could return either for one folder. Byte-wise
+order puts `brd-link.md` first, which is the reading the family's container refusals already give as
+their reason for testing a directory prefix rather than an asserted kind: a slice asserts `brd`.
 
-**A reserved subdirectory is not a candidate for this test.** A frame-set index carries its
+**Why step 2 exists.** `/brd-intake` creates a root BRD folder whose only keyed artifact, until a
+later command writes one at the top level, is the inventory it writes inside `brd/`
+(`product-workflows:brd-format` §2.1) — so step 1 alone finds nothing in that folder, and a strict
+reading of this rule left every root BRD unresolvable. It is **one named file, not an enumeration of
+carriers per kind**: such a list would go stale the first time a command writes a new artifact, and
+nothing in `scripts/` would catch it, while this exception names the single place the family's own
+reserved subdirectory holds the folder's identity.
+
+**A reserved subdirectory is otherwise not a candidate for this test.** A frame-set index carries its
 *parent's* `key:` while sitting in a directory named for the set (`design/checkout-flow/`), so every
 frame-set index in the tree presents an apparent disagreement. Testing it there would tell an operator
 their tree is broken on the ordinary `@<path>`-to-a-frame-set gesture, where the right answer is the
 consuming command's own redirect (`/frames`'s `FRAMES_NOT_A_SPEC_FOLDER`: re-run against the folder
-above). §2's reserved subdirectories are passed over by key resolution and are passed over here too.
+above). §2's reserved subdirectories are passed over by key resolution and are passed over here too,
+save the one file step 2 reads — and step 2 reads it for the folder `brd/` sits in, whose key it
+carries, never for `brd/` itself.
 
 **A `key:` that disagrees with its folder name is a hard stop naming both.** That is the whole cost of
 carrying identity in two places, and it buys the conversion of a hand-rename from a silent divergence

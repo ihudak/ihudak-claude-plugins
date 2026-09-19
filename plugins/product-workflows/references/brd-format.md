@@ -160,11 +160,11 @@ or as list items>
 none
 ````
 
-- **The frontmatter carries `key:` and no `kind:`.** `workflows-core:addressing` §4 reads a folder's
-  identity off the first artifact in it carrying both `kind:` and `key:`, and nothing fixes which is
-  first, so a second carrier — its kind outside that section's vocabulary — could be read as the
-  folder's own; the inventory is the folder's carrier (§2.1). The bundle ships this file without its
-  frontmatter (`references/bundle-packaging.md` §1.1).
+- **The frontmatter carries `key:` and no `kind:`**, because this file is not the folder's carrier
+  and must not look like one: `workflows-core:addressing` §4 reads a folder's identity off its top
+  level or, where nothing there qualifies, off the inventory, the one file under `brd/` it reads
+  (§2.1). The bundle ships this file without its frontmatter
+  (`references/bundle-packaging.md` §1.1).
 - **One section per image `/brd-intake` Phase 2 copied** — or re-used under collision rule 1, which
   counts as copied (§1.1) — in capture order, headed by the image's path **relative to `brd/`** —
   `source/…` or `source-external/…`. Every path in this file is relative to `brd/`, so one form names
@@ -410,13 +410,16 @@ A slice **does** hold its own `brd/brd-inventory.md`: the subset of its parent's
 from the parent's inventory. **"Its parent" is literal and unambiguous**: nesting is capped at one
 level (`workflows-core:addressing` §6), so a slice's parent is always the BRD that owns the
 source document — there is no chain to walk and no case in which the named parent holds neither.
-The file opens with the two facts a reader needs to follow an anchor out of it:
+The file opens with frontmatter — between `---` lines, as every keyed artifact's is — carrying the
+folder's identity and the two facts a reader needs to follow an anchor out of it:
 
 ```
+---
 kind: brd
 key: <this folder's key — must match the folder name>
 parent: <PARENT-KEY>
 source: <the parent's brd/source/<basename>, relative to the parent's folder>
+---
 ```
 
 **`source:` names the parent's document itself, and §1.1 says which file in `brd/source/` that is** —
@@ -425,7 +428,10 @@ name off the parent's `brd/brd-link-log.md` rather than taking whatever it finds
 
 **`kind:` and `key:` open every inventory, a slice's and a source-owning BRD's alike** — a
 source-owning BRD's inventory carries the two and no `parent:`/`source:` pair, because it *is* the
-source owner. They are how the folder asserts its own identity (`workflows-core:addressing` §4); the
+source owner. They are how the folder asserts its own identity: `workflows-core:addressing` §4 reads
+them off this file wherever no top-level artifact carries the pair, which in a source-owning BRD is
+from the moment `/brd-intake` creates the folder — that command writes this header, with no row,
+before it copies anything into a new folder, so the folder is never keyless (its Phase 2). The
 `brd/source/` document itself carries neither and never will, because it is the customer's and is
 immutable (§1).
 

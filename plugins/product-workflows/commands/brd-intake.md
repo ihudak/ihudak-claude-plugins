@@ -218,8 +218,18 @@ best-available + record** in `notes` and the final report — do not hard-block.
 
 ## Phase 2 — Copy the source
 
-Copy `@<brd-file>` **verbatim, byte-for-byte** into `<BRD-dir>/brd/source/<basename>` (creating the
-BRD folder now, if Phase 0 derived a new one, and `brd/source/` inside it). Per
+**First, key the folder.** Where `<BRD-dir>` holds no `brd/brd-inventory.md` — always so for a
+folder Phase 0 derived — write that file's header before anything else lands there: the frontmatter
+`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1 fixes for a source-owning BRD, `kind: brd` and
+`key: <BRD-KEY>` between `---` lines, and **no row**. Creating the BRD folder and writing this header
+are one act, because `workflows-core:addressing` §4 requires a folder never to be keyless, and nothing
+at a root BRD's top level carries the pair — §4 reads it off this file. Phase 3 fills in the rows. A
+run that stops after this and before Phase 3 leaves an inventory holding its header and no row, and
+a re-run takes that for no prior inventory at all (Phase 3). A folder whose inventory already stands is left as it is
+here.
+
+Then copy `@<brd-file>` **verbatim, byte-for-byte** into `<BRD-dir>/brd/source/<basename>` (creating
+`brd/source/` inside the folder). Per
 `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, nothing under
 `brd/source/` is ever edited, reworded, or reformatted after this point, no matter how badly worded
 a requirement inside it is — defects found in it are logged beside it (Phase 4), never corrected in
@@ -355,11 +365,12 @@ Dispatch `brd-reader`:
   >  figures_path: [absolute path to `<BRD-dir>/brd/brd-figures.md`; omit when no figures file exists after Phase 2.5]"
 
 Act on `status`:
-- **`OK`** — write `<BRD-dir>/brd/brd-inventory.md` per `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md`
-  §2: one row per returned `[BR#n]` (`id`, `text`, `source_anchor`).
+- **`OK`** — write the rows of `<BRD-dir>/brd/brd-inventory.md`, below the header Phase 2 wrote, per
+  `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2: one row per returned `[BR#n]` (`id`, `text`,
+  `source_anchor`).
 
-  **On a first intake, number exactly as returned. On a re-run over a folder that already holds an
-  inventory, RECONCILE — this is the id coordination `brd-reader` delegates and nothing else performs.**
+  **On a first intake, number exactly as returned. On a re-run over a folder whose inventory already
+  holds a row, RECONCILE — this is the id coordination `brd-reader` delegates and nothing else performs.**
   The agent numbers in source order from `BR#1` on every read, so a BRD v2 with one requirement inserted
   early returns a set in which every later id has shifted by one. Writing that straight through
   renumbers text that already has an id, which `references/brd-format.md` forbids outright (*"assigned
@@ -381,6 +392,10 @@ Act on `status`:
   highest already in use — never a gap-filling reuse of a retired one. Report the reconciliation:
   how many ids were preserved, how many minted, and any existing row this source no longer contains
   (which keeps its id and is reported, never renumbered away).
+
+  **An inventory holding no row is no prior inventory** — Phase 2's header, left by a run that
+  stopped before this phase: a run over it numbers exactly as returned, and every first-intake rule
+  of this phase applies to it, since it holds no id to keep.
 
   **Map every `[BR#n]` the agent returned through that reconciliation, wherever it appears in what
   the run writes or reports from the agent's words** — not only the row ids, but each candidate's
@@ -469,7 +484,8 @@ choices: ["Re-read the named sections — re-dispatch brd-reader over the whole 
   for"** — an unreported clean result is indistinguishable from an unrun check. **Where no anchor
   parses at all, say that and stop**: that is a read failure, not a document with no coverage.
 - **`EMPTY`** — report that the source contained no identifiable requirement. Skip Phase 4 (nothing
-  to classify) and write an empty `brd/brd-inventory.md` and `coverage-ledger.md` in Phase 5; the
+  to classify) and, in Phase 5, write `brd/brd-inventory.md` as its header alone — never an empty
+  file, which would leave the folder keyless (Phase 2) — and an empty `coverage-ledger.md`; the
   final report's ledger line reads
   `ledger: 0 requirements — 0 covered, 0 deferred, 0 rejected, 0 unallocated, 0 unresolved (0 delegated, 0 not built)`.
   **Say plainly, here and in the final report, that the route stops on this BRD until the inventory

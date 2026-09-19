@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [4.1.2] — Unreleased
+
+**Update `workflows-core` with this plugin.** Both changes below follow `workflows-core` 1.7.1: the first quotes an array its `phase-handoff.md` §4.3 changed, and a command presents that array verbatim, so the two must match; the second restates what its `addressing.md` §4 now reads.
+
+### Fixed — `/implement` Phase 4.5's falling-back consent option promised that the next phase reads the un-landed `design.md`
+
+Phase 4.5 quotes `workflows-core:phase-handoff` §4.3's **gated — falling back** array for an annotated `design.md` handed off alone, and its second option read *"the next phase does not stop on this — it reports the artifact as un-landed and proceeds from the resolved folder"*. `workflows-core` 1.7.1 corrects that array — for the artifact it was written for, `/idea`'s brief, `/create-prd` names the un-landed file and does not read it — and the quoted copy moves with it: *"the next phase does not stop on this, but until this is on main it might not read your copy"*. For this command's own `design.md` the new text is still true of both consumers: `/implement` reads an in-scope `design.md` as it did before the gate, `/ready` records it missing. The stopping array beside it, and the rule choosing between the two, are unchanged. **Population: every `/implement` run whose Phase 4.5 escalated notes into `design.md` alone and whose handoff was offered.**
+
+### Fixed — `design-format.md` said `design.md`'s `kind:` and `key:` are how its folder asserts its identity
+
+The frontmatter section said both fields *"are how the folder asserts its own identity"*, citing `workflows-core:addressing` §4. `workflows-core` 1.7.1's §4 now fixes which file carries a folder's identity — the first top-level file whose `kind:` is a folder kind (`brd`, `prd` or `epic`) — so `kind: design`, which names the document and not the folder, is passed over, as it had to be for the resolution record to hold one of those three. The section now says `key:` records the folder's key so nothing parses one out of a directory name, `kind:` names the document, and §4 reads the folder's identity off `epic.md` or `prd.md` instead. **No run's behaviour changed. Population: every reader of the design format's frontmatter section.**
+
 ## [4.1.1] — 2026-09-18
 
 ### Fixed — the agents page promised coverage the detection table does not deliver

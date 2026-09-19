@@ -100,8 +100,12 @@ array carries every option.
 
 **PM — ideation & framing**
 
-- `/product-workflows:idea` — refined → `/product-workflows:create-prd <KEY>` (PM); draft → `/product-workflows:idea @<path> --deep` (PM, refine)
-  or `/product-workflows:create-prd <KEY>` (PM, proceed on a draft — not recommended).
+- `/product-workflows:idea` — refined → `/product-workflows:create-prd <KEY>` (PM), with
+  `/product-workflows:create-prd <KEY> @<path to idea.md>` beside it where the handoff was declined;
+  draft → `/product-workflows:idea <KEY> <the same source>` (PM, refine) or
+  `/product-workflows:create-prd <KEY> @<path to idea.md>` (PM, proceed on a draft — not recommended).
+  The `@<path>` is what reaches an `idea.md` on no ref: `/create-prd <KEY>` alone names such a file
+  and does not read it (`/product-workflows:idea` Phase 5).
 - `/product-workflows:create-prd <ADDRESS>`:
   `/docs-workflows:release-notes <PRD>` (PM — draft the release note; recommended clear next step); hand to PA
   *(optional)* → `/product-workflows:create-ard <PRD>`; or hand to PE → `/product-workflows:epics <PRD>` (or `/product-workflows:specify <PRD>`).

@@ -74,10 +74,11 @@ the folder the run resolved — the positional key on the idea route, the `PRD-`
 BRD route (`/product-workflows:create-prd` Phase 3, the frontmatter step) — and `/update-prd` carries it
 forward unchanged rather than re-deriving it. **It was for a time deferred on the BRD route** to a
 tracker step that minted a second identity and wrote it back; that step is gone, nothing replaced it,
-and the field simply stayed unset — which left a folder whose only `kind:`+`key:` carrier was
-`brd-link.md` (`kind: brd`) resolving as a BRD rather than a PRD (`references/addressing.md` §4), and
-left `/document` and `/release-notes` grepping commits for an empty key. There is no second identity
-to keep straight: one namespace, one grammar, and the folder's key is the key. **So there is no
+and the field simply stayed unset — which left `/document` and `/release-notes` grepping commits for
+an empty key. (The folder itself still resolved: a slice's carrier is its `brd-link.md`, `kind: brd`,
+which sorts before `prd.md` in `references/addressing.md` §4's order whether or not `prd.md` carries
+a key.) There is no second identity to keep straight: one namespace, one grammar, and the folder's
+key is the key. **So there is no
 legitimate state in which `brd_key` stands beside an absent `key`** — `product-workflows:prd-reviewer` raises
 one as a finding on every route.
 

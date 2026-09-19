@@ -464,8 +464,15 @@ every later run until those paths are committed or the handoff is taken.
 Report where `idea.md` was written and its `status`, and what Phase 4.5 vendored beside it, then offer
 the next phase — **adapted to status**:
 
-- **`status: refined`** — offer the handoff. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — the **gated — falling back** variant (§4.1 bullet 2), because `/product-workflows:create-prd <KEY>` runs `require-on-main` on this `idea.md` (§3.4's first row), which settles the class as **gated**, and that row is the *only* one naming this file: it preserves the Phase 0 idea ladder instead of stopping, so §4.1's quantifier takes the falling-back half. The **gated — stopping** array would promise a refusal `/create-prd` does not make — on `absent` it reports the file and grills the PRD from scratch, which is what the outcome line this same run prints already says — then on the
-  first option execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: idea`;
+- **`status: refined`** — offer the handoff. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")`
+  and present its §4.3 consent choice verbatim — the **gated — falling back** variant (§4.1
+  bullet 2), because `/product-workflows:create-prd <KEY>` runs `require-on-main` on this `idea.md`
+  (§3.4's first row), which settles the class as **gated**, and that row is the *only* one naming
+  this file: it preserves the Phase 0 idea ladder instead of stopping, so §4.1's quantifier takes
+  the falling-back half. The **gated — stopping** array would promise a refusal `/create-prd` does
+  not make: on `absent` it names the file without reading it and goes on down its idea ladder,
+  which is what the falling-back array's parenthetical and the declined outcome line both warn of.
+  Then on the first option execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: idea`;
   `feature_folder` = the folder Phase 4 wrote `idea.md` into; `deliverable_paths` = `idea.md`,
   **plus every file Phase 4.5 wrote or reused** — each copy under `attachments/`, each image copy
   under `design/idea-sources/`, and that frame set's `index.md`. **Reused counts**: a copy the
@@ -484,7 +491,8 @@ the next phase — **adapted to status**:
   `attachments/` paths that exist on the operator's disk and on no ref, which is a worse record than
   the one this feature set out to repair. Phase 4.5 hands over that literal list; pass it through
   unchanged. A bare-prompt run vendored nothing and passes `idea.md` alone, exactly as before this
-  phase existed. Then recommend
+  phase existed. On option 2 or 3 nothing runs but §4.1's *Declined by the user* line (§4.3, *What
+  each option means*). Then, **whichever option was taken**, recommend
   `/product-workflows:create-prd <KEY> <merge-clause>`, which finds `idea.md` in that folder —
   `<merge-clause>` resolved from the `Phase handoff:` line §4.1 just emitted, per
   `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`'s resolution table, and never written
@@ -492,6 +500,16 @@ the next phase — **adapted to status**:
   rung 1 runs `require-on-main` on exactly this `idea.md`, so while the pull request this offer just
   opened is still open that command stops on rows D/E — an unqualified recommendation sends the
   operator into a stop this run itself caused.
+
+  **On a decline, offer the `@<path>` route beside it** — the one the draft branch below names for
+  the same on-disk state: `/product-workflows:create-prd <KEY> @<the absolute path of this idea.md>`.
+  A declined handoff leaves `idea.md` written and on no ref, exactly as a draft is, and `/create-prd
+  <KEY>` with no path then finds it on no ref (row F), names it without reading it, and goes on down
+  its idea ladder — which comes back to this brief only through its same-session rung or a path the
+  operator types, and otherwise grills the PRD from scratch. Named as a path, the file is read where
+  it sits on rung 2's terms: never relocated, never gated, reported once as out-of-contract. The
+  merge-clause route is for an operator who will land the files first; the `@<path>` route is the
+  one that does not wait for them.
 
   **There is no key to wait for and no disposition to branch on.** The key was given in Phase 0, the
   folder was resolved from it or created by Phase 4's write, and `idea.md` was written there — so the
@@ -508,15 +526,16 @@ the next phase — **adapted to status**:
      there is no pull request to wait for.
   2. **Only where the PRD is to be grilled from the draft as it stands —
      `/product-workflows:create-prd <KEY> @<the absolute path of this idea.md>`.** The `@<path>` is
-     required, and this is the one place the reason is visible. Nothing was handed off, so
+     required, for the reason the refined branch gives on a decline. Nothing was handed off, so
      `/create-prd`'s in-contract rung 1 runs `require-on-main` against this file, finds it on no ref
      and returns row F `absent` — which is a fall-through rather than a stop, and no later rung of
      that ladder looks in the folder again. Named as a path, the file is read where it sits on
      rung 2's terms — never relocated, never gated, reported once as out-of-contract — and its open
      markers are folded into that command's own grill. `/product-workflows:create-prd <KEY>` with no
-     path resolves the same folder and grills the PRD from scratch, ignoring this file: that is the
-     wait this offer names in place of a merge clause, and it is discharged by the path, not by a
-     merge.
+     path resolves the same folder, names this file without reading it, and goes on down its idea
+     ladder — back to this file only through its same-session rung or a path the operator types,
+     otherwise to a PRD grilled from scratch: that is the wait this offer names in place of a merge
+     clause, and it is discharged by the path, not by a merge.
 
 Also report the code grounding when Phase 2.6 ran: the grounded repos with their `scanned_ref`s, any
 repo descoped or unmounted with the themes left unverified, any theme still inconclusive after round 2,

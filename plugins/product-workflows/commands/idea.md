@@ -43,14 +43,16 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
    **A `found` folder must be an idea-route PRD folder.** Test the folder, never the kind it asserts
    — a BRD-route slice is `PRD-`-prefixed and asserts `kind: brd` through its `brd-link.md`
    (`workflows-core:addressing` §4) — in this order, stopping on the first that holds. A folder
-   carrying a `brd-link.md` at its top level is a BRD-route slice, whatever its name. Then, where the
-   resolution record reads `legacy: false`, test the prefix: `BRD-` is a BRD container, `EPIC-` an
-   Epic folder. Where it reads `legacy: true` there is no prefix to test — §5's unprefixed name
-   starts with the key, and a key may itself begin with a kind token, so `BRD-12-checkout/` is a
-   legacy folder keyed `BRD-12` and not a BRD container — so test the resolved `kind` instead: `brd`
-   is a BRD container, `epic` an Epic folder. An idea brief seeds the PRD authored beside it, and none
-   of these takes one: a BRD container never holds a PRD, a slice's PRD is seeded from its BRD with no
-   idea ladder, and an Epic folder sits below its PRD:
+   carrying a `brd-link.md` naming a `parent:` at its top level is a BRD-route slice, whatever its
+   name. Then, where the resolution record reads `legacy: false`, test the prefix: `BRD-` is a BRD
+   container, `EPIC-` an Epic folder. Where it reads `legacy: true` there is no prefix to test —
+   §5's unprefixed name starts with the key, and a key may itself begin with a kind token, so
+   `BRD-12-checkout/` is a legacy folder keyed `BRD-12` and not a BRD container — so place it by
+   positive evidence instead, as `workflows-core:addressing` §4.1 does: `coverage-ledger.md` or
+   `brd/brd-inventory.md` present is a BRD container, a resolved `kind: epic` an Epic folder. An
+   idea brief seeds the PRD authored beside it, and none of these takes one: a BRD container never
+   holds a PRD, a slice's PRD is seeded from its BRD with no idea ladder, and an Epic folder sits
+   below its PRD:
    `IDEA_NOT_AN_IDEA_FOLDER: <KEY> resolves to <folder path>, <a BRD container | a BRD-route slice | an Epic folder> — /idea writes only into an idea-route PRD folder. <remedy> For a separate idea, give it a key of its own: '/product-workflows:idea <NEW-KEY> [<prompt>|@<file>]'.`
    `<remedy>` names the run that does take that folder's work, by what the folder is:
 
@@ -58,7 +60,10 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
    |---|---|
    | a BRD-route slice | `Its PRD is authored from its BRD: run '/product-workflows:create-prd <KEY>'.` |
    | a BRD container | `A BRD holds no PRD of its own: carve a slice with '/product-workflows:brd-split <KEY> "<how to cut it>"', or run '/product-workflows:create-prd <SLICE-KEY>' on one already carved.` |
-   | an Epic folder | `An Epic is refined from the PRD above it: revise that PRD with '/product-workflows:update-prd <PRD-KEY>', or specify this Epic with '/product-workflows:specify <KEY>'.` |
+   | an Epic folder | `An Epic is refined from the PRD above it: revise that PRD with '/product-workflows:update-prd <PRD-KEY>', re-refine this Epic with '/product-workflows:epics <KEY>', or specify it with '/product-workflows:specify <KEY>'.` |
+
+   `<PRD-KEY>` is the key of the folder above the Epic folder, read off that folder's carrier
+   (`workflows-core:addressing` §4) — never parsed out of either folder's name.
 
    It is a user halt, so `emit-block` does not fire, and it is taken here, before anything is read or
    written.

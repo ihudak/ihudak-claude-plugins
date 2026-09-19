@@ -36,9 +36,10 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
    Epic-scoped run needs and the PRD is derived from the folder above it). An offer written
    `/product-workflows:specify <PRD> <Epic>` names an argument form no command accepts: the run reads the
    first token, and the second either disagrees with it or is refused. Write `/product-workflows:specify
-   <EPIC>` for an Epic-scoped step and `/product-workflows:specify <PRD>` for a PRD-scoped one — the kind
-   of the folder the address resolves to is what sets the altitude, so the offer never has to say it
-   twice.
+   <EPIC>` for an Epic-scoped step and `/product-workflows:specify <PRD>` for a PRD-scoped one — the
+   prefix of the folder the address resolves to is what sets the altitude, and a folder with none is
+   placed by what it holds (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4.1), so the offer
+   never has to say it twice.
 
 **A next-step offer that names a downstream command must also name the merge.** The downstream command executes `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) and stops while this phase's pull request is open, so an offer that reads "next: `/product-workflows:create-ard <KEY>`" without "once the pull request is merged" sends the user into a stop they were not warned about.
 

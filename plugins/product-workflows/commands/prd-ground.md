@@ -132,7 +132,9 @@ behaviour, not the behaviour.
     **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
     fallback, there is no prefix to test.** Answer the root question by **positive evidence, never
     by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1,
-    the shared authority every consumer of this test takes it from, and not restated here.
+    the shared authority every consumer of this test takes it from, and not restated here — and the
+    Epic question the same way, as `workflows-core:addressing` §4.1 places a folder with no prefix:
+    a resolved `kind: epic` is an Epic folder, refused below exactly as an `EPIC-` folder is.
 
     On a root, look for the root-level artifacts this run would have produced under the retired
     two-level model — `grounding/code-grounding.md`, `grounding/design-grounding.md`,

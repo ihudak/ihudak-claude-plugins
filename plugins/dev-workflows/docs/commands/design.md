@@ -12,7 +12,7 @@ Takes over a merged specification from the specs repo's main branch, grounds str
 /design <ADDRESS> [--design-twice]
 ```
 
-`/design` is **address-required** — a plain prompt with no positional address stops with `DESIGN_NEEDS_KEY`. Resolution supplies the address and nothing else: the requirements source of truth is the merged `specification.md` in the specs repo.
+`/design` is **address-required** — a plain prompt with no positional address stops with `DESIGN_NEEDS_KEY`. Resolution supplies the address and nothing else: the requirements source of truth is the merged `specification.md` in the specs repo. The folder's prefix sets the altitude — an `EPIC-` folder designs that Epic, a `PRD-` folder works at PRD level — never the kind it asserts, and a legacy folder with no prefix is placed by what it holds. A BRD container holds no specification to design against and stops the run (`DESIGN_BRD_NOT_SLICED`), naming each of its slices instead or, where it has none, `/product-workflows:brd-split` to carve one.
 
 **The Epic is the unit of work — one `design.md` per invocation, no fan-out.** When `focus_key` is already set, that Epic is the scope. When it is `null`, `/design` inspects the resolved PRD directory in the specs repo itself: a flat `specification.md` there (a broad PRD-level spec — the only shape that puts one at PRD level, since every `EPIC-` folder sits under a PRD folder) means one design at that level; Epic subfolders are enumerated by which ones already carry a `specification.md` merged to main, and rendered as a progress-aware picker — ○ not started (a specification exists but no design and no in-progress session), ◐ in progress (a design session exists but no `design.md` yet, selectable as a resume), ● done (`design.md` exists, shown greyed, offering *revise* instead of a fresh run). Exactly one spec'd Epic auto-selects with no picker. `--design-twice` forces the Phase 5 interface fan-out even when no contested-interface signal fired — the run says which interface it forced it on, and skips the offer described below entirely.
 
@@ -71,7 +71,7 @@ Design a per-Epic implementation for an Epic whose specification is already merg
 /dev-workflows:design EPIC-98760
 ```
 
-The run resolves `EPIC-98760` as the focus Epic within PRD `PRODUCT-1234`, gates its `specification.md` on the specs repo's main branch, resolves any ARD, derives and confirms the implementation repos, hard-stops if any is unmounted, scans the confirmed set, then grills you through challenging the spec and designing the implementation — offering the three-take interface fan-out if a seam turns out contested. Once `design-reviewer` passes, it offers to branch, commit, push, and open a pull request; once that pull request is merged, `/dev-workflows:implement PRODUCT-1234 EPIC-98760` can start.
+The run resolves `EPIC-98760` as the focus Epic within PRD `PRODUCT-1234`, gates its `specification.md` on the specs repo's main branch, resolves any ARD, derives and confirms the implementation repos, hard-stops if any is unmounted, scans the confirmed set, then grills you through challenging the spec and designing the implementation — offering the three-take interface fan-out if a seam turns out contested. Once `design-reviewer` passes, it offers to branch, commit, push, and open a pull request; once that pull request is merged, `/dev-workflows:implement EPIC-98760` can start.
 
 ## See also
 

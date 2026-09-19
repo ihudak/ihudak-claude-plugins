@@ -307,10 +307,11 @@ row.
 
 **The level test is a check the consumer performs, and it comes first.** A BRD is a container and is
 never the folder a PRD is authored in, so a consumer handed a `BRD-` folder refuses it **before
-opening `coverage-ledger.md` at all** — on the resolved folder's own kind, never on what its rows
-say. The check is: the `BRD-` prefix `workflows-core:addressing` §2 fixes, read off the resolved
-folder's name. A `PRD-` or an `EPIC-` prefix is not a container and needs no further test; an
-**unprefixed** folder is answered by §5.1's positive test.
+opening `coverage-ledger.md` at all** — on the resolved folder's prefix, never on what its rows say.
+The check is: the `BRD-` prefix `workflows-core:addressing` §2 fixes, read off the resolved folder's
+name — a prefix as that file's §4.1 defines one, the name beginning `BRD-<the resolved key>-`, so a
+legacy folder keyed `BRD-12` is not a container by its name. A `PRD-` or an `EPIC-` prefix is not a
+container and needs no further test; an **unprefixed** folder is answered by §5.1's positive test.
 
 **Never the folder's asserted `kind:`.** `/brd-split` writes `kind: brd` into the `brd-link.md` it
 places inside a `PRD-` slice folder, so a slice **asserts `brd` while being exactly the folder a PRD
@@ -429,9 +430,11 @@ refusal is about this ledger's own written dispositions, and about nothing else.
 ### 5.1 The unprefixed folder — a positive test, never an absence
 
 A folder resolved through `workflows-core:addressing` §5's legacy fallback carries **no prefix at
-all**, so the prefix test cannot answer it. **The answer must be positive evidence that this folder
-is a BRD, never the absence of a file** — because a pre-prefix specs repo holds *two* unprefixed
-shapes and only one of them is a container:
+all**, and neither does an unprefixed folder a command's `@<path>` names, which that file's §3
+resolves without the fallback and so without its `legacy:` flag — so the prefix test cannot answer
+either. **The answer must be positive evidence that this folder is a BRD, never the absence of a
+file** — because a pre-prefix specs repo holds *two* unprefixed shapes and only one of them is a
+container:
 
 - a **root BRD folder**, `specifications/<KEY>-<slug>/`, written by `/brd-intake` before the kind
   prefixes shipped — a current run writes `BRD-<KEY>-<slug>/` and never reaches this test
@@ -497,7 +500,7 @@ resolved slice's own ledger (`commands/create-prd.md` Phase 0 step 7):
 
 | Tested on | Fires when | What `/create-prd` then names |
 |---|---|---|
-| the resolved folder's kind (§5, §5.1) | it is a `BRD-` container | `CREATE_PRD_BRD_NOT_SLICED` — the `PRD-` slices under it, or `/brd-split <BRD-KEY> "<how to cut it>"` where there are none |
+| the resolved folder's prefix, or §5.1's evidence where it has none (§5, §5.1) | it is a `BRD-` container | `CREATE_PRD_BRD_NOT_SLICED` — the `PRD-` slices under it, or `/brd-split <BRD-KEY> "<how to cut it>"` where there are none |
 | the gate set | a row is still `unallocated` | `CREATE_PRD_BRD_UNALLOCATED` — `/brd-split <SLICE-KEY>`, whose walk moves exactly those rows |
 | the gate set | no row is `covered-here` | `CREATE_PRD_BRD_NOT_ELIGIBLE` — `/brd-split <PARENT-KEY>` where the gate set is **empty** (a standing empty child), and **no command at all** where it is non-empty |
 

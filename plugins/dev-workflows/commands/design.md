@@ -36,8 +36,24 @@ Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-b
    - `<PRD>` — the resolved **PRD folder's** `key`: the folder itself when the address named a
      `PRD-` folder, its parent when the address named an `EPIC-` folder.
    - `<EPIC>` — the resolved `EPIC-` folder's `key`, or `null` when the address named a `PRD-`
-     folder. **The kind decides the altitude**, which is what replaces the two-key grammar: the
-     second key was always derivable from the first.
+     folder. **The folder's prefix decides the altitude — never the kind it asserts, which on a
+     BRD-route slice is `brd`** — and that is what replaces the two-key grammar: the second key was
+     always derivable from the first.
+
+   Place the folder as `workflows-core:addressing` §4.1 does, its container test first. **A BRD
+   container** — a `BRD-` folder, or a folder with no prefix holding `coverage-ledger.md` or
+   `brd/brd-inventory.md` and no `brd-link.md` naming a `parent:` — holds no specification to
+   design against, because a BRD's specifications are authored in its slices; stop, before anything
+   is read:
+   `DESIGN_BRD_NOT_SLICED: <KEY> resolves to a BRD container at <path> — a BRD's specifications, and so its designs, belong to its PRD- slices. <the remedy>`
+   `<the remedy>` lists the slices under it, found by the positive test §4.1 names — `Design within a slice instead: '/dev-workflows:design <SLICE-KEY>' — <each slice's key>.` — and, where it finds none:
+   `It has no slice yet: '/product-workflows:brd-split <KEY> "<how to cut it>"' carves one — the instruction is required there, and that run carves nothing where this BRD's ledger leaves no row unallocated; '/product-workflows:create-prd <KEY>' refuses this same container and says what to do then.`
+   It is a user halt. **A folder with no prefix** — one §5's legacy fallback resolved, or an
+   unprefixed folder an `@<path>` names, a name beginning with a kind token being prefixed only
+   where it begins `<KIND>-<the resolved key>-` — is otherwise placed by positive evidence: a
+   resolved `kind: epic` counts as an `EPIC-` folder above; a resolved `kind: prd`, or a
+   `brd-link.md` naming a `parent:`, as a `PRD-` folder. A folder none of these places is not
+   guessed at — stop, naming the folder and what it carries.
 
    With no positional address, stop with
    `DESIGN_NEEDS_KEY: /design needs a PRD or Epic address — a key, or an @<path> to its folder.` —
@@ -66,7 +82,7 @@ it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run �
 
 4. **Granularity — the Epic is the unit of work; no fan-out. Progress-aware Epic picker.** One
    `design.md` per invocation. Resolve by `focus_key`:
-   - **`focus_key` set** (a bare Epic key, whose folder's own `kind` sets the altitude — there is no second positional key auto-resolved by
+   - **`focus_key` set** (a bare Epic key, whose folder step 1 placed as an Epic folder — there is no second positional key auto-resolved by
      the front-end) → the Epic is chosen; the feature folder is its per-Epic home. Skip the picker; go
      to step 5.
    - **`focus_key` null** → inspect the resolved PRD dir in the specs repo:

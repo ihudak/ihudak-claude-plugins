@@ -16,7 +16,9 @@ exactly the folder this command must accept, so a kind-based test would refuse e
 - **A resolved `BRD-` folder is a root** — refused (`PRD_GROUND_ROOT_LEVEL`); grounding happens at
   the slice and nowhere else.
 - **A resolved `EPIC-` folder is refused too** (`PRD_GROUND_EPIC_LEVEL`) — grounding is PRD-altitude
-  on both routes, and an Epic folder holds no `prd.md` of its own (it sits one level up).
+  on both routes, and an Epic folder holds no `prd.md` of its own (it sits one level up). A legacy
+  folder with no prefix whose carrier asserts `kind: epic` is an Epic folder, and is refused the same
+  way.
 - **A `PRD-` folder carrying `brd-link.md` → the BRD route.** Every existing step applies unchanged,
   over that slice's own `[BR#n]` inventory.
 - **A `PRD-` folder with no `brd-link.md` → the idea route.** `/create-prd`'s own unprompted output;

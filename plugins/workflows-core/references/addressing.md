@@ -206,6 +206,41 @@ carries, never for `brd/` itself.
 carrying identity in two places, and it buys the conversion of a hand-rename from a silent divergence
 into a message.
 
+### 4.1 A folder is placed by its prefix — or, where it has none, by positive evidence
+
+**The level a run works at — a BRD container, a PRD folder or an Epic folder — is read off the
+folder's kind prefix, never off the `kind:` its carrier asserts.** A BRD-route slice is a `PRD-`
+folder whose carrier, `brd-link.md`, asserts `brd` (above), so a level taken from the asserted kind
+puts every slice at the one level it is not. A `BRD-` folder is a container, a `PRD-` folder is
+PRD-level, and an `EPIC-` folder is Epic-level, its PRD folder being the folder above it.
+
+**A folder is prefixed only where its name begins `<KIND>-<key>-`**, `<KIND>` one of §2's three and
+`<key>` the key this section read off its carrier — a test against a key the run already holds, so
+nothing is parsed out of the name. A name that merely begins with a kind token is not prefixed: §5's
+legacy name starts with the key, and a key may itself begin with a kind token (§2), so
+`EPIC-008-01-orders/`, keyed `EPIC-008-01`, is a legacy folder and not an Epic folder — it does not
+begin `EPIC-EPIC-008-01-`.
+
+**A folder with no prefix is placed by positive evidence, in this order, and never by the absence of
+a file.** It is one §5's fallback resolved (`legacy: true`), or an unprefixed folder an `@<path>`
+names, which §3 resolves without the fallback and so without the flag.
+
+1. **A BRD container** where it holds `coverage-ledger.md` or `brd/brd-inventory.md` and no
+   `brd-link.md` naming a `parent:` — `product-workflows:coverage-ledger-format` §5.1's test, which
+   that section owns and argues. It is taken first, as it is there, so that no evidence of a lower
+   level can place a container at one.
+2. **Epic-level** where the resolved `kind` is `epic`.
+3. **PRD-level** where the resolved `kind` is `prd`, or where a `brd-link.md` names a `parent:` — a
+   legacy BRD-route slice, whose carrier asserts `brd`.
+
+A folder none of the three places is never guessed at: the caller stops, naming the folder and what
+it carries.
+
+**What a caller does at each level is its own, and so is its refusal of a level it does not work
+at.** Where a refusal names the slices under a container, it finds them by
+`/product-workflows:brd-split` Phase 0 step 9's positive test — each immediate subdirectory carrying
+a `brd-link.md` whose `parent:` names the container — and never by a name match.
+
 ## 5. The legacy layout
 
 A specs repo written before the kind prefixes existed holds `specifications/<KEY>-<slug>/`, with a BRD

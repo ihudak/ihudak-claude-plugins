@@ -88,13 +88,13 @@ build to `deferred-to: <itself>`, where they stay its live obligation. That is e
 now* and not enough for *two independently deliverable slices*, because the blocker sits on the
 **parent**: its row for the delegated requirement reads `covered-by: <that slice>`, the walk visits
 only `unallocated` rows, and no command returns one row to `unallocated` — a `/brd-intake` re-run
-reopens every row at once, discarding every fate the walks recorded. So the parent is given one
-narrow way to move it. Where a slice's own ledger records `deferred-to` against a row its parent
-delegated to it — two ledgers already agreeing that nobody is building the requirement — an
-instruction typed against the parent's fully-allocated ledger, `/brd-split <PARENT-KEY> "<what to
-peel off>"`, re-points that row onto a **sibling under the same parent that has not been
-interviewed and does not already hold a ledger row for that requirement**: one already standing, or
-one that same run carves. The receiving slice's own ledger
+whose read finds a requirement reopens every row at once, discarding every fate the walks recorded.
+So the parent is given one narrow way to move it. Where a slice's own ledger records `deferred-to`
+against a row its parent delegated to it — two ledgers already agreeing that nobody is building the
+requirement — an instruction typed against the parent's fully-allocated ledger, `/brd-split
+<PARENT-KEY> "<what to peel off>"`, re-points that row onto a **sibling under the same parent that
+has not been interviewed and does not already hold a ledger row for that requirement**: one already
+standing, or one that same run carves. The receiving slice's own ledger
 seeds the row `unallocated` — a **new** row, which is why a sibling already holding one for that
 requirement is not its receiver — so it re-enters at `/prd-ground` — with a row no finding on file was
 derived against — and its own `allocate-only` walk then takes the row to `covered-here`. **The

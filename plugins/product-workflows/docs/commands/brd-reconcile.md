@@ -349,7 +349,9 @@ under the parent, which is exactly why the carve-out has to be written down.
   in the delivery organisation owns the work — and no row of its ledger ever returns to
   `unallocated`. So a row the customer asks to be built after it was rejected, deferred or
   superseded has no command to name: [`/brd-split`](brd-split.md) walks only `unallocated` rows. It
-  is recorded, with the customer's words, as needing a human.
+  is recorded, with the customer's words, as needing a human. A row still `unallocated` is named for
+  `/brd-split` — an interviewed slice never holds one, but a `--sent` review of a slice never
+  interviewed can.
 - **It never writes into another BRD's ledger, and it never mints a `[BR#n]`.** A requirement the
   customer asked for that no `[BR#n]` covers is recorded as needing a human, naming the two real
   routes: an amendment logged against the defect log, or a fresh source document through

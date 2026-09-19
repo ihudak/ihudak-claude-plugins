@@ -97,9 +97,9 @@ not work: a flag is a token, so `--redo` would arrive as the address.
    `kind: brd` into the `brd-link.md` inside the `PRD-` slice folder it carves, so a slice *asserts*
    `brd` while being exactly the folder this command must refuse; an asserted-kind gate would accept
    every slice and refuse nothing, which is this command's inversion of the mistake the family's
-   other container gates guard against. Where the folder resolved through
-   `workflows-core:addressing` §5's legacy unprefixed fallback there is no prefix to test: answer the
-   question by the positive-evidence test in
+   other container gates guard against. Where the folder carries no prefix — resolved through
+   `workflows-core:addressing` §5's legacy unprefixed fallback, or an unprefixed folder an `@<path>`
+   named — there is no prefix to test: answer the question by the positive-evidence test in
    `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1 — the shared authority the
    family's container refusals already cite, and not restated here. A legacy folder that fails that
    test is a slice or an idea-route PRD folder either way, and takes the same stop.

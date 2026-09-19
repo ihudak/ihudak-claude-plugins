@@ -127,7 +127,9 @@ name the run creates ([addressing](../reference/references.md) §2):
   judged against those hashes, never against the copy on disk; where the new read returns a row over
   an unchanged file that could be a kept row reworded, it asks you whether it is the same
   requirement; a row the new read does not find again is kept, never renumbered away; and every id
-  it mints is reported by id.
+  it mints is reported by id. An inventory written before 3.7.0 carries no hashes, so the first
+  re-run over it on 3.7.0 rewords every row it matches to the new read's wording, once, reporting
+  each change, and keeps the hashes from then on.
 - `brd/brd-defect-log.md` — one entry per confirmed `[DEF#n]`, resolution `open`. A re-run keeps
   every entry already there, id and resolution unchanged, and adds only the defects it newly
   confirms.
@@ -201,7 +203,9 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   resolution; where several share one class and row they pair in order, and a candidate left over is
   asked with those entries shown beside it, so a restatement is rejected rather than logged twice;
   only the rest are walked, taking ids after the highest in use; and an entry this read did not
-  propose again is kept, and reported as not re-raised. A `[DEF#n]` id is never reused,
+  propose again — for a `conflict` or `duplicate`, one no pair of whose rows a candidate joins — is
+  kept, and reported as not re-raised, while one only some of whose pairs a candidate joins counts
+  as re-raised and is reported with the pairs no candidate joined. A `[DEF#n]` id is never reused,
   renumbered or deleted, so an inventory or ledger row, or a held customer question, naming it still
   names the same defect.
 - **Phase 5 — the allocation gate downstream.** `/brd-intake` itself never blocks on the ledger — it

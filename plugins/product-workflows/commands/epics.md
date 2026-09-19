@@ -60,10 +60,11 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    **asserts `brd` while being exactly the folder Epics belong under**, and a gate on the asserted
    kind would refuse every slice and accept nothing.
 
-   **Where the folder resolved through `workflows-core:addressing` §5's legacy
-   fallback and carries no prefix, the question is answered by positive evidence that it is a BRD,
-   never by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
-   §5.1, the shared authority `/create-prd`, `/create-ard` and `/specify` take this same test from.
+   **Where the folder carries no prefix — resolved through `workflows-core:addressing` §5's legacy
+   fallback, or an unprefixed folder an `@<path>` named — the question is answered by positive
+   evidence that it is a BRD, never by the absence of a file** —
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, the shared authority
+   `/create-prd`, `/create-ard` and `/specify` take this same test from.
    In short: a legacy folder carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no
    `brd-link.md` naming a `parent:`, is a root container; a legacy folder carrying **neither** of
    those two files is a legacy **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md`
@@ -135,11 +136,11 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
      than a refusal (its Phase 0 step 7 warns and confirms before the first write) and, wherever its
      read finds a requirement, rewrites the ledger with **every** row `unallocated` — that step
      lists what a re-run keeps and what it changes — after which
-     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. It also **discards
-     every disposition this ledger records**: each `deferred-to`, `rejected` and `superseded-by` the
-     walk decided is replaced by `unallocated` and must be re-taken, and a `rejected` row must be
-     re-cited against its `[DEF#n]`. Name those decisions — saying only that the dispositions are
-     replaced is not the disclosure.
+     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. Wherever its read
+     finds a requirement it also **discards every disposition this ledger records**: each
+     `deferred-to`, `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and
+     must be re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Name those
+     decisions — saying only that the dispositions are replaced is not the disclosure.
 
 1b. **`/epics` accepts exactly two shapes, and the gate is the artifact's own `kind:`.** A `PRD-`
    folder is partitioned into Epics; an `EPIC-` folder **that has a PRD above it** is re-refined.
@@ -165,11 +166,11 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    **This revives a path that was already written and unreachable.** `/epics` parses `focus_key`
    below (Phase 3, Phase 3.5, Phase 6) but nothing ever set it, so refine-by-focus could not run and
    an `EPIC-` address was silently partitioned as though it were a PRD. Deriving it here is what
-   makes Phase 3's refinement target and Phase 3.5's `mode = refine` reachable at all. The derivation
-   is `commands/specify.md` Phase 0 step 1's, reused rather than restated: **the resolved folder's
-   kind decides the altitude**, and the second key the retired two-key grammar carried is derived
-   from the one address rather than typed beside it (D4). `/epics` takes **one** address; there is no
-   `<PRD> <Epic>` pair to give.
+   makes Phase 3's refinement target and Phase 3.5's `mode = refine` reachable at all. **The folder
+   decides the altitude, as in `commands/specify.md` Phase 0 step 1 — here by the artifact it holds,
+   the table's `kind: prd` or `kind: epic`, never by the kind the folder asserts**, and the second
+   key the retired two-key grammar carried is derived from the one address rather than typed beside
+   it (D4). `/epics` takes **one** address; there is no `<PRD> <Epic>` pair to give.
 
    **No authored PRD.** The remedy is `/product-workflows:create-prd`, and it is named **only where that
    command can actually run**. `/create-prd` refuses **three** shapes, not one, and step 1a has

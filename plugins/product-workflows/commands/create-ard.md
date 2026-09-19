@@ -51,15 +51,23 @@ this stage). Zero external calls.
    fall back to: an Epic key encodes its own ancestry, so a second argument would be derivable from
    the first and able to disagree with it, which is the failure class D4 exists to remove. Stop
    gracefully:
-   `CREATE_ARD_ONE_ADDRESS: /create-ard takes one address; <second-token> was given as a second. The kind of the folder the address resolves to is what sets the altitude — an EPIC- folder gives an Epic-level ARD, with its PRD read from the folder above it; a PRD- folder gives a PRD-level one. Re-run '/product-workflows:create-ard <ADDRESS>' with the single address you meant.`
+   `CREATE_ARD_ONE_ADDRESS: /create-ard takes one address; <second-token> was given as a second. The folder the address resolves to sets the altitude by its prefix — an EPIC- folder gives an Epic-level ARD, with its PRD read from the folder above it; a PRD- folder gives a PRD-level one — and a legacy folder with no prefix by what it holds. Re-run '/product-workflows:create-ard <ADDRESS>' with the single address you meant.`
 
-   **The resolved folder decides the altitude — by its prefix, never by the `kind` it
-   asserts**, which on a slice is its `brd-link.md`'s `brd` (`workflows-core:addressing` §4). This
-   is what replaces the old two-key grammar:
+   **The resolved folder decides the altitude — as `workflows-core:addressing` §4.1 places it: by
+   its prefix, never by the `kind` it asserts**, which on a slice is its `brd-link.md`'s `brd` (§4).
+   This is what replaces the old two-key grammar:
    - a `PRD-` folder → `<PRD>` is its `key`, `<EPIC>` is `null`;
    - an `EPIC-` folder → `<EPIC>` is its `key` and `<PRD>` is its parent's;
    - a `PRD-` folder holding a `brd-link.md` → the BRD route. Define `<SLICE-KEY>` = the resolved
-     folder's `key`.
+     folder's `key`;
+   - **a folder with no prefix** — one §5's legacy fallback resolved (`legacy: true`), or an
+     unprefixed folder an `@<path>` names; a name is prefixed only where it begins
+     `<KIND>-<the resolved key>-` (§4.1), so a legacy key beginning with a kind token is no prefix —
+     **is placed by positive evidence**, never by the absence of a file: a resolved `kind: epic` is
+     placed as an `EPIC-` folder is; a resolved `kind: prd`, or a `brd-link.md` naming a `parent:`,
+     as a `PRD-` folder is — the latter a legacy slice, and so the BRD route. A legacy root
+     container is placed by neither: §4.1 tests it first, and step 1a refuses it on that test. A
+     folder none of these places is not guessed at — stop, naming the folder and what it carries.
 
    **The BRD route is detected, not declared.** A folder carrying `brd-link.md` was produced by
    `/brd-split` and holds the seed this command reads; nothing about that needs restating on the
@@ -93,15 +101,16 @@ this stage). Zero external calls.
    while being exactly the folder an ARD belongs in, and a gate on the asserted kind would refuse
    every slice.
 
-   **Where the folder resolved through `workflows-core:addressing` §5's legacy
-   fallback and carries no prefix, the question is answered by positive evidence that it is a BRD,
-   never by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
-   §5.1, the shared authority `/create-prd`, `/specify` and `/epics` take this same test from. In short: a
-   legacy folder carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no `brd-link.md`
-   naming a `parent:`, is a root container; a legacy folder carrying **neither** of those two files
-   is a legacy **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md` either — this
-   refusal does not fire on it, and refusing it would offer `/product-workflows:brd-split` on a folder
-   with no coverage ledger to walk. Stop gracefully:
+   **Where the folder carries no prefix — resolved through `workflows-core:addressing` §5's legacy
+   fallback, or an unprefixed folder an `@<path>` named — the question is answered by positive
+   evidence that it is a BRD, never by the absence of a file** —
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, the shared authority
+   `/create-prd`, `/specify` and `/epics` take this same test from. In short: a legacy folder
+   carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no `brd-link.md` naming a `parent:`,
+   is a root container; a legacy folder carrying **neither** of those two files is a legacy
+   **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md` either — this refusal does
+   not fire on it, and refusing it would offer `/product-workflows:brd-split` on a folder with no
+   coverage ledger to walk. Stop gracefully:
    ```
    CREATE_ARD_BRD_NOT_SLICED: <BRD-KEY> resolves to a BRD- container at <path>, and a BRD is never the folder an ARD is authored in — its architecture is authored in the PRD- slices under it, one ARD each (coverage-ledger-format.md §5). <the remedy, per the branch below>
    ```
@@ -153,11 +162,11 @@ this stage). Zero external calls.
      than a refusal (its Phase 0 step 7 warns and confirms before the first write) and, wherever its
      read finds a requirement, rewrites the ledger with **every** row `unallocated` — that step
      lists what a re-run keeps and what it changes — after which
-     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. It also **discards
-     every disposition this ledger records**: each `deferred-to`, `rejected` and `superseded-by` the
-     walk decided is replaced by `unallocated` and must be re-taken, and a `rejected` row must be
-     re-cited against its `[DEF#n]`. Name those decisions — saying only that the dispositions are
-     replaced is not the disclosure.
+     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. Wherever its read
+     finds a requirement it also **discards every disposition this ledger records**: each
+     `deferred-to`, `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and
+     must be re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Name those
+     decisions — saying only that the dispositions are replaced is not the disclosure.
 
 
 2. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).

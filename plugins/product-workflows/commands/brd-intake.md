@@ -416,10 +416,12 @@ reading it did (`brd-format.md` §1.2).
    stays** — a section is never deleted — and carries the *Not captured by the current run* marker
    `brd-format.md` §1.2 fixes, whatever the cause — for instance the current document no longer
    links the image, this run's Phase 1 answer left it out, or a changed outside image was copied
-   beside it under a `_NN` name; a section whose image this run takes again carries none. Leave
-   every *Rows* line empty; Phase 5 completes them. Hold the *Rows* line each section already on
-   file carried before this write, exactly as it stood: an `EMPTY` read over an earlier intake's
-   inventory keeps it, and Phase 5 writes it back.
+   beside it under a `_NN` name; a section whose image this run takes again carries none. **Write
+   no *Rows* line here**: a section already on file keeps the *Rows* line it carried, exactly as it
+   stood, and a new section's is written empty — Phase 5 overwrites every one of them from the final
+   inventory, so a run that stops before Phase 5 leaves each earlier line on disk as it was. An
+   `EMPTY` read over an earlier intake's inventory keeps each line, and Phase 5 writes it back
+   unchanged.
 
 **Where the folder holds no figures file and Phase 2 copied no image**, this phase dispatches
 nothing, writes no file, and says so in the final report. **Where a figures file is already on file
@@ -752,8 +754,11 @@ ways, each entry joining two pairs, is matched by the one candidate a current re
 none of the three is not re-raised. Such an entry is kept exactly as it stands and reported as *not
 re-raised by this extraction*: its id stays in the log, and every row that cited it keeps citing it
 (Phase 3 carried those ids over), since a read that did not propose it again has not shown the
-defect gone. Only an unmatched candidate is walked below — including one an earlier run rejected,
-which left no entry to match and so is put again.
+defect gone. **A `conflict` or `duplicate` entry some of whose pairs a candidate of its class joins
+and some of which none joins stays re-raised**, and is kept exactly as it stands as well; the report
+names it with each pair no candidate joined beside it — a report only, on which nothing is asked or
+written. Only an unmatched candidate is walked below — including one an earlier run rejected, which
+left no entry to match and so is put again.
 
 **Then join this read's own candidates the same way, before walking any.** `brd-reader` raises each
 `conflict` or `duplicate` from one end (`brd-format.md` §3); a read that raises one from both ends
@@ -799,9 +804,10 @@ On file: [DEF#k] — <that entry's reason> (<its resolution>), … — if this c
 The *Names* line is written for a `conflict` or `duplicate` only, one entry per counterpart the
 candidate names; the *Image* line only for a row drawn from an image (below); the *Also raised* line
 only for a candidate another was folded into, one item per folded candidate, naming the row it was
-raised on; the *On file* line only for a candidate the pairing above left over, one item per entry on
-file of its class raised on its row; a candidate Phase 3.5 raised from documentation ends its first
-line with `(raised from documentation)`. Then present:
+raised on; the *On file* line only for a candidate the pairing above left over, and only where at
+least one entry on file of its class is raised on its row, one item per such entry; a candidate
+Phase 3.5 raised from documentation ends its first line with `(raised from documentation)`.
+Then present:
 
 ```
 choices: ["Confirm as written (Recommended)", "Confirm with an edited reason", "Reject — not a defect", "Cancel"]
@@ -852,7 +858,7 @@ whose `source_anchor` names the image and `illustrates` every row the agent retu
 half left out where its list is empty (`yields [BR#3]`), or, where it does neither, the value
 `accounted for — <the operator's Phase 3 answer>` in the form `brd-format.md` §1.2 fixes; after an
 `EMPTY` read, which asks no question, what `brd-format.md` §1.2 fixes for that case — over an
-earlier intake's inventory, each section's line exactly as Phase 2.5 held it, `illustrates`
+earlier intake's inventory, each section's line exactly as Phase 2.5 left it on file, `illustrates`
 included, since that read keeps every row it names, and `none — no requirement extracted` for a
 section that had none; over a folder holding no prior inventory row, `none — no requirement
 extracted`. A section carrying the *Not captured by the current run* marker `brd-format.md` §1.2
@@ -1072,17 +1078,18 @@ intake's inventory, that every row stands as it was (Phase 3); the coverage outc
 images; the requirement count; the confirmed-defect count by class (and how many candidates were
 rejected, how many of the confirmed ones were raised from documentation rather than by `brd-reader`,
 and each candidate folded into another) — on a re-run, also how many candidates matched an entry
-already on file, and each entry on file *not re-raised by this extraction*, with the rows citing it
-(Phase 4); the `docs grounding:` line from Phase 1 verbatim, and — when it was ON — the
-`docs_references` list of requirements the shipped documentation describes as already built, flagged
-for `/prd-ground` to check against code; whether Phase 6 wrote seeds and which; resolved model
-routing (+ any Opus degradation); every agent's `notes` — `figure-reader`'s and `brd-reader`'s, as
-Phase 1.5 collects them, the latter's `[BR#n]`s mapped through Phase 3's reconciliation; the
-feedback and cost paths; the `Phase handoff:` outcome line (`workflows-core:phase-handoff` §4.1) —
-`handoff-to-main`'s on the first choice, and the *Declined by the user* line on either other (Phase
-7); the `Specs repo:` outcome line from `commit-artifacts` (`workflows-core:specs-repo-git` §6); the
-next-step recommendation; and end with the ledger line, exactly per
-`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
+already on file, each entry on file *not re-raised by this extraction*, with the rows citing it, and
+each `conflict` or `duplicate` entry re-raised on only some of its pairs, with the pairs no
+candidate joined (Phase 4); the `docs grounding:` line from Phase 1 verbatim, and — when it was ON —
+the `docs_references` list of requirements the shipped documentation describes as already built,
+flagged for `/prd-ground` to check against code; whether Phase 6 wrote seeds and which; resolved
+model routing (+ any Opus degradation); every agent's `notes` — `figure-reader`'s and
+`brd-reader`'s, as Phase 1.5 collects them, the latter's `[BR#n]`s mapped through Phase 3's
+reconciliation; the feedback and cost paths; the `Phase handoff:` outcome line
+(`workflows-core:phase-handoff` §4.1) — `handoff-to-main`'s on the first choice, and the *Declined
+by the user* line on either other (Phase 7); the `Specs repo:` outcome line from `commit-artifacts`
+(`workflows-core:specs-repo-git` §6); the next-step recommendation; and end with the ledger line,
+exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
 ```
 ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)

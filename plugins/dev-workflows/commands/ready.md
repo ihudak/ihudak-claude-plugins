@@ -33,22 +33,29 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
    folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). `status: found` → carry its `path`, `kind`
    and `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command.
 
-   **The folder decides the altitude and the ladder, replacing the two-key grammar — never the kind
-   it asserts.** A BRD-route slice is a `PRD-` folder whose `brd-link.md` asserts `kind: brd`
-   (`workflows-core:addressing` §4), and `workflow-states.md` has no `brd` ladder, so the resolved
-   `kind` cannot pick one. A `PRD-` folder is a PRD-level run (`<EPIC>` is `null`) judged on the
-   PRD ladder; an `EPIC-` folder is an Epic-level run judged on the Epic ladder, and its PRD folder
-   is its parent. A folder with no kind prefix to read — one resolved through §5's legacy fallback
-   (`legacy: true`), whose name starts with the key and so may begin with a kind token that is not
-   a prefix, or an unprefixed folder named by an `@<path>` — is placed by positive evidence
-   instead: a resolved `kind: epic` is an Epic folder; a resolved `kind: prd`, or a `brd-link.md`
-   naming a `parent:`, is a PRD folder. A `BRD-` container — or an unprefixed folder holding
-   `coverage-ledger.md` or `brd/brd-inventory.md` and no `brd-link.md` naming a `parent:` — is on
-   neither ladder, because a BRD's PRDs are authored in its slices; stop:
-   `READY_BRD_NOT_SLICED: <KEY> resolves to a BRD container at <path>, which is on neither the PRD nor the Epic ladder — its PRDs are authored in its PRD- slices. Check a slice: '/dev-workflows:ready <SLICE-KEY>'.`
-   It is a user halt, taken before any artifact is read. Two positional keys are no longer
-   accepted, because the second was always derivable from the first — `workflows-core:addressing`
-   §4's `key` is what supplies both.
+   **The folder decides the altitude and the ladder, replacing the two-key grammar — as
+   `workflows-core:addressing` §4.1 places it, never by the kind it asserts.** A BRD-route slice is
+   a `PRD-` folder whose `brd-link.md` asserts `kind: brd` (§4), and `workflow-states.md` has no
+   `brd` ladder, so the resolved `kind` cannot pick one. §4.1 reads the level off the folder's
+   prefix — its name beginning `<KIND>-<the resolved key>-`, so a legacy folder whose key itself
+   begins with a kind token is not taken for a prefixed one — and places a folder with no prefix by
+   positive evidence. Take its tests in its order, the container test first:
+   - **A BRD container** — a `BRD-` folder, or a folder with no prefix holding `coverage-ledger.md`
+     or `brd/brd-inventory.md` and no `brd-link.md` naming a `parent:` — is on neither ladder,
+     because a BRD's PRDs are authored in its slices. Stop, before any artifact is read:
+     `READY_BRD_NOT_SLICED: <KEY> resolves to a BRD container at <path>, which is on neither the PRD nor the Epic ladder — its PRDs are authored in its PRD- slices. <the remedy>`
+     `<the remedy>` lists the slices under the container, found by the positive test §4.1 names — `Check a slice instead: '/dev-workflows:ready <SLICE-KEY>' — <each slice's key>.` — and, where it finds
+     none: `It has no slice yet: '/product-workflows:brd-split <KEY> "<how to cut it>"' carves one — the instruction is required there, and that run carves nothing where this BRD's ledger leaves no row unallocated; '/product-workflows:create-prd <KEY>' refuses this same container and says what to do then.`
+     It is a user halt.
+   - **An Epic folder** — an `EPIC-` folder, or, with no prefix, a resolved `kind: epic` — is an
+     Epic-level run judged on the Epic ladder, and its PRD folder is its parent.
+   - **A PRD folder** — a `PRD-` folder, or, with no prefix, a resolved `kind: prd` or a
+     `brd-link.md` naming a `parent:` — is a PRD-level run (`<EPIC>` is `null`) judged on the PRD
+     ladder.
+
+   A folder none of these places is not guessed at: stop, naming the folder and what it carries
+   (§4.1). Two positional keys are no longer accepted, because the second was always derivable from
+   the first — `workflows-core:addressing` §4's `key` is what supplies both.
 
    `/ready` is **address-required**: with no positional address, stop with
    `READY_NEEDS_KEY: /ready needs a PRD or Epic address — a key, or an @<path> to its folder.` —

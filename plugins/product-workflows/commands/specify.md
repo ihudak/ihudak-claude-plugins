@@ -34,7 +34,8 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
    `$SPECS_PATH/specifications/`, and `resolve-address` resolves either — so this step no longer
    skips a front-end, it reads a different `kind` from the same resolution. What distinguishes the
    routes is what the resolved folder holds, not how it was addressed. **The BRD route is a `PRD-`
-   folder carrying a `brd-link.md`** — the slice `/brd-split` carved — and nothing else.
+   folder carrying a `brd-link.md`** — the slice `/brd-split` carved, or a legacy slice with no
+   prefix, which step 1 places as a `PRD-` folder by that same `brd-link.md` — and nothing else.
 
    **A `BRD-` container is refused, on either route.** Take this on the folder **step 1 resolves**,
    the moment that resolution returns `status: found` and ahead of every read this command makes —
@@ -50,15 +51,16 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
    `PRD-` slice folder, so a slice asserts `brd` while being exactly the folder a specification
    belongs in, and a gate on the asserted kind would refuse every slice.
 
-   **Where the folder resolved through `workflows-core:addressing` §5's legacy
-   fallback and carries no prefix, the question is answered by positive evidence that it is a BRD,
-   never by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
-   §5.1, the shared authority `/create-prd`, `/create-ard` and `/epics` take this same test from. In short: a
-   legacy folder carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no `brd-link.md`
-   naming a `parent:`, is a root container; a legacy folder carrying **neither** of those two files
-   is a legacy **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md` either — this
-   refusal does not fire on it, and refusing it would offer `/product-workflows:brd-split` on a folder
-   with no coverage ledger to walk. Stop gracefully:
+   **Where the folder carries no prefix — resolved through `workflows-core:addressing` §5's legacy
+   fallback, or an unprefixed folder an `@<path>` named — the question is answered by positive
+   evidence that it is a BRD, never by the absence of a file** —
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, the shared authority
+   `/create-prd`, `/create-ard` and `/epics` take this same test from. In short: a legacy folder
+   carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no `brd-link.md` naming a `parent:`,
+   is a root container; a legacy folder carrying **neither** of those two files is a legacy
+   **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md` either — this refusal does
+   not fire on it, and refusing it would offer `/product-workflows:brd-split` on a folder with no
+   coverage ledger to walk. Stop gracefully:
    `SPECIFY_BRD_NOT_SLICED: <BRD-KEY> resolves to a BRD- container at <path>, and a BRD is never the folder a specification is authored in — its requirements are specified in the PRD- slices under it, one specification each (coverage-ledger-format.md §5). <the remedy, per the branch below>`
 
    **The remedy is the same two branches `/product-workflows:create-prd`'s own container refusal takes,
@@ -108,11 +110,11 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
      than a refusal (its Phase 0 step 7 warns and confirms before the first write) and, wherever its
      read finds a requirement, rewrites the ledger with **every** row `unallocated` — that step
      lists what a re-run keeps and what it changes — after which
-     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. It also **discards
-     every disposition this ledger records**: each `deferred-to`, `rejected` and `superseded-by` the
-     walk decided is replaced by `unallocated` and must be re-taken, and a `rejected` row must be
-     re-cited against its `[DEF#n]`. Name those decisions — saying only that the dispositions are
-     replaced is not the disclosure.
+     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. Wherever its read
+     finds a requirement it also **discards every disposition this ledger records**: each
+     `deferred-to`, `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and
+     must be re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Name those
+     decisions — saying only that the dispositions are replaced is not the disclosure.
 
 1. **Resolve the address.**
 
@@ -130,6 +132,14 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
      `PRD-` folder, its parent when it named an `EPIC-` folder.
    - `<EPIC>` — the `EPIC-` folder's `key`, or `null` when the address named a `PRD-` folder.
 
+   A folder with no prefix — one §5's legacy fallback resolved, or an unprefixed folder an `@<path>`
+   names; a name is prefixed only where it begins `<KIND>-<the resolved key>-`, so a legacy key
+   beginning with a kind token is no prefix — is placed as `workflows-core:addressing` §4.1 places
+   it, by positive evidence: a resolved `kind: epic` counts as an `EPIC-` folder here; a resolved
+   `kind: prd`, or a `brd-link.md` naming a `parent:`, as a `PRD-` folder. A legacy root container is
+   step 0's to refuse, on §4.1's container test, and a folder none of these places is not guessed at
+   — stop, naming the folder and what it carries.
+
    **A second positional token is refused, on every route** (D4). There is no `<PRD> <Epic>` form to
    fall back to: an Epic key encodes its own ancestry, so a second argument would be derivable from
    the first and able to disagree with it, which is the failure class D4 exists to remove. This
@@ -138,10 +148,11 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
    changed: Epics are minted by `/epics` under a PRD folder, a slice **is** a PRD folder, so a
    reconciled slice can hold `EPIC-` folders and the old sentence was false there as well as
    redundant everywhere else. Stop gracefully:
-   `SPECIFY_ONE_ADDRESS: /specify takes one address; <second-token> was given as a second. The kind of the folder the address resolves to is what sets the altitude — an EPIC- folder specifies that Epic, with its PRD read from the folder above it; a PRD- folder authors a PRD-level specification; on the BRD route the address is the PRD- slice folder /brd-split carved. To specify one Epic, address the Epic: '/product-workflows:specify <EPIC-KEY>'.`
+   `SPECIFY_ONE_ADDRESS: /specify takes one address; <second-token> was given as a second. The folder the address resolves to sets the altitude by its prefix — an EPIC- folder specifies that Epic, with its PRD read from the folder above it; a PRD- folder authors a PRD-level specification; a legacy folder with no prefix is placed by what it holds; on the BRD route the address is the PRD- slice folder /brd-split carved. To specify one Epic, address the Epic: '/product-workflows:specify <EPIC-KEY>'.`
 
-   **The kind decides the altitude**, which is what replaces the two-key grammar: the second key was
-   always derivable from the first, and `workflows-core:addressing` §4's `key` is what supplies both.
+   **The folder's prefix decides the altitude — never the kind it asserts, which on a slice is
+   `brd`** — and that is what replaces the two-key grammar: the second key was always derivable from
+   the first, and `workflows-core:addressing` §4's `key` is what supplies both.
 
    With no positional address, stop with
    `SPECIFY_NEEDS_KEY: /specify needs a PRD or Epic address — a key, or an @<path> to its folder.` — `/specify` has no

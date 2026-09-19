@@ -34,7 +34,20 @@ to `specs`, a code repo is an `/implement`-only scan target. Carry `mode` (`keye
 resolved `path`, `kind` and `key`, and `specs` forward.
 
 **Epic-unit resolution (keyed runs).** `/implement` implements one Epic at a time. When
-`mode: keyed`:
+`mode: keyed`, place the resolved folder as `workflows-core:addressing` §4.1 does — by its prefix,
+never by the kind it asserts, which on a BRD-route slice is `brd` — taking its container test first.
+**A BRD container** — a `BRD-` folder, or a folder with no prefix holding `coverage-ledger.md` or
+`brd/brd-inventory.md` and no `brd-link.md` naming a `parent:` — holds no Epic to implement, because
+a BRD's work is authored in its slices; stop, before anything is read:
+`IMPLEMENT_BRD_NOT_SLICED: <KEY> resolves to a BRD container at <path> — a BRD's Epics belong to its PRD- slices. <the remedy>`
+`<the remedy>` lists the slices under it, found by the positive test §4.1 names — `Implement within a slice instead: '/dev-workflows:implement <SLICE-KEY>' — <each slice's key>.` — and, where it finds none:
+`It has no slice yet: '/product-workflows:brd-split <KEY> "<how to cut it>"' carves one — the instruction is required there, and that run carves nothing where this BRD's ledger leaves no row unallocated; '/product-workflows:create-prd <KEY>' refuses this same container and says what to do then.`
+It is a user halt. A folder with no prefix — one §5's legacy fallback resolved, or an unprefixed
+folder an `@<path>` names, a name beginning with a kind token being prefixed only where it begins
+`<KIND>-<the resolved key>-` — is otherwise placed by positive evidence: a resolved `kind: epic`
+counts as an `EPIC-` folder below, and a resolved `kind: prd`, or a `brd-link.md` naming a
+`parent:`, as a `PRD-` folder. A folder none of these places is not guessed at — stop, naming the
+folder and what it carries. Then:
 
 - **The address named an `EPIC-` folder** → `focus_key` is its `key`; proceed for that Epic. The
   Phase 1.7 scan and specs resolution both scope to it.

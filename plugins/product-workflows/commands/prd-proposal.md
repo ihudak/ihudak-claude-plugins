@@ -100,10 +100,11 @@ token, so `--redo` would arrive as the address and `--baseline <path>` would sup
    **The test is the directory prefix, never the folder's asserted `kind:`** — `/brd-split` writes
    `kind: brd` into the `brd-link.md` inside the `PRD-` slice folder it carves, so a slice *asserts*
    `brd` while being exactly the folder this command must accept; an asserted-kind gate would refuse
-   every slice and accept nothing. Where the folder resolved through `workflows-core:addressing` §5's
-   legacy unprefixed fallback there is no prefix to test: answer the question by the positive-evidence
-   test in `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1 — the shared authority
-   the family's four other container refusals already cite, and not restated here.
+   every slice and accept nothing. Where the folder carries no prefix — resolved through
+   `workflows-core:addressing` §5's legacy unprefixed fallback, or an unprefixed folder an `@<path>`
+   named — there is no prefix to test: answer the question by the positive-evidence test in
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1 — the shared authority the
+   family's four other container refusals already cite, and not restated here.
 
    Enumerate the slices by `/brd-split` Phase 0's **positive test**: an immediate subdirectory
    carrying a `brd-link.md` whose `parent:` names this BRD. Stop:

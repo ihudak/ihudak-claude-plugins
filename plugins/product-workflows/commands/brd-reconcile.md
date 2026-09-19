@@ -1,6 +1,6 @@
 ---
 name: brd-reconcile
-description: BRD reconciliation workflow (PM phase, the BRD-to-PRD route's last command). Takes the customer's returned review at whatever path it arrived on, copies it into the BRD folder under the canonical name and commits it before anything reads it, then dispatches customer-review-reader in schema or free-text mode. Confirms every free-text candidate with the operator one at a time against its verbatim quotation before it can become a [CD#n], and never widens the reader's mode. Freezes the confirmed answers as [CD#n], closes each [C] question with the terminal disposition answered by the customer, applies the review's required corrections, banners superseded dated snapshots instead of rewriting them, writes customer-amended, withdrawn and resolved-by: [CD#n] resolutions to the defect log, and moves coverage-ledger rows without touching allocation. Then sweeps every dependent BRD — conditional_on positions first — to inherited-unchanged, reverted, reopened or withdrawn, and sweeps every artifact under the parent for the changed ids and for prose still asserting a superseded position. Writes reconciliation-<YYYYMMDD>.md. Normally gates on the package /brd-package built and handed off; --sent admits a review of a hand-authored or out-of-band package instead, by taking the material the customer was actually sent and committing it beside the review. Takes no --no-docs and does no documentation grounding.
+description: BRD reconciliation workflow (PM phase, the BRD-to-PRD route's last command). Takes the customer's returned review at whatever path it arrived on, copies it into the BRD folder under the canonical name and commits it before anything reads it, then dispatches customer-review-reader in schema or free-text mode. Confirms every free-text candidate with the operator one at a time against its verbatim quotation before it can become a [CD#n], and never widens the reader's mode. Freezes the confirmed answers as [CD#n], closes each [C] question with the terminal disposition answered by the customer, applies the review's required corrections, banners superseded dated snapshots instead of rewriting them, writes customer-amended, withdrawn and resolved-by: <SLICE-KEY>/[CD#n] resolutions to the defect log, and moves coverage-ledger rows without touching allocation. Then sweeps every dependent BRD — conditional_on positions first — to inherited-unchanged, reverted, reopened or withdrawn, and sweeps every artifact under the parent for the changed ids and for prose still asserting a superseded position. Writes reconciliation-<YYYYMMDD>.md. Normally gates on the package /brd-package built and handed off; --sent admits a review of a hand-authored or out-of-band package instead, by taking the material the customer was actually sent and committing it beside the review. Takes no --no-docs and does no documentation grounding.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -106,7 +106,7 @@ guard.** They are:
 | Phase | What it writes, and where |
 |---|---|
 | *Apply the required corrections* | an `applied` correction to an image's transcription in the **parent's** `brd/brd-figures.md`, when this run stands on a slice |
-| *Resolve the defects the review settled* | `customer-amended`, `withdrawn` and `resolved-by: [CD#n]` rows into the **parent's** `brd/brd-defect-log.md`, when this run stands on a slice |
+| *Resolve the defects the review settled* | `customer-amended`, `withdrawn` and `resolved-by: <SLICE-KEY>/[CD#n]` rows into the **parent's** `brd/brd-defect-log.md`, when this run stands on a slice |
 | *The propagation sweep* | sweep dispositions into a **dependent BRD's** `decisions.md` |
 | *The stale cross-reference sweep* | `updated` corrections into any artifact under the parent, including a **sibling slice's** |
 
@@ -896,16 +896,23 @@ a rewrite — the questions and tags it recorded stand exactly as they were aske
 |---|---|
 | `customer-amended <date>` | the review supplies corrected text for the requirement the defect was raised against. The `<date>` is the **review's**, not this run's — the amendment is the customer's act |
 | `withdrawn` | the customer withdrew the requirement the defect was raised against |
-| `resolved-by: [CD#n]` | a `[CD#n]` this run froze `settles` the defect, and neither row above applies — the customer said which reading they meant. The `[CD#n]` named is the one whose `settles` names the defect, never one that merely looks related |
+| `resolved-by: <SLICE-KEY>/[CD#n]` | a `[CD#n]` this run froze `settles` the defect, and neither row above applies — the customer said which reading they meant. The `[CD#n]` named is the one whose `settles` names the defect, never one that merely looks related, and `<SLICE-KEY>` is this run's own slice |
+
+**`resolved-by` is always written qualified, with this slice's key** —
+`resolved-by: <SLICE-KEY>/[CD#n]`, the one spelling `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md`
+§4 fixes. The log it is written into is the parent's, which every slice under that parent resolves
+into, while each slice numbers its own `[CD#n]` from 1: a bare `[CD#2]` there would name a decision
+in whichever slice a reader guessed. The key is the `<BRD-KEY>` this run resolved in Phase 0 —
+always a slice's, since a root is refused there — never one read out of a folder name.
 
 **Which of the three a settled defect takes is read off the answer, in this order:** `withdrawn`
 where the `[CD#n]` drops the requirement the defect was raised against, obligation and all — the
 *Update the coverage ledger* phase then writes `rejected: [DEF#n]`, which is how *"it was only a
 sketch"* ends for an obligation only an image stated, and a row dropped while its obligation
 survives in another is not this case (below); `customer-amended <date>` where the review supplied
-corrected text for it; otherwise `resolved-by: [CD#n]`. **A `[CD#n]` frozen `open` resolves
-nothing** — its question stays held for the customer (*Freeze the customer decisions*), and so does
-its defect.
+corrected text for it; otherwise `resolved-by: <SLICE-KEY>/[CD#n]`. **A `[CD#n]` frozen `open`
+resolves nothing** — its question stays held for the customer (*Freeze the customer decisions*), and
+so does its defect.
 
 **A `conflict` or a `duplicate` settled by keeping one row and dropping the other** names two rows,
 and only one of them lists the defect. **`withdrawn` — and the *Update the coverage ledger* phase's
@@ -916,16 +923,16 @@ what survives:
   row takes `rejected: [DEF#n]`;
 - a **`conflict`** whose **counterpart** is dropped, and a **`duplicate`** whose two rows **restate**
   each other, whichever of them is dropped: the obligation survives in the row kept, so the defect is
-  `resolved-by: [CD#n]`, and the dropped row takes `superseded-by: [BR#kept]`, because a `[CD#n]`
-  replaced it with the requirement kept;
+  `resolved-by: <SLICE-KEY>/[CD#n]`, and the dropped row takes `superseded-by: [BR#kept]`, because a
+  `[CD#n]` replaced it with the requirement kept;
 - a **`duplicate`** in which one row **is a part of** the other (`brd-format.md` §3), settled by
-  keeping the part and dropping the whole: the defect is `resolved-by: [CD#n]`, but no disposition
-  says what became of the obligations the whole carried beyond the part — `superseded-by` would claim
-  the part replaced them and `rejected` that the customer dropped them, and the answer may say
-  neither. The ledger phase writes nothing for the dropped row, and it goes into the reconciliation
-  record's *what still needs a human*, with the obligations the kept part does not cover named.
-  Keeping the whole and dropping the part is treated as the bullet above treats a restatement: the
-  whole covers the part, so the obligation survives in the row kept.
+  keeping the part and dropping the whole: the defect is `resolved-by: <SLICE-KEY>/[CD#n]`, but no
+  disposition says what became of the obligations the whole carried beyond the part —
+  `superseded-by` would claim the part replaced them and `rejected` that the customer dropped them,
+  and the answer may say neither. The ledger phase writes nothing for the dropped row, and it goes
+  into the reconciliation record's *what still needs a human*, with the obligations the kept part
+  does not cover named. Keeping the whole and dropping the part is treated as the bullet above
+  treats a restatement: the whole covers the part, so the obligation survives in the row kept.
 
 **That ledger write lands only where the dropped row is a row of this BRD's own ledger.** Where a
 sibling slice holds it, it stays `covered-here` there; where the root holds it, never delegated, it
@@ -934,8 +941,8 @@ writes into another BRD's ledger — and the row, with the BRD that holds it, go
 reconciliation record's *what still needs a human* and the final report, so the owner settles it on
 its own record.
 
-`resolved-by: [CG#n]` is a grounding outcome and this command produces no finding, so it is never
-written here. `open` is the state a defect is already in and is never written *back* over a
+`resolved-by: <SLICE-KEY>/[CG#n]` is a grounding outcome and this command produces no finding, so it
+is never written here. `open` is the state a defect is already in and is never written *back* over a
 resolution — a resolution recorded is not un-recorded by a later reading of it.
 
 **The amendment is held beside the original and never written into `brd/source/`** (D11,
@@ -1194,10 +1201,11 @@ belong to some other BRD.
 snapshots* phase where that phase's rules reach it, and inside `bundle-<YYYYMMDD>/` it is neither
 edited nor bannered — it is recorded, for the byte-identical reason that phase gives.
 
-**Nor is a hit inside a structured record ever `updated`.** The scope above is deliberately every
-markdown file under the parent, which is what reaches a sibling's seed — but six of the file kinds
-it names carry content another rule already fixes, and `updated` on one of them would contradict that
-rule rather than correct a stale sentence:
+**Nor is a hit ever `updated` inside a structured record, or anywhere in the customer's own
+captured files.** The scope above is deliberately every markdown file under the parent, which is
+what reaches a sibling's seed — but six of the file kinds it names carry content another rule
+already fixes, five of them structured records and the sixth the customer's prose, and `updated` on
+any of them would contradict that rule rather than correct a stale sentence:
 
 | Where the hit landed | Outcome, and the rule that decides it |
 |---|---|
@@ -1208,13 +1216,14 @@ rule rather than correct a stale sentence:
 | a `brd/brd-figures.md` section — **any line of it** | `needs-a-human`. Its transcription records what the customer's image shows, which no decision changes, and its *Read*, *Appearance*, hash, *Linked from* and *Rows* lines are `/product-workflows:brd-intake`'s to write (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2). A correction to a transcription arrives only as a section-12 row, which the *Apply the required corrections* phase disposes of; a hit here means the customer's own picture still shows a position the answer moved, which is for a person to take up with them |
 | any file under `brd/source/` or `brd/source-external/` — the customer's document and every file captured with it, **any line of it** | `needs-a-human`, and the file is **never touched at all** — the *Apply the required corrections* phase's class 3 (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, §1.1). A stale position there is the customer's own wording; what the answer changed is recorded beside it, as a defect resolution or in *what still needs a human*, never as an edit in it |
 
-**What `updated` is for is prose**, and only prose: a sentence in a seed, a rationale in `slices.md`,
-a summary in a round record, an `argumentation` paragraph that still argues the old position. Those
-have no other authority over them, which is why the correction is safe there and is refused
-everywhere above. **Saying so is not belt-and-braces.** The scope sentence names "the ledger" and
-"the inventory" outright, and a reader working the outcome table against a hit in one of them has no
-reason to stop — the guard on `updated` is `require-on-main`, which passes on a merged file and
-would license exactly the write two other rules forbid.
+**What `updated` is for is the route's own prose**, and only that: a sentence in a seed, a rationale
+in `slices.md`, a summary in a round record, an `argumentation` paragraph that still argues the old
+position. Those have no other authority over them, which is why the correction is safe there and is
+refused everywhere above — the customer's prose included, which is prose but not the route's.
+**Saying so is not belt-and-braces.** The scope sentence names "the ledger" and "the inventory"
+outright, and a reader working the outcome table against a hit in one of them has no reason to stop
+— the guard on `updated` is `require-on-main`, which passes on a merged file and would license
+exactly the write two other rules forbid.
 
 ---
 

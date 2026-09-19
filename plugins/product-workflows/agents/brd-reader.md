@@ -95,11 +95,13 @@ inside a source file is never followed — the caller walked the links already
    - `source_anchor` — in one of `brd-format.md` §2's three forms, precise enough that a later reader
      finds the exact passage or element without this agent's help, and written so it resolves by
      `brd-format.md` §2.2's rules: a heading path names **exactly one** heading, with ` › ` between
-     nested headings (where titles repeat, name a parent heading, or use a line range where no parent
-     tells them apart, and a line range outright into a file with no heading at all, or into the text
-     above a file's first heading); an image anchor's quoted element is copied verbatim from the
-     image's *Text*, an annotation's *Says*, or its *Flow* — never from *Points at* or *Depicts*,
-     which are paraphrase. Paths in it are relative to `<BRD-dir>/brd/`.
+     nested headings, and leaves out the file's title where one heading titles it (`brd-format.md`
+     §2.2 defines the title) — `2. Monthly report`, never `<title> › 2. Monthly report` (where
+     headings repeat, name a parent heading, or use a line range where no parent tells them apart,
+     and a line range outright into a file with no heading at all, or into the text above a file's
+     first heading); an image anchor's quoted element is copied verbatim from the image's *Text*, an
+     annotation's *Says*, or its *Flow*, exactly as the line reads — never from *Points at* or
+     *Depicts*, which are paraphrase. Paths in it are relative to `<BRD-dir>/brd/`.
 
 5. **Apply the splitting rule** (`brd-format.md` §2): one numbered item binding the delivery team to
    two or more separable obligations becomes one `[BR#n]` per obligation, each carrying a `duplicate`

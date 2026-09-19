@@ -56,8 +56,11 @@ For each entry, in order:
    a circled region, a typed or handwritten note. For each, `says` is its text verbatim (the empty
    string for an unlabelled mark) and `points_at` is the element it sits on or points to, named as
    the image labels it — *"the `Net total` column header"*, never *"the total"*.
-6. **`flow`** — for a diagram, each edge as `<node> → <node>`, with the edge's label in brackets where
-   it carries one. `[]` for anything that is not a diagram.
+6. **`flow`** — for a diagram, each edge as `<node> → <node>`, and an edge carrying a label as
+   `<node> → <node> — label: <edge label>`, the label verbatim. **Put no bracket, quote or other mark
+   around a label**: its own characters combine with any you add, and brackets around a label that
+   is itself `[> 10k]` wrote `[[> 10k]]` — an Obsidian wikilink — into the figures file. `[]` for
+   anything that is not a diagram.
 7. **`illegible`** — everything you could not read, named by where it is. `"none"` only when nothing
    was illegible. A partial transcription is never silent.
 
@@ -79,7 +82,8 @@ figures:
       - says: "<verbatim; empty string for an unlabelled mark>"
         points_at: <the element the mark sits on or points to>
     flow:
-      - "<node> → <node> [<edge label>]"
+      - "<node> → <node>"                          # an unlabelled edge
+      - "<node> → <node> — label: <edge label>"    # a labelled one, the label verbatim
     illegible: <what could not be read, or "none">
 notes: <anything the caller should know — an image that is plainly several unrelated screens, a
         resolution too low for small text — or empty>
@@ -88,6 +92,12 @@ notes: <anything the caller should know — an image that is plainly several unr
 Return every entry you were handed, once, in the order received — a dropped entry becomes an image
 nobody transcribed and nobody was told about. An entry with `read: false` carries `path`, `read` and
 `reason` and nothing else.
+
+**`notes` never carries what an entry's fields hold.** Every legible string belongs in that entry's
+`text`, under step 4's repeated-rows rule — which also decides which data rows are left out, and a
+row it leaves out goes nowhere else — and every mark in its `annotations`. Your callers report
+`notes` and write them into no record, so a string put there never reaches the agent that reads
+your transcription.
 
 ## Hard rules
 

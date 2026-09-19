@@ -88,8 +88,9 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5) — and that Phase 5 replaces
    **every one of them** with `unallocated`. Name what that destroys rather than calling it a
    rewrite: each `deferred-to`, `rejected` and `superseded-by` decision `/product-workflows:brd-split`'s
-   walk took is discarded and has to be re-taken, a `rejected` row re-cited against its `[DEF#n]`,
-   and every child's `claims:` re-allocated. Then ask:
+   walk took is discarded and has to be re-taken, a `rejected` row re-cited against its `[DEF#n]` —
+   which is still there to cite, because a re-run keeps every entry the defect log holds, id and
+   resolution unchanged (Phase 4) — and every child's `claims:` re-allocated. Then ask:
    ```
    choices: ["Re-run: re-extract the inventory and rewrite the ledger, discarding the <n> recorded dispositions above", "Cancel — leave this BRD as it stands"]
    ```
@@ -277,7 +278,7 @@ no row (Phase 1):
 | `absolute path` | Phase 1's answer was *Only the document's own folder*, the walk record reads `inside: false`, and the target as written begins with `/` |
 | `url` | the target carries a URI scheme |
 | `unreadable` | the target resolves to no readable file (`linked-sources.md` §3) |
-| `ambiguous` | a `[[wikilink]]` matched more than one file in the vault; the row names every candidate |
+| `ambiguous` | a `[[wikilink]]` matched more than one file in the vault; the row names every candidate by its path relative to the vault root the walk searched (`linked-sources.md` §3), never by the absolute path the walk record carries (`brd-format.md` §1.1) |
 
 **Then map every captured link that does not resolve as written**, in the log's second table,
 *Captured links that do not resolve as written* — columns `Target as written | Linked from | Copy` —
@@ -317,12 +318,14 @@ reading it did (`brd-format.md` §1.2).
    copied, in capture order — re-used transcriptions verbatim, new ones from the agent's return, an
    image returned `read: false` with its reason and no transcription. Write *Linked from* afresh for
    every image Phase 2 copied, re-used or not, from the copied files Phase 1's walk found linking
-   it. **Every section already on file whose image this run did not take stays** — a section is
-   never deleted — and carries the *Not captured by the current run* marker `brd-format.md` §1.2
-   fixes, whatever the cause — for instance the current document no longer links the image, this
-   run's Phase 1 answer left it out, or a changed outside image was copied beside it under a `_NN`
-   name; a section whose image this run takes again carries none. Leave every *Rows* line empty;
-   Phase 5 completes them.
+   it, each passage by its heading path in `brd-format.md` §2.2's form, a file's title left out.
+   Write the counts line as §1.2 defines its terms — a re-used section counted under `reused`,
+   never under `read`. **Every section already on file whose image this run did not take stays** — a
+   section is never deleted — and carries the *Not captured by the current run* marker
+   `brd-format.md` §1.2 fixes, whatever the cause — for instance the current document no longer
+   links the image, this run's Phase 1 answer left it out, or a changed outside image was copied
+   beside it under a `_NN` name; a section whose image this run takes again carries none. Leave
+   every *Rows* line empty; Phase 5 completes them.
 
 **Where the folder holds no figures file and Phase 2 copied no image**, this phase dispatches
 nothing, writes no file, and says so in the final report. **Where a figures file is already on file
@@ -359,7 +362,10 @@ Act on `status`:
   and no gate reads a `[BR#n]` against the text it names.
 
   So: read the existing `brd/brd-inventory.md` first. For each returned row, match it to an existing
-  row by `source_anchor`, else by its `text`; **a matched row keeps the id it already has**, whatever
+  row by `source_anchor`, else by its `text` — two anchors matching where they resolve to the same
+  section or element by `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.2's rules, so a heading
+  path written with a file's title, before that section fixed the title-less form, still matches
+  the same path without it; **a matched row keeps the id it already has**, whatever
   the agent returned for it — **and keeps its existing `source_anchor` where that one resolves
   (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.2) and the returned one does not**, so an
   anchor the operator corrected by hand survives the re-read that follows the correction (relation 1
@@ -368,14 +374,22 @@ Act on `status`:
   how many ids were preserved, how many minted, and any existing row this source no longer contains
   (which keeps its id and is reported, never renumbered away).
 
-  **Map every id the agent returned through that reconciliation, not only the row ids** — each
-  candidate's `names`, and each `figures` entry's `illustrates`. The agent numbers its own read from
-  `BR#1`; a `conflict` naming its `BR#7`, or an image said to illustrate its `BR#7`, means whatever row
-  the reconciliation matched to that `BR#7`, and writing the agent's number through would attach the
-  candidate or the image to a different requirement.
+  **Map every `[BR#n]` the agent returned through that reconciliation, wherever it appears in what
+  the run writes or reports from the agent's words** — not only the row ids, but each candidate's
+  `names` and every id its free-text `reason` cites, each `figures` entry's `illustrates` and every
+  id its `note` cites, and every id in the agent's `notes` — bracketed or bare (`BR#8`). The agent
+  numbers its own read from `BR#1`; a `conflict` naming its `BR#7`, an image said to illustrate its
+  `BR#7`, or a reason saying a flow is *"inventoried in words as BR#6, BR#7 and BR#8"*, means
+  whatever rows the reconciliation matched to those numbers, and writing the agent's numbers through
+  would attach the candidate, the image or a confirmed defect's own reason to a different
+  requirement. The one exception is a span that quotes the customer verbatim, which is never
+  rewritten.
 
-  Leave each row's `defects` column empty for now — it is filled in Phase 4, once a candidate is
-  actually confirmed into a `[DEF#n]`, never before. Carry every returned `defect_candidates` entry
+  **On a first intake, leave each row's `defects` column empty for now** — it is filled in Phase 4,
+  once a candidate is actually confirmed into a `[DEF#n]`, never before. **On a re-run, give each row
+  that kept its id the `defects` it carries on file**, and nothing more yet: a `[DEF#n]` is
+  permanent (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §4), Phase 4 keeps every entry already
+  logged, and it adds only what it newly confirms. Carry every returned `defect_candidates` entry
   forward into Phase 4; nothing here treats a candidate as a decision.
 
   **Then check the inventory's coverage of its own source**, per
@@ -398,9 +412,12 @@ Act on `status`:
      can trace back is a defect in the artifact whose job is traceability:
      `BRD_INTAKE_DANGLING_ANCHOR: <N> inventory row(s) carry a source_anchor that resolves to nothing in the copied source under brd/ (<BR-id>: <anchor>, …), and none of them is a row this run preserved as no longer present. The row cannot be traced back to the customer's document, which is the one thing the anchor exists for. Correct each anchor by hand in <path> and re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>': the re-run keeps every id, and keeps a corrected anchor that resolves.`
   2. **Every top-level section — of the document and of each linked markdown file Phase 2 copied —
-     either holds a row or is accounted for** (`brd-format.md` §2.2 fixes what holds one, including
-     a section that links an image yielding a row, and a linked file with no heading as one
-     section). Name each section that holds none, with what the source has under it.
+     either holds a row or is accounted for.** `brd-format.md` §2.2 fixes what a top-level section
+     is — where one heading titles a file, the sections beneath the title — and what holds one: an
+     anchor naming it or a section beneath it, or a link in it to an image or a captured markdown
+     file that yields a row; it counts a linked file with no heading as one section. Name each
+     section that holds none, by its heading path in that section's form, with what the source has
+     under it.
   3. **Every image Phase 2 copied yields a row, illustrates one, or is accounted for**
      (`brd-format.md` §2.2). Name each image that does neither — with its *Depicts* sentence from
      `brd/brd-figures.md`, or its reason where it was not read.
@@ -483,9 +500,27 @@ does not accept a document as evidence either (`commands/prd-ground.md` Phase 4.
 entry the agent returned is a hypothesis, never a decision (`agents/brd-reader.md`) — confirming or
 rejecting each one, against the customer or the delivery team, is this phase's job alone.
 
-Group the carried-forward candidates by class — `brd-reader`'s, plus any Phase 3.5 raised from
-documentation, which are walked identically and marked in the report as docs-raised — and walk them
-**one class at a time**, in the fixed order
+**On a re-run over a folder whose defect log already holds entries, match before asking** — a
+`[DEF#n]` is permanent (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §4), and a re-extraction
+proposes the defects already logged all over again. Read `brd/brd-defect-log.md` first. A
+carried-forward candidate **matches** an entry on file where the two share a class, are raised on
+the same row — the candidate's row as Phase 3's reconciliation numbered it — and, for a `conflict`
+or a `duplicate`, name the same counterpart row or rows, mapped the same way. **A match is that
+entry**: it is not put to the operator again, and it keeps its `[DEF#n]`, its reason and its
+resolution exactly as on file — so a defect `/brd-reconcile` resolved stays resolved, and a defect
+already put to the customer keeps the id its held question names and is not asked twice. Where
+several candidates or several entries share one class, row and counterpart set, pair them in order
+— the entries by id, the candidates as returned — and treat whatever is left over on either side as
+unmatched. **An entry no candidate matched is kept exactly as it stands** and reported as *not
+re-raised by this extraction*: its id stays in the log, and every row that cited it keeps citing it
+(Phase 3 carried those ids over), since a read that did not propose it again has not shown the
+defect gone. Only an unmatched candidate is walked below — including one an earlier run rejected,
+which left no entry to match and so is put again.
+
+Group the candidates to walk by class — every carried-forward candidate on a first intake, the
+unmatched ones on a re-run; `brd-reader`'s, plus any Phase 3.5 raised from documentation, which are
+walked identically and marked in the report as docs-raised — and walk them **one class at a time**,
+in the fixed order
 `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §3 lists its six classes. Within a class,
 confirm each candidate individually via `AskUserQuestion`:
 
@@ -498,16 +533,18 @@ choices: ["Confirm as written (Recommended)", "Confirm with an edited reason", "
 open the image before answering: the transcription is the plugin's reading of the customer's picture
 (`brd-format.md` §1.2), and the picture is what the candidate is about.
 
-On confirmation, assign the next `[DEF#n]` id contiguously across the whole document (ids are never
-reused or renumbered, per `brd-format.md` §3–§4) and record it against every `[BR#n]` it was raised
-on. A `conflict` or `duplicate` entry always names its counterpart `[BR#n]`, carried straight from
-the candidate. On rejection, the candidate is simply dropped — it never becomes a `[DEF#n]`, so
-nothing further records that it was proposed.
+On confirmation, assign the next `[DEF#n]` id contiguously across the whole document — from
+`[DEF#1]` on a first intake, and on a re-run after the highest id the log on file holds (ids are
+permanent, `brd-format.md` §4) — and record it against every `[BR#n]` it was raised on. A
+`conflict` or `duplicate` entry always names its counterpart `[BR#n]`, carried straight from the
+candidate. On rejection, the candidate is simply dropped — it never becomes a `[DEF#n]`, so nothing
+further records that it was proposed.
 
-When every class has been walked, write `<BRD-dir>/brd/brd-defect-log.md`: one entry per confirmed
-`[DEF#n]`, each carrying resolution `open` (`brd-format.md` §4 — none of the other three
-resolutions has happened yet at intake time). Then update `brd/brd-inventory.md`'s `defects` column
-for every affected row with its confirmed `[DEF#n]` ids.
+When every class has been walked, write `<BRD-dir>/brd/brd-defect-log.md`: one entry per newly
+confirmed `[DEF#n]`, each carrying resolution `open` (`brd-format.md` §4 — none of the other three
+resolutions has happened to it yet), after **every entry already on file, matched or not, kept
+exactly as it stands**. Then update `brd/brd-inventory.md`'s `defects` column for every affected
+row with its newly confirmed `[DEF#n]` ids, beside the ids Phase 3 carried over.
 
 ---
 
@@ -521,7 +558,8 @@ the six that blocks §4." No row is ever written in any other disposition here.
 
 **Then complete `brd/brd-figures.md`'s *Rows* line for every image**, from the final inventory —
 after Phase 3's reconciliation mapping, never from the agent's own numbering: `yields` every row
-whose `source_anchor` names the image, `illustrates` every row the agent returned for it, or
+whose `source_anchor` names the image and `illustrates` every row the agent returned for it, either
+half left out where its list is empty (`yields [BR#3]`), or
 `accounted for — <the operator's Phase 3 account>` where it does neither; after an `EMPTY` read,
 which leaves no row and asks for no account, the value `brd-format.md` §1.2 fixes for that case. A
 section carrying the *Not captured by the current run* marker `brd-format.md` §1.2 fixes gets no
@@ -695,9 +733,11 @@ and how many sections on file carry the *Not captured by the current run* marker
 many linked markdown files were read beside the document (Phase 3); the coverage outcome for
 sections and images; the requirement count; the confirmed-defect count by class (and how many
 candidates were rejected, and how many of the confirmed ones were raised from documentation rather
-than by `brd-reader`); the `docs grounding:` line from Phase 1 verbatim, and — when it was ON — the
-`docs_references` list of requirements the shipped documentation describes as already built, flagged
-for `/prd-ground` to check against code; whether Phase 6 wrote seeds and which; resolved model
+than by `brd-reader`) — on a re-run, also how many candidates matched an entry already on file, and
+each entry on file *not re-raised by this extraction*, with the rows citing it (Phase 4); the
+`docs grounding:` line from Phase 1 verbatim, and — when it was ON — the `docs_references` list of
+requirements the shipped documentation describes as already built, flagged for `/prd-ground` to
+check against code; whether Phase 6 wrote seeds and which; resolved model
 routing (+ any Opus degradation); the feedback + cost paths; the `Phase handoff:` outcome line from
 `handoff-to-main` (`workflows-core:phase-handoff` §4.1), including the `brd` prefix note; the
 `Specs repo:` outcome line from `commit-artifacts` (`workflows-core:specs-repo-git` §6); the

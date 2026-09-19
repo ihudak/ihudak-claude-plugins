@@ -103,11 +103,11 @@ a reviewer who searches by filename, as rule 4 tells them to, finds nothing.
 bookkeeping rather than anything a reader outside the vault can use (`references/brd-format.md`
 §1.2), so the de-Obsidianising pass removes it whole, as it removes any frontmatter that means
 nothing to a reader outside a vault (§2), and leaves in its place the one-line note that pass
-requires. That note names the customer's document by its **bundled** filename. `kind:` and `key:`
-are how the specs tree asserts a file's identity — `key:` naming the BRD that owns the source
-document, which on a slice is the parent while the bundled filename carries this package's key —
-and what they identify reaches the reader through the note instead, which names the very document
-the transcriptions are of.
+requires. That note names the customer's document by its **bundled** filename. `key:` is how the
+specs tree ties the file to its BRD — the BRD that owns the source document, which on a slice is the
+parent while the bundled filename carries this package's key; the file carries no `kind:`
+(`references/brd-format.md` §1.2) — and what it identifies reaches the reader through the note
+instead, which names the very document the transcriptions are of.
 `written_by:` names the plugin's own command, which no bundle document may name
 (`commands/brd-package.md`'s standing rule). `source:` names the customer's document by its working
 basename, and the bundle renames that document (`commands/brd-package.md`'s *Assemble the bundle*
@@ -519,16 +519,17 @@ moment it does. Those that exist today:
 | `conditional_on: <BRD-KEY>/<decision-id>` | `references/decision-register-format.md` §5 | one specific decision in a named prerequisite's own register |
 | `blocked_on: <BRD-KEY>/<decision-id>` | `references/code-defect-log-format.md` §5 | one specific decision in a named prerequisite's own register — the decision that would settle a `conditional` `[CDF#n]`'s scope question. Its other spelling is prose naming no bracketed identifier, which no relation ever meets |
 | `prerequisite` | `workflows-core:grounding-format` §2, §5 | the prerequisite BRD's decision a `will-change` finding's horizon turns on |
-| `resolved-by: [CG#n]`, `resolved-by: [CD#n]` | `references/brd-format.md` §4 | the grounding finding or the customer decision that settled a defect; grounding and deciding are both slice-only, so it is whichever slice settled it |
+| `resolved-by: <SLICE-KEY>/[CG#n]`, `resolved-by: <SLICE-KEY>/[CD#n]` | `references/brd-format.md` §4 | the grounding finding or the customer decision that settled a defect, in the named slice's own grounding file or register — grounding and deciding are both slice-only, and the log is the parent's, so the value carries that slice's key, in the one spelling `references/brd-format.md` §4 fixes, and relation 1 discharges it as naming that slice |
 | the `[BR#n]` a defect entry is raised against, and a `conflict` / `duplicate` entry's counterpart `[BR#n]` | `references/brd-format.md` §3 | a requirement in the log-owning BRD's inventory — the parent's on a slice |
 | `superseded-by: [BR#n]`, and an orphan row's own `id: [BR#n]` | `references/coverage-ledger-format.md` §2, §3 | a requirement of the parent's, one this slice "need not claim or hold a row for" |
 | the *Rows* line of `brd/brd-figures.md` — every `[BR#n]` the line names | `references/brd-format.md` §1.2 | a requirement in the figures file's owning BRD's inventory — the parent's on a slice |
 
 **The last four are routine rather than exotic**, which is why refusing them would stop the
 ordinary package rather than a rare one. §1.1 ships the **parent's** defect log and figures file
-whole into a slice's bundle, and a parent that split into several slices carries defects — and
-requirements superseding one another, and images yielding or illustrating requirements — across all
-of them, while the slice's own inventory is defined over `claims:`
+whole into a slice's bundle, and a parent that split into several slices carries defects — each
+resolved by whichever slice settled it, and requirements superseding one another, and images
+yielding or illustrating requirements — across all of them, while the slice's own inventory is
+defined over `claims:`
 (`references/brd-format.md` §2.1) and its `covered-by` rows are exactly its orphan rows
 (`references/coverage-ledger-format.md` §3). Every one of those references is correct content whose
 target sits one hop up, outside this partition's corpus by §1.1's own allow-list.

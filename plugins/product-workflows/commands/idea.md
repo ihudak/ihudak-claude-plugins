@@ -111,10 +111,12 @@ links deep, twelve markdown files counting the source, and six images, and repor
 Where the walk stayed inside all three, take everything it reached, print the counts line, and ask
 nothing. The counts line gives: how many files the walk reached (the source counted first), the
 markdown pages among them by depth, the images, and anything unresolved (a reason `linked-sources.md`
-§6 names) or `other` — for example:
+§6 names) or `other`. **The headline total is the walk's visited set** (`linked-sources.md` §4) —
+every file a link resolved to — so an *other* file counts toward it, and an unresolved link, which
+resolved to no file, does not. For example:
 
 ```
-6 files reached (source + 5): markdown by depth — depth 1: 3, depth 2: 1; images: 1; unresolved: 0; other: 0.
+7 files reached (source + 6): markdown by depth — depth 1: 3, depth 2: 1; images: 1; unresolved: 1; other: 1.
 ```
 
 Where it reached past any of them, name the set that is past a bound — the union of every markdown

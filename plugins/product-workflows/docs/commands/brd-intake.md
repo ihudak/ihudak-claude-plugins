@@ -116,7 +116,9 @@ name the run creates ([addressing](../reference/references.md) §2):
   or illustrates.
 - `brd/brd-inventory.md` — one row per `[BR#n]`, each with its `source_anchor` and any confirmed
   `[DEF#n]` defects.
-- `brd/brd-defect-log.md` — one entry per confirmed `[DEF#n]`, resolution `open`.
+- `brd/brd-defect-log.md` — one entry per confirmed `[DEF#n]`, resolution `open`. A re-run keeps
+  every entry already there, id and resolution unchanged, and adds only the defects it newly
+  confirms.
 - `coverage-ledger.md` — one row per `[BR#n]`, disposition `unallocated` on every row.
 - With `--sort-existing <dir>`: `prd-seed.md`, `ard-seed.md`, `spec-seed.md`, sorted by altitude
   from the hand-written package — seeds only, never findings.
@@ -143,11 +145,13 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   row nobody can trace back and the run stops, **except a row a re-run deliberately preserved as no
   longer present in a revised source**: that is a recorded state, and stopping on it would refuse a
   customer's revised BRD with a remedy nobody could perform. And every **top-level section** — of
-  the document and of each linked markdown file — and every **image** must either hold or illustrate
-  a row or be accounted for: one that does neither is a question rather than a stop, since only a
-  person can say whether it binds the delivery team to anything, so the run names each — a section
-  with what the source has under it, an image with what the plugin read in it, or its reason where
-  it could not be read — and asks once for the set. **Section granularity is the point and was
+  the document and of each linked markdown file, the sections beneath its title where one heading
+  titles it — and every **image** must either hold or illustrate a row or be accounted for, a
+  section holding one where it links an image or an appendix that yields a row: one that does
+  neither is a question rather than a stop, since only a person can say whether it binds the
+  delivery team to anything, so the run names each — a section with what the source has under it,
+  an image with what the plugin read in it, or its reason where it could not be read — and asks once
+  for the set. **Section granularity is the point and was
   measured**: real BRDs carry fifty or sixty headings under about fifteen top-level sections, of
   which nine or so legitimately hold nothing, so the operator answers nine questions rather than
   fifty — and on a real package the sections carrying no row included the user stories and the
@@ -162,9 +166,15 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   to check against code, and written nowhere; the ledger's `evidence` column stays empty until
   grounding runs.
 - **Phase 4 — interactive defect confirmation**, not an agent gate: every `defect_candidates` entry
-  is walked one class at a time, in the fixed order [`brd-format.md`](../../references/brd-format.md)
-  §3 lists its six classes, via `AskUserQuestion`, and only a confirmed candidate is assigned a
-  `[DEF#n]` id. A rejected candidate is dropped, not recorded.
+  not already logged (below) is walked one class at a time, in the fixed order
+  [`brd-format.md`](../../references/brd-format.md) §3 lists its six classes, via `AskUserQuestion`,
+  and only a confirmed candidate is assigned a `[DEF#n]` id. A rejected candidate is dropped, not
+  recorded. **A re-run does not ask again about a defect already logged**: a candidate with the same
+  class, row and counterparts as an entry on file is that entry, keeping its id, reason and
+  resolution; only the rest are walked, taking ids after the highest in use; and an entry this read
+  did not propose again is kept, and reported as not re-raised. A `[DEF#n]` id is never reused,
+  renumbered or deleted, so an inventory or ledger row, or a held customer question, naming it still
+  names the same defect.
 - **Phase 5 — the allocation gate downstream.** `/brd-intake` itself never blocks on the ledger — it
   only ever writes `unallocated` rows. The gate that gates on them is the **allocation** gate (no
   `unallocated` row may survive), not a merge-state one, and it belongs to

@@ -80,8 +80,8 @@ premise, and `defects` says what has to be repaired before the position can be d
 **`settles` is neither `evidence` nor `defects`.** `defects` names defects in the *code*, `[CDF#n]`,
 that a position has to repair; `settles` names defects in the *customer's document*, `[DEF#n]`
 (`references/brd-format.md` §3), that the decision answers — and it is what lets `/brd-reconcile`
-resolve each one `resolved-by: [CD#n]` (`references/brd-format.md` §4) from a field rather than from a
-reading of the customer's prose.
+resolve each one `resolved-by: <SLICE-KEY>/[CD#n]` (`references/brd-format.md` §4) from a field
+rather than from a reading of the customer's prose.
 
 `options_considered` and `chosen` do not apply to an `[AS#n]`, which is not a choice; §7 accounts
 for all thirteen of these fields on an assumption record, one by one.

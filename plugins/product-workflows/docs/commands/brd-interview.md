@@ -43,10 +43,11 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   intake, including an obligation only an image states — and always a `[C]`: the defect is in the
   customer's own words. At most one slice owns a defect — the one holding the lowest-numbered row
   the defect is listed on that is still built or deferred there; where no listed row is, nobody owns
-  it, and the round record says so with the rows and their fates — and a defect is asked once across
-  all the slices: where any slice's `[C]` question set already carries it, none asks it again. Where
-  that cannot be told yet — a listed row still unallocated, or a sibling's ledger or question set
-  unreadable — the run withholds the defect and says why. **Round 1's record decides which round a
+  it, and a slice whose in-scope rows list it says so in its round record, naming the rows and their
+  fates — and a defect is asked once across all the slices: where any slice's `[C]` question set
+  already carries it, none asks it again. Where that cannot be told yet — a listed row still
+  unallocated, or a sibling's ledger or question set unreadable — the run withholds the defect and
+  says why. **Round 1's record decides which round a
   defect goes into.** On a slice interviewed before this source existed, round 1's record has no
   requirement-defect line, so its defects belong in round 1: an open round 1 takes them at once, and
   a closed one is re-opened with `--round 1` and the cause *requirement defects became a question

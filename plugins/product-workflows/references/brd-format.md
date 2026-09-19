@@ -62,12 +62,17 @@ instead. That log is the **plugin's** record rather than the customer's, which i
 byte is the customer's own and a plugin-written file would read as part of the document they handed
 over. It opens by naming the source document's basename, carries the run's counts — links found,
 files copied, links not copied — and then one row per uncopied link: the target as written, the
-copied file the link sits in, and the reason. **The three counts do not add up, and that is
-arithmetic rather than a slip**: two documents linking the same file are two links found and one
-file copied, so the first count is of links and the second of files. **It is written on every run,
-including one that captured everything**, so its counts are the positive record that the capture
-ran; an absent log and an empty one are not (§2.2 makes the same call for the inventory's coverage
-of its source).
+copied file the link sits in, and the reason. **No path the log writes is the operator's own**: a
+captured file is named by its path relative to `brd/`, and an `ambiguous` wikilink's candidates by
+their paths relative to the vault root the walk searched (`references/linked-sources.md` §3) — never
+by an absolute path, which would write the operator's directory layout, home directory included,
+into the specs repository, the reason `brd/source-external/` below keeps basenames only. A target is
+quoted as written, because that is the customer's own text. **The three counts do not add up, and
+that is arithmetic rather than a slip**: two documents linking the same file are two links found and
+one file copied, so the first count is of links and the second of files. **It is written on every
+run, including one that captured everything**, so its counts are the positive record that the
+capture ran; an absent log and an empty one are not (§2.2 makes the same call for the inventory's
+coverage of its source).
 
 **The log also maps every captured link that does not resolve as written.** Its second table,
 *Captured links that do not resolve as written*, carries one row per **link** whose copy cannot be
@@ -112,7 +117,6 @@ it closes no defect, and an inventory row quoting a corrected element is left as
 
 ```markdown
 ---
-kind: brd-figures
 key: <the run's <BRD-KEY> as Phase 0 validated it — never parsed from the folder name>
 source: <the document's basename, as brd/brd-link-log.md names it>
 written_by: brd-intake
@@ -142,19 +146,35 @@ Images captured <n> · read <n> · reused from an earlier run <n> · not read <n
 
 ### Flow
 
-<diagrams only; otherwise "none">
+<diagrams only, one edge per line as figure-reader returned it — `Submit → Manager approval`,
+`Manager approval → Finance approval — label: [> 10k]`; otherwise "none">
 
 ### Illegible
 
 none
 ```
 
+- **The frontmatter carries `key:` and no `kind:`.** `workflows-core:addressing` §4 reads a folder's
+  identity off the first artifact in it carrying both `kind:` and `key:`, and nothing fixes which is
+  first, so a second carrier — its kind outside that section's vocabulary — could be read as the
+  folder's own; the inventory is the folder's carrier (§2.1). The bundle ships this file without its
+  frontmatter (`references/bundle-packaging.md` §1.1).
 - **One section per image `/brd-intake` Phase 2 copied** — or re-used under collision rule 1, which
   counts as copied (§1.1) — in capture order, headed by the image's path **relative to `brd/`** —
   `source/…` or `source-external/…`. Every path in this file is relative to `brd/`, so one form names
   a file under either directory.
+- **The counts line** counts the images the current run captured — every section without the *Not
+  captured* marker below — and splits them three ways: `read`, the images this run dispatched to
+  `figure-reader` and got a transcription back for; `reused from an earlier run`, the sections whose
+  transcription it kept by content hash (below) without dispatching the image; and `not read`, the
+  images it dispatched that came back `read: false`. So the three add up to `captured`. **A re-used
+  section counts under `reused` whatever its *Read* line says** — that line still records whether a
+  transcription exists — so `read 0 · reused 3` beside three `Read: yes` sections is a run that read
+  nothing again, not a contradiction.
 - **Linked from** names every file that links the image, each relative to `brd/`, with the heading
-  path of the passage that links it.
+  path of the passage that links it, in §2.2's form — a file's title left out.
+- **Flow** is `figure-reader`'s, one edge per line in the notation `agents/figure-reader.md` fixes:
+  no mark is put around a label, so an image anchor quotes an edge exactly as its line reads (§2).
 - **Read** is `yes`, or `no — <reason>` with `figure-reader`'s reason (`missing`, `not_an_image`,
   `unreadable`); an image not read carries no transcription sections, only its header lines.
 - **Content hash** is the SHA-256 of the image's bytes. A later intake run keeps the section's
@@ -164,7 +184,8 @@ none
   *Rows* are recomputed by the run every time, including for an image the current run did not
   capture (below).
 - **Rows** is completed by `/brd-intake` Phase 5, once the inventory is final: `yields` the rows
-  anchored on this image, `illustrates` the rows whose prose the image restates, or
+  anchored on this image and `illustrates` the rows whose prose the image restates, either half left
+  out where its list is empty — `yields [BR#3]`, `illustrates [BR#6]` — or
   `accounted for — <the operator's account>` where it does neither — and
   `none — no requirement extracted` where `brd-reader` returned `EMPTY`, so the inventory holds no
   row and nothing was put to the operator. **It names requirements of the BRD that owns this file —
@@ -208,14 +229,16 @@ id is permanent even if the row it names is later split, superseded, or found de
 - **In an image** — `<path relative to brd/> › "<element>"`, the element a string quoted verbatim from
   the image's *Text*, an annotation's *Says*, or its *Flow* in its §1.2 section — never from *Points
   at* or *Depicts*, which are the plugin's paraphrase — as in
-  `source/images/report.png › "Net total"`; or `<path relative to brd/> › annotation <n>`, the n-th
-  annotation in its §1.2 section.
+  `source/images/report.png › "Net total"`, or, quoting a diagram's edge whole as its *Flow* line
+  reads, `source/images/flow.png › "Manager approval → Finance approval — label: [> 10k]"`; or
+  `<path relative to brd/> › annotation <n>`, the n-th annotation in its §1.2 section.
 
 **A heading path, in either of the first two forms, names exactly one heading**, with ` › ` between
 nested headings — `Feature A › Acceptance criteria` in the document, and in a linked file
-`source/appendix/fields.md › Reports › Columns`, whose first ` › ` ends the path. Where titles
-repeat, §2.2 branch 2 says how to tell them apart; text above a file's first heading is addressed by
-a line range (§2.2 branch 3).
+`source/appendix/fields.md › Reports › Columns`, whose first ` › ` ends the path — and **leaves out
+the file's title**, where it has one (§2.2 defines it), so each section is written one way. Where
+headings repeat, §2.2 branch 2 says how to tell them apart; text above a file's first heading is
+addressed by a line range (§2.2 branch 3).
 
 **A reader tells the three forms apart by the anchor's text before its first ` › `**: text beginning
 `source/` or `source-external/` names a linked-markdown or image anchor — which of the two, by the
@@ -236,7 +259,7 @@ had the reader account for every heading it passed; measured against real intake
 accounts of "this section holds context", which buries the one case worth seeing.
 
 Three relations — the first two over the **top-level section** of the document and of every
-linked markdown file Phase 2 copied, the third over the images:
+linked markdown file Phase 2 copied, as defined below the list, the third over the images:
 
 1. **Every `source_anchor` resolves — in whichever of §2's three forms it takes.** A document or
    linked-markdown anchor resolves to a section that file actually has; an image anchor resolves
@@ -246,15 +269,32 @@ linked markdown file Phase 2 copied, the third over the images:
    file with no heading at all — the document itself or a linked file — is one section, its whole
    body after any frontmatter block, branch 3 below; a file's text above its first heading is its
    lead section, which this relation does not ask about) either holds a row or is accounted
-   for.** A section is held where any anchor names it, names a section beneath it, or links an
-   image that yields a row (§1.2 *Linked from*). One with none is not a defect and is not a stop —
-   only a person can say whether a section binds the delivery team to anything — so `/brd-intake`
-   names each with what the source has under it and asks.
+   for.** A section is held where any anchor names it or a section beneath it, or where it links a
+   file that yields a row — an image some anchor names (§1.2 *Linked from* records where each is
+   linked), or a captured markdown file some anchor names: a section whose only content is a link
+   to an appendix holds whatever that appendix yields. One with none is not a defect and is not a
+   stop — only a person can say whether a section binds the delivery team to anything — so
+   `/brd-intake` names each with what the source has under it and asks.
 3. **Every image the current run captured yields a row, illustrates one, or is accounted for.**
    It *yields* a row where any anchor names it, and *illustrates* one where `brd-reader` returned
    that row in the image's `illustrates`. An image that does neither — a logo, a decorative banner,
    a screenshot whose content no obligation bears on, or an image that could not be read — is named
    with its `Depicts` sentence or its reason, in the same question relation 2 asks.
+
+**A top-level section, and the one heading-path form it fixes.** Where a file's first heading is
+the only heading at its level and has headings beneath it, that heading is the file's **title**,
+and the file's top-level sections are the sections at the shallowest heading level beneath it;
+otherwise they are the sections at the file's shallowest heading level. So the ordinary shape — one
+`#` title over `##` sections — has its `##` sections as its top-level sections: read with the title
+as its one top-level section, it would always be held and relation 2 could never fire. A file whose
+one heading has nothing beneath it has no title in this sense, and that heading's section is its one
+top-level section. The title's own text above the first heading beneath it is treated as a lead
+section is — addressed by a line range (branch 3 below), and not asked about by relation 2. **Every
+heading path — in an anchor (§2) and in a *Linked from* line (§1.2) — leaves the title out**:
+`2. Monthly report`, never `Acme reporting › 2. Monthly report`, and in a linked file
+`source/appendix/fields.md › Columns` where `Report fields` titles it. One section is then always
+written one way; branch 2 below still resolves a path that does name a title, because it matches
+only the ancestors a path names.
 
 **The granularity is the finding, not a detail.** Real BRDs run to fifty or sixty headings under
 fourteen or fifteen top-level sections, and on a careful intake nine of those fifteen legitimately
@@ -404,8 +444,23 @@ of these resolutions:
 |---|---|
 | `customer-amended <date>` | the customer supplied corrected text; the amendment is held in the ledger beside the original, never written back into `brd/source/` |
 | `withdrawn` | the customer withdrew the requirement the defect was raised against |
-| `resolved-by: [CG#n]` · `resolved-by: [CD#n]` | a code- or design-grounding finding settled the defect (typically closing an `unsourced` entry), or a customer decision did — the answer to the question the defect raised (`commands/brd-interview.md`, the requirement-defect question source), frozen by `/brd-reconcile` |
+| `resolved-by: <SLICE-KEY>/[CG#n]` · `resolved-by: <SLICE-KEY>/[CD#n]` | a code- or design-grounding finding settled the defect (typically closing an `unsourced` entry), or a customer decision did — the answer to the question the defect raised (`commands/brd-interview.md`, the requirement-defect question source), frozen by `/brd-reconcile` |
 | `open` | none of the above has happened yet |
+
+**`resolved-by` names its slice, in one spelling.** Grounding and deciding are both slice-only, and
+each slice numbers its own `[CG#n]` and `[CD#n]` from 1, while this log is the parent's (below) — so
+once a BRD has two slices a bare `[CD#2]` may name a record in either and does not say which. The
+value is qualified by the key of the slice whose finding or decision it is, in the shape
+`references/decision-register-format.md` §5 gives a record of another BRD
+(`conditional_on: <BRD-KEY>/<decision-id>`): `resolved-by: EPIC-008-01/[CD#2]`, never
+`resolved-by: [CD#2]`.
+
+**A `[DEF#n]` id is permanent, as a `[BR#n]` is (§2)** — never reused, never renumbered, and never
+deleted, its entry with it. Ids are assigned once, in order across the whole log. Every
+`rejected: [DEF#n]` in a ledger, every `defects` column and every held question naming a defect
+depends on it: an id that moved, vanished or came back naming another defect would re-point each of
+them without a trace. `commands/brd-intake.md` Phase 4 holds it on a re-run, by matching what a new
+extraction proposes against the entries already on file.
 
 There is exactly one **requirement** defect log per source document, held by the BRD that owns that
 document; a slice reads its parent's rather than keeping one of its own (§2.1). That is a statement
@@ -415,7 +470,7 @@ about `brd/brd-defect-log.md` and about `[DEF#n]` only: the route's **code**-def
 to the slice's own grounding and grounding is slice-only. A consumer that must reach a
 `[DEF#n]` while standing on a slice — `/brd-split`'s `rejected: [DEF#n]` resolution when it walks a
 slice's ledger (`commands/brd-split.md` Phase 4), `/brd-reconcile` writing the `customer-amended`,
-`withdrawn` and `resolved-by: [CD#n]` resolutions a returned customer review settles
+`withdrawn` and `resolved-by: <SLICE-KEY>/[CD#n]` resolutions a returned customer review settles
 (`commands/brd-reconcile.md`), `/brd-interview` reading the open entries its requirement-defect
 question source asks (`commands/brd-interview.md`), or any reader following the `defects` column of
 the slice's copied inventory row — therefore looks it up in, and writes it to, the parent's log.

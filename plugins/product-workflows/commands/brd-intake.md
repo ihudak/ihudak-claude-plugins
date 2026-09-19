@@ -1,6 +1,6 @@
 ---
 name: brd-intake
-description: BRD-intake workflow (PM phase, entry point of the BRD-to-PRD flow). Walks every link a customer-supplied business requirements document makes — wikilinks included — read-only, shows the operator the list and asks before capturing anything outside the document's folder or anything it cannot read, then copies the document and every file it takes into the specs repo byte-for-byte, naming in brd/brd-link-log.md each link it did not copy and why. figure-reader transcribes every linked image into brd/brd-figures.md, and brd-reader extracts a [BR#n] requirement inventory from the document, its linked markdown and those transcriptions; its defect candidates are confirmed interactively against the six brd-format.md classes, and a coverage-ledger.md is written with every row unallocated. Rejects a non-markdown source rather than converting it. Grounds on the shipped product documentation when $DOCS_PATH resolves (--no-docs off), consumed grill-rank over the defect walk. Optional --sort-existing migrates an already-hand-written package into seed files. Offers /brd-split as the next step.
+description: BRD-intake workflow (PM phase, entry point of the BRD-to-PRD flow). Walks every link a customer-supplied business requirements document makes — wikilinks included — read-only, shows the operator the list and asks before capturing anything outside the document's folder or anything it cannot read, then copies the document and every file it takes into the specs repo byte-for-byte, naming in brd/brd-link-log.md each link it did not copy and why. figure-reader transcribes every linked image it takes into brd/brd-figures.md, and brd-reader extracts a [BR#n] requirement inventory from the document, its linked markdown and those transcriptions; its defect candidates are confirmed interactively against the six brd-format.md classes, and a coverage-ledger.md is written with every row unallocated. Rejects a non-markdown source rather than converting it. Grounds on the shipped product documentation when $DOCS_PATH resolves (--no-docs off), consumed grill-rank over the defect walk. Optional --sort-existing migrates an already-hand-written package into seed files. Offers /brd-split as the next step.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -229,6 +229,8 @@ reports a faithful verbatim copy.
 **The links were found, resolved and walked in Phase 1**, by `linked-sources.md` — this phase copies
 what Phase 1 took and never walks again. The walk's record says, per target, what kind of file it
 reached and whether it lies inside the document's own directory; Phase 1's answers say which are taken.
+It copies the taken files in the order the walk reached them (`linked-sources.md` §4), and that order
+is what every later mention of *Phase 2's capture order* means.
 
 **Where each taken file lands.**
 
@@ -239,13 +241,16 @@ reached and whether it lies inside the document's own directory; Phase 1's answe
   customer's original — **with no edit to the copied text**. `../images/flow.png` written in
   `appendix/notes.md` resolves inside the directory and is copied like any other; a syntactic `..`
   test would have refused a file in scope.
-- **Outside it** — taken only on Phase 1's *Capture all* → into `<BRD-dir>/brd/source-external/`, at its
-  **basename**, never at a path mirroring where it came from;
+- **Outside it** — taken only on Phase 1's *Capture all* → into `<BRD-dir>/brd/source-external/`, at
+  its **basename**, never at a path mirroring where it came from;
   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.1 says why. Where that name is already taken,
   apply `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` *The collision rule*, rules 1–3, with
   `brd/source-external/` as the destination directory. Its rule 4 never applies here: nothing under
-  `brd/source-external/` is overwritten, and no link is rewritten — the mapping table below names the
-  copy.
+  `brd/source-external/` is overwritten, and no link is rewritten — the mapping table below names
+  the copy. A file rule 1 reuses — its identical bytes already on file, so nothing is written —
+  **counts as copied** wherever this command says a file was copied: the link log below, and every
+  later phase that says "Phase 2 copied". Only Phase 7's `deliverable_paths`, which names the files
+  this run actually wrote, leaves it out.
 
 Copy each file **byte-for-byte, whatever its type** — an image, a PDF, a spreadsheet — never opened
 as text, never re-encoded, never resized. Phase 0 step 3's markdown-only rule is about the *document*
@@ -282,8 +287,9 @@ counts and the same list, each entry with its reason, in the final report.
 
 ## Phase 2.5 — Read the figures
 
-**Every image Phase 2 copied is read here, and there is no cap on how many.** A cap would leave an
-image's obligations outside the record exactly as not reading it did (`brd-format.md` §1.2).
+**Every image Phase 2 copied is read here or, where its bytes are unchanged, re-used — and there is
+no cap on how many.** A cap would leave an image's obligations outside the record exactly as not
+reading it did (`brd-format.md` §1.2).
 
 1. **Re-use before reading.** Compute each copied image's SHA-256. Where
    `<BRD-dir>/brd/brd-figures.md` already holds a section for that image whose *Content hash* matches,
@@ -303,11 +309,18 @@ image's obligations outside the record exactly as not reading it did (`brd-forma
    copied, in capture order — re-used transcriptions verbatim, new ones from the agent's return, an
    image returned `read: false` with its reason and no transcription. Write *Linked from* afresh for
    every image Phase 2 copied, re-used or not, from the copied files Phase 1's walk found linking
-   it. A section already on file for an image the current document no longer links stays, marked
-   as §1.2 says. Leave every *Rows* line empty; Phase 5 completes them.
+   it. **Every section already on file whose image this run did not take stays** — a section is
+   never deleted — and carries the marker `brd-format.md` §1.2 fixes, whether the current document
+   no longer links the image or this run's Phase 1 answer left it out; a section whose image this
+   run takes again carries none. Leave every *Rows* line empty; Phase 5 completes them.
 
-Where Phase 2 copied no image, this phase dispatches nothing, writes no file, and says so in the
-final report.
+**Where the folder holds no figures file and Phase 2 copied no image**, this phase dispatches
+nothing, writes no file, and says so in the final report. **Where a figures file is already on file
+and Phase 2 copied no image** — a revised document with its screenshots removed, or a re-run whose
+Phase 1 answer left out images an earlier intake captured — it dispatches nothing and still runs
+step 3 over the sections on file, so every one of them carries that marker. Phase 3, Phase 5 and
+Phase 7 test whether the figures file **exists after this phase**, written or updated by it, and
+never whether this run copied an image.
 
 ---
 
@@ -318,7 +331,7 @@ Dispatch `brd-reader`:
 → Agent (subagent_type: "product-workflows:brd-reader", model: `<extraction_model — frontmatter-pinned to opus>`):
   > "source_path: [absolute path to the copied document at `<BRD-dir>/brd/source/<basename>`]
   >  appendices:  [absolute path of every linked markdown file Phase 2 copied — under `brd/source/` or `brd/source-external/` — in Phase 2's capture order; `[]` when none]
-  >  figures_path: [absolute path to `<BRD-dir>/brd/brd-figures.md`; omit when Phase 2.5 wrote none]"
+  >  figures_path: [absolute path to `<BRD-dir>/brd/brd-figures.md`; omit when no figures file exists after Phase 2.5]"
 
 Act on `status`:
 - **`OK`** — write `<BRD-dir>/brd/brd-inventory.md` per `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md`
@@ -389,7 +402,11 @@ choices: ["Re-read the named sections — re-dispatch brd-reader over the whole 
   whole set — the document, every linked markdown file Phase 2 copied, and the figures file — and
   still numbers from `BR#1` on every read: there is no narrower re-dispatch, so it is re-dispatched
   with the same three inputs, and the reconciliation, id mapping included, is the one the re-run
-  branch above already performs. The second records the operator's account in the final report.
+  branch above already performs. **It does nothing for an image that was not read**: `brd-reader`
+  reads a transcription and never the picture, and an unread image has none, so a re-read returns
+  the same result and the question comes back. Where the question names such an image, say so beside
+  it — it is settled by the second option, with the operator's account, or by converting the image
+  and re-running this intake. The second option records the operator's account in the final report.
   **Report the outcome either way, including "every top-level section and every image accounted
   for"** — an unreported clean result is indistinguishable from an unrun check. **Where no anchor
   parses at all, say that and stop**: that is a read failure, not a document with no coverage.
@@ -489,13 +506,13 @@ mirrored from the inventory, `evidence` empty (grounding has not run yet — tha
 job), and **`disposition: unallocated` on every row**, per §3: "the initial state; the only one of
 the six that blocks §4." No row is ever written in any other disposition here.
 
-**Then complete `brd/brd-figures.md`'s *Rows* line for every image**, from the final inventory — after
-Phase 3's reconciliation mapping, never from the agent's own numbering: `yields` every row whose
-`source_anchor` names the image, `illustrates` every row the agent returned for it, or
-`accounted for — <the operator's Phase 3 account>` where it does neither. A section marked *No longer
-linked by the current source* gets no agent entry and no Phase 3 account: its *Linked from* and *Rows*
-take the values `brd-format.md` §1.2 fixes for such a section. A run that wrote no figures file skips
-this.
+**Then complete `brd/brd-figures.md`'s *Rows* line for every image**, from the final inventory —
+after Phase 3's reconciliation mapping, never from the agent's own numbering: `yields` every row
+whose `source_anchor` names the image, `illustrates` every row the agent returned for it, or
+`accounted for — <the operator's Phase 3 account>` where it does neither. A section carrying the
+marker `brd-format.md` §1.2 fixes gets no agent entry and no Phase 3 account: its *Linked from* and
+*Rows* take the values §1.2 fixes for such a section. Where no figures file exists after Phase 2.5,
+this is skipped.
 
 **On a re-run this phase rewrites every disposition, and it does so unconditionally by design.**
 Where Phase 0 step 7 resolved an **existing** folder, the ledger that folder holds is replaced row
@@ -545,7 +562,7 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 ```
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = every file
-this run wrote under `<BRD-dir>` — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 stages neither, so a declaration that looks complete ships nothing — §2.3 step 4 names each in §4.1's *declaration unaccounted for* clause, so the failure is reported rather than silent, but nothing it names lands. That is each file this run actually copied into `brd/source/` or `brd/source-external/` — the customer's document **and every file it links** (Phase 2) — named individually (the copy step knows them; neither `brd/source/**` nor `brd/source-external/**` is a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`, `brd/brd-link-log.md`, `brd/brd-figures.md` when Phase 2.5 wrote it,
+this run wrote under `<BRD-dir>` — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 stages neither, so a declaration that looks complete ships nothing — §2.3 step 4 names each in §4.1's *declaration unaccounted for* clause, so the failure is reported rather than silent, but nothing it names lands. That is each file this run actually wrote into `brd/source/` or `brd/source-external/` — the customer's document **and every file it links** (Phase 2) — named individually (the copy step knows them; neither `brd/source/**` nor `brd/source-external/**` is a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`, `brd/brd-link-log.md`, `brd/brd-figures.md` wherever it exists after Phase 2.5,
 `coverage-ledger.md`, and — only when Phase 6 ran — `prd-seed.md`, `ard-seed.md`, `spec-seed.md`),
 `title: <BRD-KEY> Intake BRD source and requirement inventory`, and `body_facts` = the requirement
 count, the confirmed-defect count by class, and whether Phase 6 wrote seeds; emit its §4.1 outcome
@@ -659,18 +676,19 @@ no user name is ever written.
 Report: the BRD folder + source path; how many files were copied beside the source — inside its
 directory and into `brd/source-external/` — and, per `brd/brd-link-log.md`, every link the copy
 could not capture with its reason (Phase 2), with Phase 1's answers and any *other* file the
-operator accounted for; how many images were transcribed, re-used and not read, with each reason
-(Phase 2.5); how many linked markdown files were read beside the document (Phase 3); the coverage
-outcome for sections and images; the requirement count; the confirmed-defect count by class
-(and how many candidates were rejected, and how many of the confirmed ones were raised from
-documentation rather than by `brd-reader`); the `docs grounding:` line from Phase 1 verbatim, and —
-when it was ON — the `docs_references` list of requirements the shipped documentation describes as
-already built, flagged for `/prd-ground` to check against code; whether Phase 6 wrote seeds and
-which; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Phase handoff:` outcome line from
-`handoff-to-main` (`workflows-core:phase-handoff` §4.1), including the `brd`
-prefix note; the `Specs repo:` outcome line from `commit-artifacts`
-(`workflows-core:specs-repo-git` §6); the next-step recommendation; and end with
-the ledger line, exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
+operator accounted for; how many images were transcribed, re-used and not read, with each reason,
+and how many sections on file carry the marker `brd-format.md` §1.2 fixes (Phase 2.5); how many
+linked markdown files were read beside the document (Phase 3); the coverage outcome for sections and
+images; the requirement count; the confirmed-defect count by class (and how many candidates were
+rejected, and how many of the confirmed ones were raised from documentation rather than by
+`brd-reader`); the `docs grounding:` line from Phase 1 verbatim, and — when it was ON — the
+`docs_references` list of requirements the shipped documentation describes as already built, flagged
+for `/prd-ground` to check against code; whether Phase 6 wrote seeds and which; resolved model
+routing (+ any Opus degradation); the feedback + cost paths; the `Phase handoff:` outcome line from
+`handoff-to-main` (`workflows-core:phase-handoff` §4.1), including the `brd` prefix note; the
+`Specs repo:` outcome line from `commit-artifacts` (`workflows-core:specs-repo-git` §6); the
+next-step recommendation; and end with the ledger line, exactly per
+`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
 ```
 ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)

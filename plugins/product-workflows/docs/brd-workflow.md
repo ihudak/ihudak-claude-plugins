@@ -115,15 +115,15 @@ customer — a separate package, a separate conversation — is what the re-cut 
 copies the document in verbatim and immutably together with every file they take — files outside its
 folder into `brd/source-external/` — since neither directory is ever written again and an uncaptured
 screenshot is gone for good. It reads the linked markdown beside the document and has every linked
-image transcribed, extracts a `[BR#n]` requirement inventory from all of it, confirms candidate
-defects with a human, and writes a coverage ledger with every row `unallocated`. `/brd-split`, run
-on the root, proposes candidate slices from a mandatory slicing instruction — a root is never
-ground, so the instruction is the only grouping signal there is — and walks every unallocated ledger
-row to one of four recorded fates: assigning it to a named slice, deferring it, rejecting it against
-a logged defect, or marking it superseded, until none remain `unallocated`. **A BRD is a container
-and is never implementable itself**, so this run always confirms at least one slice; where nothing
-clusters, the whole BRD becomes one. A slice is not a new route: it nests inside its BRD's folder as
-the `PRD-` folder its PRD will be authored in.
+image it takes transcribed, extracts a `[BR#n]` requirement inventory from all of it, confirms
+candidate defects with a human, and writes a coverage ledger with every row `unallocated`.
+`/brd-split`, run on the root, proposes candidate slices from a mandatory slicing instruction — a
+root is never ground, so the instruction is the only grouping signal there is — and walks every
+unallocated ledger row to one of four recorded fates: assigning it to a named slice, deferring it,
+rejecting it against a logged defect, or marking it superseded, until none remain `unallocated`. **A
+BRD is a container and is never implementable itself**, so this run always confirms at least one
+slice; where nothing clusters, the whole BRD becomes one. A slice is not a new route: it nests
+inside its BRD's folder as the `PRD-` folder its PRD will be authored in.
 
 `/prd-ground` then pins every mounted repository to a verified commit and grounds every `[BR#n]`
 this slice claims against code and an exported design frame set, with every finding independently

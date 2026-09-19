@@ -1,10 +1,10 @@
 # /brd-intake
 
-Copies a customer-supplied business requirements document into the specs repo verbatim — and with
-it every file that document links, wikilinks included, after showing you the list — transcribes every
-linked image, extracts a `[BR#n]` requirement inventory from the document, its linked markdown and
-those transcriptions, confirms the document's defects with a human, and writes a coverage ledger
-where every requirement starts `unallocated`.
+Copies a customer-supplied business requirements document into the specs repo verbatim — and with it
+every file that document links, wikilinks included, after showing you the list — transcribes every
+linked image it takes, extracts a `[BR#n]` requirement inventory from the document, its linked
+markdown and those transcriptions, confirms the document's defects with a human, and writes a
+coverage ledger where every requirement starts `unallocated`.
 
 ## Who runs it
 
@@ -57,13 +57,13 @@ flowchart TD
     p8 --> p9["Phase 9 — Session maintenance, feedback & cost"]
 ```
 
-Three subagents are dispatched: `figure-reader` (Phase 2.5, frontmatter-pinned to Opus — it transcribes
-every linked image, in parallel batches, without reading the document that links it), `brd-reader`
-(Phase 3, frontmatter-pinned to Opus — its defect candidates are judgement over a long, contradictory
-document, and a conflict it never proposes reaches no one) and `workflows-core:docs-grounder`
-(Phase 3.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves,
-advisory, never a gate). `workflows-core:impl-maintenance` also runs, in Phase 9, for session
-lessons-learned.
+Three subagents are dispatched: `figure-reader` (Phase 2.5, frontmatter-pinned to Opus — it
+transcribes every linked image the run takes, in parallel batches, without reading the document that
+links it), `brd-reader` (Phase 3, frontmatter-pinned to Opus — its defect candidates are judgement
+over a long, contradictory document, and a conflict it never proposes reaches no one) and
+`workflows-core:docs-grounder` (Phase 3.5, read-only grounding on the shipped product docs — default
+ON when `$DOCS_PATH` resolves, advisory, never a gate). `workflows-core:impl-maintenance` also runs,
+in Phase 9, for session lessons-learned.
 
 ## What it needs
 
@@ -142,12 +142,12 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   the document and of each linked markdown file — and every **image** must either hold or illustrate
   a row or be accounted for: one that does neither is a question rather than a stop, since only a
   person can say whether it binds the delivery team to anything, so the run names each — a section
-  with what the source has under it, an image with what the plugin read in it — and asks once for
-  the set. **Section granularity is the point and was measured**: real BRDs carry fifty or sixty
-  headings under about fifteen top-level sections, of which nine or so legitimately hold nothing, so
-  the operator answers nine questions rather than fifty — and on a real package the sections
-  carrying no row included the user stories and the acceptance tests, which is exactly the pair
-  worth putting to a human.
+  with what the source has under it, an image with what the plugin read in it, or its reason where
+  it could not be read — and asks once for the set. **Section granularity is the point and was
+  measured**: real BRDs carry fifty or sixty headings under about fifteen top-level sections, of
+  which nine or so legitimately hold nothing, so the operator answers nine questions rather than
+  fifty — and on a real package the sections carrying no row included the user stories and the
+  acceptance tests, which is exactly the pair worth putting to a human.
 - **Phase 3.5 — `docs-grounder`** (optional). Read-only, advisory, never a gate. Its digest is
   consumed grill-rank: `docs_challenges` are ranked into the order Phase 4 walks its candidates,
   and one may be *raised* as an additional defect candidate — but only as `unsourced` (the

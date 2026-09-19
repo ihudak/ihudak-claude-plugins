@@ -308,8 +308,9 @@ behaviour, not the behaviour.
    list is step 8i, immediately below — this whole step is the `route: brd` branch, unchanged.)
    From the gated
    `<BRD-dir>/brd/brd-inventory.md`, extract every `[BR#n]` row's `id` and `text`
-   (`brd-format.md` §2 field shape) — this is the `claims` array every dispatch in Phase 5 draws
-   from.
+   (`brd-format.md` §2 field shape), each cell decoded (§2.3 there) so an agent is handed the
+   customer's text rather than the table's encoding — this is the `claims` array every dispatch in
+   Phase 5 draws from.
 
    **Zero rows is a stop, not a quiet completion.** With no claim there is nothing to ground, so
    this run writes no finding; writing no finding means there is nothing to hand off; and

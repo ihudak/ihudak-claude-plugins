@@ -157,11 +157,12 @@ own source document arrives with whatever its author wrote. The bundle is a **re
 produced on the way out; the working documents keep their wikilinks and are never rewritten in
 place. A de-Obsidianising pass that edits the source is a data-loss bug wearing a formatting fix.
 
-**Wikilinks are rewritten to plain filename references.** `[[Some Document]]` resolves to nothing
-outside a vault: in every other reader it is literal text with brackets around it, and a reviewer
-who clicks it, searches it, or asks an agent to open it gets nothing. It is worse than a missing
-link, because it looks like a link. The rewrite names the target file as the reviewer will actually
-see it, so it can be searched for.
+**Wikilinks are rewritten to plain filename references** — every one this package wrote, and none it
+quotes from the customer (§2.1). `[[Some Document]]` resolves to nothing outside a vault: in every
+other reader it is literal text with brackets around it, and a reviewer who clicks it, searches it,
+or asks an agent to open it gets nothing. It is worse than a missing link, because it looks like a
+link. The rewrite names the target file as the reviewer will actually see it, so it can be searched
+for.
 
 Three cases the rewrite has to get right:
 
@@ -204,6 +205,11 @@ reasons, and each is fatal on its own:
 - **They are the customer's own writing, handed back to them.** §3's one-new-file rule exists so that
   "nobody can otherwise tell what was sent from what was changed"; returning their documents
   reformatted is that failure committed by the delivery team first.
+
+**The customer's words quoted in the inventory's and the ledger's `text` cells are left as written
+too.** A link or a `[[wikilink]]` there is quotation (`references/brd-format.md` §2.3), not a link
+this package made, so the pass rewrites none of it, exactly as it rewrites nothing in the files the
+text is quoted from; the rest of both files is the plugin's writing and is rendered as §2 says.
 
 Where that leaves something a plain reader cannot open — an embedded image, a one-tool block — the
 fix is **beside the file, never inside it**: copy the image in as §2 already requires, and say in the
@@ -439,10 +445,12 @@ in a `code-grounding.md` padded its `id:` colon for alignment and the next did n
 scan run here, over a bundle's copied corpus files, would report every reference in the bundle as
 dead.
 
-**A table corpus is parsed by its owner's layout** — the inventory's and the defect log's
-(`references/brd-format.md` §2, §4): a row splits into cells on an unescaped `|` only, and each
-cell is decoded (§2.3 there) before it is read, so a requirement quoting a row of the customer's own
-table never shifts a column, and an id is never read out of the wrong one.
+**A table corpus is parsed by its owner's layout** — the inventory's, the defect log's and the
+ledger's (`references/brd-format.md` §2, §4; `references/coverage-ledger-format.md` §2) — and by the
+one parse-and-decode rule `references/brd-format.md` §2.3 fixes for every read: a row splits into
+cells on an unescaped `|` only, as that section defines one, and each cell is decoded before it is
+read, so a requirement quoting a row of the customer's own table never shifts a column, and an id is
+never read out of the wrong one.
 
 **The two rows a slice reads differently differ in opposite directions, and both are stated because
 a reader meeting one will assume the other matches.** `[DEF#n]` widens one hop: §1.1 ships the

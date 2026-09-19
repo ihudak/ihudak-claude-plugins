@@ -98,8 +98,11 @@ Under `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` — the `BRD-` kind pre
 name the run creates ([addressing](../reference/references.md) §2):
 
 - `brd/source/<basename>` — the customer's source, copied byte-for-byte and never edited. A re-run
-  over a revised document replaces the copy of each file whose bytes changed, git keeping the
-  earlier one, and names each file it replaced; an unchanged file is left untouched.
+  over a revised source replaces the copy of each file whose bytes changed, git keeping the earlier
+  one, and leaves an unchanged file untouched; a document revised under a new filename is copied at
+  that name beside the earlier copy, which stays, and is read as a revision of it rather than as a
+  new document. The run names each file it records replaced, and each slice whose inventory still
+  names the earlier document.
 - `brd/source/<the paths it links>` — every file the run takes from the document's own directory,
   copied byte-for-byte to the same relative path, so the copied text's links resolve exactly as the
   customer's did. Screenshots are the usual case, and this run is where they are captured: no later
@@ -118,20 +121,25 @@ name the run creates ([addressing](../reference/references.md) §2):
   transcription, the customer's annotations and what they point at, and the rows each image yields
   or illustrates.
 - `brd/brd-inventory.md` — one row per `[BR#n]`, each with its `source_anchor` and any confirmed
-  `[DEF#n]` defects — a `conflict` or `duplicate` on the row it was raised on only. A re-run keeps
-  every id, and keeps a row's wording wherever the file its anchor points into is unchanged; a row
-  the new read does not find again is kept, never renumbered away.
+  `[DEF#n]` defects — a `conflict` or `duplicate` on the row it was raised on only — and, in its
+  frontmatter, the hash of every file the rows were last reconciled against. A re-run keeps every
+  id, and keeps a row's wording wherever the file its anchor points into is unchanged since then —
+  judged against those hashes, never against the copy on disk; where the new read returns a row over
+  an unchanged file that could be a kept row reworded, it asks you whether it is the same
+  requirement; a row the new read does not find again is kept, never renumbered away; and every id
+  it mints is reported by id.
 - `brd/brd-defect-log.md` — one entry per confirmed `[DEF#n]`, resolution `open`. A re-run keeps
   every entry already there, id and resolution unchanged, and adds only the defects it newly
   confirms.
 - `coverage-ledger.md` — one row per `[BR#n]`, disposition `unallocated` on every row.
+- With `--sort-existing <dir>`: `prd-seed.md`, `ard-seed.md`, `spec-seed.md`, sorted by altitude
+  from the hand-written package — seeds only, never findings.
 
 The link log, the inventory, the defect log and the ledger each have one fixed layout — frontmatter,
 an opening line where a reader needs one, and a markdown table — and share one cell encoding: a
 literal `|` is written `\|` and a line break `<br>`, and the requirement text is verbatim once those
-two are decoded ([`brd-format.md`](../../references/brd-format.md) §2.3).
-- With `--sort-existing <dir>`: `prd-seed.md`, `ard-seed.md`, `spec-seed.md`, sorted by altitude
-  from the hand-written package — seeds only, never findings.
+two are decoded, which every reader does before it shows, hands over or compares a cell
+([`brd-format.md`](../../references/brd-format.md) §2.3).
 
 Behind Phase 7's consent choice, these are committed, pushed, and a pull request opened against the
 specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
@@ -146,8 +154,9 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   because the route stops on a claimless BRD: Phase 8 then offers a re-run of this command with a
   corrected source instead of offering `/brd-split`, which would refuse the BRD. Over an inventory
   an earlier intake filled it changes nothing — the inventory, the defect log and the ledger stand
-  as they were, since an empty read has not shown any requirement gone. `NOT_FOUND` stops the run and surfaces the agent's
-  exact message.
+  as they were, since an empty read has not shown any requirement gone — and Phase 8 offers
+  `/brd-split` only where a ledger row is still `unallocated`. `NOT_FOUND` stops the run and surfaces
+  the agent's exact message.
 
   **The inventory's coverage of its own source is then checked, both directions, from what the run
   already holds** — the anchors written, the image transcriptions, and the rows `brd-reader` said
@@ -182,7 +191,9 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   [`brd-format.md`](../../references/brd-format.md) §3 lists its six classes, via `AskUserQuestion`,
   each put with the same facts — its class, its row and that row's text, its reason, the rows a
   `conflict` or `duplicate` names, and an image-drawn row's picture. A split of one requirement into
-  several rows is one `duplicate`, asked once. Only a confirmed candidate is assigned a `[DEF#n]` id,
+  several rows is one `duplicate`, asked once, and any other `conflict` or `duplicate` is raised from
+  one end only; where one read raises the same relation from both ends anyway, the two are asked as
+  one question. Only a confirmed candidate is assigned a `[DEF#n]` id,
   once the walk ends, in the order of the row it was raised on — never in the order the questions
   were asked. A rejected candidate is dropped, not recorded. **A re-run does not ask again about a defect already logged**: a candidate with the same
   class and row as an entry on file is that entry — a `conflict` or `duplicate` matching where the

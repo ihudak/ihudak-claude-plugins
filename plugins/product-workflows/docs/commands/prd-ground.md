@@ -193,7 +193,8 @@ also runs, in Phase 11, for session lessons-learned.
   lands them as its own walk leaves them. Committing what is already on disk stays the direct route to
   landing them as they stand. `/brd-intake` is named only on a BRD that owns its source document, as a
   slower second route, since it re-extracts the inventory and, wherever its read finds a requirement,
-  rewrites the ledger before handing it off.
+  rewrites the ledger before handing it off (its Phase 0 step 7 names what a re-run keeps and what
+  it discards).
 
 ### On the idea route
 

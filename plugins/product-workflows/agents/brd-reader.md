@@ -121,9 +121,13 @@ inside a source file is never followed — the caller walked the links already
 
 6. **Propose defect candidates per row**, applying the six one-line tests of `brd-format.md` §3 as
    written there. A row may carry zero, one or several candidates, and more than one class at once.
-   `conflict` and `duplicate` candidates always name the other `[BR#n]` involved. An annotation that
-   asserts how the current system behaves (*"this total is wrong"*) is `unsourced` as well as whatever
-   else it is.
+   `conflict` and `duplicate` candidates always name the other `[BR#n]` involved, and **each such
+   relation is proposed once, from the one end `brd-format.md` §3 fixes** — a `duplicate` in which
+   one row is part of another on the whole, naming the part or parts; a restatement `duplicate` or a
+   `conflict` on the lowest-numbered of its rows, naming the others — and never again from a
+   counterpart's row, which would turn one clash into two defects the customer is asked about
+   separately; a split's is step 5's. An annotation that asserts how the current system behaves
+   (*"this total is wrong"*) is `unsourced` as well as whatever else it is.
 
 7. **Never rewrite, normalise, reflow, or "clean up" any text you quote.** `text` and `source_anchor`
    quote and locate the source as it stands, typos and all.
@@ -142,7 +146,7 @@ inventory:
     defect_candidates:                # UNCONFIRMED — proposals only
       - class: ambiguity | conflict | untestable | unsourced | duplicate | scope-leak
         reason: <one line, applying the brd-format.md §3 test for this class>
-        names: [BR#<m>, ...]          # required for conflict and duplicate; omitted otherwise
+        names: [BR#<m>, ...]          # required for conflict and duplicate, on the one row the relation is raised on (step 6); omitted otherwise
 figures:                              # one entry per image the figures file records as read and does not mark "Not captured by the current run"; [] when figures_path was omitted
   - path: <the image's path relative to brd/, as the figures file heads it>
     illustrates: [BR#<n>, ...]        # prose rows it restates or whose passage binds it; [] if none

@@ -87,7 +87,8 @@ and the route's first answer to it is deferral — the slice's own walk sends th
 build to `deferred-to: <itself>`, where they stay its live obligation. That is enough for *build less
 now* and not enough for *two independently deliverable slices*, because the blocker sits on the
 **parent**: its row for the delegated requirement reads `covered-by: <that slice>`, the walk visits
-only `unallocated` rows, and no command returns a row to `unallocated`. So the parent is given one
+only `unallocated` rows, and no command returns one row to `unallocated` — a `/brd-intake` re-run
+reopens every row at once, discarding every fate the walks recorded. So the parent is given one
 narrow way to move it. Where a slice's own ledger records `deferred-to` against a row its parent
 delegated to it — two ledgers already agreeing that nobody is building the requirement — an
 instruction typed against the parent's fully-allocated ledger, `/brd-split <PARENT-KEY> "<what to

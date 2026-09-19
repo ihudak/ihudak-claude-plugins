@@ -476,8 +476,8 @@ with a "nothing to commit" report on the no-op path.
   `[BR#n]`, the ledger it sits on, and what it will be rewritten to — as prose beside the unchanged
   picker. On removal, a row on this BRD's own ledger takes `deferred-to: <this BRD>` and a row on
   another child's takes `covered-by: <PARENT-KEY>`: never back to the slice that donated it, which
-  recorded that it will not build it, and never to `unallocated`, which no command may write — so a
-  removal never reopens the allocation gate. Every such write lands **before** the deletion, so an
+  recorded that it will not build it, and never to `unallocated`, which `/brd-split` never writes onto
+  a row already carrying a fate — so a removal never reopens the allocation gate. Every such write lands **before** the deletion, so an
   interrupted run leaves an empty folder still on disk and every reading accurate, rather than a key
   naming a folder that is gone. This repair became reachable with the re-cut, which is what made a
   child that a ledger still names able to end a run claiming nothing; where the read finds no such

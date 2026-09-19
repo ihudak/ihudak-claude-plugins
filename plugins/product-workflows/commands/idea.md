@@ -16,9 +16,9 @@ It then **vendors what it read into that same folder** (Phase 4.5) so the record
 one whose links resolve for everybody, not only for the operator whose disk the sources came off.
 
 Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless (until convergence).
-`--no-docs` turns off documentation grounding (see Phase 2.5).
+`--no-docs` turns off documentation grounding (see Phase 1).
 `--docs <path>` points documentation grounding at `<path>` instead of `${DOCS_PATH:-/workspace/docs}`
-(see Phase 2.5); the token after it is always its value.
+(see Phase 1); the token after it is always its value.
 `--ground-code [<repo>[,<repo>…]]` grounds the idea against mounted code (see Phase 2.6) — bare it derives the repo set, with a value it scans exactly those repos. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text.
 
 ---
@@ -97,7 +97,9 @@ types to disambiguate.
 choices: ["Re-enter the path (Recommended)", "Read the argument as a prompt — the literal text is the idea", "Cancel"]
 ```
 
-**Everything else** — a `.md` path that resolves, and plain prose — is unambiguous. State the resolution in one line that invites correction and **proceed without waiting**; the list would have one plausible answer. (A dedicated `--as prompt|markdown|rfe|prd` override is future work — this inline confirmation covers a mis-detection.)
+**Everything else** — a `.md` path that resolves, and plain prose — is unambiguous. State the resolution in one line that invites correction and **proceed without waiting**; the list would have one plausible answer. (A dedicated `--as prompt|markdown|prd` override is future work — this inline confirmation covers a mis-detection.)
+
+**Resolve documentation grounding here, before the run's real work.** Run `resolve-docs-grounding idea` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — its step 3.5 index prompt included — and show the `docs grounding:` line from what it returns, in the form that reference fixes — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs). It runs here and nowhere later because step 3.5 asks its one-time index question before any of the run's real work, and Phase 1.5's walk and Phase 2's readers are that work. This is the run's one resolution (`workflows-core:docs-grounding`, *Invariants*): Phase 2.5 dispatches on the state it returns and resolves nothing again.
 
 ---
 
@@ -216,7 +218,7 @@ never there.
 
 This phase dispatches one grounding agent, the docs grounder. Code grounding is Phase 2.6's, run after this phase and never in the same response; docs grounding being OFF never suppresses it, nor the reverse.
 
-**Docs.** Run `resolve-docs-grounding idea` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — here, and only here: this is the run's one resolution and the phase that shows its line (`workflows-core:docs-grounding`, *Invariants*). As soon as it returns, show the `docs grounding:` line in the form that reference resolves — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs). When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; pass `key` = the run's own key, which enables the git-grep backstop. When OFF, dispatch nothing and move on.
+**Docs.** Phase 1 already resolved documentation grounding and showed its line; this phase consumes that result and resolves nothing again. Where Phase 1 resolved `docs_grounding: ON`, `dispatch-docs-grounder` (`workflows-core:docs-grounding`) with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; pass `key` = the run's own key, which enables the git-grep backstop. Where it resolved OFF, dispatch nothing and move on.
 
 Carry the digest into Phase 3 with **grill-rank** consumption — its challenges compete for the ≤10 question slots, they do not add slots. (One digest, not two: prior-art discovery was removed with its finder, so `docs_challenges` is the only challenge set an agent produces here. There is no `area_proposal` to carry either — nothing proposes a write path now that the key names the folder.)
 

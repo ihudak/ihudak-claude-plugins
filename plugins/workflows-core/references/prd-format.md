@@ -25,8 +25,8 @@ tracking_programs: [ ... ]
 priority: <e.g. Major>
 labels: [ ... ]
 sources:                     # PROPAGATED from idea.md's recorded provenance — not the literal idea.md
-  - provenance: rfe | prd | community-post | prompt | markdown
-    ref: <RFE key | post URL | ...>
+  - provenance: prd | community-post | prompt | markdown
+    ref: <as idea.md recorded it>
 derived_from: <path to the idea.md this PRD was built from>
 seeded_from_prd: <PRD key or path when this PRD was seeded from another PRD via `/create-prd --from-prd`; omit otherwise>
 brd_key: <the BRD key this PRD was authored from via `/create-prd` on the BRD route; omit otherwise>

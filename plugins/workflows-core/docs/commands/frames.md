@@ -50,7 +50,7 @@ The indexes are deliverables, so they reach the default branch through the [phas
 
 ## The cap
 
-**Forty frames described per run**, counted across every set the run touches. `/idea` caps at six because reading a mockup is incidental to writing a brief; this command is invoked *to* index, so six would make it useless on the first real export it met.
+**Forty frames described per run**, counted across every set the run touches. `/idea` has no such cap, because reading a mockup is incidental to writing a brief: it asks before reading past six images and reads what you allow ten to an agent. This command is invoked *to* index and asks nothing first, so stopping at six would make it useless on the first real export it met, and it describes a whole set in one agent, which is the context forty bounds.
 
 **What counts as a frame** is the extension set [`grounding-format.md`](../../references/grounding-format.md) §6.2 fixes — `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`. One vocabulary, shared with `/idea`, because two writers of one index listing by two different sets would each drop the other's rows as frames that had gone missing. Anything else in the directory is not a frame, gets no row, and is named once in the report so it is visibly not indexed rather than invisibly absent.
 

@@ -190,12 +190,15 @@ For each frame set, in directory order:
 2. **Apply the cap — 40 frames described per run, counted across every set the run touches.**
    Consume the budget set by set in directory order, and within a set in listing order.
 
-   **Why 40, and not `/idea`'s 6.** That cap bounds an *incidental* read inside a command whose
-   subject is a brief; six mockups is generous for that. This command is invoked precisely *to*
-   index, so a cap of six would make it useless on the first real export it met. Forty is the size of
-   a feature's screen flow as humans actually export one, and it is a bound on the most
-   context-expensive read this plugin does: forty images in one `frame-describer` context, and none
-   of them in this orchestrator's.
+   **Why a cap of 40, when `/idea` reads every image its operator allows.** `/idea` reads images
+   only incidentally, inside a command whose subject is a brief: it asks the operator before reading
+   past six, and reads what they allow in `figure-reader` dispatches of at most ten images each, so
+   no one context holds more than ten. This command is invoked precisely *to* index and asks nothing
+   before it reads, so stopping at six would stop it on the first real export it met; and it
+   describes each set in one `frame-describer` dispatch, so a cap is what bounds a context here.
+   Forty is the size of a feature's screen flow as humans actually export one, and it is a bound on
+   the most context-expensive read this plugin does: forty images in one `frame-describer` context,
+   and none of them in this orchestrator's.
 
    **What happens when it bites.** Every frame past the budget stays in the listing and still gets a
    row — §6.2 step 4's `—` and the literal `_no description on record_` — with `cap` as its reason in

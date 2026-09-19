@@ -14,7 +14,7 @@ key: <the key the run was invoked with>
 title: <candidate human-readable title>
 slug: <candidate-kebab-slug>
 sources:
-  - provenance: rfe | prd | markdown | community-post | prompt | doc-grounding
+  - provenance: prd | markdown | community-post | prompt
     ref: <path | KEY | url>
     vendored: <PRD-folder-relative path of the copy>   # present IFF this source was vendored
 created: <YYYY-MM-DD>
@@ -31,6 +31,13 @@ provenance — one per `/idea` run, the prompt or the file named on its command 
 source links is not an ingested source** and gets no `sources` entry: its copy is recorded by the
 rewritten link in `idea.md` that points at it and, for an image, by its row in
 `design/idea-sources/index.md` (**Vendored sources** below).
+
+**Four `provenance` values, because those are all a run produces**: `/idea` Phase 1 classifies a
+prompt or a markdown file, and `idea-reader` upgrades a markdown file to `community-post` or `prd`
+off the file itself. Earlier releases also listed `rfe` and `doc-grounding`, and no command produces
+either. A value left in an existing `idea.md` — or carried from one into a PRD's `sources` — stays
+readable: nothing decides anything on a `sources` entry's `provenance`, and `/create-prd` propagates
+the entry as it stands.
 
 **`ref` is never rewritten; `vendored` is what a later reader follows.** `ref` answers how the idea
 arrived, and a path that resolves on nobody else's machine is still the true answer to that question.

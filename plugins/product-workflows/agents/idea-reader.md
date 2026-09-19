@@ -17,7 +17,7 @@ grilling loop refines into `idea.md`. This agent does NOT grill, decide gaps, or
 
 ```yaml
 argument:        <what the caller's Phase 1 classified: prompt text | file path, with no leading @>
-provenance_hint: prompt | markdown | community-post | rfe | prd   # from the caller's Phase 1 classification
+provenance_hint: prompt | markdown   # the caller's Phase 1 classification — the only two it computes
 walk:            <the caller's walk record — ${CLAUDE_PLUGIN_ROOT}/references/linked-sources.md §5, every entry carrying `taken`, `false` on one carrying a walk `reason`; absent for a prompt>
 figures:         <every figure-reader return entry for the taken images; absent where none was taken>
 ```
@@ -30,12 +30,12 @@ or without `figures` where the walk took an image.
 **prompt** (`provenance_hint: prompt`) — treat `argument` as the raw idea text. No filesystem reads.
 Distill it into `raw_context`; `source_refs: []`.
 
-**markdown / community-post** (`provenance_hint: markdown | community-post`) — resolve `argument` to an
-existing `.md` file (accept an absolute path, or one relative to the caller's working directory). Read it,
-then read every page the `walk` took and every transcription in `figures` (*What the caller hands
-over*, below). For a community post (a markdown file under a `Projects/Products/` path, or with a
-thread/comment shape), additionally extract **demand signals** — requester names/handles, upvote/vote
-counts, recurring asks — into `signals`.
+**markdown** (`provenance_hint: markdown`) — resolve `argument` to an existing `.md` file (accept an
+absolute path, or one relative to the caller's working directory). Read it, then read every page the
+`walk` took and every transcription in `figures` (*What the caller hands over*, below). For a
+community post (a markdown file under a `Projects/Products/` path, or with a thread/comment shape),
+return `provenance: community-post` and additionally extract **demand signals** — requester
+names/handles, upvote/vote counts, recurring asks — into `signals`.
 
 **A source that is itself a Product Requirements Document is tagged `prd`.** Read the file's own
 frontmatter: `kind: prd` (or a `prd.md` / `idea.md` under a `PRD-<KEY>-<slug>/` folder) means the operator
@@ -98,11 +98,6 @@ that were read into the PRD folder (`${CLAUDE_PLUGIN_ROOT}/references/idea-forma
 sources*) and copies nothing from this list. Enumerating is the whole obligation: never open one of
 these files, never summarise it, and never infer what it holds from its name or its extension.
 
-Then split by provenance:
-
-- **`rfe`** — product feedback (a `Product Need`). Distill the ticket summary/description into `raw_context`; put requester / customer-demand info into `signals`, as today.
-- **`prd`** — an existing Product Requirements Document, supplied as a path. This is **prior art the user supplied**, not demand evidence.
-
 Note an unresolved link or image in a page that was read — the source, or a page the walk took — in
 `wikilinks_broken` and continue; a broken link is never fatal.
 
@@ -112,7 +107,7 @@ Return this exact YAML shape (no preamble, no chatter):
 
 ```yaml
 status: OK | NOT_FOUND
-provenance: prompt | markdown | community-post | rfe | prd
+provenance: prompt | markdown | community-post | prd
 tracked:                 # present only for provenance: prd
   key:        <the source document's own key>
   status:     <from the source's own frontmatter; omit when it carries none>

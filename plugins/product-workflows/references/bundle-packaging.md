@@ -88,7 +88,7 @@ Exactly this, and nothing else:
 | `decisions.md` | *the single most important claim to verify first*, *the decisions the customer must make*, *what could still move* |
 | `interview/customer-questions.md` | *the decisions the customer must make* |
 | every prerequisite package copied in, marked *not for re-review* | *what each package in the bundle is for* |
-| every image the documents above reference, and every image `brd/brd-figures.md` holds a section for | the documents embed them (§2), and a figures section sends the reviewer to the picture it transcribes — as does an image anchor or a question naming the image |
+| every image the documents above reference, and every image `brd/brd-figures.md` holds a section for — save one whose section carries the marker `references/brd-format.md` §1.2 fixes and whose *Rows* line yields no row | the documents embed them (§2), and a figures section sends the reviewer to the picture it transcribes — as does an image anchor or a question naming the image. A marked image is not in the current document, so it ships only where a preserved row still anchors on it: the customer needs the picture to check that row |
 | the manifest | *documents to review* |
 
 Plain markdown and images — nothing else (§2). The manifest lists documents by filename, for the
@@ -98,6 +98,19 @@ to `brd/` to its bundled filename.** That path is the form every reference to a 
 a figures section's heading, an appendix or image `source_anchor`, and an interview question naming
 an image (`references/brd-format.md` §1.2, §2). None of them is a bundle filename, so without the map
 a reviewer who searches by filename, as rule 4 tells them to, finds nothing.
+
+**The figures file ships without its frontmatter.** Every field in it is the specs tree's
+bookkeeping rather than anything a reader outside the vault can use (`references/brd-format.md`
+§1.2), so the de-Obsidianising pass removes it whole, as it removes any frontmatter that means
+nothing to a reader outside a vault (§2), and leaves in its place the one-line note that pass
+requires. That note names the customer's document by its **bundled** filename. `kind:` and `key:`
+are how the specs tree asserts a file's identity, and the bundled filename already carries the key.
+`written_by:` names the plugin's own command, which no bundle document may name
+(`commands/brd-package.md`'s standing rule). `source:` names the customer's document by its working
+basename, and the bundle renames that document (`commands/brd-package.md`'s *Assemble the bundle*
+rule 1), so kept as written it is exactly the working-filename reference §6.2's relation 3 stops on.
+It is plugin-written, so no verbatim-content exemption (§6.3) reaches it. The note carries the one
+fact `source:` held, in the form the reviewer can search for.
 
 **The code-defect log ships, and the reason is scope rather than disclosure.** A `[CDF#n]` disposed
 `in-scope` names a repair that has to happen inside this PRD's scope or the feature cannot be

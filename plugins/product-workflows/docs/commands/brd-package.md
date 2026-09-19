@@ -142,20 +142,21 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
 `brd-link.md` also gains any prerequisite this run declared, merged additively.
 
 **The self-review never travels, and the reason is the disposition gate.** A `[SR#n]` disposed
-`rejected-with-reason` has its reason recorded there and it "stays inside the delivery organisation";
-the `[SR#n]` content the customer may see reaches them **filtered** — `accepted-risk` findings under
-*where to attack us hardest*, `escalated-to-customer` findings under *the decisions the customer must
-make*. Shipping the file would defeat that filter and hand the customer an internal disagreement to
-referee. What the bundle *does* hold is an allow-list, not a deny-list, and
+`rejected-with-reason` has its reason recorded there and it "stays inside the delivery
+organisation"; the `[SR#n]` content the customer may see reaches them **filtered** — `accepted-risk`
+findings under *where to attack us hardest*, `escalated-to-customer` findings under *the decisions
+the customer must make*. Shipping the file would defeat that filter and hand the customer an
+internal disagreement to referee. What the bundle *does* hold is an allow-list, not a deny-list, and
 [`bundle-packaging.md`](../../references/bundle-packaging.md) §1.1 is its authority: the prompt; the
-customer's own source document, every markdown file captured with it, its defect log and — where
-it links an image — the transcription of each image (the parent's on a slice); the inventory; the
+customer's own source document, every markdown file captured with it, its defect log and — where it
+links an image — the transcription of each image (the parent's on a slice); the inventory; the
 coverage ledger; the three grounding files; the decision register; the code-defect log where the
 folder holds one; the `[C]` question set; each prerequisite package; the images those reference and
-every image the transcription covers; and the manifest, which maps each captured file's path — the
-form a transcription, an anchor or a question names it by — to its bundled filename. The customer's
-own files go in byte for byte, unrendered. A document reaches the bundle only where a part of the
-prompt sends the reviewer to it — everything else in the folder is a working record and stays.
+every image the transcription covers — one no longer in the current document only where a
+requirement still anchors on it; and the manifest, which maps each captured file's path — the form a
+transcription, an anchor or a question names it by — to its bundled filename. The customer's own
+files go in byte for byte, unrendered. A document reaches the bundle only where a part of the prompt
+sends the reviewer to it — everything else in the folder is a working record and stays.
 
 Behind the handoff phase's consent choice, these are committed, pushed, and a pull request opened
 against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix. The

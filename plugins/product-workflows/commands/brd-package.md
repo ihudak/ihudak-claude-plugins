@@ -839,20 +839,21 @@ Write `<BRD-dir>/bundle-<YYYYMMDD>/`. The bundle is a **rendered copy**, produce
 the working documents keep their wikilinks and are never rewritten in place
 (`bundle-packaging.md` §2).
 
-**What goes in is `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1's allow-list,
-applied verbatim** — the rendered prompt; the customer's own source document, every other markdown
-file `/brd-intake` captured under `brd/source/` or `brd/source-external/`, the defect log and, only
-where the BRD links an image, `brd/brd-figures.md` (**the parent's on a slice**, one hop, since a
-slice holds none of them — `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.1, §2.1, §4);
+**What goes in is `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1's allow-list, applied
+verbatim** — the rendered prompt; the customer's own source document, every other markdown file
+`/brd-intake` captured under `brd/source/` or `brd/source-external/`, the defect log and, only where
+the BRD links an image, `brd/brd-figures.md` (**the parent's on a slice**, one hop, since a slice
+holds none of them — `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.1, §2.1, §4);
 `brd/brd-inventory.md`; `coverage-ledger.md`; `code-defect-log.md`, when the folder holds one;
 `grounding/code-grounding.md`, `grounding/design-grounding.md` and `grounding/baselines.md`;
-`decisions.md`; `interview/customer-questions.md`; every prerequisite package resolved above,
-copied in and marked **not for re-review**; every image those documents reference — including one
-a captured file reaches through a `[[wikilink]]` or from outside the document's own directory, found
+`decisions.md`; `interview/customer-questions.md`; every prerequisite package resolved above, copied
+in and marked **not for re-review**; every image those documents reference — including one a
+captured file reaches through a `[[wikilink]]` or from outside the document's own directory, found
 through the link log (`bundle-packaging.md` §2.1) — and every image the figures file holds a section
-for; and a manifest, which maps every captured file the bundle carries from its path relative to
-`brd/` to its bundled filename (`bundle-packaging.md` §1.1). Plain markdown and images, and nothing
-else.
+for, save one whose section carries the marker `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2
+fixes and whose *Rows* line yields no row; and a manifest, which maps every captured file the bundle
+carries from its path relative to `brd/` to its bundled filename (`bundle-packaging.md` §1.1). Plain
+markdown and images, and nothing else.
 
 **What does not go in:** the delivery note; **`self-review-<YYYYMMDD>.md`**; every other working
 record in this BRD folder (`slices.md`, `brd-link.md`, the seeds, the round records, an earlier
@@ -903,7 +904,9 @@ self-review is free of them while being the most internal document this command 
 4. **Remove anything that renders in exactly one tool** — canvas or database-view files, query or
    dataview blocks, plugin-specific embed syntax, frontmatter that means nothing outside the vault —
    converting it to something that renders everywhere, or removing it **with a note saying what
-   stood there**. A block that silently renders as nothing is the same defect as a dead wikilink:
+   stood there**. The figures file's frontmatter is removed whole, `written_by:` and `source:` with
+   the rest, and its note names the customer's document by its bundled filename
+   (`bundle-packaging.md` §1.1). A block that silently renders as nothing is the same defect as a dead wikilink:
    the reviewer cannot see that they are missing something.
 5. **Copy each prerequisite package in, marked *not for re-review*.** The marking is on the
    documents' own front matter line in the bundle and in the manifest, and the prompt's part 2 says

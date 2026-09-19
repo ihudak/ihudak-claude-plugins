@@ -47,15 +47,14 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   fates — and a defect is asked once across all the slices: where any slice's `[C]` question set
   already carries it, none asks it again. Where that cannot be told yet — a listed row still
   unallocated, or a sibling's ledger or question set unreadable — the run withholds the defect and
-  says why. **Round 1's record decides which round a
-  defect goes into.** On a slice interviewed before this source existed, round 1's record has no
-  requirement-defect line, so its defects belong in round 1: an open round 1 takes them at once, and
-  a closed one is re-opened with `--round 1` and the cause *requirement defects became a question
-  source* — a bare run names those defects and offers that re-open rather than asking them itself,
-  and a new round it opens for a changed finding or decision proceeds without them. On a slice
-  interviewed since, a defect that becomes its to ask later goes into a new round; while a round is
-  still open it waits, and the run names it as waiting rather than letting a package go out silent
-  about it.
+  says why. **Round 1's record decides which round a defect goes into.** On a slice interviewed
+  before this source existed, round 1's record has no requirement-defect line, so its defects belong
+  in round 1: an open round 1 takes them at once, and a closed one is re-opened with `--round 1` and
+  the cause *requirement defects became a question source* — a bare run names those defects and
+  offers that re-open rather than asking them itself, and a new round it opens for a changed finding
+  or decision proceeds without them. On a slice interviewed since, a defect that becomes its to ask
+  later goes into a new round; while a round is still open it waits, and the run names it as waiting
+  rather than letting a package go out silent about it.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).

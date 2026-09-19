@@ -175,9 +175,10 @@ choices: ["Stop and convert them first — nothing has been written (Recommended
 It is an operator halt, not a plugin gap, so `emit-block` does not fire — Phase 9 makes the same call
 for every Phase 0 stop. **Converting is the operator's checked step for the same reason Phase 0 step 3
 refuses to convert the document**: an unchecked conversion would silently become part of the record.
-*Proceed* copies them, reads none of them, and records the operator's account in the final report,
-exactly as Phase 3's *"They hold no obligation"* answer is recorded. Where the taken set holds no
-*other* file, this question is not asked.
+*Proceed* copies them, reads none of them, and records the operator's answer — the option picked,
+since the question collects no free text — in the final report, exactly as Phase 3's *"They hold no
+obligation"* answer is recorded. Where the taken set holds no *other* file, this question is not
+asked.
 
 **Then, in every case**, confirm the run:
 
@@ -315,13 +316,14 @@ reading it did (`brd-format.md` §1.2).
    An `INPUT_MISSING` return is this run's defect — it sent an empty batch — and is fixed and
    re-dispatched, never recorded as an unread image.
 3. **Write `<BRD-dir>/brd/brd-figures.md`** per `brd-format.md` §1.2: one section per image Phase 2
-   copied, in capture order — re-used transcriptions verbatim, new ones from the agent's return, an
-   image returned `read: false` with its reason and no transcription. Write *Linked from* afresh for
-   every image Phase 2 copied, re-used or not, from the copied files Phase 1's walk found linking
-   it, each passage by its heading path in `brd-format.md` §2.2's form, a file's title left out.
-   Write the counts line as §1.2 defines its terms — a re-used section counted under `reused`,
-   never under `read`. **Every section already on file whose image this run did not take stays** — a
-   section is never deleted — and carries the *Not captured by the current run* marker
+   copied, in capture order — re-used transcriptions verbatim, new ones from the agent's return in
+   the *Text*, *Annotations* and *Flow* forms §1.2 fixes, an image returned `read: false` with its
+   reason and no transcription. Write *Linked from* afresh for every image Phase 2 copied, re-used
+   or not, from the copied files Phase 1's walk found linking it, each passage by its heading path
+   in `brd-format.md` §2.2's form, a file's title left out, or by its line range where it has none
+   (§1.2). Write the counts line as §1.2 defines its terms — a re-used section counted under
+   `reused`, never under `read`. **Every section already on file whose image this run did not take
+   stays** — a section is never deleted — and carries the *Not captured by the current run* marker
    `brd-format.md` §1.2 fixes, whatever the cause — for instance the current document no longer
    links the image, this run's Phase 1 answer left it out, or a changed outside image was copied
    beside it under a `_NN` name; a section whose image this run takes again carries none. Leave
@@ -413,11 +415,11 @@ Act on `status`:
      `BRD_INTAKE_DANGLING_ANCHOR: <N> inventory row(s) carry a source_anchor that resolves to nothing in the copied source under brd/ (<BR-id>: <anchor>, …), and none of them is a row this run preserved as no longer present. The row cannot be traced back to the customer's document, which is the one thing the anchor exists for. Correct each anchor by hand in <path> and re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>': the re-run keeps every id, and keeps a corrected anchor that resolves.`
   2. **Every top-level section — of the document and of each linked markdown file Phase 2 copied —
      either holds a row or is accounted for.** `brd-format.md` §2.2 fixes what a top-level section
-     is — where one heading titles a file, the sections beneath the title — and what holds one: an
-     anchor naming it or a section beneath it, or a link in it to an image or a captured markdown
-     file that yields a row; it counts a linked file with no heading as one section. Name each
-     section that holds none, by its heading path in that section's form, with what the source has
-     under it.
+     is — where one heading titles a file, the sections at the shallowest level beneath the title —
+     and what holds one: an anchor naming it or a section beneath it, or a link in it to an image or
+     a captured markdown file that yields a row; it counts a linked file with no heading as one
+     section. Name each section that holds none, by its heading path in §2.2's form, with what the
+     source has under it.
   3. **Every image Phase 2 copied yields a row, illustrates one, or is accounted for**
      (`brd-format.md` §2.2). Name each image that does neither — with its *Depicts* sentence from
      `brd/brd-figures.md`, or its reason where it was not read.
@@ -435,8 +437,9 @@ choices: ["Re-read the named sections — re-dispatch brd-reader over the whole 
   above already performs. **It does nothing for an image that was not read**: `brd-reader` reads a
   transcription and never the picture, and an unread image has none, so a re-read returns the same
   result and the question comes back. Where the question names such an image, say so beside it — it
-  is settled by the second option, with the operator's account, or by converting the image and
-  re-running this intake. The second option records the operator's account in the final report.
+  is settled by the second option, with the operator's answer, or by converting the image and
+  re-running this intake. The second option records the operator's answer — the option picked,
+  since the question collects no free text — in the final report.
   **Report the outcome either way, including "every top-level section and every image accounted
   for"** — an unreported clean result is indistinguishable from an unrun check. **Where no anchor
   parses at all, say that and stop**: that is a read failure, not a document with no coverage.
@@ -502,27 +505,35 @@ rejecting each one, against the customer or the delivery team, is this phase's j
 
 **On a re-run over a folder whose defect log already holds entries, match before asking** — a
 `[DEF#n]` is permanent (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §4), and a re-extraction
-proposes the defects already logged all over again. Read `brd/brd-defect-log.md` first. A
-carried-forward candidate **matches** an entry on file where the two share a class, are raised on
-the same row — the candidate's row as Phase 3's reconciliation numbered it — and, for a `conflict`
-or a `duplicate`, name the same counterpart row or rows, mapped the same way. **A match is that
-entry**: it is not put to the operator again, and it keeps its `[DEF#n]`, its reason and its
-resolution exactly as on file — so a defect `/brd-reconcile` resolved stays resolved, and a defect
-already put to the customer keeps the id its held question names and is not asked twice. Where
-several candidates or several entries share one class, row and counterpart set, pair them in order
-— the entries by id, the candidates as returned — and treat whatever is left over on either side as
-unmatched. **An entry no candidate matched is kept exactly as it stands** and reported as *not
-re-raised by this extraction*: its id stays in the log, and every row that cited it keeps citing it
-(Phase 3 carried those ids over), since a read that did not propose it again has not shown the
-defect gone. Only an unmatched candidate is walked below — including one an earlier run rejected,
-which left no entry to match and so is put again.
+proposes the defects already logged all over again. Read `brd/brd-defect-log.md` first, and take
+every row in the test below as Phase 3's reconciliation numbered it.
+
+- **An `ambiguity`, `untestable`, `unsourced` or `scope-leak` candidate matches** an entry on file
+  of its class raised on the same row. Where several candidates or several entries share one class
+  and row, pair them in order — the entries by id, the candidates as returned — and treat whatever
+  is left over on either side as unmatched.
+- **A `conflict` or a `duplicate` is matched on the rows its relation joins, in either direction**,
+  never on which row raised it: the same split or clash can be raised from the whole, naming each
+  part, or from each part, naming the whole. Such a candidate joins its row to each counterpart it
+  names, and it matches where every one of those pairs is already joined, by some entry on file of
+  its class raised from either end — those entries are what it matches.
+
+**A match is that entry, or those entries**: the candidate is not put to the operator again, and
+nothing is written for it — each entry keeps its `[DEF#n]`, its reason and its resolution exactly as
+on file — so a defect `/brd-reconcile` resolved stays resolved, and a defect already put to the
+customer keeps the id its held question names and is not asked twice. **An entry no candidate
+matched is kept exactly as it stands** — for a `conflict` or a `duplicate`, one with a pair of rows
+no candidate of this read joins — and reported as *not re-raised by this extraction*: its id stays
+in the log, and every row that cited it keeps citing it (Phase 3 carried those ids over), since a
+read that did not propose it again has not shown the defect gone. Only an unmatched candidate is
+walked below — including one an earlier run rejected, which left no entry to match and so is put
+again.
 
 Group the candidates to walk by class — every carried-forward candidate on a first intake, the
 unmatched ones on a re-run; `brd-reader`'s, plus any Phase 3.5 raised from documentation, which are
 walked identically and marked in the report as docs-raised — and walk them **one class at a time**,
-in the fixed order
-`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §3 lists its six classes. Within a class,
-confirm each candidate individually via `AskUserQuestion`:
+in the fixed order `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §3 lists its six classes. Within
+a class, confirm each candidate individually via `AskUserQuestion`:
 
 ```
 choices: ["Confirm as written (Recommended)", "Confirm with an edited reason", "Reject — not a defect", "Cancel"]
@@ -560,10 +571,10 @@ the six that blocks §4." No row is ever written in any other disposition here.
 after Phase 3's reconciliation mapping, never from the agent's own numbering: `yields` every row
 whose `source_anchor` names the image and `illustrates` every row the agent returned for it, either
 half left out where its list is empty (`yields [BR#3]`), or
-`accounted for — <the operator's Phase 3 account>` where it does neither; after an `EMPTY` read,
-which leaves no row and asks for no account, the value `brd-format.md` §1.2 fixes for that case. A
+`accounted for — <the operator's Phase 3 answer>` where it does neither; after an `EMPTY` read,
+which leaves no row and asks no question, the value `brd-format.md` §1.2 fixes for that case. A
 section carrying the *Not captured by the current run* marker `brd-format.md` §1.2 fixes gets no
-agent entry and no Phase 3 account: its *Linked from* and *Rows* take the values §1.2 fixes for such
+agent entry and no Phase 3 answer: its *Linked from* and *Rows* take the values §1.2 fixes for such
 a section. Where no figures file exists after Phase 2.5, this is skipped.
 
 **On a re-run this phase rewrites every disposition, and it does so unconditionally by design.**

@@ -145,17 +145,17 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   row nobody can trace back and the run stops, **except a row a re-run deliberately preserved as no
   longer present in a revised source**: that is a recorded state, and stopping on it would refuse a
   customer's revised BRD with a remedy nobody could perform. And every **top-level section** — of
-  the document and of each linked markdown file, the sections beneath its title where one heading
-  titles it — and every **image** must either hold or illustrate a row or be accounted for, a
-  section holding one where it links an image or an appendix that yields a row: one that does
-  neither is a question rather than a stop, since only a person can say whether it binds the
-  delivery team to anything, so the run names each — a section with what the source has under it,
-  an image with what the plugin read in it, or its reason where it could not be read — and asks once
-  for the set. **Section granularity is the point and was
-  measured**: real BRDs carry fifty or sixty headings under about fifteen top-level sections, of
-  which nine or so legitimately hold nothing, so the operator answers nine questions rather than
-  fifty — and on a real package the sections carrying no row included the user stories and the
-  acceptance tests, which is exactly the pair worth putting to a human.
+  the document and of each linked markdown file, the sections at the shallowest level beneath its
+  title where one heading titles it — and every **image** must either hold or illustrate a row or be
+  accounted for, a section holding one where it links an image or an appendix that yields a row: one
+  that does neither is a question rather than a stop, since only a person can say whether it binds
+  the delivery team to anything, so the run names each — a section with what the source has under
+  it, an image with what the plugin read in it, or its reason where it could not be read — and asks
+  once for the set. **Section granularity is the point and was measured**: real BRDs carry fifty or
+  sixty headings under about fifteen top-level sections, of which nine or so legitimately hold
+  nothing, so the operator answers nine questions rather than fifty — and on a real package the
+  sections carrying no row included the user stories and the acceptance tests, which is exactly the
+  pair worth putting to a human.
 - **Phase 3.5 — `docs-grounder`** (optional). Read-only, advisory, never a gate. Its digest is
   consumed grill-rank: `docs_challenges` are ranked into the order Phase 4 walks its candidates,
   and one may be *raised* as an additional defect candidate — but only as `unsourced` (the
@@ -170,7 +170,8 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   [`brd-format.md`](../../references/brd-format.md) §3 lists its six classes, via `AskUserQuestion`,
   and only a confirmed candidate is assigned a `[DEF#n]` id. A rejected candidate is dropped, not
   recorded. **A re-run does not ask again about a defect already logged**: a candidate with the same
-  class, row and counterparts as an entry on file is that entry, keeping its id, reason and
+  class and row as an entry on file is that entry — a `conflict` or `duplicate` matching where the
+  entries on file already join the same rows, raised from either end — keeping its id, reason and
   resolution; only the rest are walked, taking ids after the highest in use; and an entry this read
   did not propose again is kept, and reported as not re-raised. A `[DEF#n]` id is never reused,
   renumbered or deleted, so an inventory or ledger row, or a held customer question, naming it still

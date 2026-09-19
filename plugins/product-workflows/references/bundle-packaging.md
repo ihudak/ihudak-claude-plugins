@@ -486,7 +486,7 @@ every id inside it is unresolvable by construction.
 ### 6.2 The three relations
 
 **Relation 1 — every identifier reference resolves inside its own partition's corpus for that
-class, unless it carries the owning BRD key at the point of use.** The qualified **prose** form is
+class, unless it carries another BRD's key at the point of use.** The qualified **prose** form is
 `<BRD-KEY> [CG#7]` — the key immediately before the bracketed id — and it is **one spelling only**:
 `workflows-core:grounding-format` §2.1's whole argument is that a writer free to choose between two
 renderings produces an artifact whose readers are wrong in a way that looks like data, and a
@@ -498,7 +498,8 @@ file meets `[CG#7]` with nothing telling them whose numbering it is.
 an identifier reaches the bundle inside a **structured field whose format another authority fixes**,
 and that authority defines the field to name a record of another BRD, relation 1 treats it as a
 **qualified cross-package reference** and discharges it: it is never resolved against this
-partition's corpus, and never a dead citation. That is the rule, and the fields below follow from it
+partition's corpus, and never a dead citation — save where the key it carries is its own
+partition's, which is resolved (below). That is the rule, and the fields below follow from it
 rather than the other way round. Two things make it the only honest reading. The operator could not
 repair such a value without violating the authority that owns the field; and the BRD it names may
 not be in the bundle at all — `commands/brd-package.md` Phase 2's *BRD not found* and *no package on
@@ -519,7 +520,7 @@ moment it does. Those that exist today:
 | `conditional_on: <BRD-KEY>/<decision-id>` | `references/decision-register-format.md` §5 | one specific decision in a named prerequisite's own register |
 | `blocked_on: <BRD-KEY>/<decision-id>` | `references/code-defect-log-format.md` §5 | one specific decision in a named prerequisite's own register — the decision that would settle a `conditional` `[CDF#n]`'s scope question. Its other spelling is prose naming no bracketed identifier, which no relation ever meets |
 | `prerequisite` | `workflows-core:grounding-format` §2, §5 | the prerequisite BRD's decision a `will-change` finding's horizon turns on |
-| `resolved-by: <SLICE-KEY>/[CG#n]`, `resolved-by: <SLICE-KEY>/[CD#n]` | `references/brd-format.md` §4 | the grounding finding or the customer decision that settled a defect, in the named slice's own grounding file or register — grounding and deciding are both slice-only, and the log is the parent's, so the value carries that slice's key, in the one spelling `references/brd-format.md` §4 fixes, and relation 1 discharges it as naming that slice |
+| `resolved-by: <SLICE-KEY>/[CG#n]`, `resolved-by: <SLICE-KEY>/[CD#n]` | `references/brd-format.md` §4 | the grounding finding or the customer decision that settled a defect, in the named slice's own grounding file or register — grounding and deciding are both slice-only, and the log is the parent's, so the value carries that slice's key, in the one spelling `references/brd-format.md` §4 fixes. Relation 1 resolves it in the named slice's own bundle (below) and discharges it in any other. A bare `resolved-by: [CG#n]` or `[CD#n]` — the pre-3.7.0 spelling, or one written by hand — names no slice, and is reported as an unqualified `prerequisite` is (below) until its slice key is added |
 | the `[BR#n]` a defect entry is raised against, and a `conflict` / `duplicate` entry's counterpart `[BR#n]` | `references/brd-format.md` §3 | a requirement in the log-owning BRD's inventory — the parent's on a slice |
 | `superseded-by: [BR#n]`, and an orphan row's own `id: [BR#n]` | `references/coverage-ledger-format.md` §2, §3 | a requirement of the parent's, one this slice "need not claim or hold a row for" |
 | the *Rows* line of `brd/brd-figures.md` — every `[BR#n]` the line names | `references/brd-format.md` §1.2 | a requirement in the figures file's owning BRD's inventory — the parent's on a slice |
@@ -541,8 +542,17 @@ of this package's own. Resolving it would land on a different record and go **gr
 resolving to the wrong thing, which is the failure §6 exists for, and worse than a stop because
 nothing surfaces. So an **unqualified** `prerequisite` value is reported, exactly as relation 2
 reports a claim naming more than one requirement id, and never resolved into this partition's
-corpus; a silent pick is a guess there too. A value that does carry the owning key is discharged
-like any other field above.
+corpus; a silent pick is a guess there too. A value that does carry the prerequisite's key is
+discharged like any other field above.
+
+**A qualifier naming the reference's own partition is not cross-package, and is resolved.** Where
+the key a reference carries — in a field or in the prose form — is the key of the partition it sits
+in, which for this package's own documents is the packaged BRD's key, relation 1 resolves the id in
+that partition's corpus exactly as it resolves an unqualified one, and a miss is a dead citation:
+`resolved-by: EPIC-008-01/[CD#2]` in slice `EPIC-008-01`'s own bundle resolves against the
+`decisions.md` that bundle carries. **Only a qualifier naming another BRD is discharged.**
+Discharging the own key too would pass a `resolved-by` naming a decision that does not exist in the
+one bundle holding the register that could catch it.
 
 **The two are different things, and the one-spelling discipline is untouched.** A structured field
 is another authority's to format and §6's only to read: a check reads what the tree writes, not what

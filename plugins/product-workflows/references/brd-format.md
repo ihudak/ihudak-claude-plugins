@@ -62,17 +62,17 @@ instead. That log is the **plugin's** record rather than the customer's, which i
 byte is the customer's own and a plugin-written file would read as part of the document they handed
 over. It opens by naming the source document's basename, carries the run's counts — links found,
 files copied, links not copied — and then one row per uncopied link: the target as written, the
-copied file the link sits in, and the reason. **No path the log writes is the operator's own**: a
-captured file is named by its path relative to `brd/`, and an `ambiguous` wikilink's candidates by
-their paths relative to the vault root the walk searched (`references/linked-sources.md` §3) — never
-by an absolute path, which would write the operator's directory layout, home directory included,
-into the specs repository, the reason `brd/source-external/` below keeps basenames only. A target is
-quoted as written, because that is the customer's own text. **The three counts do not add up, and
-that is arithmetic rather than a slip**: two documents linking the same file are two links found and
-one file copied, so the first count is of links and the second of files. **It is written on every
-run, including one that captured everything**, so its counts are the positive record that the
-capture ran; an absent log and an empty one are not (§2.2 makes the same call for the inventory's
-coverage of its source).
+copied file the link sits in, and the reason. **No path a row writes is the operator's own**: a
+row names the captured file a link sits in by its path relative to `brd/`, and an `ambiguous`
+wikilink's candidates by their paths relative to the vault root the walk searched
+(`references/linked-sources.md` §3) — never by an absolute path, which would write the operator's
+directory layout, home directory included, into the specs repository, the reason
+`brd/source-external/` below keeps basenames only. A target is quoted as written, because that is
+the customer's own text. **The three counts do not add up, and that is arithmetic rather than a
+slip**: two documents linking the same file are two links found and one file copied, so the first
+count is of links and the second of files. **It is written on every run, including one that
+captured everything**, so its counts are the positive record that the capture ran; an absent log
+and an empty one are not (§2.2 makes the same call for the inventory's coverage of its source).
 
 **The log also maps every captured link that does not resolve as written.** Its second table,
 *Captured links that do not resolve as written*, carries one row per **link** whose copy cannot be
@@ -136,18 +136,19 @@ Images captured <n> · read <n> · reused from an earlier run <n> · not read <n
 
 ### Text
 
-<verbatim, as figure-reader returned it>
+<the image's own strings, verbatim, as figure-reader returned them — regions apart by a blank line>
 
 ### Annotations
 
 | Says | Points at |
 |---|---|
 | "add a filter here" | the column header row |
+| "" | the `Tax` column |
 
 ### Flow
 
-<diagrams only, one edge per line as figure-reader returned it — `Submit → Manager approval`,
-`Manager approval → Finance approval — label: [> 10k]`; otherwise "none">
+- Submit → Manager approval
+- Manager approval → Finance approval — label: [> 10k]
 
 ### Illegible
 
@@ -172,9 +173,21 @@ none
   transcription exists — so `read 0 · reused 3` beside three `Read: yes` sections is a run that read
   nothing again, not a contradiction.
 - **Linked from** names every file that links the image, each relative to `brd/`, with the heading
-  path of the passage that links it, in §2.2's form — a file's title left out.
-- **Flow** is `figure-reader`'s, one edge per line in the notation `agents/figure-reader.md` fixes:
-  no mark is put around a label, so an image anchor quotes an edge exactly as its line reads (§2).
+  path of the passage that links it, in §2.2's form — a file's title left out. A passage with no
+  heading path — in a lead section, or in a title's own text above the first heading beneath it —
+  is named by its line range.
+- **Text** holds the image's own strings only, verbatim, in reading order — one region apart from
+  the next by a blank line or as items of a list, a table row as its cells separated by ` | ` — and
+  **never a label of the plugin's** (`Title:`, `Row 2:`, `field showing:`), because an image anchor
+  quotes *Text* as the customer's element (§2), and a word of the plugin's there would be quoted as
+  theirs. What a region is, and how many rows a table shows, is *Depicts*'s to say
+  (`agents/figure-reader.md` owns the transcription's shape).
+- **Annotations** is the table above, one row per mark in `figure-reader`'s order — `annotation <n>`
+  (§2) counts them — with an unlabelled mark's *Says* written `""`; an image carrying no mark has
+  `none` in place of the table.
+- **Flow** is one list item per edge, `- <edge>`, each edge in the notation
+  `agents/figure-reader.md` fixes — no mark around a label — and `none` for an image that is not a
+  diagram. An image anchor quotes an edge exactly as it reads, without the list marker (§2).
 - **Read** is `yes`, or `no — <reason>` with `figure-reader`'s reason (`missing`, `not_an_image`,
   `unreadable`); an image not read carries no transcription sections, only its header lines.
 - **Content hash** is the SHA-256 of the image's bytes. A later intake run keeps the section's
@@ -184,9 +197,12 @@ none
   *Rows* are recomputed by the run every time, including for an image the current run did not
   capture (below).
 - **Rows** is completed by `/brd-intake` Phase 5, once the inventory is final: `yields` the rows
-  anchored on this image and `illustrates` the rows whose prose the image restates, either half left
-  out where its list is empty — `yields [BR#3]`, `illustrates [BR#6]` — or
-  `accounted for — <the operator's account>` where it does neither — and
+  anchored on this image, and `illustrates` the prose rows it bears on — each prose row the image
+  restates, and each prose row whose own passage links the image, since a row such as *"Approval
+  must follow the attached flow."* states no obligation beyond binding the ones the image draws —
+  either half left out where its list is empty — `yields [BR#3]`,
+  `illustrates [BR#6]` — or `accounted for — <the operator's answer>` where it does neither, the
+  answer being the option the operator picked at `/brd-intake` Phase 3 — and
   `none — no requirement extracted` where `brd-reader` returned `EMPTY`, so the inventory holds no
   row and nothing was put to the operator. **It names requirements of the BRD that owns this file —
   on a slice, the parent's, one hop (§2.1)**, which is how `references/bundle-packaging.md` §6.2
@@ -229,8 +245,9 @@ id is permanent even if the row it names is later split, superseded, or found de
 - **In an image** — `<path relative to brd/> › "<element>"`, the element a string quoted verbatim from
   the image's *Text*, an annotation's *Says*, or its *Flow* in its §1.2 section — never from *Points
   at* or *Depicts*, which are the plugin's paraphrase — as in
-  `source/images/report.png › "Net total"`, or, quoting a diagram's edge whole as its *Flow* line
-  reads, `source/images/flow.png › "Manager approval → Finance approval — label: [> 10k]"`; or
+  `source/images/report.png › "Net total"`, or, quoting a diagram's edge whole as its *Flow* item
+  reads without the list marker,
+  `source/images/flow.png › "Manager approval → Finance approval — label: [> 10k]"`; or
   `<path relative to brd/> › annotation <n>`, the n-th annotation in its §1.2 section.
 
 **A heading path, in either of the first two forms, names exactly one heading**, with ` › ` between
@@ -289,12 +306,13 @@ otherwise they are the sections at the file's shallowest heading level. So the o
 as its one top-level section, it would always be held and relation 2 could never fire. A file whose
 one heading has nothing beneath it has no title in this sense, and that heading's section is its one
 top-level section. The title's own text above the first heading beneath it is treated as a lead
-section is — addressed by a line range (branch 3 below), and not asked about by relation 2. **Every
-heading path — in an anchor (§2) and in a *Linked from* line (§1.2) — leaves the title out**:
-`2. Monthly report`, never `Acme reporting › 2. Monthly report`, and in a linked file
-`source/appendix/fields.md › Columns` where `Report fields` titles it. One section is then always
-written one way; branch 2 below still resolves a path that does name a title, because it matches
-only the ancestors a path names.
+section is — addressed by a line range (branch 3 below), named by its line range in a *Linked from*
+line (§1.2), and not asked about by relation 2. **Every heading path — in an anchor (§2) and in a
+*Linked from* line (§1.2) — leaves the title out**: `2. Monthly report`, never
+`Acme reporting › 2. Monthly report`, and in a linked file
+`source/appendix/fields.md › Reports › Columns`, where `Report fields` titles the file. One section
+is then always written one way; branch 2 below still resolves a path that does name a title,
+because it matches only the ancestors a path names.
 
 **The granularity is the finding, not a detail.** Real BRDs run to fifty or sixty headings under
 fourteen or fifteen top-level sections, and on a careful intake nine of those fifteen legitimately

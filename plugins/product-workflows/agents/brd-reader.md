@@ -77,6 +77,9 @@ inside a source file is never followed — the caller walked the links already
      naming that row;
    - every prose row the image also restates → list it under that image's `illustrates`, whether or
      not the same image yielded a row above;
+   - every prose row whose own passage links the image, such as *"Approval must follow the attached
+     flow."* → list it under `illustrates` too: it states no obligation of its own beyond binding
+     the ones the image draws (`brd-format.md` §1.2 *Rows*);
    - an image that bears on no obligation at all (a logo, a banner) → no row, an empty `illustrates`,
      and a one-line `note`.
    **An image-derived row's `text` states the obligation in words, quoting the transcribed element
@@ -100,8 +103,9 @@ inside a source file is never followed — the caller walked the links already
      headings repeat, name a parent heading, or use a line range where no parent tells them apart,
      and a line range outright into a file with no heading at all, or into the text above a file's
      first heading); an image anchor's quoted element is copied verbatim from the image's *Text*, an
-     annotation's *Says*, or its *Flow*, exactly as the line reads — never from *Points at* or
-     *Depicts*, which are paraphrase. Paths in it are relative to `<BRD-dir>/brd/`.
+     annotation's *Says*, or its *Flow*, exactly as the line reads and without a list marker — never
+     from *Points at* or *Depicts*, which are paraphrase. Paths in it are relative to
+     `<BRD-dir>/brd/`.
 
 5. **Apply the splitting rule** (`brd-format.md` §2): one numbered item binding the delivery team to
    two or more separable obligations becomes one `[BR#n]` per obligation, each carrying a `duplicate`
@@ -133,7 +137,7 @@ inventory:
         names: [BR#<m>, ...]          # required for conflict and duplicate; omitted otherwise
 figures:                              # one entry per image the figures file records as read and does not mark "Not captured by the current run"; [] when figures_path was omitted
   - path: <the image's path relative to brd/, as the figures file heads it>
-    illustrates: [BR#<n>, ...]        # prose rows the image restates; [] when none
+    illustrates: [BR#<n>, ...]        # prose rows it restates or whose passage links it; [] if none
     note: <optional — e.g. "company logo; bears on no obligation">
 notes: |
   <optional — anything the caller should know about the read: an unusually structured source, a
@@ -144,8 +148,9 @@ notes: |
 - `status: EMPTY` — the set was read and contained no identifiable requirement.
 - `status: NOT_FOUND` — an input was missing, not markdown, or did not resolve to a file.
 - An image's `figures` entry does not itself say which rows it *yields* — a reader gets that from
-  `source_anchor` in the inventory, not from `figures`. That entry's `illustrates` names only the
-  prose rows it restates, whether or not the same image also yielded a row elsewhere in `inventory`.
+  `source_anchor` in the inventory, not from `figures`. That entry's `illustrates` names only prose
+  rows — those it restates and those whose passage links it (step 3) — whether or not the same image
+  also yielded a row elsewhere in `inventory`.
 
 ## Hard rules
 

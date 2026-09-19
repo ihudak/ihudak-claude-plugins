@@ -256,13 +256,15 @@ attack.
   after the plugin-free scan, because both of its inputs — the identifier corpus and the set of
   bundle filenames — are facts about the bundle only once it is assembled. Three relations: every
   identifier reference resolves inside its own partition's corpus for its class, unless it carries
-  the owning BRD key at the point of use; a class-4 `[DG#n]`'s `cites` resolves within the same
-  partition and names the same requirement as the citing finding's own claim; and a bare
-  `<name>.md` token names a document that is actually in the bundle — scoped to the tokens that
-  claim to be bundle references, meaning the token carries the `<BRD-KEY>-` prefix every bundle
-  document's filename carries or exactly matches the working filename of a document the allow-list
-  admits or excludes by name. That scoping is the relation: unscoped, it would refuse a bundle over
-  a correct `docs/api.md:12` sitting in a grounding finding's `evidence` list. It never tests a
+  another BRD's key at the point of use — one naming its own partition, such as a slice's
+  `resolved-by` in that slice's own bundle, is resolved there like an unqualified id; a class-4
+  `[DG#n]`'s `cites` resolves within the same partition and names the same requirement as the citing
+  finding's own claim; and a bare `<name>.md` token names a document that is actually in the bundle
+  — scoped to the tokens that claim to be bundle references, meaning the token carries the
+  `<BRD-KEY>-` prefix every bundle document's filename carries or exactly matches the working
+  filename of a document the allow-list admits or excludes by name. That scoping is the relation:
+  unscoped, it would refuse a bundle over a correct `docs/api.md:12` sitting in a grounding
+  finding's `evidence` list. It never tests a
   repository locator in that list, nor the manifest's quotation of a customer's link as written,
   which sits beside the bundled filename it maps to, nor a captured file's own link to another
   captured file. Its exemptions are `bundle-packaging.md` §6.3's: `[SR#n]` is exempt entirely,

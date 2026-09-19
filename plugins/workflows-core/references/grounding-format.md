@@ -555,7 +555,7 @@ reads the record. Where nothing linked the frame — a human exported the frames
 folder in — or the file that linked it has no copy in the folder, it is `—`. **A row written under
 the older rule** — `workflows-core` 1.7.0 and earlier, when this column held the linking file's
 original path — may name an absolute path on the operator's machine; step 2 keeps it as it stands,
-as it keeps every existing row whose frame is still there.
+as it keeps every described row whose frame is still there.
 
 #### The reconciliation contract
 

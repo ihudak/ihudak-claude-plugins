@@ -187,8 +187,10 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   were asked. A rejected candidate is dropped, not recorded. **A re-run does not ask again about a defect already logged**: a candidate with the same
   class and row as an entry on file is that entry — a `conflict` or `duplicate` matching where the
   entries on file already join the same rows, raised from either end — keeping its id, reason and
-  resolution; only the rest are walked, taking ids after the highest in use; and an entry this read
-  did not propose again is kept, and reported as not re-raised. A `[DEF#n]` id is never reused,
+  resolution; where several share one class and row they pair in order, and a candidate left over is
+  asked with those entries shown beside it, so a restatement is rejected rather than logged twice;
+  only the rest are walked, taking ids after the highest in use; and an entry this read did not
+  propose again is kept, and reported as not re-raised. A `[DEF#n]` id is never reused,
   renumbered or deleted, so an inventory or ledger row, or a held customer question, naming it still
   names the same defect.
 - **Phase 5 — the allocation gate downstream.** `/brd-intake` itself never blocks on the ledger — it

@@ -192,8 +192,8 @@ also runs, in Phase 11, for session lessons-learned.
   ledger, while an **instructed** run that re-cuts a row onto this slice does declare all three and
   lands them as its own walk leaves them. Committing what is already on disk stays the direct route to
   landing them as they stand. `/brd-intake` is named only on a BRD that owns its source document, as a
-  slower second route, since it re-extracts the inventory and rewrites the ledger before handing it
-  off.
+  slower second route, since it re-extracts the inventory and, wherever its read finds a requirement,
+  rewrites the ledger before handing it off.
 
 ### On the idea route
 

@@ -183,14 +183,15 @@ order puts `brd-link.md` first, which is the reading the family's container refu
 their reason for testing a directory prefix rather than an asserted kind: a slice asserts `brd`.
 
 **Why step 2 exists.** `/brd-intake` creates a root BRD folder whose only artifact naming a folder
-kind, until a later command writes one at the top level, is the inventory it writes inside `brd/`
-(`product-workflows:brd-format` §2.1) — the `coverage-ledger.md` it writes at the top level carries
-`key:` beside a `kind:` naming its own document (`product-workflows:coverage-ledger-format` §2),
-which step 1 passes over — so step 1 alone finds nothing in that folder, and a strict reading of
-this rule left every root BRD unresolvable. It is **one named file, not an enumeration of
-carriers per kind**: such a list would go stale the first time a command writes a new artifact, and
-nothing in `scripts/` would catch it, while this exception names the single place the family's own
-reserved subdirectory holds the folder's identity.
+kind is the inventory it writes inside `brd/` (`product-workflows:brd-format` §2.1), and no command
+writes one at a root's top level, so that inventory is a root's only carrier. The
+`coverage-ledger.md` `/brd-intake` writes at the top level carries `key:` beside a `kind:` naming its
+own document (`product-workflows:coverage-ledger-format` §2), which step 1 passes over — so step 1
+alone finds nothing in that folder, and a strict reading of this rule left every root BRD
+unresolvable. It is **one named file, not an enumeration of carriers per kind**: such a list would
+go stale the first time a command writes a new artifact, and nothing in `scripts/` would catch it,
+while this exception names the single place the family's own reserved subdirectory holds the
+folder's identity.
 
 **A reserved subdirectory is otherwise not a candidate for this test.** A frame-set index carries its
 *parent's* `key:` while sitting in a directory named for the set (`design/checkout-flow/`), so every

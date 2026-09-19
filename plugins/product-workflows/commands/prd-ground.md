@@ -50,7 +50,7 @@ behaviour, not the behaviour.
    `PRD_GROUND_NO_PREREQUISITES: --depends-on names a prerequisite BRD whose frozen decisions set a finding's will-change horizon, and <KEY> is on the idea route, which has no decision register to read. Drop the flag and re-run; every finding on this route is horizon: current.`
    `--no-design` —
    boolean, skips Phase 5's `design-grounder` step. `--no-docs` — boolean, turns documentation
-   grounding off for this run (Phase 1 step 0, Phase 4.5). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
+   grounding off for this run (Phase 1 step 0, Phase 4.5). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` *Procedure* step 1 (*Flags first*), which resolves it; this command only has to recognise it and pass the invocation through. `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
    / `--no-derivation-matrix` — mutually exclusive; absent means "let Phase 8 decide the default".
    `--no-code` — boolean, the **run mode** stated above the phases. Its four refusals are checked
    here, before anything expensive runs:

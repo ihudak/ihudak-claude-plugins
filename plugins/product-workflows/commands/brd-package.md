@@ -830,20 +830,26 @@ second copy would fare better.
 ## Phase 7 — Render the delivery note
 
 **First, settle the delivery route — this is the only phase that may know it.** The repository route
-is available only where the *Handoff* phase's §4.3 consent choice was **accepted**: a declined
-handoff leaves the bundle on no ref, so there is nothing for a customer to pull and the archive is
-the only route there is. Do not ask a question whose answer the run already holds.
+is available only where the *Handoff* phase's §4.3 consent choice was **accepted and the handoff
+pushed the bundle**: a declined handoff leaves it on no ref, and an accepted one that did not push
+leaves it where no customer can pull from, so the archive is the only route there is. Key it on the
+`Phase handoff:` line that phase emitted (`workflows-core:phase-handoff` §4.1), never on the choice
+alone. Do not ask a question whose answer the run already holds.
 
-- **Handoff accepted** → ask, once:
+- **Handoff pushed** — the outcome line is *Committed, pushed, PR opened*, *PR already existed* or
+  *PR not opened* → ask, once:
 
   ```
   choices: ["They pull the specs repository (Recommended)", "Send them an archive"]
   ```
 
-  The recommendation stands because a bundle that is committed is already where a customer with
+  The recommendation stands because a bundle that is pushed is already where a customer with
   repository access can reach it, and the archive is then a copy of a thing they have.
-- **Handoff declined, or `$SPECS_PATH` unmanaged** → do not ask. Take the archive route and say why
-  in the Final report: the bundle was not handed off, so there is nowhere to pull it from.
+- **Any other outcome — the handoff declined, `$SPECS_PATH` unmanaged, or an accepted handoff whose
+  line is *Push failed*, *No remote*, *Gate failed* or *Nothing to commit*** → do not ask. Take the
+  archive route and say why in the Final report: this run pushed nothing, so it cannot tell the
+  customer anywhere to pull the bundle from — *Push failed* and *No remote* left it on a commit this
+  machine alone holds, and *Gate failed* committed nothing.
 
 Write `<BRD-dir>/customer-delivery-note-<YYYYMMDD>.md` — the covering letter that goes in the email
 body. **It is not part of the bundle** (`bundle-packaging.md` §4): it is the email, not a package

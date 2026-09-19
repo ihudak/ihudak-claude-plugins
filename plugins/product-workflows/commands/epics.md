@@ -20,7 +20,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
 
 ## Phase 0 — Load
 
-0. **Flags.** `--no-docs` — boolean; turns documentation grounding off for this run (Phase 2). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. Strip both, and `--docs`'s value, from `$ARGUMENTS` before step 1 classifies what remains.
+0. **Flags.** `--no-docs` — boolean; turns documentation grounding off for this run (Phase 2). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` *Procedure* step 1 (*Flags first*), which resolves it; this command only has to recognise it and pass the invocation through. Strip both, and `--docs`'s value, from `$ARGUMENTS` before step 1 classifies what remains.
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an
    `@<path>` naming a folder or a file inside one — and resolve it with
    `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), **with no `<KIND>`
@@ -115,8 +115,9 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
      one row that is now to be built back to `unallocated`, after which
      `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has a row to walk and carves the slice;
      or re-run
-     `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which reopens **every** row and discards
-     every deferral and rejection recorded here. Or the ledger
+     `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which, wherever its read finds a
+     requirement, reopens **every** row and discards every deferral and rejection recorded here (its
+     Phase 0 step 7). Or the ledger
      records a fate a container can no longer hold — a **root** row `covered-here`, which only a
      tree written before a BRD became a container, or a hand edit, can have produced
      (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5). **Offer the narrower repair
@@ -131,8 +132,9 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
      wrote, and §5 already names hand editing as how this state arises. **Offer the `/brd-intake`
      re-run second, and only where the whole inventory is to be re-taken:** re-running
      `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather than
-     a refusal (its Phase 0 step 7 warns and confirms before the first write) and rewrites the
-     ledger with **every** row `unallocated`, after which
+     a refusal (its Phase 0 step 7 warns and confirms before the first write) and, wherever its read
+     finds a requirement, rewrites the ledger with **every** row `unallocated` — that step lists what
+     a re-run keeps and what it changes — after which
      `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. It also **discards
      every disposition this ledger records**: each `deferred-to`,
      `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and must be

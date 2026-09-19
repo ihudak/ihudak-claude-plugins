@@ -16,7 +16,7 @@ Verifies whether the ARD, specification, and design artifacts on record actually
 
 **Without it, the run cannot catch a wrong claim** — a derived phase cannot contradict itself, so `/ready` reports what the artifacts show and nothing more. That is the cost of having no mirror to check against, and the flag is how anyone who does keep a tracker gets the check back, whichever tracker it is.
 
-`$ARGUMENTS` is a **single positional address** — a `<KEY>`, or an `@<path>` naming a folder in the specs tree. The resolved folder's kind decides the altitude: a `PRD-` folder is a PRD-level run, an `EPIC-` folder an Epic-level one. The two-key form is retired, because the second key was always derivable from the first.
+`$ARGUMENTS` is a **single positional address** — a `<KEY>`, or an `@<path>` naming a folder in the specs tree. The resolved folder decides the altitude and the ladder it is judged on — never the kind it asserts, since a BRD-route slice is a `PRD-` folder asserting `kind: brd`: a `PRD-` folder is a PRD-level run on the PRD ladder, an `EPIC-` folder an Epic-level one on the Epic ladder, and a legacy unprefixed folder is placed by its resolved kind or, for a slice, by its `brd-link.md`. A `BRD-` container is on neither ladder and stops the run (`READY_BRD_NOT_SLICED`), naming a slice to check instead. The two-key form is retired, because the second key was always derivable from the first.
 
 ## How it runs
 
@@ -40,7 +40,7 @@ Two subagents are dispatched: `readiness-reviewer` (Phase 4, the sole judgment-h
 
 ## What it needs
 
-- **A PRD or Epic** via the shared front-end — a `mode: direct` prompt is rejected outright (`READY_NEEDS_KEY`); `/ready` has no non-tracker behaviour.
+- **A PRD or Epic address** — with none, the run stops (`READY_NEEDS_KEY`); `/ready` has no direct-prompt behaviour. An address resolving to a `BRD-` container stops too (`READY_BRD_NOT_SLICED`).
 - **`$SPECS_PATH`** — must resolve; `/ready` reads the ARD/spec/design artifacts from there and writes `_readiness.md` back into the same feature folder. If unset, the run stops and asks for a path.
 - **A clean specs-repo checkout on `main`/`master`** — `/ready` reads artifacts from a clean default branch, never a branch of its own; a dirty or non-main checkout triggers a warn-and-ask rather than a silent read, because it may show unmerged, in-flight artifacts as if they were the handed-off truth.
 - **The gated ARD/spec/design themselves — the one place in the pipeline these gates never stop.** Every other consumer of `require-on-main` (`workflows-core:phase-handoff` §3) and `workflows-core:ard-resolution` stops when a gated artifact resolves off the specs repo's default branch. `/design`'s `specification.md` is the extreme case of that rule — the one gated input that genuinely stops on absence, not merely on being unmerged. `/ready` is the mirror opposite for every artifact it checks: an artifact authored only on a branch, or on `main` but unconfirmed, or unverifiable against any ref, becomes a readiness finding that caps the verdict at `PARTIAL`; an artifact that is absent outright is recorded as a coverage gap. Reporting readiness is `/ready`'s whole function, so a run that stops instead of reporting has failed at the one thing it exists to do.
@@ -67,7 +67,7 @@ Check whether an Epic is really ready to move into `Refined`:
 /dev-workflows:ready EPIC-98760
 ```
 
-The run resolves `EPIC-98760` with `resolve-address`; its folder's own `kind: epic` is what sets the altitude, so no second key is passed and none is accepted. It reads that Epic and the parent PRD's artifacts from the resolved tree, resolves any applicable ARD, locates the Epic's `specification.md`/`design.md` and checks each against the specs repo's default branch (never stopping on what it finds), builds the coverage map and status-expectation checklist, and dispatches `readiness-reviewer`. It prints the verdict with its coverage roll-up and Findings, writes `_readiness.md` into the Epic subdir, and offers to commit and hand it off — declining leaves the snapshot written but uncommitted.
+The run resolves `EPIC-98760` with `resolve-address`; its folder's `EPIC-` prefix is what sets the altitude and the Epic ladder, so no second key is passed and none is accepted. It reads that Epic and the parent PRD's artifacts from the resolved tree, resolves any applicable ARD, locates the Epic's `specification.md`/`design.md` and checks each against the specs repo's default branch (never stopping on what it finds), builds the coverage map and status-expectation checklist, and dispatches `readiness-reviewer`. It prints the verdict with its coverage roll-up and Findings, writes `_readiness.md` into the Epic subdir, and offers to commit and hand it off — declining leaves the snapshot written but uncommitted.
 
 ## See also
 

@@ -169,9 +169,9 @@ reviewer to it — everything else in the folder is a working record and stays.
 Behind the handoff phase's consent choice, these are committed, pushed, and a pull request opened
 against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix. The
 committed bundle serves both delivery routes, and the run settles which one at the delivery note:
-where the handoff was accepted it asks, recommending that the customer pull the committed bundle;
-where it was declined there is nothing to pull, so it takes the archive route without asking and
-says so. The archive command is printed only on the archive route. **The prompt itself names no
+where the handoff was accepted and pushed the bundle it asks, recommending that the customer pull
+it; where it was declined, or accepted but pushed nothing (no remote, a failed push), there is
+nothing to pull, so it takes the archive route without asking and says so. The archive command is printed only on the archive route. **The prompt itself names no
 route** — it is handed on to a reader the run cannot see, and a path is correct exactly once, so
 only the delivery note names where the bundle is.
 

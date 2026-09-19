@@ -19,7 +19,7 @@ Opus `spec-reviewer` and offers to land the spec on the specs repo's main branch
 Key distinction from `/epics`: `/epics` *splits* a PRD into Epic drafts; `/specify` *authors one
 specification* for a single item (typically an Epic). Run `/epics` first, then `/specify` per Epic.
 
-Usage: `/specify <ADDRESS> [--no-docs] [--docs <path>]`, where `<ADDRESS>` is a key or an `@<path>`. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. On the BRD
+Usage: `/specify <ADDRESS> [--no-docs] [--docs <path>]`, where `<ADDRESS>` is a key or an `@<path>`. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` *Procedure* step 1 (*Flags first*), which resolves it; this command only has to recognise it and pass the invocation through. On the BRD
 route the run is seeded from a reconciled BRD and the address is the **`PRD-` slice key**
 `/brd-split` carved; a `BRD-` container is refused (Phase 0 step 0). One address on every route: a
 second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
@@ -89,8 +89,9 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
      one row that is now to be built back to `unallocated`, after which
      `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has a row to walk and carves the slice;
      or re-run
-     `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which reopens **every** row and discards
-     every deferral and rejection recorded here. Or the ledger
+     `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which, wherever its read finds a
+     requirement, reopens **every** row and discards every deferral and rejection recorded here (its
+     Phase 0 step 7). Or the ledger
      records a fate a container can no longer hold — a **root** row `covered-here`, which only a
      tree written before a BRD became a container, or a hand edit, can have produced
      (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5). **Offer the narrower repair
@@ -105,8 +106,9 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
      wrote, and §5 already names hand editing as how this state arises. **Offer the `/brd-intake`
      re-run second, and only where the whole inventory is to be re-taken:** re-running
      `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather than
-     a refusal (its Phase 0 step 7 warns and confirms before the first write) and rewrites the
-     ledger with **every** row `unallocated`, after which
+     a refusal (its Phase 0 step 7 warns and confirms before the first write) and, wherever its read
+     finds a requirement, rewrites the ledger with **every** row `unallocated` — that step lists what
+     a re-run keeps and what it changes — after which
      `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. It also **discards
      every disposition this ledger records**: each `deferred-to`,
      `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and must be

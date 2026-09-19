@@ -365,11 +365,12 @@ that carves the slices.
   moves a row back to `unallocated`* binds the **commands**; a hand repair of a value no command
   wrote is not one of them, and the row above already names hand editing as how this state arises.
   **Second**, and only where the whole inventory is to be re-taken, `/brd-intake` re-run over the
-  same folder rewrites the ledger with **every** row `unallocated` (`commands/brd-intake.md`
-  Phase 5), discarding every `deferred-to`, `rejected` and `superseded-by` the walk decided — each
-  has to be re-taken, and a `rejected` row re-cited against its `[DEF#n]`. **A consumer naming that
-  option names those decisions**: "the dispositions are replaced" is not the disclosure, because it
-  does not say which judgement is destroyed.
+  same folder rewrites the ledger with **every** row `unallocated` wherever its read finds a
+  requirement (`commands/brd-intake.md` Phase 0 step 7 lists what a re-run keeps and what it
+  changes, and Phase 5 writes the ledger), discarding every `deferred-to`, `rejected` and
+  `superseded-by` the walk decided — each has to be re-taken, and a `rejected` row re-cited against
+  its `[DEF#n]`. **A consumer naming that option names those decisions**: "the dispositions are
+  replaced" is not the disclosure, because it does not say which judgement is destroyed.
 
   **The neighbouring state needs no repair and is still not sealed.** A container whose one slice was
   removed as a standing empty child holds no illegal row at all — every row is legally `deferred-to`,
@@ -378,7 +379,8 @@ that carves the slices.
   with the customer (`workflows-core:escalation-rules`, *When no option is safe to recommend*). It must not,
   however, report it as a state with no exit: once that decision is taken it is carried out by the
   same two repairs, in the same order — the one row moved back to `unallocated` by hand so
-  `/brd-split` has a row to walk, or the `/brd-intake` re-run that reopens every row.
+  `/brd-split` has a row to walk, or the `/brd-intake` re-run that reopens every row wherever its
+  read finds a requirement.
 
   "Name the slices that do" is right in the first two rows only. In the third there is nothing to
   name, and a consumer that goes looking for a slice to point at finds none and must not invent

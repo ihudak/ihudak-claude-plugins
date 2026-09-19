@@ -33,10 +33,22 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
    folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). `status: found` → carry its `path`, `kind`
    and `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command.
 
-   **The kind decides the altitude, replacing the two-key grammar.** A `PRD-` folder is a PRD-level
-   run (`<EPIC>` is `null`); an `EPIC-` folder is an Epic-level run, and its PRD folder is its
-   parent. Two positional keys are no longer accepted, because the second was always derivable from
-   the first — `workflows-core:addressing` §4's `key` is what supplies both.
+   **The folder decides the altitude and the ladder, replacing the two-key grammar — never the kind
+   it asserts.** A BRD-route slice is a `PRD-` folder whose `brd-link.md` asserts `kind: brd`
+   (`workflows-core:addressing` §4), and `workflow-states.md` has no `brd` ladder, so the resolved
+   `kind` cannot pick one. A `PRD-` folder is a PRD-level run (`<EPIC>` is `null`) judged on the
+   PRD ladder; an `EPIC-` folder is an Epic-level run judged on the Epic ladder, and its PRD folder
+   is its parent. A folder with no kind prefix to read — one resolved through §5's legacy fallback
+   (`legacy: true`), whose name starts with the key and so may begin with a kind token that is not
+   a prefix, or an unprefixed folder named by an `@<path>` — is placed by positive evidence
+   instead: a resolved `kind: epic` is an Epic folder; a resolved `kind: prd`, or a `brd-link.md`
+   naming a `parent:`, is a PRD folder. A `BRD-` container — or an unprefixed folder holding
+   `coverage-ledger.md` or `brd/brd-inventory.md` and no `brd-link.md` naming a `parent:` — is on
+   neither ladder, because a BRD's PRDs are authored in its slices; stop:
+   `READY_BRD_NOT_SLICED: <KEY> resolves to a BRD container at <path>, which is on neither the PRD nor the Epic ladder — its PRDs are authored in its PRD- slices. Check a slice: '/dev-workflows:ready <SLICE-KEY>'.`
+   It is a user halt, taken before any artifact is read. Two positional keys are no longer
+   accepted, because the second was always derivable from the first — `workflows-core:addressing`
+   §4's `key` is what supplies both.
 
    `/ready` is **address-required**: with no positional address, stop with
    `READY_NEEDS_KEY: /ready needs a PRD or Epic address — a key, or an @<path> to its folder.` —
@@ -46,8 +58,9 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
     status pasted from whatever tracker they keep, or typed from memory. When present, the run
     compares it against the phase Phase 3 derives and reports any divergence as a readiness finding.
     Validate it against `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`'s ladder for the
-    resolved kind; an unrecognised value is **re-prompted with the ladder shown**, never coerced to
-    the nearest match.
+    altitude step 1 placed the folder at — never for the resolved `kind`, which on a slice is `brd`;
+    an unrecognised value is **re-prompted with the ladder shown**, never coerced to the nearest
+    match.
 
     **Without the flag, a derived phase cannot contradict itself**, so the run reports what the
     artifacts show and catches nothing. That is the honest cost of having no mirror to check against,
@@ -220,10 +233,11 @@ Resolve any applicable ARD by invoking `Skill(skill: "workflows-core:reference",
 ## Phase 3 — Deterministic skeleton
 
 **(0) Derive the phase.** Before anything else, read
-`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`'s ladder for the resolved kind **in the
-direction its *expected artifacts* column supports**: the phase is the furthest rung whose expected
-artifacts all exist. Record it as `derived_phase`, with the artifacts that placed it there — a phase
-asserted without naming what placed it is a claim the report cannot defend.
+`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`'s ladder for the altitude Phase 0 step 1
+placed the folder at **in the direction its *expected artifacts* column supports**: the phase is
+the furthest rung whose expected artifacts all exist. Record it as `derived_phase`, with the
+artifacts that placed it there — a phase asserted without naming what placed it is a claim the
+report cannot defend.
 
 **Where the artifacts straddle two rungs, the phase is the lower one**, and the report says which
 artifact is missing to leave it. That is the verdict this command exists to produce: *"this PRD is at

@@ -22,7 +22,7 @@ invariants the downstream (`/specify`, `/design`, `/implement`) will later inher
   refused (Phase 0 step 1a). One address on every route: a second positional token is refused
   (Phase 0 step 1, `CREATE_ARD_ONE_ADDRESS`).
 
-Usage: `/create-ard <ADDRESS> [--no-docs] [--docs <path>]`, where `<ADDRESS>` is a key or an `@<path>`. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through.
+Usage: `/create-ard <ADDRESS> [--no-docs] [--docs <path>]`, where `<ADDRESS>` is a key or an `@<path>`. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` *Procedure* step 1 (*Flags first*), which resolves it; this command only has to recognise it and pass the invocation through.
 
 It authors architecture only — no code writing; grounding is **architect-driven** (there are no PRs at
 this stage). Zero external calls.
@@ -38,8 +38,9 @@ this stage). Zero external calls.
    applies to that remainder alone. **Without this rung the flags this command documents do not
    work** — a flag is a token, so `--no-docs` reaches the refusal as a second positional and stops
    the run, and `--docs <path>` supplies two. That was the live state: both flags were named in the
-   Usage line and neither was ever parsed, which is the shape `workflows-core:docs-grounding` §1
-   declares for all nine of its consumers and only `/idea` had implemented.
+   Usage line and neither was ever parsed, which is the shape `workflows-core:docs-grounding`
+   *Procedure* step 1 (*Flags first*) declares for all nine of its consumers and only `/idea` had
+   implemented.
 
    **One resolution, both routes.** Parse the **single positional address** from `$ARGUMENTS` — a
    `<KEY>`, or an `@<path>` naming a folder — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). A key that fails §1's grammar stops with
@@ -52,7 +53,9 @@ this stage). Zero external calls.
    gracefully:
    `CREATE_ARD_ONE_ADDRESS: /create-ard takes one address; <second-token> was given as a second. The kind of the folder the address resolves to is what sets the altitude — an EPIC- folder gives an Epic-level ARD, with its PRD read from the folder above it; a PRD- folder gives a PRD-level one. Re-run '/product-workflows:create-ard <ADDRESS>' with the single address you meant.`
 
-   **The resolved kind decides the altitude**, which is what replaces the old two-key grammar:
+   **The resolved folder decides the altitude — by its prefix, never by the `kind` it
+   asserts**, which on a slice is its `brd-link.md`'s `brd` (`workflows-core:addressing` §4). This
+   is what replaces the old two-key grammar:
    - a `PRD-` folder → `<PRD>` is its `key`, `<EPIC>` is `null`;
    - an `EPIC-` folder → `<EPIC>` is its `key` and `<PRD>` is its parent's;
    - a `PRD-` folder holding a `brd-link.md` → the BRD route. Define `<SLICE-KEY>` = the resolved
@@ -131,8 +134,9 @@ this stage). Zero external calls.
      one row that is now to be built back to `unallocated`, after which
      `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has a row to walk and carves the slice;
      or re-run
-     `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which reopens **every** row and discards
-     every deferral and rejection recorded here. Or the ledger
+     `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which, wherever its read finds a
+     requirement, reopens **every** row and discards every deferral and rejection recorded here (its
+     Phase 0 step 7). Or the ledger
      records a fate a container can no longer hold — a **root** row `covered-here`, which only a
      tree written before a BRD became a container, or a hand edit, can have produced
      (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5). **Offer the narrower repair
@@ -147,8 +151,9 @@ this stage). Zero external calls.
      wrote, and §5 already names hand editing as how this state arises. **Offer the `/brd-intake`
      re-run second, and only where the whole inventory is to be re-taken:** re-running
      `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather than
-     a refusal (its Phase 0 step 7 warns and confirms before the first write) and rewrites the
-     ledger with **every** row `unallocated`, after which
+     a refusal (its Phase 0 step 7 warns and confirms before the first write) and, wherever its read
+     finds a requirement, rewrites the ledger with **every** row `unallocated` — that step lists what
+     a re-run keeps and what it changes — after which
      `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. It also **discards
      every disposition this ledger records**: each `deferred-to`,
      `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and must be

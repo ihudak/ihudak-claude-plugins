@@ -40,7 +40,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    operator's own step, done where they can eyeball the result against the original before handing
    it back to this command.
 4. **Optional flags.** `--sort-existing <dir>` — if present, validate `<dir>` exists and carry it
-   forward to Phase 6. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. `--no-docs` — boolean; turns documentation grounding off for this run,
+   forward to Phase 6. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` *Procedure* step 1 (*Flags first*), which resolves it; this command only has to recognise it and pass the invocation through. `--no-docs` — boolean; turns documentation grounding off for this run,
    carried to Phase 1's `resolve-docs-grounding` call. **None of the three changes anything else about Phase 0:**
    the BRD source is still required and still gated by step 3.
 5. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
@@ -247,10 +247,11 @@ source-owning BRD, `kind: brd` and `key: <BRD-KEY>` between `---` lines, then th
 table's header, and **no row**. Creating the BRD folder and writing this header are one act, because
 `workflows-core:addressing` §4 requires a folder never to be keyless, and nothing at a root BRD's
 top level names a folder kind — the ledger Phase 5 writes there names its own document
-(`coverage-ledger-format.md` §2) — so §4 reads the pair off this file. Phase 3 fills in the rows. A
-run that stops after this and before Phase 3 leaves an inventory holding its header and no row, and
-a re-run takes that for no prior inventory at all (Phase 3). A folder whose inventory already stands
-is left as it is here.
+(`coverage-ledger-format.md` §2) — so §4 reads the pair off this file. Phase 3 fills in the rows.
+Until it does the inventory holds its header and no row, and it can stay that way — a run that
+stops before Phase 3 writes, a Phase 3 `NOT_FOUND` stop and a completed first intake whose read was
+`EMPTY` all leave it so — and a re-run takes any such inventory for no prior inventory at all
+(Phase 3). A folder whose inventory already stands is left as it is here.
 
 Then copy `@<brd-file>` **verbatim, byte-for-byte** into `<BRD-dir>/brd/source/<basename>` (creating
 `brd/source/` inside the folder) — on a re-run, only as the comparison below allows. Per
@@ -383,7 +384,9 @@ reading it did (`brd-format.md` §1.2).
    `brd-format.md` §1.2 fixes, whatever the cause — for instance the current document no longer
    links the image, this run's Phase 1 answer left it out, or a changed outside image was copied
    beside it under a `_NN` name; a section whose image this run takes again carries none. Leave
-   every *Rows* line empty; Phase 5 completes them.
+   every *Rows* line empty; Phase 5 completes them. Hold the *Rows* line each section already on
+   file carried before this write, exactly as it stood: an `EMPTY` read over an earlier intake's
+   inventory keeps it, and Phase 5 writes it back.
 
 **Where the folder holds no figures file and Phase 2 copied no image**, this phase dispatches
 nothing, writes no file, and says so in the final report. **Where a figures file is already on file
@@ -472,9 +475,10 @@ Act on `status`:
   Report the reconciliation: how many ids were preserved, how many minted, each text change (old →
   new), and each row kept in either state above, by `[BR#n]`.
 
-  **An inventory holding no row is no prior inventory** — Phase 2's header, left by a run that
-  stopped before this phase: a run over it numbers exactly as returned, and every first-intake rule
-  of this phase applies to it, since it holds no id to keep.
+  **An inventory holding no row is no prior inventory, whatever left it so** — Phase 2's header,
+  whether a run stopped before this phase wrote a row, stopped at this phase's `NOT_FOUND`, or
+  completed a first intake whose read was `EMPTY`: a run over it numbers exactly as returned, and
+  every first-intake rule of this phase applies to it, since it holds no id to keep.
 
   **Map every `[BR#n]` the agent returned through that reconciliation, wherever it appears in what
   the run writes or reports from the agent's words** — not only the row ids, but each candidate's
@@ -649,7 +653,11 @@ every row in the test below as Phase 3's reconciliation numbered it.
 - **An `ambiguity`, `untestable`, `unsourced` or `scope-leak` candidate matches** an entry on file
   of its class raised on the same row. Where several candidates or several entries share one class
   and row, pair them in order — the entries by id, the candidates as returned — and treat whatever
-  is left over on either side as unmatched.
+  is left over on either side as unmatched. **The order decides which pairs, not which is the same
+  defect**, so a candidate left over is walked with every entry on file of its class and row shown
+  beside it (the *On file* line below), and the question says that where it restates one of them,
+  *Reject — not a defect* is the answer: that entry already is the defect, and confirming the
+  candidate would log it twice.
 - **A `conflict` or a `duplicate` is matched on the rows its relation joins, in either direction**,
   never on which row raised it: the same split or clash can be raised from the whole, naming each
   part, or from each part, naming the whole. Such a candidate joins its row to each counterpart it
@@ -660,9 +668,12 @@ every row in the test below as Phase 3's reconciliation numbered it.
 nothing is written for it — each entry keeps its `[DEF#n]`, its reason and its resolution exactly as
 on file — so a defect `/brd-reconcile` resolved stays resolved, and a defect already put to the
 customer keeps the id its held question names and is not asked twice. **An entry is not re-raised
-where no candidate matched it** — for a `conflict` or a `duplicate`, where a pair it joins is joined
-by no candidate of this read, matched or not. Such an entry is kept exactly as it stands and reported
-as *not re-raised by this extraction*: its id stays in the log, and every row that cited it keeps
+only where no candidate of this read carries it, matched or not** — for an `ambiguity`,
+`untestable`, `unsourced` or `scope-leak` entry, where no candidate of its class is raised on its
+row, so an entry the pairing order left over still counts as re-raised wherever a candidate of its
+class and row was proposed; for a `conflict` or a `duplicate`, where a pair it joins is joined by no
+candidate of this read. Such an entry is kept exactly as it stands and reported as *not re-raised
+by this extraction*: its id stays in the log, and every row that cited it keeps
 citing it (Phase 3 carried those ids over), since a read that did not propose it again has not shown
 the defect gone. Only an unmatched candidate is walked below — including one an earlier run
 rejected, which left no entry to match and so is put again.
@@ -692,11 +703,14 @@ records on the first row it produced (`brd-format.md` §2), so the walk never as
 Reason: <the candidate's reason>
 Names: [BR#m] — "<that row's text>", …
 Image: <its path relative to brd/> — transcription below; open the image before answering.
+On file: [DEF#k] — <that entry's reason> (<its resolution>), … — if this candidate is one of these, answer "Reject — not a defect".
 ```
 
 The *Names* line is written for a `conflict` or `duplicate` only, one entry per counterpart the
-candidate names; the *Image* line only for a row drawn from an image (below); a candidate Phase 3.5
-raised from documentation ends its first line with `(raised from documentation)`. Then present:
+candidate names; the *Image* line only for a row drawn from an image (below); the *On file* line
+only for a candidate the pairing above left over, one item per entry on file of its class raised on
+its row; a candidate Phase 3.5 raised from documentation ends its first line with
+`(raised from documentation)`. Then present:
 
 ```
 choices: ["Confirm as written (Recommended)", "Confirm with an edited reason", "Reject — not a defect", "Cancel"]
@@ -744,11 +758,13 @@ after Phase 3's reconciliation mapping, never from the agent's own numbering: `y
 whose `source_anchor` names the image and `illustrates` every row the agent returned for it, either
 half left out where its list is empty (`yields [BR#3]`), or, where it does neither, the value
 `accounted for — <the operator's Phase 3 answer>` in the form `brd-format.md` §1.2 fixes; after an
-`EMPTY` read, which asks no question, the value `brd-format.md` §1.2 fixes for that case — `yields`
-for any row an earlier intake anchored on the image, which that read keeps, and otherwise
-`none — no requirement extracted`. A section carrying the *Not captured by the current run* marker
-`brd-format.md` §1.2 fixes gets no agent entry and no Phase 3 answer: its *Linked from* and *Rows*
-take the values §1.2 fixes for such a section. Where no figures file exists after Phase 2.5, this is
+`EMPTY` read, which asks no question, what `brd-format.md` §1.2 fixes for that case — over an
+earlier intake's inventory, each section's line exactly as Phase 2.5 held it, `illustrates`
+included, since that read keeps every row it names, and `none — no requirement extracted` for a
+section that had none; over a folder holding no prior inventory row, `none — no requirement
+extracted`. A section carrying the *Not captured by the current run* marker `brd-format.md` §1.2
+fixes gets no agent entry and no Phase 3 answer: its *Linked from* and *Rows* take the values §1.2
+fixes for such a section. Where no figures file exists after Phase 2.5, this is
 skipped.
 
 **On a re-run this phase rewrites every disposition, and it does so unconditionally by design** —
@@ -961,9 +977,15 @@ exactly per
 ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)
 ```
 
-Since `/brd-intake` writes every row `unallocated`, this run's own line always reads
+Since `/brd-intake` writes every row `unallocated` wherever it writes the ledger's rows, this run's
+own line always reads
 `ledger: <N> requirements — 0 covered, 0 deferred, 0 rejected, <N> unallocated, 0 unresolved (0 delegated, 0 not built)`
-(or the Phase 3 `EMPTY` line above) — the non-zero counts appear only once `/brd-split` has run.
-The `covered-by` resolution §6 requires reads no child ledger here and never can: no row this
-command writes is `covered-by`, so the delegated figures are zero by construction rather than by
-omission, and this command gains no precondition from it.
+— or, after an `EMPTY` read, the line Phase 3's `EMPTY` branch names, which over an earlier intake's
+inventory is the ledger's own as it stands — and the non-zero counts appear only once `/brd-split`
+has run.
+On a run that writes the ledger's rows, the `covered-by` resolution §6 requires reads no child
+ledger: no row this command writes is `covered-by`, so the delegated figures are zero by
+construction rather than by omission. After an `EMPTY` read over an earlier intake's ledger the line
+is that ledger's, which a `/brd-split` walk may have given `covered-by` rows, and it is computed as
+§6 fixes, each such row resolved one hop through the BRD it names — a read for the report, from
+which this command gains no precondition.

@@ -42,18 +42,30 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
 
    **A `found` folder must be an idea-route PRD folder.** Test the folder, never the kind it asserts
    — a BRD-route slice is `PRD-`-prefixed and asserts `kind: brd` through its `brd-link.md`
-   (`workflows-core:addressing` §4) — and stop where it is any of these: `BRD-`-prefixed (a BRD
-   container); `EPIC-`-prefixed (an Epic folder); carrying a `brd-link.md` at its top level (a
-   BRD-route slice); or, resolved through §5's legacy fallback and so carrying no prefix to test,
-   resolving to a `kind` other than `prd`. An idea brief seeds the PRD authored beside it, and none
+   (`workflows-core:addressing` §4) — in this order, stopping on the first that holds. A folder
+   carrying a `brd-link.md` at its top level is a BRD-route slice, whatever its name. Then, where the
+   resolution record reads `legacy: false`, test the prefix: `BRD-` is a BRD container, `EPIC-` an
+   Epic folder. Where it reads `legacy: true` there is no prefix to test — §5's unprefixed name
+   starts with the key, and a key may itself begin with a kind token, so `BRD-12-checkout/` is a
+   legacy folder keyed `BRD-12` and not a BRD container — so test the resolved `kind` instead: `brd`
+   is a BRD container, `epic` an Epic folder. An idea brief seeds the PRD authored beside it, and none
    of these takes one: a BRD container never holds a PRD, a slice's PRD is seeded from its BRD with no
    idea ladder, and an Epic folder sits below its PRD:
-   `IDEA_NOT_AN_IDEA_FOLDER: <KEY> resolves to <folder path>, <a BRD container | a BRD-route slice | an Epic folder | a legacy <kind> folder> — /idea writes only into an idea-route PRD folder. Give the idea a key of its own: '/product-workflows:idea <NEW-KEY> [<prompt>|@<file>]'.`
+   `IDEA_NOT_AN_IDEA_FOLDER: <KEY> resolves to <folder path>, <a BRD container | a BRD-route slice | an Epic folder> — /idea writes only into an idea-route PRD folder. <remedy> For a separate idea, give it a key of its own: '/product-workflows:idea <NEW-KEY> [<prompt>|@<file>]'.`
+   `<remedy>` names the run that does take that folder's work, by what the folder is:
+
+   | The folder is | `<remedy>` |
+   |---|---|
+   | a BRD-route slice | `Its PRD is authored from its BRD: run '/product-workflows:create-prd <KEY>'.` |
+   | a BRD container | `A BRD holds no PRD of its own: carve a slice with '/product-workflows:brd-split <KEY> "<how to cut it>"', or run '/product-workflows:create-prd <SLICE-KEY>' on one already carved.` |
+   | an Epic folder | `An Epic is refined from the PRD above it: revise that PRD with '/product-workflows:update-prd <PRD-KEY>', or specify this Epic with '/product-workflows:specify <KEY>'.` |
+
    It is a user halt, so `emit-block` does not fire, and it is taken here, before anything is read or
    written.
 
-   **Validated for shape and checked against nothing**, exactly as `/brd-intake <BRD-KEY>` already
-   asks. Nothing looks a key up, because there is nothing to look it up in.
+   **Validated for shape and checked against no tracker** — resolved only against the specs tree,
+   above — exactly as `/brd-intake <BRD-KEY>` already asks. Nothing else looks a key up: there is no
+   tracker to look it up in.
 
    **Accepted cost:** an idea abandoned after Phase 4 wrote its brief leaves a folder in
    `specifications/`; a run that stops before Phase 4 creates none. Reintroducing a staging area to
@@ -339,10 +351,13 @@ resolved — or, where it returned `absent`, the one this write creates (**Path*
   about to recommend — included. A genuinely separate idea is a separate key: say so, and name
   `/product-workflows:idea <ANOTHER-KEY> <the same source>` as the way to write one.
 - **`kind` and `key`:** write `kind: prd` and `key: <the key this run was invoked with>` into the
-  frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`). This command creates the folder,
-  with this file, so until `/create-prd` writes `prd.md` this file is the only artifact carrying the
-  pair `workflows-core:addressing` §4 resolves the folder's identity from — and §4's own invariant
-  is that a folder is never keyless, not even between its creation and its first document.
+  frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`). Where Phase 0 returned `absent`,
+  this command creates the folder, with this file, so until `/create-prd` writes `prd.md` this file
+  is the only one in it whose frontmatter holds `key:` beside a `kind:` naming a folder kind — the
+  carrier `workflows-core:addressing` §4 resolves the folder's identity from — and §4's own
+  invariant is that a folder is never keyless, not even between its creation and its first
+  document. Where Phase 0 returned `found`, the folder already resolved to this key, and the pair
+  written here is the one it already asserts.
 - **`status`:** set frontmatter `status: refined` IFF zero `[NEEDS CLARIFICATION]` markers remain;
   otherwise `status: draft`.
 
@@ -512,8 +527,9 @@ the next phase — **adapted to status**:
   `attachments/` paths that exist on the operator's disk and on no ref, which is a worse record than
   the one this feature set out to repair. Phase 4.5 hands over that literal list; pass it through
   unchanged. A bare-prompt run vendored nothing and passes `idea.md` alone, exactly as before this
-  phase existed. On option 2 or 3 nothing runs but §4.1's *Declined by the user* line (§4.3, *What
-  each option means*). Then, **whichever option was taken**, recommend
+  phase existed. On option 2 or 3 `handoff-to-main` does not run; emit §4.1's *Declined by the user*
+  line (§4.3, *What each option means*), and the run's emitter tail still runs, as it does after
+  option 1. Then, **whichever option was taken**, recommend
   `/product-workflows:create-prd <KEY> <merge-clause>`, which finds `idea.md` in that folder —
   `<merge-clause>` resolved from the `Phase handoff:` line §4.1 just emitted, per
   `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`'s resolution table, and never written
@@ -522,9 +538,10 @@ the next phase — **adapted to status**:
   opened is still open that command stops on rows D/E — an unqualified recommendation sends the
   operator into a stop this run itself caused.
 
-  **On a decline, offer the `@<path>` route beside it** — the one the draft branch below names for
-  the same on-disk state: `/product-workflows:create-prd <KEY> @<the absolute path of this idea.md>`.
-  A declined handoff leaves `idea.md` written and on no ref, exactly as a draft is, and `/create-prd
+  **On a decline, or where §4.1's *Gate failed* line was emitted, offer the `@<path>` route beside
+  it** — the one the draft branch below names for the same on-disk state:
+  `/product-workflows:create-prd <KEY> @<the absolute path of this idea.md>`. Neither outcome
+  committed anything, so `idea.md` is written and on no ref, exactly as a draft is, and `/create-prd
   <KEY>` with no path then finds it on no ref (row F), names it without reading it, and goes on down
   its idea ladder — which comes back to this brief only through its same-session rung or a path the
   operator types, and otherwise grills the PRD from scratch. Named as a path, the file is read where

@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [1.2.2] — Unreleased
+
+### Fixed — two citations named a numbered section `workflows-core:docs-grounding` does not have
+
+`/release-notes`' usage line said `--docs <path>` is declared for every consumer by `workflows-core:docs-grounding` *"§1's *Flags first* rung"*, and `docs-workflow/repo-resolution.md` §0 called `${DOCS_PATH:-/workspace/docs}` the grounding root *"`workflows-core:docs-grounding` §1 resolves"*. That reference has no numbered sections: *Flags first* is step 1 of its *Procedure*, and the root is resolved by step 2, *Resolve the root*. The two now cite *Procedure* step 1 (*Flags first*) and *Procedure* step 2 (*Resolve the root*). `product-workflows` 3.7.0 corrects the same citation in seven of its commands. **No run's behaviour changed. Population: every reader following either citation.**
+
 ## [1.2.1] — 2026-09-18
 
 ### Fixed — a cancelled `/docs-init` printed a report four of whose sections had no value it could carry

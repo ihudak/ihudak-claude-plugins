@@ -20,7 +20,7 @@ Implement the following: $ARGUMENTS
 |---|---|---|
 | **Spec file** | a single `.md` file | read fully; use as the description/spec |
 | **Spec folder** | a directory containing `prompt.md` and/or a `*-design.md` | read all `.md` specs within; fold into the description |
-| **Specs folder** | a directory under `specifications/` that asserts a `key:` in a keyless artifact it holds — `prd.md`, `epic.md`, `specification.md` (`workflows-core:addressing` §4) | hand to the folder read in Phase 1.7 |
+| **Specs folder** | a directory under `specifications/` that `resolve-address` resolves — its `kind:` and `key:` read off the folder's carrier (`workflows-core:addressing` §4) | hand to the folder read in Phase 1.7 |
 | **Code repo** | a directory where `git -C <path> rev-parse --is-inside-work-tree` succeeds (includes the cwd) | scan target in Phase 1.7 |
 
 **Address resolution.** Before the per-`@path` classification above, look for a **single positional

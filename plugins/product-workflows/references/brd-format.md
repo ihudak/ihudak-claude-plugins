@@ -266,9 +266,10 @@ none
 - **Content hash** is the SHA-256 of the image's bytes. A later intake run keeps the section's
   **transcription** — Read, Content hash, Appearance, Depicts, and the Text/Annotations/Flow/Illegible
   subsections — verbatim wherever the hash still matches the file, and does not read that image
-  again; a hash that no longer matches is re-read and its transcription replaced. *Linked from* and
-  *Rows* are recomputed by the run every time, including for an image the current run did not
-  capture (below).
+  again; a hash that no longer matches is re-read and its transcription replaced. *Linked from* is
+  recomputed by the run every time, including for an image the current run did not capture
+  (below), and so is *Rows*, save after an `EMPTY` read over an earlier intake's inventory, which
+  keeps it (the *Rows* bullet).
 - **Rows** is completed by `/brd-intake` Phase 5, once the inventory is final: `yields` the rows
   anchored on this image, and `illustrates` the prose rows it bears on — each prose row the image
   restates, and each prose row whose own passage links the image to bind what it draws, since a row
@@ -278,10 +279,11 @@ none
   answer's substance and never an option's label: `accounted for — they hold no obligation` where
   the operator picked that option at `/brd-intake` Phase 3, or their own words where they typed an
   answer to the same effect in the harness's free-text option (`workflows-core:escalation-rules` §0)
-  — and `none — no requirement extracted` where `brd-reader` returned `EMPTY` — nothing is then put
-  to the operator, and the inventory holds no row, or only the rows an earlier intake wrote, which
-  that read leaves as it stands (`commands/brd-intake.md` Phase 3); where it holds such a row
-  anchored on this image, the line is `yields [BR#n], …` for those rows instead. **It names
+  — and, where `brd-reader` returned `EMPTY`, nothing is put to the operator: over a folder holding
+  no prior inventory row the line is `none — no requirement extracted`; over an earlier intake's
+  inventory, which that read leaves as it stands (`commands/brd-intake.md` Phase 3), a section's
+  line is **kept exactly as it stood**, `illustrates` included — every row it names is kept with the
+  inventory — and a section that had none takes `none — no requirement extracted`. **It names
   requirements of the BRD that owns this file — on a slice, the parent's, one hop (§2.1)**, which is
   how `references/bundle-packaging.md` §6.2 relation 1 reads it.
 - **A section is never deleted.** An image the current run did not capture keeps its section, with
@@ -290,8 +292,10 @@ none
   did not take it (`commands/brd-intake.md` Phase 2.5 step 3 names the cases). Its *Linked from*
   becomes `— (not captured by the current run)`, and its *Rows* becomes `yields [BR#n], …` for any
   preserved row still anchored on it, else `none — not captured by the current run` — an inventory
-  row the re-run preserved may still anchor on it. §2.2 relation 3 covers only the images the
-  current run captured, so it does not ask about a marked image either way.
+  row the re-run preserved may still anchor on it — save after an `EMPTY` read over an earlier
+  intake's inventory, which keeps the line as it stood (the *Rows* bullet above). §2.2 relation 3
+  covers only the images the current run captured, so it does not ask about a marked image either
+  way.
 
 ## 2. The inventory
 
@@ -527,12 +531,14 @@ name off the parent's `brd/brd-link-log.md` rather than taking whatever it finds
 
 **`kind:` and `key:` open every inventory, a slice's and a source-owning BRD's alike** — a
 source-owning BRD's inventory carries the two and no `parent:`/`source:` pair, because it *is* the
-source owner. They are how the folder asserts its own identity: `workflows-core:addressing` §4 reads
-them off this file wherever no top-level artifact carries `key:` beside a `kind:` naming a folder
-kind, which in a source-owning BRD is so from the moment `/brd-intake` creates the folder: that
-command writes this header, with no row, before it copies anything into a new folder, so the folder
-is never keyless (its Phase 2), and the `coverage-ledger.md` it later writes at the top level names
-its own document (`references/coverage-ledger-format.md` §2), which §4 passes over. The
+source owner. `workflows-core:addressing` §4 reads a folder's identity off them here wherever no
+top-level file carries `key:` beside a `kind:` naming a folder kind (its step 2), which is so of a
+source-owning BRD from the moment `/brd-intake` creates the folder: that command writes this header,
+with no row, before it copies anything into a new folder, so the folder is never keyless (its
+Phase 2), and the `coverage-ledger.md` it later writes at the top level names its own document
+(`references/coverage-ledger-format.md` §2), which §4 passes over. A slice's inventory carries the
+pair too, but it is never the slice's carrier: the slice's `brd-link.md` holds a folder kind at the
+top level, which §4 step 1 finds first. The
 `brd/source/` document itself carries neither and never will, because it is the customer's and is
 immutable (§1).
 

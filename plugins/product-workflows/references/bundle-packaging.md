@@ -329,8 +329,9 @@ command** — producing a single archive of the whole dated directory, in a form
 open without installing anything. One command, because the population that cannot pull the
 repository is exactly the population that will not assemble an archive command themselves.
 **It is produced only where the archive is the route actually being used**, which the calling
-command settles once, at the delivery note, and only where the handoff was accepted is the
-repository route available at all — a bundle on no ref is a bundle nobody can pull.
+command settles once, at the delivery note, and only where the handoff was accepted and pushed the
+bundle is the repository route available at all — a bundle on no ref, or on a commit only the
+packaging machine holds, is a bundle nobody can pull.
 
 **The committed copy is the permanent record of exactly what was sent.** This is the point of D18
 and the reason the cost is worth paying: it is what makes the byte-identical property behind the

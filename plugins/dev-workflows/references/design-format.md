@@ -32,8 +32,9 @@ key: <KEY>                   # this folder's key — must match the folder name
 
 `key:` records the folder's key, so that nothing downstream parses one out of a directory name, and
 `kind:` names this document. Neither makes this file the folder's carrier: `workflows-core:addressing`
-§4 reads a folder's kind and key off a file whose `kind:` is a folder kind — `epic.md` in an Epic
-folder, `prd.md` in a PRD folder — and passes over `kind: design`. The filename is `design.md` and
+§4 reads a folder's kind and key off the folder's carrier, found in §4's order — `brd-link.md` in a
+BRD-route slice, `idea.md` or `prd.md` in an idea-route PRD folder, `epic.md` in an Epic folder —
+and passes over `kind: design`, so the carrier is never this file. The filename is `design.md` and
 carries no key: the folder supplies identity, the filename supplies kind.
 
 ## Header

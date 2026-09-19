@@ -278,7 +278,11 @@ so, and this section keeps `/idea`'s own part of that — writing the index, not
 ### The collision rule
 
 Two linked files may share a basename from different directories, and a re-run meets its own earlier
-copies. The destination name is the source's basename; where that name is already taken:
+copies. The destination name is the source's basename, settled by the rules below. **Rule 1 applies
+to every file, whether or not its basename is taken** — it compares against the whole destination
+directory, so a renamed file whose bytes are already there is reused under the name it has, not
+copied beside it. Where rule 1 finds no identical file, the file lands at its basename if that name
+is free, and rules 2–4 settle a name that is already taken:
 
 1. **Identical content is not a collision.** Compare the bytes **against every file already in the
    destination directory**, not only against the candidate name. A file already holding exactly this

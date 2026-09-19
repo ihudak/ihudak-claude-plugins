@@ -123,8 +123,8 @@ name the run creates ([addressing](../reference/references.md) §2):
 - `brd/brd-inventory.md` — one row per `[BR#n]`, each with its `source_anchor` and any confirmed
   `[DEF#n]` defects — a `conflict` or `duplicate` on the row it was raised on only — and, in its
   frontmatter, which file the rows were last reconciled against as the document, the hash of
-  every file they were reconciled against, and your account of each top-level section that holds no
-  row. A re-run keeps every id, and keeps a row's wording
+  every file they were reconciled against, and your account of each top-level section and each image
+  that holds or illustrates no row. A re-run keeps every id, and keeps a row's wording
   wherever the file its anchor points into is unchanged since then — judged against that record,
   never against the copy on disk or the link log, so a revised document is recognised as one
   whatever it is called, even after a run that copied it stopped before reconciling; where the new
@@ -169,9 +169,9 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   **The inventory's coverage of its own source is then checked, both directions, from what the run
   already holds** — the anchors the read returned, the image transcriptions, and the rows
   `brd-reader` said each image illustrates; nothing is written to the inventory until this check has
-  settled, save the rows a dangling anchor stops the run on, which are written so they can be
-  corrected by hand. Every `source_anchor` must resolve, in whichever of the format's three
-  forms it takes — the document, a linked markdown file, or an image — by
+  settled, save where a dangling anchor stops the run — every row the run holds is written first
+  then, so the anchor can be corrected by hand. Every `source_anchor` must resolve, in whichever of
+  the format's three forms it takes — the document, a linked markdown file, or an image — by
   [`brd-format.md`](../../references/brd-format.md) §2.2's rules. One that resolves to nothing is a
   row nobody can trace back and the run stops, **except a row a re-run kept because its anchor no
   longer resolves — the revised source dropped what it named**: that is a recorded state, and
@@ -184,17 +184,20 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   it, an image with what the plugin read in it, or its reason where it could not be read. **Re-reading
   is asked once, for the whole set; accounting is asked per item.** The set question offers a re-read
   — `brd-reader` dispatched again over everything, its result replacing the first read's rows,
-  candidates and notes wholesale, and allowed once per run — or accounting for each item, or
-  cancelling. Then each section or image still unaccounted for gets its own question: it holds no
-  obligation, which is recorded, or you quote the sentence in it that binds, which is checked against
-  the source word for word and becomes a row of its own — never written through where the source
-  does not hold it. A section's account is kept in the inventory and an image's on its line in the
-  figures file, so a re-run over an unchanged file does not ask about the same section or image
-  again, while a changed file's accounts are asked afresh. On a first intake the rows are numbered
-  once, after the last read and any row a quote added, in reading order. **Section granularity is
+  candidates and notes wholesale unless it finds no requirement at all, and allowed once per run — or
+  accounting for each item, or cancelling. Then each section or image still unaccounted for gets its
+  own question: it holds no obligation, which is recorded, or you quote a sentence in it that binds,
+  shown the text it is checked against, one obligation to a quote and as many quotes as the item
+  binds; each is checked against the source word for word and becomes a row of its own. A quote the
+  source does not hold is never written through: the item's question comes back with it, so you can
+  quote again, record that it holds nothing, or stop. Every account is kept in the inventory — an
+  image's also shown on its line in the figures file — so a re-run over an unchanged file does not
+  ask about the same section or image again, while a changed file's accounts are asked afresh. On a
+  first intake the rows are numbered once, after the last read and any row a quote added, in reading
+  order. **Section granularity is
   the point and was measured**: real BRDs carry fifty or sixty headings under about fifteen
-  top-level sections, of which nine or so legitimately hold
-  nothing, so the operator answers nine questions rather than fifty — and on a real package the
+  top-level sections, of which nine or so legitimately hold nothing, so the operator answers nine
+  questions rather than fifty — and on a real package the
   sections carrying no row included the user stories and the acceptance tests, which is exactly the
   pair worth putting to a human.
 - **Phase 3.5 — `docs-grounder`** (optional). Read-only, advisory, never a gate. Its digest is

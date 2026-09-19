@@ -303,10 +303,12 @@ none
   does neither, the answer's substance and never an option's label: `accounted for — they hold no
   obligation` where the operator picked that option at `/brd-intake` Phase 3, or their own words
   where they typed an answer to the same effect in the harness's free-text option
-  (`workflows-core:escalation-rules` §0); a re-run that re-uses the image's section carries the
-  account its line already records rather than asking again (`commands/brd-intake.md` Phase 3) —
-  and, where `brd-reader` returned `EMPTY`, nothing is put to the operator: over a folder holding
-  no prior inventory row the line is `none — no requirement extracted`; over an earlier intake's
+  (`workflows-core:escalation-rules` §0). **The account is kept in the inventory's `accounts:` map
+  (§2), and this line only shows it**: Phase 5 writes it from that map's entry for the image, and
+  nothing reads an account back off this line — so an account survives a re-run only where §2's
+  carry rule keeps the entry — and, where `brd-reader` returned `EMPTY`, nothing is put to the
+  operator: over a folder holding no prior inventory row the line is `none — no requirement
+  extracted`; over an earlier intake's
   inventory, which that read leaves as it stands (`commands/brd-intake.md` Phase 3), a section's
   line is **kept exactly as it stood**, `illustrates` included — every row it names is kept with the
   inventory — and a section that had none takes `none — no requirement extracted`. **It names
@@ -346,7 +348,8 @@ captured:
   "source/appendix/fields.md": sha256:<hex>
 accounts:
   "1. Background": "they hold no obligation"
-  "source/appendix/fields.md › Sources": "pointers to the customer's own wiki only"
+  "source/appendix/fields.md › Sources": "pointers to the customer's \"Reports\" wiki only"
+  "source/images/logo.png": "they hold no obligation"
 ---
 
 # Inventory: <this folder's key>
@@ -397,22 +400,29 @@ Phase 3, which every later run judges against; an inventory carrying `document:`
 judged the same way (`commands/brd-intake.md` Phase 2). A slice's inventory carries neither: it is
 copied from its parent's rows and never reconciled against a source (§2.1).
 
-**`accounts:` records the operator's answer for each top-level section that holds no row** (§2.2
-relation 2), so a re-run over an unchanged file does not ask about the same section again. One entry
-per section the operator accounted for, keyed by the section as relation 2 names it — its heading
-path in the one form §2.2 fixes, prefixed for a linked markdown file by the file's path relative to
-`brd/` and ` › `, exactly as an anchor into that file is written, and, for a file with no heading at
-all, which is one section, by that file's path relative to `brd/` alone — and valued at the
-account's substance, never an option's label: `they hold no obligation`, or the operator's own words
-where they typed an answer to that effect. Both are double-quoted YAML strings. `/brd-intake` Phase 3
-writes the map with the rows, and nothing else writes it: an entry for every section that run
-accounted for, asked or carried, and every entry already on file for a section in a file that run
-did not capture, kept as it stands; a section that now holds a row has no entry. A later run carries
-a section's account, and does not ask again, only where its Phase 2 recorded the file the section
-sits in **unchanged** and the section still holds no row — a section of the document by the
-document's own state, judged against `document:` as above — and drops the account of a section in a
-file recorded **replaced**, asking afresh (`commands/brd-intake.md` Phase 3). An image's account is
-not kept here: it sits on the image's *Rows* line (§1.2). A slice's inventory carries no `accounts:`
+**`accounts:` records the operator's answer for each top-level section that holds no row and each
+image that neither yields nor illustrates one** (§2.2 relations 2 and 3), so a re-run over an
+unchanged file does not ask about the same item again. One entry per item the operator accounted
+for. **A section is keyed** as relation 2 names it — its heading path in the one form §2.2 fixes,
+prefixed for a linked markdown file by the file's path relative to `brd/` and ` › `, exactly as an
+anchor into that file is written, and, for a file with no heading at all, which is one section, by
+that file's path relative to `brd/` alone. **An image is keyed** by its path relative to `brd/`, as
+its section in `brd/brd-figures.md` is headed. The value is the account's substance, never an
+option's label: `they hold no obligation`, or the operator's own words where they typed an answer to
+that effect. **Key and value are double-quoted YAML strings**, so a `"` inside either is written
+`\"` and a `\` is written `\\` — the example above carries one — and nothing else in them is
+escaped. `/brd-intake` Phase 3 writes the map with the rows, in the same act as `captured:`, and
+nothing else writes it: an entry for every item that run accounted for, asked or carried, and every
+entry already on file for an item in a file that run did not capture, kept as it stands; an item
+that now holds or illustrates a row has no entry. **A later run carries an item's account, and does
+not ask again, only where its Phase 2 recorded the item's file unchanged** — the file a section sits
+in, or the image itself — and the item still holds or illustrates no row; a section of the document
+is judged by the document's own state, against `document:` as above. **Every write of the map drops
+the entry of every item in a file Phase 2 recorded replaced**, save one that run asked afresh — the
+write after the coverage step, and the one relation 1's stop makes before anything is asked
+(`commands/brd-intake.md` Phase 3) — so an account the operator gave about a file's earlier bytes
+never stands beside a `captured:` entry recording its new ones. An image's *Rows* line shows its
+account (§1.2) and is never where one is read from. A slice's inventory carries no `accounts:`
 either, for the reason above.
 
 **A requirement carrying more than one obligation is split.** When one numbered item in the source
@@ -473,10 +483,12 @@ sits after them whatever its place in the source (`commands/brd-intake.md` Phase
 
 **A section the read skipped and a section that genuinely holds no obligation come out of an
 inventory identically — as a section with no row — so the difference cannot be read off the
-artifact.** It is made visible at intake instead, and nothing is stored to do it: the sections are checked
-from `source_anchor`, the document and its linked markdown, and the images from `brd/brd-figures.md`
-and the `illustrates` list `brd-reader` returns beside its rows. A first design
-had the reader account for every heading it passed; measured against real intakes that is fifty-odd
+artifact.** It is made visible at intake instead, and nothing is stored to find it: the sections
+are checked from `source_anchor`, the document and its linked markdown, and the images from
+`brd/brd-figures.md` and the `illustrates` list `brd-reader` returns beside its rows. The one thing
+kept is the operator's answer about each section or image the check names, in §2's `accounts:`, so
+an unchanged file is not asked about twice. A first design had the reader account for every heading
+it passed; measured against real intakes that is fifty-odd
 accounts of "this section holds context", which buries the one case worth seeing.
 
 Three relations — the first two over the **top-level section** of the document and of every
@@ -502,7 +514,7 @@ linked markdown file Phase 2 copied, as defined below the list, the third over t
    that row in the image's `illustrates`. An image that does neither — a logo, a decorative banner,
    a screenshot whose content no obligation bears on, or an image that could not be read — is named
    with its `Depicts` sentence or its reason, and asked about as relation 2's sections are; its
-   answer is recorded on its *Rows* line (§1.2).
+   answer is recorded in §2's `accounts:` and shown on its *Rows* line (§1.2).
 
 **A top-level section, and the one heading-path form it fixes.** Where a file's first heading is
 the only heading at its level and has headings beneath it, that heading is the file's **title**,
@@ -594,6 +606,15 @@ neither, so its writer quotes a span its own element alone holds, quotes an edge
 annotation, writes `annotation <n>` instead (`agents/brd-reader.md`, step 4). Two anchors name the
 same element where they name the same image and that element — `annotation 2` and a quote of
 annotation 2's *Says* that no other element holds among them.
+
+**Comparing two image anchors takes two more rules**, because a row drawn from an image carries the
+plugin's own words and so is reworded between reads while its anchor is not. **Two anchors on one
+image whose decoded quotes are identical match**, whatever element either names — including a quote
+that names none: the same string quoted from the same image is the same anchor, and a reworded row
+under it must meet its row on file rather than be minted beside it. **And where a test asks which
+elements an anchor names** — whether a returned row sits under the same element as a row on file
+(`commands/brd-intake.md` Phase 3's same-or-new question) — a quote that names no single element
+counts as naming every element that holds it.
 
 **Where no anchor in the whole inventory resolves, that is a read failure and is reported as one** —
 never as a document with no coverage (`workflows-core:grounding-format` §2.1).

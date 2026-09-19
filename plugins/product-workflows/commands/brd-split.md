@@ -517,11 +517,13 @@ For every slice Phase 2 confirmed:
    exists (`workflows-core:addressing` §4), and `brd-link.md` is the folder's only artifact until Phase 3 step 4
    writes its inventory. Then the slice's `[BR#n]`
    rows as currently proposed, spelled as `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1
-   fixes — each a double-quoted bracketed id, one to a line — here and wherever a later step of
-   this command adds to or withdraws from the list. This is provisional: Phase 4's walk is the step
-   that actually moves a row's disposition, and a row proposed here for this child but resolved
-   differently there (for example rejected instead) is removed **from this list** at that point, never left to disagree
-   with the ledger. **Only the `claims:` entry and the inventory row step 4 copies for it are
+   fixes — each a double-quoted bracketed id, one to a line. **Wherever a later step of this
+   command writes the list — adding to it or withdrawing from it — it writes the whole list again in
+   that spelling**, every entry already there included, so a list an earlier release spelled
+   otherwise is rewritten the first time this command touches it (§2.1). This is provisional:
+   Phase 4's walk is the step that actually moves a row's disposition, and a row proposed here for
+   this child but resolved differently there (for example rejected instead) is removed **from this
+   list** at that point, never left to disagree with the ledger. **Only the `claims:` entry and the inventory row step 4 copies for it are
    withdrawn — the ledger row step 5 seeds is not.** A ledger row is never deleted
    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), so the child keeps an
    **orphan row** for that `[BR#n]`, and Phase 4's reconcile step writes it the terminal

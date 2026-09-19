@@ -223,10 +223,10 @@ it.
 **Then copy the files the source document links, byte-for-byte too** — this phase captures both, and
 `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.1 is the authority on what the result holds. A
 customer's BRD routinely carries screenshots, diagrams and appendices beside it, and `brd/source/`,
-with `brd/source-external/`, is the immutable record every `[BR#n]` anchors into: whatever this phase
-does not capture is outside that record permanently, because nothing under either is ever written
-again. Copying the text alone leaves every one of those links resolving to nothing while the run
-reports a faithful verbatim copy.
+with `brd/source-external/`, is the immutable record every `[BR#n]` anchors into: whatever this
+phase does not capture stays outside that record until the document is intaken again, because
+nothing but this phase ever writes under either. Copying the text alone leaves every one of those
+links resolving to nothing while the run reports a faithful verbatim copy.
 
 **The links were found, resolved and walked in Phase 1**, by `linked-sources.md` — this phase copies
 what Phase 1 took and never walks again. The walk's record says, per target, what kind of file it

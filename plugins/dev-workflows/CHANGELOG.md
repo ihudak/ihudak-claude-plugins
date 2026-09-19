@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
-## [4.1.1] — Unreleased
+## [4.1.1] — 2026-09-18
 
 ### Fixed — the agents page promised coverage the detection table does not deliver
 
@@ -19,7 +19,7 @@ Three known limits are disclosed there too, each with the condition that trigger
 
 **No behaviour changed in this release.** The eleven rows are exactly what 4.1.0 shipped; this version documents them.
 
-## [4.1.0] — Unreleased
+## [4.1.0] — 2026-09-18
 
 Everything below is the test baseline: which suites a run finds, where it runs them, what it calls their tests, and what each of the three code-changing commands does with the answer. A repository with a single suite **at its root** changes least — its test identifiers now carry a `[<Framework>] ` prefix, and a JavaScript one is told not to watch. A repository with two or more suites, or with its one suite in a subdirectory, behaves differently at every step, which is what this version number is for.
 
@@ -83,7 +83,7 @@ Pre-Phase 3.5 runs after the branch is cut and **before any file is edited**, an
 
 **`docs/commands/design.md` describes only the successful specs-repo handoff.** *"Behind a consent choice, Phase 7 hands the feature folder off via `handoff-to-main`: a branch …, commit, push, and an opened pull request to main"* is the success row of `workflows-core:phase-handoff` §4.1 and nothing else; that table also carries *PR already existed*, *PR not opened*, *Push failed* and *No remote* — the last an ordinary state in which the commit still happens and nothing is pushed. This is the same class as the eleven `product-workflows` pages named in that plugin's own changelog, under the same authority, and it is swept with them rather than alone. The code-repo sites this plugin owns — `/implement`, `/upgrade` and `/vuln`'s pages, the Roles table and the commit-convention page — were corrected earlier in this release cycle and each now names all three determinants of a completed push and a pull request. The run itself is unaffected: every handoff prints which row it took.
 
-## [4.0.4] — Unreleased
+## [4.0.4] — 2026-09-18
 
 ### Fixed — `/ready`'s consent-class justification rejected "the gated array", which now names two and is false of one of them (4.0.4)
 
@@ -101,7 +101,7 @@ Phase 5 step 3's handoff presents `workflows-core:phase-handoff` §4.3's **advis
 
 ### Fixed — the session-cost page counted the never-emitting commands that ship elsewhere, and the cold-start trio falsified the count
 
-`docs/reference/session-cost.md`'s *"Why the other two do not"* paragraph closed with *"(**Two more commands have never emitted one and both ship elsewhere**: `/workflows-core:statusline` … and `/docs-workflows:docs-profile` …)"*. That was true when written and is not now: `/docs-workflows:docs-serve` emits none either — its own body says so (*"NEVER emit a cost entry — `/docs-serve` starts a process and reports a URL"*) — so the class holds three and *"both"* was wrong with the number. Derived rather than assumed: `for f in plugins/*/commands/*.md; do echo "$(grep -c emit-cost "$f") $f"; done` returns 0 for `/vuln`, `/upgrade`, `/docs-profile`, `/docs-serve`, `/statusline`, `/prompt-brainstorm` and `/prompt-grill-me`; the paragraph accounts for the first two itself and the last two defer an entry rather than never writing one (`workflows-core:cost-emission` §13), leaving three. **This is a regression of the unreleased cold-start trio, not an inherited defect** — `/docs-serve` does not exist on `origin/main`, where the sentence was correct — and it is the residue of the sweep the entry *"the documentation names `docs-workflows`' cold-start commands"* records: the sibling page `docs/roles-and-phases.md` — a top-level page, not one of `docs/reference/`'s ten — was swept and names `docs-scaffold` and both new emitters at `:27` and `:33`, and only this line was left. **The count and the enumeration are both cut** rather than re-derived to three: this page already says *"Each companion plugin's own session-cost page describes its own commands"* one paragraph up, and both companion pages carry the ones they hold (`workflows-core`'s *"`/statusline` is the one command in this plugin that emits nothing"*; `docs-workflows`' *"`/docs-profile` and `/docs-serve` emit nothing"*), so the parenthetical now points at them instead of keeping a third copy that only this page has to maintain. Nothing gates the line: `check-docs.sh` check 9's cost assertion matches `<numeral> commands emit a cost entry`, which this sentence never said, and the gate exits 0 with the over-claim restored verbatim — verified by mutation.
+`docs/reference/session-cost.md`'s *"Why the other two do not"* paragraph closed with *"(**Two more commands have never emitted one and both ship elsewhere**: `/workflows-core:statusline` … and `/docs-workflows:docs-profile` …)"*. That was true when written and is not now: `/docs-workflows:docs-serve` emits none either — its own body says so (*"NEVER emit a cost entry — `/docs-serve` starts a process and reports a URL"*) — so the class holds three and *"both"* was wrong with the number. Derived rather than assumed: `for f in plugins/*/commands/*.md; do echo "$(grep -c emit-cost "$f") $f"; done` returns 0 for `/vuln`, `/upgrade`, `/docs-profile`, `/docs-serve`, `/statusline`, `/prompt-brainstorm` and `/prompt-grill-me`; the paragraph accounts for the first two itself and the last two defer an entry rather than never writing one (`workflows-core:cost-emission` §13), leaving three. **This is a regression of the then-unreleased cold-start trio, not an inherited defect** — `/docs-serve` did not exist on `origin/main` when this was found, and the sentence was correct there — and it is the residue of the sweep the entry *"the documentation names `docs-workflows`' cold-start commands"* records: the sibling page `docs/roles-and-phases.md` — a top-level page, not one of `docs/reference/`'s ten — was swept and names `docs-scaffold` and both new emitters at `:27` and `:33`, and only this line was left. **The count and the enumeration are both cut** rather than re-derived to three: this page already says *"Each companion plugin's own session-cost page describes its own commands"* one paragraph up, and both companion pages carry the ones they hold (`workflows-core`'s *"`/statusline` is the one command in this plugin that emits nothing"*; `docs-workflows`' *"`/docs-profile` and `/docs-serve` emit nothing"*), so the parenthetical now points at them instead of keeping a third copy that only this page has to maintain. Nothing gates the line: `check-docs.sh` check 9's cost assertion matches `<numeral> commands emit a cost entry`, which this sentence never said, and the gate exits 0 with the over-claim restored verbatim — verified by mutation.
 
 ### Fixed — two reference pages restricted a count of another plugin's commands to a set that count is not the size of (4.0.0)
 

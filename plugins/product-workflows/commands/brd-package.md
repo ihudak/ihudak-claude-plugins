@@ -309,16 +309,18 @@ cannot review, and they will not tell you that — they will review it anyway, b
     wrote.
 
     **Resolve `brd/source/<basename>`, `brd/brd-defect-log.md` and — where it exists —
-    `brd/brd-figures.md` here too**, even though nothing in this run reads their *content*: all three
-    go into the bundle (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1), and on a
-    **slice** none is in this folder at all — each resolves one hop up, through the `parent:` this
-    step just read (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4). Resolving them now
-    rather than at assembly is what lets an absent one be reported before the run has built a prompt:
-    a bundle missing the customer's own document cannot answer the review's requirement-traceability
-    section, and finding that out at the copy step is finding it out too late to say so cheaply. An
-    absent figures file is never a gate, any more than an absent `code-defect-log.md` is: an intake
-    that copied no image writes none (`commands/brd-intake.md` Phase 2.5), and a BRD intaken before
-    the figures file existed holds none, however many images it links.
+    `brd/brd-figures.md` here too**, even though no phase before *Assemble the bundle* reads their
+    *content*: all three go into the bundle (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md`
+    §1.1) — where that phase reads the figures file's sections to choose which images ship, and runs
+    its scans over every copy (rules 7–8) — and on a **slice** none is in this folder at all — each
+    resolves one hop up, through the `parent:` this step just read
+    (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4). Resolving them now rather than at
+    assembly is what lets an absent one be reported before the run has built a prompt: a bundle
+    missing the customer's own document cannot answer the review's requirement-traceability section,
+    and finding that out at the copy step is finding it out too late to say so cheaply. An absent
+    figures file is never a gate, any more than an absent `code-defect-log.md` is: an intake that
+    copied no image writes none (`commands/brd-intake.md` Phase 2.5), and a BRD intaken before the
+    figures file existed holds none, however many images it links.
 
     **`<basename>` is read off `brd/brd-link-log.md`, one hop up on a slice as the three above are** —
     its opening line names which file under `brd/source/` is the customer's document, since that
@@ -885,7 +887,7 @@ self-review is free of them while being the most internal document this command 
 1. **Name every bundle document distinctively.** Documents are located by **filename search, never
    by path**, because a path is correct exactly once — in the directory layout this machine had —
    and the bundle will be extracted, renamed, re-zipped and mailed on. So each document's bundle
-   filename carries the `<BRD-KEY>` and is unique within the bundle, and every reference from one
+   filename begins `<BRD-KEY>-` and is unique within the bundle, and every reference from one
    bundle document to another, and every instruction in the prompt that sends the reviewer to a
    document, names that filename and tells them to search for it. **The `<BRD-KEY>` is the key of
    the package the document belongs to, not this run's key applied uniformly:** a prerequisite

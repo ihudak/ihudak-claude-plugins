@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
-## [1.2.1] — Unreleased
+## [1.2.1] — 2026-09-18
 
 ### Fixed — a cancelled `/docs-init` printed a report four of whose sections had no value it could carry
 
@@ -23,7 +23,7 @@ Two prose sites instructed a docs repository to repoint that field. **No consume
 
 Section 2's third classification rung read *"For a Value Increment this is the overwhelmingly common case"* and used the current name one clause later, so the rung classified against a term nothing in the tree still defines. It survived thirty-three review passes because the retired term straddles a hard wrap — `**For a Value` / `Increment this is…` — so a line-based `grep` over `plugins/` returned nothing; a wrap-insensitive sweep of the whole repository now puts every remaining occurrence in history.
 
-## [1.2.0] — Unreleased
+## [1.2.0] — 2026-09-18
 
 ### Fixed — the `/document` page hypothesised a 37-node diagram beside its own corrected count of 34 (1.0.0)
 

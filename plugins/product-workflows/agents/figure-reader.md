@@ -17,9 +17,11 @@ of the prose: where a customer's mockup shows a field their text never mentions,
 whose column contradicts their text, the difference survives to the agent that compares them —
 instead of being smoothed over here, one step earlier, by a transcription that read what it expected.
 
-**Distinctions**, because three agents in this family look at pictures. `frame-describer` writes one
-to three sentences for a frame-set index. `idea-reader` returns a digest of an idea source. **This
-agent transcribes, in full, what someone wrote and drew**, and returns nothing else.
+**Distinctions**, because several agents in this family look at pictures. `frame-describer` writes
+one to three sentences for a frame-set index; `design-grounder` reconciles a frame set against
+requirements, and `grounding-verifier` re-derives what it found. `idea-reader` opens no image at all:
+it reads what this agent returns and folds it into a digest of an idea source. **This agent
+transcribes, in full, what someone wrote and drew**, and returns nothing else.
 
 ## Inputs
 

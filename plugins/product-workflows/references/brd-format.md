@@ -29,24 +29,25 @@ becomes an invisible edit to an otherwise-immutable document.
 
 ### 1.1 What `brd/source/` holds, and what it could not hold
 
-`brd/source/` holds the customer's document at its own basename **and every file that document links
-from its own directory**, each at its own path relative to that directory and each copied
-byte-for-byte, whatever its type. That is what makes the copy a record rather than a transcript: a
-customer's BRD routinely carries screenshots, diagrams and appendices beside it, and a link the copy
-did not follow resolves to nothing afterwards — no later command of the route captures it, and
-`brd/source/` is never edited (§1), so no command closes the gap short of intaking the whole document
-again. `/brd-intake` Phase 2 is the only writer; how a link is found and resolved is
-`references/linked-sources.md`'s, and what Phase 2 copies where is stated in `commands/brd-intake.md`
-Phase 2. **The markdown-only
-rule above is about the *document*** — the text
-a `[BR#n]` anchors into, and the one thing an unchecked conversion could silently rewrite; a file it
-links is captured as it stands, whatever its type. **The intake run reads the document, every
-markdown file Phase 2 copied, and every image Phase 2 copied** (`commands/brd-intake.md` Phases
-2.5 and 3); a linked file of any other kind is captured, named to the operator before anything is
-copied, and not read. On a re-run the copy is additive, as the document's own re-copy is: a file
-an earlier intake captured and the revised document no longer links stays where it is, because
-nothing under `brd/source/` is ever removed either — so the log's counts describe the run that
-wrote them rather than the directory's contents.
+`brd/source/` holds the customer's document at its own basename **and every file from that
+document's own directory that `/brd-intake` Phase 1 took** — every one the link walk reached, save,
+where the operator chose to capture only that directory, a file reachable only through a file
+outside it (`commands/brd-intake.md` Phase 1) — each at its own path relative to that directory and
+each copied byte-for-byte, whatever its type. That is what makes the copy a record rather than a
+transcript: a customer's BRD routinely carries screenshots, diagrams and appendices beside it, and a
+link the copy did not follow resolves to nothing afterwards — no later command of the route captures
+it, and `brd/source/` is never edited (§1), so no command closes the gap short of intaking the whole
+document again. `/brd-intake` Phase 2 is the only writer; how a link is found and resolved is
+`references/linked-sources.md`'s, and what Phase 2 copies where is stated in
+`commands/brd-intake.md` Phase 2. **The markdown-only rule above is about the *document*** — the
+text a `[BR#n]` anchors into, and the one thing an unchecked conversion could silently rewrite; a
+file it links is captured as it stands, whatever its type. **The intake run reads the document,
+every markdown file Phase 2 copied, and every image Phase 2 copied** (`commands/brd-intake.md`
+Phases 2.5 and 3); a linked file of any other kind is captured, named to the operator before
+anything is copied, and not read. On a re-run the copy is additive, as the document's own re-copy
+is: a file an earlier intake captured and the revised document no longer links stays where it is,
+because nothing under `brd/source/` is ever removed either — so the log's counts describe the run
+that wrote them rather than the directory's contents.
 
 **Every link in a captured file whose target the copy did not capture is named in
 `brd/brd-link-log.md`**, never dropped in silence: a URL, a file that could not be read, a wikilink
@@ -86,7 +87,7 @@ file rule 1 re-uses — its identical bytes already on file, so nothing is writt
 wherever this file says Phase 2 copied a file (`commands/brd-intake.md` Phase 2). It is
 **immutable exactly as `brd/source/` is**, written only by `/brd-intake` Phase 2, and never removed
 from; it sits beside `brd/source/` rather than inside it so that this section's first sentence stays
-true — `brd/source/` holds what the document links *from its own directory* — and so that no folder
+true — `brd/source/` holds only files *from the document's own directory* — and so that no folder
 the customer's own tree happens to contain can collide with it.
 
 **Which file under `brd/source/` is the customer's document is read, never guessed.** The directory

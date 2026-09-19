@@ -113,17 +113,18 @@ customer — a separate package, a separate conversation — is what the re-cut 
 
 `/brd-intake` shows the operator every file the customer's document links, wikilinks included, then
 copies the document in verbatim and immutably together with every file they take — files outside its
-folder into `brd/source-external/` — since neither directory is ever written again and an uncaptured
-screenshot is gone for good. It reads the linked markdown beside the document and has every linked
-image it takes transcribed, extracts a `[BR#n]` requirement inventory from all of it, confirms
-candidate defects with a human, and writes a coverage ledger with every row `unallocated`.
-`/brd-split`, run on the root, proposes candidate slices from a mandatory slicing instruction — a
-root is never ground, so the instruction is the only grouping signal there is — and walks every
-unallocated ledger row to one of four recorded fates: assigning it to a named slice, deferring it,
-rejecting it against a logged defect, or marking it superseded, until none remain `unallocated`. **A
-BRD is a container and is never implementable itself**, so this run always confirms at least one
-slice; where nothing clusters, the whole BRD becomes one. A slice is not a new route: it nests
-inside its BRD's folder as the `PRD-` folder its PRD will be authored in.
+folder into `brd/source-external/` — since no later command writes under either directory, and a
+screenshot left uncaptured stays out of the record until the document is intaken again. It reads the
+linked markdown beside the document and has every linked image it takes transcribed, extracts a
+`[BR#n]` requirement inventory from all of it, confirms candidate defects with a human, and writes a
+coverage ledger with every row `unallocated`. `/brd-split`, run on the root, proposes candidate
+slices from a mandatory slicing instruction — a root is never ground, so the instruction is the only
+grouping signal there is — and walks every unallocated ledger row to one of four recorded fates:
+assigning it to a named slice, deferring it, rejecting it against a logged defect, or marking it
+superseded, until none remain `unallocated`. **A BRD is a container and is never implementable
+itself**, so this run always confirms at least one slice; where nothing clusters, the whole BRD
+becomes one. A slice is not a new route: it nests inside its BRD's folder as the `PRD-` folder its
+PRD will be authored in.
 
 `/prd-ground` then pins every mounted repository to a verified commit and grounds every `[BR#n]`
 this slice claims against code and an exported design frame set, with every finding independently
@@ -239,7 +240,7 @@ shares):
 specifications/BRD-<BRD-KEY>-<slug>/
 ├── brd/
 │   ├── source/<basename>        # the customer's file, copied verbatim — never edited again
-│   ├── source/<paths it links>  # every file that document links from its own directory, byte-for-byte
+│   ├── source/<paths it links>  # every file the run took from the document's own directory, byte-for-byte
 │   ├── source-external/<name>   # files the document links from outside its folder, when captured
 │   ├── brd-inventory.md         # [BR#n] rows, /brd-intake
 │   ├── brd-link-log.md          # captured files' uncaptured links, with reasons, and the as-written map, /brd-intake
@@ -258,7 +259,7 @@ specifications/BRD-<BRD-KEY>-<slug>/
 ├── code-defect-log.md           # [CDF#n] code defects a decision turns on, from /brd-interview
 ├── interview/
 │   ├── round-<N>.md             # one append-only record per round, /brd-interview
-│   └── customer-questions.md    # the [C] questions held for the customer, /brd-interview
+│   └── customer-questions.md    # the [C] questions held for the customer, /brd-interview; /brd-reconcile marks each answered
 ├── self-review-<date>.md        # every [SR#n] with its disposition, /brd-package
 ├── customer-review-prompt-<date>.md   # the self-contained prompt the customer pastes, /brd-package
 ├── customer-delivery-note-<date>.md   # the covering letter — the email, not a bundle document, /brd-package

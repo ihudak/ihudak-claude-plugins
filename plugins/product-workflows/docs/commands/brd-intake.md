@@ -10,17 +10,17 @@ coverage ledger where every requirement starts `unallocated`.
 
 `/brd-intake` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution
 phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route, the way `/idea` and
-`/create-prd` share `prd-creation`. It is the route's entry point: nothing else in the route reads a
-customer-supplied source document. Downstream, each command of the route gates on whatever the command
-immediately before it in the chain produced, not on this one directly. Nothing gates on this
-command's own inventory and ledger at all: `/brd-split`, run on the root, reads both from the
-working tree and stops on what they contain rather than on where they have been merged. Every
-command after that gates on a later hop (`/prd-ground` on the slice's own ledger `/brd-split` copied, `/brd-split` again on
-`/prd-ground`'s findings, `/brd-interview` on that ledger and those findings, `/brd-package` on
-`/brd-interview`'s register, and `/brd-reconcile` on `/brd-package`'s sent prompt). Every one of
-them runs as pm except
-[`/prd-ground`](prd-ground.md), which runs as
-[pa](../roles-and-phases.md#pa--product-architecture).
+`/create-prd` share `prd-creation`. It is the route's entry point, and the only command in it that
+is handed a customer-supplied source document: later commands read the copies and the inventory this
+run made, and none extracts requirements from the customer's files again. Downstream, each command
+of the route gates on whatever the command immediately before it in the chain produced, not on this
+one directly. Nothing gates on this command's own inventory and ledger at all: `/brd-split`, run on
+the root, reads both from the working tree and stops on what they contain rather than on where they
+have been merged. Every command after that gates on a later hop (`/prd-ground` on the slice's own
+ledger `/brd-split` copied, `/brd-split` again on `/prd-ground`'s findings, `/brd-interview` on that
+ledger and those findings, `/brd-package` on `/brd-interview`'s register, and `/brd-reconcile` on
+`/brd-package`'s sent prompt). Every one of them runs as pm except [`/prd-ground`](prd-ground.md),
+which runs as [pa](../roles-and-phases.md#pa--product-architecture).
 
 ## Synopsis
 
@@ -98,12 +98,14 @@ Under `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` — the `BRD-` kind pre
 name the run creates ([addressing](../reference/references.md) §2):
 
 - `brd/source/<basename>` — the customer's source, copied byte-for-byte and never edited again.
-- `brd/source/<the paths it links>` — every file that document links from its own directory, copied
-  byte-for-byte to the same relative path, so the copied text's links resolve exactly as the
-  customer's did. Screenshots are the usual case, and capturing them is the only chance there is:
-  nothing under `brd/source/` is ever written again.
+- `brd/source/<the paths it links>` — every file the run takes from the document's own directory,
+  copied byte-for-byte to the same relative path, so the copied text's links resolve exactly as the
+  customer's did. Screenshots are the usual case, and this run is where they are captured: no later
+  command of the route writes under `brd/source/`, so a file left behind here stays out of the record
+  until the document is intaken again.
 - `brd/source-external/<basename>` — every file the document links from outside its own folder, where
-  you chose to capture it, by basename; immutable exactly as `brd/source/` is.
+  you chose to capture it, by basename (a name already taken there gets a numbered suffix); immutable
+  exactly as `brd/source/` is.
 - `brd/brd-link-log.md` — every link in a captured file whose target the copy could **not**
   capture, each with its reason (a URL, an unreadable target, a wikilink matching several files,
   or — where you chose the document's own folder only — a link to a file outside it), the run's
@@ -130,7 +132,7 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   never decides a defect itself. `EMPTY` (no identifiable requirement) short-circuits Phase 4 and
   writes an empty ledger — and the run says so plainly, because the route stops on a claimless BRD:
   Phase 8 then offers a re-run of this command with a corrected source instead of offering
-  `/prd-ground`, which would refuse the BRD. `NOT_FOUND` stops the run and surfaces the agent's
+  `/brd-split`, which would refuse the BRD. `NOT_FOUND` stops the run and surfaces the agent's
   exact message.
 
   **The inventory's coverage of its own source is then checked, both directions, from what the run

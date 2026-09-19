@@ -5,7 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
-## [1.7.0] — Unreleased
+## [1.7.1] — Unreleased
+
+### Changed — two references name the agent that now reads the family's pictures, and the artifacts it writes
+
+`grounding-format.md` §6.1 and §6.2 named `idea-reader` as the agent reading the images an idea source links. `product-workflows` 3.7.0 moved that job to its new `figure-reader`, which also transcribes the images a customer's BRD links for `/brd-intake`, and both sections now name it: §6.1's paragraph on reading a picture says which of the family's picture readers each claim is true of, and that `brd/brd-figures.md` — the file `/brd-intake` writes from those transcriptions — is not a frame-set index and sits in no `design/` directory, so the index obligation does not reach it; §6.1's account of when an idea-route PRD folder holds a frame set now says an image the run's link walk took and `figure-reader` read; and §6.2's writer table says `/idea`'s per-image description is `figure-reader`'s `depicts` sentence, with the sentence under it saying that an image `/idea` never had transcribed is not copied, so it reaches step 4 only where an earlier run or a person left a copy in the set — it had said such an image lands on step 4 outright, which a file never copied cannot. `phase-handoff.md` §4.0's register classifies the two artifacts `/brd-intake` gains, `brd/source-external/*` and `brd/brd-figures.md`, as **advisory** beside `brd/source/*`, naming `/brd-package` and a later `/brd-intake` run as their readers — an artifact absent from that table is unclassified, and `/brd-intake`'s handoff declares both. No behaviour of any `workflows-core` command or agent changes.
+
+## [1.7.0] — 2026-09-18
 
 **Update this plugin, not only the one whose workflow you were thinking about.** `claude plugin update` re-fetches exactly one plugin, and everything below is shared: the `test-notify` hook that arrives with this plugin on every machine, since each family plugin declares it as a dependency, and four references the dependent plugins' own instructions cite by name — `model-routing/classification.md`, `phase-handoff.md`, `cost-emission.md` and `session-hygiene.md`. A machine that updates `dev-workflows` alone runs its new instructions against the old shared corpus.
 
@@ -35,7 +41,7 @@ Separately, the command gate listed `gradlew test` beside `gradle test` — so w
 
 `session-hygiene.md` carried two more. Its resume-pointer omit-condition was keyed on membership of §4's rename-aid set: §4 enumerates eight commands, **eighteen** commands execute the template, and nine of those eighteen appear in neither list. The condition now reads a property the run already holds — omit the line where this command's own `### Context hygiene` block carries no `/rename` suggestion — which is decidable for all eighteen and correct for all eighteen. And §4 justified excluding `/idea` and `/create-prd` from the rename aid by their running *"before the handoff that mints the PRD, so there is usually no PRD-ID to name a session after"*: both now take a mandatory key and refuse without one, so a PM run always has one. **A reason that no longer holds needs a new reason rather than a deletion** — the exclusion stands on phase length alone, and five further sites carrying the retired premise, in `product-workflows` and `dev-workflows` as well as here, were swept by subject and corrected with it. A third claim, that `/vuln` and `/upgrade` *"have no PRD directory to write into"*, is refuted by name in `cost-emission.md`: both run `specs-preflight` and `commit-artifacts` and do write into `$SPECS_PATH`, and a keyed run of either resolves a folder. The partition is three ways rather than two.
 
-## [1.6.0] — Unreleased
+## [1.6.0] — 2026-09-18
 
 Everything here is a shared contract another plugin reads, which is why the arrival of `docs-workflows`' cold-start commands (`/docs-init`, `/docs-brand`, `/docs-serve`) moves this plugin's version rather than only theirs.
 

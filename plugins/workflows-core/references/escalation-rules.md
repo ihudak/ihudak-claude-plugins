@@ -58,7 +58,7 @@ above … There is no fourth disposition and no 'skip on my own judgement' path 
 
 | Array | Its closed vocabulary | Owner |
 |---|---|---|
-| the candidate-confirmation picker | `confirm` / `correct` / `reject` / `ask-the-customer` | `/product-workflows:brd-reconcile`, *Confirm every candidate* |
+| the candidate-confirmation picker, with its two-option form for an answer matching no question the package put | `confirm` / `correct` / `reject` / `ask-the-customer`; on that form, `record-for-a-human` / `reject` — never a freeze | `/product-workflows:brd-reconcile`, *Confirm every candidate* |
 | the missing-reason picker | ask the customer, or freeze `status: open` | `/product-workflows:brd-reconcile`, *Confirm every candidate* |
 | the propagation-sweep picker | `inherited-unchanged` / `reverted` / `reopened` / `withdrawn` | `/product-workflows:brd-reconcile`, *The propagation sweep* |
 | the will-change resolution picker | the exactly three resolutions of `product-workflows:decision-register-format` §6 | `/product-workflows:brd-interview` |

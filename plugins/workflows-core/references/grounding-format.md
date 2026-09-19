@@ -114,10 +114,11 @@ So, canonically:
 - **A field that does not apply is omitted, never written empty** — `class` and `cites` on a
   `[CG#n]`, `cites` on a `[DG#n]` of class 1, 2 or 3, `commit` on a `[DG#n]` of class 1, 2 or 3,
   `prerequisite` on any finding whose `horizon` is `current`, and `control` on a finding that
-  asserts no absence. An empty value asserts that the field
-  applies and its value is unknown, which is a different claim from the field not applying. §2's
-  `cites` row said "empty otherwise" until this section was written; the two rules met head-on for
-  forty-five lines, and §2 was the one corrected.
+  asserts no absence. On a finding record, an empty value asserts that the field applies and its
+  value is unknown, which is a different claim from the field not applying — a reading this section
+  fixes for finding records only, not for a register that borrows a field name and gives its own
+  empty value a meaning of its own. §2's `cites` row said "empty otherwise" until this section was
+  written; the two rules met head-on for forty-five lines, and §2 was the one corrected.
 
 ```
 - id: [CG#12]

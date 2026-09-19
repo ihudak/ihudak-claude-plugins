@@ -699,18 +699,21 @@ of these resolutions:
 
 | Resolution | Meaning |
 |---|---|
-| `customer-amended <date>` | the customer supplied corrected text; the amendment is the returned review `/brd-reconcile` read it from (`commands/brd-reconcile.md`, *Resolve the defects the review settled*) — never written back into `brd/source/`, and never into the inventory's or the ledger's `text`, which stay the customer's original |
+| `customer-amended <SLICE-KEY> <date>` | the customer supplied corrected text; the amendment is in the returned review `/brd-reconcile` read it from — the review of the slice the value names, dated `<date>` (`commands/brd-reconcile.md`, *Resolve the defects the review settled*) — never written back into `brd/source/`, and never into the inventory's or the ledger's `text`, which stay the customer's original |
 | `withdrawn` | the customer withdrew the requirement the defect was raised against |
 | `resolved-by: <SLICE-KEY>/[CG#n]` · `resolved-by: <SLICE-KEY>/[CD#n]` | a code- or design-grounding finding settled the defect (typically closing an `unsourced` entry), or a customer decision did — the answer to the question the defect raised, or to a rejected row's question that carries it (`commands/brd-interview.md`, *Round 1 is generated from the grounding*), frozen by `/brd-reconcile` |
 | `open` | none of the above has happened yet |
 
-**`resolved-by` names its slice, in one spelling.** Grounding and deciding are both slice-only, and
-each slice numbers its own `[CG#n]` and `[CD#n]` from 1, while this log is the parent's (below) — so
-once a BRD has two slices a bare `[CD#2]` may name a record in either and does not say which. The
-value is qualified by the key of the slice whose finding or decision it is, in the shape
-`references/decision-register-format.md` §5 gives a record of another BRD
-(`conditional_on: <BRD-KEY>/<decision-id>`): `resolved-by: EPIC-008-01/[CD#2]`, never
-`resolved-by: [CD#2]`.
+**`resolved-by` and `customer-amended` name their slice, each in one spelling.** Grounding, deciding
+and reconciling are all slice-only: each slice numbers its own `[CG#n]` and `[CD#n]` from 1 and
+keeps its own returned reviews, while this log is the parent's (below) — so once a BRD has two
+slices a bare `[CD#2]` may name a record in either, and a bare date does not say whose review holds
+the amended text. Each value is qualified by the key of the slice whose finding, decision or review
+it is — `resolved-by` in the shape `references/decision-register-format.md` §5 gives a record of
+another BRD (`conditional_on: <BRD-KEY>/<decision-id>`): `resolved-by: EPIC-008-01/[CD#2]`, never
+`resolved-by: [CD#2]`; and `customer-amended EPIC-008-01 20260422`, never
+`customer-amended 20260422`. A bare `customer-amended <date>` written before 3.7.0 names no slice,
+and a reader looking for its text asks which slice's review holds it rather than guessing.
 
 **The defect log's layout is fixed** — one entry per `[DEF#n]`, one table row each, its cells
 written by §2.3's encoding:
@@ -762,16 +765,16 @@ document; a slice reads its parent's rather than keeping one of its own (§2.1).
 about `brd/brd-defect-log.md` and about `[DEF#n]` only: the route's **code**-defect log,
 `code-defect-log.md`, is a different register with a different owner —
 `references/code-defect-log-format.md` §6 — and a slice keeps its own, because a code defect belongs
-to the slice's own grounding and grounding is slice-only. A consumer that must reach a
-`[DEF#n]` while standing on a slice — `/brd-split`'s `rejected: [DEF#n]` resolution when it walks a
-slice's ledger (`commands/brd-split.md` Phase 4), `/brd-reconcile` writing the `customer-amended`,
-`withdrawn` and `resolved-by: <SLICE-KEY>/[CD#n]` resolutions a returned customer review settles
-(`commands/brd-reconcile.md`), `/brd-interview` reading the open entries its requirement-defect
-question source asks (`commands/brd-interview.md`), or any reader following the `defects` column of
-the slice's copied inventory row — therefore looks it up in, and writes it to, the parent's log.
-That lookup is always **exactly one hop**: nesting is capped at one level
-(`workflows-core:addressing` §6), so a slice's parent always owns the source document and the log,
-and there is no chain to walk.
+to the slice's own grounding and grounding is slice-only. A consumer that must reach a `[DEF#n]`
+while standing on a slice — `/brd-split`'s `rejected: [DEF#n]` resolution when it walks a slice's
+ledger (`commands/brd-split.md` Phase 4), `/brd-reconcile` writing the
+`customer-amended <SLICE-KEY> <date>`, `withdrawn` and `resolved-by: <SLICE-KEY>/[CD#n]` resolutions
+a returned customer review settles (`commands/brd-reconcile.md`), `/brd-interview` reading the open
+entries its requirement-defect question source asks (`commands/brd-interview.md`), or any reader
+following the `defects` column of the slice's copied inventory row — therefore looks it up in, and
+writes it to, the parent's log. That lookup is always **exactly one hop**: nesting is capped at one
+level (`workflows-core:addressing` §6), so a slice's parent always owns the source document and the
+log, and there is no chain to walk.
 
 A resolution changes the defect log entry's status only. It never touches `brd/source/`, and it
 never assigns the requirement a disposition — the disposition vocabulary and the artifact that

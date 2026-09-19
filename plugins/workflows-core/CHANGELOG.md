@@ -55,6 +55,14 @@ The paragraph under the template's heading was wrapped at this reference's width
 
 The round-records row named `decisions.md` and `interview/customer-questions.md` in its **Input** column as the sources of the round set, and `scripts/check-docs.sh` check 11 reads that column's backticked filenames as each command's `require-on-main` targets — so the build took the questions file for a `/brd-package` gate target while §4.0 classes it advisory, which it is: `/brd-package` reads it for its rounds and gates nothing on it. The column now names the round record alone, and the sources, with the sentence saying the questions file is read and not gated, sit in the behaviour column. Check 11's derived targets for `/brd-package` fall from three to two, `round-<N>.md` and `decisions.md` (the latter from the register's own row). **No run's behaviour changed. Population: check 11, and any reader of the row.**
 
+### Fixed — `grounding-format` §2.1's reading of an empty value was stated for every record
+
+§2.1 said an empty value asserts that a field applies and its value is unknown, with no scope, while `product-workflows`' decision register writes `evidence: []` as a known empty list — a decision resting on no finding — and says it is not the case §2.1 omits a field for. Read as written, the two disagreed about one spelling. §2.1 now fixes its reading for finding records only, and says a register borrowing a field name may give its own empty value a meaning of its own. **No run's behaviour changed. Population: every reader weighing an empty field outside a finding record.**
+
+### Changed — `escalation-rules` names the confirmation picker's form for an answer matching no question
+
+`product-workflows` 3.7.0's `/brd-reconcile` never freezes an answer matching no question the package put, and puts such a candidate to the operator on a two-option form of its confirmation picker — record it for a human, or reject it. The closed-vocabulary table's first row now names that form beside the four-option one, so a free-text answer on it is normalised into those two or re-asked, and never frozen. The table still names seven arrays. **Population: every `/brd-reconcile` run whose review answers something the package did not ask.**
+
 ## [1.7.0] — 2026-09-18
 
 **Update this plugin, not only the one whose workflow you were thinking about.** `claude plugin update` re-fetches exactly one plugin, and everything below is shared: the `test-notify` hook that arrives with this plugin on every machine, since each family plugin declares it as a dependency, and four references the dependent plugins' own instructions cite by name — `model-routing/classification.md`, `phase-handoff.md`, `cost-emission.md` and `session-hygiene.md`. A machine that updates `dev-workflows` alone runs its new instructions against the old shared corpus.

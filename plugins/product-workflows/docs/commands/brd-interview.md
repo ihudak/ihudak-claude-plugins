@@ -41,13 +41,15 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   **Every open requirement defect this BRD owns becomes a question for the customer** — an
   ambiguity, a conflict, a duplicate, or an untestable or scope-leaking requirement confirmed at
   intake, including an obligation only an image states — and always a `[C]`: the defect is in the
-  customer's own words. At most one slice owns a defect — the one holding the lowest-numbered row
-  the defect is listed on that is still built or deferred there; where no listed row is, the one
-  holding the lowest-numbered listed row it rejected citing that defect, which asks it on that row's
-  question; where there is neither, nobody owns it, and a slice whose in-scope rows list it says so
-  in its round record, naming the rows and their fates — and a defect is asked once across all the
-  slices: where any slice's `[C]` question set already carries it, none asks it again. Where that
-  cannot be told yet — a listed row still unallocated, or a sibling's ledger or question set
+  customer's own words. At most one slice owns a defect — the one holding the lowest-numbered of the
+  rows the defect joins (the row it was raised on and every row it names) that is still built or
+  deferred there; where none is, the one holding the lowest-numbered of those rows it rejected citing
+  that defect, which asks it on that row's question; where there is neither, no slice owns it and
+  this route never puts it to the customer — a slice holding one of its rows says so in its round
+  record, naming the rows and their fates, and a defect whose every row the root itself settled is
+  named by no slice at all, since the root is never interviewed — and a defect is asked once across
+  all the slices: where any slice's `[C]` question set already carries it, none asks it again. Where
+  that cannot be told yet — a row it joins still unallocated, or a sibling's ledger or question set
   unreadable — the run withholds the defect and says why. **Round 1's record decides which round a
   defect goes into.** On a slice interviewed before this source existed, round 1's record has no
   requirement-defect line, so its defects belong in round 1: an open round 1 takes them at once, and
@@ -60,13 +62,17 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
 
   **Every row this BRD rejected becomes a question for the customer too**, always a `[C]`: nothing
   on the route records why a requirement was rejected, so whether the customer accepts not getting
-  it is theirs to say. It carries the defect the rejection cites wherever this slice owns that
-  defect, so the customer's answer settles it — and where that row's question was already put and is
-  still held for the customer, the defect is added to that question as one more line rather than
-  asked beside it; only a question the customer has already answered leaves the defect to a question
-  of its own, which names that answer. A rejected row raises nothing where the customer withdrew it
-  themselves, or where the defect it cites is already answered, already asked, or another slice's to
-  ask. A deferred row raises a question only where no rationale for the deferral was ever recorded.
+  it is theirs to say. It carries the defect the rejection cites wherever this slice is that
+  defect's carrier — no row the defect joins is live anywhere, and this slice holds the
+  lowest-numbered one rejected citing it — so the customer's answer settles it; where that row's
+  question was already put and is still held for the customer, the defect is added to that question
+  as one more line rather than asked beside it. Where no held question can be told to be the row's —
+  none names it, more than one could be it, or it was already answered — the defect is asked as a
+  question of its own, which names the answer already given or the questions it could not choose
+  between. A rejected row raises nothing where the customer withdrew it themselves, where the defect
+  it cites is already answered or already asked, where any slice — this one included — owns that
+  defect through a live row, whose question names this row as context, or where another slice
+  carries it. A deferred row raises a question only where no rationale for the deferral was ever recorded.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).
@@ -209,8 +215,9 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   customer*, *deferred*, *needs grounding*, *untagged*) — plus one line naming the requirement
   defects the round asked and those it withheld, each with its cause, or saying there were none for
   this BRD to ask. Every write of it ends with a `Status:` line — `open`, naming what the round
-  waits on, or `closed` with the date and why — and, the file being append-only, the round's state
-  is its **last** `Status:` line; [`/brd-reconcile`](brd-reconcile.md) appends the closing one when
+  waits on, or `closed` with the date and why — and, the file being append-only, its **last**
+  `Status:` line records the round's state, which its questions' dispositions decide: where the two
+  disagree, the dispositions win. [`/brd-reconcile`](brd-reconcile.md) appends the closing line when
   it answers a round's last held question. This file is what makes a round resumable — an
   interrupted run returns to the first question carrying no terminal disposition rather than
   restarting the round.

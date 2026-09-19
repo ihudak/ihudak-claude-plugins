@@ -107,7 +107,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
 
 ## Phase 0 — Resolve inputs and gate the decided BRD
 
-1. **`<BRD-KEY>` (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--depends-on` each consume the token after them (step 2), and a value skipped as "non-flag" would be read as the key; validate with `key-valid`
+1. **`<BRD-KEY>` (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--depends-on` consumes the token after it (step 2), and a value skipped as "non-flag" would be read as the key; validate with `key-valid`
    (`workflows-core:addressing` §1). If absent or invalid, stop:
    `BRD_PACKAGE_NEEDS_KEY: /brd-package needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/product-workflows:brd-package <KEY>'.`
 2. **`--depends-on <BRD-KEY>`.** Repeatable, each consuming the next token; validate each with

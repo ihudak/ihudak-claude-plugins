@@ -329,9 +329,9 @@ cannot review, and they will not tell you that — they will review it anyway, b
     document. The *Assemble the bundle* phase reads it once more: its *Captured links that do not
     resolve as written* table is how an image a captured file reaches through a `[[wikilink]]` or
     from outside the document's own directory is found (`bundle-packaging.md` §2.1), and where the
-    manifest finds the link as written it names beside a captured file, markdown or image (rule 6).
+    manifest finds the target as written it names beside a captured file, markdown or image (rule 6).
     Only a link that does not resolve as written has a row there; one that does reaches its copy by
-    its own path, which the manifest's map already carries, so no link as written is named for it.
+    its own path, which the manifest's map already carries, so no target as written is named for it.
 11. **Fix the run's date.** One `<YYYYMMDD>` stamp, taken once, used for every artifact this run
     writes. If `bundle-<YYYYMMDD>/` already exists in the BRD folder, stop:
     `BRD_PACKAGE_BUNDLE_EXISTS: <BRD-dir>/bundle-<YYYYMMDD>/ already exists — a dated bundle is never rewritten. Move or rename the existing directory if it was never sent, or package on the next date.`
@@ -930,10 +930,10 @@ self-review is free of them while being the most internal document this command 
    that way — with one line each saying what the document is and whether it is for review or *not
    for re-review*. **Then map every captured file the bundle carries** — each markdown file and each
    image from `brd/source/` and `brd/source-external/` — from its path relative to `brd/` to its
-   bundled filename, naming beside it any link as written that the link log maps to it
+   bundled filename, naming beside it any target as written that the link log maps to it
    (`bundle-packaging.md` §1.1, §2.1). A figures section's heading, an appendix or image anchor, and
    an interview question naming an image all give that relative path, and none of them is a bundle
-   filename. **Rule 8's relation 3 does not test a quoted link as written** (`bundle-packaging.md`
+   filename. **Rule 8's relation 3 does not test a quoted target as written** (`bundle-packaging.md`
    §6.2): it sits beside the bundled filename it maps to and quotes the customer's own link, so the
    `notes.md` a `[[notes.md]]` link names is a map entry here, not a reference to a bundle document.
    The manifest is a bundle document; the delivery note is not.
@@ -1152,12 +1152,11 @@ outcome** — how many identifier references resolved, across how many source pa
 named another BRD and were discharged, and every hit inside verbatim customer content or a
 customer-derived locator — this check's and the plugin-free scan's alike — that the operator was
 asked to rule on, grouped as `bundle-packaging.md` §6.3 fixes, **or an explicit "none"**; **the
-delivery note, printed in full**; **the delivery route settled in Phase 7 and why** — naming the archive command
-with an absolute path on the archive route, and on the repository route saying that none was
-produced because the customer pulls the
-committed bundle, so a reader of this report cannot mistake its absence for a step that failed; the
-feedback + cost paths; the `Phase handoff:` outcome line
-(`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line
+delivery note, printed in full**; **the delivery route settled in Phase 7 and why** — naming the
+archive command with an absolute path on the archive route, and on the repository route saying that
+none was produced because the customer pulls the committed bundle, so a reader of this report cannot
+mistake its absence for a step that failed; the feedback + cost paths; the `Phase handoff:` outcome
+line (`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line
 (`workflows-core:specs-repo-git` §6); the next-step recommendation; and — before the ledger line —
 the **repo→SHA table**:
 

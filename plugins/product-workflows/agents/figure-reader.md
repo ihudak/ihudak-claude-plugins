@@ -47,17 +47,19 @@ For each entry, in order:
    screenshot of today's product from a polished mockup of tomorrow's, and the caller's extractor
    decides that from the prose around the link.
 3. **`depicts`** — one sentence: the screen, report, form, dialog or flow, any state it is plainly
-   in (empty, error, filtered, a selected row), and for a table how many data rows it shows.
+   in (empty, error, filtered, a selected row), and for a table of repeated data rows how many rows
+   it shows.
 4. **`text`** — every legible string, **verbatim**, in reading order: titles, labels, column headers,
    field names, button captions, legends, footnotes — **and nothing of yours**. Set one region apart
    from the next with a blank line, or write the regions as the items of a list, and a table row as
    its cells in order separated by ` | `; never with a label you wrote (`Title:`, `Row 2:`,
    `field showing:`) or a word describing the drawing. A caller quotes `text` as the image's own
    element (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2), so a word of yours in it would
-   be quoted as the customer's. **For repeated data rows**, transcribe the header and one
-   representative row, and say how many rows are shown in `depicts` — the rule
-   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2 fixes for what *Text* means, so a reader
-   takes one row as complete, not partial.
+   be quoted as the customer's. **For repeated data rows** — a sample report's values — transcribe
+   the header and one representative row, and say how many rows are shown in `depicts`; **a table
+   whose rows state different things** — required fields, prices, an approval matrix — **you
+   transcribe whole**. That is the rule `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2 fixes
+   for what *Text* means, so a reader takes one row of the first kind as complete, not partial.
 5. **`annotations`** — every mark someone added on top of the picture: an arrow, a box, a highlight,
    a circled region, a typed or handwritten note. For each, `says` is its text verbatim (the empty
    string for an unlabelled mark) and `points_at` is the element it sits on or points to, named as

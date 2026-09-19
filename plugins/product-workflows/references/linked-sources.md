@@ -33,13 +33,14 @@ reached only through a reference-style definition is a page exactly as one reach
 
 ## 2. Normalising a target
 
-Drop any `#fragment` and `?query`, then percent-decode. For a wikilink, also drop the alias half
-(`|…`) and any `#heading` or `^block` suffix. **A target empty after that is an in-document jump** —
-`[[#Scope]]`, `[see below](#scope)` — and is neither followed nor recorded.
+Drop any `#fragment` and `?query`, then percent-decode. For a wikilink, also drop whatever follows
+its `|` — an alias, or an embed's width — and any `#heading` or `^block` suffix. **A target empty
+after that is an in-document jump** — `[[#Scope]]`, `[see below](#scope)` — and is neither followed
+nor recorded.
 
-The record keeps the target **as written** (§5), alias half aside: normalising is how a target is
-resolved, never how it is reported, because every caller that maps a link back to its copy compares
-written forms.
+The record keeps the target **as written** (§5), what follows a wikilink's `|` aside: normalising is
+how a target is resolved, never how it is reported, because every caller that maps a link back to
+its copy compares written forms.
 
 ## 3. Resolving a target
 
@@ -91,7 +92,7 @@ One entry per link found, including a second link to a file already visited (the
 the visited set is of files):
 
 ```yaml
-- target:     <the link target exactly as written, alias half dropped>
+- target:     <the link target exactly as written, what follows a wikilink's | dropped>
   from:       <absolute path of the file the link sits in>
   path:       <resolved absolute path — absent only when the walk itself sets reason>
   kind:       markdown | image | other     # absent only when the walk itself sets reason
@@ -103,11 +104,12 @@ the visited set is of files):
 
 **`target` is what sits between the link's own delimiters, as the author typed it; the syntax that
 makes it a link is not part of it** — `[[` and `]]`, or `![[` and `]]`, for a wikilink; `(` and `)`
-for an inline link or image, with the `<` `>` markdown allows around a target and any title after
-it; the `]:` of a reference definition, and its title; and the quotes of an `<img src="…">`. What is
-between them is kept exactly, save a wikilink's alias half: `![[Pasted image 1.png|300]]` records
-`Pasted image 1.png`, and `[fields](<appendix/field list.md>)` records `appendix/field list.md`.
-Nothing else is normalised here (§2).
+for an inline link or image, and any title after the target; the `]:` of a reference definition,
+and its title; the `<` `>` markdown allows around the target of either of those two; and the quotes
+of an `<img src="…">`. What is between them is kept exactly, save whatever follows a wikilink's `|`
+— an alias, or an embed's width: `![[Pasted image 1.png|300]]` records `Pasted image 1.png`, and
+`[fields](<appendix/field list.md>)` records `appendix/field list.md`. Nothing else is normalised
+here (§2).
 
 `depth` is the depth at which the file was **first** reached. `inside` compares the resolved `path`
 with the starting document's own directory by normalised text, exactly as step 2 of §3 resolves. A

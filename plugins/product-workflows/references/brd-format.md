@@ -62,18 +62,19 @@ instead. That log is the **plugin's** record rather than the customer's, which i
 byte is the customer's own and a plugin-written file would read as part of the document they handed
 over. It opens by naming the source document's basename, carries the run's counts — links found,
 files copied, links not copied — and then one row per uncopied link: the target as written, the
-copied file the link sits in, and the reason. **No path a row writes is the operator's own**: a
-row names the captured file a link sits in by its path relative to `brd/`, and an `ambiguous`
-wikilink's candidates by their paths relative to the vault root the walk searched
+copied file the link sits in, and the reason. **No path a row writes is the operator's own**: a row
+names the captured file a link sits in by its path relative to `brd/`, and an `ambiguous` wikilink's
+candidates by their paths relative to the vault root the walk searched
 (`references/linked-sources.md` §3) — never by an absolute path, which would write the operator's
 directory layout, home directory included, into the specs repository, the reason
 `brd/source-external/` below keeps basenames only. A target is quoted as written — the text between
-the link's own delimiters, as `references/linked-sources.md` §5 defines it — because that is the
-customer's own text. **The three counts do not add up, and that is arithmetic rather than a
-slip**: two documents linking the same file are two links found and one file copied, so the first
-count is of links and the second of files. **It is written on every run, including one that
-captured everything**, so its counts are the positive record that the capture ran; an absent log
-and an empty one are not (§2.2 makes the same call for the inventory's coverage of its source).
+the link's own delimiters, less whatever follows a wikilink's `|`, as `references/linked-sources.md`
+§5 defines it — because that is the customer's own text. **The three counts do not add up, and that
+is arithmetic rather than a slip**: two documents linking the same file are two links found and one
+file copied, so the first count is of links and the second of files. **It is written on every run,
+including one that captured everything**, so its counts are the positive record that the capture
+ran; an absent log and an empty one are not (§2.2 makes the same call for the inventory's coverage
+of its source).
 
 **The log also maps every captured link that does not resolve as written.** Its second table,
 *Captured links that do not resolve as written*, carries one row per **link** whose copy cannot be
@@ -188,10 +189,12 @@ none
   shape). **It sits in a fenced `text` block**, its fence longer than any run of backticks the text
   holds, so the customer's strings render as written — a lone `-` or `+` on its own line would
   otherwise render as a heading underline or an empty list item; an anchor still quotes a string
-  inside it, and §2.2's verbatim test is unaffected. **A table is transcribed as its header and one
-  representative data row**, and how many rows it shows is in *Depicts*: the values of a sample
-  report are rarely the obligation and would bury the ones that are, so a *Text* holding one data
-  row of a table is complete, not partial.
+  inside it, and §2.2's verbatim test is unaffected. **A table of repeated data rows — a sample
+  report's values — is transcribed as its header and one representative row, with the count in
+  *Depicts*; a table whose rows state different things — required fields, prices, an approval
+  matrix — is transcribed whole.** A sample report's values are rarely the obligation and would bury
+  the ones that are, so one row of such a table is complete, not partial; each row of the other
+  kind may state an obligation of its own, so dropping one would lose it unflagged.
 - **Annotations** is the table above, one row per mark in `figure-reader`'s order — `annotation <n>`
   (§2) counts them — with an unlabelled mark's *Says* written `""`; an image carrying no mark has
   `none` in place of the table.
@@ -212,8 +215,9 @@ none
   such as *"Approval must follow the attached flow."* states no obligation beyond binding the ones
   the image draws — either half left out where its list is empty — `yields [BR#3]`,
   `illustrates [BR#6]` — or `accounted for — <the operator's answer>` where it does neither, the
-  answer being the option the operator picked at `/brd-intake` Phase 3, or what they typed in the
-  harness's free-text option (`workflows-core:escalation-rules` §0) — and
+  answer's substance and never an option's label: `accounted for — they hold no obligation` where the
+  operator picked that option at `/brd-intake` Phase 3, or their own words where they typed an answer
+  to the same effect in the harness's free-text option (`workflows-core:escalation-rules` §0) — and
   `none — no requirement extracted` where `brd-reader` returned `EMPTY`, so the inventory holds no
   row and nothing was put to the operator. **It names requirements of the BRD that owns this file —
   on a slice, the parent's, one hop (§2.1)**, which is how `references/bundle-packaging.md` §6.2
@@ -375,11 +379,11 @@ and §2 above plus `product-workflows:brd-reader` both sanction the line-range f
 promoted an observation about one corpus into a rule the producers do not follow, and would have
 stopped a correct intake as a read failure on the first anchor written the other way.
 
-**An image anchor resolves where** its path names an image `brd/brd-figures.md` records as read,
-and the quoted element appears verbatim in that image's *Text*, an annotation's *Says*, or its
-*Flow* — or, for `annotation <n>`, where the image has an n-th annotation. An anchor naming an
-image `brd/brd-figures.md` does not record, an image recorded as *not* read, or whose quoted
-element or annotation number is absent, does not resolve — relation 1's, not relation 3's, to
+**An image anchor resolves where** its path names an image `brd/brd-figures.md` records as read, and
+the quoted element appears verbatim in the content of that image's *Text* fence, an annotation's
+*Says*, or its *Flow* — or, for `annotation <n>`, where the image has an n-th annotation. An anchor
+naming an image `brd/brd-figures.md` does not record, an image recorded as *not* read, or whose
+quoted element or annotation number is absent, does not resolve — relation 1's, not relation 3's, to
 report.
 
 **Where no anchor in the whole inventory resolves, that is a read failure and is reported as one** —

@@ -214,8 +214,8 @@ say anything; the customer's files are not.
 directory, is found through `brd/brd-link-log.md`'s *Captured links that do not resolve as written*
 table** (`references/brd-format.md` §1.1) — on a slice the parent's log, one hop, as the document is
 (`references/brd-format.md` §2.1). Its copy is in `brd/source/` or `brd/source-external/`, at a path
-the link as written does not name. It is copied into the bundle like any other image, and its
-manifest line (§1.1) names the link as written as well as its path relative to `brd/`: the file the
+the target as written does not name. It is copied into the bundle like any other image, and its
+manifest line (§1.1) names the target as written as well as its path relative to `brd/`: the file the
 link sits in is never edited to point there.
 
 **Callouts are kept.** A `> [!note]` block degrades to an ordinary blockquote in any markdown reader
@@ -592,13 +592,12 @@ would otherwise refuse.** A `<file>:<line>` locator in a grounding finding's `ev
 repository file, never a bundle document, so the relation stays off it — and shape 2's
 captured-markdown row in particular reaches only references outside grounding evidence: a customer
 who happened to capture a `README.md` of their own would otherwise turn a correct `README.md:12`
-into a dead citation. The manifest's quotation of a link as written (§1.1, §2.1) is a map entry
+into a dead citation. The manifest's quotation of a target as written (§1.1, §2.1) is a map entry
 rather than a reference: it sits beside the bundled filename it maps to and quotes the customer's
 own link, so the target `notes.md` of a `[[notes.md]]` link, quoted there, is already resolved by
 that line, and testing it would make that package unbuildable with nothing the operator could
-change. The third, for that
-same reason, is a captured file's own link to another captured file — §6.3's to state, with the rest
-of the customer-derived locators.
+change. The third, for that same reason, is a captured file's own link to another captured file —
+§6.3's to state, with the rest of the customer-derived locators.
 
 Relations 1 and 3 fail the same way — a reference that resolves to nothing — and stop the run with
 `BRD_PACKAGE_DEAD_CITATION`, naming the id or filename, the document it sits in, and the corpus or

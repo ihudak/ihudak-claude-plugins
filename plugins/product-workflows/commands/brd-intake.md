@@ -175,10 +175,13 @@ choices: ["Stop and convert them first — nothing has been written (Recommended
 It is an operator halt, not a plugin gap, so `emit-block` does not fire — Phase 9 makes the same call
 for every Phase 0 stop. **Converting is the operator's checked step for the same reason Phase 0 step 3
 refuses to convert the document**: an unchecked conversion would silently become part of the record.
-*Proceed* copies them, reads none of them, and records the operator's answer in the final report —
-the option picked, or what they typed in the harness's free-text option, which no array can decline
-(`workflows-core:escalation-rules` §0) — exactly as Phase 3's *"They hold no obligation"* answer is
-recorded. Where the taken set holds no *other* file, this question is not asked.
+*Proceed* copies them, reads none of them, and records the answer's substance in the final report —
+*none of them carries an obligation*, not the option's label — exactly as Phase 3's *"They hold no
+obligation"* answer is recorded. **A typed answer** — the harness's free-text option, which no array
+can decline (`workflows-core:escalation-rules` §0) — **is acted on as the option it expresses**, and
+recorded in the operator's own words where it is *Proceed*'s; where it expresses none of the three,
+the question is asked again. It is never taken for any option by default. Where the taken set holds
+no *other* file, this question is not asked.
 
 **Then, in every case**, confirm the run:
 
@@ -430,20 +433,37 @@ Act on `status`:
   Ask about relations 2 and 3 together — one question for the whole set, not one per section or image:
 
 ```
-choices: ["Re-read the named sections — re-dispatch brd-reader over the whole document and reconcile ids (Recommended)", "They hold no obligation — record that and continue", "Cancel"]
+choices: ["Re-read the named sections — re-dispatch brd-reader over the whole document and reconcile ids<recommended>", "They hold no obligation — record that and continue<recommended>", "Cancel"]
 ```
 
   **The first option re-reads the whole document and reconciles**, because `brd-reader` takes the
   whole set — the document, every linked markdown file Phase 2 copied, and the figures file — and
   still numbers from `BR#1` on every read: there is no narrower re-dispatch, so it is re-dispatched
   with the same inputs, and the reconciliation, id mapping included, is the one the re-run branch
-  above already performs. **It does nothing for an image that was not read**: `brd-reader` reads a
-  transcription and never the picture, and an unread image has none, so a re-read returns the same
-  result and the question comes back. Where the question names such an image, say so beside it — it
-  is settled by the second option, with the operator's answer, or by converting the image and
-  re-running this intake. The second option records the operator's answer in the final report —
-  the option picked, or what they typed in the harness's free-text option
-  (`workflows-core:escalation-rules` §0).
+  above already performs. **It does nothing for what `brd-reader` is never handed**, so a re-read
+  returns the same result and the question comes back: an image that was not read — the agent reads
+  a transcription and never the picture, and an unread image has none — and a section whose only
+  content is a link to a file the agent is never handed, which is an *other* file whatever Phase 1's
+  answer, or a link the copy did not capture — a URL, an unreadable or `ambiguous` target, or a file
+  Phase 1's answer left out, each named in `brd/brd-link-log.md`. Where the question names such a
+  section or image, say so beside it: it is settled by the second option, or by converting or
+  capturing the file and re-running this intake.
+
+  **`<recommended>` is a placeholder this run resolves once per showing** — substitution, not an
+  edit to the array, which is otherwise presented verbatim; `workflows-core:escalation-rules`, *The
+  `(Recommended)` marker is unconditional*, sanctions exactly this. Where any section or image the
+  question names is one a re-read can change, it resolves to ` (Recommended)` on the first option and
+  the empty string on the second. Where every one it names is of the kind above, it resolves to the
+  empty string on the first and ` (Recommended — a re-read returns the same result for every one
+  named)` on the second: recommending a re-read that cannot change the result would send the operator
+  round the same question again.
+
+  The second option records the answer's substance in the final report — *they hold no obligation*,
+  not the option's label, in the form `brd-format.md` §1.2's *Rows* line takes. **A typed answer** —
+  the harness's free-text option, which no array can decline (`workflows-core:escalation-rules` §0)
+  — **is acted on as the option it expresses**: a re-read, the record in the operator's own words,
+  or Cancel. Where it expresses none of them, the question is asked again; it is never taken for any
+  option by default.
   **Report the outcome either way, including "every top-level section and every image accounted
   for"** — an unreported clean result is indistinguishable from an unrun check. **Where no anchor
   parses at all, say that and stop**: that is a read failure, not a document with no coverage.
@@ -530,9 +550,8 @@ where no candidate matched it** — for a `conflict` or a `duplicate`, where a p
 by no candidate of this read, matched or not. Such an entry is kept exactly as it stands and reported
 as *not re-raised by this extraction*: its id stays in the log, and every row that cited it keeps
 citing it (Phase 3 carried those ids over), since a read that did not propose it again has not shown
-the defect gone. Only an unmatched candidate is
-walked below — including one an earlier run rejected, which left no entry to match and so is put
-again.
+the defect gone. Only an unmatched candidate is walked below — including one an earlier run
+rejected, which left no entry to match and so is put again.
 
 Group the candidates to walk by class — every carried-forward candidate on a first intake, the
 unmatched ones on a re-run; `brd-reader`'s, plus any Phase 3.5 raised from documentation, which are
@@ -576,7 +595,8 @@ the six that blocks §4." No row is ever written in any other disposition here.
 after Phase 3's reconciliation mapping, never from the agent's own numbering: `yields` every row
 whose `source_anchor` names the image and `illustrates` every row the agent returned for it, either
 half left out where its list is empty (`yields [BR#3]`), or
-`accounted for — <the operator's Phase 3 answer>` where it does neither; after an `EMPTY` read,
+`accounted for — <the operator's Phase 3 answer>`, in the form `brd-format.md` §1.2 fixes, where it
+does neither; after an `EMPTY` read,
 which leaves no row and asks no question, the value `brd-format.md` §1.2 fixes for that case. A
 section carrying the *Not captured by the current run* marker `brd-format.md` §1.2 fixes gets no
 agent entry and no Phase 3 answer: its *Linked from* and *Rows* take the values §1.2 fixes for such

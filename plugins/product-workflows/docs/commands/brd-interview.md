@@ -28,15 +28,22 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
 - **`--round N`** (optional) — target one round: resume it if it is open, or re-open it if it is
   closed, recorded as a re-open with its cause. With no flag the run continues at the first round
   still holding a question without a terminal disposition, and proposes a new one only if findings
-  or decisions have changed since the last round closed — **or, on a BRD with no round record at
-  all, generates round 1's questions and branches on what it finds.** At least one question opens
-  the round as ever; none at all writes `interview/round-1.md` recording the walk and what it found
-  nothing of, and the run completes there. That record is not an empty round: it names each question
-  source and what this BRD held under it, so a reader meets an account of a completed walk rather
-  than a silence. **It is also why this command is required before packaging even on a slice with
-  nothing to ask** — you cannot know there is nothing to ask until it has run, and
-  [`/brd-package`](brd-package.md) refuses a BRD with no round record rather than re-deriving that
-  judgement for itself.
+  or decisions have changed, or a requirement defect was confirmed, since the last round closed —
+  **or, on a BRD with no round record at all, generates round 1's questions and branches on what it
+  finds.** At least one question opens the round as ever; none at all writes `interview/round-1.md`
+  recording the walk and what it found nothing of, and the run completes there. That record is not
+  an empty round: it names each question source and what this BRD held under it, so a reader meets
+  an account of a completed walk rather than a silence. **It is also why this command is required
+  before packaging even on a slice with nothing to ask** — you cannot know there is nothing to ask
+  until it has run, and [`/brd-package`](brd-package.md) refuses a BRD with no round record rather
+  than re-deriving that judgement for itself.
+
+  **Every open requirement defect this BRD owns becomes a question for the customer** — an
+  ambiguity, a conflict, a duplicate, or an untestable or scope-leaking requirement confirmed at
+  intake, including an obligation only an image states — and always a `[C]`: the defect is in the
+  customer's own words. A slice interviewed before this source existed gets its questions with
+  `--round 1`, re-opened with the cause *requirement defects became a question source*; a bare run
+  says so rather than opening a new round.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).
@@ -161,7 +168,7 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
 ([addressing](../reference/references.md) §2, §6):
 
 - `decisions.md` — the decision register: one block per `[VD#n]` delivery-team decision and per
-  `[AS#n]` assumption, each carrying the twelve fields
+  `[AS#n]` assumption, each carrying the thirteen fields
   [`decision-register-format.md`](../../references/decision-register-format.md) §1 defines, with §7's
   account of which of them mean something different on an assumption. Ids are contiguous within their
   own prefix, assigned once, never renumbered, and never reused after a terminal status.
@@ -169,11 +176,14 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   written, its tag, every re-tag with the finding that caused it, every split with the parts it
   became, and each question's state — either a **terminal disposition** (*answered from findings*,
   *decided*, *answered by the customer*, *re-tagged*, *split*) or a **holding state** (*held for the
-  customer*, *deferred*, *needs grounding*, *untagged*). This file is what makes a round resumable — an
-  interrupted run returns to the first question carrying no terminal disposition rather than
-  restarting the round.
+  customer*, *deferred*, *needs grounding*, *untagged*) — plus one line naming the requirement
+  defects the round asked, or saying none was open in this BRD's scope. This file is what makes a
+  round resumable — an interrupted run returns to the first question carrying no terminal
+  disposition rather than restarting the round.
 - `interview/customer-questions.md` — the `[C]` questions held for the customer, each with the
-  findings that bear on it and any `[G]` answer that already narrowed it.
+  findings that bear on it and any `[G]` answer that already narrowed it, and — for a question a
+  requirement defect raised — the `[DEF#n]` it asks about, which `/brd-reconcile` copies into the
+  `settles` field of the `[CD#n]` that answers it.
 - `code-defect-log.md` — the code-defect log: one `[CDF#n]` per defect in the code that a decision
   turns on, each citing the verified `[CG#n]` that established the behaviour and naming separately
   what the code is supposed to do and what says so. Written where a round raised one **or

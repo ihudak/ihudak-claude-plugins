@@ -381,12 +381,14 @@ about `brd/brd-defect-log.md` and about `[DEF#n]` only: the route's **code**-def
 `references/code-defect-log-format.md` §6 — and a slice keeps its own, because a code defect belongs
 to the slice's own grounding and grounding is slice-only. A consumer that must reach a
 `[DEF#n]` while standing on a slice — `/brd-split`'s `rejected: [DEF#n]` resolution when it walks a
-slice's ledger (`commands/brd-split.md` Phase 4), `/brd-reconcile` writing the `customer-amended` and
-`withdrawn` resolutions a returned customer review settles
-(`commands/brd-reconcile.md`), or any reader following the `defects` column of the slice's copied
-inventory row — therefore looks it up in, and writes it to, the parent's log. That lookup is always
-**exactly one hop**: nesting is capped at one level (`workflows-core:addressing` §6), so a
-slice's parent always owns the source document and the log, and there is no chain to walk.
+slice's ledger (`commands/brd-split.md` Phase 4), `/brd-reconcile` writing the `customer-amended`,
+`withdrawn` and `resolved-by: [CD#n]` resolutions a returned customer review settles
+(`commands/brd-reconcile.md`), `/brd-interview` reading the open entries its requirement-defect
+question source asks (`commands/brd-interview.md`), or any reader following the `defects` column of
+the slice's copied inventory row — therefore looks it up in, and writes it to, the parent's log.
+That lookup is always **exactly one hop**: nesting is capped at one level
+(`workflows-core:addressing` §6), so a slice's parent always owns the source document and the log,
+and there is no chain to walk.
 
 A resolution changes the defect log entry's status only. It never touches `brd/source/`, and it
 never assigns the requirement a disposition — the disposition vocabulary and the artifact that

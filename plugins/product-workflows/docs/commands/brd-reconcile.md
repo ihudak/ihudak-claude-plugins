@@ -438,8 +438,10 @@ offered. Had the run instead reopened a decision or left a question held for the
   vocabulary whose terminal disposition *answered by the customer* this command writes.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the dispositions, and
   §6's roll-up behind the ledger line every run ends with.
-- [`brd-format.md`](../../references/brd-format.md) — the four defect resolutions, two of which this
-  command writes, and the slice's one-hop inheritance of its parent's defect log.
+- [`brd-format.md`](../../references/brd-format.md) — the four defect resolutions, three of which
+  this command writes — `customer-amended`, `withdrawn`, and `resolved-by: [CD#n]` for a defect
+  whose question the customer answered — and the slice's one-hop inheritance of its parent's defect
+  log.
 - [`bundle-packaging.md`](../../references/bundle-packaging.md) — why the committed bundle is the
   permanent record, and therefore why nothing inside it is bannered.
 - [Agents](../reference/agents.md) — `customer-review-reader`'s and `impl-maintenance`'s full

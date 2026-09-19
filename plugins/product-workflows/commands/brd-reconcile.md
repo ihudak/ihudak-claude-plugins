@@ -1,6 +1,6 @@
 ---
 name: brd-reconcile
-description: BRD reconciliation workflow (PM phase, the BRD-to-PRD route's last command). Takes the customer's returned review at whatever path it arrived on, copies it into the BRD folder under the canonical name and commits it before anything reads it, then dispatches customer-review-reader in schema or free-text mode. Confirms every free-text candidate with the operator one at a time against its verbatim quotation before it can become a [CD#n], and never widens the reader's mode. Freezes the confirmed answers as [CD#n], closes each [C] question with the terminal disposition answered by the customer, applies the review's required corrections, banners superseded dated snapshots instead of rewriting them, writes customer-amended and withdrawn resolutions to the defect log, and moves coverage-ledger rows without touching allocation. Then sweeps every dependent BRD — conditional_on positions first — to inherited-unchanged, reverted, reopened or withdrawn, and sweeps every artifact under the parent for the changed ids and for prose still asserting a superseded position. Writes reconciliation-<YYYYMMDD>.md. Normally gates on the package /brd-package built and handed off; --sent admits a review of a hand-authored or out-of-band package instead, by taking the material the customer was actually sent and committing it beside the review. Takes no --no-docs and does no documentation grounding.
+description: BRD reconciliation workflow (PM phase, the BRD-to-PRD route's last command). Takes the customer's returned review at whatever path it arrived on, copies it into the BRD folder under the canonical name and commits it before anything reads it, then dispatches customer-review-reader in schema or free-text mode. Confirms every free-text candidate with the operator one at a time against its verbatim quotation before it can become a [CD#n], and never widens the reader's mode. Freezes the confirmed answers as [CD#n], closes each [C] question with the terminal disposition answered by the customer, applies the review's required corrections, banners superseded dated snapshots instead of rewriting them, writes customer-amended, withdrawn and resolved-by: [CD#n] resolutions to the defect log, and moves coverage-ledger rows without touching allocation. Then sweeps every dependent BRD — conditional_on positions first — to inherited-unchanged, reverted, reopened or withdrawn, and sweeps every artifact under the parent for the changed ids and for prose still asserting a superseded position. Writes reconciliation-<YYYYMMDD>.md. Normally gates on the package /brd-package built and handed off; --sent admits a review of a hand-authored or out-of-band package instead, by taking the material the customer was actually sent and committing it beside the review. Takes no --no-docs and does no documentation grounding.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -105,7 +105,7 @@ guard.** They are:
 
 | Phase | What it writes, and where |
 |---|---|
-| *Resolve the defects the review settled* | `customer-amended` and `withdrawn` rows into the **parent's** `brd/brd-defect-log.md`, when this run stands on a slice |
+| *Resolve the defects the review settled* | `customer-amended`, `withdrawn` and `resolved-by: [CD#n]` rows into the **parent's** `brd/brd-defect-log.md`, when this run stands on a slice |
 | *The propagation sweep* | sweep dispositions into a **dependent BRD's** `decisions.md` |
 | *The stale cross-reference sweep* | `updated` corrections into any artifact under the parent, including a **sibling slice's** |
 
@@ -426,7 +426,7 @@ path nobody else can reproduce; the copy is the record.
    copy, cites that copy, and names that copy — including the suffix, where one was taken.
 
    **Which review a `[CD#n]` was frozen from is recorded in the reconciliation record, not on the
-   record itself.** `decision-register-format.md` §1 fixes twelve fields and none of them names a
+   record itself.** `decision-register-format.md` §1 fixes thirteen fields and none of them names a
    source document, so `decisions.md` read alone cannot distinguish an answer frozen from a
    corrected resend from one frozen from the file it replaced. What distinguishes them is the
    *Write the reconciliation record* phase: each pass sits under its own heading naming the review
@@ -699,6 +699,7 @@ about a genuinely new record, and each carries every field `decision-register-fo
 | `argumentation` | **the customer's own reason, quoted**, never paraphrased and never supplied |
 | `evidence` | the `[CG#n]`/`[DG#n]` the question was put against, as the question set recorded them |
 | `defects` | the `[CDF#n]` the answered position turns on, as the `[C]` question, the `[AS#n]` or the escalated `[SR#n]` recorded them; omitted when none. Never in `evidence` (§1), and **never minted here** — `${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` makes `/product-workflows:brd-interview` the log's only writer, so this phase carries an existing id forward and writes no entry |
+| `settles` | the `[DEF#n]` the answered `[C]` question's entry in `interview/customer-questions.md` names, copied from that entry (`references/decision-register-format.md` §1); omitted where it names none. **Never inferred from the review**: which question an answer answers is already fixed by the round and position it cites, and the entry is the record of what that question was raised by |
 | `altitude` | the altitude the question carried |
 | `conditional_on` | written only where the customer's answer is itself correct only while a named prerequisite decision holds, and named as `<BRD-KEY>/<decision-id>` (§5) — for instance `conditional_on: EPIC-014/[CD#2]` |
 | `status` | `decided`, or `open` where the reason is absent and the *Confirm every candidate* phase took that resolution |
@@ -884,12 +885,20 @@ a rewrite — the questions and tags it recorded stand exactly as they were aske
 ## Phase 8 — Resolve the defects the review settled
 
 `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §4 fixes exactly four resolutions a
-`brd/brd-defect-log.md` entry can carry. **This command writes two of them, and only those:**
+`brd/brd-defect-log.md` entry can carry. **This command writes three of them, and only those:**
 
 | Resolution | Written when |
 |---|---|
 | `customer-amended <date>` | the review supplies corrected text for the requirement the defect was raised against. The `<date>` is the **review's**, not this run's — the amendment is the customer's act |
 | `withdrawn` | the customer withdrew the requirement the defect was raised against |
+| `resolved-by: [CD#n]` | a `[CD#n]` this run froze `settles` the defect, and neither row above applies — the customer said which reading they meant. The `[CD#n]` named is the one whose `settles` names the defect, never one that merely looks related |
+
+**Which of the three a settled defect takes is read off the answer, in this order:** `withdrawn`
+where the `[CD#n]` drops the requirement the defect was raised against — the *Update the coverage
+ledger* phase then writes `rejected: [DEF#n]`, which is how *"it was only a sketch"* ends for an
+obligation only an image stated; `customer-amended <date>` where the review supplied corrected text
+for it; otherwise `resolved-by: [CD#n]`. **A `[CD#n]` frozen `open` resolves nothing** — its
+question stays held for the customer (*Freeze the customer decisions*), and so does its defect.
 
 `resolved-by: [CG#n]` is a grounding outcome and this command produces no finding, so it is never
 written here. `open` is the state a defect is already in and is never written *back* over a

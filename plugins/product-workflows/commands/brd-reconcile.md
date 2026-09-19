@@ -894,22 +894,32 @@ a rewrite — the questions and tags it recorded stand exactly as they were aske
 | `resolved-by: [CD#n]` | a `[CD#n]` this run froze `settles` the defect, and neither row above applies — the customer said which reading they meant. The `[CD#n]` named is the one whose `settles` names the defect, never one that merely looks related |
 
 **Which of the three a settled defect takes is read off the answer, in this order:** `withdrawn`
-where the `[CD#n]` drops the requirement the defect was raised against — the *Update the coverage
-ledger* phase then writes `rejected: [DEF#n]`, which is how *"it was only a sketch"* ends for an
-obligation only an image stated; `customer-amended <date>` where the review supplied corrected text
-for it; otherwise `resolved-by: [CD#n]`. **A `[CD#n]` frozen `open` resolves nothing** — its
-question stays held for the customer (*Freeze the customer decisions*), and so does its defect.
+where the `[CD#n]` drops the requirement the defect was raised against, obligation and all — the
+*Update the coverage ledger* phase then writes `rejected: [DEF#n]`, which is how *"it was only a
+sketch"* ends for an obligation only an image stated, and a row dropped while its obligation
+survives in another is not this case (below); `customer-amended <date>` where the review supplied
+corrected text for it; otherwise `resolved-by: [CD#n]`. **A `[CD#n]` frozen `open` resolves
+nothing** — its question stays held for the customer (*Freeze the customer decisions*), and so does
+its defect.
 
 **A `conflict` or a `duplicate` settled by keeping one row and dropping the other** names two rows,
-and only one of them lists the defect. Where the row dropped is the one the defect is listed on, the
-rule above already applies: `withdrawn`, and that row takes `rejected: [DEF#n]`. Where the row
-dropped is the **counterpart** — the row the defect names but is not listed on — the defect is
-`resolved-by: [CD#n]`, and the dropped counterpart takes the *Update the coverage ledger* phase's
-`superseded-by: [BR#kept]`, because a `[CD#n]` replaced it with another requirement this inventory
-already holds. That write lands only where the counterpart is a row of this BRD's own ledger; where
-a sibling slice holds it, that phase writes nothing there — it never writes into another BRD's
-ledger — and the reconciliation record names the sibling and the row for that slice's own
-reconciliation.
+and only one of them lists the defect. **`withdrawn` — and the *Update the coverage ledger* phase's
+`rejected: [DEF#n]` — is only for a requirement that is itself dropped**, so which applies turns on
+what survives:
+
+- a **`conflict`** whose **listed** row is dropped: that requirement is gone — `withdrawn`, and the
+  row takes `rejected: [DEF#n]`;
+- a **`conflict`** whose **counterpart** is dropped, and a **`duplicate`** whichever of its two rows is
+  dropped: the obligation survives in the row kept — for a duplicate the two stated one obligation —
+  so the defect is `resolved-by: [CD#n]`, and the dropped row takes `superseded-by: [BR#kept]`,
+  because a `[CD#n]` replaced it with the requirement kept.
+
+**That ledger write lands only where the dropped row is a row of this BRD's own ledger.** Where a
+sibling slice holds it, it stays `covered-here` there; where the root holds it, never delegated, it
+stays as the root's ledger records it. The ledger phase writes nothing in either — this command never
+writes into another BRD's ledger — and the row, with the BRD that holds it, goes into the
+reconciliation record's *what still needs a human* and the final report, so the owner settles it on
+its own record.
 
 `resolved-by: [CG#n]` is a grounding outcome and this command produces no finding, so it is never
 written here. `open` is the state a defect is already in and is never written *back* over a
@@ -1222,7 +1232,9 @@ changed, why, which ids, and what still needs a human:
   fix; every `will-change` finding needing a rebaseline; every dependent recorded-not-written, with a
   re-run of `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>` on this same review as the fix,
   once that dependent's register is on the default branch; every
-  `needs-a-human` prose hit; and every requirement the customer asked for that no `[BR#n]` covers.
+  `needs-a-human` prose hit; every requirement the customer asked for that no `[BR#n]` covers; and
+  every row the customer dropped that another BRD holds (*Resolve the defects the review settled*),
+  with that BRD named.
 
 **A second reconciliation on the same day appends, and never overwrites.** Where
 `reconciliation-<YYYYMMDD>.md` already exists, this run adds a new pass beneath what is there, under

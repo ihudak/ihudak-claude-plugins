@@ -28,25 +28,30 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
 - **`--round N`** (optional) — target one round: resume it if it is open, or re-open it if it is
   closed, recorded as a re-open with its cause. With no flag the run continues at the first round
   still holding a question without a terminal disposition, and proposes a new one only if findings
-  or decisions have changed, or a requirement defect was confirmed, since the last round closed —
-  **or, on a BRD with no round record at all, generates round 1's questions and branches on what it
-  finds.** At least one question opens the round as ever; none at all writes `interview/round-1.md`
-  recording the walk and what it found nothing of, and the run completes there. That record is not
-  an empty round: it names each question source and what this BRD held under it, so a reader meets
-  an account of a completed walk rather than a silence. **It is also why this command is required
-  before packaging even on a slice with nothing to ask** — you cannot know there is nothing to ask
-  until it has run, and [`/brd-package`](brd-package.md) refuses a BRD with no round record rather
-  than re-deriving that judgement for itself.
+  or decisions have changed, or a requirement defect became this BRD's to ask, since the last round
+  closed — **or, on a BRD with no round record at all, generates round 1's questions and branches on
+  what it finds.** At least one question opens the round as ever; none at all writes
+  `interview/round-1.md` recording the walk and what it found nothing of, and the run completes
+  there. That record is not an empty round: it names each question source and what this BRD held
+  under it, so a reader meets an account of a completed walk rather than a silence. **It is also why
+  this command is required before packaging even on a slice with nothing to ask** — you cannot know
+  there is nothing to ask until it has run, and [`/brd-package`](brd-package.md) refuses a BRD with
+  no round record rather than re-deriving that judgement for itself.
 
   **Every open requirement defect this BRD owns becomes a question for the customer** — an
   ambiguity, a conflict, a duplicate, or an untestable or scope-leaking requirement confirmed at
   intake, including an obligation only an image states — and always a `[C]`: the defect is in the
-  customer's own words. A slice interviewed before this source existed gets its questions with
-  `--round 1`, re-opened with the cause *requirement defects became a question source*: a bare run
-  names those defects and offers that re-open rather than asking them itself, and a new round it
-  opens for a changed finding or decision proceeds without them. Only one slice asks each defect —
-  the one holding the lowest-numbered row the defect is listed on that is still built or deferred
-  there — and a re-open never asks one a round has already asked.
+  customer's own words. One slice owns each defect — the one holding the lowest-numbered row the
+  defect is listed on that is still built or deferred there — and a defect is asked once across all
+  the slices: where any slice's `[C]` question set already carries it, none asks it again. Where that
+  cannot be told yet — a listed row still unallocated, or a sibling's ledger or question set
+  unreadable — the run withholds the defect and says why. **Round 1's record decides which round a
+  defect goes into.** On a slice interviewed before this source existed, round 1's record has no
+  requirement-defect line, so its defects belong in round 1: an open round 1 takes them at once,
+  and a closed one is re-opened with `--round 1` and the cause *requirement defects became a question
+  source* — a bare run names those defects and offers that re-open rather than asking them itself,
+  and a new round it opens for a changed finding or decision proceeds without them. On a slice
+  interviewed since, a defect that becomes its to ask later goes into a new round.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).
@@ -180,9 +185,9 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   became, and each question's state — either a **terminal disposition** (*answered from findings*,
   *decided*, *answered by the customer*, *re-tagged*, *split*) or a **holding state** (*held for the
   customer*, *deferred*, *needs grounding*, *untagged*) — plus one line naming the requirement
-  defects the round asked, or saying none was open in this BRD's scope. This file is what makes a
-  round resumable — an interrupted run returns to the first question carrying no terminal
-  disposition rather than restarting the round.
+  defects the round asked and those it withheld, each with its cause, or saying there were none for
+  this BRD to ask. This file is what makes a round resumable — an interrupted run returns to the first
+  question carrying no terminal disposition rather than restarting the round.
 - `interview/customer-questions.md` — the `[C]` questions held for the customer, each with the
   findings that bear on it and any `[G]` answer that already narrowed it, and — for a question a
   requirement defect raised — the `[DEF#n]` it asks about, which `/brd-reconcile` copies into the
@@ -277,14 +282,15 @@ to branch, commit, push, and open a pull request. Its next-step offer names
 every question in every round carrying a terminal disposition or held for the customer, *and* the
 register actually holding something for a customer to decide. A round still holding a deferred,
 needs-grounding or untagged question is offered another interview round or a re-grounding pass
-instead. A BRD whose rounds predate the requirement-defect question source and hold defects nobody
-has asked is not offered the packaging step either: it is offered the `--round 1` re-open that asks
-them, recommended, because a package built first would go out without them. A BRD whose questions
-were all settled from the findings — nothing left for a customer at all — is told plainly that it is
-decided and needs no customer review, and is offered a `--rebaseline` grounding pass as the one
-thing this command can offer that could make a new round askable (the other, a requirement defect
-confirmed after the last round, comes only from a revised source document); neither the packaging
-step nor another round of this command is offered, because both would stop or report a no-op.
+instead. A BRD whose closed round 1 predates the requirement-defect question source, and which owns
+defects nobody has asked, is not offered the packaging step either: it is offered the `--round 1`
+re-open that asks them, recommended, because a package built first would go out without them. A BRD
+whose questions were all settled from the findings — nothing left for a customer at all — is told
+plainly that it is decided and needs no customer review, and is offered a `--rebaseline` grounding
+pass as the one thing this command can offer that could make a new round askable (a requirement
+defect becomes this BRD's to ask only through a revised source document or an allocation elsewhere
+under the parent); neither the packaging step nor another round of this command is offered, because
+both would stop or report a no-op.
 Re-opening a closed round later, with its cause recorded:
 
 ```

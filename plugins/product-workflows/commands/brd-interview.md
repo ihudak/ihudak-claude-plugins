@@ -248,9 +248,12 @@ and nothing downstream can tell the difference afterwards.
    (*Round 1 is generated from the grounding*) reads them: `brd/brd-defect-log.md`,
    `brd/brd-inventory.md` and `coverage-ledger.md` — and, from there, the `coverage-ledger.md` of each
    sibling slice that ledger records `covered-by` against a row an open requirement defect lists,
-   which is how that source tells a live row from a settled one. A previous run's register, round
-   records and code-defect log are inputs, never scratch: nothing below deletes, renumbers or
-   rewrites a record another run wrote. **Exactly one field is the admitted exception, and naming it
+   which is how that source tells a live row from a settled one, and the
+   `interview/customer-questions.md` of every slice under the parent (the positive `brd-link.md`
+   parent test, `commands/brd-split.md` Phase 0), which is how it tells a defect already asked from
+   one that is not — an absent one holds no entry. A previous run's register, round records and
+   code-defect log are inputs, never scratch: nothing below deletes, renumbers or rewrites a record
+   another run wrote. **Exactly one field is the admitted exception, and naming it
    here is what keeps this sentence and the re-disposition rule below from having to be refereed by a
    reader**: a `[CDF#n]`'s `disposition` — with `blocked_on` added or dropped as the new disposition
    requires — may be re-taken by the *Put each `[V]` to the operator* phase and written by the *Write
@@ -378,25 +381,16 @@ every one has one.
   drift apart, and the first question source added to one and not the other ships a package over a
   question nobody walked. It tests for the record; this branch is what makes an honest one exist.
 - **Every round is closed** → a new round is proposed **only if findings or decisions have
-  changed, or a requirement defect was confirmed, since the last round closed**. Concretely: a
-  `[CG#n]`/`[DG#n]` added or superseded since that round's record was written, a verifier outcome
-  changed, or a decision in `decisions.md` moved to `reopened` or `superseded` — or an open
-  requirement defect this BRD asks (*Round 1 is generated from the grounding*) that no round record
-  names, where the latest round record carries the requirement-defect account line (*Write the
-  register and the round record*): that defect was confirmed after the round closed, by an intake
-  re-run over a revised source, and a new round is exactly where it belongs. Nothing changed →
-  there is nothing a new round could ask that the last one did not already have in front of it;
-  report that plainly, skip to the handoff phase with nothing to commit, and end on the ledger line.
-  Something changed → open round `<highest + 1>` (round 1 when none exists), naming in its record
-  exactly what changed and made it askable.
-- **Every round is closed, the latest round record carries no requirement-defect account line, and
-  this BRD asks an open requirement defect that no round record names** → the round records were
-  written before this command read the defect log, so those defects were never walked — and a
-  question that could have been asked in round 1 stays in round 1 (`interview-tagging.md` §5), never
-  in a new round. **They are not asked in any new round** — a round the bullet above opens for a
-  changed finding or decision proceeds without them — so report each such `[DEF#n]` and name the
-  re-open that asks them: `/product-workflows:brd-interview <BRD-KEY> --round 1`, with the cause
-  *requirement defects became a question source*. The *Next steps* phase offers that re-open.
+  changed, or a requirement defect became this BRD's to ask, since the last round closed**.
+  Concretely: a `[CG#n]`/`[DG#n]` added or superseded since that round's record was written, a
+  verifier outcome changed, or a decision in `decisions.md` moved to `reopened` or `superseded` — or
+  a requirement defect this BRD owns, that is open and that is not asked (*Round 1 is generated from
+  the grounding* fixes all three tests), where round 1's record carries the requirement-defect
+  account line: the round-1 walk did not raise it, and a new round is exactly where it belongs (the
+  round-1 test below). Nothing changed → there is nothing a new round could ask that the last one
+  did not already have in front of it; report that plainly, skip to the handoff phase with nothing
+  to commit, and end on the ledger line. Something changed → open round `<highest + 1>` (round 1
+  when none exists), naming in its record exactly what changed and made it askable.
 
 **`--round N` given:**
 
@@ -411,12 +405,15 @@ every one has one.
   the round originally asked and how it was disposed of. Any decision this re-opened round then
   changes is itself reopened under §4, against one of the two causes that rule admits, and never
   merely because this round is open again.
-  **A re-open whose cause is *requirement defects became a question source*** runs that one source
-  (*Round 1 is generated from the grounding*) over this BRD and raises only a defect **no round
-  record names** — one an earlier round asked is never asked again, because two customer answers to
-  one question is the contradiction §5 exists to prevent. It appends each question it raises to the
-  re-opened round, numbered after the round's last question — never renumbering one — and writes the
-  round's account line.
+  **The cause *requirement defects became a question source* is admissible on round 1 only, and
+  only while round 1's record carries no account line** — once it carries one, a defect this source
+  would raise belongs in a new round (the round-1 test below), so refuse that cause at the prompt
+  and name the bare `/product-workflows:brd-interview <BRD-KEY>`. The re-open raises nothing itself:
+  round 1 is open once it is taken, and the round-1 test below appends a question to round 1 for
+  each requirement defect this BRD owns, that is open and that is **not asked** — one any slice has
+  asked is never raised again, because two customer answers to one question is the contradiction §5
+  exists to prevent — and writes round 1's account line. On an open round 1 no re-open is needed:
+  the same test appends them as the run resumes it.
 - **Round `N` does not exist** → stop rather than creating it out of order, which would break the
   contiguity §5 depends on:
   `BRD_INTERVIEW_NO_SUCH_ROUND: <BRD-KEY> has no round N — rounds on file: <list, or "none">. Omit --round to continue at the first round still holding a question without a terminal disposition.`
@@ -427,6 +424,32 @@ every one has one.
   flag must not reach a different answer than the bare command would. Naming a round is never a way
   to accidentally do something else, and that cuts both ways: it must also never be a way to
   accidentally do *less*.
+
+**Then the round-1 test, on every run, whichever branch above resolved the round and with or
+without `--round`.** Read round 1's record for the requirement-defect account line (*Write the
+register and the round record*). **That line alone decides which round a requirement defect this BRD
+owns, that is open and that is not asked belongs in**; nothing else decides it:
+
+- **No round record exists** → round 1 is being generated now, from every source, so each such
+  defect is raised in it and its record carries the line.
+- **Round 1's record carries the line** → round 1's walk ran this source, so each such defect was not
+  in front of it: confirmed since, by an intake re-run over a revised source, or withheld then and
+  this BRD's to ask since. It belongs in a **new round**, and it is one of the changes that make one
+  askable (the *Every round is closed* bullet above). While some round is still open it waits, as a
+  changed finding does.
+- **Round 1's record carries no line** → this slice was interviewed before the requirement-defect
+  source existed, so every such defect belongs in **round 1** — a question round 1 could have asked
+  stays in round 1 (`interview-tagging.md` §5), never in a new round:
+  - **Round 1 is open** → no re-open is needed. Where this run works round 1 — the bare path always
+    does, round 1 being the lowest-numbered open round, and so does a run that has just re-opened
+    it — append a question for each to round 1 now,
+    numbered after its last question and never renumbering one, and write round 1's account line
+    when its record is written. A `--round N` run working another open round leaves them for the
+    next run that works round 1.
+  - **Round 1 is closed** → open no round for them. Report each `[DEF#n]` and name the re-open that
+    asks them: `/product-workflows:brd-interview <BRD-KEY> --round 1`, with the cause *requirement
+    defects became a question source*. A round this run opens or resumes for any other cause
+    proceeds without them, and the *Next steps* phase offers the re-open.
 
 Carry the resolved round number for the whole run. Every decision, assumption and question this run
 records is stamped with it.
@@ -472,8 +495,10 @@ indistinguishably from a round nobody finished. Report it and stop gracefully:
 This stop is an allocation outcome, never a plugin gap, so it does not fire `emit-block`.
 
 **Round 1 is generated from the grounding.** Work the verified findings and the in-scope rows
-together, and raise a question wherever the pair leaves something unsettled that a PRD would have to
-state:
+together — and, for requirement defects, the parent's defect log, inventory and ledger and the
+sibling slices' ledgers and question sets that decide who asks one (*Resolve inputs and gate the
+grounded BRD*, step 9) — and raise a question wherever they leave something unsettled that a PRD
+would have to state:
 
 - a `[BR#n]` whose findings are `AMENDED`, `REWRITTEN` or `FALSE-FRIEND` — the premise moved, so what
   the requirement now asks for is open (`workflows-core:grounding-format` §3);
@@ -486,25 +511,35 @@ state:
   BRD is unstated;
 - an **open requirement defect** — a `[DEF#n]` in `brd/brd-defect-log.md` (the parent's on a slice,
   one hop — `brd-format.md` §4) whose resolution is `open` and whose class grounding cannot settle:
-  `ambiguity`, `conflict`, `duplicate`, `untestable` or `scope-leak`. `unsourced` is not in the list:
-  grounding settles it, and a finding that could not is already a question under the `NOT-PROVABLE`
-  bullet above. **Which BRD asks is read off the inventory and the ledgers, never off the log**, whose
-  entry does not say which rows list it: the defect's rows are the rows whose `defects` column lists
-  it in the log-owning BRD's inventory (the parent's, on a slice). **Ownership is decided over the
-  live ones only.** A listed row is **live** where the parent's `coverage-ledger.md` records it
-  `covered-by` a slice and that slice records it `covered-here` or `deferred-to` in its own ledger —
-  read one hop, from each such slice under the same parent, this one included. The defect is asked
-  **once**, by the slice holding the **lowest-numbered live row**, and this BRD asks it where that
-  slice is this BRD. A row the parent never delegated (no `covered-by`), or whose owning slice records
-  it `rejected` or `superseded-by`, does not decide ownership; where no listed row is live, nobody
-  asks it, because the rows' fates have settled it, and the bullet above covers what the customer
-  needs to hear about a row this BRD rejected. Where a sibling's ledger cannot be read, liveness
-  cannot be decided: this BRD asks nothing about that defect and reports it with the sibling named —
-  never a guess, because a guess asks the customer twice or not at all. Every other row the defect
-  lists, and every counterpart a `conflict` or `duplicate` names, is context for the question. **The
-  question states what the defect records** — the two readings, the two requirements that cannot both
-  hold, the missing observable outcome — and, where the row is drawn from an image (`brd-format.md`
-  §2), names the image's path, which the customer holds in the bundle. It is `[C]`
+  `ambiguity`, `conflict`, `duplicate`, `untestable` or `scope-leak`. `unsourced` is not in the
+  list: grounding settles it, and a finding that could not is already a question under the
+  `NOT-PROVABLE` bullet above. **Which BRD asks is read off the inventory and the ledgers, never off
+  the log**, whose entry does not say which rows list it: the defect's rows are the rows whose
+  `defects` column lists it in the log-owning BRD's inventory (the parent's, on a slice).
+  **Ownership is decided over the live ones only.** A listed row is **live** where the parent's
+  `coverage-ledger.md` records it `covered-by` a slice and that slice records it `covered-here` or
+  `deferred-to` in its own ledger — read one hop, from each such slice under the same parent, this
+  one included. The defect is **owned** by the slice holding the **lowest-numbered live row**. A row
+  the parent never delegated (no `covered-by`), or whose owning slice records it `rejected` or
+  `superseded-by`, does not decide ownership; where no listed row is live, nobody owns it, because
+  the rows' fates have settled it, and the bullet above covers what the customer needs to hear about
+  a row this BRD rejected. **This BRD raises the defect only where it owns it, it is open, and it is
+  not asked.** A `[DEF#n]` is **asked** exactly where some slice under the same parent — found by
+  the positive `brd-link.md` parent test (`commands/brd-split.md` Phase 0), this one included — has
+  an `interview/customer-questions.md` entry carrying it, the field the *Hold every `[C]`* phase
+  writes. That is a structured fact read across the slices, never a search of round records for the
+  id, so a defect asked once is never asked again, whichever slice asked it and whoever owns it now.
+  **Three states make the answer undecidable, and each withholds the defect**: a listed row still
+  `unallocated` — in the parent's ledger, or in the ledger of the slice the parent names — which may
+  become live later and take it; a sibling ledger that cannot be read; and a sibling
+  `customer-questions.md` that exists and cannot be read — an absent one holds no entry. This BRD
+  raises nothing about such a defect and reports it with the row or the sibling named — never a
+  guess, because a guess asks the customer twice or not at all. **Which round a raised defect goes
+  into is *Resolve the round*'s to decide**, by round 1's account line alone. Every other row the
+  defect lists, and every counterpart a `conflict` or `duplicate` names, is context for the
+  question. **The question states what the defect records** — the two readings, the two requirements
+  that cannot both hold, the missing observable outcome — and, where the row is drawn from an image
+  (`brd-format.md` §2), names the image's path, which the customer holds in the bundle. It is `[C]`
   (`interview-tagging.md` §1);
 - anything the package will have to **assert without evidence** — that is not a question at all but
   an `[AS#n]`, and the *Write the register and the round record* phase records it as one
@@ -707,9 +742,10 @@ the question as it will be put; its round and position; the findings that bear o
 is asked against what is known rather than in the abstract; **for a question the requirement-defect
 source raised, the `[DEF#n]` it asks about** and, where the defect sits on a row drawn from an image,
 that image's path relative to `brd/` — `/brd-reconcile` copies the `[DEF#n]` into the answering
-`[CD#n]`'s `settles` field, and resolves it from nothing else; and, where a `[G]` part of the same
-original question was answered first, that answer — because the business question it leaves is
-materially different from the one that would have been asked without it (§4).
+`[CD#n]`'s `settles` field, and resolves it from nothing else, and every slice under the parent
+reads it to know the defect is **asked** (*Round 1 is generated from the grounding*); and, where a
+`[G]` part of the same original question was answered first, that answer — because the business
+question it leaves is materially different from the one that would have been asked without it (§4).
 
 Each `[C]` is recorded in the round with the **holding state** *held for the customer*. **Holding a
 question is not an answer to it**: the terminal disposition *answered by the customer* is reached
@@ -810,11 +846,23 @@ resumability is a property of the record, not of the session (`interview-tagging
 interrupted run resumes at the first question here carrying no terminal disposition — the same test,
 in the same words, that *Resolve the round* resumes on.
 
-**Every round record carries one line accounting for the requirement-defect source**, whether or not
-the round raised a question: `requirement defects: [DEF#n], [DEF#m] asked`, or
-`requirement defects: none open in this BRD's scope`. It is the line the *Resolve the round* phase
-reads to tell a round written after that source existed from one written before it, which never
-walked it.
+**Every round record this command writes carries one line accounting for the requirement-defect
+source**, whether or not the round raised a question. It accounts for every open requirement defect
+of a class grounding cannot settle that is listed on a row of this BRD's in-scope set and that no
+slice had asked before this round (*Round 1 is generated from the grounding* fixes each test): this
+round either asked it or withheld it, with the cause —
+
+```
+requirement defects: [DEF#n], … asked; [DEF#m] withheld — <cause>
+```
+
+— where `<cause>` is `not owned here`, `undecidable — <why>` (the unallocated row, or the sibling
+whose ledger or question set could not be read, named), or `belongs to round 1 — re-open named`.
+Either half is left out where it is empty, and where there is no such defect at all the line reads
+`requirement defects: none this BRD asks`. **Never `none open in this BRD's scope`**: that is false
+wherever an in-scope row carries a defect a sibling asks. *Resolve the round* reads round 1's line
+and no other — whether round 1's record carries it is what tells a slice interviewed before this
+source existed from one interviewed after.
 
 **`<BRD-dir>/interview/customer-questions.md`** — written by the *Hold every `[C]`* phase; listed
 here because it is one of this run's deliverables.
@@ -902,29 +950,29 @@ Neither test is restated here, deliberately: `/brd-package` is the command that 
 run, so a second copy of either precondition sitting in this phase would drift, and the run that
 reads the drifted copy is this one. Both gates pass → `package_offerable: yes`. Step 7 fails →
 `package_offerable: rounds-unsettled`, and every question that gate named is named beside the list
-with its round and its holding state. **Before either gate is consulted, test whether this BRD has an
-`interview/` round record at all; where it has none → `package_offerable: not-interviewed`.** That
-command refuses this state with `BRD_PACKAGE_NOT_INTERVIEWED` whatever the register holds, so it is
-settled here first rather than inside one of the gates' outcomes — the same lift that stop itself
-took, and for the same reason. **Keying it on the two gates gets it wrong in both directions**: a
-never-interviewed BRD holding an `[AS#n]` that `/product-workflows:create-prd` wrote *passes* step 8
-and would be offered a packaging step that stops, while one holding nothing *fails* step 8 and would
-be congratulated on work nobody did. None of the other values fits it — `rounds-unsettled`
-names questions this run never raised — which is why it is a value of its own. **Next, and also
-before either gate: where this run's *Resolve the round* phase took its no-account-line bullet —
-it reported open requirement defects this BRD asks that no round record names →
-`package_offerable: defects-unasked`, whatever the two gates would say.** The gates cannot see those
-defects, because no round holds a question for them: a BRD holding nothing else passes step 7 and
-fails step 8, and would be called decided while this run's own report names questions its customer
-has never been asked; one holding an open `[AS#n]` passes both, and would be offered a package that
-leaves those questions out and needs a second package to carry them. Otherwise, step 7 passes and
-step 8 fails → `package_offerable: nothing-to-review`, which is not a defect in this run: every
-question was settled from verified findings and the delivery team owes the customer no decision.
+with its round and its holding state. **Before either gate is consulted, test whether this BRD has
+an `interview/` round record at all; where it has none → `package_offerable: not-interviewed`.**
+That command refuses this state with `BRD_PACKAGE_NOT_INTERVIEWED` whatever the register holds, so
+it is settled here first rather than inside one of the gates' outcomes — the same lift that stop
+itself took, and for the same reason. **Keying it on the two gates gets it wrong in both
+directions**: a never-interviewed BRD holding an `[AS#n]` that `/product-workflows:create-prd` wrote
+*passes* step 8 and would be offered a packaging step that stops, while one holding nothing *fails*
+step 8 and would be congratulated on work nobody did. None of the other values fits it —
+`rounds-unsettled` names questions this run never raised — which is why it is a value of its own.
+**Next, and also before either gate: where this run's round-1 test (*Resolve the round*) reported
+requirement defects that belong to a closed round 1 → `package_offerable: defects-unasked`, whatever
+the two gates would say.** The gates cannot see those defects, because no round holds a question for
+them: a BRD holding nothing else passes step 7 and fails step 8, and would be called decided while
+this run's own report names questions its customer has never been asked; one holding an open
+`[AS#n]` passes both, and would be offered a package that leaves those questions out and needs a
+second package to carry them. Otherwise, step 7 passes and step 8 fails → `package_offerable:
+nothing-to-review`, which is not a defect in this run: every question was settled from verified
+findings and the delivery team owes the customer no decision.
 
 **`package_offerable: yes`:**
 
 ```
-choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /product-workflows:brd-package <BRD-KEY> <merge-clause>", "Work another round now — /product-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed, or a requirement defect was confirmed)", "Interview another BRD or slice"]
+choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /product-workflows:brd-package <BRD-KEY> <merge-clause>", "Work another round now — /product-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed, or a requirement defect became this BRD's to ask)", "Interview another BRD or slice"]
 ```
 
 **`package_offerable: rounds-unsettled` — `/brd-package` is left out rather than offered and
@@ -950,26 +998,26 @@ lists turn on what this run left behind and only the operator knows which is rig
 names the single missing step every path out of this state goes through.
 
 **That option does not loop, and the reason is the clause immediately below.** *Resolve the round*
-proposes a new round "only if findings or decisions have changed, or a requirement defect was
-confirmed, **since the last round closed**" — a test with no referent where no round has ever
-closed, which is exactly this state. It does not apply here: **where the BRD holds no round record at all, that branch generates round 1's questions
-and acts on what they come to** — opening the round where there is one to ask, and otherwise
-recording the walk — which is what its own "(round 1 when none exists)" means. Both of those exits leave a round record behind, which is what
+proposes a new round "only if findings or decisions have changed, or a requirement defect became
+this BRD's to ask, **since the last round closed**" — a test with no referent where no round has
+ever closed, which is exactly this state. It does not apply here: **where the BRD holds no round
+record at all, that branch generates round 1's questions and acts on what they come to** — opening
+the round where there is one to ask, and otherwise recording the walk — which is what its own
+"(round 1 when none exists)" means. Both of those exits leave a round record behind, which is what
 makes this state unreachable a second time; the third — the all-delegated stop that branch takes
 first — leaves none, and needs none, because it stops the run rather than reaching the packaging
-question at all. The change
-test governs the second round onward, where there is a previous round to have had something in front
-of it.
+question at all. The change test governs the second round onward, where there is a previous round to
+have had something in front of it.
 
 **`package_offerable: defects-unasked` — name every `[DEF#n]` the *Resolve the round* phase
 reported, and offer the re-open that asks them.** Do not call this BRD decided and do not offer the
 packaging step: each of those defects is a business question only the customer can settle
 (`interview-tagging.md` §1), no round holds a question for it yet, and a package built now would go
 out without it. The re-open is `--round 1` with the cause *requirement defects became a question
-source*, which runs that one source over this BRD and appends what it raises to round 1 (*Resolve
-the round*). Where step 7 fails as well — a round this run opened for a changed finding holds a
-question in a holding state the packaging step refuses — name those questions beside the list too,
-exactly as `rounds-unsettled` does.
+source*: it re-opens round 1, and the round-1 test appends them there (*Resolve the round*). Where
+step 7 fails as well — a later round this run opened or resumed holds a question in a holding state
+the packaging step refuses — name those questions beside the list too, exactly as
+`rounds-unsettled` does.
 
 ```
 choices: ["Re-open round 1 to ask the requirement defects — /product-workflows:brd-interview <BRD-KEY> --round 1, cause: requirement defects became a question source (Recommended)", "Stop here — the requirement defects named above stay unasked", "Interview another BRD or slice"]
@@ -978,11 +1026,12 @@ choices: ["Re-open round 1 to ask the requirement defects — /product-workflows
 **`package_offerable: nothing-to-review` — say plainly that this BRD is decided, and do not offer
 either the packaging step or another round of this command.** Both would stop or report a no-op: the
 packaging step on its step-8 gate, and this command because it opens a new round only where the
-findings or the decisions have changed, or a requirement defect was confirmed, since the last round
-closed — which nothing here has done. Of those, only the findings can be moved from here: a decision
-reopens on a new finding or a customer's answer (`decision-register-format.md` §4), and a requirement
-defect is confirmed by `/product-workflows:brd-intake` re-run over a revised source, which only the
-customer's revised document starts. So a fresh grounding pass is what the list carries:
+findings or the decisions have changed, or a requirement defect became this BRD's to ask, since the
+last round closed — which nothing here has done. Of those, only the findings can be moved from here:
+a decision reopens on a new finding or a customer's answer (`decision-register-format.md` §4), and a
+requirement defect becomes this BRD's to ask when `/product-workflows:brd-intake`, re-run over a
+revised source the customer sends, confirms it, or when an allocation elsewhere under the parent
+settles who owns it. So a fresh grounding pass is what the list carries:
 
 ```
 choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-derive the findings against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what makes a new round askable)", "Interview another BRD or slice"]
@@ -1022,7 +1071,10 @@ answer arrives through a package and is recorded by `/product-workflows:brd-reco
 back. A
 question in the *needs grounding* holding state — the one the *Resolve the round* phase defines as
 movable only by a grounding run — is answered by re-running `/product-workflows:prd-ground <BRD-KEY>`
-and returning to this round, which is a real next step and is named as one.
+and returning to this round, which is a real next step and is named as one. A requirement defect this
+run withheld as undecidable is named with what decides it — the listed row still `unallocated`, with
+the BRD whose `/product-workflows:brd-split` run allocates it, or the sibling whose ledger or question
+set could not be read — because until that changes no slice can tell whether to ask it.
 
 ### Context hygiene
 
@@ -1088,9 +1140,10 @@ re-opened it with the cause recorded; **the question counts by tag**, `[G]` / `[
 every split, with the parts each original became; the `[G]` answers, each naming the
 `[CG#n]`/`[DG#n]` that settled it; **every re-tag, with the `NOT-PROVABLE` finding that caused it** —
 never a re-tag reported without its cause; every question recorded *needs grounding*, named, with
-`/product-workflows:prd-ground <BRD-KEY>` as the fix; the `[VD#n]` decided this run and any deferred;
-the `[AS#n]` recorded; the `[CDF#n]` raised this round and the `[CDF#n]` re-dispositioned, each with
-its old and new disposition, when any; the `[C]` count held and the file
+`/product-workflows:prd-ground <BRD-KEY>` as the fix; the round's requirement-defect account line,
+and every defect withheld, with its cause — one that belongs to a closed round 1 with its re-open;
+the `[VD#n]` decided this run and any deferred; the `[AS#n]` recorded; the `[CDF#n]` raised this
+round and the `[CDF#n]` re-dispositioned, each with its old and new disposition, when any; the `[C]` count held and the file
 holding them, stated together with the fact that
 `/product-workflows:brd-package` is the command that carries them to the customer and
 `/product-workflows:brd-reconcile` the one that records the answer; every will-change resolution taken and how it was

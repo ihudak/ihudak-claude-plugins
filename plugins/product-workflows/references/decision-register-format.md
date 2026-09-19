@@ -39,7 +39,7 @@ argumentation: |
   <why — mandatory>
 evidence: [[CG#12], [DG#3]]
 defects: [[CDF#2]]                        # omitted unless the decision turns on a recorded code defect
-settles: [[DEF#4]]                        # omitted unless a [CD#n] answers a question a requirement defect raised
+settles: [[DEF#4]]                        # [CD#n] only, never a [VD#n]: omitted unless it answers a defect's question
 altitude: product | architecture | implementation
 conditional_on: <BRD-KEY>/<decision-id>   # omitted unless the decision depends on a prerequisite
 status: open | decided | reopened | superseded | withdrawn

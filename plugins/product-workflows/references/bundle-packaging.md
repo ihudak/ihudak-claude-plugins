@@ -112,8 +112,9 @@ the transcriptions are of.
 (`commands/brd-package.md`'s standing rule). `source:` names the customer's document by its working
 basename, and the bundle renames that document (`commands/brd-package.md`'s *Assemble the bundle*
 rule 1), so kept as written it is exactly the working-filename reference §6.2's relation 3 stops on.
-It is plugin-written, so no verbatim-content exemption (§6.3) reaches it. The note carries the one
-fact `source:` held, in the form the reviewer can search for.
+It is plugin-written, and a bare basename rather than a locator in §6.3's sense, so no exemption
+there reaches it. The note carries the one fact `source:` held, in the form the reviewer can search
+for.
 
 **The code-defect log ships, and the reason is scope rather than disclosure.** A `[CDF#n]` disposed
 `in-scope` names a repair that has to happen inside this PRD's scope or the feature cannot be
@@ -575,15 +576,17 @@ what keeps the relation off correct content: a grounding finding's `evidence` fi
 `file:line` list, and a repository that documents itself in markdown puts a bare `docs/api.md:12`
 into a finding that is entirely correct — an unscoped rule would refuse the whole bundle over it.
 
-**Two kinds of token are outside the relation whatever their shape, and both are correct content it
+**Three kinds of token are outside the relation whatever their shape, and each is correct content it
 would otherwise refuse.** A `<file>:<line>` locator in a grounding finding's `evidence` names a
 repository file, never a bundle document, so the relation stays off it — and shape 2's
 captured-markdown row in particular reaches only references outside grounding evidence: a customer
 who happened to capture a `README.md` of their own would otherwise turn a correct `README.md:12`
-into a dead citation. And the manifest's quotation of a link as written (§1.1, §2.1) is a map entry
+into a dead citation. The manifest's quotation of a link as written (§1.1, §2.1) is a map entry
 rather than a reference: it sits beside the bundled filename it maps to and quotes the customer's
 own link, so a `[[notes.md]]` target quoted there is already resolved by that line, and testing it
-would make that package unbuildable with nothing the operator could change.
+would make that package unbuildable with nothing the operator could change. The third, for that
+same reason, is a captured file's own link to another captured file — §6.3's to state, with the rest
+of the customer-derived locators.
 
 Relations 1 and 3 fail the same way — a reference that resolves to nothing — and stop the run with
 `BRD_PACKAGE_DEAD_CITATION`, naming the id or filename, the document it sits in, and the corpus or
@@ -593,7 +596,7 @@ differently — the reference resolves, to a finding about a different requireme
 the reference itself may be untouched. The two stay separate codes because the two remedies repair
 different things.
 
-### 6.3 Two exemptions
+### 6.3 Exemptions
 
 **`[SR#n]` is exempt entirely.** `self-review-<YYYYMMDD>.md` is excluded from the bundle by §1.1's
 one exclusion that is a *rule* rather than a consequence of the allow-list, while the `[SR#n]`
@@ -610,26 +613,55 @@ the customer's own words, copied or transcribed rather than written by this pack
   immutable by rule (§2.1, `references/brd-format.md` §1, §1.1);
 - in `brd/brd-figures.md`, each section's *Text*, the *Says* column of its *Annotations* and its
   *Flow*, which are the image's own words transcribed verbatim (`references/brd-format.md` §1.2);
-- in `brd/brd-inventory.md`, a prose row's `text` whole — the requirement verbatim — but an
+- and in `brd/brd-inventory.md`, a prose row's `text` whole — the requirement verbatim — but an
   image-drawn row's `text` only in the element it quotes, the rest of that text being the plugin's
-  words (`references/brd-format.md` §2);
-- and every inventory row's `source_anchor`. A document anchor quotes the customer's own section
-  numbering or heading text — the leading `§` and section number `references/brd-format.md` §2.2
-  finds on every anchor it was measured on is their numbering, not a citation of ours — an
-  appendix anchor does the same inside their appendix, and an image anchor quotes the
-  transcription, a `"D3"` node label among the elements it may name. The path an appendix or image
-  anchor opens with (`source/…`, `source-external/…`) is ours, and carries no class the
-  plugin-free scan or relations 1 and 3 look for.
+  words (`references/brd-format.md` §2).
 
 A `[BR#n]` or a filename visible in the customer's screenshot is the customer's, not a citation this
-package made, and a `§` opening an anchor is the customer's section numbering. Those spans inherit
-the plugin-free scan's treatment of the same content, for the identical reason: stopping outright
-would make that BRD permanently unpackageable, since the only repair left would falsify the record —
-an edit to an immutable file, an anchor that no longer names where the requirement is stated, or a
-transcription saying something the image does not. So a relation 1 or relation 3 hit inside one is
-reported, naming the file, the span and the token, and the operator decides whether to ship. Every
-other span's hit stays a hard stop, including the rest of the figures file and the inventory, which
-the plugin wrote.
+package made. Those spans inherit the plugin-free scan's treatment of the same content, for the
+identical reason: stopping outright would make that BRD permanently unpackageable, since the only
+repair left would falsify the record — an edit to an immutable file, or a transcription saying
+something the image does not. So a relation 1 or relation 3 hit inside one is reported, grouped as
+the last rule below fixes, and the operator decides whether to ship. Outside these spans and the
+customer-derived locators below, every hit stays a hard stop, in the figures file and the inventory
+as anywhere else: the rest of both is the plugin's own writing.
+
+**A customer-derived locator is the customer's naming, wherever it appears.** It is one of four
+things: a captured file's path relative to `brd/` — the `source/` or `source-external/` prefix is
+ours, and everything below it is the customer's layout and names (`references/brd-format.md` §1.1),
+as is that name where a captured file's bundled filename carries it after the `<BRD-KEY>-` that
+`commands/brd-package.md`'s *Assemble the bundle* rule 1 adds; a heading path or heading text quoted
+from a captured file; a link target as written, in a captured file or in the manifest's map; and an
+inventory row's `source_anchor`. The naming is the customer's whoever wrote the line it sits in, so
+a locator counts in text this package wrote exactly as in a customer's file — a figures section's
+heading and its *Linked from* line, a manifest line, an inventory row, an interview question, and
+the prompt parts rendered from them. **It is recognised by where it sits or by what it names, never
+by its shape.** In a field whose format fixes it as one — a `source_anchor`, a figures heading, a
+*Linked from* line, the manifest's map — it counts as written. Anywhere else a path counts only with
+its prefix and only where the capture holds that file, and a quoted heading only where that file
+has it, resolved as `references/brd-format.md` §2.2 resolves an anchor. So a plugin-written citation
+dressed as a locator is still a hit, and so is a bare `<name>.md` in this package's own prose, which
+is no path in that form and stays relation 3's (§6.2). Four rules follow, for the plugin-free scan
+and this check alike:
+
+1. **A leading section reference inside a locator is no hit** — the `§` and section number that
+   open a document anchor, the part after ` › `, or a quoted heading. It is the locator's own form,
+   in the one position `references/brd-format.md` §2.2 fixes for it, and the reader resolves it by
+   opening the customer's file the bundle carries: nothing in it assumes a reader who has this
+   plugin. Every anchor that section was measured on opens with one, so reporting it would put a
+   line per requirement in every package's report and bury the real leak among them.
+2. **Any other hit inside a locator is reported, never a stop** — a `references/` folder in a
+   captured path, a quoted `"D3"`, a `§` inside heading text or a link target. It is the customer's
+   naming, and the only repair would rename their files, retitle their headings or re-point an
+   anchor away from where the requirement is stated, each of which falsifies the record.
+3. **A bare `<name>.md` link inside a captured file is outside relation 3** where it resolves — as
+   written, or through the link log's *Captured links that do not resolve as written* table (§2.1)
+   — to a captured file the manifest maps. The manifest already resolves it, which is the reason
+   §6.2 keeps the relation off the manifest's own quotation of a link.
+4. **Every report this section makes is grouped** — one line per file and token, with a count — in
+   the report that asks the operator to rule and in the run's final report alike, whether the hit
+   sat in verbatim content or in a locator. A `"D3"` quoted in an image anchor, in that row's
+   `text` and in the figures file's *Flow* is two lines, not three reports.
 
 ### 6.4 What §6 cannot see
 

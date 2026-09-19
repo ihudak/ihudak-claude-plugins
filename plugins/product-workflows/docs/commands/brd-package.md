@@ -41,7 +41,7 @@ whatever repositories they were able to obtain, and nothing else: no plugin to r
 against, nobody to ask what a citation means, and no way to tell a missing file from a withheld one.
 So the rendered prompt, the delivery note and every document in the bundle carry **no path rooted at
 the plugin's install directory, no `references/…` citation, no slash command, no agent or skill name,
-and no `§` section reference** — the rules in
+and no `§` section reference** of the plugin's own — the rules in
 [`bundle-packaging.md`](../../references/bundle-packaging.md) §1 and
 [`customer-review-schema.md`](../../references/customer-review-schema.md) §1.
 
@@ -51,9 +51,10 @@ part above the boundary is where that file deliberately keeps its citations. Eve
 prompt is assembled from a named artifact rather than written fresh. The de-Obsidianising pass
 renders a copy and never edits a source. And the plugin-free scan runs last, over the *finished*
 text of the prompt, the note and every bundle document — a hit **stops the run and never sanitises**
-(inside the customer's own verbatim content it is reported for the operator to rule on instead),
-because a citation that reached the prompt reached it from a sentence that assumed a reader who has
-this plugin, and deleting four characters leaves that assumption in place.
+(inside the customer's own verbatim content, or a locator naming their own files and headings, it
+is reported for the operator to rule on instead), because a citation that reached the prompt reached
+it from a sentence that assumed a reader who has this plugin, and deleting four characters leaves
+that assumption in place.
 
 ## How it runs
 
@@ -239,13 +240,15 @@ attack.
   every bundle document. A hit stops the run with `BRD_PACKAGE_PROMPT_LEAK`, naming the token, the
   part it landed in and the artifact it came from — except inside the customer's own verbatim
   content (their captured files, and the parts of the transcription and the inventory that quote
-  them — each requirement's anchor, whose leading `§` is the customer's own section numbering,
-  among them), where a `§ 4.2` or a `D3` is the customer's own and the only fix would falsify it:
-  that hit is reported and the operator decides whether to ship. The identifiers the package's own registers, logs
-  and grounding files mint are **not** in the scan's classes and are meant to travel — the classes
-  are enumerated once, in `bundle-packaging.md` §6.1's table, rather than restated here. They are how
-  the returned review cites the package without minting identifiers of its own; whether each one
-  actually lands is what the citation-resolution check below verifies.
+  them) or a locator naming their own files, headings and links, wherever it sits: both sets are
+  defined once, in `bundle-packaging.md` §6.3. There a `§ 4.2` or a `D3` is the customer's own and
+  the only fix would falsify it, so the hit is reported, grouped as that section fixes, and the
+  operator decides whether to ship — or, where that section says so, it is no hit at all. The
+  identifiers the package's own registers, logs and grounding files mint are **not** in the scan's
+  classes and are meant to travel — the classes are enumerated once, in `bundle-packaging.md`
+  §6.1's table, rather than restated here. They are how the returned review cites the package
+  without minting identifiers of its own; whether each one actually lands is what the
+  citation-resolution check below verifies.
 - **Phase 7 — the delivery note's 200-word ceiling.** A ceiling, not a target. Over it, the note is
   shortened and re-rendered; the two facts that are never trimmed are which file is the prompt and
   which file comes back.
@@ -261,12 +264,13 @@ attack.
   admits or excludes by name. That scoping is the relation: unscoped, it would refuse a bundle over
   a correct `docs/api.md:12` sitting in a grounding finding's `evidence` list. It never tests a
   repository locator in that list, nor the manifest's quotation of a customer's link as written,
-  which sits beside the bundled filename it maps to. Two exemptions:
-  `[SR#n]` is exempt entirely, because the self-review file it would resolve against is excluded
-  from the bundle by rule and its content reaches the customer filtered through the prompt; and a
-  hit inside the customer's own verbatim content — a `[BR#n]` or a filename visible in their
-  screenshot among them — reports rather than stops, for the same reason the plugin-free scan treats
-  it that way. A reference that resolves to nothing stops with
+  which sits beside the bundled filename it maps to, nor a captured file's own link to another
+  captured file. Its exemptions are `bundle-packaging.md` §6.3's: `[SR#n]` is exempt entirely,
+  because the self-review file it would resolve against is excluded from the bundle by rule and its
+  content reaches the customer filtered through the prompt; and a hit inside the customer's own
+  verbatim content or a locator naming their files and headings — a `[BR#n]` or a filename visible
+  in their screenshot among them — reports rather than stops, for the same reason the plugin-free
+  scan treats it that way. A reference that resolves to nothing stops with
   `BRD_PACKAGE_DEAD_CITATION`; one that resolves to the wrong requirement stops with
   `BRD_PACKAGE_CITATION_MISMATCH`; a corpus file holding record-shaped content that yields no ids
   stops with `BRD_PACKAGE_CORPUS_UNREADABLE` — a corpus holding no record-shaped content at all is

@@ -92,20 +92,24 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   `require-on-main` runs against `decisions.md` before anything else is read; an unmerged pull
   request stops the run naming the branch/PR state. Where the gate reports the register is on no ref
   at all, the run **splits a state the gate cannot**, as [`/brd-reconcile`](brd-reconcile.md) does on
-  its own row F: no `decisions.md` in the folder means no interview has written one — none has run,
-  or one ran before `/brd-interview` wrote the register on every round, over a round of `[C]`
-  questions alone (`BRD_PACKAGE_NEEDS_INTERVIEW`, run [`/brd-interview`](brd-interview.md)), while a
+  its own row F: no `decisions.md` in the folder means no interview has written one
+  (`BRD_PACKAGE_NEEDS_INTERVIEW`, run [`/brd-interview`](brd-interview.md)). That run writes it for
+  a BRD never interviewed, and for one interviewed before it wrote the register on every round —
+  resuming a round still open, or on its no-new-round path where every round is closed; for a BRD
+  whose every row is delegated it stops instead, since that BRD kept nothing to package. A
   register in the folder means the interview ran and its handoff was declined
   (`BRD_PACKAGE_REGISTER_NOT_HANDED_OFF`, land the files that are already on disk). The second must
   **not** send the operator back to `/brd-interview`: a bare re-run of that command hands off only
   the files it writes itself — nothing at all where it finds nothing new to ask, and where it opens a
   new round, that round's record and not the earlier ones already on disk.
-- **Every round the register names, on the default branch.** The rounds this BRD has are the distinct
-  `round` values `decisions.md` records, and each one's **interview/round-`<N>`.md** is gated with
+- **Every round the register or the held questions name, on the default branch.** The rounds this
+  BRD has are the distinct `round` values `decisions.md` records, together with the round of every
+  held `[C]` question in **interview/customer-questions.md** — a round of held `[C]` questions puts
+  no record in the register — and each one's **interview/round-`<N>`.md** is gated with
   `require-on-main`; any on no ref stop the run together with `BRD_PACKAGE_ROUNDS_NOT_ON_MAIN`. The
-  set is derived from the register rather than from the **interview/** listing, which is what makes a
-  partial merge visible — enumerating the directory finds the rounds that landed and never learns a
-  third was owed.
+  set is derived from those two sources rather than from the **interview/** listing, which is what
+  makes a partial merge visible — enumerating the directory finds the rounds that landed and never
+  learns a third was owed.
 - **An interview that happened at all.** A BRD with no `[VD#n]` and no **interview/** directory stops
   with `BRD_PACKAGE_NOT_INTERVIEWED`, naming `/brd-interview`, rather than being reported as a
   finished state it never reached.
@@ -146,7 +150,8 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
 **The self-review never travels, and the reason is the disposition gate.** A `[SR#n]` disposed
 `rejected-with-reason` has its reason recorded there and it "stays inside the delivery
 organisation"; the `[SR#n]` content the customer may see reaches them **filtered** — `accepted-risk`
-findings under *where to attack us hardest*, `escalated-to-customer` findings under *the decisions
+findings under *where to attack us hardest*, quoted as the reviewer wrote them, which it writes for
+a customer to read without this plugin, and `escalated-to-customer` findings under *the decisions
 the customer must make*. Shipping the file would defeat that filter and hand the customer an
 internal disagreement to referee. What the bundle *does* hold is an allow-list, not a deny-list, and
 [`bundle-packaging.md`](../../references/bundle-packaging.md) §1.1 is its authority: the prompt; the
@@ -179,7 +184,7 @@ Assembled from the package, never hand-written, in a fixed order that is not re-
 | 2 | What each package in the bundle is for | this BRD, plus each prerequisite package, marked *not for re-review* |
 | 3 | Documents to review | the manifest, by its bundled filename, then every other document the bundle admits, by the bundled filename it carries — the names the manifest lists |
 | 4 | Code baselines and the verification procedure | `baselines.md`, with the three pin commands written out |
-| 5 | The single most important claim to verify first | the finding the most decisions rest on — exactly one |
+| 5 | The single most important claim to verify first | the finding the most decisions rest on, else the most-relied-on open assumption, else the finding the most held `[C]` questions bear on — or a statement that none rests on one |
 | 6 | Review scope | the coverage ledger's dispositions — the rows this BRD is answerable for, with every `covered-by` row named as another BRD's and explicitly not for review here — plus every `in-scope` `[CDF#n]` |
 | 7 | The decisions the customer must make | the `[C]` question set, every open `[AS#n]`, every escalated `[SR#n]` |
 | 8 | What could still move | prerequisites not yet customer-reviewed, every `conditional_on` position, and every `conditional` `[CDF#n]` |

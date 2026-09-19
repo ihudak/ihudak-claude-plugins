@@ -347,9 +347,14 @@ resolve — §1.1). §2's anchor into that file is a heading path *or* a line ra
 resolve there — in this order** (an image anchor never reaches this test; it resolves by the rule
 below):
 
-1. **A leading section reference** — `§` and a section number — resolves directly. This is the
-   form every anchor carried across the corpora this rule was measured on, which is why it is
-   tried first and not why it is the only branch.
+1. **A leading section reference** — `§` and a section number — resolves to the section of the
+   **one** heading in the file carrying that number: a heading whose text opens with it, after an
+   optional `§`, followed by a space, by a full stop and a space, or by nothing — so `§ 7` resolves
+   to `§ 7 Retention`, and, where the customer numbers without `§`, to `7. Retention` or
+   `7 Retention`, never to `7.1 Scope`. Where no heading carries the number, or more than one does,
+   it does not resolve (branch 4): `§ 99` in a file whose sections stop at 12 is a dangling anchor
+   like any other. This is the form every anchor carried across the corpora this rule was measured
+   on, which is why it is tried first and not why it is the only branch.
 2. **A heading path naming no `§` number** — written, for a nested path, with ` › ` between
    headings in every form: in a document anchor (`Feature A › Acceptance criteria`), and after the
    file's own path in the two path-prefixed forms (`source/appendix/fields.md › Reports › Columns`
@@ -368,8 +373,9 @@ below):
    that has one, resolves to the file's **lead section** — its body after any frontmatter block, up
    to that heading — so an obligation stated there is addressed by a line range and never resolves
    to the first section by proximity. A line inside a frontmatter block lies in no section.
-4. **None of the three** — no section reference, no unique heading-path match, and no line that
-   lands in a section, the lead section included — and the anchor does not resolve. It may be
+4. **None of the three** — no section reference matching exactly one heading, no unique
+   heading-path match, and no line that lands in a section, the lead section included — and the
+   anchor does not resolve. It may be
    perfectly well formed; what it is, is unresolvable against *this* file, which is what relation 1
    reports it as, per row.
 

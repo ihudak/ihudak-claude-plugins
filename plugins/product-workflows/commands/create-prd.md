@@ -517,12 +517,14 @@ survives the grill: what kind of thing would settle it?
   `/product-workflows:brd-interview <BRD-KEY>`, which is where a `[VD#n]` is taken. This command
   never takes one.
 - **An authority only the customer holds** → **write it as an `[AS#n]` in `decisions.md`**, per
-  `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §7. All thirteen fields **except
-  `round`, which is omitted entirely** — this record came from no interview round, and any value
-  there is read by `/product-workflows:brd-package` as a round it must find a record for. `evidence`
-  carries the account of why no evidence exists; a bare sentence is a claim, not an assumption
-  record. Record it under `## Assumptions & open questions` **as well**, by its `[AS#n]` id, so the
-  PRD's reader and the customer meet the same record rather than two descriptions of it.
+  `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §7 — creating the file, where the
+  folder holds none, with its header line `# Decision register: <SLICE-KEY>` first (§1). All
+  thirteen fields **except `round`, which is omitted entirely** — this record came from no interview
+  round, and any value there is read by `/product-workflows:brd-package` as a round it must find a
+  record for. `evidence` carries the account of why no evidence exists; a bare sentence is a claim,
+  not an assumption record. Record it under `## Assumptions & open questions` **as well**, by its
+  `[AS#n]` id, so the PRD's reader and the customer meet the same record rather than two
+  descriptions of it.
 
 **Two mechanics the three bullets above share.** First, **`## Assumptions & open questions` does not
 exist on a kept `--lean`** (Phase 1), so on that profile every one of them records into the final

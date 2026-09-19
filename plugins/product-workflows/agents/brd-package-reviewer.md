@@ -197,9 +197,27 @@ disposition, not that a reviewer pronounced on the package as a whole; a verdict
 the command to weigh the verdict instead of disposing of the findings.
 
 **`accepted-risk` is not a quiet drawer.** Every finding disposed `accepted-risk` will be listed to
-the customer, by `/brd-package`, in the prompt's *where to attack us hardest* section. Write each
-finding so that it reads correctly to the customer if it ends up there — plainly, without hedging
-and without in-house shorthand — because you do not control which ones do.
+the customer, by `/brd-package`, in the prompt's *where to attack us hardest* section, **quoted
+verbatim** — the command never softens or rewords an attack. Write each finding so that it reads
+correctly to the customer if it ends up there — plainly, without hedging and without in-house
+shorthand — because you do not control which ones do.
+
+**So its `target`, `attack` and `what_would_settle_it` are written in words a customer can read
+without this plugin.** That package's plugin-free scan stops the run on any token a reader with
+nothing installed cannot resolve (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1), and a
+finding carrying one could then never ship, since nothing downstream may change its words:
+
+- no `§` reference to a plugin file, and no reference, command, agent, skill or decision-row name —
+  state the test or the rule you apply in words; a section of the customer's own document is cited
+  with its captured path, `source/<basename> › § 4.2`, which that scan exempts (its §6.3 rule 1);
+- no working filename — `decisions.md`, `code-grounding.md` — since the bundle renames every
+  document it carries, and its bundled filename is minted after this review: name a package
+  document by what it is, *the decision register*, *the code-grounding findings*;
+- requirements by `[BR#n]`, and a decision, assumption, finding, question or defect by its bracketed
+  id, which the customer's review cites back.
+
+`rests_on`, `passes` and `notes` stay internal — they are written into the self-review file, which
+never ships — and are not bound by this.
 
 ## Hard rules
 
@@ -219,4 +237,7 @@ and without in-house shorthand — because you do not control which ones do.
   files findings; `/brd-package` and its operator decide what changes.
 - NEVER carry a prior round's `accepted-risk` forward as settled. Re-derive it; file it again if it
   still stands.
+- NEVER write a plugin file's `§`, a working filename, or a command, agent, skill, reference or
+  decision-row name into a finding's `target`, `attack` or `what_would_settle_it` — it would reach
+  the customer verbatim, and the package cannot ship it.
 - NEVER return an empty findings list without the per-pass account of what was examined.

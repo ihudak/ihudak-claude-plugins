@@ -212,7 +212,7 @@ pins. A misread label, a missed annotation or an unproposed conflict yields no c
 human never sees it — the tier is bought where a miss is silent. If no Opus resolves, **degrade to
 best-available + record** in `notes` and the final report — do not hard-block.
 
-**Collect `figure-reader`'s and `brd-reader`'s own `notes` too, and report them** — an image too low in resolution for its small text, an unusually structured source, a passage that could not be confidently split. The inventory is the spine every later command walks, so a `[BR#n]` split out of a passage the reader was unsure of must not read as confidently extracted.
+**Collect `figure-reader`'s and `brd-reader`'s own `notes` too, and report them** — in the final report, and `brd-reader`'s beside Phase 4's walk as well — an image too low in resolution for its small text, an unusually structured source, a passage that could not be confidently split, an observation the agent made and did not propose as a defect. The inventory is the spine every later command walks, so a `[BR#n]` split out of a passage the reader was unsure of must not read as confidently extracted.
 
 ---
 
@@ -554,6 +554,13 @@ citing it (Phase 3 carried those ids over), since a read that did not propose it
 the defect gone. Only an unmatched candidate is walked below — including one an earlier run
 rejected, which left no entry to match and so is put again.
 
+**Before the first candidate, print `brd-reader`'s `notes`** (Phase 1.5 collects them), with every
+`[BR#n]` in them mapped through Phase 3's reconciliation: an observation the agent made and did not
+propose — a possible conflict it would not assert, say — belongs in front of the person confirming
+defects. **The walk cannot turn a note into a defect**: every question it asks confirms or rejects a
+candidate, and a `[DEF#n]` is minted from a confirmed candidate only, so a note stays a note. It is
+carried to the final report, named, and never dropped.
+
 Group the candidates to walk by class — every carried-forward candidate on a first intake, the
 unmatched ones on a re-run; `brd-reader`'s, plus any Phase 3.5 raised from documentation, which are
 walked identically and marked in the report as docs-raised — and walk them **one class at a time**,
@@ -595,13 +602,12 @@ the six that blocks §4." No row is ever written in any other disposition here.
 **Then complete `brd/brd-figures.md`'s *Rows* line for every image**, from the final inventory —
 after Phase 3's reconciliation mapping, never from the agent's own numbering: `yields` every row
 whose `source_anchor` names the image and `illustrates` every row the agent returned for it, either
-half left out where its list is empty (`yields [BR#3]`), or
-`accounted for — <the operator's Phase 3 answer>`, in the form `brd-format.md` §1.2 fixes, where it
-does neither; after an `EMPTY` read,
-which leaves no row and asks no question, the value `brd-format.md` §1.2 fixes for that case. A
-section carrying the *Not captured by the current run* marker `brd-format.md` §1.2 fixes gets no
-agent entry and no Phase 3 answer: its *Linked from* and *Rows* take the values §1.2 fixes for such
-a section. Where no figures file exists after Phase 2.5, this is skipped.
+half left out where its list is empty (`yields [BR#3]`), or, where it does neither, the value
+`accounted for — <the operator's Phase 3 answer>` in the form `brd-format.md` §1.2 fixes; after an
+`EMPTY` read, which leaves no row and asks no question, the value `brd-format.md` §1.2 fixes for
+that case. A section carrying the *Not captured by the current run* marker `brd-format.md` §1.2
+fixes gets no agent entry and no Phase 3 answer: its *Linked from* and *Rows* take the values §1.2
+fixes for such a section. Where no figures file exists after Phase 2.5, this is skipped.
 
 **On a re-run this phase rewrites every disposition, and it does so unconditionally by design.**
 Where Phase 0 step 7 resolved an **existing** folder, the ledger that folder holds is replaced row
@@ -780,11 +786,13 @@ than by `brd-reader`) — on a re-run, also how many candidates matched an entry
 each entry on file *not re-raised by this extraction*, with the rows citing it (Phase 4); the
 `docs grounding:` line from Phase 1 verbatim, and — when it was ON — the `docs_references` list of
 requirements the shipped documentation describes as already built, flagged for `/prd-ground` to
-check against code; whether Phase 6 wrote seeds and which; resolved model
-routing (+ any Opus degradation); the feedback + cost paths; the `Phase handoff:` outcome line from
-`handoff-to-main` (`workflows-core:phase-handoff` §4.1), including the `brd` prefix note; the
-`Specs repo:` outcome line from `commit-artifacts` (`workflows-core:specs-repo-git` §6); the
-next-step recommendation; and end with the ledger line, exactly per
+check against code; whether Phase 6 wrote seeds and which; resolved model routing (+ any Opus
+degradation); every agent's `notes` — `figure-reader`'s and `brd-reader`'s, as Phase 1.5 collects
+them, the latter's `[BR#n]`s mapped through Phase 3's reconciliation; the feedback and cost paths;
+the `Phase handoff:` outcome line from `handoff-to-main` (`workflows-core:phase-handoff` §4.1),
+including the `brd` prefix note; the `Specs repo:` outcome line from `commit-artifacts`
+(`workflows-core:specs-repo-git` §6); the next-step recommendation; and end with the ledger line,
+exactly per
 `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
 ```

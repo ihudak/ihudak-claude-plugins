@@ -174,11 +174,16 @@ cannot review, and they will not tell you that — they will review it anyway, b
    one back to `/brd-interview` walks the operator into a wall:
 
    - **No `decisions.md` in the folder at all** — no interview has written one. `/brd-interview`
-     writes the register on every run that records a round, its header alone where the round
-     recorded no decision (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1), so
-     either no interview has run for this BRD, or one ran before it always did, over a round of
-     `[C]` questions alone. Either way the next `/brd-interview` run writes it.
-     `BRD_PACKAGE_NEEDS_INTERVIEW: no decision register on file for <BRD-KEY> — run /product-workflows:brd-interview <BRD-KEY>; it writes the register, with nothing in it where its rounds recorded no decision, and hands it off.`
+     writes the register wherever none is on file, on every run that records a round and on its
+     no-new-round path alike, its header line alone where no round recorded a decision
+     (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1). So the folder is one of
+     four, and the next `/brd-interview` run writes the register in three of them: a BRD never
+     interviewed, where it writes it with round 1; one interviewed before that command always wrote
+     it, over rounds that recorded no decision, whose round still open is resumed and whose rounds
+     all closed take the no-new-round path — both write it. The fourth is a BRD every row of which
+     is delegated: that command stops with `BRD_INTERVIEW_ALL_DELEGATED` and writes nothing,
+     because this BRD kept no requirement of its own and there is nothing to package.
+     `BRD_PACKAGE_NEEDS_INTERVIEW: no decision register on file for <BRD-KEY> — run /product-workflows:brd-interview <BRD-KEY>; it writes the register, with nothing in it where its rounds recorded no decision, and hands it off. Where it stops with BRD_INTERVIEW_ALL_DELEGATED instead, <BRD-KEY> kept no requirement of its own and has nothing to package.`
    - **A register is in the folder, and on no ref** — the interview ran and its handoff was
      declined. **Do not send the operator back to `/brd-interview`**: whether it opens a new round is
      its *Resolve the round* phase's own test of what changed since the last round closed — that
@@ -193,11 +198,14 @@ cannot review, and they will not tell you that — they will review it anyway, b
    deadlock.** Read every `interview/round-<N>.md`.
 
    **First, derive which rounds must exist, then gate each one.** The set is not "whatever is on
-   disk" — that is the thing being checked. `decisions.md` is already on main (step 6), and **every record in it that was
-   recorded in a round carries that round** — `[VD#n]`, `[AS#n]` and `[CD#n]` alike
-   (`product-workflows:decision-register-format` §1 and §7) — so the rounds this BRD *has* are the
-   distinct `round` values across every record kind in it, taken from the records that carry the
-   field. **A record carrying no
+   disk" — that is the thing being checked. `decisions.md` is already on main (step 6), and **every
+   record in it that was recorded in a round carries that round** — `[VD#n]`, `[AS#n]` and `[CD#n]`
+   alike (`product-workflows:decision-register-format` §1 and §7) — **and so does every entry in
+   `interview/customer-questions.md`**, which `/brd-interview` writes with the question's round and
+   position. So the rounds this BRD *has* are the distinct `round` values across every record kind
+   in the register that carries the field, **together with the round of every held `[C]` entry**: a
+   round that held only `[C]` questions puts no record in the register at all, and a set taken from
+   the register alone would never gate its record. **A record carrying no
    `round` contributes nothing to the set, and that is correct rather than a hole**: an `[AS#n]`
    written by `/product-workflows:create-prd` for a customer-authority gap came from PRD authoring
    and from no round (`product-workflows:decision-register-format` §7), so there is no
@@ -205,31 +213,34 @@ cannot review, and they will not tell you that — they will review it anyway, b
    and make every slice holding such a record permanently unpackageable. **Two record shapes legitimately omit the
    field and no others**: that `[AS#n]`, and a `[CD#n]` answering it, which `/product-workflows:brd-reconcile`
    writes with no round for the same reason (`product-workflows:decision-register-format` §1). A
-   `[VD#n]` without one is still a malformed record, and so is any record from a round that omits it. Deriving from `[VD#n]` alone leaves the hole open rather than closing it: a round that
-   produced only assumptions and `[C]` questions names no `[VD#n]`, so a register of nothing but
-   `[AS#n]` and `[C]` yields an empty derived set and the gate passes without checking a thing — the
-   same vacuity one record kind further out. For each of them, execute `require-on-main`
+   `[VD#n]` without one is still a malformed record, and so is any record from a round that omits
+   it. Deriving from `[VD#n]` alone leaves the hole open rather than closing it: a round that
+   produced only assumptions and `[C]` questions names no `[VD#n]`, and deriving from the register
+   alone leaves the same hole one source further out — a round of held `[C]` questions names no
+   record at all, so its derived set is empty and the gate passes without checking a thing. The `[C]`
+   entries close it. For each of them, execute `require-on-main`
    (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against
    `interview/round-<N>.md`. Map the §3.7 return by `stopped` first: any stopping row → stop, naming
    that round and the branch/PR state; `pass` / `pass_amending` / `unmanaged` → proceed to read it;
    `absent` (row F) → collect it, and stop **once** at the end of the loop naming **every** round
    that came back absent:
-   `BRD_PACKAGE_ROUNDS_NOT_ON_MAIN: <BRD-KEY>'s decisions.md is on main and settles rounds <list>, but <these> have no interview/round-<N>.md on any ref — the records those decisions came from never merged. Land them on the specs repo's default branch and re-run; do not re-run /product-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
+   `BRD_PACKAGE_ROUNDS_NOT_ON_MAIN: <BRD-KEY>'s decisions.md and held [C] questions name rounds <list>, but <these> have no interview/round-<N>.md on any ref — the records those decisions and questions came from never merged. Land them on the specs repo's default branch and re-run; do not re-run /product-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
 
-   **Deriving the set from `decisions.md` is what makes the partial case visible**, and the partial
-   case is the one this gate exists for: rounds 1 and 2 merged, round 3 left on a branch. A check
-   that enumerated the directory would find rounds 1 and 2, iterate them happily, and never learn
-   that a third was owed — reporting a clean set instead of a missing record. Naming every absent
-   round in one message rather than stopping at the first also matters: an operator who lands one
-   record and re-runs, only to be told about the next, learns the state one round at a time.
+   **Deriving the set from the register and the held `[C]` entries is what makes the partial case
+   visible**, and the partial case is the one this gate exists for: rounds 1 and 2 merged, round 3
+   left on a branch. A check that enumerated the directory would find rounds 1 and 2, iterate them
+   happily, and never learn that a third was owed — reporting a clean set instead of a missing
+   record. Naming every absent round in one message rather than stopping at the first also matters:
+   an operator who lands one record and re-runs, only to be told about the next, learns the state
+   one round at a time.
 
    **This gates rather than inheriting step 6's implication**, per `workflows-core:phase-handoff`
    §4.0: never infer an artifact's merged-ness from a sibling's gate. Step 6 gates `decisions.md`
    and the round records rode with it in the run that wrote them, which is a fact about that run and
    not about the tree — a hand-committed set lands partially, which is exactly the case above.
 
-   **A register in which no record of any kind carries a `round` names no rounds, and this gate is silent on it** — the
-   derived set is empty and there is nothing to require. That state reaches step 8's
+   **Where neither the register's records nor any held `[C]` entry name a round, the set is empty,
+   and this gate is silent on it** — there is nothing to require. That state reaches step 8's
    `BRD_PACKAGE_NOTHING_TO_REVIEW`, which reads its rounds as **settled** ("every question its rounds
    asked was settled from verified findings"). That reading is right for a BRD that was interviewed
    and settled, and wrong for one that was never interviewed at all — the two are indistinguishable
@@ -504,7 +515,7 @@ Each disposition carries a recorded reason, and each has a consequence the later
 | Disposition | What it obliges |
 |---|---|
 | `fixed` | The named artifact is corrected **before** the prompt is rendered, and the correction is recorded against the finding. A `fixed` disposition whose artifact is unchanged is not `fixed` |
-| `accepted-risk` | The finding is listed to the customer under *where to attack us hardest*, in the reviewer's own words. There is no drawer this puts it in |
+| `accepted-risk` | The finding is listed to the customer under *where to attack us hardest*, in the reviewer's own words — which that agent writes for a customer to read, with no plugin token in them (`agents/brd-package-reviewer.md`). There is no drawer this puts it in |
 | `escalated-to-customer` | The finding is put to the customer in the prompt's *decisions the customer must make* part, carried by its own `[SR#n]`. Admissible **only** where `interview-tagging.md` §2's test says so — what would settle it is an authority only the customer holds. Where a delivery-side trade-off would settle it, this is the wrong disposition and the finding takes another |
 | `rejected-with-reason` | The reason is recorded in the self-review and stays inside the delivery organisation. Nothing rejected reaches the customer |
 
@@ -591,7 +602,7 @@ do.
 | 2 | What each package in the bundle is for | this BRD, plus each prerequisite package copied in, marked *not for re-review* |
 | 3 | Documents to review | the manifest, by its bundled filename, then every other document `bundle-packaging.md` §1.1 admits, by the bundled filename *Assemble the bundle* rule 1 gives it — the names the manifest lists |
 | 4 | Code baselines and the verification procedure | `grounding/baselines.md`, with the three commands written out |
-| 5 | The single most important claim to verify first | the register and the findings, by the rule below |
+| 5 | The single most important claim to verify first | the register, the findings and the held `[C]` entries, by the rule below |
 | 6 | Review scope | `coverage-ledger.md` dispositions, `brd/brd-inventory.md`, and every `in-scope` `[CDF#n]` |
 | 7 | The decisions the customer must make | `interview/customer-questions.md`, every open `[AS#n]`, and every `escalated-to-customer` `[SR#n]` |
 | 8 | What could still move | the prerequisites resolved above, every `conditional_on` position (D20), and every `conditional` `[CDF#n]` |
@@ -652,7 +663,12 @@ better section 1 than one who is told nothing.
 the `[CG#n]`/`[DG#n]` finding cited in the `evidence` list of the greatest number of `[VD#n]`
 records; ties broken in favour of the finding whose falsity would reopen the most `[BR#n]` rows, and
 then by lowest id so the choice is reproducible. Where the register cites no finding at all, the
-most-depended-on open `[AS#n]` takes the slot, marked as an assumption rather than a finding. **One,
+most-depended-on open `[AS#n]` takes the slot, marked as an assumption rather than a finding. Where
+it holds no `[VD#n]` citing a finding and no open `[AS#n]` — a register holding only its header
+line, whose package carries `[C]` questions alone — the finding the greatest number of held `[C]`
+entries in `interview/customer-questions.md` list as bearing on them takes the slot, ties broken as
+above; where no entry lists one, part 5 says plainly that no position in this package rests on a code
+or design finding, and names no claim. **One,
 because a list of five is not a first**: the purpose of the part is to spend the reviewer's freshest
 attention on the claim carrying the most weight, and a list spends it on choosing.
 
@@ -694,12 +710,16 @@ listing them as blockers.
 
 **Part 9 — where to attack us hardest.** Every open `[AS#n]`, and every `[SR#n]` this run disposed
 `accepted-risk`, each in the reviewer agent's own words rather than re-summarised — that agent
-writes its findings knowing they may end up here. Nothing disposed `fixed` appears (it is no longer
-true of the package), and nothing disposed `rejected-with-reason` appears (the rejection is ours to
-own, and shipping an attack the team has already argued against invites the customer to referee an
-internal disagreement). **A package that names its own weak points gets a review worth having; one
-that does not gets a rubber stamp** — which is the entire reason this part is assembled rather than
-written.
+writes its findings knowing they may end up here, and writes their `target`, `attack` and
+`what_would_settle_it` for a customer to read, with no `§` of a plugin file, working filename,
+command or agent name in them (`agents/brd-package-reviewer.md`), so they pass the plugin-free scan
+as quoted. A token that reaches the prompt this way anyway stops that scan like any other; the
+finding's words are still not this command's to change. Nothing disposed `fixed` appears (it is no
+longer true of the package), and nothing disposed `rejected-with-reason` appears (the rejection is
+ours to own, and shipping an attack the team has already argued against invites the customer to
+referee an internal disagreement). **A package that names its own weak points gets a review worth
+having; one that does not gets a rubber stamp** — which is the entire reason this part is assembled
+rather than written.
 
 **Part 10 — the output file and the inlined schema.** The output filename:
 `<BRD-KEY> Customer Review <YYYYMMDD>.md`, with `<BRD-KEY>` substituted and **`<YYYYMMDD>` left as

@@ -362,7 +362,8 @@ every one has one.
     the register phase (which writes no record — no `[VD#n]`, no `[AS#n]`, no `[C]` — and so writes
     the register's header alone where none is on file), the handoff, and the next-step offer. **This
     is a completed run, not a stop**: it produced a deliverable, so it stages and hands off like any
-    other, and the offer it ends on is whichever the two `/brd-package` gates select. With an open
+    other, and the offer it ends on is whichever *Next steps* selects from the `/brd-package` gates
+    it checks — step 6's register, which this path has just written, and steps 7 and 8. With an open
     `[AS#n]` on file the packaging step is offered; with an empty register the run reports the BRD
     decided. Neither is `not-interviewed`, because this run has just made that false.
 
@@ -382,18 +383,22 @@ every one has one.
   decide whether the refusal is fair — a second copy of this rule in another command is how the two
   drift apart, and the first question source added to one and not the other ships a package over a
   question nobody walked. It tests for the record; this branch is what makes an honest one exist.
-- **Every round is closed** → a new round is proposed **only if findings or decisions have
-  changed, or a requirement defect became this BRD's to ask, since the last round closed**.
-  Concretely: a `[CG#n]`/`[DG#n]` added or superseded since that round's record was written, a
-  verifier outcome changed, or a decision in `decisions.md` moved to `reopened` or `superseded` — or
-  a requirement defect this BRD owns, that is open and that is not asked (*Round 1 is generated from
-  the grounding* fixes all three tests), where round 1's record carries the requirement-defect
-  account line: the round-1 walk did not raise it, and a new round is exactly where it belongs (the
-  round-1 test below). Nothing changed → there is nothing a new round could ask that the last one
-  did not already have in front of it; report that plainly, run the round-1 test below — every round
-  being closed, all it can do here is report — then skip to the handoff phase with nothing to
-  commit, and end on the ledger line. Something changed → open round `<highest + 1>` (round 1
-  when none exists), naming in its record exactly what changed and made it askable.
+- **Every round is closed** → a new round is proposed **only if findings or decisions have changed,
+  or a requirement defect became this BRD's to ask, since the last round closed**. Concretely: a
+  `[CG#n]`/`[DG#n]` added or superseded since that round's record was written, a verifier outcome
+  changed, or a decision in `decisions.md` moved to `reopened` or `superseded` — or a requirement
+  defect this BRD owns, that is open and that is not asked (*Round 1 is generated from the
+  grounding* fixes all three tests), where round 1's record carries the requirement-defect account
+  line: the round-1 walk did not raise it, and a new round is exactly where it belongs (the round-1
+  test below). Nothing changed → there is nothing a new round could ask that the last one did not
+  already have in front of it; report that plainly, run the round-1 test below — every round being
+  closed, all it can do here is report — and, **where no `decisions.md` is on file, write it as its
+  header line alone** (*Write the register and the round record*): a BRD interviewed before this
+  command wrote the register on every round, over rounds that recorded no decision, holds none, and
+  `/product-workflows:brd-package` refuses the folder without one. Then skip to the handoff phase —
+  with nothing to commit where the register was already on file, and with `decisions.md` alone where
+  this path wrote it — and end on the ledger line. Something changed → open round `<highest + 1>`
+  (round 1 when none exists), naming in its record exactly what changed and made it askable.
 
 **`--round N` given:**
 
@@ -834,13 +839,14 @@ file and never restarts it. A run that reopens a decision writes `status: reopen
 named (§4), against the original record's id; it never mints a new id for the same question.
 
 **The register is written on every run that reaches this phase, whether or not the round produced a
-record.** Where no register is on file and this round recorded no `[VD#n]` or `[AS#n]` — a round of
-nothing but `[C]` questions and questions answered from findings, or one that raised no question —
-write the header alone: the single line `# Decision register: <BRD-KEY>`, this BRD's key, and
-nothing under it (§1). Without the file, `/product-workflows:brd-package` Phase 0 step 6 stops with
+record.** Where no register is on file, this run creates it, and its first line is the header —
+`# Decision register: <BRD-KEY>`, this BRD's key (§1) — whether or not the round recorded anything.
+Where the round recorded no `[VD#n]` or `[AS#n]` — a round of nothing but `[C]` questions and
+questions answered from findings, or one that raised no question — that line is the whole file.
+Without the file, `/product-workflows:brd-package` Phase 0 step 6 stops with
 `BRD_PACKAGE_NEEDS_INTERVIEW` as though no interview had written one, and a further run of this
-command would resume the same round and again record nothing — a loop. A register already on file is never rewritten to its
-header: this run's records are added after those on file.
+command would resume the same round and again record nothing — a loop. A register already on file is
+never rewritten to its header: this run's records are added after those on file.
 
 Every `[AS#n]` this round recorded carries the two fields §7 gives a different meaning: `evidence`
 holding the explicit statement of **why no evidence exists** — what was searched and why it fell
@@ -945,10 +951,11 @@ and new disposition; the `[C]` count held; and every will-change resolution
 taken. Emit its §4.1 outcome line in the final report.
 
 The no-new-round path in *Resolve the round* — every round closed and nothing changed — reaches this
-phase with nothing staged, so it reports the `nothing to commit` line rather than opening a pull
-request. **The nothing-askable first run is not that path and does stage**: it wrote
-`interview/round-1.md`, and `decisions.md` with it (the header alone, where none was on file), and
-both are deliverables handed off with the rest.
+phase with nothing staged where the register was already on file, so it reports the
+`nothing to commit` line rather than opening a pull request; where that path wrote the register's
+header line, `decisions.md` is the one path it hands off. **The nothing-askable first run is not
+that path and does stage**: it wrote `interview/round-1.md`, and `decisions.md` with it (the header
+alone, where none was on file), and both are deliverables handed off with the rest.
 
 ---
 
@@ -969,7 +976,7 @@ because that is what `/brd-package` reads:
 
 - `commands/brd-package.md` Phase 0 step 6 (*Gate the decision register on main*) — the register in
   the folder, and on the default branch. Its merge half is what the offer's `<merge-clause>` names;
-  its presence half is tested below, before either content gate.
+  its presence half is established below, before either content gate.
 - `commands/brd-package.md` Phase 0 step 7 (*Gate on the interview's rounds — and read the
   precondition the only way that is not a deadlock*) — which holding state it admits and which three
   it refuses is stated there.
@@ -997,12 +1004,11 @@ the two gates would say.** The gates cannot see those defects, because no round 
 them: a BRD holding nothing else passes step 7 and fails step 8, and would be called decided while
 this run's own report names questions its customer has never been asked; one holding an open
 `[AS#n]` passes both, and would be offered a package that leaves those questions out and needs a
-second package to carry them. **Then, still before either content gate, step 6's presence half:
-where the folder holds no `decisions.md` → `package_offerable: nothing-to-review`.** *Write the
-register and the round record* writes the file on every run that reaches it, so a run gets here
-without one only on the no-new-round path, over rounds that all closed with no register on file —
-and such rounds held no `[VD#n]`, no `[AS#n]` and no answered `[C]`, each of which puts a record in
-the register, while a held `[C]` keeps its round open. Otherwise, step 7 passes and step 8 fails →
+second package to carry them. **Step 6's presence half needs no test of its own: every path that
+reaches this phase has left a register on file** — *Write the register and the round record* writes
+it on every run that reaches that phase, and the no-new-round path writes it where none was — so
+only the all-delegated stop leaves a folder without one, and that stop never reaches this phase.
+Otherwise, step 7 passes and step 8 fails →
 `package_offerable: nothing-to-review`, which is not a defect in this run: every question was
 settled from verified findings and the delivery team owes the customer no decision. **Whatever the
 state, name beside its list every requirement defect the round-1 test left waiting on an open
@@ -1095,17 +1101,16 @@ caveat. The `nothing-to-review` list carries no marker for the same reason and o
 stopping there is a legitimate, finished outcome, and marking a grounding pass "recommended" would
 imply this BRD is unfinished when it is not.
 
-`<merge-clause>` in that list is the placeholder `workflows-core:next-phase-offer`
-resolves from this run's own `Phase handoff:` outcome line; it is never written as an unconditional
-"once the pull request above is merged", because the no-new-round path reaches the handoff with
-nothing to commit and opens no pull request. **The two lists that name
+`<merge-clause>` in that list is the placeholder `workflows-core:next-phase-offer` resolves from
+this run's own `Phase handoff:` outcome line; it is never written as an unconditional "once the pull
+request above is merged", because the no-new-round path reaches the handoff with nothing to commit
+wherever the register was already on file, and then opens no pull request. **The two lists that name
 `/product-workflows:prd-ground <BRD-KEY>` — `rounds-unsettled` and `nothing-to-review` — carry no
-clause at all, and that asymmetry is deliberate:** that
-command gates on `coverage-ledger.md` (`commands/prd-ground.md` Phase 0 step 6), which this run never
-writes, so no handoff of this run's can hold it up and there is no wait to state. **The
-`defects-unasked` re-open carries none for the same reason**: this command gates on
-`grounding/code-grounding.md` (*Resolve inputs and gate the grounded BRD*, step 6), which this run
-never writes either.
+clause at all, and that asymmetry is deliberate:** that command gates on `coverage-ledger.md`
+(`commands/prd-ground.md` Phase 0 step 6), which this run never writes, so no handoff of this run's
+can hold it up and there is no wait to state. **The `defects-unasked` re-open carries none for the
+same reason**: this command gates on `grounding/code-grounding.md` (*Resolve inputs and gate the
+grounded BRD*, step 6), which this run never writes either.
 
 Say plainly what remains, per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — names only,
 never behaviour a command of its own owns: a round still holding a `[C]` stays open, because the

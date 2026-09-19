@@ -29,10 +29,14 @@ supersedes the `[AS#n]` each one settles, reopens what an incoming customer deci
 ## 1. Record shape
 
 **The file opens with one line, `# Decision register: <BRD-KEY>`** — the key of the BRD whose folder
-it sits in — and holds its records after that line, one block per record. **A register holding no
-record is that line alone**, and it is an ordinary state: `commands/brd-interview.md` writes it so
-where a round it records produced no `[VD#n]` or `[AS#n]`, and every reader treats it as a register
-with nothing in it, never as a missing one.
+it sits in — and holds its records after that line, one block per record. **Every command that
+creates the file writes that line first**: `commands/brd-interview.md` on the first register it
+creates, whether or not the round recorded anything, and `commands/create-prd.md` where it creates
+the register for a roundless `[AS#n]` (§7). **A register holding no record is that line alone**, and
+it is an ordinary state — `/brd-interview` writes it so where a round it records produced no
+`[VD#n]` or `[AS#n]` — which every reader treats as a register with nothing in it, never as a
+missing one. A register written before 3.7.0 may lack the line, and no reader keys on it: records are
+found by their own ids.
 
 Each `[VD#n]` and `[CD#n]` carries:
 

@@ -550,9 +550,12 @@ of ownership, and no rule anywhere keys off it.
 `/idea` vendoring an image that an idea source, or a page it links, pointed at — it names the file
 that carried that link by a path **relative to the folder holding `design/`**: the copy the writer
 vendored of that file (`attachments/dark-mode.md`), or the file itself where it already sat in that
-folder. It is **never** a path on the operator's machine, which resolves for nobody else who reads
-the record. Where nothing linked the frame — a human exported the frames and dropped the folder in —
-or the file that linked it has no copy in the folder, it is `—`.
+folder. A writer never writes a path on the operator's machine, which resolves for nobody else who
+reads the record. Where nothing linked the frame — a human exported the frames and dropped the
+folder in — or the file that linked it has no copy in the folder, it is `—`. **A row written under
+the older rule** — `workflows-core` 1.7.0 and earlier, when this column held the linking file's
+original path — may name an absolute path on the operator's machine; step 2 keeps it as it stands,
+as it keeps every existing row whose frame is still there.
 
 #### The reconciliation contract
 
@@ -608,8 +611,10 @@ Every writer runs exactly these steps, **after** whatever files it was going to 
    nothing about the set having changed.
 3. **Append one row per frame this run accounts for and the index does not, in run order**, after the
    rows already present, built from that frame's description — **transcribed verbatim, never
-   invented** — and its `Linked from` as defined above. What a run "accounts for" is the one thing
-   that differs per writer, and the table below is where each writer's answer is recorded.
+   invented** — and its `Linked from` as defined above. A writer that holds no link for the frame
+   writes `—` there; `/frames` holds none for any frame, so every row it appends reads `—`. What a
+   run "accounts for" is the one thing that differs per writer, and the table below is where each
+   writer's answer is recorded.
 4. **A frame in the listing the run accounts for in no way still gets a row** — `—` in `Linked from`,
    and one of **two** literals in the last column. Something the run cannot speak for put that frame in
    the set, or a cap or a failed read stopped the run from looking at it. Omitting it would rebuild the

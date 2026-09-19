@@ -112,9 +112,9 @@ tracked:                 # present only for provenance: prd
   key:        <the source document's own key>
   status:     <from the source's own frontmatter; omit when it carries none>
   summary:    <the source's goal line, in one sentence>
-source_refs:
-  - ref:             <path | KEY | url>
-    salient_summary: <≤150 words: what this source says that matters to the idea — omit for an inline prompt>
+source_refs:             # exactly one entry for a markdown source; [] for a prompt
+  - ref:             <path — the source's path exactly as `argument` gave it>
+    salient_summary: <≤150 words: what this source says that matters to the idea>
 raw_context: |
   <distilled problem / users / value / scope hints from the source(s)>
 signals:
@@ -151,9 +151,14 @@ candidate_title: <human-readable title inferred from the source>
 candidate_slug:  <kebab-case slug inferred from the source>
 ```
 
-`signals`, `images`, `wikilinks_followed`, `wikilinks_not_followed`, `wikilinks_broken` and
-`links_other` are each `[]` when empty — never omitted, so the caller can tell an empty list from a
+`source_refs`, `signals`, `images`, `wikilinks_followed`, `wikilinks_not_followed`, `wikilinks_broken`
+and `links_other` are each `[]` when empty — never omitted, so the caller can tell an empty list from a
 field that went missing.
+
+**`source_refs` holds the one file the caller named, and nothing else.** A markdown source gives it
+exactly one entry, whose `ref` is the source's path exactly as `argument` gave it — never resolved,
+made absolute or tidied, because the caller keys the source's copy on that string — and a prompt
+gives it none. A page the walk took is not a source: it belongs in `wikilinks_followed`.
 
 **Every link array carries the target as written, beside the path it resolved to.** `wikilinks_not_followed`,
 `wikilinks_broken` and `links_other` always did; `images` and `wikilinks_followed` do too, and the pair is

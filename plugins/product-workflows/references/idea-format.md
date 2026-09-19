@@ -15,7 +15,7 @@ title: <candidate human-readable title>
 slug: <candidate-kebab-slug>
 sources:
   - provenance: prd | markdown | community-post | prompt
-    ref: <path | KEY | url>
+    ref: <path>                                        # the source file's path as the run was given it; absent on a prompt entry
     vendored: <PRD-folder-relative path of the copy>   # present IFF this source was vendored
 created: <YYYY-MM-DD>
 status: draft | refined        # refined IFF zero open [NEEDS CLARIFICATION] remain
@@ -27,10 +27,13 @@ status: draft | refined        # refined IFF zero open [NEEDS CLARIFICATION] rem
 Rules: `status` is `refined` only when the **Open questions & assumptions** section carries zero
 `[NEEDS CLARIFICATION]` markers; otherwise `draft`. `sources` lists every ingested source with its
 provenance — one per `/idea` run, the prompt or the file named on its command line (re-running
-`/idea` for the same key refines the existing file and appends a source). **A page or image that
-source links is not an ingested source** and gets no `sources` entry: its copy is recorded by the
-rewritten link in `idea.md` that points at it and, for an image, by its row in
-`design/idea-sources/index.md` (**Vendored sources** below).
+`/idea` for the same key refines the existing file and appends a source). A file's entry is
+`{provenance, ref}`, plus `vendored` where it was copied, its `ref` being the `ref` of
+`idea-reader`'s one `source_refs` entry — the path exactly as the run was given it; a prompt's entry
+is `{provenance: prompt}` with no `ref`, since a prompt has no path and its `source_refs` is empty.
+**A page or image that source links is not an ingested source** and gets no `sources` entry: its
+copy is recorded by the rewritten link in `idea.md` that points at it and, for an image, by its row
+in `design/idea-sources/index.md` (**Vendored sources** below).
 
 **Four `provenance` values, because those are all a run produces**: `/idea` Phase 1 classifies a
 prompt or a markdown file, and `idea-reader` upgrades a markdown file to `community-post` or `prd`

@@ -181,7 +181,8 @@ For each frame set, in directory order:
      set never converges — three oversized exports once rejoined the describe set on every run,
      forever. Clearing it is the operator's move and the report names it: fix the file, delete the
      row, and the next run treats the frame as having no row at all.
-   - **has no row at all** → the frame joins the describe set (§6.2 step 3).
+   - **has no row at all** → the frame joins the describe set (§6.2 step 3), and the row this
+     command appends for it reads `—` in *Linked from*: it holds no link for any frame.
 
    A row whose image is **not** in the listing is dropped (§6.2 step 5) and reported. Nothing is
    restored and nothing is re-copied: this command reconciles an index with a directory and never
@@ -230,8 +231,10 @@ For each frame set, in directory order:
    set, give **every** frame in its describe set the `_no description on record_` row with that status
    as the reason, and carry on to the next set — a set this command could not look at is still a set
    whose index must state what it holds. On `OK`, pair `frames[]` with the listing **by basename** and
-   take each `description` **verbatim**. An entry with `read: false` gets the placeholder row and its
-   `reason` (`missing`, `not_an_image`, `unreadable`, `not_a_frame`) is reported. **Which placeholder
+   take each `description` **verbatim** into that frame's row. Its *Linked from* is `—` — this command
+   holds no link for any frame, so a row it appends reads `—` and a placeholder row it fills keeps
+   the `—` it had. An entry with `read: false` gets the placeholder row and its `reason` (`missing`,
+   `not_an_image`, `unreadable`, `not_a_frame`) is reported. **Which placeholder
    that row carries follows §6.2 step 4's test — whether a re-run would do anything different, and
    nothing else.** `unreadable` and `not_an_image` are facts about the **bytes** — the agent opened the
    file, or tried to — so the row reads `_could not be read: <reason>_` and is not retried.

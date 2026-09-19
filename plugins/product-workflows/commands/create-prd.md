@@ -32,7 +32,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    "a value not consumed before positionals are read": step 2a *does* discuss `--from-prd`, so a
    parsing-site test passes it, and step 2a runs after step 1. It is step **0** and not `1a`: step 1 is what parses the address, so a rung numbered
    after it runs after the damage.
-   Both are carried to Phase 2.5's `resolve-docs-grounding` call and change nothing else. Without
+   Both are carried to Phase 1's `resolve-docs-grounding` call and change nothing else. Without
    this rung the flag is a token like any other and lands in that classification: `--docs` is read as
    the address, or its path is read as the `@idea.md` argument. They were named in the Usage line and
    parsed nowhere, the same defect `/create-ard`, `/specify` and `/release-notes` were found to have.
@@ -232,7 +232,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 
    | How every row of the gate set left `covered-here` | What this stop says |
    |---|---|
-   | The gate set is non-empty and no row is `covered-here` — the ordinary shape a slice reaches | Name **no** sibling slice, because none holds one of these rows — and say what the gate-set rows *did* resolve to rather than calling them all obligations. §5 separates the three remaining dispositions: a `deferred-to` row is a live obligation of this slice, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
+   | The gate set is non-empty and no row is `covered-here` — the ordinary shape a slice reaches | Name **no** sibling slice, because none holds one of these rows — and say what the gate-set rows *did* resolve to rather than calling them all obligations. §5 separates the three remaining dispositions: a `deferred-to` row is a live obligation of this slice, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it or the customer decision that withdrew it (`rejected: <SLICE-KEY>/[CD#n]`), and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
    | The slice's `coverage-ledger.md` is **absent** while `brd-link.md` claims rows | **Name no option at all** — report the missing file by path and stop. This is not an empty gate set: `claims:` names rows and the evidence for judging them is gone, so offering either the sibling enumeration or the emptiness report would send the operator to a decision on evidence nobody has. `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2 rules on exactly this shape; without this row both rows below evaluate false and the likeliest reading takes the empty one, emitting `CREATE_PRD_BRD_NOT_ELIGIBLE` and naming `/brd-split <PARENT-KEY>` — the outcome §5.2 forbids |
    | The gate set is **empty** — a slice whose `brd-link.md` claims nothing | Report the emptiness and enumerate nothing, because there is nothing to enumerate: no requirement **this slice is answerable for** reached any disposition, and naming one would invent it. A standing empty child may still hold orphan rows its parent's walk settled (§2); those are not this slice's requirements and are not reported here as though they were. Name the one run that can change it: `/product-workflows:brd-split <PARENT-KEY>` alone resolves a standing empty child, and it is not a no-op in the state this stop reports — a standing empty child is one of the three things that command's own no-op test accounts for (its Phase 0 step 10). Its bare form offers to remove this slice or to keep it against a recorded reason; where the parent also holds a row a sibling has recorded it will not build, an instruction on that same run — `/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"` — can instead re-cut that row onto this slice, which is the one way it stops claiming nothing without being removed, and which needs this slice never to have been interviewed. Unlike the row above, this one has a next command that exists in the state being reported |
 
@@ -284,7 +284,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
 
 1. **Confirm** the feature folder, the profile, and the resolved `idea.md` (or "none — grill from scratch"); on the BRD route, the resolved `PRD-` slice folder, the profile (`--full` unless a flag overrode it), and — instead of an idea — a `from BRD:` line naming `<SLICE-KEY>` and the `parent:` its `brd-link.md` records (always present — step 5a refuses the container), its `depends-on:` if any, how many of its gate-set rows (Phase 0 step 7) are `covered-here` out of how many, and whether `prd-seed.md` and `decisions.md` were found.
-   - Show the `docs grounding:` line in the form `workflows-core:docs-grounding` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
+   - **Resolve documentation grounding here, then show its line.** Run `resolve-docs-grounding create-prd` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — its step 3.5 index prompt included — and show the `docs grounding:` line from what it returns, in the form that reference fixes — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs). It runs here, before any agent is dispatched, because step 3.5 asks its one-time index question before the run's real work; this is the run's one resolution (`workflows-core:docs-grounding`, *Invariants*), and Phase 2.5 dispatches on the state it returns without resolving again.
 2. **Existing-PRD handling** (only if Phase 0 step 6 found a PRD for `<KEY>`):
    - **the BRD route present** → "author this slice's PRD" conflicts with "a PRD for this slice
      already exists here". **`/update-prd` has no BRD route** — it takes one address and refreshes
@@ -340,7 +340,7 @@ profile is already `--full`, this nudge does **not** fire.
 
 ## Phase 2 — Read the seed
 
-Read the resolved `idea.md` **directly** (it is the plugin's own format — `idea-reader` is for arbitrary external sources and is not used here). Extract Problem / Who / desired outcome & value / rough scope / signals & evidence / candidate success signal, plus any open `[NEEDS CLARIFICATION]`. Carry the idea's `sources[]` forward to **propagate** into the PRD frontmatter (the real provenance — each `sources` entry exactly as `idea.md` recorded it, `provenance` and `ref` alike), and record `derived_from` = the idea's own resolved path — read here from `idea.md`'s own frontmatter, never from a relocation, since `/create-prd` no longer moves it.
+Read the resolved `idea.md` **directly** (it is the plugin's own format — `idea-reader` is for arbitrary external sources and is not used here). Extract Problem / Who / desired outcome & value / rough scope / signals & evidence / candidate success signal, plus any open `[NEEDS CLARIFICATION]`. Carry the idea's `sources[]` forward to **propagate** into the PRD frontmatter (the real provenance — each `sources` entry exactly as `idea.md` recorded it, `provenance`, `ref` and `vendored` alike), and record `derived_from` = the idea's own resolved path — read here from `idea.md`'s own frontmatter, never from a relocation, since `/create-prd` no longer moves it.
 
 Optionally ground in the idea's cited sources and any strategy/vision docs the user points to. **No code scan; no repos.**
 
@@ -415,7 +415,7 @@ exists to prevent.
 
 This phase dispatches one grounding agent, the docs grounder.
 
-**Docs.** Run `resolve-docs-grounding create-prd` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the idea's problem/goal + PRD themes, `key` = `<KEY>`, and `themes` from the idea. When OFF, skip silently.
+**Docs.** Phase 1 resolved documentation grounding and showed its line; this phase resolves nothing again. Where it resolved `docs_grounding: ON`, `dispatch-docs-grounder` (`workflows-core:docs-grounding`) with `feature_summary` = the idea's problem/goal + PRD themes, `key` = `<KEY>`, and `themes` from the idea. Where it resolved OFF, dispatch nothing.
 
 **On the BRD route the docs grounder runs unchanged; only its inputs are substituted**, because
 there is no `idea.md` to take them from. `feature_summary` and `themes` come from `prd-seed.md`

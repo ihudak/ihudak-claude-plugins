@@ -25,19 +25,32 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
 
 ## Phase 0 — Resolve the address + model routing
 
-1. **The address (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--docs` and `--ground-code` each consume the token after them (the Flags paragraph above), and a value skipped as "non-flag" would be read as the key and validate it with `key-valid`
+1. **The address (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--docs` always consumes the token after it, and `--ground-code` only as the Flags paragraph above conditions it, and a value skipped as "non-flag" would be read as the key and validate it with `key-valid`
    (`workflows-core:addressing` §1). Absent or malformed → stop:
    `IDEA_NEEDS_KEY: /idea needs a PRD key (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-77) — it names the folder this idea will live in. Re-run '/product-workflows:idea <PRD-KEY> [<prompt>|@<file>]'.`
 
    **The key is an argument because there is nowhere keyless to write.** `idea.md` lands in its final
    folder on the first write — `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/`. Resolve it
    here with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`,
-   §3): `found` is the folder this run writes into, and `ambiguous` is §3's hard stop. **On `absent`
-   nothing is created here**, because Phase 0 holds no slug to name a folder with: the folder is
-   created by Phase 4's first write, as `PRD-<KEY>-<candidate_slug>/` (`workflows-core:addressing`
-   §2), `candidate_slug` being the one Phase 2's digest returns. Creating it with `idea.md`, which
-   carries its `kind` and `key`, is also what keeps it from ever being keyless (§4). Either way it is
-   never relocated afterwards, and `/create-prd <KEY>` finds it there.
+   §3): `found` is the folder this run writes into — **where it is an idea-route PRD folder**, below
+   — and `ambiguous` is §3's hard stop. **On `absent` nothing is created here**, because Phase 0
+   holds no slug to name a folder with: the folder is created by Phase 4's first write, as
+   `PRD-<KEY>-<candidate_slug>/` (`workflows-core:addressing` §2), `candidate_slug` being the one
+   Phase 2's digest returns. Creating it with `idea.md`, which carries its `kind` and `key`, is also
+   what keeps it from ever being keyless (§4). Either way it is never relocated afterwards, and
+   `/create-prd <KEY>` finds it there.
+
+   **A `found` folder must be an idea-route PRD folder.** Test the folder, never the kind it asserts
+   — a BRD-route slice is `PRD-`-prefixed and asserts `kind: brd` through its `brd-link.md`
+   (`workflows-core:addressing` §4) — and stop where it is any of these: `BRD-`-prefixed (a BRD
+   container); `EPIC-`-prefixed (an Epic folder); carrying a `brd-link.md` at its top level (a
+   BRD-route slice); or, resolved through §5's legacy fallback and so carrying no prefix to test,
+   resolving to a `kind` other than `prd`. An idea brief seeds the PRD authored beside it, and none
+   of these takes one: a BRD container never holds a PRD, a slice's PRD is seeded from its BRD with no
+   idea ladder, and an Epic folder sits below its PRD:
+   `IDEA_NOT_AN_IDEA_FOLDER: <KEY> resolves to <folder path>, <a BRD container | a BRD-route slice | an Epic folder | a legacy <kind> folder> — /idea writes only into an idea-route PRD folder. Give the idea a key of its own: '/product-workflows:idea <NEW-KEY> [<prompt>|@<file>]'.`
+   It is a user halt, so `emit-block` does not fire, and it is taken here, before anything is read or
+   written.
 
    **Validated for shape and checked against nothing**, exactly as `/brd-intake <BRD-KEY>` already
    asks. Nothing looks a key up, because there is nothing to look it up in.
@@ -76,7 +89,7 @@ step skips on it.
 
 ## Phase 1 — Classify the source
 
-Classify what is left of `$ARGUMENTS` once **the Phase 0 key token and every recognised flag with its value** are removed (`--deep`, `--no-docs`, `--docs <path>` with its value, and `--ground-code` with its optional comma-separated repo value), by precedence. Remove them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it, and an unstripped key turns a correct `<KEY> @<file>` invocation into a path that resolves to nothing — Case B below, on a run with nothing wrong. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text — strip only the flag itself. **A leading `@` marks a file, and the path is the text after it**: that path, never the `@`, is what rule 1 tests and what Phase 2 hands `idea-reader`.
+Classify what is left of `$ARGUMENTS` once **the Phase 0 key token and every recognised flag with its value** are removed (`--deep`, `--no-docs`, `--docs <path>` with its value, and `--ground-code` with its optional comma-separated repo value), by precedence. Remove them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it; an unstripped key does the same on every prompt run, and turns a correct `<KEY> @<file>` invocation into a path that resolves to nothing — Case B below, on a run with nothing wrong. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text — strip only the flag itself. **A leading `@` marks a file, and the path is the text after it**: that path, never the `@`, is what rule 1 tests and what Phase 2 hands `idea-reader`.
 
 1. An existing `.md` path, written `@<path>` or bare → **markdown** (a community post is just a
    markdown file, typically under `Projects/Products/…` — the reader tags it `community-post`; an
@@ -181,7 +194,8 @@ This is an environment/user halt — do NOT `emit-block`. On `OK`, carry forward
 `signals`, `images`, `candidate_title`, `candidate_slug`, `source_refs`, `provenance`, `tracked` (a
 `prd` source only), all three wikilink lists — `wikilinks_followed`, `wikilinks_not_followed`,
 `wikilinks_broken` — and `links_other`. `source_refs`/`provenance` feed the `sources:` frontmatter
-entry in Phase 4, and `tracked` seeds `## Prior art`. **Every one of those lists is also Phase 4.5's
+entry in Phase 4 — `source_refs` holds exactly one entry for a markdown source and none for a
+prompt — and `tracked` seeds `## Prior art`. **Every one of those lists is also Phase 4.5's
 input**: `wikilinks_followed` and the read `images` are what gets copied beside the source file
 `source_refs` names, and the other three are what gets reported instead. **Carry each entry whole,
 `target` included.** Every link array names the target **as written** beside the path it resolved to;
@@ -212,13 +226,20 @@ report: a read the operator is not told was partial is indistinguishable from a 
 less, and a link nothing copied and nothing reported is indistinguishable from a link that was
 never there.
 
+**Name the idea's capability themes last.** From the digest's `raw_context`, name 1–5 capability
+themes — short noun phrases for what the idea asks the product to do, such as *invoice line
+disputes* or *per-project dark mode*. This orchestrator names them: `idea-reader` returns none, and
+its contract does not change for them. Never take them from `signals`, which carry demand evidence
+rather than capabilities and are empty for most sources. Phase 2.5 hands these themes to the docs
+grounder, and Phase 2.6 proposes its repos from them and hands them to its scanners.
+
 ---
 
 ## Phase 2.5 — Grounding: documentation (optional)
 
 This phase dispatches one grounding agent, the docs grounder. Code grounding is Phase 2.6's, run after this phase and never in the same response; docs grounding being OFF never suppresses it, nor the reverse.
 
-**Docs.** Phase 1 already resolved documentation grounding and showed its line; this phase consumes that result and resolves nothing again. Where Phase 1 resolved `docs_grounding: ON`, `dispatch-docs-grounder` (`workflows-core:docs-grounding`) with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; pass `key` = the run's own key, which enables the git-grep backstop. Where it resolved OFF, dispatch nothing and move on.
+**Docs.** Phase 1 already resolved documentation grounding and showed its line; this phase consumes that result and resolves nothing again. Where Phase 1 resolved `docs_grounding: ON`, `dispatch-docs-grounder` (`workflows-core:docs-grounding`) with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = the capability themes Phase 2 named; pass `key` = the run's own key, which enables the git-grep backstop. Where it resolved OFF, dispatch nothing and move on.
 
 Carry the digest into Phase 3 with **grill-rank** consumption — its challenges compete for the ≤10 question slots, they do not add slots. (One digest, not two: prior-art discovery was removed with its finder, so `docs_challenges` is the only challenge set an agent produces here. There is no `area_proposal` to carry either — nothing proposes a write path now that the key names the folder.)
 
@@ -231,7 +252,7 @@ Runs only when `--ground-code` was given; otherwise take the OFF branch at the e
 **1. Resolve the repo set.** The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text. Validate each resolved path is a directory; a repo that is not mounted is handled by the `Repo missing (after resolution)` rule in `workflows-core:escalation-rules` — never invented, never silently dropped. A repo the user drops is carried to Phase 5 by name, with the themes it would have grounded left unverified. With `--ground-code <repo>[,<repo>…]`, use exactly those repos and skip the derivation below. Bare, derive them:
 
 - **Cheap discovery.** List the top-level directories under each `${REPOS_PATH:-/workspace}` entry (may be colon-separated) with `ls`. Optionally attach each directory's one-line identity — `timeout 5 git -C <dir> remote get-url origin 2>/dev/null` (slug) or its README's first heading. Do **not** deep-scan to guess relevance.
-- **Propose** a candidate set from the `idea-reader` digest's themes.
+- **Propose** a candidate set from the capability themes Phase 2 named.
 - **Gate** — this list's answer varies every run, so it fires unconditionally:
   ```
   choices: ["Ground the proposed set (Recommended)", "Ground a different set (you'll be prompted)", "Ground nothing — continue without a code scan", "Cancel"]
@@ -245,7 +266,7 @@ Runs only when `--ground-code` was given; otherwise take the OFF branch at the e
   > "Scan this repo for the brief:
   >
   > repo_path:        <resolved absolute path>
-  > capability_themes: <the idea's themes from the idea-reader digest>
+  > capability_themes: <the capability themes Phase 2 named>
   > context:          <3–5 sentences: the idea's problem + desired outcome, and what a finding would change>
   > search_hints:     <symbols/paths/keywords derived from the idea, if any>
   > refresh:          { switch_to_default_branch: false, pull: false }"
@@ -307,16 +328,16 @@ resolved — or, where it returned `absent`, the one this write creates (**Path*
   choices: ["Refine the existing idea.md (Recommended)", "Cancel"]
   ```
   On *refine*, re-open it, resolve its open `[NEEDS CLARIFICATION]` items, and append the new source
-  (`{provenance, ref}` built from Phase 2's `provenance` and `source_refs`) to `sources`.
+  to `sources` — `{provenance, ref}` from Phase 2's `provenance` and its one `source_refs` entry, or
+  `{provenance: prompt}` with no `ref` for a prompt run, whose `source_refs` is empty
+  (`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`, *Frontmatter*).
 
-  **There is no "write a second one beside it" option, and the reason is structural.** The key was fixed
-  in Phase 0, so a second brief under a different slug is a second folder asserting the *same* key —
-  `workflows-core:addressing` §4 rule 5's hard `ambiguous` stop, which makes the key
-  unaddressable by every command that resolves one, `/create-prd <KEY>` — the command this run is about to
-  recommend — included. Phase 4.5 would vendor into the folder Phase 0 resolved rather than the new one,
-  and Phase 5 would hand off a `feature_folder` the deliverable was not written into. A genuinely separate
-  idea is a separate key: say so, and name `/product-workflows:idea <ANOTHER-KEY> <the same source>` as the way
-  to write one.
+  **There is no "write a second one beside it" option, and the reason is structural.** The key was
+  fixed in Phase 0, so a second brief under a different slug is a second folder asserting the *same*
+  key — `workflows-core:addressing` §3's hard `ambiguous` stop (`resolve-key` step 5), which makes the
+  key unaddressable by every command that resolves one, `/create-prd <KEY>` — the command this run is
+  about to recommend — included. A genuinely separate idea is a separate key: say so, and name
+  `/product-workflows:idea <ANOTHER-KEY> <the same source>` as the way to write one.
 - **`kind` and `key`:** write `kind: prd` and `key: <the key this run was invoked with>` into the
   frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`). This command creates the folder,
   with this file, so until `/create-prd` writes `prd.md` this file is the only artifact carrying the

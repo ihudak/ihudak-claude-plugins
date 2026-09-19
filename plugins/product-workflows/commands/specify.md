@@ -285,7 +285,7 @@ Use `choices` arrays; 2–4 options, and never author an "Other" option — the 
    ```
    choices: ["Use <feature_folder> (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]
    ```
-   - Show the `docs grounding:` line in the form `workflows-core:docs-grounding` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
+   - **Resolve documentation grounding here, then show its line.** Run `resolve-docs-grounding specify` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — its step 3.5 index prompt included — and show the `docs grounding:` line from what it returns, in the form that reference fixes — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs). It runs here, before any agent is dispatched, because step 3.5 asks its one-time index question before the run's real work; this is the run's one resolution (`workflows-core:docs-grounding`, *Invariants*), and Phase 4 dispatches on the state it returns without resolving again.
 
 2. **Resume vs fresh** (only if Phase 0 found a `_session.md`). Read it back and summarise which
    stages/questions are already settled:
@@ -688,7 +688,7 @@ For each repo in the batch:
   >   switch_to_default_branch: [true if Phase 1 chose 'fetch + pull default branch' (default) or 'fetch only'; false if 'no refresh']
   >   pull: [true if 'fetch + pull default branch'; false otherwise]"
 
-**Documentation grounding (optional).** Run `resolve-docs-grounding specify` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the scoped Epic/PRD goal, `key` = the focus key, `themes` = the Phase 2 capability themes. Carry the digest into the Phase 5 grill with **grill-rank** consumption. When OFF, skip silently.
+**Documentation grounding (optional).** Phase 1 resolved it and showed its line — before this phase's `code-scanner` dispatches — and nothing here resolves it again. Where it resolved `docs_grounding: ON`, `dispatch-docs-grounder` (`workflows-core:docs-grounding`) with `feature_summary` = the scoped Epic/PRD goal, `key` = the focus key, `themes` = the Phase 2 capability themes. Carry the digest into the Phase 5 grill with **grill-rank** consumption. Where it resolved OFF, dispatch nothing.
 
 Handle per-repo status after the batch returns:
 

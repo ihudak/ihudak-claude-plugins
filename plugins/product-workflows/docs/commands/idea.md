@@ -12,7 +12,7 @@ Refines one raw source — a prompt, a file, a community post, or a saved file �
 /idea <PRD-KEY> [<prompt> | @<file>] [--deep] [--ground-code [<repo>,…]] [--no-docs] [--docs <path>]
 ```
 
-The single positional argument is classified into one of **two** source forms (Phase 1), by precedence:
+The argument after the key is classified into one of **two** source forms (Phase 1), by precedence:
 
 - **An existing `.md` path** — a note, a saved community post the operator downloaded (typically under `Projects/Products/…`), a Product Requirements Document handed over as prior art, or a previously-written `idea.md` handed back for re-refinement. Its links are **walked in full** — asking you first where the walk goes past two levels of pages, twelve pages or six images — and the images it links are **transcribed** — see [What it reads](#what-it-reads). What kind of markdown it is, the reader works out from the file itself: a community post is read for its demand signals (upvotes, duplicate reports, the shape of the complaint), and a document carrying `kind: prd` becomes the brief's `## Prior art`. Nothing fetches a URL.
 - **Anything else — an inline prompt.** The argument text itself becomes the raw idea.
@@ -128,7 +128,7 @@ makes that later pass possible; it is not that pass itself.
 
 ## What it needs
 
-- **A PRD key** — the first positional argument, validated for shape and checked against nothing. It names the folder `idea.md` will live in, which is why it is required up front: there is nowhere keyless to write.
+- **A PRD key** — the first positional argument, validated for shape and checked against nothing. It names the folder `idea.md` will live in, which is why it is required up front: there is nowhere keyless to write. Where the key already names a folder, that folder has to be an idea-route PRD folder: a BRD container, a BRD-route slice or an Epic folder stops the run with `IDEA_NOT_AN_IDEA_FOLDER`, before anything is read, and the fix is a key of the idea's own.
 - **The idea source itself** — read by `idea-reader`. A path-like argument that names no file is put back to you before anything is read (re-enter it, read it as a prompt, or cancel), and a file `idea-reader` then finds missing or unreadable stops the run and offers to re-enter the source or cancel; both are environment/user halts, not a plugin gap. A key whose folder does not exist yet is not a halt: the folder is created when `idea.md` is first written.
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — documentation grounding. Missing, unreadable, or carrying no markdown file is a silent, non-blocking skip: `docs grounding: OFF`, never an error. Turned off explicitly with `--no-docs`.
 - *(**No** prior-art discovery — the finder that searched a personal store for related work is gone. Prior art now means a Product Requirements Document you hand the command yourself, as a path; nothing goes looking for one.)*

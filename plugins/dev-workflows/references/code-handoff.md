@@ -73,7 +73,7 @@ Three carve-outs:
 
 ### 2.3 Commit
 
-**Subject.** Every commit this entry point makes ends with `[<key>]` where the run resolved a key, and carries a `Work-Item: <workitem_key>` trailer where the resolved folder has one — `workflows-core:implementation-format` §3, this plugin's own documented convention, binding on all three callers. **This is where the plugin writes that convention rather than merely teaching it.**
+**Subject.** Every commit this entry point makes ends with `[<key>]` where the run resolved a key, and carries a `Work-Item: <workitem_key>` trailer where that key's folder has one — `workflows-core:implementation-format` §3, this plugin's own documented convention, binding on all three callers. **This is where the plugin writes that convention rather than merely teaching it.**
 
 Everything the convention leaves open comes from the repository, never from habit: read `git -C "<repo>" log --oneline -20` and match what it shows. A conventional-commits log gets `feat:` / `fix:` / `chore:` matching the type the run's own branch prefix already expresses (`workflows-core:branch-naming` §2.4 lists each command's fallback prefix, but a repo with its own documented convention may have supplied a different one — read what the run resolved, not the fallback table); a log with no discernible convention gets a plain imperative subject. A caller with a full template of its own overrides this paragraph — `/vuln`'s "Git Workflow → Commit message" is the one that exists today — and passes it as `commit_template`.
 
@@ -189,8 +189,8 @@ Never fatal (§1 rule 4). Every failure is reported, and no report may imply a s
 | `branch` | the branch the caller created or adopted — §2.1 check 4 verifies HEAD is actually on it |
 | `pre_existing_dirty` | porcelain paths dirty before the run's first edit, or `null` |
 | `stash_ref` | the stash the caller pushed at branch time, or `null` |
-| `key` | the resolved folder's `key` (`workflows-core:addressing` §4), or `null` |
-| `workitem_key` | the resolved folder's `workitem_key`, or `null` |
+| `key` | the key of the unit the run implements (`workflows-core:implementation-format` §3) — the resolved folder's (`workflows-core:addressing` §4), save where `/implement` chose an Epic under a PRD address and passes that Epic's — or `null` |
+| `workitem_key` | that unit's folder's `workitem_key`, or `null` |
 | `title` | the commit subject and pull-request title |
 | `body_facts` | what §2.7 renders into the body file |
 | `clean_finish` | `true` / `false` per §2.9 |

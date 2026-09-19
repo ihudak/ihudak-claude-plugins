@@ -50,6 +50,22 @@ PRD folder's record. That block says nothing of the Epic, so it is read as every
 is: by a PRD-level reader, and by no Epic-level one. No run moves or copies it — the file is
 append-only — and the picker's ● marker, which reads the Epic's own folder, does not count it.
 
+**So that Epic reads as not implemented to everything Epic-level, until its own folder holds a
+record.** `/implement`'s picker marks it ◐ where its `design.md` stands and ○ where it does not, a
+◐ row taking the default cursor; `/ready` derives its phase from an Epic folder holding no record;
+and an Epic-level `/document` or `/release-notes` reads none of its refs. And where the PRD folder
+also holds a flat `specification.md`, a PRD-level `/ready` reads that block as the broad PRD-level
+slice's record. **Population: every Epic implemented under a PRD address before `dev-workflows`
+4.1.2.**
+
+**The way out is the operator's: append a copy of that block, by hand, to the Epic folder's
+`implementation.md`** — creating the file where the folder has none, under the heading a run would
+write, `# Implementation — <key> <slug>` with the Epic folder's key and slug — and leave the PRD
+folder's block as it stands. Append-only binds the commands that write this file, not the
+operator, and the copy edits nothing in either record: the Epic's gains a block, and the PRD
+folder's keeps its own, which a PRD-level reader still reads as the PRD folder's. A reader that
+then reads both counts the ref once (§4).
+
 **Branch for convenience, commit for durability.** A merged branch is deleted; the squashed commit
 stays reachable from the base. `diff-summarizer` accepts either, and recording both is what makes the
 file survive branch cleanup.
@@ -94,10 +110,13 @@ written down, because the people whose commits the §4 scan has to find are most
 plugin at all — which is what `docs/reference/commit-convention.md` is for.
 
 - **The commit subject ends with `[<key>]`** — `feat(orders): add order intake [ACME-77-01]`.
-- **A `Work-Item: <workitem_key>` trailer**, when the resolved folder carries one
+  **The key is the unit's** — the Epic's wherever the run implemented an Epic, even one
+  `/implement` chose under a PRD address, and otherwise the folder the address resolved: the folder
+  §1 puts `/implement`'s block in, so a commit is found by the same key as the record beside it.
+- **A `Work-Item: <workitem_key>` trailer**, when that unit's folder carries one
   (`references/prd-format.md`). Never invented; the trailer is simply absent when the field is.
 - **The branch carries the key too** — `<prefix>/<key>-<slug>`, per `references/branch-naming.md`,
-  which gives a second recovery path.
+  the same unit's key, which gives a second recovery path.
 
 **In the subject rather than a trailer, and that is the whole point.** A trailer does not survive
 `git log --oneline`, so it is invisible to the person deciding what their own commit should look
@@ -110,24 +129,34 @@ can find.
 
 ## 4. Reading it — the two sources, and their boundaries
 
-A consumer combines **this file's blocks** with a **scan of commit messages** for the run's own
-identifiers:
+A consumer combines **this file's blocks** with a **scan of commit messages** for the identifiers
+the run already holds:
 
 ```
 git -C <repo> log --grep='<key>' --grep='<workitem_key>' --extended-regexp --regexp-ignore-case
 ```
 
 over the repositories this file names — or, when it names none, the repositories resolved from
-`$REPOS_PATH`.
+`$REPOS_PATH` — with one `--grep` for each key and each `workitem_key` below; git lists a commit
+matching any of them.
 
-**This is a search for tokens the run already holds, never an extraction.** The keys come from the
-resolved folder's own `key:` (`references/addressing.md` §4) and its `workitem_key`. Nothing parses
-an identifier out of a commit message, which is the rule `CLAUDE.md` states and the difference
-between resolving and guessing.
+**The keys are those of the records the read takes, so its scope decides them.** An Epic-level read
+greps that Epic's key and its `workitem_key`. A PRD-level read, which takes the PRD folder's record
+and every Epic's under it (§1), greps the PRD folder's key and every `EPIC-` folder's, each with its
+`workitem_key` — so a commit whose subject carries an Epic's key (§3) is found at both levels, as
+that Epic's record is.
 
-**Merged and deduped by SHA.** What the scan finds beyond the recorded blocks is reported as
-**unrecorded work**, named as such with its commits listed — a run that quietly folds hand-made
-commits into the recorded set makes the record look more complete than it is.
+**This is a search for tokens the run already holds, never an extraction.** Each key is read off
+its folder's carrier (`references/addressing.md` §4) — an Epic's off the `EPIC-` folder the run
+listed under the PRD folder — and each `workitem_key` off the same folder. Nothing parses an
+identifier out of a commit message, which is the rule `CLAUDE.md` states and the difference between
+resolving and guessing.
+
+**Merged and deduped by SHA.** A ref two records name — the same repository and the same commit, as
+after an operator copies a block into its Epic's record (§1) — is one ref, counted once by a read
+that takes both. What the scan finds beyond the recorded blocks is reported as **unrecorded work**,
+named as such with its commits listed — a run that quietly folds hand-made commits into the recorded
+set makes the record look more complete than it is.
 
 **The two consumers take different boundaries, and the difference is not stylistic:**
 

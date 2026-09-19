@@ -157,7 +157,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 **Resolve the diff sources — two of them, merged.** **Only when diff grounding is ON** (Phase 1): it is opt-in and advisory here, so a run that declined it skips this step entirely and grounds its prose in the PRD alone. When it is on, invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4:
 
-1. **The record.** Read the `implementation.md` records named above. **Read only the blocks no earlier note covers** — a second release must not re-describe the first one's work, and the notes already in `release-notes.md` are the only honest boundary. `workflows-core:implementation-format` §4 fixes it per record: the blocks dated after the latest note covering that record, a note for the PRD covering every record and a note for an Epic that Epic's alone, each note's scope and date read off the scope line above it (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1, which also says what a note with none counts as). So a note drafted for one Epic moves no other Epic's boundary. **Name the blocks this run used**, so a wrong boundary is visible rather than silent.
+1. **The record.** Read the `implementation.md` records named above. **Read only the blocks no earlier note covers** — a second release must not re-describe the first one's work, and the notes already in `release-notes.md` are the only honest boundary. `workflows-core:implementation-format` §4 fixes it per record: the blocks dated after the latest note covering that record, a note for the PRD covering every record and a note for an Epic that Epic's alone, each note's scope and date read off the scope line above it (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1, which also says what a note with none counts as). So a note drafted for one Epic moves no other Epic's boundary. A ref two of these records name — the same repository and the same commit — is one ref, counted once (that same §4). **Name the blocks this run used**, so a wrong boundary is visible rather than silent.
 2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
    repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
    already holds:
@@ -166,10 +166,11 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
    git -C <repo> log --grep='<key>' --grep='<workitem_key>' --extended-regexp --regexp-ignore-case
    ```
 
-   The keys come from the resolved folder's own `key:` — the Epic's, where the address named an Epic
-   folder — and its `workitem_key`; **nothing is parsed out of a commit message.** This is what finds
-   work the plugin did not do — a commit written by hand after a session ended, a colleague's push, a
-   follow-up nobody ran a command for.
+   The tokens — keys and `workitem_key`s — are the ones `workflows-core:implementation-format` §4
+   names for this run's scope, an Epic's where `focus_key` is set and the PRD's where it is null,
+   each read off a folder this run resolved or listed; **nothing is parsed out of a commit
+   message.** This is what finds work the plugin did not do — a commit written by hand after a
+   session ended, a colleague's push, a follow-up nobody ran a command for.
 
 **Merge and dedupe by SHA.** Anything the scan finds beyond the recorded blocks is reported as
 **unrecorded work**, named as such with its commits listed: folding hand-made commits silently into

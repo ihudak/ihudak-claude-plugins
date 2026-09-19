@@ -24,7 +24,7 @@ stated cost of removing the mirror, not an oversight.
 | Open | PM | — | PRD stub |
 | Problem stated | PM | /idea, /create-prd | PRD with Problem/Goal |
 | Usecases defined | PM | /create-prd | PRD with user stories / use cases |
-| Ready for Implementation | PE→Dev | /epics, /specify, /design | Epics defined; each in-scope Epic Refined+ with specification.md AND design.md; coverage complete; ARD (if any) respected; no cross-artifact contradictions |
+| Ready for Implementation | PE→Dev | /epics, /specify, /design | Epics defined; each in-scope Epic — and the broad PRD-level slice, where the PRD folder holds a flat specification.md — Refined+ with specification.md AND design.md; coverage complete; ARD (if any) respected; no cross-artifact contradictions |
 | Implementation | Dev | /implement | code in progress (past the readiness gate) |
 | Release Preparation | Dev/PM | /document, /release-notes | docs + release notes |
 | Post GA | PM | — | shipped |

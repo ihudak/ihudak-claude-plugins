@@ -294,7 +294,8 @@ alongside it.
    broad PRD-level slice in the PRD folder (`workflows-core:implementation-format` §1, which also
    says whose a block an earlier run left in the PRD folder is). **Read every block under the PRD**
    — this command documents the feature as it now stands, so every change that reached it is in
-   scope.
+   scope. A ref two of these records name — the same repository and the same commit — is one ref,
+   counted once (that reference's §4).
 2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
    repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
    already holds:
@@ -303,10 +304,11 @@ alongside it.
    git -C <repo> log --grep='<key>' --grep='<workitem_key>' --extended-regexp --regexp-ignore-case
    ```
 
-   The keys come from the resolved folder's own `key:` — the Epic's, where the address named an Epic
-   folder — and its `workitem_key`; **nothing is parsed out of a commit message.** This is what finds
-   work the plugin did not do — a commit written by hand after a session ended, a colleague's push, a
-   follow-up nobody ran a command for.
+   The tokens — keys and `workitem_key`s — are the ones `workflows-core:implementation-format` §4
+   names for this run's scope, an Epic's where `focus_key` is set and the PRD's where it is null,
+   each read off a folder this run resolved or listed; **nothing is parsed out of a commit
+   message.** This is what finds work the plugin did not do — a commit written by hand after a
+   session ended, a colleague's push, a follow-up nobody ran a command for.
 
 **Merge and dedupe by SHA.** Anything the scan finds beyond the recorded blocks is reported as
 **unrecorded work**, named as such with its commits listed: folding hand-made commits silently into
@@ -1128,7 +1130,8 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 - Opus available: [yes | no]
 
 ### PRD folder summary
-- PRD: [<KEY>] [summary, 1 line]
+- PRD: [<PRD>] [summary, 1 line]
+- Epic: [focus_key] [its title, 1 line] — omit the line when `focus_key` is null (a PRD-level run)
 - Epics: [count of `EPIC-` folders in the resolved PRD folder — the tree stops there (Phase 3)]
 - Themes: [2–4 bullet points from the folder read]
 

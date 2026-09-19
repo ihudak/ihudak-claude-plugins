@@ -54,17 +54,19 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   asks it again. A row the question names that the asking slice does not claim — another slice's, or
   one the root settled — is written with the parent's key in front, `<PARENT-KEY> [BR#n]`, because
   the package carries only the slice's own inventory and [`/brd-package`](brd-package.md) would
-  otherwise stop on the bare id as a citation that resolves to nothing. Where
-  that cannot be told yet — a row it joins still unallocated, or a sibling's ledger or question set
-  unreadable — the run withholds the defect and says why. **Round 1's record decides which round a
-  defect goes into.** On a slice interviewed before this source existed, round 1's record has no
-  requirement-defect line, so its defects belong in round 1: an open round 1 takes them at once, and
-  a closed one is re-opened with `--round 1` and the cause *requirement defects became a question
-  source* — a bare run names those defects and offers that re-open rather than asking them itself,
-  and a new round it opens for a changed finding or decision proceeds without them. On a slice
-  interviewed since, a defect that becomes its to ask later goes into a new round; while a round is
-  still open it waits, and the run names it as waiting rather than letting a package go out silent
-  about it.
+  otherwise stop on the bare id as a citation that resolves to nothing. Everything written from the
+  question keeps that form — the held entry, the decision it becomes, and the `[CD#n]`
+  [`/brd-reconcile`](brd-reconcile.md) freezes from the customer's answer, save the customer's own
+  quoted words. Where a defect's owner cannot be told yet — a row it joins still unallocated, or a
+  sibling's ledger or question set unreadable — the run withholds the defect and says why. **Round
+  1's record decides which round a defect goes into.** On a slice interviewed before this source
+  existed, round 1's record has no requirement-defect line, so its defects belong in round 1: an
+  open round 1 takes them at once, and a closed one is re-opened with `--round 1` and the cause
+  *requirement defects became a question source* — a bare run names those defects and offers that
+  re-open rather than asking them itself, and a new round it opens for a changed finding or decision
+  proceeds without them. On a slice interviewed since, a defect that becomes its to ask later goes
+  into a new round; while a round is still open it waits, and the run names it as waiting rather
+  than letting a package go out silent about it.
 
   **Every row this BRD rejected becomes a question for the customer too**, always a `[C]`: nothing
   on the route records why a requirement was rejected, so whether the customer accepts not getting

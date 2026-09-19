@@ -217,7 +217,8 @@ array carries every option.
 **Dev — build, verify & deliver**
 
 - `/dev-workflows:design <EPIC>` → optionally `/dev-workflows:ready <EPIC>` (verify readiness) →
-  `/dev-workflows:implement <EPIC>`.
+  `/dev-workflows:implement <EPIC>` — each `<PRD>` in place of `<EPIC>` after a broad PRD-level
+  design, whose Epic is null: the next address is the folder the design was written into.
 - `/dev-workflows:ready <ADDRESS>` → **SUPPORTED** → `/dev-workflows:implement <ADDRESS>` (the same address); **PARTIAL / NOT-SUPPORTED**
   → resolve the named gaps, then re-run `/dev-workflows:ready`. *(Read-only verifier;
   not itself a linear pipeline node — an optional gate before build.)*

@@ -131,7 +131,10 @@ name the run creates ([addressing](../reference/references.md) §2):
   is the same requirement; a row the new read does not find again is kept, never renumbered away;
   and every id it mints is reported by id. An inventory written before 3.7.0 carries no such record,
   so the first re-run over it on 3.7.0 rewords every row it matches to the new read's wording, once,
-  reporting each change, and keeps the record from then on.
+  reporting each change, and keeps the record from then on. Before it copies anything, that re-run
+  records which document the rows were last read from — out of the link log it is about to rewrite,
+  where there is one — so a run that stops before reconciling still leaves the document on record
+  for [`/brd-split`](brd-split.md) and [`/brd-package`](brd-package.md) to name.
 - `brd/brd-defect-log.md` — one entry per confirmed `[DEF#n]`, resolution `open`. A re-run keeps
   every entry already there, id and resolution unchanged, and adds only the defects it newly
   confirms.

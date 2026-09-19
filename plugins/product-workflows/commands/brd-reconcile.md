@@ -773,6 +773,23 @@ every field `decision-register-format.md` §1 defines:
 | `consumed_by` | `none` |
 | `round` | the round that raised the question this answers — **omitted where that is an `[AS#n]` carrying no round**, which is what `/product-workflows:create-prd` writes for a customer-authority gap surfaced at PRD authoring (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §7). Such an answer came from no round, and inventing one here would put a value into the field `/product-workflows:brd-package` derives its round set from |
 
+**A `[BR#n]` this slice does not claim is written qualified, as `<PARENT-KEY> [BR#n]`, in every
+field this phase writes save the customer's own words** — `/product-workflows:brd-interview`'s rule
+(*A row this slice does not claim*), which reads a row's form off this slice's inventory, binds
+everything written from a question, and so binds the `[CD#n]` that answers one. `<PARENT-KEY>` is
+this slice's `parent:`, and the form is the one prose spelling
+`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.2 gives another BRD's id. That is
+`statement` above all — this run's own sentence, *as confirmed*, which names a sibling's row or one
+the parent settled wherever the question did — and `options_considered`, with a `chosen` naming one
+of its members: a question that rule wrote is copied as it stands, and one naming such a row bare —
+recorded before 3.7.0, or put by a package this route did not build — is qualified as it is copied,
+the key put before the id and nothing else changed, since the id already carried the parent's
+numbering. The register ships in this slice's next package, whose citation-resolution check resolves
+a bare `[BR#n]` against this slice's inventory alone and stops on one naming a row outside it. **The
+customer's own words are never requalified**: `argumentation`, and a `chosen` quoted after its
+marker, stay exactly as the customer wrote them — a quotation changed is a falsified record — and
+`bundle-packaging.md` §6.3 reports a hit inside either rather than stopping on it.
+
 **What "frozen" means, exactly.** A `[CD#n]` written `decided` leaves that status only through
 §4's two admitted causes — a new grounding finding, or a later incoming customer decision that
 contradicts or constrains it — each recorded with its cause. This command is one of those causes for
@@ -1556,26 +1573,32 @@ Where this run can go next:
 choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this slice's PRD — /product-workflows:create-prd <SLICE-KEY> (PM)", "Author this slice's architecture — /product-workflows:create-ard <SLICE-KEY> (PA, optional)", "Author this slice's specification — /product-workflows:specify <SLICE-KEY> (PE)"]
 ```
 
-**And, in prose beside the array, the one thing this run has just changed commercially.** **It is not
-the tier** — `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5 fixes *a settled register* as
-the test `/brd-package` already applies. **On the ordinary path that test was met before this run
+**And, in prose beside the array, what this run may have changed commercially.** **It is not the
+tier** — `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5 fixes *a settled register* as the
+test `/brd-package` already applies. **On the ordinary path that test was met before this run
 started**: `/brd-package` ran two commands ago and gated on `decisions.md`, so grounding exists, the
 register was settled, and the slice was already tier 2. **On a `--sent` run it was not.** That flag
-replaces the package gate precisely for a review answering a package this route did not build (Phase 0,
-*Resolve inputs and gate the sent package*), so `/brd-package` never ran against this slice and neither
-verified grounding nor a settled register is implied by having reached here — such a slice may still be
-below tier 2. Assert no tier on that path: §5's ladder grades the folder and `/prd-proposal` walks it,
-and this command does neither. What changed here is the same on both paths, which is why the offer
-stands on either: it is what an effort proposal's drivers may stand on. §8's second evidence class is a
-**frozen decision**, and until this run froze the customer's `[CD#n]`s there were none — so a proposal
-written now prices what the customer agreed rather than what was put to them, and its corrections,
-banners and resolved defects are on the record the driver table cites. So name it:
-**`/product-workflows:prd-proposal <SLICE-KEY>` prices this slice, and it can now cite the customer's
-own frozen decisions.** It is offered in prose rather
-than as a fifth option because the array is full at four (`workflows-core:escalation-rules` §0) and the
-three advance options are the route's actual handover, which an optional, ungated document must not
-displace. It carries no merge wait: `/product-workflows:prd-proposal` gates on `prd.md`, which this run
-does not write.
+replaces the package gate precisely for a review answering a package this route did not build
+(Phase 0, *Resolve inputs and gate the sent package*), so `/brd-package` never ran against this
+slice and neither verified grounding nor a settled register is implied by having reached here — such
+a slice may still be below tier 2. Assert no tier on that path: §5's ladder grades the folder and
+`/prd-proposal` walks it, and this command does neither. **What this run can change is what a
+proposal's drivers stand on, and only a run that froze a `[CD#n]` changed it** — on either path.
+§8's second evidence class is a **frozen decision**, and a `[CD#n]` this run froze is a customer
+decision no proposal written before it could cite, so one written now prices what the customer
+agreed rather than what was put to them. **So name the proposal only where this run froze at least
+one `[CD#n]`**, and name it with the precondition `/product-workflows:prd-proposal`'s own Phase 0
+enforces: it gates `prd.md` on main and stops where the slice holds none (`PRD_PROPOSAL_NEEDS_PRD`),
+which is the ordinary state here, since this route authors the PRD after reconciliation — so the
+offer reads **`/product-workflows:prd-proposal <SLICE-KEY>` prices this slice once its `prd.md` is
+on main — after `/product-workflows:create-prd <SLICE-KEY>` where it holds none yet — and it can
+cite the customer decisions this run froze.** **A run that froze none names no proposal**, whichever
+path it took: the offer's one reason is a decision this run froze, and there is none to cite. It is
+offered in prose rather than as a fifth option because the array is full at four
+(`workflows-core:escalation-rules` §0) and the three advance options are the route's actual
+handover, which an optional, ungated document must not displace. It carries no `<merge-clause>`:
+`/product-workflows:prd-proposal` gates on `prd.md`, which this run does not write, so the one wait
+its offer names is the PRD's own.
 
 **Reconciling another BRD is on the list and not in the array**, because it is the one lateral move
 among four forward ones and this run has just finished the slice it was given. Say so in the line

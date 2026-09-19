@@ -282,6 +282,13 @@ unmatched row can be told apart from a question set nobody passed.
   customer's, and it will be defended later as theirs. A question whose `[CD#n]` is `open` **keeps**
   its *held for the customer* state and its round stays open, so the next package asks for the
   missing reason; closing the round there would retire the only mechanism that would ever chase it.
+- **Phase 5 — a row the slice does not claim is written with the parent's key in front.** Every
+  field the freeze writes names such a row `<PARENT-KEY> [BR#n]`, as
+  [`/brd-interview`](brd-interview.md) wrote the question — the decision's statement and the options
+  put, a question that names such a row bare qualified as it is copied — because the register ships
+  in the slice's next package, which carries only the slice's own inventory. The customer's quoted
+  reason, and an answer quoted outside the options, stay exactly as they wrote them, and
+  [`/brd-package`](brd-package.md) reports a hit there rather than stopping on it.
 - **Phase 6 — the correction gate.** Every section-12 row takes `applied`,
   `applied-with-deviation`, `refused-with-reason` or `deferred-to-next-round`.
 - **Phase 7 — dated snapshots are bannered, never rewritten.** A banner is prepended; nothing beneath

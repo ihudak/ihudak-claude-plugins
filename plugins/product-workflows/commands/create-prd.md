@@ -522,9 +522,12 @@ survives the grill: what kind of thing would settle it?
   thirteen fields **except `round`, which is omitted entirely** — this record came from no interview
   round, and any value there is read by `/product-workflows:brd-package` as a round it must find a
   record for. `evidence` carries the account of why no evidence exists; a bare sentence is a claim,
-  not an assumption record. Record it under `## Assumptions & open questions` **as well**, by its
-  `[AS#n]` id, so the PRD's reader and the customer meet the same record rather than two
-  descriptions of it.
+  not an assumption record. A `[BR#n]` this slice does not claim is written `<PARENT-KEY> [BR#n]`
+  in it, `<PARENT-KEY>` being the slice's `parent:` — `/product-workflows:brd-interview`'s rule (*A
+  row this slice does not claim*), read off this slice's inventory: the register ships in the
+  slice's next package, whose citation-resolution check stops on a bare id naming a row outside
+  that inventory. Record it under `## Assumptions & open questions` **as well**, by its `[AS#n]`
+  id, so the PRD's reader and the customer meet the same record rather than two descriptions of it.
 
 **Two mechanics the three bullets above share.** First, **`## Assumptions & open questions` does not
 exist on a kept `--lean`** (Phase 1), so on that profile every one of them records into the final

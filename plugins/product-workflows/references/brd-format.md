@@ -176,10 +176,13 @@ document the rows were last reconciled against, which is the one their anchors p
 from `brd/brd-link-log.md`'s opening line where the inventory carries `document:`** — the line names
 the document the latest capture ran on whether or not a row was reconciled against it, and every
 intake's Phase 2 rewrites it, so after a run that stopped before Phase 3 it names a document no row
-was read from. An inventory written before 3.7.0 carries no `document:`, and there the opening line
-is read — written by the run that wrote that inventory, save where a later intake stopped before its
-Phase 3 — and a BRD intaken before that log existed holds exactly one file under `brd/source/`, and
-that file is it. The next intake judges a revised document against the same `document:` (§2).
+was read from. An inventory written before 3.7.0 carries no `document:` until the first 3.7.0
+intake over it writes one — in its Phase 2, before it rewrites the log, wherever the inventory
+holds a row (§2) — so where a reader finds rows and no `document:`, no 3.7.0 intake has rewritten
+the log, and its opening line is read: written by the run that wrote that inventory, save where an
+intake before 3.7.0 stopped before its Phase 3, which no record tells apart. A BRD intaken before
+that log existed holds exactly one file under `brd/source/`, and that file is it. The next intake
+judges a revised document against the same `document:` (§2).
 
 ### 1.2 `brd/brd-figures.md` — what the plugin read in the customer's images
 
@@ -360,26 +363,32 @@ which on a source-owning BRD would leave the folder keyless.
 
 **`document:` and `captured:` record what the rows were last reconciled against**, on a
 source-owning BRD's inventory only. `document:` names the document the rows were read from, by its
-path relative to `brd/` — `source/<basename>` — as a double-quoted YAML string. `captured:` holds one
-entry per file under `brd/source/` or `brd/source-external/`, keyed by its path relative to `brd/` as
-a double-quoted YAML string, its value the SHA-256 of the file's bytes written `sha256:<hex>`, as
-§1.2 writes an image's *Content hash*. `/brd-intake` Phase 3 writes both whenever it writes the
-inventory's rows — `document:` naming the document that run read, and the map holding each file that
-run captured at the SHA-256 of its copy, and each entry already on file for a file that run did not
-capture, kept as it stands — and nothing else writes them; a run that keeps the inventory as it
-stands keeps both with it. A later intake's Phase 2 judges each file it captures **unchanged**,
-**replaced** or **new** against this map, never against the copy on disk (§1), and judges the
-document against the map's entry for the file `document:` names, whatever the new one is called — a
-document whose bytes differ from that entry is **replaced**, whatever its name, and never new
-(`commands/brd-intake.md` Phase 2). **Never against the document `brd/brd-link-log.md`'s opening line
-names**: every intake's Phase 2 rewrites the log, so after a run that stopped between its copy and
-Phase 3's write the log names a document no row was reconciled against. Neither field is an identity
-field: `kind: brd` and `key:` alone are what `workflows-core:addressing` §4 reads (§2.1). **An
-inventory written before 3.7.0 carries neither**, so nothing records what its rows were reconciled
-against: the next intake over it records every file whose copy already stands **replaced**, once,
-and the document whatever its name — its matched rows take the new read's wording, each change
-reported — and writes both, which every later run judges against. A slice's inventory carries
-neither: it is copied from its parent's rows and never reconciled against a source (§2.1).
+path relative to `brd/` — `source/<basename>` — as a double-quoted YAML string. `captured:` holds
+one entry per file under `brd/source/` or `brd/source-external/`, keyed by its path relative to
+`brd/` as a double-quoted YAML string, its value the SHA-256 of the file's bytes written
+`sha256:<hex>`, as §1.2 writes an image's *Content hash*. `/brd-intake` Phase 3 writes both whenever
+it writes the inventory's rows — `document:` naming the document that run read, and the map holding
+each file that run captured at the SHA-256 of its copy, and each entry already on file for a file
+that run did not capture, kept as it stands — and nothing else writes them, save the one write of
+`document:` alone described below; a run that keeps the inventory as it stands keeps both with it. A
+later intake's Phase 2 judges each file it captures **unchanged**, **replaced** or **new** against
+this map, never against the copy on disk (§1), and judges the document against the map's entry for
+the file `document:` names, whatever the new one is called — a document whose bytes differ from that
+entry is **replaced**, whatever its name, and never new (`commands/brd-intake.md` Phase 2). **Never
+against the document `brd/brd-link-log.md`'s opening line names**: every intake's Phase 2 rewrites
+the log, so after a run that stopped between its copy and Phase 3's write the log names a document
+no row was reconciled against. Neither field is an identity field: `kind: brd` and `key:` alone are
+what `workflows-core:addressing` §4 reads (§2.1). **An inventory written before 3.7.0 carries
+neither**, so nothing records what its rows were reconciled against. The next intake over one
+holding a row writes `document:` first, in its Phase 2 before it copies anything or rewrites the
+log, naming the document as §1.1 tells a reader of such an inventory to — the one line added,
+nothing else in the file changed — so the record stands even where that run stops before Phase 3; it
+writes no `captured:` map, since nothing on file holds the hashes the rows were reconciled at. It
+then records every file whose copy already stands **replaced**, once, and the document whatever its
+name — its matched rows take the new read's wording, each change reported — and writes both at
+Phase 3, which every later run judges against; an inventory carrying `document:` and no map is
+judged the same way (`commands/brd-intake.md` Phase 2). A slice's inventory carries neither: it is
+copied from its parent's rows and never reconciled against a source (§2.1).
 
 **A requirement carrying more than one obligation is split.** When one numbered item in the source
 binds the delivery team to two or more separable obligations, each obligation becomes its own

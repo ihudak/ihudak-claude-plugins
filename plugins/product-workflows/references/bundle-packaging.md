@@ -206,10 +206,11 @@ reasons, and each is fatal on its own:
   "nobody can otherwise tell what was sent from what was changed"; returning their documents
   reformatted is that failure committed by the delivery team first.
 
-**The customer's words quoted in the inventory's and the ledger's `text` cells are left as written
-too.** A link or a `[[wikilink]]` there is quotation (`references/brd-format.md` §2.3), not a link
-this package made, so the pass rewrites none of it, exactly as it rewrites nothing in the files the
-text is quoted from; the rest of both files is the plugin's writing and is rendered as §2 says.
+**The customer's words quoted in the inventory's and the ledger's `text` cells, and in a `[CD#n]`'s
+quoted `argumentation` and `chosen` (§6.3), are left as written too.** A link or a `[[wikilink]]`
+there is quotation (`references/brd-format.md` §2.3 for a cell), not a link this package made, so
+the pass rewrites none of it, exactly as it rewrites nothing in the files the text is quoted from;
+the rest of those files is the plugin's writing and is rendered as §2 says.
 
 Where that leaves something a plain reader cannot open — an embedded image, a one-tool block — the
 fix is **beside the file, never inside it**: copy the image in as §2 already requires, and say in the
@@ -646,22 +647,28 @@ the customer's own words, copied or transcribed rather than written by this pack
   split produced, both its parts, the ` … ` between them being the plugin's — but an image-drawn
   row's `text` only in the element it quotes, the rest of that text being the plugin's words
   (`references/brd-format.md` §2);
-- and in `coverage-ledger.md`, a row's `text`, treated exactly as the inventory's — a prose row's
+- in `coverage-ledger.md`, a row's `text`, treated exactly as the inventory's — a prose row's
   whole, an image-drawn row's only in the element it quotes — because each ledger row's `text`
-  mirrors its inventory row's (`references/coverage-ledger-format.md` §2).
+  mirrors its inventory row's (`references/coverage-ledger-format.md` §2);
+- and in `decisions.md`, a `[CD#n]`'s `argumentation`, the customer's own reason quoted and never
+  paraphrased (`commands/brd-reconcile.md`, *Freeze the customer decisions*), and its `chosen` where
+  that quotes an answer outside the options put — the answer only, not the fixed marker before it
+  (`references/decision-register-format.md` §1).
 
 Each table span is read **decoded** (`references/brd-format.md` §2.3): a `\|` or a `<br>` in the
 file is the table's encoding, not the customer's words, so a token is sought, and a span's extent
 judged, in the text the customer wrote.
 
 A `[BR#n]` or a filename visible in the customer's screenshot is the customer's, not a citation this
-package made. Those spans inherit the plugin-free scan's treatment of the same content, for the
-identical reason: stopping outright would make that BRD permanently unpackageable, since the only
-repair left would falsify the record — an edit to an immutable file, or a transcription saying
-something the image does not. So a relation 1 or relation 3 hit inside one is reported, grouped as
-the last rule below fixes, and the operator decides whether to ship. Outside these spans and the
-customer-derived locators below, every hit stays a hard stop, in the figures file, the inventory
-and the ledger as anywhere else: the rest of each is the plugin's own writing.
+package made, and so is one the customer wrote into an answer or a reason the register quotes. Those
+spans inherit the plugin-free scan's treatment of the same content, for the identical reason:
+stopping outright would make that BRD permanently unpackageable, since the only repair left would
+falsify the record — an edit to an immutable file, a transcription saying something the image does
+not, or a quotation saying something the customer did not. So a relation 1 or relation 3 hit inside
+one is reported, grouped as the last rule below fixes, and the operator decides whether to ship.
+Outside these spans and the customer-derived locators below, every hit stays a hard stop, in the
+figures file, the inventory, the ledger and the register as anywhere else: the rest of each is the
+plugin's own writing.
 
 **A customer-derived locator is the customer's naming, wherever it appears.** It is one of four
 things: a captured file's path relative to `brd/`, with whatever follows its ` › ` — the `source/`
@@ -798,10 +805,12 @@ that reached for it would resolve to an absent file on every correct bundle. Wha
 about those findings is prose the packaging run wrote, and prose is review's.
 
 **It does not reach every part, and the exclusions are measured rather than cautious.** The review
-scope part renders its source as **prose in the customer's own vocabulary** — the scope areas a
-customer recognises, not the requirement ids behind them — so a relation demanding identifiers there
-fires on a correct package. The decisions part is mostly the interview's own questions, which carry
-**no minted identifier at all**, so only the assumption and escalated-finding fractions of it are
+scope part renders what the package answers for as **prose in the customer's own vocabulary** — the
+scope areas a customer recognises, not the requirement ids behind them — so a relation demanding
+identifiers there fires on a correct package. The requirements it names as another BRD's do carry
+ids, each `<PARENT-KEY> [BR#n]` (`commands/brd-package.md`'s part 6), and that list is outside this
+relation too (§7.2). The decisions part is mostly the interview's own questions, which carry **no
+minted identifier at all**, so only the assumption and escalated-finding fractions of it are
 testable and the part as a whole is not. A part built from prose has no set to compare.
 
 **Relation 2 — the manifest and the bundle name the same review documents.** Every markdown review
@@ -847,6 +856,11 @@ because that is a read failure wearing the shape of a discrepancy.
 
 - **A part whose source is prose**, which relation 1's own scope already concedes: the review scope,
   and the question half of the decisions part. Those are review's.
+- **The review scope part's list of requirements another BRD holds.** It names identified records,
+  each qualified with the parent's key, from a ledger the bundle carries, but relation 1's scope is
+  the closed list §7.1 opens with and does not name it, so a row left off that list, or named there
+  that the ledger does not put out of scope, is review's to catch — as is a wrong id there, since
+  §6's relation 1 discharges a qualified one rather than resolving it.
 - **A faithful restatement of a wrong source.** Where the ledger, the register or the findings are
   themselves wrong, every relation here goes green. This check is about the copy; the original is
   what verification and the interview settle.

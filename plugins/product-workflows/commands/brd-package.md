@@ -344,20 +344,20 @@ cannot review, and they will not tell you that — they will review it anyway, b
     figures file existed holds none, however many images it links.
 
     **`<basename>` is read off the inventory's `document:`, one hop up on a slice as the three above
-    are** — it names which file under `brd/source/` is the customer's document, the one the rows were
-    last reconciled against, since that directory also holds the files the document links. Never off
-    `brd/brd-link-log.md`'s opening line where the inventory carries `document:`: a rename run that
-    stopped before its Phase 3 leaves that line naming a document no row was read from. On an
-    inventory written before 3.7.0, which carries none, the log's opening line is read; a BRD intaken
-    before the log existed holds exactly one file there, and that file is it; and a log written
-    before its layout was fixed is read by the rule that section gives for one (`brd-format.md`
-    §1.1). The log is not a bundle document. The *Assemble the bundle* phase reads it: its *Captured
-    links that do not resolve as written* table is how an image a captured file reaches through a
-    `[[wikilink]]` or from outside the document's own directory is found (`bundle-packaging.md`
-    §2.1), and where the manifest finds the target as written it names beside a captured file,
-    markdown or image (rule 6). Only a link that does not resolve as written has a row there; one
-    that does reaches its copy by its own path, which the manifest's map already carries, so no
-    target as written is named for it.
+    are** — it names which file under `brd/source/` is the customer's document, the one the rows
+    were last reconciled against, since that directory also holds the files the document links.
+    Never off `brd/brd-link-log.md`'s opening line where the inventory carries `document:`: a rename
+    run that stopped before its Phase 3 leaves that line naming a document no row was read from. On
+    an inventory carrying none — one written before 3.7.0 that no 3.7.0 intake has run over, whose
+    Phase 2 writes one — the log's opening line is read; a BRD intaken before the log existed holds
+    exactly one file there, and that file is it; and a log written before its layout was fixed is
+    read by the rule that section gives for one (`brd-format.md` §1.1). The log is not a bundle
+    document. The *Assemble the bundle* phase reads it: its *Captured links that do not resolve as
+    written* table is how an image a captured file reaches through a `[[wikilink]]` or from outside
+    the document's own directory is found (`bundle-packaging.md` §2.1), and where the manifest finds
+    the target as written it names beside a captured file, markdown or image (rule 6). Only a link
+    that does not resolve as written has a row there; one that does reaches its copy by its own
+    path, which the manifest's map already carries, so no target as written is named for it.
 11. **Fix the run's date.** One `<YYYYMMDD>` stamp, taken once, used for every artifact this run
     writes. If `bundle-<YYYYMMDD>/` already exists in the BRD folder, stop:
     `BRD_PACKAGE_BUNDLE_EXISTS: <BRD-dir>/bundle-<YYYYMMDD>/ already exists — a dated bundle is never rewritten. Move or rename the existing directory if it was never sent, or package on the next date.`
@@ -644,7 +644,17 @@ is **out of it**, as is every **orphan row** whatever it reads — a row for a `
 alone reads `claims:`. Name those requirements and the BRD that holds each, in one line apiece, and
 say plainly that they are not for review here: a row another slice holds is reviewed in that
 slice's own package, and one the parent kept or settled itself is the parent's, with the fate it
-gave it.
+gave it. **Cite each such row qualified, as `<PARENT-KEY> [BR#n]`** — the one prose spelling
+`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.2 gives another BRD's id, `<PARENT-KEY>`
+being this slice's `parent:`, whose numbering every `[BR#n]` is — and a `superseded-by` row's
+successor the same way wherever this slice does not claim it:
+`ACME-90 [BR#12] — held by ACME-90-02`, never `[BR#12] — held by ACME-90-02`. None of these rows is
+in this slice's inventory, which holds only what the slice claims
+(`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1), so a bare id resolves to nothing there and
+the citation-resolution check stops the run on it (*Assemble the bundle* rule 8) — in a part this
+run generates, which no operator edit can repair. Which form a row takes is read off that
+inventory, as `/product-workflows:brd-interview` reads it (*A row this slice does not claim*): a row
+it holds is cited bare.
 **Both halves matter to the customer.** Omitting the delegated rows entirely reads as scope the
 delivery team dropped, which is the reading a customer is most likely to take and the most expensive
 one to correct later; putting them in for review gets the same requirement answered twice, in two
@@ -813,21 +823,22 @@ sentence unfollowable while making it look fine.
 so rather than deadlock.** `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.3 defines both
 sets of span this covers: **verbatim customer content** — the customer's own files, copied byte for
 byte and immutable by rule (§2.1 there, `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1), and
-the parts of the figures file, the inventory and the coverage ledger that transcribe or quote their
-words — and **customer-derived locators**, the customer's names for their own files, headings and
-links, in the positions §6.3 recognises them in, this package's own writing included. A hit inside
-either is not a leak this package committed. It is the customer having written the token
+the parts of the figures file, the inventory, the coverage ledger and the register that transcribe
+or quote their words — and **customer-derived locators**, the customer's names for their own files,
+headings and links, in the positions §6.3 recognises them in, this package's own writing included. A
+hit inside either is not a leak this package committed. It is the customer having written the token
 themselves, in a document, a screenshot, a heading or a folder name — because they were told what
 tooling the delivery team uses, or because their own numbering happens to look like ours, a `§ 4.2`
 in a specification or a `D3` in a diagram. Report it, grouped as §6.3 fixes, and **let the operator
 decide** whether to ship; where §6.3 counts it no hit at all, there is nothing to report. Stopping
-outright would make that BRD permanently unpackageable, since the only repair left would falsify
-the record — an edit to an immutable file, an anchor that no longer names where the requirement is
-stated, or a transcription saying something the image does not — and every other span's hit stays
-a hard stop exactly as above. **These two sets are the plugin-free scan's only exemptions, and each
-covers a class of content rather than one file** — the citation-resolution check (Phase 8 rule 8,
-`bundle-packaging.md` §6) carries the same two over the same spans, and one of a different shape
-for `[SR#n]` (§6.3) — and they exist because the alternatives are a deadlock or a falsified record.
+outright would make that BRD permanently unpackageable, since the only repair left would falsify the
+record — an edit to an immutable file, an anchor that no longer names where the requirement is
+stated, a transcription saying something the image does not, or a quotation saying something the
+customer did not — and every other span's hit stays a hard stop exactly as above. **These two sets
+are the plugin-free scan's only exemptions, and each covers a class of content rather than one
+file** — the citation-resolution check (Phase 8 rule 8, `bundle-packaging.md` §6) carries the same
+two over the same spans, and one of a different shape for `[SR#n]` (§6.3) — and they exist because
+the alternatives are a deadlock or a falsified record.
 
 Identifiers are **not** in the scan's classes and are meant to travel: the classes
 `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.1's table enumerates are how the returned
@@ -953,9 +964,10 @@ self-review is free of them while being the most internal document this command 
    by rule; and they are the customer's own writing going back to them. Anything in them a plain
    reader cannot open is named **in the manifest**, never fixed in the file. For every *other*
    document: rewrite wikilinks to plain filename references — save a `[[…]]` or a link quoted in an
-   inventory or ledger `text` cell, which is the customer's own words and stays exactly as written
-   (`bundle-packaging.md` §2.1) — and get the three cases `bundle-packaging.md` §2 names right: an
-   **aliased** link keeps the alias as the visible text *and* names the file; an **embedded image**
+   inventory or ledger `text` cell, or in a `[CD#n]`'s quoted `argumentation` or `chosen`, which is
+   the customer's own words and stays exactly as written (`bundle-packaging.md` §2.1) — and get the
+   three cases `bundle-packaging.md` §2 names right: an **aliased** link keeps the alias as the
+   visible text *and* names the file; an **embedded image**
    becomes an ordinary markdown image reference to the image copied in beside it, or — when the
    image is not copied — a plain sentence saying what was there and that it is not included; and a
    link whose **target is not in the bundle** is never rewritten into a bare filename, but becomes a
@@ -1006,7 +1018,7 @@ self-review is free of them while being the most internal document this command 
    bundle document whose filename carries no `<BRD-KEY>` and therefore has no partition at all, or a
    prerequisite key **whose package this run copied in** that no partition in the bundle answers to,
    which is what a collapsed set of filenames looks like from the key set (§6.1) — stops with:
-   `BRD_PACKAGE_DEAD_CITATION: <id-or-filename> in <bundle document> resolves to nothing — <what it was resolved against>. A reference the reviewer cannot follow is not fixed by deleting it: some sentence in the package assumed that id or that file, and the sentence is what has to change.`
+   `BRD_PACKAGE_DEAD_CITATION: <id-or-filename> in <bundle document> resolves to nothing — <what it was resolved against>. A reference the reviewer cannot follow is not fixed by deleting it: some sentence in the package assumed that id or that file, and the sentence is what has to change. Where it is a [BR#n] this slice does not claim, cited bare in a question, a held entry or a register record written before 3.7.0 — which let a question cite a delegated row as context with no qualifier — qualify it by hand as <PARENT-KEY> [BR#n], <PARENT-KEY> being this slice's parent:, and change nothing else in that sentence.`
 
    **A prerequisite Phase 2 carried with no package to copy in is not a hit**, and the discriminator
    is Phase 2's own carry — *whether a package of its own was found*. Its *BRD not found* and *no

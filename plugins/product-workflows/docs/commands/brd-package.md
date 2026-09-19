@@ -188,7 +188,7 @@ Assembled from the package, never hand-written, in a fixed order that is not re-
 | 3 | Documents to review | the manifest, by its bundled filename, then every other document the bundle admits, by the bundled filename it carries — the names the manifest lists |
 | 4 | Code baselines and the verification procedure | `baselines.md`, with the three pin commands written out |
 | 5 | The single most important claim to verify first | the finding the most decisions rest on, else the most-relied-on open assumption, else the finding the most held `[C]` questions bear on — or a statement that none rests on one |
-| 6 | Review scope | the ledger's dispositions — the rows this slice answers for, every orphan row (a claim the parent withdrew) named as another BRD's and not for review here — plus every `in-scope` `[CDF#n]` |
+| 6 | Review scope | the ledger's dispositions — the rows this slice answers for, each orphan row (a claim the parent withdrew) as another BRD's, `<PARENT-KEY> [BR#n]`, not for review — plus every `in-scope` `[CDF#n]` |
 | 7 | The decisions the customer must make | the `[C]` question set, every open `[AS#n]`, every escalated `[SR#n]` |
 | 8 | What could still move | prerequisites not yet customer-reviewed, every `conditional_on` position, and every `conditional` `[CDF#n]` |
 | 9 | Where to attack us hardest | every open `[AS#n]`, and every `accepted-risk` `[SR#n]` |
@@ -248,15 +248,15 @@ attack.
 - **Phases 6, 7 and 8 — the plugin-free scan.** Run over the finished prompt, the finished note and
   every bundle document. A hit stops the run with `BRD_PACKAGE_PROMPT_LEAK`, naming the token, the
   part it landed in and the artifact it came from — except inside the customer's own verbatim
-  content (their captured files, and the parts of the transcription, the inventory and the coverage
-  ledger that quote them) or a locator naming their own files, headings and links, in the positions
-  where `bundle-packaging.md` §6.3 recognises one; both sets are defined there, once. There a
-  `§ 4.2` or a `D3` is the customer's own and the only fix would falsify it, so the hit is
-  reported, grouped as that section fixes, and the operator decides whether to ship — or, where
-  that section says so, it is no hit at all. The identifiers the package's own registers, logs and
-  grounding files mint are **not** in the scan's classes and are meant to travel — the classes are
-  enumerated once, in `bundle-packaging.md` §6.1's table, rather than restated here. They are how
-  the returned review cites the package without minting identifiers of its own; whether each one
+  content (their captured files, and the parts of the transcription, the inventory, the coverage
+  ledger and the register that quote them) or a locator naming their own files, headings and links,
+  in the positions where `bundle-packaging.md` §6.3 recognises one; both sets are defined there,
+  once. There a `§ 4.2` or a `D3` is the customer's own and the only fix would falsify it, so the
+  hit is reported, grouped as that section fixes, and the operator decides whether to ship — or,
+  where that section says so, it is no hit at all. The identifiers the package's own registers, logs
+  and grounding files mint are **not** in the scan's classes and are meant to travel — the classes
+  are enumerated once, in `bundle-packaging.md` §6.1's table, rather than restated here. They are
+  how the returned review cites the package without minting identifiers of its own; whether each one
   actually lands is what the citation-resolution check below verifies.
 - **Phase 7 — the delivery note's 200-word ceiling.** A ceiling, not a target. Over it, the note is
   shortened and re-rendered; the two facts that are never trimmed are which file is the prompt and
@@ -274,31 +274,38 @@ attack.
   filename of a document the allow-list admits or excludes by name. That scoping is the relation:
   unscoped, it would refuse a bundle over a correct `docs/api.md:12` sitting in a grounding
   finding's `evidence` list. It never tests a repository locator in that list, nor the manifest's
-  quotation of a customer's target as written, which sits beside the bundled filename it maps to, nor
-  a captured file's own link to another captured file. Its exemptions are `bundle-packaging.md`
+  quotation of a customer's target as written, which sits beside the bundled filename it maps to,
+  nor a captured file's own link to another captured file. Its exemptions are `bundle-packaging.md`
   §6.3's: `[SR#n]` is exempt entirely, because the self-review file it would resolve against is
   excluded from the bundle by rule and its content reaches the customer filtered through the prompt;
   and a hit inside the customer's own verbatim content or a locator naming their files and headings
-  — a `[BR#n]` or a filename visible in their screenshot among them — reports rather than stops, for
-  the same reason the plugin-free scan treats it that way. A reference that resolves to nothing
-  stops with `BRD_PACKAGE_DEAD_CITATION`; one that resolves to the wrong requirement stops with
-  `BRD_PACKAGE_CITATION_MISMATCH`; a corpus file holding record-shaped content that yields no ids
-  stops with `BRD_PACKAGE_CORPUS_UNREADABLE` — a corpus holding no record-shaped content at all is
-  legitimately empty and passes.
+  — a `[BR#n]` or a filename visible in their screenshot among them, or one they wrote into an
+  answer or a reason the register quotes — reports rather than stops, for the same reason the
+  plugin-free scan treats it that way. A reference that resolves to nothing stops with
+  `BRD_PACKAGE_DEAD_CITATION`. A requirement this slice does not claim, cited bare in a question, a
+  held entry or a register record written before 3.7.0, is such a reference — the package carries
+  this slice's inventory alone, and 3.7.0 is the release from which the interview, the PRD's
+  assumptions, the reconciliation and this command's prompt write such a row `<PARENT-KEY> [BR#n]` —
+  so where the stop names one, qualify that id by hand in that form, with this slice's `parent:` as
+  the key, and change nothing else in the sentence. One that resolves to the wrong requirement stops
+  with `BRD_PACKAGE_CITATION_MISMATCH`; a corpus file holding record-shaped content that yields no
+  ids stops with `BRD_PACKAGE_CORPUS_UNREADABLE` — a corpus holding no record-shaped content at all
+  is legitimately empty and passes.
 - **Phase 8 — the set-resolution check.** Run last, and the three passes hunt different failures: a
   token the reviewer cannot resolve, a token they resolve to the wrong thing, and a **set restated
-  wrongly** — every identifier resolving, every filename real, and the set they compose not being the
-  one its source holds. Three relations, all comparing membership rather than counts, because two
-  sets of the same size with different members read as correct: a part that enumerates identified
-  records names exactly what its filter selects; the manifest and the bundle name the same review
-  documents; and the delivery note's repositories and pins are the bundle's baselines'. **Each is
-  narrower than its obvious form, and every narrowing was measured against assembled packages** — the
-  review-scope part renders prose rather than identifiers; a part writes `[AS#1]`–`[AS#4]` as a range
-  rather than naming each; a manifest writes filenames with or without the extension and names images
-  only sometimes; and a delivery note abbreviates its commits, against a baselines document that
-  records one entry per repository *per run* and so may hold the same commit twice. The obvious form
-  of each relation fires on a correct bundle. A mismatch stops with
-  `BRD_PACKAGE_SET_MISMATCH`; an empty source side with `BRD_PACKAGE_SET_UNREADABLE`.
+  wrongly** — every identifier resolving, every filename real, and the set they compose not being
+  the one its source holds. Three relations, all comparing membership rather than counts, because
+  two sets of the same size with different members read as correct: a part that enumerates
+  identified records names exactly what its filter selects; the manifest and the bundle name the
+  same review documents; and the delivery note's repositories and pins are the bundle's baselines'.
+  **Each is narrower than its obvious form, and every narrowing was measured against assembled
+  packages** — the review-scope part renders prose rather than identifiers, save the requirements it
+  names as another BRD's, which the check leaves to review; a part writes `[AS#1]`–`[AS#4]` as a
+  range rather than naming each; a manifest writes filenames with or without the extension and names
+  images only sometimes; and a delivery note abbreviates its commits, against a baselines document
+  that records one entry per repository *per run* and so may hold the same commit twice. The obvious
+  form of each relation fires on a correct bundle. A mismatch stops with `BRD_PACKAGE_SET_MISMATCH`;
+  an empty source side with `BRD_PACKAGE_SET_UNREADABLE`.
 
 ## What it does not do
 

@@ -551,7 +551,9 @@ to nothing there and `/product-workflows:brd-package` stops on it as a dead cita
 there discharges the qualified form. Which form a row takes is read off that same inventory, the
 corpus relation 1 resolves against — a row it holds is cited bare — and never off `claims:`. This
 binds every question this run writes and everything written from one — the held entry the *Hold
-every `[C]`* phase writes, and the `[VD#n]` or `[AS#n]` a question becomes — and above all the
+every `[C]`* phase writes, the `[VD#n]` or `[AS#n]` a question becomes, and, one command later, the
+`[CD#n]` `/product-workflows:brd-reconcile` freezes from the customer's answer, in every field but
+the customer's own quoted words (its *Freeze the customer decisions* phase) — and above all the
 context rows a requirement defect's question names (below), which routinely sit in another slice.
 
 **An empty in-scope set is a finished state, and scoping is what makes it reachable.** A slice

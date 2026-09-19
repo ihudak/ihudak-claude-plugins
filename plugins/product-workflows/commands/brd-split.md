@@ -537,8 +537,9 @@ For every slice Phase 2 confirmed:
    slice — `kind: brd`, the child's `key:`, and the `parent:`/`source:` pair, `source:` naming the
    document this BRD's inventory records in its `document:`, the one its rows were last reconciled
    against — never the one `brd/brd-link-log.md` opens with, which a rename run that stopped before
-   its Phase 3 leaves naming a document no row was read from. On an inventory written before 3.7.0,
-   which carries no `document:`, read the log's opening line instead (`brd-format.md` §1.1).
+   its Phase 3 leaves naming a document no row was read from. On an inventory carrying no
+   `document:` — one written before 3.7.0 that no 3.7.0 intake has run over, whose Phase 2 writes
+   one — read the log's opening line instead (`brd-format.md` §1.1).
    **Copy; never re-extract.** Ids are
    the parent's and stay the parent's, and every `source_anchor` copied here keeps resolving
    against the parent's files — its `brd/source/`, `brd/source-external/` or `brd/brd-figures.md`,

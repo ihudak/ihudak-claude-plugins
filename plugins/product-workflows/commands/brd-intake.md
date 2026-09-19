@@ -100,9 +100,9 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
      its rows were last reconciled against, the one its `document:` names, **whatever either is
      called**, so a revised document sent under a new filename rewords the rows anchored in it, its
      earlier copy staying beside it; and every file whose copy already stands, the document with
-     them, counts as replaced, once, where the inventory was written before 3.7.0 and records nothing
-     to judge against (Phase 2). A requirement the read finds for the first time takes the next id,
-     and where a returned row over an unchanged file could be a kept row reworded, you are asked
+     them, counts as replaced, once, where the inventory was written before 3.7.0 and records no
+     hash to judge against (Phase 2). A requirement the read finds for the first time takes the next
+     id, and where a returned row over an unchanged file could be a kept row reworded, you are asked
      which (Phase 3); a candidate not already logged is walked again (Phase 4) — and **every ledger
      disposition is replaced with `unallocated`** (Phase 5): no disposition is kept. The one
      exception is a read that finds no requirement at all, which leaves the inventory, the defect log
@@ -262,6 +262,25 @@ stops before Phase 3 writes, a Phase 3 `NOT_FOUND` stop and a completed first in
 `EMPTY` all leave it so — and a re-run takes any such inventory for no prior inventory at all
 (Phase 3). A folder whose inventory already stands is left as it is here.
 
+**Then, over an inventory written before 3.7.0, record its document before anything is copied.**
+Where `brd/brd-inventory.md` holds a row and carries no `document:`, write `document:` into it now,
+naming the document its rows were last reconciled against exactly as
+`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.1 tells a reader of such an inventory to name it
+— off the opening line of `brd/brd-link-log.md`, the log this phase is about to rewrite; by that
+section's rules for a log written before its layout was fixed and for a BRD with no log, one of
+which counts the markdown files under `brd/source/` and so must run before this phase copies one
+there; and, where none of them settles it, by asking the operator which file it is, never by
+choosing. Write it as `brd-format.md` §2 writes it, `source/<basename>` as a double-quoted YAML
+string, by adding that one line to the frontmatter after `key:` and changing nothing else in the
+file: `kind: brd` and `key:` stand as they were, so `workflows-core:addressing` §4 reads the
+folder's kind and key off it as before, and the file is edited in place, never removed, so the
+folder is never keyless (above). Write no `captured:` map — nothing on file holds the hashes the
+rows were reconciled at — so the state below still takes the path for an inventory with none. **This
+is why every reader has the record**: the log is rewritten below, and after a run that stops before
+Phase 3 it names the document this run copied, which no row was read from, while the inventory names
+the one they were read from. An inventory holding no row, or one already carrying `document:`, is
+left as it stands here.
+
 Then copy `@<brd-file>` **verbatim, byte-for-byte** into `<BRD-dir>/brd/source/<basename>` (creating
 `brd/source/` inside the folder) — on a re-run, only as the copy rule below allows. Per
 `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, nothing under
@@ -282,25 +301,25 @@ record it:
 - **replaced** → the map holds another hash there;
 - **new** → the map holds no entry for it.
 
-**The document is judged against the document the rows were last reconciled against, whatever
-either is called**: the inventory's `document:` names that one, and the document's entry is the
-map's entry for the file `document:` names — never an entry found through `brd/brd-link-log.md`,
-which every run of this phase rewrites, so a run that stopped after this phase would leave the log
-naming a document no row was reconciled against. The document is **unchanged** where its hash is
-that entry's, and **replaced** wherever it differs, whatever its name — never new. So a revised
-document the customer sent under a new filename is recorded **replaced** — its rows take the new
-read's wording and each change is reported (Phase 3) — rather than keeping the old document's text
-over a document that no longer says it, and it still is on a later run where the run that first
-copied it stopped before Phase 3. **Where the inventory holds rows and carries neither record** —
-one written before 3.7.0, with no `document:` and no map — nothing records what its rows were
-reconciled against, so every file whose copy already stands, and the document whatever its name, is
-recorded **replaced**, once: Phase 3 writes both records, and every later run judges against them.
-Where the inventory holds no row, no state is read (Phase 3 numbers exactly as returned). Name every
-file recorded replaced in the final report, and say where one is so for want of a record rather than
-because its bytes changed — and where one is so although the copy at its destination already has its
-bytes, because an earlier run copied it and reconciled no row against it (it stopped before Phase 3,
-or its read found no requirement), so the operator is not left wondering why a file this run wrote
-nothing to is called replaced.
+**The document is judged against the document the rows were last reconciled against, whatever either
+is called**: the inventory's `document:` names that one, and the document's entry is the map's entry
+for the file `document:` names — never an entry found through `brd/brd-link-log.md`, which every run
+of this phase rewrites, so a run that stopped after this phase would leave the log naming a document
+no row was reconciled against. The document is **unchanged** where its hash is that entry's, and
+**replaced** wherever it differs, whatever its name — never new. So a revised document the customer
+sent under a new filename is recorded **replaced** — its rows take the new read's wording and each
+change is reported (Phase 3) — rather than keeping the old document's text over a document that no
+longer says it, and it still is on a later run where the run that first copied it stopped before
+Phase 3. **Where the inventory holds rows and carries no `captured:` map** — one written
+before 3.7.0, carrying at most the `document:` this phase, or an earlier 3.7.0 run's, wrote above —
+nothing records the hashes its rows were reconciled against, so every file whose copy already
+stands, and the document whatever its name, is recorded **replaced**, once: Phase 3 writes both
+records, and every later run judges against them. Where the inventory holds no row, no state is read
+(Phase 3 numbers exactly as returned). Name every file recorded replaced in the final report, and
+say where one is so for want of a record rather than because its bytes changed — and where one is so
+although the copy at its destination already has its bytes, because an earlier run copied it and
+reconciled no row against it (it stopped before Phase 3, or its read found no requirement), so the
+operator is not left wondering why a file this run wrote nothing to is called replaced.
 
 **Then copy, writing only what differs from the copy at the destination.** Where a copy with
 identical bytes already stands there, write nothing: the file counts as copied wherever this command
@@ -464,7 +483,9 @@ Act on `status`:
   `source/<basename>`, and the map holding every file this run captured, at the SHA-256 of its copy
   under `brd/`, and every entry already on file for a file this run did not capture, kept as it
   stands. They are what the next run's Phase 2 judges the document and each file against, so both
-  are written wherever this branch writes the rows, a re-read's rewrite included, and nowhere else.
+  are written wherever this branch writes the rows, a re-read's rewrite included, and nowhere else —
+  save Phase 2's one write of `document:` alone into an inventory written before 3.7.0, which this
+  write replaces.
 
   **On a first intake, number exactly as returned. On a re-run over a folder whose inventory already
   holds a row, RECONCILE — this is the id coordination `brd-reader` delegates and nothing else performs.**
@@ -1103,7 +1124,7 @@ Report: the BRD folder + source path; how many files were copied beside the sour
 directory and into `brd/source-external/` — and, per `brd/brd-link-log.md`, every link the copy did
 not capture with its reason (Phase 2), with Phase 1's answers and any *other* file the operator
 accounted for; on a re-run, every file Phase 2 recorded **replaced**, saying where one is so for
-want of a `document:` and `captured:` record, and where one is so although its copy already stood
+want of a `captured:` record, and where one is so although its copy already stood
 with those bytes, because an earlier run copied it and reconciled no row against it — and each slice
 whose `source:` names a document other than the one this run copied (Phase 2); how many images were
 transcribed, re-used and not read, with each reason, and how many sections on file carry the *Not

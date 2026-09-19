@@ -77,9 +77,11 @@ inside a source file is never followed — the caller walked the links already
      naming that row;
    - every prose row the image also restates → list it under that image's `illustrates`, whether or
      not the same image yielded a row above;
-   - every prose row whose own passage links the image, such as *"Approval must follow the attached
-     flow."* → list it under `illustrates` too: it states no obligation of its own beyond binding
-     the ones the image draws (`brd-format.md` §1.2 *Rows*);
+   - every prose row whose own passage links the image **to bind what it draws**, such as
+     *"Approval must follow the attached flow."* → list it under `illustrates` too: it states no
+     obligation of its own beyond binding the ones the image draws (`brd-format.md` §1.2 *Rows*). A
+     passage that only shows the image — a logo, a banner — binds nothing, and the bullet below
+     applies;
    - an image that bears on no obligation at all (a logo, a banner) → no row, an empty `illustrates`,
      and a one-line `note`.
    **An image-derived row's `text` states the obligation in words, quoting the transcribed element
@@ -103,8 +105,9 @@ inside a source file is never followed — the caller walked the links already
      headings repeat, name a parent heading, or use a line range where no parent tells them apart,
      and a line range outright into a file with no heading at all, or into the text above a file's
      first heading); an image anchor's quoted element is copied verbatim from the image's *Text*, an
-     annotation's *Says*, or its *Flow*, exactly as the line reads and without a list marker — never
-     from *Points at* or *Depicts*, which are paraphrase. Paths in it are relative to
+     annotation's *Says*, or its *Flow*, exactly as the line reads and without a list marker — from
+     *Text*, within one cell or one region, never across the ` | ` between cells — and never from
+     *Points at* or *Depicts*, which are paraphrase. Paths in it are relative to
      `<BRD-dir>/brd/`.
 
 5. **Apply the splitting rule** (`brd-format.md` §2): one numbered item binding the delivery team to
@@ -137,7 +140,7 @@ inventory:
         names: [BR#<m>, ...]          # required for conflict and duplicate; omitted otherwise
 figures:                              # one entry per image the figures file records as read and does not mark "Not captured by the current run"; [] when figures_path was omitted
   - path: <the image's path relative to brd/, as the figures file heads it>
-    illustrates: [BR#<n>, ...]        # prose rows it restates or whose passage links it; [] if none
+    illustrates: [BR#<n>, ...]        # prose rows it restates or whose passage binds it; [] if none
     note: <optional — e.g. "company logo; bears on no obligation">
 notes: |
   <optional — anything the caller should know about the read: an unusually structured source, a
@@ -149,8 +152,8 @@ notes: |
 - `status: NOT_FOUND` — an input was missing, not markdown, or did not resolve to a file.
 - An image's `figures` entry does not itself say which rows it *yields* — a reader gets that from
   `source_anchor` in the inventory, not from `figures`. That entry's `illustrates` names only prose
-  rows — those it restates and those whose passage links it (step 3) — whether or not the same image
-  also yielded a row elsewhere in `inventory`.
+  rows — those it restates and those whose passage links it to bind what it draws (step 3) — whether
+  or not the same image also yielded a row elsewhere in `inventory`.
 
 ## Hard rules
 

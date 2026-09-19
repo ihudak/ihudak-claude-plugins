@@ -101,6 +101,14 @@ the visited set is of files):
   candidates: [<absolute path>, …]         # present iff reason: ambiguous
 ```
 
+**`target` is what sits between the link's own delimiters, as the author typed it; the syntax that
+makes it a link is not part of it** — `[[` and `]]`, or `![[` and `]]`, for a wikilink; `(` and `)`
+for an inline link or image, with the `<` `>` markdown allows around a target and any title after
+it; the `]:` of a reference definition, and its title; and the quotes of an `<img src="…">`. What is
+between them is kept exactly, save a wikilink's alias half: `![[Pasted image 1.png|300]]` records
+`Pasted image 1.png`, and `[fields](<appendix/field list.md>)` records `appendix/field list.md`.
+Nothing else is normalised here (§2).
+
 `depth` is the depth at which the file was **first** reached. `inside` compares the resolved `path`
 with the starting document's own directory by normalised text, exactly as step 2 of §3 resolves. A
 caller may add `reason: excluded` afterwards, beside `taken: false`, on an entry that **did** resolve

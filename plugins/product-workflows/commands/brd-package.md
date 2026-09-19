@@ -1149,10 +1149,10 @@ full because those are the ones the customer will read; whether a second reviewe
 could still move***, with whether it resolved, whether its decisions are customer-reviewed, and whether a
 package of its own was copied in; the four artifacts written, by path; **the citation check's
 outcome** — how many identifier references resolved, across how many source packages, how many
-carried an owning BRD key, and every hit inside verbatim customer content or a customer-derived
-locator — this check's and the plugin-free scan's alike — that the operator was asked to rule on,
-grouped as `bundle-packaging.md` §6.3 fixes, **or an explicit "none"**; **the delivery note,
-printed in full**; **the delivery route settled in Phase 7 and why** — naming the archive command
+named another BRD and were discharged, and every hit inside verbatim customer content or a
+customer-derived locator — this check's and the plugin-free scan's alike — that the operator was
+asked to rule on, grouped as `bundle-packaging.md` §6.3 fixes, **or an explicit "none"**; **the
+delivery note, printed in full**; **the delivery route settled in Phase 7 and why** — naming the archive command
 with an absolute path on the archive route, and on the repository route saying that none was
 produced because the customer pulls the
 committed bundle, so a reader of this report cannot mistake its absence for a step that failed; the

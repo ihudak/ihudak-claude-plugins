@@ -55,8 +55,9 @@ For each entry, in order:
    `field showing:`) or a word describing the drawing. A caller quotes `text` as the image's own
    element (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2), so a word of yours in it would
    be quoted as the customer's. **For repeated data rows**, transcribe the header and one
-   representative row, and say how many rows are shown in `depicts` — the values of a sample report
-   are rarely the obligation and would bury the ones that are.
+   representative row, and say how many rows are shown in `depicts` — the rule
+   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2 fixes for what *Text* means, so a reader
+   takes one row as complete, not partial.
 5. **`annotations`** — every mark someone added on top of the picture: an arrow, a box, a highlight,
    a circled region, a typed or handwritten note. For each, `says` is its text verbatim (the empty
    string for an unlabelled mark) and `points_at` is the element it sits on or points to, named as
@@ -82,7 +83,7 @@ figures:
     appearance: screenshot | wireframe | document | diagram | photo | other
     depicts: <one sentence>
     text: |
-      <the image's own strings only, verbatim, in reading order — regions apart by a blank line>
+      <the image's own strings only, verbatim — regions apart by a blank line or as list items>
     annotations:                                   # [] where the image carries no mark
       - says: "<verbatim; empty string for an unlabelled mark>"
         points_at: <the element the mark sits on or points to>
@@ -99,9 +100,9 @@ nobody transcribed and nobody was told about. An entry with `read: false` carrie
 `reason` and nothing else.
 
 **What `/brd-intake` writes from this** is `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2's
-to fix: each `flow` string as one list item, an unlabelled mark's `says` as `""`, and an empty
-`annotations` or `flow` as `none`. Return the strings as above — the list marker is the caller's,
-never part of an edge.
+to fix: `text` inside a fenced `text` block, each `flow` string as one list item, an unlabelled
+mark's `says` as `""`, and an empty `annotations` or `flow` as `none`. Return the strings as above —
+the fence and the list marker are the caller's, never part of what you transcribe.
 
 **`notes` never carries what an entry's fields hold.** Every legible string belongs in that entry's
 `text`, under step 4's repeated-rows rule — which also decides which data rows are left out, and a

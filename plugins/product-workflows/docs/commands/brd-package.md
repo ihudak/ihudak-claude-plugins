@@ -264,16 +264,15 @@ attack.
   `<BRD-KEY>-` prefix every bundle document's filename carries or exactly matches the working
   filename of a document the allow-list admits or excludes by name. That scoping is the relation:
   unscoped, it would refuse a bundle over a correct `docs/api.md:12` sitting in a grounding
-  finding's `evidence` list. It never tests a
-  repository locator in that list, nor the manifest's quotation of a customer's link as written,
-  which sits beside the bundled filename it maps to, nor a captured file's own link to another
-  captured file. Its exemptions are `bundle-packaging.md` §6.3's: `[SR#n]` is exempt entirely,
-  because the self-review file it would resolve against is excluded from the bundle by rule and its
-  content reaches the customer filtered through the prompt; and a hit inside the customer's own
-  verbatim content or a locator naming their files and headings — a `[BR#n]` or a filename visible
-  in their screenshot among them — reports rather than stops, for the same reason the plugin-free
-  scan treats it that way. A reference that resolves to nothing stops with
-  `BRD_PACKAGE_DEAD_CITATION`; one that resolves to the wrong requirement stops with
+  finding's `evidence` list. It never tests a repository locator in that list, nor the manifest's
+  quotation of a customer's link as written, which sits beside the bundled filename it maps to, nor
+  a captured file's own link to another captured file. Its exemptions are `bundle-packaging.md`
+  §6.3's: `[SR#n]` is exempt entirely, because the self-review file it would resolve against is
+  excluded from the bundle by rule and its content reaches the customer filtered through the prompt;
+  and a hit inside the customer's own verbatim content or a locator naming their files and headings
+  — a `[BR#n]` or a filename visible in their screenshot among them — reports rather than stops, for
+  the same reason the plugin-free scan treats it that way. A reference that resolves to nothing
+  stops with `BRD_PACKAGE_DEAD_CITATION`; one that resolves to the wrong requirement stops with
   `BRD_PACKAGE_CITATION_MISMATCH`; a corpus file holding record-shaped content that yields no ids
   stops with `BRD_PACKAGE_CORPUS_UNREADABLE` — a corpus holding no record-shaped content at all is
   legitimately empty and passes.

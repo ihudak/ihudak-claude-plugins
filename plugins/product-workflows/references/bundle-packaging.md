@@ -520,7 +520,7 @@ moment it does. Those that exist today:
 | `conditional_on: <BRD-KEY>/<decision-id>` | `references/decision-register-format.md` §5 | one specific decision in a named prerequisite's own register |
 | `blocked_on: <BRD-KEY>/<decision-id>` | `references/code-defect-log-format.md` §5 | one specific decision in a named prerequisite's own register — the decision that would settle a `conditional` `[CDF#n]`'s scope question. Its other spelling is prose naming no bracketed identifier, which no relation ever meets |
 | `prerequisite` | `workflows-core:grounding-format` §2, §5 | the prerequisite BRD's decision a `will-change` finding's horizon turns on |
-| `resolved-by: <SLICE-KEY>/[CG#n]`, `resolved-by: <SLICE-KEY>/[CD#n]` | `references/brd-format.md` §4 | the grounding finding or the customer decision that settled a defect, in the named slice's own grounding file or register — grounding and deciding are both slice-only, and the log is the parent's, so the value carries that slice's key, in the one spelling `references/brd-format.md` §4 fixes. Relation 1 resolves it in the named slice's own bundle (below) and discharges it in any other. A bare `resolved-by: [CG#n]` or `[CD#n]` — the pre-3.7.0 spelling, or one written by hand — names no slice, and is reported as an unqualified `prerequisite` is (below) until its slice key is added |
+| `resolved-by: <SLICE-KEY>/[CG#n]`, `resolved-by: <SLICE-KEY>/[CD#n]` | `references/brd-format.md` §4 | the grounding finding or the customer decision that settled a defect, in the named slice's own grounding file or register — grounding and deciding are both slice-only, and the log is the parent's, so the value carries that slice's key, in the one spelling `references/brd-format.md` §4 fixes. Relation 1 resolves it in the named slice's own bundle (below) and discharges it in any other. A bare value names no slice — a `resolved-by: [CG#n]` in the spelling the defect log's format gave it before 3.7.0, or either form written by hand, since no release ever wrote a bare `resolved-by: [CD#n]` — and is reported as an unqualified `prerequisite` is (below) until its slice key is added |
 | the `[BR#n]` a defect entry is raised against, and a `conflict` / `duplicate` entry's counterpart `[BR#n]` | `references/brd-format.md` §3 | a requirement in the log-owning BRD's inventory — the parent's on a slice |
 | `superseded-by: [BR#n]`, and an orphan row's own `id: [BR#n]` | `references/coverage-ledger-format.md` §2, §3 | a requirement of the parent's, one this slice "need not claim or hold a row for" |
 | the *Rows* line of `brd/brd-figures.md` — every `[BR#n]` the line names | `references/brd-format.md` §1.2 | a requirement in the figures file's owning BRD's inventory — the parent's on a slice |
@@ -594,8 +594,9 @@ captured-markdown row in particular reaches only references outside grounding ev
 who happened to capture a `README.md` of their own would otherwise turn a correct `README.md:12`
 into a dead citation. The manifest's quotation of a link as written (§1.1, §2.1) is a map entry
 rather than a reference: it sits beside the bundled filename it maps to and quotes the customer's
-own link, so a `[[notes.md]]` target quoted there is already resolved by that line, and testing it
-would make that package unbuildable with nothing the operator could change. The third, for that
+own link, so the target `notes.md` of a `[[notes.md]]` link, quoted there, is already resolved by
+that line, and testing it would make that package unbuildable with nothing the operator could
+change. The third, for that
 same reason, is a captured file's own link to another captured file — §6.3's to state, with the rest
 of the customer-derived locators.
 

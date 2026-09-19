@@ -175,10 +175,10 @@ choices: ["Stop and convert them first — nothing has been written (Recommended
 It is an operator halt, not a plugin gap, so `emit-block` does not fire — Phase 9 makes the same call
 for every Phase 0 stop. **Converting is the operator's checked step for the same reason Phase 0 step 3
 refuses to convert the document**: an unchecked conversion would silently become part of the record.
-*Proceed* copies them, reads none of them, and records the operator's answer — the option picked,
-since the question collects no free text — in the final report, exactly as Phase 3's *"They hold no
-obligation"* answer is recorded. Where the taken set holds no *other* file, this question is not
-asked.
+*Proceed* copies them, reads none of them, and records the operator's answer in the final report —
+the option picked, or what they typed in the harness's free-text option, which no array can decline
+(`workflows-core:escalation-rules` §0) — exactly as Phase 3's *"They hold no obligation"* answer is
+recorded. Where the taken set holds no *other* file, this question is not asked.
 
 **Then, in every case**, confirm the run:
 
@@ -311,7 +311,10 @@ reading it did (`brd-format.md` §1.2).
    in a single response, in further waves until none remain:
 
    → Agent (subagent_type: "product-workflows:figure-reader", model: `<extraction_model — frontmatter-pinned to opus>`):
-     > "figures: [absolute path of each image in this batch, in Phase 2's capture order]"
+     > "figures: [absolute path of each image's copy under `<BRD-dir>/brd/` in this batch, in Phase 2's capture order]"
+
+   **Each path is the copy Phase 2 made, never the original** — the copy is what a section describes
+   and the file whose content hash step 1 compares.
 
    An `INPUT_MISSING` return is this run's defect — it sent an empty batch — and is fixed and
    re-dispatched, never recorded as an unread image.
@@ -438,8 +441,9 @@ choices: ["Re-read the named sections — re-dispatch brd-reader over the whole 
   transcription and never the picture, and an unread image has none, so a re-read returns the same
   result and the question comes back. Where the question names such an image, say so beside it — it
   is settled by the second option, with the operator's answer, or by converting the image and
-  re-running this intake. The second option records the operator's answer — the option picked,
-  since the question collects no free text — in the final report.
+  re-running this intake. The second option records the operator's answer in the final report —
+  the option picked, or what they typed in the harness's free-text option
+  (`workflows-core:escalation-rules` §0).
   **Report the outcome either way, including "every top-level section and every image accounted
   for"** — an unreported clean result is indistinguishable from an unrun check. **Where no anchor
   parses at all, say that and stop**: that is a read failure, not a document with no coverage.
@@ -521,11 +525,12 @@ every row in the test below as Phase 3's reconciliation numbered it.
 **A match is that entry, or those entries**: the candidate is not put to the operator again, and
 nothing is written for it — each entry keeps its `[DEF#n]`, its reason and its resolution exactly as
 on file — so a defect `/brd-reconcile` resolved stays resolved, and a defect already put to the
-customer keeps the id its held question names and is not asked twice. **An entry no candidate
-matched is kept exactly as it stands** — for a `conflict` or a `duplicate`, one with a pair of rows
-no candidate of this read joins — and reported as *not re-raised by this extraction*: its id stays
-in the log, and every row that cited it keeps citing it (Phase 3 carried those ids over), since a
-read that did not propose it again has not shown the defect gone. Only an unmatched candidate is
+customer keeps the id its held question names and is not asked twice. **An entry is not re-raised
+where no candidate matched it** — for a `conflict` or a `duplicate`, where a pair it joins is joined
+by no candidate of this read, matched or not. Such an entry is kept exactly as it stands and reported
+as *not re-raised by this extraction*: its id stays in the log, and every row that cited it keeps
+citing it (Phase 3 carried those ids over), since a read that did not propose it again has not shown
+the defect gone. Only an unmatched candidate is
 walked below — including one an earlier run rejected, which left no entry to match and so is put
 again.
 

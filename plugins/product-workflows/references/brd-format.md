@@ -67,8 +67,9 @@ row names the captured file a link sits in by its path relative to `brd/`, and a
 wikilink's candidates by their paths relative to the vault root the walk searched
 (`references/linked-sources.md` §3) — never by an absolute path, which would write the operator's
 directory layout, home directory included, into the specs repository, the reason
-`brd/source-external/` below keeps basenames only. A target is quoted as written, because that is
-the customer's own text. **The three counts do not add up, and that is arithmetic rather than a
+`brd/source-external/` below keeps basenames only. A target is quoted as written — the text between
+the link's own delimiters, as `references/linked-sources.md` §5 defines it — because that is the
+customer's own text. **The three counts do not add up, and that is arithmetic rather than a
 slip**: two documents linking the same file are two links found and one file copied, so the first
 count is of links and the second of files. **It is written on every run, including one that
 captured everything**, so its counts are the positive record that the capture ran; an absent log
@@ -115,7 +116,7 @@ phase (`commands/brd-reconcile.md` Phase 6), in a section's *Text*, *Annotations
 and so its content hash, are unchanged. A corrected transcription is not corrected requirement text:
 it closes no defect, and an inventory row quoting a corrected element is left as it stands.
 
-```markdown
+````markdown
 ---
 key: <the run's <BRD-KEY> as Phase 0 validated it — never parsed from the folder name>
 source: <the document's basename, as brd/brd-link-log.md names it>
@@ -136,7 +137,10 @@ Images captured <n> · read <n> · reused from an earlier run <n> · not read <n
 
 ### Text
 
-<the image's own strings, verbatim, as figure-reader returned them — regions apart by a blank line>
+```text
+<the image's own strings, verbatim, as figure-reader returned them — regions apart by a blank line
+or as list items>
+```
 
 ### Annotations
 
@@ -153,7 +157,7 @@ Images captured <n> · read <n> · reused from an earlier run <n> · not read <n
 ### Illegible
 
 none
-```
+````
 
 - **The frontmatter carries `key:` and no `kind:`.** `workflows-core:addressing` §4 reads a folder's
   identity off the first artifact in it carrying both `kind:` and `key:`, and nothing fixes which is
@@ -180,8 +184,14 @@ none
   the next by a blank line or as items of a list, a table row as its cells separated by ` | ` — and
   **never a label of the plugin's** (`Title:`, `Row 2:`, `field showing:`), because an image anchor
   quotes *Text* as the customer's element (§2), and a word of the plugin's there would be quoted as
-  theirs. What a region is, and how many rows a table shows, is *Depicts*'s to say
-  (`agents/figure-reader.md` owns the transcription's shape).
+  theirs; *Depicts* says what a region is (`agents/figure-reader.md` owns the transcription's
+  shape). **It sits in a fenced `text` block**, its fence longer than any run of backticks the text
+  holds, so the customer's strings render as written — a lone `-` or `+` on its own line would
+  otherwise render as a heading underline or an empty list item; an anchor still quotes a string
+  inside it, and §2.2's verbatim test is unaffected. **A table is transcribed as its header and one
+  representative data row**, and how many rows it shows is in *Depicts*: the values of a sample
+  report are rarely the obligation and would bury the ones that are, so a *Text* holding one data
+  row of a table is complete, not partial.
 - **Annotations** is the table above, one row per mark in `figure-reader`'s order — `annotation <n>`
   (§2) counts them — with an unlabelled mark's *Says* written `""`; an image carrying no mark has
   `none` in place of the table.
@@ -198,11 +208,12 @@ none
   capture (below).
 - **Rows** is completed by `/brd-intake` Phase 5, once the inventory is final: `yields` the rows
   anchored on this image, and `illustrates` the prose rows it bears on — each prose row the image
-  restates, and each prose row whose own passage links the image, since a row such as *"Approval
-  must follow the attached flow."* states no obligation beyond binding the ones the image draws —
-  either half left out where its list is empty — `yields [BR#3]`,
+  restates, and each prose row whose own passage links the image to bind what it draws, since a row
+  such as *"Approval must follow the attached flow."* states no obligation beyond binding the ones
+  the image draws — either half left out where its list is empty — `yields [BR#3]`,
   `illustrates [BR#6]` — or `accounted for — <the operator's answer>` where it does neither, the
-  answer being the option the operator picked at `/brd-intake` Phase 3 — and
+  answer being the option the operator picked at `/brd-intake` Phase 3, or what they typed in the
+  harness's free-text option (`workflows-core:escalation-rules` §0) — and
   `none — no requirement extracted` where `brd-reader` returned `EMPTY`, so the inventory holds no
   row and nothing was put to the operator. **It names requirements of the BRD that owns this file —
   on a slice, the parent's, one hop (§2.1)**, which is how `references/bundle-packaging.md` §6.2
@@ -241,10 +252,12 @@ id is permanent even if the row it names is later split, superseded, or found de
 
 - **In the document** — a heading path or a line range inside it, as it always has.
 - **In a linked markdown file** — `<path relative to brd/> › <heading path or line range>`, for
-  instance `source/appendix/fields.md › Report columns` or `source-external/glossary.md › L12-L18`.
+  instance `source/appendix/fields.md › Reports › Columns` or
+  `source-external/glossary.md › L12-L18`.
 - **In an image** — `<path relative to brd/> › "<element>"`, the element a string quoted verbatim from
   the image's *Text*, an annotation's *Says*, or its *Flow* in its §1.2 section — never from *Points
-  at* or *Depicts*, which are the plugin's paraphrase — as in
+  at* or *Depicts*, which are the plugin's paraphrase, and from *Text* within one cell or one region,
+  never across the ` | ` the plugin puts between cells or the break between regions — as in
   `source/images/report.png › "Net total"`, or, quoting a diagram's edge whole as its *Flow* item
   reads without the list marker,
   `source/images/flow.png › "Manager approval → Finance approval — label: [> 10k]"`; or
@@ -342,7 +355,7 @@ below):
    than one heading falls to branch 4, whose remedy the operator can actually carry out: correct
    the anchor by hand, naming a parent heading to disambiguate it, or a line range where no parent
    tells them apart. Appendices and Obsidian notes rarely number their headings, and §2's own
-   example, `source/appendix/fields.md › Report columns`, is exactly this form.
+   example, `source/appendix/fields.md › Reports › Columns`, is exactly this form.
 3. **Otherwise, the line the anchor names** resolves it: a line in the file's body falls inside
    exactly one section, so a line-range anchor is section-resolvable without the writer having
    named a section at all — and where the file has no heading at all, its whole body, after any

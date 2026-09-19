@@ -308,7 +308,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
     inputs, never scratch: nothing below deletes, renames or rewrites a dated artifact another run
     wrote.
 
-    **Resolve `brd/source/<basename>`, `brd/brd-defect-log.md` and — where the BRD links an image —
+    **Resolve `brd/source/<basename>`, `brd/brd-defect-log.md` and — where it exists —
     `brd/brd-figures.md` here too**, even though nothing in this run reads their *content*: all three
     go into the bundle (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1), and on a
     **slice** none is in this folder at all — each resolves one hop up, through the `parent:` this
@@ -317,7 +317,8 @@ cannot review, and they will not tell you that — they will review it anyway, b
     a bundle missing the customer's own document cannot answer the review's requirement-traceability
     section, and finding that out at the copy step is finding it out too late to say so cheaply. An
     absent figures file is never a gate, any more than an absent `code-defect-log.md` is: an intake
-    that copied no image writes none (`commands/brd-intake.md` Phase 2.5).
+    that copied no image writes none (`commands/brd-intake.md` Phase 2.5), and a BRD intaken before
+    the figures file existed holds none, however many images it links.
 
     **`<basename>` is read off `brd/brd-link-log.md`, one hop up on a slice as the three above are** —
     its opening line names which file under `brd/source/` is the customer's document, since that
@@ -582,7 +583,7 @@ do.
 |---|---|---|
 | 1 | Setup | the tier; the fixed capability line, locating instruction and OS note below |
 | 2 | What each package in the bundle is for | this BRD, plus each prerequisite package copied in, marked *not for re-review* |
-| 3 | Documents to review | the bundle manifest, by filename |
+| 3 | Documents to review | the review documents `bundle-packaging.md` §1.1 admits, by the bundled filename *Assemble the bundle* rule 1 gives each — the names the manifest later lists, which must be the same |
 | 4 | Code baselines and the verification procedure | `grounding/baselines.md`, with the three commands written out |
 | 5 | The single most important claim to verify first | the register and the findings, by the rule below |
 | 6 | Review scope | `coverage-ledger.md` dispositions, `brd/brd-inventory.md`, and every `in-scope` `[CDF#n]` |
@@ -768,13 +769,13 @@ sentence unfollowable while making it look fine.
 so rather than deadlock.** `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.3 defines both
 sets of span this covers: **verbatim customer content** — the customer's own files, copied byte for
 byte and immutable by rule (§2.1 there, `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1), and
-the parts of the figures file and the inventory that transcribe or quote their words — and
-**customer-derived locators**, the customer's names for their own files, headings and links, in
-the positions §6.3 recognises them in, this package's own writing included. A hit inside either is
-not a leak this package committed. It is the customer having written the token themselves, in a
-document, a screenshot, a heading or a folder name — because they were told what tooling the
-delivery team uses, or because their own numbering happens to look like ours, a `§ 4.2` in a
-specification or a `D3` in a diagram. Report it, grouped as §6.3 fixes, and **let the operator
+the parts of the figures file, the inventory and the coverage ledger that transcribe or quote their
+words — and **customer-derived locators**, the customer's names for their own files, headings and
+links, in the positions §6.3 recognises them in, this package's own writing included. A hit inside
+either is not a leak this package committed. It is the customer having written the token
+themselves, in a document, a screenshot, a heading or a folder name — because they were told what
+tooling the delivery team uses, or because their own numbering happens to look like ours, a `§ 4.2`
+in a specification or a `D3` in a diagram. Report it, grouped as §6.3 fixes, and **let the operator
 decide** whether to ship; where §6.3 counts it no hit at all, there is nothing to report. Stopping
 outright would make that BRD permanently unpackageable, since the only repair left would falsify
 the record — an edit to an immutable file, an anchor that no longer names where the requirement is
@@ -852,8 +853,8 @@ the working documents keep their wikilinks and are never rewritten in place
 **What goes in is `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1's allow-list, applied
 verbatim** — the rendered prompt; the customer's own source document, every other markdown file
 `/brd-intake` captured under `brd/source/` or `brd/source-external/`, the defect log and, only where
-the BRD links an image, `brd/brd-figures.md` (**the parent's on a slice**, one hop, since a slice
-holds none of them — `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.1, §2.1, §4);
+it exists, `brd/brd-figures.md` (**the parent's on a slice**, one hop, since a slice holds none of
+them — `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.1, §2.1, §4);
 `brd/brd-inventory.md`; `coverage-ledger.md`; `code-defect-log.md`, when the folder holds one;
 `grounding/code-grounding.md`, `grounding/design-grounding.md` and `grounding/baselines.md`;
 `decisions.md`; `interview/customer-questions.md`; every prerequisite package resolved above, copied

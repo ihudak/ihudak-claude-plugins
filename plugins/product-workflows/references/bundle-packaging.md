@@ -80,7 +80,7 @@ Exactly this, and nothing else:
 | every other markdown file `/brd-intake` captured — `brd/source/<file>.md` beside the document and `brd/source-external/<file>.md` from outside its folder, **the parent's on a slice**, one hop (`references/brd-format.md` §1.1, §2.1) | requirement traceability, for the same reason: a `[BR#n]` anchored in an appendix (`references/brd-format.md` §2) is unanswerable without that appendix |
 | `brd/brd-inventory.md` | *Review scope* |
 | `brd/brd-defect-log.md` — **the parent's on a slice**, one hop, exactly as an inherited `[DEF#n]` already resolves (`references/brd-format.md` §4) | *Review scope*: a ledger row reading `rejected: [DEF#n]` cites an id the reviewer must be able to resolve |
-| `brd/brd-figures.md` — **the parent's on a slice**, one hop, as the defect log is, and only where the BRD links an image | requirement traceability: the review's section 4 asks the customer to confirm or correct the package's reading of their document, and this file is its reading of their images (`references/brd-format.md` §1.2) |
+| `brd/brd-figures.md` — **the parent's on a slice**, one hop, as the defect log is, and only where the file exists | requirement traceability: the review's section 4 asks the customer to confirm or correct the package's reading of their document, and this file is its reading of their images (`references/brd-format.md` §1.2) |
 | `coverage-ledger.md` | *Review scope*, and *what this session cannot settle* |
 | `code-defect-log.md`, when the folder holds one | *Review scope*, *what could still move*, and *what this session cannot settle* — a defect disposed `in-scope` **is** the delivery boundary |
 | `grounding/code-grounding.md` and `grounding/design-grounding.md` | *the single most important claim to verify first* |
@@ -88,7 +88,7 @@ Exactly this, and nothing else:
 | `decisions.md` | *the single most important claim to verify first*, *the decisions the customer must make*, *what could still move* |
 | `interview/customer-questions.md` | *the decisions the customer must make* |
 | every prerequisite package copied in, marked *not for re-review* | *what each package in the bundle is for* |
-| every image the documents above reference, and every image `brd/brd-figures.md` holds a section for — save one whose section carries the marker `references/brd-format.md` §1.2 fixes and whose *Rows* line yields no row | the documents embed them (§2), and a figures section sends the reviewer to the picture it transcribes — as does an image anchor or a question naming the image. A marked image is not in the current document, so it ships only where a preserved row still anchors on it: the customer needs the picture to check that row |
+| every image the documents above reference, and every image `brd/brd-figures.md` holds a section for — save one whose section carries the marker `references/brd-format.md` §1.2 fixes and whose *Rows* line yields no row | the documents embed them (§2), and a figures section sends the reviewer to the picture it transcribes — as does an image anchor or a question naming the image. A marked image is one the latest intake did not capture, so it ships only where a preserved row still anchors on it: the customer needs the picture to check that row |
 | the manifest | *documents to review* |
 
 Plain markdown and images — nothing else (§2). The manifest lists documents by filename, for the
@@ -613,9 +613,12 @@ the customer's own words, copied or transcribed rather than written by this pack
   immutable by rule (§2.1, `references/brd-format.md` §1, §1.1);
 - in `brd/brd-figures.md`, each section's *Text*, the *Says* column of its *Annotations* and its
   *Flow*, which are the image's own words transcribed verbatim (`references/brd-format.md` §1.2);
-- and in `brd/brd-inventory.md`, a prose row's `text` whole — the requirement verbatim — but an
+- in `brd/brd-inventory.md`, a prose row's `text` whole — the requirement verbatim — but an
   image-drawn row's `text` only in the element it quotes, the rest of that text being the plugin's
-  words (`references/brd-format.md` §2).
+  words (`references/brd-format.md` §2);
+- and in `coverage-ledger.md`, a row's `text`, treated exactly as the inventory's — a prose row's
+  whole, an image-drawn row's only in the element it quotes — because each ledger row's `text`
+  mirrors its inventory row's (`references/coverage-ledger-format.md` §2).
 
 A `[BR#n]` or a filename visible in the customer's screenshot is the customer's, not a citation this
 package made. Those spans inherit the plugin-free scan's treatment of the same content, for the
@@ -623,25 +626,27 @@ identical reason: stopping outright would make that BRD permanently unpackageabl
 repair left would falsify the record — an edit to an immutable file, or a transcription saying
 something the image does not. So a relation 1 or relation 3 hit inside one is reported, grouped as
 the last rule below fixes, and the operator decides whether to ship. Outside these spans and the
-customer-derived locators below, every hit stays a hard stop, in the figures file and the inventory
-as anywhere else: the rest of both is the plugin's own writing.
+customer-derived locators below, every hit stays a hard stop, in the figures file, the inventory
+and the ledger as anywhere else: the rest of each is the plugin's own writing.
 
 **A customer-derived locator is the customer's naming, wherever it appears.** It is one of four
 things: a captured file's path relative to `brd/`, with whatever follows its ` › ` — the `source/`
 or `source-external/` prefix is ours, and everything below it is the customer's layout and names
 (`references/brd-format.md` §1.1), as is the heading path or line range after the ` › `; a captured
-file's bundled filename, which `commands/brd-package.md`'s *Assemble the bundle* rule 1 fixes and
-which carries the customer's basename after the `<BRD-KEY>-` it adds; a link target as written, in a
-captured file or in the manifest's map; and an inventory row's `source_anchor`, whose document form
-names no path. The naming is the customer's whoever wrote the line it sits in, so a locator counts
-in text this package wrote exactly as in a customer's file — a figures section's heading and its
-*Linked from* line, a manifest line, an inventory row, an interview question, the note that stands
-in for the figures file's frontmatter (§1.1), and the prompt parts rendered from them. **It is
-recognised by where it sits or by what it names, never by its shape.** In a fixed field — a
-`source_anchor`, a figures section heading, a *Linked from* line, a manifest map line — it counts
-as written. Anywhere else in this package's writing only two things count: a path carrying its
-prefix and naming a file the capture holds, with whatever follows its ` › `, and a filename that is
-the bundled name of a captured file. **Nothing else in this package's own prose is a locator.** A
+file's bundled filename, where it carries the customer's basename after the `<BRD-KEY>-`
+`commands/brd-package.md`'s *Assemble the bundle* rule 1 requires; a link target as written, in a
+captured file or in the manifest's map; and an inventory row's `source_anchor`, or the anchor a
+ledger row's `text` carries, whose document form names no path. The naming is the customer's
+whoever wrote the line it sits in, so a locator counts in text this package wrote exactly as in a
+customer's file — a figures section's heading and its *Linked from* line, a manifest line, an
+inventory or ledger row, an interview question, the note that stands in for the figures file's
+frontmatter (§1.1), and the prompt parts rendered from them. **It is recognised by where it sits or
+by what it names, never by its shape.** In a fixed field — a `source_anchor` (the inventory's
+column, or the anchor a ledger row's `text` carries, `references/coverage-ledger-format.md` §2), a
+figures section heading, a *Linked from* line, a manifest map line — it counts as written. Anywhere
+else in this package's writing only two things count: a path carrying its prefix and naming a file
+the capture holds, with whatever follows its ` › `, and a filename that is the bundled name of a
+captured file. **Nothing else in this package's own prose is a locator.** A
 pathless heading or section number there — `see §3.4 of brd-format`, `(see §3.4)` — is none, so its
 `§` is a hit like any other `§` the plugin writes, whatever sections the customer's document happens
 to have; and a bare `<name>.md` is no path in that form and stays relation 3's (§6.2). Four rules
@@ -666,7 +671,8 @@ follow, for the plugin-free scan and this check alike:
 4. **Every report this section makes is grouped** — one line per file and token, with a count — in
    the report that asks the operator to rule and in the run's final report alike, whether the hit
    sat in verbatim content or in a locator. A `"D3"` quoted in an image anchor, in that row's
-   `text` and in the figures file's *Flow* is two lines, not three reports.
+   `text`, in its ledger row's `text` and in the figures file's *Flow* is three lines, not four
+   reports.
 
 ### 6.4 What §6 cannot see
 

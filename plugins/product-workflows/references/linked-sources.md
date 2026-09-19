@@ -117,8 +117,8 @@ operator's answer:
 | `excluded` | the caller | the operator's consent answer left the file out (§7) |
 
 A caller may keep reasons of its own beside these — `/brd-intake`'s link log keeps
-`outside the source directory` and `absolute path` for the answer that reproduces its earlier
-behaviour — but never redefines one of these four.
+`outside the source directory` and `absolute path` for the answer that captures nothing outside the
+document's folder — but never redefines one of these four.
 
 ## 7. Taking a subset
 

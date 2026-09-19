@@ -149,15 +149,15 @@ findings under *where to attack us hardest*, `escalated-to-customer` findings un
 the customer must make*. Shipping the file would defeat that filter and hand the customer an
 internal disagreement to referee. What the bundle *does* hold is an allow-list, not a deny-list, and
 [`bundle-packaging.md`](../../references/bundle-packaging.md) §1.1 is its authority: the prompt; the
-customer's own source document, every markdown file captured with it, its defect log and — where it
-links an image — the transcription of each image (the parent's on a slice); the inventory; the
-coverage ledger; the three grounding files; the decision register; the code-defect log where the
-folder holds one; the `[C]` question set; each prerequisite package; the images those reference and
-every image the transcription covers — one no longer in the current document only where a
-requirement still anchors on it; and the manifest, which maps each captured file's path — the form a
-transcription, an anchor or a question names it by — to its bundled filename. The customer's own
-files go in byte for byte, unrendered. A document reaches the bundle only where a part of the prompt
-sends the reviewer to it — everything else in the folder is a working record and stays.
+customer's own source document, every markdown file captured with it, its defect log and — where one
+exists — the transcription of each image (the parent's on a slice); the inventory; the coverage
+ledger; the three grounding files; the decision register; the code-defect log where the folder holds
+one; the `[C]` question set; each prerequisite package; the images those reference and every image
+the transcription covers — one the latest intake did not capture only where a requirement still
+anchors on it; and the manifest, which maps each captured file's path — the form a transcription,
+an anchor or a question names it by — to its bundled filename. The customer's own files go in byte
+for byte, unrendered. A document reaches the bundle only where a part of the prompt sends the
+reviewer to it — everything else in the folder is a working record and stays.
 
 Behind the handoff phase's consent choice, these are committed, pushed, and a pull request opened
 against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix. The
@@ -176,7 +176,7 @@ Assembled from the package, never hand-written, in a fixed order that is not re-
 |---|---|---|
 | 1 | Setup | the tier, the assumed capability set, the route-neutral locating instruction, the OS note, and the one-new-file rule |
 | 2 | What each package in the bundle is for | this BRD, plus each prerequisite package, marked *not for re-review* |
-| 3 | Documents to review | the manifest, by filename |
+| 3 | Documents to review | the review documents the bundle admits, by their bundled filenames — the same names the manifest, written later, lists |
 | 4 | Code baselines and the verification procedure | `baselines.md`, with the three pin commands written out |
 | 5 | The single most important claim to verify first | the finding the most decisions rest on — exactly one |
 | 6 | Review scope | the coverage ledger's dispositions — the rows this BRD is answerable for, with every `covered-by` row named as another BRD's and explicitly not for review here — plus every `in-scope` `[CDF#n]` |
@@ -239,16 +239,16 @@ attack.
 - **Phases 6, 7 and 8 — the plugin-free scan.** Run over the finished prompt, the finished note and
   every bundle document. A hit stops the run with `BRD_PACKAGE_PROMPT_LEAK`, naming the token, the
   part it landed in and the artifact it came from — except inside the customer's own verbatim
-  content (their captured files, and the parts of the transcription and the inventory that quote
-  them) or a locator naming their own files, headings and links, in the positions where
-  `bundle-packaging.md` §6.3 recognises one; both sets are defined there, once. There a `§ 4.2` or a
-  `D3` is the customer's own and the only fix would falsify it, so the hit is reported, grouped as
-  that section fixes, and the operator decides whether to ship — or, where that section says so, it
-  is no hit at all. The identifiers the package's own registers, logs and grounding files mint are
-  **not** in the scan's classes and are meant to travel — the classes are enumerated once, in
-  `bundle-packaging.md` §6.1's table, rather than restated here. They are how the returned review
-  cites the package without minting identifiers of its own; whether each one actually lands is what
-  the citation-resolution check below verifies.
+  content (their captured files, and the parts of the transcription, the inventory and the coverage
+  ledger that quote them) or a locator naming their own files, headings and links, in the positions
+  where `bundle-packaging.md` §6.3 recognises one; both sets are defined there, once. There a
+  `§ 4.2` or a `D3` is the customer's own and the only fix would falsify it, so the hit is
+  reported, grouped as that section fixes, and the operator decides whether to ship — or, where
+  that section says so, it is no hit at all. The identifiers the package's own registers, logs and
+  grounding files mint are **not** in the scan's classes and are meant to travel — the classes are
+  enumerated once, in `bundle-packaging.md` §6.1's table, rather than restated here. They are how
+  the returned review cites the package without minting identifiers of its own; whether each one
+  actually lands is what the citation-resolution check below verifies.
 - **Phase 7 — the delivery note's 200-word ceiling.** A ceiling, not a target. Over it, the note is
   shortened and re-rendered; the two facts that are never trimmed are which file is the prompt and
   which file comes back.

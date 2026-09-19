@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose links are walked in full — wikilinks, inline markdown links and images, reference-style definitions and HTML img src alike — asking the operator before a walk reaches past two levels of pages, twelve pages or six images, and whose linked images are transcribed and read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Copies the sources it actually read into the PRD folder (markdown into attachments/, images into design/idea-sources/ with the index that frame set requires) and rewrites idea.md's links onto the copies. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`workflows-core:phase-handoff` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose links are walked in full — wikilinks, inline markdown links and images, reference-style definitions and HTML img src alike — asking the operator before reading past two levels of pages, twelve pages or six images, and whose linked images are transcribed and read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Copies the sources it actually read into the PRD folder (markdown into attachments/, images into design/idea-sources/ with the index that frame set requires) and rewrites idea.md's links onto the copies. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`workflows-core:phase-handoff` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -123,9 +123,12 @@ source's own links, markdown and images alike — and leaves every deeper file `
 (`linked-sources.md` §6, §7), which Phase 4.5 reports rather than copies. *Stop* ends the run with
 nothing written — an operator halt, so `emit-block` does not fire.
 
-Record the outcome on the walk record itself, as `linked-sources.md` §7 has a caller do: `taken: true`
-on every entry naming a file this phase took, and `taken: false` with `reason: excluded` on every
-entry naming one it left out.
+Record the outcome on the walk record itself, as `linked-sources.md` §7 has a caller do, so every
+entry carries `taken`: `taken: true` on every entry naming a file this phase took, and `taken: false`
+with `reason: excluded` on every entry naming one it left out. An entry carrying one of the walk's
+own reasons names no file to take and carries `taken: false`, its reason unchanged. An entry linking
+back to the source file carries `taken: true` — the source is read — and `idea-reader` skips it,
+reading the source as the source (`agents/idea-reader.md`, *What the caller hands over*).
 
 ---
 
@@ -139,7 +142,9 @@ waves until none remain:
   > "figures: [absolute path of each taken image in this batch, in the walk's order]"
 
 An `INPUT_MISSING` return is this run's defect — it sent an empty batch — and is fixed and
-re-dispatched, never recorded as an unread image.
+re-dispatched, never recorded as an unread image. **Collect each dispatch's own `notes` for the
+Final report** — an image too low in resolution for its small text, say — because a transcription
+the operator is not told was partial reads as a complete one.
 
 **Then the reader**, handed everything it is to read:
 
@@ -171,13 +176,13 @@ which it is forbidden to do.
 `figure-reader` produced without seeing the source; the digest carries a `description` of what each
 frame shows — the transcription's `depicts` sentence — rather than a bare path. Both are **context**:
 they inform the grill and the prose Phase 4 writes. Neither is grounded evidence — an image here is
-never a `[DG#n]` finding and gets no verifier pass here (`workflows-core:grounding-format` §6 governs *that*; this
-run never reaches it — `/prd-ground` is what later grounds this same vendored frame set against the
-PRD's own rows, on its own pass, not this one). Phase 4.5 does write the index its vendored
-frame set requires — §6.1 makes that mandatory for any set — but an index makes a set **readable**,
-which is not the same as reconciling it into evidence. Treat a described frame the way you treat a
-sentence in the source file: something the operator handed over, to be put back to them as a question,
-never a fact about what ships.
+never a `[DG#n]` finding and gets no verifier pass here (`workflows-core:grounding-format` §6
+governs *that*; this run never reaches it — `/prd-ground` is what later grounds this same vendored
+frame set against the PRD's own rows, on its own pass, not this one). Phase 4.5 does write the
+index its vendored frame set requires — §6.1 makes that mandatory for any set — but an index makes
+a set **readable**, which is not the same as reconciling it into evidence. Treat a described frame
+the way you treat a sentence in the source file: something the operator handed over, to be put back
+to them as a question, never a fact about what ships.
 
 **Everything not read is surfaced, never swallowed.** An `images` entry with `read: false` names its
 `reason` (`excluded`, `missing`, `unreadable`, `not_an_image`); `wikilinks_not_followed` names each page
@@ -247,7 +252,7 @@ and **proceed without waiting** — an inline confirmation per `workflows-core:e
 Scan for gaps against an idea-stage **ambiguity taxonomy**: *problem clarity, target users, desired
 outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps by **Impact × Uncertainty**, ranking every `docs_challenges` entry from Phase 2.5 into that same list. Challenges **compete** for the slots below; they never add slots. **Code findings are facts, not questions.** A Phase 2.6 finding answers a gap rather than raising one — look it up, cite it, and do not spend a question on it. The one exception is the finding that **contradicts the idea's premise** (the capability already exists, or the gap is far smaller than the idea assumes): that becomes a challenge ranked into the same Impact × Uncertainty list, competing for a slot exactly like a `docs_challenges` entry and never adding one. At most **2** such challenges.
 
-**A described image is material for the grill, not an answer in it.** Where a Phase 2 `images` entry carries a `description`, use it the way you use the source's own prose — to sharpen a question (*"the mockup shows the toggle per project; is the setting per project or per account?"*) and to avoid asking about something the operator has already shown you. It never closes a gap on its own and it never adds a question slot, because a frame is what somebody drew, not what anything does. **Never write a described frame into `idea.md` as fact** unless the grill confirms it or the source's prose already says it. An image left `read: false` — never transcribed, or transcribed unsuccessfully — contributes nothing at all: never reason from its filename or its path.
+**A described image is material for the grill, not an answer in it.** Where a Phase 2 `images` entry carries a `description`, use it the way you use the source's own prose — to sharpen a question (*"the mockup shows the toggle per project; is the setting per project or per account?"*) and to avoid asking about something the operator has already shown you. It never closes a gap on its own and it never adds a question slot, because a frame is what somebody drew, not what anything does. **Never write a described frame into `idea.md` as fact** unless the grill confirms it or the source's prose already says it. An image left `read: false` — not transcribed: excluded, or the transcription failed — contributes nothing at all: never reason from its filename or its path.
 
 - **Default (bounded):** ask **≤10** questions across the ranked gaps, then stop. Remaining high-impact
   gaps become `- [NEEDS CLARIFICATION: <question>]` in the `idea.md` **Open questions & assumptions**
@@ -410,14 +415,14 @@ left it on no ref, so omitting it is a link to a file that never lands.
 §2.1 classifies `attachments/**` and `design/**` as OTHER, so `commit-artifacts` never touches them —
 they are deliverables, and they reach the default branch only through Phase 5's handoff.
 
-**What a run without a handoff therefore leaves behind, stated at its real size.** Not one file: `idea.md`
-**and every path this phase wrote** — one copy in `attachments/` for the source and for every markdown
-file Phase 1.5 took, one in `design/idea-sources/` for every image `figure-reader` read, and that set's
-`index.md` — a number the walk fixes and no cap bounds, so a source that links a hub note leaves dozens
-of dirty OTHER paths. Two routes reach that state, and only one of them is a decline: Phase 5's
-`status: refined` branch offers the handoff and the operator may decline it, while its
-`status: draft` branch **never offers one at all** — so a draft run leaves the whole set dirty by
-construction rather than by a choice.
+**What a run without a handoff therefore leaves behind, stated at its real size.** Not one file:
+`idea.md` **and every path this phase wrote** — one copy in `attachments/` for the source and for
+every markdown file Phase 1.5 took, one in `design/idea-sources/` for every image `figure-reader`
+read, and that set's `index.md` — a number Phase 1.5 fixes and no cap bounds, so a source that links
+a hub note leaves dozens of dirty OTHER paths. Two routes reach that state, and only one of them is
+a decline: Phase 5's `status: refined` branch offers the handoff and the operator may decline it,
+while its `status: draft` branch **never offers one at all** — so a draft run leaves the whole set
+dirty by construction rather than by a choice.
 
 On the next run of any command sharing that repo, §3.3's **G1** matches. Its consequences are three, not
 one: the preflight **ends** there, at advisory severity, listing the paths — no commit, no branch switch,
@@ -562,19 +567,21 @@ Report: the `idea.md` path + `status` (refined / draft with N open clarification
 `sources`; the count of `[NEEDS CLARIFICATION]` items and Assumptions; any source-detection correction
 or broken links; **what the source read cost and what it left** — Phase 1.5's walk (how many files
 it reached, at which depths, and the operator's answer where one was asked), every
-`wikilinks_not_followed` entry with its `excluded` reason, how many linked images were transcribed, and
-every image left with `read: false` and why. Report these even when nothing was excluded ("all N linked
-images transcribed; no link left unfollowed"), because the absence of a notice of what was left unread
-is only informative once the run is known to print one; **what the
+`wikilinks_not_followed` entry with its `excluded` reason, how many linked images were transcribed,
+every image left with `read: false` and why, and beside them the `notes` Phase 2 collected from
+`figure-reader`. Report these even when nothing was excluded ("all N linked images transcribed; no
+link left unfollowed"), because the absence of a notice of what was left unread is only informative
+once the run is known to print one; **what the
 run vendored and what it did not** — the count of files copied into `attachments/` and of images copied
 into `design/idea-sources/`, whether that frame set's `index.md` was written and how many rows it now
 holds against how many this run added, every name the collision rule substituted, the number of links
 rewritten in `idea.md` **and every target left unrewritten because two copied entries were written
 identically** (with each source and each copy), every frame indexed with no description on record, every
-index row dropped because its image is gone, and every source left uncopied with its
-reason (`excluded`, broken, `ambiguous`, `missing`, `unreadable`, `not_an_image`, a linked file nothing
-opens — not markdown, not an image — with its extension, or a copy that failed) — stated plainly where
-nothing was vendored at all ("no source to vendor: the idea came from a prompt", or "nothing linked"), and naming no
+index row dropped because its image is gone, and every source left uncopied with its reason
+(`excluded`, broken, `ambiguous`, `missing`, `unreadable`, `not_an_image`, a linked file nothing
+opens — not markdown, not an image — with its extension, or a copy that failed) — stated plainly
+where nothing was vendored at all ("no source to vendor: the idea came from a prompt", or "nothing
+linked"), and naming no
 directory this run did not actually create; the resolved model routing (+ any Opus degradation); the feedback path; the cost
 path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
 (`workflows-core:specs-repo-git` §6), with any guard notice repeated in full; the

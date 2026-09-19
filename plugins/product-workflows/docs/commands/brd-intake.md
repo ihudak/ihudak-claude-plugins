@@ -106,10 +106,11 @@ name the run creates ([addressing](../reference/references.md) §2):
   you chose to capture it, by basename; immutable exactly as `brd/source/` is.
 - `brd/brd-link-log.md` — the links the copy could **not** capture, each with its reason (a URL, an
   unreadable target, a wikilink matching several files, or — where you chose the document's own folder
-  only — one above it or an absolute path), the run's counts, and a table mapping every captured link
+  only — a link to a file outside it), the run's counts, and a table mapping every captured link
   that does not resolve as written (a wikilink, an external file) to its copy. Written on every run.
-- `brd/brd-figures.md` — what the plugin read in each linked image: a verbatim transcription, the
-  customer's annotations and what they point at, and the rows each image yields or illustrates.
+- `brd/brd-figures.md` — what the plugin read in each linked image the run takes: a verbatim
+  transcription, the customer's annotations and what they point at, and the rows each image yields
+  or illustrates.
 - `brd/brd-inventory.md` — one row per `[BR#n]`, each with its `source_anchor` and any confirmed
   `[DEF#n]` defects.
 - `brd/brd-defect-log.md` — one entry per confirmed `[DEF#n]`, resolution `open`.

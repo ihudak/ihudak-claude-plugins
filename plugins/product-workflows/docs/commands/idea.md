@@ -46,7 +46,7 @@ When the source is a markdown file, the run does not stop at that one file.
 - **Every link, walked first.** Phase 1.5 walks every link the source makes, and the links on every page it reaches — the `[[wikilink]]` (resolved by name across the vault where it is not next to the note, and reported as ambiguous rather than guessed where two notes share the name), the ordinary inline link or image, a reference-style `[label]: target` definition, and an HTML `<img src="target">`. The walk reads nothing but links, and a cycle — A links B, B links back to A — is a silent skip.
 - **You decide past the old bounds.** Where the walk stays within two levels of pages, twelve pages (your note among them) and six images, everything is read and nothing is asked. Where it reaches past any of those, the run names what lies beyond and asks: read all of it, only what the source links directly, or stop. Nothing is capped behind your back.
 - **Linked images, transcribed — not just listed.** Every taken image goes to `figure-reader`, in parallel batches, which transcribes its labels and annotations without seeing your source, so the grill knows what a linked mockup actually shows.
-- **Nothing here is fatal.** A broken link, a missing image, a file that will not open — each is noted and the run carries on, exactly as a broken link always has.
+- **Nothing here is fatal.** A broken link in a page that was read, a missing image, a file that will not open — each is noted and the run carries on, exactly as a broken link always has.
 
 **What a read image counts as: context, not evidence.** It informs the questions the grill asks and the prose the brief ends up with. It is not a design-grounding finding and gets no verifier pass — though the images it vendors *are* written into a frame set, which does carry an index (see [What it vendors](#what-it-vendors)); the index makes the set readable, not grounded — a frame is what somebody drew, not what the product does, so nothing seen in one is written into `idea.md` as fact unless you confirm it during the grill. Design grounding proper (`[DG#n]` findings over an exported frame set) belongs to a different route and is not part of `/idea`.
 
@@ -74,9 +74,9 @@ sources it actually read into the same PRD folder and rewrites `idea.md`'s links
 - **Nothing else, ever.** No PDF, no archive, no other binary. A linked file nothing opens — not
   markdown, not an image — keeps its link exactly as written and is named in the final report, with its
   extension, so a `.txt` is reported as a file nothing read rather than as a file of the wrong kind.
-- **Only what was read.** A page or image you chose not to read, a broken or ambiguous link, an
-  image that would not open — none of them is copied, each of them is reported, and none of them is
-  fatal.
+- **Only what was read.** A page or image you chose not to read, a broken or ambiguous link in a
+  page that was read, an image that would not open — none of them is copied, each of them is
+  reported, and none of them is fatal.
 - **Names never collide silently.** A second file with the same basename becomes `notes_01.md`, a
   third `notes_02.md`, and a suffix is never appended to a suffix. A copy whose content is already
   there byte-for-byte is reused rather than duplicated, so a re-run does not grow the folder. Edit one

@@ -18,7 +18,7 @@ grilling loop refines into `idea.md`. This agent does NOT grill, decide gaps, or
 ```yaml
 argument:        <the raw /idea argument: prompt text | file path>
 provenance_hint: prompt | markdown | community-post | rfe | prd   # from the caller's Phase 1 classification
-walk:            <the caller's walk record — ${CLAUDE_PLUGIN_ROOT}/references/linked-sources.md §5, each entry carrying `taken`; absent for a prompt>
+walk:            <the caller's walk record — ${CLAUDE_PLUGIN_ROOT}/references/linked-sources.md §5, every entry carrying `taken`, `false` on one carrying a walk `reason`; absent for a prompt>
 figures:         <every figure-reader return entry for the taken images; absent where none was taken>
 ```
 
@@ -48,10 +48,10 @@ only thing that ever produces `provenance: prd`, and `## Prior art` is written o
 
 **The caller walked the links; this agent walks nothing.** `/idea` Phase 1.5 ran
 `${CLAUDE_PLUGIN_ROOT}/references/linked-sources.md`'s walk and settled what to take — with the
-operator, where the walk reached past the command's old bounds — and `figure-reader` transcribed every
-taken image. Read every `walk` entry whose `kind` is `markdown` and
-whose `taken` is true — each file once, however many links reach it — and read each image's
-transcription from `figures`. **Never follow a link, never open a path the walk did not take, and
+operator, where the walk reached past the command's old bounds — and `figure-reader` transcribed
+every taken image. Read every `walk` entry whose `kind` is `markdown` and whose `taken` is true —
+each file once, however many links reach it — and read each image's transcription from `figures`.
+**Never follow a link, never open a path other than the source and the pages the walk took, and
 never open an image**: its transcription is what you have of it.
 
 **Every file the walk reached lands in exactly one array, from the first entry reaching it** in the
@@ -73,6 +73,12 @@ and lands per link rather than per file:**
 |---|---|---|
 | `reason: unreadable` or `ambiguous` | `wikilinks_broken` | the `reason`, and every `candidates` path for an ambiguous one |
 | `reason: url` | none | nothing: a URL is part of the source's prose, not a file |
+
+**An `unreadable` or `ambiguous` entry whose `from` is a page the walk did not take lands in no
+array**: that page is already reported, in `wikilinks_not_followed` with reason `excluded`, and a
+link inside it exists only inside something nobody is going to read (`linked-sources.md` §7). Its
+own `taken` is `false`, as on every entry carrying a walk reason, so the `taken` of its `from` page
+is what decides it.
 
 The three `wikilinks_*` arrays keep their names because every consumer reads them; they hold links in
 all four forms `linked-sources.md` §1 names, not only `[[…]]` ones.
@@ -120,14 +126,14 @@ signals:
 images:
   - target:      <the image link target exactly as written in the file that linked it>
     path:        <absolute path to the linked image>
-    from:        <absolute path of the .md file that linked it>
+    from:        <absolute path of the markdown file that linked it>
     read:        true | false
     description: <its figures entry's depicts sentence, verbatim — present IFF read: true, never inferred>
     reason:      excluded | missing | unreadable | not_an_image        # present IFF read: false
 wikilinks_followed:
   - target:          <the link target exactly as written in the file that linked it>
     from:            <absolute path of the file that linked it>
-    path:            <absolute path of the followed .md>
+    path:            <absolute path of the followed markdown file>
     depth:           <1, 2, … — as the walk recorded it>
     salient_summary: <≤150 words: the facts that mattered — status, named customers, what shipped, what closed>
     tracked_status:  <the item's status when its frontmatter carries one, else omit>
@@ -173,8 +179,8 @@ collapsed into one entry.
 - NEVER normalise, resolve, complete, or otherwise rewrite a `target`: it is the link exactly as it appears in the file that carried it. A caller that repoints links compares written forms, so a tidied `target` silently points a link at the wrong file. Two entries sharing a `target` with different `from` are two entries, never one.
 - NEVER reach out over HTTPS to any host — operate purely on the inline prompt, the file the caller named, the pages its walk took and the transcriptions it hands over.
 - NEVER fabricate demand signals, requesters, or sources not present in the input.
-- Read exactly the pages the `walk` took and the transcriptions in `figures` — NEVER follow a link, open a path the walk did not take, or open an image — and read each file once, however many entries reach it.
-- NEVER drop a file the walk reached, or a link it could not resolve: each lands in exactly one array (*What the caller hands over*), so no file the source links, and no link that fails to resolve, is left unreported.
+- Read the source, exactly the pages the `walk` took, and the transcriptions in `figures` — NEVER follow a link, open a path other than the source and the pages the walk took, or open an image — and read each file once, however many entries reach it.
+- NEVER drop a file the walk reached, or a link it could not resolve in a page that was read: each lands in exactly one array (*What the caller hands over*), so no file the source links, and no link that fails to resolve in a page you read, is left unreported.
 - An unreadable image, a non-image file behind an image extension, and a broken link are all **noted and survived** — none of them ends the run.
 - NEVER open, read, summarise, or describe a `links_other` file. It is enumerated so the caller can report what it did not copy, and enumerating is the whole of the obligation; its content is never inferred from its name or its extension.
 - On an invalid key or a missing file, return `status: NOT_FOUND` with a clear message; do not guess.

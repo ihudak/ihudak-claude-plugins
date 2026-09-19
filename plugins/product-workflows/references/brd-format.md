@@ -48,10 +48,15 @@ an earlier intake captured and the revised document no longer links stays where 
 nothing under `brd/source/` is ever removed either — so the log's counts describe the run that
 wrote them rather than the directory's contents.
 
-**Whatever the copy could not capture is named in `brd/brd-link-log.md`**, never dropped in silence:
-a URL, a file that could not be read, a wikilink matching more than one file in the vault — and, where
-the operator chose to capture only the document's own folder, a link above that folder or an absolute
-path. That log is the **plugin's** record rather than the customer's, which is why it sits in
+**Every link in a captured file whose target the copy did not capture is named in
+`brd/brd-link-log.md`**, never dropped in silence: a URL, a file that could not be read, a wikilink
+matching more than one file in the vault — and, where the operator chose to capture only the
+document's own folder, a link to a file outside it (the walk record's `inside: false`,
+`references/linked-sources.md` §5), with the reason `commands/brd-intake.md` Phase 2's table gives
+it. **A file reachable only through a file the copy did not capture is not named there**: the link
+to it sits inside a file nobody reads (`references/linked-sources.md` §7), so it has no row, and
+`commands/brd-intake.md` Phase 1 names such a file to the operator, before anything is copied,
+instead. That log is the **plugin's** record rather than the customer's, which is why it sits in
 `brd/` beside `brd-inventory.md` and `brd-defect-log.md` and never under `brd/source/`, where every
 byte is the customer's own and a plugin-written file would read as part of the document they handed
 over. It opens by naming the source document's basename, carries the run's counts — links found,
@@ -75,8 +80,10 @@ link**: nothing rewrites the verbatim document to point at its copy.
 **`brd/source-external/` holds what the document links from outside its own directory**, where the
 operator chose to capture it (`commands/brd-intake.md` Phase 1). Each file sits at its **basename** —
 never at a path mirroring where it came from, which for an absolute link would write the operator's
-own directory layout, home directory included, into the specs repository — with a `_NN` suffix on the
-original basename where two collide, and byte-identical content reused rather than copied twice. It is
+own directory layout, home directory included, into the specs repository — and is named by
+`references/idea-format.md` *The collision rule*, rules 1–3, never rule 4, which overwrites a copy. A
+file rule 1 re-uses — its identical bytes already on file, so nothing is written — counts as copied
+wherever this file says Phase 2 copied a file (`commands/brd-intake.md` Phase 2). It is
 **immutable exactly as `brd/source/` is**, written only by `/brd-intake` Phase 2, and never removed
 from; it sits beside `brd/source/` rather than inside it so that this section's first sentence stays
 true — `brd/source/` holds what the document links *from its own directory* — and so that no folder
@@ -135,9 +142,10 @@ Images captured <n> · read <n> · reused from an earlier run <n> · not read <n
 none
 ```
 
-- **One section per image `/brd-intake` Phase 2 copied**, in capture order, headed by the image's path
-  **relative to `brd/`** — `source/…` or `source-external/…`. Every path in this file is relative to
-  `brd/`, so one form names a file under either directory.
+- **One section per image `/brd-intake` Phase 2 copied** — or re-used under collision rule 1, which
+  counts as copied (§1.1) — in capture order, headed by the image's path **relative to `brd/`** —
+  `source/…` or `source-external/…`. Every path in this file is relative to `brd/`, so one form names
+  a file under either directory.
 - **Linked from** names every file that links the image, each relative to `brd/`, with the heading
   path of the passage that links it.
 - **Read** is `yes`, or `no — <reason>` with `figure-reader`'s reason (`missing`, `not_an_image`,
@@ -146,18 +154,23 @@ none
   **transcription** — Read, Content hash, Appearance, Depicts, and the Text/Annotations/Flow/Illegible
   subsections — verbatim wherever the hash still matches the file, and does not read that image
   again; a hash that no longer matches is re-read and its transcription replaced. *Linked from* and
-  *Rows* are recomputed by the run every time, including where the image is no longer linked (below).
+  *Rows* are recomputed by the run every time, including for an image the current run did not
+  capture (below).
 - **Rows** is completed by `/brd-intake` Phase 5, once the inventory is final: `yields` the rows
   anchored on this image, `illustrates` the rows whose prose the image restates, or
-  `accounted for — <the operator's account>` where it does neither. **It names requirements of the BRD
-  that owns this file — on a slice, the parent's, one hop (§2.1)**, which is how
-  `references/bundle-packaging.md` §6.2 relation 1 reads it.
-- **A section is never deleted.** An image the revised document no longer links keeps its section,
-  with a line `- **No longer linked by the current source.**` under its header. Its *Linked from*
-  becomes `— (no longer linked)`, and its *Rows* becomes `yields [BR#n], …` for any preserved row
-  still anchored on it, else `none — no longer linked` — an inventory row the re-run preserved may
-  still anchor on it. §2.2 relation 3 covers only the images the current document's capture holds,
-  so it does not ask about a no-longer-linked image either way.
+  `accounted for — <the operator's account>` where it does neither — and
+  `none — no requirement extracted` where `brd-reader` returned `EMPTY`, so the inventory holds no
+  row and nothing was put to the operator. **It names requirements of the BRD that owns this file —
+  on a slice, the parent's, one hop (§2.1)**, which is how `references/bundle-packaging.md` §6.2
+  relation 1 reads it.
+- **A section is never deleted.** An image the current run did not capture keeps its section, with
+  a line `- **Not captured by the current run.**` under its header. The marker covers both causes:
+  the revised document no longer links the image, or it still links it and this run did not take
+  it (`commands/brd-intake.md` Phase 2.5 step 3 names the cases). Its *Linked from* becomes
+  `— (not captured by the current run)`, and its *Rows* becomes `yields [BR#n], …` for any preserved
+  row still anchored on it, else `none — not captured by the current run` — an inventory row the
+  re-run preserved may still anchor on it. §2.2 relation 3 covers only the images the current run
+  captured, so it does not ask about a marked image either way.
 
 ## 2. The inventory
 
@@ -186,12 +199,20 @@ id is permanent even if the row it names is later split, superseded, or found de
 - **In a linked markdown file** — `<path relative to brd/> › <heading path or line range>`, for
   instance `source/appendix/fields.md › Report columns` or `source-external/glossary.md › L12-L18`.
 - **In an image** — `<path relative to brd/> › "<element>"`, the element a string quoted verbatim from
-  the image's transcription (`source/images/report.png › "Net total" column`), or
-  `<path relative to brd/> › annotation <n>`, the n-th annotation in its §1.2 section.
+  the image's *Text*, an annotation's *Says*, or its *Flow* in its §1.2 section — never from *Points
+  at* or *Depicts*, which are the plugin's paraphrase — as in
+  `source/images/report.png › "Net total"`; or `<path relative to brd/> › annotation <n>`, the n-th
+  annotation in its §1.2 section.
 
-**A reader tells the three forms apart by the anchor's text before ` › `**: text beginning `source/`
-or `source-external/` names a linked-markdown or image anchor — which of the two, by the linked
-file's extension — and any other anchor is a document anchor.
+**A heading path, in either of the first two forms, names exactly one heading**, with ` › ` between
+nested headings — `Feature A › Acceptance criteria` in the document, and in a linked file
+`source/appendix/fields.md › Reports › Columns`, whose first ` › ` ends the path. Where titles
+repeat, §2.2 branch 2 says how to tell them apart; text above a file's first heading is addressed by
+a line range (§2.2 branch 3).
+
+**A reader tells the three forms apart by the anchor's text before its first ` › `**: text beginning
+`source/` or `source-external/` names a linked-markdown or image anchor — which of the two, by the
+linked file's extension — and any other anchor is a document anchor.
 
 **Rows are numbered in reading order across all three**: the document's first, in source order; then
 each linked markdown file's, in the order `/brd-intake` Phase 2 captured it; and a row drawn from an
@@ -215,17 +236,18 @@ linked markdown file Phase 2 copied, the third over the images:
    by its own rule, below. Whichever form it takes, an anchor that does not resolve is a row
    nobody can trace back, in the artifact whose whole job is traceability.
 2. **Every top-level section of the document and of each linked markdown file Phase 2 copied (a
-   linked file with no heading at all is one section, the whole file — branch 3 below) either
-   holds a row or is accounted for.** A section is held where any anchor names it, names a
-   section beneath it, or links an image that yields a row (§1.2 *Linked from*). One with none is
-   not a defect and is not a stop — only a person can say whether a section binds the delivery
-   team to anything — so `/brd-intake` names each with what the source has under it and asks.
-3. **Every image the current document's capture holds yields a row, illustrates one, or is
-   accounted for.** It *yields* a row where any anchor names it, and *illustrates* one where
-   `brd-reader` returned that row in the image's `illustrates`. An image that does neither — a
-   logo, a decorative banner, a screenshot whose content no obligation bears on, or an image that
-   could not be read — is named with its `Depicts` sentence or its reason, in the same question
-   relation 2 asks.
+   file with no heading at all — the document itself or a linked file — is one section, its whole
+   body after any frontmatter block, branch 3 below; a file's text above its first heading is its
+   lead section, which this relation does not ask about) either holds a row or is accounted
+   for.** A section is held where any anchor names it, names a section beneath it, or links an
+   image that yields a row (§1.2 *Linked from*). One with none is not a defect and is not a stop —
+   only a person can say whether a section binds the delivery team to anything — so `/brd-intake`
+   names each with what the source has under it and asks.
+3. **Every image the current run captured yields a row, illustrates one, or is accounted for.**
+   It *yields* a row where any anchor names it, and *illustrates* one where `brd-reader` returned
+   that row in the image's `illustrates`. An image that does neither — a logo, a decorative banner,
+   a screenshot whose content no obligation bears on, or an image that could not be read — is named
+   with its `Depicts` sentence or its reason, in the same question relation 2 asks.
 
 **The granularity is the finding, not a detail.** Real BRDs run to fifty or sixty headings under
 fourteen or fifteen top-level sections, and on a careful intake nine of those fifteen legitimately
@@ -237,33 +259,37 @@ question worth putting to a human.
 
 **Relations 1 and 2 resolve a document or linked-markdown anchor against the right file first:
 the document itself for a document anchor, or, for a linked-markdown anchor, the file
-`/brd-intake` Phase 2 copied at the path before ` › ` — only the part after it is then tested
-below (a path naming no file Phase 2 copied does not resolve). §2's anchor into that file is a
-heading path *or* a line range, so both forms resolve there — in this order** (an image anchor
-never reaches this test; it resolves by the rule below):
+`/brd-intake` Phase 2 copied at the path before the first ` › ` — only the part after it is then
+tested below (a path naming no file Phase 2 copied, or re-used under collision rule 1, does not
+resolve — §1.1). §2's anchor into that file is a heading path *or* a line range, so both forms
+resolve there — in this order** (an image anchor never reaches this test; it resolves by the rule
+below):
 
 1. **A leading section reference** — `§` and a section number — resolves directly. This is the
    form every anchor carried across the corpora this rule was measured on, which is why it is
    tried first and not why it is the only branch.
 2. **A heading path naming no `§` number** — written, for a nested path, with ` › ` between
-   headings after the file's own path in the two path-prefixed forms (`source/appendix/fields.md
-   › Reports › Columns` names the file, then the heading path `Reports › Columns`) — resolves
-   only where it matches **exactly one** heading in the file, together with its named ancestors,
-   each in order beneath the one before it, compared as text, to the section of the last one
-   named. A path matching more than one heading falls to branch 4, whose remedy the operator can
-   actually carry out: correct the anchor by hand, naming a parent heading to disambiguate it.
-   Appendices and Obsidian notes rarely number their headings, and §2's own example,
-   `source/appendix/fields.md › Report columns`, is exactly this form.
+   headings in every form: in a document anchor (`Feature A › Acceptance criteria`), and after the
+   file's own path in the two path-prefixed forms (`source/appendix/fields.md › Reports › Columns`
+   names the file, then the heading path `Reports › Columns`) — resolves only where it matches
+   **exactly one** heading in the file, together with its named ancestors, each in order beneath
+   the one before it, compared as text, to the section of the last one named. A path matching more
+   than one heading falls to branch 4, whose remedy the operator can actually carry out: correct
+   the anchor by hand, naming a parent heading to disambiguate it, or a line range where no parent
+   tells them apart. Appendices and Obsidian notes rarely number their headings, and §2's own
+   example, `source/appendix/fields.md › Report columns`, is exactly this form.
 3. **Otherwise, the line the anchor names** resolves it: a line in the file's body falls inside
    exactly one section, so a line-range anchor is section-resolvable without the writer having
    named a section at all — and where the file has no heading at all, its whole body, after any
    frontmatter block, is that one section (Obsidian notes routinely have none, the title being
    the filename), so any line there resolves here. A line **above the first heading**, in a file
-   that has one — frontmatter, a title block — is inside no section, and an anchor naming only
-   such a line falls to branch 4 rather than resolving to the first section by proximity.
-4. **Neither** — no section reference, no heading-path match, and no line that lands in a section
-   — and the anchor does not resolve. It may be perfectly well formed; what it is, is
-   unresolvable against *this* file, which is what relation 1 reports it as, per row.
+   that has one, resolves to the file's **lead section** — its body after any frontmatter block, up
+   to that heading — so an obligation stated there is addressed by a line range and never resolves
+   to the first section by proximity. A line inside a frontmatter block lies in no section.
+4. **None of the three** — no section reference, no unique heading-path match, and no line that
+   lands in a section, the lead section included — and the anchor does not resolve. It may be
+   perfectly well formed; what it is, is unresolvable against *this* file, which is what relation 1
+   reports it as, per row.
 
 **The ordering matters more than it looks.** An earlier draft of this section asserted that a leading
 section reference is *the* form an anchor carries. It is what every measured anchor happened to have,
@@ -315,9 +341,9 @@ source owner. They are how the folder asserts its own identity (`workflows-core:
 `brd/source/` document itself carries neither and never will, because it is the customer's and is
 immutable (§1).
 
-**Every `source_anchor` in a slice's inventory resolves against that path, never against anything
-inside the slice's own folder** — the slice has no `brd/source/` to resolve into, which is exactly
-why the header names the parent's. A slice inventory is never re-extracted from the source by
+**Every `source_anchor` in a slice's inventory resolves against the parent's files, never against
+anything inside the slice's own folder** — the slice has no `brd/source/` to resolve into, which is
+exactly why the header names the parent's. A slice inventory is never re-extracted from the source by
 `brd-reader` and never renumbered; copying is the only way it is ever produced, because
 re-extraction would mint a second set of ids for text that already has them.
 
@@ -354,7 +380,7 @@ read.
 **A requirement drawn from an image is tested the same way, and two rules follow from where it came
 from.** An obligation an image states and **no prose anywhere in the document or its linked markdown**
 states carries an `ambiguity` — *"stated only in `<image>` — binding force unknown"* — because one
-competent reader builds what is drawn and another does not, and both are defensible; **unless** the
+competent reader builds what is drawn and another does not, and both are defensible; **unless** any
 passage linking the image makes it binding by its own words (*"must match the attached"*, *"as shown
 in figure 3"*, *"according to the diagram"*). An illustrative or current-state framing (*"for
 example"*, *"today the screen looks like"*) does not. And a row drawn from an image that cannot hold

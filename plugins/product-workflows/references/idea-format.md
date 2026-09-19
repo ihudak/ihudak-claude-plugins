@@ -172,11 +172,12 @@ same brief. What breaks without this is the *record*.
 **Nothing else is ever copied** — no PDF, no archive, no other binary. A linked file nothing opens is
 left where it sits, its link in `idea.md` is left exactly as written, and it is reported (below).
 
-**The copy set is markdown and images because those are all a run reads.** `idea-reader` reads the
-`.md` pages `/idea` Phase 1.5's walk took and `figure-reader` the images; everything else is
-enumerated into `links_other[]` and never opened. So a linked `.txt` is not copied — not because it
-is not text, but because nothing read it — and the run must report it in those terms. `attachments/` is the reserved
-name for the text and markdown a folder vendors; what reaches it *today* is markdown.
+**The copy set is markdown and images because those are all a run reads of what the source
+links.** `idea-reader` reads the markdown pages `/idea` Phase 1.5's walk took and `figure-reader`
+the images; everything else is enumerated into `links_other[]` and never opened. So a linked `.txt`
+is not copied — not because it is not text, but because nothing read it — and the run must report
+it in those terms. `attachments/` is the reserved name for the text and markdown a folder vendors;
+what reaches it *today* is markdown.
 
 `design/` is not a name this file invents: it is the reserved frame-set subdirectory
 `workflows-core:grounding-format` §6.1 already fixes for **any** folder under
@@ -203,7 +204,7 @@ partial read the operator is not told about is indistinguishable from a source t
 |---|---|---|
 | `wikilinks_not_followed[]` | the operator's Phase 1.5 answer left it out | the target, the file that linked it, and its `excluded` reason |
 | `wikilinks_broken[]` | it resolves to nothing, or to more than one file | the target as written, and every candidate of an `ambiguous` one |
-| `images[]` with `read: false` | it was never transcribed | the path and its `excluded`/`missing`/`unreadable`/`not_an_image` reason |
+| `images[]` with `read: false` | it was not transcribed — excluded, or the transcription failed | the path and its `excluded`/`missing`/`unreadable`/`not_an_image` reason |
 | `links_other[]` | it resolves to a file nothing opens — not markdown, not an image | the path and its extension |
 
 **None of the four is fatal**, and none of them has its link rewritten: a link is repointed only at a
@@ -236,13 +237,12 @@ that drifts.
 
 **What `/idea` contributes is one row of §6.2's writer table.** The frames it accounts for are the
 images it copied into `design/idea-sources/` this run; a new row's description is `idea-reader`'s
-per-image `description` — `figure-reader`'s `depicts` sentence for that image — transcribed verbatim
-and never invented, and its `Linked from` is that
-image's `from` in the digest. An image the digest reports `read: false` carries no `description`, is
-not copied, and is accounted for nowhere — so a frame an earlier run vendored, or something other than an
-`/idea` run dropped in, lands on §6.2 step 4 and is reported rather than described. `written_by` is
-`/idea`; `frame_set` is `idea-sources`; `key` is the key the run was invoked with, which is the
-resolved folder's own.
+per-image `description` — `figure-reader`'s `depicts` sentence for that image — transcribed
+verbatim and never invented, and its `Linked from` is that image's `from` in the digest. An image
+the digest reports `read: false` carries no `description`, is not copied, and is accounted for
+nowhere — so a frame an earlier run vendored, or something other than an `/idea` run dropped in,
+lands on §6.2 step 4 and is reported rather than described. `written_by` is `/idea`; `frame_set` is
+`idea-sources`; `key` is the key the run was invoked with, which is the resolved folder's own.
 
 **`idea-sources` is one frame set per PRD folder, not one per run** — see *The two destinations* above —
 which is exactly why §6.2 rebuilds from the directory rather than from what a run copied: an idempotent

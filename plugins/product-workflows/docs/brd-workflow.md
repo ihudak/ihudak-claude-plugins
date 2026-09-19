@@ -243,7 +243,7 @@ specifications/BRD-<BRD-KEY>-<slug>/
 │   ├── source-external/<name>   # files the document links from outside its folder, when captured
 │   ├── brd-inventory.md         # [BR#n] rows, /brd-intake
 │   ├── brd-link-log.md          # links not captured, with reasons, and the as-written map, /brd-intake
-│   ├── brd-figures.md           # each linked image's transcription and the rows it yields, /brd-intake
+│   ├── brd-figures.md           # each captured image's transcription and the rows it yields, /brd-intake
 │   └── brd-defect-log.md        # confirmed [DEF#n] entries, /brd-intake and /brd-reconcile
 ├── coverage-ledger.md           # one row per [BR#n]; /brd-intake writes it, /brd-split resolves it
 ├── grounding/

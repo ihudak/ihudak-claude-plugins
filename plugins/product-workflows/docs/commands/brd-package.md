@@ -172,15 +172,19 @@ Behind a consent choice, these are committed, pushed, and a pull request opened 
 repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix. The committed bundle
 serves both delivery routes, and the run settles which one at the delivery note — which is why the
 consent is asked there rather than at the handoff phase that acts on it: the note is one of the
-files the handoff commits, so its route cannot wait on the handoff's outcome. Where the operator
-consents and the specs repo has a remote to push to, the run asks, recommending that the customer
-pull the bundle; where the handoff is declined, or there is no remote, nothing this run does puts the
-bundle where a customer can pull it, so it takes the archive route without asking and says so. The
-push itself is checked after the handoff: on the repository route, where it did not happen — a
-failed push — the report says the note's route is not yet true and what makes it true. The archive
-command is printed only on the archive route. **The prompt itself names no route** — it is handed on
-to a reader the run cannot see, and a path is correct exactly once, so only the delivery note names
-where the bundle is.
+files the handoff commits, so its route cannot wait on the handoff's outcome. Where the specs repo
+passes the handoff's gate (an existing git repository whose `.git` is writable, on no detached
+HEAD), has an `origin` remote to push to, and the operator consents, the run asks, recommending that
+the customer pull the bundle; where any of the three fails — declining the handoff among them, which
+declines only the handoff and ends nothing else — nothing this run does puts the bundle where a
+customer can pull it, so it takes the archive route without asking and says so. The note names no
+branch, because the branch is settled by the handoff and the bundle reaches the default branch only
+when the handoff's pull request merges: on the repository route the report prints, beside the note,
+the branch and pull request the handoff pushed and says the note is true once that pull request
+merges — or, where nothing was pushed, what must happen first; the *Send it* next step waits on
+the same condition. The archive command is printed only on the archive route. **The prompt itself
+names no route** — it is handed on to a reader the run cannot see, and a path is correct exactly
+once, so only the delivery note names where the bundle is.
 
 ## The prompt's eleven parts
 
@@ -294,8 +298,9 @@ attack.
   excluded from the bundle by rule and its content reaches the customer filtered through the prompt;
   and a hit inside the customer's own verbatim content or a locator naming their files and headings
   — a `[BR#n]` or a filename visible in their screenshot among them, or one they wrote into an
-  answer or a reason the register quotes — reports rather than stops, for the same reason the
-  plugin-free scan treats it that way. A reference that resolves to nothing stops with
+  answer or a reason the register quotes — is reported and put to the operator rather than stopping
+  the run by itself, for the same reason the plugin-free scan treats it that way, and only the
+  operator's *hold* stops it. A reference that resolves to nothing stops with
   `BRD_PACKAGE_DEAD_CITATION`. A requirement this slice does not claim, cited bare in a question, a
   held entry or a register record written before 3.7.0, is such a reference — the package carries
   this slice's inventory alone, and 3.7.0 is the release from which the interview, the PRD's
@@ -354,12 +359,13 @@ Package a synthetic customer BRD once its interview round has settled, declaring
 The run gates on `decisions.md` being merged and on every question carrying a terminal disposition or
 being held for the customer, dispatches the adversarial reviewer, walks each `[SR#n]` to a
 disposition, asks which tier the customer can be given, renders the prompt, asks whether to branch,
-commit, push and open a pull request — and, on a yes with a remote to push to, how the customer gets
-the bundle — renders the note, assembles `bundle-<date>/` with the prerequisite's package copied in
-and marked *not for re-review*, and hands it off as answered. The report prints the delivery note in
-full, the delivery route and why — the archive command with an absolute path on the archive route,
-or a line saying none was produced because the customer pulls the committed bundle — the repo→SHA
-table, and the ledger line.
+commit, push and open a pull request — and, on a yes where the specs repo can take the commit and
+has a remote to push to, how the customer gets the bundle — renders the note, assembles
+`bundle-<date>/` with the prerequisite's package copied in and marked *not for re-review*, and hands
+it off as answered. The report prints the delivery note in full and, directly after it, the delivery
+route and why — the archive command with an absolute path on the archive route, or a line saying
+none was produced because the customer pulls the committed bundle, with the branch and pull request
+the note waits on — then the repo→SHA table and the ledger line.
 
 ## See also
 

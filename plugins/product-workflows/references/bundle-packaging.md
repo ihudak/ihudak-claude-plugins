@@ -339,12 +339,16 @@ command** — producing a single archive of the whole dated directory, in a form
 open without installing anything. One command, because the population that cannot pull the
 repository is exactly the population that will not assemble an archive command themselves.
 **It is produced only where the archive is the route actually being used**, which the calling
-command settles once, at the delivery note. The repository route is true only once the handoff has
-pushed the bundle — a bundle on no ref, or on a commit only the packaging machine holds, is a bundle
-nobody can pull — but the note is itself one of the files that handoff commits, so the route is
-settled from what the run holds before it: the handoff's consent, taken there, and whether the specs
-repository has a remote to push to. The push is checked afterwards, against the route, and reported
-where it did not happen (`commands/brd-package.md`'s *Render the delivery note* and *Handoff*).
+command settles once, at the delivery note. The repository route is true only once the bundle is on
+the specs repository's default branch — the handoff's pull request merged; a bundle on no ref, on a
+commit only the packaging machine holds, or on a branch not yet merged is a bundle a customer
+pulling the repository does not find — but the note is itself one of the files that handoff
+commits, so the route is settled from what the run holds before it: whether the specs repository
+passes `workflows-core:phase-handoff` §2.1's gate, whether its push-target probe finds a remote to
+push to, and the handoff's consent, taken there. The note names no branch; what makes it true on
+the outcome the handoff got — the branch and pull request it pushed, or what must happen first — is
+said beside it in the run's final report (`commands/brd-package.md`'s *Render the delivery note*
+and *Handoff*).
 
 **The committed copy is the permanent record of exactly what was sent.** This is the point of D18
 and the reason the cost is worth paying: it is what makes the byte-identical property behind the
@@ -524,10 +528,10 @@ file meets `[CG#7]` with nothing telling them whose numbering it is.
 where the number would stand — names a class and no record, so relation 1 has nothing in it to
 resolve. That is the only form an example takes in text the run copies in verbatim — the schema body
 the prompt's part 10 inlines (`references/customer-review-schema.md` §1) and every fixed sentence
-`commands/brd-package.md` renders — so that text needs no exemption here. An example written with a
-number is not an example to this relation: it resolves against the package's own records, to a
-record nobody meant or to nothing, and no operator edit can repair text the run renders from a
-reference on every run.
+`commands/brd-package.md` renders, which its *Render the customer prompt* phase binds to that form —
+so that text needs no exemption here. An example written with a number is not an example to this
+relation: it resolves against the package's own records, to a record nobody meant or to nothing, and
+no operator edit can repair text the run renders from a reference on every run.
 
 **A structured field is already qualified, and relation 1 reads it rather than refusing it.** Where
 an identifier reaches the bundle inside a **structured field whose format another authority fixes**,
@@ -653,8 +657,9 @@ in the bundle, **by design**, and a check without this exemption fires on every 
 distinction a reader needs: naming the self-review *file* is dead — relation 3 catches it — while
 naming an `[SR#n]` id is the filter working as intended, and relation 1 must not catch it.
 
-**Verbatim customer content reports rather than stops.** That is every span in the bundle holding
-the customer's own words, copied or transcribed rather than written by this package:
+**Verbatim customer content reports rather than stopping the run on its own.** That is every span
+in the bundle holding the customer's own words, copied or transcribed rather than written by this
+package:
 
 - `brd/source/<basename>` and every other captured markdown file, whole — copied byte for byte and
   immutable by rule (§2.1, `references/brd-format.md` §1, §1.1);
@@ -668,10 +673,10 @@ the customer's own words, copied or transcribed rather than written by this pack
   whole, an image-drawn row's only in the element it quotes — because each ledger row's `text`
   mirrors its inventory row's (`references/coverage-ledger-format.md` §2);
 - and in `decisions.md`, a `[CD#n]`'s `argumentation`, the customer's own reason quoted and never
-  paraphrased (`commands/brd-reconcile.md`, *Freeze the customer decisions*) — the quotation only,
-  not a closing `Reopened`, `Reverted` or `Withdrawn` paragraph after it, which is the plugin's
-  (`references/decision-register-format.md` §4) — and its `chosen` where that quotes an answer
-  outside the options put — the answer only, not the fixed marker before it
+  paraphrased (`commands/brd-reconcile.md`, *Freeze the customer decisions*) — the customer's quoted
+  words only, never a `Reopened`, `Reverted` or `Withdrawn` paragraph among them, which is the
+  plugin's (`references/decision-register-format.md` §4) — and its `chosen` where that quotes an
+  answer outside the options put — the answer only, not the fixed marker before it
   (`references/decision-register-format.md` §1).
 
 Each table span is read **decoded** (`references/brd-format.md` §2.3): a `\|` or a `<br>` in the
@@ -720,10 +725,11 @@ relation 3's (§6.2). Four rules follow, for the plugin-free scan and this check
    assumes a reader who has this plugin. Every anchor that section was measured on opens with one,
    so reported they would put a grouped count of expected `§`s in every package's report, and that
    count would absorb, and so hide, a real one.
-2. **Any other hit inside a locator is reported, never a stop** — a `references/` folder in a
-   captured path, a quoted `"D3"`, a `§` inside heading text, a filename or a link target. It is the
-   customer's naming, and the only repair would rename their files, retitle their headings or
-   re-point an anchor away from where the requirement is stated, each of which falsifies the record.
+2. **Any other hit inside a locator is reported, never a stop on its own** — a `references/`
+   folder in a captured path, a quoted `"D3"`, a `§` inside heading text, a filename or a link
+   target. It is the customer's naming, and the only repair would rename their files, retitle their
+   headings or re-point an anchor away from where the requirement is stated, each of which
+   falsifies the record.
 3. **A bare `<name>.md` link inside a captured file is outside relation 3** where it resolves — as
    written, or through the link log's *Captured links that do not resolve as written* table (§2.1)
    — to a captured file the manifest maps. The manifest already resolves it, which is the reason
@@ -751,10 +757,14 @@ package* stops it:
 `BRD_PACKAGE_CUSTOMER_CONTENT_HELD: you held <BRD-KEY>'s package over <n> hit(s) inside the customer's own words or naming — nothing was handed off. What the report names is the customer's and is never edited here: take it up with the customer, then re-run. Where this run already wrote bundle-<YYYYMMDD>/, it was never sent — move it aside first, or the re-run stops with BRD_PACKAGE_BUNDLE_EXISTS.`
 
 A free-text answer is read onto one of the two, or the question is asked again; it never becomes a
-third outcome. **A hit an earlier ruling in this run already covered — the same token, from the same
-source artifact — is listed under that ruling and not asked about again**, so the prompt's hits are
-not put a second time when the bundle pass meets the prompt among the bundle's documents. A pass
-that reports nothing asks nothing. The run's final report records the rulings as one outcome line,
+third outcome. **A hit an earlier ruling in this run already covered is listed under that ruling and
+not asked about again**, and a hit is keyed by its token and **the file it sits in** — one grouped
+line of rule 4, never the artifact its text was interpolated from. The bundle's copy of the prompt
+counts as the prompt for this: its hits are the ones the ruling taken over the prompt (*Render the
+customer prompt*) covered, so they are not put a second time when the bundle pass meets the prompt
+among the bundle's documents under its bundled filename. A hit in any other bundle document is that
+document's, even where the same token reached the prompt from it. A pass that reports nothing asks
+nothing. The run's final report records the rulings as one outcome line,
 above the grouped lines:
 
 `Customer content: <n> hit(s) in <m> file(s) — shipped as the customer's own, on the operator's ruling`

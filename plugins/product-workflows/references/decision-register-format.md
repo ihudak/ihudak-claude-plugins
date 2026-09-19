@@ -171,7 +171,10 @@ and the original `chosen` stands.
 **The cause is written in the record's `argumentation`**, as a closing paragraph appended beneath
 what the field already holds and opening `Reopened <YYYYMMDD>:` — never in place of the reasoning
 the re-decision has to argue against. None of §1's thirteen fields is a cause, and `argumentation`
-is the one that already answers *why*. On a `[CD#n]`, whose `argumentation` is the customer's own
+is the one that already answers *why*. **That paragraph stays.** The re-decision writes its own
+argumentation after it — why the change moves the answer, or why it does not — and never replaces
+it or what stands above it, so the record carries the original reasoning, the cause and the answer
+to the cause in the order they happened. On a `[CD#n]`, whose `argumentation` is the customer's own
 reason quoted, the paragraph follows the quotation and leaves it exactly as written; its opening
 marker is what tells the plugin's words from the customer's (`references/bundle-packaging.md` §6.3).
 

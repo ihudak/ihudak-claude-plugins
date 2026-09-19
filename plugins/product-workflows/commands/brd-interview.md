@@ -254,17 +254,22 @@ and nothing downstream can tell the difference afterwards.
    parent test, `commands/brd-split.md` Phase 0), which is how it tells a defect already asked from
    one that is not — an absent one holds no entry. A previous run's register, round records and
    code-defect log are inputs, never scratch: nothing below deletes, renumbers or rewrites a record
-   another run wrote. **Exactly one field is the admitted exception, and naming it
-   here is what keeps this sentence and the re-disposition rule below from having to be refereed by a
-   reader**: a `[CDF#n]`'s `disposition` — with `blocked_on` added or dropped as the new disposition
-   requires — may be re-taken by the *Put each `[V]` to the operator* phase and written by the *Write
-   the register and the round record* phase, because `open` and `conditional` are holding states that
-   would otherwise have no exit at all. Nothing else on that record moves, and no other record here
-   carries an exception. **An addition is not a rewrite, and one is made to another run's entry**:
-   the `- **Requirement defect:**` line — with its `- **Defect image:**` line, where the defect sits
-   on a row drawn from an image — that *Resolve the round* appends to a held `[C]` entry in
-   `interview/customer-questions.md` (*One question per row*), which changes nothing already written
-   in it.
+   another run wrote. **Two changes to another run's record are the admitted exceptions, and naming
+   them here is what keeps this sentence and the rules below from having to be refereed by a
+   reader.** The first: a `[CDF#n]`'s `disposition` — with `blocked_on` added or dropped as the new
+   disposition requires — may be re-taken by the *Put each `[V]` to the operator* phase and written
+   by the *Write the register and the round record* phase, because `open` and `conditional` are
+   holding states that would otherwise have no exit at all. The second: a decision reopened under
+   `decision-register-format.md` §4, against one of the two causes it admits — the *Write the
+   register and the round record* phase moves its `status` to `reopened` and appends the closing
+   `Reopened <YYYYMMDD>:` paragraph §4 puts in its `argumentation`, against the original record's
+   id — and the re-decision a later round takes on it, which writes its `chosen`, its `status` and
+   its argumentation after that paragraph, never over it (§4). Nothing else on either record moves,
+   and no other record here carries an exception. **An addition is not a rewrite, and one is made
+   to another run's entry**: the `- **Requirement defect:**` line — with its `- **Defect image:**`
+   line, where the defect sits on a row drawn from an image — that *Resolve the round* appends to a
+   held `[C]` entry in `interview/customer-questions.md` (*One question per row*), which changes
+   nothing already written in it.
 
 ---
 
@@ -966,7 +971,10 @@ horizons of findings in an `evidence` list and an assumption's list holds none.
 on an assumption. Ids are contiguous within their own prefix, assigned once, **never renumbered and
 never reused after a terminal status** (§1) — a re-run continues the sequence from the highest id on
 file and never restarts it. A run that reopens a decision writes `status: reopened` with its cause
-named (§4), against the original record's id; it never mints a new id for the same question.
+named in the closing `Reopened <YYYYMMDD>:` paragraph §4 appends to its `argumentation`, against the
+original record's id; it never mints a new id for the same question. That, and the re-decision a
+later round writes after that paragraph, is the second of the two exceptions the *Resolve inputs
+and gate the grounded BRD* phase admits to rewriting another run's record.
 
 **The register is written on every run that reaches this phase, whether or not the round produced a
 record.** Where no register is on file, this run creates it, and its first line is the header —

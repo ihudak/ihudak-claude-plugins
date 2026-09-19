@@ -37,7 +37,8 @@ folder** — never a status somebody declared:
 - **○ not started** — the command's output artifact is absent → selectable.
 - **◐ in progress** — a resume file exists but the final artifact does not → selectable as a resume.
 - **● done** — the artifact exists → shown greyed and not default-selectable; selecting it offers to
-  revise.
+  revise. For `/implement` the artifact is a record — an `implementation.md` holding at least one
+  block, never a file holding only its heading (`references/implementation-format.md` §1).
 
 Default cursor on the first actionable row, in-progress before not-started.
 

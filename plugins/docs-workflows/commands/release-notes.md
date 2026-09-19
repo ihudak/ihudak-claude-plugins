@@ -160,17 +160,17 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 1. **The record.** Read the `implementation.md` records named above. **Read only the blocks no earlier note covers** — a second release must not re-describe the first one's work, and the notes already in `release-notes.md` are the only honest boundary. `workflows-core:implementation-format` §4 fixes it per record: the blocks dated after the latest note covering that record, a note for the PRD covering every record and a note for an Epic that Epic's alone, each note's scope and date read off the scope line above it (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1, which also says what a note with none counts as). So a note drafted for one Epic moves no other Epic's boundary. A ref two of these records name — the same repository and the same commit — is one ref, counted once (that same §4). **Name the blocks this run used**, so a wrong boundary is visible rather than silent.
 2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
    repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
-   already holds:
+   already holds, with the `git log` command `workflows-core:implementation-format` §4 gives: one
+   `--grep` per token, each matching only as a whole key. The tokens — keys and `workitem_key`s —
+   are the ones §4 names for this run's scope, an Epic's where `focus_key` is set and the PRD's
+   where it is null, each read off a folder this run resolved or listed; **nothing is parsed out of
+   a commit message.** This is what finds work the plugin did not do — a commit written by hand
+   after a session ended, a colleague's push, a follow-up nobody ran a command for.
 
-   ```
-   git -C <repo> log --grep='<key>' --grep='<workitem_key>' --extended-regexp --regexp-ignore-case
-   ```
-
-   The tokens — keys and `workitem_key`s — are the ones `workflows-core:implementation-format` §4
-   names for this run's scope, an Epic's where `focus_key` is set and the PRD's where it is null,
-   each read off a folder this run resolved or listed; **nothing is parsed out of a commit
-   message.** This is what finds work the plugin did not do — a commit written by hand after a
-   session ended, a colleague's push, a follow-up nobody ran a command for.
+   **The note boundary binds this source too** (§4): drop every commit whose SHA a block in the
+   records read names, covered or not, and keep only those dated after the latest note covering
+   the record whose token each matched, or on that note's day — or a covered block's commits, and
+   every hand-made commit an earlier note described, come back as unrecorded work.
 
 **Merge and dedupe by SHA.** Anything the scan finds beyond the recorded blocks is reported as
 **unrecorded work**, named as such with its commits listed: folding hand-made commits silently into

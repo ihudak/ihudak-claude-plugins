@@ -298,17 +298,12 @@ alongside it.
    counted once (that reference's §4).
 2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
    repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
-   already holds:
-
-   ```
-   git -C <repo> log --grep='<key>' --grep='<workitem_key>' --extended-regexp --regexp-ignore-case
-   ```
-
-   The tokens — keys and `workitem_key`s — are the ones `workflows-core:implementation-format` §4
-   names for this run's scope, an Epic's where `focus_key` is set and the PRD's where it is null,
-   each read off a folder this run resolved or listed; **nothing is parsed out of a commit
-   message.** This is what finds work the plugin did not do — a commit written by hand after a
-   session ended, a colleague's push, a follow-up nobody ran a command for.
+   already holds, with the `git log` command `workflows-core:implementation-format` §4 gives: one
+   `--grep` per token, each matching only as a whole key. The tokens — keys and `workitem_key`s —
+   are the ones §4 names for this run's scope, an Epic's where `focus_key` is set and the PRD's
+   where it is null, each read off a folder this run resolved or listed; **nothing is parsed out of
+   a commit message.** This is what finds work the plugin did not do — a commit written by hand
+   after a session ended, a colleague's push, a follow-up nobody ran a command for.
 
 **Merge and dedupe by SHA.** Anything the scan finds beyond the recorded blocks is reported as
 **unrecorded work**, named as such with its commits listed: folding hand-made commits silently into

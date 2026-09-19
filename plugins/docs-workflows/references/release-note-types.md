@@ -35,9 +35,10 @@ addressed to an Epic as on one addressed to the PRD — and names no version.
 `<!-- release-note scope: <KEY> <YYYY-MM-DD> -->`, `<KEY>` the PRD folder's key on a run addressed
 to the PRD and the Epic's on one addressed to an Epic, and the date the run appended the draft. The
 file is one per PRD and a note may be drafted for one Epic, so without the line nothing in the file
-says whose work a note described, and the line is what `/release-notes` takes its block boundary
-from — a PRD's note covering every implementation record under the PRD, and an Epic's that Epic's
-record alone (`workflows-core:implementation-format` §4). An HTML comment renders as nothing and is
+says whose work a note described, and the line is what `/release-notes` takes its boundary from,
+for the blocks it reads and the commits its scan keeps alike — a PRD's note covering every
+implementation record under the PRD, and an Epic's that Epic's record alone
+(`workflows-core:implementation-format` §4). An HTML comment renders as nothing and is
 not a heading, so it moves none of the boundaries above, and it is **not part of the draft**: every
 rule below binds the draft beneath it, and the operator's paste starts there. **A draft with no
 scope line — every one appended before `docs-workflows` 1.2.2 — counts as the PRD's**, which is how

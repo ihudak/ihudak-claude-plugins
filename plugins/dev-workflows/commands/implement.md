@@ -74,10 +74,12 @@ folder and what it carries. Then:
     choice below and *"Another Epic from the list above — name its key"*. **`/implement`'s
     done-predicate is now the artifacts present in each Epic folder**, which is the mechanism
     `/design`'s own Epic picker already uses:
-    `specification.md` but no `design.md` → ○; `design.md` present, no `implementation.md` → ◐;
-    `implementation.md` present → ● (greyed, not default-selectable; selecting offers "implement
-    anyway"). All three markers are determinable, because `/implement` writes that record itself,
-    into the Epic's own folder however the Epic was chosen (Phase 4.7). Reading the artifacts rather
+    `specification.md` but no `design.md` → ○; `design.md` present, no record → ◐; a record → ●
+    (greyed, not default-selectable; selecting offers "implement anyway") — a record being an
+    `implementation.md` holding at least one block, never a file holding only its heading
+    (`workflows-core:implementation-format` §1). All three markers are determinable, because
+    `/implement` writes that record itself, into the Epic's own folder however the Epic was chosen
+    (Phase 4.7). Reading the artifacts rather
     than a status field is
     strictly better than what it replaces: a declared status is a human's claim about the work and
     could lag it, which is why the old picker had to print the raw status text as a hedge. Include the explicit choice
@@ -100,8 +102,9 @@ set, and the resolved folder's `key` on a broad PRD-level slice; `null` in direc
 `workitem_key` is that same folder's. Pre-Phase 3 names the branch with it and Phase 4.6 ends the
 commit subject with it (`workflows-core:implementation-format` §3), so a run that implements an
 Epic under a PRD address commits `[<EPIC-KEY>]` on a branch named for the Epic — the key an
-Epic-level scan greps (§4 there). Those two phases are its readers; where any other step names the
-run's `key`, it means the resolved folder's.
+Epic-level scan greps (§4 there). Those two phases are its readers. Phase 4.5's handoff title is
+not one: it names the folder it hands off, which on such a run is the Epic's wherever the files it
+annotated are. Where any other step names the run's `key`, it means the resolved folder's.
 
 Rules:
 - The **primary description** is: the spec file if one was given → else the spec-folder design doc → else the inline prose. Echo `📄 Reading prompt from <file>…` (or `from inline text`) and confirm `"Loaded prompt (N lines)."`.
@@ -708,7 +711,7 @@ Where the set is an annotated `design.md` **alone**, present §4.3's **gated —
 
 `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase does not stop on this, but until this is on main it might not read your copy)", "Cancel"]`
 
-On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix`, `feature_folder`, and `deliverable_paths` as above; `title: <KEY> Record spec/design conformance findings from /implement`; and `body_facts` = the count of escalated `- [ ]` notes, the code-review Spec/design-conformance dimension summary they came from, and the fact that whoever next reads this `specification.md`/`design.md` will not see them until this pull request is merged. Emit its §4.1 outcome line in the Phase 5 `### Spec/design conformance` section.
+On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix`, `feature_folder`, and `deliverable_paths` as above; `title: <FOLDER-KEY> Record spec/design conformance findings from /implement`, `<FOLDER-KEY>` being `feature_folder`'s own `key`, read off its carrier (`workflows-core:addressing` §4) — the key the handoff's branch is named for (§2.2 there), and so the Epic's, not the resolved folder's, wherever a run that chose an Epic under a PRD address annotated that Epic's files; and `body_facts` = the count of escalated `- [ ]` notes, the code-review Spec/design-conformance dimension summary they came from, and the fact that whoever next reads this `specification.md`/`design.md` will not see them until this pull request is merged. Emit its §4.1 outcome line in the Phase 5 `### Spec/design conformance` section.
 
 Placement is deliberate, not stylistic: step 7.5 sits inside Phase 3B, before the tests run, so calling `handoff-to-main` there would commit mid-review — hence the notes are written in 7.5 and handed off here instead, after Phase 4's post-implementation maintenance and before Phase 6's follow-ups and Phase 7's cost/`resume.md`/`commit-artifacts`. A call from inside Phase 6 or Phase 7 would falsify Phase 7's never-commits-the-deliverable claim below.
 

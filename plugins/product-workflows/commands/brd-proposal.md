@@ -93,9 +93,12 @@ not work: a flag is a token, so `--redo` would arrive as the address.
    folder is read**. The umbrella aggregates slices; pricing one is the sibling's job, and the two
    are different documents priced from different inputs.
 
-   **The test is the directory prefix, never the folder's asserted `kind:`** — `/brd-split` writes
-   `kind: brd` into the `brd-link.md` inside the `PRD-` slice folder it carves, so a slice *asserts*
-   `brd` while being exactly the folder this command must refuse; an asserted-kind gate would accept
+   **The test is the directory prefix, never the folder's asserted `kind:`** — a prefix as
+   `workflows-core:addressing` §4.1 defines one, the name beginning `<KIND>-<the resolved key>-`,
+   so a legacy root BRD keyed `PRD-12`, named `PRD-12-payments/`, carries no prefix and is not
+   refused as a slice by its name. `/brd-split` writes `kind: brd` into the `brd-link.md` inside
+   the `PRD-` slice folder it carves, so a slice *asserts* `brd` while being exactly the folder this
+   command must refuse; an asserted-kind gate would accept
    every slice and refuse nothing, which is this command's inversion of the mistake the family's
    other container gates guard against. Where the folder carries no prefix — resolved through
    `workflows-core:addressing` §5's legacy unprefixed fallback, or an unprefixed folder an `@<path>`

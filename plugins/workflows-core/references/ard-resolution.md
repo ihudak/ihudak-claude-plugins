@@ -86,7 +86,7 @@ deviation record as *allowed-but-flagged* (the architect adjudicates), **without
 - `/design` — Epic-level ARD = design guidance; PRD-level `AD#N` = inherited invariants; deviations → a `## ARD deviations` section in `design.md` + an open question.
 - `/implement` — keyed runs only; `AD#N` = implementation guardrails; deviations → the Phase 5 report. Direct mode → `none`.
 - `/specify` — keep user stories + scope consistent with `AD#N` + scope; deviations → the spec's `### Open questions`.
-- `/epics` — PRD-level only (`epic: null`, Epics do not exist yet); `AD#N` = inherited invariants the drafted Epics must respect; deviations → a `- ARD deviation: …` line in the Epic draft + the Phase 9 report.
+- `/epics` — PRD-level only (`epic: null` on a re-refine run as on a draft one, `prd` the PRD folder's key either way); `AD#N` = inherited invariants the drafted Epics must respect; deviations → a `- ARD deviation: …` line in the Epic draft + the Phase 9 report.
 - `/ready` — PRD-level + Epic-level `AD#N` = inherited invariants passed to `readiness-reviewer` as `applicable_ard`; read-only — it never authors a deviation record, only checks the artifacts it reads for an existing one.
 
 The other five pass `invariants` to their reviewer as `applicable_ard`; the reviewer's ARD-conformance dimension is skipped entirely when it is absent. `/create-ard` alone does not: it inherits PRD-level `AD#N` read-only straight into its own grill and drafting (Phase 4), and `ard-reviewer` checks non-contradiction directly against the drafted file, never via that field.

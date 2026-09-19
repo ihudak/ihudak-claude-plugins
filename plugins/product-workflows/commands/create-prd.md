@@ -134,7 +134,9 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    the asserted kind would refuse every slice and accept nothing. Nor can this command gate on
    `prd.md`'s own `kind: prd`, the way a reader of an authored PRD does: this run is greenfield and
    `prd.md` is the file it is about to write. So the test is the `BRD-` prefix
-   `workflows-core:addressing` §2 fixes, read off the resolved folder's own
+   `workflows-core:addressing` §2 fixes, read off the resolved folder's own name — a prefix as that
+   file's §4.1 defines one, the name beginning `<KIND>-<the resolved key>-`, so a legacy idea-route
+   folder keyed `BRD-12`, named `BRD-12-checkout/`, carries no prefix and is not refused by its
    name. A `PRD-` prefix passes; a `BRD-` prefix refuses.
 
    **Where the folder resolved through that file's §5 legacy fallback and carries no prefix at all,

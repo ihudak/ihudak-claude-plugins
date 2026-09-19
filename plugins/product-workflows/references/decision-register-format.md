@@ -31,12 +31,14 @@ supersedes the `[AS#n]` each one settles, reopens what an incoming customer deci
 **The file opens with one line, `# Decision register: <BRD-KEY>`** — the key of the BRD whose folder
 it sits in — and holds its records after that line, one block per record. **Every command that
 creates the file writes that line first**: `commands/brd-interview.md` on the first register it
-creates, whether or not the round recorded anything, and `commands/create-prd.md` where it creates
-the register for a roundless `[AS#n]` (§7). **A register holding no record is that line alone**, and
-it is an ordinary state — `/brd-interview` writes it so where a round it records produced no
-`[VD#n]` or `[AS#n]` — which every reader treats as a register with nothing in it, never as a
-missing one. A register written before 3.7.0 may lack the line, and no reader keys on it: records are
-found by their own ids.
+creates, whether or not the round recorded anything; `commands/create-prd.md` where it creates the
+register for a roundless `[AS#n]` (§7); and `commands/brd-reconcile.md` where a `--sent` run finds
+no register on file, whether or not it then freezes a `[CD#n]` (its *Freeze the customer decisions*
+phase). **A register holding no record is that line alone**, and it is an ordinary state —
+`/brd-interview` writes it so where a round it records produced no `[VD#n]` or `[AS#n]`, and
+`/brd-reconcile` where the register it creates takes no `[CD#n]` — which every reader treats as a
+register with nothing in it, never as a missing one. A register written before 3.7.0 may lack the
+line, and no reader keys on it: records are found by their own ids.
 
 Each `[VD#n]` and `[CD#n]` carries:
 

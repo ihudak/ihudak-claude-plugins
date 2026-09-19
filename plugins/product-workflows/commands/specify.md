@@ -130,7 +130,9 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
    or an `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Carry forward:
    - `<PRD>` — the resolved **PRD folder's** `key`: the folder itself when the address named a
      `PRD-` folder, its parent when it named an `EPIC-` folder.
-   - `<EPIC>` — the `EPIC-` folder's `key`, or `null` when the address named a `PRD-` folder.
+   - `<EPIC>` — the `EPIC-` folder's `key`, or `null` when the address named a `PRD-` folder. The
+     later phases call it `focus_key` — one value under two names: Phase 2 Step A's picker may set
+     it on a `PRD-` address, and every later step tests it as *set* or *null*.
 
    A folder with no prefix — one §5's legacy fallback resolved, or an unprefixed folder an `@<path>`
    names; a name is prefixed only where it begins `<KIND>-<the resolved key>-`, so a legacy key

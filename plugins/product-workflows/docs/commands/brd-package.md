@@ -97,8 +97,10 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   a BRD never interviewed, and for one interviewed before it wrote the register on every round —
   resuming a round still open, or on its no-new-round path where every round is closed; for a BRD
   whose every row is delegated it stops instead, since that BRD kept nothing to package. A
-  register in the folder means the interview ran and its handoff was declined
-  (`BRD_PACKAGE_REGISTER_NOT_HANDED_OFF`, land the files that are already on disk). The second must
+  register in the folder means the run that wrote it — the interview, ordinarily, or
+  [`/create-prd`](create-prd.md) or [`/brd-reconcile`](brd-reconcile.md) where either created it —
+  had its handoff declined (`BRD_PACKAGE_REGISTER_NOT_HANDED_OFF`, land the files that are already
+  on disk). The second must
   **not** send the operator back to `/brd-interview`: a bare re-run of that command hands off only
   the files it writes itself — nothing at all where it finds nothing new to ask, and where it opens a
   new round, that round's record and not the earlier ones already on disk.

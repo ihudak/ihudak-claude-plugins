@@ -55,10 +55,13 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    but 1b's remedy names `/product-workflows:create-prd`, which refuses a container in turn — a stop
    whose remedy stops is a dead end, and this step is what keeps it from being one.
 
-   **The test is the directory prefix, and never the folder's asserted `kind:`** — `/brd-split`
-   writes `kind: brd` into the `brd-link.md` it places inside a `PRD-` slice folder, so a slice
-   **asserts `brd` while being exactly the folder Epics belong under**, and a gate on the asserted
-   kind would refuse every slice and accept nothing.
+   **The test is the directory prefix, and never the folder's asserted `kind:`** — a prefix as
+   `workflows-core:addressing` §4.1 defines one, the name beginning `<KIND>-<the resolved key>-`,
+   so a legacy idea-route folder keyed `BRD-12`, named `BRD-12-checkout/`, carries no prefix and is
+   not refused as a container by its name. `/brd-split` writes `kind: brd` into the `brd-link.md`
+   it places inside a `PRD-` slice folder, so a slice **asserts `brd` while being exactly the folder
+   Epics belong under**, and a gate on the asserted kind would refuse every slice and accept
+   nothing.
 
    **Where the folder carries no prefix — resolved through `workflows-core:addressing` §5's legacy
    fallback, or an unprefixed folder an `@<path>` named — the question is answered by positive
@@ -325,8 +328,10 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 ## Phase 2.5 — Resolve applicable ARD (optional)
 
-Resolve any PRD-level ARD for this PRD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and running its resolution with `prd = key`,
-**`epic: null`** (Epics do not exist yet — PRD-level ARD only), and `$SPECS_PATH`.
+Resolve any PRD-level ARD for this PRD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and running its resolution with `prd = <PRD-KEY>` —
+the PRD folder's key (Phase 0 step 1b), never the run's own `key`, which on a re-refine run is the
+Epic's — **`epic: null`** (PRD-level ARD only, on a re-refine run as on a draft one), and
+`$SPECS_PATH`.
 
 - On `status: none` (including `$SPECS_PATH` unset/unresolvable) → **skip and
   proceed exactly as before.** No prompt, no extra output.

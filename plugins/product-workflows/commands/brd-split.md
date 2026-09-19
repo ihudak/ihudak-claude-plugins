@@ -534,8 +534,12 @@ For every slice Phase 2 confirmed:
    verbatim, each cell exactly as it stands in this BRD's file — or, where that file predates the
    layout, as it gives the cell, encoded by `brd-format.md` §2.3 as it is written), in the layout
    `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2 fixes, under the frontmatter §2.1 fixes for a
-   slice — `kind: brd`, the child's `key:`, and the `parent:`/`source:` pair, `source:` read off this
-   BRD's `brd/brd-link-log.md` (§1.1). **Copy; never re-extract.** Ids are
+   slice — `kind: brd`, the child's `key:`, and the `parent:`/`source:` pair, `source:` naming the
+   document this BRD's inventory records in its `document:`, the one its rows were last reconciled
+   against — never the one `brd/brd-link-log.md` opens with, which a rename run that stopped before
+   its Phase 3 leaves naming a document no row was read from. On an inventory written before 3.7.0,
+   which carries no `document:`, read the log's opening line instead (`brd-format.md` §1.1).
+   **Copy; never re-extract.** Ids are
    the parent's and stay the parent's, and every `source_anchor` copied here keeps resolving
    against the parent's files — its `brd/source/`, `brd/source-external/` or `brd/brd-figures.md`,
    by the anchor's form (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — the child holds no

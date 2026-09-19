@@ -6,7 +6,7 @@
 
 Anyone who put frames in the specs tree, at any point in the pipeline. `design/` is a reserved subdirectory of **any** folder under `specifications/` — a BRD folder, a PRD folder, or an Epic folder alike — so `/frames` resolves all three ([`addressing.md`](../../references/addressing.md) §3, with no kind narrowing). [Workflow overview](../workflow.md#cross-cutting-commands) groups it under the anytime commands: it advances no phase and belongs to no role's step.
 
-It emits a session-cost entry all the same, with `phase`/`role` inferred from the resolved folder's own `kind` — a BRD folder's frame set is [`brd-to-prd`](../roles-and-phases.md#brd-to-prd)/`pm` spend, a PRD or Epic folder's is [`prd-creation`](../roles-and-phases.md#prd-creation)/`pm`. Describing forty frames is real work, and a run that measured nothing would not be free — its spend would roll into whatever command ran next.
+It emits a session-cost entry all the same, with `phase`/`role` inferred from the resolved folder's own `kind` — a frame set in a folder asserting `kind: brd`, a BRD container or a BRD-route slice, is [`brd-to-prd`](../roles-and-phases.md#brd-to-prd)/`pm` spend; one in a folder asserting `prd` or `epic` is [`prd-creation`](../roles-and-phases.md#prd-creation)/`pm`, an Epic folder under a slice included. Describing forty frames is real work, and a run that measured nothing would not be free — its spend would roll into whatever command ran next.
 
 ## Why it exists
 

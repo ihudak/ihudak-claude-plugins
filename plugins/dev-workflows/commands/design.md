@@ -48,7 +48,7 @@ Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-b
    is read:
    `DESIGN_BRD_NOT_SLICED: <KEY> resolves to a BRD container at <path> — a BRD's specifications, and so its designs, belong to its PRD- slices. <the remedy>`
    `<the remedy>` lists the slices under it, found by the positive test §4.1 names — `Design within a slice instead: '/dev-workflows:design <SLICE-KEY>' — <each slice's key>.` — and, where it finds none:
-   `It has no slice yet: '/product-workflows:brd-split <KEY> "<how to cut it>"' carves one — the instruction is required there, and that run carves nothing where this BRD's ledger leaves no row unallocated; '/product-workflows:create-prd <KEY>' refuses this same container and says what to do then.`
+   `It has no slice yet: '/product-workflows:brd-split <KEY> "<how to cut it>"' carves one — the instruction is required there, and that run carves nothing where this BRD's ledger leaves no row unallocated. Where it leaves none, coverage-ledger-format.md §5 names two repairs, the narrow one first: hand-edit the one row to be built back to unallocated in coverage-ledger.md, leaving every other row as it stands; or, to re-take the whole inventory, re-run '/product-workflows:brd-intake <KEY> @<brd-file>', which reopens every row wherever its read finds a requirement and discards every deferred-to, rejected and superseded-by the ledger records.`
    It is a user halt. **A folder with no prefix** — one §5's legacy fallback resolved, or an
    unprefixed folder an `@<path>` names, a name beginning with a kind token being prefixed only
    where it begins `<KIND>-<the resolved key>-` — is otherwise placed by positive evidence: a

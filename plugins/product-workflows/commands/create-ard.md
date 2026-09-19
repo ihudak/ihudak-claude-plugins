@@ -57,7 +57,8 @@ this stage). Zero external calls.
    its prefix, never by the `kind` it asserts**, which on a slice is its `brd-link.md`'s `brd` (§4).
    This is what replaces the old two-key grammar:
    - a `PRD-` folder → `<PRD>` is its `key`, `<EPIC>` is `null`;
-   - an `EPIC-` folder → `<EPIC>` is its `key` and `<PRD>` is its parent's;
+   - an `EPIC-` folder → `<EPIC>` is its `key` and `<PRD>` is its parent's. Phase 2 calls `<EPIC>`
+     `focus_key` — one value under two names, set on an Epic-level run and `null` otherwise;
    - a `PRD-` folder holding a `brd-link.md` → the BRD route. Define `<SLICE-KEY>` = the resolved
      folder's `key`;
    - **a folder with no prefix** — one §5's legacy fallback resolved (`legacy: true`), or an

@@ -135,17 +135,20 @@ Links found <n> · files copied <n> · links not copied <n>
 - **`kind: brd-link-log` names this document, not the folder** — a kind outside `brd`, `prd` and
   `epic`, which `workflows-core:addressing` §4 passes over, so the log is never mistaken for the
   folder's carrier.
-- **The opening line is the one a reader takes the document's name from**: the first non-blank line
-  after the frontmatter, `Source document: ` and then the basename, to the end of the line — no
-  quoting, so a basename carrying any character is read back exactly.
+- **The opening line names the document the capture ran on**: the first non-blank line after the
+  frontmatter, `Source document: ` and then the basename, to the end of the line — no quoting, so a
+  basename carrying any character is read back exactly. Outside the intake run that writes it, a
+  reader takes the document's name from it only where the inventory carries no `document:` (*Which
+  file under `brd/source/` is the customer's document*, below).
 - **The counts line** carries the three labels in that order, each followed by its number.
 - **Both tables are always written**, each under its heading, each with its header row and no rows
   where it has nothing to hold. *Reason* is one of the reasons `commands/brd-intake.md` Phase 2's
   table fixes; *Candidates* lists an `ambiguous` target's candidates and is empty on every other row.
 
 **A log written before this layout was fixed** — 3.6.0 introduced the log without one — carries no
-frontmatter and whatever opening line and tables its run chose. A reader needing the document's name
-takes it from that opening line where the line names exactly one markdown file under `brd/source/`,
+frontmatter and whatever opening line and tables its run chose. A reader that reads such a log for
+the document's name takes it from that opening line where the line names exactly one markdown file
+under `brd/source/`,
 and otherwise, where `brd/source/` holds exactly one markdown file, takes that file; where neither
 settles it, the reader names the log and asks the operator which file is the document, and never
 chooses. The next `/brd-intake` run over the folder rewrites the log in this layout.
@@ -167,12 +170,16 @@ the customer's own tree happens to contain can collide with it.
 **Which file under `brd/source/` is the customer's document is read, never guessed.** The directory
 can hold several markdown files, since the document may link one beside it and an earlier
 document's copy stays beside one revised under a new filename (§1), so a reader that needs the
-document's own name takes it from `brd/brd-link-log.md`'s opening line. A BRD intaken before that
-log existed holds exactly one file under `brd/source/`, and that file is it. **The next intake reads
-another record, for another question**: it judges a revised document against the one the
-inventory's rows were last reconciled against — the inventory's own `document:` (§2), never this
-log, which names the document the latest capture ran on whether or not a row was reconciled against
-it.
+document's own name — the writer of a slice inventory's `source:` (§2.1), `/brd-package` naming it
+in the bundle — takes it from the inventory's `document:` (§2), the parent's on a slice: the
+document the rows were last reconciled against, which is the one their anchors point into. **Never
+from `brd/brd-link-log.md`'s opening line where the inventory carries `document:`** — the line names
+the document the latest capture ran on whether or not a row was reconciled against it, and every
+intake's Phase 2 rewrites it, so after a run that stopped before Phase 3 it names a document no row
+was read from. An inventory written before 3.7.0 carries no `document:`, and there the opening line
+is read — written by the run that wrote that inventory, save where a later intake stopped before its
+Phase 3 — and a BRD intaken before that log existed holds exactly one file under `brd/source/`, and
+that file is it. The next intake judges a revised document against the same `document:` (§2).
 
 ### 1.2 `brd/brd-figures.md` — what the plugin read in the customer's images
 
@@ -570,7 +577,8 @@ source: <the parent's brd/source/<basename>, relative to the parent's folder>
 
 **`source:` names the parent's document itself, and §1.1 says which file in `brd/source/` that is** —
 the directory holds the files that document links as well, so the writer of this header reads the
-name off the parent's `brd/brd-link-log.md` rather than taking whatever it finds there.
+name off the parent's inventory's `document:`, as §1.1 says, rather than taking whatever it finds
+there.
 
 **`kind:` and `key:` open every inventory, a slice's and a source-owning BRD's alike** — a
 source-owning BRD's inventory carries the two and no `parent:`/`source:` pair, because it *is* the

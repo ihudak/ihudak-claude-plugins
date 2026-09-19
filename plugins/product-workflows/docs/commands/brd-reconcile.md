@@ -43,10 +43,12 @@ a reopened decision or an unanswered question.
   operator-supplied material was not assembled under the packaging rules and a later reader needs
   to know that.
 
-  It replaces the package gate and nothing else. Every other input is still read, so a folder that
-  never reached `/brd-interview` still has no `decisions.md` for a `[CD#n]` to be frozen against.
-  The run refuses the flag where a handed-off package already exists, rather than admitting a
-  second answer to what the customer saw.
+  It replaces the package gate and nothing else: every other input is still read, wherever it is on
+  file. A slice never interviewed is admitted too. It holds no question set and, unless
+  [`/create-prd`](create-prd.md) recorded an assumption there, no `decisions.md`, so the run creates
+  the register — its header line alone — and a candidate there can answer only such an `[AS#n]`;
+  any other goes to a human rather than being frozen. The run refuses the flag where a handed-off
+  package already exists, rather than admitting a second answer to what the customer saw.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).
@@ -155,7 +157,8 @@ canonicalisation step calls ordinary — without it, two `decided` answers to on
 register with nothing to adjudicate between them.
 
 And it updates, in place: `decisions.md` (the new `[CD#n]`, the superseded `[AS#n]`, the reopened
-`[VD#n]`), the `[C]` question set, `coverage-ledger.md`, the defect log — **the parent's**, when the
+`[VD#n]` — created first, as its header line alone, where a `--sent` run finds none), the `[C]`
+question set, `coverage-ledger.md`, the defect log — **the parent's**, when the
 run stands on a slice — every dated artifact it banners, every dependent BRD's register the
 propagation sweep wrote, and every artifact the stale-reference sweep corrected. The round record is
 **appended to**, never bannered: each answered question's terminal disposition, and, where the run's

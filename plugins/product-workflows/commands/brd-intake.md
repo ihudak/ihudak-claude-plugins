@@ -427,10 +427,10 @@ reading it did (`brd-format.md` §1.2).
    stays** — a section is never deleted — and carries the *Not captured by the current run* marker
    `brd-format.md` §1.2 fixes, whatever the cause — for instance the current document no longer
    links the image, this run's Phase 1 answer left it out, or a changed outside image was copied
-   beside it under a `_NN` name; a section whose image this run takes again carries none. **Write
-   no *Rows* line here**: a section already on file keeps the *Rows* line it carried, exactly as it
-   stood, and a new section's is written empty — Phase 5 overwrites every one of them from the final
-   inventory, so a run that stops before Phase 5 leaves each earlier line on disk as it was. An
+   beside it under a `_NN` name; a section whose image this run takes again carries none. **Leave
+   each existing section's *Rows* line as it stood, and give a new section an empty one** — Phase 5
+   overwrites every one of them from the final inventory, so a run that stops before Phase 5 leaves
+   each earlier line on disk as it was. An
    `EMPTY` read over an earlier intake's inventory keeps each line, and Phase 5 writes it back
    unchanged.
 
@@ -756,7 +756,9 @@ every row in the test below as Phase 3's reconciliation numbered it.
   never on which row raised it: the same split or clash can be raised from the whole, naming each
   part, or from each part, naming the whole. Such a candidate joins its row to each counterpart it
   names, and it matches where every one of those pairs is already joined, by some entry on file of
-  its class raised from either end — those entries are what it matches.
+  its class raised from either end — those entries are what it matches. One some but not all of
+  whose pairs are joined is walked with each entry on file of its class joining any of them shown
+  beside it (the *On file* line below), for the same reason.
 
 **A match is that entry, or those entries**: the candidate is not put to the operator again, and
 nothing is written for it — each entry keeps its `[DEF#n]`, its reason and its resolution exactly as
@@ -829,9 +831,12 @@ The *Names* line is written for a `conflict` or `duplicate` only, one entry per 
 candidate names — for a group walked as one, every other row the group joins; the *Image* line only
 for a row drawn from an image (below); the *Also raised* line only for a candidate another was
 folded into, one item per folded candidate, naming the row it was raised on; the *On file* line only
-for a candidate the pairing above left over, and only where at least one entry on file of its class
-is raised on its row, one item per such entry; a candidate Phase 3.5 raised from documentation ends
-its first line with `(raised from documentation)`.
+where an entry on file bears on the candidate, one item per such entry — for an `ambiguity`,
+`untestable`, `unsourced` or `scope-leak` candidate the pairing above left over, each entry on file
+of its class raised on its row; for a `conflict` or `duplicate`, each entry on file of its class
+joining any pair of rows the candidate joins (for a group walked as one, the group's pairs), since a
+candidate some of whose pairs the log already joins is walked all the same; a candidate Phase 3.5
+raised from documentation ends its first line with `(raised from documentation)`.
 Then present:
 
 ```

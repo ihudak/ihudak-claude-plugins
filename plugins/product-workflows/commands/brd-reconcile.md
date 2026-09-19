@@ -154,10 +154,14 @@ write would re-ask a question already answered.
    to replace anything:
    `BRD_RECONCILE_SENT_NOT_READABLE: --sent <path> is not a readable file or directory — re-run '/product-workflows:brd-reconcile <KEY> @<review-file> --sent <path>' with the path the sent material actually sits at.`
    The flag replaces step 6's package gate and **nothing else**: every other input step 8 reads is
-   still read, and a folder that never reached `/brd-interview` still has no `decisions.md` for a
-   `[CD#n]` to be frozen against. This admits a hand-authored **package**; it does not make the
-   route's earlier phases optional. `/brd-intake --sort-existing` is the same accommodation made
-   at the other end of the route, and this is its counterpart at this one.
+   still read, wherever it is on file. It admits a hand-authored **package** —
+   `/brd-intake --sort-existing` is the same accommodation made at the other end of the route, and
+   this is its counterpart at this one — and **a slice never interviewed** as well. Such a slice
+   holds no `interview/` record, and no `decisions.md` unless `/product-workflows:create-prd`
+   recorded a roundless `[AS#n]` there (`decision-register-format.md` §7): the *Freeze the customer
+   decisions* phase creates the register where none is on file, and with no `[C]` question and no
+   `[SR#n]` on file a candidate there can answer only such an `[AS#n]` — any other comes back
+   `unmatched` and goes to a human rather than being frozen (*Confirm every candidate*).
 3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
    `Required path environment variable unset` rule in
    `workflows-core:escalation-rules`:
@@ -288,14 +292,15 @@ write would re-ask a question already answered.
    and never the ledger line, for the reason that section gives.
 8. **Read the inputs the rest of the run works from**, from the resolved folder — **"the gated
    folder" on the ordinary path; on a `--sent` run the folder was never gated, and step 6 says what
-   stood in for that**: `decisions.md`
-   (every `[VD#n]` and `[AS#n]` with its `status`, `evidence`, `defects`, `argumentation`,
-   `conditional_on`, `altitude` and `round`); `code-defect-log.md`, **when it exists** — every
+   stood in for that**: `decisions.md` (every `[VD#n]` and `[AS#n]` with its `status`, `evidence`,
+   `defects`, `argumentation`, `conditional_on`, `altitude` and `round`), where it is on file — a
+   `--sent` run can find none (step 2); `code-defect-log.md`, **when it exists** — every
    `[CDF#n]` with its `disposition`, `statement`, `intent` and `blocked_on`, so a record's `defects`
    list and a review row naming an entry both resolve to something rather than to a bare id; the file
    is absent on a BRD whose rounds raised no code defect, and that absence is an ordinary state and
-   never a gate; `interview/customer-questions.md` and every `interview/round-<N>.md`, so
-   each `[C]` is addressed by the round and position that identify it
+   never a gate; `interview/customer-questions.md` and every `interview/round-<N>.md`, where on
+   file — a slice never interviewed holds neither (step 2) — so each `[C]` is addressed by the
+   round and position that identify it
    (`interview-tagging.md` §5 — a question mints no identifier of its own); the most recent
    `self-review-<YYYYMMDD>.md`, for the `[SR#n]` ids an `escalated-to-customer` disposition put in
    front of the customer; `customer-review-prompt-<YYYYMMDD>.md` and the manifest of
@@ -510,8 +515,8 @@ Dispatch `customer-review-reader` **once**, at `detection_model`:
   > "brd_key:     [the BRD key]
   > review_path: [absolute path to the canonicalised copy, at the name the *Canonicalise the returned review* phase resolved — customer-review-<YYYYMMDD>.md, or the suffixed form where it took one]
   > package:
-  >   questions:   [path to interview/customer-questions.md]
-  >   assumptions: [path to decisions.md]
+  >   questions:   [path to interview/customer-questions.md, when one is on file]
+  >   assumptions: [path to decisions.md, when one is on file]
   >   self_review: [path to the most recent self-review-<YYYYMMDD>.md, when one is on file]
   > mode: auto"
 
@@ -743,8 +748,14 @@ assigned once and never reused (§1), and one record holds one `chosen`. **Where
 built by this route, the register is on file here** — `/product-workflows:brd-interview` writes it
 on every run that records a round, as its header line alone where no round recorded a decision (§1),
 and `/product-workflows:brd-package` gated on it — so a `[CD#n]` is added after whatever records it
-holds, and the first one in a header-only register is `[CD#1]`. Everything else in this phase is
-about a genuinely new record, and each carries every field `decision-register-format.md` §1 defines:
+holds, and the first one in a header-only register is `[CD#1]`. **Where no register is on file,
+this phase creates it before anything else**, as §1's header line alone,
+`# Decision register: <BRD-KEY>`, whether or not it then freezes a record. Only a `--sent` run
+reaches that: a slice never interviewed holds none (Phase 0 step 2), and nor does one whose rounds,
+interviewed before 3.7.0, recorded no decision. A `[CD#n]` frozen there is `[CD#1]`, and a run
+that freezes none leaves the register header-only, which every reader takes as a register with
+nothing in it (§1). Everything else in this phase is about a genuinely new record, and each carries
+every field `decision-register-format.md` §1 defines:
 
 | Field | On a `[CD#n]` this phase writes |
 |---|---|

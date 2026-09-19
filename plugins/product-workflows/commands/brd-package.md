@@ -185,8 +185,11 @@ cannot review, and they will not tell you that — they will review it anyway, b
      with `BRD_INTERVIEW_ALL_DELEGATED` and writes nothing, because this slice kept no requirement of
      its own and there is nothing to package.
      `BRD_PACKAGE_NEEDS_INTERVIEW: no decision register on file for <BRD-KEY> — run /product-workflows:brd-interview <BRD-KEY>; it writes the register, with nothing in it where its rounds recorded no decision, and hands it off. Where it stops with BRD_INTERVIEW_ALL_DELEGATED instead, <BRD-KEY> kept no requirement of its own and has nothing to package.`
-   - **A register is in the folder, and on no ref** — the interview ran and its handoff was
-     declined. **Do not send the operator back to `/brd-interview`**: whether it opens a new round is
+   - **A register is in the folder, and on no ref** — the run that wrote it had its handoff
+     declined: the interview, ordinarily, or `/product-workflows:create-prd` or
+     `/product-workflows:brd-reconcile` where either created the register
+     (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1). **Do not send the
+     operator back to `/brd-interview`**: whether it opens a new round is
      its *Resolve the round* phase's own test of what changed since the last round closed — that
      phase's to state, and cited, never restated here — and where the test finds nothing it takes
      the no-new-round path, reaches its handoff phase with nothing staged, reports `nothing to
@@ -340,17 +343,21 @@ cannot review, and they will not tell you that — they will review it anyway, b
     copied no image writes none (`commands/brd-intake.md` Phase 2.5), and a BRD intaken before the
     figures file existed holds none, however many images it links.
 
-    **`<basename>` is read off `brd/brd-link-log.md`, one hop up on a slice as the three above are** —
-    its opening line names which file under `brd/source/` is the customer's document, since that
-    directory also holds the files the document links; a BRD intaken before the log existed holds
-    exactly one file there, and that file is it; and a log written before its layout was fixed is
-    read by the rule that section gives for one (`brd-format.md` §1.1). The log is not a bundle
-    document. The *Assemble the bundle* phase reads it once more: its *Captured links that do not
-    resolve as written* table is how an image a captured file reaches through a `[[wikilink]]` or
-    from outside the document's own directory is found (`bundle-packaging.md` §2.1), and where the
-    manifest finds the target as written it names beside a captured file, markdown or image (rule 6).
-    Only a link that does not resolve as written has a row there; one that does reaches its copy by
-    its own path, which the manifest's map already carries, so no target as written is named for it.
+    **`<basename>` is read off the inventory's `document:`, one hop up on a slice as the three above
+    are** — it names which file under `brd/source/` is the customer's document, the one the rows were
+    last reconciled against, since that directory also holds the files the document links. Never off
+    `brd/brd-link-log.md`'s opening line where the inventory carries `document:`: a rename run that
+    stopped before its Phase 3 leaves that line naming a document no row was read from. On an
+    inventory written before 3.7.0, which carries none, the log's opening line is read; a BRD intaken
+    before the log existed holds exactly one file there, and that file is it; and a log written
+    before its layout was fixed is read by the rule that section gives for one (`brd-format.md`
+    §1.1). The log is not a bundle document. The *Assemble the bundle* phase reads it: its *Captured
+    links that do not resolve as written* table is how an image a captured file reaches through a
+    `[[wikilink]]` or from outside the document's own directory is found (`bundle-packaging.md`
+    §2.1), and where the manifest finds the target as written it names beside a captured file,
+    markdown or image (rule 6). Only a link that does not resolve as written has a row there; one
+    that does reaches its copy by its own path, which the manifest's map already carries, so no
+    target as written is named for it.
 11. **Fix the run's date.** One `<YYYYMMDD>` stamp, taken once, used for every artifact this run
     writes. If `bundle-<YYYYMMDD>/` already exists in the BRD folder, stop:
     `BRD_PACKAGE_BUNDLE_EXISTS: <BRD-dir>/bundle-<YYYYMMDD>/ already exists — a dated bundle is never rewritten. Move or rename the existing directory if it was never sent, or package on the next date.`

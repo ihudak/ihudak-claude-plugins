@@ -370,7 +370,9 @@ gap** (a capability the run needed but the plugin lacked), `emit-block` (per
    its `emit-cost` entry point with `command: /frames`, `phase: inferred`, `role: inferred`, `key` =
    the resolved folder's key, the run's `source`, and `plugin_version`. §7's discriminator is the
    resolved folder's own `kind`, which Phase 0 already read: `brd` attributes the run to
-   `brd-to-prd`/`pm`, `prd` and `epic` to `prd-creation`/`pm`. The key is always present on any path that reaches here — Phase 0's stops (`FRAMES_NEEDS_ADDRESS`, `FRAMES_EXTRA_ARGUMENT`, `FRAMES_NO_FOLDER`, `FRAMES_NOT_A_SPEC_FOLDER`, an ambiguous key, an unset `SPECS_PATH`) all refuse before a folder is resolved, and this phase runs after them, which is why its scope is stated as *every path that reached Phase 1* rather than every path. This
+   `brd-to-prd`/`pm`, `prd` and `epic` to `prd-creation`/`pm`. A BRD-route slice is a `PRD-` folder
+   asserting `brd`, so its frame set is `brd-to-prd`; an Epic folder under it asserts `epic`, and
+   is `prd-creation`. The key is always present on any path that reaches here — Phase 0's stops (`FRAMES_NEEDS_ADDRESS`, `FRAMES_EXTRA_ARGUMENT`, `FRAMES_NO_FOLDER`, `FRAMES_NOT_A_SPEC_FOLDER`, an ambiguous key, an unset `SPECS_PATH`) all refuse before a folder is resolved, and this phase runs after them, which is why its scope is stated as *every path that reached Phase 1* rather than every path. This
    command refuses to run without a resolved folder — so the entry lands on the keyed tier and never
    on the pending ladder (§9), which **advances the chained checkpoint** (§3); surface the persisted
    path (or the report-only notice).

@@ -45,7 +45,7 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
      because a BRD's PRDs are authored in its slices. Stop, before any artifact is read:
      `READY_BRD_NOT_SLICED: <KEY> resolves to a BRD container at <path>, which is on neither the PRD nor the Epic ladder — its PRDs are authored in its PRD- slices. <the remedy>`
      `<the remedy>` lists the slices under the container, found by the positive test §4.1 names — `Check a slice instead: '/dev-workflows:ready <SLICE-KEY>' — <each slice's key>.` — and, where it finds
-     none: `It has no slice yet: '/product-workflows:brd-split <KEY> "<how to cut it>"' carves one — the instruction is required there, and that run carves nothing where this BRD's ledger leaves no row unallocated; '/product-workflows:create-prd <KEY>' refuses this same container and says what to do then.`
+     none: `It has no slice yet: '/product-workflows:brd-split <KEY> "<how to cut it>"' carves one — the instruction is required there, and that run carves nothing where this BRD's ledger leaves no row unallocated. Where it leaves none, coverage-ledger-format.md §5 names two repairs, the narrow one first: hand-edit the one row to be built back to unallocated in coverage-ledger.md, leaving every other row as it stands; or, to re-take the whole inventory, re-run '/product-workflows:brd-intake <KEY> @<brd-file>', which reopens every row wherever its read finds a requirement and discards every deferred-to, rejected and superseded-by the ledger records.`
      It is a user halt.
    - **An Epic folder** — an `EPIC-` folder, or, with no prefix, a resolved `kind: epic` — is an
      Epic-level run judged on the Epic ladder, and its PRD folder is its parent.
@@ -55,7 +55,11 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
 
    A folder none of these places is not guessed at: stop, naming the folder and what it carries
    (§4.1). Two positional keys are no longer accepted, because the second was always derivable from
-   the first — `workflows-core:addressing` §4's `key` is what supplies both.
+   the first — `workflows-core:addressing` §4's `key` is what supplies both. Carry forward:
+   - `<PRD>` — the **PRD folder's** `key`, read off its carrier (§4): the resolved folder's own on a
+     PRD-level run, its parent's on an Epic-level one.
+   - `<EPIC>` — the resolved folder's `key` on an Epic-level run, `null` on a PRD-level one. The
+     later steps call it `focus_key` — one value under two names — and test it as *set* or *null*.
 
    `/ready` is **address-required**: with no positional address, stop with
    `READY_NEEDS_KEY: /ready needs a PRD or Epic address — a key, or an @<path> to its folder.` —
@@ -169,7 +173,8 @@ falls to the Sonnet floor — record the degradation in `notes` and the final re
 
 ## Phase 2 — Read ground truth
 
-**Read the resolved folder.** Its `prd.md`, and every `EPIC-` folder directly under it — that
+**Read the PRD folder** — `<PRD-dir>` (Phase 0 step 4), the resolved folder on a PRD-level run and
+its parent on an Epic-level one. Its `prd.md`, and every `EPIC-` folder directly under it — that
 listing is the Epic set this command judges, and each folder's `epic.md` supplies its title and its
 own `key`. Carry forward:
 
@@ -210,7 +215,7 @@ own `key`. Carry forward:
   only status input this command has.
 
 When `focus_key` is set, validate it names one of those folders; if not, surface
-`READY_FOCUS_NOT_FOUND: <focus_key> is not an Epic of <KEY>.` with
+`READY_FOCUS_NOT_FOUND: <focus_key> is not an Epic of <PRD>.` with
 `choices: ["Check PRD-level readiness instead (the whole PRD)", "Re-enter the Epic key", "Cancel"]`.
 
 **Nothing here reads a declared status, because there is nothing to read one from.** The phase is
@@ -223,7 +228,10 @@ it.
 ## Phase 2.5 — Resolve ARD
 
 Resolve any applicable ARD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and running its resolution with
-`prd = key`, `epic = focus_key` (may be `null`), and `$SPECS_PATH`.
+`prd = <PRD>`, `epic = focus_key` (may be `null`), and `$SPECS_PATH`. **`prd` is the PRD folder's
+key, never the run's own `key`**, which on an Epic-level run is the Epic's: the reference resolves
+`prd` to the folder it collects the PRD-level `ard.md` from and looks for the Epic folder inside
+(`workflows-core:ard-resolution`, *Resolution* steps 1–2).
 
 - **`status: none`** (including `$SPECS_PATH` unset/unresolvable) → the ARD dimension is **inactive** for
   this run — no prompt, no extra output, `readiness-reviewer`'s ARD-conformance dimension is skipped
@@ -318,7 +326,7 @@ and a pointer to the rubric.
   > status_expectation:      [paste Phase 3(b), plus the workflow-states.md rubric reference]
   > repo_availability:       [paste Phase 3(c)]
   > artifact paths:
-  >   PRD:      [<PRD-dir>/<PRD>.md if read, or the resolved folder's prd.md summary]
+  >   PRD:      [<PRD-dir>/<PRD>.md if read, or the PRD folder's prd.md summary]
   >   ARD:     [absolute path(s), or 'none']
   >   Epics:   [absolute path(s) in scope]
   >   specs:   [absolute path(s) in scope]
@@ -351,8 +359,8 @@ plugin-gap halt (see Invariants).
    ```markdown
    ---
    type: dev-workflows-readiness
-   prd: <KEY>
-   epic: <FOCUS_KEY>            # omitted when PRD-level (focus_key null)
+   prd: <PRD>
+   epic: <EPIC>                 # omitted when PRD-level (focus_key null)
    ---
 
    # Readiness check — <run timestamp, ISO 8601 UTC>

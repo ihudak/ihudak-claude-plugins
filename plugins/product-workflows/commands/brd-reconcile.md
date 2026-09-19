@@ -909,10 +909,18 @@ what survives:
 
 - a **`conflict`** whose **listed** row is dropped: that requirement is gone — `withdrawn`, and the
   row takes `rejected: [DEF#n]`;
-- a **`conflict`** whose **counterpart** is dropped, and a **`duplicate`** whichever of its two rows is
-  dropped: the obligation survives in the row kept — for a duplicate the two stated one obligation —
-  so the defect is `resolved-by: [CD#n]`, and the dropped row takes `superseded-by: [BR#kept]`,
-  because a `[CD#n]` replaced it with the requirement kept.
+- a **`conflict`** whose **counterpart** is dropped, and a **`duplicate`** whose two rows **restate**
+  each other, whichever of them is dropped: the obligation survives in the row kept, so the defect is
+  `resolved-by: [CD#n]`, and the dropped row takes `superseded-by: [BR#kept]`, because a `[CD#n]`
+  replaced it with the requirement kept;
+- a **`duplicate`** in which one row **is a part of** the other (`brd-format.md` §3), settled by
+  keeping the part and dropping the whole: the defect is `resolved-by: [CD#n]`, but no disposition
+  says what became of the obligations the whole carried beyond the part — `superseded-by` would claim
+  the part replaced them and `rejected` that the customer dropped them, and the answer may say
+  neither. The ledger phase writes nothing for the dropped row, and it goes into the reconciliation
+  record's *what still needs a human*, with the obligations the kept part does not cover named.
+  Keeping the whole and dropping the part is treated as the bullet above treats a restatement: the
+  whole covers the part, so the obligation survives in the row kept.
 
 **That ledger write lands only where the dropped row is a row of this BRD's own ledger.** Where a
 sibling slice holds it, it stays `covered-here` there; where the root holds it, never delegated, it
@@ -1234,7 +1242,8 @@ changed, why, which ids, and what still needs a human:
   once that dependent's register is on the default branch; every
   `needs-a-human` prose hit; every requirement the customer asked for that no `[BR#n]` covers; and
   every row the customer dropped that another BRD holds (*Resolve the defects the review settled*),
-  with that BRD named.
+  with that BRD named; and every `duplicate` settled by keeping the part, with the obligations the
+  kept row does not cover named.
 
 **A second reconciliation on the same day appends, and never overwrites.** Where
 `reconciliation-<YYYYMMDD>.md` already exists, this run adds a new pass beneath what is there, under

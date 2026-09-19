@@ -51,7 +51,9 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   and a closed one is re-opened with `--round 1` and the cause *requirement defects became a question
   source* — a bare run names those defects and offers that re-open rather than asking them itself,
   and a new round it opens for a changed finding or decision proceeds without them. On a slice
-  interviewed since, a defect that becomes its to ask later goes into a new round.
+  interviewed since, a defect that becomes its to ask later goes into a new round; while a round is
+  still open it waits, and the run names it as waiting rather than letting a package go out silent
+  about it.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).
@@ -112,7 +114,8 @@ flowchart TD
 ```
 
 A run that finds every round closed and nothing changed since the last one proposes no new round: it
-reports that plainly and reaches the handoff with nothing to commit. `workflows-core:impl-maintenance` runs in the
+reports that plainly — with any requirement defect that belongs to a closed round 1, and the re-open
+that asks it — and reaches the handoff with nothing to commit. `workflows-core:impl-maintenance` runs in the
 terminal phase for session lessons-learned; no other subagent is dispatched — every finding this
 command reads was already independently re-derived by `/prd-ground`'s own verifier pass.
 
@@ -288,9 +291,11 @@ re-open that asks them, recommended, because a package built first would go out 
 whose questions were all settled from the findings — nothing left for a customer at all — is told
 plainly that it is decided and needs no customer review, and is offered a `--rebaseline` grounding
 pass as the one thing this command can offer that could make a new round askable (a requirement
-defect becomes this BRD's to ask only through a revised source document or an allocation elsewhere
-under the parent); neither the packaging step nor another round of this command is offered, because
-both would stop or report a no-op.
+defect can also become this BRD's to ask, through events outside this command — for instance a
+revised source document, an allocation or a re-cut elsewhere under the parent, a sibling's
+reconciliation moving its row to `rejected` or `superseded-by`, or a sibling file that could not be
+read becoming readable); neither the packaging step nor another round of this command is offered,
+because both would stop or report a no-op.
 Re-opening a closed round later, with its cause recorded:
 
 ```

@@ -688,7 +688,11 @@ The *Confirm every candidate* phase's rule is the carve-out and it is repeated h
 and the exception live in two different phases, which is precisely where this would regress: a
 candidate confirmed against a target already carrying an **`open`** `[CD#n]` **mints nothing** — its
 reason is written as the `argumentation` of that record, which moves to `decided`. Ids are assigned
-once and never reused (§1), and one record holds one `chosen`. Everything else in this phase is
+once and never reused (§1), and one record holds one `chosen`. **Where the package was built by
+this route, the register is on file here** — `/product-workflows:brd-interview` writes it on every
+run that records a round, as its header line alone where no round recorded a decision (§1), and
+`/product-workflows:brd-package` gated on it — so a `[CD#n]` is added after whatever records it
+holds, and the first one in a header-only register is `[CD#1]`. Everything else in this phase is
 about a genuinely new record, and each carries every field `decision-register-format.md` §1 defines:
 
 | Field | On a `[CD#n]` this phase writes |
@@ -700,7 +704,7 @@ about a genuinely new record, and each carries every field `decision-register-fo
 | `argumentation` | **the customer's own reason, quoted**, never paraphrased and never supplied |
 | `evidence` | the `[CG#n]`/`[DG#n]` the question was put against, as the question set recorded them |
 | `defects` | the `[CDF#n]` the answered position turns on, as the `[C]` question, the `[AS#n]` or the escalated `[SR#n]` recorded them; omitted when none. Never in `evidence` (§1), and **never minted here** — `${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` makes `/product-workflows:brd-interview` the log's only writer, so this phase carries an existing id forward and writes no entry |
-| `settles` | the `[DEF#n]` the answered `[C]` question's entry in `interview/customer-questions.md` names, copied from that entry (`references/decision-register-format.md` §1); omitted where it names none. **Never inferred from the review**: which question an answer answers is already fixed by the round and position it cites, and the entry is the record of what that question was raised by |
+| `settles` | the `[DEF#n]` on the answered `[C]` question's `- **Requirement defect:**` line in `interview/customer-questions.md`, copied from that line and from nothing else in the entry, whose context may name other `[DEF#n]`s (`references/decision-register-format.md` §1); omitted where the entry has no such line. **Never inferred from the review**: which question an answer answers is already fixed by the round and position it cites, and the entry is the record of what that question was raised by |
 | `altitude` | the altitude the question carried |
 | `conditional_on` | written only where the customer's answer is itself correct only while a named prerequisite decision holds, and named as `<BRD-KEY>/<decision-id>` (§5) — for instance `conditional_on: EPIC-014/[CD#2]` |
 | `status` | `decided`, or `open` where the reason is absent and the *Confirm every candidate* phase took that resolution |
@@ -978,7 +982,7 @@ this phase is the translation between the two.
 |---|---|
 | `deferred-to: <this BRD>` | a `[CD#n]` defers the requirement — a live obligation, not built now |
 | `rejected: [DEF#n]` | a `[CD#n]` withdrew it, citing the defect-log entry the previous phase resolved `withdrawn` |
-| `superseded-by: [BR#n]` | a `[CD#n]` replaced it with another requirement this inventory already holds |
+| `superseded-by: [BR#n]` | a `[CD#n]` replaced it with another requirement — a `[BR#n]` of the parent's inventory, which this slice need not claim or hold a row for, so a sibling slice's row qualifies (`coverage-ledger-format.md` §3) |
 
 **`covered-here` and `covered-by` are not.** Allocation — which BRD builds a requirement — is
 `/brd-split`'s walk and nothing else's (`coverage-ledger-format.md` §4), and a customer decision is

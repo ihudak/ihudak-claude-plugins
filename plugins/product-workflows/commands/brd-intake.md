@@ -442,10 +442,11 @@ choices: ["Re-read the named sections — re-dispatch brd-reader over the whole 
   with the same inputs, and the reconciliation, id mapping included, is the one the re-run branch
   above already performs. **It does nothing for what `brd-reader` is never handed**, so a re-read
   returns the same result and the question comes back: an image that was not read — the agent reads
-  a transcription and never the picture, and an unread image has none — and a section whose only
-  content is a link to a file the agent is never handed, which is an *other* file whatever Phase 1's
-  answer, or a link the copy did not capture — a URL, an unreadable or `ambiguous` target, or a file
-  Phase 1's answer left out, each named in `brd/brd-link-log.md`. Where the question names such a
+  a transcription and never the picture, and an unread image has none — and a section whose
+  content, apart from its heading and the words introducing its links, is links to files the agent
+  is never handed: an *other* file whatever Phase 1's answer, or a link the copy did not capture — a
+  URL, an unreadable or `ambiguous` target, or a file Phase 1's answer left out, each named in
+  `brd/brd-link-log.md`. Where the question names such a
   section or image, say so beside it: it is settled by the second option, or by converting or
   capturing the file and re-running this intake.
 
@@ -651,7 +652,13 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = every file
 this run wrote under `<BRD-dir>`, and every file Phase 2 re-used there under collision rule 1 — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 stages neither, so a declaration that looks complete ships nothing — §2.3 step 4 names each in §4.1's *declaration unaccounted for* clause, so the failure is reported rather than silent, but nothing it names lands. That is the customer's document and every file Phase 2 copied into `brd/source/` or `brd/source-external/` — a file collision rule 1 re-used counts as copied (Phase 2) — named individually (the copy step knows them; neither `brd/source/**` nor `brd/source-external/**` is a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`, `brd/brd-link-log.md`, `brd/brd-figures.md` wherever it exists after Phase 2.5,
-`coverage-ledger.md`, and — only when Phase 6 ran — `prd-seed.md`, `ard-seed.md`, `spec-seed.md`),
+`coverage-ledger.md`, and — only when Phase 6 ran — `prd-seed.md`, `ard-seed.md`, `spec-seed.md`.
+**Declare, too, every untracked file already under `brd/source/` or `brd/source-external/` that this
+run did not take** — one an earlier intake copied and never handed off, or copied before it was
+interrupted — found by `git -C "$SPECS_PATH" status --porcelain -z --untracked-files=all` over those
+two directories and named one literal path each: nothing else in the plugin ever stages it, so
+undeclared it stays untracked and the specs-repo preflight reports it as an unrelated dirty path
+(`workflows-core:specs-repo-git` §3.3 G1) on every later run),
 `title: <BRD-KEY> Intake BRD source and requirement inventory`, and `body_facts` = the requirement
 count, the confirmed-defect count by class, and whether Phase 6 wrote seeds; emit its §4.1 outcome
 line in the final report.

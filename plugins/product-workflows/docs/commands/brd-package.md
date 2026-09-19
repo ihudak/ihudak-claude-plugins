@@ -92,9 +92,10 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   `require-on-main` runs against `decisions.md` before anything else is read; an unmerged pull
   request stops the run naming the branch/PR state. Where the gate reports the register is on no ref
   at all, the run **splits a state the gate cannot**, as [`/brd-reconcile`](brd-reconcile.md) does on
-  its own row F: no `decisions.md` in the folder means no interview ever ran
-  (`BRD_PACKAGE_NEEDS_INTERVIEW`, run [`/brd-interview`](brd-interview.md)), while a register in the
-  folder means the interview ran and its handoff was declined
+  its own row F: no `decisions.md` in the folder means no interview has written one — none has run,
+  or one ran before `/brd-interview` wrote the register on every round, over a round of `[C]`
+  questions alone (`BRD_PACKAGE_NEEDS_INTERVIEW`, run [`/brd-interview`](brd-interview.md)), while a
+  register in the folder means the interview ran and its handoff was declined
   (`BRD_PACKAGE_REGISTER_NOT_HANDED_OFF`, land the files that are already on disk). The second must
   **not** send the operator back to `/brd-interview`: a bare re-run of that command hands off only
   the files it writes itself — nothing at all where it finds nothing new to ask, and where it opens a

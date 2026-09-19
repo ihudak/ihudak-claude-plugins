@@ -50,12 +50,14 @@ In this order, stopping at the first that applies:
    recorded and never followed, fetched or read.
 2. **Resolve it against the directory of the file the link sits in**, normalised **as text** — `..`
    segments collapsed, symlinks never resolved. An absolute path resolves as itself. Where it names a
-   readable existing file, that is the target.
-3. **A wikilink that step 2 did not resolve is looked up in the vault.** Where the name carries no
-   extension, try it with `.md` too, as Obsidian does. The **vault** is the nearest ancestor of the
-   **starting document** — the one the walk began from, not the file this link sits in — that holds a
-   `.obsidian/` directory. A name carrying a `/` resolves against the vault root; a bare name is matched
-   by filename anywhere under it.
+   readable existing file, that is the target. **A wikilink whose name carries no extension is then
+   tried with `.md` added, in the same place**, as Obsidian does — so `[[appendix]]` beside
+   `appendix.md` resolves with no vault at all, in a customer's zipped folder as in a vault.
+3. **A wikilink that step 2 did not resolve is looked up in the vault**, and only then. Where the
+   name carries no extension, try it with `.md` too, as step 2 does. The **vault** is the nearest
+   ancestor of the **starting document** — the one the walk began from, not the file this link sits
+   in — that holds a `.obsidian/` directory. A name carrying a `/` resolves against the vault root; a
+   bare name is matched by filename anywhere under it.
    - **Exactly one match** — that is the target.
    - **More than one** — the target is `ambiguous`. Record every candidate and **choose none**: two
      notes sharing a name are two different files, and a walk that picked one would report a file the

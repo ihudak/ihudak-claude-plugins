@@ -455,9 +455,11 @@ in `decisions.md` — and yielding zero ids of its class stops the run with
 a block has learned nothing about whether the ids it names exist. A corpus file holding **no**
 record-shaped content is an **empty corpus**: a real and ordinary state, and it passes.
 `commands/prd-ground.md`'s *Write findings* phase writes `grounding/design-grounding.md` as every
-`[DG#n]` **or a short note when design grounding was skipped and why**, and a defect walk that
-confirmed nothing leaves `brd/brd-defect-log.md` with a header and no entries — both present, both
-non-empty, both correctly holding no ids, and both routine. Stopping on either would be a check
+`[DG#n]` **or a short note when design grounding was skipped and why**, a defect walk that confirmed
+nothing leaves `brd/brd-defect-log.md` with a header and no entries, and `commands/brd-interview.md`
+writes `decisions.md` as its header line alone where no round recorded a decision
+(`references/decision-register-format.md` §1) — all three present, all three non-empty, all three
+correctly holding no ids, and all three routine. Stopping on any of them would be a check
 firing on correct content.
 
 **A `[CDF#n]` corpus that is absent altogether is the third ordinary state, and it is not the

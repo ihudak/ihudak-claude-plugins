@@ -183,7 +183,10 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   `[AS#n]` assumption, each carrying the thirteen fields
   [`decision-register-format.md`](../../references/decision-register-format.md) §1 defines, with §7's
   account of which of them mean something different on an assumption. Ids are contiguous within their
-  own prefix, assigned once, never renumbered, and never reused after a terminal status.
+  own prefix, assigned once, never renumbered, and never reused after a terminal status. **Written
+  on every run that records a round**, even one that produced no record — a round of `[C]` questions
+  alone, or one with nothing to ask — as the single header line `# Decision register: <BRD-KEY>`, so
+  `/brd-package` finds the register it gates on.
 - `interview/round-<N>.md` — the round's append-only record: every question in the order it was
   written, its tag, every re-tag with the finding that caused it, every split with the parts it
   became, and each question's state — either a **terminal disposition** (*answered from findings*,
@@ -194,8 +197,9 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   question carrying no terminal disposition rather than restarting the round.
 - `interview/customer-questions.md` — the `[C]` questions held for the customer, each with the
   findings that bear on it and any `[G]` answer that already narrowed it, and — for a question a
-  requirement defect raised — the `[DEF#n]` it asks about, which `/brd-reconcile` copies into the
-  `settles` field of the `[CD#n]` that answers it.
+  requirement defect raised — the `[DEF#n]` it asks about, on its own line labelled
+  `- **Requirement defect:**`, which `/brd-reconcile` copies into the `settles` field of the `[CD#n]`
+  that answers it and every slice reads to know the defect is asked.
 - `code-defect-log.md` — the code-defect log: one `[CDF#n]` per defect in the code that a decision
   turns on, each citing the verified `[CG#n]` that established the behaviour and naming separately
   what the code is supposed to do and what says so. Written where a round raised one **or

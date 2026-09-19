@@ -341,8 +341,9 @@ so no child folder is created.
   (`split_mode: full` only),
   `BRD-<KEY>-<slug>/PRD-<CHILD-KEY>-<child-slug>/`, each holding three files: `brd-link.md` naming its
   parent and its claimed `[BR#n]` rows; `brd/brd-inventory.md`, the claimed rows copied verbatim
-  from this BRD's inventory under a header naming the parent's `brd/source/`, which every
-  `source_anchor` in it still resolves against
+  from this BRD's inventory under a header naming the parent's source document, every
+  `source_anchor` in it still resolving against the parent's files — its `brd/source/`,
+  `brd/source-external/` or `brd/brd-figures.md`, by the anchor's form
   ([`brd-format.md`](../../references/brd-format.md) §2.1); and its own `coverage-ledger.md` with
   every row `unallocated`. The claim list is **provisional** until the walk ends: a row proposed for
   a child but settled elsewhere loses its claim and its inventory row, while its ledger row stays as

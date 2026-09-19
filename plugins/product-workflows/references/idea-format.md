@@ -360,6 +360,7 @@ target string:
 | `[[notes]]` | `[notes](attachments/notes.md)` | the target text becomes the link text |
 | `[[notes\|see this]]` | `[see this](attachments/notes.md)` | the alias is the link text |
 | `![[toggle-01.png]]` | `![toggle-01](design/idea-sources/toggle-01.png)` | embed → image; alt from the original basename |
+| `![[toggle-01.png\|300]]` | `![toggle-01](design/idea-sources/toggle-01.png)` | an embed's width is dropped; alt from the basename, as for a bare embed |
 | `![[notes]]` (a `.md` transclusion) | `[notes](attachments/notes.md)` | embed → **link**; see below |
 | `[the note](../vault/notes.md)` | `[the note](attachments/notes.md)` | already standard; target only |
 | `![the toggle](/home/x/img/toggle-01.png)` | `![the toggle](design/idea-sources/toggle-01.png)` | already standard; target only |
@@ -374,7 +375,9 @@ copy it belongs to except resolving it a second time, which this rule does not d
 bare `[[name]]` takes `name` as its link text, so what the page renders does not change; a markdown link
 keeps the text it already had; and a bare `![[note]]` transclusion takes its link text exactly the way a
 bare `[[note]]` does — the target as written. A bare image embed has no text at all, so its alt is derived from the
-**original** basename with its extension dropped — `![[toggle-01.png]]` gives `![toggle-01](…)`. Derive
+**original** basename with its extension dropped — `![[toggle-01.png]]` gives `![toggle-01](…)`. An
+image embed carrying a width — `![[toggle-01.png|300]]` — takes the same alt: what follows its `|` is
+a size, not display text, so it is dropped and never rendered as `![300](…)`. Derive
 it from what the author wrote, never from the name the collision rule minted, so a `_NN` suffix never
 surfaces as alt text. A new target is written relative to the PRD folder — `idea.md` sits at its root —
 and the three characters that break a markdown target are percent-encoded in it — a space as `%20`,

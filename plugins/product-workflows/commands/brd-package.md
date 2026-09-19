@@ -173,8 +173,12 @@ cannot review, and they will not tell you that — they will review it anyway, b
    `/product-workflows:brd-reconcile` splits its own. Row F covers two states, and sending the second
    one back to `/brd-interview` walks the operator into a wall:
 
-   - **No `decisions.md` in the folder at all** — no interview has ever run for this BRD.
-     `BRD_PACKAGE_NEEDS_INTERVIEW: no decision register on file for <BRD-KEY> — run /product-workflows:brd-interview <BRD-KEY> first.`
+   - **No `decisions.md` in the folder at all** — no interview has written one. `/brd-interview`
+     writes the register on every run that records a round, its header alone where the round
+     recorded no decision (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1), so
+     either no interview has run for this BRD, or one ran before it always did, over a round of
+     `[C]` questions alone. Either way the next `/brd-interview` run writes it.
+     `BRD_PACKAGE_NEEDS_INTERVIEW: no decision register on file for <BRD-KEY> — run /product-workflows:brd-interview <BRD-KEY>; it writes the register, with nothing in it where its rounds recorded no decision, and hands it off.`
    - **A register is in the folder, and on no ref** — the interview ran and its handoff was
      declined. **Do not send the operator back to `/brd-interview`**: whether it opens a new round is
      its *Resolve the round* phase's own test of what changed since the last round closed — that
@@ -761,7 +765,7 @@ artifact it was interpolated from:
 | An agent, subagent type or skill name | `subagent_type`, any `<plugin>:<name>` prefix (`dev-workflows:`, `workflows-core:`, and any namespace a later split adds), any agent filename |
 | A decision-row reference | `D12`, `D13`, `D18`, `D20`, or any other bare `D<n>` row id |
 
-`BRD_PACKAGE_PROMPT_LEAK: the rendered prompt carries <token> in part <n>, interpolated from <artifact> — the prompt is read by somebody with no plugin, and a token they cannot resolve is not fixed by deleting it.`
+`BRD_PACKAGE_PROMPT_LEAK: the rendered prompt carries <token> in part <n>, interpolated from <artifact> — the prompt is read by somebody with no plugin, and a token they cannot resolve is not fixed by deleting it. Where <token> is a § quoting the customer's own section number with no captured path, write it as the path and the section, source/<basename> › § <n>, which bundle-packaging.md §6.3 rule 1 exempts.`
 
 **The scan stops; it never sanitises.** A citation that reached the prompt reached it because some
 sentence in the package assumed a reader who has this plugin, and stripping the citation leaves that
@@ -972,8 +976,9 @@ self-review is free of them while being the most internal document this command 
    A corpus file holding record-shaped content that parses to zero ids of its class (§6.1) stops
    with the message below — and **only** such a file. One holding no record-shaped content at all is
    a legitimately empty corpus and passes: that is the ordinary state of a `design-grounding.md`
-   written as a short note because design grounding was skipped, and of a requirement defect log whose
-   walk confirmed nothing.
+   written as a short note because design grounding was skipped, of a requirement defect log whose
+   walk confirmed nothing, and of a `decisions.md` holding only its header line, as `/brd-interview`
+   writes it where no round recorded a decision.
    `BRD_PACKAGE_CORPUS_UNREADABLE: <corpus file> holds record-shaped content but parsed to zero <class> ids — that is a parse failure, not an empty corpus, and reporting it as an absence would report every reference in the bundle as dead (workflows-core:grounding-format §2.1).`
 
    **A hit inside verbatim customer content or a customer-derived locator reports rather than

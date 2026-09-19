@@ -28,6 +28,12 @@ supersedes the `[AS#n]` each one settles, reopens what an incoming customer deci
 
 ## 1. Record shape
 
+**The file opens with one line, `# Decision register: <BRD-KEY>`** — the key of the BRD whose folder
+it sits in — and holds its records after that line, one block per record. **A register holding no
+record is that line alone**, and it is an ordinary state: `commands/brd-interview.md` writes it so
+where a round it records produced no `[VD#n]` or `[AS#n]`, and every reader treats it as a register
+with nothing in it, never as a missing one.
+
 Each `[VD#n]` and `[CD#n]` carries:
 
 ```yaml
@@ -56,7 +62,7 @@ round: 2
 | `argumentation` | why — **mandatory**, §2 |
 | `evidence` | the `[CG#n]`/`[DG#n]` findings the decision rests on, per `workflows-core:grounding-format` §2; the list is what §6 inspects |
 | `defects` | the `[CDF#n]` code-defect entries this record turns on, per `references/code-defect-log-format.md`; omitted when absent. **Never in `evidence`** — §6's will-change rule inspects that list, and a non-finding id in it would silently change what D19 fires on |
-| `settles` | the `[DEF#n]` requirement-defect entries a `[CD#n]` answers — the one the `[C]` question it answers was raised by (`references/interview-tagging.md` §1), copied by `/brd-reconcile` from that question's held entry, never inferred from the customer's answer. **Only ever on a `[CD#n]`**: a requirement defect is in the customer's statement and is settled by the customer. Omitted when absent |
+| `settles` | the `[DEF#n]` requirement-defect entries a `[CD#n]` answers — the one the `[C]` question it answers was raised by (`references/interview-tagging.md` §1), copied by `/brd-reconcile` from that question's held entry — its `- **Requirement defect:**` line, and nothing else in it — never inferred from the customer's answer. **Only ever on a `[CD#n]`**: a requirement defect is in the customer's statement and is settled by the customer. Omitted when absent |
 | `altitude` | which level the decision sits at, so the spec's §7 altitude routing can send it to the right downstream artifact |
 | `conditional_on` | omitted unless the decision depends on a prerequisite — §5 |
 | `status` | one of the five in §3 |

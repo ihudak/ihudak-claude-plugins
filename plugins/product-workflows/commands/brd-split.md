@@ -533,12 +533,13 @@ For every slice Phase 2 confirmed:
    verbatim), under the `parent:`/`source:` header
    `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1 fixes. **Copy; never re-extract.** Ids are
    the parent's and stay the parent's, and every `source_anchor` copied here keeps resolving
-   against the parent's `brd/source/` — the child holds no source of its own and never will, which
-   is why §2.1 makes the header carry that path. The child likewise gets no
-   `brd/brd-defect-log.md`: a `[DEF#n]` on a copied row is the parent's, and any reader who has to
-   resolve one while standing on the child looks it up in the parent's log (`brd-format.md` §4).
-   That resolution is always one hop, never a chase: the cap in `workflows-core:addressing` §6 makes this
-   child's parent — this BRD — the source-owning root.
+   against the parent's files — its `brd/source/`, `brd/source-external/` or `brd/brd-figures.md`,
+   by the anchor's form (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — the child holds no
+   source of its own and never will, which is why §2.1 makes the header carry the parent's document.
+   The child likewise gets no `brd/brd-defect-log.md`: a `[DEF#n]` on a copied row is the parent's,
+   and any reader who has to resolve one while standing on the child looks it up in the parent's log
+   (`brd-format.md` §4). That resolution is always one hop, never a chase: the cap in
+   `workflows-core:addressing` §6 makes this child's parent — this BRD — the source-owning root.
 5. **Write the child's `coverage-ledger.md`** — one row per `[BR#n]` in the inventory just written,
    `disposition: unallocated` on every one, per
    `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3, whose creator table names this

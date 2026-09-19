@@ -92,8 +92,9 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
      (Phase 3); each row's `text` wherever the file its anchor points into is unchanged since the
      inventory's rows were last reconciled — judged against the inventory's own record of that,
      never against the copy on disk (Phase 2); every `[DEF#n]` the defect log holds, with its reason
-     and its resolution (Phase 4); and the transcription of every image whose bytes are unchanged
-     (Phase 2.5);
+     and its resolution (Phase 4); the transcription of every image whose bytes are unchanged
+     (Phase 2.5); and every account the operator gave for a section or an image holding no row,
+     where the section's file or the image is unchanged and it still holds none (Phase 3);
    - **what it may change**: the copy of each file whose bytes changed is replaced (Phase 2), and a
      row anchored in a file recorded **replaced** may take the new read's wording — the document
      counts as replaced wherever its bytes differ from those the inventory records for the document
@@ -243,7 +244,7 @@ pins. A misread label, a missed annotation or an unproposed conflict yields no c
 human never sees it — the tier is bought where a miss is silent. If no Opus resolves, **degrade to
 best-available + record** in `notes` and the final report — do not hard-block.
 
-**Collect `figure-reader`'s and `brd-reader`'s own `notes` too, and report them** — in the final report, and `brd-reader`'s beside Phase 4's walk as well — an image too low in resolution for its small text, an unusually structured source, a passage that could not be confidently split, an observation the agent made and did not propose as a defect. The inventory is the spine every later command walks, so a `[BR#n]` split out of a passage the reader was unsure of must not read as confidently extracted.
+**Collect `figure-reader`'s and `brd-reader`'s own `notes` too, and report them** — in the final report, and `brd-reader`'s at Phase 4's start as well, the last read's where a re-read replaced the first (Phase 3) — an image too low in resolution for its small text, an unusually structured source, a passage that could not be confidently split, an observation the agent made and did not propose as a defect. The inventory is the spine every later command walks, so a `[BR#n]` split out of a passage the reader was unsure of must not read as confidently extracted.
 
 ---
 
@@ -315,7 +316,7 @@ before 3.7.0, carrying at most the `document:` this phase, or an earlier 3.7.0 r
 nothing records the hashes its rows were reconciled against, so every file whose copy already
 stands, and the document whatever its name, is recorded **replaced**, once: Phase 3 writes both
 records, and every later run judges against them. Where the inventory holds no row, no state is read
-(Phase 3 numbers exactly as returned). Name every file recorded replaced in the final report, and
+(Phase 3 numbers as on a first intake). Name every file recorded replaced in the final report, and
 say where one is so for want of a record rather than because its bytes changed — and where one is so
 although the copy at its destination already has its bytes, because an earlier run copied it and
 reconciled no row against it (it stopped before Phase 3, or its read found no requirement), so the
@@ -447,11 +448,11 @@ reading it did (`brd-format.md` §1.2).
    `brd-format.md` §1.2 fixes, whatever the cause — for instance the current document no longer
    links the image, this run's Phase 1 answer left it out, or a changed outside image was copied
    beside it under a `_NN` name; a section whose image this run takes again carries none. **Leave
-   each existing section's *Rows* line as it stood, and give a new section an empty one** — Phase 5
-   overwrites every one of them from the final inventory, so a run that stops before Phase 5 leaves
-   each earlier line on disk as it was. An
-   `EMPTY` read over an earlier intake's inventory keeps each line, and Phase 5 writes it back
-   unchanged.
+   each existing section's *Rows* line as it stood, and give a new section an empty one** — written
+   `- **Rows:**`, with nothing after it, as `brd-format.md` §1.2 fixes — Phase 5 overwrites every
+   one of them from the final inventory, so a run that stops before Phase 5 leaves each earlier line
+   on disk as it was, and each new one empty. An `EMPTY` read over an earlier intake's inventory
+   keeps each line, and Phase 5 writes it back unchanged.
 
 **Where the folder holds no figures file and Phase 2 copied no image**, this phase dispatches
 nothing, writes no file, and says so in the final report. **Where a figures file is already on file
@@ -465,30 +466,48 @@ never whether this run copied an image.
 
 ## Phase 3 — Extract the inventory
 
-Dispatch `brd-reader`:
+**Hand `brd-reader` the figures file without its *Rows* lines.** Where a figures file exists after
+Phase 2.5, write a copy of it with every section's `- **Rows:**` line removed and nothing else
+changed, as `brd-figures.md` in a directory `command mktemp -d` creates — never inside a repository
+or the specs tree — and hand over that copy. A *Rows* line is this command's bookkeeping, not what
+the image shows, and on a section re-used from an earlier run it names that run's `[BR#n]`s: handed
+over, they come back as the agent's own numbering, and the mapping below would then send each onto a
+different row. The copy is made on a first intake too, where every line is empty, so every read is
+handed the same shape. Remove the directory once this phase's last read has returned. Then dispatch:
 
 → Agent (subagent_type: "product-workflows:brd-reader", model: `<extraction_model — frontmatter-pinned to opus>`):
   > "source_path: [absolute path to the copied document at `<BRD-dir>/brd/source/<basename>`]
   >  appendices:  [absolute path of every linked markdown file Phase 2 copied — under `brd/source/` or `brd/source-external/` — in Phase 2's capture order; `[]` when none]
-  >  figures_path: [absolute path to `<BRD-dir>/brd/brd-figures.md`; omit when no figures file exists after Phase 2.5]"
+  >  figures_path: [absolute path to that copy of `<BRD-dir>/brd/brd-figures.md`, its *Rows* lines removed; omit when no figures file exists after Phase 2.5]"
 
 Act on `status`:
-- **`OK`** — write the rows of `<BRD-dir>/brd/brd-inventory.md` in the layout
+- **`OK`** — **hold what the read returned, and write nothing to the inventory yet**: the rows, each
+  row's candidates, the `figures` entries with their `illustrates`, and the `notes` are this read's,
+  and the coverage step below can replace every one of them with a re-read's and add a row from a
+  sentence the operator quotes. **Once that step has settled — or just before the stop its relation
+  1 makes — write the rows** of `<BRD-dir>/brd/brd-inventory.md` in the layout
   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2 fixes, below the frontmatter, title and table
   header — Phase 2's, or on a re-run the file's own, rewritten in that layout where an earlier
-  release wrote another (§2.3): one row per returned `[BR#n]` (`id`, `text`, `source_anchor`), each
-  cell written by §2.3's encoding — the agent returns the customer's text as it stands, line breaks
-  and `|` included, and this run encodes it. **Write the frontmatter's `document:` and `captured:`
-  map with the rows** (`brd-format.md` §2): `document:` naming the document this run read,
-  `source/<basename>`, and the map holding every file this run captured, at the SHA-256 of its copy
-  under `brd/`, and every entry already on file for a file this run did not capture, kept as it
-  stands. They are what the next run's Phase 2 judges the document and each file against, so both
-  are written wherever this branch writes the rows, a re-read's rewrite included, and nowhere else —
-  save Phase 2's one write of `document:` alone into an inventory written before 3.7.0, which this
-  write replaces.
+  release wrote another (§2.3): one row per `[BR#n]` as the steps below settle it (`id`, `text`,
+  `source_anchor`), each cell written by §2.3's encoding — the agent returns the customer's text as
+  it stands, line breaks and `|` included, and this run encodes it. **Write the frontmatter's
+  `document:`, `captured:` map and `accounts:` map with the rows** (`brd-format.md` §2): `document:`
+  naming the document this run read, `source/<basename>`;
+  the `captured:` map holding every file this run captured, at the SHA-256 of its copy under `brd/`,
+  and every entry already on file for a file this run did not capture, kept as it stands; and the
+  `accounts:` map holding every section's account the coverage step recorded or carried (below),
+  and every entry already on file for a section in a file this run did not capture, kept as it
+  stands. They are what the next run judges the document, each file and each section's account
+  against, so all three are written wherever this branch writes the rows, and nowhere else — save
+  Phase 2's one write of `document:` alone into an inventory written before 3.7.0, which this write
+  replaces.
 
-  **On a first intake, number exactly as returned. On a re-run over a folder whose inventory already
-  holds a row, RECONCILE — this is the id coordination `brd-reader` delegates and nothing else performs.**
+  **On a first intake, number in reading order, once** — after this branch's last read and after
+  any row the coverage step adds, as `brd-format.md` §2 fixes; where it adds none, that is exactly
+  as the last read returned them. Until then each row carries the read's own number, which the
+  mapping below turns into its id once the numbering is fixed. **On a re-run over a folder whose
+  inventory already holds a row, RECONCILE — this is the id coordination `brd-reader` delegates and
+  nothing else performs.**
   The agent numbers in source order from `BR#1` on every read, so a BRD v2 with one requirement inserted
   early returns a set in which every later id has shifted by one. Writing that straight through
   renumbers text that already has an id, which `references/brd-format.md` forbids outright (*"assigned
@@ -502,12 +521,16 @@ Act on `status`:
   (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.3). Match each returned row to an existing
   row in two passes, each existing row matched at most once:
 
-  1. **By anchor.** Two anchors match where they resolve to the same section or element by
-     `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.2's rules, so a heading path written with a
-     file's title, before that section fixed the title-less form, still matches the same path
-     without it. Where exactly one existing row and exactly one returned row share a resolved anchor,
-     they match. **Where several share it on either side** — the rows one split produced (§2), or
-     several requirements stated in one section — match among them by text alone, by the next pass's
+  1. **By anchor.** Two anchors match where they name the same section or element by
+     `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.2's rules — a section as the branch that
+     resolves the anchor finds it, so a heading path written with a file's title, before that
+     section fixed the title-less form, still matches the same path without it; an image element
+     as §2.2 fixes which element an image anchor names, so `annotation 2` matches a quote of
+     annotation 2's *Says*, and an anchor quoting a string found in more than one element names none
+     and matches no anchor, its row left to pass 2. Where exactly one existing row and exactly one
+     returned row share a section or element, they match. **Where several share it on either side**
+     — the rows one split produced (§2), or several requirements stated in one section — match among
+     them by text alone, by the next pass's
      test, and never by position: a row of the group the text pairs with nothing is left for pass 2.
   2. **By text.** A returned row pass 1 left unmatched matches an existing row not yet matched whose
      `text` is the same, compared after decoding, after the split-shape rewrite below, and after
@@ -537,20 +560,28 @@ Act on `status`:
     run reports the change, old → new, with the row's `[BR#n]`;
   - **anything else** — Phase 2 recorded the file **unchanged** against the inventory's `captured:`
     map, which a file under `brd/source-external/` always is where the map holds it, since a copy
-    there is never replaced; or **new**; or the row being matched is one this same run wrote before
-    a re-read (below): the row **keeps its existing `text`**. An unchanged source cannot have
-    changed what the requirement says, so a read that words it differently is the agent's
-    paraphrase, not a revision, and writing it through would change a row every later command reads
-    by id with nothing to show that it moved.
+    there is never replaced; or **new**: the row **keeps its existing `text`**. An unchanged source
+    cannot have changed what the requirement says, so a read that words it differently is the
+    agent's paraphrase, not a revision, and writing it through would change a row every later
+    command reads by id with nothing to show that it moved.
   A row matched by text in pass 2 keeps its existing `text`: the two are the same text.
 
+  **A re-read (below) is reconciled exactly as the first read was — against the inventory on file,
+  never against the first read's rows, which it replaces.** It reads the very bytes the first read
+  read — nothing is copied between the two — so every file stands for it as Phase 2 recorded it,
+  unchanged since the first read, and this text rule and the same-or-new question below apply to it
+  as they did to the first: a row it words differently keeps its id and its text over an unchanged
+  file, and can never be minted beside a row the first read returned, since that read's rows are
+  gone. Only what the re-read returns is reconciled, so each question below is put about its rows,
+  afresh.
+
   **Then put to the operator what the two passes cannot decide.** Where a returned row is still
-  unmatched, Phase 2 recorded the file its anchor points into **unchanged**, and its anchor resolves
-  to the same section or element as one or more existing rows neither pass matched, the source cannot
-  have gained a requirement there since those rows were reconciled — the read has most likely worded,
-  or cut, one of them differently. Ask, one question per such returned row, in the order returned,
-  with its text shown beside the text of **every one of those existing rows** still unmatched when
-  the question is put, each by its `[BR#n]`, lowest-numbered first, each decoded:
+  unmatched, Phase 2 recorded the file its anchor points into **unchanged**, and its anchor names the
+  same section or element as one or more existing rows neither pass matched (pass 1's test), the
+  source cannot have gained a requirement there since those rows were reconciled — the read has most
+  likely worded, or cut, one of them differently. Ask, one question per such returned row, in the
+  order returned, with its text shown beside the text of **every one of those existing rows** still
+  unmatched when the question is put, each by its `[BR#n]`, lowest-numbered first, each decoded:
 
   ```
   choices: ["Same requirement as [BR#n] (Recommended)", "A new requirement", "Cancel"]
@@ -563,12 +594,14 @@ Act on `status`:
   `[BR#n]` of another row shown matches that one instead, exactly as *Same requirement* would; one
   naming a row not shown, or expressing none of these, is asked again, and none is taken by default.
   *Cancel* ends the run before this phase writes anything, so the inventory on file stands with its
-  `document:` and `captured:` map, and a re-run judges the document and every file against the same
-  record. An existing row no answer matched stays unmatched and is kept as below — its anchor
-  resolves, so as *not re-extracted by this read*.
+  `document:`, `captured:` map and `accounts:` map, and a re-run judges the document and every file
+  against the same record. An existing row no answer matched stays unmatched and is kept as below —
+  its anchor resolves, so as *not re-extracted by this read*.
 
   **Only a returned row that matches nothing existing is new**, and it takes the next id after the
-  highest already in use — never a gap-filling reuse of a retired one.
+  highest already in use — never a gap-filling reuse of a retired one. A row the coverage step adds
+  from a sentence the operator quotes is new too, and takes the next id after those, in reading
+  order (`brd-format.md` §2).
 
   **An existing row nothing matched is never renumbered away, and which of two states it is in is
   read off its own anchor** — never off the agent's silence, which says only that this read did not
@@ -588,11 +621,12 @@ Act on `status`:
 
   **An inventory holding no row is no prior inventory, whatever left it so** — Phase 2's header,
   whether a run stopped before this phase wrote a row, stopped at this phase's `NOT_FOUND`, or
-  completed a first intake whose read was `EMPTY`: a run over it numbers exactly as returned, and
-  every first-intake rule of this phase applies to it, since it holds no id to keep.
+  completed a first intake whose read was `EMPTY`: a run over it numbers as a first intake does,
+  and every first-intake rule of this phase applies to it, since it holds no id to keep.
 
-  **Map every `[BR#n]` the agent returned through that reconciliation, wherever it appears in what
-  the run writes or reports from the agent's words** — not only the row ids, but each candidate's
+  **Map every `[BR#n]` the agent returned through that reconciliation — on a first intake, through
+  the numbering above, fixed once the coverage step has settled — wherever it appears in what the run
+  writes or reports from the agent's words** — not only the row ids, but each candidate's
   `names` and every id its free-text `reason` cites, each `figures` entry's `illustrates` and every
   id its `note` cites, and every id in the agent's `notes` — bracketed or bare (`BR#8`). The agent
   numbers its own read from `BR#1`; a `conflict` naming its `BR#7`, an image said to illustrate its
@@ -606,14 +640,16 @@ Act on `status`:
   once a candidate is actually confirmed into a `[DEF#n]`, never before. **On a re-run, give each row
   that kept its id the `defects` it carries on file**, and nothing more yet: a `[DEF#n]` is
   permanent (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §4), Phase 4 keeps every entry already
-  logged, and it adds only what it newly confirms. Carry every returned `defect_candidates` entry
-  forward into Phase 4; nothing here treats a candidate as a decision.
+  logged, and it adds only what it newly confirms. Carry the last read's `defect_candidates` forward
+  into Phase 4 — a re-read's replace the first read's wholesale, as its `figures` entries and its
+  `notes` do (below) — and nothing here treats a candidate as a decision.
 
   **Then check the inventory's coverage of its own source**, per
   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.2, before anything downstream treats the
-  inventory as the spine it is. The three relations read the anchors already written, the copied
-  document and linked markdown, `brd/brd-figures.md`, and the `figures` list the agent returned;
-  nothing else is stored and the agent is not re-dispatched.
+  inventory as the spine it is. The three relations read the anchors the steps above settled — held,
+  not yet written — the copied document and linked markdown, `brd/brd-figures.md`, and the `figures`
+  list the agent returned; nothing else is stored, and the agent is re-dispatched only where the
+  question below is answered *Re-read*.
 
   1. **Every `source_anchor` resolves**, in whichever of `brd-format.md` §2's three forms it takes —
      by the rules `brd-format.md` §2.2 fixes for each form, which this command applies and does not
@@ -627,7 +663,11 @@ Act on `status`:
      as *not re-extracted by this read* is not among them: its anchor resolves, and it is tested.
 
      Any **other** unresolvable anchor is named with its `[BR#n]`, and the run stops — a row nobody
-     can trace back is a defect in the artifact whose job is traceability:
+     can trace back is a defect in the artifact whose job is traceability. **Write the rows this
+     branch holds first**, as the write above writes them — on a first intake numbered as the read
+     returned them, since no row has been added yet, and with any `accounts:` map on file kept as it
+     stands, since no account has been settled yet — because the remedy is a hand correction in
+     that file, which a stop that wrote nothing would leave nobody able to make:
      `BRD_INTAKE_DANGLING_ANCHOR: <N> inventory row(s) carry a source_anchor that resolves to nothing in the copied source under brd/ (<BR-id>: <anchor>, …), and none of them is a row this run preserved as no longer present. The row cannot be traced back to the customer's document, which is the one thing the anchor exists for. Correct each anchor by hand in <path> and re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>': the re-run keeps every id, and keeps a corrected anchor that resolves.`
   2. **Every top-level section — of the document and of each linked markdown file Phase 2 copied —
      either holds a row or is accounted for.** `brd-format.md` §2.2 fixes what a top-level section
@@ -640,44 +680,99 @@ Act on `status`:
      (`brd-format.md` §2.2). Name each image that does neither — with its *Depicts* sentence from
      `brd/brd-figures.md`, or its reason where it was not read.
 
-  Ask about relations 2 and 3 together — one question for the whole set, not one per section or image:
+  **Where relation 2 or 3 names anything, account for it — re-reading is an action on the whole
+  set, accounting is per section and per image.** First set aside what is accounted for on file: a
+  section whose key the inventory's `accounts:` map holds (`brd-format.md` §2), where Phase 2
+  recorded the file it sits in **unchanged** — the document judged against `document:` — and an
+  image whose section Phase 2.5 re-used by content hash and whose *Rows* line on file reads
+  `accounted for — …`. Such an item's account is **carried** as it stands, and it is not asked
+  about again; a section in a file recorded **replaced**, or an image Phase 2.5 read afresh, has its
+  account on file dropped and is asked about afresh. Where nothing is left, nothing is asked.
+  Otherwise put one question for the whole set, naming each item — a section by its heading path,
+  with what the source has under it; an image by its path, with its *Depicts* sentence, or its
+  reason where it was not read:
 
 ```
-choices: ["Re-read the named sections — re-dispatch brd-reader over the whole document and reconcile ids<recommended>", "They hold no obligation — record that and continue<recommended>", "Cancel"]
+choices: ["Re-read — re-dispatch brd-reader over the whole set and reconcile<recommended>", "Account for each section and image<recommended>", "Cancel"]
 ```
 
-  **The first option re-reads the whole document and reconciles**, because `brd-reader` takes the
-  whole set — the document, every linked markdown file Phase 2 copied, and the figures file — and
-  still numbers from `BR#1` on every read: there is no narrower re-dispatch, so it is re-dispatched
-  with the same inputs, and the reconciliation, id mapping included, is the one the re-run branch
-  above already performs. **It does nothing for what `brd-reader` is never handed**, so a re-read
-  returns the same result and the question comes back: an image that was not read — the agent reads
-  a transcription and never the picture, and an unread image has none — and a section whose
-  content, apart from its heading and the words introducing its links, is links to files the agent
-  is never handed: an *other* file whatever Phase 1's answer, or a link the copy did not capture — a
-  URL, an unreadable or `ambiguous` target, or a file Phase 1's answer left out, each named in
-  `brd/brd-link-log.md`. Where the question names such a
-  section or image, say so beside it: it is settled by the second option, or by converting or
-  capturing the file and re-running this intake.
+  **It is put once per run, because a re-read is allowed once per run.** *Re-read* re-dispatches
+  `brd-reader` with the same inputs — it takes the whole set, the document, every linked markdown
+  file Phase 2 copied and the figures copy, and numbers from `BR#1` on every read, so there is no
+  narrower re-dispatch — and **the re-read's result replaces this read's wholesale**: its rows, its
+  candidates, its `figures` entries with their `illustrates`, and its `notes`, the first read's
+  kept nowhere. Act on its `status` as on the first read's; on `OK`, run this branch again over it
+  from the top — the numbering or the reconciliation, the id mapping, the `defects` column and this
+  check — with this question left out, so whatever the re-read leaves unaccounted for goes
+  straight to the per-item questions below. *Account for each section and image* goes straight to
+  them. *Cancel* ends the run before this phase writes anything, as the same-or-new question's
+  does.
 
-  **`<recommended>` is a placeholder this run resolves once per showing** — substitution, not an
-  edit to the array, which is otherwise presented verbatim; `workflows-core:escalation-rules`, *The
-  `(Recommended)` marker is unconditional*, sanctions exactly this. Where any section or image the
-  question names is one a re-read can change, it resolves to ` (Recommended)` on the first option and
-  the empty string on the second. Where every one it names is of the kind above, it resolves to the
+  **A re-read does nothing for what `brd-reader` is never handed**, so it returns the same result
+  for: an image that was not read — the agent reads a transcription and never the picture, and an
+  unread image has none — and a section whose content, apart from its heading and the words
+  introducing its links, is links to files the agent is never handed: an *other* file whatever
+  Phase 1's answer, or a link the copy did not capture — a URL, an unreadable or `ambiguous`
+  target, or a file Phase 1's answer left out, each named in `brd/brd-link-log.md`. Where the
+  question names such an item, say so beside it: it is settled by accounting for it, or by
+  converting or capturing the file and re-running this intake.
+
+  **`<recommended>` is a placeholder this run resolves once** — substitution, not an edit to the
+  array, which is otherwise presented verbatim; `workflows-core:escalation-rules`, *The
+  `(Recommended)` marker is unconditional*, sanctions exactly this. Where any item the question
+  names is one a re-read can change, it resolves to ` (Recommended)` on the first option and the
+  empty string on the second. Where every one it names is of the kind above, it resolves to the
   empty string on the first and ` (Recommended — a re-read returns the same result for every one
-  named)` on the second: recommending a re-read that cannot change the result would send the operator
-  round the same question again.
+  named)` on the second: a re-read that cannot change the result spends a dispatch on nothing.
 
-  The second option records the answer's substance in the final report — *they hold no obligation*,
-  not the option's label, in the form `brd-format.md` §1.2's *Rows* line takes. **A typed answer** —
-  the harness's free-text option, which no array can decline (`workflows-core:escalation-rules` §0)
-  — **is acted on as the option it expresses**: a re-read, the record in the operator's own words,
-  or Cancel. Where it expresses none of them, the question is asked again; it is never taken for any
-  option by default.
-  **Report the outcome either way, including "every top-level section and every image accounted
-  for"** — an unreported clean result is indistinguishable from an unrun check. **Where no anchor
-  parses at all, say that and stop**: that is a read failure, not a document with no coverage.
+  **Then each item still unaccounted for gets a question of its own**, sections in reading order
+  (`brd-format.md` §2) and then images in Phase 2's capture order, at most four to an
+  `AskUserQuestion` call — more than four go out in several calls, each item still its own
+  question. Each names its item as the set question did:
+
+```
+choices: ["They hold no obligation — record that (Recommended)", "Quote the sentence that binds (you'll be prompted)", "Cancel"]
+```
+
+  An image that was not read has no transcription to quote from, so its question leaves the second
+  option out:
+
+```
+choices: ["They hold no obligation — record that (Recommended)", "Cancel"]
+```
+
+  - ***They hold no obligation*** records the item's account in the answer's substance, never the
+    option's label — *they hold no obligation*.
+  - ***Quote the sentence that binds*** asks, in plain text, for the sentence, and checks it against
+    the item — a section's own text, the sections beneath it included; an image's transcription,
+    element by element (`brd-format.md` §2.2) — once every run of whitespace on both sides is
+    collapsed to one space and both ends are trimmed, the comparison pass 2 makes, and nothing else
+    normalised. **Where it occurs** — anywhere in a section, or within exactly one of an image's
+    elements — the run adds a row: its `text` that sentence as the source writes it; its
+    `source_anchor` the section's heading path in `brd-format.md` §2's form — a linked file's path
+    before it — or, for a file with no heading, the line range the sentence spans, and, for an
+    image, `<its path relative to brd/> › "<the sentence>"`; no defect candidate, since
+    `brd-reader` proposed none; and its place in reading order at that section, or where §2 places
+    a row drawn from that image. From then on it is a row like any other — numbered or minted as
+    above, open to a candidate Phase 3.5 raises and to Phase 4's walk of it, and written to the
+    ledger by Phase 5 — and the section or image holds it, so no account is recorded for it. **Where
+    it does not occur**, or occurs in more than one of an image's elements, say so and ask for the
+    sentence again: what the source does not say is never written through, since a row holding it
+    would be an obligation the customer never stated.
+  - **A typed answer** — the harness's free-text option, which no array can decline
+    (`workflows-core:escalation-rules` §0) — is acted on as the option it expresses: a sentence the
+    item holds is taken as the quote and checked as above; words to the effect that the item holds
+    no obligation are recorded as its account, in the operator's own words; a *Cancel* cancels.
+    Anything else is asked again, and no answer is ever taken for an option by default.
+  - ***Cancel*** ends the run before this phase writes anything.
+
+  **Record every account for the write**, carried and new alike: a section's in the inventory's
+  `accounts:` map (above; `brd-format.md` §2), an image's on its *Rows* line (Phase 5). **Report the
+  outcome either way** — each account by its section or image and its words, saying which were asked
+  and which carried from file, each row a quote added, and whether a re-read ran — including
+  "every top-level section and every image accounted for": an unreported clean result is
+  indistinguishable from an unrun check. **Where no anchor parses at all, say that and stop**: that
+  is a read failure, not a document with no coverage.
 - **`EMPTY`** — report that the source contained no identifiable requirement, and skip Phase 4
   (nothing to classify). **What the run leaves turns on whether the folder already holds an
   inventory row:**
@@ -696,14 +791,14 @@ choices: ["Re-read the named sections — re-dispatch brd-reader over the whole 
     and does **not** offer grounding, because offering a command that would refuse this BRD is worse
     than offering nothing. Carry the `EMPTY` result forward to Phase 8 as the flag that picks its
     choice list.
-  - **An inventory an earlier intake filled** — keep it **exactly as it stands**, its `document:`
-    and `captured:` map included, and the defect log and the ledger with it: nothing is renumbered,
-    re-minted or rewritten. A read that returned nothing has not shown that any requirement is gone
-    — the reconciliation above tells a row *this source no longer contains* from one *not
-    re-extracted by this read* by the row's own anchor, and an empty read never reaches that test —
+  - **An inventory an earlier intake filled** — keep it **exactly as it stands**, its `document:`,
+    `captured:` map and `accounts:` map included, and the defect log and the ledger with it: nothing
+    is renumbered, re-minted or rewritten. A read that returned nothing has not shown that any
+    requirement is gone — the reconciliation above tells a row *this source no longer contains* from
+    one *not re-extracted by this read* by the row's own anchor, and an empty read never reaches that test —
     so no row is reported in either state, and the next re-run with a readable source reconciles
     against the ids on file rather than numbering from `[BR#1]` over a defect log whose entries cite
-    them. Because both records stand too, that re-run judges the document and each file against the
+    them. Because those records stand too, that re-run judges the document and each file against the
     same record, so a file recorded **replaced** here is recorded so again and the rows it matches
     there take the new wording (Phase 2). Report the read as empty, name the document this run read
     and every file Phase 2 recorded **replaced**, into which a kept row may anchor, and say that
@@ -759,6 +854,19 @@ does not accept a document as evidence either (`commands/prd-ground.md` Phase 4.
 **This is the human-in-the-loop step `brd-reader` cannot do itself.** Every `defect_candidates`
 entry the agent returned is a hypothesis, never a decision (`agents/brd-reader.md`) — confirming or
 rejecting each one, against the customer or the delivery team, is this phase's job alone.
+
+**First, print `brd-reader`'s `notes` — once, at this phase's start, whether or not any candidate
+is left to walk** (Phase 1.5 collects them): the last read's, a re-read's having replaced the first
+read's (Phase 3), with every `[BR#n]` in them mapped through Phase 3's reconciliation. An observation
+the agent made and did not propose — a possible conflict it would not assert, say — belongs in front
+of the person confirming defects, and on a run whose every candidate matched an entry on file it
+still has to be seen. **The walk cannot turn a note into a defect**: every question it asks confirms
+or rejects a candidate, and a `[DEF#n]` is minted from a confirmed candidate only, so a note stays a
+note. **Nothing parses a note either** — it is printed, never read into a field: Phase 5 writes a
+*Rows* line from the returned `illustrates` alone, whatever a note says of it
+(`agents/brd-reader.md`: a note never amends a returned field). The notes are carried to the final
+report, named, and never dropped; after an `EMPTY` read, which skips this phase, the final report is
+where they are printed.
 
 **On a re-run over a folder whose defect log already holds entries, match before asking** — a
 `[DEF#n]` is permanent (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §4), and a re-extraction
@@ -825,13 +933,6 @@ row the group joins — need not be any of its members' pairs: where entries on 
 every one of them, it is a match like any other and is not walked, and where they join some, it is
 walked as such a candidate is.
 
-**Before the first candidate, print `brd-reader`'s `notes`** (Phase 1.5 collects them), with every
-`[BR#n]` in them mapped through Phase 3's reconciliation: an observation the agent made and did not
-propose — a possible conflict it would not assert, say — belongs in front of the person confirming
-defects. **The walk cannot turn a note into a defect**: every question it asks confirms or rejects a
-candidate, and a `[DEF#n]` is minted from a confirmed candidate only, so a note stays a note. It is
-carried to the final report, named, and never dropped.
-
 Group the candidates to walk by class — every carried-forward candidate on a first intake, the
 unmatched ones on a re-run, less any folded above; `brd-reader`'s, plus any Phase 3.5 raised from
 documentation, which are walked identically and marked in the report as docs-raised — and walk them
@@ -850,16 +951,18 @@ the walk never asks about each part.
 <class> on [BR#n] — "<the row's text>" (<its source_anchor>)
 Reason: <the candidate's reason>
 Names: [BR#m] — "<that row's text>", …
-Image: <its path relative to brd/> — transcription below; open the image before answering.
+Image: <its path relative to brd/> — <its Depicts sentence>; open the image before answering.
+Element: <the element the row's anchor names, verbatim, by the kind it is>
 Also raised: [BR#m] — <that folded candidate's reason>, …
 On file: [DEF#k] — <that entry's reason> (<its resolution>), … — if this candidate is one of these, answer "Reject — not a defect".
 On file: [DEF#k] — <that entry's reason> (<its resolution>), joining [BR#a] and [BR#b], … — logged already; confirming records only [BR#n] with [BR#m], …, the pairs none of these joins, so answer for those pairs alone.
 ```
 
 The *Names* line is written for a `conflict` or `duplicate` only, one entry per counterpart the
-candidate names — for a group walked as one, every other row the group joins; the *Image* line only
-for a row drawn from an image (below); the *Also raised* line only for a candidate another was
-folded into, one item per folded candidate, naming the row it was raised on; the *On file* line only
+candidate names — for a group walked as one, every other row the group joins; the *Image* and
+*Element* lines only for a row drawn from an image (below); the *Also raised* line only for a
+candidate another was folded into, one item per folded candidate, naming the row it was raised on;
+the *On file* line only
 where an entry on file bears on the candidate, one item per such entry — in its first form for an
 `ambiguity`, `untestable`, `unsourced` or `scope-leak` candidate the pairing above left over, each
 entry on file of its class raised on its row; in its second for a `conflict` or `duplicate`, each
@@ -875,10 +978,15 @@ Then present:
 choices: ["Confirm as written (Recommended)", "Confirm with an edited reason", "Reject — not a defect", "Cancel"]
 ```
 
-**A candidate on a row drawn from an image is put with its picture.** Show the image's path relative to
-`brd/` and its transcription from `brd/brd-figures.md` beside the candidate, and tell the operator to
-open the image before answering: the transcription is the plugin's reading of the customer's picture
-(`brd-format.md` §1.2), and the picture is what the candidate is about.
+**A candidate on a row drawn from an image is put with its picture.** Show the image's path relative
+to `brd/`, the *Depicts* sentence of its section in `brd/brd-figures.md`, and the part of that
+section's transcription the row's anchor names — `brd-format.md` §2.2 fixes which element that is:
+the *Text* region or cell holding the quote, written as the *Text* fence gives it; the annotation's
+row, its *Says* and what it *Points at*; or the *Flow* edge, as its item reads. Where the quote names
+no single element, show every element holding it, each by its kind. Show nothing else of the
+transcription, and tell the operator to open the image before answering: the transcription is the
+plugin's reading of the customer's picture (`brd-format.md` §1.2), and the picture is what the
+candidate is about.
 
 On confirmation, the candidate is **confirmed** — with its reason as written, or as the operator
 edited it — and waits for its id. On rejection, the candidate is simply dropped — it never becomes a
@@ -918,10 +1026,14 @@ there was no prior inventory, and nothing where an earlier intake's inventory st
 
 **Then complete `brd/brd-figures.md`'s *Rows* line for every image**, from the final inventory —
 after Phase 3's reconciliation mapping, never from the agent's own numbering: `yields` every row
-whose `source_anchor` names the image and `illustrates` every row the agent returned for it, either
-half left out where its list is empty (`yields [BR#3]`), or, where it does neither, the value
-`accounted for — <the operator's Phase 3 answer>` in the form `brd-format.md` §1.2 fixes; after an
-`EMPTY` read, which asks no question, what `brd-format.md` §1.2 fixes for that case — over an
+whose `source_anchor` names the image and `illustrates` every row the last read's `figures` entry
+for it returns in `illustrates` — **written from that field alone**: a `brd-reader` note is printed
+(Phase 4) and never parsed, so a note saying the list is wrong changes nothing here, and the agent
+corrects a field in the field (`agents/brd-reader.md`) — either half left out where its list is
+empty (`yields [BR#3]`), or, where it does neither, the value `accounted for — <its account>` in the
+form `brd-format.md` §1.2 fixes, the account being the operator's Phase 3 answer or, where Phase 3
+carried it from the line on file and asked nothing, that line's; after an `EMPTY` read, which asks
+no question, what `brd-format.md` §1.2 fixes for that case — over an
 earlier intake's inventory, each section's line exactly as Phase 2.5 left it on file, `illustrates`
 included, since that read keeps every row it names, and `none — no requirement extracted` for a
 section that had none; over a folder holding no prior inventory row, `none — no requirement
@@ -1145,7 +1257,10 @@ document (Phase 3); on a re-run, the reconciliation — ids preserved, every id 
 with its text, each text change old → new, each answer to the same-or-new question, and each row
 kept as *not re-extracted by this read* or as one *this source no longer contains* — or, after an
 `EMPTY` read over an earlier intake's inventory, that every row stands as it was (Phase 3); the
-coverage outcome for sections and images; the requirement count; the confirmed-defect count by class
+coverage outcome for sections and images — whether a re-read ran, each row added from a sentence
+the operator quoted, by `[BR#n]` with its text, and each account as recorded, by its section or image
+and its words, saying which this run asked and which it carried from file (Phase 3); the requirement
+count; the confirmed-defect count by class
 (and how many candidates were rejected, how many of the confirmed ones were raised from
 documentation rather than by `brd-reader`, and each candidate folded into another) — on a re-run,
 also how many candidates matched an entry already on file, each entry on file *not re-raised by this
@@ -1154,9 +1269,9 @@ some of its pairs, with the pairs no candidate joined (Phase 4); the `docs groun
 Phase 1 verbatim, and — when it was ON — the `docs_references` list of requirements the shipped
 documentation describes as already built, flagged for `/prd-ground` to check against code; whether
 Phase 6 wrote seeds and which; resolved model routing (+ any Opus degradation); every agent's
-`notes` — `figure-reader`'s and `brd-reader`'s, as Phase 1.5 collects them, the latter's `[BR#n]`s
-mapped through Phase 3's reconciliation; the feedback and cost paths; the `Phase handoff:` outcome
-line (`workflows-core:phase-handoff` §4.1) — `handoff-to-main`'s on the first choice, and the
+`notes` — `figure-reader`'s and `brd-reader`'s, as Phase 1.5 collects them, the latter's being the
+last read's, with its `[BR#n]`s mapped through Phase 3's reconciliation; the feedback and cost paths;
+the `Phase handoff:` outcome line (`workflows-core:phase-handoff` §4.1) — `handoff-to-main`'s on the first choice, and the
 *Declined by the user* line on either other (Phase 7); the `Specs repo:` outcome line from
 `commit-artifacts` (`workflows-core:specs-repo-git` §6); the next-step recommendation; and end with
 the ledger line, exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:

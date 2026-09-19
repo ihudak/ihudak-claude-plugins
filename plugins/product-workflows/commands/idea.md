@@ -155,19 +155,30 @@ resolved to no file, does not. For example:
 7 files reached (source + 6): markdown by depth — depth 1: 3, depth 2: 1; images: 1; unresolved: 1; other: 1.
 ```
 
-Where it reached past any of them, name the set that is past a bound — the union of every markdown
-file deeper than 2 (the depth bound is on pages, never on images), the markdown files after the
-twelfth in the walk's order (the source counted first), and the images after the sixth in the walk's
-order — each file named once, in the walk's order, saying for each which bound it is past, and ask:
+Where it reached past any of them, **print the counts line all the same** — the Final report reports
+the walk in both branches, and this is where it comes from — then find the set that is past a bound:
+the union of every markdown file deeper than 2 (the depth bound is on pages, never on images), the
+markdown files after the twelfth in the walk's order (the source counted first), and the images
+after the sixth in the walk's order. Put the question with its text fixed — a line naming the bounds
+the walk crossed, of the three, then one line per file in that set, each file once, in the walk's
+order, with every bound it is past — and then the array:
+
+```text
+The walk reached past <the bounds it crossed: two levels of pages · twelve pages, the source counted · six images>:
+<the file's path> — <deeper than two levels | after the twelfth page | after the sixth image>
+…
+```
 
 ```
 choices: ["Read all <n> (Recommended)", "Only what the source links directly", "Stop"]
 ```
 
-`<n>` is how many distinct markdown files and images the walk reached, the source not counted. *Read
-all* takes every file the walk reached. *Only what the source links directly* takes depth 1 — the
-source's own links, markdown and images alike — and leaves every deeper file `excluded`
-(`linked-sources.md` §6, §7), which Phase 4.5 reports rather than copies. *Stop* ends the run with
+`<n>` is the counts line's headline total less the source — every file the walk reached but the
+source, *other* files included, the `+ 6` of the example above — and that is exactly the set
+*Read all* takes beside the source, as the branch above takes it. An *other* file it takes is still
+never opened: `idea-reader` enumerates it into `links_other`, taken or not (Phase 2). *Only what the
+source links directly* takes depth 1 — every file the source links itself, of any kind — and leaves
+every deeper file `excluded` (`linked-sources.md` §6, §7), which Phase 4.5 reports rather than copies. *Stop* ends the run with
 nothing written — an operator halt, so `emit-block` does not fire.
 
 Record the outcome on the walk record itself, as `linked-sources.md` §7 has a caller do, so every
@@ -391,20 +402,20 @@ repairs where `idea.md` points.
    Drop any entry that already sits inside the PRD folder Phase 4 wrote `idea.md` into: it is
    vendored already, and its link stays as written.
 2. **Copy each entry to its destination** — text and markdown to `<PRD-folder>/attachments/`, images
-   to `<PRD-folder>/design/idea-sources/` — applying the collision rule. Byte-identical content at the
-   destination is reused rather than re-copied; otherwise the name takes the lowest free `_NN`, derived
-   from the destination directory and appended to the **original** basename, never to a name already
-   carrying a suffix.
+   to `<PRD-folder>/design/idea-sources/` — under the name
+   `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` *The collision rule* gives it: all four of its
+   rules, executed from there and restated nowhere here, since a partial copy of them is a second
+   rule that disagrees with the first.
 3. **Rebuild `design/idea-sources/index.md` per `workflows-core:grounding-format`
    §6.2** — the one index format and reconciliation contract every writer of a frame-set index follows,
    executed inline and restated nowhere. That section owns the filename, the frontmatter, the table
    shape, the `Linked from` semantics, and every one of its six reconciliation steps, including what
    each of them reports — run them from there, never from a copy of them here. **What this run
    accounts for** is §6.2's writer table: the images step 2 copied, described from their digest
-   `description`, transcribed verbatim and never invented. An image the collision rule *reused*
-   (byte-identical content already at the destination) is not a new frame and gets no second row; the
-   row already describing it stands. **Every placeholder this run writes is §6.2 step 4's first
-   literal, `_no description on record_`, and that is a consequence of the writer table rather than a
+   `description`, transcribed verbatim and never invented. An image the collision rule *reused* (its
+   rule 1) is not a new frame and gets no second row; the row already describing it stands. **Every
+   placeholder this run writes is §6.2 step 4's first literal, `_no description on record_`, and that
+   is a consequence of the writer table rather than a
    choice made here.** Step 4's second literal records a describer that looked at a file and could not
    read it; this run copies only images `figure-reader` actually read, so a frame it accounts for
    nowhere is always one it never looked at — which a later `/workflows-core:frames` run can still
@@ -663,8 +674,8 @@ link left unfollowed"), because the absence of a notice of what was left unread 
 once the run is known to print one; **what the
 run vendored and what it did not** — the count of files copied into `attachments/` and of images copied
 into `design/idea-sources/`, whether that frame set's `index.md` was written and how many rows it now
-holds against how many this run added, every name the collision rule substituted, the number of links
-rewritten in `idea.md` **and every target left unrewritten because two copied entries were written
+holds against how many this run added, every name the collision rule substituted or refreshed, the
+number of links rewritten in `idea.md` **and every target left unrewritten because two copied entries were written
 identically** (with each source and each copy), every frame indexed with no description on record, every
 index row dropped because its image is gone, and every source left uncopied with its reason
 (`excluded`, broken, `ambiguous`, `missing`, `unreadable`, `not_an_image`, a linked file nothing

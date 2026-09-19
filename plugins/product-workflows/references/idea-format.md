@@ -70,7 +70,8 @@ insufficient. No proposed solution, no technology detail.
 `## Signals & evidence` — demand evidence grounding the idea: RFE reference, community-post
 requesters/upvotes, linked docs, and image references. Cite sources; never fabricate.
 
-**A linked image is cited by path, and what it shows is described only where the grill settled it.**
+**A linked image is cited as any linked file is — by its written `target` or its resolved `path`
+(below) — and what it shows is described only where the grill settled it.**
 `figure-reader` transcribes the images an idea source links and `idea-reader` returns each frame's
 one-sentence description from that transcription, but that description is **context, not
 evidence** — it says what somebody drew, not what anything does. So an image bullet names the file

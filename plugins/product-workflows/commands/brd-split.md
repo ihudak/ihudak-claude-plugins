@@ -516,9 +516,11 @@ For every slice Phase 2 confirmed:
    `claims:` — the first two are how the new folder asserts its own identity from the moment it
    exists (`workflows-core:addressing` §4), and `brd-link.md` is the folder's only artifact until Phase 3 step 4
    writes its inventory. Then the slice's `[BR#n]`
-   rows as currently proposed. This is provisional: Phase 4's walk is the step that actually moves
-   a row's disposition, and a row proposed here for this child but resolved differently there (for
-   example rejected instead) is removed **from this list** at that point, never left to disagree
+   rows as currently proposed, spelled as `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1
+   fixes — each a double-quoted bracketed id, one to a line — here and wherever a later step of
+   this command adds to or withdraws from the list. This is provisional: Phase 4's walk is the step
+   that actually moves a row's disposition, and a row proposed here for this child but resolved
+   differently there (for example rejected instead) is removed **from this list** at that point, never left to disagree
    with the ledger. **Only the `claims:` entry and the inventory row step 4 copies for it are
    withdrawn — the ledger row step 5 seeds is not.** A ledger row is never deleted
    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), so the child keeps an
@@ -539,7 +541,10 @@ For every slice Phase 2 confirmed:
    against — never the one `brd/brd-link-log.md` opens with, which a rename run that stopped before
    its Phase 3 leaves naming a document no row was read from. On an inventory carrying no
    `document:` — one written before 3.7.0 that no 3.7.0 intake has run over, whose Phase 2 writes
-   one — read the log's opening line instead (`brd-format.md` §1.1).
+   one — read the log's opening line instead (`brd-format.md` §1.1). **Write it on the base
+   `brd-format.md` §2.1 fixes, relative to this BRD's folder** — `brd/source/<basename>`, `brd/`
+   put before a `document:` value, which is relative to `brd/` — never the `document:` value as it
+   stands.
    **Copy; never re-extract.** Ids are
    the parent's and stay the parent's, and every `source_anchor` copied here keeps resolving
    against the parent's files — its `brd/source/`, `brd/source-external/` or `brd/brd-figures.md`,

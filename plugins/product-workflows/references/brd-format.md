@@ -292,16 +292,20 @@ none
   recomputed by the run every time, including for an image the current run did not capture
   (below), and so is *Rows*, save after an `EMPTY` read over an earlier intake's inventory, which
   keeps it (the *Rows* bullet).
-- **Rows** is completed by `/brd-intake` Phase 5, once the inventory is final: `yields` the rows
-  anchored on this image, and `illustrates` the prose rows it bears on — each prose row the image
-  restates, and each prose row whose own passage links the image to bind what it draws, since a row
-  such as *"Approval must follow the attached flow."* states no obligation beyond binding the ones
-  the image draws — either half left out where its list is empty — `yields [BR#3]`,
-  `illustrates [BR#6]` — or `accounted for — <the operator's answer>` where it does neither, the
-  answer's substance and never an option's label: `accounted for — they hold no obligation` where
-  the operator picked that option at `/brd-intake` Phase 3, or their own words where they typed an
-  answer to the same effect in the harness's free-text option (`workflows-core:escalation-rules` §0)
-  — and, where `brd-reader` returned `EMPTY`, nothing is put to the operator: over a folder holding
+- **Rows** is completed by `/brd-intake` Phase 5, once the inventory is final; until then a section
+  Phase 2.5 writes new carries the line empty — `- **Rows:**`, with nothing after it — which is how a
+  run that stops before Phase 5 leaves it (`commands/brd-intake.md` Phase 2.5 step 3). Completed,
+  it reads `yields` the rows anchored on this image, and `illustrates` the prose rows it bears on —
+  each prose row the image restates, and each prose row whose own passage links the image to bind
+  what it draws, since a row such as *"Approval must follow the attached flow."* states no
+  obligation beyond binding the ones the image draws — either half left out where its list is empty
+  — `yields [BR#3]`, `illustrates [BR#6]` — or `accounted for — <the operator's answer>` where it
+  does neither, the answer's substance and never an option's label: `accounted for — they hold no
+  obligation` where the operator picked that option at `/brd-intake` Phase 3, or their own words
+  where they typed an answer to the same effect in the harness's free-text option
+  (`workflows-core:escalation-rules` §0); a re-run that re-uses the image's section carries the
+  account its line already records rather than asking again (`commands/brd-intake.md` Phase 3) —
+  and, where `brd-reader` returned `EMPTY`, nothing is put to the operator: over a folder holding
   no prior inventory row the line is `none — no requirement extracted`; over an earlier intake's
   inventory, which that read leaves as it stands (`commands/brd-intake.md` Phase 3), a section's
   line is **kept exactly as it stood**, `illustrates` included — every row it names is kept with the
@@ -340,6 +344,9 @@ document: "source/brd.md"
 captured:
   "source/brd.md": sha256:<hex>
   "source/appendix/fields.md": sha256:<hex>
+accounts:
+  "1. Background": "they hold no obligation"
+  "source/appendix/fields.md › Sources": "pointers to the customer's own wiki only"
 ---
 
 # Inventory: <this folder's key>
@@ -356,10 +363,10 @@ The frontmatter is the folder's carrier on a source-owning BRD, and a slice's ad
 `source:` (§2.1); the title line names the same key; the table carries the four fields above as its
 four columns, in that order, one row per `[BR#n]` in id order. `id` is written bracketed, and
 `defects` as §2.3 writes a list. **An inventory holding no row** is that frontmatter less its
-`document:` and its `captured:` map, which record what the rows were reconciled against and so have
-nothing to record, the title and the table's header — what `/brd-intake` Phase 2 writes before
-anything is copied, and what it leaves after an `EMPTY` read on a first intake — never an empty file,
-which on a source-owning BRD would leave the folder keyless.
+`document:`, its `captured:` map and its `accounts:` map, which record what the rows were reconciled
+against and so have nothing to record, the title and the table's header — what `/brd-intake` Phase 2
+writes before anything is copied, and what it leaves after an `EMPTY` read on a first intake — never
+an empty file, which on a source-owning BRD would leave the folder keyless.
 
 **`document:` and `captured:` record what the rows were last reconciled against**, on a
 source-owning BRD's inventory only. `document:` names the document the rows were read from, by its
@@ -389,6 +396,24 @@ name — its matched rows take the new read's wording, each change reported — 
 Phase 3, which every later run judges against; an inventory carrying `document:` and no map is
 judged the same way (`commands/brd-intake.md` Phase 2). A slice's inventory carries neither: it is
 copied from its parent's rows and never reconciled against a source (§2.1).
+
+**`accounts:` records the operator's answer for each top-level section that holds no row** (§2.2
+relation 2), so a re-run over an unchanged file does not ask about the same section again. One entry
+per section the operator accounted for, keyed by the section as relation 2 names it — its heading
+path in the one form §2.2 fixes, prefixed for a linked markdown file by the file's path relative to
+`brd/` and ` › `, exactly as an anchor into that file is written, and, for a file with no heading at
+all, which is one section, by that file's path relative to `brd/` alone — and valued at the
+account's substance, never an option's label: `they hold no obligation`, or the operator's own words
+where they typed an answer to that effect. Both are double-quoted YAML strings. `/brd-intake` Phase 3
+writes the map with the rows, and nothing else writes it: an entry for every section that run
+accounted for, asked or carried, and every entry already on file for a section in a file that run
+did not capture, kept as it stands; a section that now holds a row has no entry. A later run carries
+a section's account, and does not ask again, only where its Phase 2 recorded the file the section
+sits in **unchanged** and the section still holds no row — a section of the document by the
+document's own state, judged against `document:` as above — and drops the account of a section in a
+file recorded **replaced**, asking afresh (`commands/brd-intake.md` Phase 3). An image's account is
+not kept here: it sits on the image's *Rows* line (§1.2). A slice's inventory carries no `accounts:`
+either, for the reason above.
 
 **A requirement carrying more than one obligation is split.** When one numbered item in the source
 binds the delivery team to two or more separable obligations, each obligation becomes its own
@@ -437,7 +462,12 @@ linked file's extension — and any other anchor is a document anchor.
 
 **Rows are numbered in reading order across all three**: the document's first, in source order; then
 each linked markdown file's, in the order `/brd-intake` Phase 2 captured it; and a row drawn from an
-image at the passage that links the image — its first link, where several do.
+image at the passage that links the image — its first link, where several do. **On a first intake,
+with nothing on file, the rows are numbered once**, after `/brd-intake` Phase 3's last read and after
+any row its coverage step adds from a sentence the operator quotes, so a re-read's rows and an added
+row each take their place in that order rather than the end of it. **On a re-run every id on file is
+kept, and each new row — read or added — takes the next id after the highest in use**, so a new row
+sits after them whatever its place in the source (`commands/brd-intake.md` Phase 3).
 
 ### 2.2 The inventory's coverage of its source is checkable from the inventory alone
 
@@ -465,12 +495,14 @@ linked markdown file Phase 2 copied, as defined below the list, the third over t
    linked), or a captured markdown file some anchor names: a section whose only content is a link
    to an appendix holds whatever that appendix yields. One with none is not a defect and is not a
    stop — only a person can say whether a section binds the delivery team to anything — so
-   `/brd-intake` names each with what the source has under it and asks.
+   `/brd-intake` names each with what the source has under it and asks, and records the answer in
+   §2's `accounts:` so a section of an unchanged file is not asked about twice.
 3. **Every image the current run captured yields a row, illustrates one, or is accounted for.**
    It *yields* a row where any anchor names it, and *illustrates* one where `brd-reader` returned
    that row in the image's `illustrates`. An image that does neither — a logo, a decorative banner,
    a screenshot whose content no obligation bears on, or an image that could not be read — is named
-   with its `Depicts` sentence or its reason, in the same question relation 2 asks.
+   with its `Depicts` sentence or its reason, and asked about as relation 2's sections are; its
+   answer is recorded on its *Rows* line (§1.2).
 
 **A top-level section, and the one heading-path form it fixes.** Where a file's first heading is
 the only heading at its level and has headings beneath it, that heading is the file's **title**,
@@ -550,6 +582,19 @@ naming an image `brd/brd-figures.md` does not record, an image recorded as *not*
 quoted element or annotation number is absent, does not resolve — relation 1's, not relation 3's, to
 report.
 
+**Which element an image anchor names** is a second question, asked where two anchors are compared
+(`commands/brd-intake.md` Phase 3 matches a returned row to a row on file by it). An image's
+transcription has three kinds of element: each region of its *Text* — or, in a region written as a
+table's rows, each cell, the span §2 bounds a quote to — each annotation, and each *Flow* edge.
+`annotation <n>` names the n-th annotation. A quoted anchor names the **one** element whose content —
+a region's or a cell's text, an annotation's *Says*, an edge as its *Flow* item reads, each decoded
+first (§2.3) — holds the quote. **A quote found in more than one element names none of them**, though
+it still resolves: `"Total"` in two regions, or in a region and an annotation's *Says*, points at
+neither, so its writer quotes a span its own element alone holds, quotes an edge whole, or, for an
+annotation, writes `annotation <n>` instead (`agents/brd-reader.md`, step 4). Two anchors name the
+same element where they name the same image and that element — `annotation 2` and a quote of
+annotation 2's *Says* that no other element holds among them.
+
 **Where no anchor in the whole inventory resolves, that is a read failure and is reported as one** —
 never as a document with no coverage (`workflows-core:grounding-format` §2.1).
 
@@ -580,14 +625,18 @@ folder's identity and the two facts a reader needs to follow an anchor out of it
 kind: brd
 key: <this folder's key — must match the folder name>
 parent: <PARENT-KEY>
-source: <the parent's brd/source/<basename>, relative to the parent's folder>
+source: "<the parent's brd/source/<basename>, relative to the parent's folder>"
 ---
 ```
 
 **`source:` names the parent's document itself, and §1.1 says which file in `brd/source/` that is** —
 the directory holds the files that document links as well, so the writer of this header reads the
 name off the parent's inventory's `document:`, as §1.1 says, rather than taking whatever it finds
-there.
+there. **Its path is relative to the parent's folder, never to its `brd/`**, and that one base is
+what every reader resolves it against: it is `brd/` followed by the parent's `document:` value, which
+is relative to `brd/` — `document: "source/brd.md"` gives `source: "brd/source/brd.md"` — written, as
+`document:` is, as a double-quoted YAML string. A slice written before 3.7.0 carries the same base,
+its value perhaps unquoted, and reads the same.
 
 **`kind:` and `key:` open every inventory, a slice's and a source-owning BRD's alike** — a
 source-owning BRD's inventory carries the two and no `parent:`/`source:` pair, because it *is* the
@@ -615,6 +664,31 @@ files, exactly as a document anchor resolves against the parent's `brd/source/`.
 **`/brd-split` writes a slice's inventory**, at the moment it creates the slice's folder — it is
 the only command holding both the parent's inventory and the allocation that says which rows the
 slice claims. `/brd-intake` never runs on a slice: there is no document to intake.
+
+**The slice's `brd-link.md` is frontmatter, and its `claims:` list is spelled one way.**
+`/brd-split` writes it when it creates the slice (`commands/brd-split.md` Phase 3 step 3), and adds
+to or withdraws from `claims:` as its walks settle rows:
+
+```
+---
+kind: brd
+key: ACME-10-1
+parent: ACME-10
+claims:
+  - "[BR#1]"
+  - "[BR#4]"
+---
+```
+
+**Each `claims:` entry is a bracketed `[BR#n]` inside double quotes, one to a line**, and a slice
+claiming nothing writes `claims: []`. The quotes are not decoration: YAML reads an unquoted `[BR#1]`
+as a flow sequence holding the string `BR#1`, so a reader comparing the entry with a ledger's
+`[BR#1]` finds no match, and the claim silently goes missing. A list written before 3.7.0 fixed
+this spelling — bare `BR#1`, or `[BR#1]` unquoted — is read id by id, each `BR#<n>` in it naming
+`[BR#<n>]`, and `/brd-split` writes it in this spelling the next time it writes the list. Other
+fields sit beside these four where a command writes one — `depends-on:`, which
+`commands/prd-ground.md` and `commands/brd-package.md` merge in, and `reason:`, which
+`commands/brd-split.md` Phase 4.5 writes.
 
 ### 2.3 The table files, and the one cell encoding they share
 

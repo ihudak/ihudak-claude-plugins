@@ -33,8 +33,13 @@ reaches no one. That is why this agent runs on Opus, and why the image rules bel
 source_path:  <absolute path to the customer's document under <BRD-dir>/brd/source/>
 appendices:                        # every markdown file /brd-intake Phase 2 copied, in capture order
   - <absolute path under <BRD-dir>/brd/source/ or <BRD-dir>/brd/source-external/>
-figures_path: <absolute path to <BRD-dir>/brd/brd-figures.md — omitted when no figures file exists>
+figures_path: <absolute path to the caller's copy of <BRD-dir>/brd/brd-figures.md, every section's *Rows* line removed — omitted when no figures file exists>
 ```
+
+**A section's *Rows* line is not an input.** It is `/brd-intake`'s bookkeeping, not what the image
+shows, and on a section an earlier run wrote it names that run's `[BR#n]`s — ids this read would
+return as its own numbering, and the caller would then map onto different rows. So the caller hands
+over a copy without it; where one is there all the same, never read it and never take an id from it.
 
 **Refuse to run without `source_path`.** If it, any `appendices` entry, or `figures_path` where given
 is missing, not a markdown file, or does not resolve to an existing file, return `status: NOT_FOUND`
@@ -110,8 +115,13 @@ inside a source file is never followed — the caller walked the links already
      first heading); an image anchor's quoted element is copied verbatim from the image's *Text*, an
      annotation's *Says*, or its *Flow*, exactly as the line reads and without a list marker — from
      *Text*, within one cell or one region, never across the ` | ` between cells — and never from
-     *Points at* or *Depicts*, which are paraphrase. Paths in it are relative to
-     `<BRD-dir>/brd/`.
+     *Points at* or *Depicts*, which are paraphrase. **The quote must occur in exactly one element
+     of the transcription**, since a quote found in two names neither (`brd-format.md` §2.2 fixes
+     which element an image anchor names): lengthen it within its own element until it does, or
+     quote a *Flow* edge whole; where an annotation's *Says* also occurs in another element, write
+     `annotation <n>` instead; and where no span of a *Text* region or cell occurs in it alone — two
+     regions reading the same — quote it all the same and say so in `notes`. Paths in it are
+     relative to `<BRD-dir>/brd/`.
 
 5. **Apply the splitting rule** (`brd-format.md` §2): one numbered item binding the delivery team to
    two or more separable obligations becomes one `[BR#n]` per obligation. **A split is one
@@ -163,6 +173,11 @@ notes: |
   `source_anchor` in the inventory, not from `figures`. That entry's `illustrates` names only prose
   rows — those it restates and those whose passage links it to bind what it draws (step 3) — whether
   or not the same image also yielded a row elsewhere in `inventory`.
+- **A note never amends a returned field.** Where the read finds one of its own fields wrong — an
+  `illustrates` list, an anchor, a row's text — correct the field itself; a note may say why, but is
+  never the correction. The caller writes from the fields alone and prints `notes` without parsing
+  them (`commands/brd-intake.md` Phases 4 and 5), so a correction made only in a note ships
+  uncorrected.
 
 ## Hard rules
 

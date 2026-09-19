@@ -528,7 +528,7 @@ what the frame shows — **context, not evidence**: what somebody drew, not what
 
 | Frame | Linked from | What the frame shows |
 |---|---|---|
-| `toggle-01.png` | `notes/dark-mode.md` | <the description, verbatim> |
+| `toggle-01.png` | `attachments/dark-mode.md` | <the description, verbatim> |
 ```
 
 **`index.md` is the name a *writer* writes.** §6.1 lets a *reader* accept whatever name the frame-set
@@ -544,9 +544,12 @@ a second writer rebuilds an index the first one authored; it is a record of auth
 of ownership, and no rule anywhere keys off it.
 
 **`Linked from` is provenance, and it is frequently absent.** Where the frame arrived through a link —
-`/idea` vendoring an image an idea source pointed at — it is the original path of the file that carried
-that link, kept as the frame's provenance and **never repointed at the copy**. Where nothing linked it —
-a human exported the frames and dropped the folder in — it is `—`.
+`/idea` vendoring an image that an idea source, or a page it links, pointed at — it names the file
+that carried that link by a path **relative to the folder holding `design/`**: the copy the writer
+vendored of that file (`attachments/dark-mode.md`), or the file itself where it already sat in that
+folder. It is **never** a path on the operator's machine, which resolves for nobody else who reads
+the record. Where nothing linked the frame — a human exported the frames and dropped the folder in —
+or the file that linked it has no copy in the folder, it is `—`.
 
 #### The reconciliation contract
 
@@ -601,9 +604,9 @@ Every writer runs exactly these steps, **after** whatever files it was going to 
    exactly this: three oversized exports returned to the describe set on every future run, with
    nothing about the set having changed.
 3. **Append one row per frame this run accounts for and the index does not, in run order**, after the
-   rows already present, built from that frame's description and its `Linked from` — **transcribed
-   verbatim, never invented**. What a run "accounts for" is the one thing that differs per writer, and
-   the table below is where each writer's answer is recorded.
+   rows already present, built from that frame's description — **transcribed verbatim, never
+   invented** — and its `Linked from` as defined above. What a run "accounts for" is the one thing
+   that differs per writer, and the table below is where each writer's answer is recorded.
 4. **A frame in the listing the run accounts for in no way still gets a row** — `—` in `Linked from`,
    and one of **two** literals in the last column. Something the run cannot speak for put that frame in
    the set, or a cap or a failed read stopped the run from looking at it. Omitting it would rebuild the

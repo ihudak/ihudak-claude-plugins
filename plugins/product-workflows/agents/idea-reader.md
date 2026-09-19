@@ -16,7 +16,7 @@ grilling loop refines into `idea.md`. This agent does NOT grill, decide gaps, or
 ## Inputs
 
 ```yaml
-argument:        <the raw /idea argument: prompt text | file path>
+argument:        <what the caller's Phase 1 classified: prompt text | file path, with no leading @>
 provenance_hint: prompt | markdown | community-post | rfe | prd   # from the caller's Phase 1 classification
 walk:            <the caller's walk record — ${CLAUDE_PLUGIN_ROOT}/references/linked-sources.md §5, every entry carrying `taken`, `false` on one carrying a walk `reason`; absent for a prompt>
 figures:         <every figure-reader return entry for the taken images; absent where none was taken>
@@ -156,8 +156,9 @@ candidate_title: <human-readable title inferred from the source>
 candidate_slug:  <kebab-case slug inferred from the source>
 ```
 
-`images`, `wikilinks_followed`, `wikilinks_not_followed`, `wikilinks_broken` and `links_other` are each
-`[]` when empty — never omitted, so the caller can tell "nothing linked" from "the key went missing".
+`signals`, `images`, `wikilinks_followed`, `wikilinks_not_followed`, `wikilinks_broken` and
+`links_other` are each `[]` when empty — never omitted, so the caller can tell an empty list from a
+field that went missing.
 
 **Every link array carries the target as written, beside the path it resolved to.** `wikilinks_not_followed`,
 `wikilinks_broken` and `links_other` always did; `images` and `wikilinks_followed` do too, and the pair is
@@ -184,6 +185,6 @@ collapsed into one entry.
 - NEVER drop a file the walk reached, or a link it could not resolve in a page that was read: each lands in exactly one array (*What the caller hands over*), so no file the source links, and no link that fails to resolve in a page you read, is left unreported.
 - An unreadable image, a non-image file behind an image extension, and a broken link in a page that was read are all **noted and survived** — none of them ends the run.
 - NEVER open, read, summarise, or describe a `links_other` file. It is enumerated so the caller can report what it did not copy, and enumerating is the whole of the obligation; its content is never inferred from its name or its extension.
-- On an invalid key or a missing file, return `status: NOT_FOUND` with a clear message; do not guess.
+- On a missing or unreadable source file, return `status: NOT_FOUND` with a clear message; do not guess.
 - NEVER mine a `prd` source for requesters, upvotes, or demand signals — a Product Requirements Document is prior art, not a demand ticket. Fabricating them is a correctness failure, not a stylistic one.
 - A `salient_summary` summarises **only** what was actually read; never infer content for a broken link.

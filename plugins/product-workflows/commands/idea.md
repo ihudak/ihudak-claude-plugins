@@ -16,28 +16,35 @@ It then **vendors what it read into that same folder** (Phase 4.5) so the record
 one whose links resolve for everybody, not only for the operator whose disk the sources came off.
 
 Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless (until convergence).
-`--no-docs` turns off documentation grounding (see Phase 1).
+`--no-docs` turns off documentation grounding (see Phase 2.5).
+`--docs <path>` points documentation grounding at `<path>` instead of `${DOCS_PATH:-/workspace/docs}`
+(see Phase 2.5); the token after it is always its value.
 `--ground-code [<repo>[,<repo>…]]` grounds the idea against mounted code (see Phase 2.6) — bare it derives the repo set, with a value it scans exactly those repos. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text.
 
 ---
 
 ## Phase 0 — Resolve the address + model routing
 
-1. **The address (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--docs` and `--ground-code` each consume the token after them (the flag list below), and a value skipped as "non-flag" would be read as the key and validate it with `key-valid`
+1. **The address (mandatory).** Parse the first token that is neither a flag nor a flag's value — `--docs` and `--ground-code` each consume the token after them (the Flags paragraph above), and a value skipped as "non-flag" would be read as the key and validate it with `key-valid`
    (`workflows-core:addressing` §1). Absent or malformed → stop:
    `IDEA_NEEDS_KEY: /idea needs a PRD key (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-77) — it names the folder this idea will live in. Re-run '/product-workflows:idea <PRD-KEY> [<prompt>|@<file>]'.`
 
    **The key is an argument because there is nowhere keyless to write.** `idea.md` lands in its final
-   folder on the first write — `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/`, resolved with
-   `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3)
-   and created there when absent (`workflows-core:addressing` §2). It is never relocated
-   afterwards, and `/create-prd <KEY>` finds it there.
+   folder on the first write — `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/`. Resolve it
+   here with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`,
+   §3): `found` is the folder this run writes into, and `ambiguous` is §3's hard stop. **On `absent`
+   nothing is created here**, because Phase 0 holds no slug to name a folder with: the folder is
+   created by Phase 4's first write, as `PRD-<KEY>-<candidate_slug>/` (`workflows-core:addressing`
+   §2), `candidate_slug` being the one Phase 2's digest returns. Creating it with `idea.md`, which
+   carries its `kind` and `key`, is also what keeps it from ever being keyless (§4). Either way it is
+   never relocated afterwards, and `/create-prd <KEY>` finds it there.
 
    **Validated for shape and checked against nothing**, exactly as `/brd-intake <BRD-KEY>` already
    asks. Nothing looks a key up, because there is nothing to look it up in.
 
-   **Accepted cost:** an abandoned idea leaves a folder in `specifications/`. Reintroducing a staging
-   area to avoid that would restore the relocation step this removes.
+   **Accepted cost:** an idea abandoned after Phase 4 wrote its brief leaves a folder in
+   `specifications/`; a run that stops before Phase 4 creates none. Reintroducing a staging area to
+   avoid that would restore the relocation step this removes.
 2. **Resolve model routing.** Invoke the `model-routing` skill (Skill tool,
    `skill: "workflows-core:model-routing"`), then record:
    ```yaml
@@ -69,11 +76,11 @@ step skips on it.
 
 ## Phase 1 — Classify the source
 
-Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `--docs <path>` with its value, and `--ground-code` with its optional comma-separated repo value) by precedence. Strip them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text — strip only the flag itself.
+Classify what is left of `$ARGUMENTS` once **the Phase 0 key token and every recognised flag with its value** are removed (`--deep`, `--no-docs`, `--docs <path>` with its value, and `--ground-code` with its optional comma-separated repo value), by precedence. Remove them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it, and an unstripped key turns a correct `<KEY> @<file>` invocation into a path that resolves to nothing — Case B below, on a run with nothing wrong. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text — strip only the flag itself. **A leading `@` marks a file, and the path is the text after it**: that path, never the `@`, is what rule 1 tests and what Phase 2 hands `idea-reader`.
 
-1. An existing `.md` path → **markdown** (a community post is just a markdown file,
-   typically under `Projects/Products/…` — the reader tags it `community-post`; an existing `idea.md`
-   passed back for re-refinement is detected here too).
+1. An existing `.md` path, written `@<path>` or bare → **markdown** (a community post is just a
+   markdown file, typically under `Projects/Products/…` — the reader tags it `community-post`; an
+   existing `idea.md` passed back for re-refinement is detected here too).
 2. Otherwise → **prompt** (the argument text is the raw idea).
 
 **There is no tracker-export source type, and there is no third classification.** A key used to
@@ -83,7 +90,7 @@ is the route that seeds one PRD from another. **Case A of the confirmation below
 asked which of two tracker item types an unrecognised one should be read as, and there are no item
 types to disambiguate.
 
-**Confirm the classification — conditionally.** Per `workflows-core:escalation-rules` ("When a choice list fires"), a list is shown only where the answer genuinely varies. Two cases here do; the rest do not.
+**Confirm the classification — conditionally.** Per `workflows-core:escalation-rules` ("When a choice list fires"), a list is shown only where the answer genuinely varies. One case here does, Case B; the rest do not.
 
 **B — the argument is path-like (contains `/`, ends in `.md`, or starts with `@`) but resolved to no existing file.** Without this gate it falls through precedence rule 2 to **prompt** and the path string itself becomes the raw idea text — a mistyped path silently ingested as prose:
 ```
@@ -91,9 +98,6 @@ choices: ["Re-enter the path (Recommended)", "Read the argument as a prompt — 
 ```
 
 **Everything else** — a `.md` path that resolves, and plain prose — is unambiguous. State the resolution in one line that invites correction and **proceed without waiting**; the list would have one plausible answer. (A dedicated `--as prompt|markdown|rfe|prd` override is future work — this inline confirmation covers a mis-detection.)
-
-Show the `docs grounding:` line in the form `workflows-core:docs-grounding` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
-
 
 ---
 
@@ -162,12 +166,12 @@ the operator is not told was partial reads as a complete one.
 → Agent (subagent_type: "product-workflows:idea-reader", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Ingest this idea source and return the structured digest:
   >
-  > argument:        [the resolved argument]
+  > argument:        [what Phase 1 classified — the prompt text, or the file's path with no leading `@`]
   > provenance_hint: [prompt | markdown — the only two Phase 1 computes; the reader upgrades to community-post or prd off the file itself]
   > walk:            [Phase 1.5's walk record, every entry with its `taken` state — omit for a prompt]
   > figures:         [every entry `figure-reader` returned, in the walk's order — omit where no image was taken]"
 
-Wait for the digest. If `status: NOT_FOUND` (invalid key / missing file), surface:
+Wait for the digest. If `status: NOT_FOUND` (a missing or unreadable file), surface:
 ```
 choices: ["Re-enter the source", "Cancel"]
 ```
@@ -176,11 +180,12 @@ This is an environment/user halt — do NOT `emit-block`. On `OK`, carry forward
 `prd` source only), all three wikilink lists — `wikilinks_followed`, `wikilinks_not_followed`,
 `wikilinks_broken` — and `links_other`. `source_refs`/`provenance` feed the `sources:` frontmatter
 entry in Phase 4, and `tracked` seeds `## Prior art`. **Every one of those lists is also Phase 4.5's
-input**: `wikilinks_followed` and the read `images` are what gets copied, and the other three are what
-gets reported instead. **Carry each entry whole, `target` included.** Every link array names the target
-**as written** beside the path it resolved to; that pairing is the only map Phase 4.5 has from a link in
-`idea.md` back to the copy it belongs to, and dropping it would force that phase to resolve links itself —
-which it is forbidden to do.
+input**: `wikilinks_followed` and the read `images` are what gets copied beside the source file
+`source_refs` names, and the other three are what gets reported instead. **Carry each entry whole,
+`target` included.** Every link array names the target **as written** beside the path it resolved to;
+that pairing, with the `source_refs[].ref` of the source — the one copied file no link array holds —
+is the only map Phase 4.5 has from a link in `idea.md` back to the copy it belongs to, and dropping it
+would force that phase to resolve links itself — which it is forbidden to do.
 
 **What the digest now carries, and what it is worth.** The reader reads every markdown file Phase
 1.5's walk took, however deep and however many, and every image's transcription, which
@@ -209,9 +214,9 @@ never there.
 
 ## Phase 2.5 — Grounding: documentation (optional)
 
-Dispatch both grounding agents **in a single response** so they run in parallel. Each is independent; either being OFF never suppresses the other.
+This phase dispatches one grounding agent, the docs grounder. Code grounding is Phase 2.6's, run after this phase and never in the same response; docs grounding being OFF never suppresses it, nor the reverse.
 
-**Docs.** Run `resolve-docs-grounding idea` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; pass `key` = the run's own key, which enables the git-grep backstop. When OFF, skip silently.
+**Docs.** Run `resolve-docs-grounding idea` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — here, and only here: this is the run's one resolution and the phase that shows its line (`workflows-core:docs-grounding`, *Invariants*). As soon as it returns, show the `docs grounding:` line in the form that reference resolves — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs). When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; pass `key` = the run's own key, which enables the git-grep backstop. When OFF, dispatch nothing and move on.
 
 Carry the digest into Phase 3 with **grill-rank** consumption — its challenges compete for the ≤10 question slots, they do not add slots. (One digest, not two: prior-art discovery was removed with its finder, so `docs_challenges` is the only challenge set an agent produces here. There is no `area_proposal` to carry either — nothing proposes a write path now that the key names the folder.)
 
@@ -276,12 +281,14 @@ outcome/value, scope boundaries, evidence/demand sufficiency, success signal, te
 
 ## Phase 4 — Write idea.md
 
-Author `idea.md` per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` into the write root resolved in
-Phase 0, applying the no-hard-wrap prose convention in `Skill(skill: "workflows-core:reference", args: "prose-formatting")`:
+Author `idea.md` per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` into the folder Phase 0
+resolved — or, where it returned `absent`, the one this write creates (**Path**, below) — applying the no-hard-wrap prose convention in `Skill(skill: "workflows-core:reference", args: "prose-formatting")`:
 
-- **Path.** `idea.md` in the folder Phase 0 resolved. There is no container derivation, no
-  write-path gate and no `prd_disposition`: the operator named the folder when they named the key,
-  which is what removes the question.
+- **Path.** `idea.md` in the folder Phase 0 resolved, or created now: where Phase 0 returned
+  `absent`, this write creates `$SPECS_PATH/specifications/PRD-<KEY>-<candidate_slug>/` with
+  `idea.md` as its first file (Phase 0 step 1). There is no container derivation, no write-path
+  gate and no `prd_disposition`: the operator named the folder when they named the key, which is
+  what removes the question.
 - **`## Prior art`:** write the section per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when the
   source is a `prd` the user supplied — its Phase 2 `tracked` block (key, status, summary), which
   appears there **and** in `sources:`. Omit the section entirely otherwise. **Nothing discovers prior
@@ -309,11 +316,10 @@ Phase 0, applying the no-hard-wrap prose convention in `Skill(skill: "workflows-
   idea is a separate key: say so, and name `/product-workflows:idea <ANOTHER-KEY> <the same source>` as the way
   to write one.
 - **`kind` and `key`:** write `kind: prd` and `key: <the key this run was invoked with>` into the
-  frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`). This command creates the folder, so
-  until `/create-prd` writes `prd.md` this file is the only artifact carrying the pair
-  `workflows-core:addressing` §4 resolves the folder's identity from — and §4's
-  own invariant is that a folder is never keyless, not even between its creation and its first
-  document.
+  frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`). This command creates the folder,
+  with this file, so until `/create-prd` writes `prd.md` this file is the only artifact carrying the
+  pair `workflows-core:addressing` §4 resolves the folder's identity from — and §4's own invariant
+  is that a folder is never keyless, not even between its creation and its first document.
 - **`status`:** set frontmatter `status: refined` IFF zero `[NEEDS CLARIFICATION]` markers remain;
   otherwise `status: draft`.
 
@@ -339,8 +345,8 @@ repairs where `idea.md` points.
    `provenance: prompt`), every `wikilinks_followed[]` entry, and every `images[]` entry with
    `read: true`. This phase opens no path of its own and reads no file Phase 2 did not already
    read, so the set Phase 1.5's walk took bounds it without a second bound being written anywhere.
-   Drop any entry that already sits inside the resolved PRD folder: it is vendored already, and its
-   link stays as written.
+   Drop any entry that already sits inside the PRD folder Phase 4 wrote `idea.md` into: it is
+   vendored already, and its link stays as written.
 2. **Copy each entry to its destination** — text and markdown to `<PRD-folder>/attachments/`, images
    to `<PRD-folder>/design/idea-sources/` — applying the collision rule. Byte-identical content at the
    destination is reused rather than re-copied; otherwise the name takes the lowest free `_NN`, derived
@@ -391,15 +397,21 @@ repairs where `idea.md` points.
    `wikilinks_followed[].target`, each beside its own `from` — and step 2 knows the name each copy took;
    pair them and match `idea.md`'s links against **both** key forms that file defines — the target as
    written, and the entry's resolved absolute path — because Section 5 lets a bullet cite either, splitting
-   a trailing `#anchor` off before matching and re-appending it after. This phase opens no path of its own,
-   so a form that is neither key is a link nothing copied and is left alone. Where two entries share
-   one written target but resolved to **different** files, that target is ambiguous — `idea.md` records
-   nothing per occurrence to separate them — so **leave every occurrence as written and report it** rather
-   than repoint one at the wrong copy. Targets that merely *look* alike but differ as strings
+   a trailing `#anchor` off before matching and re-appending it after. **The source file is a key too**
+   — it sits in no link array, so that file's map (*Link rewriting*) keys it by its `source_refs[].ref`
+   exactly as the digest records it, beside its `attachments/` copy, and a link to the source is
+   repointed like any other vendored file. This phase opens no path of its own, so a form that matches
+   no key is a link nothing copied and is left alone. Where two entries share one written target but
+   resolved to **different** files, that target is ambiguous — `idea.md` records nothing per
+   occurrence to separate them — so **leave every occurrence as written and report it** rather than
+   repoint one at the wrong copy. Targets that merely *look* alike but differ as strings
    (`settings/toggle-01.png` vs `onboarding/toggle-01.png`) are two keys and each is rewritten to its own
    copy.
-5. **Record `vendored:`** beside each vendored entry's `ref:` in `sources:`. `ref` is not rewritten —
-   it answers how the idea arrived, and that is still true of a path nobody else can resolve.
+5. **Record `vendored:`** beside the `ref:` of the `sources:` entry this run added, where step 2
+   copied its source file. `ref` is not rewritten — it answers how the idea arrived, and that is still
+   true of a path nobody else can resolve. **A linked page or image gets no `sources:` entry and no
+   `vendored:`**: it is not an ingested source (`idea-format.md`, *Frontmatter*), and its copy is
+   recorded by the rewritten link in `idea.md` that points at it and, for an image, by its index row.
 6. **Create nothing empty — but creating a directory and writing its index are not the same act.**
    `attachments/` is created only where a file lands in it and `design/idea-sources/` only where an
    image does; the index, per §6.2 step 6, is written whenever that frame set holds at least one frame,
@@ -452,14 +464,14 @@ the next phase — **adapted to status**:
 
 - **`status: refined`** — offer the handoff. Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim — the **gated — falling back** variant (§4.1 bullet 2), because `/product-workflows:create-prd <KEY>` runs `require-on-main` on this `idea.md` (§3.4's first row), which settles the class as **gated**, and that row is the *only* one naming this file: it preserves the Phase 0 idea ladder instead of stopping, so §4.1's quantifier takes the falling-back half. The **gated — stopping** array would promise a refusal `/create-prd` does not make — on `absent` it reports the file and grills the PRD from scratch, which is what the outcome line this same run prints already says — then on the
   first option execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: idea`;
-  `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = `idea.md`, **plus every file
-  Phase 4.5 wrote or reused** — each copy under `attachments/`, each image copy under
-  `design/idea-sources/`, and that frame set's `index.md`. **Reused counts**: a copy the collision rule
-  matched byte-for-byte was not written by this run, but `idea.md`'s link points at it and an earlier run
-  may have left it on no ref — naming a path whose content is unchanged stages nothing, while omitting one
-  is a link to a file that never lands; `title: <KEY> Add idea brief`; and `body_facts` = the idea's
-  one-line goal, the number of `[NEEDS CLARIFICATION]` markers left open, the logged assumptions,
-  whether docs grounding ran, and what was vendored.
+  `feature_folder` = the folder Phase 4 wrote `idea.md` into; `deliverable_paths` = `idea.md`,
+  **plus every file Phase 4.5 wrote or reused** — each copy under `attachments/`, each image copy
+  under `design/idea-sources/`, and that frame set's `index.md`. **Reused counts**: a copy the
+  collision rule matched byte-for-byte was not written by this run, but `idea.md`'s link points at it
+  and an earlier run may have left it on no ref — naming a path whose content is unchanged stages
+  nothing, while omitting one is a link to a file that never lands; `title: <KEY> Add idea brief`;
+  and `body_facts` = the idea's one-line goal, the number of `[NEEDS CLARIFICATION]` markers left
+  open, the logged assumptions, whether docs grounding ran, and what was vendored.
   **All five are required** — §2.4's commit subject and §2.7's pull-request title are both derived
   from `title`, and §2.6 supplies every `gh` argument precisely so the run never blocks on an
   interactive editor; passing three of five leaves both unsourced.
@@ -480,14 +492,15 @@ the next phase — **adapted to status**:
   operator into a stop this run itself caused.
 
   **There is no key to wait for and no disposition to branch on.** The key was given in Phase 0, the
-  folder was resolved from it, and `idea.md` was written there — so the three states this offer used
-  to distinguish (rewrite in place, mint a new key, or neither) collapse into one.
+  folder was resolved from it or created by Phase 4's write, and `idea.md` was written there — so the
+  three states this offer used to distinguish (rewrite in place, mint a new key, or neither) collapse
+  into one.
 - **`status: draft`** (N open `[NEEDS CLARIFICATION]`) — **never hand off**, and do not ask. By the
   governing principle the phase is not finished, so there is nothing to hand over. **Offer a next
   step even so**, because an offer left empty here is what makes a draft disappear: the file is
   written, on no branch, and the command that would read it does not. Two steps, in order:
   1. **Recommended — `/product-workflows:idea <KEY> <the same source>`.** Re-running over the folder
-     this run resolved takes Phase 4's *Refine the existing `idea.md`* path, re-opens this file, and
+     this run wrote into takes Phase 4's *Refine the existing `idea.md`* path, re-opens this file, and
      puts the N open markers one at a time. Closing all of them sets `status: refined`, and the
      handoff offer above fires on that run instead. No merge clause: this run handed nothing off, so
      there is no pull request to wait for.

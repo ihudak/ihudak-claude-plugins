@@ -26,7 +26,11 @@ status: draft | refined        # refined IFF zero open [NEEDS CLARIFICATION] rem
 
 Rules: `status` is `refined` only when the **Open questions & assumptions** section carries zero
 `[NEEDS CLARIFICATION]` markers; otherwise `draft`. `sources` lists every ingested source with its
-provenance (re-running `/idea` for the same `slug` refines the existing file and appends a source).
+provenance — one per `/idea` run, the prompt or the file named on its command line (re-running
+`/idea` for the same key refines the existing file and appends a source). **A page or image that
+source links is not an ingested source** and gets no `sources` entry: its copy is recorded by the
+rewritten link in `idea.md` that points at it and, for an image, by its row in
+`design/idea-sources/index.md` (**Vendored sources** below).
 
 **`ref` is never rewritten; `vendored` is what a later reader follows.** `ref` answers how the idea
 arrived, and a path that resolves on nobody else's machine is still the true answer to that question.
@@ -71,10 +75,11 @@ source that was not copied — left out by the operator's Phase 1.5 answer, brok
 markdown/an image — keeps the path it was written with, because a link is only ever repointed at a
 copy that exists.
 
-**Cite a source in one of the two forms the digest carries — its `target` as the author wrote it, or
-its resolved `path`.** Both are keys of the rewrite map below, so either is repointed at the copy.
+**Cite a linked page or image in one of the two forms the digest carries — its `target` as the author
+wrote it, or its resolved `path` — and the source file itself by its `source_refs[].ref`, the one form
+the digest carries for it.** Each is a key of the rewrite map below, so each is repointed at the copy.
 This is the one thing this section owes that phase: the rewrite opens no path of its own and matches
-on strings alone, so a bullet citing a source in a *third* form — a path tidied, shortened, or
+on strings alone, so a bullet citing a source in any other form — a path tidied, shortened, or
 reconstructed while writing — is a link nothing can match, and it survives into the record pointing
 at the operator's own disk.
 
@@ -86,7 +91,7 @@ belong in **Feasibility grounding** (Section 7).
 
 `## Prior art` — an existing PRD the operator supplied that this idea covers, continues, parallels, or
 rewrites. **Write it when the source is a `prd` the user supplied; omit it entirely
-otherwise.** One bullet per entry, in one of two shapes.
+otherwise.** One bullet per entry, in the one shape below.
 
 **There is one shape, because there is one producer.** Nothing discovers prior art: the operator
 hands over a PRD as the source, `idea-reader` tags it `provenance: prd` off its own `kind: prd`
@@ -238,11 +243,16 @@ that drifts.
 **What `/idea` contributes is one row of §6.2's writer table.** The frames it accounts for are the
 images it copied into `design/idea-sources/` this run; a new row's description is `idea-reader`'s
 per-image `description` — `figure-reader`'s `depicts` sentence for that image — transcribed
-verbatim and never invented, and its `Linked from` is that image's `from` in the digest. An image
-the digest reports `read: false` carries no `description`, is not copied, and is accounted for
-nowhere — so a frame an earlier run vendored, or something other than an `/idea` run dropped in,
-lands on §6.2 step 4 and is reported rather than described. `written_by` is `/idea`; `frame_set` is
-`idea-sources`; `key` is the key the run was invoked with, which is the resolved folder's own.
+verbatim and never invented. Its `Linked from` names the file that image's digest `from` names, by
+the path of that file's **vendored copy** relative to the PRD folder — `attachments/p3.md`, under
+the name the collision rule gave it — or by the file's own path there where it already sat inside
+the folder; never by `from` itself, an absolute path on the operator's machine that resolves for
+nobody else reading the record (§6.2's `Linked from` semantics). Where that file has no copy because
+its own copy failed, the row takes `—`, and the failed copy is reported with the rest. An image the
+digest reports `read: false` carries no `description`, is not copied, and is accounted for nowhere —
+so a frame an earlier run vendored, or something other than an `/idea` run dropped in, lands on §6.2
+step 4 and is reported rather than described. `written_by` is `/idea`; `frame_set` is
+`idea-sources`; `key` is the key the run was invoked with, which is the PRD folder's own.
 
 **`idea-sources` is one frame set per PRD folder, not one per run** — see *The two destinations* above —
 which is exactly why §6.2 rebuilds from the directory rather than from what a run copied: an idempotent
@@ -316,18 +326,27 @@ holding, per copied entry, the target **as written** *and* the destination its c
 carries the written form on every link array — `images[].target` beside its `path` and `from`,
 `wikilinks_followed[].target` beside its `from` and `path`, and the same field on
 `wikilinks_not_followed[]`, `wikilinks_broken[]` and `links_other[]` — and the copy step knows the name the
-collision rule minted. Pair them:
+collision rule minted. Pair them, and add the source file's own row:
 
 | Key | Value |
 |---|---|
 | the `target` as written, together with the `from` it was written in | the path of that entry's copy, relative to the PRD folder |
 | that same entry's resolved absolute `path` | the same copy |
+| the source file's `source_refs[].ref`, exactly as the digest records it | the source's copy in `attachments/`, relative to the PRD folder |
 
-**Two key forms, because a brief may cite either.** Section 5 tells the author to cite a source as the
-digest carries it — the written `target`, or the resolved `path` — and both come out of the same digest
-entry, so both map to the same copy. Keying on the written form alone would leave every path-cited
-bullet unrewritten while the copy sat beside it, which is the whole failure this rule exists to prevent;
-the digest already holds both halves, so admitting both costs nothing and re-resolves nothing.
+**Two key forms, because a brief may cite either.** Section 5 tells the author to cite a linked page
+or image as the digest carries it — the written `target`, or the resolved `path` — and both come out
+of the same digest entry, so both map to the same copy. Keying on the written form alone would leave
+every path-cited bullet unrewritten while the copy sat beside it, which is the whole failure this rule
+exists to prevent; the digest already holds both halves, so admitting both costs nothing and
+re-resolves nothing.
+
+**The source file takes the third row, because it sits in no link array.** It is copied — it heads
+the copy set — but no link array holds it, so without a key of its own a Section 5 bullet citing the
+source brief would match nothing and keep pointing at the operator's disk while its copy sat in
+`attachments/`. The digest records it once, as its `source_refs[].ref`, and that string is its key. A
+source that already sat inside the PRD folder was not copied, so it has no row and its link is left as
+written, like every link to a file this rule did not copy.
 
 **An anchor is not part of the key.** Split a trailing `#…` off a link's target before matching, and
 re-append it verbatim to the rewritten target: `[[notes#Rollout]]` becomes
@@ -336,7 +355,7 @@ survives the repointing untouched; folding it into the key would match nothing a
 operator's disk, and dropping it would silently lose the only part of the link that said where to look.
 
 **Nothing here re-resolves a link.** This rule opens no path of its own; the map is the whole of what it
-knows, so a form that is neither key is a link nothing copied. Match each link in `idea.md` on its
+knows, so a form that matches no key is a link nothing copied. Match each link in `idea.md` on its
 target string:
 
 1. **Exactly one key carries that written target** — rewrite it to that key's copy. The ordinary case, and

@@ -413,18 +413,16 @@ exists to prevent.
 
 ## Phase 2.5 — Grounding: documentation (optional)
 
-Dispatch both grounding agents **in a single response** so they run in parallel. Each is independent; either being OFF never suppresses the other.
+This phase dispatches one grounding agent, the docs grounder.
 
 **Docs.** Run `resolve-docs-grounding create-prd` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the idea's problem/goal + PRD themes, `key` = `<KEY>`, and `themes` from the idea. When OFF, skip silently.
 
-**On the BRD route both agents run unchanged; only their inputs are substituted**, because there is
-no `idea.md` to take them from. `feature_summary` and `themes` come from `prd-seed.md` (falling back
-to the `statement` of each product-altitude `decided` record when the seed is absent), and
-`known_refs` is every `[BR#n]` source path and prerequisite `<BRD-KEY>` the run already holds from
-`brd-link.md` — again with `has_summary: false`, for the same reason: this command reads those files
-directly and holds no summaries of its own. Neither agent is given `ard-seed.md` or `spec-seed.md`.
+**On the BRD route the docs grounder runs unchanged; only its inputs are substituted**, because
+there is no `idea.md` to take them from. `feature_summary` and `themes` come from `prd-seed.md`
+(falling back to the `statement` of each product-altitude `decided` record when the seed is absent).
+It is not given `ard-seed.md` or `spec-seed.md`.
 
-Carry both digests into Phase 3 with **grill-rank** consumption. When both are OFF the PRD is authored exactly as today.
+Carry the digest into Phase 3 with **grill-rank** consumption. When docs grounding is OFF the PRD is authored exactly as today.
 
 ---
 

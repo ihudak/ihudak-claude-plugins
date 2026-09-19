@@ -25,7 +25,7 @@ Four flags: `--deep` switches the grill from bounded (≤10 questions) to relent
 
 ```mermaid
 flowchart TD
-    p0["Phase 0 — Validate environment + resolve model routing"] --> p1["Phase 1 — Classify the source"]
+    p0["Phase 0 — Resolve the address + model routing"] --> p1["Phase 1 — Classify the source"]
     p1 --> p15["Phase 1.5 — Walk the source's links"]
     p15 --> p2["Phase 2 — Ingest the source (idea-reader)"]
     p2 --> p25["Phase 2.5 — Grounding: documentation (optional)"]
@@ -58,10 +58,12 @@ sources it actually read into the same PRD folder and rewrites `idea.md`'s links
 
 - **Markdown → `attachments/`.** The source file itself, and every page the walk took.
   `attachments/` is the folder's reserved name for vendored text; what reaches it today is markdown,
-  because markdown pages and images are the only linked files anything reads.
+  because markdown pages and images are the only linked files anything reads. A link in `idea.md` to
+  the source itself is repointed at its copy, exactly as a link to a page the walk took is.
 - **Images → `design/idea-sources/`.** Every image that was transcribed, together with an `index.md`
   saying what each frame shows — written from each transcription's one-sentence description, copied
-  verbatim and never invented.
+  verbatim and never invented — and which file linked it, named by that file's copy in the folder
+  (`attachments/p3.md`) rather than by where it sat on your disk.
 - **One frame set per PRD folder, and its index accumulates.** A second `/idea` run over the same folder
   adds its images to that set and **rebuilds the index from the directory**, keeping every earlier row
   word for word and appending its own — a later run holds no description for a frame an earlier one
@@ -127,7 +129,7 @@ makes that later pass possible; it is not that pass itself.
 ## What it needs
 
 - **A PRD key** — the first positional argument, validated for shape and checked against nothing. It names the folder `idea.md` will live in, which is why it is required up front: there is nowhere keyless to write.
-- **The idea source itself** — read by `idea-reader`. A key that does not resolve, or a path that does not exist, stops the run and offers to re-enter the source or cancel; this is an environment/user halt, not a plugin gap.
+- **The idea source itself** — read by `idea-reader`. A path-like argument that names no file is put back to you before anything is read (re-enter it, read it as a prompt, or cancel), and a file `idea-reader` then finds missing or unreadable stops the run and offers to re-enter the source or cancel; both are environment/user halts, not a plugin gap. A key whose folder does not exist yet is not a halt: the folder is created when `idea.md` is first written.
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — documentation grounding. Missing, unreadable, or carrying no markdown file is a silent, non-blocking skip: `docs grounding: OFF`, never an error. Turned off explicitly with `--no-docs`.
 - *(**No** prior-art discovery — the finder that searched a personal store for related work is gone. Prior art now means a Product Requirements Document you hand the command yourself, as a path; nothing goes looking for one.)*
 - **`--ground-code` repo(s)** (optional) — only runs when the flag is given. A named repo that is not mounted is neither invented nor silently dropped — it is escalated and, if declined, carried forward by name with its themes left unverified. With no flag at all, the run instead does one cheap detection pass and prints at most one advisory line naming a repo the idea mentions; it never scans.
@@ -135,7 +137,7 @@ makes that later pass possible; it is not that pass itself.
 
 ## What it produces
 
-`idea.md`, authored against `../../references/idea-format.md`, written into `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/` on the first write and never relocated afterwards. [`/create-prd`](create-prd.md) finds it there.
+`idea.md`, authored against `../../references/idea-format.md`, written into `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/` on the first write and never relocated afterwards. Where no folder exists for the key yet, that first write creates it, `<slug>` being the one `idea-reader` proposes from the source; nothing is created before it, so a run you stop earlier leaves no folder behind. [`/create-prd`](create-prd.md) finds it there.
 
 Beside it, where the source had anything to vendor: `attachments/<name>` for each markdown source
 that was read, `design/idea-sources/<name>` for each image that was transcribed, and
@@ -155,7 +157,7 @@ Refine an inline prompt, grounding it against the mounted frontend repo:
 /product-workflows:idea PRODUCT-1234 "Add a dark-mode toggle to the settings page" --ground-code frontend
 ```
 
-The run validates the key, classifies the argument as a prompt, ingests it via `idea-reader`, grounds it against the documentation when `$DOCS_PATH` resolves, grills it, and writes `idea.md` into the resolved folder. The key is not optional — without it the run stops before Phase 1.
+The run validates the key, classifies the argument as a prompt, ingests it via `idea-reader`, grounds it against the documentation when `$DOCS_PATH` resolves, grills it, and writes `idea.md` into the folder the key names — creating that folder with this first write where none exists yet. The key is not optional — without it the run stops before Phase 1.
 
 Refine a note that links a mockup and a couple of related pages:
 

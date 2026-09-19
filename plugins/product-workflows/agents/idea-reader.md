@@ -74,11 +74,11 @@ and lands per link rather than per file:**
 | `reason: unreadable` or `ambiguous` | `wikilinks_broken` | the `reason`, and every `candidates` path for an ambiguous one |
 | `reason: url` | none | nothing: a URL is part of the source's prose, not a file |
 
-**An `unreadable` or `ambiguous` entry whose `from` is a page the walk did not take lands in no
-array**: that page is already reported, in `wikilinks_not_followed` with reason `excluded`, and a
-link inside it exists only inside something nobody is going to read (`linked-sources.md` §7). Its
-own `taken` is `false`, as on every entry carrying a walk reason, so the `taken` of its `from` page
-is what decides it.
+**An `unreadable` or `ambiguous` entry whose `from` is a page the operator's answer left out — a
+`taken: false` markdown entry, never the source — lands in no array**: that page is already
+reported, in `wikilinks_not_followed` with reason `excluded`, and a link inside it exists only
+inside something nobody is going to read (`linked-sources.md` §7). Its own `taken` is `false`, as on
+every entry carrying a walk reason, so the `taken` of its `from` page is what decides it.
 
 The three `wikilinks_*` arrays keep their names because every consumer reads them; they hold links in
 all four forms `linked-sources.md` §1 names, not only `[[…]]` ones.
@@ -103,7 +103,8 @@ Then split by provenance:
 - **`rfe`** — product feedback (a `Product Need`). Distill the ticket summary/description into `raw_context`; put requester / customer-demand info into `signals`, as today.
 - **`prd`** — an existing Product Requirements Document, supplied as a path. This is **prior art the user supplied**, not demand evidence.
 
-Note unresolved links/images in `wikilinks_broken` and continue — a broken link is never fatal.
+Note an unresolved link or image in a page that was read — the source, or a page the walk took — in
+`wikilinks_broken` and continue; a broken link is never fatal.
 
 ## Output
 
@@ -181,7 +182,7 @@ collapsed into one entry.
 - NEVER fabricate demand signals, requesters, or sources not present in the input.
 - Read the source, exactly the pages the `walk` took, and the transcriptions in `figures` — NEVER follow a link, open a path other than the source and the pages the walk took, or open an image — and read each file once, however many entries reach it.
 - NEVER drop a file the walk reached, or a link it could not resolve in a page that was read: each lands in exactly one array (*What the caller hands over*), so no file the source links, and no link that fails to resolve in a page you read, is left unreported.
-- An unreadable image, a non-image file behind an image extension, and a broken link are all **noted and survived** — none of them ends the run.
+- An unreadable image, a non-image file behind an image extension, and a broken link in a page that was read are all **noted and survived** — none of them ends the run.
 - NEVER open, read, summarise, or describe a `links_other` file. It is enumerated so the caller can report what it did not copy, and enumerating is the whole of the obligation; its content is never inferred from its name or its extension.
 - On an invalid key or a missing file, return `status: NOT_FOUND` with a clear message; do not guess.
 - NEVER mine a `prd` source for requesters, upvotes, or demand signals — a Product Requirements Document is prior art, not a demand ticket. Fabricating them is a correctness failure, not a stylistic one.

@@ -164,13 +164,13 @@ none
   on a slice, the parent's, one hop (§2.1)**, which is how `references/bundle-packaging.md` §6.2
   relation 1 reads it.
 - **A section is never deleted.** An image the current run did not capture keeps its section, with
-  a line `- **Not captured by the current run.**` under its header. The marker covers both causes:
-  the revised document no longer links the image, or it still links it and this run did not take
-  it (`commands/brd-intake.md` Phase 2.5 step 3 names the cases). Its *Linked from* becomes
-  `— (not captured by the current run)`, and its *Rows* becomes `yields [BR#n], …` for any preserved
-  row still anchored on it, else `none — not captured by the current run` — an inventory row the
-  re-run preserved may still anchor on it. §2.2 relation 3 covers only the images the current run
-  captured, so it does not ask about a marked image either way.
+  a line `- **Not captured by the current run.**` under its header. The marker covers every cause —
+  for instance the revised document no longer links the image, or it still links it and this run
+  did not take it (`commands/brd-intake.md` Phase 2.5 step 3 names the cases). Its *Linked from*
+  becomes `— (not captured by the current run)`, and its *Rows* becomes `yields [BR#n], …` for any
+  preserved row still anchored on it, else `none — not captured by the current run` — an inventory
+  row the re-run preserved may still anchor on it. §2.2 relation 3 covers only the images the
+  current run captured, so it does not ask about a marked image either way.
 
 ## 2. The inventory
 

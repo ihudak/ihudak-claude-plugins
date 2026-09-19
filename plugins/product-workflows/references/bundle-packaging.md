@@ -633,12 +633,12 @@ and the ledger as anywhere else: the rest of each is the plugin's own writing.
 things: a captured file's path relative to `brd/`, with whatever follows its ` › ` — the `source/`
 or `source-external/` prefix is ours, and everything below it is the customer's layout and names
 (`references/brd-format.md` §1.1), as is the heading path or line range after the ` › `; a captured
-file's bundled filename, where it carries the customer's basename after the `<BRD-KEY>-`
-`commands/brd-package.md`'s *Assemble the bundle* rule 1 requires; a link target as written, in a
-captured file or in the manifest's map; and an inventory row's `source_anchor`, or the anchor a
-ledger row's `text` carries, whose document form names no path. The naming is the customer's
-whoever wrote the line it sits in, so a locator counts in text this package wrote exactly as in a
-customer's file — a figures section's heading and its *Linked from* line, a manifest line, an
+file's bundled filename, where it carries the customer's basename after the `<BRD-KEY>`
+`commands/brd-package.md`'s *Assemble the bundle* rule 1 requires the name to carry; a link target
+as written, in a captured file or in the manifest's map; and an inventory row's `source_anchor`, or
+the anchor a ledger row's `text` carries, whose document form names no path. The naming is the
+customer's whoever wrote the line it sits in, so a locator counts in text this package wrote exactly
+as in a customer's file — a figures section's heading and its *Linked from* line, a manifest line, an
 inventory or ledger row, an interview question, the note that stands in for the figures file's
 frontmatter (§1.1), and the prompt parts rendered from them. **It is recognised by where it sits or
 by what it names, never by its shape.** In a fixed field — a `source_anchor` (the inventory's

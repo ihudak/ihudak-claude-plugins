@@ -176,7 +176,7 @@ Assembled from the package, never hand-written, in a fixed order that is not re-
 |---|---|---|
 | 1 | Setup | the tier, the assumed capability set, the route-neutral locating instruction, the OS note, and the one-new-file rule |
 | 2 | What each package in the bundle is for | this BRD, plus each prerequisite package, marked *not for re-review* |
-| 3 | Documents to review | the review documents the bundle admits, by their bundled filenames — the same names the manifest, written later, lists |
+| 3 | Documents to review | the manifest, by its bundled filename, then every other document the bundle admits, by the bundled filename it carries — the names the manifest lists |
 | 4 | Code baselines and the verification procedure | `baselines.md`, with the three pin commands written out |
 | 5 | The single most important claim to verify first | the finding the most decisions rest on — exactly one |
 | 6 | Review scope | the coverage ledger's dispositions — the rows this BRD is answerable for, with every `covered-by` row named as another BRD's and explicitly not for review here — plus every `in-scope` `[CDF#n]` |

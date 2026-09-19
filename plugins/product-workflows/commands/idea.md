@@ -187,11 +187,12 @@ to them as a question, never a fact about what ships.
 **Everything not read is surfaced, never swallowed.** An `images` entry with `read: false` names its
 `reason` (`excluded`, `missing`, `unreadable`, `not_an_image`); `wikilinks_not_followed` names each page
 the operator's Phase 1.5 answer left out; `wikilinks_broken` names each target the walk could not
-resolve, an `ambiguous` wikilink with every candidate it matched; and `links_other` names each link
-that resolved to a file nothing reads — a PDF, an archive, any other binary — enumerated and never
-opened. Carry all of them to the Final report: a read the operator is not told was partial is
-indistinguishable from a source that said less, and a link nothing copied and nothing reported is
-indistinguishable from a link that was never there.
+resolve in a page that was read (the source, or a page the walk took), an `ambiguous` wikilink with
+every candidate it matched; and `links_other` names each link that resolved to a file nothing reads
+— a PDF, an archive, any other binary — enumerated and never opened. Carry all of them to the Final
+report: a read the operator is not told was partial is indistinguishable from a source that said
+less, and a link nothing copied and nothing reported is indistinguishable from a link that was
+never there.
 
 ---
 

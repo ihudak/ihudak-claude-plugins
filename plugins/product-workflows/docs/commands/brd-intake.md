@@ -104,10 +104,11 @@ name the run creates ([addressing](../reference/references.md) §2):
   nothing under `brd/source/` is ever written again.
 - `brd/source-external/<basename>` — every file the document links from outside its own folder, where
   you chose to capture it, by basename; immutable exactly as `brd/source/` is.
-- `brd/brd-link-log.md` — the links the copy could **not** capture, each with its reason (a URL, an
-  unreadable target, a wikilink matching several files, or — where you chose the document's own folder
-  only — a link to a file outside it), the run's counts, and a table mapping every captured link
-  that does not resolve as written (a wikilink, an external file) to its copy. Written on every run.
+- `brd/brd-link-log.md` — every link in a captured file whose target the copy could **not**
+  capture, each with its reason (a URL, an unreadable target, a wikilink matching several files,
+  or — where you chose the document's own folder only — a link to a file outside it), the run's
+  counts, and a table mapping every captured link that does not resolve as written (a wikilink, an
+  external file) to its copy. Written on every run.
 - `brd/brd-figures.md` — what the plugin read in each linked image the run takes: a verbatim
   transcription, the customer's annotations and what they point at, and the rows each image yields
   or illustrates.
@@ -177,10 +178,10 @@ Intake a synthetic customer BRD for a new BRD key:
 
 The run resolves or creates the BRD folder, shows you every file `customer-brd.md` links, copies it
 verbatim into `brd/source/` together with the files you took, records in `brd/brd-link-log.md` each
-link it did not copy and why, transcribes the linked images, dispatches `brd-reader` to extract the
-`[BR#n]` inventory from all of it, walks its defect candidates with you class by class, writes the
-coverage ledger with every row `unallocated`, and offers to branch, commit, push, and open a pull
-request.
+link in a copied file whose target it did not copy, and why, transcribes the linked images,
+dispatches `brd-reader` to extract the `[BR#n]` inventory from all of it, walks its defect
+candidates with you class by class, writes the coverage ledger with every row `unallocated`, and
+offers to branch, commit, push, and open a pull request.
 
 ## See also
 

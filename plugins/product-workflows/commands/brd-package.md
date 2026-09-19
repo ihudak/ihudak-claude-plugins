@@ -583,7 +583,7 @@ do.
 |---|---|---|
 | 1 | Setup | the tier; the fixed capability line, locating instruction and OS note below |
 | 2 | What each package in the bundle is for | this BRD, plus each prerequisite package copied in, marked *not for re-review* |
-| 3 | Documents to review | the review documents `bundle-packaging.md` §1.1 admits, by the bundled filename *Assemble the bundle* rule 1 gives each — the names the manifest later lists, which must be the same |
+| 3 | Documents to review | the manifest, by its bundled filename, then every other document `bundle-packaging.md` §1.1 admits, by the bundled filename *Assemble the bundle* rule 1 gives it — the names the manifest lists |
 | 4 | Code baselines and the verification procedure | `grounding/baselines.md`, with the three commands written out |
 | 5 | The single most important claim to verify first | the register and the findings, by the rule below |
 | 6 | Review scope | `coverage-ledger.md` dispositions, `brd/brd-inventory.md`, and every `in-scope` `[CDF#n]` |

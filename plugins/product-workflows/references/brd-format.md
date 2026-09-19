@@ -104,9 +104,11 @@ anchors on the *image* (§2), never on this file, and why `/brd-intake` Phase 4'
 customer's own review both check a row drawn from an image against the picture. It is the
 plugin's record, so it sits in `brd/` beside `brd-link-log.md` and never under `brd/source/`. **A
 transcription the customer corrects is corrected here**, by `/brd-reconcile`'s required-corrections
-phase (`commands/brd-reconcile.md` Phase 6), in a section's *Text*, *Annotations* or *Flow* only —
-its hash, *Linked from* and *Rows* stay `/brd-intake`'s — and a later intake keeps the corrected
-section for as long as the image's bytes, and so its content hash, are unchanged.
+phase (`commands/brd-reconcile.md` Phase 6), in a section's *Text*, *Annotations*, *Flow*,
+*Illegible* and *Depicts* only — its *Read*, *Appearance*, hash, *Linked from* and *Rows* stay
+`/brd-intake`'s — and a later intake keeps the corrected section for as long as the image's bytes,
+and so its content hash, are unchanged. A corrected transcription is not corrected requirement text:
+it closes no defect, and an inventory row quoting a corrected element is left as it stands.
 
 ```markdown
 ---

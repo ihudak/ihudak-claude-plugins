@@ -344,7 +344,8 @@ every one has one.
   it has no referent. Run *Round 1 is generated from the grounding* (below) and branch on what it
   produced:
   - **At least one question** → open round 1 and work it, exactly as ever.
-  - **No question at all** — no finding whose verdict leaves the premise open, no `will-change`
+  - **No question at all** — no finding whose verdict leaves the premise open (the first two
+    sources: a premise that moved, and one the repository could not settle), no `will-change`
     horizon, no `[DG#n]` divergence, no `deferred-to`/`rejected` row with an unstated consequence,
     no open requirement defect this BRD asks, and nothing the package must assert without evidence.
     **The test is the generation's own output, never a gloss on the verdicts**: `SUPERSEDED` raises
@@ -528,24 +529,25 @@ would have to state:
   the parent never delegated (no `covered-by`), or whose owning slice records it `rejected` or
   `superseded-by`, does not decide ownership; where no listed row is live, nobody owns it, because
   the rows' fates have settled it, and the bullet above covers what the customer needs to hear about
-  a row this BRD rejected. **This BRD raises the defect only where it owns it, it is open, and it is
-  not asked.** A `[DEF#n]` is **asked** exactly where some slice under the same parent — found by
-  the positive `brd-link.md` parent test (`commands/brd-split.md` Phase 0), this one included — has
-  an `interview/customer-questions.md` entry carrying it, the field the *Hold every `[C]`* phase
-  writes. That is a structured fact read across the slices, never a search of round records for the
-  id, so a defect asked once is never asked again, whichever slice asked it and whoever owns it now.
-  **Three states make the answer undecidable, and each withholds the defect**: a listed row still
-  `unallocated` — in the parent's ledger, or in the ledger of the slice the parent names — which may
-  become live later and take it; a sibling ledger that cannot be read; and a sibling
-  `customer-questions.md` that exists and cannot be read — an absent one holds no entry. This BRD
-  raises nothing about such a defect and reports it with the row or the sibling named — never a
-  guess, because a guess asks the customer twice or not at all. **Which round a raised defect goes
-  into is *Resolve the round*'s to decide**, by round 1's account line alone. Every other row the
-  defect lists, and every counterpart a `conflict` or `duplicate` names, is context for the
-  question. **The question states what the defect records** — the two readings, the two requirements
-  that cannot both hold, the missing observable outcome — and, where the row is drawn from an image
-  (`brd-format.md` §2), names the image's path, which the customer holds in the bundle. It is `[C]`
-  (`interview-tagging.md` §1);
+  a row this BRD rejected — the account line withholds such a defect as `no live row`, naming each
+  listed row and its disposition. **This BRD raises the defect only where it owns it, it is open,
+  and it is not asked.** A `[DEF#n]` is **asked** exactly where some slice under the same parent —
+  found by the positive `brd-link.md` parent test (`commands/brd-split.md` Phase 0), this one
+  included — has an `interview/customer-questions.md` entry carrying it, the field the *Hold every
+  `[C]`* phase writes. That is a structured fact read across the slices, never a search of round
+  records for the id, so a defect asked once is never asked again, whichever slice asked it and
+  whoever owns it now. **Three states make the answer undecidable, and each withholds the defect**:
+  a listed row still `unallocated` — in the parent's ledger, or in the ledger of the slice the
+  parent names — which may become live later and take it; a sibling ledger that cannot be read; and
+  a sibling `customer-questions.md` that exists and cannot be read — an absent one holds no entry.
+  This BRD raises nothing about such a defect and reports it with the row or the sibling named —
+  never a guess, because a guess asks the customer twice or not at all. **Which round a raised
+  defect goes into is *Resolve the round*'s to decide**, by round 1's account line alone. Every
+  other row the defect lists, and every counterpart a `conflict` or `duplicate` names, is context
+  for the question. **The question states what the defect records** — the two readings, the two
+  requirements that cannot both hold, the missing observable outcome — and, where the row is drawn
+  from an image (`brd-format.md` §2), names the image's path, which the customer holds in the
+  bundle. It is `[C]` (`interview-tagging.md` §1);
 - anything the package will have to **assert without evidence** — that is not a question at all but
   an `[AS#n]`, and the *Write the register and the round record* phase records it as one
   (`decision-register-format.md` §7).
@@ -831,22 +833,23 @@ to establish it**. A bare sentence with no account of its own groundlessness is 
 assumption record.
 
 **`<BRD-dir>/interview/round-<N>.md`** — the round's own record, append-only. **A round that raised
-no question at all records the walk instead of the questions**: each of the seven sources *Round 1 is
-generated from the grounding* names, and what this BRD held under each — **written from what the
-walk found, never from a rule over verdicts**: no finding whose verdict left its premise open, none
-carrying a `will-change` horizon, no design divergence, no ledger row with an unstated consequence,
-no open requirement defect this BRD asks, nothing asserted without evidence. Naming the verdicts
-instead would put a false sentence in the record on any corpus holding a `SUPERSEDED` finding, which
-raises no question and is not `CONFIRMED` either. That is a complete record of a completed walk, which is exactly what the all-delegated
-stop's prohibition on an *empty* record is protecting against. Otherwise: every question in the
-order it was written, its tag, every re-tag with the finding that caused it, every split with the
-parts it became, and each question's state in the vocabulary the *Resolve the round* phase fixes —
-either a **terminal disposition** (*answered from findings*, *decided* naming the `[VD#n]`,
-*answered by the customer*, *re-tagged* naming its cause, or *split* naming its parts) or a
-**holding state** (*held for the customer*, *deferred*, *needs grounding*, or *untagged*) — **all
-four**, exactly as the *Resolve the round* table names them, because a file schema that lists three
-is a schema under which the fourth cannot be written down. Plus, when this run re-opened the round,
-the re-open and its cause. This file is what makes the round resumable:
+no question at all records the walk instead of the questions**: each of the seven sources *Round 1
+is generated from the grounding* names, and what this BRD held under each — **written from what the
+walk found, never from a rule over verdicts**: no finding whose verdict left its premise open (the
+first two sources: a premise that moved, and one the repository could not settle), none carrying a
+`will-change` horizon, no design divergence, no ledger row with an unstated consequence, no open
+requirement defect this BRD asks, nothing asserted without evidence. Naming the verdicts instead
+would put a false sentence in the record on any corpus holding a `SUPERSEDED` finding, which raises
+no question and is not `CONFIRMED` either. That is a complete record of a completed walk, which is
+exactly what the all-delegated stop's prohibition on an *empty* record is protecting against.
+Otherwise: every question in the order it was written, its tag, every re-tag with the finding that
+caused it, every split with the parts it became, and each question's state in the vocabulary the
+*Resolve the round* phase fixes — either a **terminal disposition** (*answered from findings*,
+*decided* naming the `[VD#n]`, *answered by the customer*, *re-tagged* naming its cause, or *split*
+naming its parts) or a **holding state** (*held for the customer*, *deferred*, *needs grounding*, or
+*untagged*) — **all four**, exactly as the *Resolve the round* table names them, because a file
+schema that lists three is a schema under which the fourth cannot be written down. Plus, when this
+run re-opened the round, the re-open and its cause. This file is what makes the round resumable:
 resumability is a property of the record, not of the session (`interview-tagging.md` §5), and an
 interrupted run resumes at the first question here carrying no terminal disposition — the same test,
 in the same words, that *Resolve the round* resumes on.
@@ -861,14 +864,16 @@ round either asked it or withheld it, with the cause —
 requirement defects: [DEF#n], … asked; [DEF#m] withheld — <cause>
 ```
 
-— where `<cause>` is `not owned here`, `undecidable — <why>` (the unallocated row, or the sibling
-whose ledger or question set could not be read, named), `belongs to round 1 — re-open named`, or
-`waits — round <open> still open` (a defect for a new round that cannot open yet).
-Either half is left out where it is empty, and where there is no such defect at all the line reads
-`requirement defects: none this BRD asks`. **Never `none open in this BRD's scope`**: that is false
-wherever an in-scope row carries a defect a sibling asks. *Resolve the round* reads round 1's line
-and no other — whether round 1's record carries it is what tells a slice interviewed before this
-source existed from one interviewed after.
+— where `<cause>` is `not owned here` (another slice holds its lowest-numbered live row, and asks
+it), `no live row — <each listed row and its disposition>` (every row it lists is `rejected`,
+`superseded-by` or never delegated, so nobody owns it and no slice will ask it),
+`undecidable — <why>` (the unallocated row, or the sibling whose ledger or question set could not be
+read, named), `belongs to round 1 — re-open named`, or `waits — round <open> still open` (a defect
+for a new round that cannot open yet). Either half is left out where it is empty, and where there is
+no such defect at all the line reads `requirement defects: none this BRD asks`. **Never
+`none open in this BRD's scope`**: that is false wherever an in-scope row carries a defect a sibling
+asks. *Resolve the round* reads round 1's line and no other — whether round 1's record carries it is
+what tells a slice interviewed before this source existed from one interviewed after.
 
 **`<BRD-dir>/interview/customer-questions.md`** — written by the *Hold every `[C]`* phase; listed
 here because it is one of this run's deliverables.

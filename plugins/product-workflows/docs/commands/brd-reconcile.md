@@ -210,26 +210,30 @@ unmatched row can be told apart from a question set nobody passed.
   written the same day, and telling the operator to rename the incoming file would be telling them to
   record a date the review does not carry. Only declining to name a suffix stops the run
   (`BRD_RECONCILE_REVIEW_EXISTS`).
-- **Phase 6 — a section-12 row instructs an edit; it does not authorise a field this command may
-  not write.** Prose, `slices.md` and the seed files are corrected in place — `code-defect-log.md` is
+- **Phase 6 — a section-12 row instructs an edit; it does not authorise a field this command may not
+  write.** Prose, `slices.md` and the seed files are corrected in place — `code-defect-log.md` is
   the one exception, whose prose is not corrected in place either. A row asking to change a
   coverage-ledger `disposition`, an inventory row's `id`/`text`/`source_anchor`, a register record's
   `status`/`chosen`/`evidence`, `brd-link.md`'s `parent:`/`claims:`, or any field of a `[CDF#n]` in
   the code-defect log is **`refused-with-reason`** — each is fixed by a rule this command does not
   own, and the customer cannot be expected to know which. The refusal names the channel that *does*
   carry the substance: a `[CD#n]`, a `customer-amended` defect resolution, a
-  [`/brd-split`](brd-split.md) walk, or a later [`/brd-interview`](brd-interview.md) round, whose
-  operator owns every code-defect disposition. **What is
-  refused is the edit, not the change** — and saying so is the difference between a refusal the
-  customer accepts and one they re-request next round. **A correction to the transcription of a
-  customer's image is applied**: the review's section 4 asks the customer to confirm or correct it,
-  and a correction the transcription itself must carry comes back as a section-12 row naming the
-  figures file, whose *Text*, *Annotations* or *Flow* the run corrects in place — it is the plugin's
-  reading of the picture, not the customer's document. The image is never touched, the file's hash,
-  *Linked from* and *Rows* lines are refused as [`/brd-intake`](brd-intake.md)'s, and an inventory
-  row quoting the corrected element is not rewritten: its amendment is a `customer-amended`
-  resolution where it carries a defect, and otherwise an entry in *what still needs a human*. A later
-  intake keeps the corrected transcription for as long as the image's bytes are unchanged.
+  [`/brd-split`](brd-split.md) walk, a later [`/brd-interview`](brd-interview.md) round, whose
+  operator owns every code-defect disposition, or the next [`/brd-intake`](brd-intake.md) run.
+  **What is refused is the edit, not the change** — and saying so is the difference between a
+  refusal the customer accepts and one they re-request next round. **A correction to the
+  transcription of a customer's image is applied**: the review's section 4 asks the customer to
+  confirm or correct it, and a correction the transcription itself must carry comes back as a
+  section-12 row naming the figures file, whose *Text*, *Annotations*, *Flow*, *Illegible* or
+  *Depicts* the run corrects in place — it is the plugin's reading of the picture, not the
+  customer's document. On a slice that file is the parent's, so where the cross-BRD guard stops the
+  write the row is `deferred-to-next-round`, never `applied`. The image is never touched, the file's
+  *Read*, *Appearance*, hash, *Linked from* and *Rows* lines are refused as
+  [`/brd-intake`](brd-intake.md)'s, and the correction **closes no defect**: an inventory row
+  quoting the corrected element is not rewritten, and since a corrected transcription is not
+  corrected requirement text, any defect the row carries stays open for its own question while the
+  row goes to *what still needs a human*. A later intake keeps the corrected transcription for as
+  long as the image's bytes are unchanged.
 - **Phase 4 — the confirmation gate.** No `[CD#n]` is written while any decision the reader returned
   is unconfirmed. The four values are `confirm`, `correct`, `reject` and `ask-the-customer`; the
   picker carries no bulk confirmation, and a free-text answer is **normalised into those four or the
@@ -297,13 +301,14 @@ contradiction is invisible from the register, which is the only place anybody lo
 
 A hit is corrected only where it is **prose** that nothing else owns. Inside a coverage ledger's
 `disposition`, an inventory row's `id`/`text`/`source_anchor`, a register record's
-`status`/`chosen`/`evidence`, any entry of the code-defect log, or any line of the figures file, it
-becomes `needs-a-human` instead: each of those is fixed by a rule the sweep does not own — allocation
-belongs to [`/brd-split`](brd-split.md)'s walk, an inventory row mirrors an immutable source, a
-decision moves only through the four sweep dispositions or the two reopening causes, every
-code-defect disposition is the operator's, and a transcription records what the customer's image
-shows, which no decision changes. The scope is every markdown file under the parent, which is
-exactly why the carve-out has to be written down.
+`status`/`chosen`/`evidence`, any entry of the code-defect log, any line of the figures file, or any
+line of the customer's own captured files, it becomes `needs-a-human` instead: each of those is
+fixed by a rule the sweep does not own — allocation belongs to [`/brd-split`](brd-split.md)'s walk,
+an inventory row mirrors an immutable source, a decision moves only through the four sweep
+dispositions or the two reopening causes, every code-defect disposition is the operator's, a
+transcription records what the customer's image shows, which no decision changes, and the customer's
+document and every file captured with it are never touched at all. The scope is every markdown file
+under the parent, which is exactly why the carve-out has to be written down.
 
 ## What it does not do
 

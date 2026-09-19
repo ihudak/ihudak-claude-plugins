@@ -135,7 +135,7 @@ the review's; the table below is the review's spine.)
 | 1 | Review identity and evidence limitations | Who reviewed, in what role, on what date; the documents and repositories actually available; the tier statement the evidence-limitations rule obliges; anything that could not be opened |
 | 2 | Executive verdict | One of `approved`, `approved-with-required-changes`, `not-approved`, and one paragraph saying why |
 | 3 | Approved and deferred scope | What is approved to proceed now, what is deferred, and what a deferral is waiting for |
-| 4 | Requirement traceability | Per requirement in scope: does the package's reading match the customer's intent — confirmed, corrected, or missing entirely. Where the customer's documents include images, the package's reading includes its transcription of each image, which the reviewer confirms or corrects exactly as they do a requirement |
+| 4 | Requirement traceability | Per requirement in scope: does the package's reading match the customer's intent — confirmed, corrected, or missing entirely. Where the package includes its transcription of the customer's images, that transcription — for each image bearing on a requirement in scope — is part of its reading, and the reviewer confirms or corrects it as they do a requirement |
 | 5 | Code-grounding confirmations and challenges | Both: which code claims the reviewer confirms and how, and which they challenge and on what evidence |
 | 6 | Design review | The design positions the package takes, confirmed or challenged, including anything that contradicts the customer's own environment |
 | 7 | The decision log | One row per decision the package asked the customer to take: the answer, and the reason for it |

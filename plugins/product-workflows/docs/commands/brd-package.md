@@ -50,7 +50,8 @@ schema is rendered out of its own file from the boundary that file declares, nev
 part above the boundary is where that file deliberately keeps its citations. Every part of the
 prompt is assembled from a named artifact rather than written fresh. The de-Obsidianising pass
 renders a copy and never edits a source. And the plugin-free scan runs last, over the *finished*
-text of the prompt, the note and every bundle document — a hit **stops the run and never sanitises**,
+text of the prompt, the note and every bundle document — a hit **stops the run and never sanitises**
+(inside the customer's own verbatim content it is reported for the operator to rule on instead),
 because a citation that reached the prompt reached it from a sentence that assumed a reader who has
 this plugin, and deleting four characters leaves that assumption in place.
 
@@ -94,9 +95,9 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   (`BRD_PACKAGE_NEEDS_INTERVIEW`, run [`/brd-interview`](brd-interview.md)), while a register in the
   folder means the interview ran and its handoff was declined
   (`BRD_PACKAGE_REGISTER_NOT_HANDED_OFF`, land the files that are already on disk). The second must
-  **not** send the operator back to `/brd-interview`: that command hands off only the files its own
-  run writes — nothing at all where it finds nothing new to ask — and never the round records
-  already on disk.
+  **not** send the operator back to `/brd-interview`: a bare re-run of that command hands off only
+  the files it writes itself — nothing at all where it finds nothing new to ask, and where it opens a
+  new round, that round's record and not the earlier ones already on disk.
 - **Every round the register names, on the default branch.** The rounds this BRD has are the distinct
   `round` values `decisions.md` records, and each one's **interview/round-`<N>`.md** is gated with
   `require-on-main`; any on no ref stop the run together with `BRD_PACKAGE_ROUNDS_NOT_ON_MAIN`. The
@@ -114,10 +115,9 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   verified findings, so there is nothing in them to ask a customer. Whether that leaves the BRD
   decided is [`/brd-interview`](brd-interview.md)'s to say, and the stop does not guess — when that
   command opens a round is its own rule, which the stop cites rather than restates. Where
-  `/brd-interview` would open a new round — the findings or decisions have moved, or a requirement
-  defect has become this BRD's to ask, since its last round closed — or names the `--round 1`
-  re-open for open requirement defects no round has asked, running it is the fix; a bare run says
-  which, and hands off nothing where neither applies. `/prd-ground <BRD-KEY> --rebaseline`, or a
+  `/brd-interview` would open a new round, or names the `--round 1` re-open for open requirement
+  defects no round has asked, running it is the fix; a bare run says which, and hands off nothing
+  where neither applies. `/prd-ground <BRD-KEY> --rebaseline`, or a
   decision reopened or superseded in the register, can also make a round askable. Where none of
   that applies, the BRD is decided — a **finished** state rather than a missing step. A package
   carrying `[VD#n]` positions and no `[C]` question is legitimate and is packaged.
@@ -136,7 +136,7 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
 |---|---|---|
 | `self-review-<date>.md` | The adversarial pass: every `[SR#n]` with its class, target, attack and disposition, plus the per-pass account | **no** — see below |
 | `customer-review-prompt-<date>.md` | The self-contained prompt the customer pastes, in the fixed eleven-part order, with the review schema inlined | yes |
-| `bundle-<date>/` | De-Obsidianised plain markdown and images, plus a manifest and any dependency package | it *is* the bundle |
+| `bundle-<date>/` | Plain markdown and images, de-Obsidianised save the customer's own files, which go in byte for byte, plus a manifest and any dependency package | it *is* the bundle |
 | `customer-delivery-note-<date>.md` | The covering letter, under a 200-word ceiling | **no** — it is the email, not a package document |
 
 `brd-link.md` also gains any prerequisite this run declared, merged additively.
@@ -148,12 +148,14 @@ the `[SR#n]` content the customer may see reaches them **filtered** — `accepte
 make*. Shipping the file would defeat that filter and hand the customer an internal disagreement to
 referee. What the bundle *does* hold is an allow-list, not a deny-list, and
 [`bundle-packaging.md`](../../references/bundle-packaging.md) §1.1 is its authority: the prompt; the
-customer's own source document, defect log and — where it links an image — the transcription of each
-image (the parent's on a slice); the inventory; the coverage ledger; the three grounding files; the
-decision register; the code-defect log where the folder holds one; the `[C]` question set; each
-prerequisite package; the images those reference; and the manifest. A document reaches the bundle
-only where a part of the prompt sends the reviewer to it — everything else in the folder is a
-working record and stays.
+customer's own source document, every markdown file captured with it, its defect log and — where
+it links an image — the transcription of each image (the parent's on a slice); the inventory; the
+coverage ledger; the three grounding files; the decision register; the code-defect log where the
+folder holds one; the `[C]` question set; each prerequisite package; the images those reference and
+every image the transcription covers; and the manifest, which maps each captured file's path — the
+form a transcription, an anchor or a question names it by — to its bundled filename. The customer's
+own files go in byte for byte, unrendered. A document reaches the bundle only where a part of the
+prompt sends the reviewer to it — everything else in the folder is a working record and stays.
 
 Behind the handoff phase's consent choice, these are committed, pushed, and a pull request opened
 against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix. The
@@ -234,7 +236,10 @@ attack.
   the render verifies by requiring the extracted body to contain no `§` at all.
 - **Phases 6, 7 and 8 — the plugin-free scan.** Run over the finished prompt, the finished note and
   every bundle document. A hit stops the run with `BRD_PACKAGE_PROMPT_LEAK`, naming the token, the
-  part it landed in and the artifact it came from. The identifiers the package's own registers, logs
+  part it landed in and the artifact it came from — except inside the customer's own verbatim
+  content (their captured files, and the parts of the transcription and the inventory that quote
+  them), where a `§ 4.2` or a `D3` is the customer's own and the only fix would falsify it: that hit
+  is reported and the operator decides whether to ship. The identifiers the package's own registers, logs
   and grounding files mint are **not** in the scan's classes and are meant to travel — the classes
   are enumerated once, in `bundle-packaging.md` §6.1's table, rather than restated here. They are how
   the returned review cites the package without minting identifiers of its own; whether each one
@@ -255,8 +260,9 @@ attack.
   a correct `docs/api.md:12` sitting in a grounding finding's `evidence` list. Two exemptions:
   `[SR#n]` is exempt entirely, because the self-review file it would resolve against is excluded
   from the bundle by rule and its content reaches the customer filtered through the prompt; and a
-  hit inside the customer's own source document reports rather than stops, for the same reason the
-  plugin-free scan treats it that way. A reference that resolves to nothing stops with
+  hit inside the customer's own verbatim content — a `[BR#n]` or a filename visible in their
+  screenshot among them — reports rather than stops, for the same reason the plugin-free scan treats
+  it that way. A reference that resolves to nothing stops with
   `BRD_PACKAGE_DEAD_CITATION`; one that resolves to the wrong requirement stops with
   `BRD_PACKAGE_CITATION_MISMATCH`; a corpus file holding record-shaped content that yields no ids
   stops with `BRD_PACKAGE_CORPUS_UNREADABLE` — a corpus holding no record-shaped content at all is

@@ -77,6 +77,7 @@ Exactly this, and nothing else:
 |---|---|
 | the rendered customer prompt | it is the entry point |
 | the customer's own source document — `brd/source/<basename>`, **the parent's on a slice** (`references/brd-format.md` §2.1) | requirement traceability: the review's own section 4 asks whether the package read the customer's document correctly, which is unanswerable without that document |
+| every other markdown file `/brd-intake` captured — `brd/source/<file>.md` beside the document and `brd/source-external/<file>.md` from outside its folder, **the parent's on a slice**, one hop (`references/brd-format.md` §1.1, §2.1) | requirement traceability, for the same reason: a `[BR#n]` anchored in an appendix (`references/brd-format.md` §2) is unanswerable without that appendix |
 | `brd/brd-inventory.md` | *Review scope* |
 | `brd/brd-defect-log.md` — **the parent's on a slice**, one hop, exactly as an inherited `[DEF#n]` already resolves (`references/brd-format.md` §4) | *Review scope*: a ledger row reading `rejected: [DEF#n]` cites an id the reviewer must be able to resolve |
 | `brd/brd-figures.md` — **the parent's on a slice**, one hop, as the defect log is, and only where the BRD links an image | requirement traceability: the review's section 4 asks the customer to confirm or correct the package's reading of their document, and this file is its reading of their images (`references/brd-format.md` §1.2) |
@@ -87,11 +88,16 @@ Exactly this, and nothing else:
 | `decisions.md` | *the single most important claim to verify first*, *the decisions the customer must make*, *what could still move* |
 | `interview/customer-questions.md` | *the decisions the customer must make* |
 | every prerequisite package copied in, marked *not for re-review* | *what each package in the bundle is for* |
-| every image the documents above reference | they are embedded in them (§2) |
+| every image the documents above reference, and every image `brd/brd-figures.md` holds a section for | the documents embed them (§2), and a figures section sends the reviewer to the picture it transcribes — as does an image anchor or a question naming the image |
 | the manifest | *documents to review* |
 
 Plain markdown and images — nothing else (§2). The manifest lists documents by filename, for the
-same reason rule 4 does.
+same reason rule 4 does, **and maps every file `/brd-intake` captured that the bundle carries — each
+markdown file and each image from `brd/source/` and `brd/source-external/` — from its path relative
+to `brd/` to its bundled filename.** That path is the form every reference to a captured file takes:
+a figures section's heading, an appendix or image `source_anchor`, and an interview question naming
+an image (`references/brd-format.md` §1.2, §2). None of them is a bundle filename, so without the map
+a reviewer who searches by filename, as rule 4 tells them to, finds nothing.
 
 **The code-defect log ships, and the reason is scope rather than disclosure.** A `[CDF#n]` disposed
 `in-scope` names a repair that has to happen inside this PRD's scope or the feature cannot be
@@ -161,37 +167,39 @@ reviewer and breaks it the same way. That is not hypothetical: a shipped bundle 
 grounding files by their working filenames after this pass had renamed them. Both survived
 everything, because a rewrite rule inspects links. §6's relation 3 covers prose and links alike.
 
-### 2.1 The customer's own source document is copied byte for byte, never rendered
+### 2.1 The customer's own documents are copied byte for byte, never rendered
 
-**The one file in the bundle the de-Obsidianising pass does not touch is `brd/source/<basename>`**
-(§1.1; the parent's, on a slice). It goes in as the bytes `/brd-intake` copied, unrewritten,
-unreflowed, and with nothing removed — even where it carries something that renders in exactly one
-tool. Three reasons, and each is fatal on its own:
+**The de-Obsidianising pass does not touch the customer's own files: `brd/source/<basename>`, and
+every other markdown file `/brd-intake` captured under `brd/source/` or `brd/source-external/`** (§1.1;
+the parent's, on a slice). Each goes in as the bytes `/brd-intake` copied, unrewritten, unreflowed,
+and with nothing removed — even where it carries something that renders in exactly one tool. Three
+reasons, and each is fatal on its own:
 
-- **Every `[BR#n]` anchors into it by `source_anchor` — a heading path or a line range**
-  (`references/brd-format.md` §2). A rendered copy moves lines and can rewrite headings, so a
-  requirement's anchor stops resolving in precisely the copy the customer was given to check
-  traceability against. Requirement traceability is the *reason* the file is in the bundle at all;
-  a pass that breaks it defeats the inclusion.
-- **It is immutable by rule** (`brd-format.md` §1): nothing under `brd/source/` is ever edited,
-  reworded or reformatted, "no matter how badly worded a requirement inside it is". A bundle copy
-  that has been tidied is an edit the rule forbids, made where nobody looks for one.
-- **It is the customer's own writing, handed back to them.** §3's one-new-file rule exists so that
-  "nobody can otherwise tell what was sent from what was changed"; returning their document
+- **Every `[BR#n]` anchors into them by `source_anchor`** — a heading path or a line range in the
+  document, and the same prefixed by the file's path in an appendix (`references/brd-format.md` §2).
+  A rendered copy moves lines and can rewrite headings, so a requirement's anchor stops resolving in
+  precisely the copy the customer was given to check traceability against. Requirement traceability
+  is the *reason* these files are in the bundle at all; a pass that breaks it defeats the inclusion.
+- **They are immutable by rule** (`brd-format.md` §1, and §1.1 for `brd/source-external/`): nothing
+  under either directory is ever edited, reworded or reformatted, "no matter how badly worded a
+  requirement inside it is". A bundle copy that has been tidied is an edit the rule forbids, made
+  where nobody looks for one.
+- **They are the customer's own writing, handed back to them.** §3's one-new-file rule exists so that
+  "nobody can otherwise tell what was sent from what was changed"; returning their documents
   reformatted is that failure committed by the delivery team first.
 
 Where that leaves something a plain reader cannot open — an embedded image, a one-tool block — the
 fix is **beside the file, never inside it**: copy the image in as §2 already requires, and say in the
 manifest what the reader may not be able to see. The manifest is prose this package wrote and may
-say anything; the source document is not.
+say anything; the customer's files are not.
 
-**An image the document reaches through a `[[wikilink]]`, or from outside its own directory, is found
-through `brd/brd-link-log.md`'s *Captured links that do not resolve as written* table**
-(`references/brd-format.md` §1.1) — on a slice the parent's log, one hop, as the document is
+**An image a captured file reaches through a `[[wikilink]]`, or from outside the document's own
+directory, is found through `brd/brd-link-log.md`'s *Captured links that do not resolve as written*
+table** (`references/brd-format.md` §1.1) — on a slice the parent's log, one hop, as the document is
 (`references/brd-format.md` §2.1). Its copy is in `brd/source/` or `brd/source-external/`, at a path
-the link as written does not name. It is copied into the bundle like any other image, and the manifest
-names the link as written beside the bundled file it resolves to: the source document itself is never
-edited to point there.
+the link as written does not name. It is copied into the bundle like any other image, and its
+manifest line (§1.1) names the link as written as well as its path relative to `brd/`: the file the
+link sits in is never edited to point there.
 
 **Callouts are kept.** A `> [!note]` block degrades to an ordinary blockquote in any markdown reader
 — the reader loses the label's styling and keeps every word. Nothing that survives untranslated is
@@ -497,7 +505,7 @@ moment it does. Those that exist today:
 | `resolved-by: [CG#n]`, `resolved-by: [CD#n]` | `references/brd-format.md` §4 | the grounding finding or the customer decision that settled a defect; grounding and deciding are both slice-only, so it is whichever slice settled it |
 | the `[BR#n]` a defect entry is raised against, and a `conflict` / `duplicate` entry's counterpart `[BR#n]` | `references/brd-format.md` §3 | a requirement in the log-owning BRD's inventory — the parent's on a slice |
 | `superseded-by: [BR#n]`, and an orphan row's own `id: [BR#n]` | `references/coverage-ledger-format.md` §2, §3 | a requirement of the parent's, one this slice "need not claim or hold a row for" |
-| the *Rows* line of `brd/brd-figures.md` — every `[BR#n]` it yields or illustrates | `references/brd-format.md` §1.2 | a requirement in the figures file's owning BRD's inventory — the parent's on a slice |
+| the *Rows* line of `brd/brd-figures.md` — every `[BR#n]` the line names | `references/brd-format.md` §1.2 | a requirement in the figures file's owning BRD's inventory — the parent's on a slice |
 
 **The last four are routine rather than exotic**, which is why refusing them would stop the
 ordinary package rather than a rare one. §1.1 ships the **parent's** defect log and figures file
@@ -542,11 +550,12 @@ matches the **working** filename of a document §1.1 admits or excludes by name 
 §1.1's own table each time this relation runs, never copied into a second list here**, because a
 document added to §1.1 without a matching entry here would be invisible to exactly the check that
 exists to catch it. **A working filename carrying a placeholder is resolved before it is matched,
-never compared as literal text** — `<YYYYMMDD>` against the run's own date, and
-`brd/source/<basename>` against the basename of the customer's own document as copied in — one rule
-covering both, because resolving one and not the other drops whichever it missed out of shape 2, and
-the customer's own document is the one §1.1 admits under a placeholder. The scoping is what keeps
-the relation off correct content: a grounding finding's `evidence` field is a repository
+never compared as literal text** — `<YYYYMMDD>` against the run's own date,
+`brd/source/<basename>` against the basename of the customer's own document as copied in, and the
+captured-markdown row's `<file>.md` against the basename of each markdown file it copied in — one
+rule covering all three, because resolving one and not another drops whichever it missed out of
+shape 2, and the customer's own files are the ones §1.1 admits under a placeholder. The scoping is
+what keeps the relation off correct content: a grounding finding's `evidence` field is a repository
 `file:line` list, and a repository that documents itself in markdown puts a bare `docs/api.md:12`
 into a finding that is entirely correct — an unscoped rule would refuse the whole bundle over it.
 
@@ -568,11 +577,21 @@ in the bundle, **by design**, and a check without this exemption fires on every 
 distinction a reader needs: naming the self-review *file* is dead — relation 3 catches it — while
 naming an `[SR#n]` id is the filter working as intended, and relation 1 must not catch it.
 
-**`brd/source/<basename>` reports rather than stops.** The customer's own document is copied byte
-for byte and is immutable by rule (§2.1, `references/brd-format.md` §1). It inherits the
-plugin-free scan's existing treatment verbatim, and for the identical reason: stopping outright
-would make that BRD permanently unpackageable, since the one repair the rule allows is not editing
-the file. Every other document's hit stays a hard stop.
+**Verbatim customer content reports rather than stops.** That is every span in the bundle holding
+the customer's own words, copied or transcribed rather than written by this package:
+`brd/source/<basename>` and every other captured markdown file, whole — copied byte for byte and
+immutable by rule (§2.1, `references/brd-format.md` §1, §1.1) — and, in `brd/brd-figures.md`, each
+section's *Text*, the *Says* column of its *Annotations* and its *Flow*, which are the image's own
+words transcribed verbatim (`references/brd-format.md` §1.2), and in `brd/brd-inventory.md`, each
+row's `text` — the requirement verbatim, or for a row drawn from an image its obligation quoting the
+transcribed element verbatim (`references/brd-format.md` §2). A `[BR#n]` or a filename visible in
+the customer's screenshot is the customer's, not a citation this package made. Those spans inherit
+the plugin-free scan's treatment of the same content, for the identical reason: stopping outright
+would make that BRD permanently unpackageable, since the only repair left would falsify the record —
+an edit to an immutable file, or a transcription saying something the image does not. So a relation
+1 or relation 3 hit inside one is reported, naming the file, the span and the token, and the
+operator decides whether to ship. Every other span's hit stays a hard stop, including the rest of
+the figures file and the inventory, which the plugin wrote.
 
 ### 6.4 What §6 cannot see
 

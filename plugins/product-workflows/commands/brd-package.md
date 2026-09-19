@@ -93,7 +93,10 @@ them is.
    and continue. A citation that reached the prompt reached it because some part of the package
    assumed a reader who has this plugin, and deleting the four characters that reveal that leaves
    the assumption in place and the sentence unfollowable. What is reported is the token, the part it
-   landed in, and the artifact it came from.
+   landed in, and the artifact it came from. **The one exception is verbatim customer content** — the
+   customer's own files, and the spans that transcribe or quote them, every inventory row's
+   `source_anchor` among them — where a hit is the customer's own token and is reported for the
+   operator to rule on rather than stopping the run (*The plugin-free scan*, below).
 
 The failure all five exist to prevent is stated once, in `bundle-packaging.md` §1, and is not
 restated here: a bundle that assumes anything about the machine it lands on is a bundle the customer
@@ -319,9 +322,10 @@ cannot review, and they will not tell you that — they will review it anyway, b
     its opening line names which file under `brd/source/` is the customer's document, since that
     directory also holds the files the document links; a BRD intaken before the log existed holds
     exactly one file there, and that file is it (`brd-format.md` §1.1). The log is not a bundle
-    document. The *Assemble the bundle* phase reads it once more, for any image a captured file reaches
-    through a `[[wikilink]]` or from outside the document's own directory (`bundle-packaging.md`
-    §2.1).
+    document. The *Assemble the bundle* phase reads it once more: its *Captured links that do not
+    resolve as written* table is how an image a captured file reaches through a `[[wikilink]]` or
+    from outside the document's own directory is found (`bundle-packaging.md` §2.1), and how the
+    manifest names each captured file — markdown or image — by its link as written (rule 6).
 11. **Fix the run's date.** One `<YYYYMMDD>` stamp, taken once, used for every artifact this run
     writes. If `bundle-<YYYYMMDD>/` already exists in the BRD folder, stop:
     `BRD_PACKAGE_BUNDLE_EXISTS: <BRD-dir>/bundle-<YYYYMMDD>/ already exists — a dated bundle is never rewritten. Move or rename the existing directory if it was never sent, or package on the next date.`
@@ -761,14 +765,20 @@ sentence unfollowable while making it look fine.
 than deadlock.** That is the set of spans `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md`
 §6.3 defines: the customer's own files, copied byte for byte and immutable by rule (§2.1 there,
 `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1), and the parts of the figures file and the
-inventory that transcribe or quote the customer's own words. A hit inside one is not a leak this
+inventory that transcribe or quote the customer's own words — **every inventory row's
+`source_anchor` among them**. A document anchor quotes the customer's own section numbering or
+heading text, and the leading `§` that `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.2 finds on
+every anchor it was measured on is their numbering; an appendix anchor does the same inside their
+appendix, and an image anchor quotes the transcription. Read literally without that span, this scan
+would stop every package on the inventory's first anchor. A hit inside one is not a leak this
 package committed. It is the customer having written the token themselves, in a document or in a
 screenshot — because they were told what tooling the delivery team uses, or because their own
 numbering happens to look like ours, a `§ 4.2` in a specification or a `D3` in a diagram. Report
 it, name the file, the span and the token, and **let the operator decide** whether to ship:
 stopping outright would make that BRD permanently unpackageable, since the only repair left would
-falsify the record — an edit to an immutable file, or a transcription saying something the image
-does not — and every other span's hit stays a hard stop exactly as above. **This is the plugin-free
+falsify the record — an edit to an immutable file, an anchor that no longer names where the
+requirement is stated, or a transcription saying something the image does not — and every other
+span's hit stays a hard stop exactly as above. **This is the plugin-free
 scan's only exemption, and it covers one class of content rather than one file** — the
 citation-resolution check (Phase 8 rule 8, `bundle-packaging.md` §6) carries a second exemption of
 the identical shape over the same spans, and a third of a different shape for `[SR#n]` (§6.3) — and
@@ -886,9 +896,9 @@ self-review is free of them while being the most internal document this command 
    resolve to the wrong finding while the check went green.
 2. **De-Obsidianise every copied document — except the customer's own files, the source document
    and every other markdown file `/brd-intake` captured, which are copied byte for byte**
-   (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §2.1). Every `[BR#n]` anchors into them by
-   a heading path or a line range — in an appendix, prefixed by the file's path — so a rendered copy
-   breaks the traceability they are in the bundle to support; they are immutable by rule; and they
+   (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §2.1). Every `[BR#n]` drawn from their
+   text anchors into them, in the forms `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2 fixes, so
+   a rendered copy breaks the traceability they are in the bundle to support; they are immutable by rule; and they
    are the customer's own writing going back to them. Anything in them a plain reader cannot open is
    named **in the manifest**, never fixed in the file. For every *other* document: rewrite wikilinks to plain filename references, and get
    the three cases `bundle-packaging.md` §2 names right: an **aliased** link keeps the alias as the
@@ -920,10 +930,14 @@ self-review is free of them while being the most internal document this command 
    bundled filename, naming beside it any link as written that the link log maps to it
    (`bundle-packaging.md` §1.1, §2.1). A figures section's heading, an appendix or image anchor, and
    an interview question naming an image all give that relative path, and none of them is a bundle
-   filename. The manifest is a bundle document; the delivery note is not.
+   filename. **Rule 8's relation 3 does not test a quoted link as written** (`bundle-packaging.md`
+   §6.2): it sits beside the bundled filename it maps to and quotes the customer's own link, so the
+   `notes.md` a `[[notes.md]]` link names is a map entry here, not a reference to a bundle document.
+   The manifest is a bundle document; the delivery note is not.
 7. **Run the plugin-free scan over every document in the finished bundle**, and stop on any hit
    outside verbatim customer content, whose hits are reported for the operator to rule on (*The
-   plugin-free scan*, Phase 6). The scan runs here as well as over the prompt because a leak can
+   plugin-free scan*, Phase 6) — every inventory row's `source_anchor` included, since the `§` that
+   opens a document anchor is the customer's own section numbering (`bundle-packaging.md` §6.3). The scan runs here as well as over the prompt because a leak can
    arrive through a copied document as easily as through a rendered part, and together with rule
    8's citation-resolution check, this pair is the last point at which anything is still ours.
 8. **Run the citation-resolution check over every document in the finished bundle**, per

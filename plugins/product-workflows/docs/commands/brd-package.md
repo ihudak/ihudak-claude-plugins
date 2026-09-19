@@ -239,8 +239,9 @@ attack.
   every bundle document. A hit stops the run with `BRD_PACKAGE_PROMPT_LEAK`, naming the token, the
   part it landed in and the artifact it came from — except inside the customer's own verbatim
   content (their captured files, and the parts of the transcription and the inventory that quote
-  them), where a `§ 4.2` or a `D3` is the customer's own and the only fix would falsify it: that hit
-  is reported and the operator decides whether to ship. The identifiers the package's own registers, logs
+  them — each requirement's anchor, whose leading `§` is the customer's own section numbering,
+  among them), where a `§ 4.2` or a `D3` is the customer's own and the only fix would falsify it:
+  that hit is reported and the operator decides whether to ship. The identifiers the package's own registers, logs
   and grounding files mint are **not** in the scan's classes and are meant to travel — the classes
   are enumerated once, in `bundle-packaging.md` §6.1's table, rather than restated here. They are how
   the returned review cites the package without minting identifiers of its own; whether each one
@@ -258,7 +259,9 @@ attack.
   claim to be bundle references, meaning the token carries the `<BRD-KEY>-` prefix every bundle
   document's filename carries or exactly matches the working filename of a document the allow-list
   admits or excludes by name. That scoping is the relation: unscoped, it would refuse a bundle over
-  a correct `docs/api.md:12` sitting in a grounding finding's `evidence` list. Two exemptions:
+  a correct `docs/api.md:12` sitting in a grounding finding's `evidence` list. It never tests a
+  repository locator in that list, nor the manifest's quotation of a customer's link as written,
+  which sits beside the bundled filename it maps to. Two exemptions:
   `[SR#n]` is exempt entirely, because the self-review file it would resolve against is excluded
   from the bundle by rule and its content reaches the customer filtered through the prompt; and a
   hit inside the customer's own verbatim content — a `[BR#n]` or a filename visible in their

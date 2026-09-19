@@ -104,7 +104,10 @@ bookkeeping rather than anything a reader outside the vault can use (`references
 §1.2), so the de-Obsidianising pass removes it whole, as it removes any frontmatter that means
 nothing to a reader outside a vault (§2), and leaves in its place the one-line note that pass
 requires. That note names the customer's document by its **bundled** filename. `kind:` and `key:`
-are how the specs tree asserts a file's identity, and the bundled filename already carries the key.
+are how the specs tree asserts a file's identity — `key:` naming the BRD that owns the source
+document, which on a slice is the parent while the bundled filename carries this package's key —
+and what they identify reaches the reader through the note instead, which names the very document
+the transcriptions are of.
 `written_by:` names the plugin's own command, which no bundle document may name
 (`commands/brd-package.md`'s standing rule). `source:` names the customer's document by its working
 basename, and the bundle renames that document (`commands/brd-package.md`'s *Assemble the bundle*
@@ -188,9 +191,9 @@ the parent's, on a slice). Each goes in as the bytes `/brd-intake` copied, unrew
 and with nothing removed — even where it carries something that renders in exactly one tool. Three
 reasons, and each is fatal on its own:
 
-- **Every `[BR#n]` anchors into them by `source_anchor`** — a heading path or a line range in the
-  document, and the same prefixed by the file's path in an appendix (`references/brd-format.md` §2).
-  A rendered copy moves lines and can rewrite headings, so a requirement's anchor stops resolving in
+- **Every `[BR#n]` drawn from their text anchors into them by `source_anchor`**, in the forms
+  `references/brd-format.md` §2 fixes; an image-drawn row anchors on the image, which ships beside
+  them. A rendered copy moves lines and can rewrite headings, so a requirement's anchor stops resolving in
   precisely the copy the customer was given to check traceability against. Requirement traceability
   is the *reason* these files are in the bundle at all; a pass that breaks it defeats the inclusion.
 - **They are immutable by rule** (`brd-format.md` §1, and §1.1 for `brd/source-external/`): nothing
@@ -572,6 +575,16 @@ what keeps the relation off correct content: a grounding finding's `evidence` fi
 `file:line` list, and a repository that documents itself in markdown puts a bare `docs/api.md:12`
 into a finding that is entirely correct — an unscoped rule would refuse the whole bundle over it.
 
+**Two kinds of token are outside the relation whatever their shape, and both are correct content it
+would otherwise refuse.** A `<file>:<line>` locator in a grounding finding's `evidence` names a
+repository file, never a bundle document, so the relation stays off it — and shape 2's
+captured-markdown row in particular reaches only references outside grounding evidence: a customer
+who happened to capture a `README.md` of their own would otherwise turn a correct `README.md:12`
+into a dead citation. And the manifest's quotation of a link as written (§1.1, §2.1) is a map entry
+rather than a reference: it sits beside the bundled filename it maps to and quotes the customer's
+own link, so a `[[notes.md]]` target quoted there is already resolved by that line, and testing it
+would make that package unbuildable with nothing the operator could change.
+
 Relations 1 and 3 fail the same way — a reference that resolves to nothing — and stop the run with
 `BRD_PACKAGE_DEAD_CITATION`, naming the id or filename, the document it sits in, and the corpus or
 bundle it failed to resolve against; the remedy is to fix or qualify the reference. Relation 2 fails
@@ -592,19 +605,31 @@ naming an `[SR#n]` id is the filter working as intended, and relation 1 must not
 
 **Verbatim customer content reports rather than stops.** That is every span in the bundle holding
 the customer's own words, copied or transcribed rather than written by this package:
-`brd/source/<basename>` and every other captured markdown file, whole — copied byte for byte and
-immutable by rule (§2.1, `references/brd-format.md` §1, §1.1) — and, in `brd/brd-figures.md`, each
-section's *Text*, the *Says* column of its *Annotations* and its *Flow*, which are the image's own
-words transcribed verbatim (`references/brd-format.md` §1.2), and in `brd/brd-inventory.md`, each
-row's `text` — the requirement verbatim, or for a row drawn from an image its obligation quoting the
-transcribed element verbatim (`references/brd-format.md` §2). A `[BR#n]` or a filename visible in
-the customer's screenshot is the customer's, not a citation this package made. Those spans inherit
+
+- `brd/source/<basename>` and every other captured markdown file, whole — copied byte for byte and
+  immutable by rule (§2.1, `references/brd-format.md` §1, §1.1);
+- in `brd/brd-figures.md`, each section's *Text*, the *Says* column of its *Annotations* and its
+  *Flow*, which are the image's own words transcribed verbatim (`references/brd-format.md` §1.2);
+- in `brd/brd-inventory.md`, a prose row's `text` whole — the requirement verbatim — but an
+  image-drawn row's `text` only in the element it quotes, the rest of that text being the plugin's
+  words (`references/brd-format.md` §2);
+- and every inventory row's `source_anchor`. A document anchor quotes the customer's own section
+  numbering or heading text — the leading `§` and section number `references/brd-format.md` §2.2
+  finds on every anchor it was measured on is their numbering, not a citation of ours — an
+  appendix anchor does the same inside their appendix, and an image anchor quotes the
+  transcription, a `"D3"` node label among the elements it may name. The path an appendix or image
+  anchor opens with (`source/…`, `source-external/…`) is ours, and carries no class the
+  plugin-free scan or relations 1 and 3 look for.
+
+A `[BR#n]` or a filename visible in the customer's screenshot is the customer's, not a citation this
+package made, and a `§` opening an anchor is the customer's section numbering. Those spans inherit
 the plugin-free scan's treatment of the same content, for the identical reason: stopping outright
 would make that BRD permanently unpackageable, since the only repair left would falsify the record —
-an edit to an immutable file, or a transcription saying something the image does not. So a relation
-1 or relation 3 hit inside one is reported, naming the file, the span and the token, and the
-operator decides whether to ship. Every other span's hit stays a hard stop, including the rest of
-the figures file and the inventory, which the plugin wrote.
+an edit to an immutable file, an anchor that no longer names where the requirement is stated, or a
+transcription saying something the image does not. So a relation 1 or relation 3 hit inside one is
+reported, naming the file, the span and the token, and the operator decides whether to ship. Every
+other span's hit stays a hard stop, including the rest of the figures file and the inventory, which
+the plugin wrote.
 
 ### 6.4 What §6 cannot see
 

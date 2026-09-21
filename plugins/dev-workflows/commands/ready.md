@@ -176,7 +176,11 @@ falls to the Sonnet floor — record the degradation in `notes` and the final re
 **Read the PRD folder** — `<PRD-dir>` (Phase 0 step 4), the resolved folder on a PRD-level run and
 its parent on an Epic-level one. Its `prd.md`, and every `EPIC-` folder directly under it — that
 listing is the Epic set this command judges, and each folder's `epic.md` supplies its title and its
-own `key`. Carry forward:
+own `key`. **The broad PRD-level slice has neither** — it is the PRD folder, which holds no
+`epic.md` and can hold none (`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`, Epic ladder) —
+so where Phase 2 carries a slice row, its label is the literal `broad slice` and its key is the PRD
+folder's own, taken from the folder's carrier (`workflows-core:addressing` §4) exactly as `<PRD>`
+already is. Nothing is read out of the PRD's title for it, and no title is invented. Carry forward:
 
 - `requirements[]` (+ `requirements_source`) — the coverage ground truth for Phase 3(a).
 

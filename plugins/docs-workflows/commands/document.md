@@ -288,21 +288,29 @@ alongside it.
 
 **Resolve the diff sources — two of them, merged.** Invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4:
 
-1. **The record.** Read `implementation.md` in the PRD folder and in every `EPIC-` folder under it,
-   wherever one stands — `/dev-workflows:implement` writes it into the folder of the unit it
-   implemented, so a run that implemented an Epic records its work in that Epic's folder, and a
-   broad PRD-level slice in the PRD folder (`workflows-core:implementation-format` §1, which also
-   says whose a block an earlier run left in the PRD folder is). **Read every block under the PRD**
-   — this command documents the feature as it now stands, so every change that reached it is in
-   scope. A ref two of these records name — the same repository and the same commit — is one ref,
-   counted once (that reference's §4).
+1. **The record.** Read `implementation.md` — `/dev-workflows:implement` writes it into the folder
+   of the unit it implemented, so a run that implemented an Epic records its work in that Epic's
+   folder, and a broad PRD-level slice in the PRD folder
+   (`workflows-core:implementation-format` §1, which also says whose a block an earlier run left in
+   the PRD folder is). **Read the focus Epic's own where `focus_key` is set, and otherwise the PRD
+   folder's and every `EPIC-` folder's under it, wherever one stands** — the same scope the commit
+   scan below takes its tokens for, the scope `workflows-core:implementation-format` §4 fixes for
+   this command, and the scope `/release-notes` reads by. An Epic-address run whose record read
+   spanned the whole PRD would scan repositories no Epic-scoped token can match, and would dedupe a
+   commit carrying the focus Epic's token against another unit's block and then drop it in Phase 4,
+   so it would reach nothing. **Read every block in that scope** — this command documents the
+   feature as it now stands, so every change that reached it is in scope and no note bounds it. A
+   ref two of these records name — the same repository and the same commit — is one ref, counted
+   once (that reference's §4).
 2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
    repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
    already holds, with the `git log` command `workflows-core:implementation-format` §4 gives: one
    `--grep` per token, each matching only as a whole key. The tokens — keys and `workitem_key`s —
-   are the ones §4 names for this run's scope, an Epic's where `focus_key` is set and the PRD's
-   where it is null, each read off a folder this run resolved or listed; **nothing is parsed out of
-   a commit message.** This is what finds work the plugin did not do — a commit written by hand
+   are the ones §4 names for this run's scope — the focus Epic's where `focus_key` is set, and,
+   where it is null, **the PRD folder's and every `EPIC-` folder's**, since a whole-key match on the
+   PRD's key does not reach the Epic keys `/product-workflows:epics` mints by extending it, and
+   never reached an Epic's `workitem_key` — each read off a folder this run resolved or listed;
+   **nothing is parsed out of a commit message.** This is what finds work the plugin did not do — a commit written by hand
    after a session ended, a colleague's push, a follow-up nobody ran a command for.
 
 **Merge and dedupe by SHA.** Anything the scan finds beyond the recorded blocks is reported as

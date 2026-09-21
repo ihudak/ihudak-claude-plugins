@@ -44,7 +44,11 @@ The first line names `<KEY>` — the PRD folder's key on a run addressed to the 
 one addressed to an Epic — and the date the run appended the draft. Each `read:` line names a
 repository, by the `repo:` name the implementation records use or, for one only the scan reached, the
 slug the run resolved it by, and then **every commit the run read there**: each block's `commit:`
-whose diff it read, each commit its scan kept, and each commit a key-commit fallback drew on. **A
+whose diff it read, each commit its scan kept whose diff it read, and each commit a key-commit
+fallback drew on. **The qualifier is on both of the first two, not only the first** — the blocks and
+the scan are both resolved before any repository is a clone, so neither has opened a diff when it
+hands a commit over, and a run that wrote out what it had merely found would advance the boundary
+past work no note describes. **A
 commit is written as the first 12 characters of its full SHA**, as `git log --format=%H` prints it —
 never a shorter or a longer prefix — which is long enough that two commits of one repository do not
 share it in practice and short enough to keep the comment readable; every comparison against a read

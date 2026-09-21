@@ -69,9 +69,17 @@ folder and what it carries. Then:
     which one this run implements is the operator's to say — the silent choice is the one this
     prompt replaces.
   - **PRD with ≥2 Epics** → render the picker per `Skill(skill: "workflows-core:reference", args: "epic-picker")`,
-    honouring that file's *The cap*, which counts this command's own option against the four: every
-    Epic listed as prose, the array carrying **at most two** Epic rows, the explicit broad-slice
-    choice below and *"Another Epic from the list above — name its key"*. **`/implement`'s
+    honouring that file's *The cap*, which counts this command's own option against the four. **The
+    broad-slice choice is offered here on the same condition as the one-Epic path's above — only
+    where the PRD folder also holds a flat `specification.md`** — because the two paths ask one
+    question, which of the specified units this run implements, and without that file the slice is a
+    unit nothing specified: offering it unconditionally let an operator pick one, and the Phase 0
+    gate below does not catch that, an absent in-scope spec being `absent` rather than a stop. So:
+    every Epic listed as prose, and the array carrying **at most two** Epic rows, that broad-slice
+    choice and *"Another Epic from the list above — name its key"* where the flat `specification.md`
+    stands; where it does not, the choice is omitted and the freed row goes back to the Epics —
+    **at most three** Epic rows plus that same remainder option, which is *The cap*'s own shape for
+    a picker appending nothing of its own. **`/implement`'s
     done-predicate is now the artifacts present in each Epic folder**, which is the mechanism
     `/design`'s own Epic picker already uses:
     `specification.md` but no `design.md` → ○; `design.md` present, no record → ◐; a record → ●
@@ -84,12 +92,17 @@ folder and what it carries. Then:
     strictly better than what it replaces: a declared status is a human's claim about the work and
     could lag it, which is why the old picker had to print the raw status text as a hedge. Include the explicit choice
     **"Implement one broad PRD-level slice instead"** (`focus_key` stays null → specs
-    resolve PRD-level). Selecting an Epic sets `focus_key` and proceeds for **that Epic
+    resolve PRD-level) **only where the PRD folder holds a flat `specification.md`**, per the
+    condition above. Selecting an Epic sets `focus_key` and proceeds for **that Epic
     only** — there is **no "Next Epic?" loop** (code-writing is heavy and branchy;
     each `/implement` run targets one Epic).
   - **PRD with 0 Epics** → offer: split with `/product-workflows:epics` first, or implement one broad
     PRD-level slice (`focus_key` stays null). Nothing follows `/epics` before this command sees its Epics — it
-    writes into the tree this command reads.
+    writes into the tree this command reads. **The flat-spec condition above does not bind here**,
+    and that is the asymmetry settled rather than left: with no Epic there is no other specified
+    unit to confuse the slice with, so this is not a choice between two units but a choice whether
+    to partition at all, and withholding the slice would leave one option where the harness needs
+    two (`workflows-core:escalation-rules` §0).
 
 When the picker, or the one-Epic path or its choice, sets `focus_key` that was initially null,
 **re-resolve `specs`** per the shared reference §Specs-resolution now that `focus_key`

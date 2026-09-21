@@ -155,16 +155,18 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 **Read the PRD folder directly** (Phase 0 step 1) — its `prd.md` for the product content, and, where `focus_key` is set, the Epic folder the address named and what it holds; that alone when diff grounding is OFF. When ON, read the `implementation.md` records too, which is where the refs the diff grounding needs are recorded (`workflows-core:implementation-format` §1) — `/dev-workflows:implement` writes one into the folder of the unit it implemented, an Epic's or the PRD's (that §1, which also says whose a block an earlier run left in the PRD folder is), so read the focus Epic's own where `focus_key` is set, and otherwise the PRD folder's and every `EPIC-` folder's under it, wherever one stands.
 
-**Resolve the diff sources — two of them, merged.** **Only when diff grounding is ON** (Phase 1): it is opt-in and advisory here, so a run that declined it skips this step entirely and grounds its prose in the PRD alone. When it is on, invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4:
+**Resolve the diff sources — two of them, merged.** **Only when diff grounding is ON** (Phase 1): it is opt-in and advisory here, so a run that declined it skips this step entirely and grounds its prose in the PRD alone. When it is on, invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4. **Both steps below run inside a clone, so build the slug→clone map here, once** — the map Phase 4 resolves against, by the recipe stated there: for each top-level directory under each entry of `$REPOS_PATH`, `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, a trailing `.git` stripped, the URL's last path segment taken as that clone's slug. Step 2's `git log` runs in the clone, and so does the `git rev-parse` that resolves a block's abbreviated `commit:` to the full SHA a read-set comparison takes (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1). Phase 4 resolves each in-scope slug against this same map rather than rebuilding it, and is where the operator settles a slug it matches to no clone; until then such a slug is scanned in no repository and compared in none, and nothing under it has been read:
 
 1. **The record.** Read the `implementation.md` records named above. **Read only the blocks no earlier note covers** — a second release must not re-describe the first one's work, and the notes already in `release-notes.md` are the only honest boundary. `workflows-core:implementation-format` §4 fixes it per record, by what each earlier note read and never by a date: a block is skipped only where every commit it records is in the read set of an earlier note covering its record, a note for the PRD covering every record and a note for an Epic that Epic's alone, each note's scope and read set read off the comment above it (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1, which also says what a note with none counts as). So a note drafted for one Epic moves no other Epic's boundary. An earlier note that records no read set bounds by its date instead, §4's one fallback: list every block that date rule dropped, and every commit it dropped by the commit's own date, beside the ones used — a commit dropped with a block recording it is accounted for by that block's listing and is not written out again (that same §4). A ref two of these records name — the same repository and the same commit — is one ref, counted once (that same §4). **Name the blocks this run used**, so a wrong boundary is visible rather than silent.
 2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
    repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
    already holds, with the `git log` command `workflows-core:implementation-format` §4 gives: one
    `--grep` per token, each matching only as a whole key. The tokens — keys and `workitem_key`s —
-   are the ones §4 names for this run's scope, an Epic's where `focus_key` is set and the PRD's
-   where it is null, each read off a folder this run resolved or listed; **nothing is parsed out of
-   a commit message.** This is what finds work the plugin did not do — a commit written by hand
+   are the ones §4 names for this run's scope — the focus Epic's where `focus_key` is set, and,
+   where it is null, **the PRD folder's and every `EPIC-` folder's**, since a whole-key match on the
+   PRD's key does not reach the Epic keys `/product-workflows:epics` mints by extending it, and
+   never reached an Epic's `workitem_key` — each read off a folder this run resolved or listed;
+   **nothing is parsed out of a commit message.** This is what finds work the plugin did not do — a commit written by hand
    after a session ended, a colleague's push, a follow-up nobody ran a command for.
 
    **The note boundary binds this source too** (§4): drop every commit whose SHA a block in the
@@ -177,20 +179,32 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 **unrecorded work**, named as such with its commits listed: folding hand-made commits silently into
 the recorded set would make the record look more complete than it is.
 
-**Carry the merged set forward as this run's read set** — every commit taken from a block and every
-commit the scan kept, by repository — because Phase 8 writes it into the scope comment and it is
-what bounds a later run. Phase 5 adds to it each SHA a `diff-summarizer` summary names its
-key-commit fallback as having drawn on; those three are the whole of it
-(`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1, which fixes the 12-character form
-every entry is written in).
+**Carry the merged set forward as this run's *provisional* read set** — every commit taken from a
+block and every commit the scan kept, by repository. **It is provisional because nothing here has
+opened a diff**: the repositories are resolved to clones in Phase 4 and their diffs read in Phase 5,
+and what Phase 8 writes into the scope comment is the set Phase 5 **settles**, which is what bounds
+a later run. A commit enters that settled set only where its diff was **read** — its repository
+resolved to a clone, the element carrying it resolved there, and the commit itself resolved in that
+clone — so a repository skipped at Phase 4 and an element `diff-summarizer` returns under
+`unresolved_prs` contribute nothing to it, whatever a block or the scan said of them. Writing a
+commit this run did not open would lose that work for good: a later run drops every commit an
+earlier note recorded as read, so no note would ever describe it
+(`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1 — *"A commit the run could not resolve
+was not read and is not written, so a later run reads it again"*). Phase 5 adds to it each SHA a
+`diff-summarizer` summary names its key-commit fallback as having drawn on; those three are the
+whole of what can enter it (that same §1, which fixes the 12-character form every entry is written
+in).
 
 **Report the scan's own reach.** Say **how many commits it scanned and how many matched**. Only a
 commit whose message names the key is findable, and no convention compels a human to follow one — so
 a zero-match scan in a repository that has commits is a signal about the commit convention
 (`docs/reference/commit-convention.md`), not proof that no work happened.
 
-**On a repository the scan left at zero matches, run §4's report-only unanchored probe** and print
-what it matched, in the words that section gives — *"may name this key inside a branch name —
+**On a repository the scan left at zero matches, run §4's report-only unanchored probe** — zero
+**before** the note boundary drops anything, since a repository where the whole-key `--grep` matched
+and an earlier note had already read every match is one whose work is fully reported rather than
+one the scan could not reach, and reading the count after the drop would fire the probe there — and
+print what it matched, in the words that section gives — *"may name this key inside a branch name —
 inspect by hand"*. Printing is the whole of it: none of those commits is handed to
 `diff-summarizer`, none joins this run's read set (the carry above names its three sources, and this
 is not one), and none joins a drop set, so the note this run appends covers not one of them. **The
@@ -229,7 +243,7 @@ from anything, and the PRD's `release_versions`, where `/create-prd` wrote one, 
 
 ## Phase 4 — Resolve repos (only if diff grounding is ON)
 
-Build a slug→clone map: for each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as the clone's slug. Resolve each in-scope `repo` slug — the ones the Phase 3 implementation record and its commit scan named — against the map: one match → use it; multiple → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last; zero matches → escalate:
+Take the slug→clone map Phase 3 built with the diff sources — this phase and that step run under the same one condition, diff grounding ON, so the map is always in hand here and is never built twice. Resolve each in-scope `repo` slug — the ones the Phase 3 implementation record and its commit scan named — against the map: one match → use it; multiple → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last; zero matches → escalate:
 ```
 choices: ["Skip and continue without its refs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
 ```
@@ -248,7 +262,7 @@ Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent messag
 - `REFRESH_BLOCKED` — escalate per the `Refresh blocked` rule in the same file.
 - `prep.read_only: true` — not a failure. Resolution ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently.
 
-**Add each key-commit fallback's SHAs to the run's read set** (Phase 3's carry): where an element came back `resolved_via: key_commits`, its `summary` names every sha it drew on — add those, under that repository, to what Phase 8 writes into the scope comment. They were read, so a later note must cover them; an element resolved any other way contributes the refs Phase 3 already carried and nothing new here.
+**Settle the run's read set** — Phase 3 carried it provisionally, and this step fixes what Phase 8 writes into the scope comment. **Add** each key-commit fallback's SHAs: where an element came back `resolved_via: key_commits`, its `summary` names every sha it drew on — add those, under that repository. They were read, so a later note must cover them; an element resolved any other way keeps the refs Phase 3 carried for it and adds nothing new here. **Drop every provisional commit whose diff nothing opened**, by repository: every commit under a repository that reached no `diff-summarizer` — one Phase 3's map matched to no clone and Phase 4's escalation did not resolve either, the operator having answered *Skip and continue without its refs*; every commit carried by an element returned under `unresolved_prs`, `NO_PRS_RESOLVED` being the case where that is every element of a repository; and every commit under a repository whose `REPO_MISSING`, `DIRTY_TREE` or `REFRESH_BLOCKED` escalation ended without a summary. **Record what was dropped, by repository and by SHA**, and report it in Phase 8 beside `Blocks used`: those commits were not read, so this run's note does not cover them and the next grounded run reads them again — which is the whole point of dropping them rather than writing them out as read.
 
 Diff grounding is opt-in and advisory here: a repo the user skips degrades the grounding, never the run.
 
@@ -373,6 +387,7 @@ Then read the scratch file back as `combined_rendered`.
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
    - Blocks used: <each block by its record and heading date | none>; dropped by §4's date fallback: <each block by its record and heading date, and each commit the date rule dropped by its own date, by SHA, date and subject — a commit dropped with a block recording it is accounted for by that block's listing | none> — on a run with diff grounding on
+   - Not read: <per repository whose commits Phase 5 dropped from the read set, the repository and why — skipped at Phase 4, no clone resolved, `unresolved_prs`, or an escalation that ended without a summary — and each commit by SHA | none — every provisional commit was read> — on a run with diff grounding on; nothing listed here is written into the scope comment, so the next grounded run reads it again
    - Branch-name probe: <per repository the whole-key scan left at zero matches: each commit it matched, by SHA, date and subject — may name a key inside a branch name, inspect by hand | fired on <repo>, matched nothing | not fired — the scan matched in every repository> — on a run with diff grounding on; nothing listed here was read
    - Style check: <applied N safe fixes | report only (M findings) | skipped — you chose "Skip style check"> — rules: <the checker's rules_source, where it ran><; DEGRADED — Phase 7's reason, where Phase 7 recorded it>
    - Reminder: paste the draft just appended to <the resolved PRD folder>/release-notes.md, under <version | Unreleased> → <## Breaking changes | ## Feature updates | ## Fixes>, wherever your release notes are published — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.

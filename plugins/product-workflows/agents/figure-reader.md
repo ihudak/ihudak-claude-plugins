@@ -71,8 +71,9 @@ For each entry, in order:
    anything that is not a diagram. **This list holds edges and no grouping of them**, so a diagram
    drawing one edge in two places — two swimlanes, two phases — returns the same string twice and
    nothing in `flow` tells the two apart (`brd-format.md` §1.2 states what that bounds downstream);
-   where such a grouping carries meaning, say so in `depicts`: the lane or phase labels are strings
-   and belong in `text`, but which edges sit under which is not a string and has nowhere else to go.
+   where such a grouping carries meaning, say so **within the one sentence `depicts` is** (step 3):
+   the lane or phase labels are strings and belong in `text`, but which edges sit under which is not
+   a string and has nowhere else to go.
 7. **`illegible`** — everything you could not read, named by where it is. `"none"` only when nothing
    was illegible. A partial transcription is never silent.
 

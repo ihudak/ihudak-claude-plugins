@@ -193,16 +193,30 @@ carried by a branch name alone — from `workflows-core` 1.7.1, since the unanch
 did match inside a branch name, and matched every longer key with it.**
 
 **The recovery is a report, not a read: where the whole-key scan matches nothing in a repository,
-run one unanchored probe over it.** Repeat that repository's `git log` with the token bare — neither
-`(^|[^A-Za-z0-9_-])` nor `([^A-Za-z0-9_-]|$)` — and print what it matched, as *"may name this key
-inside a branch name — inspect by hand"*. **Nothing is read.** Not one of those commits is handed to
-`diff-summarizer`, none enters the run's read set, and none enters a drop set, so the probe owes no
-boundary rule of its own and leaves nothing behind for a later run: the operator is told where to
-look, and the run's own sources are exactly what they were. It fires **only** on a repository the
-whole-key scan left at zero matches, which is the one state in which the loss above is
-indistinguishable from a repository that holds no work for this key at all; anywhere the whole-key
-scan matched something, the probe would add back only the over-matches the boundary exists to
-exclude. **Making the scan itself match a branch form was considered and refused**: a repository's
+run one unanchored probe over it.** Repeat that repository's `git log` with **its tokens bare** —
+the same token set the scan used there, one `--grep` each, every ERE metacharacter in each still
+escaped exactly as above, but with neither `(^|[^A-Za-z0-9_-])` nor `([^A-Za-z0-9_-]|$)` around
+them — and print each commit it matched by **its SHA, date and subject**, as *"may name this key
+inside a branch name — inspect by hand"*. The escaping is not optional here: a `workitem_key`
+carrying a `.` matches any character without it, which is a wider probe than the one this exists to
+recover from. **Nothing is read.** Not one of those commits is handed to `diff-summarizer`, none
+enters the run's read set, and none enters a drop set, so the probe owes no boundary rule of its
+own and leaves nothing behind for a later run: the operator is told where to look, and the run's
+own sources are exactly what they were.
+
+**The trigger is per repository, and stays there.** It fires **only** on a repository the whole-key
+scan left at zero matches — the one state in which the loss above is indistinguishable from a
+repository holding no work for this run's tokens at all. Where that scan matched something in a
+repository, the probe would add over-matches **beside** anything it recovered: a repository holding
+both `[ACME-7]` and `Merge branch 'feat/ACME-7-hotfix'` returns the merge commit — the genuine case
+the loss names — and any `[ACME-77]` or `[ACME-70-01]` the repository holds with it, in a
+repository whose work the scan has already reported. So the trade is signal-to-noise, not
+correctness, and it is only worth taking where the scan reported nothing at all. Scoping the
+trigger per **token** instead would fire wherever any one token matched nothing, which on a PRD
+with many Epics is most of them, and take that noise in a repository the scan has already reported
+on the strength of the tokens that did match.
+
+**Making the scan itself match a branch form was considered and refused**: a repository's
 own documented convention wins over `references/branch-naming.md` §1.4's shape
 (`references/branch-naming.md` §1.1), so there is no branch form to derive; the loss lives mostly in
 branches people named by hand, which no derived form matches; and where a derived form *would*
@@ -257,34 +271,38 @@ commits into the recorded set makes the record look more complete than it is.
   read it — or, under that fallback alone, where its date, or the heading date of a block recording
   it, puts it behind a note whose read set is unrecorded, which the run then lists** — and outside
   that fallback a commit no note read comes back however it is dated. **The block's date is a second
-  route and not a restatement of the first**: rule 1 above drops a commit whose SHA a block names
-  whether or not that block was read, so a block the fallback date-skipped still takes its commits
-  out of the scan, and a rebase or a cherry-pick that dates a commit *after* its own block's heading
-  puts it behind the note by that heading alone.
+  route and not a restatement of the first**: the first of the two drops above — the SHA drop —
+  takes a commit whose SHA a block names whether or not that block was read, so a block the
+  fallback date-skipped still takes its commits out of the scan, and a rebase or a cherry-pick
+  that dates a commit *after* its own block's heading puts it behind the note by that heading
+  alone.
 
-  **The one fallback is an earlier note that records no read set** — a draft carrying no scope line
-  at all, which is every draft appended before `docs-workflows` 1.2.2, and one carrying the
+  **The one fallback is an earlier note that records no read set** — a draft carrying no scope
+  line at all, which is every draft appended before `docs-workflows` 1.2.2, and one carrying the
   one-line `<!-- release-note scope: <KEY> <YYYY-MM-DD> -->` form that release replaced before it
   shipped. It still bounds by date, as notes did before: a block or a commit dated before the
   latest such note covering its record is dropped, and one dated on that note's day or later is
   read; a commit matching several records' tokens is dropped by date only where every one of them
-  drops it. A block is dated by its heading, and a commit by its committer date as
-  `git log --date=short-local --format=%cd` prints it — in the zone of the machine running the
-  scan, so that at least every date git supplies is read in one zone, where `--date=short` prints
-  each committer's own and moves a late-evening commit onto the wrong day. **A block heading and a
-  scope line are taken as written and are not converted**: each was written in the zone of whatever
-  machine ran that command, so a block a run in another zone appended, and a note written on
-  another machine, can each sit a day off the zone this scan reads its commit dates in. One zone for
-  git's dates is what this buys, and not one zone for the whole comparison. **This fallback can drop
-  what no note described**: a commit merged after such a note but dated before it, a block that
-  reached the specs checkout after it, a commit whose own date clears the note while the heading of
-  a block recording it does not, and a commit or a block within a day of the boundary wherever the
-  writer of either worked in another zone. **Population: every `/release-notes` run with diff grounding on over a
-  `release-notes.md` an earlier release wrote — which is every one that exists today — and none of
-  the notes written from `docs-workflows` 1.2.2 on, since a note that records its read set never
-  reaches this rule.** So the run lists every block and every commit the date rule dropped, beside
-  the ones it used — a block by its record and heading date, a commit by its SHA, date and subject
-  — and nothing is dropped silently.
+  drops it. A block is dated by its heading, and a commit by its committer date as `git log
+  --date=short-local --format=%cd` prints it — in the zone of the machine running the scan, so
+  that at least every date git supplies is read in one zone, where `--date=short` prints each
+  committer's own and moves a late-evening commit onto the wrong day. **A block heading and a
+  scope line are taken as written and are not converted**: each was written in the zone of
+  whatever machine ran that command, so a block a run in another zone appended, and a note written
+  on another machine, can each sit a day off the zone this scan reads its commit dates in. One
+  zone for git's dates is what this buys, and not one zone for the whole comparison. **This
+  fallback can drop what no note described**: a commit merged after such a note but dated before
+  it, a block that reached the specs checkout after it, a commit whose own date clears the note
+  while the heading of a block recording it does not, and a commit or a block within a day of the
+  boundary wherever the writer of either worked in another zone. **Population: every
+  `/release-notes` run with diff grounding on over a `release-notes.md` an earlier release wrote —
+  which is every one that exists today — and none of the notes written from `docs-workflows` 1.2.2
+  on, since a note that records its read set never reaches this rule.** So the run lists every
+  block the date rule dropped, and every commit it dropped — by that commit's own date, **or with
+  a block recording it**, since a block the date rule skipped still takes its commits out of the
+  scan through the SHA drop — beside the ones it used: a block by its record and heading date, a
+  commit by its SHA, date and subject. **A block's listing stands for the commits it records**,
+  which are not listed a second time beneath it, and nothing is dropped silently.
 
 **What is honestly still lost, and what a run therefore says out loud:** only a commit whose message
 names the key is findable, no convention compels a human to follow one, and so **the run reports how

@@ -193,8 +193,11 @@ a zero-match scan in a repository that has commits is a signal about the commit 
 what it matched, in the words that section gives — *"may name this key inside a branch name —
 inspect by hand"*. Printing is the whole of it: none of those commits is handed to
 `diff-summarizer`, none joins this run's read set (the carry above names its three sources, and this
-is not one), and none joins a drop set, so the note this run appends covers not one of them and the
-next run scans them again.
+is not one), and none joins a drop set, so the note this run appends covers not one of them. **The
+whole-key scan will not match them on a later run either** — carrying the key only inside a branch
+name is exactly what it cannot see — so what re-reports them is this same probe, and only while
+that repository is still at zero whole-key matches: one commit there whose subject carries the key
+silences the probe and leaves them unreported.
 
 Hand each resolved ref to `diff-summarizer` as a `refs[]` element — `{branch_from, branch_to, title}`,
 the shape its Inputs declare for `refs[]`, `title` optional — taken on the pure-local-git path.
@@ -369,6 +372,7 @@ Then read the scratch file back as `combined_rendered`.
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
    - Blocks used: <each block by its record and heading date | none>; dropped by §4's date fallback: <each block by its record and heading date, each commit by SHA, date and subject | none> — on a run with diff grounding on
+   - Branch-name probe: <per repository the whole-key scan left at zero matches: each commit it matched, by SHA, date and subject — may name a key inside a branch name, inspect by hand | fired on <repo>, matched nothing | not fired — the scan matched in every repository> — on a run with diff grounding on; nothing listed here was read
    - Style check: <applied N safe fixes | report only (M findings) | skipped — you chose "Skip style check"> — rules: <the checker's rules_source, where it ran><; DEGRADED — Phase 7's reason, where Phase 7 recorded it>
    - Reminder: paste the draft just appended to <the resolved PRD folder>/release-notes.md, under <version | Unreleased> → <## Breaking changes | ## Feature updates | ## Fixes>, wherever your release notes are published — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
 

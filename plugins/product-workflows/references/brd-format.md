@@ -98,11 +98,15 @@ of its source).
 
 **The log also maps every captured link that does not resolve as written.** Its second table,
 *Captured links that do not resolve as written*, carries one row per **link** whose copy cannot be
-reached by reading the target as a path relative to the file it sits in — including: every link to a
-file copied into `brd/source-external/`; every `[[wikilink]]`, which names a file rather than a path;
-an absolute path to a file inside the document's own folder; and a link inside a `source-external/`
-file whose target lies inside the document's own folder — with the target as written, the file the
-link sits in, and the copy's path relative to `brd/`. **It is the only way any reader resolves such a
+reached by reading the target as a path relative to the file it sits in — with the target as
+written, the file the link sits in, and the copy's path relative to `brd/`. **A row needs a copy to
+name, so this table holds only links whose target the capture took**: a link the copy did not
+capture has its row in the first table instead, with its reason, and never one here — an `ambiguous`
+wikilink, which resolved to no single file, is that case rather than this one. Of the links that
+were captured, the ones that land here are: every link to a file copied into
+`brd/source-external/`; every `[[wikilink]]`, which names a file rather than a path; an absolute
+path to a file inside the document's own folder; and a link inside a `source-external/` file whose
+target lies inside the document's own folder. **It is the only way any reader resolves such a
 link**: nothing rewrites the verbatim document to point at its copy.
 
 **The log's layout is fixed**, one file form every writer produces and every reader parses, its
@@ -171,7 +175,8 @@ the customer's own tree happens to contain can collide with it.
 can hold several markdown files, since the document may link one beside it and an earlier
 document's copy stays beside one revised under a new filename (§1), so a reader that needs the
 document's own name — the writer of a slice inventory's `source:` (§2.1), `/brd-package` naming it
-in the bundle — takes it from the inventory's `document:` (§2), the parent's on a slice: the
+in the bundle, and `brd/brd-figures.md`'s own `source:` (§1.2) — takes it from the inventory's
+`document:` (§2), the parent's on a slice: the
 document the rows were last reconciled against, which is the one their anchors point into. **Never
 from `brd/brd-link-log.md`'s opening line where the inventory carries `document:`** — the line names
 the document the latest capture ran on whether or not a row was reconciled against it, and every
@@ -202,7 +207,7 @@ it closes no defect, and an inventory row quoting a corrected element is left as
 ````markdown
 ---
 key: <the run's <BRD-KEY> as Phase 0 validated it — never parsed from the folder name>
-source: <the document's basename — §1.1 says which file under brd/source/ that is, and where the name is read from>
+source: <the document's basename — the inventory's document: where it carries one, else this log's opening line; §1.1 fixes which file that is>
 written_by: brd-intake
 ---
 

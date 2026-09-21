@@ -168,13 +168,14 @@ runs one ahead of the counts line's by-depth tally, which leaves the source out,
 tally shows twelfth is the thirteenth here), and the images
 after the sixth in the walk's order. Put the question with its text fixed — a line naming the bounds
 the walk crossed, of the three, then one line per file in that set, each file once, in the walk's
-order, with every bound it is past, joined with `, ` in the template's own left-to-right order
-where a file is past two or three — and then the array:
+order, with every bound it is past, joined as the template shows where a file is past two or
+three; then the line saying what *Read all* takes — and then the array:
 
 ```text
 The walk reached past <the bounds it crossed: two levels of pages · twelve pages, the source counted · six images>:
-<the file's path> — <deeper than two levels | after the twelfth page | after the sixth image>
+<the file's path> — <every bound it is past, of: deeper than two levels · after the twelfth page · after the sixth image — joined with ", " in that order>
 …
+Reading all takes every file the walk reached, not only the files listed here.
 ```
 
 ```
@@ -184,10 +185,10 @@ choices: ["Read all <n> (Recommended)", "Only what the source links directly", "
 `<n>` is the counts line's headline total less the source — every file the walk reached but the
 source, *other* files included, the `+ 6` of the example above — and that is exactly the set
 *Read all* takes beside the source, as the branch above takes it. **It is not the count of the
-list just printed**, which names only the files past a bound and is usually a good deal shorter, so
-say beside the array that *Read all* takes every file the walk reached rather than only the files
-listed — an operator otherwise reads a number against a five-line list and answers about
-twenty-two. An *other* file it takes is still
+list just printed**, which names only the files past a bound and is usually a good deal shorter —
+which is why the fixed text above closes with the line saying what *Read all* takes, printed rather
+than left to be inferred: an operator otherwise reads a number against a five-line list and answers
+about twenty-two. An *other* file it takes is still
 never opened: `idea-reader` enumerates it into `links_other`, taken or not (Phase 2). *Only what the
 source links directly* takes depth 1 — every file the source links itself, of any kind — and leaves
 every deeper file `excluded` (`linked-sources.md` §6, §7), which Phase 4.5 reports rather than copies. *Stop* ends the run with
@@ -697,9 +698,11 @@ linked"), and naming no
 directory this run did not actually create; the resolved model routing (+ any Opus degradation); the feedback path; the cost
 path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
 (`workflows-core:specs-repo-git` §6), with any guard notice repeated in full; the
-`Phase handoff:` outcome line — on every run, and on a decline that is §4.1's *Declined by the
-user* line, which Phase 5 emits on either of the other two options and which is the one line saying
-the files are written and not on the default branch; the code grounding outcome — the grounded repos with their `scanned_ref`s, any
+`Phase handoff:` outcome line (`workflows-core:phase-handoff` §4.1) — `handoff-to-main`'s on the
+first option, and the *Declined by the user* line on either other (Phase 5), that line being the one
+saying the files are written and not on the default branch; **a `status: draft` run prints none of
+them**, Phase 5's draft branch offering no handoff and asking nothing, so there is no entry point
+run and no offer declined for §4.1 to have a line about; the code grounding outcome — the grounded repos with their `scanned_ref`s, any
 descoped or inconclusive ones, and — first, because it is the most consequential thing a run can
 produce — the **Reframing** line if one was written; or, when no scan ran, `code grounding: off` (no
 `--ground-code`) or `code grounding: declined at the repo gate` (`--ground-code` given, "Ground

@@ -189,9 +189,10 @@ choices: ["Capture all <n> from outside the folder (Recommended)", "Only the doc
 
 *Capture all* takes every file the walk reached, the outside ones included, and Phase 2 copies those
 into `brd/source-external/`. **`<n>` counts what this answer decides and nothing else: how many
-distinct files the walk reached *outside* the document's own directory** — every file the second
-answer drops save one, since that answer also drops an inside file reachable only through an outside
-one, which is named by path beside the question rather than counted here (below). It is never the
+distinct files the walk reached *outside* the document's own directory** — the outside files the
+second answer drops, which is not everything it drops: it also drops any inside file reachable only
+through an outside one, of which there may be none, one or many, each named by path beside the
+question rather than counted here (below). It is never the
 size of the taken set: that set's own size is in the counts by kind
 printed above, which state inside and outside separately, and the final report counts the files
 actually copied beside the source. A target that resolved to no single file is in none of the three,
@@ -679,7 +680,9 @@ Act on `status`:
   Report the reconciliation: how many ids were preserved; **every id minted, by `[BR#n]` with its
   text** — a count alone would hide a requirement read twice under two ids; each text change (old →
   new); each row kept, in the words its own state above gives it, the quoted rows named apart from
-  the rest; and each answer to the question above, by `[BR#n]`.
+  the rest — **and where one of those two classes is empty, say so**, since a class with no members
+  printed looks exactly like a class the run never looked at, which is the whole reason the two are
+  worded apart; and each answer to the question above, by `[BR#n]`.
 
   **An inventory holding no row is no prior inventory, whatever left it so** — Phase 2's header,
   whether a run stopped before this phase wrote a row, stopped at this phase's `NOT_FOUND`, or
@@ -867,7 +870,14 @@ choices: ["Finished with this item — the rows shown are all it binds (Recommen
     quote**, which is the order the spans occur in the section's text, or in the image's
     transcription element by element, whatever order the operator quoted them in: §2's reading order
     fixes where the item's rows sit among other items', and this fixes where they sit among each
-    other, which §2 leaves open because an item's rows can share one anchor. Its id goes on the
+    other, which §2 leaves open because an item's rows can share one anchor. **On a first intake,
+    say what that placing costs the numbering as the row is added**: ids are fixed once, after this
+    step, in reading order (`brd-format.md` §2), so a span quoted from a passage early in the
+    document takes an id one of the read's own rows would have had and moves every later one down —
+    the operator has just seen the read's numbering, and is otherwise left to discover that the
+    final ids are not it. Nothing is renumbered twice and no id on file moves, a first intake
+    holding none; on a re-run the question does not arise, since a row added there takes the next
+    id after the highest in use (above). Its id goes on the
     inventory's `quoted:` list (`brd-format.md` §2), which is what stops every later run reporting
     it as a row this read failed to re-extract: where nothing `brd-reader` is handed has changed it
     will not return it then either, having not returned it now; where a change to what it is handed
@@ -1223,8 +1233,10 @@ more:
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (no command stops on this; what reads it reads your working copy)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = every file
-this run wrote under `<BRD-dir>`, and every file Phase 2 re-used there under collision rule 1 — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 stages neither, so a declaration that looks complete ships nothing — §2.3 step 4 names each in §4.1's *declaration unaccounted for* clause, so the failure is reported rather than silent, but nothing it names lands. That is the customer's document and every file Phase 2 copied into `brd/source/` or `brd/source-external/` — a file collision rule 1 re-used counts as copied (Phase 2) — named individually (the copy step knows them; neither `brd/source/**` nor `brd/source-external/**` is a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`, `brd/brd-link-log.md`, `brd/brd-figures.md` wherever it exists after Phase 2.5,
+On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = **every file under
+`<BRD-dir>` this run captured or wrote** — a file counting as captured whether this run copied its
+bytes or found an identical copy already standing, which covers both collision rule 1's re-use and a
+re-run that left an unchanged copy untouched (Phase 2), neither of which this run *wrote* — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 stages neither, so a declaration that looks complete ships nothing — §2.3 step 4 names each in §4.1's *declaration unaccounted for* clause, so the failure is reported rather than silent, but nothing it names lands. That is the customer's document and every file Phase 2 captured into `brd/source/` or `brd/source-external/`, whether or not this run wrote any of them — named individually (the copy step knows them; neither `brd/source/**` nor `brd/source-external/**` is a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`, `brd/brd-link-log.md`, `brd/brd-figures.md` wherever it exists after Phase 2.5,
 `coverage-ledger.md`, and — only when Phase 6 ran — `prd-seed.md`, `ard-seed.md`, `spec-seed.md`.
 **Declare, too, every untracked file already under `brd/source/` or `brd/source-external/` that this
 run did not take** — one an earlier intake copied and never handed off, or copied before it was

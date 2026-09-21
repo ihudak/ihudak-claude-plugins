@@ -312,23 +312,35 @@ The classes as the tree stands, each derived from the consumer rather than asser
 
 ### 4.1 `handoff-to-main` outcome line
 
-Exactly one, prefixed `Phase handoff:`, per run that reaches §4.3's consent choice.
+Exactly one, prefixed `Phase handoff:`, **per handoff the run offers** — one line per run for
+every producer but one.
 
-**Every row here is an outcome of a handoff that was *offered*: exactly one line per run that
-reached §4.3's consent choice, whichever way it went.** A decline is inside that scope and not
-outside it — options 2 and 3 both decline, `handoff-to-main` never executes, and the *Declined by
-the user* row below is still the line, emitted by the **producer** (§4.3's *What each option means*
-is the authority on that). The heading names the entry point because the other rows are its
-outcomes; the count is per run **reaching the offer**, not per execution of §2.
+**Every row here is an outcome of a handoff that was *offered*, and a run prints one line for each
+handoff it offered, whichever way each went.** A decline is inside that scope and not outside it —
+options 2 and 3 both decline, `handoff-to-main` never executes, and the *Declined by the user* row
+below is still the line, emitted by the **producer** (§4.3's *What each option means* is the
+authority on that). The heading names the entry point because the other rows are its outcomes; the
+count is per **offer**, not per execution of §2.
 
-**A run that never reaches the offer prints no line, and the absence of a row for it is deliberate.**
-A producer may skip its handoff on a condition of its own — `/frames` writes no index and so has no
-deliverable to hand off, `/idea` on `status: draft` never hands off and does not ask — and there the
-*Declined by the user* row would assert a decision nobody was asked to make. **Both liberties have
-been taken with this section, in opposite directions**: one command offered prose in place of the
-line on a declined run, and another was about to be told to print one on a run that never offered a
-handoff at all. A producer settles which of the three states its phase is in — offered and taken,
-offered and declined, never offered — and prints a line for the first two.
+**A run that never reaches an offer prints no line for it, and the absence of a row for that state
+is deliberate.** A producer may skip its handoff on a condition of its own — `/frames` writes no
+index and so has no deliverable to hand off, `/idea` on `status: draft` never hands off and does not
+ask — and there the *Declined by the user* row would assert a decision nobody was asked to make.
+
+**One producer offers two handoffs, and it prints two lines.** `/brd-reconcile` hands off the
+returned customer review it canonicalised, then its own reconciliation record on the branch that
+first handoff created (§2.2 rule 3): two deliverables, two consent choices, two outcomes that can
+differ — so one line cannot report both, and collapsing them would drop whichever it did not
+report. **Where a run offers more than one handoff, each line names which handoff it reports**, as
+that command already does. It is the only such producer today; every other command in the family
+executes `handoff-to-main` once, so for them the per-offer count and the per-run count are the same
+number — which is why this rule read "one per run" until a run emitted two.
+
+**Three states, and a producer settles which each of its handoffs is in before printing**: offered
+and taken, offered and declined, never offered — a line for the first two, none for the third, once
+per offer. All three have been misread in shipped text, in three different directions: a prose
+alternative in place of the line on a decline, a demand for the line on a run that never offered
+one, and two lines on a run whose reader expected one.
 
 | Case | Line |
 |---|---|

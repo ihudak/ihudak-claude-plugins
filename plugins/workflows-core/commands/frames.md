@@ -425,8 +425,8 @@ the report-only notice); the `Specs repo:` outcome line from `commit-artifacts`
 and the `Phase handoff:` outcome line for whichever of the two outcomes Phase 3's offer reached —
 `handoff-to-main`'s own line on the first option, and §4.1's *Declined by the user* line on either
 other, that one already saying the deliverable is written and not on the default branch
-(`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1, exactly one line per run that reaches the
-offer; §4.3 has the producer emit it on either declining option). **A run that wrote no index prints
+(`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1, exactly one line per handoff
+offered; §4.3 has the producer emit it on either declining option). **A run that wrote no index prints
 neither**: Phase 3 offers no handoff there, so nothing was declined and §4.1 has no row for it.
 
 **Say what this run did not do.** It reconciled no frame against any requirement, produced no

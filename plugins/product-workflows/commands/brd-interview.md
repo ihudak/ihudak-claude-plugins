@@ -707,8 +707,10 @@ they were written and **never renumbered**, and a split question keeps its numbe
 lettered beneath it (`5a`, `5b`, `5c`). **A re-tagged question keeps its number too**, for the same
 reason a split one does: the record is append-only and the original is terminally disposed
 *re-tagged* at that number, so the re-tagged question is the same question under a new tag and takes
-**no new position** — a new number would leave the round holding two entries for one question, and
-the disposition naming the finding would point at a position nothing now occupies. Where the re-tag
+**no new position**. What that buys is one address for a question's whole life — round and position
+is how a question is addressed at all (above), and what `/product-workflows:brd-reconcile` freezes
+a `[CD#n]` against — where a re-numbered question would answer to one address before the re-tag and
+another after it, with nothing on file saying they are the same question. Where the re-tag
 follows a split, the part keeps its letter as well (`5b` stays `5b`). Its durable handle, once it
 produces one, is the `[VD#n]`, `[CD#n]` or `[AS#n]` it becomes.
 

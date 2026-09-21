@@ -556,16 +556,30 @@ Each disposition carries a recorded reason, and each has a consequence the later
 | `escalated-to-customer` | The finding is put to the customer in the prompt's *decisions the customer must make* part, carried by its own `[SR#n]`. Admissible **only** where `interview-tagging.md` §2's test says so — what would settle it is an authority only the customer holds. Where a delivery-side trade-off would settle it, this is the wrong disposition and the finding takes another |
 | `rejected-with-reason` | The reason is recorded in the self-review and stays inside the delivery organisation. Nothing rejected reaches the customer |
 
-**A finding the team agrees with and cannot act on here takes `accepted-risk`, and the reason must
-say so and name where it is fixed.** The vocabulary is four values and a fifth would be one nothing
-downstream reads, so this case shares a value with a genuine acceptance and is told apart by what
-its reason records: **which command fixes it** — `/product-workflows:brd-interview` for a question
-set or a register record, `/product-workflows:brd-split` for a ledger disposition,
-`/product-workflows:prd-ground` for a finding — and what a re-run here would then show. **Every
-part that renders an accepted-risk finding to the customer renders that clause with it**, so the
-customer reads *we agree, and it is fixed there* rather than *we weighed this and accepted it*.
-Without the clause the two are indistinguishable on the page, and a run that met a wall of
-agreed-but-unactionable attacks would ship every one of them as a risk the team had chosen to take.
+**A finding the team agrees with and cannot act on here takes `accepted-risk` and carries a
+structured marker saying where it is fixed.** The vocabulary is four values and a fifth would be one
+nothing downstream reads, so this case shares a value with a genuine acceptance and is told apart by
+a field rather than by prose: record **`fixed-by: <command>`** on the finding — the same device as
+the `restates:` marker below — naming `/product-workflows:brd-interview` for a question set or a
+register record, `/product-workflows:brd-split` for a ledger disposition, or
+`/product-workflows:prd-ground` for a finding, with what a re-run here would then show.
+
+**The marker stays inside the delivery organisation and the customer reads a rendered sentence
+instead.** `fixed-by:` travels in the disposition's recorded reason, in
+`self-review-<YYYYMMDD>.md` and in the Final report's grouped listing, and **it is never rendered
+into the prompt**: part 9 puts an accepted-risk finding to the customer in the reviewer's own words,
+those words may name no command or agent, and the plugin-free scan runs over the *finished* prompt
+and hard-stops on a leading-slash command name (`BRD_PACKAGE_PROMPT_LEAK`) rather than sanitising
+it. A clause carrying the command name into part 9 would therefore stop the package on the common
+path — the P3 run had eleven of seventeen findings in this state — and the only way past the stop
+would be to strip the clause, which is this rule reverting itself. **So part 9 renders a generated,
+plugin-free sentence from the marker's presence**, to the effect of *"we agree with this; it is
+addressed in a later step of our process rather than in this package"*, beside the finding's own
+words. The customer then reads *we agree, and it is handled elsewhere* rather than *we weighed this
+and accepted it*, which is the whole point of the distinction, and the renderer reads a field rather
+than trusting that someone wrote a clause. Without the marker the two cases are indistinguishable on
+the page, and a run that met a wall of agreed-but-unactionable attacks would ship every one of them
+as a risk the team had chosen to take.
 
 **A second-pass finding that restates one this run already disposed is not disposed twice.** Present
 it with the earlier finding and that finding's standing disposition beside it; where the operator
@@ -655,7 +669,7 @@ do.
 |---|---|---|
 | 1 | Setup | the tier; the fixed capability line, locating instruction and OS note below |
 | 2 | What each package in the bundle is for | this BRD, plus each prerequisite package copied in, marked *not for re-review* |
-| 3 | Documents to review | the manifest, by its bundled filename, then every other document `bundle-packaging.md` §1.1 admits **except the rendered prompt itself** — §1.1's first row, which is the document the reviewer is reading and not one it sends them to — each by the bundled filename *Assemble the bundle* rule 1 gives it. The manifest still lists the prompt, because it maps what the bundle carries; the two therefore differ by exactly that one entry, by design, and a set check over them must allow it (`bundle-packaging.md` §7) |
+| 3 | Documents to review | the manifest, by its bundled filename, then every other document `bundle-packaging.md` §1.1 admits **except the rendered prompt itself** — §1.1's first row, which is the document the reviewer is reading and not one it sends them to — each by the bundled filename *Assemble the bundle* rule 1 gives it. The manifest still lists the prompt, because it maps what the bundle carries; the two therefore differ by exactly that one entry, by design. **No check reaches that difference** — `bundle-packaging.md` §7's relation 1 is scoped to parts restated from identified records and relation 2 compares the manifest with the bundle, so neither compares this part with the manifest — which is why the rule is written here rather than left for a gate to catch |
 | 4 | Code baselines and the verification procedure | `grounding/baselines.md`, with the three commands written out |
 | 5 | The single most important claim to verify first | the register, the findings and the held `[C]` entries, by the rule below |
 | 6 | Review scope | `coverage-ledger.md` dispositions, `brd/brd-inventory.md`, and every `in-scope` `[CDF#n]` |
@@ -807,7 +821,12 @@ the finished prompt as quoted: the plugin-free scan stops on a `§`, a command o
 the citation-resolution check (Phase 8 rule 8,
 `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §6.2 relation 3) on a working filename. A
 token that reaches the prompt this way anyway stops whichever of the two catches it, like any other;
-the finding's words are still not this command's to change. Nothing disposed `fixed` appears (it is
+the finding's words are still not this command's to change. **Where the finding carries
+`fixed-by:`, this part adds one generated sentence beside those words** — plugin-free by
+construction, saying the team agrees and that it is addressed in a later step of its process rather
+than in this package (*The disposition gate*). It is generated **from the marker's presence and
+never from its value**: the value names a command, and a command name in this part is exactly what
+the plugin-free scan stops on. Nothing disposed `fixed` appears (it is
 no longer true of the package), and nothing disposed `rejected-with-reason` appears (the rejection
 is ours to own, and shipping an attack the team has already argued against invites the customer to
 referee an internal disagreement). **A package that names its own weak points gets a review worth

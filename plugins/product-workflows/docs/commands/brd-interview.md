@@ -65,8 +65,10 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   *requirement defects became a question source* — a bare run names those defects and offers that
   re-open rather than asking them itself, and a new round it opens for a changed finding or decision
   proceeds without them. On a slice interviewed since, a defect that becomes its to ask later goes
-  into a new round; while a round is still open it waits, and the run names it as waiting rather
-  than letting a package go out silent about it.
+  into a new round — the one this run opens on the defect's own account, where every round was
+  already closed, so it is asked in the round it made askable. Where this run instead resumed a
+  round already open, it waits for the next one, and the run names it as waiting rather than letting
+  a package go out silent about it.
 
   **Every row this BRD rejected becomes a question for the customer too**, always a `[C]`: nothing
   on the route records why a requirement was rejected, so whether the customer accepts not getting
@@ -216,9 +218,11 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
 ([addressing](../reference/references.md) §2, §6):
 
 - `decisions.md` — the decision register: one block per `[VD#n]` delivery-team decision and per
-  `[AS#n]` assumption, each carrying the thirteen fields
-  [`decision-register-format.md`](../../references/decision-register-format.md) §1 defines, with §7's
-  account of which of them mean something different on an assumption. Ids are contiguous within their
+  `[AS#n]` assumption. A decision carries the thirteen fields
+  [`decision-register-format.md`](../../references/decision-register-format.md) §1 defines; an
+  assumption carries every one of them §7 admits and none it marks *not applicable*, which §1.1 has
+  omitted rather than written empty — §7 accounts for all thirteen, and says of each whether it is
+  as-is, means something different, or does not apply. Ids are contiguous within their
   own prefix, assigned once, never renumbered, and never reused after a terminal status. **Written
   on every run that records a round**, even one that produced no record — a round of `[C]` questions
   alone, or one with nothing to ask — **and on a run that finds every round closed and nothing
@@ -228,7 +232,11 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   written, its tag, every re-tag with the finding that caused it, every split with the parts it
   became, and each question's state — either a **terminal disposition** (*answered from findings*,
   *decided*, *answered by the customer*, *re-tagged*, *split*) or a **holding state** (*held for the
-  customer*, *deferred*, *needs grounding*, *untagged*) — plus one line naming the requirement
+  customer*, *deferred*, *needs grounding*, *untagged*). A re-tagged question keeps its number, so
+  two states sit at that one address — *re-tagged*, and whatever the question reached under its new
+  tag — and, the file being append-only, the **last** of them is the question's state: a question
+  re-tagged and then deferred holds its round open and is resumed at, rather than reading as
+  terminally disposed. Plus one line naming the requirement
   defects the round asked and those it withheld, each with its cause, or saying there were none for
   this BRD to ask. Every write of it ends with a `Status:` line — `open`, naming what the round
   waits on, or `closed` with the date and why — and, the file being append-only, its **last**
@@ -240,7 +248,10 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   makes a round resumable — an interrupted run returns to the first question carrying no terminal
   disposition rather than restarting the round.
 - `interview/customer-questions.md` — the `[C]` questions held for the customer, each with the
-  findings that bear on it and any `[G]` answer that already narrowed it; its altitude — `product`,
+  findings that bear on it, on its own line labelled `- **Findings:**` and reading `none` where none
+  does, which [`/brd-package`](brd-package.md) renders into the customer prompt and
+  [`/brd-reconcile`](brd-reconcile.md) copies into the answering `[CD#n]`'s `evidence`; any `[G]`
+  answer that already narrowed it; its altitude — `product`,
   `architecture` or `implementation` — on its own line labelled `- **Altitude:**`, which the
   `[CD#n]` answering it copies; for a rejected row's question, that row, on its own line labelled
   `- **Rejected row:**`, which is how a later run finds it; and — for a question a requirement

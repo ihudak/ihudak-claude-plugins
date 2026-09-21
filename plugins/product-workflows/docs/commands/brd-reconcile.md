@@ -167,7 +167,10 @@ answers leave every question in a round with a terminal disposition, a closing `
 round's state being what its questions' dispositions decide, and its last `Status:` line the record
 of it.
 
-Each new `[CD#n]` copies its `altitude` from what it answers — the held question's own
+Each new `[CD#n]` copies its `evidence` from the held question's own `- **Findings:**` line, and
+nothing else in the entry — `evidence: []` where that line names no finding, never because the
+findings were written somewhere the run could not read them. It copies its `altitude` the same way,
+from what it answers — the held question's own
 `- **Altitude:**` line, an assumption's field, or, for an escalated self-review finding, the altitude
 of the record or question it targets — and where there is nothing to copy the run decides it by the
 downstream artifact the answer must reach, and says so in the reconciliation record. An answer
@@ -307,8 +310,13 @@ unmatched row can be told apart from a question set nobody passed.
   arriving from the other direction.
 - **Phase 10 — the sweep gate.** Every position the propagation sweep reaches takes
   `inherited-unchanged`, `reverted`, `reopened` or `withdrawn`, and an `inherited-unchanged` row is
-  written too: an item checked and found unaffected and an item never reached are different facts. A
-  resumed run skips what an earlier pass disposed **and wrote**, and re-sweeps in full every
+  written too: an item checked and found unaffected and an item never reached are different facts.
+  Two of the four are withheld where the format cannot carry them, and the item is named for a human
+  instead: `reopened` on an assumption, whose status vocabulary admits only `open`, `superseded` and
+  `withdrawn`, so writing it would drop the assumption out of the *open* set the next package puts
+  to the customer; and `reverted` where the record no longer says what the earlier position was — a
+  re-decision overwrote those fields, and only the reasoning appended to `argumentation` survives
+  it. A resumed run skips what an earlier pass disposed **and wrote**, and re-sweeps in full every
   dependent that pass could only record — otherwise merging that dependent's pull request, which is
   exactly what unblocks the sweep, would never let it land.
 

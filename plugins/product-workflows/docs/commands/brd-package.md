@@ -240,10 +240,18 @@ attack.
   is what the run *does* with the answer: a free-text reply is normalised into one of the four, or the
   finding is re-asked. It is never written through, because a fifth disposition is one nothing
   downstream can read ([`workflows-core:escalation-rules`](../reference/references.md) §0).
-- **Phase 4 — a `fixed` correction re-opens the review, exactly once.** Correcting the package
-  changes what the review was written against, so the reviewer runs again over the corrected package
-  with the first pass in `prior_reviews`. Once, not until clean: an unbounded loop trades the
-  customer's review for the delivery team's.
+- **Phase 4 — what `fixed` may name.** Only what this command itself writes: the prompt, the
+  delivery note, the self-review, the bundle's rendered copies and an `[SR#n]`'s own record. Never a
+  register record, a held `[C]` entry, a ledger disposition or a verified finding — those belong to
+  other commands, and a finding the team agrees with but cannot act on here takes `accepted-risk`
+  with a `fixed-by:` marker naming the command that fixes it. Two of the five exist when the gate
+  runs; the other three are written by later phases, so a correction against one of those is
+  recorded against the finding at the gate and carried out when that phase writes the artifact.
+- **Phase 4 — a `fixed` correction re-opens the review, exactly once, whatever artifact it named.**
+  The correction changes what the customer will be shown, and one made under one finding can break a
+  position another left standing — so the reviewer runs again, with this run's self-review, the
+  corrections recorded in it, in `prior_reviews`. Once, not until clean: an unbounded loop trades
+  the customer's review for the delivery team's.
 - **Phase 5 — the tier is assigned from what was shippable.** Full, Partial or Documents only, never
   promoted, never chosen by the reviewer, and never quietly Full because the repositories were
   *probably* at the right commit. A tier is not a quality grade: a documents-only review that states

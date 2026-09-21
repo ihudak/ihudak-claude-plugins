@@ -500,8 +500,9 @@ path nobody else can reproduce; the copy is the record.
 
    **Two calls emit two §4.1 outcome lines, and that is the contract rather than a divergence from
    it.** That section counts **per handoff the run offers**, not per run, and names this command as
-   the only producer in the family that offers two — every other executes `handoff-to-main` once,
-   so for them the two counts are the same number. It requires of a multi-handoff producer that
+   the only producer in the family that offers two — every other offers it **at most** once, so for
+   them the two counts are the same number, zero included: a producer that offers no handoff at all
+   (§4.1) executes none and prints none. It requires of a multi-handoff producer that
    **each line name which handoff it reports**, which is why neither is printed bare here: one
    reports the customer's document, the other this run's own deliverable, wherever either appears.
    **A `<merge-clause>` resolves from the second**, and by `workflows-core:next-phase-offer`'s own
@@ -705,7 +706,7 @@ to answer: nothing records what it was offered, what it settles or which round i
 same facts and put instead of the array above:
 
 ```
-choices: ["Record it for a human — name the requirement it bears on and quote the customer (Recommended)", "Reject — this is not a customer decision at all; record why"]
+choices: ["Record it for a human — name the requirement it bears on and quote the customer (Recommended)", "Reject — not a customer decision at all, a declared refusal to answer included; record why"]
 ```
 
 The first writes it into the reconciliation record's *what still needs a human*: the `[BR#n]` or
@@ -803,7 +804,7 @@ every field `decision-register-format.md` §1 defines:
 | `options_considered` | what the package actually put in front of the customer, taken from the `[C]` question, the `[AS#n]`, or the escalated `[SR#n]` — never reconstructed from the answer, and never widened to take in an answer outside it. A `[C]` question put as yes or no, listing no options, records `["yes", "no"]`; an `[AS#n]`, which puts no options, records `["as assumed", "not as assumed"]`; and an escalated `[SR#n]` records `["as the package states", "as the finding argues"]` (`decision-register-format.md` §1) |
 | `chosen` | the customer's answer: one member of `options_considered`, or, where the customer answered outside them (*Confirm every candidate*), their answer quoted after the fixed marker `decision-register-format.md` §1 gives that case, in the quoting form it fixes for an answer spanning lines or carrying a `"` or a `\` |
 | `argumentation` | **the customer's own reason, quoted**, never paraphrased and never supplied |
-| `evidence` | the `[CG#n]`/`[DG#n]` the question was put against, as the question set recorded them — `evidence: []` where it recorded none, never omitted (`decision-register-format.md` §1) |
+| `evidence` | the `[CG#n]`/`[DG#n]` the question was put against, as the question set recorded them — for a `[C]` candidate, the ids on the answered question's `- **Findings:**` line in `interview/customer-questions.md` and nothing else in the entry, whose context may name other findings (`/product-workflows:brd-interview`, *Hold every `[C]`*); an entry written before 3.7.0 carries no such line, and its findings are read from its prose where it names them. `evidence: []` where what is read recorded none, never omitted (`decision-register-format.md` §1), and never `[]` because a line that was there could not be parsed |
 | `defects` | the `[CDF#n]` the answered position turns on, as the `[C]` question, the `[AS#n]` or the escalated `[SR#n]` recorded them; omitted when none. Never in `evidence` (§1), and **never minted here** — `${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` makes `/product-workflows:brd-interview` the log's only writer, so this phase carries an existing id forward and writes no entry |
 | `settles` | the `[DEF#n]` on the answered `[C]` question's `- **Requirement defect:**` line in `interview/customer-questions.md`, copied from that line and from nothing else in the entry, whose context may name other `[DEF#n]`s (`references/decision-register-format.md` §1); omitted where the entry has no such line. **Never inferred from the review**: which question an answer answers is already fixed by the round and position it cites, and the entry is the record of what that question was raised by or carries |
 | `altitude` | copied, never judged, wherever there is one to copy: the answered `[C]` question's `- **Altitude:**` line in `interview/customer-questions.md`, an `[AS#n]`'s own `altitude`, or, for an escalated `[SR#n]`, which carries none, the altitude of the record or question its `target` names. Where there is none — a `[C]` entry written before 3.7.0, or an `[SR#n]` whose target is a document passage — decide it by the test `decision-register-format.md` §1 gives the field, the downstream artifact the answer must reach, and name it in the reconciliation record as decided here rather than copied. An answer matching no question is never frozen (*Confirm every candidate*), so it needs no altitude |
@@ -1369,10 +1370,37 @@ marker, and the reason is stated beside the list per the
 judgement about a position in another BRD, taken by whoever owns it, and a marker would invite the
 run to inherit-unchanged its way through a sweep whose whole purpose is to find what did move.
 
+**Two of the four are unavailable on some items, and there the array is presented without the one
+that is.** That is a narrowing of what a record can be written to, not a fifth disposition: dropping
+an option leaves two or three, which the harness renders, where a fifth could not be rendered at all
+(`workflows-core:escalation-rules` §0). Nothing else about the array changes — the survivors keep
+their order and their wording, and an item still takes exactly one.
+
+- **On an `[AS#n]` item, *Reopened* is not available.** `decision-register-format.md` §7 narrows an
+  assumption's status vocabulary to `open`, `superseded` and `withdrawn`: `decided` cannot apply to
+  an assertion nobody chose, and `reopened` follows `decided`, so it is unreachable. Writing it
+  anyway drops the assumption out of every set that reads `open` — `/product-workflows:brd-package`
+  carries **open** `[AS#n]`s into its prompt's *decisions the customer must make* and *where to
+  attack us hardest* parts and counts them in its something-to-review gate — so the assumption
+  silently stops being shown to the customer, which is the failure the assumption record exists to
+  prevent. An assumption the change makes untenable takes **Withdrawn**; one that merely has to be
+  re-taken is already `open` and is put to the customer again in the next package on that account
+  alone, so it takes **Inherited unchanged** with the sweep row saying that is what carries it.
+  `superseded` is in no item's array: an `[AS#n]` reaches it only through a `[CD#n]` confirming it,
+  in *Freeze the customer decisions*.
+- **On any item whose prior position the record does not preserve, *Reverted* is not available** —
+  the `reverted` row below says where that position is read from and what it cannot recover.
+
+Where the disposition an item would otherwise have taken is the one dropped, the item still takes
+one of the survivors **and** is named in the reconciliation record's *what still needs a human*,
+with the dependent's record, the changed id or prerequisite that reached it, and what the register
+cannot carry — so the judgement reaches somebody who can take it, rather than being written as a
+value no reader downstream can act on or left out of the sweep's own account.
+
 | Disposition | Recorded as |
 |---|---|
 | `inherited-unchanged` | **nothing is written into the dependent's record**, which is unchanged; the row is this run's, in the reconciliation record (*Write the reconciliation record*, *The sweeps*), naming the dependent's record and what was considered against it — the changed id, or, for a `conditional_on` position this run's changes never reached, the prerequisite decision its field names and the fact that this run did not move it — each qualified (below), and why the position does not move. **That case takes this disposition and no other**, and by the other three rows' own definitions rather than by a rule here: each of them records a cause that *is* a changed id — the prerequisite's move, §4's incoming customer decision, the withdrawal's driver — so an item the field alone reached, with nothing of this run's inside it, has no cause to write into them. **The row is written even so** — an item checked and found unaffected and an item never reached are different facts |
-| `reverted` | the record returns to the position that stood before the prerequisite moved it, **each of its fields under the rule `decision-register-format.md` §4 gives that field** — the seven a decision's own writing fills restored, `consumed_by` back to `none`, `round` the restored position's, `altitude`, `id` and `settles` standing — and the changed id, qualified (below), is named in a closing `Reverted <YYYYMMDD>:` paragraph appended to its `argumentation`, beneath everything that field already holds, which this write never rewrites (§4) |
+| `reverted` | the record returns to the position that stood before the prerequisite moved it, **each of its fields under the rule `decision-register-format.md` §4 gives that field** — the seven a decision's own writing fills restored (on an `[AS#n]`, only those of them §7 admits), `consumed_by` back to `none`, `round` the restored position's, `altitude`, `id` and `settles` standing — and the changed id, qualified (below), is named in a closing `Reverted <YYYYMMDD>:` paragraph appended to its `argumentation`, beneath everything that field already holds, which this write never rewrites (§4). **Where the position being restored is read from, and what a reversion therefore cannot recover, is §4's rule and is not re-derived here.** Where the record does not establish what a restored field's value was, this disposition is **not available** for that item: say so where the array is presented, take one of the survivors, and name the item in *what still needs a human* with the prerequisite, the field and what the record does not say. A record whose reversion the run cannot write is not a record it may mark `reverted`, and a field it cannot recover is never invented and never left half-written |
 | `reopened` | `status: reopened` on that record, its cause — this run's `[CD#n]`, qualified (below) — named in the closing `Reopened <YYYYMMDD>:` paragraph `decision-register-format.md` §4 appends to its `argumentation`: an incoming customer decision is exactly one of the two causes §4 admits |
 | `withdrawn` | `status: withdrawn`, its reason — naming the changed id, qualified (below) — in a closing `Withdrawn <YYYYMMDD>:` paragraph appended to its `argumentation` (`decision-register-format.md` §4): the question stopped applying rather than being answered differently. It is **not** a tidier spelling of `superseded` (§3), and it is what stops a request from reappearing in the next customer package after the customer has already dealt with it |
 

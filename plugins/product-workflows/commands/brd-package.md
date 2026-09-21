@@ -282,7 +282,9 @@ cannot review, and they will not tell you that — they will review it anyway, b
 
    Then, over the rounds that exist: stop unless **every question in every round
    carries either a terminal disposition or the holding state *held for the customer*** — the
-   vocabulary `/brd-interview`'s *Resolve the round* phase fixes. Any question in the *deferred*,
+   vocabulary `/brd-interview`'s *Resolve the round* phase fixes, and the state that phase's
+   append-only record **last** records at that question's address, which is what a re-tagged
+   question carrying two states at one number turns on. Any question in the *deferred*,
    *needs grounding* or *untagged* holding state → stop, naming each one, its round, its holding
    state and the concrete fix:
    `BRD_PACKAGE_ROUND_UNSETTLED: N questions in <BRD-KEY>'s rounds are still deferred, needs-grounding or untagged — run /product-workflows:brd-interview <BRD-KEY> (a needs-grounding question is answered by /product-workflows:prd-ground <BRD-KEY> first).`
@@ -551,7 +553,7 @@ Each disposition carries a recorded reason, and each has a consequence the later
 
 | Disposition | What it obliges |
 |---|---|
-| `fixed` | **Admissible only where the named artifact is one this command may change** — the prompt, the delivery note, the self-review, the bundle's own rendered copies, and a `[SR#n]`'s own record. It is **not** available against a ledger disposition, an `interview/customer-questions.md` entry, a register record or a verified `[CG#n]`/`[DG#n]`: this command mints no `[C]`, writes nothing into the question set (*Render the customer prompt*), changes no ledger disposition (the Final report), and a verified finding is `/prd-ground`'s. Where the artifact is one of those, `fixed` is unavailable and the finding takes the agreed-not-actionable route below. The named artifact is corrected **before** the prompt is rendered, and the correction is recorded against the finding. A `fixed` disposition whose artifact is unchanged is not `fixed` |
+| `fixed` | **Admissible only where the named artifact is one this command may change** — the prompt, the delivery note, the self-review, the bundle's own rendered copies, and a `[SR#n]`'s own record. It is **not** available against a ledger disposition, an `interview/customer-questions.md` entry, a register record or a verified `[CG#n]`/`[DG#n]`: this command mints no `[C]`, writes nothing into the question set (*Render the customer prompt*), changes no ledger disposition (the Final report), and a verified finding is `/prd-ground`'s. Where the artifact is one of those, `fixed` is unavailable and the finding takes the agreed-not-actionable route below. **Two of the five admissible artifacts exist when this gate runs and three do not**, so *corrected* means something different for each half and the row says which: the self-review and an `[SR#n]`'s own record are corrected here, before this phase ends; the prompt, the delivery note and the bundle's own rendered copies are written by *Render the customer prompt*, *Render the delivery note* and *Assemble the bundle*, so the correction is recorded against the finding now, in the words the render must carry, and the phase that writes that artifact carries it out — which is the only point at which it can be, and is why no correction here is ever a write into a package document. A `fixed` disposition whose artifact is unchanged — or whose recorded correction the phase that writes that artifact did not carry out — is not `fixed` |
 | `accepted-risk` | The finding is listed to the customer under *where to attack us hardest*, in the reviewer's own words — which that agent writes for a customer to read, with no plugin token in them (`agents/brd-package-reviewer.md`). There is no drawer this puts it in |
 | `escalated-to-customer` | The finding is put to the customer in the prompt's *decisions the customer must make* part, carried by its own `[SR#n]`. Admissible **only** where `interview-tagging.md` §2's test says so — what would settle it is an authority only the customer holds. Where a delivery-side trade-off would settle it, this is the wrong disposition and the finding takes another |
 | `rejected-with-reason` | The reason is recorded in the self-review and stays inside the delivery organisation. Nothing rejected reaches the customer |
@@ -594,11 +596,16 @@ design, and `[SR#n]` disposition is the only gate there is. Any finding still `u
 phase would end → stop:
 `BRD_PACKAGE_UNDISPOSED: N [SR#n] findings are still undisposed — every finding takes one of fixed | accepted-risk | escalated-to-customer | rejected-with-reason before a bundle is built.`
 
-**A `fixed` disposition re-opens the self-review, exactly once.** Correcting a decision, a seed or a
-`[C]` question changes the package the review was written against, so after every `fixed` correction
-has been applied, re-dispatch `brd-package-reviewer` once over the corrected package, with this
-run's `self-review-<YYYYMMDD>.md` in `prior_reviews` — that agent reads `prior_reviews` last, after
-its own passes are complete, which is exactly the ordering wanted here. Findings from that second
+**A `fixed` disposition re-opens the self-review, exactly once, and the trigger is any `fixed`
+whatever its named artifact.** A correction changes what the customer will be shown — the five
+artifacts the row above admits are the ones this command renders for them — and a correction made
+under one finding can break a position another finding left standing. So once every `fixed`
+correction has been made or, for an artifact a later phase writes, recorded against its finding,
+re-dispatch `brd-package-reviewer` once, with this run's `self-review-<YYYYMMDD>.md` — its findings,
+their dispositions and each recorded correction — in `prior_reviews`; that agent reads
+`prior_reviews` last, after its own passes are complete, which is exactly the ordering wanted here.
+**The corrections reach that pass through the review file, not through `package:`**, whose documents
+a `fixed` may not change — the review file being the one of them it may. Findings from that second
 pass are appended to the same dated review under ids continuing from the highest already in it, and
 take dispositions through this same phase. **Once, not until clean**: an unbounded loop trades the customer's review for the delivery
 team's, and the second pass exists to catch what a correction broke, not to reach an empty list. A
@@ -660,10 +667,13 @@ write rather than left to invent an equivalent.
 ## Phase 6 — Render the customer prompt
 
 Write `<BRD-dir>/customer-review-prompt-<YYYYMMDD>.md`, assembled from the package, **never
-hand-written**, in this fixed order. The eleven parts are the design's, and they are not
-re-ordered, merged or renumbered for a package that happens to have little to put in one of them —
-a part with nothing in it says `none` and says why, for the same reason the review's own sections
-do.
+hand-written**, in this fixed order. **A `fixed` correction *The disposition gate* recorded against
+this artifact is carried out here, in the words that gate recorded**, and is not an exception to
+that rule: it is an instruction the assembly follows, taken by an operator against an identified
+finding, rather than a part somebody composed freehand. The eleven parts are the design's, and they
+are not re-ordered, merged or renumbered for a package that happens to have little to put in one of
+them — a part with nothing in it says `none` and says why, for the same reason the review's own
+sections do.
 
 | # | Part | Filled from |
 |---|---|---|
@@ -760,12 +770,14 @@ records; ties broken in favour of the finding whose falsity would reopen the mos
 then by lowest id so the choice is reproducible. Where the register cites no finding at all, the
 most-depended-on open `[AS#n]` takes the slot, marked as an assumption rather than a finding. Where
 it holds no `[VD#n]` citing a finding and no open `[AS#n]` — a register holding only its header
-line, whose package carries `[C]` questions alone — the finding the greatest number of held `[C]`
-entries in `interview/customer-questions.md` list as bearing on them takes the slot, ties broken as
-above; where no entry lists one, part 5 says plainly that no position in this package rests on a code
-or design finding, and names no claim. **One,
-because a list of five is not a first**: the purpose of the part is to spend the reviewer's freshest
-attention on the claim carrying the most weight, and a list spends it on choosing.
+line, whose package carries `[C]` questions alone — the finding named on the greatest number of held
+`[C]` entries' `- **Findings:**` lines in `interview/customer-questions.md` takes the slot
+(`/product-workflows:brd-interview`, *Hold every `[C]`*, which pins that line so this branch can be
+worked mechanically; an entry written before 3.7.0 carries none, and its findings are read from its
+prose where they are named there), ties broken as above; where no entry names one, part 5 says
+plainly that no position in this package rests on a code or design finding, and names no claim.
+**One, because a list of five is not a first**: the purpose of the part is to spend the reviewer's
+freshest attention on the claim carrying the most weight, and a list spends it on choosing.
 
 **Part 7's three sources, and why the third is admissible.** The design fixes that every item here is
 traceable to a `[C]` question or an open `[AS#n]`. An `escalated-to-customer` `[SR#n]` is traceable in
@@ -780,8 +792,8 @@ and the answer comes back in the review's section 7 like any other.
 
 **Each held `[C]` entry is rendered with what the customer needs to answer it and to cite it**: the
 question as it will be put; its round and position, which the review's section 7 cites it by; the
-findings that bear on it; and, where the entry carries them, the `[DEF#n]` on its
-`- **Requirement defect:**` line and the path on its `- **Defect image:**` line
+findings on its `- **Findings:**` line, with their verdicts; and, where the entry carries them, the
+`[DEF#n]` on its `- **Requirement defect:**` line and the path on its `- **Defect image:**` line
 (`/product-workflows:brd-interview`, *Hold every `[C]`*). The image path is how the reviewer finds
 the picture a question about an image-drawn requirement is about — the manifest maps it to the
 image's bundled filename (*Assemble the bundle* rule 6) — so an entry rendered without it asks about
@@ -1170,6 +1182,15 @@ self-review is free of them while being the most internal document this command 
    written** (`bundle-packaging.md` §6.2): it sits beside the bundled filename it maps to and quotes
    the customer's own link, so the `notes.md` a `[[notes.md]]` link names is a map entry here, not a
    reference to a bundle document.
+   **This is not the whole of what the manifest carries, and the two obligations left over are the
+   reference's rather than a fourth and fifth item here**: `bundle-packaging.md` §1.1 puts a file
+   `/brd-intake` captured that is neither markdown nor an image — `pricing.pdf` and its kind — in
+   the manifest as **captured and not bundled**, beside the captured file it was linked from, that
+   being the disposition of a file the allow-list has no row for; and §2.1 puts there what a plain
+   reader may not be able to see in a file copied byte for byte — an embedded image, a one-tool
+   block — the fix for which is beside the file and never inside it, the manifest being prose this
+   package wrote while the customer's files are not. Work rule 6 with those two sections open: what
+   is enumerated above is this command's contribution to the manifest, not its contents.
    The manifest is a bundle document; the delivery note is not.
 7. **Run the plugin-free scan over every document in the finished bundle**, and stop on any hit
    outside verbatim customer content and customer-derived locators, whose hits are the operator's

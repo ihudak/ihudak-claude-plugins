@@ -348,9 +348,13 @@ holding states: *"A round with an outstanding `[C]` stays open until that answer
 the package — the customer's turnaround is not a reason to declare the round finished around them."*
 
 A round is **open** while any question in it lacks a **terminal** disposition, and **closed** once
-every one has one. **The dispositions decide a round's state, and nothing else does**: its record's
-last `Status:` line records the result of each write (*Write the register and the round record*),
-and where the two disagree the dispositions win.
+every one has one. **A question's state is the last one its record records at that question's
+address**, the record being append-only: a re-tagged question carries the *re-tagged* disposition
+and whatever it reached afterwards, both at the one number, and it is the later of the two that says
+whether this question still lacks a terminal disposition (*Questions carry no minted identifier*, in
+*Generate the round's question set*). **The dispositions decide a round's state, and nothing else
+does**: its record's last `Status:` line records the result of each write (*Write the register and
+the round record*), and where the two disagree the dispositions win.
 
 **No `--round` flag:**
 
@@ -458,16 +462,29 @@ and where the two disagree the dispositions win.
 **Then the round-1 test, on every run, whichever branch above resolved the round and with or
 without `--round`.** No branch skips it: one that sends the run on to the handoff phase runs this
 test first. Read round 1's record for the requirement-defect account line (*Write the
-register and the round record*). **That line alone decides which round a requirement defect this BRD
-owns, that is open and that is not asked belongs in**; nothing else decides it:
+register and the round record*). **That line alone decides whether a requirement defect this BRD
+owns, that is open and that is not asked belongs in round 1 or in a new round**; nothing else
+decides that. Where it is a new round, **which** one is decided by what the branch above did with
+this run — the round it opened on the defect's account, or the next one where it resumed a round
+already open — and by nothing else either:
 
 - **No round record exists** → round 1 is being generated now, from every source, so each such
   defect is raised in it and its record carries the line.
 - **Round 1's record carries the line** → round 1's walk ran this source, so each such defect was not
   in front of it: confirmed since, by an intake re-run over a revised source, or withheld then and
   this BRD's to ask since. It belongs in a **new round**, and it is one of the changes that make one
-  askable (the *Every round is closed* bullet above). While some round is still open it waits, as a
-  changed finding does — **and it is reported, never silent**: name each waiting `[DEF#n]`, *asked
+  askable (the *Every round is closed* bullet above). **Which new round depends on what this run
+  did, and the two cases part exactly there.** Where the *Every round is closed* branch opened a
+  round on this defect's account — naming it in that round's record among the changes that made the
+  round askable — it is raised **in that round**, and this run's account line records it asked, like
+  any other question of that round. A round opened for a defect and then withheld from it opens
+  holding nothing, so nothing closes it, the next run resumes it and withholds the defect again, and
+  a `[C]` only the customer can settle is never asked while the printed remedy names the round that
+  is already open. Where this run instead **worked a round it did not open on this defect's
+  account** — one an earlier run left open, or one `--round N` re-opened for some other cause — it
+  waits, as a changed finding does, since that round's question set was settled without this defect
+  in it and a later round is where what became askable since belongs. A defect that waits is
+  **reported, never silent**: name each waiting `[DEF#n]`, *asked
   in round `<highest + 1>`, once round `<open>` closes*, in the final report and beside the *Next
   steps* list, and withhold it in this run's account line with the cause `waits — round <open>
   still open`, since a package built meanwhile goes out without it.
@@ -680,8 +697,9 @@ would have to state:
   and cannot be read — an absent one holds no entry. This BRD raises nothing about such a defect and
   reports it with the row or the sibling named — never a guess, because a guess asks the customer
   twice or not at all. **Which round a raised defect goes into is *Resolve the round*'s to decide**,
-  by round 1's account line alone. Every other row the defect joins is context for the question, a
-  rejected row of any slice included — each one this slice does not claim cited as
+  by round 1's account line and, where that line sends it to a new round, by which round this run
+  resolved. Every other row the defect joins is context for the question, a rejected row of any
+  slice included — each one this slice does not claim cited as
   `<PARENT-KEY> [BR#n]` (*A row this slice does not claim*, above). **The question states what the
   defect records** — the two readings, the two requirements that cannot both hold, the missing
   observable outcome — and, where the row is drawn from an image (`brd-format.md` §2), names the
@@ -710,7 +728,18 @@ reason a split one does: the record is append-only and the original is terminall
 **no new position**. What that buys is one address for a question's whole life — round and position
 is how a question is addressed at all (above), and what `/product-workflows:brd-reconcile` freezes
 a `[CD#n]` against — where a re-numbered question would answer to one address before the re-tag and
-another after it, with nothing on file saying they are the same question. Where the re-tag
+another after it, with nothing on file saying they are the same question. **Two recorded states then
+sit at that one address, and the last one governs.** The record is append-only, so the *re-tagged*
+disposition stays where it was written and every later state for that question is appended beneath
+it; every reader that asks what state a question is in — the resume rule in *Resolve the round*, the
+closure rule in *Write the register and the round record*, and `/product-workflows:brd-package`'s
+gate on the rounds — takes the **last** state recorded at the address, and the earlier ones are
+history, exactly as an earlier `Status:` line is (*Write the register and the round record*). A
+question re-tagged and then *deferred* is deferred: its round
+stays open and the resume rule returns to it. A question re-tagged and then *decided* carries a
+terminal disposition and is not returned to. Taking the first state instead reads *re-tagged* as
+this question's answer and closes a round around a question still in a holding state — the failure
+the terminal/holding distinction exists to prevent. Where the re-tag
 follows a split, the part keeps its letter as well (`5b` stays `5b`). Its durable handle, once it
 produces one, is the `[VD#n]`, `[CD#n]` or `[AS#n]` it becomes.
 
@@ -923,8 +952,14 @@ entries, written exactly `## Round <N>, question <position>`** — `<position>` 
 place in that round's record, counting from 1. **That heading is the entry boundary**, and pinning
 it is what lets a reader bound one entry: `/brd-package` renders each held question into part 7 and
 `/brd-reconcile` finds the entry an answer belongs to, and an entry opening any other way is one
-neither can tell from the text of the entry above it. Then: the findings that bear on it, so the
-customer is asked against what is known rather than in the abstract; **its altitude, on a line of
+neither can tell from the text of the entry above it. Then: **the findings that bear on it, on a
+line of its own labelled exactly `- **Findings:**`** — each `[CG#n]`/`[DG#n]` with its verdict, and
+`- **Findings:** none` where none bears on it, the line never omitted — so the customer is asked
+against what is known rather than in the abstract, and so the three readers that parse it read a
+field instead of a paragraph: `/brd-package` counts the entries listing a finding to choose the
+claim to verify first and renders the line into the customer prompt, and `/brd-reconcile` copies it
+into the answering `[CD#n]`'s `evidence`, where a paragraph it cannot parse becomes an
+`evidence: []` claiming the customer was shown nothing; **its altitude, on a line of
 its own labelled exactly `- **Altitude:**`** — `product`, `architecture` or `implementation`,
 decided by the mapping `decision-register-format.md` §1 gives a record's `altitude` from the
 downstream artifact the answer must reach — the PRD, the ARD or the specification — because the
@@ -1054,7 +1089,10 @@ any corpus holding a `SUPERSEDED` finding, which raises no question and is not `
 That is a complete record of a completed walk, which is exactly what the all-delegated stop's
 prohibition on an *empty* record is protecting against. Otherwise: every question in the order it
 was written, its tag, every re-tag with the finding that caused it, every split with the parts it
-became, and each question's state in the vocabulary the *Resolve the round* phase fixes — either a
+became, and each question's state **as the record last records it** — a re-tagged question carrying
+two states at one address, the *re-tagged* disposition and whatever the question then reached, of
+which the last governs (*Questions carry no minted identifier*, in *Generate the round's question
+set*) — in the vocabulary the *Resolve the round* phase fixes: either a
 **terminal disposition** (*answered from findings*, *decided* naming the `[VD#n]`, *answered by the
 customer*, *re-tagged* naming its cause, or *split* naming its parts) or a **holding state** (*held
 for the customer*, *deferred*, *needs grounding*, or *untagged*) — **all four**, exactly as the
@@ -1276,11 +1314,11 @@ shown only in its own state, and in it the marked step is the single one every p
 — the re-open that asks questions only the customer can answer — which is precisely the first bullet
 of that reference's `The (Recommended) marker is unconditional` section, where the condition gates
 the prompt and the marker is therefore a plain one. What the gate above decides is only **whether
-`/brd-package` appears at all**; it never promotes an option to recommended. A BRD both cited gates
-pass is ready to package; one either gate refuses is not — which is why it is not shown the option
-rather than shown it with a caveat. The `nothing-to-review` list carries no marker for the same
-reason and one of its own: stopping there is a legitimate, finished outcome, and marking a grounding
-pass "recommended" would imply this BRD is unfinished when it is not.
+`/brd-package` appears at all**; it never promotes an option to recommended. A BRD both content
+gates pass is ready to package; one either content gate refuses is not — which is why it is not
+shown the option rather than shown it with a caveat. The `nothing-to-review` list carries no marker
+for the same reason and one of its own: stopping there is a legitimate, finished outcome, and
+marking a grounding pass "recommended" would imply this BRD is unfinished when it is not.
 
 `<merge-clause>` in that list is the placeholder `workflows-core:next-phase-offer` resolves from
 this run's own `Phase handoff:` outcome line; it is never written as an unconditional "once the pull

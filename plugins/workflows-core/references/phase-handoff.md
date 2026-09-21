@@ -325,7 +325,8 @@ count is per **offer**, not per execution of §2.
 **A run that never reaches an offer prints no line for it, and the absence of a row for that state
 is deliberate.** A producer may skip its handoff on a condition of its own — `/frames` writes no
 index and so has no deliverable to hand off, `/idea` on `status: draft` never hands off and does not
-ask — and there the *Declined by the user* row would assert a decision nobody was asked to make.
+ask, and `/implement`'s Phase 4.5 is a silent no-op where step 7.5 wrote no conformance note — and
+there the *Declined by the user* row would assert a decision nobody was asked to make.
 
 **One producer offers two handoffs, and it prints two lines.** `/brd-reconcile` hands off the
 returned customer review it canonicalised, then its own reconciliation record on the branch that

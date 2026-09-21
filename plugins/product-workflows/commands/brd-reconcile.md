@@ -1188,6 +1188,12 @@ answered; every `[BR#n]` whose ledger row moved; and every `[DEF#n]` that gained
 that grows while the sweep runs makes the sweep's own coverage unknowable — some items were checked
 against three ids and some against six, and afterwards nobody can say which.
 
+**This set is read twice, and only one of the two readings is the item matching it was fixed for.**
+The citation pass below matches items against it, id by id; and the rule fixing **which fields of a
+record that pass reads** tests each field's id class against it, so a class leaving this set narrows
+what is read as surely as it narrows what is matched. Both readings take the set as this step fixed
+it, which is why the field rule reads this paragraph rather than restating its contents.
+
 **The swept set has two sources, and only one of them is a scan.**
 
 1. **Declared dependents — a scan.** Any BRD whose `brd-link.md` declares `depends-on:` carrying
@@ -1251,16 +1257,17 @@ this paragraph has now been wrong in both directions for exactly that reason: it
 and struck `defects` out by hand, then under-produced and let an `[AS#n]`'s `evidence` in only by a
 worked reading.
 
-*Read against §1 and the set this phase fixed, the two skips today are `defects` and `id`, and
-everything else is read* — a reading of the rule above, not a second copy of it. `defects` holds
-`[CDF#n]` ids on every record kind (§1, §7's *As-is*) and the set carries no `[CDF#n]`, a code
-defect being the operator's to re-dispose in an interview round rather than a customer's to change;
-the day that set admits one, this pass reads `defects` with nothing here changing. `id` names the
+*Read against §1 and the set this phase fixed, the two fields skipped today are `defects` and
+`id`, and everything else is read* — a reading of the rule above, not a second copy of it.
+`defects` holds `[CDF#n]` ids on every record kind (§1, §7's *As-is*) and the set carries no
+`[CDF#n]`, a code defect being the operator's to re-dispose in an interview round rather than a
+customer's to change; the day that set admits one, this pass reads `defects` with nothing here
+changing. `id` names the
 record, and a bare id there would resolve against the dependent's own register in any case.
 `evidence` is read because §7 makes it the why-no-evidence **statement** on an `[AS#n]` — prose
-that can name a changed id in a sentence — so §1 does not fix it to a class anywhere near every
-record. `settles` is read on the class test alone: it holds the `[DEF#n]` the set carries for every
-defect that gained a resolution.
+that can name a changed id in a sentence — so §1 does not fix it on every record kind it appears
+on, whatever it fixes on the two decision kinds. `settles` is read on the class test alone: it
+holds the `[DEF#n]` the set carries for every defect that gained a resolution.
 
 **`chosen` is read on both record kinds, and for the same reason `statement` is.** On a `[CD#n]` it
 can be the customer's answer quoted verbatim, where they answered outside the options put (§1) —

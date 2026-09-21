@@ -904,7 +904,8 @@ rejecting each one, against the customer or the delivery team, is this phase's j
 
 **First, print `brd-reader`'s `notes` — once, at this phase's start, whether or not any candidate
 is left to walk** (Phase 1.5 collects them): the standing read's, as Phase 3's `OK` branch fixes
-which read that is, with every `[BR#n]` in them mapped through Phase 3's reconciliation. An observation
+which read that is, with every `[BR#n]` in them mapped as Phase 3 maps one — through its
+reconciliation on a re-run, through its numbering on a first intake. An observation
 the agent made and did not propose — a possible conflict it would not assert, say — belongs in front
 of the person confirming defects, and on a run whose every candidate matched an entry on file it
 still has to be seen. **The walk cannot turn a note into a defect**: every question it asks confirms
@@ -991,8 +992,8 @@ proposes the one `duplicate` a split records on the first row it produced (`brd-
 the walk never asks about each part.
 
 **The question's text is fixed, so every candidate reaches the operator with the same facts**, each
-`[BR#n]` in it as Phase 3's reconciliation numbered it, each row's text decoded (`brd-format.md`
-§2.3):
+`[BR#n]` in it as Phase 3 numbered it (by its reconciliation on a re-run, by its numbering on a
+first intake), each row's text decoded (`brd-format.md` §2.3):
 
 ```text
 <class> on [BR#n] — "<the row's text>" (<its source_anchor>)
@@ -1072,7 +1073,8 @@ here. After an `EMPTY` read, Phase 3 says what this phase writes: the ledger's h
 there was no prior inventory, and nothing where an earlier intake's inventory stands.
 
 **Then complete `brd/brd-figures.md`'s *Rows* line for every image**, from the final inventory —
-after Phase 3's reconciliation mapping, never from the agent's own numbering: `yields` every row
+after Phase 3's id mapping (its reconciliation on a re-run, its numbering on a first intake), never
+from the agent's own numbering: `yields` every row
 whose `source_anchor` names the image and `illustrates` every row the standing read's `figures`
 entry for it returns in `illustrates` — the read Phase 3's `OK` branch fixes, so where a re-read
 found no requirement it is the first read's entry, that re-read having replaced nothing —
@@ -1323,7 +1325,8 @@ documentation describes as already built, flagged for `/prd-ground` to check aga
 Phase 6 wrote seeds and which; resolved model routing (+ any Opus degradation); every agent's
 `notes` — `figure-reader`'s and `brd-reader`'s, as Phase 1.5 collects them, the latter's being the
 standing read's — the read Phase 3's `OK` branch fixes, or, where that branch never ran, the one
-read there was — with its `[BR#n]`s mapped through Phase 3's reconciliation; the feedback and cost paths;
+read there was — with its `[BR#n]`s mapped as Phase 3 maps one, by its reconciliation on a re-run
+and by its numbering on a first intake; the feedback and cost paths;
 the `Phase handoff:` outcome line (`workflows-core:phase-handoff` §4.1) — `handoff-to-main`'s on the first choice, and the
 *Declined by the user* line on either other (Phase 7); the `Specs repo:` outcome line from
 `commit-artifacts` (`workflows-core:specs-repo-git` §6); the next-step recommendation; and end with

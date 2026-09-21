@@ -768,10 +768,14 @@ to. Three things make that a guarantee rather than an instruction:
    capability inventory and explicitly **not** a finding, and no customer review reaches the register
    except through `/product-workflows:brd-reconcile`.
 3. **The only field of a decision record this command may write is `consumed_by`** (Phase 7).
-   `statement`, `options_considered`, `chosen`, `argumentation`, `evidence`, `altitude`,
-   `conditional_on`, `status` and `round` are never written here, on any record, in any status — so a
-   grill answer contradicting a `decided` record could not become that record's new `chosen` even if
-   the first two failed.
+   **Every other field `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1 defines is
+   never written here, on any record, in any status** — named as a set rather than enumerated, so a
+   field §1 gains is covered the day it gains it and no list here can drift from the one it stands
+   for. That set takes in every field a re-decision or a reversion writes, which is §4's to fix;
+   this command performs neither — a re-decision needs a reopening, which rule 2 has just ruled out,
+   and a reversion is `/product-workflows:brd-reconcile`'s propagation sweep alone (§4). So a grill
+   answer contradicting a `decided` record could not become that record's new `chosen` even if the
+   first two failed.
 
 **What happens when the grill surfaces a genuine contradiction with a settled decision.** Do not
 decide it and do not soften it into the spec's prose. Record it as a `- [ ]` open question naming the

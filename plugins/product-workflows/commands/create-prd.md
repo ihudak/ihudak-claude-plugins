@@ -482,8 +482,9 @@ when the first two are forgotten:**
    defines is never written onto an existing record here, in any status** — named as a set rather
    than enumerated, so a field §1 gains is covered the day it gains it and no list here can drift
    from the one it stands for. That set takes in every field a re-decision or a reversion writes,
-   which is §4's to fix and neither of which this command performs — rule 2 is why neither is
-   reachable from here. So a grill answer that contradicted a `decided` record could not become that
+   which is §4's to fix; this command performs neither — a re-decision needs a reopening, which rule
+   2 has just ruled out, and a reversion is `/product-workflows:brd-reconcile`'s propagation sweep
+   alone (§4). So a grill answer that contradicted a `decided` record could not become that
    record's new `chosen` even if the first two failed: there is no write that would record it.
 
    **This guarantee was once stated over every record rather than every existing one, and the

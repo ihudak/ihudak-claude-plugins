@@ -58,15 +58,20 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    `/brd-split` to write (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1,
    `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3) — so a resolved folder whose
    `brd-link.md` carries a `parent:` field is a mis-keyed invocation, and the run **stops** on it.
-   Take this refusal **here, before the re-run confirmation below is composed**: a slice always
-   holds an inventory with rows, `/brd-split` having copied the parent's in, so that confirmation
-   would otherwise fire and be the only array the operator sees on this path — an array whose
-   keeps-and-changes list and whose disposition warning are both written for a source-owning root,
-   and whose *Re-run over this folder* answer sends Phase 2 on to write `brd/source/` into a folder
-   that holds none, Phase 3 to renumber rows §2.1 says are never re-extracted, and Phase 5 to
-   replace every `covered-here` the allocate-only walk recorded with `unallocated`. Nothing short of
-   git recovers that. Stop, on a slice:
-   `BRD_INTAKE_SLICE: <BRD-KEY> resolves to a slice of <the parent: field of its own brd-link.md>, and a slice has no source document to intake — its brd/ directory is the parent's, one hop, and its inventory and ledger are '/product-workflows:brd-split' to write. Re-intake the parent with '/product-workflows:brd-intake <PARENT-KEY> @<brd-file>', then re-allocate each slice with '/product-workflows:brd-split <SLICE-KEY>'.`
+   Take this refusal **here, before the re-run confirmation below is composed**, and note that it
+   keys on `parent:` rather than on rows because neither of the two states a slice can be in is
+   safe. A slice that claims any row holds an inventory with those rows in it, `/brd-split` having
+   copied the parent's in, so there that confirmation would otherwise fire and be the only array
+   the operator sees on this path — an array whose keeps-and-changes list and whose disposition
+   warning are both written for a source-owning root, and whose *Re-run over this folder* answer
+   sends Phase 2 on to write `brd/source/` into a folder that holds none, Phase 3 to renumber rows
+   §2.1 says are never re-extracted, and Phase 5 to replace every `covered-here` the allocate-only
+   walk recorded with `unallocated`. Nothing short of git recovers that. And on a **standing empty
+   child** — one kept with `claims: []` against a recorded `reason:`
+   (`coverage-ledger-format.md` §3), whose inventory holds its header and no row,
+   which this step's own test reads as no prior inventory at all — that confirmation is skipped
+   silently, so Phase 2 would write into the slice with no consent asked anywhere. Stop, on a slice:
+   `BRD_INTAKE_SLICE: <BRD-KEY> resolves to a slice of <the parent: field of its own brd-link.md>, and a slice has no source document to intake — its brd/ directory is the parent's, one hop, and its inventory and ledger are '/product-workflows:brd-split' to write. Re-intake the parent with '/product-workflows:brd-intake <PARENT-KEY> @<brd-file>'; that run leaves every row of the parent's ledger unallocated, so re-take the dispositions with the root walk it offers you when it finishes, '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', and only then re-allocate a slice the walk left a row unallocated in, with '/product-workflows:brd-split <SLICE-KEY>' once that slice is ground.`
    `<PARENT-KEY>` is that `parent:` field as it reads, never a key parsed out of the folder's name
    (`CLAUDE.md`, *Resolve an identifier against a known set*). Absent → this is a
    brand-new BRD: derive `<slug>` from the source file's first heading — lowercase it, turn every run

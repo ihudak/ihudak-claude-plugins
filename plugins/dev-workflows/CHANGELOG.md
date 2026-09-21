@@ -69,6 +69,10 @@ Phase 1 step 2 enumerated *"every Epic subdirectory under `<PRD-dir>` that match
 
 `docs/reference/session-cost.md` said a BRD folder's frame set is `brd-to-prd` spend and a PRD or Epic folder's `prd-creation`. `workflows-core`'s `cost-emission.md` §7 decides by the `kind` the folder asserts, so a BRD-route slice — a `PRD-` folder asserting `brd` — is `brd-to-prd`, and an Epic folder under it, asserting `epic`, `prd-creation`. The page now says so. **Rests on `workflows-core` 1.7.1**, whose `cost-emission.md` §7 bullets are reworded the same way — the page matches them. **No run's behaviour changed. Population: every reader of the page.**
 
+### Fixed — `/design` said four spec'd Epics overflow its picker, and always carried the remainder row
+
+`/design` appends no option of its own, so its array is one row per Epic against `workflows-core:escalation-rules` §0's ceiling of four: four or fewer are carried in full and **five** overflow. Phase 0 step 4 said *"four spec'd Epics already overflow the prompt"* and stated the three-rows-plus-remainder shape unconditionally — so on a PRD with exactly four spec'd Epics it hid one behind the free-text row for no reason, and its stated threshold was one low. Both halves now turn on the count, and the line says why `/specify` and `/implement` differ: they append an option, which is the difference rather than a different cap. **The figure came from this plugin's own released 3.11.0 entry**, which wrote *four / three* where the `epic-picker.md` it was announcing wrote *five / four* — wrong on arrival rather than overtaken, now corrected in place with the derivation, since a convention is what a stale figure becomes. **No behaviour changed on a PRD of five or more spec'd Epics, where the shape was already right. Population: every `/design` run on a PRD folder with exactly three or four spec'd Epic subfolders, and every reader of either sentence.**
+
 ### Fixed — `/implement`'s Epic picker offered a broad slice nothing had specified
 
 The entry above gave the one-Epic path its *"Implement one broad PRD-level slice instead"* choice **only where the PRD folder holds a flat `specification.md`** — without one the slice is a unit nothing specified — and left the two-or-more-Epics picker offering it unconditionally, which is the same question asked the other way round: which of the specified units this run implements. So on a PRD with two or more Epics and no flat specification an operator could pick a slice no `/specify` run ever wrote, and Phase 0's gate does not catch it — an in-scope `specification.md` that does not exist returns `absent`, which that gate is explicitly told not to stop on. The picker now carries the choice on the same condition, and where the flat specification is missing the freed option goes back to the Epics: at most three Epic rows plus *"Another Epic from the list above — name its key"*, which is `workflows-core:epic-picker` *The cap*'s own shape for a picker appending nothing of its own. **The 0-Epic path keeps the offer unconditionally, and that is the asymmetry settled rather than overlooked**: with no Epic there is no other specified unit to confuse the slice with, so the question is whether to partition at all, and withholding the slice would leave one option where the harness needs two. The command page says the same. **Population: every `/implement` run on a PRD folder holding two or more Epics and no flat `specification.md`.**
@@ -2082,7 +2086,13 @@ built on it.
 **The defect no static check can see, found while fixing the ones it can.** The progress-aware Epic
 picker `/specify`, `/design` and `/implement` share is built from a directory listing — *"one row per
 Epic"* — so a PRD with four Epics overflows a prompt that has no literal options to count, and
-`/specify`, which appends its own option, overflows at three. `references/epic-picker.md` gains *The
+`/specify`, which appends its own option, overflows at three. **Both figures are one low, and were
+wrong on arrival rather than overtaken** — this release's own `epic-picker.md` says *"a PRD with five
+Epics overflows it, and a `/specify` … run that appends its own option overflows at four"*, and the
+reference is the authority. Re-derive against `escalation-rules` §0's ceiling of four rather than
+against this sentence: a non-appending picker renders n options, so four fit and five overflow; an
+appending one renders n+1, so three fit and four overflow. The convention this sentence started is
+what put *"four spec'd Epics already overflow"* into `/design`, corrected in 4.1.2. `references/epic-picker.md` gains *The
 cap*: every Epic listed as prose, the array carrying at most three rows plus one naming the remainder,
 whose typed key is resolved against the keys just listed rather than parsed out of the answer.
 

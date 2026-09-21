@@ -266,16 +266,16 @@ commits into the recorded set makes the record look more complete than it is.
   on every later run. It drops every commit whose SHA a block in the records the read takes names
   — covered or not, since an uncovered block's commits are read from the block — and every commit
   in the read set of an earlier note covering a record whose token it matched: the PRD folder's
-  record for the PRD's key or `workitem_key`, an Epic's for that Epic's. It drops nothing else, save
-  what the one fallback below drops. So **a commit is skipped only where an earlier note covering it
-  read it — or, under that fallback alone, where its date, or the heading date of a block recording
-  it, puts it behind a note whose read set is unrecorded, which the run then lists** — and outside
-  that fallback a commit no note read comes back however it is dated. **The block's date is a second
-  route and not a restatement of the first**: the first of the two drops above — the SHA drop —
-  takes a commit whose SHA a block names whether or not that block was read, so a block the
-  fallback date-skipped still takes its commits out of the scan, and a rebase or a cherry-pick
-  that dates a commit *after* its own block's heading puts it behind the note by that heading
-  alone.
+  record for the PRD's key or `workitem_key`, an Epic's for that Epic's. It drops nothing else,
+  save what the one fallback below drops. So **a commit is skipped only where an earlier note
+  covering it read it — or, under that fallback alone, where its date, or the heading date of a
+  block recording it, puts it behind a note whose read set is unrecorded, which the run then
+  lists, the commit itself or the block that accounts for it** — and outside that fallback a
+  commit no note read comes back however it is dated. **The block's date is a second route and not
+  a restatement of the first**: the first of the two drops above — the SHA drop — takes a commit
+  whose SHA a block names whether or not that block was read, so a block the fallback date-skipped
+  still takes its commits out of the scan, and a rebase or a cherry-pick that dates a commit
+  *after* its own block's heading puts it behind the note by that heading alone.
 
   **The one fallback is an earlier note that records no read set** — a draft carrying no scope
   line at all, which is every draft appended before `docs-workflows` 1.2.2, and one carrying the
@@ -297,12 +297,14 @@ commits into the recorded set makes the record look more complete than it is.
   boundary wherever the writer of either worked in another zone. **Population: every
   `/release-notes` run with diff grounding on over a `release-notes.md` an earlier release wrote —
   which is every one that exists today — and none of the notes written from `docs-workflows` 1.2.2
-  on, since a note that records its read set never reaches this rule.** So the run lists every
-  block the date rule dropped, and every commit it dropped — by that commit's own date, **or with
-  a block recording it**, since a block the date rule skipped still takes its commits out of the
-  scan through the SHA drop — beside the ones it used: a block by its record and heading date, a
-  commit by its SHA, date and subject. **A block's listing stands for the commits it records**,
-  which are not listed a second time beneath it, and nothing is dropped silently.
+  on, since a note that records its read set never reaches this rule.** So the run lists, beside the
+  ones it used, **every block the date rule dropped — by its record and heading date — and every
+  commit that rule dropped by that commit's own date, by SHA, date and subject.** A commit dropped
+  **with a block recording it** is not written out again: **that block's listing accounts for it**,
+  the listing naming the record and the heading date and the block itself naming its commits. So
+  nothing is dropped silently, though a block's listing does not say which of its commits cleared
+  the note — a rebased commit dated after that heading is found by comparing the two dates by hand,
+  which is what the listing gives the operator the material for.
 
 **What is honestly still lost, and what a run therefore says out loud:** only a commit whose message
 names the key is findable, no convention compels a human to follow one, and so **the run reports how

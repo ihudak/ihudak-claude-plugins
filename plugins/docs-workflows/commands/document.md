@@ -1147,7 +1147,7 @@ SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 - ...
 
 ### Branch-name probe
-[Phase 4's *Report the scan's own reach* step, one line per repository the whole-key commit scan left at zero matches — the only repositories it runs on. Omit the section entirely when it fired nowhere.]
+[Phase 3's *Report the scan's own reach* step, one line per repository the whole-key commit scan left at zero matches — the only repositories it runs on. Omit the section entirely when it fired nowhere.]
 - <repo> — [each commit by SHA, date and subject — may name a key inside a branch name, inspect by hand | matched nothing]
 - Nothing here was read: no commit above reached `diff-summarizer`, joined the refs, or is reported as unrecorded work.
 

@@ -119,8 +119,12 @@ inside a source file is never followed — the caller walked the links already
      of the transcription**, since a quote found in two names neither (`brd-format.md` §2.2 fixes
      which element an image anchor names): lengthen it within its own element until it does, or
      quote a *Flow* edge whole; where an annotation's *Says* also occurs in another element, write
-     `annotation <n>` instead; and where no span of a *Text* region or cell occurs in it alone — two
-     regions reading the same — quote it all the same and say so in `notes`. **An unlabelled mark
+     `annotation <n>` instead; and **where the element holds no content that is its alone, whatever
+     kind of element it is, quote it all the same and say so in `notes`** — two *Text* regions or
+     cells reading the same, and equally a diagram that draws one edge in two places, which
+     `brd-format.md` §1.2 transcribes as two identical *Flow* items, so quoting that edge whole does
+     not make it unique and §1.2 rules a positional *Flow* form out on purpose. Such an anchor
+     resolves and names no one element, which §2.2 provides for. **An unlabelled mark
      has nothing to quote** — its *Says* is written `""`, which says it carries no label and is not
      a string — so a row drawn from one is anchored `annotation <n>` outright, and the same holds
      for an empty *Text* cell: never write an anchor whose quote is empty, which resolves against

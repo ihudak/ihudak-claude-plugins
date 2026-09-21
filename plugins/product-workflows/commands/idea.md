@@ -169,13 +169,15 @@ tally shows twelfth is the thirteenth here), and the images
 after the sixth in the walk's order. Put the question with its text fixed — a line naming the bounds
 the walk crossed, of the three, then one line per file in that set, each file once, in the walk's
 order, with every bound it is past, joined as the template shows where a file is past two or
-three; then the line saying what *Read all* takes — and then the array:
+three; then the line saying what *Read all* takes, and, where the walk reached nothing below
+depth 1, the line saying the second option takes that same set — and then the array:
 
 ```text
-The walk reached past <the bounds it crossed: two levels of pages · twelve pages, the source counted · six images>:
+The walk reached past <the bounds it crossed, of: two levels of pages · twelve pages, the source counted · six images — joined with ", " in that order>:
 <the file's path> — <every bound it is past, of: deeper than two levels · after the twelfth page · after the sixth image — joined with ", " in that order>
 …
-Reading all takes every file the walk reached, not only the files listed here.
+Reading all takes the source and every one of the <n> files the walk reached beside it, not only the files listed here.
+<where every file the walk reached is at depth 1, one further line: "Every one of them is linked by the source itself, so the second option below takes that same set.">
 ```
 
 ```
@@ -188,10 +190,24 @@ source, *other* files included, the `+ 6` of the example above — and that is e
 list just printed**, which names only the files past a bound and is usually a good deal shorter —
 which is why the fixed text above closes with the line saying what *Read all* takes, printed rather
 than left to be inferred: an operator otherwise reads a number against a five-line list and answers
-about twenty-two. An *other* file it takes is still
-never opened: `idea-reader` enumerates it into `links_other`, taken or not (Phase 2). *Only what the
+about twenty-two. **That line names `<n>` itself, and names the source apart from it**, so the
+printed sentence and the option label under it describe one set rather than two: on the fixture,
+`23 files reached (source + 22)`, then *Reading all takes the source and every one of the 22 files
+the walk reached beside it*, then `Read all 22` — all three the same 23 files. A line asserting a
+set of 23 directly above a label reading 22 left the reconciliation in a command body the operator
+cannot see, and gave a run they meant to take whole a reason to answer *Stop*. An *other* file it
+takes is still never opened: `idea-reader` enumerates it into `links_other`, taken or not (Phase 2). *Only what the
 source links directly* takes depth 1 — every file the source links itself, of any kind — and leaves
-every deeper file `excluded` (`linked-sources.md` §6, §7), which Phase 4.5 reports rather than copies. *Stop* ends the run with
+every deeper file `excluded` (`linked-sources.md` §6, §7), which Phase 4.5 reports rather than copies.
+**Where the walk reached nothing below depth 1 that option reduces nothing, and the extra printed
+line is what says so.** Two of the three bounds are crossable with every file at depth 1 — twelve
+pages, the source counted, and six images — so a source linking ten images directly, or a hub note
+linking twenty pages, fires this question over a walk record whose every entry is depth 1, where
+*Only what the source links directly* takes exactly what *Read all* takes. `escalation-rules`'
+*When a choice list fires* makes a list written for a question whose answer is already determined a
+defect; the array is fixed text and is presented verbatim, so the printed line above it is where
+the operator is told — before they answer, rather than after the same set has been read, copied and
+left dirty either way. *Stop* ends the run with
 nothing written — an operator halt, so `emit-block` does not fire.
 
 Record the outcome on the walk record itself, as `linked-sources.md` §7 has a caller do, so every
@@ -431,8 +447,10 @@ repairs where `idea.md` points.
    is a consequence of the writer table rather than a
    choice made here.** Step 4's second literal records a describer that looked at a file and could not
    read it; this run copies only images `figure-reader` actually read, so a frame it accounts for
-   nowhere is always one it never looked at — which a later `/workflows-core:frames` run can still
-   describe. **The index is not optional**:
+   nowhere is one it either never looked at or already had a byte-identical copy of — the collision
+   rule's rule 1 reuses such a file rather than copying it (`idea-format.md`), and the writer table
+   gives this run only what it *copied* — and a later `/workflows-core:frames` run can still
+   describe either. **The index is not optional**:
    `workflows-core:grounding-format` §6.1 makes its absence unrecoverable, so images
    written without one would be a frame set nothing can ever read. **Writing it is still not
    grounding it** — nothing here dispatches `design-grounder`, produces a `[DG#n]`, or reaches a
@@ -483,9 +501,13 @@ repairs where `idea.md` points.
    `attachments/` is created only where a file lands in it and `design/idea-sources/` only where an
    image does; the index, per §6.2 step 6, is written whenever that frame set holds at least one frame,
    **including on a run that copied no image into a set an earlier run populated** — which is how a row
-   whose image is gone gets dropped. A bare-prompt run creates neither directory, writes no index,
-   rewrites no link, and hands Phase 5 the deliverable set it would have handed it before this phase
-   existed.
+   whose image is gone gets dropped. A bare-prompt run over a folder holding no frame set creates
+   neither directory and writes no index; over a folder an earlier run populated it creates neither
+   directory either and writes that set's index all the same, by the rule just given — a
+   bare-prompt run being exactly a run that copied no image, and `/idea <KEY> "<more text>"` over an
+   existing brief being a state Phase 4 supports. Either way it rewrites no link and hands Phase 5
+   the deliverable set it would have handed it before this phase existed, that one `index.md`
+   apart.
 7. **Nothing here is fatal.** A copy that fails — permissions, a full disk, an unreadable source that
    was readable in Phase 2 — leaves that file unvendored, leaves its link exactly as written, and is
    reported beside the four sets below. A failed copy never blocks the handoff and never fails the run.
@@ -510,10 +532,17 @@ they are deliverables, and they reach the default branch only through Phase 5's 
 `idea.md` **and every path this phase wrote** — one copy in `attachments/` for the source and for
 every markdown file Phase 1.5 took, one in `design/idea-sources/` for every image `figure-reader`
 read, and that set's `index.md` — a number Phase 1.5 fixes and no cap bounds, so a source that links
-a hub note leaves dozens of dirty OTHER paths. Two routes reach that state, and only one of them is
-a decline: Phase 5's `status: refined` branch offers the handoff and the operator may decline it,
-while its `status: draft` branch **never offers one at all** — so a draft run leaves the whole set
-dirty by construction rather than by a choice.
+a hub note leaves dozens of dirty OTHER paths. Three routes reach that state, and only one of them
+is a decline: Phase 5's `status: refined` branch offers the handoff and the operator may decline it;
+its `status: draft` branch **never offers one at all** — so a draft run leaves the whole set
+dirty by construction rather than by a choice; and a `status: refined` run whose handoff was
+**taken** and whose `workflows-core:phase-handoff` §2.1 gate then refused it committed nothing
+either, which is the *Gate failed* line §4.1 emits and which Phase 5 already names beside a decline.
+That third one is reachable rather than theoretical: §2.1 fails on path, repo or permission grounds
+**or** on `specs_git: blocked`, and Phase 0 carries that flag for the whole run whenever its own
+preflight returns `workflows-core:specs-repo-git` §3.3's G0. The other non-landing §4.1 rows are not
+further routes — *No remote* and *Push failed* both committed on a branch first (§2.4 runs before
+§2.5), and *Nothing to commit* changed nothing.
 
 On the next run of any command sharing that repo, §3.3's **G1** matches. Its consequences are three, not
 one: the preflight **ends** there, at advisory severity, listing the paths — no commit, no branch switch,
@@ -556,7 +585,9 @@ the next phase — **adapted to status**:
   `attachments/` paths that exist on the operator's disk and on no ref, which is a worse record than
   the one this feature set out to repair. Phase 4.5 hands over that literal list; pass it through
   unchanged. A bare-prompt run vendored nothing and passes `idea.md` alone, exactly as before this
-  phase existed. On option 2 or 3 `handoff-to-main` does not run; emit §4.1's *Declined by the user*
+  phase existed — save one over a folder an earlier run had populated a frame set in, which passes
+  that set's `index.md` beside it, Phase 4.5 step 6 having rewritten it.
+  On option 2 or 3 `handoff-to-main` does not run; emit §4.1's *Declined by the user*
   line (§4.3, *What each option means*), and the run's emitter tail still runs, as it does after
   option 1. Then, **whichever option was taken**, recommend
   `/product-workflows:create-prd <KEY> <merge-clause>`, which finds `idea.md` in that folder —
@@ -685,8 +716,13 @@ every image left with `read: false` and why, and beside them the `notes` Phase 2
 `figure-reader`. Report these even when nothing was excluded ("all N linked images transcribed; no
 link left unfollowed"), because the absence of a notice of what was left unread is only informative
 once the run is known to print one; **what the
-run vendored and what it did not** — the count of files copied into `attachments/` and of images copied
-into `design/idea-sources/`, whether that frame set's `index.md` was written and how many rows it now
+run vendored and what it did not** — the count of files copied into `attachments/`, **saying whether
+the source is among them**, since one copy lands there for the source and for every markdown file
+Phase 1.5 took, so that number runs one ahead of the counts line's markdown tally exactly as the
+walk's own two counts do; and of images copied into `design/idea-sources/`; **and beside both, every copy
+the collision rule *reused* rather than wrote** (its rule 1), which is in `deliverable_paths` and in
+neither count and is otherwise reported nowhere — the one run state that rule exists to serve;
+whether that frame set's `index.md` was written and how many rows it now
 holds against how many this run added, every name the collision rule substituted or refreshed, the
 number of links rewritten in `idea.md` **and every target left unrewritten because two copied entries were written
 identically** (with each source and each copy), every frame indexed with no description on record, every

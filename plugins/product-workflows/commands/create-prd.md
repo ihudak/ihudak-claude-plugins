@@ -494,8 +494,8 @@ when the first two are forgotten:**
    What it protects is a settled decision against a grill answer, and that protection is untouched:
    nothing below edits a record anyone has decided. What it now permits is Phase 3 **creating** one
    new record of one kind — an `[AS#n]`, never a `[VD#n]` and never a `[CD#n]` — for a
-   customer-authority gap, with all thirteen of its own fields. A newly minted assumption overwrites
-   nothing and settles nothing; it records that this PRD had to assume something, which is what an
+   customer-authority gap, in the fields §7's own table admits for one. A newly minted assumption
+   overwrites nothing and settles nothing; it records that this PRD had to assume something, which is what an
    `[AS#n]` is for.
 
 **What happens when the grill surfaces a genuine contradiction with a settled decision** — which is
@@ -524,8 +524,15 @@ survives the grill: what kind of thing would settle it?
   never takes one.
 - **An authority only the customer holds** → **write it as an `[AS#n]` in `decisions.md`**, per
   `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §7 — creating the file, where the
-  folder holds none, with its header line `# Decision register: <SLICE-KEY>` first (§1). All
-  thirteen fields **except `round`, which is omitted entirely** — this record came from no interview
+  folder holds none, with its header line `# Decision register: <SLICE-KEY>` first (§1). **Write
+  every field §7's own table admits for an `[AS#n]`, in the meaning and the vocabulary that table
+  gives it, and none of the ones it marks *Not applicable*** — §1.1 omits a field that does not
+  apply rather than writing it empty, and `/product-workflows:brd-package` puts every open `[AS#n]`
+  in front of the customer, so a weighed-choice field written onto an assumption shows them a record
+  saying an option was picked where nothing was weighed. Do not re-derive which fields those are
+  here: the table accounts for every one of §1's set, one by one, and a count written in its place
+  is what goes stale the next time that set moves — which is how this instruction came to ask for
+  three fields §7 rules out. **`round` is omitted entirely** — this record came from no interview
   round, and any value there is read by `/product-workflows:brd-package` as a round it must find a
   record for. `evidence` carries the account of why no evidence exists; a bare sentence is a claim,
   not an assumption record. A `[BR#n]` this slice does not claim is written `<PARENT-KEY> [BR#n]`

@@ -231,10 +231,12 @@ as written. This is the re-refinement case — `/idea <KEY> @<that folder>/idea.
 the brief into its own `attachments/`.
 
 **Nothing empty is created.** `attachments/` is created only when a file is about to land in it, and
-`design/idea-sources/` only when an image is. A bare-prompt run creates neither directory and writes no
-index. **Creating a directory and writing its index are not the same act**: the index is written
+`design/idea-sources/` only when an image is. A bare-prompt run creates neither directory, and writes
+no index where the folder holds no frame set. **Creating a directory and writing its index are not
+the same act**: the index is written
 whenever that directory holds at least one frame, including on a run that copied no image into a set an
-earlier run had already populated — see *The index is mandatory*, below.
+earlier run had already populated — a bare-prompt run over such a folder among them — see *The index
+is mandatory*, below.
 
 ### The index is mandatory, and its format is not this file's
 

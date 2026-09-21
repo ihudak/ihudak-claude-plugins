@@ -174,8 +174,8 @@ the customer's own tree happens to contain can collide with it.
 **Which file under `brd/source/` is the customer's document is read, never guessed.** The directory
 can hold several markdown files, since the document may link one beside it and an earlier
 document's copy stays beside one revised under a new filename (§1), so a reader that needs the
-document's own name — the writer of a slice inventory's `source:` (§2.1), `/brd-package` naming it
-in the bundle, and `brd/brd-figures.md`'s own `source:` (§1.2) — takes it from the inventory's
+document's own name — the writer of a slice inventory's `source:` (§2.1) and `/brd-package` naming
+it in the bundle — takes it from the inventory's
 `document:` (§2), the parent's on a slice: the
 document the rows were last reconciled against, which is the one their anchors point into. **Never
 from `brd/brd-link-log.md`'s opening line where the inventory carries `document:`** — the line names
@@ -207,7 +207,7 @@ it closes no defect, and an inventory row quoting a corrected element is left as
 ````markdown
 ---
 key: <the run's <BRD-KEY> as Phase 0 validated it — never parsed from the folder name>
-source: <the document's basename — the inventory's document: where it carries one, else brd/brd-link-log.md's opening line; §1.1 fixes which file that is>
+source: <the basename of the document the writing run itself copied into brd/source/ — held by that run (commands/brd-intake.md Phase 2), and the value §2's document: takes once that run's Phase 3 writes the rows. It is not read off the ladder §1.1 gives a *later* reader: this file is written in Phase 2.5, before Phase 3 updates document:, so on a run over a document resent under a new filename that ladder would still be naming the previous one>
 written_by: brd-intake
 ---
 

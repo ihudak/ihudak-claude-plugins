@@ -57,8 +57,18 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    it has no source document of its own to intake, and its inventory and ledger are the parent's
    `/brd-split` to write (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1,
    `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3) — so a resolved folder whose
-   `brd-link.md` carries a `parent:` field is a mis-keyed invocation: say so and confirm before
-   Phase 2 copies anything into it. Absent → this is a
+   `brd-link.md` carries a `parent:` field is a mis-keyed invocation, and the run **stops** on it.
+   Take this refusal **here, before the re-run confirmation below is composed**: a slice always
+   holds an inventory with rows, `/brd-split` having copied the parent's in, so that confirmation
+   would otherwise fire and be the only array the operator sees on this path — an array whose
+   keeps-and-changes list and whose disposition warning are both written for a source-owning root,
+   and whose *Re-run over this folder* answer sends Phase 2 on to write `brd/source/` into a folder
+   that holds none, Phase 3 to renumber rows §2.1 says are never re-extracted, and Phase 5 to
+   replace every `covered-here` the allocate-only walk recorded with `unallocated`. Nothing short of
+   git recovers that. Stop, on a slice:
+   `BRD_INTAKE_SLICE: <BRD-KEY> resolves to a slice of <the parent: field of its own brd-link.md>, and a slice has no source document to intake — its brd/ directory is the parent's, one hop, and its inventory and ledger are '/product-workflows:brd-split' to write. Re-intake the parent with '/product-workflows:brd-intake <PARENT-KEY> @<brd-file>', then re-allocate each slice with '/product-workflows:brd-split <SLICE-KEY>'.`
+   `<PARENT-KEY>` is that `parent:` field as it reads, never a key parsed out of the folder's name
+   (`CLAUDE.md`, *Resolve an identifier against a known set*). Absent → this is a
    brand-new BRD: derive `<slug>` from the source file's first heading — lowercase it, turn every run
    of characters outside `[a-z0-9]` into one `-`, and trim `-` from both ends, so
    `Acme reporting — business requirements` gives `acme-reporting-business-requirements` — falling
@@ -77,9 +87,12 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    the `BRD-` prefix off the resolved folder's **own name**, falling through to
    `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1's positive test only for a
    folder that has none — so an unprefixed root BRD moves all four refusals onto the legacy branch
-   they hold for repositories written before increment A. And `/product-workflows:brd-split` Phase 3
-   step 2 creates its slice at `specifications/BRD-<PARENT-KEY>-<parent-slug>/PRD-…`, a path that
-   would not exist. `workflows-core:addressing` §5 keeps resolving the folders
+   they hold for repositories written before increment A. **What is *not* a cost is the slice**:
+   `/product-workflows:brd-split` Phase 3 step 2 creates each child **inside the folder that run
+   resolved**, taking the parent half of the path from that folder's own name on disk and never
+   re-deriving it from `<PARENT-KEY>` — it says so in bold, gives this exact case as its reason, and
+   cites this step back for it — so an unprefixed root still gets correctly nested `PRD-` children.
+   `workflows-core:addressing` §5 keeps resolving the folders
    a pre-prefix repo already holds; this command does not add to them.
 
 
@@ -449,7 +462,13 @@ reading it did (`brd-format.md` §1.2).
    keep that section's transcription — the lines `brd-format.md` §1.2 names — **verbatim** and do not
    dispatch the image — a writer preserves what it did not produce, as
    `workflows-core:grounding-format` §6.2 has an index writer do with a row. On a first intake there
-   is no file and nothing is re-used.
+   is no file and nothing is re-used. **A section recording `Read: no` is re-used on that same test
+   and not re-dispatched**: the hash matched, so the bytes are the ones that could not be read, and
+   a retry spends a dispatch on a failure that will repeat — the reason `/workflows-core:frames`
+   does not retry a frame its describer could not read either. Such a section therefore counts under
+   `reused` and never again under `not read` (`brd-format.md` §1.2, which counts a re-used section
+   there whatever its *Read* line says), which is why the final report names every captured image
+   holding no transcription with its recorded reason rather than leaving the counts line to say it.
 2. **Dispatch `figure-reader` over the rest**, at most 10 images per dispatch and at most 4 dispatches
    in a single response, in further waves until none remain:
 
@@ -681,9 +700,15 @@ Act on `status`:
     returning indistinguishable from the one the run itself created. Only rows off that list are reported *not re-extracted by
     this read*, and a `quoted:` row a read **did** return is not in either state — it matched, and
     is nothing to report;
-  - **its anchor no longer resolves** — the revised source no longer carries what it named, or its
-    file is not in this run's capture: the row is kept whole too, id retained, and reported as a row
-    *this source no longer contains*; relation 1 below passes over it.
+  - **its anchor no longer resolves** — the revised source no longer carries what it named, or the
+    markdown file it names is not in this run's capture: the row is kept whole too, id retained, and
+    reported as a row *this source no longer contains*; relation 1 below passes over it.
+    **An image anchor is never in this state for want of a capture.** `brd-format.md` §1.2 keeps the
+    whole section of an image the run did not take — its marker, its *Read* line, its hash and its
+    transcription — and §2.2 resolves an image anchor against the transcription of any image the
+    figures file records as read, so such a row resolves and belongs in the first state above,
+    reported *not re-extracted by this read*. It is the same section Phase 5 writes
+    `yields [BR#n]` on in this same run, which is the reading that would otherwise be contradicted.
 
   Report the reconciliation: how many ids were preserved; **every id minted, by `[BR#n]` with its
   text** — a count alone would hide a requirement read twice under two ids; each text change (old →
@@ -879,11 +904,15 @@ choices: ["Finished with this item — the rows shown are all it binds (Recommen
     transcription element by element, whatever order the operator quoted them in: §2's reading order
     fixes where the item's rows sit among other items', and this fixes where they sit among each
     other, which §2 leaves open because an item's rows can share one anchor. **On a first intake,
-    say what that placing costs the numbering as the row is added**: ids are fixed once, after this
-    step, in reading order (`brd-format.md` §2), so a span quoted from a passage early in the
-    document takes an id one of the read's own rows would have had and moves every later one down —
-    the operator has just seen the read's numbering, and is otherwise left to discover that the
-    final ids are not it. Nothing is renumbered twice and no id on file moves, a first intake
+    say what that placing costs the numbering — once the item's last quote is taken, never as each
+    row is added**: ids are fixed once, after this step, in reading order (`brd-format.md` §2), so a
+    span quoted from a passage early in the document takes an id one of the read's own rows would
+    have had and moves every later one down. Said as each row went in, the sentence would be
+    falsified by the item's next quote out of source order, which moves the same rows again. **The
+    operator has seen no `[BR#n]` at all on a first intake** — none is printed anywhere before
+    Phase 4 — so what they are told is not that a numbering they read has changed, but that the ids
+    they will meet are not the order they quoted in. Nothing is renumbered twice and no id on file
+    moves, a first intake
     holding none; on a re-run the question does not arise, since a row added there takes the next
     id after the highest in use (above). Its id goes on the
     inventory's `quoted:` list (`brd-format.md` §2), which is what stops every later run reporting
@@ -894,6 +923,25 @@ choices: ["Finished with this item — the rows shown are all it binds (Recommen
     row like any other — numbered or minted as above, open to a candidate Phase 3.5 raises and to
     Phase 4's walk of it, and written to the ledger by Phase 5 — and the item's question comes back
     in its third form.
+  - **An unlabelled mark is named by its position instead of quoted**, and the quote prompt accepts
+    that answer on an image item. `brd-format.md` §1.2 writes such a mark's *Says* as `""`, which
+    says the mark carries no label and is no string to quote, and §2.2 refuses an empty image anchor
+    outright — so an image whose binding content is an unlabelled mark has nothing the rule above
+    can match, and without this the operator is left with *They hold no obligation*, which is false,
+    or *Cancel*. The prompt therefore also takes an answer naming an annotation by its position in
+    the image's *Annotations* table, `annotation <n>`, and shows the table beside the ask as it
+    shows the transcription. It is taken where that table has an n-th row **and** that row's *Says*
+    is `""`; where the row's *Says* carries a label, ask again for the label's own words, which are
+    quotable and which §2.2 prefers; where the table has no such row, it takes the failed-span
+    branch below like any other answer. The row is added exactly as a quoted span's is, save two
+    fields: its `source_anchor` is `<the image's path relative to brd/> › annotation <n>`, the one
+    form that reaches a mark with nothing to quote (`brd-format.md` §2.2, `agents/brd-reader.md`
+    step 4), and its `text` is that row's *Points at* as the transcription gives it, the transcription
+    holding nothing else about a mark that carries no words. It is placed among the item's rows at
+    that annotation's own position, in the same element-by-element order through the transcription
+    that a quoted span's row is placed by. An answer naming an annotation the item has already given
+    a row takes the failed-span branch too, for the reason that branch gives. Like a quoted span's
+    row it goes on the inventory's `quoted:` list.
   - ***Finished*** records nothing more: the item holds its rows, so no account is recorded for it,
     and those rows are its whole record.
   - **A span that does not occur, or repeats one the item has already given a row, is never written
@@ -1214,7 +1262,7 @@ and sort its sections **by altitude** — product-level content (what / why / fo
 implementation-level content into `<BRD-dir>/spec-seed.md`.
 
 **These land on the BRD root, and every consumer resolves a slice — so say where they are.** `<BRD-dir>`
-is always a root `BRD-` container (Phase 0 step 7 calls a slice a mis-keyed invocation), while
+is always a root `BRD-` container (Phase 0 step 7 stops on a slice with `BRD_INTAKE_SLICE`), while
 `/create-prd`, `/create-ard` and `/specify` each read their seed out of the resolved `PRD-` slice and
 each refuse a `BRD-` container before reading anything. Slices do not exist yet at intake time, so the
 seeds cannot be written into them here, and this run must not pretend otherwise: **name the three paths
@@ -1360,7 +1408,8 @@ Terminal phase — runs after Phase 8, NEVER interrupts an earlier phase.
 **Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command /
 reference gap**, `emit-block` (per `workflows-core:feedback-emission`) at that
 halt **before** escalating. None of Phase 0's stops qualify — a missing key, a missing source, a
-non-markdown source, and an unset `$SPECS_PATH` are all environment / user halts, never a plugin
+non-markdown source, a key that resolves to a slice (`BRD_INTAKE_SLICE`), and an unset
+`$SPECS_PATH` are all environment / user halts, never a plugin
 capability gap, so `emit-block` never fires from this command's own Phase 0. Nor does Phase 1's
 `BRD_INTAKE_UNREAD_ATTACHMENTS`: linked files the operator must convert first are an operator halt,
 as Phase 1 says where it stops.
@@ -1403,7 +1452,11 @@ accounted for; on a re-run, every file Phase 2 recorded **replaced**, saying whe
 want of a `captured:` record, and where one is so although its copy already stood
 with those bytes, because an earlier run copied it and reconciled no row against it — and each slice
 whose `source:` names a document other than the one this run copied (Phase 2); how many images were
-transcribed, re-used and not read, with each reason, and how many sections on file carry the *Not
+transcribed, re-used and not read, with each reason; **how many of the images this run captured hold
+no transcription at all — every one it dispatched that came back `read: false`, and every section it
+re-used whose *Read* line still records a failed read — each with the reason on record**, since a
+re-used one counts under `reused` and appears in `not read` on no run after the first, so the counts
+line alone would say a run read everything it has; and how many sections on file carry the *Not
 captured by the current run* marker (Phase 2.5); how many linked markdown files were read beside the
 document (Phase 3); on a re-run, the reconciliation — ids preserved, every id minted by `[BR#n]`
 with its text, each text change old → new, each answer to the same-or-new question, and each row

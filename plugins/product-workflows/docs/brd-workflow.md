@@ -112,9 +112,12 @@ split is visible to them. **That is the line.** A slice too large for one delive
 not reach the customer, is an Epics problem and stays one. A slice whose split must reach the
 customer — a separate package, a separate conversation — is what the re-cut is for.
 
-`/brd-intake` shows the operator every file the customer's document links, wikilinks included, then
-copies the document in verbatim and immutably together with every file they take — files outside its
-folder into `brd/source-external/` — since no later command writes under either directory, and a
+`/brd-intake` walks every link the customer's document makes, wikilinks included, read-only, and
+shows the operator what it found — the count of markdown files, images and files that are neither,
+inside the document's own folder and outside it; every target it could not resolve, with its reason;
+and by path every file outside the folder and every file that is neither markdown nor an image. Then
+it copies the document in verbatim and immutably together with every file they take — files
+outside its folder into `brd/source-external/` — since no later command writes under either directory, and a
 screenshot left uncaptured stays out of the record until the document is intaken again. It reads the
 linked markdown beside the document and has every linked image it takes transcribed, extracts a
 `[BR#n]` requirement inventory from all of it, confirms candidate defects with a human, and writes a
@@ -294,7 +297,8 @@ A slice starts life with three of those files, all written by the parent's `/brd
 slice has no `brd/source/` and no `brd/brd-defect-log.md` of its own, and inherits both from its
 parent), and a `coverage-ledger.md` with every row `unallocated`. That is what the solid edge from
 the root's `/brd-split` into `/prd-ground` above is: `/prd-ground` needs a ledger to gate on and an
-inventory to read, `/brd-intake` never runs on a slice — there is no separate document to intake —
+inventory to read, `/brd-intake` never runs on a slice — there is no separate document to intake, and
+a key that resolves to one stops the run with `BRD_INTAKE_SLICE` —
 and `/brd-split` is the only command holding both the parent's rows and the allocation that says
 which of them the slice claims.
 The slice keeps no `brd/source/` and no `brd/brd-defect-log.md` of its own and reaches for its

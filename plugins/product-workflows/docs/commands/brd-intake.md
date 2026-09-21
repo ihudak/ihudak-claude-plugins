@@ -67,7 +67,10 @@ in Phase 9, for session lessons-learned.
 
 ## What it needs
 
-- **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_INTAKE_NEEDS_KEY`.
+- **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_INTAKE_NEEDS_KEY`. A key
+  that resolves to a **slice** stops the run with `BRD_INTAKE_SLICE`, naming the parent to re-intake
+  instead: a slice has no source document of its own, its `brd/` directory is the parent's one hop
+  up, and re-running here would overwrite the allocations `/brd-split` recorded in its ledger.
 - **`@<brd-file>`** — mandatory; absent stops the run with `BRD_INTAKE_NEEDS_SOURCE`.
 - **Your answer about what the document links.** Phase 1 walks every link first, read-only, and shows
   you what it found. Where anything lies outside the document's own folder it asks whether to capture
@@ -249,9 +252,13 @@ Intake a synthetic customer BRD for a new BRD key:
 /product-workflows:brd-intake ACME-001 @customer-brd.md
 ```
 
-The run resolves or creates the BRD folder, shows you every file `customer-brd.md` links, copies it
-verbatim into `brd/source/` together with the files you took, records in `brd/brd-link-log.md` each
-link in a copied file whose target it did not copy, and why, transcribes the linked images,
+The run resolves or creates the BRD folder, walks every link `customer-brd.md` makes and shows you
+what it found — how many linked files of each kind (markdown, image, and files that are neither) lie
+inside the document's own folder and how many outside it, every target it could not resolve with its
+reason, and **by path** every file outside the folder and every file that is neither markdown nor an
+image — copies it verbatim into `brd/source/` together with the files you took, records in
+`brd/brd-link-log.md` each link in a copied file whose target it did not copy, and why,
+transcribes the linked images,
 dispatches `brd-reader` to extract the `[BR#n]` inventory from all of it, walks its defect
 candidates with you class by class, writes the coverage ledger with every row `unallocated`, and
 offers to branch, commit, push, and open a pull request.

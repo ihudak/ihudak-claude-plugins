@@ -212,7 +212,7 @@ lies outside the directory, this question is not asked, and every file the walk 
 **Where the taken set holds an *other* file — neither markdown nor an image — ask next, and put the
 reason beside the question**, because this is the one array in this command whose recommended option
 ends the run: such a file is copied and never read — Phase 2.5 reads images and Phase 3 markdown,
-and no later command of the route opens anything — so an obligation stated inside it enters the
+and no later command of the route opens it — so an obligation stated inside it enters the
 folder unseen and stays there, and converting it first is the one check that catches that.
 **Taking the recommendation therefore costs this run**: it ends having written nothing, and the
 operator who means to capture today answers *Proceed*, whose substance is recorded. Say both where

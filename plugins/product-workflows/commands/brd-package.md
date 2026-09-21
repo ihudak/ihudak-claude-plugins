@@ -887,7 +887,7 @@ second copy would fare better.
 
 ## Phase 7 — Render the delivery note
 
-**First, settle the delivery route — this is the only phase that may know it, and it settles it from
+**First, settle the delivery route — this is the only phase that may settle it, and it does so from
 what the run holds here, never from the *Handoff* phase's outcome.** That phase runs two phases
 later, and the note this phase writes is one of the files it commits, so the note cannot wait on its
 `Phase handoff:` line. What the repository route depends on is the bundle reaching the specs
@@ -924,16 +924,16 @@ remote to push to; and the operator consents to the handoff. Take all three here
      The recommendation stands because a bundle whose pull request has merged is where a customer
      with repository access can reach it, and the archive is then a copy of a thing they have.
    - **Any other state — the handoff declined, a gate condition unmet, or `remote: none`** → do
-     not ask. Take the archive route and say why in the Final report: nothing this run does will
-     put the bundle where a customer can pull it — a declined handoff and a failed gate commit
-     nothing, and with no remote a commit stays on this machine.
+     not ask. Take the archive route and say why in the delivery-route item (*Next steps*): nothing
+     this run does will put the bundle where a customer can pull it — a declined handoff and a
+     failed gate commit nothing, and with no remote a commit stays on this machine.
 
 **What this phase cannot hold is the handoff's outcome** — the branch it pushes to, which §2.2 may
 suffix, and whether that branch's pull request merges — because both come after the note is
 written. So the note names no branch: on the repository route it names the repository and the
 bundle's path, which is true once the bundle is on the default branch, and the *Handoff* phase then
-says in the Final report what makes it true on the outcome it got. The note is not rewritten for any
-outcome.
+settles what makes it true on the outcome it got, for the delivery-route item the *Next steps* phase
+prints beside the note. The note is not rewritten for any outcome.
 
 Write `<BRD-dir>/customer-delivery-note-<YYYYMMDD>.md` — the covering letter that goes in the email
 body. **It is not part of the bundle** (`bundle-packaging.md` §4): it is the email, not a package
@@ -962,8 +962,9 @@ Run the plugin-free scan over the finished note, exactly as over the prompt, and
 save one `bundle-packaging.md` §6.3 covers, which is put to the operator as it is over the prompt —
 the note is read by the same reader, on the same footing, before they open anything.
 
-Print the note **in full** in the final report, so it can be pasted into an email without opening a
-file.
+Print the note **in full** at the start of *Next steps*, before that phase's offer, with its
+delivery-route item directly after it — so the operator reads what they are being offered before
+they answer, and can paste the note into an email without opening a file.
 
 ---
 
@@ -1016,9 +1017,16 @@ self-review is free of them while being the most internal document this command 
    `design/<frame-set>/` folders, or one under `brd/source/` and one under `brd/source-external/` —
    each takes, between the prefix and the basename, the shortest run of its own trailing folder
    names that tells it from every other, joined by `-`: `design/login/01.png` and
-   `design/checkout/01.png` become `<BRD-KEY>-login-01.png` and `<BRD-KEY>-checkout-01.png`. Where
-   the joined names still coincide, the image whose path sorts later, byte-wise, takes `-2` before
-   its extension. The name is decided by the paths, never by the order images were copied in. An
+   `design/checkout/01.png` become `<BRD-KEY>-login-01.png` and `<BRD-KEY>-checkout-01.png`.
+   **Then test the name against every other name the bundle carries** — documents and images alike,
+   and not merely against the images that shared a basename, because a disambiguated
+   `<BRD-KEY>-login-01.png` collides with the plain name of an image whose own basename is
+   `login-01.png`, which no comparison among the sharers ever looks at. Where two names still
+   coincide, the one whose path sorts later, byte-wise, takes `-2` before its extension, and the
+   test runs again — `-2` can collide in its turn — until every name in the bundle is unique. A
+   prerequisite package's filenames are among the names tested and are never renamed (below), so a
+   collision with one is resolved on this package's file. The name is decided by the paths, never
+   by the order images were copied in. An
    embedded image in a rendered document points at that name (rule 2), and the manifest maps it
    (rule 6). **The `<BRD-KEY>` is the key of the package the document belongs to, not this run's
    key applied uniformly:** a prerequisite package copied in under rule 5 arrives already named from
@@ -1154,7 +1162,7 @@ gets **one archive command**. **It is printed only where the archive is the rout
 — on the repository route the customer pulls the bundle itself once the handoff's pull request
 merges, and printing a command to build them a copy of it is the same defect this increment removed
 from the prompt, one document further out.
-On the archive route, print it at the end of the run with an absolute path:
+On the archive route, print it in the delivery-route item (*Next steps*), with an absolute path:
 
 ```
 cd "<BRD-dir>" && zip -r "<BRD-KEY>-bundle-<YYYYMMDD>.zip" "bundle-<YYYYMMDD>"
@@ -1191,27 +1199,57 @@ still move*; and the repo→SHA table. Hand it the `remote` value Phase 7's prob
 has the entry point carry rather than probe a second time. Emit its §4.1 outcome line in the final
 report.
 
-**Then read that line against the route the *Render the delivery note* phase settled, and say what
-makes the note true — in the Final report's delivery-route item, which directly follows the printed
-note, and nowhere else.** On the archive route there is nothing to read: the note names what is
-attached, and it is true as written. On the repository route the note, already written and among
-the files just declared, sends the customer to pull the specs repository and open the bundle at its
-path — true only once the bundle is on the default branch, which no outcome line reports:
+**On the second or third choice `handoff-to-main` does not run, and the final report still carries
+an outcome line**: §4.1's *Declined by the user* row, its `<artifacts>` the `deliverable_paths` set
+above as that row counts it, and its `<next-phase-clause>` the **gated — stopping** one, which is
+what the array's parenthetical promised (`workflows-core:phase-handoff` §4.1, §4.3). Both options
+decline the handoff and nothing else (§4.3, *What each option means*): nothing is branched,
+committed or pushed, every file this run wrote stays in `<BRD-dir>` exactly as written, and none of
+them is deleted or reverted. Either way the run goes on to *Next steps* and the emitter tail, which
+commits this run's bounded session-artifact paths and never the deliverable. The route is the
+archive one, settled by the *Render the delivery note* phase from this same answer, so the paragraph
+below has nothing to read on either option.
+
+**Then read that line against the route the *Render the delivery note* phase settled, and settle
+what makes the note true. This phase settles it and prints it nowhere: it is printed in one place,
+the delivery-route item the *Next steps* phase prints directly after the note and before its
+offer.** On the archive route there is nothing to read: the note names what is attached, and it is
+true as written. On the repository route the note, already written and among the files just
+declared, sends the customer to pull the specs repository and open the bundle at its path — true
+only once the bundle is on the default branch, which no outcome line reports:
 
 - **The line records a push** — *Committed, pushed, PR opened*, *PR already existed* or *PR not
-  opened* → name the branch it pushed and its pull request — on *PR not opened*, that one is still
-  to be opened by hand — and say the note is true once that pull request merges, or, before then,
-  for a customer told to check out that branch.
-- **Any other line** — *Push failed*, *Gate failed* or another → say that nothing reached a ref a
-  customer can pull, and what must happen before the note is sent: the declared files committed
-  where nothing was, the branch pushed, and its pull request merged.
+  opened* → the item names the branch it pushed and its pull request — on *PR not opened*, that one
+  is still to be opened by hand — and says the note is true once that pull request merges, or,
+  before then, for a customer told to check out that branch.
+- **Any other line** — *Push failed*, *Gate failed* or another → the item says that nothing reached
+  a ref a customer can pull, and what must happen before the note is sent: the declared files
+  committed where nothing was, the branch pushed, and its pull request merged.
+- **The line carries a *Declaration unaccounted for* clause** — `; <path> was declared but staged by
+  nothing — this run put nothing on <branch> for it`, one clause per path (§4.1, whose causes §2.3
+  step 4 names: a path nothing wrote, one git ignores, or a declaration git could not place) → the
+  item names every such path and says the note is **not** true for it on any outcome: nothing was
+  put on the branch for that file, so it is not in the bundle a customer pulls once the pull request
+  merges, and no merge makes it so. That is settled per path and stands beside whichever bullet
+  above the line itself took, never in place of it.
 
 Do not rewrite the note under any outcome: it names the route the operator chose and the bundle's
-path, and the condition is what the report adds beside it.
+path, and the condition is what the item printed beside it adds.
 
 ---
 
 ## Phase 10 — Next steps
+
+**First, print the delivery note in full, and the delivery-route item directly after it.** The offer
+below asks whether to send the note, so the operator reads both before answering rather than after.
+The item states the route the *Render the delivery note* phase settled and why; on the archive
+route, the archive command with an absolute path (*Assemble the bundle*); on the repository route,
+that no archive command was produced because the customer pulls the committed bundle — so its
+absence is never read as a step that failed — and the
+condition the *Handoff* phase settled — the branch and the pull request whose merge the note waits
+on, every path that phase's outcome line reported declared but staged by nothing, which no merge
+makes the note true for, or, where it pushed nothing, what must happen first. **This item is the one
+place that condition is printed**, and the Final report points back to it rather than repeating it.
 
 The BRD-to-PRD route's next command is `/brd-reconcile`, which takes the returned review and turns
 each confirmed answer into a `[CD#n]` — and it is offered, named for what it needs, because it
@@ -1233,11 +1271,12 @@ choices: ["Stop here — the package is written and, if you handed it off, commi
 
 **What *Send it* means on the repository route, before the handoff's pull request merges.** The note
 sends the customer to pull the specs repository, and a customer pulling its default branch finds no
-bundle until that pull request merges; the delivery-route item beside the note in the Final report
-says which pull request, and, where the handoff pushed nothing, what must happen first. So *Send
-it* there means send once that condition holds — or send now with the branch named beside the note,
-for a customer who will check that branch out. On the archive route it means send now, the archive
-attached.
+bundle until that pull request merges; the delivery-route item printed above says which pull
+request, every path the handoff declared and staged nothing for — which that merge does not put
+there either, so the note stays untrue for it — and, where the handoff pushed nothing, what must
+happen first. So *Send it* there means send once that condition holds — or send now with the
+branch named beside the note, for a customer who will check that branch out. On the archive route it
+means send now, the archive attached.
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
 `When no option is safe to recommend` guidance in
@@ -1325,14 +1364,10 @@ named another BRD and were discharged, and every hit inside verbatim customer co
 customer-derived locator — this check's and the plugin-free scan's alike — that the operator was
 asked to rule on, under the *Customer content:* outcome line `bundle-packaging.md` §6.3's *The
 operator's ruling* fixes and grouped as that section fixes, **or `Customer content: none`**; **the
-delivery note, printed in full**; directly after it, **the delivery route settled in Phase 7 and
-why** — naming the archive command with an absolute path on the archive route, and on the repository
-route saying that none was produced because the customer pulls the committed bundle, so a reader of
-this report cannot mistake its absence for a step that failed, and then what makes the note true on
-the outcome the *Handoff* phase got — the branch it pushed and the pull request whose merge the note
-waits on, or, where it pushed nothing, what must happen first (*Handoff*, the one place that
-condition is settled); the feedback + cost paths; the
-`Phase handoff:` outcome line (`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line
+delivery note and its delivery-route item** — both printed at *Next steps*, before that phase's
+offer, and named here rather than repeated, so the condition the item carries is printed once; the
+feedback + cost paths; the `Phase handoff:` outcome line
+(`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line
 (`workflows-core:specs-repo-git` §6); the next-step recommendation; and — before the ledger line —
 the **repo→SHA table**:
 

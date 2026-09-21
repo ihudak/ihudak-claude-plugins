@@ -270,9 +270,10 @@ review said which it was, at the top, before the confirmations.
 ## 4. The delivery note
 
 The covering letter that goes in the email body. It is written to a file in the BRD folder and
-printed in full at the end of the packaging run, so it can be pasted without opening anything. **It
-is not part of the bundle** — it is the email, not a package document, and a copy of it inside the
-bundle would be a second, divergent statement of what was sent.
+printed in full before the run offers to send it, so the operator reads what they are being offered
+and can paste it without opening anything. **It is not part of the bundle** — it is the email, not a
+package document, and a copy of it inside the bundle would be a second, divergent statement of what
+was sent.
 
 **Hard length rule: 200 words.** Not a target, a ceiling. Past roughly that length the note stops
 being a covering letter and becomes a document, and a document is precisely what nobody reads before
@@ -346,9 +347,10 @@ pulling the repository does not find — but the note is itself one of the files
 commits, so the route is settled from what the run holds before it: whether the specs repository
 passes `workflows-core:phase-handoff` §2.1's gate, whether its push-target probe finds a remote to
 push to, and the handoff's consent, taken there. The note names no branch; what makes it true on
-the outcome the handoff got — the branch and pull request it pushed, or what must happen first — is
-said beside it in the run's final report (`commands/brd-package.md`'s *Render the delivery note*
-and *Handoff*).
+the outcome the handoff got — the branch and pull request it pushed, any declared path it staged
+nothing for, or what must happen first — is settled by the handoff and printed beside the note,
+in the delivery-route item that stands between the printed note and the offer to send it
+(`commands/brd-package.md`'s *Render the delivery note*, *Handoff* and *Next steps*).
 
 **The committed copy is the permanent record of exactly what was sent.** This is the point of D18
 and the reason the cost is worth paying: it is what makes the byte-identical property behind the
@@ -760,12 +762,12 @@ A free-text answer is read onto one of the two, or the question is asked again; 
 third outcome. **A hit an earlier ruling in this run already covered is listed under that ruling and
 not asked about again**, and a hit is keyed by its token and **the file it sits in** — one grouped
 line of rule 4, never the artifact its text was interpolated from. The bundle's copy of the prompt
-counts as the prompt for this: its hits are the ones the ruling taken over the prompt (*Render the
-customer prompt*) covered, so they are not put a second time when the bundle pass meets the prompt
-among the bundle's documents under its bundled filename. A hit in any other bundle document is that
-document's, even where the same token reached the prompt from it. A pass that reports nothing asks
-nothing. The run's final report records the rulings as one outcome line,
-above the grouped lines:
+counts as the prompt for this: those of its hits **whose token the ruling taken over the prompt
+(*Render the customer prompt*) covered** are not put a second time when the bundle pass meets the
+prompt among the bundle's documents under its bundled filename, and one carrying a token that
+ruling did not cover is put like any other. A hit in any other bundle document is that document's,
+even where the same token reached the prompt from it. A pass that reports nothing asks nothing. The
+run's final report records the rulings as one outcome line, above the grouped lines:
 
 `Customer content: <n> hit(s) in <m> file(s) — shipped as the customer's own, on the operator's ruling`
 

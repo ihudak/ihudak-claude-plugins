@@ -263,11 +263,15 @@ and nothing downstream can tell the difference afterwards.
    `decision-register-format.md` §4, against one of the two causes it admits — the *Write the
    register and the round record* phase moves its `status` to `reopened` and appends the closing
    `Reopened <YYYYMMDD>:` paragraph §4 puts in its `argumentation`, against the original record's
-   id — and the re-decision a later round takes on it, which writes its `chosen`, its `status` and
-   its argumentation after that paragraph, never over it (§4). Nothing else on either record moves,
-   and no other record here carries an exception. **An addition is not a rewrite, and one is made
-   to another run's entry**: the `- **Requirement defect:**` line — with its `- **Defect image:**`
-   line, where the defect sits on a row drawn from an image — that *Resolve the round* appends to a
+   id — and the re-decision that follows it, in this same run or a later one, which writes the
+   record's decision fields afresh and its argumentation after that paragraph, never over it or
+   what stands above it (§4, which names that set and owns the reopen and the re-decision alike;
+   the *Put each `[V]` to the operator* phase's picker and *The will-change rule* phase are where
+   `options_considered`, `evidence` and `conditional_on` are taken). Nothing else on either record
+   moves, and no other record here carries an exception. **An addition is not a rewrite, and one
+   is made to another run's entry**: the `- **Requirement defect:**` line — with its
+   `- **Defect image:**` line, where the defect sits on a row drawn from an image — that
+   *Resolve the round* appends to a
    held `[C]` entry in `interview/customer-questions.md` (*One question per row*), which changes
    nothing already written in it.
 
@@ -972,9 +976,10 @@ on an assumption. Ids are contiguous within their own prefix, assigned once, **n
 never reused after a terminal status** (§1) — a re-run continues the sequence from the highest id on
 file and never restarts it. A run that reopens a decision writes `status: reopened` with its cause
 named in the closing `Reopened <YYYYMMDD>:` paragraph §4 appends to its `argumentation`, against the
-original record's id; it never mints a new id for the same question. That, and the re-decision a
-later round writes after that paragraph, is the second of the two exceptions the *Resolve inputs
-and gate the grounded BRD* phase admits to rewriting another run's record.
+original record's id; it never mints a new id for the same question. That, and the re-decision
+following it — in this run or a later one — which takes the record's decision fields afresh and
+writes its argumentation after that paragraph (§4), is the second of the two exceptions the *Resolve
+inputs and gate the grounded BRD* phase admits to rewriting another run's record.
 
 **The register is written on every run that reaches this phase, whether or not the round produced a
 record.** Where no register is on file, this run creates it, and its first line is the header —

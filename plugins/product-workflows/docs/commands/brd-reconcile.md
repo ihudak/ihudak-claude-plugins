@@ -327,11 +327,13 @@ own register is in flight is **recorded, never written**, so nothing overwrites 
 pull request and no downstream BRD can stall the prerequisite's customer loop. Every id a sweep
 write names carries the key of the BRD whose numbering it is, always in prose as `<BRD-KEY> [CD#n]`
 — never the `<BRD-KEY>/[CD#n]` shape of a declared field such as `conditional_on`, since no sweep
-write writes one — because the dependent's register numbers its own records, and a bare id there
-names one of them or none. Each write says where the id goes: a `reverted`, `reopened` or
-`withdrawn` record takes it — a reopened record's cause included — in a closing paragraph appended
-to its `argumentation`, opening `Reverted`, `Reopened` or `Withdrawn` and the date, beneath the
-customer's quoted reason on a customer decision and never inside it; an `inherited-unchanged` item
+write names the changed id in one: a `reverted` write restores that field to the value the record
+already held, in the field's own shape — because the dependent's register numbers its own records,
+and a bare id there names one of them or none. Each write says where the id goes: a `reverted`,
+`reopened` or `withdrawn` record takes it — a reopened record's cause included — in a closing
+paragraph appended to its `argumentation`, opening `Reverted`, `Reopened` or `Withdrawn` and the
+date, beneath everything that field already holds and, on a customer decision, beneath the
+customer's quoted reason and never inside it; an `inherited-unchanged` item
 is left unwritten, and its row, naming both records, is in this run's reconciliation record.
 
 **Stale cross-references.** Rooted at the **parent's** folder, so a sibling slice is reached. Two

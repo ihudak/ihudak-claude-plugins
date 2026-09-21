@@ -1255,7 +1255,7 @@ run to inherit-unchanged its way through a sweep whose whole purpose is to find 
 | Disposition | Recorded as |
 |---|---|
 | `inherited-unchanged` | **nothing is written into the dependent's record**, which is unchanged; the row is this run's, in the reconciliation record (*Write the reconciliation record*, *The sweeps*), naming the dependent's record and the changed id that was considered, each qualified (below), and why the change does not move the position. **The row is written even so** — an item checked and found unaffected and an item never reached are different facts |
-| `reverted` | the record's `chosen` and `argumentation` return to the position that stood before the prerequisite moved it, and the changed id, qualified (below), is named in a closing `Reverted <YYYYMMDD>:` paragraph appended to that `argumentation` (`decision-register-format.md` §4) |
+| `reverted` | the record's decision fields — the set `decision-register-format.md` §4 names, which is §1's set for a decision's own writing — return to the position that stood before the prerequisite moved it, and the changed id, qualified (below), is named in a closing `Reverted <YYYYMMDD>:` paragraph appended to its `argumentation`, beneath everything that field already holds, which this write never rewrites (§4) |
 | `reopened` | `status: reopened` on that record, its cause — this run's `[CD#n]`, qualified (below) — named in the closing `Reopened <YYYYMMDD>:` paragraph `decision-register-format.md` §4 appends to its `argumentation`: an incoming customer decision is exactly one of the two causes §4 admits |
 | `withdrawn` | `status: withdrawn`, its reason — naming the changed id, qualified (below) — in a closing `Withdrawn <YYYYMMDD>:` paragraph appended to its `argumentation` (`decision-register-format.md` §4): the question stopped applying rather than being answered differently. It is **not** a tidier spelling of `superseded` (§3), and it is what stops a request from reappearing in the next customer package after the customer has already dealt with it |
 
@@ -1274,9 +1274,11 @@ dependent record's `argumentation` (`decision-register-format.md` §4), and, for
 reconciliation record, where the dependent's own record is named with the dependent's key the same
 way. **Never the cross-BRD slash shape `decision-register-format.md` §5 fixes, `<BRD-KEY>/[CD#n]`**:
 that is the spelling of a structured field an authority declares — `conditional_on` among them — and
-§6.2's relation 1 reads it as qualified only in a field its table lists. This sweep writes no such
-field — the one of a record's thirteen (`decision-register-format.md` §1) that takes its ids is
-`argumentation`, which is prose — so no sweep write uses the shape.
+§6.2's relation 1 reads it as qualified only in a field its table lists. No sweep write names a
+changed id in one of those fields: the one of a record's thirteen (`decision-register-format.md`
+§1) that takes the ids this rule is about is `argumentation`, which is prose, and a `reverted`
+write that restores `conditional_on` restores the value the record already held, in that field's
+own shape (§4).
 
 **A dependent BRD whose register is in flight is recorded, never written.** This is the *cross-BRD
 write guard* above, applied to each dependent's `decisions.md`: `require-on-main` first, and on any

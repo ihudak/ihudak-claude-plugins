@@ -171,12 +171,23 @@ and the original `chosen` stands.
 **The cause is written in the record's `argumentation`**, as a closing paragraph appended beneath
 what the field already holds and opening `Reopened <YYYYMMDD>:` — never in place of the reasoning
 the re-decision has to argue against. None of §1's thirteen fields is a cause, and `argumentation`
-is the one that already answers *why*. **That paragraph stays.** The re-decision writes its own
-argumentation after it — why the change moves the answer, or why it does not — and never replaces
-it or what stands above it, so the record carries the original reasoning, the cause and the answer
-to the cause in the order they happened. On a `[CD#n]`, whose `argumentation` is the customer's own
+is the one that already answers *why*. On a `[CD#n]`, whose `argumentation` is the customer's own
 reason quoted, the paragraph follows the quotation and leaves it exactly as written; its opening
 marker is what tells the plugin's words from the customer's (`references/bundle-packaging.md` §6.3).
+
+**What stands in `argumentation` stays, and a re-decision or a reversion writes only after it.**
+Both write in place, against the record's own id. Both take afresh the fields §1 fills when a
+decision is taken — `statement`, `options_considered`, `chosen`, `evidence`, `defects`,
+`conditional_on` and `status` — each under the rule §1 gives it, and `evidence` and
+`conditional_on` under §6's will-change rule as well; every other field stays as it stands, and on
+an `[AS#n]` the sweep reverts only those of them §7 admits, an assumption having no
+`options_considered` and no `chosen`. A **re-decision**, taken by the run that reopened the record
+or by a later one, writes its argumentation after the `Reopened` paragraph: why the change moves the
+answer, or why it does not. A **reversion** — `commands/brd-reconcile.md`'s propagation sweep writes
+one, and nothing else does — returns those fields to the position that stood before the prerequisite
+moved it and appends its `Reverted <YYYYMMDD>:` paragraph. Neither replaces the `Reopened` paragraph
+or anything above it, so the record carries the original reasoning, each cause and each answer to a
+cause in the order they happened.
 
 **A cause from another BRD is named with that BRD's key, in prose.** That is the propagation
 sweep's case: `commands/brd-reconcile.md` reopens a dependent's record on a `[CD#n]` the
@@ -187,11 +198,12 @@ the one qualified prose spelling `references/bundle-packaging.md` §6.2 fixes. T
 the withdrawn case. **Never §5's slash shape, `<BRD-KEY>/[CD#n]`**: that is the spelling of a
 structured field whose owning authority declares it — `conditional_on` is the one in this register —
 and `references/bundle-packaging.md` §6.2's relation 1 reads it as qualified only in a field its
-table lists. No sweep write writes one of those fields, so none uses the shape. A bare `[CD#n]`
-names a record of the register it sits in — the wrong one where this register holds that id, none
-where it does not — and this register ships in its own BRD's package, whose citation check resolves
-a bare id the same way. An unnamed cause and a cause naming the wrong record fail alike: neither
-says what changed.
+table lists. No sweep write names the changed id in one of those fields: a `reverted` write that
+restores `conditional_on` restores the value the record held, in that field's own shape, and names
+the changed id only in its `Reverted` paragraph. A bare `[CD#n]` names a record of the register it
+sits in — the wrong one where this register holds that id, none where it does not — and this
+register ships in its own BRD's package, whose citation check resolves a bare id the same way. An
+unnamed cause and a cause naming the wrong record fail alike: neither says what changed.
 
 The rule's purpose is not ceremony. A register that can be reopened freely is a register whose
 `decided` status means nothing, and a customer who signed off on a set of decisions signed off on

@@ -179,10 +179,12 @@ the customer pull the bundle; where any of the three fails — declining the han
 declines only the handoff and ends nothing else — nothing this run does puts the bundle where a
 customer can pull it, so it takes the archive route without asking and says so. The note names no
 branch, because the branch is settled by the handoff and the bundle reaches the default branch only
-when the handoff's pull request merges: on the repository route the report prints, beside the note,
-the branch and pull request the handoff pushed and says the note is true once that pull request
-merges — or, where nothing was pushed, what must happen first; the *Send it* next step waits on
-the same condition. The archive command is printed only on the archive route. **The prompt itself
+when the handoff's pull request merges: on the repository route the run prints, beside the note and
+before it offers to send it, the branch and pull request the handoff pushed and says the note is
+true once that pull request merges — or, where nothing was pushed, what must happen first, and
+where the handoff declared a path and staged nothing for it, that the note is not true for that file
+on any outcome; the *Send it* next step waits on the same condition. The archive command is printed
+only on the archive route. **The prompt itself
 names no route** — it is handed on to a reader the run cannot see, and a path is correct exactly
 once, so only the delivery note names where the bundle is.
 
@@ -362,10 +364,11 @@ disposition, asks which tier the customer can be given, renders the prompt, asks
 commit, push and open a pull request — and, on a yes where the specs repo can take the commit and
 has a remote to push to, how the customer gets the bundle — renders the note, assembles
 `bundle-<date>/` with the prerequisite's package copied in and marked *not for re-review*, and hands
-it off as answered. The report prints the delivery note in full and, directly after it, the delivery
-route and why — the archive command with an absolute path on the archive route, or a line saying
-none was produced because the customer pulls the committed bundle, with the branch and pull request
-the note waits on — then the repo→SHA table and the ledger line.
+it off as answered. The next-step phase prints the delivery note in full and, directly after it and
+before its offer, the delivery route and why — the archive command with an absolute path on the
+archive route, or a line saying none was produced because the customer pulls the committed bundle,
+with the branch and pull request the note waits on — and the report names both rather than
+repeating them, then prints the repo→SHA table and the ledger line.
 
 ## See also
 

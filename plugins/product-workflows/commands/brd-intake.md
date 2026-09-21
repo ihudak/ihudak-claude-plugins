@@ -209,10 +209,17 @@ file's links to files outside the directory. A link sitting inside an excluded f
 because the file holding it is not copied. *Stop* ends the run with nothing written. Where nothing
 lies outside the directory, this question is not asked, and every file the walk reached is taken.
 
-**Where the taken set holds an *other* file — neither markdown nor an image — ask next:**
+**Where the taken set holds an *other* file — neither markdown nor an image — ask next, and put the
+reason beside the question**, because this is the one array in this command whose recommended option
+ends the run: such a file is copied and never read — Phase 2.5 reads images and Phase 3 markdown,
+and no later command of the route opens anything — so an obligation stated inside it enters the
+folder unseen and stays there, and converting it first is the one check that catches that.
+**Taking the recommendation therefore costs this run**: it ends having written nothing, and the
+operator who means to capture today answers *Proceed*, whose substance is recorded. Say both where
+the question is put, not only here.
 
 ```
-choices: ["Stop and convert them first — nothing has been written (Recommended)", "Proceed — none of them carries an obligation (recorded)", "Use a different key or path (you'll be prompted)"]
+choices: ["Stop and convert them first — this run ends here, having written nothing (Recommended)", "Proceed — none of them carries an obligation (recorded)", "Use a different key or path (you'll be prompted)"]
 ```
 
 *Stop and convert* ends the run with nothing written:
@@ -220,7 +227,8 @@ choices: ["Stop and convert them first — nothing has been written (Recommended
 `<k>` is how many *other* files the taken set holds, and `<paths>` names each of them.
 It is an operator halt, not a plugin gap, so `emit-block` does not fire — Phase 9 makes the same call
 for every Phase 0 stop. **Converting is the operator's checked step for the same reason Phase 0 step 3
-refuses to convert the document**: an unchecked conversion would silently become part of the record.
+refuses to convert the document**: an unchecked conversion would silently become part of the record —
+which is the half of the reason above that outlives the choice, and why the marker sits where it does.
 *Proceed* copies them, reads none of them, and records the answer's substance in the final report —
 *none of them carries an obligation*, not the option's label — exactly as Phase 3's *"They hold no
 obligation"* answer is recorded. **A typed answer** — the harness's free-text option, which no array

@@ -663,11 +663,12 @@ Act on `status`:
     relation 1 below tests it like any other row. **Except a row the inventory's `quoted:` list
     names** (`brd-format.md` §2), which is kept the same way and reported in its own words —
     *added from a quoted span; this read did not return it* — a claim about this read and never
-    about every read before it, since a revised document can make the agent start returning such a
-    row and a later read stop again, which is a genuine drop this wording keeps visible. The
-    coverage step minted it precisely because `brd-reader` did not return it, and over a source
-    the customer has not revised the agent is handed the same inputs on every later run, so not
-    being returned is the ordinary case here rather than news; reporting it in the other words would leave a row the agent genuinely stopped
+    about every read before it, since a change to what the agent is handed — a revised document, a
+    transcription `/product-workflows:brd-reconcile` corrected (`brd-format.md` §1.2) — can make it
+    start returning such a row and a later read stop again, which is a genuine drop this wording
+    keeps visible. The coverage step minted it precisely because `brd-reader` did not return it,
+    and **where nothing it is handed has changed it will not return it on a later run either**, so
+    not being returned is the ordinary case here rather than news; reporting it in the other words would leave a row the agent genuinely stopped
     returning indistinguishable from the one the run itself created. Only rows off that list are reported *not re-extracted by
     this read*, and a `quoted:` row a read **did** return is not in either state — it matched, and
     is nothing to report;
@@ -868,10 +869,10 @@ choices: ["Finished with this item — the rows shown are all it binds (Recommen
     fixes where the item's rows sit among other items', and this fixes where they sit among each
     other, which §2 leaves open because an item's rows can share one anchor. Its id goes on the
     inventory's `quoted:` list (`brd-format.md` §2), which is what stops every later run reporting
-    it as a row this read failed to re-extract: over a source the customer has not revised
-    `brd-reader` is handed the same inputs and will not return it then either, having not returned
-    it now; where a revision does make it start being returned, the row simply matches like any
-    other and there is nothing to report. From then on it is a
+    it as a row this read failed to re-extract: where nothing `brd-reader` is handed has changed it
+    will not return it then either, having not returned it now; where a change to what it is handed
+    — a revised source, a corrected transcription — does make it start being returned, the row
+    simply matches like any other and there is nothing to report. From then on it is a
     row like any other — numbered or minted as above, open to a candidate Phase 3.5 raises and to
     Phase 4's walk of it, and written to the ledger by Phase 5 — and the item's question comes back
     in its third form.

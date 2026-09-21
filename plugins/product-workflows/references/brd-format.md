@@ -286,6 +286,11 @@ none
 - **Flow** is one list item per edge, `- <edge>`, each edge in the notation
   `agents/figure-reader.md` fixes — no mark around a label — and `none` for an image that is not a
   diagram. An image anchor quotes an edge exactly as it reads, without the list marker (§2).
+  **This list carries no grouping, which bounds what an edge anchor can name**: a diagram drawing
+  one edge in two places — two swimlanes, two phases — is transcribed as two identical list items,
+  so an anchor quoting it names none of them (§2.2) and a positional form would name a place in
+  this list, whose order is `figure-reader`'s rather than the diagram's, recovering nothing the
+  notation did not keep.
 - **Read** is `yes`, or `no — <reason>` with `figure-reader`'s reason (`missing`, `not_an_image`,
   `unreadable`); an image not read carries no transcription sections, only its header lines.
 - **Content hash** is the SHA-256 of the image's bytes. A later intake run keeps the section's

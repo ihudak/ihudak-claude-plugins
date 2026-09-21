@@ -189,8 +189,10 @@ choices: ["Capture all <n> from outside the folder (Recommended)", "Only the doc
 
 *Capture all* takes every file the walk reached, the outside ones included, and Phase 2 copies those
 into `brd/source-external/`. **`<n>` counts what this answer decides and nothing else: how many
-distinct files the walk reached *outside* the document's own directory** — the files the second
-answer drops. It is never the size of the taken set: that set's own size is in the counts by kind
+distinct files the walk reached *outside* the document's own directory** — every file the second
+answer drops save one, since that answer also drops an inside file reachable only through an outside
+one, which is named by path beside the question rather than counted here (below). It is never the
+size of the taken set: that set's own size is in the counts by kind
 printed above, which state inside and outside separately, and the final report counts the files
 actually copied beside the source. A target that resolved to no single file is in none of the three,
 since nothing was reached — it is named above with its reason instead, and nowhere counted.
@@ -586,10 +588,14 @@ Act on `status`:
   quote of annotation 2's *Says*, or a longer quote of the same *Text* region — so a matched pair
   whose anchors differ is reachable, and a moved row and a re-anchored one look alike from here:
   the read may have found the same requirement at a neighbouring element, or a different one.
-  *Same requirement* keeps the existing row whole, its `source_anchor` with it; *A new requirement*
-  unmatches the pair, so the returned row is minted and the existing row is kept as one nothing
-  matched (below). **Its `text` turns on whether the file its anchor points into
-  changed** — the file the matched anchors name, as Phase 2 recorded it:
+  *Same requirement* keeps the pair matched and keeps the existing `source_anchor` with it;
+  *A new requirement* unmatches the pair, so the returned row is minted and the existing row is kept
+  as one nothing matched (below). **For a pair the anchors send there, that question settles the
+  anchor and whether the two are one requirement — never the text**, which follows the rule below
+  either way: on a file Phase 2 recorded **replaced**, *Same requirement* keeps the id, takes the
+  returned `text` and reports the change old → new, because the question was never asked about a
+  wording the revised document no longer carries. **Its `text` turns on whether the file its anchor
+  points into changed** — the file the matched anchors name, as Phase 2 recorded it:
   - **replaced** — the document included where it came under a new filename (Phase 2): the row
     takes the returned `text`, and where the two differ after decoding and whitespace collapse the
     run reports the change, old → new, with the row's `[BR#n]`;
@@ -626,15 +632,20 @@ Act on `status`:
   ```
 
   `[BR#n]` is the lowest-numbered of them. *Same requirement* matches the two as pass 2 would: the
-  row keeps its id, its anchor and its existing `text`. *A new requirement* leaves the returned row to
+  row keeps its id, its anchor and its existing `text` — **stated for the unmatched-row case this
+  question was written for, where the file is recorded unchanged** (above), so keeping the text is
+  what the text rule gives anyway. **For a pair the differing anchors sent here it keeps the id and
+  the existing anchor, and the text rule settles the text** — the returned one on a replaced file,
+  reported old → new. *A new requirement* leaves the returned row to
   be minted (below) and every existing row shown for the next question under that anchor. **A typed
   answer** — the harness's free-text option (`workflows-core:escalation-rules` §0) — giving the
   `[BR#n]` of another row shown matches that one instead, exactly as *Same requirement* would; one
   naming a row not shown, or expressing none of these, is asked again, and none is taken by default.
   *Cancel* ends the run before this phase writes anything, so the inventory on file stands with its
   `document:`, `captured:` map, `accounts:` map and `quoted:` list, and a re-run judges the document
-  and every file against the same record and keeps naming the same rows as quoted. An existing row no answer matched stays unmatched and is kept as below —
-  its anchor resolves, so as *not re-extracted by this read*.
+  and every file against the same record and keeps naming the same rows as quoted. An existing row no answer matched stays unmatched and is kept as below,
+  in the words its own state there gives it — its anchor resolves, so *not re-extracted by this
+  read*, save a `quoted:` row, which is reported apart from those (below).
 
   **Only a returned row that matches nothing existing is new**, and it takes the next id after the
   highest already in use — never a gap-filling reuse of a retired one. A row the coverage step adds
@@ -651,11 +662,13 @@ Act on `status`:
     as *not re-extracted by this read*, naming its file where Phase 2 recorded that file replaced;
     relation 1 below tests it like any other row. **Except a row the inventory's `quoted:` list
     names** (`brd-format.md` §2), which is kept the same way and reported in its own words —
-    *added from a quoted span; no read has returned it* — because no read ever did: the coverage
-    step minted it precisely because `brd-reader` did not return it, and the agent is handed the
-    same inputs on every later run. That is this row's steady state, not a fact about this read, and
-    reporting the two alike would leave a row the agent genuinely stopped returning indistinguishable
-    from the one the run itself created. Only rows off that list are reported *not re-extracted by
+    *added from a quoted span; this read did not return it* — a claim about this read and never
+    about every read before it, since a revised document can make the agent start returning such a
+    row and a later read stop again, which is a genuine drop this wording keeps visible. The
+    coverage step minted it precisely because `brd-reader` did not return it, and the agent is
+    handed the same inputs on every later run, so not being returned is the ordinary case here
+    rather than news; reporting it in the other words would leave a row the agent genuinely stopped
+    returning indistinguishable from the one the run itself created. Only rows off that list are reported *not re-extracted by
     this read*, and a `quoted:` row a read **did** return is not in either state — it matched, and
     is nothing to report;
   - **its anchor no longer resolves** — the revised source no longer carries what it named, or its
@@ -1371,8 +1384,8 @@ transcribed, re-used and not read, with each reason, and how many sections on fi
 captured by the current run* marker (Phase 2.5); how many linked markdown files were read beside the
 document (Phase 3); on a re-run, the reconciliation — ids preserved, every id minted by `[BR#n]`
 with its text, each text change old → new, each answer to the same-or-new question, and each row
-kept — as *not re-extracted by this read*, as one *added from a quoted span; no read has returned
-it*, or as one *this source no longer contains* — or, after an
+kept — as *not re-extracted by this read*, as one *added from a quoted span; this read did not
+return it*, or as one *this source no longer contains* — or, after an
 `EMPTY` read over an earlier intake's inventory, that every row stands as it was (Phase 3); the
 coverage outcome for sections and images — whether a re-read ran, and where it found no requirement
 that the first read's result stood, each row added from a span the operator quoted, by `[BR#n]` with

@@ -432,7 +432,10 @@ account (§1.2) and is never where one is read from. A slice's inventory carries
 either, for the reason above.
 
 **`quoted:` records which rows came from a span the operator quoted**, so a later run can tell a row
-`brd-reader` never returned from one it stopped returning. One `[BR#n]` per line, each
+the coverage step created from one the reader extracted and later stopped returning. **It records a
+provenance, never a history**: the list says where a row came from, and says nothing about which
+reads have or have not returned it since — so what a run reports off it is a claim about its own
+read alone. One `[BR#n]` per line, each
 double-quoted as a `claims:` entry is (§2.1); the key is omitted entirely where the inventory holds
 none. `/brd-intake` Phase 3 writes it with the rows, in the same act as `captured:` and `accounts:`,
 adding the id of every row its coverage step minted from a quote this run and keeping every id

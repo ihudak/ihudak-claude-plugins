@@ -207,7 +207,7 @@ it closes no defect, and an inventory row quoting a corrected element is left as
 ````markdown
 ---
 key: <the run's <BRD-KEY> as Phase 0 validated it — never parsed from the folder name>
-source: <the document's basename — the inventory's document: where it carries one, else this log's opening line; §1.1 fixes which file that is>
+source: <the document's basename — the inventory's document: where it carries one, else brd/brd-link-log.md's opening line; §1.1 fixes which file that is>
 written_by: brd-intake
 ---
 

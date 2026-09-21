@@ -1235,22 +1235,32 @@ afterthought is what gets skipped.
 in the changed set, plus every finding those decisions rest on. **Which fields are read is derived
 from `decision-register-format.md` §1 rather than kept as a list here**, because a list written
 here goes stale against §1 the first time a field is added, and the field it omits is the one
-nobody notices. Read **every field §1 defines that can carry a reference to another record**, which
-is two kinds: the fields holding **text somebody wrote** — `statement`, `argumentation`, and
-`chosen` with the `options_considered` it is drawn from — where an id is named inside a sentence or
-a recorded answer; and the fields whose value **is** an identifier, taken **only where the changed
-set can carry that field's id class**.
+nobody notices. **Read every field §1 defines. Skip exactly two kinds and read the rest:**
 
-Read against §1 and against the set this phase fixed, that is `evidence`, `settles` and
-`conditional_on` beside the four text fields: `settles` holds the `[DEF#n]` the set carries for
-every defect that gained a resolution, and an `[AS#n]`'s `evidence` is prose (§7) that can name one
-in a sentence. **`defects` falls out of the derivation rather than being lifted out of it by hand**
-— it holds `[CDF#n]` ids alone (§1) and no `[CDF#n]` is a class the set carries, a code defect
-being the operator's to re-dispose in an interview round rather than a customer's to change — so
-the day that set admits a `[CDF#n]`, this pass reads `defects` without a word here changing, which
-a written-down exception could not do. **A record's own `id` is not a reference** and is not read:
-it names the record rather than citing another, and a bare id there would resolve against the
-dependent's own register in any case.
+- a field whose value §1 **fixes to an identifier class** — on every record kind the field appears
+  on, §7's assumption rows included — **where the changed set carries no id of that class**. A
+  field §7 gives a different meaning on an `[AS#n]` is not fixed, and is read.
+- a field that **names the record itself** rather than citing another.
+
+**The skip list is the short one on purpose, and the default is to read.** This pass fails by
+missing a citation, never by reading a field that turns out to hold none — scanning a fixed
+vocabulary or a round number costs nothing and finds nothing — so a field added to §1 tomorrow is
+read on the day it is added, without a reader having to notice it. A rule shaped the other way
+round, enumerating what to read, has to be *maintained* into correctness every time §1 moves, and
+this paragraph has now been wrong in both directions for exactly that reason: it once over-produced
+and struck `defects` out by hand, then under-produced and let an `[AS#n]`'s `evidence` in only by a
+worked reading.
+
+*Read against §1 and the set this phase fixed, the two skips today are `defects` and `id`, and
+everything else is read* — a reading of the rule above, not a second copy of it. `defects` holds
+`[CDF#n]` ids on every record kind (§1, §7's *As-is*) and the set carries no `[CDF#n]`, a code
+defect being the operator's to re-dispose in an interview round rather than a customer's to change;
+the day that set admits one, this pass reads `defects` with nothing here changing. `id` names the
+record, and a bare id there would resolve against the dependent's own register in any case.
+`evidence` is read because §7 makes it the why-no-evidence **statement** on an `[AS#n]` — prose
+that can name a changed id in a sentence — so §1 does not fix it to a class anywhere near every
+record. `settles` is read on the class test alone: it holds the `[DEF#n]` the set carries for every
+defect that gained a resolution.
 
 **`chosen` is read on both record kinds, and for the same reason `statement` is.** On a `[CD#n]` it
 can be the customer's answer quoted verbatim, where they answered outside the options put (§1) —
@@ -1259,10 +1269,10 @@ option the operator chose, in the delivery team's own words. `options_considered
 because a `chosen` that is not the outside-the-options form **is** one of its members, so reading
 one without the other would find an id in the answer and miss the same id in the option beside it.
 **A hit in either is disposed like any other, and no disposition corrects the text**:
-`inherited-unchanged` writes nothing, `reopened` and `withdrawn` move `status` and append their
-closing paragraph, and `reverted` restores the whole position under §4 rather than editing a
-sentence inside one. Correcting a stale sentence is the *other* sweep's act, and its `decisions.md`
-row refuses it there.
+`inherited-unchanged` writes nothing into the dependent's record, `reopened` and `withdrawn` move
+`status` and append their closing paragraph, and `reverted` restores the whole position under §4
+rather than editing a sentence inside one. Correcting a stale sentence is the *other* sweep's act,
+and its `decisions.md` row refuses it there.
 
 **Every item the sweep reaches is forced to exactly one disposition.** Present each one at a time,
 with the item, the changed id that reached it, and what changed about that id:

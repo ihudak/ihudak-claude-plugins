@@ -217,8 +217,14 @@ write would re-ask a question already answered.
    **Where `--sent` was given, this gate is replaced by three checks and the phases below are
    unchanged:**
    - Step 2 already proved every `--sent` path readable.
-   - **A plugin-built package must not also be on main.** Run the ordinary gate below first, and
-     where it would have passed, stop rather than admitting a second answer to "what did the
+   - **A plugin-built package must not also be on main.** **Where the resolved folder holds no
+     `customer-review-prompt-<YYYYMMDD>.md` at all, there is no path to gate on and the gate is not
+     run**: the test is answered without it — nothing was handed off, so `--sent` is not redundant —
+     and that is recorded with the admission below. This is the ordinary state on the path `--sent`
+     exists for, and it is stated because the gate takes a concrete `path` input (§3) that a folder
+     holding no prompt cannot supply; a run that formed one anyway would be gating on a filename it
+     invented. Where the folder does hold one, run the ordinary gate below against the most recent,
+     and where it would have passed, stop rather than admitting a second answer to "what did the
      customer see":
      `BRD_RECONCILE_SENT_REDUNDANT: <BRD-KEY> already has a handed-off customer package (customer-review-prompt-<YYYYMMDD>.md on <default-ref>) — drop --sent and re-run '/product-workflows:brd-reconcile <KEY> @<review-file>', which reconciles against the package that was built.`
      **"Would have passed" means §3.7 returned `pass` or `pass_amending`, and nothing else.** Those
@@ -492,6 +498,16 @@ path nobody else can reproduce; the copy is the record.
    colliding with it, and §3.3's row B names a branch "created earlier in the same invocation via
    this caller's own `handoff-to-main`" as an anticipated state.
 
+   **Two calls emit two §4.1 outcome lines, and this command is the one caller that does.** That
+   section's own contract is one `Phase handoff:` line per run, written for a caller that hands off
+   once, and `workflows-core:next-phase-offer` resolves a `<merge-clause>` from *the* line. So
+   neither line is printed bare here: each is **labelled with which handoff it reports** — the
+   customer's document, or this run's own deliverable — wherever it appears, and **a
+   `<merge-clause>` this run prints resolves from the second**, the deliverable one, because that is
+   the artifact a next command waits on. The divergence from §4.1's count is real and is not this
+   command's to settle: it is recorded for the owner of that reference, and until it is settled the
+   labelling is what keeps a reader and an offer from taking the wrong line.
+
    **Declining does not stop the ingest.** Options 2 and 3 both decline the handoff (§4.3), the copy
    stays written, and the run proceeds — the copy-before-ingest ordering this phase exists for is
    satisfied by the copy, and what a decline costs is the push, which the run's own handoff offers
@@ -602,8 +618,19 @@ the operator, **one at a time, never batched**, with:
   candidate this one pulls against.
 
 ```
-choices: ["Confirm — this is what the customer decided; freeze it", "Correct it — the row does not match the quotation; supply the row that does, and freeze that", "Reject — this is not a customer decision at all; record why", "Ask the customer — the answer is not clear enough to freeze; the question stays open"]
+choices: ["Confirm — this is what the customer decided; freeze it", "Correct it — the row does not match the quotation; supply the row that does, and freeze that", "Reject — not a customer decision at all, a declared refusal to answer included; record why", "Ask the customer — the answer is not clear enough to freeze; the question stays open"]
 ```
+
+**A customer who explicitly declines to answer takes *Reject*, and the schema guarantees that case
+exists** (`${CLAUDE_PLUGIN_ROOT}/references/customer-review-schema.md` §5): the reader returns it as
+what it is, and it is **not** a customer decision, so nothing about it may be frozen — *Confirm*
+would write a non-answer into the register as the customer's own authority, which is the D14 failure
+arriving through the one door left open. It is not *Ask the customer* either: that option is for an
+answer too unclear to freeze, and a decline is perfectly clear. **What *Reject* records here is the
+decline itself** — the customer's words, and their reason or `not stated` as the plain fact it is —
+so the round record shows the question as **declined** rather than unanswered, and a later round can
+decide whether to put it again, drop it, or take it as a `[V]` the delivery team settles. The
+question stays open either way; this command mints no `[C]` and closes no round.
 
 **This is not an escalation choice list** — its four options are the four fates a candidate
 answering a question the package put can take in this command (one answering none takes the two
@@ -1041,10 +1068,23 @@ what survives:
 
 - a **`conflict`** whose **listed** row is dropped: that requirement is gone — `withdrawn`, and the
   row takes `rejected: [DEF#n]`;
-- a **`conflict`** whose **counterpart** is dropped, and a **`duplicate`** whose two rows **restate**
-  each other, whichever of them is dropped: the obligation survives in the row kept, so the defect is
-  `resolved-by: <SLICE-KEY>/[CD#n]`, and the dropped row takes `superseded-by: [BR#kept]`, because a
-  `[CD#n]` replaced it with the requirement kept;
+- a **`duplicate`** whose two rows **restate** each other, whichever of them is dropped: the
+  obligation survives in the row kept, so the defect is `resolved-by: <SLICE-KEY>/[CD#n]`, and the
+  dropped row takes `superseded-by: [BR#kept]`, because a `[CD#n]` replaced it with the requirement
+  kept;
+- a **`conflict`** whose **counterpart** is dropped: the same two writes, and **not** for the same
+  reason — a conflict's two rows are incompatible, so nothing of the dropped row survives in the one
+  kept. What the `[CD#n]` did was choose between them, which is a resolution of the defect and a
+  supersession of the row, and `superseded-by: [BR#kept]` records which row won rather than claiming
+  the obligation moved. **Say which in the resolution's own text**: a reader who takes it for the
+  duplicate case will look in the kept row for something that is not there;
+- **Which of those two a `conflict` takes turns on a numbering fact, and that is worth knowing
+  before it surprises someone**: the entry is listed on one of the two rows, the lowest-numbered of
+  them (`brd-format.md` §3), and the branch above fires on whether *that* row or its counterpart is
+  the one dropped. The outcome is substantive — the ledger's covered count falls by one either way,
+  but only the listed-row branch takes `rejected: [DEF#n]` — while the input deciding it is which
+  row happened to be numbered first at intake. Nothing here may re-list the entry to get the other
+  branch: report the pair and the branch it took, so the operator sees the fact that decided it;
 - a **`duplicate`** in which one row **is a part of** the other (`brd-format.md` §3), settled by
   keeping the part and dropping the whole: the defect is `resolved-by: <SLICE-KEY>/[CD#n]`, but no
   disposition says what became of the obligations the whole carried beyond the part —
@@ -1294,9 +1334,13 @@ and its `decisions.md` row refuses it there.
 with the item and **what reached it**, which is not the same fact on both passes. An item the
 citation pass found is presented with the changed id it names and what changed about that id. A
 `conditional_on` position was reached **by the field**, which is what that pass is for, so it is
-presented with the prerequisite decision the field names and whether this run moved it — and where
-it did not, say so in as many words rather than leaving the line blank: a position resting on a
-decision this run left alone is exactly the one an operator can dispose in a sentence, and an empty
+presented with the prerequisite decision the field names and whether this run moved it — **which
+the run already knows**: the citation pass reads `conditional_on` among its fields, so *did this run
+move the prerequisite* and *did that pass match this item on that field* are one question, and the
+answer comes from that match rather than from testing the set again, which would make this step a
+reader of the set and the list at *Fix the changed-id set first* incomplete. Where it did not move
+it, say so in as many words rather than leaving the line blank: a position resting on a decision
+this run left alone is exactly the one an operator can dispose in a sentence, and an empty
 "what changed" reads as a run that failed to work it out:
 
 ```
@@ -1448,9 +1492,18 @@ edited nor bannered — it is recorded, for the byte-identical reason that phase
 
 **Nor is a hit ever `updated` inside a structured record, or anywhere in the customer's own
 captured files.** The scope above is deliberately every markdown file under the parent, which is
-what reaches a sibling's seed — but six of the file kinds it names carry content another rule
-already fixes, five of them structured records and the sixth the customer's prose, and `updated` on
-any of them would contradict that rule rather than correct a stale sentence:
+what reaches a sibling's seed — but much of what it reaches carries content another rule already
+fixes, and `updated` on any of it would contradict that rule rather than correct a stale sentence.
+
+**The test is the class, not the filename, and the table below is worked cases rather than the
+list.** A hit is `needs-a-human` wherever it lands in **a structured record** — any file whose
+content is fields, rows or labelled lines some other rule writes and reads — **or in anything the
+customer wrote**, captured or quoted. The rows below work the kinds a run meets most often; they do
+not bound the rule, and a file kind absent from them is not thereby correctable. A run that reached
+for the list found five more that belong to it on the class test alone — `brd/brd-defect-log.md`,
+`brd-link.md`, `interview/customer-questions.md`, a returned `customer-review-<YYYYMMDD>.md` and
+`brd/brd-link-log.md` — and had the table been the rule, `updated` would have been available on
+every one of them:
 
 | Where the hit landed | Outcome, and the rule that decides it |
 |---|---|
@@ -1657,7 +1710,12 @@ Where this run can go next:
 choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this slice's PRD — /product-workflows:create-prd <SLICE-KEY> (PM)", "Author this slice's architecture — /product-workflows:create-ard <SLICE-KEY> (PA, optional)", "Author this slice's specification — /product-workflows:specify <SLICE-KEY> (PE)"]
 ```
 
-**And, in prose beside the array, what this run may have changed commercially.** **It is not the
+**And, in prose beside the array — either array — what this run may have changed commercially.**
+**This paragraph is scoped by its own condition and not by the array it sits under**: it is printed
+wherever this run froze at least one `[CD#n]`, on an `advance_ready: no` run as much as on a `yes`
+one. What makes a run `no` is an open question, an unre-derived finding or an unswept dependent —
+none of which bears on whether a customer decision landed, and a run that froze two `[CD#n]` and
+then took `advance_ready: no` has changed exactly what this paragraph is about. **It is not the
 tier** — `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5 fixes *a settled register* as the
 test `/brd-package` already applies. **On the ordinary path that test was met before this run
 started**: `/brd-package` ran two commands ago and gated on `decisions.md`, so grounding exists, the
@@ -1838,10 +1896,13 @@ sweep** — per dependent BRD, the `conditional_on` positions first, then the ci
 its disposition, plus every dependent recorded-not-written with its concrete state; **the
 stale cross-reference sweep** — the hit counts by outcome and every `needs-a-human` hit named;
 **what still needs a human**, in full; the artifacts written, by path; the feedback + cost paths;
-**both** `Phase handoff:` outcome lines (`workflows-core:phase-handoff` §4.1), labelled — the review's and the
-run's; the `Specs repo:` outcome line (`workflows-core:specs-repo-git` §6); the next-step recommendation; and end
-with the ledger line, read fresh from `coverage-ledger.md` **as this run left it**, exactly per
-`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
+**both** `Phase handoff:` outcome lines (`workflows-core:phase-handoff` §4.1), **each labelled with
+the handoff it reports and neither printed bare** — the review's and the run's, in that order, the
+run's being the one any `<merge-clause>` resolves from (*Canonicalise the returned review, and
+commit it before anything reads it*, where the first call is made and both are accounted
+for); the `Specs repo:` outcome line (`workflows-core:specs-repo-git` §6); the next-step
+recommendation; and end with the ledger line, read fresh from `coverage-ledger.md` **as this run
+left it**, exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
 ```
 ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)

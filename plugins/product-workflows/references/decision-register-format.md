@@ -98,6 +98,32 @@ rather than from a reading of the customer's prose.
 `options_considered` and `chosen` do not apply to an `[AS#n]`, which is not a choice; §7 accounts
 for all thirteen of these fields on an assumption record, one by one.
 
+### 1.1 How a record is serialised
+
+The table above fixes the field **names**; this section fixes the **bytes**, for the reason
+`workflows-core:grounding-format` §2.1 gives for a finding and which applies here with more force:
+this file is **parsed by field**, not read as prose — `commands/brd-package.md` restates its
+records into a customer prompt and derives the rounds a BRD has from the `round` values,
+`commands/brd-reconcile.md` matches records to answers and sweeps them by field, and §4 writes
+individual fields in place on a record another run wrote. A writer free to choose between two
+renderings produces a register whose readers disagree about what is in it, and a missed record
+reads downstream as a decision nobody took.
+
+- **One record per block, unfenced**, in the field order the §1 table gives, every key of a block
+  at the same indentation, and no blank line inside a block. Blocks are separated by one blank
+  line. The `# Decision register: <BRD-KEY>` header line stands alone at the top.
+- **One space after every key's colon — never padding, never alignment**, whatever the longest key
+  in that block happens to be. Alignment is a rendering choice made per block, which makes the
+  bytes of a record a property of its neighbours and defeats a field-anchored scan.
+- **No code fence around a record.** A fenced block reads as an example rather than as data, and
+  the two readers above walk this file for records rather than for examples.
+- **A multi-line value is a literal block scalar** — `argumentation: |`, and `chosen: |` in the
+  outside-the-options form §1 fixes — so the customer's own line breaks and quotes survive
+  unescaped and unfolded, which is what makes a quotation checkable against the package it came
+  from.
+- **A field that does not apply is omitted, never written empty**, per its own row above; the one
+  deliberate exception is `evidence`, whose `[]` is a known value and not an absence (§1).
+
 ## 2. `argumentation` is mandatory
 
 There is no valid record with an empty `argumentation`. Not "to be filled in later", not a restated

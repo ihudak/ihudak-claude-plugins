@@ -247,9 +247,13 @@ and nothing downstream can tell the difference afterwards.
    folder, one hop** (`brd-format.md` §2.1, §4), because the requirement-defect question source
    (*Round 1 is generated from the grounding*) reads them: `brd/brd-defect-log.md`,
    `brd/brd-inventory.md` and `coverage-ledger.md` — and, from there, the `coverage-ledger.md` of each
-   sibling slice that ledger records `covered-by` against a row an open requirement defect joins —
-   the row its entry is raised on, or one its entry names — which is how that source tells a live row
-   from a settled one, and the
+   slice under the parent, **this one included**, that ledger records `covered-by` against a row an
+   open requirement defect joins — the row its entry is raised on, or one its entry names — which is
+   how that source tells a live row from a settled one. **Read as *sibling* slices it is the wrong
+   set**, and on a parent carrying one slice it is the empty one: the source's own tests
+   (*Round 1 is generated from the grounding*) say *any slice under the same parent, this one
+   included*, and a run that dropped its own ledger from the input would answer every one of them
+   against a hole. Also the
    `interview/customer-questions.md` of every slice under the parent (the positive `brd-link.md`
    parent test, `commands/brd-split.md` Phase 0), which is how it tells a defect already asked from
    one that is not — an absent one holds no entry. A previous run's register, round records and
@@ -590,7 +594,12 @@ would have to state:
 - a `[BR#n]` whose findings are `AMENDED`, `REWRITTEN` or `FALSE-FRIEND` — the premise moved, so what
   the requirement now asks for is open (`workflows-core:grounding-format` §3);
 - a `[BR#n]` whose findings are `NOT-PROVABLE` — the repository could not settle it, and somebody
-  must now choose;
+  must now choose. **This list raises questions; it does not tag them**, and a question raised here
+  arrives at the *Tag every question* phase **carrying the finding that raised it**, so that phase
+  tags it for a person — `[V]`, or `[C]` where what the repository could not settle turns out to be
+  a business question (`interview-tagging.md` §1, §3). It never arrives as a `[G]`, which is why
+  the *Answer every `[G]` from the findings* phase's re-tag route covers a different provenance and
+  not this one;
 - a finding carrying `horizon: will-change` — what this BRD does while the naming prerequisite
   decision is unbuilt is open by construction (`workflows-core:grounding-format` §5);
 - a `[DG#n]` reconciliation the design and the requirement disagree about (§6's classes);
@@ -747,7 +756,13 @@ already refused the run if any lacked one). Three outcomes:
    puts in its own `evidence` list.
 2. **A finding exists and cannot settle it** — its verdict is `NOT-PROVABLE`, or the verifier
    returned `unprovable`. This is a complete and legitimate terminal answer, not a shortfall
-   (`workflows-core:grounding-format` §3). The question is then **re-tagged**, usually to `[V]`, and the re-tag
+   (`workflows-core:grounding-format` §3). **This route exists for the question the tagger could not
+   have tagged any other way**: one raised against no finding, or against a different one, and
+   tagged `[G]` because on what the tagger held it looked answerable from grounding — the
+   `NOT-PROVABLE` finding turning up only here, when the findings are read against it. A question
+   the *Round 1 is generated from the grounding* source raised **from** such a finding never reaches
+   this phase: it carried that finding into tagging and was tagged for a person there. The question
+   is then **re-tagged**, usually to `[V]`, and the re-tag
    **names that finding as its cause** (`interview-tagging.md` §3). Re-tagging to `[C]` is the
    exception and is correct only when what the repository could not settle turns out to have been a
    business question mistaken for a technical one — "the code does not tell us" is never on its own a
@@ -783,12 +798,12 @@ The options presented are that question's own `options_considered`
 one trailing entry for an option the operator supplies themselves and the two standing exits:
 
 ```
-choices: [<up to two entries per option considered, in the order they were weighed>, "Defer this question — record why it is not answerable yet", "Another option from the list above — name it"]
+choices: ["<the strongest option considered>", "<the next strongest, where a second was weighed>", "Defer this question — record why it is not answerable yet"]
 ```
 
-**The array is capped at four, like every other array in the plugin** (`workflows-core:escalation-rules` §0): `AskUserQuestion` renders `maxItems: 4`, so an uncapped `one entry per option considered` prompt cannot be presented at all once three options were weighed — and this phase is required to present its array verbatim. **List every option considered as prose above the prompt**, in the order they were weighed and with the argumentation each carries, then let the array offer the two strongest plus the defer entry plus a free-text route to the rest, which the run resolves against **the options it just listed**. Where two or fewer were weighed, every one of them fits and the last entry is dropped.
+**The array is bounded at four and authors no escape of its own, like every other array in the plugin** (`workflows-core:escalation-rules` §0): `AskUserQuestion` renders `maxItems: 4`, so an uncapped `one entry per option considered` prompt cannot be presented at all once three options were weighed — and this phase is required to present its array verbatim. **The entries are two options at most, plus the defer entry: three, never four.** The two option slots are **one entry each**, substituted from the options weighed — not two entries per option, which is the reading that would put a four-option question past the cap on its own — and where only one was weighed the second slot is dropped, leaving two entries. **List every option considered as prose above the prompt**, in the order they were weighed and with the argumentation each carries, and let the harness's own free-text option carry the rest — §0 forbids an array from authoring that escape, and an authored `Another option from the list above` both duplicated it and spent a slot. Where one option was weighed, its entry is the only one beside defer.
 
-**There is no listed `Cancel`.** The harness always supplies a free-text option, so an abort is reachable without spending one of four slots; say what an aborted round costs where the round is introduced, not in an option.
+**There is no listed `Cancel` and no listed free-text entry.** The harness always supplies a free-text option, so both an abort and an option the operator names themselves are reachable without spending a slot on either; say what an aborted round costs where the round is introduced, not in an option.
 
 This is **not** an escalation choice list, and it is not one of the arrays
 `workflows-core:escalation-rules` owns: its options are the decision's own, the
@@ -896,17 +911,22 @@ For each `[C]` in the round, write an entry to `<BRD-dir>/interview/customer-que
 the question as it will be put, every row it names that this slice does not claim cited as
 `<PARENT-KEY> [BR#n]` (*A row this slice does not claim*, in *Generate the round's question set*) —
 the entry ships in the package, and `/brd-package` resolves a bare `[BR#n]` against this slice's
-inventory alone; its round and position; the findings that bear on it, so the customer is asked
-against what is known rather than in the abstract; **its altitude, on a line of its own labelled
-exactly `- **Altitude:**`** — `product`, `architecture` or `implementation`, decided by the mapping
-`decision-register-format.md` §1 gives a record's `altitude` from the downstream artifact the answer
-must reach — the PRD, the ARD or the specification — because the `[CD#n]` that answers the question
-copies it (`/brd-reconcile`, *Freeze the customer decisions*) and a customer answer has no other
-source for it; **for a `rejected` row's question, that row, on a line of its own labelled exactly
-`- **Rejected row:** [BR#n]`**, which is how a later run finds the row's question rather than
-raising a second one (*One question per row*, in *Resolve the round*); **for a question the
-requirement-defect source raised, or a `rejected` row's question carrying the defect it cites, the
-`[DEF#n]` it asks about, on a line of its own labelled exactly
+inventory alone; **its round and position, as the entry's own heading and the delimiter between
+entries, written exactly `## Round <N>, question <position>`** — `<position>` being the question's
+place in that round's record, counting from 1. **That heading is the entry boundary**, and pinning
+it is what lets a reader bound one entry: `/brd-package` renders each held question into part 7 and
+`/brd-reconcile` finds the entry an answer belongs to, and an entry opening any other way is one
+neither can tell from the text of the entry above it. Then: the findings that bear on it, so the
+customer is asked against what is known rather than in the abstract; **its altitude, on a line of
+its own labelled exactly `- **Altitude:**`** — `product`, `architecture` or `implementation`,
+decided by the mapping `decision-register-format.md` §1 gives a record's `altitude` from the
+downstream artifact the answer must reach — the PRD, the ARD or the specification — because the
+`[CD#n]` that answers the question copies it (`/brd-reconcile`, *Freeze the customer decisions*)
+and a customer answer has no other source for it; **for a `rejected` row's question, that row, on a
+line of its own labelled exactly `- **Rejected row:** [BR#n]`**, which is how a later run finds the
+row's question rather than raising a second one (*One question per row*, in *Resolve the round*);
+**for a question the requirement-defect source raised, or a `rejected` row's question carrying the
+defect it cites, the `[DEF#n]` it asks about, on a line of its own labelled exactly
 `- **Requirement defect:** [DEF#n]`**, carrying that id and nothing else; **and, where the defect
 sits on a row drawn from an image, that image's path relative to `brd/`, on the next line, labelled
 exactly `- **Defect image:** <path relative to brd/>`** — the form an image anchor names it by

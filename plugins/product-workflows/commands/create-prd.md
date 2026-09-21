@@ -478,10 +478,13 @@ when the first two are forgotten:**
    register only through `/product-workflows:brd-reconcile`. A grill answer is neither of the two, whatever
    it says.
 3. **On a record that already exists, the only field this command may write is `consumed_by`**
-   (Phase 5). `statement`, `options_considered`, `chosen`, `argumentation`, `evidence`, `altitude`,
-   `conditional_on`, `status` and `round` are never written onto an existing record here, in any
-   status. So a grill answer that contradicted a `decided` record could not become that record's new
-   `chosen` even if the first two failed: there is no write that would record it.
+   (Phase 5). **Every other field `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1
+   defines is never written onto an existing record here, in any status** — named as a set rather
+   than enumerated, so a field §1 gains is covered the day it gains it and no list here can drift
+   from the one it stands for. That set takes in every field a re-decision or a reversion writes,
+   which is §4's to fix and neither of which this command performs — rule 2 is why neither is
+   reachable from here. So a grill answer that contradicted a `decided` record could not become that
+   record's new `chosen` even if the first two failed: there is no write that would record it.
 
    **This guarantee was once stated over every record rather than every existing one, and the
    narrowing is itemised here rather than made silently** (`workflows-core:instruction-file-maintenance`).

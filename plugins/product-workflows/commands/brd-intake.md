@@ -487,10 +487,10 @@ Act on `status`:
   sentence the operator quotes. **Whatever that step leaves is the standing read's: the last read
   whose result was not discarded, an `EMPTY` re-read discarding its own** (below) — this read where
   no re-read ran, or where one ran and returned `EMPTY`; the re-read where its result replaced this
-  read's. It is the standing read's rows, candidates, `figures` entries and `notes` that this phase
-  writes and the phases below carry, and it is the read every mention of *the standing read* below
-  names — never simply the latest one dispatched, which after an `EMPTY` re-read is the read whose
-  result was thrown away. **Once that step has settled — or just before the stop its relation 1
+  read's. **This phase writes, and the phases below carry, the standing read's rows, candidates,
+  `figures` entries and `notes`** — that read, and never simply the latest one dispatched, which
+  after an `EMPTY` re-read is the read whose result was thrown away; every mention of *the standing
+  read* below names it. **Once that step has settled — or just before the stop its relation 1
   makes — write the rows** of `<BRD-dir>/brd/brd-inventory.md` in the layout
   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2 fixes, below the frontmatter, title and table
   header — Phase 2's, or on a re-run the file's own, rewritten in that layout where an earlier
@@ -1322,8 +1322,8 @@ Phase 1 verbatim, and — when it was ON — the `docs_references` list of requi
 documentation describes as already built, flagged for `/prd-ground` to check against code; whether
 Phase 6 wrote seeds and which; resolved model routing (+ any Opus degradation); every agent's
 `notes` — `figure-reader`'s and `brd-reader`'s, as Phase 1.5 collects them, the latter's being the
-standing read's, the read Phase 3's `OK` branch fixes, with its `[BR#n]`s mapped through Phase 3's
-reconciliation; the feedback and cost paths;
+standing read's — the read Phase 3's `OK` branch fixes, or, where that branch never ran, the one
+read there was — with its `[BR#n]`s mapped through Phase 3's reconciliation; the feedback and cost paths;
 the `Phase handoff:` outcome line (`workflows-core:phase-handoff` §4.1) — `handoff-to-main`'s on the first choice, and the
 *Declined by the user* line on either other (Phase 7); the `Specs repo:` outcome line from
 `commit-artifacts` (`workflows-core:specs-repo-git` §6); the next-step recommendation; and end with

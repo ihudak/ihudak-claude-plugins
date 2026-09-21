@@ -484,8 +484,14 @@ Act on `status`:
 - **`OK`** — **hold what the read returned, and write nothing to the inventory yet**: the rows, each
   row's candidates, the `figures` entries with their `illustrates`, and the `notes` are this read's,
   and the coverage step below can replace every one of them with a re-read's and add a row from a
-  sentence the operator quotes. **Once that step has settled — or just before the stop its relation
-  1 makes — write the rows** of `<BRD-dir>/brd/brd-inventory.md` in the layout
+  sentence the operator quotes. **Whatever that step leaves is the standing read's: the last read
+  whose result was not discarded, an `EMPTY` re-read discarding its own** (below) — this read where
+  no re-read ran, or where one ran and returned `EMPTY`; the re-read where its result replaced this
+  read's. It is the standing read's rows, candidates, `figures` entries and `notes` that this phase
+  writes and the phases below carry, and it is the read every mention of *the standing read* below
+  names — never simply the latest one dispatched, which after an `EMPTY` re-read is the read whose
+  result was thrown away. **Once that step has settled — or just before the stop its relation 1
+  makes — write the rows** of `<BRD-dir>/brd/brd-inventory.md` in the layout
   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2 fixes, below the frontmatter, title and table
   header — Phase 2's, or on a re-run the file's own, rewritten in that layout where an earlier
   release wrote another (§2.3): one row per `[BR#n]` as the steps below settle it (`id`, `text`,
@@ -505,7 +511,7 @@ Act on `status`:
 
   **On a first intake, number in reading order, once** — after this branch's last read and after
   any row the coverage step adds, as `brd-format.md` §2 fixes; where it adds none, that is exactly
-  as the last read returned them. Until then each row carries the read's own number, which the
+  as the standing read returned them. Until then each row carries the read's own number, which the
   mapping below turns into its id once the numbering is fixed. **On a re-run over a folder whose
   inventory already holds a row, RECONCILE — this is the id coordination `brd-reader` delegates and
   nothing else performs.**
@@ -644,9 +650,10 @@ Act on `status`:
   once a candidate is actually confirmed into a `[DEF#n]`, never before. **On a re-run, give each row
   that kept its id the `defects` it carries on file**, and nothing more yet: a `[DEF#n]` is
   permanent (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §4), Phase 4 keeps every entry already
-  logged, and it adds only what it newly confirms. Carry the last read's `defect_candidates` forward
-  into Phase 4 — a re-read's replace the first read's wholesale, as its `figures` entries and its
-  `notes` do (below) — and nothing here treats a candidate as a decision.
+  logged, and it adds only what it newly confirms. Carry the standing read's `defect_candidates`
+  forward into Phase 4 — a re-read's replace the first read's wholesale, save an `EMPTY` re-read's,
+  which replace nothing, as its `figures` entries and its `notes` do (below) — and nothing here
+  treats a candidate as a decision.
 
   **Then check the inventory's coverage of its own source**, per
   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.2, before anything downstream treats the
@@ -781,17 +788,23 @@ choices: ["Finished with this item — the rows shown are all it binds (Recommen
     span found in more than one element written all the same, as `brd-reader` writes one where no
     span is its element's alone (§2.2 compares such an anchor); no defect candidate, since
     `brd-reader` proposed none; and its place in reading order at that section, or where §2 places
-    a row drawn from that image. From then on it is a row like any other — numbered or minted as
-    above, open to a candidate Phase 3.5 raises and to Phase 4's walk of it, and written to the
-    ledger by Phase 5 — and the item's question comes back in its third form.
+    a row drawn from that image — **among the item's own rows, the source order of the spans they
+    quote**, which is the order the spans occur in the section's text, or in the image's
+    transcription element by element, whatever order the operator quoted them in: §2's reading order
+    fixes where the item's rows sit among other items', and this fixes where they sit among each
+    other, which §2 leaves open because an item's rows can share one anchor. From then on it is a
+    row like any other — numbered or minted as above, open to a candidate Phase 3.5 raises and to
+    Phase 4's walk of it, and written to the ledger by Phase 5 — and the item's question comes back
+    in its third form.
   - ***Finished*** records nothing more: the item holds its rows, so no account is recorded for it,
     and those rows are its whole record.
   - **A span that does not occur, or repeats one the item has already given a row, is never written
     through** — a row holding it would be an obligation the customer never stated. Put the item's
     own question again, in the form it stands at — the first while it holds no row, the third once
-    it holds one — with the failed span shown beside it and why it failed, so *They hold no
-    obligation*, *Finished* and *Cancel* stay in reach: a span the operator cannot make match —
-    markdown they did not retype, a sentence running across a table's cells — is never a dead end.
+    it holds one — with the failed span shown beside it and why it failed, so that form's own way
+    out stays in reach beside *Cancel*: *They hold no obligation* in the first, *Finished* in the
+    third. A span the operator cannot make match — markdown they did not retype, a sentence running
+    across a table's cells — is never a dead end.
   - **A typed answer** — the harness's free-text option, which no array can decline
     (`workflows-core:escalation-rules` §0) — is acted on as the option it expresses: a span is taken
     as a quote and checked as above; words to the effect that the item holds no obligation, where it
@@ -890,8 +903,8 @@ entry the agent returned is a hypothesis, never a decision (`agents/brd-reader.m
 rejecting each one, against the customer or the delivery team, is this phase's job alone.
 
 **First, print `brd-reader`'s `notes` — once, at this phase's start, whether or not any candidate
-is left to walk** (Phase 1.5 collects them): the last read's, a re-read's having replaced the first
-read's (Phase 3), with every `[BR#n]` in them mapped through Phase 3's reconciliation. An observation
+is left to walk** (Phase 1.5 collects them): the standing read's, as Phase 3's `OK` branch fixes
+which read that is, with every `[BR#n]` in them mapped through Phase 3's reconciliation. An observation
 the agent made and did not propose — a possible conflict it would not assert, say — belongs in front
 of the person confirming defects, and on a run whose every candidate matched an entry on file it
 still has to be seen. **The walk cannot turn a note into a defect**: every question it asks confirms
@@ -1060,8 +1073,10 @@ there was no prior inventory, and nothing where an earlier intake's inventory st
 
 **Then complete `brd/brd-figures.md`'s *Rows* line for every image**, from the final inventory —
 after Phase 3's reconciliation mapping, never from the agent's own numbering: `yields` every row
-whose `source_anchor` names the image and `illustrates` every row the last read's `figures` entry
-for it returns in `illustrates` — **written from that field alone**: a `brd-reader` note is printed
+whose `source_anchor` names the image and `illustrates` every row the standing read's `figures`
+entry for it returns in `illustrates` — the read Phase 3's `OK` branch fixes, so where a re-read
+found no requirement it is the first read's entry, that re-read having replaced nothing —
+**written from that field alone**: a `brd-reader` note is printed
 (Phase 4) and never parsed, so a note saying the list is wrong changes nothing here, and the agent
 corrects a field in the field (`agents/brd-reader.md`) — either half left out where its list is
 empty (`yields [BR#3]`), or, where it does neither, the value `accounted for — <its account>` in the
@@ -1307,7 +1322,8 @@ Phase 1 verbatim, and — when it was ON — the `docs_references` list of requi
 documentation describes as already built, flagged for `/prd-ground` to check against code; whether
 Phase 6 wrote seeds and which; resolved model routing (+ any Opus degradation); every agent's
 `notes` — `figure-reader`'s and `brd-reader`'s, as Phase 1.5 collects them, the latter's being the
-last read's, with its `[BR#n]`s mapped through Phase 3's reconciliation; the feedback and cost paths;
+standing read's, the read Phase 3's `OK` branch fixes, with its `[BR#n]`s mapped through Phase 3's
+reconciliation; the feedback and cost paths;
 the `Phase handoff:` outcome line (`workflows-core:phase-handoff` §4.1) — `handoff-to-main`'s on the first choice, and the
 *Declined by the user* line on either other (Phase 7); the `Specs repo:` outcome line from
 `commit-artifacts` (`workflows-core:specs-repo-git` §6); the next-step recommendation; and end with

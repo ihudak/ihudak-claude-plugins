@@ -771,9 +771,11 @@ to. Three things make that a guarantee rather than an instruction:
    **Every other field `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1 defines is
    never written here, on any record, in any status** — named as a set rather than enumerated, so a
    field §1 gains is covered the day it gains it and no list here can drift from the one it stands
-   for. That set takes in every field a re-decision or a reversion writes, which is §4's to fix;
-   this command performs neither — a re-decision needs a reopening, which rule 2 has just ruled out,
-   and a reversion is `/product-workflows:brd-reconcile`'s propagation sweep alone (§4). So a grill
+   for. That set takes in every field a re-decision or a reversion writes **save `consumed_by`**,
+   the one field this command does write and the one both of those return to `none`; the two
+   writing sets are §4's to fix, and this command performs neither — a re-decision needs a
+   reopening, which rule 2 has just ruled out, and a reversion is
+   `/product-workflows:brd-reconcile`'s propagation sweep alone (§4). So a grill
    answer contradicting a `decided` record could not become that record's new `chosen` even if the
    first two failed.
 

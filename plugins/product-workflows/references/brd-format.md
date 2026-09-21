@@ -202,7 +202,7 @@ it closes no defect, and an inventory row quoting a corrected element is left as
 ````markdown
 ---
 key: <the run's <BRD-KEY> as Phase 0 validated it — never parsed from the folder name>
-source: <the document's basename, as brd/brd-link-log.md names it>
+source: <the document's basename — §1.1 says which file under brd/source/ that is, and where the name is read from>
 written_by: brd-intake
 ---
 
@@ -350,6 +350,8 @@ accounts:
   "1. Background": "they hold no obligation"
   "source/appendix/fields.md › Sources": "pointers to the customer's \"Reports\" wiki only"
   "source/images/logo.png": "they hold no obligation"
+quoted:
+  - "[BR#1]"
 ---
 
 # Inventory: <this folder's key>
@@ -366,8 +368,9 @@ The frontmatter is the folder's carrier on a source-owning BRD, and a slice's ad
 `source:` (§2.1); the title line names the same key; the table carries the four fields above as its
 four columns, in that order, one row per `[BR#n]` in id order. `id` is written bracketed, and
 `defects` as §2.3 writes a list. **An inventory holding no row** is that frontmatter less its
-`document:`, its `captured:` map and its `accounts:` map, which record what the rows were reconciled
-against and so have nothing to record, the title and the table's header — what `/brd-intake` Phase 2
+`document:`, its `captured:` map, its `accounts:` map and its `quoted:` list, which record what the
+rows were reconciled against and where they came from and so have nothing to record,
+the title and the table's header — what `/brd-intake` Phase 2
 writes before anything is copied, and what it leaves after an `EMPTY` read on a first intake — never
 an empty file, which on a source-owning BRD would leave the folder keyless.
 
@@ -424,6 +427,20 @@ write after the coverage step, and the one relation 1's stop makes before anythi
 never stands beside a `captured:` entry recording its new ones. An image's *Rows* line shows its
 account (§1.2) and is never where one is read from. A slice's inventory carries no `accounts:`
 either, for the reason above.
+
+**`quoted:` records which rows came from a span the operator quoted**, so a later run can tell a row
+`brd-reader` never returned from one it stopped returning. One `[BR#n]` per line, each
+double-quoted as a `claims:` entry is (§2.1); the key is omitted entirely where the inventory holds
+none. `/brd-intake` Phase 3 writes it with the rows, in the same act as `captured:` and `accounts:`,
+adding the id of every row its coverage step minted from a quote this run and keeping every id
+already on file. **Nothing is ever dropped from it or rewritten in it**, and it needs no carry rule
+and no drop: a row's provenance is where it came from, which no later read changes, and an id stays
+good because a row is never renumbered and never deleted (§2). A read that does return such a row
+changes nothing here either — the row is matched and keeps its id like any other. **It is a report's
+input and no gate's**: `/brd-intake` reports a row on this list that a read did not return in its own
+words rather than as one *not re-extracted by this read* (`commands/brd-intake.md` Phase 3), which is
+the whole of what it is for. A slice's inventory carries no `quoted:`, for the reason above — its
+rows are copied from its parent's.
 
 **A requirement carrying more than one obligation is split.** When one numbered item in the source
 binds the delivery team to two or more separable obligations, each obligation becomes its own

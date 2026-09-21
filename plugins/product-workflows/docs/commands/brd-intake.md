@@ -123,8 +123,10 @@ name the run creates ([addressing](../reference/references.md) §2):
 - `brd/brd-inventory.md` — one row per `[BR#n]`, each with its `source_anchor` and any confirmed
   `[DEF#n]` defects — a `conflict` or `duplicate` on the row it was raised on only — and, in its
   frontmatter, which file the rows were last reconciled against as the document, the hash of
-  every file they were reconciled against, and your account of each top-level section and each image
-  that holds or illustrates no row. A re-run keeps every id, and keeps a row's wording
+  every file they were reconciled against, your account of each top-level section and each image
+  that holds or illustrates no row, and which rows came from a sentence you quoted rather than from
+  the reader — so a re-run reports one of those in its own words instead of listing it, every time,
+  beside the rows the reader really did stop finding. A re-run keeps every id, and keeps a row's wording
   wherever the file its anchor points into is unchanged since then — judged against that record,
   never against the copy on disk or the link log, so a revised document is recognised as one
   whatever it is called, even after a run that copied it stopped before reconciling; where the new

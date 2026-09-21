@@ -334,8 +334,10 @@ first handoff created (§2.2 rule 3): two deliverables, two consent choices, two
 differ — so one line cannot report both, and collapsing them would drop whichever it did not
 report. **Where a run offers more than one handoff, each line names which handoff it reports**, as
 that command already does. It is the only such producer today; every other command in the family
-executes `handoff-to-main` once, so for them the per-offer count and the per-run count are the same
-number — which is why this rule read "one per run" until a run emitted two.
+offers `handoff-to-main` **at most** once — at most, because the three producers above may reach no
+offer at all, and because a declined offer still prints its line while §2 never runs — so for them
+the per-offer count and the per-run count are the same number, which is why this rule read "one per
+run" until a run emitted two.
 
 **Three states, and a producer settles which each of its handoffs is in before printing**: offered
 and taken, offered and declined, never offered — a line for the first two, none for the third, once

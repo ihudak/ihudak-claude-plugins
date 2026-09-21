@@ -237,9 +237,16 @@ resolving and guessing.
 
 **Merged and deduped by SHA.** A ref two records name — the same repository and the same commit, as
 where an operator copied a block into its Epic's record rather than moving it (§1) — is one ref,
-counted once by a read that takes both. What the scan finds beyond the recorded blocks is reported
-as **unrecorded work**, named as such with its commits listed — a run that quietly folds hand-made
-commits into the recorded set makes the record look more complete than it is.
+counted once by a read that takes both. **Every comparison against a block's `commit:` resolves it
+first.** §1's template writes that field abbreviated — seven characters in its example — so testing
+it against a `git log` SHA by equality matches nothing, and every recorded commit then comes back
+from the scan as unrecorded work on a run whose record is complete. Resolve each block's `commit:`
+in its own repository (`git rev-parse`) and compare the resolved values, never the values as
+written; `docs-workflows:release-note-types` §1 fixes the 12-character form a read set is written
+and compared in, which is that comparison's own case. What the scan finds beyond the recorded
+blocks is reported as **unrecorded work**, named as such with its commits listed — a run that
+quietly folds hand-made commits into the recorded set makes the record look more complete than it
+is.
 
 **The two consumers take different boundaries, and the difference is not stylistic:**
 
@@ -258,8 +265,19 @@ commits into the recorded set makes the record look more complete than it is.
   and merged after it is dated inside the span the note covers, and no note read it. So for each
   record the run reads — by the same scope as `/document` — it takes every block that records a
   commit no earlier note covering that record read, that record's own notes and the PRD's; a block
-  is skipped only where every commit it records is in such a note's read set. **The run names the
-  blocks it used**, which makes a wrong boundary visible rather than silent.
+  is skipped only where every commit it records is in such a note's read set. **That test is
+  block-granular while the scan below is commit-granular, so a partly-covered block is read
+  whole**: where a note covered every commit a block records but one, the block is taken, the
+  covered ref goes to `diff-summarizer` again and a change the earlier note already described is
+  summarised a second time — so this bullet's opening *reads only what no earlier note covering it
+  read* holds per block, not per commit. It is chosen rather than inherited: a block is one
+  `/implement` run's refs, and handing the writer a run with a hole in it is the worse failure.
+  **Population: every `/release-notes` run with diff grounding on over a note that covered a block
+  only partly** — a block naming two repositories where the earlier run resolved one and not the
+  other, or where one dispatch failed, since a commit that run could not read is no part of its
+  read set (`docs-workflows:release-note-types` §1). **The run names the blocks it used**, which
+  makes a wrong boundary visible rather than silent, but it names such a block as it names any
+  other.
 
   **The scan takes the same boundary**, or every commit a covered block records, and every
   hand-made commit an earlier note already described, comes back from the scan as unrecorded work

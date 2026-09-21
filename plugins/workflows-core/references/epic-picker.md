@@ -68,11 +68,17 @@ key **against the keys it just listed** — never by parsing one out of the answ
 array carries them all, and the prose list is still printed because a greyed ● row reads better
 there.
 
-**A command that adds its own option to this picker counts it against the four.** `/specify` appends
-*"Author one broad PRD-level spec instead"* and `/implement` *"Implement one broad PRD-level slice
-instead"*, so each array carries at most **two** Epic rows plus that option plus the remainder
-option. The added option is never the one dropped: it is the alternative to picking any Epic at
-all, and a picker that hides it forces a choice the command means to leave open.
+**A command that adds its own option to this picker counts it against the four.** `/specify`
+appends *"Author one broad PRD-level spec instead"* on every run — it is the command that authors
+the spec, so nothing can condition it — and its array carries at most **two** Epic rows plus that
+option plus the remainder option. `/implement` appends *"Implement one broad PRD-level slice
+instead"* **only where the PRD folder holds a flat `specification.md`**, the same condition its
+one-Epic branch above carries, so its array carries at most **two** Epic rows where that file
+stands and at most **three** where it does not, the freed row going back to the Epics. The added
+option is never the one the **cap** drops: it is the alternative to picking any Epic at all, and a
+picker that hides it to fit forces a choice the command means to leave open. `/implement`
+withholding it is a different thing and not an exception to that — where no flat `specification.md`
+stands the slice is a unit nothing specified, so there is no choice there to leave open.
 
 **Reading the artifact rather than a declared status is the point, not an accident of the rewrite.**
 A status is a human's claim about the work and can lag it — which is why the version of this picker
@@ -92,5 +98,5 @@ the picker, not a live caveat.
 lighter command may offer a next-Epic loop; that is the command's call, not this file's.
 
 **It never picks silently.** Auto-selection at one Epic emits a notice; a greyed ● row is selectable
-only deliberately; and "author one broad PRD-level artifact instead" is always an explicit option
-rather than something inferred from an empty selection.
+only deliberately; and "author one broad PRD-level artifact instead" is an explicit option wherever
+the command offers it, rather than something inferred from an empty selection.

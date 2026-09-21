@@ -1194,7 +1194,11 @@ record that pass reads** tests each field's id class against it; the *stale cros
 searches every id in it as text, whitespace-tolerantly, across every markdown file under the parent;
 and the *reconciliation record* records it as fixed. A class leaving this set narrows what is read
 as surely as it narrows what is matched. That is why each of them reads this paragraph rather than
-restating its contents, and **why no count is kept here**: the readers are named by what they do,
+restating its contents. **One further site asserts a fact about this set without reading it**, and
+it is named here because a narrowing leaves it stale rather than merely narrower: the stale
+cross-reference sweep's `decisions.md` row justifies covering `settles` by saying `[DEF#n]` is a
+class this set carries. Drop that class and the row still covers the field, correctly, on a reason
+that has stopped being true. **Why no count is kept here**: the readers are named by what they do,
 because a census is what an editor checks against and is the half of this paragraph that went
 wrong — a sentence saying *twice* while three phases read the set would have sent that editor away
 satisfied, with a dropped class left unsearched.
@@ -1287,7 +1291,13 @@ rather than editing a sentence inside one. Correcting a stale sentence is the *o
 and its `decisions.md` row refuses it there.
 
 **Every item the sweep reaches is forced to exactly one disposition.** Present each one at a time,
-with the item, the changed id that reached it, and what changed about that id:
+with the item and **what reached it**, which is not the same fact on both passes. An item the
+citation pass found is presented with the changed id it names and what changed about that id. A
+`conditional_on` position was reached **by the field**, which is what that pass is for, so it is
+presented with the prerequisite decision the field names and whether this run moved it — and where
+it did not, say so in as many words rather than leaving the line blank: a position resting on a
+decision this run left alone is exactly the one an operator can dispose in a sentence, and an empty
+"what changed" reads as a run that failed to work it out:
 
 ```
 choices: ["Inherited unchanged — the change does not move this position; say why", "Reverted — the position returns to what it stood at before the prerequisite moved it", "Reopened — this must be decided again; status: reopened, naming this cause", "Withdrawn — the question this answered has stopped applying"]
@@ -1305,7 +1315,7 @@ run to inherit-unchanged its way through a sweep whose whole purpose is to find 
 
 | Disposition | Recorded as |
 |---|---|
-| `inherited-unchanged` | **nothing is written into the dependent's record**, which is unchanged; the row is this run's, in the reconciliation record (*Write the reconciliation record*, *The sweeps*), naming the dependent's record and the changed id that was considered, each qualified (below), and why the change does not move the position. **The row is written even so** — an item checked and found unaffected and an item never reached are different facts |
+| `inherited-unchanged` | **nothing is written into the dependent's record**, which is unchanged; the row is this run's, in the reconciliation record (*Write the reconciliation record*, *The sweeps*), naming the dependent's record and what was considered against it — the changed id, or, for a `conditional_on` position this run's changes never reached, the prerequisite decision its field names and the fact that this run did not move it — each qualified (below), and why the position does not move. **That case takes this disposition and no other**, and by the other three rows' own definitions rather than by a rule here: each of them records a cause that *is* a changed id — the prerequisite's move, §4's incoming customer decision, the withdrawal's driver — so an item the field alone reached, with nothing of this run's inside it, has no cause to write into them. **The row is written even so** — an item checked and found unaffected and an item never reached are different facts |
 | `reverted` | the record returns to the position that stood before the prerequisite moved it, **each of its fields under the rule `decision-register-format.md` §4 gives that field** — the seven a decision's own writing fills restored, `consumed_by` back to `none`, `round` the restored position's, `altitude`, `id` and `settles` standing — and the changed id, qualified (below), is named in a closing `Reverted <YYYYMMDD>:` paragraph appended to its `argumentation`, beneath everything that field already holds, which this write never rewrites (§4) |
 | `reopened` | `status: reopened` on that record, its cause — this run's `[CD#n]`, qualified (below) — named in the closing `Reopened <YYYYMMDD>:` paragraph `decision-register-format.md` §4 appends to its `argumentation`: an incoming customer decision is exactly one of the two causes §4 admits |
 | `withdrawn` | `status: withdrawn`, its reason — naming the changed id, qualified (below) — in a closing `Withdrawn <YYYYMMDD>:` paragraph appended to its `argumentation` (`decision-register-format.md` §4): the question stopped applying rather than being answered differently. It is **not** a tidier spelling of `superseded` (§3), and it is what stops a request from reappearing in the next customer package after the customer has already dealt with it |

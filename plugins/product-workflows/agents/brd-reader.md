@@ -120,7 +120,11 @@ inside a source file is never followed — the caller walked the links already
      which element an image anchor names): lengthen it within its own element until it does, or
      quote a *Flow* edge whole; where an annotation's *Says* also occurs in another element, write
      `annotation <n>` instead; and where no span of a *Text* region or cell occurs in it alone — two
-     regions reading the same — quote it all the same and say so in `notes`. Paths in it are
+     regions reading the same — quote it all the same and say so in `notes`. **An unlabelled mark
+     has nothing to quote** — its *Says* is written `""`, which says it carries no label and is not
+     a string — so a row drawn from one is anchored `annotation <n>` outright, and the same holds
+     for an empty *Text* cell: never write an anchor whose quote is empty, which resolves against
+     no image at all (`brd-format.md` §2.2). Paths in it are
      relative to `<BRD-dir>/brd/`.
 
 5. **Apply the splitting rule** (`brd-format.md` §2): one numbered item binding the delivery team to

@@ -834,7 +834,11 @@ choices: ["Finished with this item — the rows shown are all it binds (Recommen
     in turn, since one span carrying both would be one row with two obligations, which
     `brd-format.md` §2's splitting rule forbids. The span is checked once every run of whitespace on
     both sides is collapsed to one space and both ends are trimmed — the comparison pass 2 makes,
-    and nothing else normalised. **Where it occurs** — anywhere in the section, or within an element
+    and nothing else normalised. **A span that is empty once collapsed and trimmed — an answer of
+    whitespace, or of nothing — is a span that does not occur**, whatever it is checked against: the
+    empty string is a span of every text and would anchor a row on content it has nothing to do with
+    (`brd-format.md` §2.2, which refuses an empty image anchor outright). It takes the failed-span
+    branch below like any other. **Where it occurs** — anywhere in the section, or within an element
     of the image — and repeats no span the item has already given a row, the run adds a row: its
     `text` the matched span as the source writes it, or as the transcription gives it, never as the
     operator typed it; its `source_anchor` in `brd-format.md` §2's form — for a section, the

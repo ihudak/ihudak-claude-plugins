@@ -279,7 +279,10 @@ none
   kind may state an obligation of its own, so dropping one would lose it unflagged.
 - **Annotations** is the table above, one row per mark in `figure-reader`'s order — `annotation <n>`
   (§2) counts them — with an unlabelled mark's *Says* written `""`, and its cells written by §2.3's
-  encoding; an image carrying no mark has `none` in place of the table.
+  encoding; an image carrying no mark has `none` in place of the table. **Both of those written
+  forms say what is absent and neither is a string an anchor may quote** (§2.2): a row drawn from an
+  unlabelled mark is anchored `annotation <n>`, which names it by its position in this table, and
+  an anchor quoting the empty string resolves against nothing at all.
 - **Flow** is one list item per edge, `- <edge>`, each edge in the notation
   `agents/figure-reader.md` fixes — no mark around a label — and `none` for an image that is not a
   diagram. An image anchor quotes an edge exactly as it reads, without the list marker (§2).
@@ -610,6 +613,21 @@ the quoted element appears verbatim in the content of that image's *Text* fence,
 naming an image `brd/brd-figures.md` does not record, an image recorded as *not* read, or whose
 quoted element or annotation number is absent, does not resolve — relation 1's, not relation 3's, to
 report.
+
+**A quote is a span of what an element holds, so an empty one resolves nowhere.** The empty string
+is a span of every string, so `<path> › ""` would meet the verbatim test against any image the run
+captured while naming none of its elements — and pass relation 1, whose whole job is to prove the
+row traceable, leaving a row that points at nothing. **An image anchor whose quote is empty once
+decoded (§2.3) does not resolve**, and relation 1 names it with its `[BR#n]` like any other
+unresolvable anchor. **An element with no content cannot be quoted at all**: an unlabelled mark's
+*Says*, which §1.2 writes `""`, is this format's way of writing *no label* rather than a string to
+quote, as `none` is where §1.2 writes it in place of an absent Annotations table or *Flow* list —
+neither is the customer's content, and neither is quotable. **A row drawn from an unlabelled mark
+is anchored `annotation <n>`**, the form that names an element by its position rather than by its
+content and the only one that reaches a mark with nothing to quote (`agents/brd-reader.md` step 4).
+**This is not the *names none of them* case below**, which is a quote two elements both hold: that
+quote is real content, it still resolves, and the rules for comparing two anchors turn on it — an
+empty quote is content nowhere, which is why it is refused rather than merely left naming nothing.
 
 **Which element an image anchor names** is a second question, asked where two anchors are compared
 (`commands/brd-intake.md` Phase 3 matches a returned row to a row on file by it). An image's

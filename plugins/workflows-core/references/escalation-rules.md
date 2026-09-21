@@ -60,9 +60,9 @@ above … There is no fourth disposition and no 'skip on my own judgement' path 
 |---|---|---|
 | the candidate-confirmation picker, with its two-option form for an answer matching no question the package put | `confirm` / `correct` / `reject` / `ask-the-customer`; on that form, `record-for-a-human` / `reject`, or a re-point onto a question the package put, which re-asks the candidate on the four-option form — never a freeze | `/product-workflows:brd-reconcile`, *Confirm every candidate* |
 | the missing-reason picker | ask the customer, or freeze `status: open` | `/product-workflows:brd-reconcile`, *Confirm every candidate* |
-| the propagation-sweep picker | `inherited-unchanged` / `reverted` / `reopened` / `withdrawn` | `/product-workflows:brd-reconcile`, *The propagation sweep* |
+| the propagation-sweep picker | `inherited-unchanged` / `reverted` / `reopened` / `withdrawn`; presented without `reopened` on an `[AS#n]` item, and without `reverted` on an item whose prior position the record does not preserve | `/product-workflows:brd-reconcile`, *The propagation sweep* |
 | the will-change resolution picker | the exactly three resolutions of `product-workflows:decision-register-format` §6 | `/product-workflows:brd-interview` |
-| the `[SR#n]` disposition picker | `fixed` / `accepted-risk` / `escalated-to-customer` / `rejected-with-reason` | `/product-workflows:brd-package` |
+| the `[SR#n]` disposition picker | `fixed` / `accepted-risk` / `escalated-to-customer` / `rejected-with-reason`; presented without `fixed` where the finding's named artifact is one this command may not change | `/product-workflows:brd-package` |
 | the degradation-tier picker | `Full` / `Partial` / `Documents only` — the three rows of `product-workflows:bundle-packaging` §3 | `/product-workflows:brd-package` |
 | the customer-content ruling picker | ship the package, or hold it — the two outcomes `product-workflows:bundle-packaging` §6.3's *The operator's ruling* fixes | `/product-workflows:brd-package`, once per pass that reports a hit |
 | the `engagement_model` picker | `time-and-material` / `fixed-price` | `/product-workflows:prd-proposal` Phase 2, over the two shapes `product-workflows:proposal-format` §4 sections 16–18 fixes; `/product-workflows:brd-proposal` re-asks the same question over the same committed profile |

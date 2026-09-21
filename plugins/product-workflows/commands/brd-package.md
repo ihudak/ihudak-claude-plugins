@@ -231,6 +231,19 @@ cannot review, and they will not tell you that — they will review it anyway, b
    that came back absent:
    `BRD_PACKAGE_ROUNDS_NOT_ON_MAIN: <BRD-KEY>'s decisions.md and held [C] questions name rounds <list>, but <these> have no interview/round-<N>.md on any ref — the records those decisions and questions came from never merged. Land them on the specs repo's default branch and re-run; do not re-run /product-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
 
+   **A round that only re-decided is in the set, and the round it re-decided out of may not be.** A
+   re-decision writes no new record: it takes the existing record's decision fields afresh and moves
+   its `round` to the round that took the position now standing
+   (`product-workflows:decision-register-format` §4), so a round whose whole output was
+   re-decisions is named by those records and its `interview/round-<N>.md` is required like any
+   other — where a round that held only `[C]` questions is named by their entries instead, as above.
+   The earlier round the field moved off is named here only where another of its records still
+   carries it, or where it held a `[C]`; where neither holds, it drops out of this set, and
+   correctly — this gate requires the record the **standing** position came from, which is the
+   re-decision's, and no position on file now rests on the earlier one. **Do not repair that by
+   enumerating `interview/` instead**: the paragraph above gives the reason a directory listing
+   cannot see the case this gate was built for.
+
    **Deriving the set from the register and the held `[C]` entries is what makes the partial case
    visible**, and the partial case is the one this gate exists for: rounds 1 and 2 merged, round 3
    left on a branch. A check that enumerated the directory would find rounds 1 and 2, iterate them
@@ -1025,8 +1038,11 @@ self-review is free of them while being the most internal document this command 
    coincide, the one whose path sorts later, byte-wise, takes `-2` before its extension, and the
    test runs again — `-2` can collide in its turn — until every name in the bundle is unique. A
    prerequisite package's filenames are among the names tested and are never renamed (below), so a
-   collision with one is resolved on this package's file. The name is decided by the paths, never
-   by the order images were copied in. An
+   collision with one is resolved on this package's file; one **between two prerequisite packages**,
+   which neither may rename, cannot arise, because every bundled name opens with its own package's
+   key and the *Resolve prerequisites and their packages* phase resolves each prerequisite by a
+   distinct key. So the repetition always has a name it is allowed to move. The name is decided by
+   the paths, never by the order images were copied in. An
    embedded image in a rendered document points at that name (rule 2), and the manifest maps it
    (rule 6). **The `<BRD-KEY>` is the key of the package the document belongs to, not this run's
    key applied uniformly:** a prerequisite package copied in under rule 5 arrives already named from
@@ -1075,8 +1091,11 @@ self-review is free of them while being the most internal document this command 
    image from `brd/source/` and `brd/source-external/` — from its path relative to `brd/` to its
    bundled filename, naming beside it any target as written that the link log maps to it
    (`bundle-packaging.md` §1.1, §2.1) — **and map every other image whose bundled name took a folder
-   under rule 1**, a frame among them, from its path in the BRD folder to that name, since its
-   basename alone no longer tells a reviewer which picture it is. A figures section's heading, an
+   or a `-2` under rule 1**, a frame among them, from its path in the BRD folder to that name, since
+   its basename alone no longer tells a reviewer which picture it is. **A `-2` earns the map on its
+   own**: rule 1's uniqueness test can put one on an image that took no folder at all, and a name
+   that is neither the basename nor the basename under a folder is exactly the one a reviewer cannot
+   place. A figures section's heading, an
    appendix or image anchor, and an interview question naming an image all give that relative path,
    and none of them is a bundle filename. **Rule 8's relation 3 does not test a quoted target as
    written** (`bundle-packaging.md` §6.2): it sits beside the bundled filename it maps to and quotes

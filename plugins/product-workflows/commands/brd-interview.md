@@ -842,10 +842,12 @@ earlier round found something it did not. `round` does not move either — §2 d
 that **raised** the defect, not the round that last touched it, and the re-disposition is reported in
 this run's round record instead.
 
-**This is the one carve-out from the standing rule that a previous run's records are inputs, never
-scratch** (*Resolve inputs and gate the grounded BRD*, step 9, which states the rule and names this
-exception beside it). The two are not in tension: a re-disposition writes one field of one record
-and deletes, renumbers and rewrites nothing. **There is still no `fixed` disposition** — nothing on
+**This is one of the two carve-outs from the standing rule that a previous run's records are inputs,
+never scratch** (*Resolve inputs and gate the grounded BRD*, step 9, which states the rule and names
+both — the other being a decision reopened under `decision-register-format.md` §4 and the
+re-decision that follows it). Rule and carve-out are not in tension: a re-disposition writes a
+`disposition`, and the `blocked_on` that goes with it, on one record, and deletes, renumbers and
+rewrites nothing. **There is still no `fixed` disposition** — nothing on
 this route builds anything and no command here can observe a repair, so a defect that was fixed
 keeps whatever disposition it had (§4).
 
@@ -859,6 +861,18 @@ of a named prerequisite BRD holds — for instance `conditional_on: EPIC-008/[VD
 specific decision in that BRD's register and never the BRD as a whole. Which prefix a decision gets
 is fixed by the tag of the question it answers, never by who typed it (§1): a question tagged `[V]`
 produces a `[VD#n]`, and it does not become a `[CD#n]` because the customer later nods at it.
+
+**That list is for a decision first recorded here, and a re-decision is not one.** Where the answer
+re-decides a record already on file — reopened under `decision-register-format.md` §4, by this run
+or an earlier one — it mints no id and does not take every field §1 defines: it keeps that record's
+`id`, `altitude` and `settles`, takes afresh the decision fields **§4** names (its `round` becoming
+this run's and its `consumed_by` returning to `none`, both by that section's rule rather than by the
+list above), and has its argumentation appended after the `Reopened` paragraph rather than written
+over it. §4 is the authority for all of it, and the *Write the register and the round record* phase
+executes the write. **A decision's `round` moving is not the `[CDF#n]` rule above read across**: a
+defect's `round` is the round that *raised* it (`code-defect-log-format.md` §2) and never moves,
+while a decision's is the round that produced the position on record, so a re-decision carries it
+forward. Two records, two fields of the same name, two authorities.
 
 **Deferring is a recorded holding state, not a disposition and not a skip.** It records the reason
 the question is not answerable yet, keeps the round **open**, and never converts the question to
@@ -970,9 +984,11 @@ horizons of findings in an `evidence` list and an assumption's list holds none.
 
 ## Phase 9 — Write the register and the round record
 
-**`<BRD-dir>/decisions.md`** — one block per `[VD#n]` and per `[AS#n]`, each carrying every field
-`decision-register-format.md` §1 defines, with §7's account of which of the thirteen apply differently
-on an assumption. Ids are contiguous within their own prefix, assigned once, **never renumbered and
+**`<BRD-dir>/decisions.md`** — one block per `[VD#n]` and per `[AS#n]`. A block this run records for
+the first time carries every field `decision-register-format.md` §1 defines, with §7's account of
+which of the thirteen apply differently on an assumption; a block that **re-decides** a record
+already on file takes §4's set instead, which is the paragraph below and not this list.
+Ids are contiguous within their own prefix, assigned once, **never renumbered and
 never reused after a terminal status** (§1) — a re-run continues the sequence from the highest id on
 file and never restarts it. A run that reopens a decision writes `status: reopened` with its cause
 named in the closing `Reopened <YYYYMMDD>:` paragraph §4 appends to its `argumentation`, against the

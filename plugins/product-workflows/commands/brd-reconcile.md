@@ -1233,16 +1233,36 @@ afterthought is what gets skipped.
 
 **Then the citation pass:** every decision and every `[AS#n]` in every dependent BRD naming an id
 in the changed set, plus every finding those decisions rest on. **Which fields are read is derived
-from `decision-register-format.md` §1 rather than kept as a list here** — the two prose fields,
-`statement` and `argumentation`, plus every field §1 gives an *identifier* value to — because a
-list written here goes stale against §1 the first time a field is added, and the field it omits is
-the one nobody notices. Read against §1 as it stands, that is `evidence`, `settles` and
-`conditional_on` beside the two prose fields: `settles` holds the `[DEF#n]` this set carries for
+from `decision-register-format.md` §1 rather than kept as a list here**, because a list written
+here goes stale against §1 the first time a field is added, and the field it omits is the one
+nobody notices. Read **every field §1 defines that can carry a reference to another record**, which
+is two kinds: the fields holding **text somebody wrote** — `statement`, `argumentation`, and
+`chosen` with the `options_considered` it is drawn from — where an id is named inside a sentence or
+a recorded answer; and the fields whose value **is** an identifier, taken **only where the changed
+set can carry that field's id class**.
+
+Read against §1 and against the set this phase fixed, that is `evidence`, `settles` and
+`conditional_on` beside the four text fields: `settles` holds the `[DEF#n]` the set carries for
 every defect that gained a resolution, and an `[AS#n]`'s `evidence` is prose (§7) that can name one
-in a sentence. **`defects` is the field the derivation deliberately leaves out**, and it is named
-here so it is not added back by reflex: it holds `[CDF#n]` ids alone (§1), and no `[CDF#n]` is ever
-in the changed set this phase fixed — a code defect is the operator's to re-dispose in an interview
-round, not a customer's to change.
+in a sentence. **`defects` falls out of the derivation rather than being lifted out of it by hand**
+— it holds `[CDF#n]` ids alone (§1) and no `[CDF#n]` is a class the set carries, a code defect
+being the operator's to re-dispose in an interview round rather than a customer's to change — so
+the day that set admits a `[CDF#n]`, this pass reads `defects` without a word here changing, which
+a written-down exception could not do. **A record's own `id` is not a reference** and is not read:
+it names the record rather than citing another, and a bare id there would resolve against the
+dependent's own register in any case.
+
+**`chosen` is read on both record kinds, and for the same reason `statement` is.** On a `[CD#n]` it
+can be the customer's answer quoted verbatim, where they answered outside the options put (§1) —
+which is exactly where a changed id gets named in words nobody may edit. On a `[VD#n]` it is the
+option the operator chose, in the delivery team's own words. `options_considered` is read with it
+because a `chosen` that is not the outside-the-options form **is** one of its members, so reading
+one without the other would find an id in the answer and miss the same id in the option beside it.
+**A hit in either is disposed like any other, and no disposition corrects the text**:
+`inherited-unchanged` writes nothing, `reopened` and `withdrawn` move `status` and append their
+closing paragraph, and `reverted` restores the whole position under §4 rather than editing a
+sentence inside one. Correcting a stale sentence is the *other* sweep's act, and its `decisions.md`
+row refuses it there.
 
 **Every item the sweep reaches is forced to exactly one disposition.** Present each one at a time,
 with the item, the changed id that reached it, and what changed about that id:
@@ -1404,7 +1424,7 @@ any of them would contradict that rule rather than correct a stale sentence:
 |---|---|
 | a `coverage-ledger.md` `disposition` — **any** ledger's, this BRD's included | `needs-a-human`. Allocation is `/product-workflows:brd-split`'s walk and nothing else's, and the *Update the coverage ledger* phase writes only the three `[CD#n]`-driven dispositions onto **this** ledger and never reaches one hop down or across (`coverage-ledger-format.md` §3, §4) |
 | a `brd/brd-inventory.md` row's `id`, `text` or `source_anchor` | `needs-a-human`. `text` is the requirement verbatim from an immutable source and `source_anchor` locates it there; an id is assigned once and never renumbered (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, §2). A sweep that reflowed one would edit the record of what the customer actually wrote |
-| any field of a `decisions.md` record — the complete set `decision-register-format.md` §4 names, **`argumentation` alone excepted** | `needs-a-human` unless it is this run's own propagation-sweep write. They move only through the four dispositions the previous phase fixes, or through §4's two reopening causes — never because a sentence nearby went stale. The set is cited rather than listed so a field §4 adds is covered on the day it is added, and so `settles` — the one structured field holding a `[DEF#n]`, which is an id this sweep's changed set carries — is covered rather than falling to the prose fallback below. The exception is `argumentation` alone: it is the route's own prose, which is what `updated` is for (below) |
+| any field of a `decisions.md` record — the complete set `decision-register-format.md` §4 names, **`argumentation` alone excepted** | `needs-a-human` unless it is this run's own propagation-sweep write. They move only through the four dispositions the previous phase fixes, or through §4's two reopening causes — never because a sentence nearby went stale. The set is cited rather than listed so a field §4 adds is covered on the day it is added, and so `settles` — the one structured field holding a `[DEF#n]`, which is an id this sweep's changed set carries — is covered rather than falling to the prose fallback below. The exception is `argumentation` alone: it is the route's own prose, which is what `updated` is for (below). **`chosen` is the case that shows this row is about the field and not about whose words it holds**: on a `[CD#n]` it can be the customer's answer quoted verbatim, immutable under `bundle-packaging.md` §6.3 and never edited here; on a `[VD#n]` it is the delivery team's own text, so that argument does not bind — and the outcome is the same, because what freezes a `chosen` is the decision it records, not its authorship. The propagation sweep's citation pass reads it on both, which is what makes a hit there reported rather than silently missed |
 | a `code-defect-log.md` entry — **any field of it, its `statement` and `intent` prose included** | `needs-a-human`. Every disposition on that log is the operator's and `/product-workflows:brd-interview` is its only writer (`${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §4), so there is no field of a `[CDF#n]` this sweep may write — which is why this row, like the two below it, covers prose too |
 | a `brd/brd-figures.md` section — **any line of it** | `needs-a-human`. Its transcription records what the customer's image shows, which no decision changes, and its *Read*, *Appearance*, hash, *Linked from* and *Rows* lines are `/product-workflows:brd-intake`'s to write (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1.2). A correction to a transcription arrives only as a section-12 row, which the *Apply the required corrections* phase disposes of; a hit here means the customer's own picture still shows a position the answer moved, which is for a person to take up with them |
 | any file under `brd/source/` or `brd/source-external/` — the customer's document and every file captured with it, **any line of it** | `needs-a-human`, and the file is **never touched at all** — the *Apply the required corrections* phase's class 3 (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, §1.1). A stale position there is the customer's own wording; what the answer changed is recorded beside it, as a defect resolution or in *what still needs a human*, never as an edit in it |

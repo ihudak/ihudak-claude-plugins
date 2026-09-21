@@ -45,10 +45,12 @@ one addressed to an Epic — and the date the run appended the draft. Each `read
 repository, by the `repo:` name the implementation records use or, for one only the scan reached, the
 slug the run resolved it by, and then **every commit the run read there**: each block's `commit:`
 whose diff it read, each commit its scan kept whose diff it read, and each commit a key-commit
-fallback drew on. **The qualifier is on both of the first two, not only the first** — the blocks and
-the scan are both resolved before any repository is a clone, so neither has opened a diff when it
-hands a commit over, and a run that wrote out what it had merely found would advance the boundary
-past work no note describes. **A
+fallback drew on. **The qualifier is on both of the first two, not only the first** — neither the blocks nor the scan
+opens a diff, the one reading a record and the other commit *messages*, so both hand a commit over
+on the strength of having found it and neither on the strength of having read it, and a run that
+wrote out what it had merely found would advance the boundary past work no note describes. (The
+scan does run inside a clone, and so does the `git rev-parse` that resolves a block's abbreviated
+`commit:` for this comparison — running there is not reading a diff.) **A
 commit is written as the first 12 characters of its full SHA**, as `git log --format=%H` prints it —
 never a shorter or a longer prefix — which is long enough that two commits of one repository do not
 share it in practice and short enough to keep the comment readable; every comparison against a read

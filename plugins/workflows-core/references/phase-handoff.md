@@ -312,7 +312,23 @@ The classes as the tree stands, each derived from the consumer rather than asser
 
 ### 4.1 `handoff-to-main` outcome line
 
-Exactly one, prefixed `Phase handoff:`.
+Exactly one, prefixed `Phase handoff:`, per run that reaches §4.3's consent choice.
+
+**Every row here is an outcome of a handoff that was *offered*: exactly one line per run that
+reached §4.3's consent choice, whichever way it went.** A decline is inside that scope and not
+outside it — options 2 and 3 both decline, `handoff-to-main` never executes, and the *Declined by
+the user* row below is still the line, emitted by the **producer** (§4.3's *What each option means*
+is the authority on that). The heading names the entry point because the other rows are its
+outcomes; the count is per run **reaching the offer**, not per execution of §2.
+
+**A run that never reaches the offer prints no line, and the absence of a row for it is deliberate.**
+A producer may skip its handoff on a condition of its own — `/frames` writes no index and so has no
+deliverable to hand off, `/idea` on `status: draft` never hands off and does not ask — and there the
+*Declined by the user* row would assert a decision nobody was asked to make. **Both liberties have
+been taken with this section, in opposite directions**: one command offered prose in place of the
+line on a declined run, and another was about to be told to print one on a run that never offered a
+handoff at all. A producer settles which of the three states its phase is in — offered and taken,
+offered and declined, never offered — and prints a line for the first two.
 
 | Case | Line |
 |---|---|

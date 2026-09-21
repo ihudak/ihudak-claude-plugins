@@ -422,8 +422,12 @@ the absence of a truncation notice is only informative once the run is known to 
 Also report: the resolved model routing (with any degradation); the feedback path; the cost path (or
 the report-only notice); the `Specs repo:` outcome line from `commit-artifacts`
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full;
-and the `Phase handoff:` outcome line when the handoff ran, or the fact that it was declined and the
-indexes are on disk and on no ref.
+and the `Phase handoff:` outcome line for whichever of the two outcomes Phase 3's offer reached —
+`handoff-to-main`'s own line on the first option, and §4.1's *Declined by the user* line on either
+other, that one already saying the deliverable is written and not on the default branch
+(`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1, exactly one line per run that reaches the
+offer; §4.3 has the producer emit it on either declining option). **A run that wrote no index prints
+neither**: Phase 3 offers no handoff there, so nothing was declined and §4.1 has no row for it.
 
 **Say what this run did not do.** It reconciled no frame against any requirement, produced no
 `[DG#n]`, and dispatched no `design-grounder` — the indexes make these sets *readable*, which is a

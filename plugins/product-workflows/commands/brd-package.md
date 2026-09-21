@@ -792,7 +792,10 @@ and the answer comes back in the review's section 7 like any other.
 
 **Each held `[C]` entry is rendered with what the customer needs to answer it and to cite it**: the
 question as it will be put; its round and position, which the review's section 7 cites it by; the
-findings on its `- **Findings:**` line, with their verdicts; and, where the entry carries them, the
+findings on its `- **Findings:**` line, with their verdicts — an entry written before 3.7.0
+carries no such line, and its findings are read from its prose where they are named there, because
+a `[C]` rendered with none asks the customer in the abstract, which is what pinning the line
+prevents; and, where the entry carries them, the
 `[DEF#n]` on its `- **Requirement defect:**` line and the path on its `- **Defect image:**` line
 (`/product-workflows:brd-interview`, *Hold every `[C]`*). The image path is how the reviewer finds
 the picture a question about an image-drawn requirement is about — the manifest maps it to the

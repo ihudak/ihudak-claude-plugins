@@ -1048,8 +1048,10 @@ horizons of findings in an `evidence` list and an assumption's list holds none.
 ## Phase 9 — Write the register and the round record
 
 **`<BRD-dir>/decisions.md`** — one block per `[VD#n]` and per `[AS#n]`. A block this run records for
-the first time carries every field `decision-register-format.md` §1 defines, with §7's account of
-which of the thirteen apply differently on an assumption; a block that **re-decides** a record
+the first time carries every field `decision-register-format.md` §1 defines on a `[VD#n]`, and on
+an `[AS#n]` every one of them §7 admits and none it marks *not applicable*, which §1.1 omits rather
+than writes empty — §7 accounts for all thirteen, saying of each whether it is as-is, means
+something different, or does not apply; a block that **re-decides** a record
 already on file takes each field under the rule §4 gives it instead, which is the paragraph below
 and not this list.
 Ids are contiguous within their own prefix, assigned once, **never renumbered and

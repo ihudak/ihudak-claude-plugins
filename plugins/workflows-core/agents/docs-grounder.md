@@ -64,8 +64,11 @@ Use when `qmd` is absent, off, or Path A failed:
    - Score only that shortlist: frontmatter (`title`/`description`/`tags`) + first ~50 body lines, overlap against `feature_summary` + `themes`; keep matches above threshold.
    - An empty shortlist ⇒ `status: EMPTY` with a `notes` line.
 2. **git-grep backstop** (only when `key` is present):
-   `git -C "<docs_path>" log --all -E --grep="<KEY>" -n 20 --name-only` and
-   union any pages it touched. This is a pure read and works on a read-only
+   `git -C "<docs_path>" log --all -E --grep='(^|[^A-Za-z0-9_-])<KEY>([^A-Za-z0-9_-]|$)' -n 20 --name-only`
+   — the whole-key match `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §4 defines,
+   the key's ERE metacharacters escaped, so a key `ACME-7` finds `[ACME-7]` and never `[ACME-77]`
+   or `[ACME-70-01]` — and
+   union any pages those commits touched. This is a pure read and works on a read-only
    `.git` (see `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`);
    **best-effort** — on any failure, degrade to keyword-overlap only,
    never an error. Skip entirely when `key` is absent — the caller omits it

@@ -20,7 +20,7 @@ The one handoff mechanic that belongs to a single command rather than to the fam
 
 ## Authoring formats
 
-- `release-note-types.md` — the release-note section map (`## Breaking changes` / `## Feature updates` / `## Fixes`, all three in one **release-notes.md** under a release-version heading, each draft under a scope line naming the PRD or Epic it was drafted for), the per-section draft shape and prose rules, the deprecation-note rule, and Change Type sourcing; consulted by `release-notes-writer`.
+- `release-note-types.md` — the release-note section map (`## Breaking changes` / `## Feature updates` / `## Fixes`, all three in one **release-notes.md** under a release-version heading, each draft under a scope comment naming the PRD or Epic it was drafted for and every commit its run read, which is what bounds a later run rather than any date), the per-section draft shape and prose rules, the deprecation-note rule, and Change Type sourcing; consulted by `release-notes-writer`.
 
 ## The documentation-portal scaffold
 

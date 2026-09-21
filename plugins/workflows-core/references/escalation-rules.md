@@ -49,12 +49,12 @@ to protect that by omitting the free-text option. **Under §0 they cannot** — 
 whatever the array says — so the protection moves from the array's shape to the run's handling of the
 answer:
 
-**A free-text answer on one of the seven arrays below is normalised into that array's own vocabulary,
+**A free-text answer on one of the eight arrays below is normalised into that array's own vocabulary,
 or the question is re-asked. It is never written through as a new value.** `/document`'s image
 disposition is the shipped worked example: its free text *"resolves to one of the three dispositions
 above … There is no fourth disposition and no 'skip on my own judgement' path here."*
 
-**The seven:**
+**The eight:**
 
 | Array | Its closed vocabulary | Owner |
 |---|---|---|
@@ -64,9 +64,10 @@ above … There is no fourth disposition and no 'skip on my own judgement' path 
 | the will-change resolution picker | the exactly three resolutions of `product-workflows:decision-register-format` §6 | `/product-workflows:brd-interview` |
 | the `[SR#n]` disposition picker | `fixed` / `accepted-risk` / `escalated-to-customer` / `rejected-with-reason` | `/product-workflows:brd-package` |
 | the degradation-tier picker | `Full` / `Partial` / `Documents only` — the three rows of `product-workflows:bundle-packaging` §3 | `/product-workflows:brd-package` |
+| the customer-content ruling picker | ship the package, or hold it — the two outcomes `product-workflows:bundle-packaging` §6.3's *The operator's ruling* fixes | `/product-workflows:brd-package`, once per pass that reports a hit |
 | the `engagement_model` picker | `time-and-material` / `fixed-price` | `/product-workflows:prd-proposal` Phase 2, over the two shapes `product-workflows:proposal-format` §4 sections 16–18 fixes; `/product-workflows:brd-proposal` re-asks the same question over the same committed profile |
 
-**The seventh is the one whose value is re-read as configuration by later runs of the same commands**,
+**The eighth is the one whose value is re-read as configuration by later runs of the same commands**,
 which is why it is here rather than left to the command: the answer is written to a committed
 `proposal-profile.yml` and loaded again on every later run of **both** proposal commands, to choose
 which of `product-workflows:proposal-format` §4's two section shapes to render — so a third value
@@ -80,12 +81,14 @@ run of a **different** command, as the defect-remediation sweep's third source
 `[VD#n]`s and `[CD#n]`s are read on later runs by `/create-prd`, `/create-ard` and `/specify`, each
 filtering them by altitude. Row 3's disposition is written onto a dependent BRD's register row and
 read there the same way. Every one of those is a **record** of what was decided, read back as evidence
-about one finding or one requirement; only the seventh is a **setting** that shapes what a later run
-renders. Row 6 alone is genuinely spent inside its run — its tier is recorded as a fact about that
-dated bundle, never reloaded to shape a later one. So check the property in every row before claiming
-one, rather than checking that the row is in the table.
+about one finding or one requirement; only the eighth is a **setting** that shapes what a later run
+renders. Rows 6 and 7 are the two genuinely spent inside their run — row 6's tier is recorded as a
+fact about that dated bundle, never reloaded to shape a later one, and row 7's ruling binds the
+passes of the run that took it and reaches the run's final report as an outcome line, nothing later
+reading it back. So check the property in every row before claiming one, rather than checking that
+the row is in the table.
 
-The seventh also has a **second route to the same field** — the proposal-profile confirmation
+The eighth also has a **second route to the same field** — the proposal-profile confirmation
 picker's *Correct a field* option, in both commands — and that route is normalised the same way.
 
 **The first three are load-bearing beyond tidiness, and the reason is worth carrying.** They are the
@@ -98,10 +101,10 @@ re-opened by an adjustment made in good faith against this file. A rule contradi
 authority is not a rule, so the carve-out is written here, by name, rather than left to each command
 to assert against a reference that overrules it.
 
-**No operator is trapped, and the reason is no longer `Cancel`.** Three of the seven carried a
+**No operator is trapped, and the reason is no longer `Cancel`.** Three of the eight carried a
 trailing `Cancel` until the four-option cap was enforced, and it was dropped from each — a fifth slot
 the harness would not render. The escape that replaces it is the free-text option, which is always
-present and, on these seven, is normalised rather than frozen. Where aborting has a consequence the
+present and, on these eight, is normalised rather than frozen. Where aborting has a consequence the
 operator must see before choosing, the command states it in the prose introducing the walk rather
 than in an option: `/brd-package`'s and `/brd-reconcile`'s walks both do.
 

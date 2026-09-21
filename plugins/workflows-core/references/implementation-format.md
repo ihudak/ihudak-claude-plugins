@@ -62,10 +62,13 @@ append-only — and the picker's ● marker, which reads the Epic's own folder, 
 taking the default cursor; `/ready` derives its phase from an Epic folder holding no record; and an
 Epic-level `/document` or `/release-notes` reads none of its refs. **Population: every Epic
 implemented under a PRD address before `dev-workflows` 4.1.2.** And where the PRD folder also holds
-a flat `specification.md`, a PRD-level `/ready` counts the block toward the broad PRD-level slice,
-whose record the PRD folder's is, and reads that slice as implemented. **Population: every PRD
-folder holding both a flat `specification.md` and such a block, from `dev-workflows` 4.1.2, whose
-`/ready` is the first to read that record.**
+a flat `specification.md`, a PRD-level `/ready` counts the block as the **broad PRD-level slice's
+own record**, the PRD folder's record being the slice's — which moves the slice to *In Progress*
+only where the PRD folder also holds a `design.md`, since `/ready` Phase 3(0) takes the furthest
+rung whose expected artifacts all exist and the lower rung where they straddle
+(`dev-workflows:workflow-states`, the Epic ladder). **Population: every PRD folder holding both a
+flat `specification.md` and such a block, from `dev-workflows` 4.1.2, whose `/ready` is the first to
+read that record.**
 
 **The way out is the operator's: move that block by hand — cut it from the PRD folder's
 `implementation.md` and append it to the Epic folder's**, creating the Epic's file where the folder
@@ -75,6 +78,14 @@ the move edits no block: it changes only the folder that attributes the block, w
 this section gives the folder. **A move, not a copy**: a copy left in the PRD folder is harmless to
 the diff readers, since a read that takes both records counts the ref once (§4), but `/ready` still
 counts it toward the broad slice.
+
+**Which block is the Epic's is not written anywhere, so it is read off the code.** A block names no
+unit, and before `dev-workflows` 4.1.2 the commit it records carried the PRD's key in its subject
+too (§3), so neither the block nor its commit subject says which unit the work was for. The
+operator identifies it by what the commit changed: `git show <commit>` in the repository the entry
+names, read against the Epic's own `specification.md`. **A block that cannot be attributed that way
+stays where it is and stays the PRD folder's** — a block moved on a guess attributes work to an
+Epic that did not get it, and every Epic-level reader then reports it as that Epic's.
 
 **Branch for convenience, commit for durability.** A merged branch is deleted; the squashed commit
 stays reachable from the base. `diff-summarizer` accepts either, and recording both is what makes the
@@ -126,7 +137,9 @@ plugin at all — which is what `docs/reference/commit-convention.md` is for.
 - **A `Work-Item: <workitem_key>` trailer**, when that unit's folder carries one
   (`references/prd-format.md`). Never invented; the trailer is simply absent when the field is.
 - **The branch carries the key too** — `<prefix>/<key>-<slug>`, per `references/branch-naming.md`,
-  the same unit's key, which gives a second recovery path.
+  the same unit's key. That is a recovery path for a **person** reading the log or the branch list,
+  never for §4's scan: a key inside a branch name is followed by `-` and the slug, and §4 matches a
+  token only as a whole key, so the scan never reads one there.
 
 **In the subject rather than a trailer, and that is the whole point.** A trailer does not survive
 `git log --oneline`, so it is invisible to the person deciding what their own commit should look
@@ -161,8 +174,23 @@ followed by a letter, a digit, `_` or `-` — the characters a key is made of
 reached `diff-summarizer` as this scope's unrecorded work. It is the rule `specs-repo-git.md` §3.5's
 `branch-key` follows — a key the run holds, tested at a boundary, never one read out of the text —
 with a stricter boundary: a branch name continues a key with `-` or `_` and a slug, so there those
-two end a key, while nothing in a commit message legitimately continues one, so here they belong to
-it.
+two end a key, while here they belong to it.
+
+**The one thing that legitimately continues a key in a commit message is a branch name inside it**,
+and the boundary deliberately does not reach it. A merge commit's own subject is
+`Merge branch 'feat/ACME-7-order-intake'`, built `<prefix>/<key>-<slug>` by
+`references/branch-naming.md` §1.4, so the key there is followed by `-` — and admitting `-` or `_`
+to reach it would admit `[ACME-70-01]` and `[ACME-7-01]` again, which is the over-match this
+boundary exists to remove. A boundary aware enough to tell the two apart, admitting `-` only where
+a digit does not follow, would reach the merge commit and hand `/document` a commit whose diff is
+the whole branch, every commit of which the scan already lists separately — so the branch's work
+would be reported twice.
+
+**What that costs:** the scan finds no commit of a branch whose own subjects carry no `[<key>]` and
+whose merge commit names the key only inside the branch name. **Population: every `/document` scan,
+and every `/release-notes` scan with diff grounding on, over a repository where a key's work is
+carried by a branch name alone — from `workflows-core` 1.7.1, since the unanchored grep it replaces
+did match inside a branch name, and matched every longer key with it.**
 
 **The keys are those of the records the read takes, so its scope decides them.** An Epic-level read
 greps that Epic's key and its `workitem_key`. A PRD-level read, which takes the PRD folder's record
@@ -190,28 +218,49 @@ commits into the recorded set makes the record look more complete than it is.
   it now stands, so every change that reached it is in scope, and no note bounds its scan: every
   block in its scope is read, so merging by SHA already keeps each recorded commit out of the
   unrecorded work.
-- **`/release-notes` reads only the blocks no earlier note covers.** A second release must not
+- **`/release-notes` reads only what no earlier note covering it read.** A second release must not
   re-describe the first one's work, and with no imported release field the notes already in
-  `release-notes.md` are the only honest boundary. Each records its scope and date
-  (`docs-workflows:release-note-types` §1): a note for the PRD covers every record under it, and a
-  note for an Epic that Epic's record alone. So for each record the run reads — by the same scope
-  as `/document` — it takes the blocks dated after the latest note covering that record, which for
-  an Epic's record is the later of that Epic's latest note and the PRD's; a note drafted for one
-  Epic moves no other Epic's boundary. A block dated the day of that note is read too, since a date
-  cannot order the two, and a block read twice shows in the report where a block skipped would not.
-  **The run names the blocks it used**, which makes a wrong boundary visible rather than silent.
+  `release-notes.md` are the only honest boundary. Each records its scope and every commit its run
+  read (`docs-workflows:release-note-types` §1, which fixes the form): a note for the PRD covers
+  every record under it, and a note for an Epic that Epic's record alone, so a note drafted for one
+  Epic moves no other Epic's boundary. **A note's boundary is the set of commits it read, never a
+  date**, because a date cannot say whether a note saw a commit: a branch committed before a note
+  and merged after it is dated inside the span the note covers, and no note read it. So for each
+  record the run reads — by the same scope as `/document` — it takes every block that records a
+  commit no earlier note covering that record read, that record's own notes and the PRD's; a block
+  is skipped only where every commit it records is in such a note's read set. **The run names the
+  blocks it used**, which makes a wrong boundary visible rather than silent.
 
-  **The boundary binds the scan as well as the record**, or every commit a covered block records,
-  and every hand-made commit an earlier note already described, comes back from the scan as
-  unrecorded work on every later run. So the scan drops every commit whose SHA a block in the
-  records the read takes names — covered or not, since an uncovered block's commits are read from
-  the block anyway — and keeps a commit only where it is dated after the latest note covering the
-  record whose token it matched: the PRD folder's record for the PRD's key or `workitem_key`, an
-  Epic's for that Epic's. A commit matching the tokens of more than one record is kept where any of
-  them keeps it. Its date is its committer date, `git log --date=short --format=%cd` — the day the
-  commit was last written, which a rebase or a cherry-pick moves later, so the rule errs toward
-  reading a commit again rather than skipping one — and a commit dated the day of the note is kept,
-  as a block is.
+  **The scan takes the same boundary**, or every commit a covered block records, and every
+  hand-made commit an earlier note already described, comes back from the scan as unrecorded work
+  on every later run. It drops every commit whose SHA a block in the records the read takes names
+  — covered or not, since an uncovered block's commits are read from the block — and every commit
+  in the read set of an earlier note covering a record whose token it matched: the PRD folder's
+  record for the PRD's key or `workitem_key`, an Epic's for that Epic's. It drops nothing else, save
+  what the one fallback below drops. So **a commit is skipped only where an earlier note covering it
+  read it — or, under that fallback alone, where its date puts it behind a note whose read set is
+  unrecorded, which the run then lists** — and outside that fallback a commit no note read comes
+  back however it is dated.
+
+  **The one fallback is an earlier note that records no read set** — a draft carrying no scope line
+  at all, which is every draft appended before `docs-workflows` 1.2.2, and one carrying the
+  one-line `<!-- release-note scope: <KEY> <YYYY-MM-DD> -->` form that release replaced before it
+  shipped. It still bounds by date, as notes did before: a block or a commit dated before the
+  latest such note covering its record is dropped, and one dated on that note's day or later is
+  read; a commit matching several records' tokens is dropped by date only where every one of them
+  drops it. A block is dated by its heading, and a commit by its committer date as
+  `git log --date=short-local --format=%cd` prints it — in the zone of the machine running the
+  scan, so that every date git supplies is read in one zone, and in the zone the operator's own
+  block headings and scope lines were written in, where `--date=short` prints each committer's own
+  zone and moves a late-evening commit onto the wrong day. **This fallback can drop what no note
+  described**: a commit merged after such a note but dated before it, a block that reached the
+  specs checkout after it, and a commit within a day of its date wherever that note's writer worked
+  in another zone. **Population: every `/release-notes` run with diff grounding on over a
+  `release-notes.md` an earlier release wrote — which is every one that exists today — and none of
+  the notes written from `docs-workflows` 1.2.2 on, since a note that records its read set never
+  reaches this rule.** So the run lists every block and every commit the date rule dropped, beside
+  the ones it used — a block by its record and heading date, a commit by its SHA, date and subject
+  — and nothing is dropped silently.
 
 **What is honestly still lost, and what a run therefore says out loud:** only a commit whose message
 names the key is findable, no convention compels a human to follow one, and so **the run reports how

@@ -62,7 +62,7 @@ choices: ["Use proposed name: <name>", "Edit name (you'll be prompted)", "Cancel
 
 ### 1.4 No documented convention
 
-Only when §1.1 finds nothing: build **`<prefix>/<key>-<slug>`** on a keyed run — the key the run resolved, so the branch itself is a recovery path for the work (`references/implementation-format.md` §3) — or `<prefix>/<slug>` where there is no key. `<prefix>` comes from the identity ladder in §2 (falling back to this command's default in §2.4) and `<slug>` from §3.
+Only when §1.1 finds nothing: build **`<prefix>/<key>-<slug>`** on a keyed run — the key the run resolved, so the branch name carries the key for a **person** reading the log or the branch list (`references/implementation-format.md` §3); it is no recovery path for that file's §4 commit scan, which matches a token only as a whole key and so never reads one out of a branch name — or `<prefix>/<slug>` where there is no key. `<prefix>` comes from the identity ladder in §2 (falling back to this command's default in §2.4) and `<slug>` from §3.
 
 ---
 

@@ -31,17 +31,40 @@ draft. A run whose version the operator declined files under `# Unreleased`. The
 `# Release notes — <PRD> <slug>`, is its first line, names the PRD folder's key and slug — on a run
 addressed to an Epic as on one addressed to the PRD — and names no version.
 
-**Each draft records its scope, on the line above it:**
-`<!-- release-note scope: <KEY> <YYYY-MM-DD> -->`, `<KEY>` the PRD folder's key on a run addressed
-to the PRD and the Epic's on one addressed to an Epic, and the date the run appended the draft. The
-file is one per PRD and a note may be drafted for one Epic, so without the line nothing in the file
-says whose work a note described, and the line is what `/release-notes` takes its boundary from,
-for the blocks it reads and the commits its scan keeps alike — a PRD's note covering every
-implementation record under the PRD, and an Epic's that Epic's record alone
-(`workflows-core:implementation-format` §4). An HTML comment renders as nothing and is
-not a heading, so it moves none of the boundaries above, and it is **not part of the draft**: every
-rule below binds the draft beneath it, and the operator's paste starts there. **A draft with no
-scope line — every one appended before `docs-workflows` 1.2.2 — counts as the PRD's**, which is how
+**Each draft records its scope and what its run read, in one HTML comment directly above it:**
+
+```
+<!-- release-note scope: ACME-77-01 2026-09-20
+read: orders-service 3f9a1c2b4e5d 7be0d41c9a2f
+read: billing-api 1c2d3e4f5a6b
+-->
+```
+
+The first line names `<KEY>` — the PRD folder's key on a run addressed to the PRD and the Epic's on
+one addressed to an Epic — and the date the run appended the draft. Each `read:` line names a
+repository, by the `repo:` name the implementation records use or, for one only the scan reached, the
+slug the run resolved it by, and then **every commit the run read there**: each block's `commit:`
+whose diff it read, each commit its scan kept, and each commit a key-commit fallback drew on. **A
+commit is written as the first 12 characters of its full SHA**, as `git log --format=%H` prints it —
+never a shorter or a longer prefix — which is long enough that two commits of one repository do not
+share it in practice and short enough to keep the comment readable; every comparison against a read
+set takes the same 12 characters of a SHA resolved in that repository, a block's abbreviated
+`commit:` resolved with `git rev-parse` first. A commit the run could not resolve was not read and is
+not written, so a later run reads it again. A run that read no commit — diff grounding off, or
+nothing resolved — writes the one line `read: none`, and its note covers no commit.
+
+The file is one per PRD and a note may be drafted for one Epic, so without the comment nothing in the
+file says whose work a note described or what it saw, and the comment is what `/release-notes` takes
+its boundary from, for the blocks it reads and the commits its scan keeps alike: a PRD's note covers
+every implementation record under the PRD and an Epic's that Epic's record alone, and a note covers
+exactly the commits its `read:` lines name (`workflows-core:implementation-format` §4). An HTML
+comment renders as nothing and is not a heading, so it moves none of the boundaries above, and it is
+**not part of the draft**: every rule below binds the draft beneath it, and the operator's paste
+starts there. **A note that records no read set falls back to its date**, which `implementation-format`
+§4 bounds and says what it loses: a comment of the one-line form
+`<!-- release-note scope: <KEY> <YYYY-MM-DD> -->`, the shape this release replaced before it
+shipped, and a draft with no scope line at all, which is every one appended before `docs-workflows`
+1.2.2. A draft with no scope line counts as the PRD's, which is how
 the file's one boundary treated it then, and is dated by the file's last write before a scope line
 first reached it: the latest commit to the file whose version carries none, or, where the file
 carries no scope line yet, its own last-written date, as before.

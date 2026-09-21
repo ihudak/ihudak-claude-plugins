@@ -103,8 +103,9 @@ set, and the resolved folder's `key` on a broad PRD-level slice; `null` in direc
 commit subject with it (`workflows-core:implementation-format` §3), so a run that implements an
 Epic under a PRD address commits `[<EPIC-KEY>]` on a branch named for the Epic — the key an
 Epic-level scan greps (§4 there). Those two phases are its readers. Phase 4.5's handoff title is
-not one: it names the folder it hands off, which on such a run is the Epic's wherever the files it
-annotated are. Where any other step names the run's `key`, it means the resolved folder's.
+not one: it names the folder it hands off, which is the Epic's where the files it annotated are the
+Epic's, and the PRD folder's where they are the PRD's. Where any other step names the run's `key`,
+it means the resolved folder's.
 
 Rules:
 - The **primary description** is: the spec file if one was given → else the spec-folder design doc → else the inline prose. Echo `📄 Reading prompt from <file>…` (or `from inline text`) and confirm `"Loaded prompt (N lines)."`.

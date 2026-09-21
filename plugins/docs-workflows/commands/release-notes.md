@@ -157,7 +157,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 **Resolve the diff sources — two of them, merged.** **Only when diff grounding is ON** (Phase 1): it is opt-in and advisory here, so a run that declined it skips this step entirely and grounds its prose in the PRD alone. When it is on, invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4:
 
-1. **The record.** Read the `implementation.md` records named above. **Read only the blocks no earlier note covers** — a second release must not re-describe the first one's work, and the notes already in `release-notes.md` are the only honest boundary. `workflows-core:implementation-format` §4 fixes it per record: the blocks dated after the latest note covering that record, a note for the PRD covering every record and a note for an Epic that Epic's alone, each note's scope and date read off the scope line above it (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1, which also says what a note with none counts as). So a note drafted for one Epic moves no other Epic's boundary. A ref two of these records name — the same repository and the same commit — is one ref, counted once (that same §4). **Name the blocks this run used**, so a wrong boundary is visible rather than silent.
+1. **The record.** Read the `implementation.md` records named above. **Read only the blocks no earlier note covers** — a second release must not re-describe the first one's work, and the notes already in `release-notes.md` are the only honest boundary. `workflows-core:implementation-format` §4 fixes it per record, by what each earlier note read and never by a date: a block is skipped only where every commit it records is in the read set of an earlier note covering its record, a note for the PRD covering every record and a note for an Epic that Epic's alone, each note's scope and read set read off the comment above it (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1, which also says what a note with none counts as). So a note drafted for one Epic moves no other Epic's boundary. An earlier note that records no read set bounds by its date instead, §4's one fallback: list every block and commit that date rule dropped, beside the ones used. A ref two of these records name — the same repository and the same commit — is one ref, counted once (that same §4). **Name the blocks this run used**, so a wrong boundary is visible rather than silent.
 2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
    repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
    already holds, with the `git log` command `workflows-core:implementation-format` §4 gives: one
@@ -168,13 +168,21 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
    after a session ended, a colleague's push, a follow-up nobody ran a command for.
 
    **The note boundary binds this source too** (§4): drop every commit whose SHA a block in the
-   records read names, covered or not, and keep only those dated after the latest note covering
-   the record whose token each matched, or on that note's day — or a covered block's commits, and
-   every hand-made commit an earlier note described, come back as unrecorded work.
+   records read names, covered or not, and every commit in the read set of an earlier note covering
+   a record whose token it matched — and nothing else, save what §4's date fallback drops and this
+   run lists. Otherwise a covered block's commits, and every hand-made commit an earlier note
+   described, come back as unrecorded work.
 
 **Merge and dedupe by SHA.** Anything the scan finds beyond the recorded blocks is reported as
 **unrecorded work**, named as such with its commits listed: folding hand-made commits silently into
 the recorded set would make the record look more complete than it is.
+
+**Carry the merged set forward as this run's read set** — every commit taken from a block and every
+commit the scan kept, by repository — because Phase 8 writes it into the scope comment and it is
+what bounds a later run. Phase 5 adds to it each SHA a `diff-summarizer` summary names its
+key-commit fallback as having drawn on; those three are the whole of it
+(`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1, which fixes the 12-character form
+every entry is written in).
 
 **Report the scan's own reach.** Say **how many commits it scanned and how many matched**. Only a
 commit whose message names the key is findable, and no convention compels a human to follow one — so
@@ -341,7 +349,7 @@ Then read the scratch file back as `combined_rendered`.
 
 ## Phase 8 — Write + report
 
-1. **Append** the `combined_rendered` draft to `release-notes.md` in the resolved PRD folder — the one destination Phase 1 derives, laid out as Phase 1 lays it out. Where the file does not exist, create it with its `# Release notes — <PRD> <slug>` title, `<slug>` the PRD folder's. Where it has no `#` heading for the version this draft is filed under (Phase 1: the resolved version, or `# Unreleased`), add that heading at the end of the file; where that version has no `##` section for the draft's Change Type, add the section at the end of that version's part of the file, which runs to the next `#` heading; then add at the end of that section, which runs to the next `##` or `#` heading, the draft's scope line — `<!-- release-note scope: <KEY> <YYYY-MM-DD> -->`, `<KEY>` being `focus_key` where it is set and `<PRD>` where it is null, and the date today's — and the draft on the line after it. The scope line records whose work the draft described and is not part of it. Those are the levels `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1 fixes, and they are why the append lands where it should: a draft's own `### <feature title>` sits below its section, so it never ends one. **The append is the whole write**: nothing already in the file is rewritten, reordered or removed, since every earlier section is an earlier run's note, so there is no question to ask and no option that replaces the file. NEVER write into a docs repo.
+1. **Append** the `combined_rendered` draft to `release-notes.md` in the resolved PRD folder — the one destination Phase 1 derives, laid out as Phase 1 lays it out. Where the file does not exist, create it with its `# Release notes — <PRD> <slug>` title, `<slug>` the PRD folder's. Where it has no `#` heading for the version this draft is filed under (Phase 1: the resolved version, or `# Unreleased`), add that heading at the end of the file; where that version has no `##` section for the draft's Change Type, add the section at the end of that version's part of the file, which runs to the next `#` heading; then add at the end of that section, which runs to the next `##` or `#` heading, the draft's scope comment in the form `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1 gives — its first line `<!-- release-note scope: <KEY> <YYYY-MM-DD>`, `<KEY>` being `focus_key` where it is set and `<PRD>` where it is null, and the date today's; then one `read: <repo> <sha> …` line per repository naming every commit this run read there, 12 characters each, or `read: none` where it read no commit; then `-->` — and the draft on the line after it. The comment records whose work the draft described and what the run read, and is not part of the draft. Those are the levels `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1 fixes, and they are why the append lands where it should: a draft's own `### <feature title>` sits below its section, so it never ends one. **The append is the whole write**: nothing already in the file is rewritten, reordered or removed, since every earlier section is an earlier run's note, so there is no question to ask and no option that replaces the file. NEVER write into a docs repo.
 
 2. **Report:**
    ```
@@ -351,6 +359,7 @@ Then read the scratch file back as `combined_rendered`.
    - Category label: <the value | none — omitted from the draft>
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
+   - Blocks used: <each block by its record and heading date | none>; dropped by §4's date fallback: <each block by its record and heading date, each commit by SHA, date and subject | none> — on a run with diff grounding on
    - Style check: <applied N safe fixes | report only (M findings) | skipped — you chose "Skip style check"> — rules: <the checker's rules_source, where it ran><; DEGRADED — Phase 7's reason, where Phase 7 recorded it>
    - Reminder: paste the draft just appended to <the resolved PRD folder>/release-notes.md, under <version | Unreleased> → <## Breaking changes | ## Feature updates | ## Fixes>, wherever your release notes are published — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
 
@@ -487,7 +496,7 @@ current working directory, where it is not the specs repository; no user name is
 - ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation).
 - ZERO external API calls — this run has no forge URL to resolve in the first place: Phase 3 builds `refs[]` from `implementation.md` and the commit scan, and `diff-summarizer` takes a ref's diff with pure local `git`.
 - Every read of the specs tree is read-only.
-- The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block. The scope line Phase 8 writes above it names a key and is not part of the draft (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1).
+- The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block. The scope comment Phase 8 writes above it names a key and the commits the run read, and is not part of the draft (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1).
 - The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a plain **Category:** label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version — the version is the `#` heading the draft is filed under (Phase 1, `release-note-types.md` §1), which is the only thing that says which release a section belongs to now that the three destinations are three sections of one file. The prohibition survives for the body prose alone. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
 - The category label IS the PRD's `release_notes_category`, used verbatim; when the PRD carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
 - The run has **no worthiness gate**: every PRD is relevant for release notes, so there is no content state in which this command refuses to draft. `relevant_for_release_notes` is retired (`workflows-core:prd-format`) and a value left in an existing PRD is read by nothing. Whether a note is drafted is the decision of whoever runs the command.

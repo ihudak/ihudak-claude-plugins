@@ -189,6 +189,13 @@ commit whose message names the key is findable, and no convention compels a huma
 a zero-match scan in a repository that has commits is a signal about the commit convention
 (`docs/reference/commit-convention.md`), not proof that no work happened.
 
+**On a repository the scan left at zero matches, run §4's report-only unanchored probe** and print
+what it matched, in the words that section gives — *"may name this key inside a branch name —
+inspect by hand"*. Printing is the whole of it: none of those commits is handed to
+`diff-summarizer`, none joins this run's read set (the carry above names its three sources, and this
+is not one), and none joins a drop set, so the note this run appends covers not one of them and the
+next run scans them again.
+
 Hand each resolved ref to `diff-summarizer` as a `refs[]` element — `{branch_from, branch_to, title}`,
 the shape its Inputs declare for `refs[]`, `title` optional — taken on the pure-local-git path.
 `repo_path` is a top-level input of that agent, passed once at the Phase 5 dispatch and never
@@ -236,6 +243,8 @@ Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent messag
 - `DIRTY_TREE` — escalate per the `Dirty working tree` rule in the same file.
 - `REFRESH_BLOCKED` — escalate per the `Refresh blocked` rule in the same file.
 - `prep.read_only: true` — not a failure. Resolution ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently.
+
+**Add each key-commit fallback's SHAs to the run's read set** (Phase 3's carry): where an element came back `resolved_via: key_commits`, its `summary` names every sha it drew on — add those, under that repository, to what Phase 8 writes into the scope comment. They were read, so a later note must cover them; an element resolved any other way contributes the refs Phase 3 already carried and nothing new here.
 
 Diff grounding is opt-in and advisory here: a repo the user skips degrades the grounding, never the run.
 

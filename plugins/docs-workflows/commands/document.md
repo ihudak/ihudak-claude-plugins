@@ -314,6 +314,12 @@ commit whose message names the key is findable, and no convention compels a huma
 a zero-match scan in a repository that has commits is a signal about the commit convention
 (`docs/reference/commit-convention.md`), not proof that no work happened.
 
+**On a repository the scan left at zero matches, run §4's report-only unanchored probe** and print
+what it matched, in the words that section gives — *"may name this key inside a branch name —
+inspect by hand"*. Printing is the whole of it: none of those commits is handed to
+`diff-summarizer`, none joins the refs this phase builds, and none is reported as this run's
+unrecorded work — the probe tells the operator where to look and changes nothing the run reads.
+
 Hand each resolved ref to `diff-summarizer` as a `refs[]` element — `{branch_from, branch_to, title}`,
 the shape its Inputs declare for `refs[]`, `title` optional — taken on the pure-local-git path.
 `repo_path` is a top-level input of that agent, passed once at the Phase 5 dispatch and never

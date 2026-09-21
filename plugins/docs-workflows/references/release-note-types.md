@@ -49,9 +49,15 @@ commit is written as the first 12 characters of its full SHA**, as `git log --fo
 never a shorter or a longer prefix — which is long enough that two commits of one repository do not
 share it in practice and short enough to keep the comment readable; every comparison against a read
 set takes the same 12 characters of a SHA resolved in that repository, a block's abbreviated
-`commit:` resolved with `git rev-parse` first. A commit the run could not resolve was not read and is
-not written, so a later run reads it again. A run that read no commit — diff grounding off, or
-nothing resolved — writes the one line `read: none`, and its note covers no commit.
+`commit:` resolved with `git rev-parse` first. **The comparison is on the SHA alone, and the
+repository name is a label for whoever reads the file.** One repository can be named two ways across
+two notes — a block's `repo:` in one, the slug the scan resolved in the other — and matching on the
+pair would then miss a drop the earlier note had earned; a SHA is a content hash, so twelve
+characters of one no more repeat across the handful of repositories a PRD touches than within one.
+Group the `read:` lines by repository for readability, never to scope a lookup. A commit the run
+could not resolve was not read and is not written, so a later run reads it again. A run that read no
+commit — diff grounding off, or nothing resolved — writes the one line `read: none`, and its note
+covers no commit.
 
 The file is one per PRD and a note may be drafted for one Epic, so without the comment nothing in the
 file says whose work a note described or what it saw, and the comment is what `/release-notes` takes

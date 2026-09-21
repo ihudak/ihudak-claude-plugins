@@ -192,6 +192,22 @@ and every `/release-notes` scan with diff grounding on, over a repository where 
 carried by a branch name alone — from `workflows-core` 1.7.1, since the unanchored grep it replaces
 did match inside a branch name, and matched every longer key with it.**
 
+**The recovery is a report, not a read: where the whole-key scan matches nothing in a repository,
+run one unanchored probe over it.** Repeat that repository's `git log` with the token bare — neither
+`(^|[^A-Za-z0-9_-])` nor `([^A-Za-z0-9_-]|$)` — and print what it matched, as *"may name this key
+inside a branch name — inspect by hand"*. **Nothing is read.** Not one of those commits is handed to
+`diff-summarizer`, none enters the run's read set, and none enters a drop set, so the probe owes no
+boundary rule of its own and leaves nothing behind for a later run: the operator is told where to
+look, and the run's own sources are exactly what they were. It fires **only** on a repository the
+whole-key scan left at zero matches, which is the one state in which the loss above is
+indistinguishable from a repository that holds no work for this key at all; anywhere the whole-key
+scan matched something, the probe would add back only the over-matches the boundary exists to
+exclude. **Making the scan itself match a branch form was considered and refused**: a repository's
+own documented convention wins over `references/branch-naming.md` §1.4's shape
+(`references/branch-naming.md` §1.1), so there is no branch form to derive; the loss lives mostly in
+branches people named by hand, which no derived form matches; and where a derived form *would*
+match, those commits already carry their key and the scan already has them.
+
 **The keys are those of the records the read takes, so its scope decides them.** An Epic-level read
 greps that Epic's key and its `workitem_key`. A PRD-level read, which takes the PRD folder's record
 and every Epic's under it (§1), greps the PRD folder's key and every `EPIC-` folder's, each with its
@@ -238,9 +254,13 @@ commits into the recorded set makes the record look more complete than it is.
   in the read set of an earlier note covering a record whose token it matched: the PRD folder's
   record for the PRD's key or `workitem_key`, an Epic's for that Epic's. It drops nothing else, save
   what the one fallback below drops. So **a commit is skipped only where an earlier note covering it
-  read it — or, under that fallback alone, where its date puts it behind a note whose read set is
-  unrecorded, which the run then lists** — and outside that fallback a commit no note read comes
-  back however it is dated.
+  read it — or, under that fallback alone, where its date, or the heading date of a block recording
+  it, puts it behind a note whose read set is unrecorded, which the run then lists** — and outside
+  that fallback a commit no note read comes back however it is dated. **The block's date is a second
+  route and not a restatement of the first**: rule 1 above drops a commit whose SHA a block names
+  whether or not that block was read, so a block the fallback date-skipped still takes its commits
+  out of the scan, and a rebase or a cherry-pick that dates a commit *after* its own block's heading
+  puts it behind the note by that heading alone.
 
   **The one fallback is an earlier note that records no read set** — a draft carrying no scope line
   at all, which is every draft appended before `docs-workflows` 1.2.2, and one carrying the
@@ -250,12 +270,16 @@ commits into the recorded set makes the record look more complete than it is.
   read; a commit matching several records' tokens is dropped by date only where every one of them
   drops it. A block is dated by its heading, and a commit by its committer date as
   `git log --date=short-local --format=%cd` prints it — in the zone of the machine running the
-  scan, so that every date git supplies is read in one zone, and in the zone the operator's own
-  block headings and scope lines were written in, where `--date=short` prints each committer's own
-  zone and moves a late-evening commit onto the wrong day. **This fallback can drop what no note
-  described**: a commit merged after such a note but dated before it, a block that reached the
-  specs checkout after it, and a commit within a day of its date wherever that note's writer worked
-  in another zone. **Population: every `/release-notes` run with diff grounding on over a
+  scan, so that at least every date git supplies is read in one zone, where `--date=short` prints
+  each committer's own and moves a late-evening commit onto the wrong day. **A block heading and a
+  scope line are taken as written and are not converted**: each was written in the zone of whatever
+  machine ran that command, so a block a run in another zone appended, and a note written on
+  another machine, can each sit a day off the zone this scan reads its commit dates in. One zone for
+  git's dates is what this buys, and not one zone for the whole comparison. **This fallback can drop
+  what no note described**: a commit merged after such a note but dated before it, a block that
+  reached the specs checkout after it, a commit whose own date clears the note while the heading of
+  a block recording it does not, and a commit or a block within a day of the boundary wherever the
+  writer of either worked in another zone. **Population: every `/release-notes` run with diff grounding on over a
   `release-notes.md` an earlier release wrote — which is every one that exists today — and none of
   the notes written from `docs-workflows` 1.2.2 on, since a note that records its read set never
   reaches this rule.** So the run lists every block and every commit the date rule dropped, beside

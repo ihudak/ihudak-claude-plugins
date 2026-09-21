@@ -704,8 +704,13 @@ saying so later requires the round number to still mean what it says (§5).
 none of them denotes a question, so nothing here invents a `[Q#n]`-style prefix. A question is
 addressed by its round and its position in that round's record — questions are numbered in the order
 they were written and **never renumbered**, and a split question keeps its number while its parts are
-lettered beneath it (`5a`, `5b`, `5c`). Its durable handle, once it produces one, is the
-`[VD#n]`, `[CD#n]` or `[AS#n]` it becomes.
+lettered beneath it (`5a`, `5b`, `5c`). **A re-tagged question keeps its number too**, for the same
+reason a split one does: the record is append-only and the original is terminally disposed
+*re-tagged* at that number, so the re-tagged question is the same question under a new tag and takes
+**no new position** — a new number would leave the round holding two entries for one question, and
+the disposition naming the finding would point at a position nothing now occupies. Where the re-tag
+follows a split, the part keeps its letter as well (`5b` stays `5b`). Its durable handle, once it
+produces one, is the `[VD#n]`, `[CD#n]` or `[AS#n]` it becomes.
 
 ---
 

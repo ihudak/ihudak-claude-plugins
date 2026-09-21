@@ -498,15 +498,18 @@ path nobody else can reproduce; the copy is the record.
    colliding with it, and §3.3's row B names a branch "created earlier in the same invocation via
    this caller's own `handoff-to-main`" as an anticipated state.
 
-   **Two calls emit two §4.1 outcome lines, and this command is the one caller that does.** That
-   section's own contract is one `Phase handoff:` line per run, written for a caller that hands off
-   once, and `workflows-core:next-phase-offer` resolves a `<merge-clause>` from *the* line. So
-   neither line is printed bare here: each is **labelled with which handoff it reports** — the
-   customer's document, or this run's own deliverable — wherever it appears, and **a
-   `<merge-clause>` this run prints resolves from the second**, the deliverable one, because that is
-   the artifact a next command waits on. The divergence from §4.1's count is real and is not this
-   command's to settle: it is recorded for the owner of that reference, and until it is settled the
-   labelling is what keeps a reader and an offer from taking the wrong line.
+   **Two calls emit two §4.1 outcome lines, and that is the contract rather than a divergence from
+   it.** That section counts **per handoff the run offers**, not per run, and names this command as
+   the only producer in the family that offers two — every other executes `handoff-to-main` once,
+   so for them the two counts are the same number. It requires of a multi-handoff producer that
+   **each line name which handoff it reports**, which is why neither is printed bare here: one
+   reports the customer's document, the other this run's own deliverable, wherever either appears.
+   **A `<merge-clause>` resolves from the second**, and by `workflows-core:next-phase-offer`'s own
+   rule rather than by anything local: that file resolves the clause from the line reporting the
+   handoff of **the artifact the offered command's gate targets**, which here is the reconciliation
+   record with `decisions.md` and `coverage-ledger.md` beside it — what
+   `/product-workflows:brd-package` and `/product-workflows:prd-ground` gate on — and not the
+   canonicalised review this run also landed.
 
    **Declining does not stop the ingest.** Options 2 and 3 both decline the handoff (§4.3), the copy
    stays written, and the run proceeds — the copy-before-ingest ordering this phase exists for is
@@ -628,9 +631,16 @@ would write a non-answer into the register as the customer's own authority, whic
 arriving through the one door left open. It is not *Ask the customer* either: that option is for an
 answer too unclear to freeze, and a decline is perfectly clear. **What *Reject* records here is the
 decline itself** — the customer's words, and their reason or `not stated` as the plain fact it is —
-so the round record shows the question as **declined** rather than unanswered, and a later round can
-decide whether to put it again, drop it, or take it as a `[V]` the delivery team settles. The
-question stays open either way; this command mints no `[C]` and closes no round.
+in this run's own reconciliation record and in the rejection's recorded reason. **The question's own
+state does not move**: it keeps the *held for the customer* holding state `/brd-interview` gave it,
+and a later round can put it again, drop it, or take it as a `[V]` the delivery team settles.
+**Nothing writes "declined" anywhere**, and that is the point rather than an omission — it is in
+neither vocabulary `/brd-interview` fixes (five terminal dispositions, four holding states, and
+everything else a holding state and never a disposition), so a run that recorded it as a terminal
+disposition would let the round's closure test see every question settled and **close a round on a
+question the customer expressly refused to answer**, which is the D14 failure this disposition
+exists to prevent, arriving quietly. This command mints no `[C]`, writes nothing into the question
+set, and closes no round.
 
 **This is not an escalation choice list** — its four options are the four fates a candidate
 answering a question the package put can take in this command (one answering none takes the two
@@ -680,7 +690,9 @@ an inference and that the quotation beside it is the only thing the customer act
 
 **Rejecting and asking are real options and are meant to be used.** *Reject* is the answer for
 context, scheduling, thanks and apology that an agent shaped like a decision — a candidate minted
-from one is noise a human must now refute rather than confirm. *Ask the customer* is the answer for
+from one is noise a human must now refute rather than confirm — **and it is the answer for the
+customer's explicit refusal to answer** (above), which is not noise at all but is equally not a
+decision. *Ask the customer* is the answer for
 a conflict flag and for a low confidence the quotation does not carry. Both are recorded with their
 reason; **nothing is silently dropped**, because a candidate that vanishes is indistinguishable from
 one nobody looked at.
@@ -1896,11 +1908,11 @@ sweep** — per dependent BRD, the `conditional_on` positions first, then the ci
 its disposition, plus every dependent recorded-not-written with its concrete state; **the
 stale cross-reference sweep** — the hit counts by outcome and every `needs-a-human` hit named;
 **what still needs a human**, in full; the artifacts written, by path; the feedback + cost paths;
-**both** `Phase handoff:` outcome lines (`workflows-core:phase-handoff` §4.1), **each labelled with
-the handoff it reports and neither printed bare** — the review's and the run's, in that order, the
-run's being the one any `<merge-clause>` resolves from (*Canonicalise the returned review, and
-commit it before anything reads it*, where the first call is made and both are accounted
-for); the `Specs repo:` outcome line (`workflows-core:specs-repo-git` §6); the next-step
+**both** `Phase handoff:` outcome lines — §4.1 counts one **per handoff offered** and this command
+offers two — **each labelled with the handoff it reports and neither printed bare**, as that
+section requires of a multi-handoff producer: the review's and the run's, in that order, the run's
+being the one a `<merge-clause>` resolves from (`workflows-core:next-phase-offer`); the
+`Specs repo:` outcome line (`workflows-core:specs-repo-git` §6); the next-step
 recommendation; and end with the ledger line, read fresh from `coverage-ledger.md` **as this run
 left it**, exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 

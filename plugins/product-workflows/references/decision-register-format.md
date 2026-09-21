@@ -110,8 +110,18 @@ renderings produces a register whose readers disagree about what is in it, and a
 reads downstream as a decision nobody took.
 
 - **One record per block, unfenced**, in the field order the §1 table gives, every key of a block
-  at the same indentation, and no blank line inside a block. Blocks are separated by one blank
-  line. The `# Decision register: <BRD-KEY>` header line stands alone at the top.
+  at the same indentation, and **no blank line between one key of a block and the next**. The
+  `# Decision register: <BRD-KEY>` header line stands alone at the top.
+- **A blank line inside a block scalar's content is part of the value, not a boundary**, and §4
+  requires one: a cause is appended to `argumentation` as a **closing paragraph** beneath what the
+  field already holds, and on a `[CD#n]` beneath the customer's quotation — two paragraphs in one
+  literal block scalar, separated by a blank line. A rule that forbade that would force a writer to
+  fold them together, and `references/bundle-packaging.md` §6.3 tells the plugin's words from the
+  customer's by exactly that separation. **So the record boundary needs a positive test rather than
+  the absence of a blank line**: a boundary is a blank line **followed by a line at block
+  indentation** — a key of the next record — where a blank line followed by more indented content
+  is inside the scalar above it. `workflows-core:grounding-format` §2.1 carries the simpler rule
+  safely because nothing appends a paragraph to a finding field; this section has §4 and cannot.
 - **One space after every key's colon — never padding, never alignment**, whatever the longest key
   in that block happens to be. Alignment is a rendering choice made per block, which makes the
   bytes of a record a property of its neighbours and defeats a field-anchored scan.

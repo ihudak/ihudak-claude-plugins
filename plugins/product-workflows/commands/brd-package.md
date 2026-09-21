@@ -208,7 +208,10 @@ cannot review, and they will not tell you that — they will review it anyway, b
    alike (`product-workflows:decision-register-format` §1 and §7) — **and so does every entry in
    `interview/customer-questions.md`**, which `/brd-interview` writes with the question's round and
    position. So the rounds this BRD *has* are the distinct `round` values across every record kind
-   in the register that carries the field, **together with the round of every held `[C]` entry**: a
+   in the register that carries the field, **together with the round of every held `[C]` entry** —
+   read off that entry's own heading, `## Round <N>, question <position>`, which
+   `/product-workflows:brd-interview` pins as the entry's boundary and spelling for exactly this
+   reader (*Hold every `[C]`*): a
    round that held only `[C]` questions puts no record in the register at all, and a set taken from
    the register alone would never gate its record. **A record carrying no
    `round` contributes nothing to the set, and that is correct rather than a hole**: an `[AS#n]`
@@ -548,10 +551,28 @@ Each disposition carries a recorded reason, and each has a consequence the later
 
 | Disposition | What it obliges |
 |---|---|
-| `fixed` | The named artifact is corrected **before** the prompt is rendered, and the correction is recorded against the finding. A `fixed` disposition whose artifact is unchanged is not `fixed` |
+| `fixed` | **Admissible only where the named artifact is one this command may change** — the prompt, the delivery note, the self-review, the bundle's own rendered copies, and a `[SR#n]`'s own record. It is **not** available against a ledger disposition, an `interview/customer-questions.md` entry, a register record or a verified `[CG#n]`/`[DG#n]`: this command mints no `[C]`, writes nothing into the question set (*Render the customer prompt*), changes no ledger disposition (the Final report), and a verified finding is `/prd-ground`'s. Where the artifact is one of those, `fixed` is unavailable and the finding takes the agreed-not-actionable route below. The named artifact is corrected **before** the prompt is rendered, and the correction is recorded against the finding. A `fixed` disposition whose artifact is unchanged is not `fixed` |
 | `accepted-risk` | The finding is listed to the customer under *where to attack us hardest*, in the reviewer's own words — which that agent writes for a customer to read, with no plugin token in them (`agents/brd-package-reviewer.md`). There is no drawer this puts it in |
 | `escalated-to-customer` | The finding is put to the customer in the prompt's *decisions the customer must make* part, carried by its own `[SR#n]`. Admissible **only** where `interview-tagging.md` §2's test says so — what would settle it is an authority only the customer holds. Where a delivery-side trade-off would settle it, this is the wrong disposition and the finding takes another |
 | `rejected-with-reason` | The reason is recorded in the self-review and stays inside the delivery organisation. Nothing rejected reaches the customer |
+
+**A finding the team agrees with and cannot act on here takes `accepted-risk`, and the reason must
+say so and name where it is fixed.** The vocabulary is four values and a fifth would be one nothing
+downstream reads, so this case shares a value with a genuine acceptance and is told apart by what
+its reason records: **which command fixes it** — `/product-workflows:brd-interview` for a question
+set or a register record, `/product-workflows:brd-split` for a ledger disposition,
+`/product-workflows:prd-ground` for a finding — and what a re-run here would then show. **Every
+part that renders an accepted-risk finding to the customer renders that clause with it**, so the
+customer reads *we agree, and it is fixed there* rather than *we weighed this and accepted it*.
+Without the clause the two are indistinguishable on the page, and a run that met a wall of
+agreed-but-unactionable attacks would ship every one of them as a risk the team had chosen to take.
+
+**A second-pass finding that restates one this run already disposed is not disposed twice.** Present
+it with the earlier finding and that finding's standing disposition beside it; where the operator
+disposes it the same way, record `restates: [SR#k]` on it and **every part that renders findings to
+the customer prints the pair once**, under the earlier id — six attacks the customer reads twice is
+a package arguing with itself in front of the person it is trying to convince. Where the operator
+disposes it differently it is not a restatement: both stand, and each governs its own finding.
 
 **The gate is keyed on every finding carrying a non-`undisposed` value, and on nothing else.** Not
 on a count, not on a severity, not on a verdict — the agent emits no severity and no verdict by
@@ -634,7 +655,7 @@ do.
 |---|---|---|
 | 1 | Setup | the tier; the fixed capability line, locating instruction and OS note below |
 | 2 | What each package in the bundle is for | this BRD, plus each prerequisite package copied in, marked *not for re-review* |
-| 3 | Documents to review | the manifest, by its bundled filename, then every other document `bundle-packaging.md` §1.1 admits, by the bundled filename *Assemble the bundle* rule 1 gives it — the names the manifest lists |
+| 3 | Documents to review | the manifest, by its bundled filename, then every other document `bundle-packaging.md` §1.1 admits **except the rendered prompt itself** — §1.1's first row, which is the document the reviewer is reading and not one it sends them to — each by the bundled filename *Assemble the bundle* rule 1 gives it. The manifest still lists the prompt, because it maps what the bundle carries; the two therefore differ by exactly that one entry, by design, and a set check over them must allow it (`bundle-packaging.md` §7) |
 | 4 | Code baselines and the verification procedure | `grounding/baselines.md`, with the three commands written out |
 | 5 | The single most important claim to verify first | the register, the findings and the held `[C]` entries, by the rule below |
 | 6 | Review scope | `coverage-ledger.md` dispositions, `brd/brd-inventory.md`, and every `in-scope` `[CDF#n]` |
@@ -822,9 +843,15 @@ below.
    Everything above that heading is the preamble and section 1, and the preamble is where that file
    deliberately collects its `references/…` citations, its design-spec path and its decision-row
    references — every one of which is unresolvable to a reader with no plugin.
-4. **Renumber the body's own headings so the customer's copy runs from 1** — `## 2.` becomes `## 1.`
-   and so on through `## 6.` becoming `## 5.` — so the pasted prompt does not visibly begin at
-   section 2 and invite the reader to hunt for a section 1 they were never given. This is safe
+4. **Renumber the body's own headings under the part they are rendered into** — `## 2.` becomes
+   `### <part>.1`, and so on through `## 6.` becoming `### <part>.5`, `<part>` being the number of
+   the prompt part this body is rendered as. That answers both halves of the problem at once: the
+   pasted prompt does not visibly begin at section 2 and invite the reader to hunt for a section 1
+   they were never given, **and it does not restart at 1 inside a numbered outline either** — a body
+   renumbered `1.`–`5.` inside part 10 of eleven reads as 1–10, then 1–5, then 11, which tells the
+   reader they have lost their place rather than that they have reached a sub-section. Demoting the
+   level is half of it and the anchored number is the other half: a `###` that still read `1.` would
+   collide with part 1. This is safe
    because that file refers to its own sections **by name** and never by number, so nothing inside
    the extracted body cross-references a heading by its pre-render number. Verify it rather than
    trusting it: the extracted body must contain **no `§` character**, which is this plugin's own
@@ -1092,10 +1119,17 @@ self-review is free of them while being the most internal document this command 
 4. **Remove anything that renders in exactly one tool** — canvas or database-view files, query or
    dataview blocks, plugin-specific embed syntax, frontmatter that means nothing outside the vault —
    converting it to something that renders everywhere, or removing it **with a note saying what
-   stood there**. The figures file's frontmatter is removed whole, `written_by:` and `source:` with
-   the rest, and its note names the customer's document by its bundled filename
-   (`bundle-packaging.md` §1.1). A block that silently renders as nothing is the same defect as a dead wikilink:
-   the reviewer cannot see that they are missing something.
+   stood there**. **Frontmatter is a class here and not one file**: every bundled document that
+   carries a frontmatter block loses it whole — the inventory's and the ledger's as much as the
+   figures file's — because none of it means anything to a reader outside the vault and each names
+   plugin-internal fields. The figures file is worked rather than singled out: its frontmatter goes
+   whole, `written_by:` and `source:` with the rest, and its note names the customer's document by
+   its bundled filename (`bundle-packaging.md` §1.1); every other file's note names what the block
+   held in the same way. **The customer's own captured files are outside this rule entirely** —
+   they are copied byte for byte (rule 2), frontmatter included, and anything in them a plain reader
+   cannot open is named in the manifest rather than fixed in the file. A block that silently
+   renders as nothing is the same defect as a dead wikilink: the reviewer cannot see that they are
+   missing something.
 5. **Copy each prerequisite package in, marked *not for re-review*.** The marking is on the
    documents' own front matter line in the bundle and in the manifest, and the prompt's part 2 says
    what each is for. A prerequisite package is context for the positions this package took on top of

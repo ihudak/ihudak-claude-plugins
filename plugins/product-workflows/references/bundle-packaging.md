@@ -92,7 +92,15 @@ Exactly this, and nothing else:
 | every image the documents above reference, and every image `brd/brd-figures.md` holds a section for — save one whose section carries the marker `references/brd-format.md` §1.2 fixes and whose *Rows* line yields no row | the documents embed them (§2), and a figures section sends the reviewer to the picture it transcribes — as does an image anchor or a question naming the image. A marked image is one the latest intake did not capture, so it ships only where a preserved row still anchors on it: the customer needs the picture to check that row |
 | the manifest | *documents to review* |
 
-Plain markdown and images — nothing else (§2). The manifest lists documents by filename, for the
+Plain markdown and images — nothing else (§2). **A file `/brd-intake` captured that is neither —
+`pricing.pdf` and its kind — is therefore not in the bundle, and that is a disposition rather than
+an omission**: §2's rule admits two file kinds and the allow-list above is closed, so there is no
+row it could take. It is named in the manifest as **captured and not bundled**, beside the captured
+file it was linked from, and every link to it inside a rendered document becomes the plain
+description §2's third link case requires — so a reviewer who meets the link learns what stood
+there and that it was withheld, rather than searching the bundle for a filename nothing carries.
+The customer's own byte-for-byte files still link to it as they always did (§2.1), which is why the
+manifest entry exists at all. The manifest lists documents by filename, for the
 same reason rule 4 does, **and maps every file `/brd-intake` captured that the bundle carries — each
 markdown file and each image from `brd/source/` and `brd/source-external/` — from its path relative
 to `brd/` to its bundled filename**, the name carrying the `<BRD-KEY>-` prefix that

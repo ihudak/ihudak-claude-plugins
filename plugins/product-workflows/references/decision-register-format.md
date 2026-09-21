@@ -175,24 +175,35 @@ is the one that already answers *why*. On a `[CD#n]`, whose `argumentation` is t
 reason quoted, the paragraph follows the quotation and leaves it exactly as written; its opening
 marker is what tells the plugin's words from the customer's (`references/bundle-packaging.md` §6.3).
 
-**What stands in `argumentation` stays, and a re-decision or a reversion writes only after it.**
-Both write in place, against the record's own id. Both take afresh the fields §1 fills when a
-decision is taken — `statement`, `options_considered`, `chosen`, `evidence`, `defects`,
-`conditional_on` and `status` — each under the rule §1 gives it, and `evidence` and
-`conditional_on` under §6's will-change rule as well; and on an `[AS#n]` the sweep reverts only
-those of them §7 admits, an assumption having no `options_considered` and no `chosen`. **Three more
-of §1's thirteen move or stand by their own rule rather than with that set, and are settled here
-rather than left to a reader to infer.** `round` names the round that produced the position now on
-record: on a re-decision, the round that re-decided it; on a reversion, the round of the position
-being restored, a propagation sweep being no round at all and having none of its own to give —
-omitted entirely, as §1 requires, where the position it names came from no round. `consumed_by`
-returns to **`none`** on both, because a downstream artifact that drew on this record drew on the
-position just replaced and has to be shown it again — which is exactly what §1's starting-at-`none`
-rule is for, and what lets `commands/create-prd.md`, `commands/create-ard.md` and
-`commands/specify.md` report the record as unconsumed at their own altitude. `altitude` **stays**:
-re-deciding moves the answer, never the level the question sits at. **`id` and `settles` stand as
-well** — the record's identity, and the `[DEF#n]` the `[C]` question it answers was raised by — so
-all thirteen are accounted for. A **re-decision**, taken by the run that reopened the record or by a
+**This section names one set — a record's *decision fields*, all thirteen §1 defines — and fixes
+what each of them does when a record already on file is written again.** A re-decision and a
+reversion both write in place, against the record's own id. **A file that needs to name the fields
+of a decision record cites this set, never part of it**: an enumeration written somewhere else is
+an enumeration that omits whichever field mattered on the day it was read, which is how a
+stale-reference sweep came to leave `settles` — the one structured field holding a `[DEF#n]` —
+outside a rule built for exactly that id.
+
+**Seven are written afresh** — `statement`, `options_considered`, `chosen`, `evidence`, `defects`,
+`conditional_on` and `status` — each under the rule §1 gives it, and `evidence` and `conditional_on`
+under §6's will-change rule as well; on an `[AS#n]`, only those of them §7 admits, an assumption
+having no `options_considered` and no `chosen`. **`argumentation` is appended to and never
+rewritten**: what stands in it stays, and both writes go after it. **`round`, on these two writes
+and on no other**, takes the round that produced the position now on record — on a re-decision, the
+round that re-decided it; on a reversion, the round of the position being restored, a propagation
+sweep being no round at all and having none of its own to give — omitted entirely, as §1 requires,
+where the position it names came from no round. That is this section's rule for a record written
+again, and **not** a redefinition of the field: what a record takes when it is **first** written is
+§1's, and a `[CD#n]` takes there the round that raised the question the customer answered
+(`commands/brd-reconcile.md`, *Freeze the customer decisions*). **`consumed_by` returns to `none`**
+on both, because a downstream artifact that drew on this record drew on the position just replaced
+and has to be shown it again — which is exactly
+what §1's starting-at-`none` rule is for, and what lets `commands/create-prd.md`,
+`commands/create-ard.md` and `commands/specify.md` report the record as unconsumed at their own
+altitude. **`altitude` stays**: re-deciding moves the answer, never the level the question sits at.
+**`id` and `settles` stand** — the record's identity, and the `[DEF#n]` the `[C]` question it
+answers was raised by, which the answer's being re-taken does not change. That is all thirteen.
+
+A **re-decision**, taken by the run that reopened the record or by a
 later one, writes its argumentation after the `Reopened` paragraph: why the change moves the answer,
 or why it does not. A **reversion** — `commands/brd-reconcile.md`'s propagation sweep writes
 one, and nothing else does — returns those fields to the position that stood before the prerequisite

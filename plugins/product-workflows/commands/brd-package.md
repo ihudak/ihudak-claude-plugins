@@ -232,17 +232,26 @@ cannot review, and they will not tell you that — they will review it anyway, b
    `BRD_PACKAGE_ROUNDS_NOT_ON_MAIN: <BRD-KEY>'s decisions.md and held [C] questions name rounds <list>, but <these> have no interview/round-<N>.md on any ref — the records those decisions and questions came from never merged. Land them on the specs repo's default branch and re-run; do not re-run /product-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
 
    **A round that only re-decided is in the set, and the round it re-decided out of may not be.** A
-   re-decision writes no new record: it takes the existing record's decision fields afresh and moves
-   its `round` to the round that took the position now standing
+   re-decision writes no new record: it writes the existing record's fields under §4's per-field
+   rules and moves its `round` to the round that took the position now standing
    (`product-workflows:decision-register-format` §4), so a round whose whole output was
    re-decisions is named by those records and its `interview/round-<N>.md` is required like any
    other — where a round that held only `[C]` questions is named by their entries instead, as above.
    The earlier round the field moved off is named here only where another of its records still
    carries it, or where it held a `[C]`; where neither holds, it drops out of this set, and
    correctly — this gate requires the record the **standing** position came from, which is the
-   re-decision's, and no position on file now rests on the earlier one. **Do not repair that by
-   enumerating `interview/` instead**: the paragraph above gives the reason a directory listing
-   cannot see the case this gate was built for.
+   re-decision's, and no position on file now rests on the earlier one. **Dropping out of this set
+   does not make the record unowed, and round 1 is the case that shows why: this gate is not its
+   only reader.** `/product-workflows:brd-interview`'s round-1 test reads `interview/round-1.md` on
+   every run of that command — its requirement-defect account line is what decides which round an
+   open requirement defect belongs in — so a clone that never received round 1's record takes that
+   test's *no round record exists* branch and raises every open requirement defect again, in a round
+   1 it believes it is generating. `/brd-interview` declares the record in its `deliverable_paths`
+   and it is landed there, not here. **Population: narrow** — it needs a declined handoff, every
+   record round 1 produced re-decided in a later round, no `[C]` held in round 1, and a second clone
+   reading the folder. **Do not repair any of this by enumerating `interview/` instead**: the
+   *Deriving the set from the register and the held `[C]` entries* paragraph immediately below gives
+   the reason a directory listing cannot see the case this gate was built for.
 
    **Deriving the set from the register and the held `[C]` entries is what makes the partial case
    visible**, and the partial case is the one this gate exists for: rounds 1 and 2 merged, round 3
@@ -1039,9 +1048,16 @@ self-review is free of them while being the most internal document this command 
    test runs again — `-2` can collide in its turn — until every name in the bundle is unique. A
    prerequisite package's filenames are among the names tested and are never renamed (below), so a
    collision with one is resolved on this package's file; one **between two prerequisite packages**,
-   which neither may rename, cannot arise, because every bundled name opens with its own package's
-   key and the *Resolve prerequisites and their packages* phase resolves each prerequisite by a
-   distinct key. So the repetition always has a name it is allowed to move. The name is decided by
+   which neither may rename, cannot arise. Every bundled name opens with its own package's key, so
+   two names from different packages could only collide where one key is the other's prefix **at a
+   segment boundary** — `<KEY>` against `<KEY>-1` — and distinct keys alone do not rule that out,
+   the key grammar fixing no depth (`workflows-core:addressing` §1). What rules it out is what gets
+   copied in: **only a package is, and only a slice has one**, since a bundle is written by this
+   command alone and this command refuses a root (*Resolve inputs and gate the decided BRD*, the
+   root refusal). One slice's key could be another slice's segment-boundary prefix only if that
+   first slice were itself the second's **root**, which no slice is — a slice sits one level under
+   its BRD and nothing carves a slice under a slice. So the repetition always has a name it is
+   allowed to move. The name is decided by
    the paths, never by the order images were copied in. An
    embedded image in a rendered document points at that name (rule 2), and the manifest maps it
    (rule 6). **The `<BRD-KEY>` is the key of the package the document belongs to, not this run's

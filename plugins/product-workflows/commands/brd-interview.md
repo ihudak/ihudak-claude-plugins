@@ -264,8 +264,8 @@ and nothing downstream can tell the difference afterwards.
    register and the round record* phase moves its `status` to `reopened` and appends the closing
    `Reopened <YYYYMMDD>:` paragraph §4 puts in its `argumentation`, against the original record's
    id — and the re-decision that follows it, in this same run or a later one, which writes the
-   record's decision fields afresh and its argumentation after that paragraph, never over it or
-   what stands above it (§4, which names that set and owns the reopen and the re-decision alike;
+   record's fields under §4's per-field rules and its argumentation after that paragraph, never over
+   it or what stands above it (§4, which names that set and owns the reopen and the re-decision alike;
    the *Put each `[V]` to the operator* phase's picker and *The will-change rule* phase are where
    `options_considered`, `evidence` and `conditional_on` are taken). Nothing else on either record
    moves, and no other record here carries an exception. **An addition is not a rewrite, and one
@@ -865,12 +865,13 @@ produces a `[VD#n]`, and it does not become a `[CD#n]` because the customer late
 **That list is for a decision first recorded here, and a re-decision is not one.** Where the answer
 re-decides a record already on file — reopened under `decision-register-format.md` §4, by this run
 or an earlier one — it mints no id and does not take every field §1 defines: it keeps that record's
-`id`, `altitude` and `settles`, takes afresh the decision fields **§4** names (its `round` becoming
-this run's and its `consumed_by` returning to `none`, both by that section's rule rather than by the
-list above), and has its argumentation appended after the `Reopened` paragraph rather than written
-over it. §4 is the authority for all of it, and the *Write the register and the round record* phase
-executes the write. **A decision's `round` moving is not the `[CDF#n]` rule above read across**: a
-defect's `round` is the round that *raised* it (`code-defect-log-format.md` §2) and never moves,
+`id`, `altitude` and `settles`, writes each of its fields under the rule **§4** gives that field
+(its `round` becoming this run's and its `consumed_by` returning to `none`, both by that section
+rather than by the list above), and has its argumentation appended after the `Reopened` paragraph
+rather than written over it. §4 is the authority for all of it, and the *Write the register and the
+round record* phase executes the write. **A decision's `round` moving is not the `[CDF#n]` rule
+above read across**: a defect's `round` is the round that *raised* it
+(`code-defect-log-format.md` §2) and never moves,
 while a decision's is the round that produced the position on record, so a re-decision carries it
 forward. Two records, two fields of the same name, two authorities.
 
@@ -987,14 +988,15 @@ horizons of findings in an `evidence` list and an assumption's list holds none.
 **`<BRD-dir>/decisions.md`** — one block per `[VD#n]` and per `[AS#n]`. A block this run records for
 the first time carries every field `decision-register-format.md` §1 defines, with §7's account of
 which of the thirteen apply differently on an assumption; a block that **re-decides** a record
-already on file takes §4's set instead, which is the paragraph below and not this list.
+already on file takes each field under the rule §4 gives it instead, which is the paragraph below
+and not this list.
 Ids are contiguous within their own prefix, assigned once, **never renumbered and
 never reused after a terminal status** (§1) — a re-run continues the sequence from the highest id on
 file and never restarts it. A run that reopens a decision writes `status: reopened` with its cause
 named in the closing `Reopened <YYYYMMDD>:` paragraph §4 appends to its `argumentation`, against the
 original record's id; it never mints a new id for the same question. That, and the re-decision
-following it — in this run or a later one — which takes the record's decision fields afresh and
-writes its argumentation after that paragraph (§4), is the second of the two exceptions the *Resolve
+following it — in this run or a later one — which writes the record's fields under §4's per-field
+rules and its argumentation after that paragraph, is the second of the two exceptions the *Resolve
 inputs and gate the grounded BRD* phase admits to rewriting another run's record.
 
 **The register is written on every run that reaches this phase, whether or not the round produced a

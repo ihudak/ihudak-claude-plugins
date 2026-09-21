@@ -235,9 +235,10 @@ unmatched row can be told apart from a question set nobody passed.
 - **Phase 6 — a section-12 row instructs an edit; it does not authorise a field this command may not
   write.** Prose, `slices.md` and the seed files are corrected in place — `code-defect-log.md` is
   the one exception, whose prose is not corrected in place either. A row asking to change a
-  coverage-ledger `disposition`, an inventory row's `id`/`text`/`source_anchor`, a register record's
-  `status`/`chosen`/`evidence`, `brd-link.md`'s `parent:`/`claims:`, or any field of a `[CDF#n]` in
-  the code-defect log is **`refused-with-reason`** — each is fixed by a rule this command does not
+  coverage-ledger `disposition`, an inventory row's `id`/`text`/`source_anchor`, **any field of a
+  register record** — all thirteen of them, `argumentation` among them — `brd-link.md`'s
+  `parent:`/`claims:`, or any field of a `[CDF#n]` in the code-defect log is
+  **`refused-with-reason`** — each is fixed by a rule this command does not
   own, and the customer cannot be expected to know which. The refusal names the channel that *does*
   carry the substance: a `[CD#n]`, a `customer-amended` defect resolution, a later
   [`/brd-interview`](brd-interview.md) round, whose operator owns every code-defect disposition, the
@@ -344,9 +345,10 @@ document still states the old position is the characteristic failure of this ste
 contradiction is invisible from the register, which is the only place anybody looks.
 
 A hit is corrected only where it is **prose** that nothing else owns. Inside a coverage ledger's
-`disposition`, an inventory row's `id`/`text`/`source_anchor`, a register record's
-`status`/`chosen`/`evidence`, any entry of the code-defect log, any line of the figures file, or any
-line of the customer's own captured files, it becomes `needs-a-human` instead: each of those is
+`disposition`, an inventory row's `id`/`text`/`source_anchor`, **any field of a register record bar
+its `argumentation`** — the one field of a record an `updated` may reach, being the route's own
+prose — any entry of the code-defect log, any line of the figures file, or any line of the
+customer's own captured files, it becomes `needs-a-human` instead: each of those is
 fixed by a rule the sweep does not own — allocation belongs to [`/brd-split`](brd-split.md)'s walk,
 an inventory row mirrors an immutable source, a decision moves only through the four sweep
 dispositions or the two reopening causes, every code-defect disposition is the operator's, a

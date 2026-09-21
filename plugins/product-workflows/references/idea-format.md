@@ -345,7 +345,7 @@ collision rule minted. Pair them, and add the source file's own row:
 
 | Key | Value |
 |---|---|
-| the `target` as written, together with the `from` it was written in | the path of that entry's copy, relative to the PRD folder |
+| the `target` as written, together with the `from` it was written in — the pair is what makes two entries two keys; matching is on the target half alone (below) | the path of that entry's copy, relative to the PRD folder |
 | that same entry's resolved absolute `path` | the same copy |
 | the source file's `source_refs[].ref`, exactly as the digest records it | the source's copy in `attachments/`, relative to the PRD folder |
 
@@ -370,8 +370,10 @@ survives the repointing untouched; folding it into the key would match nothing a
 operator's disk, and dropping it would silently lose the only part of the link that said where to look.
 
 **Nothing here re-resolves a link.** This rule opens no path of its own; the map is the whole of what it
-knows, so a form that matches no key is a link nothing copied. Match each link in `idea.md` on its
-target string:
+knows, so a form that matches no key is a link nothing copied. **Match each link in `idea.md` on its
+target string alone** — a link being rewritten sits in `idea.md`, which is no digest entry's `from`,
+so a key's `from` is never matched against anything; it is there to tell two keys carrying the same
+written target apart, which is the whole of what rule 3 turns on:
 
 1. **Exactly one key carries that written target** — rewrite it to that key's copy. The ordinary case, and
    it is decided on the resolved file: the key exists only because that entry resolved and was copied.

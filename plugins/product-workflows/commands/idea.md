@@ -146,10 +146,15 @@ Phase 2 hands the readers, so nothing after this phase finds a link on its own.
 links deep, twelve markdown files counting the source, and six images, and reported the rest unread.
 Where the walk stayed inside all three, take everything it reached, print the counts line, and ask
 nothing. The counts line gives: how many files the walk reached (the source counted first), the
-markdown pages among them by depth, the images, and anything unresolved (a reason `linked-sources.md`
-§6 names) or `other`. **The headline total is the walk's visited set** (`linked-sources.md` §4) —
-every file a link resolved to — so an *other* file counts toward it, and an unresolved link, which
-resolved to no file, does not. For example:
+markdown pages among them by depth, the images, and what was unresolved (a reason
+`linked-sources.md` §6 names) or `other`. **Every clause is printed on every run, a count of `0`
+included** — an omitted clause is indistinguishable from a forgotten one, the same reason the Final
+report names what was left unread even when nothing was. **The headline total is the walk's visited
+set** (`linked-sources.md` §4) — the source, plus every file a link resolved to — so an *other* file
+counts toward it, and an unresolved link, which resolved to no file, does not. **The by-depth tally
+is of that set less the source**, which has no depth to be counted at, so it always runs one short
+of the headline's markdown; the `source + <n>` half of the headline is where the source is. For
+example:
 
 ```
 7 files reached (source + 6): markdown by depth — depth 1: 3, depth 2: 1; images: 1; unresolved: 1; other: 1.
@@ -158,10 +163,13 @@ resolved to no file, does not. For example:
 Where it reached past any of them, **print the counts line all the same** — the Final report reports
 the walk in both branches, and this is where it comes from — then find the set that is past a bound:
 the union of every markdown file deeper than 2 (the depth bound is on pages, never on images), the
-markdown files after the twelfth in the walk's order (the source counted first), and the images
+markdown files after the twelfth in the walk's order (the source counted first — so this ordering
+runs one ahead of the counts line's by-depth tally, which leaves the source out, and the file that
+tally shows twelfth is the thirteenth here), and the images
 after the sixth in the walk's order. Put the question with its text fixed — a line naming the bounds
 the walk crossed, of the three, then one line per file in that set, each file once, in the walk's
-order, with every bound it is past — and then the array:
+order, with every bound it is past, joined with `, ` in the template's own left-to-right order
+where a file is past two or three — and then the array:
 
 ```text
 The walk reached past <the bounds it crossed: two levels of pages · twelve pages, the source counted · six images>:
@@ -175,7 +183,11 @@ choices: ["Read all <n> (Recommended)", "Only what the source links directly", "
 
 `<n>` is the counts line's headline total less the source — every file the walk reached but the
 source, *other* files included, the `+ 6` of the example above — and that is exactly the set
-*Read all* takes beside the source, as the branch above takes it. An *other* file it takes is still
+*Read all* takes beside the source, as the branch above takes it. **It is not the count of the
+list just printed**, which names only the files past a bound and is usually a good deal shorter, so
+say beside the array that *Read all* takes every file the walk reached rather than only the files
+listed — an operator otherwise reads a number against a five-line list and answers about
+twenty-two. An *other* file it takes is still
 never opened: `idea-reader` enumerates it into `links_other`, taken or not (Phase 2). *Only what the
 source links directly* takes depth 1 — every file the source links itself, of any kind — and leaves
 every deeper file `excluded` (`linked-sources.md` §6, §7), which Phase 4.5 reports rather than copies. *Stop* ends the run with
@@ -685,7 +697,9 @@ linked"), and naming no
 directory this run did not actually create; the resolved model routing (+ any Opus degradation); the feedback path; the cost
 path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
 (`workflows-core:specs-repo-git` §6), with any guard notice repeated in full; the
-`Phase handoff:` outcome line when the handoff ran; the code grounding outcome — the grounded repos with their `scanned_ref`s, any
+`Phase handoff:` outcome line — on every run, and on a decline that is §4.1's *Declined by the
+user* line, which Phase 5 emits on either of the other two options and which is the one line saying
+the files are written and not on the default branch; the code grounding outcome — the grounded repos with their `scanned_ref`s, any
 descoped or inconclusive ones, and — first, because it is the most consequential thing a run can
 produce — the **Reframing** line if one was written; or, when no scan ran, `code grounding: off` (no
 `--ground-code`) or `code grounding: declined at the repo gate` (`--ground-code` given, "Ground

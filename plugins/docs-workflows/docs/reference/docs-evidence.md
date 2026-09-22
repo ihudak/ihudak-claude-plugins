@@ -68,7 +68,7 @@ Today you walk it yourself. Take each step in order, do the thing, and answer wi
 
 **Writing down the actual text on a `differs` is the part that pays for the whole exercise.** "Step 4 failed" sends somebody back to the environment to find out what it says instead. "Step 4 shows *Create order*, not *New order*" **is** the page edit, already written down by the person who was looking at the screen — a correction rather than a red X. A `differs` with nothing written down is an incomplete answer: the verification command will ask you again rather than record it, and walking by hand the rule is the same — do not write the answer down until you have the text in front of you.
 
-Your answers are written back into the same file, on the step they belong to:
+Your answers are written back into the same file, on the step they belong to. `outcome` is one of the three words above, and **each of the two other fields belongs to exactly one outcome**: `observed` carries the text you saw and is written on a `differs` and on nothing else, and `note` carries the reason and is written on a `blocked` and on nothing else — a note on a `confirmed` step is a comment nothing has a rule for.
 
 ```yaml
   - n: 2
@@ -76,6 +76,11 @@ Your answers are written back into the same file, on the step they belong to:
     target: { label: "Add item" }
     expect: { kind: visible, label: "Item details" }
     result: { outcome: differs, observed: "Line item details" }
+  - n: 3
+    action: click
+    target: { label: "Submit" }
+    expect: { kind: visible, label: "Order placed" }
+    result: { outcome: blocked, note: "payment sandbox would not come up" }
 ```
 
 When a driver arrives, it reads that same file, takes the same steps and writes the same three outcomes back in the same place. Nothing about the format changes — which is why it is worth writing walkthroughs in it now, before there is anything to run them.

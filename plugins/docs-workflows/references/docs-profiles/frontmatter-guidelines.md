@@ -82,11 +82,11 @@ replace.
 
 ## Reserved keys for the docs-workflow family
 
-Design authority: `docs/superpowers/specs/2026-08-29-docs-workflow-family-design.md` §8.6, D18. The docs-workflow family reserves four frontmatter keys — `type`, `audience`, `visibility`, `unit` — on **any** docs repo its commands scaffold or write into, not only one carrying the example-docs profile, and touches nothing else in this skill's territory; the reservation binds the family's later commands, `/docs-audit` and `/docs-write` among them, as they ship. What is unchanged: the fields above, and `docs-frontmatter`'s ownership of the schema as a whole, are unchanged by this section.
+Design authority: `docs/superpowers/specs/2026-08-29-docs-workflow-family-design.md` §8.6, D18. The docs-workflow family reserves four frontmatter keys — `type`, `audience`, `visibility`, `unit` — on **any** docs repo its commands scaffold or write into, not only one carrying the example-docs profile, and touches nothing else in this skill's territory; the reservation binds `/docs-audit`, which ships and reads two of them, and the family's later commands, `/docs-write` among them, as they ship. What is unchanged: the fields above, and `docs-frontmatter`'s ownership of the schema as a whole, are unchanged by this section.
 
 ### `type` (RESERVED)
 
-Diátaxis or engineering type; the field the coverage grid is to read once `/docs-audit` ships. The vocabulary depends on `audience`:
+Diátaxis or engineering type; the field the coverage grid reads as its second axis (`references/docs-audit/coverage-model.md` §3). The vocabulary depends on `audience`:
 
 | `audience` | `type` values |
 |---|---|
@@ -103,7 +103,7 @@ Diátaxis or engineering type; the field the coverage grid is to read once `/doc
 
 ### `unit` (RESERVED)
 
-The backlog unit id. Nothing that ships yet writes or reads it: `/docs-audit` (the next increment) and `/docs-write` (a later spec) are to write it, drift (`/docs-drift`, a later spec still) is to read it, and every stub this increment's scaffold writes leaves it absent.
+The backlog unit id. **It has a reader today and no automated writer**, which is the asymmetry to hold on to: `/docs-audit --refresh` reads it to match an existing page back to its unit and move that unit's `status` (`references/docs-audit/backlog-format.md` §3), and it never writes it — that command writes no documentation content at all. Putting the id onto a page is a person's act on the route the family actually supports today; `/docs-write` (a later spec) is to take that over, and drift (`/docs-drift`, a later spec still) is to read it as well. Every stub `/docs-init` scaffolds leaves it absent, so a page acquires it when somebody claims a backlog unit for it.
 
 ### Related fields, none of them reserved
 

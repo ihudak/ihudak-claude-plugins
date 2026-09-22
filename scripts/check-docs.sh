@@ -708,6 +708,25 @@ check_prose_counts() {
     [ -f "$file" ] || return 0
     # -i, and lowercase the captured numeral: a count sentence may open a sentence
     # ("Thirteen commands emit ...") or sit mid-sentence ("twenty-one slash commands").
+    #
+    # `head -1` TAKES THE FIRST MATCH IN DOCUMENT ORDER, NOT "THE COUNT SENTENCE" --
+    # so the count sentence must be the FIRST phrase of its shape in its file, and a
+    # prose line above it that happens to read "<number> agents" is silently gated in
+    # its place. That is not hypothetical: a section lead reading "The three agents
+    # that turn ..." made this compare 3 against a tree of 11, and the wording before
+    # it ("The two agents that ...") had been green only by accident, sorting after
+    # the introduction's own "ten agents".
+    #
+    # Failing on a SECOND match was measured and refused, on this repo's usual rule:
+    # on a green tree eight gated files already carry more than one matching phrase
+    # (every plugin's references.md among them, up to five in one file), so the check
+    # would fire on eight correct files and nothing else. Fires-only-on-correct-content
+    # is the same result that refused two earlier widenings here.
+    #
+    # It is therefore an AUTHORING rule, recorded where an author meets it: when you
+    # add prose above a count sentence, do not let it name a number and that sentence's
+    # noun. Re-run this check after any edit to the top of one of these pages -- a
+    # silently wrong comparison passes, which is what makes it worth the paragraph.
     raw=$(grep -ohEi "$pat" "$file" 2>/dev/null | head -1 | awk '{print tolower($1)}')
     if [ -z "$raw" ]; then
       fail 9 "$label: no count sentence found in ${file#$root/} -- the wording drifted, so nothing is being checked"
@@ -727,7 +746,22 @@ check_prose_counts() {
   # or mid-compound; a captured boundary character is whitespace in every real sentence, so it
   # disappears when `awk '{print $1}'` splits the extracted match.
   _one "commands"        "$p/README.md"                  '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|fifteen|sixteen|seventeen|eighteen|nineteen|twenty-one|twenty-two|twenty-three|twenty-four|twenty-five|twenty-six|twenty-seven|twenty-eight|thirty-four|ninety-eight|[0-9]+) slash commands'    "$(cmd_names "$p" | wc -l | tr -d ' ')"
-  _one "agents"          "$d/reference/agents.md"        '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) agents'           "$(ls "$p/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')"
+  # "eleven" is in the agents alternation and in NO sibling below, and that asymmetry was
+  # measured before it was taken rather than tidied into uniformity. docs-workflows crossed ten
+  # agents and writes that count as a WORD ("eleven agents"), which is the whole reason this
+  # word is here: before it, the sentence matched no alternative and check 9 reported the count
+  # as ABSENT -- a drifted wording -- instead of comparing 11 against 11. Measured at the same
+  # time, per gated plugin, sentence form against tree count: the `commands` sentence is a word
+  # only in workflows-core (six), docs-workflows (Six) and guideline-reviewers (two), none of
+  # them near ten, while dev-workflows and product-workflows write a numeral; every `files`
+  # sentence in every gated plugin is a NUMERAL (15 / 38 / 29 / 23 / 12), matched by [0-9]+, so
+  # no word could help it; `hooks` tops out at two, `bundled skills` at two, `user-settable` at
+  # five; and the cost-emitting alternation already carries eleven through nineteen. So no
+  # sibling has a sentence this word could match today, and adding it to them would be "while I
+  # am here" rather than a measurement. Add it to one when a plugin's own count sentence crosses
+  # ten IN WORDS, and add the fixture-growing selftest case with it -- an expect_fail case proves
+  # only that some word was rejected, never that this one converts.
+  _one "agents"          "$d/reference/agents.md"        '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twenty-one|thirty-four|ninety-eight|[0-9]+) agents'           "$(ls "$p/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')"
   _one "reference files" "$d/reference/references.md"    '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) files'           "$(find "$p/$REF_DIR" -type f 2>/dev/null | wc -l | tr -d ' ')"
   _one "hooks"           "$d/reference/hooks.md"         '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) hooks?'                   "$(ls "$p/hooks"/*.sh 2>/dev/null | wc -l | tr -d ' ')"
   # Inert where $CMD_DIR IS "skills" (see check 4's skills forward-check, same reason):
@@ -1334,6 +1368,19 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
   # the two cases cover different alternations.
   expect_pass_after "a correctly-worded seventeen cost-emitting-command count is accepted" \
     "for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCall \`emit-cost\` with \`command: /%s\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' \$n >> \$(cmd_file $PLUGIN_REL \$n); done && { printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n| \`/alpha\` | fixture-phase | pm |\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '| \`/%s\` | fixture-phase | pm |\n' \$n; done; printf -- '\n## 8. Persistence\n\nNot modelled in the fixture.\n'; } > $PLUGIN_REL/$REF_DIR/cost-emission.md && sed -i.bak 's|two slash commands|eighteen slash commands|' $PLUGIN_REL/README.md && sed -i.bak 's|One commands emit a cost entry|Seventeen commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCommand: \`/%s\`.\n' \$n >> $PLUGIN_REL/README.md; done && { printf -- '\n\`\`\`mermaid\nflowchart TD\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '    x%s[\"/%s\"]\n' \$n \$n; done; printf -- '\`\`\`\n'; } >> $PLUGIN_REL/docs/workflow.md && ns_map_regen"
+  # The same proof for the THIRD gated alternation, the agents one, and it is the reason check 9
+  # learned "eleven": docs-workflows crossed ten agents and writes that count as a word, so the
+  # sentence matched no alternative and the count read as ABSENT rather than as 11. Grows the
+  # fixture to eleven real, fully-inventoried agents -- a file each, a table row each, and the
+  # count sentence re-worded -- and asserts the gate stays GREEN, which is the only shape that
+  # proves a new number word is matched AND converted. An expect_fail case would pass whether or
+  # not "eleven" was ever added, since an unmapped word already fails via "no count sentence
+  # found". Both halves verified on this branch against a copy of the grown fixture: with
+  # "eleven" stashed out of the agents alternation alone the run FAILs "agents: no count sentence
+  # found"; with _word2num's eleven mapped to 12 instead it FAILs "says eleven (12), tree has 11";
+  # with both correct it passes. The new agents carry no `tools:` line, so check 17 is untouched.
+  expect_pass_after "a correctly-worded eleven-agent count is accepted" \
+    "for i in 03 04 05 06 07 08 09 10 11; do printf -- '---\nname: ag%s\ndescription: A fixture agent.\n---\n\nA fixture agent body.\n' \$i > $PLUGIN_REL/agents/ag\$i.md; done && awk '{print} /^\| \`eta\` \| fixture \|\$/{for(i=3;i<=11;i++) printf \"| \`ag%02d\` | fixture |\n\", i}' $PLUGIN_REL/docs/reference/agents.md > ag.tmp && mv ag.tmp $PLUGIN_REL/docs/reference/agents.md && sed -i.bak 's|The fixture ships 2 agents.|The fixture ships eleven agents.|' $PLUGIN_REL/docs/reference/agents.md"
   expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a wrong duplicate-heading index is rejected"    2 "printf '\n[bad](#notes-2)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   # Check 14 is asserted through the same decoder the check uses, so the fixture carries the
@@ -2363,7 +2410,7 @@ PYEOF
 # self-disclosed dispatching a stray subagent mid-run, outside its own sanctioned set.
 # A check that verifies RUNTIME behaviour is impossible from a static script -- and a check
 # that merely asserted "the rule exists" would have passed on the very run that misbehaved:
-# MEASURED FIRST, only 3 of the 40 agents under PLUGIN_RELS carry `Task` in their tool list at
+# MEASURED FIRST, only 3 of the agents under PLUGIN_RELS carried `Task` in their tool list at
 # all (upgrade-executor, vuln-fixer, docs-style-checker), and all three already carried a
 # NEVER-dispatch rule naming their sanctioned subagent, in near-identical wording, when one of
 # them still mis-dispatched. So what is checkable is the STRUCTURAL PRECONDITION, not the

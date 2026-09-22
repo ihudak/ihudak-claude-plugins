@@ -12,7 +12,7 @@ Extracts a logo and a rough primary/accent colour pair from a product's own code
 /docs-brand [<docs-repo-path>] [--from <code-repo-path>] [--inline]
 ```
 
-`--from` and `--inline` are stripped from `$ARGUMENTS` before the remaining token is read as the optional docs-repo path (Phase 0). `--from <code-repo-path>` names the product's code repository to extract from; without it, the run falls through the resolved docs profile's own source-repo set (no shipped profile carries this field yet) and then a confirmed listing under `$REPOS_PATH` (Phase 2). `--inline` switches the run to the caller-embedded mode described above, skipping this command's own preflight, review gate, pull request, and emitter tail.
+`--from` and `--inline` are stripped from `$ARGUMENTS` before the remaining token is read as the optional docs-repo path (Phase 0). `--from <code-repo-path>` names the product's code repository to extract from; without it, the run falls through the resolved docs profile's own `source_repos[]` — written by `/docs-init` and by `/docs-audit`, so a portal either has touched usually answers here — and then a confirmed listing under `$REPOS_PATH` (Phase 2). `--inline` switches the run to the caller-embedded mode described above, skipping this command's own preflight, review gate, pull request, and emitter tail.
 
 ## What it needs
 

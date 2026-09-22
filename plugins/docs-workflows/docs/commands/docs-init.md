@@ -30,7 +30,7 @@ Every recognized flag is stripped from `$ARGUMENTS` before the remaining token i
 |---|---|
 | 0 — Resolve and validate | Strip flags; resolve the target and report the rung; run the specs-repo preflight; establish a writable git work tree or offer to create one; refuse a directory carrying a docs signal. |
 | 1 — Model routing | Classify MODERATE and record the routing block. The review model is pinned to the Opus chain regardless. |
-| 2 — Source repos and toolchain preflight | Confirm which code repositories the portal documents (used by this run only; nothing records the set), resolve the product name and current major version, and check the tools the later gates invoke. |
+| 2 — Source repos and toolchain preflight | Confirm the code repositories the portal documents — Phase 6 records them as the profile's `source_repos[]`, read later by `/docs-audit` and `/docs-brand` — plus product name, version and toolchain. |
 | 2.5 — Branch | Create the branch, **before anything is written**, behind a clean-tree check that is only meaningful ahead of the first write. |
 | 3 — Scaffold | Write the tree, the stubs, the generated navigation, both build configs, the visibility markers, and the CI workflow, resolving every substitution including the pinned Vale release. |
 | 4 — Vale | Create `.gitignore` or append the lines an existing one lacks; write `requirements-docs.txt` and `.vale.ini`, run `vale sync`, and seed the vocabulary with the product name and stub words. |

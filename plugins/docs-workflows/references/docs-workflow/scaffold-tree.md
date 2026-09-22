@@ -6,7 +6,7 @@ Consumed by `/docs-init` (Phase 3 writes §1–§6, Phase 4 writes §7), by `/do
 
 Its entry points, so a command can say which part it is executing: **the tree** (§1), **the stubs** (§3), **nav generation** (§4), **the mkdocs configs** (§5 and §6), and **the vale config** (§7, which also carries `requirements-docs.txt`, `.gitignore` with its create-or-merge rule, and the Vale exit criterion both the scaffold's own verification and its CI apply).
 
-The navigation is **product-shaped** (design D15). Diátaxis lives in each page's `type:` frontmatter, the field the coverage grid is to read once `/docs-audit` ships in the next increment, so the tree looks like a documentation portal a reader recognises while the quadrant discipline stays fully intact.
+The navigation is **product-shaped** (design D15). Diátaxis lives in each page's `type:` frontmatter, the field `/docs-audit`'s coverage grid reads as its second axis, so the tree looks like a documentation portal a reader recognises while the quadrant discipline stays fully intact.
 
 ---
 
@@ -70,7 +70,7 @@ docs/
 
 Three of these are conditional. `integrations/` is written when the run has integrations to document — the source-repo set resolved in Phase 2 is what answers that, not a flag. `pricing.md` is written under `--with-pricing`. `accessibility.md` and `security.md` are written under `--with-compliance`. Everything else is unconditional: a portal missing one of the §2 sections is missing it, not customised.
 
-**"What's new" is fed, not written from scratch.** Its entries come from the `/release-notes` drafts already sitting in `$SPECS_PATH`, which that command writes for its user to paste wherever release notes are published — and pasting them here is how the pages are filled today. Two later commands are to automate it: `/docs-audit`, in the next increment, is to enumerate a `release` surface per major version from those drafts, and `/docs-write`, in a later spec, to render the page from them. `references/release-note-types.md` supplies the section split inside each page — breaking changes, feature updates, fixes — because that reference already owns the destination map and the per-destination prose shape. Nothing is re-derived here.
+**"What's new" is fed, not written from scratch.** Its entries come from the `/release-notes` drafts already sitting in `$SPECS_PATH`, which that command writes for its user to paste wherever release notes are published — and pasting them here is how the pages are filled today. **Half of that is automated now, and it is the half that finds the work rather than the half that does it.** `/docs-audit` enumerates a `release` surface per release version from those same drafts (`references/docs-audit/coverage-model.md` §2), so a version whose page nobody has pasted yet shows up as a `missing` unit in the backlog instead of being noticed by somebody remembering. Rendering the page is still by hand; `/docs-write`, in a later spec, is to take that over. `references/release-note-types.md` supplies the section split inside each page — breaking changes, feature updates, fixes — because that reference already owns the destination map and the per-destination prose shape. Nothing is re-derived here.
 
 ---
 
@@ -81,7 +81,7 @@ The sections a reader would predict need no defence. These nine do, and each is 
 | Section | Why every portal has it |
 |---|---|
 | **Glossary** | The highest-leverage page in a new portal: it is what lets every other page stop re-explaining terms. Every product noun it defines belongs in the Vale vocabulary too (§7), so those nouns stop being reported as misspellings. |
-| **Roles** | A reader's first question is which of these instructions are for them. It is also this family's coverage dimension, so the page and the coverage grid `/docs-audit` is to build will read the same list. |
+| **Roles** | A reader's first question is which of these instructions are for them. It is also this family's coverage dimension, so the page and the coverage grid `/docs-audit` builds read the same list. |
 | **Troubleshooting / FAQ / Known issues** | The highest-traffic pages on most portals, and the main support-deflection surface. Absent, the traffic arrives as tickets instead. |
 | **Limits and quotas** | Routinely the single most-visited reference page, and the one most often missing. An evaluator looks for it before they look at features. |
 | **Error codes** | The only page a reader arrives at by pasting a string out of a log. Nothing else in the portal serves that entry path. |
@@ -614,14 +614,13 @@ After writing the file, run **`vale sync`** to download the packages named by `P
 
 **Seeding it is not a nicety.** Without it every product noun is a spelling error on day one — and `Vale.Spelling` is an error-level rule, so under the criterion above that is a failing gate rather than noise — the first lint returns dozens of findings that are all wrong, and the team turns Vale off in week two. A linter that cried wolf once is a linter nobody re-enables.
 
-**There are two seeds, written by two commands, and they answer different questions.**
+**There are two seeds, and only one of them has a command.**
 
-- **The scaffold seed — written by `/docs-init`, always, in this increment.** It exists so the scaffold passes its own gate, and it is **not** a domain vocabulary. It is the comment, the product name, and the words §3's stubs introduce that the dictionary does not know — the last derived by running Vale over the stubs, not guessed:
+- **The scaffold seed — written by `/docs-init`, always.** It exists so the scaffold passes its own gate, and it is **not** a domain vocabulary. It is the comment, the product name, and the words §3's stubs introduce that the dictionary does not know — the last derived by running Vale over the stubs, not guessed:
 
   ```
   # Product terms Vale should not flag as misspellings.
-  # Add terms by hand — one per line, regex-escaped. A later command,
-  # /docs-workflows:docs-audit, is to append the domain nouns it extracts.
+  # Add terms by hand — one per line, regex-escaped.
   <product>
   [Ff]rontmatter
   [Hh]ostnames?
@@ -630,7 +629,7 @@ After writing the file, run **`vale sync`** to download the packages named by `P
   ```
 
   `<product>` is the product name `/docs-init` confirmed at its Phase 2, regex-escaped — a scaffold-time substitution like every other `<product>` in this file, and the entry that matters most, because every stub names the product and a name the dictionary lacks fails the gate on every page. The four patterns after it are the stubs' own technical vocabulary; each admits its capitalised form because a vocabulary entry also fixes a term's case — `Vale.Terms`, an error-level rule, reports `Runbooks` against a lowercase-only `runbooks?` — and a stub title starts with a capital.
-- **The domain seed — `/docs-audit`'s, when it ships.** `/docs-audit` is to extract the domain nouns for its `concept` surfaces and append those. **`/docs-audit` does not exist until increment 2**; until then the domain terms are added by hand, which is what the comment above says.
+- **The domain seed — nobody's, and added by hand.** **No command of this family extracts a product's domain nouns, and nothing adds to this file after `/docs-init` writes the seed above**, `/docs-audit` included: that command enumerates documentation *surfaces* and writes a backlog, and it never opens `.vale.ini`, a `StylesPath` or a vocabulary. So the comment above is the whole instruction, and the scaffold seed's boundedness has nothing to do with waiting for one: **the scaffold has to pass the lint gate it installs on its own first run**, before anyone has written a page or audited anything, and the seed is exactly the words that run needs. A term added beyond it silences the linter over prose that does not exist yet, which is why `docs-scaffold-reviewer` dimension 4 reports one.
 
 The file is created on every `/docs-init` run. An absent `accept.txt` beside a `Vocab = Project` line is a configuration defect, and Vale's exit code does not reliably report it: where the `Project/` directory is gone too — as it always is on a fresh checkout, since git tracks no empty directory — Vale stops with a runtime error and exits 2, but an empty `Project/` directory left behind passes with exit 0 (both checked against Vale 3.21). So the file's presence is checked directly, by `docs-scaffold-reviewer` dimension 4, rather than left to the lint step.
 

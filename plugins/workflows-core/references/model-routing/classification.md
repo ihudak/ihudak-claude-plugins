@@ -414,22 +414,35 @@ that caller's premise is that the capability lives somewhere across the repos
 in scope. For **`/idea`** it is resolved unconditionally — the confirmed repo
 set *is* the world the idea grounds against (see the altitude paragraph that
 follows) — and it belongs in Section 7's *What's missing*, not in Open
-questions. `[NEEDS CLARIFICATION]` (or the caller's equivalent) is for a theme
+questions. For **`/docs-audit`** it is likewise resolved unconditionally, and
+for the same reason under a different name: the confirmed source-repo set is
+that command's **coverage denominator**, so `absent` everywhere scanned is an
+answer about the product — a surface kind it genuinely has none of, recorded as
+`absent` rather than enumerated — and never a theme carried forward as
+unsettled. `[NEEDS CLARIFICATION]` (or the caller's equivalent) is for a theme
 the scan could not settle — mutual deferral, `error`, or, **for `/implement`
 only**, `absent` everywhere scanned **plus** a deferral outside the scanned
 set.
 
 The altitude differs by caller. For `/idea --ground-code`, the confirmed repo
 set **is** the world the idea is grounding against, so `absent` everywhere
-scanned genuinely means missing. For `/implement`'s fan-out, the premise is
+scanned genuinely means missing. For `/docs-audit`, the same holds of its
+confirmed source-repo set, which is what the coverage figure is a fraction of:
+`absent` everywhere scanned means the product has no surface of that kind, and
+recording it as anything else would put a false statement into the denominator.
+For `/implement`'s fan-out, the premise is
 that the capability lives *somewhere* across the repos in scope — so `absent`
 everywhere scanned **plus** a deferral outside the scanned set means "the scan
 could not tell," not "the capability does not exist."
 
 **Opt-in.** §8.5 is a shared procedure a caller adopts by saying so in its own
-body. Its consumers are `/idea` (Phase 2.6) and `/implement` (Phase 1.7).
-`/epics`, `/create-ard`, `/specify`, and `/design` run §8.2 alone and are
-unaffected by this section.
+body. Its consumers are `/idea` (Phase 2.6), `/implement` (Phase 1.7) and
+`/docs-audit` (Phase 2). `/epics`, `/create-ard`, `/specify`, and `/design` run
+§8.2 alone and are unaffected by this section. **A caller joining this list also
+answers the three caller-scoped paragraphs around it** — the two above, which
+say what a confirmed `absent` resolves to and the altitude that decides it, and
+the one below, which says what each caller passes a still-unresolved theme on
+in — because none of the three has a default a new caller could fall back on.
 
 **Round 2 resolves; it does not license a guess.** A caller that adopts §8.5
 also owes its downstream consumer the truth about what stayed unresolved. An
@@ -439,7 +452,9 @@ second into the first hands the next step a confident-looking answer that was
 never earned. Name unresolved themes explicitly in whatever the caller passes
 on — `/idea` carries them into `[NEEDS CLARIFICATION]`, `/implement` into the
 codebase summary's `## Unresolved` section and from there into the plan's
-risks.
+risks, and `/docs-audit` into `docs-auditor`'s `unresolved[]`, which
+`ia-planner` echoes and the run's own report names — never into a surface, a
+unit, or a covered cell.
 
 ---
 

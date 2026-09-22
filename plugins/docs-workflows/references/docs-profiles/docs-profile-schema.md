@@ -1,10 +1,14 @@
 # docs-profile schema
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 `/docs-profile` writes this file to **`.dev-workflows/docs-profile.yml`** at
 the target docs repo's git work-tree top level (**Where the profile lives**,
 below), and `/docs-init` writes the first one when it scaffolds that repo.
-`/document`, `/docs-serve` and `/docs-brand` read it, as do the
-`docs-frontmatter` skill and its reminder hook. `changelog` and `owners` are
+`/document`, `/docs-serve`, `/docs-brand` and `/docs-audit` read it, as do the
+`docs-frontmatter` skill and its reminder hook — and `/docs-audit` also writes
+one key back, `source_repos[]`, where it confirmed a set the profile did not
+record. `changelog` and `owners` are
 intentionally absent — they are owned by the `docs-frontmatter` skill.
 
 ## Where the profile lives
@@ -21,6 +25,9 @@ A command resolves `<top>` once, from the directory it resolved, and reads the p
 schema_version: 1
 repo:
   name: example-docs                # detected from git remote / dir name
+source_repos:                         # the code repositories this portal documents — /docs-audit's coverage denominator
+  - { name: example-api,    path: /workspace/example-api,    origin: "git@github.com:acme/example-api.git" }
+  - { name: example-webapp, path: /workspace/example-webapp, origin: "git@github.com:acme/example-webapp.git" }
 spaces:                               # one entry per rendered space
   - id: cloud
     content_root: cloud/_content
@@ -89,6 +96,10 @@ prerequisites:
 
 ## Field rules
 - `frontmatter.owners_spaces` lists the `spaces[].id` values whose pages require an owners block. Absent or empty means the owners check never fires. It is read by the `changelog-owners-reminder` hook and by the `docs-frontmatter` skill; neither hardcodes a content root, so a repo supplying its own profile gets its own roots and its own owners policy.
+- `source_repos[]` is optional — the code repositories this portal documents, one entry per repository, each `{name, path, origin}`. It is the **coverage denominator**: the set whose surfaces `/docs-audit` measures the documentation against, so what is recorded here decides what a coverage figure is a fraction *of*. `/docs-init` writes it from the set its Phase 2 step 1 confirms with the operator, and **omits the key entirely where that step confirmed none** — an empty list asserts that this portal documents nothing, which is a different claim from nobody having said yet. A profile without the key is valid: `/docs-audit` then confirms the set with the operator and records it, so a repository profiled by `/docs-profile`, or scaffolded before this field existed, is asked once rather than refused. `name` is the repository's short name — its directory name under `${REPOS_PATH:-/workspace}`, which is what `/docs-init` prints when it confirms the set — and it is a **label**: it is what a consumer reports the repository by, never what it resolves the clone by.
+- `source_repos[].path` is an absolute path recorded on the machine that wrote the profile — and **a profile is committed**, so it travels to machines whose workspace is laid out differently and may name nothing at all on the next one. **It is a hint, not an identity**, and that is this field's one real hazard: a consumer that trusted `path` alone works for whoever ran `/docs-init` and breaks for the second person who clones the documentation repository. So a consumer resolves an entry in this order — `path`, where it exists and is a git work tree on this machine; else the entry's `origin`, matched against the directories one level under `${REPOS_PATH:-/workspace}` by each one's own `git -C <dir> remote get-url origin`, which is how every consumer in this family that holds a slug matches a clone, never by directory name; else ask the operator which clone it is. Slugs compare as `<owner>/<repo>`, so an `ssh` remote and an `https` one for the same repository still match and a trailing `.git` is ignored. Whether a consumer that re-resolved an entry then offers to correct the stale `path` is that consumer's own concern: this rule fixes what the value means, not who rewrites it.
+- `source_repos[].origin` is optional — a clone with no remote has none, and a repository documented from a local-only checkout is a real entry rather than a malformed one. **An entry with neither a resolvable `path` nor an `origin` is reported, never silently dropped from the denominator.** A consumer that quietly shrinks its own denominator makes coverage go *up*, which is the worst direction this field can fail in: the figure still reads as an answer, and nothing in it says a repository went missing. Name the entry, say which of `path` and `origin` failed to resolve it, and let the operator settle it.
+- **Nothing recorded in `source_repos[]` is a write target.** A consumer reads these repositories to derive what the portal ought to document — surfaces, evidence, version tags, a logo and a colour pair — and writes into the documentation repository, never into one of them. A read-only mount among them is therefore no obstacle rather than a failure: an agent that scans one resolves a ref and reads at it without writing (`workflows-core:read-only-repos`).
 - `spaces[]` is required and non-empty. It is a plain list of the repo's content roots: a repo publishing one documentation set has one entry, a repo publishing several has one per set. A page belongs to whichever entry's `content_root`/`snippet_root` prefixes its path, and is written there and nowhere else.
 - `generator` is optional — it records which generator produced the repo (for example `mkdocs-material`). It is **informational only**: no consumer branches on its value, and every build, lint, format and serve invocation goes through `commands.*` and `dev_servers.*` regardless of what it says. That is what makes the generator choice reversible behind the profile — the whole reason the field is allowed to exist.
 - `builds[]` is optional — a list of `{id, config, command, out, visibility}` entries for a repo whose ONE content root renders into more than one output. It is not a second `spaces[]` entry: `spaces[]` is defined by content-root ownership — a page belongs to whichever entry's `content_root` prefixes its path — so two spaces sharing one root breaks that rule. Two builds over one root is a different axis and needs its own field. The worked example above stays two-space/pnpm and does not carry `generator`/`builds[]` — a repo cannot coherently run two mutually exclusive build toolchains. A single-content-root MkDocs repo, the shape `/docs-init` scaffolds, declares them like this:

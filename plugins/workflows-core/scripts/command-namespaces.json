@@ -7,6 +7,7 @@
     "vuln"
   ],
   "docs-workflows": [
+    "docs-audit",
     "docs-brand",
     "docs-init",
     "docs-profile",

@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [1.7.2] — Unreleased
+
+### Changed — the shared authorities admit `/docs-audit`, which `docs-workflows` 1.3.0 ships
+
+Nine files here name the family's commands, and a new one in `docs-workflows` had to reach each of them; none of this changes behaviour for any existing caller. `scripts/command-namespaces.json` gains the command, so it resolves under its plugin namespace. `references/cost-emission.md` gains its fixed `docs-audit`/`dev` §7 row and names it in §8's rung 2, the documentation branch that files a run with no PRD folder under `$SPECS_PATH/documentation/<docs-repo-slug>/` (D19) — the rung's own count moves with it. `references/feedback-emission.md` does the same for its tier-2 branch and its counts. `references/finding-triage.md` records `docs-audit-reviewer` → the orchestrator in its attachment table and in the no-fixer paragraph beside `docs-scaffold-reviewer` and `proposal-reviewer`: this command has no fixer agent either, so its orchestrator applies survivors itself (D25). `references/model-routing/classification.md` adds the command to §8's fan-out adopters and to §8.5's opt-in seeded second round, and says where its unresolved themes land — `docs-auditor`'s `unresolved[]`, never a gap. `references/next-phase-offer.md` adds it to *Not pipeline nodes*, a run that prints the universal-minimum prose `### Next step` and carries no `<merge-clause>`, because the backlog it leaves is in a docs repository's working tree and no `$SPECS_PATH` gate reads it. `references/specs-repo-git.md` names it among the runs whose write target is not a git work tree, where the docs-repo slug falls back to a basename. `agents/code-scanner.md` and `docs/reference/agents.md` add it to that agent's caller list: `/docs-audit` dispatches one scanner per repository the docs profile records.
+
+**Update this plugin with `docs-workflows` 1.3.0.** Nothing here is required by an older `docs-workflows`, but that release's `/docs-audit` reads all nine.
+
 ## [1.7.1] — Unreleased
 
 ### Fixed — the `<merge-clause>` table resolved six of `phase-handoff` §4.1's eight outcome rows, and the two it dropped both lost what the run was holding

@@ -33,6 +33,7 @@ Two pages orient you before you touch a command: [Getting started](getting-start
 - [Environment](reference/environment.md) — every environment variable the plugin reads, and what it configures.
 - [Hooks](reference/hooks.md) — the two bundled hooks and what each one does.
 - [Documentation visibility](reference/docs-visibility.md) — the two-build public/internal model a scaffolded portal uses, the two traps that make the obvious checks useless, and the CI gates that assert on built output instead.
+- [Coverage model](reference/docs-coverage-model.md) — what counts as a documentation surface and how the seven kinds come out of code, how a surface differs from a backlog unit, which page types a surface earns, and what decides the order they get written in.
 - [Session cost](reference/session-cost.md) — which commands here emit a cost entry, what they charge to, and where the file lands.
 
 ## Where the rest lives
@@ -48,4 +49,4 @@ Neither pipeline plugin is a dependency in either direction; this plugin install
 
 ## Status
 
-This plugin ships 6 slash commands, 8 agents, 18 reference files and 2 hooks — and it ships one bundled skills entry, `docs-frontmatter`. Most of it moved here from `dev-workflows` in the third increment of the marketplace split, and behaves as it did there but for one deliberate change: `prose-style` is now a declared dependency, so the branches that used to skip or degrade the style check when it was absent are gone. Otherwise only the namespace these commands answer to and the way they reach the shared corpus have changed. The `preload-context` hook is the one thing that was split rather than moved, because `dev-workflows` still needs its half.
+This plugin ships 6 slash commands, 8 agents, 19 reference files and 2 hooks — and it ships one bundled skills entry, `docs-frontmatter`. Most of it moved here from `dev-workflows` in the third increment of the marketplace split, and behaves as it did there but for one deliberate change: `prose-style` is now a declared dependency, so the branches that used to skip or degrade the style check when it was absent are gone. Otherwise only the namespace these commands answer to and the way they reach the shared corpus have changed. The `preload-context` hook is the one thing that was split rather than moved, because `dev-workflows` still needs its half.

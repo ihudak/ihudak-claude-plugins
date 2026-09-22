@@ -1,7 +1,7 @@
 # Session Cost Emission — Shared Reference
 
-Single source of truth for the dev-workflows session-cost subsystem. Twenty-four of
-the twenty-six commands with an §7 row cite this file from their terminal
+Single source of truth for the dev-workflows session-cost subsystem. Twenty-five of
+the twenty-seven commands with an §7 row cite this file from their terminal
 "Session cost" phase and execute its steps inline through the single `emit-cost`
 entry point (§11). The other two — `/prompt-brainstorm` and `/prompt-grill-me` —
 cede the session before such a phase could run, call `emit-cost` never, and
@@ -332,6 +332,7 @@ Fixed per-command labels, with six inferred exceptions:
 | `/prompt-grill-me` | **inferred** | **inferred** |
 | `/docs-brand` | docs-scaffold | dev |
 | `/docs-init` | docs-scaffold | dev |
+| `/docs-audit` | docs-audit | dev |
 
 **`/release-notes` inference (PM PRD-run vs. dev documenting-run).** The
 discriminator is the presence of **downstream engineering artifacts** — any
@@ -468,7 +469,7 @@ subdir. Walk top-down; stop at the first tier that applies:
    `<PRD-dir>/dev-workflows/cost/<sid8>.md`. *[primary]*
 2. `$SPECS_PATH` writable but no PRD dir (or no key resolved) — two destinations,
    and the documentation branch is tried first:
-   - **The run is `/docs-init`, `/docs-brand` on its standalone path, or `/document` in direct mode**, and it resolved the target it writes into (design D19) -> `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`, where `<docs-repo-slug>` is the one-segment name `specs-repo-git.md` §2.1 defines for that repo — for direct mode, the write target its own Phase 0 step 3 resolved, which every direct-mode run holds from that step on — cited, never re-derived here, because the staging classifier admits exactly one segment there. **Per docs repo, not one flat bucket**, for the same reason the PRD-directory rung exists for the pipeline: a person documenting two products must still be able to answer what documenting each one cost. The inner `dev-workflows/` names the *family*, not the emitting plugin — `specs-repo-git.md` §2.1 says why — and that section's `<specs-root>/documentation/*/dev-workflows/**` shape is what stages it.
+   - **The run is `/docs-init`, `/docs-audit`, `/docs-brand` on its standalone path, or `/document` in direct mode**, and it resolved the target it writes into (design D19) -> `$SPECS_PATH/documentation/<docs-repo-slug>/dev-workflows/cost/<sid8>.md`, where `<docs-repo-slug>` is the one-segment name `specs-repo-git.md` §2.1 defines for that repo — for direct mode, the write target its own Phase 0 step 3 resolved, which every direct-mode run holds from that step on — cited, never re-derived here, because the staging classifier admits exactly one segment there. **Per docs repo, not one flat bucket**, for the same reason the PRD-directory rung exists for the pipeline: a person documenting two products must still be able to answer what documenting each one cost. The inner `dev-workflows/` names the *family*, not the emitting plugin — `specs-repo-git.md` §2.1 says why — and that section's `<specs-root>/documentation/*/dev-workflows/**` shape is what stages it.
    - **Otherwise** -> **pending** (§9).
 
    **Why this rung is inserted before pending rather than folded into it.**
@@ -478,9 +479,9 @@ subdir. Walk top-down; stop at the first tier that applies:
    will later acquire a key; this one will not.
 
    **The branch names the runs it serves rather than testing "did the run resolve a
-   docs repo".** Each of the three works against a target it resolved — a repository,
+   docs repo".** Each of the four works against a target it resolved — a repository,
    or a path that is not one (`specs-repo-git.md` §2.1 names the runs that meet
-   that case) — and resolves no PRD folder: `/docs-init` and a standalone `/docs-brand` never resolve one, and
+   that case) — and resolves no PRD folder: `/docs-init`, `/docs-audit` and a standalone `/docs-brand` never resolve one, and
    `/document` direct mode is the mode with no address, so its key is ordinarily
    `null` — where one does resolve a PRD folder, tier 1 takes it first, as it
    would for any run. `/document` in keyed mode resolves a PRD folder and so is

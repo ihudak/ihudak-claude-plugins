@@ -6,7 +6,7 @@ They live here rather than beside any one pipeline because more than one plugin 
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
-| `code-scanner` | per routing | Read, Glob, Grep, Bash | Scans one code repository for existing capabilities and gaps relative to a set of themes; pure filesystem search, designed for parallel per-repo invocation capped at 4 concurrent. | `/create-ard`, `/design`, `/epics`, `/idea`, `/implement`, `/specify` |
+| `code-scanner` | per routing | Read, Glob, Grep, Bash | Scans one code repository for existing capabilities and gaps relative to a set of themes; pure filesystem search, designed for parallel per-repo invocation capped at 4 concurrent. | `/create-ard`, `/design`, `/docs-audit`, `/epics`, `/idea`, `/implement`, `/specify` |
 | `doc-fixer` | per routing | Read, Glob, Grep, Write, Edit | Applies targeted fixes for surviving BLOCKER/MAJOR findings from a doc or Epic reviewer, or for violations from a style checker; the docs-domain counterpart of a code review fixer. | `/document`, `/epics` |
 | `docs-grounder` | per routing | Read, Glob, Grep, Bash | Read-only `$DOCS_PATH` grounding — retrieves the most relevant existing product-doc pages and returns a bounded digest of positive references plus reconciliation challenges. | `/prd-ground`, `/brd-intake`, `/create-ard`, `/create-prd`, `/epics`, `/idea`, `/release-notes`, `/specify`, `/update-prd` |
 | `frame-describer` | per routing | Read, Glob, Grep | Reads the frames of one exported design frame set and returns a plain-language description of each — what it depicts and what is on it. Reconciles nothing, cites nothing, emits no finding. | `/frames` |

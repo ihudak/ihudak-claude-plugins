@@ -5,8 +5,10 @@
 `/docs-profile` writes this file to **`.dev-workflows/docs-profile.yml`** at
 the target docs repo's git work-tree top level (**Where the profile lives**,
 below), and `/docs-init` writes the first one when it scaffolds that repo.
-`/document`, `/docs-serve` and `/docs-brand` read it, as do the
-`docs-frontmatter` skill and its reminder hook. `changelog` and `owners` are
+`/document`, `/docs-serve`, `/docs-brand` and `/docs-audit` read it, as do the
+`docs-frontmatter` skill and its reminder hook — and `/docs-audit` also writes
+one key back, `source_repos[]`, where it confirmed a set the profile did not
+record. `changelog` and `owners` are
 intentionally absent — they are owned by the `docs-frontmatter` skill.
 
 ## Where the profile lives

@@ -1,6 +1,6 @@
 # Getting started
 
-This page takes you from zero to your first successful run — install the plugin, set the environment variables it reads, and run `/document` end to end. If the project you want to document has no documentation repository at all, start with [Your first run on a project with no docs](#your-first-run-on-a-project-with-no-docs) instead. Once you have done this once, [Workflow overview](workflow.md) shows how the six commands fit together.
+This page takes you from zero to your first successful run — install the plugin, set the environment variables it reads, and run `/document` end to end. If the project you want to document has no documentation repository at all, start with [Your first run on a project with no docs](#your-first-run-on-a-project-with-no-docs) instead. Once you have done this once, [Workflow overview](workflow.md) shows how the seven commands fit together.
 
 ## Install
 

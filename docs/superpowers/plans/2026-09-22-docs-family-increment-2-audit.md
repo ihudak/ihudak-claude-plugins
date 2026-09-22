@@ -743,6 +743,10 @@ Re-derive each current version from its own `plugin.json` rather than assuming i
 
 Keep `plugin.json` and `marketplace.json` descriptions in step and **under 1024 characters** — `validate-catalog.py` fails the build above it and warns above 900, and it rejects the **whole catalog**, so one over-long blurb breaks every plugin here. The new capability **replaces** wording; it never appends.
 
+**Both blurbs currently carry an inventory count — "eighteen reference files" — and Task 1 already falsified it.** Do not simply bump the number. `CLAUDE.md` says a blurb is *a stable capability blurb, never a changelog*, and a reference-file count is neither a capability nor stable: it moves on every increment, nothing gates it (`validate-catalog.py` checks length, not truth), and it has now been wrong at some point in two consecutive releases. **Drop the count from both blurbs** and let the wording describe what the plugin does, which is what a person installing it is reading for. The per-plugin inventory sentences that *are* gated live under `docs/`, where check 9 keeps them honest. Freeing those characters also buys budget against the 1024 cap for the capability this increment adds.
+
+*(Found at Task 1: the implementer flagged the blurbs as outside its four files, and a check confirmed both carry the stale figure. Recorded here so the next increment does not re-add a count to a blurb.)*
+
 - [ ] **Step 3b: The prose counts check 9 *cannot* see**
 
 **Check 9 takes `head -1` of its grep per file, so only the *first* matching sentence in a file is gated.** Every later one goes stale silently, and this increment falsifies at least seven of them. Measured at plan time — re-derive, do not trust the line numbers:

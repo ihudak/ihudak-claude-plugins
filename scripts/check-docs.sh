@@ -1145,6 +1145,12 @@ selftest() {
   # green cases are worthless if anything outside the mutation can redden them.
   export NS_MAP_REL="plugins/dev-workflows/scripts/command-namespaces.json"
   export HANDOFF_PLUGIN_RELS="plugins/dev-workflows"
+  # Check 18's arming flag is neutralised here so each case controls it, and the two that need
+  # it armed set it through expect_fail_env / expect_pass_after_env. Without this line the
+  # selftest inherits the caller's value, and the one case that proves the gate STAYS QUIET off
+  # a publishing ref fails spuriously -- for the person most likely to run it that way, which is
+  # whoever is verifying this gate. Found by doing exactly that.
+  export ASSERT_PUBLISHED=""
   [ -d "$fixture" ] || { echo "SELFTEST FAIL: fixture tree missing at $fixture" >&2; exit 2; }
 
   expect_pass() {
@@ -1829,6 +1835,32 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
   expect_pass_after "prose naming dispatch and a quoted \"Task\" grants no authority" \
     "printf -- '\nA reviewer might dispatch this agent expecting it to \`\"Task\"\` itself out eventually; it never does, and it invokes no subagent either.\n' >> $PLUGIN_REL/agents/eta.md"
 
+  # CHECK 18. The RED case and its GREEN TWIN are the whole point and must be read together:
+  # the identical mutation is a failure with ASSERT_PUBLISHED=1 and a PASS without it. A gate
+  # that fired on both would be red on every release branch, where an `— Unreleased` section is
+  # the correct authoring state; a gate that fired on neither would be inert. Only the pair
+  # discriminates, and neither case alone proves the behaviour.
+  expect_fail_env "an Unreleased changelog section on a publishing ref is rejected" 18 \
+    "ASSERT_PUBLISHED=1" \
+    "sed -i.bak 's|^## \[1.1.0\] — 2026-09-22|## [1.1.0] — Unreleased|' $PLUGIN_REL/CHANGELOG.md"
+  expect_pass_after "the same Unreleased section is accepted off a publishing ref" \
+    "sed -i.bak 's|^## \[1.1.0\] — 2026-09-22|## [1.1.0] — Unreleased|' $PLUGIN_REL/CHANGELOG.md"
+  # A dated tree must still PASS with the gate armed -- otherwise the red case above could be
+  # passing for any reason at all, including the check firing on every changelog it opens.
+  expect_pass_after_env "a fully dated changelog passes with the gate armed" \
+    "ASSERT_PUBLISHED=1" \
+    "true"
+  # The bare Keep-a-Changelog form is deliberately out of scope (see the check's header): this
+  # asserts the exclusion rather than leaving it to be re-litigated by the next reader.
+  expect_pass_after_env "a bare [Unreleased] heading is out of scope, armed or not" \
+    "ASSERT_PUBLISHED=1" \
+    "printf -- '\n### [Unreleased] (pre-split history)\n\nA labelled historical section.\n' >> $PLUGIN_REL/CHANGELOG.md"
+  # VACUITY GUARD, the same shape as checks 16 and 17 carry: a glob that silently stops matching
+  # must turn the build red, not green.
+  expect_fail_env "a tree with no changelog at all is rejected when armed" 18 \
+    "ASSERT_PUBLISHED=1" \
+    "rm -f plugins/*/CHANGELOG.md"
+
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
   exit "$rc"
 }
@@ -2472,6 +2504,58 @@ check_dispatch_authority() {
     || fail 17 "no agent under any PLUGIN_RELS agents/ carries \`Task\` in its tool list -- this check would examine nothing, which means the frontmatter scan has drifted rather than the tree having nothing left to dispatch"
 }
 
+# --------------------------------------------------------------- check 18
+# CHECK 18 gates the one claim a changelog makes about ITSELF: a section headed `— Unreleased`
+# says, in each file's own header sentence, that it "has not been published yet". On the default
+# branch that is false by construction -- `claude plugin update` fetches from main, so everything
+# on main IS what users install. The section is published the moment the push lands.
+#
+# WHY IT EXISTS: measured recurrence, not taste. Commit 47050554 (2026-09-19) dated every
+# `— Unreleased` section then standing, with a commit message saying so; by 2026-09-22 SEVEN more
+# stood across four plugins, every one of them live on origin. Twice in a row, with nothing in
+# scripts/ able to see it. A published changelog that reads "Unreleased" beside the version a user
+# just installed is the whole of the defect -- cosmetic in effect, but it is the file's own claim
+# about itself, and it is the kind that no reader ever re-derives.
+#
+# WHY IT IS NOT ON BY DEFAULT, which is the half that keeps it usable: on a feature branch an
+# `— Unreleased` section is the CORRECT authoring state -- that is what the header sentence is for,
+# and what it means by "they all ship together in the next release". A gate that fired there would
+# be red for the whole life of every release branch, and a gate that blocks correct work is a gate
+# someone disables. So it runs only where the claim is actually false: ASSERT_PUBLISHED=1, which
+# .github/workflows/validate-catalog.yml sets on a push to the default branch and nowhere else.
+# The env var rather than a flag is deliberate -- it composes with the selftest's expect_*_env
+# helpers, so the case that proves the gate STAYS QUIET without it can be written at all.
+#
+# SCOPE is every `plugins/*/CHANGELOG.md`, not PLUGIN_RELS: every plugin in the catalog publishes
+# from the same ref, and a docs-gated plugin is not the population here.
+#
+# WHAT IT DOES NOT MATCH, measured before choosing: the bare Keep-a-Changelog `## [Unreleased]`
+# form. This tree carries exactly one, `### [Unreleased] (pre-plugin-split)` in dev-workflows'
+# changelog -- a labelled historical section recording work from before the marketplace split,
+# which is correct content. Matching it would fire on correct content and on nothing else, which is
+# the same result on which this file's earlier widenings were refused. The convention this repo
+# actually writes is the version-heading form, and that is what is gated.
+check_published_changelog() {
+  local root="$1" f rp seen=0 hit line n
+  [ "${ASSERT_PUBLISHED:-}" = 1 ] || return 0
+  for f in "$root"/plugins/*/CHANGELOG.md; do
+    [ -e "$f" ] || continue
+    seen=$((seen + 1))
+    rp="${f#$root/}"
+    # `##`-or-deeper heading, a bracketed version, an em dash or hyphen, then Unreleased.
+    while IFS= read -r line; do
+      [ -n "$line" ] || continue
+      n="${line%%:*}"
+      hit="${line#*:}"
+      fail 18 "$rp:$n is headed \`${hit# }\` on a ref that publishes it -- this file's own header says an \`— Unreleased\` section \"has not been published yet\", and everything on the default branch is what \`claude plugin update\` fetches. Date it with the day of the push that publishes it"
+    done <<EOF
+$(grep -nE '^#{2,}[[:space:]]+\[[^]]+\][[:space:]]*[—-][[:space:]]*Unreleased[[:space:]]*$' "$f" || true)
+EOF
+  done
+  [ "$seen" -gt 0 ] \
+    || fail 18 "no plugins/*/CHANGELOG.md found at all -- this check would examine nothing, which means the glob has drifted rather than the marketplace having shipped no changelog"
+}
+
 # ---------------------------------------------------------------------- main
 # selftest() runs before the dispatch loop below ever assigns PLUGIN_REL per iteration,
 # and its fixture mutations reference the bare (singular) $PLUGIN_REL directly -- so it
@@ -2526,6 +2610,10 @@ check_loader_contract     "$ROOT"
 # per-plugin dispatch cannot make without a latch -- the same shape check 16 is here for.
 # It loops $PLUGIN_RELS itself rather than reading the loop variable.
 check_dispatch_authority  "$ROOT"
+
+# Check 18 sits outside the loop too: its population is every plugin's changelog, not the
+# docs-gated subset PLUGIN_RELS names, and it is a no-op unless ASSERT_PUBLISHED=1.
+check_published_changelog "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_RELS" >&2

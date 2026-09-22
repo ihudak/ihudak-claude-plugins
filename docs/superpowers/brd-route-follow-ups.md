@@ -4,7 +4,9 @@ Reported by the operator after running the BRD route against a real customer eng
 
 Per **S18**, nothing releases while any of these is open.
 
-**Three design gates, sequenced; gates 1 and 2 have shipped, gate 3 still blocks the release under S18:**
+**Status, 2026-09-22: nothing here is open, and this line is the one to read first.** Every entry below records its own disposition and they are what this paragraph is derived from — `BRD-1` to `BRD-6`, `R-1` to `R-5`, `E-1` to `E-5`, `E-7`, and `G3-1` to `G3-3` all **closed**; `E-6` **retired**; `E-8` is a recorded **question** about the strength of a guarantee and says in its own entry that it is *not an S18 blocker as filed*; `G3-4` and *Recorded, not counted as defects* were never defects. **Re-derive this from the entries rather than trusting the sentence** — it is prose, and no gate in `scripts/` reads this file. The dated paragraphs below are kept as the sequencing records they were, and their tense is historical: each says what was still ahead on the day it was written, not what is ahead now. Where one of them named a gate or a defect as still blocking, this line is what settles it.
+
+**Three design gates, sequenced. All three have shipped** — the plan as written on 2026-09-06, when gate 3 was still ahead:
 
 1. **Slice-first grounding and interviewing** — `docs/superpowers/specs/2026-09-06-slice-first-grounding-design.md`. **Shipped in `product-workflows` 2.0.0.** Closed BRD-5 and the per-slice interview package request.
 2. **The sibling re-cut** — that spec's §8, settled in `docs/superpowers/specs/2026-09-07-sibling-re-cut-design.md`. A slice grounding shows is too big hands its deferred rows to a new sibling, by re-pointing `covered-by` against the owner's own `deferred-to`. **Shipped in `product-workflows` 2.1.0.**

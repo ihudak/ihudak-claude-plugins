@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
-## [4.2.0] — Unreleased
+## [4.2.0] — 2026-09-22
 
 ### Fixed — `/vuln` settles a dead test baseline the way `/implement` does, on both paths, and a verify against a baseline that captured nothing stops returning `OK`
 
@@ -35,7 +35,7 @@ A section headed `— Unreleased` has not been published yet; where more than on
 
 **Two referents of "the capture" in `/vuln` Step 3 are disambiguated.** The run-level `pre_existing_dirty` porcelain capture was already called "the capture" by the base-branch rule that follows it; inserting a section headed *Capture the test baseline* underneath made that sentence read as circular — switch after capture, capture after switch — and an agent resolving it the wrong way would have taken the baseline on the operator's own branch, which is the contamination the base-branch rule exists to prevent.
 
-## [4.1.2] — Unreleased
+## [4.1.2] — 2026-09-22
 
 **Update `workflows-core` to 1.7.1 with this plugin.** Each change below that rests on it carries its own **Rests on `workflows-core` 1.7.1** clause, naming the part of 1.7.1 it rests on; an entry without that clause rests on no `workflows-core` change.
 
@@ -591,7 +591,7 @@ anywhere on the page. Demonstrated: replacing a hook's table row with a sentence
 gate at PASS while the inventory table the page exists to be has silently lost a row. And check 15's
 `\b` treats `-` as a word boundary, so `/prompt-brainstorm` satisfied the requirement for `/prompt` —
 `/prompt` could be removed from the docs index, the plugin README **and** the workflow diagram, and the
-gate still passed. `/prompt` is the only command name that is a strict prefix of another, so the hole
+gate still passed. `/prompt` is the only command name under `PLUGIN_RELS` that is a strict prefix of another — `/wiki-task` and `/wiki-tasks-extract` are a fourth pair in the tree, outside the gate's scope and in any case not a hole, since the word boundary does not match inside `wiki-tasks-extract` — so the hole
 was one command wide, in a gate whose entire premise is that no command drops out of all three
 surfaces. Both fixed, and both now carry a red selftest case that fires for the stated reason.
 
@@ -2270,7 +2270,7 @@ and left three degradations in its own text; **this release closes all three**.
 
 ### Fixed
 
-- **A spec defect found by execution.** §7.3.1 said `/implement`, `/vuln` and `/upgrade` all write the commit convention. They do not: `/implement` and `/upgrade` leave their changes **uncommitted**, so `/vuln` is the only command that commits into a code repository. The mechanism now matches — `/vuln` writes a compliant subject, the other two **state the convention at handover**, to the operator who writes that commit. *(That `/implement` and `/upgrade` leave work uncommitted at all is a separate defect, fixed next.)*
+- **A spec defect found by execution.** §7.3.1 said `/implement`, `/vuln` and `/upgrade` all write the commit convention. They do not: `/implement` and `/upgrade` leave their changes **uncommitted**, so `/vuln` **was at the time of this release** the only command that commits into a code repository — the parenthetical below names that as a defect about to be fixed, and it was: all three code-changing commands commit now. The mechanism now matches — `/vuln` writes a compliant subject, the other two **state the convention at handover**, to the operator who writes that commit. *(That `/implement` and `/upgrade` leave work uncommitted at all is a separate defect, fixed next.)*
 - `/ready` Phase 2 still read a declared status from fields that no longer exist; it now reads the per-Epic artifact inventory the derivation needs.
 - `/implement`'s Epic picker can show ● again, now that `implementation.md` supplies the signal.
 

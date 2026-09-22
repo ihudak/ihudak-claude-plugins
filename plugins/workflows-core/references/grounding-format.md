@@ -14,7 +14,7 @@ every repository grounding reads.
 **Consumed by** the three grounding agents that write against the contract fixed here —
 `product-workflows:code-grounder`, `product-workflows:design-grounder`, and `product-workflows:grounding-verifier` — and by
 the two commands that read what they produce: `/product-workflows:prd-ground`, which orchestrates all
-three, and `/product-workflows:brd-split`, whose Phase 0 gate turns on §8's verification outcomes.
+three, and `/product-workflows:brd-split`, whose Phase 0 gate turns on §8's verification outcomes. **That list is the §1–§5 and §8 contract's, not the file's**, and this header used to read as the whole of it: §6's frame-set sections have their own consumers — `/workflows-core:frames` and `workflows-core:frame-describer` build and rebuild an index to §6.2, and `/product-workflows:idea` Phase 4.5 writes one for the images it read, which is why `product-workflows:idea-format` calls §6.2's writer table two-rowed. Several build-ladder commands also cite §8's *no verifier outcome ⇒ not evidence* rule without orchestrating a grounding run at all. **Re-derive the real set before editing any section here** — `grep -l grounding-format plugins/*/commands/*.md plugins/*/agents/*.md`, reading each hit for which section it depends on; a change to §6 that consulted only the five named above would land under three files that were never asked.
 
 ## 1. What grounding is, and is not
 

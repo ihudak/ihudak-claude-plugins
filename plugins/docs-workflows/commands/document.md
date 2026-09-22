@@ -1366,8 +1366,11 @@ No model-routing reminder is injected for this command — classification still 
    Then execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against it — with `site_root`, where
    one was set, as the site directory its source 2 also checks. Direct mode has no profile, so
    use **sources 2 and 3 only** (repo config signals and the repo's documented `Prerequisites`); the
-   only gate in scope is `style_check`, so neither `required_by` nor `fallback_for` ever names
-   `build_check` or `render_smoke_check`.
+   only gate a tool can be mapped to here is `style_check`, so neither `required_by` nor `fallback_for`
+   ever names `build_check` or `render_smoke_check`. That is narrower than the mode's gate set: direct
+   mode registers three gates in the ledger — `toolchain_preflight`, `repo_checklist` and `style_check`
+   (`docs-workflows:gate-ledger`) — and the first two are not gates a tool is `required_by`, which is
+   why only the third appears in this map.
 
    Append the `toolchain_preflight` row per
    `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3. Present the §5 prompt verbatim only when a

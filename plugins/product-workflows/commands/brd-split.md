@@ -14,7 +14,11 @@ ledger to a recorded fate: built by a named child, deferred, rejected, or supers
 carves nothing and instead takes the findings `/prd-ground` already verified, forcing every `[BR#n]`
 in its own ledger to a recorded fate through the same four-way choice — with `covered-here` standing
 in `covered-by`'s place: built here, deferred, rejected, or superseded. This is
-the only place either BRD's fate is ever decided (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
+the only place either BRD's fate is decided **by allocation** — `/product-workflows:brd-reconcile`
+re-dispositions a row to `deferred-to`, `rejected` or `superseded-by` when a frozen `[CD#n]` settles
+the requirement differently, and `rejected: <SLICE-KEY>/[CD#n]` is a spelling only it ever writes, so
+*the only place a fate is ever decided* (which this sentence used to claim) is false of a slice
+(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
 §1) — without this command's gate, a long BRD split across several children could have every child
 quietly wave a requirement past, and nothing would notice.
 
@@ -566,9 +570,11 @@ For every slice Phase 2 confirmed:
 
 Steps 4 and 5 are what let the child **re-enter the route** at Phase 7's recommendation:
 `/prd-ground`'s own Phase 0 gates on the child's `coverage-ledger.md` and reads the child's
-`brd/brd-inventory.md`, and `/brd-intake` — the only other command that writes either file — is
-never run on a slice, because a slice has no document to intake. This command is the only place
-those two files can come from, so it writes them at the same moment it writes `brd-link.md`, not
+`brd/brd-inventory.md`, and `/brd-intake` — the only other command that **creates** either file — is
+never run on a slice, because a slice has no document to intake. (Creating is the claim that holds:
+once a ledger exists, `/product-workflows:prd-ground` writes its `evidence` column and
+`/product-workflows:brd-reconcile` writes dispositions into it, so *writes* — which this clause used
+to say — is false of both.) This command is the only place those two files can come from, so it writes them at the same moment it writes `brd-link.md`, not
 later.
 
 A slice confirmed in Phase 2 but never given a folder here (the operator cancelled mid-key-taking) is dropped — it never becomes a `covered-by` target. **What becomes of its rows depends on the path.** On an ordinary run they return to the ledger walk unclustered, as they always have. **On the re-cut path they return to nothing**, because they never left: each already carries `covered-by: <A>` here and `deferred-to: <A>` on its donor, and a candidate whose target is gone is not walked — it is left with its donor and reported, exactly as a candidate no confirmed group carried is. A dropped slice on that path therefore costs the run nothing but the move it was going to make.
@@ -1404,7 +1410,10 @@ none of its claims — provisional or committed, both routes to an orphan row (�
 `covered-by` key — never as a property of being a slice.
 
 `/brd-split` is the only `/brd-*` command that can ever change this line's `unallocated` term as
-written on this ledger — a completed run always leaves **its own** rows with none
+written on **a slice's** ledger — on a source-owning BRD it is not, and the exception is the one
+`coverage-ledger-format.md` §3 states: a `/product-workflows:brd-intake` re-run whose read finds a
+requirement rewrites that BRD's ledger with every row `unallocated`, which is the single case in the
+family of a row moving back. That never reaches a slice, which `/brd-intake` is never run on — a completed run always leaves **its own** rows with none
 (`coverage-ledger-format.md` §4: "cannot complete while any row in this BRD's ledger is
 `unallocated`"), whether that took an actual walk this run or was already true before it — step 8
 reads the ledger and records that, and step 10 is where it becomes the no-op decision. **The reported term can still be non-zero**, and that is the point: a row

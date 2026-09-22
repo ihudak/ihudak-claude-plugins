@@ -5,9 +5,19 @@ an Epic folder. Extracted from the retired tracker-input front-end, which owned 
 front-end happened to be where key classification lived; nothing about the pattern was ever
 tracker-specific.
 
-**Consumed by the Epic-unit commands** — `/specify`, `/design` and `/implement`. **PRD-level commands
-never use it**: `/epics`, `/document` and `/release-notes` operate on the PRD as a whole and must keep
+**Consumed for the Epic pick itself by** `/specify`, `/design` and `/implement`. **No PRD-level command
+makes that pick**: `/epics`, `/document` and `/release-notes` operate on the PRD as a whole and must keep
 working for a PRD with no Epics at all.
+
+**A second, larger set consumes the *picker rules* without picking an Epic, and this file used to deny
+it existed.** `/docs-workflows:docs-init`, `/docs-brand`, `/docs-serve` and `/docs-audit` each build a
+picker from a directory listing and cite *The cap* — and, in `/docs-brand`'s case, load this file
+through the loader skill and apply the auto-select-at-one and typed-answer rules by name. None of them
+resolves a PRD folder at all, so *PRD-level commands never use it* was true of the Epic pick and false
+of the file. **Re-derive both sets** with `grep -l epic-picker plugins/*/commands/*.md
+plugins/*/agents/*.md`, reading each hit for which of the two it is: the paragraphs a change to the
+`AskUserQuestion` arity constraint would touch — *The cap*, and the rule resolving a typed answer
+against the printed list — are read by every file that grep returns, not only by the three above.
 
 ## The picker
 

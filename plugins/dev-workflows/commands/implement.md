@@ -290,8 +290,14 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
    It also made Pre-Phase 3 step 4 unreachable on every fan-out run: that step offers *"Branch from
    current position — continue on this work"* only when HEAD is **not** on the default branch, and the
    scan had already moved it there, so the option a user with committed work would pick could never be
-   shown. `/implement` scans repositories it may write to, which is exactly what the other five
-   `code-scanner` callers do not do; `/idea` pins the same two values for the same reason.
+   shown. `/implement` scans repositories it may write to, which is exactly what no other
+   `code-scanner` caller does — every one of the others scans a repository it only reads and writes
+   its own output elsewhere, into `$SPECS_PATH` or, for `/docs-workflows:docs-audit`, into a docs
+   repo. **Stated as the property rather than as a count of the others**, which is what went stale
+   here: the sentence said *the other five* and `/docs-audit` had since made them six. Re-derive the
+   set with ``grep -l 'code-scanner' plugins/*/commands/*.md`` and read each hit, since
+   `/dev-workflows:ready` names the agent only to forbid dispatching it. `/idea` pins the same two
+   values for the same reason.
 
    Wait for all scanners in the batch to return. A scanner returning `REPO_MISSING` — the path is not a directory — escalates per the `Repo missing (after resolution)` rule in `workflows-core:escalation-rules`; `DIRTY_TREE` **cannot occur here** — `code-scanner` gates it on `refresh.pull`, which this dispatch
    pins false, so no scanner stashes anything in a repo whose pre-existing changes Pre-Phase 3 is about

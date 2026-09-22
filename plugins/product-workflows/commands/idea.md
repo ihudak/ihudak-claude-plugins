@@ -618,12 +618,10 @@ the next phase — **adapted to status**:
   `/product-workflows:create-prd <KEY>` `<merge-clause>`, which finds `idea.md` in that folder —
   `<merge-clause>` resolved from the `Phase handoff:` line §4.1 just emitted, per
   `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`'s resolution table, and never written
-  unconditionally. **The clause sits outside the command's own code span, and no adopter of the
-  placeholder puts it inside one** — `/product-workflows:specify` and `/dev-workflows:design` give it
-  a span of its own, `/product-workflows:update-prd` writes both in plain text. Every value that
-  resolution table gives it is a parenthesised English sentence, so a clause inside the span makes
-  the one line an operator copies end in a positional token of prose — and this offer *is* that one
-  line, with nothing beside it to mark where the command ends. **The clause is load-bearing here,
+  unconditionally. **The clause sits outside the command's own code span**, per that reference's
+  placement paragraph, which states the rule for every adopter and gives the reason; it binds with
+  particular force here, because this offer *is* the one line an operator copies, with nothing
+  beside it to mark where the command ends. **The clause is load-bearing here,
   not decoration**: `/create-prd` Phase 0 step 3 rung 1 runs `require-on-main` on exactly this
   `idea.md`, so while the pull request this offer just
   opened is still open that command stops on rows D/E — an unqualified recommendation sends the

@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
-## [1.3.0] — Unreleased
+## [1.3.0] — 2026-09-22
 
 **Update `workflows-core` to 1.7.2 with this plugin.** `/docs-audit` reads nine of its files — the command-namespace list, cost and feedback emission, finding triage, model routing, the next-phase offer, the specs-repo git rules and `code-scanner`'s own caller list — and beside an older `workflows-core` it resolves under no namespace and files its cost nowhere.
 
@@ -33,7 +33,7 @@ Rewriting the tense alone would have shipped a new false claim in three of them.
 
 `plugin.json` and the marketplace entry both said "eighteen reference files", which was wrong in two consecutive releases and is wrong again here. A reference-file count is neither a capability nor stable, nothing gates its truth — `validate-catalog.py` checks a blurb's length, not its accuracy — and the blurb is meant to tell somebody what the plugin does. The count is dropped rather than bumped, and the freed characters pay for `/docs-audit`'s own sentence against the 1024-character cap that rejects the whole catalog when it is breached. The inventory sentences that *are* gated live under `docs/`, where `check-docs.sh` check 9 keeps them honest.
 
-## [1.2.2] — Unreleased
+## [1.2.2] — 2026-09-22
 
 **Update `workflows-core` to 1.7.1 with this plugin.** Each change below that rests on it carries its own **Rests on `workflows-core` 1.7.1** clause, naming the part of 1.7.1 it rests on; an entry without that clause rests on no `workflows-core` change.
 

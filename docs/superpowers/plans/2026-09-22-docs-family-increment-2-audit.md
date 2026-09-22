@@ -581,9 +581,13 @@ Spec §11 Phase 2 says "optionally dispatch `docs-grounder` against `$DOCS_PATH`
 
 **Record the reason in the command body**, as the other non-consumers do, so it is not re-litigated on the strength of the docs repo this command obviously opens. `workflows-core:docs-grounding`'s consumer list and `CLAUDE.md`'s "nine commands" sentence therefore **do not move** — which is the cheaper outcome and the honest one.
 
-- [ ] **Step 5: Phases 3 and 4 — the two agents**
+- [ ] **Step 5: Phases 3 and 4 — the two agents, and the three things the orchestrator owes them**
 
-Dispatch `docs-auditor`, then `ia-planner` with what it returned. Neither writes a file.
+Dispatch `docs-auditor`, then `ia-planner` with what it returned. Neither writes a file. **Three seams Task 4 identified and deliberately left for this command to close — each is a guarantee an agent cannot make alone:**
+
+1. **`volatility: unknown` never reaches the file.** `docs-auditor` returns `unknown` where `git log` could not run (a read-only mount whose log fails); `backlog-format.md` §1 fixes the field at `high|medium|low`. `ia-planner` ranks an `unknown` as `medium` **without** churn-adapting — the right call, since churn-adapting on a guess would bias a `type` away from step-by-step on no evidence. So **this command substitutes `medium` at write time and names every surface it did so for in its report.** A backlog carrying `unknown` is a contract violation; a backlog carrying a silent `medium` is worse.
+2. **On `--refresh`, the agents are handed what already exists, or their rules are void.** `docs-auditor` takes `existing_surfaces[]` — without it a refresh re-mints surface ids and orphans every unit pointing at the old one — and `ia-planner` takes `existing_units[]` and `existing_tutorial_candidates[]`, without which `backlog-format.md` §8's id-collision, occupied-cell and preserve-the-human's-fields rules cannot be checked at all. **Each agent's contract says that where these are absent it guarantees its rules only within its own return**, which means the orchestrator holds the merge. Pass them, or own the collisions.
+3. **A theme in `classification: error` is `unresolved[]`, never `absent`.** `code-scanner`'s classification has four values and only one of them means "looked and found none". An `error` folded into absence asserts the product lacks something nobody managed to look for.
 
 - [ ] **Step 6: Phase 5 — Reconcile**
 

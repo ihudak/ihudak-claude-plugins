@@ -218,7 +218,13 @@ reasons, and each is fatal on its own:
   reformatted is that failure committed by the delivery team first.
 
 **The customer's words quoted in the inventory's and the ledger's `text` cells, and in a `[CD#n]`'s
-quoted `argumentation` and `chosen` (§6.3), are left as written too.** A link or a `[[wikilink]]`
+quoted `argumentation` and `chosen` (§6.3), are left as written too — and so is an `[SR#n]`'s
+`target`, `attack` and `what_would_settle_it`, which `commands/brd-package.md` renders into the
+prompt's *where to attack us hardest* and *decisions the customer must make* parts and states are
+not its to change.** A reviewer's attack that quotes a customer's `[[wikilink]]` sits at the exact
+point where that rule and this pass disagree, and the rule wins: the quotation is somebody else's
+words, which is the reason this section gives for the cells beside it, and a pass that rewrote it
+would edit an attack the package is forbidden to reword. A link or a `[[wikilink]]`
 there is quotation (`references/brd-format.md` §2.3 for a cell), not a link this package made, so
 the pass rewrites none of it, exactly as it rewrites nothing in the files the text is quoted from;
 the rest of those files is the plugin's writing and is rendered as §2 says.
@@ -636,6 +642,15 @@ shape 2, and the customer's own files are the ones §1.1 admits under a placehol
 what keeps the relation off correct content: a grounding finding's `evidence` field is a repository
 `file:line` list, and a repository that documents itself in markdown puts a bare `docs/api.md:12`
 into a finding that is entirely correct — an unscoped rule would refuse the whole bundle over it.
+
+**The scope is the documents this package wrote, and stating it that way is the shortest true form
+of the three exemptions below.** A captured file's own text is outside the relation — §2.1 puts
+those files outside every rewrite for the same reason, their links are the customer's and the
+manifest is where anything they name that the bundle lacks is disposed of — and so is the manifest's
+own quotation of a target as written. An implementation that scopes correctly cannot produce the
+false positive the three guard against; one that implements the three reaches the same answer.
+They are kept rather than collapsed because each also states *why* its content is correct, which a
+scope rule does not, and a reader who drops one has to be told what it was protecting.
 
 **Three kinds of token are outside the relation whatever their shape, and each is correct content it
 would otherwise refuse.** A `<file>:<line>` locator in a grounding finding's `evidence` names a

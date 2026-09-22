@@ -553,7 +553,7 @@ Each disposition carries a recorded reason, and each has a consequence the later
 
 | Disposition | What it obliges |
 |---|---|
-| `fixed` | **Admissible only where the named artifact is one this command may change** — the prompt, the delivery note, the self-review, the bundle's own rendered copies, and a `[SR#n]`'s own record. It is **not** available against a ledger disposition, an `interview/customer-questions.md` entry, a register record or a verified `[CG#n]`/`[DG#n]`: this command mints no `[C]`, writes nothing into the question set (*Render the customer prompt*), changes no ledger disposition (the Final report), and a verified finding is `/prd-ground`'s. Where the artifact is one of those, `fixed` is unavailable and the finding takes the agreed-not-actionable route below. **Two of the five admissible artifacts exist when this gate runs and three do not**, so *corrected* means something different for each half and the row says which: the self-review and an `[SR#n]`'s own record are corrected here, before this phase ends; the prompt, the delivery note and the bundle's own rendered copies are written by *Render the customer prompt*, *Render the delivery note* and *Assemble the bundle*, so the correction is recorded against the finding now, in the words the render must carry, and the phase that writes that artifact carries it out — which is the only point at which it can be, and is why no correction here is ever a write into a package document. A `fixed` disposition whose artifact is unchanged — or whose recorded correction the phase that writes that artifact did not carry out — is not `fixed` |
+| `fixed` | **Admissible only where the named artifact is one this command may change** — the prompt, the delivery note, the self-review, the bundle's own rendered copies, and a `[SR#n]`'s own record. **That list is closed and its complement is not enumerated**: `fixed` is unavailable against every other artifact a finding can name, and the test is membership of the five, never absence from a list of exclusions. Four are worth the reason: a ledger disposition, an `interview/customer-questions.md` entry, a register record and a verified `[CG#n]`/`[DG#n]` — this command mints no `[C]`, writes nothing into the question set (*Render the customer prompt*), changes no ledger disposition (the Final report), and a verified finding is `/prd-ground`'s. A `brd/brd-defect-log.md` entry and `brd/brd-inventory.md`'s `accounts:` record are outside it on the same rule and are named because a live run met both, not because naming them completes anything. Where the artifact is not one of the five, `fixed` is unavailable and the finding takes the agreed-not-actionable route below. **Two of the five admissible artifacts exist when this gate runs and three do not**, so *corrected* means something different for each half and the row says which: the self-review and an `[SR#n]`'s own record are corrected here, before this phase ends; the prompt, the delivery note and the bundle's own rendered copies are written by *Render the customer prompt*, *Render the delivery note* and *Assemble the bundle*, so the correction is recorded against the finding now, in the words the render must carry, and the phase that writes that artifact carries it out — which is the only point at which it can be, and is why no correction here is ever a write into a package document. A `fixed` disposition whose artifact is unchanged — or whose recorded correction the phase that writes that artifact did not carry out — is not `fixed` |
 | `accepted-risk` | The finding is listed to the customer under *where to attack us hardest*, in the reviewer's own words — which that agent writes for a customer to read, with no plugin token in them (`agents/brd-package-reviewer.md`). There is no drawer this puts it in |
 | `escalated-to-customer` | The finding is put to the customer in the prompt's *decisions the customer must make* part, carried by its own `[SR#n]`. Admissible **only** where `interview-tagging.md` §2's test says so — what would settle it is an authority only the customer holds. Where a delivery-side trade-off would settle it, this is the wrong disposition and the finding takes another |
 | `rejected-with-reason` | The reason is recorded in the self-review and stays inside the delivery organisation. Nothing rejected reaches the customer |
@@ -562,9 +562,22 @@ Each disposition carries a recorded reason, and each has a consequence the later
 structured marker saying where it is fixed.** The vocabulary is four values and a fifth would be one
 nothing downstream reads, so this case shares a value with a genuine acceptance and is told apart by
 a field rather than by prose: record **`fixed-by: <command>`** on the finding — the same device as
-the `restates:` marker below — naming `/product-workflows:brd-interview` for a question set or a
-register record, `/product-workflows:brd-split` for a ledger disposition, or
-`/product-workflows:prd-ground` for a finding, with what a re-run here would then show.
+the `restates:` marker below — naming **the command that writes the named
+artifact**, with what a re-run here would then show. **The list below is worked
+examples of that rule and never the rule itself**, for the reason the row above
+gives: the artifacts `fixed` excludes are open-ended, so a marker keyed on an
+enumeration leaves whichever artifact the enumeration missed with no route at all.
+`/product-workflows:brd-interview` for a question set, a register record or a `[CDF#n]` in
+`code-defect-log.md`; `/product-workflows:brd-split` for a ledger disposition;
+`/product-workflows:prd-ground` for a finding; `/product-workflows:brd-intake` for
+`brd/brd-inventory.md`, its `accounts:` record included, or `brd/brd-defect-log.md`'s own entries;
+`/product-workflows:brd-reconcile` for a defect resolution a customer's answer settles. **Where the
+named artifact has no command writer at all** — a `brd/brd-defect-log.md` entry a grounding finding
+would settle is the case on the tree (`references/brd-format.md` §4, and
+`/product-workflows:brd-interview`'s *Round 1 is generated from the grounding*) — say so in the
+recorded reason and name the person who must write it, rather than naming a command that will not.
+A marker naming a command that does not write that artifact is worse than none: it reads as routed
+and nothing is.
 
 **The marker stays inside the delivery organisation and the customer reads a rendered sentence
 instead.** `fixed-by:` travels in the disposition's recorded reason, in
@@ -586,7 +599,11 @@ as a risk the team had chosen to take.
 **A second-pass finding that restates one this run already disposed is not disposed twice.** Present
 it with the earlier finding and that finding's standing disposition beside it; where the operator
 disposes it the same way, record `restates: [SR#k]` on it and **every part that renders findings to
-the customer prints the pair once**, under the earlier id — six attacks the customer reads twice is
+the customer prints the pair once**, under the earlier id and **in whichever of the two sets of
+words says more** — the second pass restates a finding in order to sharpen it as often as to repeat
+it, and printing the earlier wording by default silently drops whatever the restatement added, which
+is the half the operator disposed it on. Neither is re-written to merge them: one is chosen whole,
+and the reason is recorded beside the `restates:` marker. Six attacks the customer reads twice is
 a package arguing with itself in front of the person it is trying to convince. Where the operator
 disposes it differently it is not a restatement: both stand, and each governs its own finding.
 
@@ -610,7 +627,12 @@ pass are appended to the same dated review under ids continuing from the highest
 take dispositions through this same phase. **Once, not until clean**: an unbounded loop trades the customer's review for the delivery
 team's, and the second pass exists to catch what a correction broke, not to reach an empty list. A
 finding from the second pass may itself be disposed `accepted-risk`, and it then travels to the
-customer like any other.
+customer like any other. **A second-pass finding disposed `fixed` is corrected like any other and
+triggers no third dispatch**, which is where the two halves of this rule would otherwise pull apart:
+*the trigger is any `fixed`* fixes **which** dispositions open a review, and *exactly once* fixes
+**how many times** one is opened in a run — the trigger is spent on the first, whatever disposes the
+findings that come back. Its correction is recorded against its finding and carried out by the phase
+that writes the artifact, exactly as a first-pass one is, and is read by nothing further here.
 
 `rejected-with-reason` is a real option and is meant to be used. The agent is told to state what
 would have to be true for the target to stand precisely so that a rejection has something to argue
@@ -869,7 +891,10 @@ below.
 1. Read `${CLAUDE_PLUGIN_ROOT}/references/customer-review-schema.md`.
 2. **Confirm the file still declares its own render boundary.** Its preamble states that the
    rendered body is everything from section 2 onward, and that the preamble and section 1 are
-   addressed to the delivery team. Absent or reworded → stop:
+   addressed to the delivery team. **Match it wrap-insensitively** — collapse runs of whitespace in
+   the file and in the sentence sought before comparing — because that file is hard-wrapped and the
+   statement straddles a line break there, so a line-anchored search finds nothing and stops a
+   correct package on the next line's stop id. Absent or reworded → stop:
    `BRD_PACKAGE_SCHEMA_BOUNDARY: customer-review-schema.md no longer declares which part of it is rendered — a render that guesses the boundary is exactly the leak D12 exists to prevent.`
    The boundary is read out of the file rather than hard-coded here so that the file and its renderer
    cannot drift apart, which is the same reason the schema is inlined rather than quoted.
@@ -1137,8 +1162,11 @@ self-review is free of them while being the most internal document this command 
    by rule; and they are the customer's own writing going back to them. Anything in them a plain
    reader cannot open is named **in the manifest**, never fixed in the file. For every *other*
    document: rewrite wikilinks to plain filename references — save a `[[…]]` or a link quoted in an
-   inventory or ledger `text` cell, or in a `[CD#n]`'s quoted `argumentation` or `chosen`, which is
-   the customer's own words and stays exactly as written (`bundle-packaging.md` §2.1) — and get the
+   inventory or ledger `text` cell, in a `[CD#n]`'s quoted `argumentation` or `chosen`, or inside
+   an `[SR#n]`'s `target`, `attack` or `what_would_settle_it` as parts 7 and 9 render them, which is
+   somebody else's words — the customer's, or the reviewer's, which *Where to attack us hardest*
+   says are not this command's to change — and stays exactly as written (`bundle-packaging.md`
+   §2.1) — and get the
    three cases `bundle-packaging.md` §2 names right: an **aliased** link keeps the alias as the
    visible text *and* names the file; an **embedded image**
    becomes an ordinary markdown image reference to the image copied in beside it, or — when the
@@ -1378,7 +1406,7 @@ on `/create-ard` and `/specify`, which read the architecture- and implementation
 alongside the same register. So the honest offer is the state this run actually leaves behind:
 
 ```
-choices: ["Stop here — the package is written and, if you handed it off, committed", "Send it — the delivery note is printed above; on the repository route, once the condition beside it holds", "Reconcile the review once it comes back — /product-workflows:brd-reconcile <BRD-KEY> @<review-file> <merge-clause>", "Package another BRD or slice"]
+choices: ["Stop here — the package is written and, if you handed it off, committed", "Send it — the delivery note is printed above, with whatever has to hold first where anything does", "Reconcile the review once it comes back — /product-workflows:brd-reconcile <BRD-KEY> @<review-file> <merge-clause>", "Package another BRD or slice"]
 ```
 
 **What *Send it* means on the repository route, before the handoff's pull request merges.** The note

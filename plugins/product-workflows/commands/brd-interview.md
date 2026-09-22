@@ -637,7 +637,10 @@ would have to state:
   is grounding's to settle, where the requirement is still live — the owning slice's findings on
   that row decide whether its premise holds, and one they cannot decide is already a question under
   the `NOT-PROVABLE` bullet above — so this row raises nothing for it either, and its log entry
-  stays `open`, since no command writes a grounding resolution into the log. **A row
+  stays `open` until a person resolves it: `resolved-by: <SLICE-KEY>/[CG#n]` is a value
+  `brd-format.md` §4 admits and `/product-workflows:brd-package` resolves, and **no command on this
+  route writes it** — not this one, and not `/product-workflows:brd-reconcile`, which produces no
+  finding. That is a hand-written resolution with a reader, not a resolution with no writer. **A row
   `rejected: [DEF#n]` carries that defect** on its question's `- **Requirement defect:**` line
   (*Hold every `[C]`*) where this BRD is the defect's **carrier**: no row the defect joins is live
   (the next bullet's test), and of the rows it joins that a slice claims and records `rejected`

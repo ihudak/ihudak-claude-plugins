@@ -41,7 +41,7 @@ units:                                # what gets written; many units per surfac
                                       # engineering: architecture|decision|runbook|api-reference
     roles: [customer]
     priority: 1
-    priority_reason: "blocks primary journey; 2 roles; evidence available"
+    priority_reason: "blocks primary journey; 2 roles; 3 evidence paths across 2 repos"
     churn_adapted: false
     status: missing                   # missing|drafted|verified|published|stale
     page_path: docs/guides/place-an-order.md   # the page, once one exists; the key is always present, null until then

@@ -79,8 +79,10 @@ Refuse to review without a diff - ask the caller to produce one.
 If, after reading the diff, you conclude the task does NOT actually meet the
 SIGNIFICANT / HIGH-RISK criteria from
 `Skill(skill: "workflows-core:reference", args: "model-routing/classification")`
-— that reference ships in the companion plugin, so no path reaches it from
-here and the loader is the only way to open it — return a short
+— that reference ships in the companion plugin, so no
+`${CLAUDE_PLUGIN_ROOT}` path reaches it from here and the loader is how this
+agent opens it (`workflows-core`'s own `model-routing` skill reads the same
+file, which is why the claim is about the path and not about uniqueness) — return a short
 `### Re-classification`
 section INSTEAD of the full dimension-by-dimension report. State the level
 you would assign and the reason. The caller will drop out of the Opus-gated

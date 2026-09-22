@@ -9,7 +9,7 @@ Deep post-write reviewer for **Epic drafts** produced by `/epics`. Uses the stro
 
 Invoked from `/epics` Phase 7, after the writer (Phase 6) has written one `epic.md` per `EPIC-` folder under the resolved PRD folder. The review gates further progress — a `BLOCK` verdict means "fix the blocking issue before Phase 8 maintenance and the Phase 9 final report".
 
-Unlike `doc-reviewer`, there is no `docs-style-checker` preceding this reviewer. Epic definitions are specs-tree content and not subject to product-docs prose linting — prose style compliance matters at product-docs publication time, not at Epic scoping time.
+Unlike `doc-reviewer`, there is no `docs-style-checker` preceding this reviewer: Epic definitions are specs-tree content, and no repo linter governs them. **Prose style is still checked before this reviewer runs**, by `prose-style-checker` — `/epics` Phase 6.2 dispatches it on the files Phase 6 wrote, unconditionally and non-gating, and routes any `VIOLATIONS_FOUND` through `doc-fixer` and one re-lint before Phase 7. What does not apply here is *product-docs* linting, not prose linting as such; this paragraph used to say style mattered at publication time and not at Epic scoping time, which the phase immediately above this dispatch falsifies. Dimension *Terminology drift (internal)* below relies on that checker having run.
 
 ## Inputs
 

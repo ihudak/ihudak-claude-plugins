@@ -224,7 +224,9 @@ already is. Nothing is read out of the PRD's title for it, and no title is inven
   `implementation.md` is the PRD folder's record, so a block an earlier `/dev-workflows:implement`
   left there for an Epic is counted toward the slice until the operator moves it into the Epic's
   folder (`workflows-core:implementation-format` §1). **This is what Phase 3(0) derives the phase
-  from**, and it is the only status input this command has.
+  from**, and it is the only input the *derivation* takes. It is not the only status the run holds: a
+  `--claimed` value enters at Phase 0 step 1a and is carried into the reviewer dispatch and the report,
+  compared against this derivation and never substituted for it, as the paragraph below says outright.
 
 When `focus_key` is set, validate it names one of those folders; if not, surface
 `READY_FOCUS_NOT_FOUND: <focus_key> is not an Epic of <PRD>.` with

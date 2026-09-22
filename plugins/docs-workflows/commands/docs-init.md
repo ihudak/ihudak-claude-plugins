@@ -45,7 +45,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 `/docs-init` is **MODERATE** — mechanical scaffolding against a known template held in this plugin's own references, applied as a templated diff whose output is reviewed as a pull request before anyone relies on it. State the classification and a one-line reason. (Contrast `/docs-audit`, which classifies SIGNIFICANT because it reasons about what a codebase's documentation *ought* to contain.)
 
-**The review gate is Opus regardless of class.** D17 and D20: every artefact-writing command in this family passes a high-tier review with no tiering by unit, and a MODERATE classification lowers which model plans and executes, never which model reviews. Record a `model_routing` block:
+**The review gate is Opus regardless of class.** D17 and D20: every artefact-writing command of the docs-workflow family the 2026-08-29 design's §4 table lists (`/docs-init`, `/docs-brand`, `/docs-audit`, `/docs-serve` and the commands that design plans after them — **not** every command in this plugin: `/release-notes` takes a light gate and `/docs-profile` no review gate at all) passes a high-tier review with no tiering by unit, and a MODERATE classification lowers which model plans and executes, never which model reviews. Record a `model_routing` block:
 
 ```yaml
 model_routing:

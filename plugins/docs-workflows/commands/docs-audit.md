@@ -82,7 +82,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 `/docs-audit` is **SIGNIFICANT**. It is a cross-cutting synthesis of every scanned repository whose output steers every page anybody later writes: a surface that is not there, a unit in the wrong quadrant, or a rank resting on a reason nothing supports is copied forward into prose and is expensive and silent by the time anybody notices. A wrong backlog has a large blast radius. State the classification and a one-line reason.
 
-**The review gate is Opus regardless of class.** D17 and D20: every artefact-writing command in this family passes a high-tier review with no tiering by unit. Record a `model_routing` block:
+**The review gate is Opus regardless of class.** D17 and D20: every artefact-writing command of the docs-workflow family the 2026-08-29 design's §4 table lists (`/docs-init`, `/docs-brand`, `/docs-audit`, `/docs-serve` and the commands that design plans after them — **not** every command in this plugin: `/release-notes` takes a light gate and `/docs-profile` no review gate at all) passes a high-tier review with no tiering by unit. Record a `model_routing` block:
 
 ```yaml
 model_routing:

@@ -390,7 +390,7 @@ So G0 propagates: it sets `specs_git: blocked` for the whole run,
 tree, uncommitted and intact, and the notice gives the exact command to attach
 them to a branch.
 
-**This is the only condition that disables the terminal commit.** In particular
+**Of the three guards, this is the only one that disables the terminal commit** — `commit-artifacts` step 1's gate also no-ops silently where §3.1's environment conditions fail, so *the only condition* full stop, which this sentence used to claim, is wider than the guards it is about. In particular
 G1 does not — see the note in its row.
 
 ## 4. `commit-artifacts` — terminal step

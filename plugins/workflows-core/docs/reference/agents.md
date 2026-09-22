@@ -14,4 +14,4 @@ They live here rather than beside any one pipeline because more than one plugin 
 
 One of the five, `docs-grounder`, is dispatched indirectly: its calling commands invoke a named procedure (`dispatch-docs-grounder`) defined in `references/docs-grounding.md` rather than writing a `subagent_type:` inline, but that procedure resolves to exactly the `subagent_type` above.
 
-`/frames`, this plugin's own command, is the only one here that dispatches an agent of its own — `frame-describer`, one per frame set. The other four commands dispatch none.
+`/frames`, this plugin's own command, is the only one here that dispatches an agent of its own — `frame-describer`, one per frame set. The other five dispatch none — re-derive both halves with `ls plugins/workflows-core/commands/` and `grep -n subagent_type plugins/workflows-core/commands/*.md`, which returns hits in `frames.md` alone.

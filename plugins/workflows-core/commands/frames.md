@@ -33,9 +33,14 @@ adjacent to it would invite an operator who wanted an index into the wrong comma
 
 0. **The environment.** `$SPECS_PATH` must resolve: every path this command reads or writes is under
    it. Unset or not a directory → apply the *Required path environment variable unset* rule in
-   `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` and stop there. Without this the only
-   reachable stop is the key-resolution one below, which would report "no folder under
-   `/specifications/`" — a message naming a failure that is not the failure.
+   `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` and stop there. Without this, an address that
+   resolves by key reaches the key-resolution stop below and is told "no folder under
+   `/specifications/`" — a message naming a failure that is not the failure — and an `@<path>`
+   address reaches **no** stop at all, since the path branch resolves without consulting
+   `$SPECS_PATH` (`workflows-core:addressing`) and the run then fails at its first write. Neither is
+   the diagnosis the operator needs, which is why this gate is taken first. (The argument-shape stops
+   in this same step fire either way; they never needed `$SPECS_PATH`, so *the only reachable stop*,
+   which this sentence used to say, was wrong in both directions.)
 
    **`/frames` defines no flags, and takes exactly one address.** A second non-flag token, or a token
    beginning with `--`, is a stop rather than a silent discard:

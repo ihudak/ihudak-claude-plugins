@@ -1204,14 +1204,23 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` **on `route: brd`** (shared
 by every `/brd-*` command, per `brd-intake.md`'s own precedent) or **`prefix: prd` on `route: idea`**
-(shared with `/product-workflows:create-prd` and `/product-workflows:update-prd`, per
-`workflows-core:phase-handoff` §2.9's own precedent for one prefix serving more than one command —
-the eight-prefix branch authority in `workflows-core:specs-repo-git` §1 and
+(shared with the other commands `workflows-core:phase-handoff` §2.9's `prefix` row names — that row
+is the authority on the set and is deliberately not copied here, since a second list is how two
+lists come to disagree — per that section's own precedent for one prefix serving more than one
+command; the eight-prefix branch authority in `workflows-core:specs-repo-git` §1 and
 `workflows-core:phase-handoff` §1 rule 3 is unchanged, and no ninth prefix is added). **Sharing
-`prd` cannot collide in the sanctioned flow**: an idea-route run of this command has already gated
-`<PRD-dir>/prd.md` with `require-on-main` (step 6i), so it only ever proceeds once
-`/product-workflows:create-prd`'s own `prd/<KEY>-<slug>` branch has already merged — there is no
-window in which both commands hold an open branch of that name at once. `feature_folder` as
+`prd` is disposed of rather than excluded, and the difference is what this paragraph used to get
+wrong.** Step 6i's `require-on-main` on `<PRD-dir>/prd.md` rules out exactly one sharer —
+`/product-workflows:create-prd`, whose own `prd/<KEY>-<slug>` branch must already have merged for
+this run to proceed at all. It rules out none of the others: `/product-workflows:update-prd`
+executes `require-on-main` nowhere (its own Phase 0 says so outright), and
+`/product-workflows:prd-proposal` hands off with `prefix: prd` from the same resolved folder, so
+either can hold an open `prd/<KEY>-<slug>` branch while this run starts. What disposes of that is
+`workflows-core:phase-handoff` §2.2 rule 3, which calls collision normal rather than exceptional and
+**reuses** an unmerged branch whose prefix is the caller's and whose key resolves into the run key
+set — so this run commits onto the branch already open instead of onto a second branch of that name.
+**The retired claim was that no such window exists**, argued from a gate that reaches only the first
+of the sharers §2.9's row lists. `feature_folder` as
 resolved in Phase 0; `deliverable_paths` = every file this run wrote or updated under `<PRD-dir>` —
 
 - **`route: brd`:** `grounding/baselines.md`, `grounding/code-grounding.md`,

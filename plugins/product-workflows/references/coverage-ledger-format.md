@@ -484,15 +484,22 @@ root BRD carries both; requiring both would let a folder left half-written by an
 pass the test and take a PRD authored into it. One of them is already evidence that the BRD route
 touched this folder, which is the only question this test asks.
 
-**It reads no PRD artifact, and that is what lets all eight consumers share one rule.** The eight
-are `/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a), `/specify` (step 0), `/epics`
-(step 1a), `/prd-ground` (step 5a), `/brd-interview` (step 5a), `/brd-package` (step 5a) and
-`/brd-reconcile` (step 5a) — read that as a list, not as a count, and re-derive it against the tree
-rather than adjusting it. `/create-prd` cannot test for `prd.md` — it is the run that is about to
+**It reads no PRD artifact, and that is what lets every consumer share one rule.** The build-ladder
+and route consumers are `/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a), `/specify`
+(step 0), `/epics` (step 1a), `/prd-ground` (step 5a), `/brd-interview` (step 5a), `/brd-package`
+(step 5a) and `/brd-reconcile` (step 5a); **the effort-proposal pair and their reviewer take the same
+§5.1 test and were missing from this paragraph** — `/prd-proposal` (Phase 0 step 4, refusing a `BRD-`
+container), `/brd-proposal` (Phase 0 step 4, refusing a `PRD-` slice on the same test with the
+disposition inverted) and `proposal-reviewer`. **Read that as a list, not as a count, and re-derive it
+against the tree rather than adjusting it** — the recipe is `grep -rn 'coverage-ledger-format.*§5'
+plugins/*/commands/*.md plugins/*/agents/*.md`, each hit opened, since `/brd-intake` names §5.1 only
+to describe the other commands' refusals and is correctly not a consumer. The sentence said *all
+eight* while the tree held more, which is the arithmetic this paragraph's own closing instruction
+exists to prevent. `/create-prd` cannot test for `prd.md` — it is the run that is about to
 write it — so a test keyed off the PRD's presence would have to be worded differently in
-`/create-prd` than in the other seven, and eight copies of one rule is the drift this file exists to
-prevent. The last four in the list above — `/prd-ground`, `/brd-interview`, `/brd-package` and
-`/brd-reconcile` — take this test for a different consequence than the first four —
+`/create-prd` than in every other consumer, and one copy of this rule per consumer is the drift this
+file exists to prevent. The route four — `/prd-ground`, `/brd-interview`, `/brd-package` and
+`/brd-reconcile` — take this test for a different consequence than the build-ladder four before them —
 they refuse to *run at all* against a root, rather than refusing to *author into* one — but the test
 itself, the positive evidence of BRD-ness, is the one this section fixes and is unchanged either way.
 

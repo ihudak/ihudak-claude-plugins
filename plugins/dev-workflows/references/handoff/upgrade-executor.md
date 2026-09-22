@@ -17,6 +17,13 @@ phase: full                # full (default) | verify-resume | regression-resume 
 regression_decision: keep-anyway  # keep-anyway | revert — REQUIRED on phase: regression-resume only;
                             # the orchestrator obtains this from the user (subagents cannot prompt
                             # the user directly — see /upgrade "Handling Test Failures")
+command_hint: "./mvnw test -q"  # optional; present only where Phase 2 prep step 2 recorded a
+                            # test_command_hint. REQUIRED to be passed through to step 3's
+                            # test-baseliner verify call, verbatim and in the same order, on this
+                            # call and on every verify-resume of it: the baseline was captured
+                            # with it, and a verify over a different set of suites is not a
+                            # comparison — dropping it manufactures REGRESSIONS or
+                            # COMMAND_NOT_FOUND out of nothing.
 baseline_block: |            # REQUIRED — the whole `## Test Baseline` block the
   ## Test Baseline           # orchestrator captured, verbatim, `### Suites` included.
   …                          # It is what the agent hands `test-baseliner` verify, and
@@ -83,7 +90,15 @@ notes: "Updated 2 test files: renamed @RunWith to @ExtendWith"   # it also carri
                          # every `CAVEAT: ` line the test-baseliner verify marked — on EVERY
                          # status this agent returns, `OK` included (the agent's step 3), since
                          # that mark names what the comparison could not see rather than
-                         # anything that failed
+                         # anything that failed.
+                         # And every entry of verify's `### New failures`, each on its own line
+                         # prefixed `NEW-FAILURE: ` — on EVERY status, `OK` included, because no
+                         # Status value carries one. The prefix is minted for the same reason
+                         # `CAVEAT: ` is: this field is free text already holding auto-fix prose,
+                         # uncovered-suite names and a regression diagnosis, and a bare list of
+                         # test identifiers in it is indistinguishable from the failing list a
+                         # TEST_REGRESSION also writes. /upgrade step 7.5 tests for this prefix
+                         # to set clean_finish, so an unmarked entry is one no caller can act on
 model_routing:           # echoed back when present in input
   classification: SIGNIFICANT
   gate_tests_on_review: true
@@ -108,8 +123,9 @@ model_routing:           # echoed back when present in input
   this component's tests either way. The changes are applied and **not**
   reverted — reverting needs evidence the upgrade is bad, and a suite that
   could not be run is evidence about the environment. `notes` carries the
-  report's reason; the orchestrator decides. Distinct from `OK`, which asserts
-  the tests passed, and from `TEST_REGRESSION`, which asserts they failed
+  report's reason; the orchestrator decides. Distinct from `OK`, which asserts no
+  baseline test was lost — **not that the suite is green**, since a `NEW-FAILURE: `
+  line can stand beside it — and from `TEST_REGRESSION`, which asserts they failed
 - `AWAITING_REVIEW` — `gate_tests_on_review: true` was set; changes are
   applied and the build succeeded, but tests have **not** been run yet.
   The orchestrator must perform the Opus code review, then re-invoke this

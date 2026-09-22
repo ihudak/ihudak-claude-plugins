@@ -289,11 +289,19 @@ Maven | pom.xml | `./mvnw test -q` | OK | Total 47, Passing 46, Failing 1, Skipp
   `NO_TESTS`, or which has no row at all, is **not** this — that abort is `OK`'s
   above, which is where the agent's own "set the first that applies" ladder
   (verify step 6) puts it
-- `RUN_FAILED` — nothing was verified: no detected suite matches the baseline
-  (**Comparison status**: `invalid`), or no suite produced counts in this run at
-  all. It is tested **after** `REGRESSIONS`, so a run in which every suite aborted
-  is a regression where the baseline had run them, and what reaches this value is
-  a baseline holding no passing test that could go missing
+- `RUN_FAILED` — nothing was verified. **Three causes, and the first is settled
+  before the run rather than by the ladder**: the supplied baseline covers no
+  suite at all — its `### Suites` marks none `OK` or `NO_TESTS`, so there is
+  nothing to diff against and the call returns without running anything
+  (**Comparison status**: `invalid`, verify's pre-step gate); no detected suite
+  matches the baseline (`invalid` as well); or no suite produced counts in this
+  run at all. The third is tested **after** `REGRESSIONS`, so a run in which every
+  suite aborted is a regression where the baseline had run them, and what reaches
+  it is a baseline holding no passing test that could go missing. **A caller
+  cannot distinguish that first cause from a real comparison by reading `Status`
+  alone, which is why it is refused rather than computed**: with an uncovering
+  baseline every count is 0, nothing can go missing, and a ladder allowed to run
+  would return `OK` wherever this call's own suites produced counts
 - `COMMAND_NOT_FOUND` — no candidate matched and no `command_hint` supplied one,
   so nothing ran (**Framework** then reads `not detected`) — the same test capture
   mode applies, a hint being something to run rather than nothing. Never emitted
@@ -309,11 +317,17 @@ is not installed.
 
 **`### New failures` is outside that ladder, because it is not a `Status` value
 at all.** A test failing now that was in neither baseline list moves no value
-above, so `OK` and `PARTIAL` are both returned with that list non-empty. A caller
-that writes tests between its capture and its verify — `/implement`, through
-`test-writer` — reads the list as well as the `Status`, or it reads its own
-broken test as a pass; `/upgrade` and `/vuln` write none and branch on the
-`Status` alone.
+above, so `OK` and `PARTIAL` are both returned with that list non-empty. **Every caller reads the list as well as the `Status`**, or it reads a red suite
+as a pass. For a caller that writes tests between its capture and its verify —
+`/implement`, through `test-writer` — the list holds its own broken test. For
+`/upgrade` and `/vuln`, which write none, it holds a test of a suite the
+baseline never recorded: on a `PARTIAL` baseline an aborted suite contributed no
+identifiers, so every test of it failing here lands in this list rather than in
+`### Regressions`. In each of those two workflows the agent — `vuln-fixer`,
+`upgrade-executor` — marks the entries `NEW-FAILURE: ` in the `notes` it returns,
+and the command reads that prefix — they branched on the
+`Status` alone until `dev-workflows` 4.2.0, which is the behaviour this sentence
+used to record.
 
 **Note:** `passing_count` / `regressions` / `new_passes` as bare YAML keys
 are a caller-side re-keying convenience, not literal fields this agent

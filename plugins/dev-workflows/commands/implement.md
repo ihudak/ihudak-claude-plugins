@@ -105,9 +105,11 @@ folder and what it carries. Then:
     two (`workflows-core:escalation-rules` §0).
 
 When the picker, or the one-Epic path or its choice, sets `focus_key` that was initially null,
-**re-resolve `specs`** per the shared reference §Specs-resolution now that `focus_key`
-is set — the front-end's first pass resolved `specs` with `focus_key` null, so it must
-run again to pick up the Epic's nested per-Epic home.
+**re-resolve `specs`** now that `focus_key` is set. A keyed run's in-scope `specs` are the
+`specification.md` and `design.md` present in the unit's own folder — the focus Epic's `EPIC-`
+folder where `focus_key` is set, the resolved PRD folder's flat pair where it is null — and
+address resolution took them with `focus_key` null, so take them again from the Epic's folder.
+No shared reference defines this set; it is this command's own rule.
 
 **`unit_key` — the key the branch and the commit carry.** It is the key of the unit this run
 implements, whose folder Phase 4.7's record goes in: `focus_key` wherever it is set, however it was

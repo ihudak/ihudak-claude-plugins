@@ -34,11 +34,13 @@ questions it held, are what this command gates on and packages.
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).
 
-## Everything it emits is read outside your organisation
+## Everything it sends is read outside your organisation
 
-That single fact is what the command is built around. The customer's reviewer has the bundle and
-whatever repositories they were able to obtain, and nothing else: no plugin to resolve a path
-against, nobody to ask what a citation means, and no way to tell a missing file from a withheld one.
+That single fact is what the command is built around. What it keeps for you — its adversarial
+self-review, below, and the run's own bookkeeping — never goes in the bundle or the email. The
+customer's reviewer has the bundle and whatever repositories they were able to obtain, and nothing
+else: no plugin to resolve a path against, nobody to ask what a citation means, and no way to tell a
+missing file from a withheld one.
 So the rendered prompt, the delivery note and every document in the bundle carry **no path rooted at
 the plugin's install directory, no `references/…` citation, no slash command, no agent or skill name,
 and no `§` section reference** of the plugin's own — the rules in

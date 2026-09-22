@@ -60,7 +60,7 @@ The engineering axis is smaller and is best read as a list rather than drawn:
 
 Both halves of the vocabulary — the user four above and the engineering four here — behave the same way in one respect worth stating on its own. **Every one of these eight type names is a property of a page, not a plan for your navigation.** A page answers one kind of question, and a page answering two is two pages — but the site a reader lands on is organised by what the product does, not by the eight type names. Applying the type vocabulary to your folder tree is the most common way to get a portal that is technically correct and impossible to browse.
 
-## Tutorials are the one thing that does not automate
+## Tutorials are the one page type that does not automate
 
 A how-to follows from a task, an explanation from a concept, a reference page from an endpoint. A **tutorial** does not follow from anything: it is a curated first journey for a role — which of the many things somebody can do is the one worth learning first, and in what order — and no amount of scanning tells you that.
 

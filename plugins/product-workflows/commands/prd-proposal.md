@@ -232,7 +232,10 @@ calendar:
 **How the profile is obtained, in three states:**
 
 - **Absent** — grill it into existence (`workflows-core:grilling-technique`), field by field, and
-  write it. `engagement_model` **restructures the engagement-governance, change-control and
+  write it. **The depth is relentless**: no cap and no `Q<n>/<cap>` numbering — the grill is done
+  when every field of the profile above has been asked and none is left as a recorded gap, and it cannot
+  close while `roles`, `productivity` or `calendar` lacks an answer — a proposal cannot state a
+  team, a schedule or a productivity basis without them. `engagement_model` **restructures the engagement-governance, change-control and
   priced-options sections wholesale** (§4 sections 16, 17 and 18), so it is asked rather than assumed:
   `choices: ["time-and-material", "fixed-price"]`.
 - **Present** — **show it back for confirmation, every run, never read silently.** A productivity
@@ -522,7 +525,7 @@ umbrella `/product-workflows:brd-proposal`, which gates on the `proposal.md` thi
 declining the handoff costs that command its start — which is what that array's parenthetical tells the
 operator. (A later run of **this** command reads the same file too, as §8's stability anchor, but that
 read is an own-folder one off the working tree and stops nothing, so it moves no class here.) `proposal-brief.md` and the archived revisions
-are themselves classed **unread** in §4.0's own table — nothing reads either — but they travel in the
+are themselves classed **unread** in §4.0's own table — no later run reads either (`proposal-reviewer` reads the brief inside this run, which is no handoff read) — but they travel in the
 same `deliverable_paths` set, and §4.0's strongest-class rule gives one handoff one array carrying the
 strongest class in the set. That set holds a gated path, so the **gated — stopping** array above is the one presented — named by its half rather than as "the gated array", which since §4.1's split identifies two (§5 rule 4).
 
@@ -568,7 +571,11 @@ no parent BRD, the sibling option where **no sibling holds a stale proposal or h
 Read that as one predicate over the siblings, matching `workflows-core:next-phase-offer`'s own wording
 (*"the next sibling holding no current proposal"*): the option stands wherever some sibling has no
 current proposal, a sibling that was never priced included. Read the other way — dropped unless a
-sibling holds a *stale* one — it would vanish in the commonest case there is. **Where
+sibling holds a *stale* one — it would vanish in the commonest case there is. **Current** is
+`/product-workflows:brd-proposal` Phase 3's test, decided by presence and modification time alone: a
+sibling's `proposal.md` exists and is not older than that sibling's `prd.md`, `decisions.md` or any
+file under its `grounding/`. It never opens a sibling's proposal, so this is no read of another
+folder's proposal and the census at the top of this file stands. **Where
 dropping would leave fewer than two options, add** `"Re-derive it from scratch once the inputs move —
 /product-workflows:prd-proposal <KEY> --redo"`, which is available on every run, so the array never
 falls below the two options `AskUserQuestion` requires. Nothing is ever added beyond that, and no

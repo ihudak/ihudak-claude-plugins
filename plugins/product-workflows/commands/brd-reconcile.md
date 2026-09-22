@@ -199,7 +199,7 @@ write would re-ask a question already answered.
     them; they record work done, and nothing in this run reads them.
 
     Stop:
-    `BRD_RECONCILE_ROOT_LEVEL: <BRD-KEY> is a root BRD, and reconciling happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-reconcile <SLICE-KEY> @<review-file>'.<where root-level artifacts exist, append:> This BRD carries root-level reconciliation artifacts at <paths> from the earlier two-level model; it is left in place and nothing reads it.`
+    `BRD_RECONCILE_ROOT_LEVEL: <BRD-KEY> is a root BRD, and reconciling happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-reconcile <SLICE-KEY> @<review-file>'.<where root-level artifacts exist, append:> This BRD carries root-level reconciliation artifacts at <paths> from the earlier two-level model; it is left in place, and this command never reconciles against it.`
 6. **Gate the sent package on main — unless `--sent` supplied one.**
 
    **What this gate is actually for, and why `--sent` can satisfy it.** The *Why the gate is the
@@ -1214,8 +1214,9 @@ assumption's, or any other held `[C]` question's — is a section-7 answer like 
 **The roll-up, and what this phase must not do with it** (D23, `coverage-ledger-format.md` §6.1).
 The ledger line resolves every `covered-by: <BRD-KEY>` row **one hop** through the named BRD's
 own ledger — this run always stands on a slice (on the ordinary path, step 6 already confirmed a
-`customer-review-prompt-<YYYYMMDD>.md` is on main, and that file is written exclusively by
-`/brd-package`, which itself refuses to run on a root), so that is always
+`customer-review-prompt-<YYYYMMDD>.md` is on main, and that file is created only by
+`/brd-package`, which itself refuses to run on a root — this command later banners it, and refuses a
+root too), so that is always
 the named sibling or parent (`coverage-ledger-format.md` §3) — and every term in it is a *resolved*
 count rather than a census of what the file says.
 Two consequences bind this phase:
@@ -1666,8 +1667,9 @@ route's exit was waiting for, and **all three BRD routes ship** — so this phas
 each under the precondition the offered command actually enforces rather than under an assumed one:
 
 **This run always stands on a slice** — on the ordinary path, step 6 already confirmed a
-`customer-review-prompt-<YYYYMMDD>.md` is on main, and that file is written exclusively by
-`/brd-package`, which itself refuses to run on a root — so there is no level branch
+`customer-review-prompt-<YYYYMMDD>.md` is on main, and that file is created only by
+`/brd-package`, which itself refuses to run on a root (this command later banners it, and refuses a
+root too) — so there is no level branch
 to take here, and none of the three commands' own container refusals
 (`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`, `SPECIFY_BRD_NOT_SLICED`;
 `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5) can fire against the `<SLICE-KEY>`
@@ -1698,14 +1700,16 @@ this phase offers.
 - **`/product-workflows:create-ard <SLICE-KEY>` and `/product-workflows:specify <SLICE-KEY>` are always
   offered**, with no condition of their own, and
   that is read out of their own Phase
-  0s rather than assumed symmetric with `/create-prd`'s. Neither reads outside the specs tree, so neither
-  needs anything outside the specs tree; both run the PRD gate — on every route, as of increment E —
+  0s rather than assumed symmetric with `/create-prd`'s. Neither consults a tracker, and what each
+  reads outside the specs tree — code through `$REPOS_PATH`, documentation through `$DOCS_PATH` — is resolved by that run itself, not
+  a condition this command can test for the operator; both run the PRD gate — on every route, as of increment E —
   but neither waits on a PRD, because that gate's `absent` branch proceeds and reports, so
   `/create-prd` on the BRD route is still not a prerequisite for either (`commands/create-ard.md` and
   `commands/specify.md`, *The BRD route runs this gate too, and the `absent` branch is what makes that
   safe*); the one state that would make either wait is a `prd.md` that exists on an unmerged branch,
   which is not a condition this command can test for the operator; and neither reads the
-  `claims:` list or the coverage ledger at all, because PRD eligibility is §5's rule about authoring
+  `claims:` list or the coverage ledger **as an authoring input** — each opens them only to shape
+  its own offers and report — because PRD eligibility is §5's rule about authoring
   a **PRD** and an ARD is not that artifact and neither is a specification. What each needs is this
   slice's folder, which `resolve-address` finds at either level, plus its own altitude's seed — and an
   absent `ard-seed.md` or `spec-seed.md` is reported by those runs, never a stop. Each takes **one**
@@ -1951,7 +1955,8 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
 `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — this run always stands on a slice
 (on the ordinary path, step 6 already confirmed a `customer-review-prompt-<YYYYMMDD>.md` is on main,
-and that file is written exclusively by `/brd-package`, which itself refuses to run on a root), so
+and that file is created only by `/brd-package`, which itself refuses to run on a root — this
+command later banners it, and refuses a root too), so
 that is always a sibling or the parent (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). Every term is a **resolved** count, and
 the `unallocated` term does not track the allocation gate — a non-zero one here is a row this BRD

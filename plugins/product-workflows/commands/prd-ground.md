@@ -20,9 +20,10 @@ Usage: `/prd-ground <KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-
 
 `<BRD-KEY>` still resolves through either of the two levels `resolve-address` searches
 (`workflows-core:addressing` §3) — a BRD that owns its source document, or one of its slices —
-because a root must be resolved before Phase 0 step 5a can refuse it by name. **Only a slice is
-ground: a root BRD is refused, and grounding happens at the slice and nowhere else**, over the
-requirements that slice's own inventory claims.
+because a root must be resolved before Phase 0 step 5a can refuse it by name. **A root BRD is never
+ground: it is refused, and grounding happens at a `PRD-` folder — on the BRD route a slice**, over
+the requirements that slice's own inventory claims, **or an idea-route PRD folder**, over its PRD's
+own rows.
 
 **Standing rule, stated in full at Phase 4.5 and binding on every phase: documentation is a lead
 and a divergence finding — it is NEVER evidence for a `[CG#n]`.** No finding this run writes may
@@ -105,8 +106,9 @@ behaviour, not the behaviour.
    unconditionally would be the wrong advice for two of those three cases, exactly as it is in step
    6's `absent` branch below:
    `PRD_GROUND_NOT_FOUND: no folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent; an idea-route PRD folder is created by /product-workflows:create-prd <KEY>. Do not run /brd-intake on a slice or on an idea-route PRD key; neither has a source document of its own.`
-5a. **The level refusals, and the route fork — grounding happens at the slice and nowhere else,
-    and a slice's own claim source forks by which route produced it.** Take this the moment step 5
+5a. **The level refusals, and the route fork — a root BRD is never ground: grounding happens at a
+    `PRD-` folder, a slice or an idea-route PRD folder, and its claim source forks by which route
+    produced it.** Take this the moment step 5
     returns a resolved folder, before step 6 opens anything and before step 2's deferred `--no-code`
     check — the level question is answered before any flag-combination question, because a root or
     an Epic is refused whatever flags it carries. Test the **resolved directory's
@@ -143,7 +145,7 @@ behaviour, not the behaviour.
     delete them; they record work done, and nothing in this run reads them.
 
     Stop, on a root:
-    `PRD_GROUND_ROOT_LEVEL: <BRD-KEY> is a root BRD, and grounding happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:prd-ground <SLICE-KEY>'.<where root-level grounding exists, append:> This BRD carries root-level grounding at <paths> from the earlier two-level model; it is left in place and nothing reads it.`
+    `PRD_GROUND_ROOT_LEVEL: <BRD-KEY> is a root BRD, and grounding happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:prd-ground <SLICE-KEY>'.<where root-level grounding exists, append:> This BRD carries root-level grounding at <paths> from the earlier two-level model; it is left in place, and this command never reads it.`
 
     Stop, on an Epic folder:
     `PRD_GROUND_EPIC_LEVEL: <KEY> resolves to an Epic folder, and grounding is PRD-altitude on both routes. Run '/product-workflows:prd-ground <PRD-KEY>' against the PRD folder this Epic sits in.`
@@ -266,7 +268,7 @@ behaviour, not the behaviour.
        its inventory and ledger. An **instructed** run that re-cuts a row onto this slice is the one form that
        does declare all three, and it lands them as its own walk leaves them rather than as they stand here.
        Say all of it, so the operator is neither sent to a no-op, nor told a
-       live run is one, nor left believing no form of that run reaches these files: `Re-running /product-workflows:brd-split <PARENT-KEY> is not a no-op — this slice claims nothing, so that run resolves it. The bare form offers to remove it or to keep it against a recorded reason, and it will not land these files: it stages that decision, not this slice's inventory and ledger. Adding an instruction, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can instead re-cut onto this slice a row a sibling has recorded it will not build — where such a row exists and this slice has never been interviewed — and that run does stage this slice's inventory and ledger, with the re-cut row added to them. Committing what is already on disk remains the direct route to landing them as they stand.`
+       live run is one, nor left believing no form of that run reaches these files: `Re-running /product-workflows:brd-split <PARENT-KEY> is not a no-op — this slice claims nothing, so that run resolves it. Where the parent's ledger still holds an unallocated row, the bare form stops with BRD_SPLIT_NEEDS_INSTRUCTION and the run to type carries a slicing instruction, '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', whose walk may also offer covered-by against this slice. Otherwise the bare form offers to remove it or to keep it against a recorded reason, and it will not land these files: it stages that decision, not this slice's inventory and ledger. Adding an instruction, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row a sibling has recorded it will not build — where such a row exists and this slice has never been interviewed — and that run does stage this slice's inventory and ledger, with the re-cut row added to them. Committing what is already on disk remains the direct route to landing them as they stand.`
 
    This is the same split `/product-workflows:brd-reconcile` makes on its own row F
    (`BRD_RECONCILE_NEEDS_PACKAGE` versus `BRD_RECONCILE_PACKAGE_NOT_HANDED_OFF`), for the same

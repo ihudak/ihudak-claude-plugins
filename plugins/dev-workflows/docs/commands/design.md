@@ -45,7 +45,7 @@ Phase 5 conducts the design as a relentless, one-question-at-a-time interview ru
 ## What it needs
 
 - **`$SPECS_PATH`** — must resolve; `/design` reads `specification.md` from there and writes `design.md` back into the same feature folder. If unset, the run stops and asks for a path.
-- **A PRD or Epic**, via the shared front-end — a direct prompt is rejected outright (`DESIGN_NEEDS_KEY`); `/design` has no non-tracker behaviour.
+- **A PRD or Epic address** — a key, or an `@<path>` to its folder, resolved against `$SPECS_PATH`; with no address the run stops (`DESIGN_NEEDS_KEY`), because `/design` has no direct-prompt behaviour.
 - **The merged `specification.md` itself**, gated on the specs repo's main branch. **Of this plugin's three gated inputs this is the one that genuinely stops on absence** (`workflows-core:phase-handoff` §3): every other producer's optional input falls back to prior behavior when absent and reports it, but here no specification anywhere is a hard stop — `no specification.md exists yet for this item — run /product-workflows:specify for it and merge it to the specs repo main first.` An *unmerged* spec (an open pull request, not yet on main) also stops, naming the branch and any PR — the same stop every other gated input applies.
 - **An optional ARD** (Phase 2.5) — `status: none` skips silently; `status: unmerged` stops, naming the branch/PR; `status: found` carries its invariants into the grill, and a necessary deviation is recorded as an `## ARD deviations` section plus an open question, never edited into the ARD itself.
 - **Every implementation repo the design must span**, mounted under `$REPOS_PATH` — Phase 3's **STRICT** gate. Unlike the companion `product-workflows` plugin's `/specify` and its soft repo gate, which proceeds without a repo it cannot resolve, `/design` hard-stops on any confirmed repo that isn't mounted: it must see all implementation repos to design against them, so the developer either remounts and re-scans, or explicitly removes the repo from scope.
@@ -75,7 +75,7 @@ The run resolves `EPIC-98760` as the focus Epic within PRD `PRODUCT-1234`, gates
 
 ## See also
 
-- [Roles and phases](../roles-and-phases.md) — what the `dev` role owns, including the one exception where an absent gated input stops the run rather than falling back.
+- [Roles and phases](../roles-and-phases.md) — what the `dev` role owns, including this plugin's one exception where an absent gated input stops the run rather than falling back.
 - `/product-workflows:specify` — the upstream command, shipped in the companion `product-workflows` plugin, whose merged `specification.md` `/design` requires before it will start.
 - [`/implement`](implement.md) — the downstream command that will not start against this design until its pull request is merged.
 - [Model routing](../reference/model-routing.md) — the classification, the Opus fallback chain, and why `/design`'s tiered gate stops rather than degrades.

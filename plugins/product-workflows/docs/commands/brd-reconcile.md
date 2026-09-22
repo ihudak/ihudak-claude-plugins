@@ -413,7 +413,7 @@ precondition the offered command actually enforces:
 | Handover | Offered when | Why |
 |---|---|---|
 | [`/create-prd <SLICE-KEY>`](create-prd.md) (PM) | **On a slice**, and only where no ledger row is still `unallocated` and one is `covered-here` | Exactly the three refusals its own Phase 0 raises; offering it otherwise hands over a run that stops immediately |
-| [`/create-ard <SLICE-KEY>`](create-ard.md) (PA, optional) | **On a slice**, with no further condition | Reads only the specs tree; the PRD gate runs on every route but its `absent` branch proceeds, so no wait on a PRD that has not been authored; and it reads neither `claims:` nor the ledger |
+| [`/create-ard <SLICE-KEY>`](create-ard.md) (PA, optional) | **On a slice**, with no further condition | Consults no tracker; the PRD gate runs on every route, but its `absent` branch proceeds, so no wait on an unauthored PRD; it reads neither `claims:` nor the ledger as an authoring input |
 | [`/specify <SLICE-KEY>`](specify.md) (PE) | **On a slice**, with no further condition | The same reasons, read out of its own Phase 0 rather than assumed symmetric with `/create-prd`'s |
 
 **A root BRD never reaches this phase.** `/brd-reconcile` refuses one at its own Phase 0, with

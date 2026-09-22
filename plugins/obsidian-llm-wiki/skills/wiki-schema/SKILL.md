@@ -36,7 +36,12 @@ These are Layer 1 — read-only knowledge sources. The wiki reads them; it never
 The wiki layer includes two task-management commands (`/wiki-task` and
 `/wiki-tasks-extract`) that intentionally write outside the wiki directory — to
 `Projects/` and `Tasks.md`. These commands follow the task-creation rules in
-`_shared/task-rules.md`. All other wiki operations remain wiki-directory-only.
+`_shared/task-rules.md`. Two more write outside it to fixed files only:
+`/wiki-tags-refresh` updates `.obsidian/copilot/tag-index.md`, and `/wiki-init` writes
+`.obsidian/copilot/` and the wiki blocks in the vault's `CLAUDE.md` and
+`.github/copilot-instructions.md`. All other wiki operations write only to `wiki/`,
+and to `.raw/` only to archive what they ingested or, in `/wiki-scan`, to write an
+HTML file's markdown conversion beside it.
 
 ---
 
@@ -61,7 +66,7 @@ Layer 2 — Inbox (read + archive after processing):
                           For HTML files: use defuddle if available before ingesting
                             npx defuddle parse <file> --md
 
-Layer 3 — Wiki output (write exclusively here):
+Layer 3 — Wiki output (every wiki page is written here):
   wiki/      ← all wiki pages and meta files
 ```
 

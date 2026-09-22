@@ -1,6 +1,6 @@
 # Branch Naming (shared)
 
-Single source of truth for how every command that creates a git branch decides the branch name.
+Single source of truth for how a command that creates a git branch in a **code or docs repository** decides the branch name. A branch the family creates in `$SPECS_PATH` is outside it: `phase-handoff.md` §2.2 names that one, under the prefix authority of its §1 rule 3.
 
 **The repository's own documented convention always wins.** This doc's job is to find that convention, fill its placeholders, and supply a name only when the repo documents none.
 

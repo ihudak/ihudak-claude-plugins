@@ -2,7 +2,7 @@
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
-Single source of truth for the file a documentation audit writes and every later command of this family reads: the schema in full (§1), why surfaces and units are two tables rather than one (§2), the unit status lifecycle and which of its transitions have a writer today (§3), what `blocked_by` carries (§4), what a `coverage` fraction counts (§5), where the file lives (§6), and the one invariant that is a relationship between two fields rather than a property of either (§7).
+Single source of truth for the file a documentation audit writes and every later command of this family reads: the schema in full (§1), why surfaces and units are two tables rather than one (§2), the unit status lifecycle and which of its transitions have a writer today (§3), what `blocked_by` carries (§4), what a `coverage` fraction counts (§5), where the file lives (§6), and the leak-guarding invariant between two fields, `visibility` and `page_path`, which no single-field validation can see (§7) — the other relations between two fields, a unit's `type` to its `audience` and its `evidence` to its `surface`, are §1's.
 
 Consumed by `/docs-audit` and by the agents it dispatches — `docs-auditor`, `ia-planner` and `docs-audit-reviewer` — and, as they ship, by Spec 2's `/docs-write` and `/docs-verify` and Spec 3's `/docs-drift`, each of which names the section it is executing rather than restating it.
 

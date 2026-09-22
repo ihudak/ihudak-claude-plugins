@@ -29,7 +29,7 @@ A companion outside the family is **convention + runtime-resolve + graceful fall
 
 **`mattpocock-skills` is not a dependency of this family and does not belong in either category above.** `references/grilling-technique.md` and `dev-workflows:bug-diagnosis` are both **adapted from** that author's `grilling` and `diagnosing-bugs`, and both say so. Since those skills now ship in the official marketplace, the distinction is worth stating outright: nothing here resolves them at runtime, nothing degrades when they are absent, and installing them changes no behaviour of any plugin in this family.
 
-**Why they are forks rather than dependencies** is recorded where the fork lives — see `references/grilling-technique.md`'s *Relationship to the upstream technique it was adapted from*, which compares the two on cadence, depth, the no-human-turn case and altitude, and says which way to jump on each. The short version: the technique is invoked from eight commands at three depths, one of which may run unattended, and a mid-run dependency on a plugin outside this family is precisely what the optional-companion rule above forbids.
+**Why they are forks rather than dependencies** is recorded where the fork lives — see `references/grilling-technique.md`'s *Relationship to the upstream technique it was adapted from*, which compares the two on cadence, depth, the no-human-turn case and altitude, and says which way to jump on each. The short version: the technique is invoked mid-run from ten commands at two depths, any of which may run unattended, and a mid-run dependency on a plugin outside this family is precisely what the optional-companion rule above forbids.
 
 ## Marketplace siblings (independent plugins, same marketplace)
 
@@ -37,7 +37,7 @@ A companion outside the family is **convention + runtime-resolve + graceful fall
 
 | Sibling | What it is | Its tie to this family |
 |---|---|---|
-| `prose-style` | a pluggable prose style checker | Two ties, both **declared dependencies** host-resolved at install: `product-workflows`, where `prose-style-checker` is primary, and `docs-workflows`, where it is the fallback below the repo's own linter. Nothing resolves it at runtime now. |
+| `prose-style` | a pluggable prose style checker | Two ties, both **declared dependencies** host-resolved at install: `product-workflows`, where `prose-style-checker` is primary, and `docs-workflows`, where `/release-notes` runs it directly and `docs-style-checker` dispatches it on every run of its own — complementary beside a repo linter that produced a result, the fallback where every detected linter failed, and the sole checker where the repo configures none. Nothing resolves it at runtime now. |
 | `obsidian-llm-wiki` | the LLM Wiki pattern for an active Obsidian vault | None at runtime. |
 | `guideline-reviewers` | the two guideline-review commands, extracted out of `dev-workflows` | None at runtime — the extraction kept no tie in either direction. |
 | `acli` | a reference skill for a vendor CLI | None at runtime. It ships a skill and no commands, which is why it is the one sibling absent from the manifest below. |

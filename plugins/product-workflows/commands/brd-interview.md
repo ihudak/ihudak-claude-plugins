@@ -149,7 +149,7 @@ and nothing downstream can tell the difference afterwards.
     them.
 
     Stop:
-    `BRD_INTERVIEW_ROOT_LEVEL: <BRD-KEY> is a root BRD, and deciding happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-interview <SLICE-KEY>'.<where root-level artifacts exist, append:> This BRD carries root-level decisions and interview records at <paths> from the earlier two-level model; it is left in place and nothing reads it.`
+    `BRD_INTERVIEW_ROOT_LEVEL: <BRD-KEY> is a root BRD, and deciding happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-interview <SLICE-KEY>'.<where root-level artifacts exist, append:> This BRD carries root-level decisions and interview records at <paths> from the earlier two-level model; it is left in place, and this command never reads it.`
 6. **Gate the grounding deliverable on main.** This command **consumes** a `$SPECS_PATH` deliverable
    it did not write, so per `workflows-core:phase-handoff` §5 rule 2 it executes
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
@@ -1446,8 +1446,9 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 `/brd-interview` never changes a ledger disposition — the line simply reports where allocation
 stands. **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree
 via `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — this run always stands on a slice
-(step 6 already confirmed `grounding/code-grounding.md` is on main, and that file is written
-exclusively by `/prd-ground`, which itself refuses to run on a root), so that is always a sibling or
+(step 6 already confirmed `grounding/code-grounding.md` is on main, and that file is created only
+by `/prd-ground`, which itself refuses to run on a root — every later writer only stamps
+`consumed_by` on findings already in it), so that is always a sibling or
 the parent (§3); a ledger that cannot
 be read there contributes `unresolved`, never `covered` (§6.2). This adds no precondition and no
 gate: the allocation gate in *Resolve inputs and gate the grounded BRD* is decided on this BRD's own

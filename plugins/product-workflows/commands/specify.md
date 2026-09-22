@@ -64,7 +64,7 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
    `SPECIFY_BRD_NOT_SLICED: <BRD-KEY> resolves to a BRD- container at <path>, and a BRD is never the folder a specification is authored in — its requirements are specified in the PRD- slices under it, one specification each (coverage-ledger-format.md §5). <the remedy, per the branch below>`
 
    **The remedy is the same two branches `/product-workflows:create-prd`'s own container refusal takes,
-   and it is a directory listing rather than a ledger read** — this command reads no coverage ledger
+   and it is a directory listing rather than a ledger read** — this remedy opens no coverage ledger
    and does not start now. Enumerate slices by `/brd-split` Phase 0 step 9's **positive test**: an
    immediate subdirectory carrying a `brd-link.md` whose `parent:` names this BRD.
    - **One or more slices** — the ordinary shape, since a split always confirms at least one. Name
@@ -262,7 +262,7 @@ when the specs repo is clean and on its default branch. If a guard fires, emit i
 it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
 `commit-artifacts` step skips on it.
 
-**Gate the PRD — on every route, with no branch.** The folder gated is **the PRD folder this run resolved**: the resolved folder itself when the address named a `PRD-` folder, its parent when the address named an `EPIC-` folder, and — on the BRD route — the resolved `PRD-` slice folder, which *is* that route's PRD folder (§4.1). One rule, one path expression, no route test. Execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against the PRD file in that folder (written below as `specifications/<PRD>-<vslug>/` for brevity; the folder on disk carries its kind prefix — `PRD-<PRD>-<vslug>/` on a current tree, the unprefixed form only through §5's legacy fallback — and it is always the folder Phase 0 resolved, never a path re-derived here) — that file is `prd.md`, a constant. `/create-prd` and `/update-prd` write no other name, and `workflows-core:addressing` §5 fixes the boundary: the legacy fallback resolves a folder name and nothing inside it, so a pre-rename tree renames its artifacts rather than being resolved for. **A key-globbed filename was gated here once, and is not restored.** The pre-rename `<KEY>_<slug>.md` form matches nothing in a current repo — so the gate returned `absent` for every PRD that was present and the rows D/E stop could never fire — and on the one tree it was written for it also matches the pre-rename ARD `<KEY>_ARD.md`, so it can gate the wrong artifact entirely. Gating the constant is correct on both trees: on a current one it names the file that is there, and on a pre-rename one it reports `absent`, which is what §5 now tells that operator to fix. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed — Phase 2 still reads the resolved folder exactly as today; the merged PRD is a grounding confirmation, not a new content source; on `absent`, `/specify`'s existing specs-tree behaviour is unaffected — but report it: *"No authored PRD on `<default>` for `<PRD>` — specifying from the resolved folder at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
+**Gate the PRD — on every route, with no branch.** The folder gated is **the PRD folder this run resolved**: the resolved folder itself when the address named a `PRD-` folder, its parent when the address named an `EPIC-` folder, and — on the BRD route — the resolved `PRD-` slice folder, which *is* that route's PRD folder (§4.1). One rule, one path expression, no route test. Execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against the PRD file in that folder (written below as `specifications/<PRD>-<vslug>/` for brevity; the folder on disk carries its kind prefix — `PRD-<PRD>-<vslug>/` on a current tree, the unprefixed form only through §5's legacy fallback — and it is always the folder Phase 0 resolved, never a path re-derived here) — that file is `prd.md`, a constant. `/create-prd` and `/update-prd` write no other canonical name — the only other PRD file either writes is the dated copy `/update-prd` archives under `revisions/`, which is no PRD this gate could mean — and `workflows-core:addressing` §5 fixes the boundary: the legacy fallback resolves a folder name and nothing inside it, so a pre-rename tree renames its artifacts rather than being resolved for. **A key-globbed filename was gated here once, and is not restored.** The pre-rename `<KEY>_<slug>.md` form matches nothing in a current repo — so the gate returned `absent` for every PRD that was present and the rows D/E stop could never fire — and on the one tree it was written for it also matches the pre-rename ARD `<KEY>_ARD.md`, so it can gate the wrong artifact entirely. Gating the constant is correct on both trees: on a current one it names the file that is there, and on a pre-rename one it reports `absent`, which is what §5 now tells that operator to fix. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed — Phase 2 still reads the resolved folder exactly as today; the merged PRD is a grounding confirmation, not a new content source; on `absent`, `/specify`'s existing specs-tree behaviour is unaffected — but report it: *"No authored PRD on `<default>` for `<PRD>` — specifying from the resolved folder at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
 
 **The BRD route runs this gate too, and the `absent` branch is what makes that safe.** It did not, and
 the rationale it carried was coherent while the route could resolve a `BRD-` container: the PRD "may not
@@ -543,11 +543,14 @@ folder does hold. Then:
   here is a decision, not an omission — `/product-workflows:create-prd` on the BRD route is where that gate
   lives, and this command is reachable without it.
 
-  **Two places do open both, and neither gates anything this run does**: Phase 2 Step A's
-  zero-Epics choice, and the `### Next step` offer. Each decides only whether
-  `/product-workflows:create-prd <SLICE-KEY>` can be *named* at all, since that command refuses three
-  shapes and not one (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2). Reading a
-  ledger to avoid offering a run that stops on arrival is not the same as gating this run on it.
+  **Three places do open the ledger, and none gates anything this run does**: Phase 2 Step A's
+  zero-Epics choice and the `### Next step` offer open it and the `claims:` list, and each decides
+  only whether `/product-workflows:create-prd <SLICE-KEY>` can be *named* at all, since that command
+  refuses three shapes and not one (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
+  §5.2). The Final report opens the ledger alone, reading its `disposition` column to leave out of
+  the still-`consumed_by: none` list every finding about a row now `covered-by` another BRD — a
+  report exclusion that changes no record. Reading a ledger to avoid offering a run that stops on
+  arrival, or to count honestly, is not the same as gating this run on it.
 
 **Absence is reported, never a stop, and the seed's absence is the ordinary case.** Nothing on the
 normal route writes `spec-seed.md` at all (above), so a reconciled BRD routinely holds none. Say which
@@ -597,7 +600,7 @@ the pass was skipped and why, plus a `## Frame sets covered` census of the `desi
 disk. Absent means the file is not there at all, never that design grounding was declined. Say which
 of the two files were absent — a reader cannot tell an unwritten file from an unread one — and carry
 what is there. Where the resolved folder holds neither file, report that and proceed exactly as this
-command did before this feature — grounding on this route is optional and nothing gates on it.
+command did before this feature — grounding is optional to this command and nothing here gates on it.
 
 **A finding with no verifier outcome is not evidence** (`workflows-core:grounding-format` §8) and may neither
 ground a spec statement nor be marked `consumed_by` anything. Carry only findings that hold one, and

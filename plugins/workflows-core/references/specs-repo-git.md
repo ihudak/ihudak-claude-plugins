@@ -69,9 +69,11 @@ So `git@github.com:acme/docs.git` gives `acme-docs`, and `ssh://git@git.example.
 
 **The five single-file shapes name files, never their folder, and the distinction is the
 whole safety property.** All five sit in the feature folder rather than under `dev-workflows/`. The
-first three are read by *key* rather than by session — `implementation.md` is what `/document`,
-`/release-notes` and `epic-picker.md`'s ● marker read, and a record only one machine holds is a record
-the next run cannot use; `follow-ups.md` is `followup-emission.md` §2's "alongside the artifacts the
+first three are read by *key* rather than by session — `implementation.md` is read by `/document` and
+`/release-notes` (their two-source read), by `/ready` (a unit's derived phase and its repositories), by
+`/epics` and `/specify` (repository names) and by `epic-picker.md`'s ● marker — every command
+`grep -l 'implementation\.md' plugins/*/commands/*.md` returns but `/implement`, which writes it — and
+a record only one machine holds is a record the next run cannot use; `follow-ups.md` is `followup-emission.md` §2's "alongside the artifacts the
 follow-ups are about", which §3 makes explicit is about where a *reader* looking at the folder finds
 them. The last two are drafts for the operator, as `release-notes.md` is, written where the operator
 looks for them: `/docs-workflows:document` (keyed mode) writes `pr-draft.md` for the pull request it
@@ -242,7 +244,7 @@ switches away, `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.2 rule 3
 cannot resolve `branch-key` into an empty set, and rule 4 appends `-2` — the
 self-duplication §3.5 documents and fixes. The `/idea` route was once described as
 "structurally keyless, its key minted by the handoff in a later phase" and the BRD
-route as keyless for conservatism; nothing mints anything now, and both
+route as keyless for conservatism; no handoff mints a key now, and both
 descriptions produced that same duplicate branch. What genuinely stays keyless is a
 run that resolved **no** key at all at its call site — not a route.
 
@@ -252,8 +254,8 @@ longer key is matched here exactly as a shorter one is (§3.5,
 *A two-segment key resolves exactly as it did before*). The PRD's own `key`
 frontmatter is written by `/create-prd`, on both routes, and is set to that same
 resolved folder's key — a three-segment slice key included
-(`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`). Nothing mints it, no handoff
-writes it, and it fixes no depth.
+(`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`). `/create-prd` copies it and mints
+nothing, no handoff writes it, and it fixes no depth.
 
 **This run key set is the preflight's, and only the preflight's.** It exists to
 match branches in §3.5 and is resolved at the *start* of the run.

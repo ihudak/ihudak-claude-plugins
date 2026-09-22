@@ -4,6 +4,24 @@ All notable changes to the **obsidian-llm-wiki** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [0.4.1]
+
+### Fixed
+- Every copy of *"`/wiki-task` and `/wiki-tasks-extract` are the only wiki commands
+  allowed outside `wiki/` and `.raw/`"* — `AGENTS.md`, `CLAUDE.md`, `README.md` (and its
+  layout block's *"only directory wiki writes to"*), both blocks `wiki-init` writes into a
+  vault, and `wiki-schema` (its *"All other wiki operations remain wiki-directory-only"*
+  and *"write exclusively here"*). `/wiki-init` writes `.obsidian/copilot/` and the wiki
+  blocks in the vault's `CLAUDE.md` and `.github/copilot-instructions.md`, and
+  `/wiki-tags-refresh` updates `.obsidian/copilot/tag-index.md`. Each copy now names all
+  four commands and what each writes.
+- The two blocks `wiki-init` writes into a vault said *"Write only to `wiki/`"* one line
+  above an exception naming `.raw/`. They now name every write into `.raw/`: the
+  `.raw/_processed/` archive, `/wiki-scan`'s markdown conversion of an HTML file written
+  beside it, and `/wiki-init` creating `.raw/` and its `.gitkeep`; `wiki-schema`'s
+  *"All other wiki operations"* sentence names the first two. Re-run `/wiki-init` to sync
+  a vault's copies.
+
 ## [0.4.0]
 
 ### Changed

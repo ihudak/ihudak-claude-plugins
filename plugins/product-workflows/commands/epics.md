@@ -88,7 +88,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    EPICS_BRD_NOT_SLICED: <BRD-KEY> resolves to a BRD- container at <path>, and a BRD has no Epics — they are minted under the PRD- slices carved from it, one set each (addressing.md §2 invariant 1). <the remedy, per the branch below>
    ```
 
-   **The remedy is a directory listing rather than a ledger read** — this command reads no coverage
+   **The remedy is a directory listing rather than a ledger read** — this remedy opens no coverage
    ledger and does not start now. Enumerate slices by `/brd-split` Phase 0 step 9's **positive
    test**: an immediate subdirectory carrying a `brd-link.md` whose `parent:` names this BRD.
    - **One or more slices** — the ordinary shape, since a split always confirms at least one. Name

@@ -10,7 +10,7 @@ It emits a session-cost entry all the same, with `phase`/`role` inferred from th
 
 ## Why it exists
 
-[`grounding-format.md`](../../references/grounding-format.md) §6.1 makes a frame set's index **mandatory and its absence unrecoverable**: `design-grounder` returns `NO_INDEX` rather than reading a set without one, because a filename is not a reliable statement of what a frame shows.
+[`grounding-format.md`](../../references/grounding-format.md) §6.1 makes a frame set's index **mandatory, and a set without one a refusal**: `design-grounder` returns `NO_INDEX` rather than reading a set without one, because a filename is not a reliable statement of what a frame shows.
 
 That is strict on purpose, and it left the obvious workflow with no way out. A human exports the frames of a screen flow, drops the folder into `design/`, and has a set the plugin refuses to read — recoverable only by hand-authoring an index. `/idea` writes one for the images it vendors, and nothing else did. `/frames` is the repair.
 

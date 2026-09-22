@@ -377,8 +377,8 @@ operator is not left wondering why a file this run wrote nothing to is called re
 **Then copy, writing only what differs from the copy at the destination.** Where a copy with
 identical bytes already stands there, write nothing: the file counts as copied wherever this command
 says a file was copied, as a file collision rule 1 re-uses does (below). Where a copy with different
-bytes stands there, replace it whole — `brd-format.md` §1: a revised source's copy is the one thing
-a later intake writes again, and git keeps the earlier one. Where none stands, copy the file as on a
+bytes stands there, replace it whole — `brd-format.md` §1: a re-run over a revised source is the one
+time a copy is written again, and git keeps the earlier one. Where none stands, copy the file as on a
 first intake. **A document revised under a new filename is copied at that name**, and the earlier
 document's copy stays where it is, since nothing under `brd/source/` is removed (`brd-format.md`
 §1.1). A slice's inventory resolves its document anchors against the document its `source:` names

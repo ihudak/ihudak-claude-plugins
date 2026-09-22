@@ -1,6 +1,6 @@
 # Grilling technique (embedded — shared reference)
 
-The interview technique the authoring commands (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`), `/brd-split` and `/prompt-grill-me` use to
+The interview technique the authoring commands (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`), `/brd-split`, `/prompt-grill-me`, and `/prd-proposal` and `/brd-proposal` (for their proposal profile) use to
 refine an artifact one decision at a time. Embedded here so callers have **no runtime dependency**;
 technique adapted from mattpocock grill-me/grilling. Each caller cites this file and states its own
 **depth** and **stage list**; this reference owns only the mechanics.
@@ -43,29 +43,29 @@ reader who notices it there should read this section before proposing the swap.
 | | Upstream | Here |
 |---|---|---|
 | Question cadence | **Batched**: computes a *frontier* of decisions whose prerequisites are settled and asks the whole frontier in one numbered round | **One at a time**, never batched (Mechanics, above) |
-| Depth | Relentless by construction — done when the frontier is empty | **Two depths, caller-declared** (below), three of eight callers bounded |
+| Depth | Relentless by construction — done when the frontier is empty | **Two depths, caller-declared** (below), three callers bounded |
 | No human turn available | Not addressed — the model assumes somebody answering rounds | Recorded as an open question, never self-answered (above) |
 | Altitude | One conversation, one altitude | Gap categories scale to the caller's altitude (below) |
 
 **The three rows below the first are why this file exists**, and they are not improvements on the
 technique — they are **caller management** upstream has no reason to carry. This plugin invokes the
-same technique from eight commands at three depths, one of which may run with no human turn
-available at all. A single-context skill has nothing to say about a `≤5` cap, about what to write
+same technique from ten commands (`grep -l grilling-technique plugins/*/commands/*.md`), at two depths
+and under differing caps, and a run of any of them may find no human turn available at all. A single-context skill has nothing to say about a `≤5` cap, about what to write
 when nobody is there to answer, or about the difference between a product-altitude quality
 expectation and an engineering NFR.
 
 **The first row is a genuine disagreement, and upstream may well have the better of it** for the
 relentless callers: numbering the round and attaching a recommended answer to each question answers
 this file's own "a firehose is bewildering" objection, and it costs fewer round-trips on a long
-grill. It is not adopted because `/product-workflows:brd-split`'s ledger walk — the one caller that is both
-a grilling caller and a never-batch caller — presents rows one at a time by its own rule, and
+grill. It is not adopted because `/product-workflows:brd-split`'s ledger walk — a grilling caller whose
+own rule, independent of this file, forbids batching — presents rows one at a time by that rule, and
 because a cadence that differs by caller is worse than one that is merely debatable.
 
 **Adopting it wholesale would make a plugin outside this family a mid-run dependency.**
 `references/dependencies.md` is the authority on which relationships are allowed and draws the line
 in one place: a hard, host-resolved `dependencies` entry is for another plugin *of this family*
 (`dev-workflows` on `workflows-core`), while everything outside it is an optional companion resolved
-at runtime, where a miss must degrade one feature and never break a run. Grilling is **mid-run in eight commands**, which is a different risk from
+at runtime, where a miss must degrade one feature and never break a run. Grilling is **mid-run in ten commands**, which is a different risk from
 `/prompt-brainstorm`'s single terminal hand-off to `superpowers:brainstorming`.
 
 **Read upstream for ideas, not for parity — and three have already been taken.** Its *frontier*
@@ -82,7 +82,7 @@ upstream at runtime.
 
 - **Bounded** — a capped set of the highest Impact×Uncertainty questions, then stop; unresolved high-impact gaps are recorded (e.g. `[NEEDS CLARIFICATION]`). Used by `/idea` (≤10; `--deep` switches to relentless), `/prompt-grill-me` (≤5) and `/brd-split` (≤5, and only when given a slicing instruction).
   **A bounded caller states what its cap costs, because that is what sizes it.** For `/idea` an unresolved gap becomes a marker inside the shipped artifact, so a low cap leaves a hole and ≤10 earns its length. For `/brd-split` an unplaced row simply reaches its own ledger walk without a recommendation, in a Phase 4 that settles every row anyway — one at a time, or inside its Step 1 bulk offer, which names each row it would write and lets any of them be held back to the one-at-a-time walk — the residue has a free fallback, so its cap is lower and its questions carry a further gate of the caller's own (`/product-workflows:brd-split` Phase 1.5: ask only where one answer places more than one row). Neither the extra gate nor the differing numbers are this file's to fix; what this file fixes is that a caller declaring **bounded** owes a stated cap rather than an open-ended interview called capped.
-- **Relentless** — keep walking the tree until convergence, no cap. Used by `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`.
+- **Relentless** — keep walking the tree until convergence, no cap. Used by `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, and by `/prd-proposal` and `/brd-proposal` for their proposal profile.
 
 **A bounded caller numbers its questions against its cap; a relentless one does not.** Render a
 bounded question as `Q<n>/<cap>` — `Q3/5`, `Q7/10` — so the user can see what they are committing to

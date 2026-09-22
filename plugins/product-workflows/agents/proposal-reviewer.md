@@ -74,7 +74,8 @@ every citation against the record that owns its class rather than trusting that 
 the grounding file the id names and confirm it carries a verifier `outcome`
 (`workflows-core:grounding-format` §8 — a finding without one is not evidence). **Not its `verdict`:**
 that is a §2 field the grounder writes on every finding, so a check reading it passes an unverified
-finding as class-1 evidence, which is the one thing §8 of the format forbids; open `decisions.md`
+finding as class-1 evidence, which is exactly what `workflows-core:grounding-format` §8 forbids;
+open `decisions.md`
 and confirm the `[VD#n]`/`[CD#n]` is there with `status: decided`; open `code-defect-log.md` and
 confirm the `[CDF#n]` is on file. A
 citation that does not resolve is a **BLOCKER** against §8's own rule that an unresolved driver does

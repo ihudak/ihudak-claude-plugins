@@ -13,8 +13,8 @@ The moment `<KEY>` resolves to a folder, this command tests the **directory pref
 folder's asserted `kind:` — a BRD-route slice's own `brd-link.md` asserts `kind: brd` while being
 exactly the folder this command must accept, so a kind-based test would refuse every slice.
 
-- **A resolved `BRD-` folder is a root** — refused (`PRD_GROUND_ROOT_LEVEL`); grounding happens at
-  the slice and nowhere else.
+- **A resolved `BRD-` folder is a root** — refused (`PRD_GROUND_ROOT_LEVEL`); a root BRD is never
+  ground — grounding happens at a `PRD-` folder, a slice or an idea-route PRD folder.
 - **A resolved `EPIC-` folder is refused too** (`PRD_GROUND_EPIC_LEVEL`) — grounding is PRD-altitude
   on both routes, and an Epic folder holds no `prd.md` of its own (it sits one level up). A legacy
   folder with no prefix whose carrier asserts `kind: epic` is an Epic folder, and is refused the same

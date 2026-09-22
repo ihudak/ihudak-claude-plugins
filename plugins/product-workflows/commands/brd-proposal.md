@@ -297,7 +297,10 @@ this run reads it rather than defining a second one.
 **How the profile is obtained, in three states** — the same three, for the same reasons:
 
 - **Absent** — grill it into existence (`workflows-core:grilling-technique`), field by field, and
-  write it. `engagement_model` **restructures the engagement-governance, change-control and
+  write it. **The depth is relentless**: no cap and no `Q<n>/<cap>` numbering — the grill is done
+  when every field of the profile `/prd-proposal` Phase 2 defines has been asked and none is left as a recorded gap, and it cannot
+  close while `roles`, `productivity` or `calendar` lacks an answer — a proposal cannot state a
+  team, a schedule or a productivity basis without them. `engagement_model` **restructures the engagement-governance, change-control and
   priced-options sections wholesale** (§4 sections 16, 17 and 18), so it is asked rather than assumed:
   `choices: ["time-and-material", "fixed-price"]`.
 - **Present** — **show it back for confirmation, every run, never read silently.** A productivity

@@ -476,8 +476,10 @@ repairs where `idea.md` points.
    rule's rule 1 reuses such a file rather than copying it (`idea-format.md`), and the writer table
    gives this run only what it *copied* — and a later `/workflows-core:frames` run can still
    describe either. **The index is not optional**:
-   `workflows-core:grounding-format` §6.1 makes its absence unrecoverable, so images
-   written without one would be a frame set nothing can ever read. **Writing it is still not
+   `workflows-core:grounding-format` §6.1 makes its absence a refusal of design grounding, recovered
+   only by writing one (`/workflows-core:frames` is the supported way; a hand-written index serves
+   too), so images written without one would be a frame set `design-grounder` refuses on sight until
+   someone does. **Writing it is still not
    grounding it** — nothing here dispatches `design-grounder`, produces a `[DG#n]`, or reaches a
    verifier, and this phase keeps that true. What changes is that the set this phase writes is read
    later: `/prd-ground` grounds it against this same PRD's `[AC#n]`/`[FR#n]`/`[US#n]` rows, whenever an

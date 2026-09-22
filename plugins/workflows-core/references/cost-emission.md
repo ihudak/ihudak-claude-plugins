@@ -549,7 +549,7 @@ and acceptable.
 One entry point, called by the twenty-five commands that measure themselves (§1) and by
 whichever of them replays a §13 record (never by the two that defer — they call
 nothing). Every caller supplies `command`, `phase`, `role` (or the
-`inferred` marker — `/release-notes` and the four feedback commands), `key` (or
+`inferred` marker — `/release-notes`, `/frames` and the four feedback commands), `key` (or
 `null`), `source`, and `plugin_version`; the four feedback commands additionally
 supply `target_command` — `/prompt` and `/feedback` directly, `/prompt-brainstorm`
 and `/prompt-grill-me` through the §13 record a replay reads it from. `emit-cost` does the rest; it NEVER commits, NEVER writes
@@ -561,11 +561,14 @@ run. The cost entry is committed later, once, by the run's terminal
 Inputs:
 - `command` — the exact slash-command name (e.g. `/implement`,
   `/document (keyed mode)`, `/document (direct mode)`).
-- `phase`, `role` — the §7 labels, or the `inferred` marker for the five
+- `phase`, `role` — the §7 labels, or the `inferred` marker for the six
   commands §7 resolves. They resolve from **different** data, and each must
   therefore be given it:
   - `/release-notes` — resolved from `specification.md` / `design.md` presence
     under the PRD's specs dir. `emit-cost` reads that itself; nothing is passed.
+  - `/frames` — resolved from the resolved folder's own `kind` (§7's `/frames`
+    inference), re-derivable from the folder `key` names. `emit-cost` reads that
+    itself; nothing is passed beyond the `key`.
   - The four feedback commands — resolved from `target_command`, which **cannot**
     be re-derived from disk (it lives in the run's own context). It is passed in:
     directly by `/prompt` and `/feedback`, and out of the §13.1 record for the two

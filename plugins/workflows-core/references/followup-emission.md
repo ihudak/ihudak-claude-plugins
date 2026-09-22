@@ -1,9 +1,12 @@
 # Follow-up emission — Shared Reference
 
-Single source of truth for the dev-workflows follow-up emitter. A terminal
-"Emit follow-up tasks" phase in `/document`, `/release-notes`, `/epics`,
-`/implement`, and `/ready` cites this file and executes its steps inline — the orchestrator
-owns every prompt.
+Single source of truth for the family's follow-up emitter. A terminal
+"Emit follow-up tasks" phase in each of its callers cites this file and executes its steps inline —
+the orchestrator owns every prompt. The callers are the commands that load it, which is a recipe
+rather than a list, because a list here went stale as callers were added:
+`grep -l 'args: "followup-emission")' plugins/*/commands/*.md` — ten today (`/implement`, `/ready`,
+`/epics`, `/prd-proposal`, `/brd-proposal`, `/document`, `/release-notes`, `/docs-init`, `/docs-brand`,
+`/docs-audit`).
 
 **Self-contained, and no longer mirroring anything.** This file used to mirror a companion plugin's
 Obsidian task-line and vault conventions, because its output landed in a vault. It writes plain

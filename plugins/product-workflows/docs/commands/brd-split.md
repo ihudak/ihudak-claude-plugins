@@ -153,7 +153,7 @@ was read on this path too — one instruction, read once, and only the set it wa
 ## Two modes
 
 Phase 0 step 5 reads the resolved folder's `brd-link.md` and sets the mode from its `parent:` field
-— the only reliable signal, since a key's segment count is a naming convention rather than a depth
+— a reliable signal, unlike a key's segment count, which is a naming convention rather than a depth
 declaration.
 
 | | `split_mode: full` | `split_mode: allocate-only` |
@@ -357,7 +357,7 @@ so no child folder is created.
 
   Those last two files are what let the child re-enter the route: `/prd-ground`
   gates on the child's ledger and reads the child's inventory, and `/brd-intake` — the only other
-  command that writes either — never runs on a slice, which has no document to intake. Those rows
+  command that creates either — never runs on a slice, which has no document to intake. Those rows
   are then allocated by `/brd-split` run on the child itself, in `allocate-only` mode, which is what
   makes the child PRD-eligible. The same requirement carries a fate at both levels, saying two
   different things: `covered-by: <CHILD-KEY>` here records **which** BRD owns it, and the child's own

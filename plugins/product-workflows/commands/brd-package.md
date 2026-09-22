@@ -155,7 +155,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
     key is wrong. Never delete them; they record work done, and nothing in this run reads them.
 
     Stop:
-    `BRD_PACKAGE_ROOT_LEVEL: <BRD-KEY> is a root BRD, and packaging happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-package <SLICE-KEY>'.<where root-level artifacts exist, append:> This BRD carries root-level package artifacts at <paths> from the earlier two-level model; it is left in place and nothing reads it.`
+    `BRD_PACKAGE_ROOT_LEVEL: <BRD-KEY> is a root BRD, and packaging happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-package <SLICE-KEY>'.<where root-level artifacts exist, append:> This BRD carries root-level package artifacts at <paths> from the earlier two-level model; it is left in place, and this command never reads it.`
 6. **Gate the decision register on main.** This command **consumes** a `$SPECS_PATH` deliverable it
    did not write, so per `workflows-core:phase-handoff` §5 rule 2 it executes
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
@@ -417,8 +417,9 @@ model_routing:
 `grounding-verifier` does in `/prd-ground` — `review_model` is recorded, never used to override the
 pin. **The classification floors at `SIGNIFICANT`** because of what this run produces rather than how
 much of it there is: a self-review that finds nothing is a rubber stamp, and a rendered prompt is
-the one artifact in this plugin that a person outside the organisation reads without anyone
-present to correct it. If no Opus resolves, degrade to best-available, record it in `notes`, in the
+the one artifact in this plugin that an outside party pastes into an agent and runs, with nobody
+from the delivery team present to correct it — a proposal is read outside the organisation too, but
+it is read, not run. If no Opus resolves, degrade to best-available, record it in `notes`, in the
 self-review's own header and in the final report — a package whose adversarial pass ran on a weaker
 model is still a package, and the customer's own reviewer is the second pass, but the operator must
 know which they got. Never hard-block.
@@ -1551,8 +1552,9 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 `/brd-package` never changes a ledger disposition — the line simply reports where allocation stands.
 **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
 `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — this run always stands on a slice
-(step 6 already confirmed `decisions.md` is on main, and that file is written exclusively by
-`/brd-interview`, which itself refuses to run on a root), so that is always a sibling or the parent
+(step 6 already confirmed `decisions.md` is on main, and every command that writes that file —
+`/brd-interview`, `/create-prd` (an `[AS#n]`, and its own `consumed_by` stamps), `/brd-reconcile`, and the
+`consumed_by` stamps of `/create-ard` and `/specify` — itself refuses to run on a root), so that is always a sibling or the parent
 (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). A slice does **not** always reach this with
 nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it

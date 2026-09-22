@@ -73,9 +73,13 @@ The wiki layer reads these directories. It never modifies them.
 The only directory wiki may clean up is `.raw/` — by moving processed files to
 `.raw/_processed/YYYY-MM/` after successful ingest.
 
-Two commands — `/wiki-task` and `/wiki-tasks-extract` — intentionally write outside
-the wiki directory (to `Projects/` files and `Tasks.md`). These are the only wiki
-commands allowed to modify files outside `wiki/` and `.raw/`.
+Four commands write outside `wiki/` and `.raw/`, each to fixed files only:
+`/wiki-task` and `/wiki-tasks-extract` intentionally write to `Projects/` files and
+`Tasks.md`; `/wiki-tags-refresh` updates `.obsidian/copilot/tag-index.md`; and
+`/wiki-init` writes the vault's integration files — `.obsidian/copilot/` (the schema,
+the task rules, and a tag index where none exists) and its wiki blocks in `CLAUDE.md`
+and `.github/copilot-instructions.md`. Every other wiki command writes only to
+`wiki/` and `.raw/`.
 
 ---
 

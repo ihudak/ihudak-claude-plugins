@@ -81,7 +81,7 @@ Claude Code ships its own built-in `/statusline` command, so typing the bare for
 
 Here is what to expect:
 
-1. **A gate.** `/design` refuses to start if `specification.md` is not found on the specs repo's default branch — the one hard exception to the "absent input falls back" rule the rest of the pipeline follows.
+1. **A gate.** `/design` refuses to start if `specification.md` is not found on the specs repo's default branch — this plugin's one hard exception to the "absent input falls back" rule (the companion `product-workflows` commands whose gated input was never optional stop too, as `workflows-core:phase-handoff` §3.4 lists).
 2. **Grounding and a grill.** It resolves any applicable ARD, derives and confirms the implementation repos under `$REPOS_PATH`, hard-stops if none is mounted, scans the confirmed set, then grills you through challenging the spec and designing the implementation.
 3. **A written design.** It writes `design.md` into the same specs feature folder, then offers to commit, push, and open a pull request against the specs repo's default branch. Once that lands, `/implement EPIC-98760` picks up the design and starts the code change.
 

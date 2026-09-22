@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [1.3.1] — 2026-09-22
+
+### Fixed — claims the wider exclusivity probe found false
+
+- **`references/docs-audit/evidence-contract.md`'s consumer list** named `docs-auditor` and `ia-planner` as readers; neither cites the file — the readers are `/docs-audit` (its `--refresh` reconciliation) and `docs-audit-reviewer` (where a unit carries evidence), with `backlog-format.md` citing it for the entry shape. It now says so and carries the `grep -rl` that re-derives the set.
+- **`/docs-serve`** said *"the only things it writes anywhere are three"*; `--build` runs the profile's build command, which writes site output, and a server writes its own caches. It now says what the commands it runs write is theirs, and that the three are the things it writes itself.
+- **`docs-style-checker`** named two roles for `prose-style-checker` — complementary, and SOLE "where every rung failed or the repository configures none" — while its own step 5 has three: all rungs failed is FALLBACK. The opening paragraph and the frontmatter description now name all three.
+- **`/docs-brand`** called its Phase 4 picker *"the one and only place a logo is chosen from"*; Phase 5's **Edit a value before applying** takes a typed path, and the no-candidate prompt takes one too. It is now the one place a logo is chosen *from among the candidates*, on the command and on its page.
+- **`/docs-brand`'s invariant** called it *"the one command whose write into the repository is decided by generator-native configuration it read"*; `/docs-profile` reads generator config and writes the profile, which lives in the repository. Both that invariant and Phase 0 step 3's *D9 exception* paragraph now scope it to writes beyond the profile.
+- **`references/docs-audit/backlog-format.md`** called §7 *"the one invariant that is a relationship between two fields"*; §1 relates a unit's `type` to its `audience` and its `evidence` to its `surface`. §7 is now named for what makes it distinct — the leak-guarding invariant no single-field validation can see.
+- **`references/docs-profiles/frontmatter-guidelines.md`** said it applies *"only under the example-docs profile"*; its own *Reserved keys* section binds any docs repo the family writes into. The opening now names that section as the exception.
+- **`references/docs-workflow/repo-resolution.md` §3** said only one of its two extra signals is a difference from `/document`'s list; the in-repo profile is one too, at `/document`'s working-directory rung. It now says both are differences — one at every rung, one at a single rung.
+- **`references/docs-workflow/repo-resolution.md`** called itself the source of truth for *which directory a documentation command works in*, and `docs/reference/references.md` called it *"the one docs-repo resolution ladder"*; `/document` resolves its repository by a Phase 0 ladder of its own. Both now name the exception, and `/docs-init`'s page and `/docs-audit`'s Phase 0 step 2 — which said *every sibling* uses the shared ladder — now name the commands that do.
+- **`docs/reference/docs-coverage-model.md`** headed a section *"Tutorials are the one thing that does not automate"*; the fifth backlog entry path, a human editing the file, does not automate either. The heading now says *page type*.
+- **1.1.2's changelog** still read *"the run's one refusal is `RELEASE_NOTES_NEEDS_KEY`, on an address that does not resolve"*, the sentence 1.2.0 corrected on the page and in `CLAUDE.md`. The entry keeps its text and now carries a note saying it was wrong when written and what the command refuses.
+- **`/document` keyed mode's Phase 0 step 5** took its `specs` "from the front-end (§Specs resolution …)", a front-end since retired and a section no reference holds. It now takes the `specs` files step 1 found in the resolved folder, which is what step 1 already carries forward.
+
 ## [1.3.0] — 2026-09-22
 
 **Update `workflows-core` to 1.7.2 with this plugin.** `/docs-audit` reads nine of its files — the command-namespace list, cost and feedback emission, finding triage, model routing, the next-phase offer, the specs-repo git rules and `code-scanner`'s own caller list — and beside an older `workflows-core` it resolves under no namespace and files its cost nowhere.
@@ -435,7 +452,11 @@ unreported.
   *Plan + approval*.
   It asked a question with one answer — every PRD is relevant for release notes — so the only value it
   could carry that changed anything was one nobody should write. The run's one refusal is
-  `RELEASE_NOTES_NEEDS_KEY`, on an address that does not resolve.
+  `RELEASE_NOTES_NEEDS_KEY`, on an address that does not resolve. *(Wrong when written, and
+  corrected by 1.2.0's "what `/release-notes` refuses": that stop fires on no positional address
+  at all, and the run has other refusals — an address that does not resolve takes the shared
+  re-enter/cancel escalation, an ambiguous one a stop naming every match, and a folder holding no
+  PRD another.)*
 
 ### Fixed
 

@@ -110,8 +110,8 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      ```
    Skip this check for `profile_source: built-in` (no profile file) and `generated` (the inline profiling branch is adopted by Phase 6.2, so the profile rides the single docs branch — a base check would false-fire).
 
-5. **Specs (additive).** Use the `specs` list from the front-end (§Specs
-   resolution — `$SPECS_PATH` then the directory case). `specs: []` is fine —
+5. **Specs (additive).** Use the `specs` files step 1 found in the resolved
+   folder. `specs: []` is fine —
    specs are additive context for `/document`; proceed without prompting. For
    the downstream phases that scan or cite a single specs location (the Phase 5.6
    image scan, the Phase 5.7 `doc-planner` dispatch, and the Phase 5.8 three-way

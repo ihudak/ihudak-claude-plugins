@@ -137,7 +137,9 @@ _or_ "Ranking withheld — no red-capable repro. Tried: [what you tried, and wha
   requirement, incompatible runtime), return a plan whose first step is "ask
   user X" rather than silently assuming.
 - **No implementation.** The planner does not write code, open files for edit,
-  or run tests. It produces the plan and returns.
+  or run the test suite; beyond read-only inspection, the only commands it
+  runs are the candidate repros it tries for a bug-shaped task (above), and
+  never one that would mutate the tree. It produces the plan and returns.
 - **Re-classify if warranted.** If inspection shows the task is actually
   `SIMPLE` or `MODERATE`, say so explicitly in a `### Re-classification`
   section (replacing the full plan), and recommend the caller fall back to

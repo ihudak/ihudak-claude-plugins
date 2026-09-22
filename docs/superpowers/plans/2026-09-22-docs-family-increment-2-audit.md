@@ -739,6 +739,12 @@ grep -rln 'docs-audit' plugins/ --include=*.md | grep -v CHANGELOG
 
 **Also owed here if Task 6 did not take it:** `docs-profile-schema.md`'s header consumer list reads "`/document`, `/docs-serve` and `/docs-brand` read it" and does not name `/docs-audit`. Task 3 correctly left it — naming a command that did not exist yet would have been a forward claim in a file governing what runs today — so confirm Task 6 added it and add it here if not.
 
+**A third sweep subject, and neither of the greps above reaches it: the word *planned*.** `docs/commands/docs-serve.md` twice calls the review-gate family "`/docs-init`, `/docs-brand`, this command and the commands **planned** after them". One of those now ships. Sweep `planned`, `will ship`, `when it ships`, `a later increment`, `not yet` across `plugins/docs-workflows/` — the population is every sentence that dated itself against this increment's arrival, and it shares vocabulary with neither `/docs-audit` nor the source-repo set.
+
+**Task 6 already took `next-phase-offer.md`** (its brief assigned it there rather than here). **Verify, do not re-apply** — a second edit would double the entry.
+
+**`workflows-core`'s changelog entry covers nine files, not the three the plan first anticipated:** `scripts/command-namespaces.json`, `references/cost-emission.md` (§7 row, §8 rung 2, and its header count), `references/finding-triage.md`, `references/model-routing/classification.md` (§8.5's opt-in list **and three further caller-scoped paragraphs**), `references/next-phase-offer.md`, `references/feedback-emission.md` (§2 tier 2 plus two counts), `references/specs-repo-git.md` (§2.1 plus its caller count), and core's own agents page. The patch bump stands; the entry describes the scope.
+
 - [ ] **Step 2: Rewrite each site against what shipped**
 
 Each becomes a statement about a command that exists, read out of `/docs-audit`'s own phases rather than assumed. **A sentence that named the absence as its *reason* needs a new reason, not a deletion** — `scaffold-tree.md` §7's Vale seed is the case: its reason for seeding only the scaffold's own words was that no command extracted domain nouns yet. That reason is gone; the new one is that the scaffold must pass its own lint gate before any audit has run, which is still true and still bounds the seed.

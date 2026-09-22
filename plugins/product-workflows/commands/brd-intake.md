@@ -71,9 +71,18 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    (`coverage-ledger-format.md` §3), whose inventory holds its header and no row,
    which this step's own test reads as no prior inventory at all — that confirmation is skipped
    silently, so Phase 2 would write into the slice with no consent asked anywhere. Stop, on a slice:
-   `BRD_INTAKE_SLICE: <BRD-KEY> resolves to a slice of <the parent: field of its own brd-link.md>, and a slice has no source document to intake — its brd/ directory is the parent's, one hop, and its inventory and ledger are '/product-workflows:brd-split' to write. Re-intake the parent with '/product-workflows:brd-intake <PARENT-KEY> @<brd-file>'; that run leaves every row of the parent's ledger unallocated, so re-take the dispositions with the root walk it offers you when it finishes, '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', and only then re-allocate a slice the walk left a row unallocated in, with '/product-workflows:brd-split <SLICE-KEY>' once that slice is ground.`
+   `BRD_INTAKE_SLICE: <BRD-KEY> resolves to a slice of <the parent: field of its own brd-link.md>, and a slice has no source document to intake — the source and the records beside it under brd/ are the parent's, one hop, and the slice's own brd/brd-inventory.md and coverage-ledger.md are '/product-workflows:brd-split' to write. Re-intake the parent with '/product-workflows:brd-intake <PARENT-KEY> <the @<brd-file> this run was given>'; that run leaves every row of the parent's ledger unallocated, so re-take the dispositions with the root walk it offers you when it finishes, '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', and only then re-allocate a slice the walk left a row unallocated in, with '/product-workflows:prd-ground <SLICE-KEY>' and then '/product-workflows:brd-split <SLICE-KEY>'.`
+   **Three of the five slots are substituted and two stay literal, and the text says which.**
    `<PARENT-KEY>` is that `parent:` field as it reads, never a key parsed out of the folder's name
-   (`CLAUDE.md`, *Resolve an identifier against a known set*). Absent → this is a
+   (`CLAUDE.md`, *Resolve an identifier against a known set*); `<BRD-KEY>` is the address typed; and
+   the source is the `@<brd-file>` this invocation was given, substituted exactly as typed — the run
+   holds it, and it is telling the operator to re-type it against a different key.
+   `"<how to cut it>"` stays literal, as Phase 8 prints its own copy, because the slicing
+   instruction is the operator's to write; and `<SLICE-KEY>` stays literal because the root walk
+   that would carve or confirm that slice has not run yet. **The `brd/` half is stated by what is
+   the parent's rather than by the directory**: a slice *does* hold a `brd/` of its own, holding
+   exactly `brd/brd-inventory.md` (`brd-format.md` §2.1) — which is why naming the whole directory
+   the parent's would contradict the clause after it. Absent → this is a
    brand-new BRD: derive `<slug>` from the source file's first heading — lowercase it, turn every run
    of characters outside `[a-z0-9]` into one `-`, and trim `-` from both ends, so
    `Acme reporting — business requirements` gives `acme-reporting-business-requirements` — falling
@@ -489,7 +498,11 @@ reading it did (`brd-format.md` §1.2).
    copied, in capture order — re-used transcriptions verbatim, new ones from the agent's return in
    the *Text*, *Annotations* and *Flow* forms §1.2 fixes, an image returned `read: false` with its
    reason and no transcription. Write *Linked from* afresh for every image Phase 2 copied, re-used
-   or not, from the copied files Phase 1's walk found linking it, each passage by its heading path
+   or not, from the files Phase 1's walk found linking it — **each named by the path of the copy
+   Phase 2 made of it, relative to `brd/`**. The walk ran over the customer's **originals**,
+   read-only and before any copy existed (Phase 1), so no copy carries a record of it: map each
+   linking original the walk recorded onto its own copy rather than looking for the link again in
+   the copies. Write each passage by its heading path
    in `brd-format.md` §2.2's form, a file's title left out, or by its line range where it has none
    (§1.2). Write the counts line as §1.2 defines its terms — a re-used section counted under
    `reused`, never under `read`. **Every section already on file whose image this run did not take
@@ -838,7 +851,9 @@ choices: ["Re-read — re-dispatch brd-reader over the whole set and reconcile<r
   re-read can change the section. **Where the cut cannot be made confidently, treat the section as
   one a re-read can change**: the cost of that default is one dispatch that returns what it
   returned before, and the cost of the other is an account standing where a requirement would have
-  been. Where the question names an item a re-read cannot change, say so beside it: it is settled
+  been. Where **the set question above** names an item a re-read cannot change, say so beside **that
+  question** — never beside the per-item questions below, which also name an item and ask something
+  else: it is settled
   by accounting for it, or by converting or capturing the file and re-running this intake.
 
   **`<recommended>` is a placeholder this run resolves once** — substitution, not an edit to the
@@ -909,11 +924,14 @@ choices: ["Finished with this item — the rows shown are all it binds (Recommen
     transcription element by element, whatever order the operator quoted them in: §2's reading order
     fixes where the item's rows sit among other items', and this fixes where they sit among each
     other, which §2 leaves open because an item's rows can share one anchor. **On a first intake,
-    say what that placing costs the numbering — once the item's last quote is taken, never as each
+    say what that placing costs the numbering — after the item's *Finished* answer, never as each
     row is added**: ids are fixed once, after this step, in reading order (`brd-format.md` §2), so a
     span quoted from a passage early in the document takes an id one of the read's own rows would
     have had and moves every later one down. Said as each row went in, the sentence would be
-    falsified by the item's next quote out of source order, which moves the same rows again. **The
+    falsified by the item's next quote out of source order, which moves the same rows again — and
+    *Finished* is the first moment the run knows there is no next quote, the third-form array being
+    where the operator says so, so it is said after that answer and not between a row and the
+    question that follows it. **The
     operator has seen no `[BR#n]` at all on a first intake** — none is printed anywhere before
     Phase 4 — so what they are told is not that a numbering they read has changed, but that the ids
     they will meet are not the order they quoted in. Nothing is renumbered twice and no id on file

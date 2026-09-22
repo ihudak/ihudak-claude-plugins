@@ -206,8 +206,8 @@ it closes no defect, and an inventory row quoting a corrected element is left as
 
 ````markdown
 ---
-key: <the run's <BRD-KEY> as Phase 0 validated it — never parsed from the folder name>
-source: <the basename of the document the writing run itself copied into brd/source/ — held by that run (commands/brd-intake.md Phase 2), and the value §2's document: takes once that run's Phase 3 writes the rows. It is not read off the ladder §1.1 gives a *later* reader: this file is written in Phase 2.5, before Phase 3 updates document:, so on a run over a document resent under a new filename that ladder would still be naming the previous one>
+key: <the run's <BRD-KEY>>
+source: "<the document's basename>"
 written_by: brd-intake
 ---
 
@@ -250,8 +250,19 @@ none
 - **The frontmatter carries `key:` and no `kind:`**, because this file is not the folder's carrier
   and must not look like one: `workflows-core:addressing` §4 reads a folder's identity off its top
   level or, where nothing there qualifies, off the inventory, the one file under `brd/` it reads
-  (§2.1). The bundle ships this file without its frontmatter
+  (§2.1). `key:` is the `<BRD-KEY>` Phase 0 validated, never parsed from the folder name, and needs
+  no quoting — `workflows-core:addressing` §1's grammar admits nothing YAML would read as anything
+  but a plain scalar. The bundle ships this file without its frontmatter
   (`references/bundle-packaging.md` §1.1).
+- **`source:` is the document's basename alone, written as a double-quoted YAML string** — the same
+  form the inventory's `document:` and a slice inventory's `source:` take (§2, §2.1), and for the
+  same reason: a filename may hold a `:` or a leading character YAML reads as syntax, and this field
+  names a real file. Not a path: `document:` carries `source/<basename>` and this carries the
+  basename. **The writing run takes it from the document it copied into `brd/source/` itself**
+  (`commands/brd-intake.md` Phase 2), which is the value §2's `document:` takes once that run's
+  Phase 3 writes the rows — never off the ladder §1.1 gives a *later* reader, because this file is
+  written in Phase 2.5, before Phase 3 updates `document:`, so on a run over a document resent under
+  a new filename that ladder would still name the previous one.
 - **One section per image `/brd-intake` Phase 2 copied** — or re-used under collision rule 1, which
   counts as copied (§1.1) — in capture order, headed by the image's path **relative to `brd/`** —
   `source/…` or `source-external/…`. Every path in this file is relative to `brd/`, so one form names

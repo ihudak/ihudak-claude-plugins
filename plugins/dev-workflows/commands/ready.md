@@ -33,10 +33,33 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
    folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). `status: found` → carry its `path`, `kind`
    and `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command.
 
-   **The kind decides the altitude, replacing the two-key grammar.** A `PRD-` folder is a PRD-level
-   run (`<EPIC>` is `null`); an `EPIC-` folder is an Epic-level run, and its PRD folder is its
-   parent. Two positional keys are no longer accepted, because the second was always derivable from
-   the first — `workflows-core:addressing` §4's `key` is what supplies both.
+   **The folder decides the altitude and the ladder, replacing the two-key grammar — as
+   `workflows-core:addressing` §4.1 places it, never by the kind it asserts.** A BRD-route slice is
+   a `PRD-` folder whose `brd-link.md` asserts `kind: brd` (§4), and `workflow-states.md` has no
+   `brd` ladder, so the resolved `kind` cannot pick one. §4.1 reads the level off the folder's
+   prefix — its name beginning `<KIND>-<the resolved key>-`, so a legacy folder whose key itself
+   begins with a kind token is not taken for a prefixed one — and places a folder with no prefix by
+   positive evidence. Take its tests in its order, the container test first:
+   - **A BRD container** — a `BRD-` folder, or a folder with no prefix holding `coverage-ledger.md`
+     or `brd/brd-inventory.md` and no `brd-link.md` naming a `parent:` — is on neither ladder,
+     because a BRD's PRDs are authored in its slices. Stop, before any artifact is read:
+     `READY_BRD_NOT_SLICED: <KEY> resolves to a BRD container at <path>, which is on neither the PRD nor the Epic ladder — its PRDs are authored in its PRD- slices. <the remedy>`
+     `<the remedy>` lists the slices under the container, found by the positive test §4.1 names — `Check a slice instead: '/dev-workflows:ready <SLICE-KEY>' — <each slice's key>.` — and, where it finds
+     none: `It has no slice yet: '/product-workflows:brd-split <KEY> "<how to cut it>"' carves one — the instruction is required there, and that run carves nothing where this BRD's ledger leaves no row unallocated. Where it leaves none, coverage-ledger-format.md §5 names two repairs, the narrow one first: hand-edit the one row to be built back to unallocated in coverage-ledger.md, leaving every other row as it stands; or, to re-take the whole inventory, re-run '/product-workflows:brd-intake <KEY> @<brd-file>', which reopens every row wherever its read finds a requirement and discards every deferred-to, rejected and superseded-by the ledger records.`
+     It is a user halt.
+   - **An Epic folder** — an `EPIC-` folder, or, with no prefix, a resolved `kind: epic` — is an
+     Epic-level run judged on the Epic ladder, and its PRD folder is its parent.
+   - **A PRD folder** — a `PRD-` folder, or, with no prefix, a resolved `kind: prd` or a
+     `brd-link.md` naming a `parent:` — is a PRD-level run (`<EPIC>` is `null`) judged on the PRD
+     ladder.
+
+   A folder none of these places is not guessed at: stop, naming the folder and what it carries
+   (§4.1). Two positional keys are no longer accepted, because the second was always derivable from
+   the first — `workflows-core:addressing` §4's `key` is what supplies both. Carry forward:
+   - `<PRD>` — the **PRD folder's** `key`, read off its carrier (§4): the resolved folder's own on a
+     PRD-level run, its parent's on an Epic-level one.
+   - `<EPIC>` — the resolved folder's `key` on an Epic-level run, `null` on a PRD-level one. The
+     later steps call it `focus_key` — one value under two names — and test it as *set* or *null*.
 
    `/ready` is **address-required**: with no positional address, stop with
    `READY_NEEDS_KEY: /ready needs a PRD or Epic address — a key, or an @<path> to its folder.` —
@@ -46,8 +69,9 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
     status pasted from whatever tracker they keep, or typed from memory. When present, the run
     compares it against the phase Phase 3 derives and reports any divergence as a readiness finding.
     Validate it against `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`'s ladder for the
-    resolved kind; an unrecognised value is **re-prompted with the ladder shown**, never coerced to
-    the nearest match.
+    altitude step 1 placed the folder at — never for the resolved `kind`, which on a slice is `brd`;
+    an unrecognised value is **re-prompted with the ladder shown**, never coerced to the nearest
+    match.
 
     **Without the flag, a derived phase cannot contradict itself**, so the run reports what the
     artifacts show and catches nothing. That is the honest cost of having no mirror to check against,
@@ -95,7 +119,7 @@ best-effort-checks repos under `$REPOS_PATH`; cwd need not be inside either.
    `choices: ["Use <PRD dir> [+ <Epic subdir>] (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]`
 
 2. **Artifact inventory (mechanical presence + handoff check — no content judgment yet).** By mode:
-   - **PRD-level** (`focus_key` null) — locate `<PRD-dir>/ard.md` (resolved via Phase 2.5, not here) and `<PRD-dir>/specification.md` (a PRD-level spec is optional per `workflow-states.md`); then enumerate **every** Epic subdirectory under `<PRD-dir>` that matches a key-number pattern, and for each locate `{ard.md, specification.md, design.md}` — this is per-Epic and plural, because a PRD's "Ready for Implementation" status requires **every in-scope Epic** to carry spec + design (`workflow-states.md`'s PRD row).
+   - **PRD-level** (`focus_key` null) — locate `<PRD-dir>/ard.md` (resolved via Phase 2.5, not here) and `<PRD-dir>/specification.md` (a PRD-level spec is optional per `workflow-states.md`). **Where that `specification.md` is present, the PRD folder is a broad PRD-level slice beside its Epics** — the unit `/dev-workflows:design` designs and `/dev-workflows:implement` implements as one — so locate `<PRD-dir>/design.md` too: the slice is one more row of the per-Epic inventory, judged as an Epic's row is (Phase 2), never a check of its own. Then enumerate **every** `EPIC-` folder directly under `<PRD-dir>` — a directory listing, the same Epic set Phase 2 judges, never a name matched against a key pattern — and for each locate `{ard.md, specification.md, design.md}` — this is per-Epic and plural, because a PRD's "Ready for Implementation" status requires **every in-scope Epic**, and the broad slice where one stands, to carry spec + design (`workflow-states.md`'s PRD row).
    - **Epic-level** (`focus_key` set) — locate the PRD-level `<PRD-dir>/ard.md` (inherited invariants) plus the single focus Epic's `{ard.md, specification.md, design.md}` under `<PRD-dir>/EPIC-<EPIC>-<eslug>/`.
 
    For each `specification.md` and `design.md` path located above (the `ard.md` files are handled by Phase 2.5's `workflows-core:ard-resolution`, not here), execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against its repo-relative path and map its §3.7 return value by `stopped` first, never by `on_main` alone — never a stop, per this command's defining trait: `stopped: false` with `on_main: pass`/`pass_amending` → **present** (with its absolute path); `stopped: false` with `on_main: absent` → **missing**, exactly as before this feature (§3.4's `/ready` row — this is row F only, never rows D/E, which also read not-on-ref against `<default-ref>` (`workflows-core:phase-handoff` §3.2) but return `stopped: true`); `stopped: false` with `on_main: unmanaged` → fall back to a raw filesystem presence check, exactly as before this feature (row H's own silent-skip contract); `stopped: true` → still never a stop for `/ready` — map the row to exactly one of three ⚠ reasons, never conflating them, because they are three different repository states, not one: rows D/E → ⚠ **authored only on `<branch>`, not merged** (naming the branch and any open PR); rows C′/C″/C after a failed retry → ⚠ **on `<default>` but your local checkout is stale or dirty, so it could not be confirmed** — C″ belongs here and not with G/I: it is a local divergence (an uncommitted edit, or since 3.21.0 a committed-but-unpushed one) on the default branch, which is the same *state* C′ and C describe and a different one from "no ref to verify against". There are **seven** stopping rows and each must land in exactly one reason; mapping six left C″ with none, and the never-conflate rule forbids the obvious fallback; rows G/I (including the run's own `specs_git: blocked`) → ⚠ **could not be verified against any ref** (naming the returned `degraded` clause where present). Each is recorded verbatim as a readiness finding — `/ready` itself never asks a further question, retries, or stops on top of what came back: row C's own prompt-once-and-re-test-once (`workflows-core:phase-handoff` §3.3 row C and its prompt-once-then-re-test-once rule) and row C′'s own immediate stop naming the blocking files are `require-on-main`'s contract, already executed synchronously inside this very step; `/ready` only records whichever `stopped`/`degraded` state the call returned. Record each ARD as present (with its absolute path) or absent — its on-main state is Phase 2.5's job. Do not open/read file contents yet beyond what's needed for these checks — full reads happen in Phase 4 via the reviewer.
@@ -149,9 +173,14 @@ falls to the Sonnet floor — record the degradation in `notes` and the final re
 
 ## Phase 2 — Read ground truth
 
-**Read the resolved folder.** Its `prd.md`, and every `EPIC-` folder directly under it — that
+**Read the PRD folder** — `<PRD-dir>` (Phase 0 step 4), the resolved folder on a PRD-level run and
+its parent on an Epic-level one. Its `prd.md`, and every `EPIC-` folder directly under it — that
 listing is the Epic set this command judges, and each folder's `epic.md` supplies its title and its
-own `key`. Carry forward:
+own `key`. **The broad PRD-level slice has neither** — it is the PRD folder, which holds no
+`epic.md` and can hold none (`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`, Epic ladder) —
+so where Phase 2 carries a slice row, its label is the literal `broad slice` and its key is the PRD
+folder's own, taken from the folder's carrier (`workflows-core:addressing` §4) exactly as `<PRD>`
+already is. Nothing is read out of the PRD's title for it, and no title is invented. Carry forward:
 
 - `requirements[]` (+ `requirements_source`) — the coverage ground truth for Phase 3(a).
 
@@ -185,12 +214,20 @@ own `key`. Carry forward:
   this one is read-only about status and its whole contract is to describe what it finds. Two
   commands may read one file and disagree about what to *do* about it, as long as neither disagrees
   about what it says.
-- The per-Epic artifact inventory: for each `EPIC-` folder, whether `specification.md`, `design.md`
-  and `implementation.md` exist. **This is what Phase 3(0) derives the phase from**, and it is the
-  only status input this command has.
+- The per-Epic artifact inventory: for each `EPIC-` folder, whether `specification.md` and
+  `design.md` exist and whether its `implementation.md` holds at least one block — a file holding
+  only its heading records nothing (`workflows-core:implementation-format` §1) — and, on a
+  PRD-level run whose PRD folder holds a flat `specification.md`, one more row for the **broad
+  PRD-level slice** (Phase 1 step 2), read the same way off the PRD folder's own
+  `specification.md`, `design.md` and `implementation.md`. Phase 3(0) derives the slice's phase on
+  the Epic ladder exactly as it derives an Epic's; the report names it `broad slice`. Its
+  `implementation.md` is the PRD folder's record, so a block an earlier `/dev-workflows:implement`
+  left there for an Epic is counted toward the slice until the operator moves it into the Epic's
+  folder (`workflows-core:implementation-format` §1). **This is what Phase 3(0) derives the phase
+  from**, and it is the only status input this command has.
 
 When `focus_key` is set, validate it names one of those folders; if not, surface
-`READY_FOCUS_NOT_FOUND: <focus_key> is not an Epic of <KEY>.` with
+`READY_FOCUS_NOT_FOUND: <focus_key> is not an Epic of <PRD>.` with
 `choices: ["Check PRD-level readiness instead (the whole PRD)", "Re-enter the Epic key", "Cancel"]`.
 
 **Nothing here reads a declared status, because there is nothing to read one from.** The phase is
@@ -203,7 +240,10 @@ it.
 ## Phase 2.5 — Resolve ARD
 
 Resolve any applicable ARD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and running its resolution with
-`prd = key`, `epic = focus_key` (may be `null`), and `$SPECS_PATH`.
+`prd = <PRD>`, `epic = focus_key` (may be `null`), and `$SPECS_PATH`. **`prd` is the PRD folder's
+key, never the run's own `key`**, which on an Epic-level run is the Epic's: the reference resolves
+`prd` to the folder it collects the PRD-level `ard.md` from and looks for the Epic folder inside
+(`workflows-core:ard-resolution`, *Resolution* steps 1–2).
 
 - **`status: none`** (including `$SPECS_PATH` unset/unresolvable) → the ARD dimension is **inactive** for
   this run — no prompt, no extra output, `readiness-reviewer`'s ARD-conformance dimension is skipped
@@ -220,10 +260,11 @@ Resolve any applicable ARD by invoking `Skill(skill: "workflows-core:reference",
 ## Phase 3 — Deterministic skeleton
 
 **(0) Derive the phase.** Before anything else, read
-`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`'s ladder for the resolved kind **in the
-direction its *expected artifacts* column supports**: the phase is the furthest rung whose expected
-artifacts all exist. Record it as `derived_phase`, with the artifacts that placed it there — a phase
-asserted without naming what placed it is a claim the report cannot defend.
+`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`'s ladder for the altitude Phase 0 step 1
+placed the folder at **in the direction its *expected artifacts* column supports**: the phase is
+the furthest rung whose expected artifacts all exist. Record it as `derived_phase`, with the
+artifacts that placed it there — a phase asserted without naming what placed it is a claim the
+report cannot defend.
 
 **Where the artifacts straddle two rungs, the phase is the lower one**, and the report says which
 artifact is missing to leave it. That is the verdict this command exists to produce: *"this PRD is at
@@ -252,7 +293,8 @@ ID-grep, not semantic matching — an artifact may cover a requirement thematica
 literal ID; `readiness-reviewer` reads the full artifact text and can catch what the grep misses.
 
 **(b) Status-expectation checklist.** Look up the Phase 3(0) derived PRD phase (and, when in scope,
-each Epic's) on the matching ladder in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`, list that
+each Epic's and the broad slice's) on the matching ladder in
+`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`, list that
 rung's "Expected artifacts" column, and mark each expected artifact present ✅, absent ❌, or — per
 Phase 1's `require-on-main` check and Phase 2.5's `status: unmerged` handling — ⚠, carrying forward
 whichever of Phase 1's three reasons applies (authored only on a branch, not merged; on `<default>` but
@@ -263,7 +305,8 @@ this run. This is the mechanical half of that dimension.
 
 **(c) Repo-availability presence-check (best-effort, presence only — never scanning).**
 
-1. Derive candidate repo names from: each in-scope Epic's `implementation.md` entries, where one exists (each entry's
+1. Derive candidate repo names from: each in-scope Epic's `implementation.md` entries, and the
+   broad slice's where Phase 2 carried one, where one exists (each entry's
    own `repo:` field — that record carries no URL, per `workflows-core:implementation-format` §1); the confirmed-repos line of any `design.md`
    found (`design-format.md`'s header `- **Repos**: <the confirmed implementation repos this design
    spans>`); and any ARD's `grounded_repos:` frontmatter list (`product-workflows:ard-format`). Dedupe.
@@ -297,12 +340,12 @@ and a pointer to the rubric.
   > status_expectation:      [paste Phase 3(b), plus the workflow-states.md rubric reference]
   > repo_availability:       [paste Phase 3(c)]
   > artifact paths:
-  >   PRD:      [<PRD-dir>/<PRD>.md if read, or the resolved folder's prd.md summary]
+  >   PRD:      [<PRD-dir>/prd.md if read, or a summary of it]
   >   ARD:     [absolute path(s), or 'none']
   >   Epics:   [absolute path(s) in scope]
   >   specs:   [absolute path(s) in scope]
   >   designs: [absolute path(s) in scope]
-  > derived_phase:           [PRD: <phase>; Epics: <key>=<phase>, … — each naming the artifacts that placed it, per Phase 3(0)]
+  > derived_phase:           [PRD: <phase>; Epics: <key>=<phase>, …; broad slice: <phase>, where Phase 2 carried one — each naming the artifacts that placed it, per Phase 3(0)]
   > claimed_status:          [the --claimed value verbatim — omit this line entirely when the flag was absent]
   > applicable_ard:          [the Phase 2.5 invariants, or omit entirely if status was none]
   > workflow_states_rubric:  ${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md"
@@ -330,14 +373,14 @@ plugin-gap halt (see Invariants).
    ```markdown
    ---
    type: dev-workflows-readiness
-   prd: <KEY>
-   epic: <FOCUS_KEY>            # omitted when PRD-level (focus_key null)
+   prd: <PRD>
+   epic: <EPIC>                 # omitted when PRD-level (focus_key null)
    ---
 
    # Readiness check — <run timestamp, ISO 8601 UTC>
 
    - Specs repo rev: <short HEAD>
-   - Derived phase: PRD=<phase>[, Epic <KEY>=<phase>, …]
+   - Derived phase: PRD=<phase>[, Epic <KEY>=<phase>, …][, broad slice=<phase>]
    - Claimed status: <the --claimed value verbatim> — _or omit the line entirely when the flag was absent_
    - Verdict: SUPPORTED | PARTIAL | NOT-SUPPORTED
 
@@ -380,13 +423,14 @@ plugin-gap halt (see Invariants).
    - Opus available: [yes | no]
 
    ### Scope
-   - PRD: <KEY> — [summary]
-   - Epic: <FOCUS_KEY> — [summary] — _or_ "none — PRD-level check"
+   - PRD: <PRD> — [summary]
+   - Epic: <EPIC> — [summary] — _or_ "none — PRD-level check"
    - Specs repo rev: <short HEAD>
 
    ### Derived phase (Phase 3(0) — from the artifacts)
    - PRD: <phase>
-   - Epic <KEY>: <phase> — _or omit when PRD-level_
+   - Epic <EPIC>: <phase> — _or omit when PRD-level_
+   - Broad slice: <phase> — _only on a PRD-level run whose PRD folder holds a flat `specification.md` (Phase 2); omit otherwise_
    - Claimed (`--claimed`): <value verbatim> — _or omit the line when the flag was absent_
 
    ### Artifact inventory (Phase 1)
@@ -460,7 +504,7 @@ a. `project_root` = `$SPECS_PATH` for this run (where `_readiness.md` was writte
 b. Compose a **change summary block**:
 
 ```
-Implementation: [one-sentence: readiness check for <PRD> [<Epic>], verdict SUPPORTED | PARTIAL | NOT-SUPPORTED]
+Implementation: [one-sentence: readiness check for <PRD> [<EPIC>], verdict SUPPORTED | PARTIAL | NOT-SUPPORTED]
 Change type: docs
 Classification: MODERATE
 Files changed:

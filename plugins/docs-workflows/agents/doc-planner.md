@@ -13,7 +13,7 @@ Not a writer — this agent plans; the main command writes.
 ## Inputs
 
 ```yaml
-folder_read:    <the YAML the orchestrator assembled by reading the resolved folder — the PRD frontmatter and body, the Epic set, and the artifacts present; the orchestrator names its keys in the dispatch, since no schema file defines them>
+folder_read:    <the YAML the orchestrator assembled by reading the PRD folder — the resolved folder, or the one above it where the address named an Epic folder — the PRD frontmatter and body, the Epic set, and the artifacts present, restricted to that Epic's folder where the dispatch says so; the orchestrator names its keys in the dispatch, since no schema file defines them>
 diff_summaries:         <array of diff-summarizer outputs; one entry per repo>
 write_targets:          <confirmed list from doc-location-finder + user; each has kind, section, path, rationale>
 screenshots:            [<array of user-provided absolute image paths; possibly empty>]
@@ -26,7 +26,7 @@ gap_resolution:         <present only on the re-invocation /document Phase 5.7 m
 image_policy_resolution: <present only on the re-invocation /document Phase 5.7 makes after its Ambiguous image policy step: {<target_path>: local | cdn_upload_required} for each target the user settled; absent otherwise>
 ```
 
-Refuse to run without `folder_read`, `write_targets`, and `repo_root`. **`folder_read` is assembled by the orchestrator** from the resolved folder — it is not an agent's return value, and no schema file defines it; the dispatch names its keys.
+Refuse to run without `folder_read`, `write_targets`, and `repo_root`. **`folder_read` is assembled by the orchestrator** from the PRD folder — it is not an agent's return value, and no schema file defines it; the dispatch names its keys.
 
 ## Process
 

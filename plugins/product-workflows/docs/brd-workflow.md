@@ -87,13 +87,14 @@ and the route's first answer to it is deferral — the slice's own walk sends th
 build to `deferred-to: <itself>`, where they stay its live obligation. That is enough for *build less
 now* and not enough for *two independently deliverable slices*, because the blocker sits on the
 **parent**: its row for the delegated requirement reads `covered-by: <that slice>`, the walk visits
-only `unallocated` rows, and no command returns a row to `unallocated`. So the parent is given one
-narrow way to move it. Where a slice's own ledger records `deferred-to` against a row its parent
-delegated to it — two ledgers already agreeing that nobody is building the requirement — an
-instruction typed against the parent's fully-allocated ledger, `/brd-split <PARENT-KEY> "<what to
-peel off>"`, re-points that row onto a **sibling under the same parent that has not been
-interviewed and does not already hold a ledger row for that requirement**: one already standing, or
-one that same run carves. The receiving slice's own ledger
+only `unallocated` rows, and no command returns one row to `unallocated` — a `/brd-intake` re-run
+whose read finds a requirement reopens every row at once, discarding every fate the walks recorded.
+So the parent is given one narrow way to move it. Where a slice's own ledger records `deferred-to`
+against a row its parent delegated to it — two ledgers already agreeing that nobody is building the
+requirement — an instruction typed against the parent's fully-allocated ledger, `/brd-split
+<PARENT-KEY> "<what to peel off>"`, re-points that row onto a **sibling under the same parent that
+has not been interviewed and does not already hold a ledger row for that requirement**: one already
+standing, or one that same run carves. The receiving slice's own ledger
 seeds the row `unallocated` — a **new** row, which is why a sibling already holding one for that
 requirement is not its receiver — so it re-enters at `/prd-ground` — with a row no finding on file was
 derived against — and its own `allocate-only` walk then takes the row to `covered-here`. **The
@@ -111,17 +112,23 @@ split is visible to them. **That is the line.** A slice too large for one delive
 not reach the customer, is an Epics problem and stays one. A slice whose split must reach the
 customer — a separate package, a separate conversation — is what the re-cut is for.
 
-`/brd-intake` copies the customer's document in verbatim and immutably — and with it every file that
-document links from its own directory, since `brd/source/` is never written again and an uncaptured
-screenshot is gone for good — extracts a `[BR#n]`
-requirement inventory, confirms candidate defects with a human, and writes a coverage ledger with
-every row `unallocated`. `/brd-split`, run on the root, proposes candidate slices from a mandatory
-slicing instruction — a root is never ground, so the instruction is the only grouping signal there
-is — and walks every unallocated ledger row to one of four recorded fates: assigning it to a named
-slice, deferring it, rejecting it against a logged defect, or marking it superseded, until none
-remain `unallocated`. **A BRD is a container and is never implementable itself**, so this run always
-confirms at least one slice; where nothing clusters, the whole BRD becomes one. A slice is not a new
-route: it nests inside its BRD's folder as the `PRD-` folder its PRD will be authored in.
+`/brd-intake` walks every link the customer's document makes, wikilinks included, read-only, and
+shows the operator what it found — the count of markdown files, images and files that are neither,
+inside the document's own folder and outside it; every target it could not resolve, with its reason;
+and by path every file outside the folder and every file that is neither markdown nor an image. Then
+it copies the document in verbatim and immutably together with every file they take — files
+outside its folder into `brd/source-external/` — since no later command writes under either directory, and a
+screenshot left uncaptured stays out of the record until the document is intaken again. It reads the
+linked markdown beside the document and has every linked image it takes transcribed, extracts a
+`[BR#n]` requirement inventory from all of it, confirms candidate defects with a human, and writes a
+coverage ledger with every row `unallocated`. `/brd-split`, run on the root, proposes candidate
+slices from a mandatory slicing instruction — a root is never ground, so the instruction is the only
+grouping signal there is — and walks every unallocated ledger row to one of four recorded fates:
+assigning it to a named slice, deferring it, rejecting it against a logged defect, or marking it
+superseded, until none remain `unallocated`. **A BRD is a container and is never implementable
+itself**, so this run always confirms at least one slice; where nothing clusters, the whole BRD
+becomes one. A slice is not a new route: it nests inside its BRD's folder as the `PRD-` folder its
+PRD will be authored in.
 
 `/prd-ground` then pins every mounted repository to a verified commit and grounds every `[BR#n]`
 this slice claims against code and an exported design frame set, with every finding independently
@@ -236,10 +243,12 @@ shares):
 ```
 specifications/BRD-<BRD-KEY>-<slug>/
 ├── brd/
-│   ├── source/<basename>        # the customer's file, copied verbatim — never edited again
-│   ├── source/<paths it links>  # every file that document links from its own directory, byte-for-byte
+│   ├── source/<basename>        # the customer's file, copied verbatim — never edited; a revised re-intake replaces it
+│   ├── source/<paths it links>  # every file the run took from the document's own directory, byte-for-byte
+│   ├── source-external/<name>   # files the document links from outside its folder, when captured
 │   ├── brd-inventory.md         # [BR#n] rows, /brd-intake
-│   ├── brd-link-log.md          # the links the copy could not capture, with reasons, /brd-intake
+│   ├── brd-link-log.md          # captured files' uncaptured links, with reasons, and the as-written map, /brd-intake
+│   ├── brd-figures.md           # each captured image's transcription and the rows it yields, /brd-intake; /brd-reconcile applies a customer's correction
 │   └── brd-defect-log.md        # confirmed [DEF#n] entries, /brd-intake and /brd-reconcile
 ├── coverage-ledger.md           # one row per [BR#n]; /brd-intake writes it, /brd-split resolves it
 ├── grounding/
@@ -254,7 +263,7 @@ specifications/BRD-<BRD-KEY>-<slug>/
 ├── code-defect-log.md           # [CDF#n] code defects a decision turns on, from /brd-interview
 ├── interview/
 │   ├── round-<N>.md             # one append-only record per round, /brd-interview
-│   └── customer-questions.md    # the [C] questions held for the customer, /brd-interview
+│   └── customer-questions.md    # the [C] questions held for the customer, /brd-interview; /brd-reconcile marks each answered
 ├── self-review-<date>.md        # every [SR#n] with its disposition, /brd-package
 ├── customer-review-prompt-<date>.md   # the self-contained prompt the customer pastes, /brd-package
 ├── customer-delivery-note-<date>.md   # the covering letter — the email, not a bundle document, /brd-package
@@ -288,7 +297,8 @@ A slice starts life with three of those files, all written by the parent's `/brd
 slice has no `brd/source/` and no `brd/brd-defect-log.md` of its own, and inherits both from its
 parent), and a `coverage-ledger.md` with every row `unallocated`. That is what the solid edge from
 the root's `/brd-split` into `/prd-ground` above is: `/prd-ground` needs a ledger to gate on and an
-inventory to read, `/brd-intake` never runs on a slice — there is no separate document to intake —
+inventory to read, `/brd-intake` never runs on a slice — there is no separate document to intake, and
+a key that resolves to one stops the run with `BRD_INTAKE_SLICE` —
 and `/brd-split` is the only command holding both the parent's rows and the allocation that says
 which of them the slice claims.
 The slice keeps no `brd/source/` and no `brd/brd-defect-log.md` of its own and reaches for its

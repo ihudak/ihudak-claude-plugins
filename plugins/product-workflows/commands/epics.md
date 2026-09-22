@@ -20,7 +20,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
 
 ## Phase 0 — Load
 
-0. **Flags.** `--no-docs` — boolean; turns documentation grounding off for this run (Phase 2). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. Strip both, and `--docs`'s value, from `$ARGUMENTS` before step 1 classifies what remains.
+0. **Flags.** `--no-docs` — boolean; turns documentation grounding off for this run (Phase 2). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` *Procedure* step 1 (*Flags first*), which resolves it; this command only has to recognise it and pass the invocation through. Strip both, and `--docs`'s value, from `$ARGUMENTS` before step 1 classifies what remains.
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an
    `@<path>` naming a folder or a file inside one — and resolve it with
    `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), **with no `<KIND>`
@@ -55,15 +55,19 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    but 1b's remedy names `/product-workflows:create-prd`, which refuses a container in turn — a stop
    whose remedy stops is a dead end, and this step is what keeps it from being one.
 
-   **The test is the directory prefix, and never the folder's asserted `kind:`** — `/brd-split`
-   writes `kind: brd` into the `brd-link.md` it places inside a `PRD-` slice folder, so a slice
-   **asserts `brd` while being exactly the folder Epics belong under**, and a gate on the asserted
-   kind would refuse every slice and accept nothing.
+   **The test is the directory prefix, and never the folder's asserted `kind:`** — a prefix as
+   `workflows-core:addressing` §4.1 defines one, the name beginning `<KIND>-<the resolved key>-`,
+   so a legacy idea-route folder keyed `BRD-12`, named `BRD-12-checkout/`, carries no prefix and is
+   not refused as a container by its name. `/brd-split` writes `kind: brd` into the `brd-link.md`
+   it places inside a `PRD-` slice folder, so a slice **asserts `brd` while being exactly the folder
+   Epics belong under**, and a gate on the asserted kind would refuse every slice and accept
+   nothing.
 
-   **Where the folder resolved through `workflows-core:addressing` §5's legacy
-   fallback and carries no prefix, the question is answered by positive evidence that it is a BRD,
-   never by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
-   §5.1, the shared authority `/create-prd`, `/create-ard` and `/specify` take this same test from.
+   **Where the folder carries no prefix — resolved through `workflows-core:addressing` §5's legacy
+   fallback, or an unprefixed folder an `@<path>` named — the question is answered by positive
+   evidence that it is a BRD, never by the absence of a file** —
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, the shared authority
+   `/create-prd`, `/create-ard` and `/specify` take this same test from.
    In short: a legacy folder carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no
    `brd-link.md` naming a `parent:`, is a root container; a legacy folder carrying **neither** of
    those two files is a legacy **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md`
@@ -102,42 +106,44 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
      optional there — a root is never ground, so that run has no findings to cluster candidate slices
      from and stops with `BRD_SPLIT_NEEDS_INSTRUCTION` where it has rows to place and was given
      none; and **where this BRD's ledger leaves no row `unallocated` that run is a no-op** (its
-     Phase 0 step 10) and carves nothing, since nothing in this plugin moves a terminal row back to
-     `unallocated` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). Say what the
-     operator does then rather than leaving the offer to fail silently. There are two ways to reach
-     it and **both are leaveable** — one by a decision, one by a repair. Either the one slice the
-     walk confirmed was removed as a standing empty child, in which case every requirement is
-     `deferred-to`, `rejected` or `superseded-by`, every row is legal and terminal, and no Epic is
-     owed by anybody: that is an **ending rather than a failure**, and no command decides otherwise,
-     because un-deferring a requirement is a decision taken with the customer. Name no command for
-     the decision — and say, rather than implying the state is sealed, that once it is taken it is
+     Phase 0 step 10) and carves nothing, since nothing but the `/brd-intake` re-run below moves a
+     terminal row back to `unallocated`
+     (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). Say what the operator does
+     then rather than leaving the offer to fail silently. There are two ways to reach it and **both
+     are leaveable** — one by a decision, one by a repair. Either the one slice the walk confirmed
+     was removed as a standing empty child, in which case every requirement is `deferred-to`,
+     `rejected` or `superseded-by`, every row is legal and terminal, and no Epic is owed by anybody:
+     that is an **ending rather than a failure**, and no command decides otherwise, because
+     un-deferring a requirement is a decision taken with the customer. Name no command for the
+     decision — and say, rather than implying the state is sealed, that once it is taken it is
      carried out by the same two repairs the other way below names, in the same order: hand-edit the
      one row that is now to be built back to `unallocated`, after which
-     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has a row to walk and carves the slice;
-     or re-run
-     `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which reopens **every** row and discards
-     every deferral and rejection recorded here. Or the ledger
-     records a fate a container can no longer hold — a **root** row `covered-here`, which only a
-     tree written before a BRD became a container, or a hand edit, can have produced
-     (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5). **Offer the narrower repair
-     first**, because the illegal state is one row wide and every other row is already legal and
-     terminal: hand-edit that one row's `disposition:` in `coverage-ledger.md`, leaving every other
-     row untouched — to `deferred-to: <this BRD>`, `rejected: [DEF#n]` or `superseded-by: [BR#n]`
-     where the requirement is not to be built here, which makes the ledger legal and lands on the
-     ending above; or back to `unallocated` where it is, after which `/product-workflows:brd-split
-     <BRD-KEY>` has a row to walk, confirms a slice, and that slice's own walk takes the row to
-     `covered-here`, the one level at which `covered-here` is legal. §3's *no command ever moves a
-     row back to `unallocated`* binds the commands; this is a hand repair of a value no command
-     wrote, and §5 already names hand editing as how this state arises. **Offer the `/brd-intake`
-     re-run second, and only where the whole inventory is to be re-taken:** re-running
-     `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather than
-     a refusal (its Phase 0 step 7 warns and confirms before the first write) and rewrites the
-     ledger with **every** row `unallocated`, after which
-     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. It also **discards
-     every disposition this ledger records**: each `deferred-to`,
-     `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and must be
-     re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Name those decisions —
-     saying only that the dispositions are replaced is not the disclosure.
+     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has a row to walk and carves the
+     slice; or re-run `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which, wherever its
+     read finds a requirement, reopens **every** row and discards every deferral and rejection
+     recorded here (its Phase 0 step 7). Or the ledger records a fate a container can no longer hold
+     — a **root** row `covered-here`, which only a tree written before a BRD became a container, or
+     a hand edit, can have produced (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
+     §5). **Offer the narrower repair first**, because the illegal state is one row wide and every
+     other row is already legal and terminal: hand-edit that one row's `disposition:` in
+     `coverage-ledger.md`, leaving every other row untouched — to `deferred-to: <this BRD>`,
+     `rejected: [DEF#n]` or `superseded-by: [BR#n]` where the requirement is not to be built here,
+     which makes the ledger legal and lands on the ending above; or back to `unallocated` where it
+     is, after which `/product-workflows:brd-split <BRD-KEY>` has a row to walk, confirms a slice,
+     and that slice's own walk takes the row to `covered-here`, the one level at which
+     `covered-here` is legal. §3's *no command moves a row back to `unallocated`, save one* binds
+     the commands; this is a hand repair of a value no command wrote, and §5 already names hand
+     editing as how this state arises. **Offer the `/brd-intake` re-run second, and only where the
+     whole inventory is to be re-taken:** re-running
+     `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather
+     than a refusal (its Phase 0 step 7 warns and confirms before the first write) and, wherever its
+     read finds a requirement, rewrites the ledger with **every** row `unallocated` — that step
+     lists what a re-run keeps and what it changes — after which
+     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. Wherever its read
+     finds a requirement it also **discards every disposition this ledger records**: each
+     `deferred-to`, `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and
+     must be re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Name those
+     decisions — saying only that the dispositions are replaced is not the disclosure.
 
 1b. **`/epics` accepts exactly two shapes, and the gate is the artifact's own `kind:`.** A `PRD-`
    folder is partitioned into Epics; an `EPIC-` folder **that has a PRD above it** is re-refined.
@@ -163,11 +169,11 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    **This revives a path that was already written and unreachable.** `/epics` parses `focus_key`
    below (Phase 3, Phase 3.5, Phase 6) but nothing ever set it, so refine-by-focus could not run and
    an `EPIC-` address was silently partitioned as though it were a PRD. Deriving it here is what
-   makes Phase 3's refinement target and Phase 3.5's `mode = refine` reachable at all. The derivation
-   is `commands/specify.md` Phase 0 step 1's, reused rather than restated: **the resolved folder's
-   kind decides the altitude**, and the second key the retired two-key grammar carried is derived
-   from the one address rather than typed beside it (D4). `/epics` takes **one** address; there is no
-   `<PRD> <Epic>` pair to give.
+   makes Phase 3's refinement target and Phase 3.5's `mode = refine` reachable at all. **The folder
+   decides the altitude, as in `commands/specify.md` Phase 0 step 1 — here by the artifact it holds,
+   the table's `kind: prd` or `kind: epic`, never by the kind the folder asserts**, and the second
+   key the retired two-key grammar carried is derived from the one address rather than typed beside
+   it (D4). `/epics` takes **one** address; there is no `<PRD> <Epic>` pair to give.
 
    **No authored PRD.** The remedy is `/product-workflows:create-prd`, and it is named **only where that
    command can actually run**. `/create-prd` refuses **three** shapes, not one, and step 1a has
@@ -186,7 +192,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    | A `brd-link.md`; the gate set leaves **no** row `unallocated` **and** at least one `covered-here` | `/product-workflows:create-prd <KEY>` — all three refusals cleared |
    | A `brd-link.md`; a gate-set row is still `unallocated` | **Not** `/create-prd`, which raises `CREATE_PRD_BRD_UNALLOCATED`. Name `/product-workflows:brd-split <KEY>`, whose walk moves exactly those rows and which on a slice runs allocate-only — and say beside it that its own Phase 0 gates on this slice's grounding findings each carrying a verifier verdict and stops naming `/product-workflows:prd-ground <KEY>` when they do not |
    | A `brd-link.md`; no gate-set row `covered-here`, and the gate set is **empty** | **Not** `/create-prd`, which raises `CREATE_PRD_BRD_NOT_ELIGIBLE`. This is a standing empty child: name the keep-or-remove `/product-workflows:brd-split <PARENT-KEY>`, the one run that resolves one and not a no-op there (`commands/brd-split.md` Phase 0 step 10) |
-   | A `brd-link.md`; no gate-set row `covered-here`, and the gate set is **non-empty** | **Name no command at all**, and say why rather than going quiet: this slice holds no PRD of its own, `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE` whose non-empty branch names nothing either, and nothing in this plugin moves a terminal row back to `unallocated` (§3). Report what the gate-set rows actually resolved to — `deferred-to` is a live obligation of this slice, `rejected` is an obligation of nobody, `superseded-by` was absorbed by the `[BR#n]` that replaced it |
+   | A `brd-link.md`; no gate-set row `covered-here`, and the gate set is **non-empty** | **Name no command at all**, and say why rather than going quiet: this slice holds no PRD of its own, `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE` whose non-empty branch names nothing either, and nothing in this plugin moves a slice's terminal row back to `unallocated` (§3). Report what the gate-set rows actually resolved to — `deferred-to` is a live obligation of this slice, `rejected` is an obligation of nobody, `superseded-by` was absorbed by the `[BR#n]` that replaced it |
 
    Stop gracefully:
    ```
@@ -322,8 +328,10 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 ## Phase 2.5 — Resolve applicable ARD (optional)
 
-Resolve any PRD-level ARD for this PRD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and running its resolution with `prd = key`,
-**`epic: null`** (Epics do not exist yet — PRD-level ARD only), and `$SPECS_PATH`.
+Resolve any PRD-level ARD for this PRD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and running its resolution with `prd = <PRD-KEY>` —
+the PRD folder's key (Phase 0 step 1b), never the run's own `key`, which on a re-refine run is the
+Epic's — **`epic: null`** (PRD-level ARD only, on a re-refine run as on a draft one), and
+`$SPECS_PATH`.
 
 - On `status: none` (including `$SPECS_PATH` unset/unresolvable) → **skip and
   proceed exactly as before.** No prompt, no extra output.

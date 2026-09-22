@@ -19,7 +19,10 @@ Given a resolved `PRD-` folder (`references/addressing.md` §3) and no Epic in t
 
 - **The address named an `EPIC-` folder** → no picker; proceed for that Epic.
 - **Exactly one `EPIC-` folder** → no picker; auto-proceed for it, and emit a one-line notice saying
-  which, so an auto-selection is never silent.
+  which, so an auto-selection is never silent — save where the command's own policy asks instead:
+  `/implement` puts that Epic and one broad PRD-level slice to the operator where the PRD folder
+  also holds a flat `specification.md`, the broad slice `/design` designs as one unit (`/implement`
+  Phase 0).
 - **Two or more** → render the picker, one row per Epic: its marker, its `key` (read from the
   folder's frontmatter per §4, never parsed from the directory name) and its title — **capped at four
   options, see *The cap* below**.
@@ -34,7 +37,8 @@ folder** — never a status somebody declared:
 - **○ not started** — the command's output artifact is absent → selectable.
 - **◐ in progress** — a resume file exists but the final artifact does not → selectable as a resume.
 - **● done** — the artifact exists → shown greyed and not default-selectable; selecting it offers to
-  revise.
+  revise. For `/implement` the artifact is a record — an `implementation.md` holding at least one
+  block, never a file holding only its heading (`references/implementation-format.md` §1).
 
 Default cursor on the first actionable row, in-progress before not-started.
 
@@ -42,9 +46,9 @@ Default cursor on the first actionable row, in-progress before not-started.
 
 `AskUserQuestion` renders at most four options (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`
 §0), and this picker is built from a directory listing — so a PRD with five Epics overflows it, and a
-`/specify` run that appends its own option overflows at four. A picker that is one row per Epic is a
-picker that stops working on a perfectly ordinary PRD, which is why this is part of the picker rather
-than advice beside it.
+`/specify` or `/implement` run that appends its own option overflows at four. A picker that is one
+row per Epic is a picker that stops working on a perfectly ordinary PRD, which is why this is part
+of the picker rather than advice beside it.
 
 **Print every Epic as prose above the prompt** — marker, key and title, one line each, in the
 ordering above — and let the array carry **at most three Epic rows plus one option naming the
@@ -64,10 +68,17 @@ key **against the keys it just listed** — never by parsing one out of the answ
 array carries them all, and the prose list is still printed because a greyed ● row reads better
 there.
 
-**A command that adds its own option to this picker counts it against the four.** `/specify` appends
-*"Author one broad PRD-level spec instead"*, so its array carries at most **two** Epic rows plus that
-option plus the remainder option. The added option is never the one dropped: it is the alternative to
-picking any Epic at all, and a picker that hides it forces a choice the command means to leave open.
+**A command that adds its own option to this picker counts it against the four.** `/specify`
+appends *"Author one broad PRD-level spec instead"* on every run — it is the command that authors
+the spec, so nothing can condition it — and its array carries at most **two** Epic rows plus that
+option plus the remainder option. `/implement` appends *"Implement one broad PRD-level slice
+instead"* **only where the PRD folder holds a flat `specification.md`**, the same condition its
+one-Epic branch above carries, so its array carries at most **two** Epic rows where that file
+stands and at most **three** where it does not, the freed row going back to the Epics. The added
+option is never the one the **cap** drops: it is the alternative to picking any Epic at all, and a
+picker that hides it to fit forces a choice the command means to leave open. `/implement`
+withholding it is a different thing and not an exception to that — where no flat `specification.md`
+stands the slice is a unit nothing specified, so there is no choice there to leave open.
 
 **Reading the artifact rather than a declared status is the point, not an accident of the rewrite.**
 A status is a human's claim about the work and can lag it — which is why the version of this picker
@@ -87,5 +98,5 @@ the picker, not a live caveat.
 lighter command may offer a next-Epic loop; that is the command's call, not this file's.
 
 **It never picks silently.** Auto-selection at one Epic emits a notice; a greyed ● row is selectable
-only deliberately; and "author one broad PRD-level artifact instead" is always an explicit option
-rather than something inferred from an empty selection.
+only deliberately; and "author one broad PRD-level artifact instead" is an explicit option wherever
+the command offers it, rather than something inferred from an empty selection.

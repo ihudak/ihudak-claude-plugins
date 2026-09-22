@@ -36,25 +36,28 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
    Epic-scoped run needs and the PRD is derived from the folder above it). An offer written
    `/product-workflows:specify <PRD> <Epic>` names an argument form no command accepts: the run reads the
    first token, and the second either disagrees with it or is refused. Write `/product-workflows:specify
-   <EPIC>` for an Epic-scoped step and `/product-workflows:specify <PRD>` for a PRD-scoped one — the kind
-   of the folder the address resolves to is what sets the altitude, so the offer never has to say it
-   twice.
+   <EPIC>` for an Epic-scoped step and `/product-workflows:specify <PRD>` for a PRD-scoped one — the
+   prefix of the folder the address resolves to is what sets the altitude, and a folder with none is
+   placed by what it holds (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4.1), so the offer
+   never has to say it twice.
 
 **A next-step offer that names a downstream command must also name the merge.** The downstream command executes `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) and stops while this phase's pull request is open, so an offer that reads "next: `/product-workflows:create-ard <KEY>`" without "once the pull request is merged" sends the user into a stop they were not warned about.
 
-**And it must name it truthfully, which means the clause is never unconditional.** A run that staged nothing, or whose handoff the user declined, opened no pull request — and "once the pull request above is merged" then parks the operator waiting for a merge that will never happen, on a run they could often start immediately. Worse, the two failing outcomes differ: only one of them has a branch to name. So an offer carries the clause as the placeholder **`<merge-clause>`**, resolved from the `Phase handoff:` line `phase-handoff.md` §4.1 actually emitted:
+**And it must name it truthfully, which means the clause is never unconditional.** A run that staged nothing, or whose handoff the user declined, opened no pull request — and "once the pull request above is merged" then parks the operator waiting for a merge that will never happen, on a run they could often start immediately. Worse, the failing outcomes differ from each other — of those two, only one has a branch to name, and they are not the only two §4.1 defines. So an offer carries the clause as the placeholder **`<merge-clause>`**, resolved from the `Phase handoff:` line `phase-handoff.md` §4.1 actually emitted. **Where a run emitted more than one — §4.1 names `/brd-reconcile` as the only producer that does — the clause resolves from the line reporting the handoff of the artifact the offered command's gate targets**, which is the run's own deliverable rather than any ancillary one it also landed; there, `/brd-package` and `/prd-ground` gate on what the reconciliation record's handoff carried, not on the canonicalised customer review:
 
 | §4.1 outcome | `<merge-clause>` resolves to |
 |---|---|
 | Committed, pushed, PR opened | `(once the pull request above is merged)` |
+| PR already existed | `(once the pull request above is merged)` |
 | PR not opened | `(once you open the pull request for <branch> and it is merged)` |
 | Push failed | `(once <branch> is pushed, its pull request opened, and merged)` |
+| No remote | `(once <branch> is merged into the default branch — this specs repo has no remote, so no pull request will do it)` |
 | Nothing to commit | `(its inputs are already on the default branch — you can run it now)` |
 | Declined by the user | `(once this run's artifacts reach the default branch — they are written but not there)` |
 | Gate failed | `(once this run's artifacts reach the default branch — the handoff did not run)` |
 | Anything else, or unresolvable | `(once this phase's artifacts are on the default branch)` |
 
-`Branch name substituted` is an append to another line rather than an outcome of its own — whatever branch the emitted line ends up naming is the branch the clause names. **Only two rows name a branch, and that is the point**: §4.1's declined and gate-failed lines carry none, because on those paths `handoff-to-main` committed nothing, so there is no branch in existence to send anyone to.
+`Branch name substituted` is an append to another line rather than an outcome of its own — whatever branch the emitted line ends up naming is the branch the clause names. **The table resolves every one of §4.1's eight outcome rows, and the catch-all is for a line that could not be read at all** — never for an outcome §4.1 defines. It stood at six for a release, and both omissions dropped something the run was holding: *PR already existed* fell to a catch-all that never named the pull request the operator has to merge, and *No remote* to one that never named the local branch the artifacts are committed on. **Three rows name a branch, and which three is the point**: §4.1's declined and gate-failed lines carry none, because on those paths `handoff-to-main` committed nothing, so there is no branch in existence to send anyone to — where *No remote* **does** commit, on a branch that exists and that nothing in that repository will ever push, so it is exactly a row that must name one. Count the branch-naming rows off the table rather than off this sentence: the property is *committed something*, and a row added without a branch where it committed one is the defect this paragraph exists to catch.
 
 **Where this rule applies: every next-step offer the dependent plugin family prints — today the commands named below, which span `product-workflows`, `dev-workflows` and `workflows-core`.** The `<merge-clause>` placeholder is the convention the `/product-workflows:brd-*` commands write their offers to — the five of the BRD-to-PRD route, and the programme umbrella `/product-workflows:brd-proposal` beside them, which matches the same glob without being a phase of that route — and an offer added to any of them carries it where it names a downstream gate the offering run feeds. `/product-workflows:prd-ground` left that family the day its own rename shipped — the rename made it stop matching `brd-*` — but every offer it prints still names a downstream command whose `require-on-main` gate that same run feeds, exactly as the route's five do, so it carries the convention too, under its own glob, `` `/product-workflows:prd-*` ``. It is equally the convention of the **six** older pipeline offers, converted after the route shipped: `/product-workflows:create-prd`'s and `/product-workflows:update-prd`'s *Next steps* phases, `/product-workflows:create-ard`'s *Next-step offer (adaptive)* phase, the `### Next step` sections of `/product-workflows:specify` and `/dev-workflows:design`, and `/product-workflows:idea`'s Phase 5 handoff offer. Four of the first five hardcoded "once the pull request above is merged" on runs that reach outcomes opening no pull request; the fifth, `/product-workflows:update-prd`, named two downstream commands that gate this run's own PRD and stated no wait at all. **The sixth was left off this list for a round and was defective the whole time**: `/idea` Phase 5 recommended `/product-workflows:create-prd <KEY>` with no clause of any kind, while `/create-prd` Phase 0 step 3 rung 1 runs `require-on-main` on the very `idea.md` whose pull request that offer had just opened — this rule's own named failure, in the one adopter the rule's own adopter list omitted. It carries the placeholder now; and its `status: draft` branch, which hands nothing off so no row of the table above could resolve, names the `@<path>` read form instead of a wait. No offer in that family now names a downstream gate its own run feeds and states the wait unconditionally, and an offer added anywhere in it that names such a gate carries the placeholder. **An offer that names none does not**, and `/product-workflows:brd-proposal` is the case: it hands off an artifact no `require-on-main` gate targets — a later run of that same command reads it, which is a read and not a gate — and its own next-step options name no gate its run feeds, so it carries no clause anywhere — which is why the rule is stated against the gate the offer names rather than against membership of the family. This reference ships in `workflows-core`, which prints one offer of its own, `/workflows-core:frames`, and that one carries no clause on purpose: nothing runs `require-on-main` on a frame-set index, so no downstream gate reads what it writes. **Two further commands match those globs and are inside the rule by name rather than by adoption.** `/product-workflows:prd-proposal` and `/product-workflows:brd-proposal` author effort proposals, and both are covered by the two globs already named — there is no version of that work in which they sit outside this gate. The placeholder appears in exactly one option across the pair: `/prd-proposal`'s offer of `/brd-proposal`, whose `require-on-main` gate targets the `proposal.md` that same run has just written. Every other option either names a command gating on `prd.md`, which neither proposal command writes, or names the offering command itself.
 
@@ -100,8 +103,13 @@ array carries every option.
 
 **PM — ideation & framing**
 
-- `/product-workflows:idea` — refined → `/product-workflows:create-prd <KEY>` (PM); draft → `/product-workflows:idea @<path> --deep` (PM, refine)
-  or `/product-workflows:create-prd <KEY>` (PM, proceed on a draft — not recommended).
+- `/product-workflows:idea` — refined → `/product-workflows:create-prd <KEY>` (PM), with
+  `/product-workflows:create-prd <KEY> @<path to idea.md>` beside it where the handoff was declined
+  or its gate failed; draft → `/product-workflows:idea <KEY> <the same source>` (PM, refine) or
+  `/product-workflows:create-prd <KEY> @<path to idea.md>` (PM, proceed on a draft — not recommended).
+  The `@<path>` is what reads an `idea.md` on no ref directly: `/create-prd <KEY>` alone names such a
+  file and does not read it in contract — it reaches it only through its same-session rung or a path
+  the operator types (`/product-workflows:idea` Phase 5).
 - `/product-workflows:create-prd <ADDRESS>`:
   `/docs-workflows:release-notes <PRD>` (PM — draft the release note; recommended clear next step); hand to PA
   *(optional)* → `/product-workflows:create-ard <PRD>`; or hand to PE → `/product-workflows:epics <PRD>` (or `/product-workflows:specify <PRD>`).
@@ -211,7 +219,8 @@ array carries every option.
 **Dev — build, verify & deliver**
 
 - `/dev-workflows:design <EPIC>` → optionally `/dev-workflows:ready <EPIC>` (verify readiness) →
-  `/dev-workflows:implement <EPIC>`.
+  `/dev-workflows:implement <EPIC>` — each `<PRD>` in place of `<EPIC>` after a broad PRD-level
+  design, whose Epic is null: the next address is the folder the design was written into.
 - `/dev-workflows:ready <ADDRESS>` → **SUPPORTED** → `/dev-workflows:implement <ADDRESS>` (the same address); **PARTIAL / NOT-SUPPORTED**
   → resolve the named gaps, then re-run `/dev-workflows:ready`. *(Read-only verifier;
   not itself a linear pipeline node — an optional gate before build.)*

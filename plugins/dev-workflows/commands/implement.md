@@ -20,7 +20,7 @@ Implement the following: $ARGUMENTS
 |---|---|---|
 | **Spec file** | a single `.md` file | read fully; use as the description/spec |
 | **Spec folder** | a directory containing `prompt.md` and/or a `*-design.md` | read all `.md` specs within; fold into the description |
-| **Specs folder** | a directory under `specifications/` that asserts a `key:` in a keyless artifact it holds — `prd.md`, `epic.md`, `specification.md` (`workflows-core:addressing` §4) | hand to the folder read in Phase 1.7 |
+| **Specs folder** | a directory under `specifications/` that `resolve-address` resolves — its `kind:` and `key:` read off the folder's carrier (`workflows-core:addressing` §4) | hand to the folder read in Phase 1.7 |
 | **Code repo** | a directory where `git -C <path> rev-parse --is-inside-work-tree` succeeds (includes the cwd) | scan target in Phase 1.7 |
 
 **Address resolution.** Before the per-`@path` classification above, look for a **single positional
@@ -34,7 +34,20 @@ to `specs`, a code repo is an `/implement`-only scan target. Carry `mode` (`keye
 resolved `path`, `kind` and `key`, and `specs` forward.
 
 **Epic-unit resolution (keyed runs).** `/implement` implements one Epic at a time. When
-`mode: keyed`:
+`mode: keyed`, place the resolved folder as `workflows-core:addressing` §4.1 does — by its prefix,
+never by the kind it asserts, which on a BRD-route slice is `brd` — taking its container test first.
+**A BRD container** — a `BRD-` folder, or a folder with no prefix holding `coverage-ledger.md` or
+`brd/brd-inventory.md` and no `brd-link.md` naming a `parent:` — holds no Epic to implement, because
+a BRD's work is authored in its slices; stop, before anything is read:
+`IMPLEMENT_BRD_NOT_SLICED: <KEY> resolves to a BRD container at <path> — a BRD's Epics belong to its PRD- slices. <the remedy>`
+`<the remedy>` lists the slices under it, found by the positive test §4.1 names — `Implement within a slice instead: '/dev-workflows:implement <SLICE-KEY>' — <each slice's key>.` — and, where it finds none:
+`It has no slice yet: '/product-workflows:brd-split <KEY> "<how to cut it>"' carves one — the instruction is required there, and that run carves nothing where this BRD's ledger leaves no row unallocated. Where it leaves none, coverage-ledger-format.md §5 names two repairs, the narrow one first: hand-edit the one row to be built back to unallocated in coverage-ledger.md, leaving every other row as it stands; or, to re-take the whole inventory, re-run '/product-workflows:brd-intake <KEY> @<brd-file>', which reopens every row wherever its read finds a requirement and discards every deferred-to, rejected and superseded-by the ledger records.`
+It is a user halt. A folder with no prefix — one §5's legacy fallback resolved, or an unprefixed
+folder an `@<path>` names, a name beginning with a kind token being prefixed only where it begins
+`<KIND>-<the resolved key>-` — is otherwise placed by positive evidence: a resolved `kind: epic`
+counts as an `EPIC-` folder below, and a resolved `kind: prd`, or a `brd-link.md` naming a
+`parent:`, as a `PRD-` folder. A folder none of these places is not guessed at — stop, naming the
+folder and what it carries. Then:
 
 - **The address named an `EPIC-` folder** → `focus_key` is its `key`; proceed for that Epic. The
   Phase 1.7 scan and specs resolution both scope to it.
@@ -44,29 +57,68 @@ resolved `path`, `kind` and `key`, and `specs` forward.
   PRD above it used to have a branch of its own here, nested — unreachably — inside this one;
   `/product-workflows:epics` is the only command that creates an `EPIC-` folder and it writes every one
   of them under a PRD folder, so an Epic address is always the bullet above.
-  - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
+  - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed, with the
+    one-line notice `workflows-core:epic-picker` requires of an auto-selection — **unless the PRD
+    folder also holds a flat `specification.md`**, a broad PRD-level slice: the shape
+    `/dev-workflows:design` designs as one unit and then offers to this command by the PRD's key.
+    Auto-selecting the Epic there would never offer that slice, so ask, the Epic's row carrying its
+    marker by the done-predicate in the next bullet:
+    `choices: ["<marker> <EPIC-KEY> <title>", "Implement one broad PRD-level slice instead"]`
+    The first sets `focus_key` to that Epic; the second leaves it null (specs resolve PRD-level). No
+    `(Recommended)` marker: a flat specification beside an Epic means two units were specified, and
+    which one this run implements is the operator's to say — the silent choice is the one this
+    prompt replaces.
   - **PRD with ≥2 Epics** → render the picker per `Skill(skill: "workflows-core:reference", args: "epic-picker")`,
-    honouring that file's *The cap*: every Epic listed as prose, the array carrying at most three rows
-    plus *"Another Epic from the list above — name its key"*. **`/implement`'s done-predicate is now the artifacts
-    present in each Epic folder**, which is the mechanism `/design`'s own Epic picker already uses:
-    `specification.md` but no `design.md` → ○; `design.md` present, no `implementation.md` → ◐;
-    `implementation.md` present → ● (greyed, not default-selectable; selecting offers "implement
-    anyway"). All three markers are determinable, because `/implement` writes that record itself
-    (Phase 4.7). Reading the artifacts rather than a status field is
+    honouring that file's *The cap*, which counts this command's own option against the four. **The
+    broad-slice choice is offered here on the same condition as the one-Epic path's above — only
+    where the PRD folder also holds a flat `specification.md`** — because the two paths ask one
+    question, which of the specified units this run implements, and without that file the slice is a
+    unit nothing specified: offering it unconditionally let an operator pick one, and the Phase 0
+    gate below does not catch that, an absent in-scope spec being `absent` rather than a stop. So:
+    every Epic listed as prose, and the array carrying **at most two** Epic rows, that broad-slice
+    choice and *"Another Epic from the list above — name its key"* where the flat `specification.md`
+    stands; where it does not, the choice is omitted and the freed row goes back to the Epics —
+    **at most three** Epic rows plus that same remainder option, which is *The cap*'s own shape for
+    a picker appending nothing of its own. **`/implement`'s
+    done-predicate is now the artifacts present in each Epic folder**, which is the mechanism
+    `/design`'s own Epic picker already uses:
+    `specification.md` but no `design.md` → ○; `design.md` present, no record → ◐; a record → ●
+    (greyed, not default-selectable; selecting offers "implement anyway") — a record being an
+    `implementation.md` holding at least one block, never a file holding only its heading
+    (`workflows-core:implementation-format` §1). All three markers are determinable, because
+    `/implement` writes that record itself, into the Epic's own folder however the Epic was chosen
+    (Phase 4.7). Reading the artifacts rather
+    than a status field is
     strictly better than what it replaces: a declared status is a human's claim about the work and
     could lag it, which is why the old picker had to print the raw status text as a hedge. Include the explicit choice
     **"Implement one broad PRD-level slice instead"** (`focus_key` stays null → specs
-    resolve PRD-level). Selecting an Epic sets `focus_key` and proceeds for **that Epic
+    resolve PRD-level) **only where the PRD folder holds a flat `specification.md`**, per the
+    condition above. Selecting an Epic sets `focus_key` and proceeds for **that Epic
     only** — there is **no "Next Epic?" loop** (code-writing is heavy and branchy;
     each `/implement` run targets one Epic).
   - **PRD with 0 Epics** → offer: split with `/product-workflows:epics` first, or implement one broad
     PRD-level slice (`focus_key` stays null). Nothing follows `/epics` before this command sees its Epics — it
-    writes into the tree this command reads.
+    writes into the tree this command reads. **The flat-spec condition above does not bind here**,
+    and that is the asymmetry settled rather than left: with no Epic there is no other specified
+    unit to confuse the slice with, so this is not a choice between two units but a choice whether
+    to partition at all, and withholding the slice would leave one option where the harness needs
+    two (`workflows-core:escalation-rules` §0).
 
-When the picker (or the 1-Epic auto-path) sets `focus_key` that was initially null,
+When the picker, or the one-Epic path or its choice, sets `focus_key` that was initially null,
 **re-resolve `specs`** per the shared reference §Specs-resolution now that `focus_key`
 is set — the front-end's first pass resolved `specs` with `focus_key` null, so it must
 run again to pick up the Epic's nested per-Epic home.
+
+**`unit_key` — the key the branch and the commit carry.** It is the key of the unit this run
+implements, whose folder Phase 4.7's record goes in: `focus_key` wherever it is set, however it was
+set, and the resolved folder's `key` on a broad PRD-level slice; `null` in direct mode. Its
+`workitem_key` is that same folder's. Pre-Phase 3 names the branch with it and Phase 4.6 ends the
+commit subject with it (`workflows-core:implementation-format` §3), so a run that implements an
+Epic under a PRD address commits `[<EPIC-KEY>]` on a branch named for the Epic — the key an
+Epic-level scan greps (§4 there). Those two phases are its readers. Phase 4.5's handoff title is
+not one: it names the folder it hands off, which is the Epic's where the files it annotated are the
+Epic's, and the PRD folder's where they are the PRD's. Where any other step names the run's `key`,
+it means the resolved folder's.
 
 Rules:
 - The **primary description** is: the spec file if one was given → else the spec-folder design doc → else the inline prose. Echo `📄 Reading prompt from <file>…` (or `from inline text`) and confirm `"Loaded prompt (N lines)."`.
@@ -255,7 +307,7 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 
 ## Phase 1.8 — Resolve applicable ARD (keyed mode; optional)
 
-Only when the run resolved a key (PRD/Epic) — i.e. NOT direct-prompt mode — resolve any ARD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and running its resolution with the resolved `<PRD>`, `<EPIC>`, and `$SPECS_PATH`. Direct mode (no key) → treat as `status: none`. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr` and naming `$SPECS_PATH` explicitly (`/implement` stands in a code repo, not the specs repo, so an unqualified message would point at the wrong one) — per `workflows-core:ard-resolution`'s Output section, this state is unreachable when no ARD resolves. On `status: found`, carry the `invariants` as **implementation guardrails** (the implementer honors each `AD#N` `rule`; a necessary deviation is logged as an `- ARD deviation:` line in the Phase 5 report), and — in the SIGNIFICANT / HIGH-RISK path — pass them to `code-review` (Phase 3B) as `applicable_ard`. In the SIMPLE / MODERATE path there is no `code-review` gate, so the guardrails act as guidance only.
+Only when the run resolved a key (PRD/Epic) — i.e. NOT direct-prompt mode — resolve any ARD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and running its resolution with `prd` = the PRD folder's key — the resolved folder's own for a `PRD-` address, its parent's for an `EPIC-` one (Epic-unit resolution above) — `epic` = `focus_key`, and `$SPECS_PATH`. Direct mode (no key) → treat as `status: none`. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr` and naming `$SPECS_PATH` explicitly (`/implement` stands in a code repo, not the specs repo, so an unqualified message would point at the wrong one) — per `workflows-core:ard-resolution`'s Output section, this state is unreachable when no ARD resolves. On `status: found`, carry the `invariants` as **implementation guardrails** (the implementer honors each `AD#N` `rule`; a necessary deviation is logged as an `- ARD deviation:` line in the Phase 5 report), and — in the SIGNIFICANT / HIGH-RISK path — pass them to `code-review` (Phase 3B) as `applicable_ard`. In the SIMPLE / MODERATE path there is no `code-review` gate, so the guardrails act as guidance only.
 
 ---
 
@@ -369,9 +421,9 @@ Before writing any file:
 
    A clean tree records `pre_existing_dirty: null` and `stash_ref: null` — the state Phase 4.6's precondition assumes.
 
-2. **Resolve the branch name** by invoking `Skill(skill: "workflows-core:reference", args: "branch-naming")` and following it — **the repo's own documented convention wins**. Read the target repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` (+ `.claude/`) for a branch-naming section (§1.1); if one is found, classify its segments (§1.2) and fill them: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, …) from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt), an **issue-key** segment from the `key` resolved in Phase 0 (or the pattern's documented no-issue literal in direct mode), and the **description** segment from step 3's slug. A pattern with no identity segment gets none — never inject initials into a convention that does not ask for one. Only when the repo documents no convention (§1.4) build `<prefix>/<slug>` with `<prefix>` from the §2 ladder, whose fallback here is `feat/`.
+2. **Resolve the branch name** by invoking `Skill(skill: "workflows-core:reference", args: "branch-naming")` and following it — **the repo's own documented convention wins**. Read the target repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` (+ `.claude/`) for a branch-naming section (§1.1); if one is found, classify its segments (§1.2) and fill them: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, …) from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt), an **issue-key** segment from `unit_key` (Phase 0 — the Epic's wherever `focus_key` is set; or the pattern's documented no-issue literal in direct mode), and the **description** segment from step 3's slug. A pattern with no identity segment gets none — never inject initials into a convention that does not ask for one. Only when the repo documents no convention (§1.4) build `<prefix>/<slug>` with `<prefix>` from the §2 ladder, whose fallback here is `feat/`.
 
-3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`. When a `key` is resolved and the chosen shape has no separate issue-key segment, prefix it: `<KEY>-<slug>`.
+3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`. When `unit_key` is set and the chosen shape has no separate issue-key segment, prefix it: `<unit_key>-<slug>`.
 
 4. **Check HEAD context** — resolve `<base>`, the default branch's name, by `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.8, with `<repo>` the repository this phase branches. It is the ladder Phase 4.6 resolves the pull request's base with, so the base it offers to branch from is the base its pull request targets. Never judge by a list of names: in a repository whose default is `main`, a local `develop` is a branch like any other, and the commits it carries are what this step asks about.
    - **§2.8's ladder is exhausted** — no `origin`, or an `origin/HEAD` that is unset or names a ref that does not exist, and none of the branches it probes → there is no base to measure against or to branch from, so ask nothing: print `Base branch unresolved (<reason>) — branching from the current position.`, carry that line into the Phase 5 report's `### Branch` section, and go to step 5.
@@ -386,7 +438,7 @@ Before writing any file:
    - **Branch from default branch** → `git switch <base>` and nothing more — no fetch and no pull, as at `/vuln` Step 3's switch onto the same base. It takes the name, which `git switch` accepts where it refuses an `origin/<name>` ref, and it creates a local `<base>` from `origin/<base>` where none exists. Step 5 then cuts from `<base>`. Where git refuses the switch — an uncommitted change it would overwrite — report its error and the paths it named, and stop as Cancel does: no branch exists yet, and step 5 must not cut one from the HEAD the user just declined.
    - **Cancel** → stop and summarize what was planned.
 
-5. **Create and checkout** — `git checkout -b <prefix>/<key>-<slug>` on a keyed run, `<prefix>/<slug>` in direct mode. If that name already exists, append the first 7 chars of HEAD's SHA: `<prefix>/<slug>-<short-sha>`.
+5. **Create and checkout** — `git checkout -b <prefix>/<unit_key>-<slug>` on a keyed run, `<prefix>/<slug>` in direct mode. If that name already exists, append the first 7 chars of HEAD's SHA: `<prefix>/<slug>-<short-sha>`.
 
 ---
 
@@ -671,9 +723,9 @@ When step 7.5 did write one or more notes: `prefix` = `spec` when only `specific
 
 Where the set is an annotated `design.md` **alone**, present §4.3's **gated — falling back** array (§4.1 bullet 2) instead, because the only §3.4 rows naming `design.md` are this command's own in-scope-only gate and `/dev-workflows:ready`'s coverage gap, neither of which stops:
 
-`choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase does not stop on this — it reports the artifact as un-landed and proceeds from the resolved folder)", "Cancel"]`
+`choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase does not stop on this, but until this is on main it might not read your copy)", "Cancel"]`
 
-On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix`, `feature_folder`, and `deliverable_paths` as above; `title: <KEY> Record spec/design conformance findings from /implement`; and `body_facts` = the count of escalated `- [ ]` notes, the code-review Spec/design-conformance dimension summary they came from, and the fact that whoever next reads this `specification.md`/`design.md` will not see them until this pull request is merged. Emit its §4.1 outcome line in the Phase 5 `### Spec/design conformance` section.
+On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix`, `feature_folder`, and `deliverable_paths` as above; `title: <FOLDER-KEY> Record spec/design conformance findings from /implement`, `<FOLDER-KEY>` being `feature_folder`'s own `key`, read off its carrier (`workflows-core:addressing` §4) — the key the handoff's branch is named for (§2.2 there), and so the Epic's, not the resolved folder's, wherever a run that chose an Epic under a PRD address annotated that Epic's files; and `body_facts` = the count of escalated `- [ ]` notes, the code-review Spec/design-conformance dimension summary they came from, and the fact that whoever next reads this `specification.md`/`design.md` will not see them until this pull request is merged. Emit its §4.1 outcome line in the Phase 5 `### Spec/design conformance` section.
 
 Placement is deliberate, not stylistic: step 7.5 sits inside Phase 3B, before the tests run, so calling `handoff-to-main` there would commit mid-review — hence the notes are written in 7.5 and handed off here instead, after Phase 4's post-implementation maintenance and before Phase 6's follow-ups and Phase 7's cost/`resume.md`/`commit-artifacts`. A call from inside Phase 6 or Phase 7 would falsify Phase 7's never-commits-the-deliverable claim below.
 
@@ -697,8 +749,8 @@ Pass the §2.11 inputs:
 
 - `repo` — the repo Pre-Phase 3 branched; `branch` — the name it created.
 - `pre_existing_dirty` and `stash_ref` — as recorded in Pre-Phase 3 step 1; both `null` on the clean-tree path.
-- `key` and `workitem_key` — from the resolved folder (`workflows-core:addressing` §4); both `null` in direct mode. §2.3 turns them into the `[<key>]` subject suffix and the `Work-Item:` trailer that `workflows-core:implementation-format` §3 requires — **this is where the plugin writes that convention rather than teaching it**.
-- `title` — the commit subject and pull-request title: with a key, `<one-line summary of what was built> [<key>]`; in direct mode, the imperative summary alone.
+- `key` and `workitem_key` — `unit_key` and its folder's `workitem_key` (Phase 0), the Epic's wherever `focus_key` is set and the resolved folder's (`workflows-core:addressing` §4) on a broad PRD-level slice; both `null` in direct mode. §2.3 turns them into the `[<key>]` subject suffix and the `Work-Item:` trailer that `workflows-core:implementation-format` §3 requires — **this is where the plugin writes that convention rather than teaching it**.
+- `title` — the commit subject and pull-request title: with a key, `<one-line summary of what was built> [<key>]`, `<key>` being the `unit_key` above; in direct mode, the imperative summary alone.
 - `body_facts` — what was implemented; the files changed; the Opus review verdict and triage summary where Phase 3B produced one; the `test-baseliner` verify result against the Pre-Phase 3.5 baseline; and any deferred `MINOR`/`NIT` findings.
 - `clean_finish` — `false` when **this call is being made from any of the early stops the `"Every run"` paragraph above enumerates**, when the Opus review is still `BLOCK` after its one fix cycle plus re-review, when the Phase 3.5 fix loop ended with failures the user chose to keep, when the user accepted an **unverified** run at Phase 3.5 step 5 (`RUN_FAILED` / `COMMAND_NOT_FOUND` — nothing was compared), or when Pre-Phase 3.5's `test_decision: skip` is **the run's own record** rather than the operator's answer (the two-failed-`command_hint` path); `true` otherwise. **That last one is a provenance test, not a token test**, and §2.9 says why: the operator's own *"Skip tests for this run"* is a typed decision taken up front and is honoured without penalty, while the run's own record after two failed hints is the same bullet's "attempted and could not complete, and proceeded on anyway" with nobody's consent attached. Pass the provenance, never the bare `test_decision` value. **The first condition is this command's form of the stopped-state one both siblings carry** — `/vuln`'s *"the CVE ended `BLOCKED`"*, `/upgrade`'s *"any component ended `BLOCKED`"* — and without it the paragraph above and this list disagreed on **six** stops that reach 4.6, each of which would have been handed `true` and opened an ordinary mergeable pull request. **Six of the seven that paragraph enumerates, and the arithmetic is worth keeping because a reader who counts the list instead gets seven**: the seventh, *a second verdict still `BLOCK`*, is the next condition's own state word for word, so it was already being handed `false` and was never in the disagreement. `NEEDS HUMAN` is, because the run does **not** re-review there and that condition's *"plus re-review"* is then unmet. Derive the number from the set the two lists disagree about, never from the length of either. It cites that paragraph and deliberately does **not** restate its members: a second copy of that list is exactly how the two came to disagree. The last is the same state `/upgrade` and `/vuln` set `false` on as `TESTS_NOT_RUN`, and it is the *stronger* case, not a weaker one: kept regressions at least know what failed. A `PARTIAL` verify is **not** in the list, deliberately and for the same reason those two map it onto `OK` / `SUCCESS` — every suite the baseline covered is green, and the ones it did not are named in `### Deferred items`. Per §2.9 this changes only the pull request (draft, with a DO-NOT-MERGE banner) — never whether the commit happens, and, **in this command**, never whether the push happens either. That second half needs its own reason rather than §2.9's: §2.4's first re-ask trigger fires wherever the `clean_finish` a call carries differs from the one the choice was answered under — in either direction — and `/implement` makes exactly one `finish-code-branch` call per run, with **every** condition above settled before it, so there is nothing left to differ from. (The count that stood here went stale in the commit that added the fifth condition; a construction cannot.) The trigger exists for `/vuln`, the one caller that makes more than one **full** `finish-code-branch` call in a run — one per CVE, because §2.12's *"Where each unit gets its own branch there is no split"* puts `/vuln` outside the split form — so a later CVE can carry a flag differing from the one an earlier CVE's answer was given under, and there it does re-ask the question rather than decide it. **`/upgrade` is not a second such caller, despite its per-component loop**: the split runs §2.1–§2.3 per component and the full entry point once at step 7.5, after every component has settled, so its §2.4 is asked once with `clean_finish` already final — the same structural reason it cannot fire here.
 - `commit_template: null` — `/implement` documents no full template of its own, so §2.3 derives the rest of the subject from the repo's own `git log`.
@@ -714,10 +766,12 @@ Record what this phase actually did — the commit sha, and whether the push hap
 **Skipped entirely when `mode: direct`** — there is no resolved folder to append to, and a
 directly-implemented change has no block, exactly as before.
 
-**Write `implementation.md`** in the resolved folder. Invoke
+**Write `implementation.md`** in the folder of the unit this run implemented — the Epic's folder
+wherever `focus_key` is set, whether the address named that Epic or Phase 0's picker or one-Epic
+path chose it, and the resolved folder for a broad PRD-level slice. Invoke
 `Skill(skill: "workflows-core:reference", args: "implementation-format")` and append one block per
-run against its §1: one entry per repository this run touched, each naming `repo`, `branch`,
-`base`, `commit` and `pushed`. Append-only — never edit or
+run against its §1, which says why the record lives with its unit: one entry per repository this
+run touched, each naming `repo`, `branch`, `base`, `commit` and `pushed`. Append-only — never edit or
 remove an earlier block, and a re-run adds a block rather than replacing one.
 
 **It records refs and nothing else.** No summary of what was implemented: a summary is a

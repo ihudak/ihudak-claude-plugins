@@ -341,8 +341,9 @@ so no child folder is created.
   (`split_mode: full` only),
   `BRD-<KEY>-<slug>/PRD-<CHILD-KEY>-<child-slug>/`, each holding three files: `brd-link.md` naming its
   parent and its claimed `[BR#n]` rows; `brd/brd-inventory.md`, the claimed rows copied verbatim
-  from this BRD's inventory under a header naming the parent's `brd/source/`, which every
-  `source_anchor` in it still resolves against
+  from this BRD's inventory under a header naming the parent's source document, every
+  `source_anchor` in it still resolving against the parent's files — its `brd/source/`,
+  `brd/source-external/` or `brd/brd-figures.md`, by the anchor's form
   ([`brd-format.md`](../../references/brd-format.md) §2.1); and its own `coverage-ledger.md` with
   every row `unallocated`. The claim list is **provisional** until the walk ends: a row proposed for
   a child but settled elsewhere loses its claim and its inventory row, while its ledger row stays as
@@ -475,8 +476,8 @@ with a "nothing to commit" report on the no-op path.
   `[BR#n]`, the ledger it sits on, and what it will be rewritten to — as prose beside the unchanged
   picker. On removal, a row on this BRD's own ledger takes `deferred-to: <this BRD>` and a row on
   another child's takes `covered-by: <PARENT-KEY>`: never back to the slice that donated it, which
-  recorded that it will not build it, and never to `unallocated`, which no command may write — so a
-  removal never reopens the allocation gate. Every such write lands **before** the deletion, so an
+  recorded that it will not build it, and never to `unallocated`, which `/brd-split` never writes onto
+  a row already carrying a fate — so a removal never reopens the allocation gate. Every such write lands **before** the deletion, so an
   interrupted run leaves an empty folder still on disk and every reading accurate, rather than a key
   naming a folder that is gone. This repair became reachable with the re-cut, which is what made a
   child that a ledger still names able to end a run claiming nothing; where the read finds no such

@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: Release-notes drafting. Reads the resolved Product Requirements Document from the resolved folder in the specs tree, optionally grounds in the recorded refs' diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to publish wherever release notes are published.
+description: Release-notes drafting. Reads the Product Requirements Document from its PRD folder in the specs tree — the folder the address resolves to, or the one above it for an Epic address — optionally grounds in the recorded refs' diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to publish wherever release notes are published.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -17,7 +17,7 @@ release-notes body — a plain **Category:** label + `### title` + prose for the
 wrapper), runs a light style gate, and writes the draft to a persistent destination for the
 user to paste wherever their release notes are published.
 
-Usage: `/release-notes <ADDRESS> [--version <v>] [--no-docs] [--docs <path>]`. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. Here `<ADDRESS>` is a key or an
+Usage: `/release-notes <ADDRESS> [--version <v>] [--no-docs] [--docs <path>]`. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` *Procedure* step 1 (*Flags first*), which resolves it; this command only has to recognise it and pass the invocation through. Here `<ADDRESS>` is a key or an
 `@<path>` naming a folder in the specs tree.
 
 - **`--version <v>`** (optional) — the release this note belongs to. Absent, the grill asks once;
@@ -39,6 +39,24 @@ This command makes **zero external API calls** and **never writes into the docs 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Carry the resolved `path`, `kind` and
    `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command.
+
+   **Place the folder, and carry the PRD folder and the focus.** An `EPIC-` address drafts the note
+   for one Epic, and its folder holds no `prd.md`: the PRD it belongs to is the folder above it. So
+   place the resolved folder at a level as `workflows-core:addressing` §4.1 does — by its prefix,
+   never by the kind it asserts, which on a BRD-route slice is `brd` — taking its container test
+   first, and carry forward:
+   - `<PRD>` — the **PRD folder's** `key`, read off its carrier (§4): the resolved folder's own where
+     §4.1 places it at PRD level, its parent's where §4.1 places it at Epic level. That folder is
+     **the PRD folder** — what every later phase means by *the resolved PRD folder* — and Phase 3
+     reads it.
+   - `focus_key` — the resolved folder's `key` where §4.1 places it at Epic level, `null` where it
+     places it at PRD level.
+
+   A folder §4.1 places as a BRD container holds no PRD — a BRD's PRDs are authored in its `PRD-`
+   slices — and one it places at no level is not guessed at. Stop on either here, before Phase 1 asks
+   anything, with the same `key dir not found` rule, naming the folder and what it carries and, for a
+   container, each slice under it — found by the positive test §4.1 names — as an address to
+   re-enter.
 
    With no positional address, stop with
    `RELEASE_NOTES_NEEDS_KEY: /release-notes needs a PRD or Epic address — a key, or an @<path> to its folder.` —
@@ -135,31 +153,66 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 ## Phase 3 — Read the PRD folder
 
-**Read the resolved folder directly** — its `prd.md` for the product content, and that alone when diff grounding is OFF; the PRD plus the folder's `implementation.md` when ON, which is where the refs the diff grounding needs are recorded (`workflows-core:implementation-format` §1).
+**Read the PRD folder directly** (Phase 0 step 1) — its `prd.md` for the product content, and, where `focus_key` is set, the Epic folder the address named and what it holds; that alone when diff grounding is OFF. When ON, read the `implementation.md` records too, which is where the refs the diff grounding needs are recorded (`workflows-core:implementation-format` §1) — `/dev-workflows:implement` writes one into the folder of the unit it implemented, an Epic's or the PRD's (that §1, which also says whose a block an earlier run left in the PRD folder is), so read the focus Epic's own where `focus_key` is set, and otherwise the PRD folder's and every `EPIC-` folder's under it, wherever one stands.
 
-**Resolve the diff sources — two of them, merged.** **Only when diff grounding is ON** (Phase 1): it is opt-in and advisory here, so a run that declined it skips this step entirely and grounds its prose in the PRD alone. When it is on, invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4:
+**Resolve the diff sources — two of them, merged.** **Only when diff grounding is ON** (Phase 1): it is opt-in and advisory here, so a run that declined it skips this step entirely and grounds its prose in the PRD alone. When it is on, invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4. **Both steps below run inside a clone, so build the slug→clone map here, once** — the map Phase 4 resolves against, by the recipe stated there: for each top-level directory under each entry of `$REPOS_PATH`, `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, a trailing `.git` stripped, the URL's last path segment taken as that clone's slug. Step 2's `git log` runs in the clone, and so does the `git rev-parse` that resolves a block's abbreviated `commit:` to the full SHA a read-set comparison takes (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1). Phase 4 resolves each in-scope slug against this same map rather than rebuilding it, and is where the operator settles a slug it matches to no clone; until then such a slug is scanned in no repository and compared in none, and nothing under it has been read:
 
-1. **The record.** Read `implementation.md` in the resolved folder. **Read only the blocks appended since the last section was written to `release-notes.md`** — a second release must not re-describe the first one's work, and with no imported release field that file's own last-written date is the only honest boundary. **Name the blocks this run used**, so a wrong boundary is visible rather than silent.
+1. **The record.** Read the `implementation.md` records named above. **Read only the blocks no earlier note covers** — a second release must not re-describe the first one's work, and the notes already in `release-notes.md` are the only honest boundary. `workflows-core:implementation-format` §4 fixes it per record, by what each earlier note read and never by a date: a block is skipped only where every commit it records is in the read set of an earlier note covering its record, a note for the PRD covering every record and a note for an Epic that Epic's alone, each note's scope and read set read off the comment above it (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1, which also says what a note with none counts as). So a note drafted for one Epic moves no other Epic's boundary. An earlier note that records no read set bounds by its date instead, §4's one fallback: list every block that date rule dropped, and every commit it dropped by the commit's own date, beside the ones used — a commit dropped with a block recording it is accounted for by that block's listing and is not written out again (that same §4). A ref two of these records name — the same repository and the same commit — is one ref, counted once (that same §4). **Name the blocks this run used**, so a wrong boundary is visible rather than silent.
 2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
    repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
-   already holds:
+   already holds, with the `git log` command `workflows-core:implementation-format` §4 gives: one
+   `--grep` per token, each matching only as a whole key. The tokens — keys and `workitem_key`s —
+   are the ones §4 names for this run's scope — the focus Epic's where `focus_key` is set, and,
+   where it is null, **the PRD folder's and every `EPIC-` folder's**, since a whole-key match on the
+   PRD's key does not reach the Epic keys `/product-workflows:epics` mints by extending it, and
+   never reached an Epic's `workitem_key` — each read off a folder this run resolved or listed;
+   **nothing is parsed out of a commit message.** This is what finds work the plugin did not do — a commit written by hand
+   after a session ended, a colleague's push, a follow-up nobody ran a command for.
 
-   ```
-   git -C <repo> log --grep='<key>' --grep='<workitem_key>' --extended-regexp --regexp-ignore-case
-   ```
-
-   The keys come from the resolved folder's own `key:` and its `workitem_key`; **nothing is parsed
-   out of a commit message.** This is what finds work the plugin did not do — a commit written by
-   hand after a session ended, a colleague's push, a follow-up nobody ran a command for.
+   **The note boundary binds this source too** (§4): drop every commit whose SHA a block in the
+   records read names, covered or not, and every commit in the read set of an earlier note covering
+   a record whose token it matched — and nothing else, save what §4's date fallback drops and this
+   run lists. Otherwise a covered block's commits, and every hand-made commit an earlier note
+   described, come back as unrecorded work.
 
 **Merge and dedupe by SHA.** Anything the scan finds beyond the recorded blocks is reported as
 **unrecorded work**, named as such with its commits listed: folding hand-made commits silently into
 the recorded set would make the record look more complete than it is.
 
+**Carry the merged set forward as this run's *provisional* read set** — every commit taken from a
+block and every commit the scan kept, by repository. **It is provisional because nothing here has
+opened a diff**: the repositories are resolved to clones in Phase 4 and their diffs read in Phase 5,
+and what Phase 8 writes into the scope comment is the set Phase 5 **settles**, which is what bounds
+a later run. A commit enters that settled set only where its diff was **read** — its repository
+resolved to a clone, the element carrying it resolved there, and the commit itself resolved in that
+clone — so nothing Phase 5's drop list removes reaches it, whatever a block or the scan said of
+them; that list is the authority on which routes leave a commit unopened, and is not restated here. Writing a
+commit this run did not open would lose that work for good: a later run drops every commit an
+earlier note recorded as read, so no note would ever describe it
+(`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1 — *"A commit the run could not resolve
+was not read and is not written, so a later run reads it again"*). Phase 5 adds to it each SHA a
+`diff-summarizer` summary names its key-commit fallback as having drawn on; those three are the
+whole of what can enter it (that same §1, which fixes the 12-character form every entry is written
+in).
+
 **Report the scan's own reach.** Say **how many commits it scanned and how many matched**. Only a
 commit whose message names the key is findable, and no convention compels a human to follow one — so
 a zero-match scan in a repository that has commits is a signal about the commit convention
 (`docs/reference/commit-convention.md`), not proof that no work happened.
+
+**On a repository the scan left at zero matches, run §4's report-only unanchored probe** — zero
+**before** the note boundary drops anything, since a repository where the whole-key `--grep` matched
+and an earlier note had already read every match is one whose work is fully reported rather than
+one the scan could not reach, and reading the count after the drop would fire the probe there — and
+print what it matched, in the words that section gives — *"may name this key inside a branch name —
+inspect by hand"*. Printing is the whole of it: none of those commits is handed to
+`diff-summarizer`, none joins this run's read set (the carry above names its three sources, and this
+is not one), and none joins a drop set, so the note this run appends covers not one of them. **The
+whole-key scan will not match them on a later run either** — carrying the key only inside a branch
+name is exactly what it cannot see — so what re-reports them is this same probe, and only while
+that repository is still at zero whole-key matches: one commit there whose **message** carries one
+of this run's tokens — a body line or a `Work-Item:` trailer as readily as a subject, since the scan
+matches anywhere in a message (§4) — silences the probe and leaves them unreported.
 
 Hand each resolved ref to `diff-summarizer` as a `refs[]` element — `{branch_from, branch_to, title}`,
 the shape its Inputs declare for `refs[]`, `title` optional — taken on the pure-local-git path.
@@ -167,17 +220,16 @@ the shape its Inputs declare for `refs[]`, `title` optional — taken on the pur
 repeated inside an element. No URL, no host classification, no `gh` requirement.
 
 
-When `focus_key` is set (the address resolved to an Epic folder), scope the **Phase 6 render input**
-to that `EPIC-` folder and what it holds — its `epic.md`, `specification.md`, `design.md` and
-`implementation.md`; there is no Story / Sub-task level beneath it — so the
-release note covers that Epic's user-facing changes rather than the whole PRD. This
-scopes only what Phase 6 renders; it does not mutate the stored handoff that other
-phases read. When `focus_key` is null, the draft covers the whole ticket/PRD exactly as
-today.
+When `focus_key` is set (Phase 0 step 1 — the address named an Epic folder), scope the **Phase 6
+render input** to that `EPIC-` folder and what it holds — its `epic.md`, `specification.md`,
+`design.md` and `implementation.md`; there is no Story / Sub-task level beneath it — so the release
+note covers that Epic's user-facing changes rather than the whole PRD. This scopes only what Phase 6
+renders; it does not mutate the stored handoff that other phases read. When `focus_key` is null, the
+draft covers the whole ticket/PRD exactly as today.
 
-If the folder is missing or holds no PRD, surface `choices: ["Re-enter key", "Cancel"]`.
+If the PRD folder holds no PRD, surface `choices: ["Re-enter key", "Cancel"]`.
 
-Capture `change_type` and `release_notes_category` from the resolved folder's `prd.md`, where it
+Capture `change_type` and `release_notes_category` from the PRD folder's `prd.md`, where it
 carries them (null when absent). **Read them from the PRD, which is the reversal**: these were
 dropdowns set outside the plugin and returned by an import, so this step used to read the import and
 was told explicitly *not* to read the authored PRD. Nothing returns them now, and the PRD is the only
@@ -191,7 +243,7 @@ from anything, and the PRD's `release_versions`, where `/create-prd` wrote one, 
 
 ## Phase 4 — Resolve repos (only if diff grounding is ON)
 
-Build a slug→clone map: for each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as the clone's slug. Resolve each in-scope `repo` slug — the ones the Phase 3 implementation record and its commit scan named — against the map: one match → use it; multiple → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last; zero matches → escalate:
+Take the slug→clone map Phase 3 built with the diff sources — this phase and that step run under the same one condition, diff grounding ON, so the map is always in hand here and is never built twice. Resolve each in-scope `repo` slug — the ones the Phase 3 implementation record and its commit scan named — against the map: one match → use it; multiple → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last; zero matches → escalate:
 ```
 choices: ["Skip and continue without its refs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
 ```
@@ -210,6 +262,8 @@ Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent messag
 - `REFRESH_BLOCKED` — escalate per the `Refresh blocked` rule in the same file.
 - `prep.read_only: true` — not a failure. Resolution ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently.
 
+**Settle the run's read set** — Phase 3 carried it provisionally, and this step fixes what Phase 8 writes into the scope comment. **Add** each key-commit fallback's SHAs: where an element came back `resolved_via: key_commits`, its `summary` names every sha it drew on — add those, under that repository. They were read, so a later note must cover them; an element resolved `local_ref` keeps the ref Phase 3 carried for it and adds nothing new here, while a `key_commits` element adds those SHAs and keeps **none** of the ref it was handed — the drop below states that rather than leaving it to be inferred from this sentence. **Drop every provisional commit whose diff nothing opened**, by repository: every commit under a repository that reached no `diff-summarizer` — one Phase 3's map matched to no clone and Phase 4's escalation did not resolve either, the operator having answered *Skip and continue without its refs*; every commit carried by an element returned under `unresolved_prs`, `NO_PRS_RESOLVED` being the case where that is every element of a repository and `PARTIAL` the case where it is some of them; **every commit carried by an element that came back `resolved_via: key_commits`** — that fallback is reached only where the element's own ref is neither a branch in the clone nor a commit in it (`diff-summarizer`, *Key-commit fallback*), which is exactly the state a squash-merged and deleted branch leaves, so nothing opened the commit Phase 3 carried for it however much the fallback then read in its place; and every commit under a repository whose `REPO_MISSING`, `DIRTY_TREE` or `REFRESH_BLOCKED` escalation ended without a summary. **Record what was dropped, by repository and by SHA**, and report it in Phase 8 beside `Blocks used`: those commits were not read, so this run's note does not cover them and the next grounded run reads them again — which is the whole point of dropping them rather than writing them out as read. **Say what that costs on the `key_commits` route, since it is the one that recurs**: the block is re-taken next release and the fallback runs again over the same work, so the note re-describes it. That is work re-described rather than work lost, which is the direction this boundary is built to fail in, and the `Not read:` line is what makes the repetition explicable rather than surprising.
+
 Diff grounding is opt-in and advisory here: a repo the user skips degrades the grounding, never the run.
 
 ---
@@ -225,7 +279,7 @@ Diff grounding is opt-in and advisory here: a repo the user skips degrades the g
 **Resolve `run_phase`.** `/release-notes` runs at two points in a PRD's life, and the
 `release-note-types.md` §4 documentation-link rule depends on which. Reuse the existing signal from
 `workflows-core:cost-emission` §7 — resolve the PRD's specs dir
-by calling `resolve-address <KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), then glob it for `specification.md` and `design.md`. That entry point searches every level §3 bounds and carries §5's legacy fallback; §7 records why this command is one of its adopters.
+by calling `resolve-address <PRD>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), then glob it for `specification.md` and `design.md`. That entry point searches every level §3 bounds and carries §5's legacy fallback; §7 records why this command is one of its adopters.
 A flat glob alone would also be **narrower than the signal this step says it reuses**: §7 defers to
 the specs-dir matching `workflows-core:feedback-emission` and `workflows-core:followup-emission` perform, whose pattern
 already spans both levels.
@@ -322,7 +376,7 @@ Then read the scratch file back as `combined_rendered`.
 
 ## Phase 8 — Write + report
 
-1. **Append** the `combined_rendered` draft to `release-notes.md` in the resolved PRD folder — the one destination Phase 1 derives, laid out as Phase 1 lays it out. Where the file does not exist, create it with its `# Release notes — <KEY> <slug>` title. Where it has no `#` heading for the version this draft is filed under (Phase 1: the resolved version, or `# Unreleased`), add that heading at the end of the file; where that version has no `##` section for the draft's Change Type, add the section at the end of that version's part of the file, which runs to the next `#` heading; then add the draft at the end of that section, which runs to the next `##` or `#` heading. Those are the levels `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1 fixes, and they are why the append lands where it should: a draft's own `### <feature title>` sits below its section, so it never ends one. **The append is the whole write**: nothing already in the file is rewritten, reordered or removed, since every earlier section is an earlier run's note, so there is no question to ask and no option that replaces the file. NEVER write into a docs repo.
+1. **Append** the `combined_rendered` draft to `release-notes.md` in the resolved PRD folder — the one destination Phase 1 derives, laid out as Phase 1 lays it out. Where the file does not exist, create it with its `# Release notes — <PRD> <slug>` title, `<slug>` the PRD folder's. Where it has no `#` heading for the version this draft is filed under (Phase 1: the resolved version, or `# Unreleased`), add that heading at the end of the file; where that version has no `##` section for the draft's Change Type, add the section at the end of that version's part of the file, which runs to the next `#` heading; then add at the end of that section, which runs to the next `##` or `#` heading, the draft's scope comment in the form `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1 gives — its first line `<!-- release-note scope: <KEY> <YYYY-MM-DD>`, `<KEY>` being `focus_key` where it is set and `<PRD>` where it is null, and the date today's; then one `read: <repo> <sha> …` line per repository naming every commit this run read there, 12 characters each, or `read: none` where it read no commit; then `-->` — and the draft on the line after it. The comment records whose work the draft described and what the run read, and is not part of the draft. Those are the levels `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1 fixes, and they are why the append lands where it should: a draft's own `### <feature title>` sits below its section, so it never ends one. **The append is the whole write**: nothing already in the file is rewritten, reordered or removed, since every earlier section is an earlier run's note, so there is no question to ask and no option that replaces the file. NEVER write into a docs repo.
 
 2. **Report:**
    ```
@@ -332,6 +386,9 @@ Then read the scratch file back as `combined_rendered`.
    - Category label: <the value | none — omitted from the draft>
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
+   - Blocks used: <each block by its record and heading date | none>; dropped by §4's date fallback: <each block by its record and heading date, and each commit the date rule dropped by its own date, by SHA, date and subject — a commit dropped with a block recording it is accounted for by that block's listing | none> — on a run with diff grounding on
+   - Not read: <per repository whose commits Phase 5 dropped from the read set, the repository and why — skipped at Phase 4, no clone resolved, `unresolved_prs`, a `resolved_via: key_commits` fallback that opened nothing this run had carried, or an escalation that ended without a summary — and each commit by SHA | none — every provisional commit was read> — on a run with diff grounding on; nothing listed here is written into the scope comment, so the next grounded run reads it again, and on the `key_commits` cause that means this block returns next release
+   - Branch-name probe: <per repository the whole-key scan left at zero matches: each commit it matched, by SHA, date and subject — may name a key inside a branch name, inspect by hand | fired on <repo>, matched nothing | not fired — the scan matched in every repository> — on a run with diff grounding on; nothing listed here was read
    - Style check: <applied N safe fixes | report only (M findings) | skipped — you chose "Skip style check"> — rules: <the checker's rules_source, where it ran><; DEGRADED — Phase 7's reason, where Phase 7 recorded it>
    - Reminder: paste the draft just appended to <the resolved PRD folder>/release-notes.md, under <version | Unreleased> → <## Breaking changes | ## Feature updates | ## Fixes>, wherever your release notes are published — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
 
@@ -468,7 +525,7 @@ current working directory, where it is not the specs repository; no user name is
 - ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation).
 - ZERO external API calls — this run has no forge URL to resolve in the first place: Phase 3 builds `refs[]` from `implementation.md` and the commit scan, and `diff-summarizer` takes a ref's diff with pure local `git`.
 - Every read of the specs tree is read-only.
-- The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block.
+- The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block. The scope comment Phase 8 writes above it names a key and the commits the run read, and is not part of the draft (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1).
 - The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a plain **Category:** label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version — the version is the `#` heading the draft is filed under (Phase 1, `release-note-types.md` §1), which is the only thing that says which release a section belongs to now that the three destinations are three sections of one file. The prohibition survives for the body prose alone. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
 - The category label IS the PRD's `release_notes_category`, used verbatim; when the PRD carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
 - The run has **no worthiness gate**: every PRD is relevant for release notes, so there is no content state in which this command refuses to draft. `relevant_for_release_notes` is retired (`workflows-core:prd-format`) and a value left in an existing PRD is read by nothing. Whether a note is drafted is the decision of whoever runs the command.

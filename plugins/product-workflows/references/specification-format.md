@@ -16,9 +16,12 @@ key: <KEY>                   # this folder's key — must match the folder name
 
 **Unknown frontmatter keys are preserved.** Every command that rewrites this file keeps fields it does not recognise, in place and unmodified — the same rule `workflows-core:prd-format` states for a PRD, and for the same reason: a user's own field must survive a run that did not author it. `workitem_key` is the documented example, and it is reserved rather than special-cased.
 
-Both fields are how the folder asserts its own identity, so that nothing downstream parses a key out
-of a directory name (`workflows-core:addressing` §4). The filename is `specification.md` and carries
-no key: the folder supplies identity, the filename supplies kind.
+`key:` records the folder's key, so that nothing downstream parses one out of a directory name, and
+`kind:` names this document. Neither makes this file the folder's carrier: `workflows-core:addressing`
+§4 reads a folder's kind and key off the folder's carrier, found in §4's order — `brd-link.md` in a
+BRD-route slice, `idea.md` or `prd.md` in an idea-route PRD folder, `epic.md` in an Epic folder —
+and passes over `kind: specification`, so the carrier is never this file. The filename is
+`specification.md` and carries no key: the folder supplies identity, the filename supplies kind.
 
 ## Header
 

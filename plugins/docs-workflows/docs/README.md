@@ -37,11 +37,14 @@ Two pages orient you before you touch a command: [Getting started](getting-start
 
 ## Where the rest lives
 
-This plugin is the documentation half of a family. Three sibling plugins matter to it — two it declares as dependencies, and one whose output it reads without depending on:
+This plugin is the documentation half of a family. Four sibling plugins matter to it — two it declares as dependencies, and two whose output it reads without depending on either:
 
 - **`workflows-core`** — the shared reference corpus every command here loads through the `reference` skill (addressing, the specs-repo git and phase-handoff entry points, model routing, escalation and finding triage, cost/feedback/follow-up emission, docs grounding, doc-structure conventions, the PRD format), plus the `doc-fixer` and `impl-maintenance` agents these commands dispatch. It is a declared dependency, so installing this plugin installs it.
 - **`prose-style`** — the complementary semantic prose pass `docs-style-checker` runs alongside the repo's own linter, and the fallback linter when a repo configures none. Also a declared dependency.
-- **`dev-workflows`** — the pipeline that produces what `/document` reads: the idea, the PRD, the Epics, the specification, the design, and the implementation whose diffs a keyed run summarises. It is *not* a dependency in either direction; this plugin installs and runs without it, against a specs tree someone else filled in.
+- **`product-workflows`** — the product-definition half of the pipeline, which produces the idea, the PRD, the ARD, the specification and the Epics that `/document` and `/release-notes` read.
+- **`dev-workflows`** — the build half, which produces the design and the implementation: the record of what was built, and the commits whose diffs a keyed run summarises.
+
+Neither pipeline plugin is a dependency in either direction; this plugin installs and runs without either of them, against a specs tree someone else filled in.
 
 ## Status
 

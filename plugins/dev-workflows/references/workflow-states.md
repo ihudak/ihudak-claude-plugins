@@ -24,7 +24,7 @@ stated cost of removing the mirror, not an oversight.
 | Open | PM | — | PRD stub |
 | Problem stated | PM | /idea, /create-prd | PRD with Problem/Goal |
 | Usecases defined | PM | /create-prd | PRD with user stories / use cases |
-| Ready for Implementation | PE→Dev | /epics, /specify, /design | Epics defined; each in-scope Epic Refined+ with specification.md AND design.md; coverage complete; ARD (if any) respected; no cross-artifact contradictions |
+| Ready for Implementation | PE→Dev | /epics, /specify, /design | Epics defined, or a broad PRD-level slice — the PRD folder holding a flat specification.md — or both; each in-scope Epic, and the slice where one stands, Refined+ with specification.md AND design.md; coverage complete; ARD (if any) respected; no cross-artifact contradictions |
 | Implementation | Dev | /implement | code in progress (past the readiness gate) |
 | Release Preparation | Dev/PM | /document, /release-notes | docs + release notes |
 | Post GA | PM | — | shipped |
@@ -41,6 +41,16 @@ stated cost of removing the mirror, not an oversight.
 | In Progress | Dev | /implement | code in progress (past the gate) |
 | In Review | Dev | /implement | PRs in review (past the gate) |
 | Closed | Dev | — | merged/done |
+
+**The broad PRD-level slice is read on this ladder too, and its `Open` rung is one it can never
+occupy.** The PRD row above calls the slice *the PRD folder holding a flat `specification.md`*, and
+`/ready` derives its phase on this ladder exactly as it derives an Epic's — but `Open`'s expected
+artifact is an *Epic draft*, an `epic.md`, and the slice is a PRD folder rather than an `EPIC-`
+folder: `/epics` is the only command that writes an `epic.md` and it writes one only into an `EPIC-`
+folder (D6). So the slice's ladder is read from **In Preparation**, and the permanently absent
+`epic.md` is not an artifact it straddles — a slice carrying `specification.md` and `design.md` is
+*Refined*, not the lower rung the straddle rule would otherwise name. Nothing else about the ladder
+changes for it, and an Epic, which can hold an `epic.md`, is read from `Open` as before.
 
 > **Refine — two ways in, one mode.** `/epics` re-refines an Epic that already exists rather than
 > partitioning the PRD again, and it reaches that mode from either end. **Named:** address the

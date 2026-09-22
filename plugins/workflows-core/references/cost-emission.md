@@ -349,13 +349,18 @@ read off its frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4) 
 order to address it at all — re-derivable from disk, like `/release-notes`'s and
 unlike the `target_command` one below:
 
-- **`kind: brd` -> `phase: brd-to-prd`, `role: pm`.** A frame set under a BRD
-  folder is on the BRD-to-PRD route, where `/prd-ground` is the command that
-  reconciles it; spend preparing it belongs to that route's phase.
-- **`kind: prd` or `kind: epic` -> `phase: prd-creation`, `role: pm`.** A frame
-  set under a PRD folder or one of its Epics is the PRD's own design record —
-  `/idea` vendors one there during PRD creation — and an Epic folder sits under
-  its PRD on the same route.
+- **`kind: brd` -> `phase: brd-to-prd`, `role: pm`.** A folder asserting
+  `kind: brd` — a BRD container, or a BRD-route slice, a `PRD-` folder whose
+  `brd-link.md` asserts it — is on the BRD-to-PRD route, where `/prd-ground` is
+  the command that reconciles a slice's frame sets; spend preparing one belongs to
+  that route's phase. The kind decides, not the prefix, so a slice's frame set is
+  `brd-to-prd` although the slice is a `PRD-` folder.
+- **`kind: prd` or `kind: epic` -> `phase: prd-creation`, `role: pm`.** A folder
+  asserting `prd` is an idea-route PRD folder, whose frame set is the PRD's own
+  design record — `/idea` vendors one there during PRD creation — and one
+  asserting `epic` is an Epic folder, which sits under its PRD on that route.
+  **An Epic folder under a BRD-route slice lands here too**: it asserts `epic`,
+  and `/prd-ground` grounds the slice's own `design/`, never an Epic's.
 
 **There is no third branch**, because §3 of
 `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` returns exactly those three kinds

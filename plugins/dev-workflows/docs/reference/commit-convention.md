@@ -26,7 +26,11 @@ was.
 
 It is the `key:` in the frontmatter of the folder you are working in — the same key the folder is
 named for. `/implement` also puts it in the branch name it creates (`<prefix>/<key>-<slug>`), so if
-you are on that branch it is already in front of you.
+you are on that branch it is already in front of you. Working on one Epic, it is that Epic's key
+rather than its PRD's — the key `/implement` writes for an Epic's work, and one the scan finds both
+for that Epic and for its PRD. The scan matches a key only whole — set off from the text around it,
+as the brackets do — so a key run into further letters, digits, `-` or `_`, as in `ACME-77-01-fix`,
+is not found.
 
 ## If you also use a tracker
 

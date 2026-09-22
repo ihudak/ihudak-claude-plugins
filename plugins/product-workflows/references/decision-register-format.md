@@ -28,6 +28,18 @@ supersedes the `[AS#n]` each one settles, reopens what an incoming customer deci
 
 ## 1. Record shape
 
+**The file opens with one line, `# Decision register: <BRD-KEY>`** — the key of the BRD whose folder
+it sits in — and holds its records after that line, one block per record. **Every command that
+creates the file writes that line first**: `commands/brd-interview.md` on the first register it
+creates, whether or not the round recorded anything; `commands/create-prd.md` where it creates the
+register for a roundless `[AS#n]` (§7); and `commands/brd-reconcile.md` where a `--sent` run finds
+no register on file, whether or not it then freezes a `[CD#n]` (its *Freeze the customer decisions*
+phase). **A register holding no record is that line alone**, and it is an ordinary state —
+`/brd-interview` writes it so where a round it records produced no `[VD#n]` or `[AS#n]`, and
+`/brd-reconcile` where the register it creates takes no `[CD#n]` — which every reader treats as a
+register with nothing in it, never as a missing one. A register written before 3.7.0 may lack the
+line, and no reader keys on it: records are found by their own ids.
+
 Each `[VD#n]` and `[CD#n]` carries:
 
 ```yaml
@@ -39,6 +51,7 @@ argumentation: |
   <why — mandatory>
 evidence: [[CG#12], [DG#3]]
 defects: [[CDF#2]]                        # omitted unless the decision turns on a recorded code defect
+settles: [[DEF#4]]                        # [CD#n] only, never a [VD#n]: omitted unless it answers a defect's question
 altitude: product | architecture | implementation
 conditional_on: <BRD-KEY>/<decision-id>   # omitted unless the decision depends on a prerequisite
 status: open | decided | reopened | superseded | withdrawn
@@ -50,12 +63,13 @@ round: 2
 |---|---|
 | `id` | `[VD#n]` or `[CD#n]` — contiguous within its own prefix, assigned once, never renumbered, never reused after a terminal status |
 | `statement` | one sentence, stating the decision itself and not the discussion that produced it |
-| `options_considered` | what was actually on the table, including the one chosen |
-| `chosen` | exactly one member of `options_considered` |
+| `options_considered` | what was actually on the table, including the one chosen — save on a `[CD#n]` whose customer answered outside it (below). **A question put as yes or no, listing no options, records `["yes", "no"]`**; one that listed its options records them as put — the set a customer answering yes or no was offered, written down rather than left for a reader to infer. **A `[CD#n]` answering what put no options records a fixed pair**: an `[AS#n]`, which asserts rather than offers, `["as assumed", "not as assumed"]`; an escalated `[SR#n]`, which sets the package's position against an attack on it, `["as the package states", "as the finding argues"]` |
+| `chosen` | exactly one member of `options_considered` — **or, on a `[CD#n]` only, where the customer answered with none of the options put, their answer quoted after one fixed marker**: `chosen: "outside the options: <the customer's answer, verbatim>"`. `options_considered` then stays exactly as put and is never widened to take the answer in: it records what the customer was offered, and an option added afterwards would claim they were offered what they volunteered. The marker is the only way a `chosen` may name no member, so a reader tells the two cases apart by the field alone. **Quote it so YAML reads it back exactly**: a one-line answer carrying no `"` and no `\` in the double-quoted form above; any other — spanning lines, or carrying either character — as a literal block scalar, `chosen: |`, its first line `outside the options: ` and the answer following verbatim, so the answer's own line breaks and quotes are never escaped or folded. A `[VD#n]` never takes it: an option the operator names joins `options_considered` before it is chosen (`commands/brd-interview.md`, *Put each `[V]` to the operator*) |
 | `argumentation` | why — **mandatory**, §2 |
-| `evidence` | the `[CG#n]`/`[DG#n]` findings the decision rests on, per `workflows-core:grounding-format` §2; the list is what §6 inspects |
+| `evidence` | the `[CG#n]`/`[DG#n]` findings the decision rests on, per `workflows-core:grounding-format` §2; the list is what §6 inspects. **Never omitted: a decision resting on no finding writes `evidence: []`**, the one form, so a record with no evidence is never mistaken for one whose field was lost. The field applies to every decision, so `[]` is a known value — a list with nothing in it — and not the not-applicable case `workflows-core:grounding-format` §2.1 omits a field for. An `[AS#n]` carries its why-no-evidence statement here instead (§7). **A `[CD#n]` copies it**, as `altitude` below is copied and for the same reason — the customer's answer carries no finding list of its own: from the held `[C]` question's own `- **Findings:**` line (`commands/brd-interview.md`, *Hold every `[C]`*) and nothing else in the entry, so `evidence: []` there says the question was put against no finding and never that a line could not be read |
 | `defects` | the `[CDF#n]` code-defect entries this record turns on, per `references/code-defect-log-format.md`; omitted when absent. **Never in `evidence`** — §6's will-change rule inspects that list, and a non-finding id in it would silently change what D19 fires on |
-| `altitude` | which level the decision sits at, so the spec's §7 altitude routing can send it to the right downstream artifact |
+| `settles` | the `[DEF#n]` requirement-defect entries a `[CD#n]` answers — the one the `[C]` question it answers was raised by (`references/interview-tagging.md` §1), or, for a question about a row rejected on a defect, the one it carries (`commands/brd-interview.md`, *Round 1 is generated from the grounding*), copied by `/brd-reconcile` from that question's held entry — its `- **Requirement defect:**` line, and nothing else in it — never inferred from the customer's answer. **Only ever on a `[CD#n]`**: a requirement defect is in the customer's statement and is settled by the customer. Omitted when absent |
+| `altitude` | which level the decision sits at, so the spec's §7 altitude routing can send it to the right downstream artifact. **The test is that artifact**: `product` where the answer is the PRD's to state (`commands/create-prd.md`), `architecture` where it is the ARD's (`commands/create-ard.md`), `implementation` where it is the specification's (`commands/specify.md`) — the three commands that each read the register filtered on the value that is theirs. **A `[CD#n]` copies it** from what its answer answers — the held `[C]` question's own `- **Altitude:**` line, which `commands/brd-interview.md` decides by this same test when it holds the question, or an `[AS#n]`'s field — because the customer's answer carries no altitude of its own (`commands/brd-reconcile.md`, *Freeze the customer decisions*) |
 | `conditional_on` | omitted unless the decision depends on a prerequisite — §5 |
 | `status` | one of the five in §3 |
 | `consumed_by` | the same field, values, and starting-at-`none` rule as `workflows-core:grounding-format` §2, applied to a decision instead of a finding |
@@ -75,8 +89,50 @@ fires on, in the one rule whose whole purpose is that a decision resting on grou
 move says so. The two fields also answer different questions: `evidence` says what established the
 premise, and `defects` says what has to be repaired before the position can be delivered.
 
+**`settles` is neither `evidence` nor `defects`.** `defects` names defects in the *code*, `[CDF#n]`,
+that a position has to repair; `settles` names defects in the *customer's document*, `[DEF#n]`
+(`references/brd-format.md` §3), that the decision answers — and it is what lets `/brd-reconcile`
+resolve each one `resolved-by: <SLICE-KEY>/[CD#n]` (`references/brd-format.md` §4) from a field
+rather than from a reading of the customer's prose.
+
 `options_considered` and `chosen` do not apply to an `[AS#n]`, which is not a choice; §7 accounts
-for all twelve of these fields on an assumption record, one by one.
+for all thirteen of these fields on an assumption record, one by one.
+
+### 1.1 How a record is serialised
+
+The table above fixes the field **names**; this section fixes the **bytes**, for the reason
+`workflows-core:grounding-format` §2.1 gives for a finding and which applies here with more force:
+this file is **parsed by field**, not read as prose — `commands/brd-package.md` restates its
+records into a customer prompt and derives the rounds a BRD has from the `round` values,
+`commands/brd-reconcile.md` matches records to answers and sweeps them by field, and §4 writes
+individual fields in place on a record another run wrote. A writer free to choose between two
+renderings produces a register whose readers disagree about what is in it, and a missed record
+reads downstream as a decision nobody took.
+
+- **One record per block, unfenced**, in the field order the §1 table gives, every key of a block
+  at the same indentation, and **no blank line between one key of a block and the next**. The
+  `# Decision register: <BRD-KEY>` header line stands alone at the top.
+- **A blank line inside a block scalar's content is part of the value, not a boundary**, and §4
+  requires one: a cause is appended to `argumentation` as a **closing paragraph** beneath what the
+  field already holds, and on a `[CD#n]` beneath the customer's quotation — two paragraphs in one
+  literal block scalar, separated by a blank line. A rule that forbade that would force a writer to
+  fold them together, and `references/bundle-packaging.md` §6.3 tells the plugin's words from the
+  customer's by exactly that separation. **So the record boundary needs a positive test rather than
+  the absence of a blank line**: a boundary is a blank line **followed by a line at block
+  indentation** — a key of the next record — where a blank line followed by more indented content
+  is inside the scalar above it. `workflows-core:grounding-format` §2.1 carries the simpler rule
+  safely because nothing appends a paragraph to a finding field; this section has §4 and cannot.
+- **One space after every key's colon — never padding, never alignment**, whatever the longest key
+  in that block happens to be. Alignment is a rendering choice made per block, which makes the
+  bytes of a record a property of its neighbours and defeats a field-anchored scan.
+- **No code fence around a record.** A fenced block reads as an example rather than as data, and
+  the two readers above walk this file for records rather than for examples.
+- **A multi-line value is a literal block scalar** — `argumentation: |`, and `chosen: |` in the
+  outside-the-options form §1 fixes — so the customer's own line breaks and quotes survive
+  unescaped and unfolded, which is what makes a quotation checkable against the package it came
+  from.
+- **A field that does not apply is omitted, never written empty**, per its own row above; the one
+  deliberate exception is `evidence`, whose `[]` is a known value and not an absence (§1).
 
 ## 2. `argumentation` is mandatory
 
@@ -148,6 +204,76 @@ also what the eventual re-decision is argued against under §2: it names what ch
 `argumentation` can say why that change moves the answer — or, just as legitimately, why it does not
 and the original `chosen` stands.
 
+**The cause is written in the record's `argumentation`**, as a closing paragraph appended beneath
+what the field already holds and opening `Reopened <YYYYMMDD>:` — never in place of the reasoning
+the re-decision has to argue against. None of §1's thirteen fields is a cause, and `argumentation`
+is the one that already answers *why*. On a `[CD#n]`, whose `argumentation` is the customer's own
+reason quoted, the paragraph follows the quotation and leaves it exactly as written; its opening
+marker is what tells the plugin's words from the customer's (`references/bundle-packaging.md` §6.3).
+
+**This section names one set — a record's *decision fields*, all thirteen §1 defines — and fixes
+what each of them does when a record already on file is written again.** A re-decision and a
+reversion both write in place, against the record's own id. **A file that needs to name the fields
+of a decision record cites this set, never part of it**: an enumeration written somewhere else is
+an enumeration that omits whichever field mattered on the day it was read, which is how a
+stale-reference sweep came to leave `settles` — the one structured field holding a `[DEF#n]` —
+outside a rule built for exactly that id.
+
+**Seven are written afresh** — `statement`, `options_considered`, `chosen`, `evidence`, `defects`,
+`conditional_on` and `status` — each under the rule §1 gives it, and `evidence` and `conditional_on`
+under §6's will-change rule as well; on an `[AS#n]`, only those of them §7 admits, an assumption
+having no `options_considered` and no `chosen`. **`argumentation` is appended to and never
+rewritten**: what stands in it stays, and both writes go after it. **`round`, on these two writes
+and on no other**, takes the round that produced the position now on record — on a re-decision, the
+round that re-decided it; on a reversion, the round of the position being restored, a propagation
+sweep being no round at all and having none of its own to give — omitted entirely, as §1 requires,
+where the position it names came from no round. That is this section's rule for a record written
+again, and **not** a redefinition of the field: what a record takes when it is **first** written is
+§1's, and a `[CD#n]` takes there the round that raised the question the customer answered
+(`commands/brd-reconcile.md`, *Freeze the customer decisions*). **`consumed_by` returns to `none`**
+on both, because a downstream artifact that drew on this record drew on the position just replaced
+and has to be shown it again — which is exactly
+what §1's starting-at-`none` rule is for, and what lets `commands/create-prd.md`,
+`commands/create-ard.md` and `commands/specify.md` report the record as unconsumed at their own
+altitude. **`altitude` stays**: re-deciding moves the answer, never the level the question sits at.
+**`id` and `settles` stand** — the record's identity, and the `[DEF#n]` the `[C]` question it
+answers was raised by, which the answer's being re-taken does not change. That is all thirteen.
+
+A **re-decision**, taken by the run that reopened the record or by a
+later one, writes its argumentation after the `Reopened` paragraph: why the change moves the answer,
+or why it does not. A **reversion** — `commands/brd-reconcile.md`'s propagation sweep writes
+one, and nothing else does — returns those fields to the position that stood before the prerequisite
+moved it and appends its `Reverted <YYYYMMDD>:` paragraph. Neither replaces the `Reopened` paragraph
+or anything above it, so the record carries the original reasoning, each cause and each answer to a
+cause in the order they happened.
+
+**Where a reversion reads the position it restores, and what it therefore cannot recover.** The
+seven and `round` were written afresh when the position moved, so the record's own fields hold what
+replaced it and no earlier value: **the only place an earlier position survives is
+`argumentation`**, which this section never rewrites — its original reasoning, each `Reopened`
+paragraph and each re-decision's answer to one. A reversion is argued from those paragraphs, and it
+restores only what they establish. **A field they do not establish is not recoverable here**, and no
+value is invented for it: a reversion the record cannot support is not written, the item is not
+recorded `reverted`, and it goes to whoever can settle it — `commands/brd-reconcile.md`'s
+propagation sweep states what that means for its own disposition picker. This is a bound on the
+reversion, not on the sweep's other three dispositions, none of which restores a value.
+
+**A cause from another BRD is named with that BRD's key, in prose.** That is the propagation
+sweep's case: `commands/brd-reconcile.md` reopens a dependent's record on a `[CD#n]` the
+prerequisite's own reconciliation froze, and its `Reopened` paragraph names it `<BRD-KEY> [CD#n]`,
+the one qualified prose spelling `references/bundle-packaging.md` §6.2 fixes. The same sweep's
+`reverted` and `withdrawn` writes name the changed id the same way, in a closing paragraph opening
+`Reverted <YYYYMMDD>:` or `Withdrawn <YYYYMMDD>:` — the reason a withdrawn record carries (§3), in
+the withdrawn case. **Never §5's slash shape, `<BRD-KEY>/[CD#n]`**: that is the spelling of a
+structured field whose owning authority declares it — `conditional_on` is the one in this register —
+and `references/bundle-packaging.md` §6.2's relation 1 reads it as qualified only in a field its
+table lists. No sweep write names the changed id in one of those fields: a `reverted` write that
+restores `conditional_on` restores the value the record held, in that field's own shape, and names
+the changed id only in its `Reverted` paragraph. A bare `[CD#n]` names a record of the register it
+sits in — the wrong one where this register holds that id, none where it does not — and this
+register ships in its own BRD's package, whose citation check resolves a bare id the same way. An
+unnamed cause and a cause naming the wrong record fail alike: neither says what changed.
+
 The rule's purpose is not ceremony. A register that can be reopened freely is a register whose
 `decided` status means nothing, and a customer who signed off on a set of decisions signed off on
 something that can drift underneath them. Bounding reopening to two external causes is what makes
@@ -200,18 +326,20 @@ Three resolutions, and exactly three:
 | Make it explicitly conditional on the prerequisite | `conditional_on: <BRD-KEY>/<decision-id>` |
 | Defer it until the prerequisite ships | `status: open`, with the blocking prerequisite named |
 
-Two things the rule does not say. It does **not** forbid a `will-change` finding in an `evidence`
+Three things the rule does not say. It does **not** forbid a `will-change` finding in an `evidence`
 list — a decision resting on one `current` finding and two `will-change` ones is not caught, because
-the `current` finding is ground that holds. And it is **not** satisfied by deleting the
-`will-change` finding from the list: a decision whose evidence was thinned until the rule stopped
-firing rests on exactly what it rested on before, minus the record of it.
+the `current` finding is ground that holds. It does **not** fire on `evidence: []`: a decision that
+rests on no finding rests on no `will-change` finding either, and "every finding in the list" is not
+read as true of an empty one. And it is **not** satisfied by deleting the `will-change` finding from
+the list: a decision whose evidence was thinned until the rule stopped firing — to nothing, or to
+something — rests on exactly what it rested on before, minus the record of it.
 
 ## 7. Assumptions — `[AS#n]`
 
 An `[AS#n]` records **something the package asserts without evidence.** It is not a decision: nothing
-was chosen, so nothing was weighed. It uses the same twelve fields as §1, and because `/brd-package`
+was chosen, so nothing was weighed. It uses the same thirteen fields as §1, and because `/brd-package`
 puts every open one of them in front of the customer (below), which fields apply is not a
-detail an author may settle for themselves. All twelve are accounted for here.
+detail an author may settle for themselves. All thirteen are accounted for here.
 
 | §1 field | On an `[AS#n]` |
 |---|---|
@@ -224,6 +352,7 @@ detail an author may settle for themselves. All twelve are accounted for here.
 | `altitude` | **As-is**: an assumption sits at a level like anything else, and the spec's §7 routing needs it for the same reason |
 | `conditional_on` | **As-is**, and omitted when absent: an assumption can rest on a prerequisite's decision exactly as a position can, and §5's sweep must be able to reach it for exactly the same reason |
 | `defects` | **As-is**, and omitted when absent: an assumption can turn on a known code defect exactly as a position can, and the customer who reads the assumption needs the same access to what would have to be repaired |
+| `settles` | **Not applicable.** An assumption answers no question, so it settles no requirement defect; a customer who confirms one does so in a `[CD#n]`, which carries `settles` only where the question it answers was raised by or carries a defect |
 | `status` | **Narrowed vocabulary**, from §3's five: an `[AS#n]` reaches `open`, `superseded` and `withdrawn` only. `decided` cannot apply — an assumption is never settled by being chosen; when the customer confirms it, the confirmation is a `[CD#n]` and the assumption is `superseded` by it (below). `reopened` follows `decided`, so it is unreachable too |
 | `consumed_by` | **As-is**, with the same starting-at-`none` rule |
 | `round` | **As-is where there is one, and omitted where there is not.** An assumption recorded in an interview round carries that round. One recorded outside any round — `/create-prd` writing a customer-authority gap at PRD authoring (below) — **omits the field entirely**, per `workflows-core:grounding-format` §2.1's rule that a field which does not apply is omitted rather than written empty. It is not given the last closed round's number, which would claim it was in front of whoever answered that round, and not given an invented value, which `/brd-package` would read as a round and demand a round record for |

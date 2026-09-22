@@ -97,13 +97,17 @@ token, so `--redo` would arrive as the address and `--baseline <path>` would sup
    folder is read**. An effort proposal for a container is the umbrella rather than a slice's own
    estimate, and the two are different documents priced from different inputs.
 
-   **The test is the directory prefix, never the folder's asserted `kind:`** — `/brd-split` writes
-   `kind: brd` into the `brd-link.md` inside the `PRD-` slice folder it carves, so a slice *asserts*
-   `brd` while being exactly the folder this command must accept; an asserted-kind gate would refuse
-   every slice and accept nothing. Where the folder resolved through `workflows-core:addressing` §5's
-   legacy unprefixed fallback there is no prefix to test: answer the question by the positive-evidence
-   test in `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1 — the shared authority
-   the family's four other container refusals already cite, and not restated here.
+   **The test is the directory prefix, never the folder's asserted `kind:`** — a prefix as
+   `workflows-core:addressing` §4.1 defines one, the name beginning `<KIND>-<the resolved key>-`,
+   so a legacy idea-route folder keyed `BRD-12`, named `BRD-12-checkout/`, carries no prefix and is
+   not refused as a container by its name. `/brd-split` writes `kind: brd` into the `brd-link.md`
+   inside the `PRD-` slice folder it carves, so a slice *asserts* `brd` while being exactly the
+   folder this command must accept; an asserted-kind gate would refuse every slice and accept
+   nothing. Where the folder carries no prefix — resolved through
+   `workflows-core:addressing` §5's legacy unprefixed fallback, or an unprefixed folder an `@<path>`
+   named — there is no prefix to test: answer the question by the positive-evidence test in
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1 — the shared authority the
+   family's four other container refusals already cite, and not restated here.
 
    Enumerate the slices by `/brd-split` Phase 0's **positive test**: an immediate subdirectory
    carrying a `brd-link.md` whose `parent:` names this BRD. Stop:
@@ -573,8 +577,9 @@ substitutions, not rewordings (`workflows-core:escalation-rules`, *Choice lists 
 verbatim*).
 
 **`<merge-clause>` is resolved from the `Phase handoff:` line this run actually emitted**, per
-`workflows-core:next-phase-offer`'s resolution table — only two of its rows name a branch, and a
-declined handoff opened no pull request. `/product-workflows:brd-proposal` runs `require-on-main`
+`workflows-core:next-phase-offer`'s resolution table — a row names a branch only where that outcome
+committed one, which the declined and gate-failed rows did not, and a declined handoff opened no
+pull request. Read which rows those are off that table rather than off this sentence. `/product-workflows:brd-proposal` runs `require-on-main`
 against the `proposal.md` this run has just written, which is why that one option carries the
 placeholder and the two tier-raising options do not: both of those gate on `prd.md`, which this run
 does not write.

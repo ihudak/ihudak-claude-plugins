@@ -7,7 +7,7 @@ The `dev-workflows` plugin family charges every cost-emitting run to a `phase` a
 None of the six commands in this plugin advances a product increment, so none of them mints a lifecycle phase of its own. Two mechanisms get them a label anyway:
 
 - **Inheritance.** `/feedback`, `/prompt`, `/prompt-brainstorm` and `/prompt-grill-me` resolve the **target command** whose output they are correcting or remarking on, and take that command's own fixed `phase`/`role` pair. A `/prompt` correcting a `/specify` output is priced as `specification`/`pe`; one correcting a `/design` output as `planning`/`dev`. The cost of fixing a phase's output belongs to that phase.
-- **Inference from the folder.** `/frames` reads the `kind` of the folder it resolved and charges accordingly — a BRD folder's frame set to `brd-to-prd`/`pm`, a PRD or Epic folder's to `prd-creation`/`pm`.
+- **Inference from the folder.** `/frames` reads the `kind` of the folder it resolved and charges accordingly — a frame set in a folder asserting `kind: brd`, a BRD container or a BRD-route slice, to `brd-to-prd`/`pm`, and one in a folder asserting `prd` or `epic` to `prd-creation`/`pm`, an Epic folder under a slice included.
 
 `/statusline` emits nothing at all: it sets a configuration value rather than running a task.
 
@@ -15,11 +15,11 @@ The three phases those two mechanisms can land on directly are described below. 
 
 ### prd-creation
 
-Role `pm`. Reached by `/frames` when the folder it resolved is a PRD or Epic folder, and by any of the four correction commands whose target command emits it. Being in this phase means the PRD does not yet have a merged specification or design — the work underway is idea refinement or PRD authoring.
+Role `pm`. Reached by `/frames` when the folder it resolved asserts `kind: prd` or `kind: epic` — an idea-route PRD folder, or any Epic folder, one under a BRD-route slice included — and by any of the four correction commands whose target command emits it. On either path, being in this phase means the spend is the PM's product-definition work on a PRD or one of its Epics — refining an idea, authoring the PRD, or indexing the frame sets that are the folder's own design record — and it says nothing about how far that folder has come: `/frames` lands here on a folder already holding a merged specification or design as readily as on one holding neither.
 
 ### brd-to-prd
 
-Role `pm`. Reached by `/frames` when the folder it resolved is a BRD folder, and by inheritance in the same way. Being in this phase means a customer-supplied BRD is somewhere on the BRD-to-PRD route — its inventory being extracted, grounded, split, decided, packaged, or reconciled.
+Role `pm`. Reached by `/frames` when the folder it resolved asserts `kind: brd` — a BRD container, or a BRD-route slice, though the slice is a `PRD-` folder — and by inheritance in the same way. On either path, being in this phase means the spend belongs to a customer-supplied BRD's route to its PRDs — its inventory being extracted, grounded, split, decided, packaged, or reconciled, or a frame set in one of its folders being indexed — and, as under *prd-creation*, nothing about how far the folder has come: a slice `/frames` indexes may already hold its PRD.
 
 ### plugin-feedback
 

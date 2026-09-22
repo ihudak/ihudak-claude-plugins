@@ -114,10 +114,11 @@ So, canonically:
 - **A field that does not apply is omitted, never written empty** — `class` and `cites` on a
   `[CG#n]`, `cites` on a `[DG#n]` of class 1, 2 or 3, `commit` on a `[DG#n]` of class 1, 2 or 3,
   `prerequisite` on any finding whose `horizon` is `current`, and `control` on a finding that
-  asserts no absence. An empty value asserts that the field
-  applies and its value is unknown, which is a different claim from the field not applying. §2's
-  `cites` row said "empty otherwise" until this section was written; the two rules met head-on for
-  forty-five lines, and §2 was the one corrected.
+  asserts no absence. On a finding record, an empty value asserts that the field applies and its
+  value is unknown, which is a different claim from the field not applying — a reading this section
+  fixes for finding records only, not for a register that borrows a field name and gives its own
+  empty value a meaning of its own. §2's `cites` row said "empty otherwise" until this section was
+  written; the two rules met head-on for forty-five lines, and §2 was the one corrected.
 
 ```
 - id: [CG#12]
@@ -457,10 +458,11 @@ be a second copy of a path rule, which is how the copies drift.
 `/prd-ground` and by nothing else — `/frames` indexes a set on any route; it never reconciles one.
 `/prd-ground` now reads a `design/` folder as a frame set on both routes: the BRD route's `[BR#n]`
 inventory, and — in this same increment — the idea route's PRD-level `[AC#n]`/`[FR#n]`/`[US#n]`
-inventory. A PRD folder on the `/idea` route holds one whenever that idea's source linked an image the
-reader could open. Grounding it is optional on that route — nothing gates on it — so a set
-`/prd-ground` has not yet been run against is not a gap in this section: it is a run nobody has asked
-for yet, which `/prd-ground` settles the moment an operator invokes it.
+inventory. A PRD folder on the `/idea` route holds one whenever an image that idea's source reaches
+— directly or through a page it links — was taken by `/idea`'s link walk and read by
+`figure-reader`. Grounding it is optional on that route — nothing gates on it — so a set
+`/prd-ground` has not yet been run against is not a gap in this section: it is a run nobody has
+asked for yet, which `/prd-ground` settles the moment an operator invokes it.
 
 **Two commands WRITE a frame set's index, and §6.2 is the one format both write.** `/idea` Phase 4.5
 copies the images it actually read into `<PRD-folder>/design/idea-sources/` and indexes that set;
@@ -478,20 +480,27 @@ make anything read it. **`/frames` is not that capability and must not be read a
 arrived**: it describes frames so that a set *can* be read, and reconciles nothing against any
 requirement. Indexing makes frames readable; grounding makes them `[DG#n]` findings, and only
 `/prd-ground` does the second — on both routes now, since it takes its inventory from a BRD's
-`[BR#n]` rows or, on the idea route, a PRD's `[AC#n]`/`[FR#n]`/`[US#n]` rows. This paragraph exists to
-foreclose the mistake of reading `idea-reader`'s image support, `frame-describer`'s descriptions, or
-either writer's index as itself being that reconciliation: a frame set becomes evidence only once
-`/prd-ground` grounds it, never at the moment it is written or indexed.
+`[BR#n]` rows or, on the idea route, a PRD's `[AC#n]`/`[FR#n]`/`[US#n]` rows. This paragraph exists
+to foreclose the mistake of reading `figure-reader`'s transcriptions, `frame-describer`'s
+descriptions, or either writer's index as itself being that reconciliation: a frame set becomes
+evidence only once `/prd-ground` grounds it, never at the moment it is written or indexed.
 
-**Reading a picture is not design grounding, and both writers do the first without doing the second.**
-`idea-reader` reads the images an idea source links; `frame-describer` reads the frames of a set being
-indexed. Each returns a description of what it saw — as **context**, never as evidence. Neither
-produces a `[DG#n]` or reaches a verifier, so none of this section's *finding* requirements applies to
-them: the index rule above exists because a *filename* is not a reliable statement of what a frame
-depicts, which is the right standard for a finding someone will act on and the wrong one for a
-description whose whole job is to say what the operator's own export shows. What both writers inherit
-from this section is the index obligation alone — because that one is about the directory, which they
-create or repair, rather than about a finding, which neither makes.
+**Reading a picture is not design grounding, and the family's picture readers do the first without
+the second.** `product-workflows:figure-reader` transcribes the images an idea source or a
+customer's BRD links, directly or through a page it links, for `/idea` and `/brd-intake`;
+`frame-describer` reads the frames of a set being indexed. Each returns an account of what it saw,
+and neither account is evidence: `frame-describer`'s, and `figure-reader`'s on the `/idea` route,
+are **context** for a description or a grill, and `figure-reader`'s on the BRD route is the plugin's
+reading of the customer's own image, from which requirements are extracted
+(`product-workflows:brd-format` §1.2). Neither agent produces a `[DG#n]` or reaches a verifier, so
+none of this section's *finding* requirements applies to them: the index rule above exists because a
+*filename* is not a reliable statement of what a frame depicts, which is the right standard for a
+finding someone will act on and the wrong one for an account whose whole job is to say what an image
+the operator or the customer handed over shows. What the two index writers, `/idea` and `/frames`,
+inherit from this section is the index obligation alone — because that one is about the directory,
+which they create or repair, rather than about a finding, which neither makes. `brd/brd-figures.md`,
+which `/brd-intake` writes from `figure-reader`'s transcriptions, is not a frame-set index and sits
+in no `design/` directory, so that obligation does not reach it.
 
 ### 6.2 The frame-set index
 
@@ -514,14 +523,17 @@ written_by: <the command that last wrote this file>
 
 # Frame set: <frame-set>
 
-Every frame this set holds. The set accumulates across runs and across commands, so a row may well
-predate the run that last wrote this file. Each description is the describing agent's own account of
-what the frame shows — **context, not evidence**: what somebody drew, not what anything does.
+Every frame this set holds. The set accumulates across runs and across commands, so a row may well predate the run that last wrote this file. Each description is the describing agent's own account of what the frame shows — **context, not evidence**: what somebody drew, not what anything does.
 
 | Frame | Linked from | What the frame shows |
 |---|---|---|
-| `toggle-01.png` | `notes/dark-mode.md` | <the description, verbatim> |
+| `toggle-01.png` | `attachments/dark-mode.md` | <the description, verbatim> |
 ```
+
+**The paragraph under the heading is one line, and a writer copies it as one line.** An index is an
+artifact a person reads, so `workflows-core:prose-formatting` governs it — never hard-wrap prose —
+whatever the wrap of this reference around it; the template carried the paragraph wrapped at this
+file's width until 1.7.1, and a writer copying it verbatim wrote hard-wrapped prose into every index.
 
 **`index.md` is the name a *writer* writes.** §6.1 lets a *reader* accept whatever name the frame-set
 convention used, because a set exported elsewhere may already carry a manifest under another name. A
@@ -536,9 +548,15 @@ a second writer rebuilds an index the first one authored; it is a record of auth
 of ownership, and no rule anywhere keys off it.
 
 **`Linked from` is provenance, and it is frequently absent.** Where the frame arrived through a link —
-`/idea` vendoring an image an idea source pointed at — it is the original path of the file that carried
-that link, kept as the frame's provenance and **never repointed at the copy**. Where nothing linked it —
-a human exported the frames and dropped the folder in — it is `—`.
+`/idea` vendoring an image that an idea source, or a page it links, pointed at — it names the file
+that carried that link by a path **relative to the folder holding `design/`**: the copy the writer
+vendored of that file (`attachments/dark-mode.md`), or the file itself where it already sat in that
+folder. A writer never writes a path on the operator's machine, which resolves for nobody else who
+reads the record. Where nothing linked the frame — a human exported the frames and dropped the
+folder in — or the file that linked it has no copy in the folder, it is `—`. **A row written under
+the older rule** — `workflows-core` 1.7.0 and earlier, when this column held the linking file's
+original path — may name an absolute path on the operator's machine; step 2 keeps it as it stands,
+as it keeps every described row whose frame is still there.
 
 #### The reconciliation contract
 
@@ -593,9 +611,11 @@ Every writer runs exactly these steps, **after** whatever files it was going to 
    exactly this: three oversized exports returned to the describe set on every future run, with
    nothing about the set having changed.
 3. **Append one row per frame this run accounts for and the index does not, in run order**, after the
-   rows already present, built from that frame's description and its `Linked from` — **transcribed
-   verbatim, never invented**. What a run "accounts for" is the one thing that differs per writer, and
-   the table below is where each writer's answer is recorded.
+   rows already present, built from that frame's description — **transcribed verbatim, never
+   invented** — and its `Linked from` as defined above. A writer that holds no link for the frame
+   writes `—` there; `/frames` holds none for any frame, so every row it appends reads `—`. What a
+   run "accounts for" is the one thing that differs per writer, and the table below is where each
+   writer's answer is recorded.
 4. **A frame in the listing the run accounts for in no way still gets a row** — `—` in `Linked from`,
    and one of **two** literals in the last column. Something the run cannot speak for put that frame in
    the set, or a cap or a failed read stopped the run from looking at it. Omitting it would rebuild the
@@ -648,12 +668,14 @@ never finish.
 
 | Writer | The frames it accounts for | Where a new row's description comes from |
 |---|---|---|
-| `/idea` | each image it copied into `design/idea-sources/` this run | `idea-reader`'s per-image `description` |
+| `/idea` | each image it copied into `design/idea-sources/` this run | `idea-reader`'s per-image `description` — `figure-reader`'s `depicts` sentence for that image |
 | `/frames` | each frame `frame-describer` read for the set this run | that agent's per-frame `description` |
 
-Neither invents one. An image `/idea`'s reader never opened is not copied and is accounted for nowhere;
-a frame `/frames` could not describe, or did not reach before its cap bit, is accounted for nowhere
-either. Both land on step 4, and both are reported.
+Neither invents one. An image `/idea` never had transcribed is not copied, so it reaches step 4
+only as a copy an earlier run or a person left in the set **without a row** — one with a row is
+preserved at step 2 — and this run accounts for that copy nowhere; a frame `/frames` could not
+describe, or did not reach before its cap bit, is accounted for nowhere either. Both land on step 4,
+and both are reported.
 
 ### 6.3 The four reconciliation classes
 

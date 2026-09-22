@@ -370,8 +370,9 @@ This phase produces one thing: a **placement** — for each `[BR#n]` in the set 
 
 ### Step A — resolve what the instruction determines, asking nothing
 
-Read each unallocated row's `text` and `source_anchor` from `brd/brd-inventory.md` and place every
-row the instruction plainly determines. **This step raises no prompt of any kind.** It is
+Read each unallocated row's `text` and `source_anchor` from `brd/brd-inventory.md`, each cell
+decoded (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.3), and place every row the instruction
+plainly determines. **This step raises no prompt of any kind.** It is
 `workflows-core:grilling-technique`'s fact-vs-decision split applied before the
 grill rather than inside it: a question answerable from the artifact is not a question, and a row
 whose text names what the instruction names is placed, not asked about.
@@ -515,10 +516,14 @@ For every slice Phase 2 confirmed:
    `claims:` — the first two are how the new folder asserts its own identity from the moment it
    exists (`workflows-core:addressing` §4), and `brd-link.md` is the folder's only artifact until Phase 3 step 4
    writes its inventory. Then the slice's `[BR#n]`
-   rows as currently proposed. This is provisional: Phase 4's walk is the step that actually moves
-   a row's disposition, and a row proposed here for this child but resolved differently there (for
-   example rejected instead) is removed **from this list** at that point, never left to disagree
-   with the ledger. **Only the `claims:` entry and the inventory row step 4 copies for it are
+   rows as currently proposed, spelled as `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1
+   fixes — each a double-quoted bracketed id, one to a line. **Wherever a later step of this
+   command writes the list — adding to it or withdrawing from it — it writes the whole list again in
+   that spelling**, every entry already there included, so a list an earlier release spelled
+   otherwise is rewritten the first time this command touches it (§2.1). This is provisional:
+   Phase 4's walk is the step that actually moves a row's disposition, and a row proposed here for
+   this child but resolved differently there (for example rejected instead) is removed **from this
+   list** at that point, never left to disagree with the ledger. **Only the `claims:` entry and the inventory row step 4 copies for it are
    withdrawn — the ledger row step 5 seeds is not.** A ledger row is never deleted
    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), so the child keeps an
    **orphan row** for that `[BR#n]`, and Phase 4's reconcile step writes it the terminal
@@ -527,22 +532,35 @@ For every slice Phase 2 confirmed:
    claim was made and withdrawn; leaving it `unallocated` would block that slice's own §4 gate
    forever, and with it every command that gates on the slice being fully allocated.
 
-   **On the re-cut path all of that is unchanged and still exactly true.** Phase 4's walk is still the step that actually moves a row's disposition — there it is Step 2R — so a slice this run keys as a receiver holds a provisional `claims:` entry until that walk writes the row, exactly as any other confirmed slice does. **The seeding does not change either, and this is the sentence a reader will get wrong.** Step 5 still writes one `unallocated` ledger row per claimed `[BR#n]`, and that row is `unallocated` because it is **a new row born in the initial state — never an existing row returned to it**, which no command may write (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). **State it in that general form and not as "a new row on a new ledger"**, because the receiver need not be a slice this phase keys: where the confirmed target is a **standing** child, this phase writes nothing for it at all and the new `unallocated` row is written onto that child's **existing** ledger by Phase 4's reconcile step instead. Both are rows that did not exist before, and neither is a row moved backwards, which is the whole reason the re-cut leaves §4's gate intact: the donor's row moves from one terminal disposition to another, and the receiver's row is born in the state every ledger row is born in. **That first half is a guarantee bought in Phase 0 and not an assumption made here**, which is worth saying because a standing child's ledger is exactly where a row for that `[BR#n]` could already be: step 9a's second per-row clause makes a child already holding a ledger row for a candidate's `[BR#n]` ineligible as that row's receiver, so the row this step or Step 3 seeds onto a standing receiver is always the first row that ledger has ever held for that id (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2). Without that clause the sentence above would be false on an ordinary tree, and the alternatives are the two the clause exists to forbid — `unallocated` written over a terminal row, or a claim added to a row that names somebody else.
+   **On the re-cut path all of that is unchanged and still exactly true.** Phase 4's walk is still the step that actually moves a row's disposition — there it is Step 2R — so a slice this run keys as a receiver holds a provisional `claims:` entry until that walk writes the row, exactly as any other confirmed slice does. **The seeding does not change either, and this is the sentence a reader will get wrong.** Step 5 still writes one `unallocated` ledger row per claimed `[BR#n]`, and that row is `unallocated` because it is **a new row born in the initial state — never an existing row returned to it**, which no command may write on a slice's ledger (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). **State it in that general form and not as "a new row on a new ledger"**, because the receiver need not be a slice this phase keys: where the confirmed target is a **standing** child, this phase writes nothing for it at all and the new `unallocated` row is written onto that child's **existing** ledger by Phase 4's reconcile step instead. Both are rows that did not exist before, and neither is a row moved backwards, which is the whole reason the re-cut leaves §4's gate intact: the donor's row moves from one terminal disposition to another, and the receiver's row is born in the state every ledger row is born in. **That first half is a guarantee bought in Phase 0 and not an assumption made here**, which is worth saying because a standing child's ledger is exactly where a row for that `[BR#n]` could already be: step 9a's second per-row clause makes a child already holding a ledger row for a candidate's `[BR#n]` ineligible as that row's receiver, so the row this step or Step 3 seeds onto a standing receiver is always the first row that ledger has ever held for that id (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2). Without that clause the sentence above would be false on an ordinary tree, and the alternatives are the two the clause exists to forbid — `unallocated` written over a terminal row, or a claim added to a row that names somebody else.
 4. **Write the child's `brd/brd-inventory.md`** — the subset of *this* BRD's inventory rows the
    `claims:` list above names, copied row-for-row (`id`, `text`, `source_anchor`, `defects`
-   verbatim), under the `parent:`/`source:` header
-   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1 fixes. **Copy; never re-extract.** Ids are
+   verbatim, each cell exactly as it stands in this BRD's file — or, where that file predates the
+   layout, as it gives the cell, encoded by `brd-format.md` §2.3 as it is written), in the layout
+   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2 fixes, under the frontmatter §2.1 fixes for a
+   slice — `kind: brd`, the child's `key:`, and the `parent:`/`source:` pair, `source:` naming the
+   document this BRD's inventory records in its `document:`, the one its rows were last reconciled
+   against — never the one `brd/brd-link-log.md` opens with, which a rename run that stopped before
+   its Phase 3 leaves naming a document no row was read from. On an inventory carrying no
+   `document:` — one written before 3.7.0 that no 3.7.0 intake has run over, whose Phase 2 writes
+   one — read the log's opening line instead (`brd-format.md` §1.1). **Write it on the base
+   `brd-format.md` §2.1 fixes, relative to this BRD's folder** — `brd/source/<basename>`, `brd/`
+   put before a `document:` value, which is relative to `brd/` — never the `document:` value as it
+   stands.
+   **Copy; never re-extract.** Ids are
    the parent's and stay the parent's, and every `source_anchor` copied here keeps resolving
-   against the parent's `brd/source/` — the child holds no source of its own and never will, which
-   is why §2.1 makes the header carry that path. The child likewise gets no
-   `brd/brd-defect-log.md`: a `[DEF#n]` on a copied row is the parent's, and any reader who has to
-   resolve one while standing on the child looks it up in the parent's log (`brd-format.md` §4).
-   That resolution is always one hop, never a chase: the cap in `workflows-core:addressing` §6 makes this
-   child's parent — this BRD — the source-owning root.
-5. **Write the child's `coverage-ledger.md`** — one row per `[BR#n]` in the inventory just written,
-   `disposition: unallocated` on every one, per
-   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3, whose creator table names this
-   phase as the writer of a slice's ledger. `defects` mirrors the copied inventory row; `evidence`
+   against the parent's files — its `brd/source/`, `brd/source-external/` or `brd/brd-figures.md`,
+   by the anchor's form (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — the child holds no
+   source of its own and never will, which is why §2.1 makes the header carry the parent's document.
+   The child likewise gets no `brd/brd-defect-log.md`: a `[DEF#n]` on a copied row is the parent's,
+   and any reader who has to resolve one while standing on the child looks it up in the parent's log
+   (`brd-format.md` §4). That resolution is always one hop, never a chase: the cap in
+   `workflows-core:addressing` §6 makes this child's parent — this BRD — the source-owning root.
+5. **Write the child's `coverage-ledger.md`** — in the layout
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2 fixes, its `key:` the child's —
+   one row per `[BR#n]` in the inventory just written, `disposition: unallocated` on every one, per
+   §3, whose creator table names this phase as the writer of a slice's ledger. `text` and `defects`
+   mirror the copied inventory row, cell for cell; `evidence`
    is empty — the child has not been ground yet, and this BRD's `[CG#n]`/`[DG#n]` findings were
    derived against this BRD's claim list, not the child's.
 
@@ -637,8 +655,8 @@ instruction placed each on, rather than absorbing them.
 
 1. the disposition it will write, spelled out — `covered-by: <CHILD-KEY>` with the key filled in,
    `covered-here`, or, on the re-cut path, `covered-by: <B-KEY>` with the receiver filled in;
-2. the count, and every `[BR#n]` in the set with the first line of its `text`, so a row that does
-   not belong is visible without opening the ledger;
+2. the count, and every `[BR#n]` in the set with the first line of its `text`, decoded
+   (`brd-format.md` §2.3), so a row that does not belong is visible without opening the ledger;
 3. in `full` mode with `recut_mode` false, that it also adds each of those `[BR#n]` to `<CHILD-KEY>`'s `brd-link.md`
    `claims:` list — the same second write Step 2's **Assign to a named slice** bullet performs, not
    an extra one. **On the re-cut path the writes after the parent's are different ones and are stated as such**: the *donor's* ledger row takes `covered-by: <B-KEY>` second, and any *other* standing child's row naming the donor for the same `[BR#n]` takes it third, in that order (Step 2R) — and no `claims:` list is touched here at all — the donor's entry is withdrawn and the receiver's added by Step 3's reconcile, on this path exactly as on any other;
@@ -737,9 +755,11 @@ resolved early in a one-at-a-time walk does.
 For every row in `coverage-ledger.md` still `disposition: unallocated` when this step opens — every
 row on a run where Step 1 did not fire or was declined, and only the rows Step 1 held back on a run
 where it wrote — present it **one at a time, never batched**, via `AskUserQuestion` — quoting its
-`id`, `text`, `defects`, and `evidence` so the operator has everything needed without opening the
-file. **This is the default, and Step 1 does not displace it**: per-row judgement is what this walk
-is for, and no row is ever written in bulk without an offer that named it being shown and answered.
+`id`, `text`, `defects`, and `evidence`, each cell decoded
+(`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.3), so the operator has everything needed
+without opening the file. **This is the default, and Step 1 does not displace it**: per-row
+judgement is what this walk is for, and no row is ever written in bulk without an offer that named
+it being shown and answered.
 
 **`split_mode: full` — four resolutions:**
 
@@ -903,7 +923,7 @@ wrote; nothing already decided is rolled back.
 
 **Where the set is empty this step offers nothing, and that is an outcome rather than a failure.** Several causes reach it and they are not reported alike; the list below is what has been identified, not a proof that nothing else can empty this set. A run reaches it by every proposed target having been declined, or by no group having been confirmed at all (Phase 2) — an operator who read a proposal naming each row's donor and said no has answered the question the run asked; report every candidate as left with its donor, and continue. It reaches it the same way where **every confirmed target was dropped in Phase 3**, the operator having cancelled mid-key-taking: nothing was created, so nothing can receive, and each candidate is again left with its donor. Or it reaches it because **Step 1's offer already wrote every placed candidate**, which is not that outcome at all: report it as the completed bulk write it is, over the rows Step 1 named. In every case **no stop is taken here, and this command has no no-receiver stop to take** (Phase 0 step 9a). Phase 3 can always key a new slice, so the state in which nothing could ever receive these rows is not one this command can be in.
 
-**Per row, one `AskUserQuestion`, never batched**, quoting:
+**Per row, one `AskUserQuestion`, never batched**, quoting the following, each cell decoded (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.3) as every read of the route's tables is:
 
 - the row's `id` and `text` from **this BRD's own** `brd/brd-inventory.md` — the file that holds every `[BR#n]` whatever fate this BRD's walk gave it (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.1), never the donor's copied inventory, which Step 3 is about to withdraw the row from;
 - **the donor's key**, and the two dispositions that make the row movable at all, **quoted from the two ledgers rather than asserted**: this BRD's row reads `covered-by: <A-KEY>`, and A's own row for that `[BR#n]` reads `deferred-to: <A-KEY>`. Phase 0 step 9a read both to build the candidate set; showing them is what lets the operator see the refusal the move is made against (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.2);
@@ -955,7 +975,7 @@ per claim. **"Re-derive" means reconcile, not rebuild from scratch.** This walk 
 ends with is the union of the rows it already claimed and the rows this walk newly resolved to it,
 minus only the rows this walk moved off `covered-by: <that child>` to something else. A rebuild
 from this walk's resolutions alone would silently strip every earlier claim. **That conclusion is unchanged by the widening and is what the widening is for**: a re-pointed row is one this walk newly resolved to the receiver and one it moved off `covered-by: <the donor>`, so both halves of the union reach it — the receiver gains the claim and the donor loses it — where a set defined by `unallocated` alone would have left the receiver claiming nothing it was given and the donor claiming a row it no longer holds. A row added to a child
-here gains its inventory and ledger rows here, the receiver on the re-cut path included, whether that receiver is a slice Phase 3 keyed this run or a child that already stood (Phase 3 step 3).
+here gains its inventory and ledger rows here, written as Phase 3 steps 4 and 5 write them, the receiver on the re-cut path included, whether that receiver is a slice Phase 3 keyed this run or a child that already stood (Phase 3 step 3).
 
 **The second half of that selector is what puts the re-cut's donor in this step's set, and without it the donor is never visited.** A donor is a pre-existing child this walk took a row *from* and gave none *to*, so a selector reading only *"given a row by this walk"* skips it — and the withdrawal below would then never run against the one child that most needs it, leaving a `claims:` entry and a copied inventory row for a `[BR#n]` whose own ledger row reads `covered-by: <B-KEY>`. Nothing detects that afterwards: a slice's inventory is defined as the subset its `claims:` list names (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1), so the two stale files agree with each other and disagree only with a ledger nobody re-reads. It surfaces later as a slice claiming work it does not own. The relation the selector names is the same one this paragraph already turns on — *the rows this walk moved off `covered-by: <that child>`* — so the two halves cover the two directions a row can travel, and the ordinary path's withdrawn-claim children were always in the set by the first half.
 
@@ -1002,7 +1022,8 @@ seeded `unallocated` in Phase 3 step 5 moments earlier, so the two rules never c
 `split_mode: full` only — `allocate-only` has no children and can create none.
 
 **A child claiming nothing is a folder nothing on this route can act on.** It has an empty
-`brd-link.md` `claims:` list and, beside it, an empty `brd/brd-inventory.md`. **Its
+`brd-link.md` `claims:` list and, beside it, a `brd/brd-inventory.md` holding its header and no
+row. **Its
 `coverage-ledger.md` is not necessarily empty**: a child keeps one orphan row per withdrawn claim
 (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), each already terminal, and both of
 that section's routes to an orphan row reach this set — a child Phase 3 created this run whose every
@@ -1055,7 +1076,7 @@ it does not contradict `coverage-ledger-format.md` §2.
 
 **Where any such row exists, name it in the removal confirmation before the removal is taken**, with its `[BR#n]`, the ledger it sits on, and what that row will be rewritten to. The two pickers above are unchanged and no option is added: this is prose beside the list, printed exactly where a recorded `reason:` is already printed, because the operator answering *remove* is being told that removing this folder rewrites rows on ledgers other than its own — which nothing in either list implies.
 
-**On removal, write, and take both mappings from `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3's orphan table rather than restating them here** (§3.2 quotes that table for exactly this edge): each such row of **this BRD's own** ledger takes `deferred-to: <PARENT-KEY>` — this BRD's own key, which on its own ledger is §3's `deferred-to: <this BRD>`, a live obligation kept and not built now — and each such row of **another child's** ledger takes `covered-by: <PARENT-KEY>`. **Not back to the child that donated the row**, which recorded that it will not build it, and **not `unallocated`**, which no command may write (§3), so §4's gate is never reopened by a removal. Nothing else on any ledger changes and no ledger row is deleted.
+**On removal, write, and take both mappings from `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3's orphan table rather than restating them here** (§3.2 quotes that table for exactly this edge): each such row of **this BRD's own** ledger takes `deferred-to: <PARENT-KEY>` — this BRD's own key, which on its own ledger is §3's `deferred-to: <this BRD>`, a live obligation kept and not built now — and each such row of **another child's** ledger takes `covered-by: <PARENT-KEY>`. **Not back to the child that donated the row**, which recorded that it will not build it, and **not `unallocated`**, which this command never writes onto a row already carrying a fate (§3), so §4's gate is never reopened by a removal. Nothing else on any ledger changes and no ledger row is deleted.
 
 **Every one of those writes lands before the folder is deleted, and the order is stated at the point of use for the same reason Step 2R states its own: an interrupted run must not be left hiding a requirement, and a later edit will otherwise reorder these as a clean-up.** Delete-first, interrupted before the writes, leaves exactly the dangling state this repair exists to remove — a key naming a folder that is not there, with nothing left on the tree to say which folder it was. **Writes-first, interrupted before the deletion**, leaves every affected row already re-pointed at this BRD and an empty child folder still on disk: every reading is accurate, nothing is hidden, and the next run enumerates that folder in Phase 0 step 9, finds it claiming nothing, and offers the removal again — with the read above now finding no row to re-point, which is the "nothing found, nothing written" case below. That run is self-healing where the other order's is not.
 

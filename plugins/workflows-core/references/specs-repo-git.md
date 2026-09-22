@@ -206,7 +206,7 @@ occurs at all.
 
 **Default ref — which ref *represents* that branch.** The name above is a branch name; every ancestry and presence test needs a ref. Probe `git -C "$SPECS_PATH" remote get-url origin`: exit 0 with a non-empty URL → `<default-ref>` is `origin/<default>`; anything else → `<default-ref>` is the local `refs/heads/<default>`.
 
-**The two cases are not one weakened into the other.** With a remote configured, its tracking ref is the only trustworthy record of what merged — the local branch can be stale or ahead, so testing against it would assert something the shared history does not support. With **no remote at all** there is no remote state to be uncertain about: the local default branch *is* the default branch, and testing against it is the correct application of the check rather than a relaxation of it. The producer side has always worked this way — §2.1's push-target probe is explicitly *"a capability probe, never a gate failure"* — and this makes the consumer side agree. **Every test below, and `phase-handoff.md` §3's, uses `<default-ref>`; none names `origin/<default>` literally.**
+**The two cases are not one weakened into the other.** With a remote configured, its tracking ref is the only trustworthy record of what merged — the local branch can be stale or ahead, so testing against it would assert something the shared history does not support. With **no remote at all** there is no remote state to be uncertain about: the local default branch *is* the default branch, and testing against it is the correct application of the check rather than a relaxation of it. The producer side has always worked this way — `phase-handoff.md` §2.1's push-target probe is headed *"run before the choice, and never gated on"*, and a repository with no `origin` is deliberately not a gate failure there — and this makes the consumer side agree. **Every test below, and `phase-handoff.md` §3's, uses `<default-ref>`; none names `origin/<default>` literally.**
 
 **Freshness:** best-effort `git -C "$SPECS_PATH" fetch origin <default>` before
 the ancestry test, skipped entirely when there is no remote. On failure (offline, auth), use the existing local
@@ -410,6 +410,50 @@ the exact loss this reference exists to prevent. The exception is deliberately
 narrow. It applies where control genuinely leaves the command, never as a
 convenience to commit early, and it never licenses splitting the step across more
 than one invocation.
+
+**A run that refuses before it has written anything still runs this tail, and
+each member settles for itself what it does there.** A Phase 0 refusal — an
+unresolvable address, a folder of the wrong kind, a missing argument, a root
+where the command works only on a slice — ends the run before it has a
+deliverable, a branch or a handoff, and nothing above said whether feedback,
+follow-ups, the cost entry and `resume.md` still fire. They do, and the answer
+is each member's own rather than a new condition here:
+
+- **Feedback writes nothing.** `feedback-emission.md`'s `emit-auto` is called
+  by a command's maintenance phase, which a refused run never reaches, and
+  `emit-block` fires at the halt rather than here and excludes an environment
+  or operator halt by its own predicate — which every Phase 0 refusal is.
+
+- **Follow-ups are a no-op.** No signal qualifies, so that phase resolves no
+  target, writes nothing and ends silently (`followup-emission.md` §6).
+
+- **The cost entry is written.** `cost-emission.md` §11 settles it already —
+  *Cost ALWAYS runs* — and it is the member that makes this tail matter on a
+  refusal: the run spent the session's tokens whether or not it wrote a file,
+  and a keyless one has a home under that file's §9 pending ladder. A refusal
+  that skipped the tail would break §11 silently, which is why the tail is not
+  skipped wholesale.
+
+- **`resume.md` is NOT written.** `session-hygiene.md` §1 defines it as the
+  last *completed* position — the phase just finished and the exact next
+  command from the run's own `### Next step` — and a Phase 0 refusal completed
+  no phase and printed no such block. It is overwritten rather than appended,
+  so writing one here would replace a live pointer to a real position with a
+  run that did nothing, and what it replaced cannot be recovered.
+
+- **This step runs**, for the cost entry above. Where the refusal came before
+  `$SPECS_PATH` was resolved, step 1's gate no-ops it silently; where that
+  entry is the only new path, step 4 commits it alone; where nothing is dirty,
+  step 3's `nothing to commit` line stands.
+
+**Nothing here is keyed on whether the run wrote under `$SPECS_PATH`**, which
+is the obvious rule to reach for and the wrong one: the cost entry is itself
+such a write, so that test would drop it on exactly the refusals that spend
+most — one that resolves an address, reads a tree and only then refuses. **And
+it is scoped to a refusal taken before the run has a deliverable, a branch or
+a handoff**, which is what every Phase 0 stop in the family is today; a run
+that stops later has written something, and what its tail does is that
+command's to state.
 
 1. **Gate.** All of §3.1's environment conditions, **plus** the run must not
    carry `specs_git: blocked` from §3.3 G0.

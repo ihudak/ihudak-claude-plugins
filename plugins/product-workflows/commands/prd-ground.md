@@ -50,7 +50,7 @@ behaviour, not the behaviour.
    `PRD_GROUND_NO_PREREQUISITES: --depends-on names a prerequisite BRD whose frozen decisions set a finding's will-change horizon, and <KEY> is on the idea route, which has no decision register to read. Drop the flag and re-run; every finding on this route is horizon: current.`
    `--no-design` —
    boolean, skips Phase 5's `design-grounder` step. `--no-docs` — boolean, turns documentation
-   grounding off for this run (Phase 1 step 0, Phase 4.5). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through. `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
+   grounding off for this run (Phase 1 step 0, Phase 4.5). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` *Procedure* step 1 (*Flags first*), which resolves it; this command only has to recognise it and pass the invocation through. `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
    / `--no-derivation-matrix` — mutually exclusive; absent means "let Phase 8 decide the default".
    `--no-code` — boolean, the **run mode** stated above the phases. Its four refusals are checked
    here, before anything expensive runs:
@@ -132,7 +132,9 @@ behaviour, not the behaviour.
     **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
     fallback, there is no prefix to test.** Answer the root question by **positive evidence, never
     by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1,
-    the shared authority every consumer of this test takes it from, and not restated here.
+    the shared authority every consumer of this test takes it from, and not restated here — and the
+    Epic question the same way, as `workflows-core:addressing` §4.1 places a folder with no prefix:
+    a resolved `kind: epic` is an Epic folder, refused below exactly as an `EPIC-` folder is.
 
     On a root, look for the root-level artifacts this run would have produced under the retired
     two-level model — `grounding/code-grounding.md`, `grounding/design-grounding.md`,
@@ -308,8 +310,9 @@ behaviour, not the behaviour.
    list is step 8i, immediately below — this whole step is the `route: brd` branch, unchanged.)
    From the gated
    `<BRD-dir>/brd/brd-inventory.md`, extract every `[BR#n]` row's `id` and `text`
-   (`brd-format.md` §2 field shape) — this is the `claims` array every dispatch in Phase 5 draws
-   from.
+   (`brd-format.md` §2 field shape), each cell decoded (§2.3 there) so an agent is handed the
+   customer's text rather than the table's encoding — this is the `claims` array every dispatch in
+   Phase 5 draws from.
 
    **Zero rows is a stop, not a quiet completion.** With no claim there is nothing to ground, so
    this run writes no finding; writing no finding means there is nothing to hand off; and
@@ -1093,7 +1096,8 @@ still asserting a capture its own foundation no longer supports. Opening `design
 the same as writing design findings, and this mode's rule below is unchanged: the sweep edits only
 blocks it touched, alongside whatever else this phase already appends to that file on such a run.
 
-**Under `--no-code` this phase writes `design-grounding.md` and nothing else.**
+**Under `--no-code` this phase writes `design-grounding.md` and, on `route: brd`, the coverage
+ledger's `evidence` column (below) — and nothing else.**
 `code-grounding.md` is not opened for writing at all — not for findings, not for the documentation
 divergences below (documentation grounding is off for the run), and not for the derivation matrix
 below (resolved off, or refused outright in Phase 0 when it was asked for explicitly). Every
@@ -1155,6 +1159,37 @@ display or store to `<BRD-dir>/grounding/code-grounding.md`, classed per `workfl
 (`EXISTS | DERIVED | NEW-CAPTURE | NEW-CONFIG | PARTNER | DEFERRED | DEPENDENCY`) — appended there
 rather than as a new file, since it is not in this command's produced-artifact set on its own.
 
+**Write the coverage ledger's `evidence` column — `route: brd` only, and in every mode.** This is
+the last write of this phase, taken once the two grounding files hold everything this run is going
+to put in them, because the column is an index over them and an index built early indexes a file
+that is still changing. Rebuild it over **every** row of `<BRD-dir>/coverage-ledger.md`, exactly per
+`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2: parse the finding set out of
+`grounding/code-grounding.md` and `grounding/design-grounding.md` **as this phase has just left
+them** — §2.1's reading rule, resolved against the blocks actually parsed and never by matching a
+column or a fixed run of leading spaces — and write into each row's `evidence` cell the id of every
+finding whose `claim` names that row's `[BR#n]`, in id order, as `brd-format.md` §2.3 writes a list.
+A row no finding names takes an empty cell, which is the whole of what an orphan row gets
+(`coverage-ledger-format.md` §2). **A finding that names no requirement lands in no cell** — the
+class-1 `[DG#n]`, which reconciles a frame against no requirement at all
+(`workflows-core:grounding-format` §6.3, written with the `claim` spelling
+`agents/design-grounder.md` fixes for it): it is not a gap in the column, and it is not to be
+attached to a row on a resemblance. **Read
+each `claim` for the id it names rather than for the id it opens with** — a hand-edited block may
+carry the id mid-sentence, and a claim naming more than one requirement is reported as the ambiguity
+it is rather than placed in one row (the same test `references/bundle-packaging.md` §6.2 relation 2
+makes of a citation). **Nothing else in the row is touched** — `id`, `text`,
+`disposition` and `defects` are read and written back unchanged, and this command allocates nothing
+and disposes nothing (`coverage-ledger-format.md` §3, §4). **A finding carrying
+`verdict: SUPERSEDED` is listed like any other**: the column indexes and does not adjudicate, its id
+still resolves, and a column filtered by verdict would disagree with the file it indexes. **A count
+that disagrees with the file is a parse failure and is reported as one, never as an absent
+finding** — the same rule `workflows-core:grounding-format` §2.1 states for every reader of these
+records, and the reason the write is a rebuild rather than an append: a run that appended would
+double every id a re-run re-derived. **Under `--no-code` this write still happens**, over the
+`[DG#n]` this run wrote and the `[CG#n]` already on file, because a column that skipped this mode
+would never index a design finding at all. **On `route: idea` it does not happen and is not a
+gap**: that route has no `coverage-ledger.md` to write (the Final report's own ledger line says so).
+
 ---
 
 ## Phase 9 — Handoff
@@ -1180,15 +1215,22 @@ window in which both commands hold an open branch of that name at once. `feature
 resolved in Phase 0; `deliverable_paths` = every file this run wrote or updated under `<PRD-dir>` —
 
 - **`route: brd`:** `grounding/baselines.md`, `grounding/code-grounding.md`,
-  `grounding/design-grounding.md`, `brd-link.md` — **under `--no-code` that set is
-  `grounding/design-grounding.md` and, where Phase 4 persisted a prerequisite, `brd-link.md`**: the
+  `grounding/design-grounding.md`, `brd-link.md`, and `coverage-ledger.md` **where Phase 8's
+  `evidence` rebuild changed it** — **under `--no-code` that set is
+  `grounding/design-grounding.md`, that same conditional `coverage-ledger.md`, and, where Phase 4
+  persisted a prerequisite, `brd-link.md`**: the
   other two are untouched, and naming an unchanged path in a handoff is how a commit comes to claim
-  work it did not do.
+  work it did not do. **The ledger is conditional for that same reason and for no other**: the
+  rebuild rewrites a column a re-run over an unmoved finding set reproduces byte for byte, so a run
+  that changed nothing there declares nothing there — while a first grounding run always changes
+  it, every cell it writes having been empty.
 - **`route: idea`:** `grounding/baselines.md`, `grounding/code-grounding.md`,
   `grounding/design-grounding.md` — **and no BRD-route file, since none exists**: `brd-link.md` is
-  never written on this route (Phase 4's `--depends-on` is refused on it outright, step 2), so it
-  is never a candidate here in either mode. **Under `--no-code`** the set narrows the same way it
-  does on the BRD route and for the same reason: `grounding/design-grounding.md` alone, since Phase
+  never written on this route (Phase 4's `--depends-on` is refused on it outright, step 2), and
+  `coverage-ledger.md` is a file this route has no copy of at all (Phase 8), so neither
+  is ever a candidate here in either mode. **Under `--no-code`** the set narrows for the same reason
+  it does on the BRD route — to `grounding/design-grounding.md` alone, which is narrower than that
+  route's `--no-code` set, since that one still carries the ledger this route does not have — since Phase
   3 and Phase 8 both leave `code-grounding.md` and `baselines.md` untouched under that mode
   regardless of route.
 
@@ -1407,15 +1449,20 @@ cannot conclude the PRD was fully ground; the feedback + cost paths; the `Phase 
 (`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line (`workflows-core:specs-repo-git` §6); the next-step
 recommendation; and end with —
 
-**On `route: brd`** — the ledger line, read fresh from the (unmodified-by-this-run)
-`coverage-ledger.md`, exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
+**On `route: brd`** — the ledger line, read fresh from `coverage-ledger.md` as Phase 8 left it,
+exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
 ```
 ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)
 ```
 
 `/prd-ground` never changes a ledger disposition — that line simply reports where allocation stands
-going into `/brd-split`.
+going into `/brd-split`. **Phase 8's `evidence` rebuild is the one cell this command does write, and
+it moves no figure in the line**: §6 counts rows by their `disposition`, so a column that carries no
+disposition cannot change a count. Report the rebuild separately and by number — how many rows took
+at least one `[CG#n]`/`[DG#n]` id and how many were left with an empty cell — because the second
+figure is the one that says which requirements this grounding run did not reach, and it is the
+figure the customer would otherwise have to infer from an empty column.
 
 **On `route: idea`** — no ledger line at all; there is no `coverage-ledger.md` on this route to read
 one from. **Where every claim this run ground came back a verified absence, say so outright instead

@@ -13,7 +13,7 @@ Consumed by `/docs-brand`, `/docs-serve` and `/docs-profile` (`resolve-docs-repo
 
 ## 0. Why this is one file
 
-Design D23 gives the family one docs-repo default — `${DOCS_PATH:-/workspace/docs}`, already a same-level citizen of `$SPECS_PATH` and `$REPOS_PATH`, and already the grounding root `workflows-core:docs-grounding` §1 resolves — and one inversion of the test applied to it. Four commands need that ladder. Restating it in four command bodies is the family's longest-running defect class: four copies of one key grammar drifted apart until a valid key hard-stopped the command its own redirect had sent it to. So the ladder is written once, here, and each command names the entry point it is executing rather than re-deriving the rungs.
+Design D23 gives the family one docs-repo default — `${DOCS_PATH:-/workspace/docs}`, already a same-level citizen of `$SPECS_PATH` and `$REPOS_PATH`, and already the grounding root `workflows-core:docs-grounding` *Procedure* step 2 (*Resolve the root*) resolves — and one inversion of the test applied to it. Four commands need that ladder. Restating it in four command bodies is the family's longest-running defect class: four copies of one key grammar drifted apart until a valid key hard-stopped the command its own redirect had sent it to. So the ladder is written once, here, and each command names the entry point it is executing rather than re-deriving the rungs.
 
 The rule the family already states about identifiers applies unchanged to paths: **resolve against a known set, never re-derive by pattern.** Both entry points below test a directory against §3's signal set. Neither guesses from a repository's name, its position in the tree, or the shape of its layout.
 

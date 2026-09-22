@@ -18,6 +18,14 @@ If a rewrite weakens, narrows, or drops part of an existing rule, the lost part 
 itemised separately, not folded silently into the rewrite. Keep the rule itself; examples may explain a
 rule but can never replace it. "I made it more concise" is how a rule's binding half disappears.
 
+**A round that removes or supersedes a rule lands the replacement in the same commit.** A replacement
+that exists only in the round's own account is a deletion, and is itemised as one: the account is not
+the file, and the next editor meets the file. This is checkable by reading the commit — the rule left,
+and nothing arrived in its place. One round retired a provisional sentence whose condition had been
+met and recorded the retirement as a *falsified claim*, which it also was; the rule that sentence
+carried went unrecorded because the falsified half was the visible half and the rule half left no
+trace to file. A retirement has both halves, and the second is the one worth looking for.
+
 ## 3. A pointer must name an observable trigger
 
 A line that sends the reader elsewhere names a trigger the agent can **observe** — a path, a file type, a

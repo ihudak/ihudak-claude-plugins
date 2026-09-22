@@ -16,7 +16,9 @@ exactly the folder this command must accept, so a kind-based test would refuse e
 - **A resolved `BRD-` folder is a root** — refused (`PRD_GROUND_ROOT_LEVEL`); grounding happens at
   the slice and nowhere else.
 - **A resolved `EPIC-` folder is refused too** (`PRD_GROUND_EPIC_LEVEL`) — grounding is PRD-altitude
-  on both routes, and an Epic folder holds no `prd.md` of its own (it sits one level up).
+  on both routes, and an Epic folder holds no `prd.md` of its own (it sits one level up). A legacy
+  folder with no prefix whose carrier asserts `kind: epic` is an Epic folder, and is refused the same
+  way.
 - **A `PRD-` folder carrying `brd-link.md` → the BRD route.** Every existing step applies unchanged,
   over that slice's own `[BR#n]` inventory.
 - **A `PRD-` folder with no `brd-link.md` → the idea route.** `/create-prd`'s own unprompted output;
@@ -192,8 +194,9 @@ also runs, in Phase 11, for session lessons-learned.
   ledger, while an **instructed** run that re-cuts a row onto this slice does declare all three and
   lands them as its own walk leaves them. Committing what is already on disk stays the direct route to
   landing them as they stand. `/brd-intake` is named only on a BRD that owns its source document, as a
-  slower second route, since it re-extracts the inventory and rewrites the ledger before handing it
-  off.
+  slower second route, since it re-extracts the inventory and, wherever its read finds a requirement,
+  rewrites the ledger before handing it off (its Phase 0 step 7 names what a re-run keeps and what
+  it discards).
 
 ### On the idea route
 
@@ -242,8 +245,19 @@ Under the resolved folder — the `PRD-<SLICE-KEY>-<slug>/` slice folder inside 
   That census is written on every run, including one that ground no designs at all, and it is what
   `/brd-split`'s design gate reads on the BRD route. On this route the frame sets it names are the
   idea's own source images, vendored under `design/idea-sources/` by `/idea` Phase 4.5. **Under
-  `--no-code` this is the only file the run writes**: `code-grounding.md` and `baselines.md` are
-  held read-only and stand exactly as the run that wrote them left them.
+  `--no-code` this is the only grounding file the run writes**: `code-grounding.md` and
+  `baselines.md` are held read-only and stand exactly as the run that wrote them left them. The
+  ledger's `evidence` column below is rebuilt in that mode too, and is the one other thing such a
+  run writes.
+- `coverage-ledger.md`'s `evidence` column — **BRD route only**, rebuilt as the last write of Phase
+  8 over every row of the slice's ledger: each row takes the id of every `[CG#n]`/`[DG#n]` whose
+  claim names that row's `[BR#n]`, and a row no finding names keeps an empty cell. Nothing else in
+  the row is touched — this command allocates nothing and writes no disposition. It is an index over
+  the two grounding files and never a second copy of what they say, which is why a finding marked
+  `SUPERSEDED` stays listed: the verdict lives in the file the id resolves to. Without it the
+  column would be empty on every ledger for ever, and since the ledger and both grounding files all
+  ship in the customer bundle, the package would hand the customer the one document listing every
+  requirement and unable to tell a checked one from an unchecked one.
 - `brd-link.md` — **BRD route only.** The `depends-on:` list, merged additively across runs. Never
   written on the idea route, since `--depends-on` is refused there before Phase 4 could persist one.
 

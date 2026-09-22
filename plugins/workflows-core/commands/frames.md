@@ -181,7 +181,8 @@ For each frame set, in directory order:
      set never converges — three oversized exports once rejoined the describe set on every run,
      forever. Clearing it is the operator's move and the report names it: fix the file, delete the
      row, and the next run treats the frame as having no row at all.
-   - **has no row at all** → the frame joins the describe set (§6.2 step 3).
+   - **has no row at all** → the frame joins the describe set (§6.2 step 3), and the row this
+     command appends for it reads `—` in *Linked from*: it holds no link for any frame.
 
    A row whose image is **not** in the listing is dropped (§6.2 step 5) and reported. Nothing is
    restored and nothing is re-copied: this command reconciles an index with a directory and never
@@ -190,12 +191,15 @@ For each frame set, in directory order:
 2. **Apply the cap — 40 frames described per run, counted across every set the run touches.**
    Consume the budget set by set in directory order, and within a set in listing order.
 
-   **Why 40, and not `/idea`'s 6.** That cap bounds an *incidental* read inside a command whose
-   subject is a brief; six mockups is generous for that. This command is invoked precisely *to*
-   index, so a cap of six would make it useless on the first real export it met. Forty is the size of
-   a feature's screen flow as humans actually export one, and it is a bound on the most
-   context-expensive read this plugin does: forty images in one `frame-describer` context, and none
-   of them in this orchestrator's.
+   **Why a cap of 40, when `/idea` reads every image its operator allows.** `/idea` reads images
+   only incidentally, inside a command whose subject is a brief: it asks the operator before reading
+   past six, and reads what they allow in `figure-reader` dispatches of at most ten images each, so
+   no one context holds more than ten. This command is invoked precisely *to* index and asks nothing
+   before it reads, so stopping at six would stop it on the first real export it met; and it
+   describes each set in one `frame-describer` dispatch, so a cap is what bounds a context here.
+   Forty is the size of a feature's screen flow as humans actually export one, and it is a bound on
+   the most context-expensive read this plugin does: forty images in one `frame-describer` context,
+   and none of them in this orchestrator's.
 
    **What happens when it bites.** Every frame past the budget stays in the listing and still gets a
    row — §6.2 step 4's `—` and the literal `_no description on record_` — with `cap` as its reason in
@@ -227,8 +231,10 @@ For each frame set, in directory order:
    set, give **every** frame in its describe set the `_no description on record_` row with that status
    as the reason, and carry on to the next set — a set this command could not look at is still a set
    whose index must state what it holds. On `OK`, pair `frames[]` with the listing **by basename** and
-   take each `description` **verbatim**. An entry with `read: false` gets the placeholder row and its
-   `reason` (`missing`, `not_an_image`, `unreadable`, `not_a_frame`) is reported. **Which placeholder
+   take each `description` **verbatim** into that frame's row. Its *Linked from* is `—` — this command
+   holds no link for any frame, so a row it appends reads `—` and a placeholder row it fills keeps
+   the `—` it had. An entry with `read: false` gets the placeholder row and its `reason` (`missing`,
+   `not_an_image`, `unreadable`, `not_a_frame`) is reported. **Which placeholder
    that row carries follows §6.2 step 4's test — whether a re-run would do anything different, and
    nothing else.** `unreadable` and `not_an_image` are facts about the **bytes** — the agent opened the
    file, or tried to — so the row reads `_could not be read: <reason>_` and is not retried.
@@ -364,7 +370,9 @@ gap** (a capability the run needed but the plugin lacked), `emit-block` (per
    its `emit-cost` entry point with `command: /frames`, `phase: inferred`, `role: inferred`, `key` =
    the resolved folder's key, the run's `source`, and `plugin_version`. §7's discriminator is the
    resolved folder's own `kind`, which Phase 0 already read: `brd` attributes the run to
-   `brd-to-prd`/`pm`, `prd` and `epic` to `prd-creation`/`pm`. The key is always present on any path that reaches here — Phase 0's stops (`FRAMES_NEEDS_ADDRESS`, `FRAMES_EXTRA_ARGUMENT`, `FRAMES_NO_FOLDER`, `FRAMES_NOT_A_SPEC_FOLDER`, an ambiguous key, an unset `SPECS_PATH`) all refuse before a folder is resolved, and this phase runs after them, which is why its scope is stated as *every path that reached Phase 1* rather than every path. This
+   `brd-to-prd`/`pm`, `prd` and `epic` to `prd-creation`/`pm`. A BRD-route slice is a `PRD-` folder
+   asserting `brd`, so its frame set is `brd-to-prd`; an Epic folder under it asserts `epic`, and
+   is `prd-creation`. The key is always present on any path that reaches here — Phase 0's stops (`FRAMES_NEEDS_ADDRESS`, `FRAMES_EXTRA_ARGUMENT`, `FRAMES_NO_FOLDER`, `FRAMES_NOT_A_SPEC_FOLDER`, an ambiguous key, an unset `SPECS_PATH`) all refuse before a folder is resolved, and this phase runs after them, which is why its scope is stated as *every path that reached Phase 1* rather than every path. This
    command refuses to run without a resolved folder — so the entry lands on the keyed tier and never
    on the pending ladder (§9), which **advances the chained checkpoint** (§3); surface the persisted
    path (or the report-only notice).
@@ -414,8 +422,12 @@ the absence of a truncation notice is only informative once the run is known to 
 Also report: the resolved model routing (with any degradation); the feedback path; the cost path (or
 the report-only notice); the `Specs repo:` outcome line from `commit-artifacts`
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full;
-and the `Phase handoff:` outcome line when the handoff ran, or the fact that it was declined and the
-indexes are on disk and on no ref.
+and the `Phase handoff:` outcome line for whichever of the two outcomes Phase 3's offer reached —
+`handoff-to-main`'s own line on the first option, and §4.1's *Declined by the user* line on either
+other, that one already saying the deliverable is written and not on the default branch
+(`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1, exactly one line per handoff
+offered; §4.3 has the producer emit it on either declining option). **A run that wrote no index prints
+neither**: Phase 3 offers no handoff there, so nothing was declined and §4.1 has no row for it.
 
 **Say what this run did not do.** It reconciled no frame against any requirement, produced no
 `[DG#n]`, and dispatched no `design-grounder` — the indexes make these sets *readable*, which is a

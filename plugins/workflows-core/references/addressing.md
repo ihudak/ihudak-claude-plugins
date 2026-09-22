@@ -57,8 +57,8 @@ touches no filesystem — a pure string test, safe to call before `$SPECS_PATH` 
    name without reading its parent, and the tree is at most three levels deep.
 
 **Reserved subdirectory names are not folder kinds.** A folder under `specifications/` may hold
-fixed-name subdirectories that carry no key and are never resolved by one — `brd/`, `grounding/`,
-`interview/`, `dev-workflows/`, `design/` (exported frame sets, one per immediate subdirectory, each
+fixed-name subdirectories whose names carry no key and that are never resolved by one — `brd/`,
+`grounding/`, `interview/`, `dev-workflows/`, `design/` (exported frame sets, one per immediate subdirectory, each
 indexed per `references/grounding-format.md` §6.1–§6.2), and `attachments/` (the text and markdown sources a run copied
 into the folder — `product-workflows:idea-format`, *Vendored sources*). None matches §3's `*-<KEY>-*` glob,
 so resolution passes over them without a rule of its own, and none carries a `brd-link.md`, so
@@ -159,26 +159,87 @@ falsifies it. More fundamentally, a key re-derived by pattern is a key nothing i
 asserted — `CLAUDE.md`'s standing rule — so every match is a guess that a longer or differently-shaped
 identifier defeats. Reading the field turns the guess into an assertion.
 
-**Which artifact carries it is not a fixed filename**, and must not be written down as one. The rule is:
+**Which artifact carries it is not a fixed filename at the folder's top level**, and must not be
+written down as one there. The rule is:
 
 > The command that creates a folder writes a keyed artifact into it in the same act, so a folder is
 > never keyless — not even between its creation and its first document. A resolver reads `kind:` and
-> `key:` off whichever artifact it had to open anyway; where it has opened none yet, it reads the first
-> artifact in the folder carrying both fields.
+> `key:` off the folder's **carrier**, found in this order:
+>
+> 1. **The folder's top level.** Take its files in byte-wise order of name, and the carrier is the
+>    first whose frontmatter holds `key:` and a `kind:` naming a folder kind — `brd`, `prd` or
+>    `epic`, §2's three kinds as the resolution record (§3) spells them.
+> 2. **Else `brd/brd-inventory.md`.** Where no top-level file qualifies, the carrier is the
+>    inventory inside the reserved `brd/` subdirectory — the one file below the top level that is
+>    ever read for this.
 
-An enumeration of carriers per kind would be a list that goes stale the first time a command writes a
-new artifact, and nothing in `scripts/` would catch it.
+**Why a kind outside the three is passed over.** A document's `kind:` names what that document is —
+`ard`, `specification`, `design` — and an idea-route PRD folder holding an `ard.md` would otherwise
+resolve as kind `ard`, a value the resolution record (§3) has no place for. **Why byte-wise order.**
+"The first artifact" meant nothing until an order was fixed, and a slice shows why it matters: its
+`brd-link.md` asserts `kind: brd` and its `prd.md` `kind: prd`, and a resolver that read whichever
+it had opened anyway — which this rule used to allow — could return either for one folder. Byte-wise
+order puts `brd-link.md` first, which is the reading the family's container refusals already give as
+their reason for testing a directory prefix rather than an asserted kind: a slice asserts `brd`.
 
-**A reserved subdirectory is not a candidate for this test.** A frame-set index carries its
+**Why step 2 exists.** `/brd-intake` creates a root BRD folder whose only artifact naming a folder
+kind is the inventory it writes inside `brd/` (`product-workflows:brd-format` §2.1), and no command
+writes one at a root's top level, so that inventory is a root's only carrier. The
+`coverage-ledger.md` `/brd-intake` writes at the top level carries `key:` beside a `kind:` naming its
+own document (`product-workflows:coverage-ledger-format` §2), which step 1 passes over — so step 1
+alone finds nothing in that folder, and a strict reading of this rule left every root BRD
+unresolvable. It is **one named file, not an enumeration of carriers per kind**: such a list would
+go stale the first time a command writes a new artifact, and nothing in `scripts/` would catch it,
+while this exception names the single place the family's own reserved subdirectory holds the
+folder's identity.
+
+**A reserved subdirectory is otherwise not a candidate for this test.** A frame-set index carries its
 *parent's* `key:` while sitting in a directory named for the set (`design/checkout-flow/`), so every
 frame-set index in the tree presents an apparent disagreement. Testing it there would tell an operator
 their tree is broken on the ordinary `@<path>`-to-a-frame-set gesture, where the right answer is the
 consuming command's own redirect (`/frames`'s `FRAMES_NOT_A_SPEC_FOLDER`: re-run against the folder
-above). §2's reserved subdirectories are passed over by key resolution and are passed over here too.
+above). §2's reserved subdirectories are passed over by key resolution and are passed over here too,
+save the one file step 2 reads — and step 2 reads it for the folder `brd/` sits in, whose key it
+carries, never for `brd/` itself.
 
 **A `key:` that disagrees with its folder name is a hard stop naming both.** That is the whole cost of
 carrying identity in two places, and it buys the conversion of a hand-rename from a silent divergence
 into a message.
+
+### 4.1 A folder is placed by its prefix — or, where it has none, by positive evidence
+
+**The level a run works at — a BRD container, a PRD folder or an Epic folder — is read off the
+folder's kind prefix, never off the `kind:` its carrier asserts.** A BRD-route slice is a `PRD-`
+folder whose carrier, `brd-link.md`, asserts `brd` (above), so a level taken from the asserted kind
+puts every slice at the one level it is not. A `BRD-` folder is a container, a `PRD-` folder is
+PRD-level, and an `EPIC-` folder is Epic-level, its PRD folder being the folder above it.
+
+**A folder is prefixed only where its name begins `<KIND>-<key>-`**, `<KIND>` one of §2's three and
+`<key>` the key this section read off its carrier — a test against a key the run already holds, so
+nothing is parsed out of the name. A name that merely begins with a kind token is not prefixed: §5's
+legacy name starts with the key, and a key may itself begin with a kind token (§2), so
+`EPIC-008-01-orders/`, keyed `EPIC-008-01`, is a legacy folder and not an Epic folder — it does not
+begin `EPIC-EPIC-008-01-`.
+
+**A folder with no prefix is placed by positive evidence, in this order, and never by the absence of
+a file.** It is one §5's fallback resolved (`legacy: true`), or an unprefixed folder an `@<path>`
+names, which §3 resolves without the fallback and so without the flag.
+
+1. **A BRD container** where it holds `coverage-ledger.md` or `brd/brd-inventory.md` and no
+   `brd-link.md` naming a `parent:` — `product-workflows:coverage-ledger-format` §5.1's test, which
+   that section owns and argues. It is taken first, as it is there, so that no evidence of a lower
+   level can place a container at one.
+2. **Epic-level** where the resolved `kind` is `epic`.
+3. **PRD-level** where the resolved `kind` is `prd`, or where a `brd-link.md` names a `parent:` — a
+   legacy BRD-route slice, whose carrier asserts `brd`.
+
+A folder none of the three places is never guessed at: the caller stops, naming the folder and what
+it carries.
+
+**What a caller does at each level is its own, and so is its refusal of a level it does not work
+at.** Where a refusal names the slices under a container, it finds them by
+`/product-workflows:brd-split` Phase 0 step 9's positive test — each immediate subdirectory carrying
+a `brd-link.md` whose `parent:` names the container — and never by a name match.
 
 ## 5. The legacy layout
 

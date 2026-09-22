@@ -14,7 +14,7 @@ authors a high-quality **Product Requirements Document** that feeds the downstre
 (a PRD): what / why / for-whom, not how. Zero external calls — the PRD is authored as markdown in the specs
 repo, which is where every downstream command reads it from.
 
-Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs] [--docs <path>]` (default `--hybrid`, or `--full` on the BRD route — Phase 0 step 2; the one `--no-*` switch turns off the one grounding source — see Phase 1). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through.
+Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs] [--docs <path>]` (default `--hybrid`, or `--full` on the BRD route — Phase 0 step 2; the one `--no-*` switch turns off the one grounding source — see Phase 1). `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` *Procedure* step 1 (*Flags first*), which resolves it; this command only has to recognise it and pass the invocation through.
 
 ---
 
@@ -32,7 +32,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    "a value not consumed before positionals are read": step 2a *does* discuss `--from-prd`, so a
    parsing-site test passes it, and step 2a runs after step 1. It is step **0** and not `1a`: step 1 is what parses the address, so a rung numbered
    after it runs after the damage.
-   Both are carried to Phase 2.5's `resolve-docs-grounding` call and change nothing else. Without
+   Both are carried to Phase 1's `resolve-docs-grounding` call and change nothing else. Without
    this rung the flag is a token like any other and lands in that classification: `--docs` is read as
    the address, or its path is read as the `@idea.md` argument. They were named in the Usage line and
    parsed nowhere, the same defect `/create-ard`, `/specify` and `/release-notes` were found to have.
@@ -134,7 +134,9 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    the asserted kind would refuse every slice and accept nothing. Nor can this command gate on
    `prd.md`'s own `kind: prd`, the way a reader of an authored PRD does: this run is greenfield and
    `prd.md` is the file it is about to write. So the test is the `BRD-` prefix
-   `workflows-core:addressing` §2 fixes, read off the resolved folder's own
+   `workflows-core:addressing` §2 fixes, read off the resolved folder's own name — a prefix as that
+   file's §4.1 defines one, the name beginning `<KIND>-<the resolved key>-`, so a legacy idea-route
+   folder keyed `BRD-12`, named `BRD-12-checkout/`, carries no prefix and is not refused by its
    name. A `PRD-` prefix passes; a `BRD-` prefix refuses.
 
    **Where the folder resolved through that file's §5 legacy fallback and carries no prefix at all,
@@ -167,7 +169,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    | What this BRD folder holds | What the stop says |
    |---|---|
    | **One or more slices** — the ordinary shape, since a split always confirms at least one | Name every slice, and offer `/product-workflows:create-prd <SLICE-KEY>` once per slice. That run resolves a `PRD-` folder, passes this refusal, and applies refusals 1 and 2 to the slice's **own** ledger — the offer is that a PRD belongs there, not a promise that the slice is already eligible. Do **not** name `/product-workflows:brd-split <BRD-KEY>` here: the slices it would carve exist, and on a parent whose ledger is fully allocated that run is a no-op (`commands/brd-split.md` Phase 0 step 10) |
-   | **No slice at all** | `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` is the run that carves one — it walks every row still `unallocated` and always confirms at least one slice (its Phase 2), so it produces the folder the PRD is then authored in — after which `/product-workflows:create-prd <SLICE-KEY>`. **Two conditions travel with that offer** rather than being left for the operator to discover. First, the slicing instruction is not optional there — a root is never ground, so that run has no findings to cluster candidate slices from and stops with `BRD_SPLIT_NEEDS_INSTRUCTION` where it has rows to place and was given none. Second, **where this BRD's ledger leaves no row `unallocated` that run is a no-op** (Phase 0 step 10) and carves nothing, because the walk already settled every row and nothing in this plugin moves a terminal row back to `unallocated` (§3) — so say what the operator does *then*, or the offer is a dead end. There are two ways to reach it, and **both are leaveable** — one by a decision, one by a repair; neither is a state with no exit. Either the one slice the walk confirmed was later removed as a standing empty child (`commands/brd-split.md` Phase 4.5), in which case every requirement is `deferred-to`, `rejected` or `superseded-by`, every row is legal and terminal, and no PRD is owed by anybody: that is an **ending rather than a failure**, and no command decides otherwise, because un-deferring a requirement is a decision taken with the customer. Name no command for the decision — and say, rather than implying the state is sealed, that once it is taken it is carried out by the same two repairs the other way below names, in the same order: hand-edit the one row that is now to be built back to `unallocated`, after which `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has a row to walk and carves the slice; or re-run `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which reopens **every** row and discards every deferral and rejection recorded here. Or the ledger records a fate a container can no longer hold, a **root** row `covered-here`, which no parent's walk has offered since a BRD became a container and which only a tree written before that change, or a hand edit, can have produced (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5). **The narrower repair is offered first, because the illegal state is one row wide and every other row is already legal and terminal:** hand-edit that one row's `disposition:` in `coverage-ledger.md`, leaving every other row untouched — to `deferred-to: <this BRD>`, `rejected: [DEF#n]` or `superseded-by: [BR#n]` where the requirement is not to be built here, which makes the ledger legal and lands on the ending above; or back to `unallocated` where it is, after which `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has a row to walk, confirms a slice (its Phase 2), and that slice's own walk takes the row to `covered-here`, the one level at which `covered-here` is legal. §3's *no command ever moves a row back to `unallocated`* binds the commands; this is a hand repair of a value no command wrote, and §5 already names hand editing as how this state arises. **Second, and only where the whole inventory is to be re-taken:** re-running `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather than a refusal (its Phase 0 step 7, which now warns and confirms before the first write) and rewrites the ledger with **every** row `unallocated` (its Phase 5), after which `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk and carves the slice. That re-run re-extracts the inventory and **discards every disposition this ledger records**: each `deferred-to`, `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and must be re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Naming which decisions die is the disclosure — "the dispositions are replaced" is not — and it is why this option is second rather than only |
+   | **No slice at all** | `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` is the run that carves one — it walks every row still `unallocated` and always confirms at least one slice (its Phase 2), so it produces the folder the PRD is then authored in — after which `/product-workflows:create-prd <SLICE-KEY>`. **Two conditions travel with that offer** rather than being left for the operator to discover. First, the slicing instruction is not optional there — a root is never ground, so that run has no findings to cluster candidate slices from and stops with `BRD_SPLIT_NEEDS_INSTRUCTION` where it has rows to place and was given none. Second, **where this BRD's ledger leaves no row `unallocated` that run is a no-op** (Phase 0 step 10) and carves nothing, because the walk already settled every row and nothing but the `/brd-intake` re-run below moves a terminal row back to `unallocated` (§3) — so say what the operator does *then*, or the offer is a dead end. There are two ways to reach it, and **both are leaveable** — one by a decision, one by a repair; neither is a state with no exit. Either the one slice the walk confirmed was later removed as a standing empty child (`commands/brd-split.md` Phase 4.5), in which case every requirement is `deferred-to`, `rejected` or `superseded-by`, every row is legal and terminal, and no PRD is owed by anybody: that is an **ending rather than a failure**, and no command decides otherwise, because un-deferring a requirement is a decision taken with the customer. Name no command for the decision — and say, rather than implying the state is sealed, that once it is taken it is carried out by the same two repairs the other way below names, in the same order: hand-edit the one row that is now to be built back to `unallocated`, after which `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has a row to walk and carves the slice; or re-run `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which, wherever its read finds a requirement, reopens **every** row and discards every deferral and rejection recorded here (its Phase 0 step 7). Or the ledger records a fate a container can no longer hold, a **root** row `covered-here`, which no parent's walk has offered since a BRD became a container and which only a tree written before that change, or a hand edit, can have produced (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5). **The narrower repair is offered first, because the illegal state is one row wide and every other row is already legal and terminal:** hand-edit that one row's `disposition:` in `coverage-ledger.md`, leaving every other row untouched — to `deferred-to: <this BRD>`, `rejected: [DEF#n]` or `superseded-by: [BR#n]` where the requirement is not to be built here, which makes the ledger legal and lands on the ending above; or back to `unallocated` where it is, after which `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has a row to walk, confirms a slice (its Phase 2), and that slice's own walk takes the row to `covered-here`, the one level at which `covered-here` is legal. §3's *no command moves a row back to `unallocated`, save one* binds the commands; this is a hand repair of a value no command wrote, and §5 already names hand editing as how this state arises. **Second, and only where the whole inventory is to be re-taken:** re-running `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather than a refusal (its Phase 0 step 7, which now warns and confirms before the first write) and, wherever its read finds a requirement, rewrites the ledger with **every** row `unallocated` (its Phase 5; that step 7 lists what a re-run keeps and what it changes), after which `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk and carves the slice. That re-run re-extracts the inventory and, wherever its read finds a requirement, **discards every disposition this ledger records**: each `deferred-to`, `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and must be re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Naming which decisions die is the disclosure — "the dispositions are replaced" is not — and it is why this option is second rather than only |
 
 6. **Prior PRD (frontmatter-based).** Read `<feature-folder>/prd.md` — the only name this plugin writes and the only one it reads. `workflows-core:addressing` §5 resolves the *folder* either way and fixes the boundary there: a tree written before the artifact filenames lost their keys renames its artifacts rather than being resolved for, so a `<KEY>_<slug>.md` sitting beside no `prd.md` reads here as no PRD at all. `kind: prd` identifies the draft inside it. If a PRD is found, this is an **existing PRD** — `/create-prd` is greenfield-only, so **redirect** (see Phase 1) to `/update-prd <KEY>` unless `--from-prd` **or the BRD route** is present.
 7. **The BRD gate (the BRD route only).** Its structural test already ran: step 5a refused a
@@ -197,7 +199,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    behaviour step 5a forbids.** It ran: a BRD that owns its source document carries no
    `claims:` field, so a gate defined over `claims:` would read an empty set and "refuse the ordinary
    never-split BRD that is this route's primary case". Refusing it is now the **correct** outcome —
-   taken two steps earlier, on the folder's kind, and without a row being read. A root never
+   taken two steps earlier, on the folder's prefix, and without a row being read. A root never
    reaches refusals 1 and 2 at all.
 
    Every count and list this step and the rest of this command take — `<n>`, each `[BR#n]` list,
@@ -232,7 +234,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 
    | How every row of the gate set left `covered-here` | What this stop says |
    |---|---|
-   | The gate set is non-empty and no row is `covered-here` — the ordinary shape a slice reaches | Name **no** sibling slice, because none holds one of these rows — and say what the gate-set rows *did* resolve to rather than calling them all obligations. §5 separates the three remaining dispositions: a `deferred-to` row is a live obligation of this slice, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
+   | The gate set is non-empty and no row is `covered-here` — the ordinary shape a slice reaches | Name **no** sibling slice, because none holds one of these rows — and say what the gate-set rows *did* resolve to rather than calling them all obligations. §5 separates the three remaining dispositions: a `deferred-to` row is a live obligation of this slice, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it or the customer decision that withdrew it (`rejected: <SLICE-KEY>/[CD#n]`), and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
    | The slice's `coverage-ledger.md` is **absent** while `brd-link.md` claims rows | **Name no option at all** — report the missing file by path and stop. This is not an empty gate set: `claims:` names rows and the evidence for judging them is gone, so offering either the sibling enumeration or the emptiness report would send the operator to a decision on evidence nobody has. `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2 rules on exactly this shape; without this row both rows below evaluate false and the likeliest reading takes the empty one, emitting `CREATE_PRD_BRD_NOT_ELIGIBLE` and naming `/brd-split <PARENT-KEY>` — the outcome §5.2 forbids |
    | The gate set is **empty** — a slice whose `brd-link.md` claims nothing | Report the emptiness and enumerate nothing, because there is nothing to enumerate: no requirement **this slice is answerable for** reached any disposition, and naming one would invent it. A standing empty child may still hold orphan rows its parent's walk settled (§2); those are not this slice's requirements and are not reported here as though they were. Name the one run that can change it: `/product-workflows:brd-split <PARENT-KEY>` alone resolves a standing empty child, and it is not a no-op in the state this stop reports — a standing empty child is one of the three things that command's own no-op test accounts for (its Phase 0 step 10). Its bare form offers to remove this slice or to keep it against a recorded reason; where the parent also holds a row a sibling has recorded it will not build, an instruction on that same run — `/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"` — can instead re-cut that row onto this slice, which is the one way it stops claiming nothing without being removed, and which needs this slice never to have been interviewed. Unlike the row above, this one has a next command that exists in the state being reported |
 
@@ -273,7 +275,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    All three refusals are read **as this run finds the tree**. Refusals 1 and 2 are not defects in
    the slice: a slice that claims rows and has not yet allocated them, and one that claims rows and
    builds none of them, are both ordinary outcomes (§5). What a root BRD reaches is step 5a —
-   two steps earlier, on the folder's kind, on either route, and without a row being read.
+   two steps earlier, on the folder's prefix, on either route, and without a row being read.
 
 `/create-prd` is **cwd-agnostic** and needs **no repos mounted** (product-level; no code scan).
 
@@ -284,7 +286,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
 
 1. **Confirm** the feature folder, the profile, and the resolved `idea.md` (or "none — grill from scratch"); on the BRD route, the resolved `PRD-` slice folder, the profile (`--full` unless a flag overrode it), and — instead of an idea — a `from BRD:` line naming `<SLICE-KEY>` and the `parent:` its `brd-link.md` records (always present — step 5a refuses the container), its `depends-on:` if any, how many of its gate-set rows (Phase 0 step 7) are `covered-here` out of how many, and whether `prd-seed.md` and `decisions.md` were found.
-   - Show the `docs grounding:` line in the form `workflows-core:docs-grounding` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
+   - **Resolve documentation grounding here, then show its line.** Run `resolve-docs-grounding create-prd` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — its step 3.5 index prompt included — and show the `docs grounding:` line from what it returns, in the form that reference fixes — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs). It runs here, before any agent is dispatched, because step 3.5 asks its one-time index question before the run's real work; this is the run's one resolution (`workflows-core:docs-grounding`, *Invariants*), and Phase 2.5 dispatches on the state it returns without resolving again.
 2. **Existing-PRD handling** (only if Phase 0 step 6 found a PRD for `<KEY>`):
    - **the BRD route present** → "author this slice's PRD" conflicts with "a PRD for this slice
      already exists here". **`/update-prd` has no BRD route** — it takes one address and refreshes
@@ -340,11 +342,11 @@ profile is already `--full`, this nudge does **not** fire.
 
 ## Phase 2 — Read the seed
 
-Read the resolved `idea.md` **directly** (it is the plugin's own format — `idea-reader` is for arbitrary external sources and is not used here). Extract Problem / Who / desired outcome & value / rough scope / signals & evidence / candidate success signal, plus any open `[NEEDS CLARIFICATION]`. Carry the idea's `sources[]` forward to **propagate** into the PRD frontmatter (the real provenance — RFE key / an existing PRD's key / community-post URL / prompt), and record `derived_from` = the idea's own resolved path — read here from `idea.md`'s own frontmatter, never from a relocation, since `/create-prd` no longer moves it.
+Read the resolved `idea.md` **directly** (it is the plugin's own format — `idea-reader` is for arbitrary external sources and is not used here). Extract Problem / Who / desired outcome & value / rough scope / signals & evidence / candidate success signal, plus any open `[NEEDS CLARIFICATION]`. Carry the idea's `sources[]` forward to **propagate** into the PRD frontmatter (the real provenance — each `sources` entry exactly as `idea.md` recorded it, `provenance` and `ref` alike, and `vendored` only where the idea read is the in-contract `idea.md` in the resolved folder, whichever rung read it: `vendored` is a path relative to the folder holding that `idea.md`, so from an idea in any other folder it names nothing in this one, and it is dropped there), and record `derived_from` = the idea's own resolved path — read here from `idea.md`'s own frontmatter, never from a relocation, since `/create-prd` no longer moves it.
 
 Optionally ground in the idea's cited sources and any strategy/vision docs the user points to. **No code scan; no repos.**
 
-**Text sources only — an image citation is carried, never opened here.** `## Signals & evidence` may cite images the idea's original source linked, because `idea-reader` reads those on the `/idea` run and describes them to that run's grill. Its bounds — two link levels, twelve files, six images, every exclusion reported — belong to that agent and do **not** travel with the file, so opening an image path found here would be an unbounded read this phase has no cap or reporting line for. What those frames showed has already been put to the operator and survives in the idea's prose; treat the path as provenance and read the prose.
+**Text sources only — an image citation is carried, never opened here.** `## Signals & evidence` may cite images the idea's original source linked, because the `/idea` run read those for its own grill: its Phase 1.5 walks every link the source makes, asking the operator before reading past its older bounds, and `figure-reader` transcribes each image that walk takes (`commands/idea.md` Phase 1.5 and Phase 2). That walk, the operator's answer to it and its report of every exclusion belong to that run and do **not** travel with the file, so opening an image path found here would be a read nobody consented to and nothing reports. What those frames showed has already been put to the operator and survives in the idea's prose; treat the path as provenance and read the prose.
 
 If `--from-prd` was resolved (Phase 0 step 2a), also read the **seed PRD** (body + comments) as read-only
 grounding — structure, personas, scope shape, and metrics to *adapt* (never copy) to the new PRD.
@@ -413,18 +415,16 @@ exists to prevent.
 
 ## Phase 2.5 — Grounding: documentation (optional)
 
-Dispatch both grounding agents **in a single response** so they run in parallel. Each is independent; either being OFF never suppresses the other.
+This phase dispatches one grounding agent, the docs grounder.
 
-**Docs.** Run `resolve-docs-grounding create-prd` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the idea's problem/goal + PRD themes, `key` = `<KEY>`, and `themes` from the idea. When OFF, skip silently.
+**Docs.** Phase 1 resolved documentation grounding and showed its line; this phase resolves nothing again. Where it resolved `docs_grounding: ON`, `dispatch-docs-grounder` (`workflows-core:docs-grounding`) with `feature_summary` = the idea's problem/goal + PRD themes, `key` = `<KEY>`, and `themes` from the idea. Where it resolved OFF, dispatch nothing.
 
-**On the BRD route both agents run unchanged; only their inputs are substituted**, because there is
-no `idea.md` to take them from. `feature_summary` and `themes` come from `prd-seed.md` (falling back
-to the `statement` of each product-altitude `decided` record when the seed is absent), and
-`known_refs` is every `[BR#n]` source path and prerequisite `<BRD-KEY>` the run already holds from
-`brd-link.md` — again with `has_summary: false`, for the same reason: this command reads those files
-directly and holds no summaries of its own. Neither agent is given `ard-seed.md` or `spec-seed.md`.
+**On the BRD route the docs grounder runs unchanged; only its inputs are substituted**, because
+there is no `idea.md` to take them from. `feature_summary` and `themes` come from `prd-seed.md`
+(falling back to the `statement` of each product-altitude `decided` record when the seed is absent).
+It is not given `ard-seed.md` or `spec-seed.md`.
 
-Carry both digests into Phase 3 with **grill-rank** consumption. When both are OFF the PRD is authored exactly as today.
+Carry the digest into Phase 3 with **grill-rank** consumption. When docs grounding is OFF the PRD is authored exactly as today.
 
 ---
 
@@ -446,7 +446,7 @@ Author `prd.md` live against `Skill(skill: "workflows-core:reference", args: "pr
    asking for one, so that field is optional: a draft without it is complete. Write whichever the
    operator volunteers; never invent one. An unanswered field is omitted, not filled.
 
-   **`key` was for a time omitted on the BRD route**, deferred to a tracker step — long retired — that once minted a separate identity and wrote it back. Once that step was gone nothing wrote the field at all, so it stayed permanently unset — which is the defect the spine item above closes by writing `key` on every route. Left unset, a folder whose only `kind:`+`key:` carrier is `brd-link.md` (`kind: brd`) resolves as a BRD rather than a PRD (`workflows-core:addressing` §4), while `/document` and `/release-notes` build their commit scan from a `key` that is empty and silently match nothing. There is no second identity to keep straight any more: one namespace, one grammar, and the folder's key is the key.
+   **`key` was for a time omitted on the BRD route**, deferred to a tracker step — long retired — that once minted a separate identity and wrote it back. Once that step was gone nothing wrote the field at all, so it stayed permanently unset — which is the defect the spine item above closes by writing `key` on every route. Left unset, `/document` and `/release-notes` build their commit scan from a `key` that is empty and silently match nothing. (The folder still resolves either way: a slice's carrier is its `brd-link.md`, which `workflows-core:addressing` §4's order reads before `prd.md`.) There is no second identity to keep straight any more: one namespace, one grammar, and the folder's key is the key.
 2. **Problem**
 3. **Goal** (crisp 2–3 sentences)
 4. **Target audience** (personas)
@@ -478,18 +478,24 @@ when the first two are forgotten:**
    register only through `/product-workflows:brd-reconcile`. A grill answer is neither of the two, whatever
    it says.
 3. **On a record that already exists, the only field this command may write is `consumed_by`**
-   (Phase 5). `statement`, `options_considered`, `chosen`, `argumentation`, `evidence`, `altitude`,
-   `conditional_on`, `status` and `round` are never written onto an existing record here, in any
-   status. So a grill answer that contradicted a `decided` record could not become that record's new
-   `chosen` even if the first two failed: there is no write that would record it.
+   (Phase 5). **Every other field `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1
+   defines is never written onto an existing record here, in any status** — named as a set rather
+   than enumerated, so a field §1 gains is covered the day it gains it and no list here can drift
+   from the one it stands for. That set takes in every field a re-decision or a reversion writes
+   **save `consumed_by`**, the one field this command does write and the one both of those return
+   to `none`; the two writing sets are §4's to fix, and this command performs neither — a
+   re-decision needs a reopening, which rule 2 has just ruled out, and a reversion is
+   `/product-workflows:brd-reconcile`'s propagation sweep alone (§4). So a grill
+   answer that contradicted a `decided` record could not become that
+   record's new `chosen` even if the first two failed: there is no write that would record it.
 
    **This guarantee was once stated over every record rather than every existing one, and the
    narrowing is itemised here rather than made silently** (`workflows-core:instruction-file-maintenance`).
    What it protects is a settled decision against a grill answer, and that protection is untouched:
    nothing below edits a record anyone has decided. What it now permits is Phase 3 **creating** one
    new record of one kind — an `[AS#n]`, never a `[VD#n]` and never a `[CD#n]` — for a
-   customer-authority gap, with all twelve of its own fields. A newly minted assumption overwrites
-   nothing and settles nothing; it records that this PRD had to assume something, which is what an
+   customer-authority gap, in the fields §7's own table admits for one. A newly minted assumption
+   overwrites nothing and settles nothing; it records that this PRD had to assume something, which is what an
    `[AS#n]` is for.
 
 **What happens when the grill surfaces a genuine contradiction with a settled decision** — which is
@@ -517,12 +523,24 @@ survives the grill: what kind of thing would settle it?
   `/product-workflows:brd-interview <BRD-KEY>`, which is where a `[VD#n]` is taken. This command
   never takes one.
 - **An authority only the customer holds** → **write it as an `[AS#n]` in `decisions.md`**, per
-  `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §7. All twelve fields **except
-  `round`, which is omitted entirely** — this record came from no interview round, and any value
-  there is read by `/product-workflows:brd-package` as a round it must find a record for. `evidence`
-  carries the account of why no evidence exists; a bare sentence is a claim, not an assumption
-  record. Record it under `## Assumptions & open questions` **as well**, by its `[AS#n]` id, so the
-  PRD's reader and the customer meet the same record rather than two descriptions of it.
+  `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §7 — creating the file, where the
+  folder holds none, with its header line `# Decision register: <SLICE-KEY>` first (§1). **Write
+  every field §7's own table admits for an `[AS#n]`, in the meaning and the vocabulary that table
+  gives it, and none of the ones it marks *Not applicable*** — §1.1 omits a field that does not
+  apply rather than writing it empty, and `/product-workflows:brd-package` puts every open `[AS#n]`
+  in front of the customer, so a weighed-choice field written onto an assumption shows them a record
+  saying an option was picked where nothing was weighed. Do not re-derive which fields those are
+  here: the table accounts for every one of §1's set, one by one, and a count written in its place
+  is what goes stale the next time that set moves — which is how this instruction came to ask for
+  three fields §7 rules out. **`round` is omitted entirely** — this record came from no interview
+  round, and any value there is read by `/product-workflows:brd-package` as a round it must find a
+  record for. `evidence` carries the account of why no evidence exists; a bare sentence is a claim,
+  not an assumption record. A `[BR#n]` this slice does not claim is written `<PARENT-KEY> [BR#n]`
+  in it, `<PARENT-KEY>` being the slice's `parent:` — `/product-workflows:brd-interview`'s rule (*A
+  row this slice does not claim*), read off this slice's inventory: the register ships in the
+  slice's next package, whose citation-resolution check stops on a bare id naming a row outside
+  that inventory. Record it under `## Assumptions & open questions` **as well**, by its `[AS#n]`
+  id, so the PRD's reader and the customer meet the same record rather than two descriptions of it.
 
 **Two mechanics the three bullets above share.** First, **`## Assumptions & open questions` does not
 exist on a kept `--lean`** (Phase 1), so on that profile every one of them records into the final

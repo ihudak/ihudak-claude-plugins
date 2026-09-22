@@ -22,7 +22,7 @@ invariants the downstream (`/specify`, `/design`, `/implement`) will later inher
   refused (Phase 0 step 1a). One address on every route: a second positional token is refused
   (Phase 0 step 1, `CREATE_ARD_ONE_ADDRESS`).
 
-Usage: `/create-ard <ADDRESS> [--no-docs] [--docs <path>]`, where `<ADDRESS>` is a key or an `@<path>`. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` §1's *Flags first* rung, which resolves it; this command only has to recognise it and pass the invocation through.
+Usage: `/create-ard <ADDRESS> [--no-docs] [--docs <path>]`, where `<ADDRESS>` is a key or an `@<path>`. `--docs <path>` — points documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`; **strip the flag and its value together** before any remaining-argument classification, or the path is read as part of the address. Declared for every consumer by `workflows-core:docs-grounding` *Procedure* step 1 (*Flags first*), which resolves it; this command only has to recognise it and pass the invocation through.
 
 It authors architecture only — no code writing; grounding is **architect-driven** (there are no PRs at
 this stage). Zero external calls.
@@ -38,8 +38,9 @@ this stage). Zero external calls.
    applies to that remainder alone. **Without this rung the flags this command documents do not
    work** — a flag is a token, so `--no-docs` reaches the refusal as a second positional and stops
    the run, and `--docs <path>` supplies two. That was the live state: both flags were named in the
-   Usage line and neither was ever parsed, which is the shape `workflows-core:docs-grounding` §1
-   declares for all nine of its consumers and only `/idea` had implemented.
+   Usage line and neither was ever parsed, which is the shape `workflows-core:docs-grounding`
+   *Procedure* step 1 (*Flags first*) declares for all nine of its consumers and only `/idea` had
+   implemented.
 
    **One resolution, both routes.** Parse the **single positional address** from `$ARGUMENTS` — a
    `<KEY>`, or an `@<path>` naming a folder — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). A key that fails §1's grammar stops with
@@ -50,13 +51,24 @@ this stage). Zero external calls.
    fall back to: an Epic key encodes its own ancestry, so a second argument would be derivable from
    the first and able to disagree with it, which is the failure class D4 exists to remove. Stop
    gracefully:
-   `CREATE_ARD_ONE_ADDRESS: /create-ard takes one address; <second-token> was given as a second. The kind of the folder the address resolves to is what sets the altitude — an EPIC- folder gives an Epic-level ARD, with its PRD read from the folder above it; a PRD- folder gives a PRD-level one. Re-run '/product-workflows:create-ard <ADDRESS>' with the single address you meant.`
+   `CREATE_ARD_ONE_ADDRESS: /create-ard takes one address; <second-token> was given as a second. The folder the address resolves to sets the altitude by its prefix — an EPIC- folder gives an Epic-level ARD, with its PRD read from the folder above it; a PRD- folder gives a PRD-level one — and a legacy folder with no prefix by what it holds. Re-run '/product-workflows:create-ard <ADDRESS>' with the single address you meant.`
 
-   **The resolved kind decides the altitude**, which is what replaces the old two-key grammar:
+   **The resolved folder decides the altitude — as `workflows-core:addressing` §4.1 places it: by
+   its prefix, never by the `kind` it asserts**, which on a slice is its `brd-link.md`'s `brd` (§4).
+   This is what replaces the old two-key grammar:
    - a `PRD-` folder → `<PRD>` is its `key`, `<EPIC>` is `null`;
-   - an `EPIC-` folder → `<EPIC>` is its `key` and `<PRD>` is its parent's;
+   - an `EPIC-` folder → `<EPIC>` is its `key` and `<PRD>` is its parent's. Phase 2 calls `<EPIC>`
+     `focus_key` — one value under two names, set on an Epic-level run and `null` otherwise;
    - a `PRD-` folder holding a `brd-link.md` → the BRD route. Define `<SLICE-KEY>` = the resolved
-     folder's `key`.
+     folder's `key`;
+   - **a folder with no prefix** — one §5's legacy fallback resolved (`legacy: true`), or an
+     unprefixed folder an `@<path>` names; a name is prefixed only where it begins
+     `<KIND>-<the resolved key>-` (§4.1), so a legacy key beginning with a kind token is no prefix —
+     **is placed by positive evidence**, never by the absence of a file: a resolved `kind: epic` is
+     placed as an `EPIC-` folder is; a resolved `kind: prd`, or a `brd-link.md` naming a `parent:`,
+     as a `PRD-` folder is — the latter a legacy slice, and so the BRD route. A legacy root
+     container is placed by neither: §4.1 tests it first, and step 1a refuses it on that test. A
+     folder none of these places is not guessed at — stop, naming the folder and what it carries.
 
    **The BRD route is detected, not declared.** A folder carrying `brd-link.md` was produced by
    `/brd-split` and holds the seed this command reads; nothing about that needs restating on the
@@ -90,15 +102,16 @@ this stage). Zero external calls.
    while being exactly the folder an ARD belongs in, and a gate on the asserted kind would refuse
    every slice.
 
-   **Where the folder resolved through `workflows-core:addressing` §5's legacy
-   fallback and carries no prefix, the question is answered by positive evidence that it is a BRD,
-   never by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
-   §5.1, the shared authority `/create-prd`, `/specify` and `/epics` take this same test from. In short: a
-   legacy folder carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no `brd-link.md`
-   naming a `parent:`, is a root container; a legacy folder carrying **neither** of those two files
-   is a legacy **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md` either — this
-   refusal does not fire on it, and refusing it would offer `/product-workflows:brd-split` on a folder
-   with no coverage ledger to walk. Stop gracefully:
+   **Where the folder carries no prefix — resolved through `workflows-core:addressing` §5's legacy
+   fallback, or an unprefixed folder an `@<path>` named — the question is answered by positive
+   evidence that it is a BRD, never by the absence of a file** —
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, the shared authority
+   `/create-prd`, `/specify` and `/epics` take this same test from. In short: a legacy folder
+   carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no `brd-link.md` naming a `parent:`,
+   is a root container; a legacy folder carrying **neither** of those two files is a legacy
+   **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md` either — this refusal does
+   not fire on it, and refusing it would offer `/product-workflows:brd-split` on a folder with no
+   coverage ledger to walk. Stop gracefully:
    ```
    CREATE_ARD_BRD_NOT_SLICED: <BRD-KEY> resolves to a BRD- container at <path>, and a BRD is never the folder an ARD is authored in — its architecture is authored in the PRD- slices under it, one ARD each (coverage-ledger-format.md §5). <the remedy, per the branch below>
    ```
@@ -118,42 +131,43 @@ this stage). Zero external calls.
      run has no findings to cluster candidate slices from and stops with
      `BRD_SPLIT_NEEDS_INSTRUCTION` where it has rows to place and was given none; and **where this
      BRD's ledger leaves no row `unallocated` that run is a no-op** (its Phase 0 step 10) and carves
-     nothing, since nothing in this plugin moves a terminal row back to `unallocated`
-     (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). Say what the operator does
-     then rather than leaving the offer to fail silently. There are two ways to reach it and **both
-     are leaveable** — one by a decision, one by a repair. Either the one slice the walk confirmed
-     was removed as a standing empty child, in which case every requirement is `deferred-to`,
-     `rejected` or `superseded-by`, every row is legal and terminal, and nothing is owed to anybody:
-     that is an **ending rather than a failure**, and no command decides otherwise, because
-     un-deferring a requirement is a decision taken with the customer. Name no command for the
-     decision — and say, rather than implying the state is sealed, that once it is taken it is
+     nothing, since nothing but the `/brd-intake` re-run below moves a terminal row back to
+     `unallocated` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). Say what the
+     operator does then rather than leaving the offer to fail silently. There are two ways to reach
+     it and **both are leaveable** — one by a decision, one by a repair. Either the one slice the
+     walk confirmed was removed as a standing empty child, in which case every requirement is
+     `deferred-to`, `rejected` or `superseded-by`, every row is legal and terminal, and nothing is
+     owed to anybody: that is an **ending rather than a failure**, and no command decides otherwise,
+     because un-deferring a requirement is a decision taken with the customer. Name no command for
+     the decision — and say, rather than implying the state is sealed, that once it is taken it is
      carried out by the same two repairs the other way below names, in the same order: hand-edit the
      one row that is now to be built back to `unallocated`, after which
-     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has a row to walk and carves the slice;
-     or re-run
-     `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which reopens **every** row and discards
-     every deferral and rejection recorded here. Or the ledger
-     records a fate a container can no longer hold — a **root** row `covered-here`, which only a
-     tree written before a BRD became a container, or a hand edit, can have produced
-     (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5). **Offer the narrower repair
-     first**, because the illegal state is one row wide and every other row is already legal and
-     terminal: hand-edit that one row's `disposition:` in `coverage-ledger.md`, leaving every other
-     row untouched — to `deferred-to: <this BRD>`, `rejected: [DEF#n]` or `superseded-by: [BR#n]`
-     where the requirement is not to be built here, which makes the ledger legal and lands on the
-     ending above; or back to `unallocated` where it is, after which `/product-workflows:brd-split
-     <BRD-KEY>` has a row to walk, confirms a slice, and that slice's own walk takes the row to
-     `covered-here`, the one level at which `covered-here` is legal. §3's *no command ever moves a
-     row back to `unallocated`* binds the commands; this is a hand repair of a value no command
-     wrote, and §5 already names hand editing as how this state arises. **Offer the `/brd-intake`
-     re-run second, and only where the whole inventory is to be re-taken:** re-running
-     `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather than
-     a refusal (its Phase 0 step 7 warns and confirms before the first write) and rewrites the
-     ledger with **every** row `unallocated`, after which
-     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. It also **discards
-     every disposition this ledger records**: each `deferred-to`,
-     `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and must be
-     re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Name those decisions —
-     saying only that the dispositions are replaced is not the disclosure.
+     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has a row to walk and carves the
+     slice; or re-run `/product-workflows:brd-intake <BRD-KEY> @<brd-file>`, which, wherever its
+     read finds a requirement, reopens **every** row and discards every deferral and rejection
+     recorded here (its Phase 0 step 7). Or the ledger records a fate a container can no longer hold
+     — a **root** row `covered-here`, which only a tree written before a BRD became a container, or
+     a hand edit, can have produced (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
+     §5). **Offer the narrower repair first**, because the illegal state is one row wide and every
+     other row is already legal and terminal: hand-edit that one row's `disposition:` in
+     `coverage-ledger.md`, leaving every other row untouched — to `deferred-to: <this BRD>`,
+     `rejected: [DEF#n]` or `superseded-by: [BR#n]` where the requirement is not to be built here,
+     which makes the ledger legal and lands on the ending above; or back to `unallocated` where it
+     is, after which `/product-workflows:brd-split <BRD-KEY>` has a row to walk, confirms a slice,
+     and that slice's own walk takes the row to `covered-here`, the one level at which
+     `covered-here` is legal. §3's *no command moves a row back to `unallocated`, save one* binds
+     the commands; this is a hand repair of a value no command wrote, and §5 already names hand
+     editing as how this state arises. **Offer the `/brd-intake` re-run second, and only where the
+     whole inventory is to be re-taken:** re-running
+     `/product-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather
+     than a refusal (its Phase 0 step 7 warns and confirms before the first write) and, wherever its
+     read finds a requirement, rewrites the ledger with **every** row `unallocated` — that step
+     lists what a re-run keeps and what it changes — after which
+     `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` has rows to walk. Wherever its read
+     finds a requirement it also **discards every disposition this ledger records**: each
+     `deferred-to`, `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and
+     must be re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Name those
+     decisions — saying only that the dispositions are replaced is not the disclosure.
 
 
 2. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
@@ -232,7 +246,7 @@ artifact. It says nothing about the PRD, which is authored by `/product-workflow
 ## Phase 1 — Configure
 Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`Skill(skill: "workflows-core:reference", args: "escalation-rules")` §0).
 1. **Confirm** the scope (PRD-level vs Epic-level) and the feature folder — and, on every route, whether an authored `prd.md` was found there (the Phase 0 gate's result), so the operator sees which content this run has before it starts. **Wherever the resolved folder holds `grounding/`, on either route**, confirm in addition which of `grounding/code-grounding.md` and `grounding/design-grounding.md` are present — a stat, not a read; the read is Phase 2. **On the BRD route**, confirm **further** a `from BRD:` line naming `<SLICE-KEY>` and the `parent:` its `brd-link.md` records — a run on this route is always slice-level, since step 1a refuses the container — its `depends-on:` if any, and which of `ard-seed.md` and `decisions.md` are present — also a stat.
-   - Show the `docs grounding:` line in the form `workflows-core:docs-grounding` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
+   - **Resolve documentation grounding here, then show its line.** Run `resolve-docs-grounding create-ard` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — its step 3.5 index prompt included — and show the `docs grounding:` line from what it returns, in the form that reference fixes — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs). It runs here, before any agent is dispatched, because step 3.5 asks its one-time index question before the run's real work; this is the run's one resolution (`workflows-core:docs-grounding`, *Invariants*), and Phase 3 step 5 dispatches on the state it returns without resolving again.
 2. **Refine vs fresh** (only if a prior `ard.md` exists): `choices: ["Refine the existing ARD (Recommended)", "Start fresh — overwrite", "Cancel"]`.
 3. **Repos search base (`$REPOS_PATH`).** Read `${REPOS_PATH:-/workspace}` (may be colon-separated): `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]`.
 4. **Repo refresh policy** (governs Phase 3's `code-scanner`): `choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh"]`.
@@ -449,7 +463,7 @@ There are no PRs at ARD time, so repos are **architect-driven**, not PR-derived:
    - `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
 
    A repo the user skips is dropped from the confirmed set and named in the Phase 6 handoff; it never silently disappears.
-5. **Documentation grounding (optional).** Run `resolve-docs-grounding create-ard` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the PRD/Epic goal + capability themes, `key` = `<PRD>` (PRD-level) or `<EPIC>` (Epic-level), `themes` = the confirmed themes. Carry the digest into the Phase 4 grill with **grill-rank** consumption (documented analogs and building-block altitude/permissions are strong ARD grounding). When OFF, skip silently.
+5. **Documentation grounding (optional).** Phase 1 resolved it and showed its line — before this phase's `code-scanner` dispatches — and this step resolves nothing again. Where it resolved `docs_grounding: ON`, `dispatch-docs-grounder` (`workflows-core:docs-grounding`) with `feature_summary` = the PRD/Epic goal + capability themes, `key` = `<PRD>` (PRD-level) or `<EPIC>` (Epic-level), `themes` = the confirmed themes. Carry the digest into the Phase 4 grill with **grill-rank** consumption (documented analogs and building-block altitude/permissions are strong ARD grounding). Where it resolved OFF, dispatch nothing.
 
 ---
 
@@ -489,10 +503,16 @@ Three things make that a guarantee rather than an instruction:
    explicitly **not** a finding, and no customer review reaches the register except through
    `/product-workflows:brd-reconcile`.
 3. **The only field of a decision record this command may write is `consumed_by`** (Phase 6).
-   `statement`, `options_considered`, `chosen`, `argumentation`, `evidence`, `altitude`,
-   `conditional_on`, `status` and `round` are never written here, on any record, in any status — so a
-   grill answer contradicting a `decided` record could not become that record's new `chosen` even if
-   the first two failed.
+   **Every other field `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1 defines is
+   never written here, on any record, in any status** — named as a set rather than enumerated, so a
+   field §1 gains is covered the day it gains it and no list here can drift from the one it stands
+   for. That set takes in every field a re-decision or a reversion writes **save `consumed_by`**,
+   the one field this command does write and the one both of those return to `none`; the two
+   writing sets are §4's to fix, and this command performs neither — a re-decision needs a
+   reopening, which rule 2 has just ruled out, and a reversion is
+   `/product-workflows:brd-reconcile`'s propagation sweep alone (§4). So a grill
+   answer contradicting a `decided` record could not become that record's new `chosen` even if the
+   first two failed.
 
 **What happens when the grill surfaces a genuine contradiction with a settled decision** — which is
 useful information, not something to suppress. Do not decide it and do not soften it into the ARD's
@@ -587,7 +607,7 @@ no per-item field to write and inventing one would mint a format this command al
 seed's consumption is reported at **file** granularity in the final report (consumed, or consumed in
 part with what was left over).
 
-Then **offer** (commit-when-asked — never automatic), invoking `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and presenting its §4.3 choice array verbatim — **two arrays, selected by the `deliverable_paths` set below, per §4.1's set rule.** Where that set is the ARD file(s) **alone**, present §4.3's **gated — falling back** array (§4.1 bullet 2): `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase does not stop on this — it reports the artifact as un-landed and proceeds from the resolved folder)", "Cancel"]`. Every §3.4 row naming an ARD preserves `status: none` and `ard-resolution.md`'s no-regression rule, so `/specify`, `/dev-workflows:design`, `/dev-workflows:implement`, `/epics` and `/dev-workflows:ready` each proceed without it rather than stopping, and the stopping array would promise a refusal none of them makes. Where the set **also** carries `grounding/code-grounding.md`, `grounding/design-grounding.md` or `decisions.md`, present §4.3's **gated — stopping** array (§4.1 bullet 1) instead: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]` — `/brd-split` and `/brd-interview` stop on the grounding files and `/brd-package` on the register, and a set spanning both halves takes the stopping one. On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: ard`; `feature_folder` as resolved in Phase 0 (the PRD dir for a PRD-level ARD, the Epic subfolder for an Epic-level ARD — §2.2 derives `ard/<PRD>-<vslug>` or `ard/<EPIC>-<eslug>` from it, matching today's branch names); `deliverable_paths` = the ARD file(s) — **plus, wherever the resolved folder holds `grounding/`, `grounding/code-grounding.md` and `grounding/design-grounding.md`, and, additionally on the BRD route, `decisions.md`**, because the `consumed_by` writes above land in those files and an uncommitted consumption record is one no later run can read; `ard-seed.md` is not staged, because this run does not write to it; `title: <PRD|EPIC> Add architecture requirements document`; and `body_facts` = the ARD scope (PRD/Epic, any per-area split), the grounded/descoped repos, the `AD#N` count, the open-question count, the `ard-reviewer` verdict, and how many items were marked `consumed_by: ARD` — and, on the BRD route, the `<SLICE-KEY>` this ARD was seeded from. Emit its §4.1 outcome line in the Final report.
+Then **offer** (commit-when-asked — never automatic), invoking `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and presenting its §4.3 choice array verbatim — **two arrays, selected by the `deliverable_paths` set below, per §4.1's set rule.** Where that set is the ARD file(s) **alone**, present §4.3's **gated — falling back** array (§4.1 bullet 2): `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase does not stop on this, but until this is on main it might not read your copy)", "Cancel"]`. Every §3.4 row naming an ARD preserves `status: none` and `ard-resolution.md`'s no-regression rule, so `/specify`, `/dev-workflows:design`, `/dev-workflows:implement`, `/epics` and `/dev-workflows:ready` each proceed without it rather than stopping, and the stopping array would promise a refusal none of them makes. Where the set **also** carries `grounding/code-grounding.md`, `grounding/design-grounding.md` or `decisions.md`, present §4.3's **gated — stopping** array (§4.1 bullet 1) instead: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]` — `/brd-split` and `/brd-interview` stop on the grounding files and `/brd-package` on the register, and a set spanning both halves takes the stopping one. On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: ard`; `feature_folder` as resolved in Phase 0 (the PRD dir for a PRD-level ARD, the Epic subfolder for an Epic-level ARD — §2.2 derives `ard/<PRD>-<vslug>` or `ard/<EPIC>-<eslug>` from it, matching today's branch names); `deliverable_paths` = the ARD file(s) — **plus, wherever the resolved folder holds `grounding/`, `grounding/code-grounding.md` and `grounding/design-grounding.md`, and, additionally on the BRD route, `decisions.md`**, because the `consumed_by` writes above land in those files and an uncommitted consumption record is one no later run can read; `ard-seed.md` is not staged, because this run does not write to it; `title: <PRD|EPIC> Add architecture requirements document`; and `body_facts` = the ARD scope (PRD/Epic, any per-area split), the grounded/descoped repos, the `AD#N` count, the open-question count, the `ard-reviewer` verdict, and how many items were marked `consumed_by: ARD` — and, on the BRD route, the `<SLICE-KEY>` this ARD was seeded from. Emit its §4.1 outcome line in the Final report.
 
 **On the BRD route the feature folder is the resolved `PRD-` slice folder**, so §2.2 derives the
 branch `ard/<SLICE-KEY>-<slug>` from its own basename, not from a re-derived title. That name collides with neither the `prd/` branch `/product-workflows:create-prd` derives on the BRD route for the same key, nor the `spec/` one `/product-workflows:specify` derives on the BRD route, nor the

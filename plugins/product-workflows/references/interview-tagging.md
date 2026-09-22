@@ -47,6 +47,15 @@ customer answering and the decision register recording an answer are two separat
 (`references/decision-register-format.md` §1), and this file fixes only the first: who may be
 asked.
 
+**A question raised by a requirement defect is always `[C]`.** The slice that owns an open `[DEF#n]`
+of a class grounding cannot settle (`references/brd-format.md` §3) raises one for it, once across
+all the slices (`commands/brd-interview.md`) — which of two readings the customer meant, which of
+two conflicting requirements governs, whether an obligation only a picture states binds at all. The
+defect is in the customer's own statement, so only the customer can settle it. A delivery-team
+preference may travel inside the question as the reading proposed for confirmation; it never turns
+the question into a `[V]`, and a `[G]` part split off it under §4 takes its own tag without changing
+this one.
+
 **Tagging precedes asking, always.** A question with no tag is not asked, of anyone. The order is
 load-bearing rather than tidy: a question asked first and classified afterwards has already reached
 whoever it reached, and no later re-classification takes that back.

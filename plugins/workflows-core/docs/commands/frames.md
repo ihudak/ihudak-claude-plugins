@@ -6,7 +6,7 @@
 
 Anyone who put frames in the specs tree, at any point in the pipeline. `design/` is a reserved subdirectory of **any** folder under `specifications/` — a BRD folder, a PRD folder, or an Epic folder alike — so `/frames` resolves all three ([`addressing.md`](../../references/addressing.md) §3, with no kind narrowing). [Workflow overview](../workflow.md#cross-cutting-commands) groups it under the anytime commands: it advances no phase and belongs to no role's step.
 
-It emits a session-cost entry all the same, with `phase`/`role` inferred from the resolved folder's own `kind` — a BRD folder's frame set is [`brd-to-prd`](../roles-and-phases.md#brd-to-prd)/`pm` spend, a PRD or Epic folder's is [`prd-creation`](../roles-and-phases.md#prd-creation)/`pm`. Describing forty frames is real work, and a run that measured nothing would not be free — its spend would roll into whatever command ran next.
+It emits a session-cost entry all the same, with `phase`/`role` inferred from the resolved folder's own `kind` — a frame set in a folder asserting `kind: brd`, a BRD container or a BRD-route slice, is [`brd-to-prd`](../roles-and-phases.md#brd-to-prd)/`pm` spend; one in a folder asserting `prd` or `epic` is [`prd-creation`](../roles-and-phases.md#prd-creation)/`pm`, an Epic folder under a slice included. Describing forty frames is real work, and a run that measured nothing would not be free — its spend would roll into whatever command ran next.
 
 ## Why it exists
 
@@ -50,7 +50,7 @@ The indexes are deliverables, so they reach the default branch through the [phas
 
 ## The cap
 
-**Forty frames described per run**, counted across every set the run touches. `/idea` caps at six because reading a mockup is incidental to writing a brief; this command is invoked *to* index, so six would make it useless on the first real export it met.
+**Forty frames described per run**, counted across every set the run touches. `/idea` has no such cap: it reads mockups incidentally, to write a brief, and asks before reading past six images, then reads what you allow ten to an agent. This command is invoked *to* index and asks nothing first, so stopping at six would make it useless on the first real export it met, and it describes a whole set in one agent, which is the context forty bounds.
 
 **What counts as a frame** is the extension set [`grounding-format.md`](../../references/grounding-format.md) §6.2 fixes — `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`. One vocabulary, shared with `/idea`, because two writers of one index listing by two different sets would each drop the other's rows as frames that had gone missing. Anything else in the directory is not a frame, gets no row, and is named once in the report so it is visibly not indexed rather than invisibly absent.
 

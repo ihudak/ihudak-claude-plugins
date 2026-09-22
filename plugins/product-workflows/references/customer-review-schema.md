@@ -30,6 +30,9 @@ this repository's design spec, and the decision rows above:
   `references/coverage-ledger-format.md` §3
 - the `[BR#n]` requirement identifier — `references/brd-format.md` §2; the `<BRD-KEY>` grammar —
   `workflows-core:addressing` §1
+- the citation check that resolves every numbered identifier in the rendered prompt against the
+  package's own records, which is why section 1 forbids one even as an example —
+  `references/bundle-packaging.md` §6.2, relation 1
 
 **Consumed by two shipped commands.** One renders the body below into the prompt a customer
 pastes — from the boundary this preamble declares, never in full. The other parses a returned review
@@ -56,6 +59,16 @@ Four things this file therefore never contains:
 4. **No instruction a plugin-less agent could not follow.** The vocabulary is the vocabulary any
    agent has — *read the file named X*, *search this bundle for a file whose name contains Y*, *run
    this in a terminal*.
+
+**Nor does it carry an identifier with a number in it, even as an example**, for a reason of its
+own rather than the four above. An example of the package's identifiers is written in the
+placeholder form, `[BR#n]` or `[CG#n]`, never with a number in the place of `n`. The prompt this
+body is rendered into is itself a document of the bundle, and the bundle's citation check resolves
+every numbered identifier in it against that package's own records: an example number names a
+record nobody meant wherever the package holds one — which the customer then reads as the record the
+rule is about — and stops the package as a dead citation wherever it does not. No operator edit can
+repair either, because the text is rendered from this file on every run, whatever package it runs
+on.
 
 **The prohibition on command, agent and skill names is stated over the whole file, not just over the
 rendered part.** A render boundary is easy to move and easy to misjudge; a file that contains no
@@ -135,7 +148,7 @@ the review's; the table below is the review's spine.)
 | 1 | Review identity and evidence limitations | Who reviewed, in what role, on what date; the documents and repositories actually available; the tier statement the evidence-limitations rule obliges; anything that could not be opened |
 | 2 | Executive verdict | One of `approved`, `approved-with-required-changes`, `not-approved`, and one paragraph saying why |
 | 3 | Approved and deferred scope | What is approved to proceed now, what is deferred, and what a deferral is waiting for |
-| 4 | Requirement traceability | Per requirement in scope: does the package's reading match the customer's intent — confirmed, corrected, or missing entirely |
+| 4 | Requirement traceability | Per requirement in scope, exactly one of four values and no other: `confirmed` — the package's reading matches the customer's intent, including a requirement the package says will not be built where the customer agrees it should not be; `corrected` — it does not, and the row says what the customer meant; `missing` — a requirement the package left out entirely, stated as its own row; `withdrawn` — the customer drops the requirement, saying why in this row; where the package put a question about that requirement, the answer to that question goes in section 7 as every answer does, and a withdrawal the package asked about nowhere is stated here alone. Where the package includes its transcription of the customer's images, that transcription — for each image bearing on a requirement in scope — is part of its reading, and the reviewer confirms or corrects it as they do a requirement. A correction the transcription itself must carry is also entered in section 12, as a required change naming the document that holds the transcriptions by its filename and the image by its heading there |
 | 5 | Code-grounding confirmations and challenges | Both: which code claims the reviewer confirms and how, and which they challenge and on what evidence |
 | 6 | Design review | The design positions the package takes, confirmed or challenged, including anything that contradicts the customer's own environment |
 | 7 | The decision log | One row per decision the package asked the customer to take: the answer, and the reason for it |
@@ -152,8 +165,9 @@ sentences mean very different things and an absent section means neither.
 
 **The review cites identifiers; it does not mint them.** Every row that answers something names the
 package's own identifier for it, copied exactly as it appears — every identifier the package uses is
-bracketed, like `[BR#4]` or `[CG#12]`, whatever kind of record it names, and a question is cited by
-the round and position that identify it. The review never assigns identifiers of its own in
+bracketed, a short prefix, a `#` and the record's number, shown here as `[BR#n]` or `[CG#n]` with
+`n` standing for that number, whatever kind of record it names, and a question is cited by the
+round and position that identify it. The review never assigns identifiers of its own in
 those namespaces: the registers on the delivery-team side own that numbering, and an identifier
 whose origin is ambiguous is worse than no identifier. Plain list numbers inside a review section
 are local to the review and are not identifiers.

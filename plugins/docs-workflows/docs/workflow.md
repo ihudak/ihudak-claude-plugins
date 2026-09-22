@@ -1,6 +1,6 @@
 # Workflow overview
 
-`docs-workflows` carries the documentation tail of the pipeline the companion `dev-workflows` plugin drives. Every command it ships is shown below. The spine is short: once a Product Requirements Document's Epics are implemented, `/docs-workflows:document` writes the product documentation and `/docs-workflows:release-notes` drafts the note that announces it. Before that spine can run at all there has to be a documentation repository, and `/docs-workflows:docs-init` is the cold-start command that creates one — a portal skeleton that builds, serves, lints and carries a profile — running `/docs-workflows:docs-brand` inline as one of its own phases. `/docs-workflows:docs-profile`, `/docs-workflows:docs-brand`, and `/docs-workflows:docs-serve` also stand alone outside the spine — setup utilities reached at any point: the first teaches `/document` what an existing documentation repository looks like, the second extracts a logo and a rough colour pair from the product's own code and applies them to the docs site, and the third runs that repository's own dev server so you can look at it.
+`docs-workflows` carries the documentation tail of the pipeline the companion `product-workflows` and `dev-workflows` plugins drive. Every command it ships is shown below. The spine is short: once a Product Requirements Document's Epics are implemented, `/docs-workflows:document` writes the product documentation and `/docs-workflows:release-notes` drafts the note that announces it. Before that spine can run at all there has to be a documentation repository, and `/docs-workflows:docs-init` is the cold-start command that creates one — a portal skeleton that builds, serves, lints and carries a profile — running `/docs-workflows:docs-brand` inline as one of its own phases. `/docs-workflows:docs-profile`, `/docs-workflows:docs-brand`, and `/docs-workflows:docs-serve` also stand alone outside the spine — setup utilities reached at any point: the first teaches `/document` what an existing documentation repository looks like, the second extracts a logo and a rough colour pair from the product's own code and applies them to the docs site, and the third runs that repository's own dev server so you can look at it.
 
 ```mermaid
 flowchart TD
@@ -31,7 +31,7 @@ flowchart TD
     brand -.->|preview the branded site| docsserve
 ```
 
-Two nodes are drawn for continuity and are not this plugin's commands: `/dev-workflows:implement` and `/product-workflows:create-prd` ship in the companion pipeline plugin and are documented there.
+Two nodes are drawn for continuity and are not this plugin's commands: `/dev-workflows:implement` ships in the companion `dev-workflows` plugin and `/product-workflows:create-prd` in the companion `product-workflows` plugin, and each is documented there.
 
 **One command name here collides with a Claude Code built-in of the same name: `/release-notes`.** Typing the bare form reaches Claude Code's own command instead of this one, so use the qualified `/docs-workflows:release-notes`. `/document`, `/docs-init`, `/docs-profile`, `/docs-brand`, and `/docs-serve` are not known to collide today, so the rest work either way, and the diagram above spells out the qualified form throughout because that form always works.
 

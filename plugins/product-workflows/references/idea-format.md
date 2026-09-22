@@ -2,7 +2,7 @@
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
 
-The canonical structure and per-section rules for a refined `idea.md`. `/idea` is the only caller — it authors against this file. `/create-prd` consumes the resulting `idea.md` **artifact**, not this format doc, and never cites it. A lean one-page brief — the seed a Product Requirements Document is built
+The canonical structure and per-section rules for a refined `idea.md`. Two commands execute it: `/idea` authors against the whole file and executes its *Vendored sources* rules, and `/brd-intake` Phase 2 executes *The collision rule*'s rules 1–3 only, citing them by number, for `brd/source-external/` — never rule 4, which overwrites a copy, because nothing under `brd/source-external/` is ever overwritten. `/create-prd` consumes the resulting `idea.md` **artifact**, not this format doc, and never cites it. A lean one-page brief — the seed a Product Requirements Document is built
 from, NOT a mini-PRD.
 
 ## Frontmatter
@@ -14,8 +14,8 @@ key: <the key the run was invoked with>
 title: <candidate human-readable title>
 slug: <candidate-kebab-slug>
 sources:
-  - provenance: rfe | prd | markdown | community-post | prompt | doc-grounding
-    ref: <path | KEY | url>
+  - provenance: prd | markdown | community-post | prompt
+    ref: <path>                                        # the source file's path as the run was given it; absent on a prompt entry
     vendored: <PRD-folder-relative path of the copy>   # present IFF this source was vendored
 created: <YYYY-MM-DD>
 status: draft | refined        # refined IFF zero open [NEEDS CLARIFICATION] remain
@@ -26,7 +26,21 @@ status: draft | refined        # refined IFF zero open [NEEDS CLARIFICATION] rem
 
 Rules: `status` is `refined` only when the **Open questions & assumptions** section carries zero
 `[NEEDS CLARIFICATION]` markers; otherwise `draft`. `sources` lists every ingested source with its
-provenance (re-running `/idea` for the same `slug` refines the existing file and appends a source).
+provenance — one per `/idea` run, the prompt or the file named on its command line (re-running
+`/idea` for the same key refines the existing file and appends a source). A file's entry is
+`{provenance, ref}`, plus `vendored` where it was copied, its `ref` being the `ref` of
+`idea-reader`'s one `source_refs` entry — the path exactly as the run was given it; a prompt's entry
+is `{provenance: prompt}` with no `ref`, since a prompt has no path and its `source_refs` is empty.
+**A page or image that source links is not an ingested source** and gets no `sources` entry: its
+copy is recorded by the rewritten link in `idea.md` that points at it and, for an image, by its row
+in `design/idea-sources/index.md` (**Vendored sources** below).
+
+**Four `provenance` values, because those are all a run produces**: `/idea` Phase 1 classifies a
+prompt or a markdown file, and `idea-reader` upgrades a markdown file to `community-post` or `prd`
+off the file itself. Earlier releases also listed `rfe` and `doc-grounding`, and no command produces
+either. A value left in an existing `idea.md` — or carried from one into a PRD's `sources` — stays
+readable: nothing decides anything on a `sources` entry's `provenance`, and `/create-prd` propagates
+the entry as it stands.
 
 **`ref` is never rewritten; `vendored` is what a later reader follows.** `ref` answers how the idea
 arrived, and a path that resolves on nobody else's machine is still the true answer to that question.
@@ -56,23 +70,27 @@ insufficient. No proposed solution, no technology detail.
 `## Signals & evidence` — demand evidence grounding the idea: RFE reference, community-post
 requesters/upvotes, linked docs, and image references. Cite sources; never fabricate.
 
-**A linked image is cited by path, and what it shows is described only where the grill settled it.**
-`idea-reader` reads the images an idea source links and returns a short description of each frame, but
-that description is **context, not evidence** — it says what somebody drew, not what anything does. So
-an image bullet names the file and, at most, what the operator confirmed about it during the grill;
-never write a frame's contents here as an established fact, and never describe an image the reader
-reported it did not read. An image is also never the sole support for a bullet in this section:
-demand is shown by who asked, not by a mockup existing.
+**A linked image is cited as any linked file is — by its written `target` or its resolved `path`
+(below) — and what it shows is described only where the grill settled it.**
+`figure-reader` transcribes the images an idea source links and `idea-reader` returns each frame's
+one-sentence description from that transcription, but that description is **context, not
+evidence** — it says what somebody drew, not what anything does. So an image bullet names the file
+and, at most, what the operator confirmed about it during the grill; never write a frame's contents
+here as an established fact, and never describe an image the digest reports `read: false`. An image
+is also never the sole support for a bullet in this section: demand is shown by who asked, not by a
+mockup existing.
 
 **The path a bullet cites is the vendored copy's, wherever one exists.** Phase 4.5 rewrites this
 section's links onto `attachments/` and `design/idea-sources/` per **Vendored sources** below; a
-source that was not copied — past a cap, broken, unreadable, or not markdown/an image — keeps
-the path it was written with, because a link is only ever repointed at a copy that exists.
+source that was not copied — left out by the operator's Phase 1.5 answer, broken, unreadable, or not
+markdown/an image — keeps the path it was written with, because a link is only ever repointed at a
+copy that exists.
 
-**Cite a source in one of the two forms the digest carries — its `target` as the author wrote it, or
-its resolved `path`.** Both are keys of the rewrite map below, so either is repointed at the copy.
+**Cite a linked page or image in one of the two forms the digest carries — its `target` as the author
+wrote it, or its resolved `path` — and the source file itself by its `source_refs[].ref`, the one form
+the digest carries for it.** Each is a key of the rewrite map below, so each is repointed at the copy.
 This is the one thing this section owes that phase: the rewrite opens no path of its own and matches
-on strings alone, so a bullet citing a source in a *third* form — a path tidied, shortened, or
+on strings alone, so a bullet citing a source in any other form — a path tidied, shortened, or
 reconstructed while writing — is a link nothing can match, and it survives into the record pointing
 at the operator's own disk.
 
@@ -84,7 +102,7 @@ belong in **Feasibility grounding** (Section 7).
 
 `## Prior art` — an existing PRD the operator supplied that this idea covers, continues, parallels, or
 rewrites. **Write it when the source is a `prd` the user supplied; omit it entirely
-otherwise.** One bullet per entry, in one of two shapes.
+otherwise.** One bullet per entry, in the one shape below.
 
 **There is one shape, because there is one producer.** Nothing discovers prior art: the operator
 hands over a PRD as the source, `idea-reader` tags it `provenance: prd` off its own `kind: prd`
@@ -153,7 +171,8 @@ Nothing speculative goes here. A theme the scan could not resolve is a `[NEEDS C
 happened to live is a provenance document nobody else can follow, so **`/idea` copies the sources it
 actually read into the PRD folder and rewrites `idea.md`'s links onto the copies.** This is a rule
 about the *folder* rather than a section of `idea.md`, stated here because the links it repairs are
-this file's; `/idea` Phase 4.5 is its only caller and executes it inline.
+this file's. `/idea` Phase 4.5 executes the whole of it inline; `/brd-intake` Phase 2 executes
+*The collision rule* below, rules 1–3 only, for `brd/source-external/`.
 
 **Brief quality is not what this protects.** `idea-reader` had already distilled every source into
 `raw_context` and the grill had already consumed it, so a run that vendored nothing would author the
@@ -161,20 +180,20 @@ same brief. What breaks without this is the *record*.
 
 ### The two destinations
 
-| What `idea-reader` reports it read | Where the copy lands |
+| What the digest reports as read | Where the copy lands |
 |---|---|
 | a markdown file — the source itself, and every `wikilinks_followed[]` page | `<PRD-folder>/attachments/<name>` |
 | an image carrying `read: true` | `<PRD-folder>/design/idea-sources/<name>` |
 
-**Nothing else is ever copied** — no PDF, no archive, no other binary. A linked file the reader does
-not open is left where it sits, its link in `idea.md` is left exactly as written, and it is reported
-(below).
+**Nothing else is ever copied** — no PDF, no archive, no other binary. A linked file nothing opens is
+left where it sits, its link in `idea.md` is left exactly as written, and it is reported (below).
 
-**The copy set is markdown and images because that is all `idea-reader` opens.** The traversal follows
-links to `.md` pages and the image pass reads image extensions; everything else is enumerated into
-`links_other[]` and never opened. So a linked `.txt` is not copied — not because it is not text, but
-because nothing read it — and the run must report it in those terms. `attachments/` is the reserved
-name for the text and markdown a folder vendors; what reaches it *today* is markdown.
+**The copy set is markdown and images because those are all a run reads of what the source
+links.** `idea-reader` reads the markdown pages `/idea` Phase 1.5's walk took and `figure-reader`
+the images; everything else is enumerated into `links_other[]` and never opened. So a linked `.txt`
+is not copied — not because it is not text, but because nothing read it — and the run must report
+it in those terms. `attachments/` is the reserved name for the text and markdown a folder vendors;
+what reaches it *today* is markdown.
 
 `design/` is not a name this file invents: it is the reserved frame-set subdirectory
 `workflows-core:grounding-format` §6.1 already fixes for **any** folder under
@@ -186,23 +205,23 @@ idea's mockups across directories no single index could relate.
 
 ### Only what was actually read is copied
 
-The copy set is exactly the digest's positive reads. It inherits `idea-reader`'s caps — 12 files in
-total, 6 images — and adds none of its own, because a file the reader never opened is a file this rule
-has nothing to copy:
+The copy set is exactly the digest's positive reads — everything `/idea` Phase 1.5's walk took and
+was read, however many — and adds no bound of its own, because a file nothing read is a file this
+rule has nothing to copy:
 
 - the source file itself, unless `provenance: prompt` (there is no file);
 - every `wikilinks_followed[]` entry;
 - every `images[]` entry carrying `read: true`.
 
 **Four sets are deliberately not copied, and every one of them is reported rather than dropped.** A
-truncation the operator is not told about is indistinguishable from a source that said less:
+partial read the operator is not told about is indistinguishable from a source that said less:
 
 | Digest field | Why nothing is copied | What the run reports |
 |---|---|---|
-| `wikilinks_not_followed[]` | the traversal never reached it | the target, the file that linked it, and its `cap`/`depth` reason |
-| `wikilinks_broken[]` | it resolves to nothing | the target as written |
-| `images[]` with `read: false` | it was never opened | the path and its `cap`/`unreadable`/`not_an_image` reason |
-| `links_other[]` | it resolves to a file the reader does not open — not markdown, not an image | the path and its extension |
+| `wikilinks_not_followed[]` | the operator's Phase 1.5 answer left it out | the target, the file that linked it, and its `excluded` reason |
+| `wikilinks_broken[]` | it resolves to nothing, or to more than one file | the target as written, and every candidate of an `ambiguous` one |
+| `images[]` with `read: false` | it was not transcribed — excluded, or the transcription failed | the path and its `excluded`/`missing`/`unreadable`/`not_an_image` reason |
+| `links_other[]` | it resolves to a file nothing opens — not markdown, not an image | the path and its extension |
 
 **None of the four is fatal**, and none of them has its link rewritten: a link is repointed only at a
 copy that exists.
@@ -212,10 +231,12 @@ as written. This is the re-refinement case — `/idea <KEY> @<that folder>/idea.
 the brief into its own `attachments/`.
 
 **Nothing empty is created.** `attachments/` is created only when a file is about to land in it, and
-`design/idea-sources/` only when an image is. A bare-prompt run creates neither directory and writes no
-index. **Creating a directory and writing its index are not the same act**: the index is written
+`design/idea-sources/` only when an image is. A bare-prompt run creates neither directory, and writes
+no index where the folder holds no frame set. **Creating a directory and writing its index are not
+the same act**: the index is written
 whenever that directory holds at least one frame, including on a run that copied no image into a set an
-earlier run had already populated — see *The index is mandatory*, below.
+earlier run had already populated — a bare-prompt run over such a folder among them — see *The index
+is mandatory*, below.
 
 ### The index is mandatory, and its format is not this file's
 
@@ -234,12 +255,17 @@ that drifts.
 
 **What `/idea` contributes is one row of §6.2's writer table.** The frames it accounts for are the
 images it copied into `design/idea-sources/` this run; a new row's description is `idea-reader`'s
-per-image `description`, transcribed verbatim and never invented, and its `Linked from` is that
-image's `from` in the digest. An image the reader did not read carries no `description`, is not
-copied, and is accounted for nowhere — so a frame an earlier run vendored, or something other than an
-`/idea` run dropped in, lands on §6.2 step 4 and is reported rather than described. `written_by` is
-`/idea`; `frame_set` is `idea-sources`; `key` is the key the run was invoked with, which is the
-resolved folder's own.
+per-image `description` — `figure-reader`'s `depicts` sentence for that image — transcribed
+verbatim and never invented. Its `Linked from` names the file that image's digest `from` names, by
+the path of that file's **vendored copy** relative to the PRD folder — `attachments/p3.md`, under
+the name the collision rule gave it — or by the file's own path there where it already sat inside
+the folder; never by `from` itself, an absolute path on the operator's machine that resolves for
+nobody else reading the record (§6.2's `Linked from` semantics). Where that file has no copy because
+its own copy failed, the row takes `—`, and the failed copy is reported with the rest. An image the
+digest reports `read: false` carries no `description`, is not copied, and is accounted for nowhere —
+so a frame an earlier run vendored, or something other than an `/idea` run dropped in, lands on §6.2
+step 4 and is reported rather than described. `written_by` is `/idea`; `frame_set` is
+`idea-sources`; `key` is the key the run was invoked with, which is the PRD folder's own.
 
 **`idea-sources` is one frame set per PRD folder, not one per run** — see *The two destinations* above —
 which is exactly why §6.2 rebuilds from the directory rather than from what a run copied: an idempotent
@@ -254,7 +280,11 @@ so, and this section keeps `/idea`'s own part of that — writing the index, not
 ### The collision rule
 
 Two linked files may share a basename from different directories, and a re-run meets its own earlier
-copies. The destination name is the source's basename; where that name is already taken:
+copies. The destination name is the source's basename, settled by the rules below. **Rule 1 applies
+to every file, whether or not its basename is taken** — it compares against the whole destination
+directory, so a renamed file whose bytes are already there is reused under the name it has, not
+copied beside it. Where rule 1 finds no identical file, the file lands at its basename if that name
+is free, and rules 2–4 settle a name that is already taken:
 
 1. **Identical content is not a collision.** Compare the bytes **against every file already in the
    destination directory**, not only against the candidate name. A file already holding exactly this
@@ -285,14 +315,17 @@ copies. The destination name is the source's basename; where that name is alread
 
 The same rule, with the same counter semantics, applies in **both** destinations.
 
+**`/brd-intake` Phase 2 cites rules 1–3 by number** for `brd/source-external/`, so a rule inserted,
+removed or renumbered here must be carried to `commands/brd-intake.md` Phase 2 in the same change.
+
 ### Link rewriting
 
 Rewrite a link in `idea.md` **only** where its target was actually copied. Every other link — broken,
-past a cap, an unreadable image, a PDF, an external URL, a file already in the PRD folder — is left
-byte-for-byte as it stands, **syntax included, and deliberately so**: a wikilink that still reads
-`[[rollout]]` is the visible signal that the cap bit and nothing was copied for it, which is precisely
-what the author needs in order to vendor that file by hand. Converting an uncopied link to markdown
-would give it the shape of a repaired link while leaving it as dead as it was.
+left out by the operator's Phase 1.5 answer, an unreadable image, a PDF, an external URL, a file
+already in the PRD folder — is left byte-for-byte as it stands, **syntax included, and deliberately
+so**: a wikilink that still reads `[[rollout]]` is the visible signal that nothing was copied for it,
+which is precisely what the author needs in order to vendor that file by hand. Converting an uncopied
+link to markdown would give it the shape of a repaired link while leaving it as dead as it was.
 
 The rule is: **replace the target, preserve the display text, and write the result as standard
 markdown.**
@@ -310,18 +343,27 @@ holding, per copied entry, the target **as written** *and* the destination its c
 carries the written form on every link array — `images[].target` beside its `path` and `from`,
 `wikilinks_followed[].target` beside its `from` and `path`, and the same field on
 `wikilinks_not_followed[]`, `wikilinks_broken[]` and `links_other[]` — and the copy step knows the name the
-collision rule minted. Pair them:
+collision rule minted. Pair them, and add the source file's own row:
 
 | Key | Value |
 |---|---|
-| the `target` as written, together with the `from` it was written in | the path of that entry's copy, relative to the PRD folder |
+| the `target` as written, together with the `from` it was written in — the pair is what makes two entries two keys; matching is on the target half alone (below) | the path of that entry's copy, relative to the PRD folder |
 | that same entry's resolved absolute `path` | the same copy |
+| the source file's `source_refs[].ref`, exactly as the digest records it | the source's copy in `attachments/`, relative to the PRD folder |
 
-**Two key forms, because a brief may cite either.** Section 5 tells the author to cite a source as the
-digest carries it — the written `target`, or the resolved `path` — and both come out of the same digest
-entry, so both map to the same copy. Keying on the written form alone would leave every path-cited
-bullet unrewritten while the copy sat beside it, which is the whole failure this rule exists to prevent;
-the digest already holds both halves, so admitting both costs nothing and re-resolves nothing.
+**Two key forms, because a brief may cite either.** Section 5 tells the author to cite a linked page
+or image as the digest carries it — the written `target`, or the resolved `path` — and both come out
+of the same digest entry, so both map to the same copy. Keying on the written form alone would leave
+every path-cited bullet unrewritten while the copy sat beside it, which is the whole failure this rule
+exists to prevent; the digest already holds both halves, so admitting both costs nothing and
+re-resolves nothing.
+
+**The source file takes the third row, because it sits in no link array.** It is copied — it heads
+the copy set — but no link array holds it, so without a key of its own a Section 5 bullet citing the
+source brief would match nothing and keep pointing at the operator's disk while its copy sat in
+`attachments/`. The digest records it once, as its `source_refs[].ref`, and that string is its key. A
+source that already sat inside the PRD folder was not copied, so it has no row and its link is left as
+written, like every link to a file this rule did not copy.
 
 **An anchor is not part of the key.** Split a trailing `#…` off a link's target before matching, and
 re-append it verbatim to the rewritten target: `[[notes#Rollout]]` becomes
@@ -330,8 +372,10 @@ survives the repointing untouched; folding it into the key would match nothing a
 operator's disk, and dropping it would silently lose the only part of the link that said where to look.
 
 **Nothing here re-resolves a link.** This rule opens no path of its own; the map is the whole of what it
-knows, so a form that is neither key is a link nothing copied. Match each link in `idea.md` on its
-target string:
+knows, so a form that matches no key is a link nothing copied. **Match each link in `idea.md` on its
+target string alone** — a link being rewritten sits in `idea.md`, which is no digest entry's `from`,
+so a key's `from` is never matched against anything; it is there to tell two keys carrying the same
+written target apart, which is the whole of what rule 3 turns on:
 
 1. **Exactly one key carries that written target** — rewrite it to that key's copy. The ordinary case, and
    it is decided on the resolved file: the key exists only because that entry resolved and was copied.
@@ -354,6 +398,7 @@ target string:
 | `[[notes]]` | `[notes](attachments/notes.md)` | the target text becomes the link text |
 | `[[notes\|see this]]` | `[see this](attachments/notes.md)` | the alias is the link text |
 | `![[toggle-01.png]]` | `![toggle-01](design/idea-sources/toggle-01.png)` | embed → image; alt from the original basename |
+| `![[toggle-01.png\|300]]` | `![toggle-01](design/idea-sources/toggle-01.png)` | an embed's width is dropped; alt from the basename, as for a bare embed |
 | `![[notes]]` (a `.md` transclusion) | `[notes](attachments/notes.md)` | embed → **link**; see below |
 | `[the note](../vault/notes.md)` | `[the note](attachments/notes.md)` | already standard; target only |
 | `![the toggle](/home/x/img/toggle-01.png)` | `![the toggle](design/idea-sources/toggle-01.png)` | already standard; target only |
@@ -368,7 +413,9 @@ copy it belongs to except resolving it a second time, which this rule does not d
 bare `[[name]]` takes `name` as its link text, so what the page renders does not change; a markdown link
 keeps the text it already had; and a bare `![[note]]` transclusion takes its link text exactly the way a
 bare `[[note]]` does — the target as written. A bare image embed has no text at all, so its alt is derived from the
-**original** basename with its extension dropped — `![[toggle-01.png]]` gives `![toggle-01](…)`. Derive
+**original** basename with its extension dropped — `![[toggle-01.png]]` gives `![toggle-01](…)`. An
+image embed carrying a width — `![[toggle-01.png|300]]` — takes the same alt: what follows its `|` is
+a size, not display text, so it is dropped and never rendered as `![300](…)`. Derive
 it from what the author wrote, never from the name the collision rule minted, so a `_NN` suffix never
 surfaces as alt text. A new target is written relative to the PRD folder — `idea.md` sits at its root —
 and the three characters that break a markdown target are percent-encoded in it — a space as `%20`,

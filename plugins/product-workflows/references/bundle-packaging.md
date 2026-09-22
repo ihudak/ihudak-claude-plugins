@@ -36,11 +36,12 @@ in order to review what was sent to them. Four rules follow, and every one of th
 bundle may assume of the machine it lands on.
 
 1. **The prompt is self-contained.** No path rooted at the plugin's install directory, no slash
-   commands, no skill invocations, no MCP assumptions. The review schema is **inlined in full** —
-   rendered from `references/customer-review-schema.md` at build time rather than quoted,
-   summarised, or linked, so the shipped prompt and the authority cannot drift apart. That file
-   carries its own plugin-free constraint and states which part of it is rendered; nothing here
-   overrides it.
+   commands, no skill invocations, no MCP assumptions. The review schema is **inlined** — rendered
+   from `references/customer-review-schema.md` at build time rather than quoted, summarised, or
+   linked, so the shipped prompt and the authority cannot drift apart — and **never the whole
+   file**: that file states which part of it is rendered, and `commands/brd-package.md`'s
+   `render-schema` entry point states what the prompt's part 10 takes. That file also carries its
+   own plugin-free constraint; nothing here overrides it.
 2. **No harness-specific instructions.** The prompt is written in the vocabulary any agent has —
    *read the file named X*, *search this bundle for a file whose name contains Y*, *run this in a
    terminal*. It states its assumed capability set in one line at the top, so a reviewer on a weaker
@@ -77,8 +78,10 @@ Exactly this, and nothing else:
 |---|---|
 | the rendered customer prompt | it is the entry point |
 | the customer's own source document — `brd/source/<basename>`, **the parent's on a slice** (`references/brd-format.md` §2.1) | requirement traceability: the review's own section 4 asks whether the package read the customer's document correctly, which is unanswerable without that document |
+| every other markdown file `/brd-intake` captured — `brd/source/<file>.md` beside the document and `brd/source-external/<file>.md` from outside its folder, **the parent's on a slice**, one hop (`references/brd-format.md` §1.1, §2.1) | requirement traceability, for the same reason: a `[BR#n]` anchored in an appendix (`references/brd-format.md` §2) is unanswerable without that appendix |
 | `brd/brd-inventory.md` | *Review scope* |
 | `brd/brd-defect-log.md` — **the parent's on a slice**, one hop, exactly as an inherited `[DEF#n]` already resolves (`references/brd-format.md` §4) | *Review scope*: a ledger row reading `rejected: [DEF#n]` cites an id the reviewer must be able to resolve |
+| `brd/brd-figures.md` — **the parent's on a slice**, one hop, as the defect log is, and only where the file exists | requirement traceability: the review's section 4 asks the customer to confirm or correct the package's reading of their document, and this file is its reading of their images (`references/brd-format.md` §1.2) |
 | `coverage-ledger.md` | *Review scope*, and *what this session cannot settle* |
 | `code-defect-log.md`, when the folder holds one | *Review scope*, *what could still move*, and *what this session cannot settle* — a defect disposed `in-scope` **is** the delivery boundary |
 | `grounding/code-grounding.md` and `grounding/design-grounding.md` | *the single most important claim to verify first* |
@@ -86,11 +89,43 @@ Exactly this, and nothing else:
 | `decisions.md` | *the single most important claim to verify first*, *the decisions the customer must make*, *what could still move* |
 | `interview/customer-questions.md` | *the decisions the customer must make* |
 | every prerequisite package copied in, marked *not for re-review* | *what each package in the bundle is for* |
-| every image the documents above reference | they are embedded in them (§2) |
+| every image the documents above reference, and every image `brd/brd-figures.md` holds a section for — save one whose section carries the marker `references/brd-format.md` §1.2 fixes and whose *Rows* line yields no row | the documents embed them (§2), and a figures section sends the reviewer to the picture it transcribes — as does an image anchor or a question naming the image. A marked image is one the latest intake did not capture, so it ships only where a preserved row still anchors on it: the customer needs the picture to check that row |
 | the manifest | *documents to review* |
 
-Plain markdown and images — nothing else (§2). The manifest lists documents by filename, for the
-same reason rule 4 does.
+Plain markdown and images — nothing else (§2). **A file `/brd-intake` captured that is neither —
+`pricing.pdf` and its kind — is therefore not in the bundle, and that is a disposition rather than
+an omission**: §2's rule admits two file kinds and the allow-list above is closed, so there is no
+row it could take. It is named in the manifest as **captured and not bundled**, beside the captured
+file it was linked from, and every link to it inside a rendered document becomes the plain
+description §2's third link case requires — so a reviewer who meets the link learns what stood
+there and that it was withheld, rather than searching the bundle for a filename nothing carries.
+The customer's own byte-for-byte files still link to it as they always did (§2.1), which is why the
+manifest entry exists at all. The manifest lists documents by filename, for the
+same reason rule 4 does, **and maps every file `/brd-intake` captured that the bundle carries — each
+markdown file and each image from `brd/source/` and `brd/source-external/` — from its path relative
+to `brd/` to its bundled filename**, the name carrying the `<BRD-KEY>-` prefix that
+`commands/brd-package.md`'s *Assemble the bundle* rule 1 gives every bundled file, an image's
+included. That path is the form every reference to a captured file takes:
+a figures section's heading, an appendix or image `source_anchor`, and an interview question naming
+an image (`references/brd-format.md` §1.2, §2). None of them is a bundle filename, so without the map
+a reviewer who searches by filename, as rule 4 tells them to, finds nothing.
+
+**The figures file ships without its frontmatter.** Every field in it is the specs tree's
+bookkeeping rather than anything a reader outside the vault can use (`references/brd-format.md`
+§1.2), so the de-Obsidianising pass removes it whole, as it removes any frontmatter that means
+nothing to a reader outside a vault (§2), and leaves in its place the one-line note that pass
+requires. That note names the customer's document by its **bundled** filename. `key:` is how the
+specs tree ties the file to its BRD — the BRD that owns the source document, which on a slice is the
+parent while the bundled filename carries this package's key; the file carries no `kind:`
+(`references/brd-format.md` §1.2) — and what it identifies reaches the reader through the note
+instead, which names the very document the transcriptions are of.
+`written_by:` names the plugin's own command, which no bundle document may name
+(`commands/brd-package.md`'s standing rule). `source:` names the customer's document by its working
+basename, and the bundle renames that document (`commands/brd-package.md`'s *Assemble the bundle*
+rule 1), so kept as written it is exactly the working-filename reference §6.2's relation 3 stops on.
+It is plugin-written, and a bare basename rather than a locator in §6.3's sense, so no exemption
+there reaches it. The note carries the one fact `source:` held, in the form the reviewer can search
+for.
 
 **The code-defect log ships, and the reason is scope rather than disclosure.** A `[CDF#n]` disposed
 `in-scope` names a repair that has to happen inside this PRD's scope or the feature cannot be
@@ -133,11 +168,12 @@ own source document arrives with whatever its author wrote. The bundle is a **re
 produced on the way out; the working documents keep their wikilinks and are never rewritten in
 place. A de-Obsidianising pass that edits the source is a data-loss bug wearing a formatting fix.
 
-**Wikilinks are rewritten to plain filename references.** `[[Some Document]]` resolves to nothing
-outside a vault: in every other reader it is literal text with brackets around it, and a reviewer
-who clicks it, searches it, or asks an agent to open it gets nothing. It is worse than a missing
-link, because it looks like a link. The rewrite names the target file as the reviewer will actually
-see it, so it can be searched for.
+**Wikilinks are rewritten to plain filename references** — every one this package wrote, and none it
+quotes from the customer (§2.1). `[[Some Document]]` resolves to nothing outside a vault: in every
+other reader it is literal text with brackets around it, and a reviewer who clicks it, searches it,
+or asks an agent to open it gets nothing. It is worse than a missing link, because it looks like a
+link. The rewrite names the target file as the reviewer will actually see it, so it can be searched
+for.
 
 Three cases the rewrite has to get right:
 
@@ -160,29 +196,52 @@ reviewer and breaks it the same way. That is not hypothetical: a shipped bundle 
 grounding files by their working filenames after this pass had renamed them. Both survived
 everything, because a rewrite rule inspects links. §6's relation 3 covers prose and links alike.
 
-### 2.1 The customer's own source document is copied byte for byte, never rendered
+### 2.1 The customer's own documents are copied byte for byte, never rendered
 
-**The one file in the bundle the de-Obsidianising pass does not touch is `brd/source/<basename>`**
-(§1.1; the parent's, on a slice). It goes in as the bytes `/brd-intake` copied, unrewritten,
-unreflowed, and with nothing removed — even where it carries something that renders in exactly one
-tool. Three reasons, and each is fatal on its own:
+**The de-Obsidianising pass does not touch the customer's own files: `brd/source/<basename>`, and
+every other markdown file `/brd-intake` captured under `brd/source/` or `brd/source-external/`** (§1.1;
+the parent's, on a slice). Each goes in as the bytes `/brd-intake` copied, unrewritten, unreflowed,
+and with nothing removed — even where it carries something that renders in exactly one tool. Three
+reasons, and each is fatal on its own:
 
-- **Every `[BR#n]` anchors into it by `source_anchor` — a heading path or a line range**
-  (`references/brd-format.md` §2). A rendered copy moves lines and can rewrite headings, so a
-  requirement's anchor stops resolving in precisely the copy the customer was given to check
-  traceability against. Requirement traceability is the *reason* the file is in the bundle at all;
-  a pass that breaks it defeats the inclusion.
-- **It is immutable by rule** (`brd-format.md` §1): nothing under `brd/source/` is ever edited,
-  reworded or reformatted, "no matter how badly worded a requirement inside it is". A bundle copy
-  that has been tidied is an edit the rule forbids, made where nobody looks for one.
-- **It is the customer's own writing, handed back to them.** §3's one-new-file rule exists so that
-  "nobody can otherwise tell what was sent from what was changed"; returning their document
+- **Every `[BR#n]` drawn from their text anchors into them by `source_anchor`**, in the forms
+  `references/brd-format.md` §2 fixes; an image-drawn row anchors on the image, which ships beside
+  them. A rendered copy moves lines and can rewrite headings, so a requirement's anchor stops resolving in
+  precisely the copy the customer was given to check traceability against. Requirement traceability
+  is the *reason* these files are in the bundle at all; a pass that breaks it defeats the inclusion.
+- **They are immutable by rule** (`brd-format.md` §1, and §1.1 for `brd/source-external/`): nothing
+  under either directory is ever edited, reworded or reformatted, "no matter how badly worded a
+  requirement inside it is". A bundle copy that has been tidied is an edit the rule forbids, made
+  where nobody looks for one.
+- **They are the customer's own writing, handed back to them.** §3's one-new-file rule exists so that
+  "nobody can otherwise tell what was sent from what was changed"; returning their documents
   reformatted is that failure committed by the delivery team first.
+
+**The customer's words quoted in the inventory's and the ledger's `text` cells, and in a `[CD#n]`'s
+quoted `argumentation` and `chosen` (§6.3), are left as written too — and so is an `[SR#n]`'s
+`target`, `attack` and `what_would_settle_it`, which `commands/brd-package.md` renders into the
+prompt's *where to attack us hardest* and *decisions the customer must make* parts and states are
+not its to change.** A reviewer's attack that quotes a customer's `[[wikilink]]` sits at the exact
+point where that rule and this pass disagree, and the rule wins: the quotation is somebody else's
+words, which is the reason this section gives for the cells beside it, and a pass that rewrote it
+would edit an attack the package is forbidden to reword. A link or a `[[wikilink]]`
+there is quotation (`references/brd-format.md` §2.3 for a cell), not a link this package made, so
+the pass rewrites none of it, exactly as it rewrites nothing in the files the text is quoted from;
+the rest of those files is the plugin's writing and is rendered as §2 says.
 
 Where that leaves something a plain reader cannot open — an embedded image, a one-tool block — the
 fix is **beside the file, never inside it**: copy the image in as §2 already requires, and say in the
 manifest what the reader may not be able to see. The manifest is prose this package wrote and may
-say anything; the source document is not.
+say anything; the customer's files are not.
+
+**An image a captured file reaches through a `[[wikilink]]`, or from outside the document's own
+directory, is found through `brd/brd-link-log.md`'s *Captured links that do not resolve as written*
+table** (`references/brd-format.md` §1.1), its cells decoded before a target is compared
+(`references/brd-format.md` §2.3) — on a slice the parent's log, one hop, as the document is
+(`references/brd-format.md` §2.1). Its copy is in `brd/source/` or `brd/source-external/`, at a path
+the target as written does not name. It is copied into the bundle like any other image, and its
+manifest line (§1.1) names the target as written as well as its path relative to `brd/`: the file
+the link sits in is never edited to point there.
 
 **Callouts are kept.** A `> [!note]` block degrades to an ordinary blockquote in any markdown reader
 — the reader loses the label's styling and keeps every word. Nothing that survives untranslated is
@@ -225,9 +284,10 @@ review said which it was, at the top, before the confirmations.
 ## 4. The delivery note
 
 The covering letter that goes in the email body. It is written to a file in the BRD folder and
-printed in full at the end of the packaging run, so it can be pasted without opening anything. **It
-is not part of the bundle** — it is the email, not a package document, and a copy of it inside the
-bundle would be a second, divergent statement of what was sent.
+printed in full before the run offers to send it, so the operator reads what they are being offered
+and can paste it without opening anything. **It is not part of the bundle** — it is the email, not a
+package document, and a copy of it inside the bundle would be a second, divergent statement of what
+was sent.
 
 **Hard length rule: 200 words.** Not a target, a ceiling. Past roughly that length the note stops
 being a covering letter and becomes a document, and a document is precisely what nobody reads before
@@ -294,8 +354,17 @@ command** — producing a single archive of the whole dated directory, in a form
 open without installing anything. One command, because the population that cannot pull the
 repository is exactly the population that will not assemble an archive command themselves.
 **It is produced only where the archive is the route actually being used**, which the calling
-command settles once, at the delivery note, and only where the handoff was accepted is the
-repository route available at all — a bundle on no ref is a bundle nobody can pull.
+command settles once, at the delivery note. The repository route is true only once the bundle is on
+the specs repository's default branch — the handoff's pull request merged; a bundle on no ref, on a
+commit only the packaging machine holds, or on a branch not yet merged is a bundle a customer
+pulling the repository does not find — but the note is itself one of the files that handoff
+commits, so the route is settled from what the run holds before it: whether the specs repository
+passes `workflows-core:phase-handoff` §2.1's gate, whether its push-target probe finds a remote to
+push to, and the handoff's consent, taken there. The note names no branch; what makes it true on
+the outcome the handoff got — the branch and pull request it pushed, any declared path it staged
+nothing for, or what must happen first — is settled by the handoff and printed beside the note,
+in the delivery-route item that stands between the printed note and the offer to send it
+(`commands/brd-package.md`'s *Render the delivery note*, *Handoff* and *Next steps*).
 
 **The committed copy is the permanent record of exactly what was sent.** This is the point of D18
 and the reason the cost is worth paying: it is what makes the byte-identical property behind the
@@ -328,7 +397,9 @@ prose rather than a link, to a document §1.1 excludes by rule or has already re
 in. Three stops carry it: `BRD_PACKAGE_DEAD_CITATION` for a reference that resolves to nothing
 (§6.1's unkeyed-document case, §6.2's relations 1 and 3), `BRD_PACKAGE_CITATION_MISMATCH` for
 one that resolves to the wrong requirement (§6.2's relation 2), and
-`BRD_PACKAGE_CORPUS_UNREADABLE` for a corpus that cannot be parsed (§6.1). Design authority:
+`BRD_PACKAGE_CORPUS_UNREADABLE` for a corpus that cannot be parsed (§6.1). A fourth,
+`BRD_PACKAGE_CUSTOMER_CONTENT_HELD`, is no failure of the check: it is the operator holding the
+package over a hit in the customer's own words, on the question §6.3 fixes. Design authority:
 `docs/superpowers/specs/2026-09-08-bundle-citation-resolution-design.md` §3–§7.
 
 ### 6.1 The corpus is built per source package, and never crossed
@@ -403,14 +474,22 @@ in a `code-grounding.md` padded its `id:` colon for alignment and the next did n
 scan run here, over a bundle's copied corpus files, would report every reference in the bundle as
 dead.
 
+**A table corpus is parsed by its owner's layout** — the inventory's, the defect log's and the
+ledger's (`references/brd-format.md` §2, §4; `references/coverage-ledger-format.md` §2) — and by the
+one parse-and-decode rule `references/brd-format.md` §2.3 fixes for every read: a row splits into
+cells on a delimiting `|` only, as that section defines one, and each cell is decoded before it is
+read, so a requirement quoting a row of the customer's own table never shifts a column, and an id is
+never read out of the wrong one.
+
 **The two rows a slice reads differently differ in opposite directions, and both are stated because
 a reader meeting one will assume the other matches.** `[DEF#n]` widens one hop: §1.1 ships the
 **parent's** defect log into a slice's bundle, so the parent's log *is* that partition's corpus for
 the class. `[BR#n]` does not widen: §1.1 ships the slice's own inventory, which is defined over
 `claims:` (`references/brd-format.md` §2.1), and the parent's is not a bundle document at all. So a
 `[BR#n]` that a structured field names one hop up — an orphan row's own `id`, a `superseded-by`, a
-parent defect entry's counterpart — has no corpus here to resolve against, and §6.2's relation 1
-discharges it as a qualified cross-package reference rather than reporting it dead.
+parent defect entry's counterpart, the *Rows* line of the parent's figures file — has no corpus here
+to resolve against, and §6.2's relation 1 discharges it as a qualified cross-package reference rather
+than reporting it dead.
 
 **A corpus that yields zero ids is one of two states, and only one of them is a failure.** A corpus
 file holding **record-shaped content** — at least one block the format would recognise as a record,
@@ -420,9 +499,11 @@ in `decisions.md` — and yielding zero ids of its class stops the run with
 a block has learned nothing about whether the ids it names exist. A corpus file holding **no**
 record-shaped content is an **empty corpus**: a real and ordinary state, and it passes.
 `commands/prd-ground.md`'s *Write findings* phase writes `grounding/design-grounding.md` as every
-`[DG#n]` **or a short note when design grounding was skipped and why**, and a defect walk that
-confirmed nothing leaves `brd/brd-defect-log.md` with a header and no entries — both present, both
-non-empty, both correctly holding no ids, and both routine. Stopping on either would be a check
+`[DG#n]` **or a short note when design grounding was skipped and why**, a defect walk that confirmed
+nothing leaves `brd/brd-defect-log.md` with a header and no entries, and `commands/brd-interview.md`
+writes `decisions.md` as its header line alone where no round recorded a decision
+(`references/decision-register-format.md` §1) — all three present, all three non-empty, all three
+correctly holding no ids, and all three routine. Stopping on any of them would be a check
 firing on correct content.
 
 **A `[CDF#n]` corpus that is absent altogether is the third ordinary state, and it is not the
@@ -451,7 +532,7 @@ every id inside it is unresolvable by construction.
 ### 6.2 The three relations
 
 **Relation 1 — every identifier reference resolves inside its own partition's corpus for that
-class, unless it carries the owning BRD key at the point of use.** The qualified **prose** form is
+class, unless it carries another BRD's key at the point of use.** The qualified **prose** form is
 `<BRD-KEY> [CG#7]` — the key immediately before the bracketed id — and it is **one spelling only**:
 `workflows-core:grounding-format` §2.1's whole argument is that a writer free to choose between two
 renderings produces an artifact whose readers are wrong in a way that looks like data, and a
@@ -459,11 +540,21 @@ qualified citation written into a sentence is exactly such a rendering choice. T
 live ambiguity the check merely surfaces: today a reviewer reading a copied prerequisite's grounding
 file meets `[CG#7]` with nothing telling them whose numbering it is.
 
+**An identifier reference carries a number.** A placeholder — `[BR#n]`, a bracketed prefix with `n`
+where the number would stand — names a class and no record, so relation 1 has nothing in it to
+resolve. That is the only form an example takes in text the run copies in verbatim — the schema body
+the prompt's part 10 inlines (`references/customer-review-schema.md` §1) and every fixed sentence
+`commands/brd-package.md` renders, which its *Render the customer prompt* phase binds to that form —
+so that text needs no exemption here. An example written with a number is not an example to this
+relation: it resolves against the package's own records, to a record nobody meant or to nothing, and
+no operator edit can repair text the run renders from a reference on every run.
+
 **A structured field is already qualified, and relation 1 reads it rather than refusing it.** Where
 an identifier reaches the bundle inside a **structured field whose format another authority fixes**,
 and that authority defines the field to name a record of another BRD, relation 1 treats it as a
 **qualified cross-package reference** and discharges it: it is never resolved against this
-partition's corpus, and never a dead citation. That is the rule, and the fields below follow from it
+partition's corpus, and never a dead citation — save where the key it carries is its own
+partition's, which is resolved (below). That is the rule, and the fields below follow from it
 rather than the other way round. Two things make it the only honest reading. The operator could not
 repair such a value without violating the authority that owns the field; and the BRD it names may
 not be in the bundle at all — `commands/brd-package.md` Phase 2's *BRD not found* and *no package on
@@ -484,14 +575,18 @@ moment it does. Those that exist today:
 | `conditional_on: <BRD-KEY>/<decision-id>` | `references/decision-register-format.md` §5 | one specific decision in a named prerequisite's own register |
 | `blocked_on: <BRD-KEY>/<decision-id>` | `references/code-defect-log-format.md` §5 | one specific decision in a named prerequisite's own register — the decision that would settle a `conditional` `[CDF#n]`'s scope question. Its other spelling is prose naming no bracketed identifier, which no relation ever meets |
 | `prerequisite` | `workflows-core:grounding-format` §2, §5 | the prerequisite BRD's decision a `will-change` finding's horizon turns on |
-| `resolved-by: [CG#n]` | `references/brd-format.md` §4 | the grounding finding that settled a defect; grounding is slice-only, so it is whichever slice settled it |
+| `customer-amended <SLICE-KEY> <date>` | `references/brd-format.md` §4 | the named slice's returned review of that date, which holds the amended text — qualified as `resolved-by` is, because the log is the parent's and each slice keeps its own reviews. It carries no bracketed identifier, so relation 1 has nothing in it to resolve, and names no bundle document, so relation 3 has nothing either; it is listed so a reader of the parent's log shipped into a slice's bundle knows the key may be a sibling's. A bare `customer-amended <date>`, the spelling before 3.7.0, names no slice and is read as it stands |
+| `resolved-by: <SLICE-KEY>/[CG#n]`, `resolved-by: <SLICE-KEY>/[CD#n]` | `references/brd-format.md` §4 | the grounding finding or the customer decision that settled a defect, in the named slice's own grounding file or register — grounding and deciding are both slice-only, and the log is the parent's, so the value carries that slice's key, in the one spelling `references/brd-format.md` §4 fixes. Relation 1 resolves it in the named slice's own bundle (below) and discharges it in any other. A bare value names no slice — a `resolved-by: [CG#n]` in the spelling the defect log's format gave it before 3.7.0, or either form written by hand, since no release ever wrote a bare `resolved-by: [CD#n]` — and is reported as an unqualified `prerequisite` is (below) until its slice key is added |
 | the `[BR#n]` a defect entry is raised against, and a `conflict` / `duplicate` entry's counterpart `[BR#n]` | `references/brd-format.md` §3 | a requirement in the log-owning BRD's inventory — the parent's on a slice |
 | `superseded-by: [BR#n]`, and an orphan row's own `id: [BR#n]` | `references/coverage-ledger-format.md` §2, §3 | a requirement of the parent's, one this slice "need not claim or hold a row for" |
+| the *Rows* line of `brd/brd-figures.md` — every `[BR#n]` the line names | `references/brd-format.md` §1.2 | a requirement in the figures file's owning BRD's inventory — the parent's on a slice |
 
-**The last three are routine rather than exotic**, which is why refusing them would stop the
-ordinary package rather than a rare one. §1.1 ships the **parent's** defect log whole into a slice's
-bundle, and a parent that split into several slices carries defects — and requirements superseding
-one another — across all of them, while the slice's own inventory is defined over `claims:`
+**The last four are routine rather than exotic**, which is why refusing them would stop the
+ordinary package rather than a rare one. §1.1 ships the **parent's** defect log and figures file
+whole into a slice's bundle, and a parent that split into several slices carries defects — each
+resolved by whichever slice settled it, and requirements superseding one another, and images
+yielding or illustrating requirements — across all of them, while the slice's own inventory is
+defined over `claims:`
 (`references/brd-format.md` §2.1) and its `covered-by` rows are exactly its orphan rows
 (`references/coverage-ledger-format.md` §3). Every one of those references is correct content whose
 target sits one hop up, outside this partition's corpus by §1.1's own allow-list.
@@ -503,8 +598,17 @@ of this package's own. Resolving it would land on a different record and go **gr
 resolving to the wrong thing, which is the failure §6 exists for, and worse than a stop because
 nothing surfaces. So an **unqualified** `prerequisite` value is reported, exactly as relation 2
 reports a claim naming more than one requirement id, and never resolved into this partition's
-corpus; a silent pick is a guess there too. A value that does carry the owning key is discharged
-like any other field above.
+corpus; a silent pick is a guess there too. A value that does carry the prerequisite's key is
+discharged like any other field above.
+
+**A qualifier naming the reference's own partition is not cross-package, and is resolved.** Where
+the key a reference carries — in a field or in the prose form — is the key of the partition it sits
+in, which for this package's own documents is the packaged BRD's key, relation 1 resolves the id in
+that partition's corpus exactly as it resolves an unqualified one, and a miss is a dead citation:
+`resolved-by: EPIC-008-01/[CD#2]` in slice `EPIC-008-01`'s own bundle resolves against the
+`decisions.md` that bundle carries. **Only a qualifier naming another BRD is discharged.**
+Discharging the own key too would pass a `resolved-by` naming a decision that does not exist in the
+one bundle holding the register that could catch it.
 
 **The two are different things, and the one-spelling discipline is untouched.** A structured field
 is another authority's to format and §6's only to read: a check reads what the tree writes, not what
@@ -530,13 +634,35 @@ matches the **working** filename of a document §1.1 admits or excludes by name 
 §1.1's own table each time this relation runs, never copied into a second list here**, because a
 document added to §1.1 without a matching entry here would be invisible to exactly the check that
 exists to catch it. **A working filename carrying a placeholder is resolved before it is matched,
-never compared as literal text** — `<YYYYMMDD>` against the run's own date, and
-`brd/source/<basename>` against the basename of the customer's own document as copied in — one rule
-covering both, because resolving one and not the other drops whichever it missed out of shape 2, and
-the customer's own document is the one §1.1 admits under a placeholder. The scoping is what keeps
-the relation off correct content: a grounding finding's `evidence` field is a repository
+never compared as literal text** — `<YYYYMMDD>` against the run's own date,
+`brd/source/<basename>` against the basename of the customer's own document as copied in, and the
+captured-markdown row's `<file>.md` against the basename of each markdown file it copied in — one
+rule covering all three, because resolving one and not another drops whichever it missed out of
+shape 2, and the customer's own files are the ones §1.1 admits under a placeholder. The scoping is
+what keeps the relation off correct content: a grounding finding's `evidence` field is a repository
 `file:line` list, and a repository that documents itself in markdown puts a bare `docs/api.md:12`
 into a finding that is entirely correct — an unscoped rule would refuse the whole bundle over it.
+
+**The scope is the documents this package wrote, and stating it that way is the shortest true form
+of the three exemptions below.** A captured file's own text is outside the relation — §2.1 puts
+those files outside every rewrite for the same reason, their links are the customer's and the
+manifest is where anything they name that the bundle lacks is disposed of — and so is the manifest's
+own quotation of a target as written. An implementation that scopes correctly cannot produce the
+false positive the three guard against; one that implements the three reaches the same answer.
+They are kept rather than collapsed because each also states *why* its content is correct, which a
+scope rule does not, and a reader who drops one has to be told what it was protecting.
+
+**Three kinds of token are outside the relation whatever their shape, and each is correct content it
+would otherwise refuse.** A `<file>:<line>` locator in a grounding finding's `evidence` names a
+repository file, never a bundle document, so the relation stays off it — and shape 2's
+captured-markdown row in particular reaches only references outside grounding evidence: a customer
+who happened to capture a `README.md` of their own would otherwise turn a correct `README.md:12`
+into a dead citation. The manifest's quotation of a target as written (§1.1, §2.1) is a map entry
+rather than a reference: it sits beside the bundled filename it maps to and quotes the customer's
+own link, so the target `notes.md` of a `[[notes.md]]` link, quoted there, is already resolved by
+that line, and testing it would make that package unbuildable with nothing the operator could
+change. The third, for that same reason, is a captured file's own link to another captured file —
+§6.3's to state, with the rest of the customer-derived locators.
 
 Relations 1 and 3 fail the same way — a reference that resolves to nothing — and stop the run with
 `BRD_PACKAGE_DEAD_CITATION`, naming the id or filename, the document it sits in, and the corpus or
@@ -546,7 +672,7 @@ differently — the reference resolves, to a finding about a different requireme
 the reference itself may be untouched. The two stay separate codes because the two remedies repair
 different things.
 
-### 6.3 Two exemptions
+### 6.3 Exemptions
 
 **`[SR#n]` is exempt entirely.** `self-review-<YYYYMMDD>.md` is excluded from the bundle by §1.1's
 one exclusion that is a *rule* rather than a consequence of the allow-list, while the `[SR#n]`
@@ -556,11 +682,119 @@ in the bundle, **by design**, and a check without this exemption fires on every 
 distinction a reader needs: naming the self-review *file* is dead — relation 3 catches it — while
 naming an `[SR#n]` id is the filter working as intended, and relation 1 must not catch it.
 
-**`brd/source/<basename>` reports rather than stops.** The customer's own document is copied byte
-for byte and is immutable by rule (§2.1, `references/brd-format.md` §1). It inherits the
-plugin-free scan's existing treatment verbatim, and for the identical reason: stopping outright
-would make that BRD permanently unpackageable, since the one repair the rule allows is not editing
-the file. Every other document's hit stays a hard stop.
+**Verbatim customer content reports rather than stopping the run on its own.** That is every span
+in the bundle holding the customer's own words, copied or transcribed rather than written by this
+package:
+
+- `brd/source/<basename>` and every other captured markdown file, whole — copied byte for byte and
+  immutable by rule (§2.1, `references/brd-format.md` §1, §1.1);
+- in `brd/brd-figures.md`, each section's *Text*, the *Says* column of its *Annotations* and its
+  *Flow*, which are the image's own words transcribed verbatim (`references/brd-format.md` §1.2);
+- in `brd/brd-inventory.md`, a prose row's `text` whole — the requirement verbatim, or, for a row a
+  split produced, both its parts, the ` … ` between them being the plugin's — but an image-drawn
+  row's `text` only in the element it quotes, the rest of that text being the plugin's words
+  (`references/brd-format.md` §2);
+- in `coverage-ledger.md`, a row's `text`, treated exactly as the inventory's — a prose row's
+  whole, an image-drawn row's only in the element it quotes — because each ledger row's `text`
+  mirrors its inventory row's (`references/coverage-ledger-format.md` §2);
+- and in `decisions.md`, a `[CD#n]`'s `argumentation`, the customer's own reason quoted and never
+  paraphrased (`commands/brd-reconcile.md`, *Freeze the customer decisions*) — the customer's quoted
+  words only, never a `Reopened`, `Reverted` or `Withdrawn` paragraph among them, which is the
+  plugin's (`references/decision-register-format.md` §4) — and its `chosen` where that quotes an
+  answer outside the options put — the answer only, not the fixed marker before it
+  (`references/decision-register-format.md` §1).
+
+Each table span is read **decoded** (`references/brd-format.md` §2.3): a `\|` or a `<br>` in the
+file is the table's encoding, not the customer's words, so a token is sought, and a span's extent
+judged, in the text the customer wrote.
+
+A `[BR#n]` or a filename visible in the customer's screenshot is the customer's, not a citation this
+package made, and so is one the customer wrote into an answer or a reason the register quotes. Those
+spans inherit the plugin-free scan's treatment of the same content, for the identical reason:
+stopping outright would make that BRD permanently unpackageable, since the only repair left would
+falsify the record — an edit to an immutable file, a transcription saying something the image does
+not, or a quotation saying something the customer did not. So a relation 1 or relation 3 hit inside
+one is reported, grouped as rule 4 below fixes, and put to the operator on the one question *The
+operator's ruling* below fixes. Outside these spans and the customer-derived locators below, every
+hit stays a hard stop, in the figures file, the inventory, the ledger and the register as anywhere
+else: the rest of each is the plugin's own writing.
+
+**A customer-derived locator is the customer's naming, wherever it appears.** It is one of four
+things: a captured file's path relative to `brd/`, with whatever follows its ` › ` — the `source/`
+or `source-external/` prefix is ours, and everything below it is the customer's layout and names
+(`references/brd-format.md` §1.1), as is the heading path or line range after the ` › `; a captured
+file's bundled filename, where it carries the customer's basename after the `<BRD-KEY>-` prefix
+`commands/brd-package.md`'s *Assemble the bundle* rule 1 gives it; a link target as written, in a
+captured file or in the manifest's map; and an inventory row's `source_anchor`, or the anchor an
+inventory or ledger row's `text` carries, whose document form names no path. The naming is the
+customer's whoever wrote the line it sits in, so a locator counts in text this package wrote exactly
+as in a customer's file — a figures section's heading and its *Linked from* line, a manifest line,
+an inventory or ledger row, an interview question, the note that stands in for the figures file's
+frontmatter (§1.1), and the prompt parts rendered from them. **It is recognised by where it sits or
+by what it names, never by its shape.** In a fixed field — a `source_anchor` (the inventory's
+column, or the anchor an inventory or ledger row's `text` carries, `references/brd-format.md` §2,
+`references/coverage-ledger-format.md` §2), a figures section heading, a *Linked from* line, a
+manifest map line — it counts as written. Anywhere else in this package's writing only two things
+count: a path carrying its prefix and naming a file the capture holds, with whatever follows its
+` › `, and a filename that is the bundled name of a captured file. **Nothing else in this package's
+own prose is a locator.** A pathless heading or section number there — `see §3.4 of brd-format`,
+`(see §3.4)` — is none, so its `§` is a hit like any other `§` the plugin writes, whatever sections
+the customer's document happens to have; and a bare `<name>.md` is no path in that form and stays
+relation 3's (§6.2). Four rules follow, for the plugin-free scan and this check alike:
+
+1. **A leading section reference is no hit in a locator's fixed position, and only there** — the
+   `§` and section number that open a `source_anchor`, or that open what follows the ` › ` after a
+   prefixed captured path, in a fixed field or wherever that path appears. Those are the positions
+   `references/brd-format.md` §2.2 fixes for it, and the reader resolves it by opening the
+   customer's file the anchor or the path points into, which the bundle carries: nothing in it
+   assumes a reader who has this plugin. Every anchor that section was measured on opens with one,
+   so reported they would put a grouped count of expected `§`s in every package's report, and that
+   count would absorb, and so hide, a real one.
+2. **Any other hit inside a locator is reported, never a stop on its own** — a `references/`
+   folder in a captured path, a quoted `"D3"`, a `§` inside heading text, a filename or a link
+   target. It is the customer's naming, and the only repair would rename their files, retitle their
+   headings or re-point an anchor away from where the requirement is stated, each of which
+   falsifies the record.
+3. **A bare `<name>.md` link inside a captured file is outside relation 3** where it resolves — as
+   written, or through the link log's *Captured links that do not resolve as written* table (§2.1)
+   — to a captured file the manifest maps. The manifest already resolves it, which is the reason
+   §6.2 keeps the relation off the manifest's own quotation of a link.
+4. **Every report this section makes is grouped** — one line per file and token, with a count — in
+   the report that asks the operator to rule and in the run's final report alike, whether the hit
+   sat in verbatim content or in a locator. A `"D3"` quoted in an image anchor, in that row's
+   `text`, in its ledger row's `text` and in the figures file's *Flow* is three lines, not four
+   reports.
+
+**The operator's ruling — one question per pass, never one per hit.** A pass that reports a hit this
+section covers — the plugin-free scan over the prompt, over the delivery note or over the finished
+bundle (`commands/brd-package.md`'s *Render the customer prompt*, *Render the delivery note* and
+*Assemble the bundle* rule 7), or this check (that phase's rule 8) — prints its grouped report
+(rule 4) and then asks once, over the whole of it:
+
+```
+choices: ["Ship it — these are the customer's own words and naming, left exactly as they wrote them (Recommended)", "Hold the package — hand nothing off until the customer has seen these"]
+```
+
+The recommendation stands because every hit reported here is, by the definitions above, a token the
+customer wrote, and its only repair would falsify the record. *Ship it* continues the run. *Hold the
+package* stops it:
+
+`BRD_PACKAGE_CUSTOMER_CONTENT_HELD: you held <BRD-KEY>'s package over <n> hit(s) inside the customer's own words or naming — nothing was handed off. What the report names is the customer's and is never edited here: take it up with the customer, then re-run. Where this run already wrote bundle-<YYYYMMDD>/, it was never sent — move it aside first, or the re-run stops with BRD_PACKAGE_BUNDLE_EXISTS.`
+
+A free-text answer is read onto one of the two, or the question is asked again; it never becomes a
+third outcome. **A hit an earlier ruling in this run already covered is listed under that ruling and
+not asked about again**, and a hit is keyed by its token and **the file it sits in** — one grouped
+line of rule 4, never the artifact its text was interpolated from. The bundle's copy of the prompt
+counts as the prompt for this: those of its hits **whose token the ruling taken over the prompt
+(*Render the customer prompt*) covered** are not put a second time when the bundle pass meets the
+prompt among the bundle's documents under its bundled filename, and one carrying a token that
+ruling did not cover is put like any other. A hit in any other bundle document is that document's,
+even where the same token reached the prompt from it. A pass that reports nothing asks nothing. The
+run's final report records the rulings as one outcome line, above the grouped lines:
+
+`Customer content: <n> hit(s) in <m> file(s) — shipped as the customer's own, on the operator's ruling`
+
+or, where no pass reported a hit, `Customer content: none`.
 
 ### 6.4 What §6 cannot see
 
@@ -652,10 +886,12 @@ that reached for it would resolve to an absent file on every correct bundle. Wha
 about those findings is prose the packaging run wrote, and prose is review's.
 
 **It does not reach every part, and the exclusions are measured rather than cautious.** The review
-scope part renders its source as **prose in the customer's own vocabulary** — the scope areas a
-customer recognises, not the requirement ids behind them — so a relation demanding identifiers there
-fires on a correct package. The decisions part is mostly the interview's own questions, which carry
-**no minted identifier at all**, so only the assumption and escalated-finding fractions of it are
+scope part renders what the package answers for as **prose in the customer's own vocabulary** — the
+scope areas a customer recognises, not the requirement ids behind them — so a relation demanding
+identifiers there fires on a correct package. The requirements it names as another BRD's do carry
+ids, each `<PARENT-KEY> [BR#n]` (`commands/brd-package.md`'s part 6), and that list is outside this
+relation too (§7.2). The decisions part is mostly the interview's own questions, which carry **no
+minted identifier at all**, so only the assumption and escalated-finding fractions of it are
 testable and the part as a whole is not. A part built from prose has no set to compare.
 
 **Relation 2 — the manifest and the bundle name the same review documents.** Every markdown review
@@ -670,8 +906,10 @@ the bundle. Three qualifications, each of which a real package would otherwise f
   all — a marker written into a superseded bundle to say it was never sent is the case that occurs.
   The test is *review document*, not *markdown file*.
 - **Images are out of scope.** The manifest names frames in prose where it names them, and does not
-  always name them; requiring it to would fire on a correct package. The design findings cite frames
-  by filename and §6's relation 3 already reaches those.
+  always name them; requiring it to would fire on a correct package. A design finding's citation of
+  a frame by filename is not checked here, and not by §6 either, whose relation 3 reads a bare
+  `<name>.md` token only: it is review's. A captured image is a different case — §1.1's map names
+  every one the bundle carries — and this relation still does not test it.
 
 **Relation 3 — the delivery note's repositories and pins are the bundle's own baselines'.** The note
 restates which repositories, at which commits; the bundle's baselines document is where those were
@@ -701,6 +939,11 @@ because that is a read failure wearing the shape of a discrepancy.
 
 - **A part whose source is prose**, which relation 1's own scope already concedes: the review scope,
   and the question half of the decisions part. Those are review's.
+- **The review scope part's list of requirements another BRD holds.** It names identified records,
+  each qualified with the parent's key, from a ledger the bundle carries, but relation 1's scope is
+  the closed list §7.1 opens with and does not name it, so a row left off that list, or named there
+  that the ledger does not put out of scope, is review's to catch — as is a wrong id there, since
+  §6's relation 1 discharges a qualified one rather than resolving it.
 - **A faithful restatement of a wrong source.** Where the ledger, the register or the findings are
   themselves wrong, every relation here goes green. This check is about the copy; the original is
   what verification and the interview settle.

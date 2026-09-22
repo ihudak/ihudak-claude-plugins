@@ -189,7 +189,7 @@ current working directory, where it is not the specs repository. The artifacts a
 run's terminal `commit-artifacts` step
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4).
 
-### `emit-auto` — automatic callers (the twenty-four commands' maintenance phases, §1)
+### `emit-auto` — automatic callers (the twenty-five commands' maintenance phases, §1)
 
 Inputs: the `impl-maintenance` **Lessons Learned report**, `command` (the exact
 slash-command name), `key` (or `null`), `source` (`specs | directory | none`).

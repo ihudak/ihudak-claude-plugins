@@ -439,9 +439,10 @@ could not tell," not "the capability does not exist."
 body. Its consumers are `/idea` (Phase 2.6), `/implement` (Phase 1.7) and
 `/docs-audit` (Phase 2). `/epics`, `/create-ard`, `/specify`, and `/design` run
 §8.2 alone and are unaffected by this section. **A caller joining this list also
-answers the two paragraphs above, which are caller-scoped** — what a confirmed
-`absent` means at its altitude, and what it does with a theme that stays
-unresolved — because neither has a default a new caller could fall back on.
+answers the three caller-scoped paragraphs around it** — the two above, which
+say what a confirmed `absent` resolves to and the altitude that decides it, and
+the one below, which says what each caller passes a still-unresolved theme on
+in — because none of the three has a default a new caller could fall back on.
 
 **Round 2 resolves; it does not license a guess.** A caller that adopts §8.5
 also owes its downstream consumer the truth about what stayed unresolved. An

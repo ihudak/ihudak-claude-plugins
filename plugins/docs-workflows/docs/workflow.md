@@ -29,7 +29,7 @@ flowchart TD
     createprd -.->|early draft, before any spec or design| rndev
     init -->|inline| brand
     init -->|"source_repos[] in the profile"| audit
-    audit -->|"a prioritised .dev-workflows/docs-backlog.yml"| document
+    audit -.->|"you work the backlog unit by unit"| document
     init -->|.dev-workflows/docs-profile.yml| docsserve
     profile -.->|.dev-workflows/docs-profile.yml| document
     profile -.->|.dev-workflows/docs-profile.yml| audit

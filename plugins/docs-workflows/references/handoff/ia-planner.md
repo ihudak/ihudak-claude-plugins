@@ -17,7 +17,7 @@ surfaces:                              # docs-auditor's surfaces[], verbatim
 audiences: [user, engineering]         # optional; both where the caller names none
 
 unresolved:                            # optional; docs-auditor's unresolved[], verbatim — carried, never acted on
-  - { kind: role, theme: <verbatim>, source: <repo name, or "specs">, reason: <one line> }
+  - { kind: role, theme: <verbatim>, source: <repo name; "specs"; or several repo names>, reason: <one line> }
 
 existing_units:                        # optional; on a --refresh run, the units already in the backlog
   - { id: U-001, surface: order-placement, audience: user, type: how-to,
@@ -76,7 +76,7 @@ tutorial_candidates:                   # proposed, never picked; empty where aud
     unit: null                         # always null here
 
 unresolved:                            # the input's unresolved[], echoed verbatim
-  - { kind: role, theme: <verbatim>, source: <repo name, or "specs">, reason: <one line> }
+  - { kind: role, theme: <verbatim>, source: <repo name; "specs"; or several repo names>, reason: <one line> }
 
 degraded:                              # context inputs that were supplied and could not be read
   - input:  audiences | unresolved | existing_units | existing_tutorial_candidates

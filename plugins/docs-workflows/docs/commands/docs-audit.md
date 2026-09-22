@@ -4,11 +4,11 @@ Enumerates what documentation a product is missing — from its own code and fro
 
 ## Who runs it
 
-`/docs-audit` is the command between having a documentation portal and knowing what to put in it. It runs against a documentation repository that **already exists**, so on a fresh portal it follows [`/docs-init`](docs-init.md), and on one that has been filling up it runs again whenever the product grows a surface. [Workflow overview](../workflow.md) draws it in its own *Plan* group, reading the profile's recorded source repositories and handing a backlog on to [`/document`](document.md).
+`/docs-audit` is the command between having a documentation portal and knowing what to put in it. It runs against a documentation repository that **already exists**, so on a fresh portal it follows [`/docs-init`](docs-init.md), and on one that has been filling up it runs again whenever the product grows a surface. [Workflow overview](../workflow.md) draws it in its own *Plan* group, reading the profile's recorded source repositories. **Nothing consumes the backlog automatically** — no command of this family opens it or takes a unit id from it — so the edge out of it is an operator's: you read it, pick a unit, and write that page. [The documentation workflow](../docs-workflow.md) is the written procedure for doing that, automated steps and manual ones alike.
 
 It classifies as **SIGNIFICANT** — a cross-cutting synthesis of every scanned repository — and its review gate is Opus regardless, because every artefact-writing command in this family passes a high-tier review with no tiering by unit.
 
-**It writes no documentation content.** Its output is a coverage grid and a backlog: a table of the things a product could be documented against, a table of the pages those things earn, a written reason under every rank, and a proposed set of tutorial candidates for you to pick from. Turning one of those units into a page is a separate act, and the parts of it that a command does not do are written out as a manual procedure.
+**It writes no documentation content.** Its output is a coverage grid and a backlog: a table of the things a product could be documented against, a table of the pages those things earn, a written reason under every rank, and a proposed set of tutorial candidates for you to pick from. Turning one of those units into a page is a separate act, and the parts of it that no command does yet are written out as a manual procedure in [The documentation workflow](../docs-workflow.md).
 
 ## Synopsis
 
@@ -23,6 +23,7 @@ Every recognized flag is stripped from the arguments before the remaining token 
 - **A documentation repository that already exists** — resolved by `resolve-docs-repo` (`docs-workflow/repo-resolution.md` §1), the signal-positive ladder: the given path, else the working directory or `$DOCS_PATH` where either carries a documentation signal, else a search one level under `$REPOS_PATH`, else it asks. The rung that answered is always reported.
 - **The code repositories the portal documents.** Read from the profile's `source_repos[]` where `/docs-init` or an earlier audit recorded it. Where the key is absent the run prints the candidates under `$REPOS_PATH` and confirms the set with you, then writes it into the profile so the next run does not ask again.
 - **A profile is wanted but not required.** With one, the run reads the content roots it reconciles pages over and hands the reviewer the site layout. Without one it still runs — it says so, reconciles over the whole repository instead, and reports the reviewer's layout check as not performed rather than as passed.
+- **A resolved repository it can write into.** Checked at Phase 0, not at the write: the resolver hands that check to its caller, and a refusal is only worth anything while you are still being asked things. An unwritable one stops with `DOCS_AUDIT_NOT_WRITEABLE`.
 - **`$SPECS_PATH`**, for two of the seven surface kinds and for its own session bookkeeping. A run with no specs tree earns its other five kinds and says which two it did not.
 
 ## Phases
@@ -66,11 +67,14 @@ Findings are triaged by the orchestrator before anything is applied: each is ver
 
 - `DOCS_AUDIT_UNKNOWN_AUDIENCE` — `--audience` named something other than `user`, `engineering` or `both`.
 - `DOCS_AUDIT_BAD_THRESHOLD` — `--threshold` was not a positive integer.
-- `DOCS_AUDIT_UNKNOWN_FLAG` — an unrecognised flag reached the positional token. `--docs` and `--no-docs` are among them: this command resolves no documentation grounding, so neither is one of its flags.
+- `DOCS_AUDIT_UNKNOWN_FLAG` — a token beginning `--` survived flag stripping. Any such token stops the run rather than being read as a path, because the resolver takes the first positional token as given and a mistyped flag would otherwise become the repository. `--docs` and `--no-docs` are among them: this command is not a documentation-grounding consumer under any of that subsystem's three modes, so neither is one of its flags.
 - `DOCS_AUDIT_NO_SOURCES` — no code repository resolved and no specs tree to read, so there is nothing to enumerate surfaces from.
 - `DOCS_AUDIT_UNKNOWN_SCHEMA` — the backlog already there declares a schema version this release does not read. Nothing is written: a run that carried on would silently drop whatever the later version added.
 - `DOCS_AUDIT_AUDITOR_INPUT_MISSING` / `DOCS_AUDIT_PLANNER_INPUT_MISSING` — one of the two agents refused to start because an input it enumerates was absent. The stop names it.
-- `DOCS_AUDIT_UNRESOLVED_BLOCKER` — a BLOCKER finding from `docs-audit-reviewer` was neither fixed nor explicitly overridden.
+- `DOCS_AUDIT_UNRESOLVED_BLOCKER` — a BLOCKER finding from `docs-audit-reviewer` was neither fixed nor accepted by you. The backlog the run wrote stays on disk, reviewed and not fixed.
+- `DOCS_AUDIT_NOT_WRITEABLE` — the resolved repository's git top level cannot be written to, so there is nowhere to put the backlog.
+
+**Every one of those stops still finishes the run's bookkeeping.** A stop prints its line, reports it, and then runs the emitter tail: the cost entry and any feedback are recorded and the terminal commit into `$SPECS_PATH` still happens. The one exception is a rejected flag, which ends the run before any repository is resolved and so has nothing to file an entry against.
 - A run that enumerated no surface at all is not a failure: no plan is made, no backlog is written, an existing one is left exactly as it was, and the report says whether the product genuinely has none of these things or the scan could not tell.
 - Cancelling at the overwrite prompt — the one a run without `--refresh` raises when a backlog is already there — writes nothing. The cost entry is still recorded.
 
@@ -91,8 +95,8 @@ The same run against an existing backlog: surfaces and coverage re-derived again
 ## See also
 
 - [`/docs-init`](docs-init.md) — the cold-start command that creates the repository this one audits, and records the source-repo set it reads.
-- [`/docs-profile`](docs-profile.md) — writes the profile for a documentation repository this family did not scaffold, so an audit has content roots and a source-repo set to read.
-- [`/document`](document.md) — what turns a backlog unit into a written page today.
+- [`/docs-profile`](docs-profile.md) — writes the profile for a documentation repository this family did not scaffold, so an audit has content roots to reconcile pages over. It writes no `source_repos[]`; on a profile from that command this run confirms the set with you and records it itself.
+- [`/document`](document.md) — what turns a backlog unit into a written page today. It reads no backlog and takes no unit id: you choose the unit and run it yourself.
 - [Documentation backlog](../reference/docs-backlog.md) — the file this command writes: where it lives, what each block holds, and what the coverage fraction actually counts.
 - [Coverage model](../reference/docs-coverage-model.md) — the seven surface kinds, the page types a surface earns, and the four signals behind every rank.
 - [Evidence and walkthroughs](../reference/docs-evidence.md) — what a page's claims are allowed to rest on, and what an unverified claim looks like on the page.

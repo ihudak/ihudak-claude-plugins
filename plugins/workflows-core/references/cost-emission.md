@@ -546,7 +546,7 @@ and acceptable.
 
 ## 11. Caller contract — `emit-cost`
 
-One entry point, called by the twenty-four commands that measure themselves (§1) and by
+One entry point, called by the twenty-five commands that measure themselves (§1) and by
 whichever of them replays a §13 record (never by the two that defer — they call
 nothing). Every caller supplies `command`, `phase`, `role` (or the
 `inferred` marker — `/release-notes` and the four feedback commands), `key` (or
@@ -704,7 +704,7 @@ exists to catch.
 
 ### 13.3 The replay
 
-`emit-cost` step 2 (§11). **No deferred file ⇒ nothing changes**; the twenty-four
+`emit-cost` step 2 (§11). **No deferred file ⇒ nothing changes**; the twenty-five
 commands that measure themselves (§1) never take this path.
 
 Otherwise the run passes one `--claim <command>` per deferred record, oldest

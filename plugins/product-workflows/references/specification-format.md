@@ -74,7 +74,7 @@ separated by `---`, in the form `As a [role], I want [capability], so that [bene
   behaviour (displayed/stored/rejected/transmitted/recorded/changed).
 - Ordered by contribution to the problem (core-value story first, then supporting, then
   lifecycle/visibility/auditability).
-- `#### Open questions` per story only for assumptions/decisions needing stakeholder input; omit if none. Four hashes, not three: the renderer attributes an open-questions heading by depth, and `###` is the story-heading level, so a three-hash heading here is read as neither the story's nor the criterion's.
+- `#### Open questions` per story only for assumptions/decisions needing stakeholder input; omit if none. Four hashes, not three: heading depth alone places an open-questions heading under its story or its criterion, and `###` is the story-heading level, so a three-hash heading here opens a sibling of the story and belongs to neither.
 
 ## Stage 4 — Acceptance criteria (EARS)
 
@@ -112,8 +112,9 @@ outcome asserting the *parent* AC's behaviour, reusing the AC's exact terms). Va
 - Open questions: `- *Open questions:* [q]` on a test, or an `Open questions` sub-heading for broader
   items.
 
-The renderer (`scripts/specification-to-html.py`) parses a literal micro-format for each field —
-match it exactly:
+Each field takes this literal micro-format — match it exactly, so every test case reads the same
+field by field to `spec-reviewer`, to `/design` and `/implement`, which trace each `[TCxx]`, and to a
+person scanning the spec:
 
 ```
 **[TC01]: <title> — Happy path:**

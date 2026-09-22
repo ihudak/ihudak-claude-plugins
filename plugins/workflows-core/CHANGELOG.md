@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [1.7.3] — 2026-09-22
+
+### Changed — `phase-handoff`'s unread register no longer lists `/specify`'s rendered `.html`
+
+`product-workflows` 3.8.0 stops `/specify` writing it, so §4.0's register row and §4.3's list of the `unread` class's members both drop it. No array a producer selects changes: `/specify`'s deliverable set still holds `specification.md`, a gated path, and §4.0's strongest-class rule selects the gated array.
+
 ## [1.7.2] — 2026-09-22
 
 ### Changed — the shared authorities admit `/docs-audit`, which `docs-workflows` 1.3.0 ships

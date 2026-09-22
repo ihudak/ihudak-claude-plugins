@@ -149,7 +149,17 @@ nothing. The counts line gives: how many files the walk reached (the source coun
 markdown pages among them by depth, the images, and what was unresolved (a reason
 `linked-sources.md` §6 names) or `other`. **Every clause is printed on every run, a count of `0`
 included** — an omitted clause is indistinguishable from a forgotten one, the same reason the Final
-report names what was left unread even when nothing was. **The headline total is the walk's visited
+report names what was left unread even when nothing was. **A clause is one of the named parts that
+sentence lists** — markdown by depth, images, unresolved, *other*, beside the headline total, which
+counts the source and so is never zero — and the by-depth tally is one clause rather than a row of
+them: inside it there is one entry per depth at
+which the walk reached a markdown page, and those depths run contiguously from 1 — only a markdown
+file is opened (`linked-sources.md` §4), so no page sits at a depth without one above it — which is
+why the tally never has an interior zero to print. **A depth the walk reached only with an image is
+not a page depth and gets no entry**: an image at depth 4 says a page at depth 3 linked it, and
+`depth 4: 0` would report a page count for a depth no page can be at. Where the walk reached no
+markdown page at all beyond the source, the clause itself is the zero and prints as `markdown by
+depth — none`. **The headline total is the walk's visited
 set** (`linked-sources.md` §4) — the source, plus every file a link resolved to — so an *other* file
 counts toward it, and an unresolved link, which resolved to no file, does not. **The by-depth tally
 is of that set less the source**, which has no depth to be counted at, so it always runs one short
@@ -168,16 +178,31 @@ runs one ahead of the counts line's by-depth tally, which leaves the source out,
 tally shows twelfth is the thirteenth here), and the images
 after the sixth in the walk's order. Put the question with its text fixed — a line naming the bounds
 the walk crossed, of the three, then one line per file in that set, each file once, in the walk's
-order, with every bound it is past, joined as the template shows where a file is past two or
-three; then the line saying what *Read all* takes, and, where the walk reached nothing below
-depth 1, the line saying the second option takes that same set — and then the array:
+order, with every bound it is past, joined as the template shows where a file is past two; then the
+line saying what *Read all* takes, and, where the walk reached nothing below depth 1, the line
+saying the second option takes that same set — and then the array:
+
+**Three things about how the question's lines print are fixed here, because a run composes them from
+the template below and nothing downstream corrects them.** First, **a file is past two bounds at
+most** — both page bounds apply only to a markdown file and the image bound only to an image, and
+`linked-sources.md` §4 gives every resolved file exactly one kind — so the per-file join never has a
+third name to place. Second, the
+crossed-bounds line and each file line **join with `", "`, so no bound's name carries a comma of its
+own**: three names joined that way print as three fragments, and a name holding a comma prints as a
+fourth, reading like a fourth bound with nothing below it to say otherwise — which is why the page
+bound is named *twelve pages counting the source* rather than with the source counted off after a
+comma. Third, **the file lines' path form**, because they are the only operator-facing place a path
+appears and an absolute one runs ten times the length of a relative one: a file the walk record
+marks `inside: true` (`linked-sources.md` §5) prints relative to the source file's own directory,
+and a file it marks `inside: false` prints as the resolved absolute path — where the reader most
+needs to see where it came from, and would otherwise be counting `../` segments.
 
 ```text
-The walk reached past <the bounds it crossed, of: two levels of pages · twelve pages, the source counted · six images — joined with ", " in that order>:
-<the file's path> — <every bound it is past, of: deeper than two levels · after the twelfth page · after the sixth image — joined with ", " in that order>
+The walk reached past <the bounds it crossed, of: two levels of pages · twelve pages counting the source · six images — joined with ", " in that order>:
+<the file's path — relative to the source file's own directory where the walk record marks it inside that directory, and the resolved absolute path where it does not> — <every bound it is past, of: deeper than two levels · after the twelfth page · after the sixth image — joined with ", " in that order>
 …
 Reading all takes the source and every one of the <n> files the walk reached beside it, not only the files listed here.
-<where every file the walk reached is at depth 1, one further line: "Every one of them is linked by the source itself, so the second option below takes that same set.">
+<where the walk reached nothing below depth 1, one further line: "Every one of them is linked by the source itself, so the second option below takes that same set.">
 ```
 
 ```
@@ -201,7 +226,7 @@ source links directly* takes depth 1 — every file the source links itself, of 
 every deeper file `excluded` (`linked-sources.md` §6, §7), which Phase 4.5 reports rather than copies.
 **Where the walk reached nothing below depth 1 that option reduces nothing, and the extra printed
 line is what says so.** Two of the three bounds are crossable with every file at depth 1 — twelve
-pages, the source counted, and six images — so a source linking ten images directly, or a hub note
+pages counting the source, and six images — so a source linking ten images directly, or a hub note
 linking twenty pages, fires this question over a walk record whose every entry is depth 1, where
 *Only what the source links directly* takes exactly what *Read all* takes. `escalation-rules`'
 *When a choice list fires* makes a list written for a question whose answer is already determined a
@@ -590,11 +615,17 @@ the next phase — **adapted to status**:
   On option 2 or 3 `handoff-to-main` does not run; emit §4.1's *Declined by the user*
   line (§4.3, *What each option means*), and the run's emitter tail still runs, as it does after
   option 1. Then, **whichever option was taken**, recommend
-  `/product-workflows:create-prd <KEY> <merge-clause>`, which finds `idea.md` in that folder —
+  `/product-workflows:create-prd <KEY>` `<merge-clause>`, which finds `idea.md` in that folder —
   `<merge-clause>` resolved from the `Phase handoff:` line §4.1 just emitted, per
   `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`'s resolution table, and never written
-  unconditionally. **The clause is load-bearing here, not decoration**: `/create-prd` Phase 0 step 3
-  rung 1 runs `require-on-main` on exactly this `idea.md`, so while the pull request this offer just
+  unconditionally. **The clause sits outside the command's own code span, and no adopter of the
+  placeholder puts it inside one** — `/product-workflows:specify` and `/dev-workflows:design` give it
+  a span of its own, `/product-workflows:update-prd` writes both in plain text. Every value that
+  resolution table gives it is a parenthesised English sentence, so a clause inside the span makes
+  the one line an operator copies end in a positional token of prose — and this offer *is* that one
+  line, with nothing beside it to mark where the command ends. **The clause is load-bearing here,
+  not decoration**: `/create-prd` Phase 0 step 3 rung 1 runs `require-on-main` on exactly this
+  `idea.md`, so while the pull request this offer just
   opened is still open that command stops on rows D/E — an unqualified recommendation sends the
   operator into a stop this run itself caused.
 
@@ -718,8 +749,14 @@ link left unfollowed"), because the absence of a notice of what was left unread 
 once the run is known to print one; **what the
 run vendored and what it did not** — the count of files copied into `attachments/`, **saying whether
 the source is among them**, since one copy lands there for the source and for every markdown file
-Phase 1.5 took, so that number runs one ahead of the counts line's markdown tally exactly as the
-walk's own two counts do; and of images copied into `design/idea-sources/`; **and beside both, every copy
+Phase 1.5 **took** — **a count of what this run copied, never of what the walk reached**, so unlike
+the walk's own two counts, which both count what was reached, it does not stand in a fixed relation
+to anything on the counts line: it runs one ahead of that line's markdown tally only where the walk
+took every page it reached and every one of them was written, and where it does not, the report
+names which of the four states it was (the operator's *Only what the source links directly* answer,
+a copy the collision rule reused rather than wrote, a copy that failed at Phase 4.5 step 7, or a
+markdown source step 1 dropped as already inside the PRD folder) rather than asserting the relation;
+and of images copied into `design/idea-sources/`; **and beside both, every copy
 the collision rule *reused* rather than wrote** (its rule 1), which is in `deliverable_paths` and in
 neither count and is otherwise reported nowhere — the one run state that rule exists to serve;
 whether that frame set's `index.md` was written and how many rows it now

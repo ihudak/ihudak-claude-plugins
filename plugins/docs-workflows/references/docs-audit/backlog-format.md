@@ -76,6 +76,8 @@ One surface spawns several units across quadrants, and **drift is detected per s
 
 `status` takes one of five values — `missing`, `drafted`, `verified`, `published`, `stale` — and moves along the transitions below and no others.
 
+**The enum is closed against every writer that ships today, and open to a later spec adding to it — which is a property of this contract rather than a hedge, because the design already contains the sixth value.** The design's frozen schema fixes these five; the same design's process-capture section draws a lifecycle with a sixth, `captured`, reached from `missing` and from `stale` and leading to `drafted`, on the reasoning that a process-shaped unit (a `how-to` or a `tutorial`) cannot be drafted before somebody has walked and recorded the process. **The two disagree, and this file follows the five**, because nothing in this increment writes or reads a sixth and a value no writer produces is a state a reader has to handle for no benefit. So: **a reader of this file treats an unrecognised `status` as a value a later spec added, never as a corrupt file** — it reports the unit and leaves it alone, rather than refusing the backlog or normalising the value away. That one rule is what makes the addition cheap when it comes, and it is why this is stated here instead of being left for whoever meets the contradiction while implementing the capture command.
+
 | From | To | What moves it | Which command writes it |
 |---|---|---|---|
 | *(none)* | `missing` | `/docs-audit` mints the unit | **`/docs-audit`, in this increment** |

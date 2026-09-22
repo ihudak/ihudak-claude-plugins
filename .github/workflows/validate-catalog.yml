@@ -92,6 +92,16 @@ jobs:
         run: ./scripts/check-docs.sh --selftest
 
       - name: Check docs against the plugin tree
+        # ASSERT_PUBLISHED arms check 18 -- the one check that must NOT run everywhere. A
+        # changelog section headed `— Unreleased` is the correct authoring state on a feature
+        # branch and a false claim on the default branch, because `claude plugin update` fetches
+        # from there: whatever is on main is what users install. So it is armed exactly where the
+        # claim is false, and a release branch stays green while it is still being written.
+        # `github.ref` is the branch being pushed; on a pull_request event it is the merge ref,
+        # never `refs/heads/main`, so the gate arms on the push that publishes and not on the
+        # review that precedes it.
+        env:
+          ASSERT_PUBLISHED: ${{ github.ref == 'refs/heads/main' && '1' || '' }}
         run: ./scripts/check-docs.sh --root .
 
       - name: Install the mermaid gate's pinned parser

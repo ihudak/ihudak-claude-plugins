@@ -60,7 +60,11 @@ reconstruct it.
    - `status: RUN_FAILED` or `COMMAND_NOT_FOUND` → nothing was compared. **Do not revert**: reverting needs
      evidence the upgrade is bad, and this is evidence that the suites could not be run. Set
      `status: TESTS_NOT_RUN` with the report's reason in `notes` and return — the changes stay applied and
-     the orchestrator decides.
+     the orchestrator decides. **`RUN_FAILED` also arrives where the baseline itself covered no suite**,
+     which verify refuses before running anything
+     (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`); that is the same disposition for the
+     same reason, and it is how a batch the operator chose to upgrade unverified reaches `TESTS_NOT_RUN`
+     without this agent testing for that choice.
    - **On every one of those values, `OK` included**, copy into `notes` — verbatim, beside whatever else that
      arm records there — each `### Notes` line the report opens with `CAVEAT: `. That mark is the baseliner's
      own (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so nothing here decides which note
@@ -69,6 +73,15 @@ reconstruct it.
      left unattributed; and where the status is `REGRESSIONS` it can say those identifiers reached **Missing from
      run** without that being evidence this upgrade removed them. An unmarked
      note records where a command ran; leave it. `/upgrade` step 7 reads these off `notes` on every status.
+   - **On every one of those values, read `### New failures` beside the `Status` and record each entry in
+     `notes`.** A test failing now that was in neither baseline list is a **New failure**, and **no `Status`
+     value carries one** (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so `OK` is reachable
+     with a red suite. It needs no exotic state to arrive: on an ordinary `PARTIAL` baseline a suite that
+     aborted at capture contributed no identifiers, so every test of it that fails here lands in this list
+     rather than in `### Regressions`. **This is disclosure, not a verdict** — the baseline never recorded
+     those tests, so nothing here says the upgrade caused them: do not revert, do not route to "Test
+     regression", and leave the `Status` arm's own return as it stands. Naming them is what stops a component
+     being reported green over a suite that is not.
 
 4. **Output** — Produce the summary record (see `${CLAUDE_PLUGIN_ROOT}/references/handoff/upgrade-executor.md`).
 

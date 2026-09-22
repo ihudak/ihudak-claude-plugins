@@ -289,11 +289,19 @@ Maven | pom.xml | `./mvnw test -q` | OK | Total 47, Passing 46, Failing 1, Skipp
   `NO_TESTS`, or which has no row at all, is **not** this — that abort is `OK`'s
   above, which is where the agent's own "set the first that applies" ladder
   (verify step 6) puts it
-- `RUN_FAILED` — nothing was verified: no detected suite matches the baseline
-  (**Comparison status**: `invalid`), or no suite produced counts in this run at
-  all. It is tested **after** `REGRESSIONS`, so a run in which every suite aborted
-  is a regression where the baseline had run them, and what reaches this value is
-  a baseline holding no passing test that could go missing
+- `RUN_FAILED` — nothing was verified. **Three causes, and the third is settled
+  before the run rather than by the ladder**: the supplied baseline covers no
+  suite at all — its `### Suites` marks none `OK` or `NO_TESTS`, so there is
+  nothing to diff against and the call returns without running anything
+  (**Comparison status**: `invalid`, verify's pre-step gate); no detected suite
+  matches the baseline (`invalid` as well); or no suite produced counts in this
+  run at all. The last is tested **after** `REGRESSIONS`, so a run in which every
+  suite aborted is a regression where the baseline had run them, and what reaches
+  it is a baseline holding no passing test that could go missing. **A caller
+  cannot distinguish the third cause from a real comparison by reading `Status`
+  alone, which is why it is refused rather than computed**: with an uncovering
+  baseline every count is 0, nothing can go missing, and a ladder allowed to run
+  would return `OK` wherever this call's own suites produced counts
 - `COMMAND_NOT_FOUND` — no candidate matched and no `command_hint` supplied one,
   so nothing ran (**Framework** then reads `not detected`) — the same test capture
   mode applies, a hint being something to run rather than nothing. Never emitted

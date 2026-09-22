@@ -18,13 +18,15 @@ branch: fix/PROJ-2423-CVE-2023-46604   # REQUIRED on phase: full. The orchestrat
                                     # vuln-fixer creates exactly this branch and never derives one,
                                     # because /vuln Step 3.9 pushes the same value. Absent => BLOCKED.
 phase: full                        # full (default) | verify-resume | regression-resume — see "Phase" below
-baseline_tests: provided           # "provided" | "run-fresh"
-  # If "provided", the orchestrator supplies results below.
-  # If "run-fresh", vuln-fixer runs the suite itself first.
-  # NOTE: when gate_tests_on_review: true, "run-fresh" is INVALID —
-  # the orchestrator MUST capture the baseline itself (see `/vuln`
-  # Step 3) so it can be replayed on the verify-resume call. The captured
-  # baseline cannot survive the AWAITING_REVIEW boundary inside the fixer.
+baseline_tests: provided           # "provided" — the only value
+  # The orchestrator captures the baseline once per run and supplies it below,
+  # on BOTH paths and whatever gate_tests_on_review says (see `/vuln` Step 3).
+  # "run-fresh" — vuln-fixer capturing its own — is RETIRED, not merely invalid
+  # under a gate. It was invalid under gate_tests_on_review: true because a
+  # baseline captured inside the fixer cannot survive the AWAITING_REVIEW
+  # boundary; it is gone from the other path too for an unrelated reason —
+  # a capture that cannot run raises a question only the orchestrator can put,
+  # this agent having no interactive tools. Do not reintroduce it.
 baseline_passing: 47               # count of passing tests (required when "provided")
 baseline_block: |                  # required when "provided", and on verify-resume — the whole
   ## Test Baseline                 # `## Test Baseline` block the orchestrator captured, verbatim,
@@ -76,7 +78,7 @@ files:
 
 ```markdown
 ## Vuln Fix Result: CVE-2023-46604
-status: SUCCESS         # SUCCESS | BUILD_FAILED | TEST_REGRESSION | TESTS_NOT_RUN | REVERTED | SKIPPED_BY_USER | AWAITING_REVIEW | BASELINE_FAILED | BLOCKED
+status: SUCCESS         # SUCCESS | BUILD_FAILED | TEST_REGRESSION | TESTS_NOT_RUN | REVERTED | SKIPPED_BY_USER | AWAITING_REVIEW | BLOCKED
 branch: fix/PROJ-2423-CVE-2023-46604
                         # no `pr_url` and no commit sha: this agent creates the branch and stops.
                         # The commit, the push, and the pull request are the orchestrator's, in
@@ -115,10 +117,13 @@ model_routing:           # echoed back when present in input
   `notes` carries the report's reason; the orchestrator decides. Distinct from
   `SUCCESS`, which asserts the tests passed, and from `TEST_REGRESSION`, which
   asserts they failed
-- `BASELINE_FAILED` — `test-baseliner` capture returned `RUN_FAILED` or
-  `COMMAND_NOT_FOUND` before any fix was applied; nothing was changed. A
-  `PARTIAL` capture is **not** this: at least one suite produced counts, so
-  there is a baseline to verify against and the CVE is worked as normal
+- `BASELINE_FAILED` is **retired** and this agent returns it on no path. It
+  reported a `RUN_FAILED` / `COMMAND_NOT_FOUND` capture taken inside the fixer,
+  and abandoned the CVE with nothing applied — a disposition the orchestrator's
+  own paths never shared, and the one an operator is now asked about instead
+  (`/vuln` Step 3). A run the operator chooses to have applied unverified
+  reaches `TESTS_NOT_RUN` through verify, which refuses a baseline covering no
+  suite; a `PARTIAL` capture was never this and still is not
 - `REVERTED` — the `regression-resume` call's `regression_decision` was `revert`
 - `SKIPPED_BY_USER` — user chose to skip (set by the orchestrator; this agent
   is not re-invoked in that case)

@@ -35,7 +35,7 @@ Refuse to review without the written file paths and the `docs_tree` listing — 
 5. Read `.github/workflows/docs.yml` end-to-end and cross-check its steps against the tool list it invokes, the two configs, and the profile's `images.policy` (dimensions 5–6).
 6. `Grep` the public config, `mkdocs.yml`, for the leakage class dimension 7 checks — outside its `exclude_docs` block, which is the removal of internal content rather than a leak of it.
 7. For each dimension below, record findings in the shared severity schema (`BLOCKER` / `MAJOR` / `MINOR` / `NIT`). A dimension whose files were not touched by this diff (most often on a `/docs-brand` run) is `"N/A — not written this run"`, stated explicitly rather than omitted.
-8. Derive a single verdict: `PASS` (no findings above MINOR), `PASS WITH RECOMMENDATIONS` (MAJOR / MINOR / NIT only, no blockers), `BLOCK` (at least one BLOCKER finding).
+8. Derive a single verdict, and the three are a **partition** — every finding set matches exactly one: `BLOCK` (at least one BLOCKER), `PASS WITH RECOMMENDATIONS` (no BLOCKER, but at least one MAJOR, MINOR or NIT), `PASS` (no findings at all). The wording here used to read `PASS` as "no findings above MINOR" beside `PASS WITH RECOMMENDATIONS` as "MAJOR / MINOR / NIT only", under which a lone MINOR satisfied both and the verdict was the reviewer's coin-toss rather than the rule's.
 
 ## Review dimensions
 

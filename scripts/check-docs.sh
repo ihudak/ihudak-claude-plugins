@@ -708,6 +708,25 @@ check_prose_counts() {
     [ -f "$file" ] || return 0
     # -i, and lowercase the captured numeral: a count sentence may open a sentence
     # ("Thirteen commands emit ...") or sit mid-sentence ("twenty-one slash commands").
+    #
+    # `head -1` TAKES THE FIRST MATCH IN DOCUMENT ORDER, NOT "THE COUNT SENTENCE" --
+    # so the count sentence must be the FIRST phrase of its shape in its file, and a
+    # prose line above it that happens to read "<number> agents" is silently gated in
+    # its place. That is not hypothetical: a section lead reading "The three agents
+    # that turn ..." made this compare 3 against a tree of 11, and the wording before
+    # it ("The two agents that ...") had been green only by accident, sorting after
+    # the introduction's own "ten agents".
+    #
+    # Failing on a SECOND match was measured and refused, on this repo's usual rule:
+    # on a green tree eight gated files already carry more than one matching phrase
+    # (every plugin's references.md among them, up to five in one file), so the check
+    # would fire on eight correct files and nothing else. Fires-only-on-correct-content
+    # is the same result that refused two earlier widenings here.
+    #
+    # It is therefore an AUTHORING rule, recorded where an author meets it: when you
+    # add prose above a count sentence, do not let it name a number and that sentence's
+    # noun. Re-run this check after any edit to the top of one of these pages -- a
+    # silently wrong comparison passes, which is what makes it worth the paragraph.
     raw=$(grep -ohEi "$pat" "$file" 2>/dev/null | head -1 | awk '{print tolower($1)}')
     if [ -z "$raw" ]; then
       fail 9 "$label: no count sentence found in ${file#$root/} -- the wording drifted, so nothing is being checked"
@@ -2391,7 +2410,7 @@ PYEOF
 # self-disclosed dispatching a stray subagent mid-run, outside its own sanctioned set.
 # A check that verifies RUNTIME behaviour is impossible from a static script -- and a check
 # that merely asserted "the rule exists" would have passed on the very run that misbehaved:
-# MEASURED FIRST, only 3 of the 40 agents under PLUGIN_RELS carry `Task` in their tool list at
+# MEASURED FIRST, only 3 of the agents under PLUGIN_RELS carried `Task` in their tool list at
 # all (upgrade-executor, vuln-fixer, docs-style-checker), and all three already carried a
 # NEVER-dispatch rule naming their sanctioned subagent, in near-identical wording, when one of
 # them still mis-dispatched. So what is checkable is the STRUCTURAL PRECONDITION, not the

@@ -213,7 +213,7 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   documentation can put on a `[BR#n]` row, and only Phase 4's human confirmation puts it there.**
   `docs_references` — what the product already ships and documents — is reported for `/prd-ground`
   to check against code, and written nowhere; the ledger's `evidence` column stays empty until
-  grounding runs.
+  grounding runs, and [`/prd-ground`](prd-ground.md) fills it when it does.
 - **Phase 4 — interactive defect confirmation**, not an agent gate: every `defect_candidates` entry
   not already logged (below) is walked one class at a time, in the fixed order
   [`brd-format.md`](../../references/brd-format.md) §3 lists its six classes, via `AskUserQuestion`,

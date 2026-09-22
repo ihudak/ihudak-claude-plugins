@@ -244,7 +244,10 @@ attack.
   delivery note, the self-review, the bundle's rendered copies and an `[SR#n]`'s own record. Never a
   register record, a held `[C]` entry, a ledger disposition or a verified finding — those belong to
   other commands, and a finding the team agrees with but cannot act on here takes `accepted-risk`
-  with a `fixed-by:` marker naming the command that fixes it. Two of the five exist when the gate
+  with a `fixed-by:` marker — naming the command that fixes it, or, where no command writes that
+  artifact at all, the person who must write it by hand. The marker is written either way: part 9
+  renders the customer's *we agree, this is ours to repair* sentence from its presence, so a finding
+  left unmarked reads on the page as a risk the team weighed and accepted. Two of the five exist when the gate
   runs; the other three are written by later phases, so a correction against one of those is
   recorded against the finding at the gate and carried out when that phase writes the artifact.
 - **Phase 4 — a `fixed` correction re-opens the review, exactly once, whatever artifact it named.**

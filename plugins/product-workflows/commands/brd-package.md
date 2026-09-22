@@ -561,9 +561,14 @@ Each disposition carries a recorded reason, and each has a consequence the later
 **A finding the team agrees with and cannot act on here takes `accepted-risk` and carries a
 structured marker saying where it is fixed.** The vocabulary is four values and a fifth would be one
 nothing downstream reads, so this case shares a value with a genuine acceptance and is told apart by
-a field rather than by prose: record **`fixed-by: <command>`** on the finding — the same device as
+a field rather than by prose: record **`fixed-by:`** on the finding — the same device as
 the `restates:` marker below — naming **the command that writes the named
-artifact**, with what a re-run here would then show. **The list below is worked
+artifact**, with what a re-run here would then show. **The marker is written on every finding that
+takes this route, and its value has exactly two shapes**: a command, where one writes the named
+artifact, and the person or role who must write it by hand, where none does (below). There is no
+third shape and there is no unmarked case — part 9 renders from the marker's presence, so a finding
+that takes this route unmarked reaches the customer as a risk the team weighed and chose to take,
+which is the one swap this route exists to prevent. **The list below is worked
 examples of that rule and never the rule itself**, for the reason the row above
 gives: the artifacts `fixed` excludes are open-ended, so a marker keyed on an
 enumeration leaves whichever artifact the enumeration missed with no route at all.
@@ -574,10 +579,15 @@ enumeration leaves whichever artifact the enumeration missed with no route at al
 `/product-workflows:brd-reconcile` for a defect resolution a customer's answer settles. **Where the
 named artifact has no command writer at all** — a `brd/brd-defect-log.md` entry a grounding finding
 would settle is the case on the tree (`references/brd-format.md` §4, and
-`/product-workflows:brd-interview`'s *Round 1 is generated from the grounding*) — say so in the
-recorded reason and name the person who must write it, rather than naming a command that will not.
-A marker naming a command that does not write that artifact is worse than none: it reads as routed
-and nothing is.
+`/product-workflows:brd-interview`'s *Round 1 is generated from the grounding*) — **the marker is
+still written, and it takes the person or role who must write that artifact by hand as its value**:
+`fixed-by: <person or role>`, with the recorded reason saying in as many words that no command
+writes it. A marker naming a command that does not write that artifact is worse than none: it reads
+as routed and nothing is — **which rules on the marker's value and never licenses omitting the
+marker**. Omitting it is the worse of the two errors and is the one a live run made: this paragraph
+was read as *name a person instead of writing a marker*, and two findings the team had agreed with
+went to the customer with no sentence beside them, indistinguishable on the page from the eight
+risks that run had genuinely weighed and accepted.
 
 **The marker stays inside the delivery organisation and the customer reads a rendered sentence
 instead.** `fixed-by:` travels in the disposition's recorded reason, in
@@ -587,10 +597,15 @@ those words may name no command or agent, and the plugin-free scan runs over the
 and hard-stops on a leading-slash command name (`BRD_PACKAGE_PROMPT_LEAK`) rather than sanitising
 it. A clause carrying the command name into part 9 would therefore stop the package on the common
 path — the P3 run had eleven of seventeen findings in this state — and the only way past the stop
-would be to strip the clause, which is this rule reverting itself. **So part 9 renders a generated,
-plugin-free sentence from the marker's presence**, to the effect of *"we agree with this; it is
-addressed in a later step of our process rather than in this package"*, beside the finding's own
-words. The customer then reads *we agree, and it is handled elsewhere* rather than *we weighed this
+would be to strip the clause, which is this rule reverting itself. **A person-valued marker is
+withheld for a reason of its own rather than for that one**: neither the plugin-free scan nor the
+citation check stops a person's name, so nothing downstream would catch it, and an individual
+inside the delivery organisation is not the customer's to be handed. **So part 9 renders a
+generated, plugin-free sentence from the marker's presence**, to the effect of *"we agree with
+this; it is recorded for repair outside this package rather than accepted as it stands"* — **one
+sentence for both value shapes**, saying only what holds of a command that will write the artifact
+and of a person who must write it by hand alike — beside the finding's own
+words. The customer then reads *we agree, and this is ours to repair* rather than *we weighed this
 and accepted it*, which is the whole point of the distinction, and the renderer reads a field rather
 than trusting that someone wrote a clause. Without the marker the two cases are indistinguishable on
 the page, and a run that met a wall of agreed-but-unactionable attacks would ship every one of them
@@ -860,10 +875,15 @@ the citation-resolution check (Phase 8 rule 8,
 token that reaches the prompt this way anyway stops whichever of the two catches it, like any other;
 the finding's words are still not this command's to change. **Where the finding carries
 `fixed-by:`, this part adds one generated sentence beside those words** — plugin-free by
-construction, saying the team agrees and that it is addressed in a later step of its process rather
-than in this package (*The disposition gate*). It is generated **from the marker's presence and
-never from its value**: the value names a command, and a command name in this part is exactly what
-the plugin-free scan stops on. Nothing disposed `fixed` appears (it is
+construction, saying the team agrees and that it is recorded for repair outside this package rather
+than accepted as it stands (*The disposition gate*). **One sentence serves both shapes the marker's
+value takes**: a command that writes the artifact and a person who must write it by hand are both
+outside this package, and the sentence says only what holds of both — an earlier wording promising
+*a later step of our process* asserted a routing the person-valued half does not have, which is the
+same swap in the other direction. It is generated **from the marker's presence and
+never from its value**, and that holds for both shapes, each for its own reason: a command name is
+exactly what the plugin-free scan stops on, and a person's name is an internal identity neither
+that scan nor the citation check would stop and no customer is owed. Nothing disposed `fixed` appears (it is
 no longer true of the package), and nothing disposed `rejected-with-reason` appears (the rejection
 is ours to own, and shipping an attack the team has already argued against invites the customer to
 referee an internal disagreement). **A package that names its own weak points gets a review worth

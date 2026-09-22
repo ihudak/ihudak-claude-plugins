@@ -577,8 +577,9 @@ substitutions, not rewordings (`workflows-core:escalation-rules`, *Choice lists 
 verbatim*).
 
 **`<merge-clause>` is resolved from the `Phase handoff:` line this run actually emitted**, per
-`workflows-core:next-phase-offer`'s resolution table — only two of its rows name a branch, and a
-declined handoff opened no pull request. `/product-workflows:brd-proposal` runs `require-on-main`
+`workflows-core:next-phase-offer`'s resolution table — a row names a branch only where that outcome
+committed one, which the declined and gate-failed rows did not, and a declined handoff opened no
+pull request. Read which rows those are off that table rather than off this sentence. `/product-workflows:brd-proposal` runs `require-on-main`
 against the `proposal.md` this run has just written, which is why that one option carries the
 placeholder and the two tier-raising options do not: both of those gate on `prd.md`, which this run
 does not write.

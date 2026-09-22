@@ -277,7 +277,10 @@ the customer has actually answered and an operator has confirmed the answer; the
 and the register recording an answer are two separate acts.
 
 Behind the handoff phase's consent choice, these are committed, pushed, and a pull request opened
-against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix.
+against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix. That
+choice is preceded by a read-only probe for an `origin` remote, and where the specs repo has none
+the run says so in a line above the choice: the first option still branches and commits locally,
+but the push and the pull request cannot run.
 
 ## Gates
 

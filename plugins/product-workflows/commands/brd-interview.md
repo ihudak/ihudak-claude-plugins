@@ -1186,11 +1186,22 @@ that ends this write of the round record (above).
 
 ## Phase 10 — Handoff
 
-Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim:
+Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and **execute §4.3 in
+full rather than its array alone**: run §2.1's push-target probe first, and where it sets
+`remote: none` print §4.3's no-remote line immediately above the array, unreworded. Then present its
+§4.3 choice array verbatim — the **gated — stopping** variant (§4.1 bullet 1), since `/brd-package`
+stops on this run's `decisions.md` (`workflows-core:phase-handoff` §3.4):
 
 ```
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
+
+**The probe is named here because quoting the array is what invites skipping it.** A live run of
+this phase read the instruction above, presented the array and ran no probe, offering a
+`(Recommended)` push-and-open-PR on a specs repo with no `origin` and no notice — the state
+`workflows-core:phase-handoff` §2.1 records that probe as having been added for. Carry the `remote`
+value the probe set into `handoff-to-main` below, which §2.1 expects carried rather than probed a
+second time.
 
 On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args:
 "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's table, where `brd` is the prefix

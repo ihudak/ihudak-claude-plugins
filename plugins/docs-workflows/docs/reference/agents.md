@@ -1,6 +1,6 @@
 # Agents reference
 
-`docs-workflows` bundles eight agents under `agents/`, dispatched internally by the invoking command via `subagent_type: "docs-workflows:<name>"` — none of them is a user entry point. Two, `doc-reviewer` and `docs-scaffold-reviewer`, carry a `model: opus` frontmatter pin (shown as **opus** below) and run on Opus every time, regardless of the dispatching command's own model tier for that run; the remaining six carry no pin (shown as **per routing**) and are assigned a tier by the dispatching command per the task-complexity classification the `workflows-core` model-routing reference fixes. Two further agents these commands dispatch — `doc-fixer` and `impl-maintenance` — ship in the companion `workflows-core` plugin and are listed in its own agents reference, not here; `prose-style-checker` and `prose-fixer` ship in `prose-style`. Each row's **Used by** column lists only the commands that actually dispatch that agent as a subagent.
+`docs-workflows` bundles ten agents under `agents/`, dispatched internally by the invoking command via `subagent_type: "docs-workflows:<name>"` — none of them is a user entry point. Three — `doc-reviewer`, `docs-scaffold-reviewer` and `ia-planner` — carry a `model: opus` frontmatter pin (shown as **opus** below) and run on Opus every time, regardless of the dispatching command's own model tier for that run. One, `docs-auditor`, carries a `model: sonnet` pin (shown as **sonnet**), which is the same mechanism pointed the other way: enumerating surfaces against evidence paths somebody else already found is mechanical, and pinning it keeps that work off the expensive tier rather than letting a caller's own classification float it there. The remaining six carry no pin (shown as **per routing**) and are assigned a tier by the dispatching command per the task-complexity classification the `workflows-core` model-routing reference fixes. Two further agents these commands dispatch — `doc-fixer` and `impl-maintenance` — ship in the companion `workflows-core` plugin and are listed in its own agents reference, not here; `prose-style-checker` and `prose-fixer` ship in `prose-style`. Each row's **Used by** column lists only the commands that actually dispatch that agent as a subagent.
 
 ## Reviewers and planners
 
@@ -31,4 +31,13 @@ Produce content from a structured handoff. Neither runs git.
 | `doc-writer` | per routing | Read, Glob, Grep, Write, Edit, Bash, Skill | Writes product documentation from a structured handoff — the `doc-planner` checklist, approved per-page write strategies, discrepancy decisions, snippets, screenshots, frontmatter, links. | `/document` |
 | `release-notes-writer` | per routing | Read, Glob, Grep, Skill | Renders a release-notes draft — exactly one Summary, shaped by its resolved destination; emits no work-item ID, PR link, or internal-note wrapper. Does not write files. | `/release-notes` |
 
-Every one of the eight agents above is dispatched by at least one command. `/docs-profile` dispatches none of them: it scans a documentation repository itself and writes the profile `/document` consumes.
+## The documentation audit
+
+The two agents that turn a product's own code into a documentation backlog. They are a pipeline rather than two independent helpers: `ia-planner`'s input is `docs-auditor`'s output, verbatim, so their two handoff contracts agree field for field and a field added to one is added to the other in the same edit.
+
+| Agent | Model | Tools | What it does | Used by |
+|---|---|---|---|---|
+| `docs-auditor` | sonnet | Read, Glob, Grep, Bash, Skill | Enumerates the individual documentation surfaces inside what a batch of `code-scanner` runs returned and what the specs-tree read named, with volatility from `git log` density at the ref. | `/docs-audit` |
+| `ia-planner` | opus | Read, Glob, Grep | Crosses each surface with the page types it actually earns, ranks the resulting units on four prioritisation signals with a reason naming them, and proposes tutorial candidates. | `/docs-audit` |
+
+Eight of the ten agents above are dispatched by a command this plugin ships today. The two in this section are not yet: `docs-auditor` and `ia-planner` are dispatched by `/docs-audit`, and while that command is absent from `commands/` neither is reachable — they ship ahead of it because the contracts they execute were frozen first, and the pair had to be reviewed together. `/docs-profile` dispatches none of them: it scans a documentation repository itself and writes the profile `/document` consumes.

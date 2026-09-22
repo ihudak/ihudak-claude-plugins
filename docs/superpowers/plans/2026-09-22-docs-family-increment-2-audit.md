@@ -728,6 +728,12 @@ grep -rln 'docs-audit' plugins/ --include=*.md | grep -v CHANGELOG
 
 **Sweep by the claim's *subject*, not by the correction's wording** — the subject here is `/docs-audit` and the things it was said to be going to do (append the Vale domain vocabulary, read `type`, write `unit`, adopt `resolve-docs-repo`, classify SIGNIFICANT). A sibling stating the old claim shares the subject and not your new phrasing. Count the literal string again after the edits, **wrap-insensitively** — collapse whitespace in the file *and* in the pattern — and check the after-count against what you intended.
 
+**A second subject, and it is not reachable from the first: the source-repo set.** Task 3 made the profile record it, which falsifies every sentence saying nothing does. That population shares no vocabulary with `/docs-audit`, so the grep above cannot see it. **Four sites found and deliberately left standing by Task 3, all under `plugins/docs-workflows/`** — re-derive rather than trusting the list: `docs/commands/docs-init.md`, `commands/docs-brand.md`, `docs/commands/docs-brand.md`, and `CHANGELOG.md`. The sharpest is the `docs/` page for the very command Task 3 changed, which is the surface an operator acts on.
+
+**And one behavioural divergence Task 3 introduced, which is a defect rather than a stale sentence:** `/docs-brand` Phase 2's rung 2 stops being a pass-through the moment a `/docs-init`-written profile carries `source_repos[]`, while that command's own prose still describes the rung as inert. Behaviour and command body now disagree. Fix the body against what the rung actually does — not the reverse.
+
+**Also owed here if Task 6 did not take it:** `docs-profile-schema.md`'s header consumer list reads "`/document`, `/docs-serve` and `/docs-brand` read it" and does not name `/docs-audit`. Task 3 correctly left it — naming a command that did not exist yet would have been a forward claim in a file governing what runs today — so confirm Task 6 added it and add it here if not.
+
 - [ ] **Step 2: Rewrite each site against what shipped**
 
 Each becomes a statement about a command that exists, read out of `/docs-audit`'s own phases rather than assumed. **A sentence that named the absence as its *reason* needs a new reason, not a deletion** — `scaffold-tree.md` §7's Vale seed is the case: its reason for seeding only the scaffold's own words was that no command extracted domain nouns yet. That reason is gone; the new one is that the scaffold must pass its own lint gate before any audit has run, which is still true and still bounds the seed.

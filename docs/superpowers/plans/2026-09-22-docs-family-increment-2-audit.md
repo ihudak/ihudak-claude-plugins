@@ -174,6 +174,8 @@ Sections, in order, each derived from spec §5 rather than paraphrased loosely:
 4. **`## 4. Tutorials do not automate`** — three of the four user quadrants are derivable from code and the fourth is not. The audit *proposes* candidates; a human picks. State it plainly rather than pretending otherwise, and cite this plan's settled question 1 for *how* the human picks (the marked backlog section).
 5. **`## 5. Prioritisation`** — the four signals with their weights: blocks the primary journey (highest), role breadth, evidence availability, volatility **inverted**. Then the guard (D7) in full: volatility only ever *ranks* and can never *exclude*; a high-volatility surface scoring high on signal 1 is written, with its `type` biased away from step-by-step toward `explanation` and `reference`, recorded as `churn_adapted: true` with the reason, so the choice is visible rather than silent.
 6. **`## 6. How a unit enters the backlog`** — one unit is one page; a surface is a thing in the product. Units are created by crossing a surface with the types it **actually earns** — not a mechanical cross-product. The worked example: `order-placement`, a `task` surface, earns a `how-to` and probably a `reference`; it does **not** earn an `architecture` page. Then the five entry paths as a table, with the first three marked automatic. Then path 5's consequence in full: a hand-written unit either attaches to an existing surface (drift covers it) or declares `surface: null` with hand-given `evidence`, in which case drift cannot tell when it goes stale and it relies on `review_by` alone — an acceptable trade, and the audit reports the count of `surface: null` units so it never grows unnoticed.
+   **One cell of §5.4's table is over check 6's cap.** Row 5 (*A human editing `docs-backlog.yml`*) is **231 characters** in the spec; check 6 fails any cell over **200** in `docs/`, the plugin README and the repo README. Re-cut it when the table lands on the docs page — measure before writing, as the increment-1 release had to after hitting exactly this on `agents.md`. It is the only over-cap cell in the sections this increment copies from; the rest were measured and pass.
+
 7. **`## 7. Definition of done`** — the blockquote: *Done = every backlog unit at or above a chosen priority threshold has a published page, and every claim on those pages is either evidence-backed or visibly marked.* Then: `coverage` reports the fraction per `(audience, type)` cell; "we wrote a lot of docs" is not a completion criterion.
 8. **`## 8. Hard rules`** — NEVER re-derive the surface kinds or the type vocabulary in a command or agent body; cite this file. NEVER let volatility exclude a surface. NEVER cross-product a surface with all four quadrants. NEVER report coverage green over units nothing verified.
 
@@ -210,9 +212,13 @@ flowchart LR
 
 Keep it to the user axis — the engineering axis is a second, smaller diagram or a table; a diagram showing all seven surfaces against all eight types is a mesh nobody reads.
 
-- [ ] **Step 3: Update the inventory and the count**
+- [ ] **Step 3: Update the inventory and the counts — plural, and one of them is a trap**
 
-Add the row to `docs/reference/references.md` and move its count sentence. **Re-derive it** — `find plugins/docs-workflows/references -type f | wc -l` — and write what you counted. That file writes its count as a numeral, so no gate widening is needed here.
+Add the row to `docs/reference/references.md` and move its count sentence. **Re-derive it** — `find plugins/docs-workflows/references -type f | wc -l` — and write what you counted. That file writes its total as a **numeral**, so no gate widening is needed for it.
+
+**`references.md` also carries a per-subtree count that check 4 greps and matches exactly, in both directions** (`` `<dir>/` \(([0-9]+)\) `` against `find references/<dir> -name '*.md' | wc -l`). Today it reads `` `docs-workflow/` (4) ``, `` `docs-profiles/` (5) `` and `` `handoff/` (2) ``. This task creates a **new** subtree, `docs-audit/`, so it needs a **new line of its own** — it does not join `docs-workflow/`. Task 4 moves `handoff/` from `(2)` to `(4)`.
+
+**And `references.md:3` is an arithmetic paragraph, not a count** — it reads "five named individually, plus 5 + 2 + 4 = 11 markdown pages across the three subtrees — 5 + 11 = 16 accounted for, against 18 files on disk", plus "the four in `docs-workflow/`". **Every term in it moves, and check 9 gates only the first matching sentence per file** (it takes `head -1` of its grep), so the rest goes stale silently. Re-do the arithmetic and write what you counted.
 
 Add a Reference-section link in `docs/README.md` so check 3 can reach the new page.
 
@@ -268,7 +274,9 @@ Then, section by section:
 - **Why surfaces and units are separate tables** — one surface spawns several units across quadrants, and drift is detected per surface then fans out to its units. A flat list would either duplicate the evidence per unit or lose the fan-out. `sources[].ref` is what makes drift computable at all, and it is the same idea as `prep.scanned_ref` in `workflows-core:read-only-repos`.
 - **The unit status lifecycle** — `missing | drafted | verified | published | stale`, with who moves each transition and which of them exist today. **State plainly that only `missing` and `published` have a writer in this increment** (`/docs-audit` mints `missing`; `--refresh` marks `published` where a page carries the unit id): `drafted` and `verified` are written by Spec 2's commands and `stale` by Spec 3's, and until those ship a human moves a unit by editing the file. Write this as the shipped truth, not as a promise.
 - **`blocked_by`** — an open list. `[surface-removed]` is the one value this increment writes, on `--refresh`, and a unit is **never silently deleted**.
-- **Hard rules** — NEVER delete a unit; NEVER write a `coverage` figure not derived from the `units[]` table in the same run; NEVER mint a unit id that collides with one already in the file; NEVER write `page_path` for a page that does not exist.
+- **Where the file lives, stated rather than left to the reader.** The spec writes `.dev-workflows/docs-backlog.yml` with no root named, which has two readings that differ for a `site/`-in-a-monorepo layout: the resolved docs directory, or its git work-tree top level. **It is the git top level**, matching the one home `docs-profile-schema.md` pins for the profile and for `docs-serve.state.json`. One repository has one backlog, however many content roots it publishes. *(Checked: the scaffold gitignores only `/.dev-workflows/docs-serve.state.json`, deliberately not the directory, "because that directory also holds `docs-profile.yml`, which is committed" — so a **tracked** backlog there is what the design assumes.)*
+- **`visibility` and `page_path` are not independent, and the spec's schema implies they are.** Spec §8.6 calls `visibility` the key "the two-build split reads"; **the shipped split does not read it — it decides by path**, a page being internal because it sits under `docs/internal/` (`references/docs-workflow/visibility.md` §1, and `frontmatter-guidelines.md` says so outright). So a unit carrying `visibility: internal` whose `page_path` falls outside `docs/internal/` **ships publicly**, and nothing in the build objects. State the invariant here — `visibility: internal` ⇒ `page_path` under the internal tree — and make it `docs-audit-reviewer` dimension 2's business (Task 5), since it is a relationship between two fields that no single-field check can see.
+- **Hard rules** — NEVER delete a unit; NEVER write a `coverage` figure not derived from the `units[]` table in the same run; NEVER mint a unit id that collides with one already in the file; NEVER write `page_path` for a page that does not exist; NEVER write a `page_path` that contradicts the unit's `visibility`.
 
 - [ ] **Step 2: Write `references/docs-audit/evidence-contract.md`**
 
@@ -411,7 +419,9 @@ Frontmatter: `name`, `description`, `model: sonnet` (enumeration against supplie
 Body:
 - The **Core references** preamble verbatim.
 - **What it does:** takes the `capability_map[]` entries a batch of `code-scanner` runs returned, reads the evidence paths each names, and enumerates the individual surfaces within each kind — per `${CLAUDE_PLUGIN_ROOT}/references/docs-audit/coverage-model.md` §2, which is the authority on the seven kinds and is **not restated here**.
-- **Inputs** (refuse without them): the `capability_map[]` per repo with its `prep` block; the repo paths; `${CLAUDE_PLUGIN_ROOT}/references/docs-audit/coverage-model.md`. **An unreadable evidence input is a hard stop and is never regenerated by other means** (`dev-workflows:context-management`'s tiering, cited as the family discipline rather than loaded — that reference is another plugin's).
+- **Inputs** (refuse without them): the `capability_map[]` per repo with its `prep` block; the repo paths; `${CLAUDE_PLUGIN_ROOT}/references/docs-audit/coverage-model.md`. **State the read-failure rule in this agent's own words**: an unreadable **evidence** input is a hard stop and is never regenerated by other means; an unreadable **context** input degrades to absent and the output records the degradation.
+
+  **Do not cite `dev-workflows:context-management` for this, and this is not a style preference.** That file lives in `dev-workflows`; `docs-workflows` declares only `["workflows-core", "prose-style"]`, an agent crosses a plugin boundary for free but **a reference does not**, and the loader serves `workflows-core`'s corpus alone. A citation would send a reader to a file they cannot open — the same defect the spec's §13.1 already caught twice, in the entries for `accessibility.md` and for `code-review`/`review-fixer`, and missed a third time for this one. Restating the two tiers costs two sentences.
 - **How it reads:** at `prep.scanned_ref`, never at the working tree — `git -C <repo> show <scanned_ref>:<path>` on a read-only mount (`workflows-core:read-only-repos`). A line number is meaningful only with the ref it was read at.
 - **`volatility`:** `git log --since=<window> --format=%H -- <the surface's evidence paths> | wc -l`, bucketed `high|medium|low`. **State the window and the thresholds in the handoff file, once** — two agents disagreeing about what "high" means is how a signal stops meaning anything. On a read-only mount `git log` still works; where it fails, `volatility: unknown`, which the prioritiser treats as `medium` and says so.
 - **Hard rules:** NEVER invent a surface with no evidence path behind it — a surface built on a path that does not exist is a hallucinated surface and `docs-audit-reviewer` dimension 1 exists to catch it. NEVER enumerate a surface from a theme whose `classification` is `absent`. NEVER assign page types — that is `ia-planner`'s. NEVER write any file.
@@ -499,7 +509,7 @@ Body, modelled on `docs-scaffold-reviewer.md`, which is the shape this family ha
 - **Why the checklist is fixed rather than the reviewer's judgement** — the same argument `docs-scaffold-reviewer` makes: most dimensions assert a relationship *between two artefacts*, which a reviewer reading one hunk at a time cannot see.
 - **The four dimensions**, spec §11 Phase 5.5, each with the evidence it is given:
   1. **Every surface resolves** — each `evidence[].path` exists at the recorded ref. `git -C <repo> cat-file -e <ref>:<path>` is the check, and it is the one sanctioned `Bash` use. A surface on a path that does not exist is a hallucinated surface.
-  2. **Types fit their surface** — a `role` surface does not become a tutorial; an `api-reference` unit has an actual endpoint behind it.
+  2. **Types fit their surface, and `visibility` agrees with `page_path`** — a `role` surface does not become a tutorial; an `api-reference` unit has an actual endpoint behind it. **And a unit carrying `visibility: internal` has a `page_path` under the internal tree** (Task 2's invariant): the shipped two-build split decides by **path**, not by the frontmatter key, so a mismatch here ships an internal page publicly and no build objects. It is a relationship between two fields, which is why it belongs to a reviewer rather than to a per-field check.
   3. **Every `priority_reason` supports its `priority`** — the stated reason must *contain the signals it claims*. "Blocks the primary journey" is checkable against the roles and tasks enumerated; an unsupported reason is a finding.
   4. **No unit orphaned or duplicated** — every unit names a surface that exists, and no two units cover the same `(surface, audience, type)` cell.
 - **Verdict:** `PASS` / `PASS WITH RECOMMENDATIONS` / `BLOCK`, on the severity schema `BLOCKER` / `MAJOR` / `MINOR` / `NIT`. A dimension not applicable is stated as `"N/A — reason"`, never omitted.
@@ -550,13 +560,23 @@ Then the **source repos**: read `source_repos[]` from the profile (Task 3). Wher
 
 - [ ] **Step 4: Phase 2 — Scan**
 
-The seven surface kinds as `capability_themes[]`, taken from `coverage-model.md` §2 (this plan's settled question 3 — **do not re-derive the phrasing here; the reference owns it**). Dispatch `code-scanner` per repo in a **single response**, capped at 4 concurrent (`workflows-core:model-routing/classification` §8). Record each `prep.scanned_ref` into `sources[]`.
+The seven surface kinds as `capability_themes[]`, taken from `coverage-model.md` §2 (this plan's settled question 3 — **do not re-derive the phrasing here; the reference owns it**). `code-scanner` **refuses to run without `repo_path`, at least one `capability_themes` entry, and a `context`**, so the dispatch supplies a `context` too: three to five sentences saying this is a documentation coverage audit and that the scan is looking for where each kind of thing lives, not for a defect. Dispatch per repo in a **single response**, capped at 4 concurrent (`workflows-core:model-routing/classification` §8 — **cite that file by name, not a bare `§8.5`**, which also resolves to the spec's *own* §8.5 on profile additions).
 
-Handle the status codes rather than assuming `OK`: `REPO_MISSING` and `REFRESH_BLOCKED` and `DIRTY_TREE` escalate per `workflows-core:escalation-rules`; `EMPTY` means this repo contributes no surfaces and is **reported**, not dropped silently; `PARTIAL` carries at least one theme in `error` and those themes go to the unresolved list.
+Record each `prep.scanned_ref` into `sources[]`. Handle the status codes rather than assuming `OK`: `REPO_MISSING`, `REFRESH_BLOCKED` and `DIRTY_TREE` escalate per `workflows-core:escalation-rules`; `EMPTY` means this repo contributes no surfaces and is **reported**, not dropped silently; `PARTIAL` carries at least one theme in `error` and those themes go to the unresolved list.
 
-One narrow **round 2** seeded with round 1's verified anchors for an inconclusive theme (§8.5, cap 4, no round 3). A theme still unresolved after round 2 is **named in the output**, never flattened into a gap.
+One narrow **round 2** seeded with round 1's verified anchors for an inconclusive theme (`classification` §8.5, cap 4, no round 3). A theme still unresolved after round 2 is **named in the output**, never flattened into a gap.
 
-Optionally dispatch `docs-grounder` against `$DOCS_PATH`, advisory. **Decide and state whether this command is a docs-grounding consumer** — if it is, `workflows-core:docs-grounding`'s consumer list and `CLAUDE.md`'s copy of it both move in Task 8; if it is not, say why here, as the five non-consumers do.
+- [ ] **Step 4b: Phase 2.5 — the `$SPECS_PATH` read, which §11 has no phase for**
+
+**Two of the seven surface kinds do not come from a code repository at all**, and spec §11's phases dispatch only `code-scanner` (a code clone) and `docs-grounder` (`$DOCS_PATH`). §5.1 sources the `decision` surface from "ADRs and ARDs already present in the specs repo" and the `release` surface from "`/release-notes` drafts under `$SPECS_PATH`, grouped by release version" — and the shipped tree has **already committed this command to that read**: `references/docs-workflow/scaffold-tree.md` says `/docs-audit` "is to enumerate a `release` surface per major version from those drafts". Without this phase, either two kinds silently never appear or an executor invents a dispatch.
+
+So: a **read-only** pass over `$SPECS_PATH`, enumerated rather than scanned — `release-notes.md` files and ARDs under the specifications tree, at the folder shapes `workflows-core:specs-repo-git` §2.1 fixes. Read-only is load-bearing: this command writes nothing into `$SPECS_PATH` but its own bookkeeping, through `commit-artifacts` alone. A `$SPECS_PATH` that resolves to nothing is a **skip with a stated reason**, not a failure — a product documented from a code repo with no specs tree still earns its other five kinds.
+
+- [ ] **Step 4c: `docs-grounder` — ruled out, with the reason recorded**
+
+Spec §11 Phase 2 says "optionally dispatch `docs-grounder` against `$DOCS_PATH`, advisory". **This plan rules that `/docs-audit` is not a docs-grounding consumer**, because `workflows-core:docs-grounding` has exactly two consumption modes and neither fits: **grill-rank** reorders challenges into a grill's gap list, and this command runs no grill; **writer-attach** attaches a digest to an artifact being authored as prose, and this command authors none — it writes a backlog. Existing documentation *is* read by this command, but through Phase 5's reconcile, which opens the docs repo directly and matches pages to units by their `unit:` key. That is not grounding.
+
+**Record the reason in the command body**, as the other non-consumers do, so it is not re-litigated on the strength of the docs repo this command obviously opens. `workflows-core:docs-grounding`'s consumer list and `CLAUDE.md`'s "nine commands" sentence therefore **do not move** — which is the cheaper outcome and the honest one.
 
 - [ ] **Step 5: Phases 3 and 4 — the two agents**
 
@@ -585,6 +605,16 @@ The established page shape: synopsis, when to use it, prerequisites, phases, gat
 - [ ] **Step 10: Index membership — all three surfaces plus the diagram**
 
 `docs/README.md`, the plugin `README.md`, **and `docs/workflow.md`'s mermaid diagram**, which check 15 asserts separately from the page because prose below a diagram is where a command lands when someone adds it in a hurry.
+
+- [ ] **Step 10b: The three registration surfaces outside this plugin**
+
+Each of these fails a gate or leaves a shared authority wrong, and **none of them lives under `plugins/docs-workflows/`** — which is exactly why they get their own step rather than being folded into the one above.
+
+1. **`plugins/workflows-core/scripts/command-namespaces.json`** — check 4's `check_namespace_map` asserts this file against the tree's per-plugin command inventory **in both directions**. Its `"docs-workflows"` array today holds exactly the six shipped commands; `"docs-audit"` joins it, in sorted position. **This is a `workflows-core` file, a plugin the increment-1 plan listed as "not touched"** — the assumption does not survive a new command, and missing it turns the build red at this task with an error that names a file nothing in this plan otherwise mentions.
+2. **`plugins/workflows-core/references/cost-emission.md` §7** — the attribution row for `/docs-audit`'s fixed `phase`/`role` pair. Check 8 fails in **both** directions, so the row and the `emit-cost` call must land in the same commit. `/docs-init` and `/docs-brand` already have rows; copy their shape. `docs-workflows` is already in `COST_PLUGIN_RELS`, so no list moves.
+3. **`plugins/workflows-core/references/finding-triage.md`** — its attachment table is a **closed enumeration of reviewer→fixer pairs**, and it has no `docs-audit-reviewer` row. Add one, and extend the no-fixer paragraph that today names `/docs-init`, standalone `/docs-brand`, `/prd-proposal` and `/brd-proposal`. **Those two groups differ on re-review** — the proposal commands fix inline, `/docs-init` has no re-review cycle at all — so state which this command follows rather than leaving a reader to infer it from the nearest neighbour. It follows `/docs-init`: no fixer, no re-review.
+
+Re-derive the triage consumer set afterwards with the recipe `CLAUDE.md` names — `grep -l finding-triage plugins/*/commands/*.md plugins/*/agents/*.md` — and check the new row against what it returns.
 
 - [ ] **Step 11: Gates and commit**
 
@@ -711,9 +741,35 @@ Each becomes a statement about a command that exists, read out of `/docs-audit`'
 
 Keep `plugin.json` and `marketplace.json` descriptions in step and **under 1024 characters** — `validate-catalog.py` fails the build above it and warns above 900, and it rejects the **whole catalog**, so one over-long blurb breaks every plugin here. The new capability **replaces** wording; it never appends.
 
-- [ ] **Step 5: `CLAUDE.md`**
+- [ ] **Step 3b: The prose counts check 9 *cannot* see**
 
-Its `docs-workflows` paragraph (command count, agent count, reference-file count, the command list), its workflow map (a `/docs-audit` line and three agent rows), and the `docs-grounding` consumer list if `/docs-audit` resolves grounding. **Nothing gates any number in this file** — re-derive each against the tree and write what you counted, stating the command you ran.
+**Check 9 takes `head -1` of its grep per file, so only the *first* matching sentence in a file is gated.** Every later one goes stale silently, and this increment falsifies at least seven of them. Measured at plan time — re-derive, do not trust the line numbers:
+
+| File | What it says |
+|---|---|
+| `docs/reference/agents.md` | a *second* "the **eight** agents above…" further down (line 3 is the gated one) |
+| `docs/README.md` | "ships **6** slash commands, **8** agents, **18** reference files and **2** hooks" — only its skills clause is gated, by a *different* assertion |
+| `docs/README.md` | "the **six** commands" and "the **eight** agents", three more times |
+| `README.md` (plugin) | "The **six** commands as one diagram" |
+| `docs/getting-started.md` | "how the **six** commands fit together" |
+| `docs/reference/session-cost.md` | "**Four** commands emit a cost entry" → five (this one *is* gated) |
+| `docs/reference/references.md` | the arithmetic paragraph — Task 1 re-does it; check it again here |
+
+Find them by **subject**, not by the wording of any one site: grep for the *numbers themselves* beside the nouns (`commands`, `agents`, `reference files`, `hooks`) across `plugins/docs-workflows/`, then read each hit. A green `check-docs.sh` proves the first sentence per file, and nothing more.
+
+- [ ] **Step 5: `CLAUDE.md`, and the one shared authority outside it**
+
+**Nothing gates any number in `CLAUDE.md`** — re-derive each against the tree and write what you counted, stating the command you ran. The sentences this increment falsifies, measured at plan time:
+
+- The `docs-workflows` paragraph: "**six** slash commands" → seven, with `/docs-audit` in the list; "**eight** subagents (…)" → **eleven**, with `docs-auditor`, `docs-audit-reviewer` and `ia-planner` inserted **alphabetically** into the parenthetical; "**eighteen** reference files (**sixteen** markdown pages plus two data files)" → both move.
+- The per-plugin docs-page sentence: "`docs-workflows` carries **15** — `README.md`, `getting-started.md` and `workflow.md`, **6** command pages and **6** reference pages" → 20, and the shape changes: the route page makes it **four** top-level pages, 7 command pages, 9 reference pages.
+- The model-routing paragraph: "**Twenty-five** commands invoke the `workflows-core:model-routing` skill" → twenty-six, and "**five** of `docs-workflows`'s **six**" → six of seven (Phase 1 pins SIGNIFICANT).
+- The workflow map: a `/docs-audit` line; `code-scanner`'s "used by" list gains it; `impl-maintenance (used by **24** of the **31** commands…)` → 25 of 32.
+- The `specs-repo-git` bullet: "the **twenty-eight** commands that write into `$SPECS_PATH` — every one of the family's **thirty-one** except…" → 29 of 32, and "**fourteen** of the twenty-eight callers resolve or run inside an implementation repository" → fifteen of twenty-nine (this command scans code clones read-only, which is the criterion that already puts `/document`, `/docs-init` and `/docs-brand` in that half — **do not re-derive it from write access**, which gives a different answer and contradicts the stated criterion). Use the bullet's own recipe: ``grep -l 'commit-artifacts` entry point' plugins/*/commands/*.md``.
+- The emitter-tail bullet: "All **twenty-eight** in-scope commands…".
+- **Not the `docs-grounding` bullet** — Task 6 ruled this command out as a consumer, so its "nine commands" sentence and the reference's own list both stand. Check that ruling held before leaving them alone.
+
+**Outside `CLAUDE.md`: `workflows-core:next-phase-offer`.** Its "Not pipeline nodes" paragraph enumerates exactly `/docs-init`, `/docs-brand` and `/docs-serve`; `/docs-audit` joins it. **Check 11 remains outside the `/docs-*` family** — re-tested on this tree, and the scope paragraph still names only the two `/product-workflows:` globs — so the merge clause here is carried by discipline, and this command's documented *absence* of one is the thing to write.
 
 - [ ] **Step 6: The full gate chain, read by its printed value**
 

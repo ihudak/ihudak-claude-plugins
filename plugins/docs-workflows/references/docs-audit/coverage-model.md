@@ -6,7 +6,7 @@ Single source of truth for the vocabulary a documentation audit is built on: wha
 
 Consumed by `/docs-audit` and by the agents it dispatches — `docs-auditor`, `ia-planner` and `docs-audit-reviewer` — each of which names the part of this file it is executing rather than restating it. These names are defined once, here; a command or agent body that re-derives them is the defect this file exists to prevent, because two copies of a vocabulary drift and then disagree about what a run produced.
 
-Its entry points: **the surface kinds** (§2), **the type vocabulary and the grid** (§3), **the signals** (§5), **the entry paths** (§6), and **the done criterion** (§7).
+Its entry points, so a command can say which part it is executing: **the surface kinds** (§2), **the type vocabulary and the grid** (§3), **the signals** (§5), **the entry paths** (§6), and **the done criterion** (§7).
 
 ---
 
@@ -38,9 +38,11 @@ Because the enumeration is mechanical, it is only as good as the scan behind it.
 
 ## 3. Page types
 
-**Diátaxis is used at exactly one level: it is the page `type`, and nothing else.** It is the second axis of the coverage grid and a reserved frontmatter key. It is **not** the navigation, **not** the folder tree, and **not** a per-surface quota.
+**Diátaxis is used at exactly one level: it is the page `type`, and nothing else.** It is the second axis of the coverage grid, and it is a reserved frontmatter key — `references/docs-profiles/frontmatter-guidelines.md`, *Reserved keys for the docs-workflow family*, which fixes `type` alongside `audience`, `visibility` and `unit`. Do not confuse it with `meta.content-type`, a differently-named enum the plugin's own `docs-frontmatter` skill owns; the two are separate keys and the coverage grid reads only `type`. It is **not** the navigation, **not** the folder tree, and **not** a per-surface quota.
 
-**Both halves of that are one rule, and a reader who takes only the first mis-builds the nav.** The quadrant discipline governs what a page *is* — one page answers one kind of question, and a page that answers two is two pages. What the reader sees is a product-shaped portal, organised by what the product does rather than by the four quadrant names. Neither statement weakens the other: the first is an authoring constraint, the second is an information-architecture one, and a scaffold that applies the first to the directory tree has mistaken a page property for a layout.
+**That reserved-key section states the same user and engineering type vocabulary this section does, and the two copies move together.** It is the one sanctioned second copy, because the frontmatter side has to state what a page may write and the coverage side has to state what a cell may be. They agree today, which is exactly when a drift between them would be invisible: change one and change the other in the same edit, and treat this file as the authority where they ever disagree.
+
+**Both halves of that are one rule, and a reader who takes only the first mis-builds the nav.** The quadrant discipline governs what a page *is*, and the mechanism is the key itself: `type` is single-valued, so a page that answers two kinds of question has no legal value and is two pages. What the reader sees is a product-shaped portal, organised by what the product does rather than by the four quadrant names. Neither statement weakens the other: the first is an authoring constraint, the second is an information-architecture one, and a scaffold that applies the first to the directory tree has mistaken a page property for a layout.
 
 Coverage is a grid of `(surface, audience, type)` cells, each one of `exists | missing | stale`.
 
@@ -53,7 +55,7 @@ Coverage is a grid of `(surface, audience, type)` cells, each one of `exists | m
 
 Three of the four user quadrants are derivable from code: a `task` surface implies a `how-to`, a `concept` surface implies an `explanation`, and a `reference` surface implies a `reference` page. **The fourth is not.** A tutorial is a curated primary journey for a role — which of the many things a role can do is the one worth learning first, and in what order — and nothing in the code says that.
 
-So the audit **proposes** and a human picks: the shortest path through the highest-value tasks for each role becomes a tutorial candidate. Stating that plainly is better than pretending the quadrant automates, because a generated tutorial is the one page type whose wrongness is invisible to every gate in this family.
+So the audit **proposes** and a human picks: the shortest path through the highest-value tasks for each role becomes a tutorial candidate. Stating that plainly is better than pretending the quadrant automates, because which journey is worth learning first is the one judgement no gate in this family can re-derive: the walkthrough can confirm every step and still confirm the wrong tutorial.
 
 **How the human picks is settled: the candidates are a marked section of the backlog, not an interactive picker.** `ia-planner` writes them into a `tutorial_candidates:` block in `docs-backlog.yml`, and the human picks by editing that file. Three reasons, in order of weight: the candidate set is one journey per role and therefore unbounded by construction, where an `AskUserQuestion` array renders at most four options (`workflows-core:escalation-rules` §0); the operator is already in this file, reading the top-ranked units and correcting each `priority_reason`, so picking there adds no new interaction; and hand-editing the backlog is entry path 5 of §6 — a sanctioned act rather than a workaround.
 
@@ -86,7 +88,7 @@ Five entry paths, and only the first three are automatic:
 |---|---|---|---|
 | 1 | `/docs-audit` — the initial run | Yes | Every unit the enumerated surfaces earn. This is where a backlog comes from on day one |
 | 2 | `/docs-audit --refresh` — a later run | Yes | Units for surfaces that did not exist before: a new route, a new role, a new integration, a new release. Existing pages are matched back to their units and marked `published` |
-| 3 | `/docs-drift` — a later command of this family | Yes | No new units. It moves existing ones to `stale` and re-queues them |
+| 3 | `/docs-drift`, when that command ships | Yes | No new units. It moves existing ones to `stale` and re-queues them |
 | 4 | Tutorial selection | No | The audit proposes candidates; a human picks, and the picks become units. The one quadrant that does not automate (§4) |
 | 5 | A human editing `docs-backlog.yml` | No | Anything the code does not imply — a page answering a question a customer actually asked, a migration guide, a policy, a comparison |
 
@@ -108,9 +110,9 @@ Documentation work has no natural end, so this family defines one:
 
 ## 8. Hard rules
 
-- NEVER re-derive the surface kinds (§2) or the type vocabulary (§3) in a command or agent body. Cite this file and name the section.
+- NEVER re-derive the surface kinds (§2) or the type vocabulary (§3) in any other file. Cite this file and name the section — the one sanctioned second copy of the type vocabulary is the frontmatter-side statement §3 names, and the two move together.
 - NEVER let volatility exclude a surface. Signal 4 ranks, and only ranks (§5).
 - NEVER cross-product a surface with every type. A unit exists for a type the surface actually earns (§6).
-- NEVER report a coverage cell green over a unit nothing verified — an unverified page is not an `exists`, and a scan theme that could not be resolved is not a surface (§2, §7).
+- NEVER report coverage green over a unit nothing verified. A unit carrying unconfirmed claims is not `published`, and the coverage fraction counts published units (§7); a scan theme that could not be resolved is not a surface (§2).
 - NEVER apply the quadrant discipline to the navigation or the folder tree. It is the page `type` and nothing else (§3).
 - NEVER generate a tutorial and present it as picked. The audit proposes; the human picks by editing the backlog (§4).

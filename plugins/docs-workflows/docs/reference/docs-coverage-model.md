@@ -16,7 +16,7 @@ A **surface** is a thing in the product that documentation can be about, found b
 | `reference` | API endpoints, configuration keys, jobs, data schemas, the CLI | A reference page |
 | `service` | Deployables, containers, external integrations | An engineering architecture page |
 | `decision` | Architecture decision records already in the specs repo | An engineering decision record |
-| `release` | Release-notes drafts under the specs tree, grouped by version | A "What's new" page per major version |
+| `release` | Release-notes drafts under the specs tree, grouped by version | A "What's new" page per major version, plus its maintenance page |
 
 **Roles are a dimension, not an extra.** "What can somebody in this role actually do?" is the question user documentation exists to answer, which is why a walkthrough is always written for a role rather than for a generic user.
 
@@ -24,7 +24,7 @@ Because surfaces come out of a scan, the audit is careful about one distinction:
 
 ## Pages: what a surface earns
 
-The second axis of the grid is the page **type** — tutorial, how-to, reference or explanation for a reader using the product, and architecture, decision, runbook or API reference for a reader building it. Three of the four user types follow from the surface kind:
+The second axis of the grid is the page **type** — `tutorial`, `how-to`, `reference` or `explanation` for a reader using the product, and `architecture`, `decision`, `runbook` or `api-reference` for a reader building it. Coverage is a grid of `(surface, audience, type)` cells, each one of `exists`, `missing` or `stale`. Three of the four user types follow from the surface kind:
 
 ```mermaid
 flowchart LR
@@ -49,14 +49,16 @@ flowchart LR
 
 The engineering axis is smaller and is best read as a list rather than drawn:
 
-| Engineering type | Comes from | Answers |
+| Engineering type | Usually earned by | Answers |
 |---|---|---|
 | `architecture` | A `service` surface | How the parts fit together, and where this one sits |
 | `decision` | A `decision` surface | What was decided, and what was given up for it |
-| `runbook` | A `service` surface | What to do when this breaks at three in the morning |
+| `runbook` | A `service` surface, for example | What to do when this breaks at three in the morning |
 | `api-reference` | A `reference` surface | The exact shape of an interface, field by field |
 
-**These four type names are a property of a page, not a plan for your navigation.** A page answers one kind of question, and a page answering two is two pages — but the site a reader lands on is organised by what the product does, not by the four type names. Applying the type vocabulary to your folder tree is the most common way to get a portal that is technically correct and impossible to browse.
+**Read that middle column as the usual case, not as a fixed mapping.** Which types a surface earns is a judgement made per surface, exactly as it is on the user axis: a service that nobody operates by hand earns no runbook, and one service can earn an architecture page and a runbook both. A table read as one arrow per type is the mechanical cross-product *Surfaces and units are two tables, on purpose* rejects below.
+
+Both halves of the vocabulary — the user four above and the engineering four here — behave the same way in one respect worth stating on its own. **Every one of these eight type names is a property of a page, not a plan for your navigation.** A page answers one kind of question, and a page answering two is two pages — but the site a reader lands on is organised by what the product does, not by the eight type names. Applying the type vocabulary to your folder tree is the most common way to get a portal that is technically correct and impossible to browse.
 
 ## Tutorials are the one thing that does not automate
 
@@ -93,7 +95,7 @@ Every unit carries a rank and a written reason for it. Four signals feed the ran
 3. **Can it be grounded now?** Write first what can be verified. A page that cannot be checked against the code is a page that ships wrong.
 4. **How much does it churn?** Measured from commit density on the surface's own paths. High churn lowers the rank.
 
-**The fourth signal ranks, and never excludes.** A part of the product that is still moving is still a part people meet today; dropping it from the backlog does not save the work, it only hides the gap. So when something churns heavily *and* blocks the main journey, the page is written — what changes is its **type**. The audit biases away from step-by-step instructions and screenshots, which go stale with the next redesign, toward explanation and reference, which describe what a thing is. It records that it did so, and why, on the unit itself: a decision you can see and disagree with rather than one baked silently into a type.
+**The fourth signal ranks, and never excludes.** A part of the product that is still moving is still a part people meet today; dropping it from the backlog does not save the work, it only hides the gap. So when something churns heavily *and* blocks the main journey, the page is written — what changes is its **type**. The audit biases away from step-by-step instructions and screenshots, which go stale with the next redesign, toward explanation and reference, which describe what a thing is. It records that it did so on the unit itself, as `churn_adapted: true` with the reason beside it: a decision you can see and disagree with rather than one baked silently into a type.
 
 ## What "done" means
 

@@ -42,7 +42,7 @@ Because the enumeration is mechanical, it is only as good as the scan behind it.
 
 **That reserved-key section states the same user and engineering type vocabulary this section does, and the two copies move together.** It is the one sanctioned second copy, because the frontmatter side has to state what a page may write and the coverage side has to state what a cell may be. They agree today, which is exactly when a drift between them would be invisible: change one and change the other in the same edit, and treat this file as the authority where they ever disagree.
 
-**Both halves of that are one rule, and a reader who takes only the first mis-builds the nav.** The quadrant discipline governs what a page *is*, and the mechanism is the key itself: `type` is single-valued, so a page that answers two kinds of question has no legal value and is two pages. What the reader sees is a product-shaped portal, organised by what the product does rather than by the four quadrant names. Neither statement weakens the other: the first is an authoring constraint, the second is an information-architecture one, and a scaffold that applies the first to the directory tree has mistaken a page property for a layout.
+**Both halves of that are one rule, and a reader who takes only the first mis-builds the nav.** The quadrant discipline governs what a page *is*, and the mechanism is the key itself: `type` is single-valued, so a page that answers two kinds of question has no legal value and is two pages. What the reader sees is a product-shaped portal, organised by what the product does rather than by any of the eight type names — the engineering four as much as the Diátaxis four, since `internal/runbooks/` is the same mistake as `how-to/` and is likelier to look reasonable. Neither statement weakens the other: the first is an authoring constraint, the second is an information-architecture one, and a scaffold that applies the first to the directory tree has mistaken a page property for a layout.
 
 Coverage is a grid of `(surface, audience, type)` cells, each one of `exists | missing | stale`.
 
@@ -104,7 +104,7 @@ Documentation work has no natural end, so this family defines one:
 
 > **Done** = every backlog unit at or above a chosen priority threshold has a published page, and every claim on those pages is either evidence-backed or visibly marked.
 
-`coverage` in the backlog reports the fraction per `(audience, type)` cell, which is what makes that sentence checkable. "We wrote a lot of docs" is not a completion criterion; a coverage grid with a threshold is.
+`coverage` in the backlog reports, per `(audience, type)` cell, the fraction of that cell's units which have reached `published` — which is what makes that sentence checkable, and what makes a cell's figure move only when a page has actually been verified and shipped rather than merely drafted. "We wrote a lot of docs" is not a completion criterion; a coverage grid with a threshold is.
 
 ---
 

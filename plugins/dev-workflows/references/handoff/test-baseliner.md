@@ -323,8 +323,9 @@ as a pass. For a caller that writes tests between its capture and its verify —
 `/upgrade` and `/vuln`, which write none, it holds a test of a suite the
 baseline never recorded: on a `PARTIAL` baseline an aborted suite contributed no
 identifiers, so every test of it failing here lands in this list rather than in
-`### Regressions`. Each of those two marks the entries `NEW-FAILURE: ` in the
-`notes` it returns, and its command reads that prefix — they branched on the
+`### Regressions`. In each of those two workflows the agent — `vuln-fixer`,
+`upgrade-executor` — marks the entries `NEW-FAILURE: ` in the `notes` it returns,
+and the command reads that prefix — they branched on the
 `Status` alone until `dev-workflows` 4.2.0, which is the behaviour this sentence
 used to record.
 

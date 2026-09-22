@@ -64,9 +64,12 @@ reconstruct it.
    orchestrator can put — this agent has no interactive tools. `/vuln`'s own baseline step states the whole
    rule; what this step does is read the supplied block's `Status` and settle what step 5 owes.
 
-   **Every arm below says what step 5 owes on a call that reaches step 5. None of them decides whether
-   this call reaches it** — that is the Model Routing gate's, below. On `gate_tests_on_review: true` this
-   call stops after step 4 and returns `AWAITING_REVIEW` whatever the baseline said, and step 5 runs on the
+   **Every arm below says what step 5 owes on a call that reaches step 5. On a gated call, none of them
+   decides whether this call reaches it** — that is the Model Routing gate's, below. (On an **ungated**
+   call there is no gate and the `NO_TESTS` arm does settle it, which is the one place an arm below skips
+   step 5 on its own authority.) On `gate_tests_on_review: true` this call stops after step 4 and returns
+   `AWAITING_REVIEW` whatever the **baseline** said — step 4 itself can still end it `BUILD_FAILED`, which
+   is the return `/vuln` Step 3's own other-return arm depends on being reachable — and step 5 runs on the
    later `phase: verify-resume` call, where these arms apply unchanged. **Read no arm here as licence to
    run or to skip step 5 on a gated call**: doing either would take a `SIGNIFICANT` / `HIGH-RISK` CVE past
    the Opus review the gate exists to put in front of it, and `/vuln` Step 3's own review dispatch fires

@@ -7,13 +7,13 @@ Single source of truth for **which directory a documentation command works in**.
 - **`resolve-docs-repo`** (§1) — the signal-positive form, for a command that needs a docs repo that already exists.
 - **`resolve-scaffold-target`** (§2) — the inverted form, for the one command that needs a place to make one.
 
-Consumed by `/docs-brand`, `/docs-serve` and `/docs-profile` (`resolve-docs-repo`), and by `/docs-init` (`resolve-scaffold-target`). `/docs-audit` adopts `resolve-docs-repo` when it ships.
+Consumed by `/docs-brand`, `/docs-serve`, `/docs-profile` and `/docs-audit` (`resolve-docs-repo`), and by `/docs-init` (`resolve-scaffold-target`).
 
 ---
 
 ## 0. Why this is one file
 
-Design D23 gives the family one docs-repo default — `${DOCS_PATH:-/workspace/docs}`, already a same-level citizen of `$SPECS_PATH` and `$REPOS_PATH`, and already the grounding root `workflows-core:docs-grounding` *Procedure* step 2 (*Resolve the root*) resolves — and one inversion of the test applied to it. Four commands need that ladder. Restating it in four command bodies is the family's longest-running defect class: four copies of one key grammar drifted apart until a valid key hard-stopped the command its own redirect had sent it to. So the ladder is written once, here, and each command names the entry point it is executing rather than re-deriving the rungs.
+Design D23 gives the family one docs-repo default — `${DOCS_PATH:-/workspace/docs}`, already a same-level citizen of `$SPECS_PATH` and `$REPOS_PATH`, and already the grounding root `workflows-core:docs-grounding` *Procedure* step 2 (*Resolve the root*) resolves — and one inversion of the test applied to it. Five commands need that ladder. Restating it in five command bodies is the family's longest-running defect class: four copies of one key grammar drifted apart until a valid key hard-stopped the command its own redirect had sent it to. So the ladder is written once, here, and each command names the entry point it is executing rather than re-deriving the rungs.
 
 The rule the family already states about identifiers applies unchanged to paths: **resolve against a known set, never re-derive by pattern.** Both entry points below test a directory against §3's signal set. Neither guesses from a repository's name, its position in the tree, or the shape of its layout.
 
@@ -88,7 +88,7 @@ It resolves a path and reports which rung answered. That is all.
 - It **never validates writability**, and never checks that the resolved path is a git work tree. Those are preconditions each caller states for itself, and the right response to a failure differs per command — a stop for one, a prompt for another.
 - It **never refuses**. §2's rung-2 report is a report, not a stop; `/docs-init`'s own step 4 owns the refusal to scaffold over an existing docs repo, and owns the exit code that goes with it.
 
-Keeping resolution free of policy is what lets four commands share it. A ladder that also enforced one command's preconditions would be four ladders again within two releases.
+Keeping resolution free of policy is what lets five commands share it. A ladder that also enforced one command's preconditions would be five ladders again within two releases.
 
 ---
 

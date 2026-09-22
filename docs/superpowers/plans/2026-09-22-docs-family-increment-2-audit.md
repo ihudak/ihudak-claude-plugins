@@ -718,19 +718,24 @@ Its `docs-workflows` paragraph (command count, agent count, reference-file count
 - [ ] **Step 6: The full gate chain, read by its printed value**
 
 ```bash
-./scripts/validate-catalog.py --selftest && \
-./scripts/validate-catalog.py . && \
+{ python3 scripts/validate-catalog.py --selftest && \
+python3 scripts/validate-catalog.py && \
 ./scripts/check-id-grammar.sh --selftest && \
 ./scripts/check-id-grammar.sh --root . && \
 ./scripts/check-docs.sh --selftest && \
 ./scripts/check-docs.sh --root . && \
-./plugins/workflows-core/scripts/session-cost.py --selftest && \
+python3 "$(find plugins -type f -name session-cost.py)" --selftest && \
 node scripts/mermaid/check-mermaid.mjs --selftest && \
-node scripts/mermaid/check-mermaid.mjs --root .
+node scripts/mermaid/check-mermaid.mjs --root . ; } > gates.log 2>&1
 echo "GATES_EXIT=$?"
+grep -c '^ok' gates.log; grep -c 'SELFTEST PASS' gates.log; grep 'PASS: all' gates.log
 ```
 
-Read `GATES_EXIT`, the `ok` count, the `SELFTEST PASS` lines and the mermaid `PASS:` line. **A wrapper's own exit status is 0 either way** — one round read a red build as green five times before catching it.
+**The two Python gates run as `python3 <path>`, not `./<path>`** — neither `.py` carries the executable bit in this repository, so the `./` form exits **126** on the first line and never reaches a check. `.github/workflows/validate-catalog.yml` is the authority on every invocation here; an earlier draft of this plan copied the `./` form from the increment-1 plan and was corrected only by running it. Note also that `validate-catalog.py` takes **no `.` argument** in CI, and that `session-cost.py` is **discovered** rather than hardcoded, because the cost subsystem moves between plugins as the marketplace is split.
+
+Read `GATES_EXIT`, the `ok` count, the `SELFTEST PASS` count and the mermaid `PASS:` line. **A pipe or a wrapper makes the invocation's own status 0 either way** — one round read a red build as green five times before catching it, and this plan's own first run of the chain reported `MERMAID_EXIT=0` off a `tail` while node had crashed.
+
+**Baseline measured on this branch at the plan commit, for comparison rather than assertion:** `GATES_EXIT=0`, **198** `ok`, **5** `SELFTEST PASS`, `PASS: all 36 mermaid blocks in 580 tracked markdown files`. The mermaid block count rises to **41** as the five diagrams land (the plan's own examples are quadruple-fenced and are deliberately not parsed); the `ok` count rises by one with Task 5's fixture-growing case. Re-derive both endpoints rather than asserting these.
 
 - [ ] **Step 7: Commit**
 

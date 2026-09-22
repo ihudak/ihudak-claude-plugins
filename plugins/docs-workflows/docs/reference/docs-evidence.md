@@ -25,7 +25,7 @@ A page records its sources in its frontmatter. There are three kinds:
 |---|---|---|
 | `code` | The repository, the file path, and the commit | Read that path, then read it again at today's commit |
 | `walkthrough` | The walkthrough's id | Walk it again |
-| `artifact` | The path of a committed document, and the commit it was read at | Read it again and see whether the wording moved |
+| `artifact` | The path of a committed document, and `ref` — the commit it was read at | Read it again at that `ref` and see whether the wording moved |
 
 ```yaml
 evidence:
@@ -36,7 +36,7 @@ evidence:
 
 **`artifact` is for a claim whose source is a document rather than code or a screen** — a release-notes draft, an ARD, a design doc. It is its own kind because prose changes by being re-worded, not by being re-implemented, and that is a different thing to watch for.
 
-It always records the commit, and that is the whole reason it is worth recording. A path on its own only tells you the document is still there. A path and a commit tell you whether it still *says* what the page claims it says, and only the second of those is evidence.
+It always records the commit, in `ref`, and that is the whole reason it is worth recording. A path on its own only tells you the document is still there. A path and a `ref` tell you whether it still *says* what the page claims it says, and only the second of those is evidence.
 
 ## A claim nobody could check is marked, not smoothed over
 
@@ -50,11 +50,13 @@ The export runs nightly [NEEDS CLARIFICATION: no schedule found in the code; con
 
 **A marked claim never quietly becomes a fact.** There are exactly two things that can happen to it: a verification pass confirms it, and the marker comes off because the claim has been settled — or the page ships with the marker still visible. There is no third option, and in particular "the page is being published now, so let us tidy that up" is not one. A reader who meets a marker learns something true; a reader who meets the smoothed-over version learns something the writer did not know.
 
-This is also why a page carrying markers is not counted as done: it cannot reach `verified`, and [the backlog's](docs-backlog.md) coverage fraction counts only pages that got past that.
+This is also why a page carrying markers is not counted as done. [The backlog's](docs-backlog.md) coverage fraction counts units that reached `published`, and a marked page cannot get there by either route: it has not been verified, and an audit refresh that finds it reads the markers and files the unit as `drafted` instead. Resolve the markers and the page counts; leave them and the grid keeps saying, correctly, that the work is not finished.
 
 ## Walking a checklist by hand
 
-A **walkthrough** is a short structured file: a role, the environment it was written against, its preconditions, and numbered steps, each with an action, a target and what you should see. It is stored in that shape from the start so that a browser driver can execute the very same file later without anybody rewriting it.
+A **walkthrough** is a short structured file: a role, the environment it was written against, its preconditions, and numbered steps, each with an action, a target and what you should see. It lives beside the backlog, at `.dev-workflows/walkthroughs/<id>.yml` — `W-001` in `W-001.yml` — and the unit that uses it records the id rather than the path. It is stored in that shape from the start so that a browser driver can execute the very same file later without anybody rewriting it.
+
+**A step's action is one of five words, and there is no sixth.** `navigate`, `click`, `type`, `select`, `wait`. The list is closed because a driver has to implement every verb in it, and a verb a writer invented is one no driver supports — so a step you cannot write with these five is worth reporting rather than working around. You will be writing these by hand for now, so it is worth knowing the list is short on purpose.
 
 Today you walk it yourself. Take each step in order, do the thing, and answer with one of three:
 
@@ -62,7 +64,7 @@ Today you walk it yourself. Take each step in order, do the thing, and answer wi
 |---|---|---|
 | `confirmed` | it did what the step says it would | nothing |
 | `differs` | it worked, and showed you something else | **what it actually said** — required |
-| `blocked` | you could not take the step at all | why — a precondition that was not met, an environment that would not start |
+| `blocked` | you could not establish what the step did | why — a precondition that was not met, an environment that would not start, or a step you took whose expected result you had no way to check |
 
 **Writing down the actual text on a `differs` is the part that pays for the whole exercise.** "Step 4 failed" sends somebody back to the environment to find out what it says instead. "Step 4 shows *Create order*, not *New order*" **is** the page edit, already written down by the person who was looking at the screen — a correction rather than a red X. A `differs` with nothing written down is an incomplete answer: the verification command will ask you again rather than record it, and walking by hand the rule is the same — do not write the answer down until you have the text in front of you.
 

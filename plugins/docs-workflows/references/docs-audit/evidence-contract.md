@@ -29,13 +29,13 @@ Both audiences answer the same four questions, and answer them differently. That
 
 ## 2. The three evidence kinds
 
-A page records its sources in frontmatter, as `evidence:` entries; the frontmatter schema itself is `references/docs-profiles/frontmatter-guidelines.md`'s and is not restated here. There are three kinds, and each records what makes its own claim re-checkable:
+A page records its sources in frontmatter, as `evidence:` entries. **Which keys a page carries is `references/docs-profiles/frontmatter-guidelines.md`'s** — it lists `evidence` among the page's fields and says what it is for. **The shape of an entry *inside* that block is this section's**, and that file states none of it: the `kind` vocabulary, the per-kind fields and the entry form below are defined here and nowhere else, so the two do not overlap and a maintainer changing an entry's shape edits this file.
 
 | `kind` | Records | Re-checked by |
 |---|---|---|
-| `code` | `repo`, `path`, `ref` | Reading that path at that ref, and at the current one |
+| `code` | `repo`, `path`, `ref` | Reading that path at that `ref`, and at the current one |
 | `walkthrough` | `id` — the walkthrough's own id (§4) | Re-running the walkthrough |
-| `artifact` | `path` under `$SPECS_PATH`, and the commit it was read at | Reading that path at that commit, and at the current one |
+| `artifact` | `path`, and `ref` — the commit it was read at | Reading that path at that `ref`, and at the current one |
 
 ```yaml
 evidence:
@@ -46,7 +46,7 @@ evidence:
 
 **`artifact` covers a claim whose source is neither code nor observation but a committed document** — a `/release-notes` draft under `$SPECS_PATH`, an ARD, a design doc. It is a third kind rather than a variety of `code` because the thing it points at is prose somebody wrote, which changes by being re-worded rather than by being re-implemented.
 
-**It records the commit it was read at, and that is the whole of why it is worth recording at all.** A path alone tells drift that a document exists; a path and a commit let drift tell a re-worded draft from an unchanged one. Without the commit there is no difference between "the source still says this" and "the source is still there", and only the first is evidence.
+**It records `ref`, the commit it was read at, and that is the whole of why it is worth recording at all.** A path alone tells drift that a document exists; a path and a `ref` let drift tell a re-worded draft from an unchanged one. Without it there is no difference between "the source still says this" and "the source is still there", and only the first is evidence. **The path is recorded as the repository holding the document records it**, and is not narrowed to one repository: the three sources named above all live under `$SPECS_PATH` today, which is a fact about where this family's committed documents sit rather than a constraint on the kind.
 
 ---
 
@@ -58,7 +58,7 @@ What *is* tracked is the exception: **a claim that could not be verified is mark
 
 **The hard rule: a marked claim never becomes prose fact by default.** It is either confirmed by a verification pass — which removes the marker because it has resolved the claim — or it **ships visibly marked**, the prose reaching readers with the marker still in it. There is no third disposition, and in particular no disposition in which a marker is removed because the page is being published, or because the claim looks right, or because the marker is untidy.
 
-**Shipping a marked page and marking its unit `published` are two different acts, and only the first is available while a marker stands.** Nothing stops a page being merged and deployed with markers on it — that is what "ships visibly marked" means, and it is better than holding the whole page back over one unresolved sentence. What it cannot do is move its unit: a page carrying marked claims is not `verified`, and `backlog-format.md` §3 reaches `published` from `verified` and from nowhere else on that route. So `backlog-format.md` §5's coverage fraction, which counts `published` units, stays honest about it — the page is live, and the grid still says the work is not done. This is what prevents the backlog reporting green on prose nobody checked.
+**Shipping a marked page and marking its unit `published` are two different acts, and only the first is available while a marker stands.** Nothing stops a page being merged and deployed with markers on it — that is what "ships visibly marked" means, and it is better than holding the whole page back over one unresolved sentence. What it cannot do is move its unit to `published`, **by either of the two routes that reach that value**: the ordinary one runs through `verified`, which a page carrying marked claims has not reached, and the other — the `--refresh` reconciliation of a page against a unit still `missing` — **reads the page for markers and lands a marked one on `drafted` instead** (`backlog-format.md` §3). So `backlog-format.md` §5's coverage fraction, which counts `published` units, never counts a page with a marker in it — the page is live, and the grid still says the work is not done. This is what prevents the backlog reporting green on prose nobody checked.
 
 ---
 
@@ -94,6 +94,8 @@ captures:
 
 `captures[].slot` names a placeholder the writer leaves in the page, which the verification pass fills with the image it produced. **Where that image then lives is a profile field, not a law** — `images.policy` in `references/docs-profiles/docs-profile-schema.md` — and nothing about the slot changes with it.
 
+**A walkthrough is a file, and it has a home.** It lives at **`<top>/.dev-workflows/walkthroughs/<id>.yml`** — `W-001` at `<top>/.dev-workflows/walkthroughs/W-001.yml` — where `<top>` is the same git work-tree top level of the resolved docs repository that `backlog-format.md` §6 pins for the backlog, tracked and reviewed for the same reasons. A unit records the **id** and never the path (`walkthrough: W-001`), so the path is derived from the id in one place and moving the directory is a one-line change rather than an edit to every unit. Without this, §5 tells a person to work "from the file" and leaves them nothing to open.
+
 **Nothing in this increment composes a walkthrough.** `/docs-audit` mints units with `walkthrough: null` (`backlog-format.md` §1), and composing one is `/docs-capture`'s and `/docs-verify`'s, both Spec 2's — `/docs-write` reads a walkthrough and never writes one. The format is frozen here, ahead of its writers, because it is the expensive thing to change later: a walkthrough written against one shape and a driver built against another is the rewrite D3 exists to avoid.
 
 ---
@@ -106,7 +108,7 @@ captures:
 |---|---|---|
 | `confirmed` | the step did what `expect` says | nothing further |
 | `differs` | the step worked, and showed something else | **the actual observed text**, required |
-| `blocked` | the step could not be taken at all | why — a missing precondition, an environment that would not come up, an `expect.kind` nothing could evaluate |
+| `blocked` | the step's outcome could not be established | why — a missing precondition, an environment that would not come up, a step taken whose `expect.kind` nothing could evaluate |
 
 **`differs` recording the observed text is what turns a walkthrough into a correction rather than a red X.** "Step 4 failed" sends somebody back to the environment to find out what it says instead; "step 4 shows *Create order*, not *New order*" is the page edit, already written down by the person who was looking at the screen. A `differs` answer with no observed text is an incomplete answer and is re-asked, not recorded.
 
@@ -120,7 +122,7 @@ Results are written back as `result:` on each step, in the same file:
     result: { outcome: differs, observed: "Line item details" }
 ```
 
-`result.outcome` is one of `confirmed`, `differs`, `blocked`. `result.observed` carries the observed text and is **written on `differs` and on nothing else**. `result.note` carries the reason on `blocked` and is likewise written on nothing else — a note on a `confirmed` step is a comment the next run has no rule for.
+**`blocked` is defined by the outcome and not by the attempt, which is what makes it the right home for an unevaluatable `expect`.** A step nobody could take is blocked; so is a step somebody took whose `expect.kind` no reader or driver could evaluate (§4) — in both the walkthrough learned nothing, and calling the second `differs` would assert an observation nobody made. `result.outcome` is one of `confirmed`, `differs`, `blocked`. `result.observed` carries the observed text and is **written on `differs` and on nothing else**. `result.note` carries the reason on `blocked` and is likewise written on nothing else — a note on a `confirmed` step is a comment the next run has no rule for.
 
 **v2 execution is a driver executing the identical file. No format change.** That is the point of every constraint above — the closed action vocabulary, the structured `target` and `expect`, results written back in place. A driver reads the same `steps[]`, writes the same `result:` block, and produces the same three outcomes; what changes is who is looking at the screen, and nothing about the file.
 

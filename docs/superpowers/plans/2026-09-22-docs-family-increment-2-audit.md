@@ -745,7 +745,18 @@ grep -rln 'docs-audit' plugins/ --include=*.md | grep -v CHANGELOG
 
 **`workflows-core`'s changelog entry covers nine files, not the three the plan first anticipated:** `scripts/command-namespaces.json`, `references/cost-emission.md` (§7 row, §8 rung 2, and its header count), `references/finding-triage.md`, `references/model-routing/classification.md` (§8.5's opt-in list **and three further caller-scoped paragraphs**), `references/next-phase-offer.md`, `references/feedback-emission.md` (§2 tier 2 plus two counts), `references/specs-repo-git.md` (§2.1 plus its caller count), and core's own agents page. The patch bump stands; the entry describes the scope.
 
-- [ ] **Step 2: Rewrite each site against what shipped**
+- [ ] **Step 2: Rewrite each site against what shipped — and two of them need a new *subject*, not a new tense**
+
+**Task 6's review enumerated the population and found nine sites across six files**, so use that as a cross-check on your own count rather than as the list: `docs/reference/agents.md` (the "eight of the eleven … none of them is reachable" paragraph, contradicted by the table two lines above it, whose three **Used by** cells all read `/docs-audit`), `commands/docs-init.md` ×2, `agents/docs-scaffold-reviewer.md`, `references/docs-workflow/scaffold-tree.md` ×2, `references/docs-profiles/frontmatter-guidelines.md` ×3.
+
+**The trap is that three of them are wrong about *what the command does*, so changing the tense would ship a new false claim.**
+
+- **Two sites ascribe Vale-vocabulary seeding to `/docs-audit`** — `scaffold-tree.md`'s prose *and the `accept.txt` comment the scaffold writes into every user's repository* — and the shipped command does no such thing: it never mentions Vale, `accept.txt` or a vocabulary. **Those need a new subject: the domain seed stays by hand.** `/docs-init` Phase 8.5's `### Next step` carries the same false promise.
+- **`frontmatter-guidelines.md`'s `unit` (RESERVED) is wrong three ways** — "nothing that ships yet writes or reads it" (it ships), "the next increment" (it is *this* one), and the direction: `/docs-audit --refresh` **reads** that key to match pages to units and never writes it. The writer is Spec 2's.
+
+Each becomes a statement about a command that exists, read out of `/docs-audit`'s own phases rather than assumed. **A sentence that named the absence as its *reason* needs a new reason, not a deletion** — `scaffold-tree.md` §7's Vale seed is the case: its reason for seeding only the scaffold's own words was that no command extracted domain nouns yet. That reason is now wrong for a different cause than it looks: no command extracts them *at all*, so the new reason is that the scaffold must pass its own lint gate before any audit has run, which is still true and still bounds the seed.
+
+**Then read each edited paragraph end to end.** A phrase hit disposes of the whole paragraph, not the sentence your term matched — one sweep on this repository landed in the right paragraph, read the sentence its own term matched, found it true, and left two falsified sentences beside it.
 
 Each becomes a statement about a command that exists, read out of `/docs-audit`'s own phases rather than assumed. **A sentence that named the absence as its *reason* needs a new reason, not a deletion** — `scaffold-tree.md` §7's Vale seed is the case: its reason for seeding only the scaffold's own words was that no command extracted domain nouns yet. That reason is gone; the new one is that the scaffold must pass its own lint gate before any audit has run, which is still true and still bounds the seed.
 

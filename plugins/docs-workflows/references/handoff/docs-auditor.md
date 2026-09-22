@@ -71,7 +71,7 @@ git -C "<repo_path>" log <prep.scanned_ref> --since=90.days --format=%H -- <that
 ## Output
 
 ```yaml
-status: OK | PARTIAL | NO_SURFACES
+status: OK | PARTIAL | NO_SURFACES | INPUT_MISSING
 
 surfaces:                              # exactly backlog-format.md §1's fields for a surface, and no others
   - id: order-placement
@@ -90,7 +90,8 @@ kinds:                                 # one row per surface kind, all seven, ev
     note:     <one line; required on absent and on unresolved>
 
 unresolved:                            # a theme the scan could not settle — named, never flattened into a gap
-  - theme:  <the capability_themes[] entry, verbatim>
+  - kind:   role                       # the surface kind this theme was asked about, so no reader parses it out of the theme text
+    theme:  <the capability_themes[] entry, verbatim>
     source: <repo name, or "specs">
     reason: <one line — the scanner's `error`, or the repo status that voided its map>
 
@@ -102,9 +103,11 @@ notes: |
   <what a reader of the run's report needs and the blocks above do not carry: an evidence path
   that did not resolve and was dropped, a `partial` scan's gap_summary, an id disambiguated
   against another, the fact that a null-ref `specs_inventory`'s surfaces were read from the
-  filesystem rather than at a ref (so drift has nothing to diff them against), the fact that
-  the `role` kind came out unresolved and every `roles[]` here is therefore empty for want of
-  an axis, and — where `existing_surfaces` was not supplied — the fact that every id in this
+  filesystem rather than at a ref (so drift has nothing to diff them against), the fact that no
+  `role` surface was enumerated while the role theme reached `unresolved[]`, so every `roles[]`
+  here is empty for want of an axis rather than for want of a role, a kind whose every surface
+  was dropped for evidence that did not resolve, and — where `existing_surfaces` was not
+  supplied — the fact that every id in this
   return is fresh, so the caller cannot reconcile by id.>
 ```
 
@@ -115,5 +118,6 @@ notes: |
 | `OK` | `surfaces[]` is non-empty; every one of the seven kinds settled as `enumerated` or `absent`; `unresolved[]` and `degraded[]` are both empty; every evidence path resolved at its ref; no surface carries `volatility: unknown`. |
 | `PARTIAL` | `surfaces[]` is non-empty **and** at least one of these holds: `unresolved[]` is non-empty, a kind's `outcome` is `unresolved`, a context input degraded, an evidence path did not resolve and was dropped, or a surface carries `volatility: unknown`. Surfaces are still returned — a partial enumeration is worth having, and `kinds[]`, `unresolved[]` and `degraded[]` say what it is missing. **The first two conditions are both stated because neither implies the other**: a theme that errored in one repository and enumerated in another leaves `unresolved[]` non-empty with every kind `enumerated`, and a `SKIPPED` `specs_inventory` leaves two kinds `unresolved` with no `unresolved[]` entry behind them. A run matching either is `PARTIAL`. |
 | `NO_SURFACES` | `surfaces[]` is empty. **This takes precedence over `PARTIAL`**, whatever else went wrong: the caller needs the one fact that there is nothing to plan, and `kinds[]` and `unresolved[]` carry whether that is because the product genuinely has none of these things or because the scan could not tell. `ia-planner` is not dispatched on this status. |
+| `INPUT_MISSING` | The refusal above fired: `coverage-model.md` or every source was absent, or an evidence input could not be read. The return carries this status and the name of what was absent, **and no other block** — not an empty `surfaces[]`, not a seven-row `kinds[]`. It is distinct from `NO_SURFACES`, which is a completed enumeration that found nothing; this one is a run that never started. |
 
-**`absent` and `unresolved` are different outcomes and a status never conflates them.** A kind is `absent` where **every source that could have settled it** looked and found none — the repositories for the five code-derived kinds, `specs_inventory` alone for `decision` and `release` — and that is a real answer with a use. A kind no such source could settle is `unresolved`, and the difference is what keeps a false statement about the product out of the coverage denominator. The distinction matters most for the two specs-sourced kinds, where reading a code repository's perfectly correct `absent` as the answer would assert the product has no decision records and no releases on the strength of a source that could never have known.
+**`absent` and `unresolved` are different outcomes and a status never conflates them.** A kind is `absent` where **every source that could have settled it** looked and found none — the repositories for the five code-derived kinds, `specs_inventory` alone for `decision` and `release` — and that is a real answer with a use. A kind is `unresolved` where no such source could settle it, **or where every surface of that kind was enumerated and then dropped for evidence that did not resolve** — a source that named surfaces and whose every path then failed did tell and did not find none, so `absent` there would assert the opposite of what the evidence says. The difference is what keeps a false statement about the product out of the coverage denominator. The distinction matters most for the two specs-sourced kinds, where reading a code repository's perfectly correct `absent` as the answer would assert the product has no decision records and no releases on the strength of a source that could never have known.

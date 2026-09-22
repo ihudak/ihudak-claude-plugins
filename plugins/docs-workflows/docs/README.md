@@ -4,8 +4,10 @@
 |---|---|
 | install this and set it up | [Getting started](getting-started.md) |
 | see how the seven commands fit together | [Workflow overview](workflow.md) |
+| go from no documentation at all to a populated portal | [The documentation route](docs-workflow.md) |
 | start documenting a project that has no docs | [`/docs-init`](commands/docs-init.md) |
-| find out what documentation the product is missing | [`/docs-audit`](commands/docs-audit.md) |
+| work out what documentation the product is missing | [`/docs-audit`](commands/docs-audit.md) |
+| know what to do with the backlog `/docs-audit` wrote | [The documentation route](docs-workflow.md) |
 | document a feature from its PRD and its shipped diffs | [`/document`](commands/document.md) |
 | make a one-off prose edit in a docs repo | [`/document`](commands/document.md) — direct mode |
 | teach this plugin what a docs repository looks like | [`/docs-profile`](commands/docs-profile.md) |
@@ -15,7 +17,7 @@
 | keep internal pages out of a published documentation site | [Documentation visibility](reference/docs-visibility.md) |
 | understand what a run cost | [Session cost](reference/session-cost.md) |
 
-Two pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets the environment variables it reads, and [Workflow overview](workflow.md) shows the seven commands as one diagram, including the two modes of `/document`. Every other page below documents one command, one shared subsystem, or one whole inventory.
+Three pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets the environment variables it reads, [Workflow overview](workflow.md) shows the seven commands as one diagram, including the two modes of `/document`, and [The documentation route](docs-workflow.md) is the ordered procedure from an empty repository to a populated portal — the steps that run a command and, written out in full, the ones you do by hand. Every other page below documents one command, one shared subsystem, or one whole inventory.
 
 ## Commands
 

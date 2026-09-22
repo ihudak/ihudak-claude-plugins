@@ -737,7 +737,9 @@ Each becomes a statement about a command that exists, read out of `/docs-audit`'
 
 - [ ] **Step 4: Versions and changelogs**
 
-`docs-workflows` takes a **minor** bump (new command, new agents, new references — additive, nothing removed). Re-derive the current version from `plugin.json` rather than assuming it. Write the changelog entry against what shipped; **do not write a count into it that the tree will move** (`CHANGELOG.md` is excluded from the gates by filename, which exempts a *quotation* of a retired form and nothing else — a count goes stale in an entry exactly as it does in a command).
+**Two plugins ship here, not one.** `docs-workflows` takes a **minor** bump (new command, new agents, new references — additive, nothing removed). **`workflows-core` takes a patch bump and its own changelog entry**, because Task 6 step 10b edits three of its files: `scripts/command-namespaces.json`, `references/cost-emission.md` and `references/finding-triage.md`. Shipping a changed plugin at an unchanged version is how a machine keeps serving the old content while the change looks like it did not land — `CLAUDE.md`'s update section names that exact symptom, and an installed `workflows-core` is what every other plugin here depends on. *(This was missed in the plan's first draft and found by the pre-flight conflict scan; the increment-1 plan's "workflows-core: not touched" assumption does not survive a new command.)*
+
+Re-derive each current version from its own `plugin.json` rather than assuming it. Write each changelog entry against what shipped; **do not write a count into one that the tree will move** (`CHANGELOG.md` is excluded from the gates by filename, which exempts a *quotation* of a retired form and nothing else — a count goes stale in an entry exactly as it does in a command).
 
 Keep `plugin.json` and `marketplace.json` descriptions in step and **under 1024 characters** — `validate-catalog.py` fails the build above it and warns above 900, and it rejects the **whole catalog**, so one over-long blurb breaks every plugin here. The new capability **replaces** wording; it never appends.
 

@@ -27,6 +27,13 @@ baseline_tests: provided           # "provided" — the only value
   # boundary; it is gone from the other path too for an unrelated reason —
   # a capture that cannot run raises a question only the orchestrator can put,
   # this agent having no interactive tools. Do not reintroduce it.
+command_hint: "./mvnw test -q"     # optional; present only where the orchestrator's baseline step
+                                   # recorded a test_command_hint (/vuln Step 3). REQUIRED to be
+                                   # passed through to step 5's test-baseliner verify call, verbatim
+                                   # and in the same order, on this call and on every verify-resume
+                                   # of it: the baseline was captured with it, and a verify over a
+                                   # different set of suites is not a comparison — dropping it
+                                   # manufactures REGRESSIONS or COMMAND_NOT_FOUND out of nothing.
 baseline_passing: 47               # count of passing tests (required when "provided")
 baseline_block: |                  # required when "provided", and on verify-resume — the whole
   ## Test Baseline                 # `## Test Baseline` block the orchestrator captured, verbatim,
@@ -65,11 +72,13 @@ files:
 ```
 
 **phase values:**
-- `full` (or omitted) — baseline → create the fix branch → apply → build → verify. Default.
+- `full` (or omitted) — read the supplied baseline → create the fix branch → apply → build → verify. Default. (The first step captures nothing; the orchestrator did.)
   The branch is created **before** the edit, so it exists on every path this agent can
   return from, including `AWAITING_REVIEW`.
 - `verify-resume` — second-call protocol after Opus review. Skip steps 1–4
-  (baseline, branch, fix, build are already done); resume at step 5 (Verify).
+  (branch, fix and build are already done); resume at step 5 (Verify), after
+  re-reading the supplied block's `Status` as step 1 would — its `NO_TESTS` arm
+  decides whether step 5 runs at all, and this call does not execute step 1.
 - `regression-resume` — second-call protocol after the orchestrator asked the
   user about a `TEST_REGRESSION` return. Skip straight to "Test regression"
   step 4; requires `regression_decision`.
@@ -91,14 +100,22 @@ notes: null             # or description of any auto-fixed test changes. It also
                         # verbatim, every `CAVEAT: ` line the test-baseliner capture or verify
                         # marked — on EVERY status this agent returns, `SUCCESS` included
                         # (the agent's steps 1 and 5), since that mark names what the
-                        # comparison could not see rather than anything that failed
+                        # comparison could not see rather than anything that failed.
+                        # And every entry of verify's `### New failures`, each on its own line
+                        # prefixed `NEW-FAILURE: ` — on EVERY status, `SUCCESS` and `OK` included,
+                        # because no Status value carries one. The prefix is minted here for the
+                        # same reason `CAVEAT: ` is: this field is free text already holding
+                        # auto-fix prose, uncovered-suite names and a regression diagnosis, and a
+                        # bare list of test identifiers in it is indistinguishable from the failing
+                        # list a TEST_REGRESSION also writes. /vuln Step 3.9 tests for this prefix
+                        # to set clean_finish, so an unmarked entry is one no caller can act on
 model_routing:           # echoed back when present in input
   classification: SIGNIFICANT
   gate_tests_on_review: true
 ```
 
 **status values:**
-- `SUCCESS` — fix applied, tests green, branch created with the change on it,
+- `SUCCESS` — fix applied, no regression found, branch created with the change on it,
   uncommitted. A `PARTIAL` verify is still `SUCCESS`: every suite the baseline
   covered is green, and `notes` names the ones it does not cover
 - `BUILD_FAILED` — build failed after fix, changes reverted
@@ -115,7 +132,8 @@ model_routing:           # echoed back when present in input
   uncommitted, and is **not** reverted — reverting needs evidence the fix is
   bad, and a suite that could not be run is evidence about the environment.
   `notes` carries the report's reason; the orchestrator decides. Distinct from
-  `SUCCESS`, which asserts the tests passed, and from `TEST_REGRESSION`, which
+  `SUCCESS`, which asserts no baseline test was lost — **not that the suite is green**, since a
+  `NEW-FAILURE: ` line can stand beside it — and from `TEST_REGRESSION`, which
   asserts they failed
 - `BASELINE_FAILED` is **retired** and this agent returns it on no path. It
   reported a `RUN_FAILED` / `COMMAND_NOT_FOUND` capture taken inside the fixer,

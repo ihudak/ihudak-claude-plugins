@@ -34,7 +34,9 @@ reconstruct it.
 > steps 1 through 4** — the baseline was captured (by the orchestrator), the
 > branch was created, the fix was applied, and the build was run on the prior
 > invocation. Resume at
-> step 5 (Verify), which hands `test-baseliner` the **whole** `baseline_block`
+> step 5 (Verify) — **after re-reading the supplied block's `Status` as step 1 would**, because
+> step 1's `NO_TESTS` arm decides whether step 5 runs at all and this call does not execute step 1.
+> On a `NO_TESTS` block, skip step 5 here too and go straight to step 6. Step 5 hands `test-baseliner` the **whole** `baseline_block`
 > the orchestrator re-supplied — `baseline_tests: provided`, `baseline_passing`
 > and `baseline.passing_tests` come with it and are the same re-keyed
 > convenience they are on a `full` call, never a substitute for the block: its
@@ -61,22 +63,37 @@ reconstruct it.
    one the operator was never offered a say in, and a capture that cannot run raises a question only the
    orchestrator can put — this agent has no interactive tools. `/vuln`'s own baseline step states the whole
    rule; what this step does is read the supplied block's `Status` and settle what step 5 owes.
+
+   **Every arm below says what step 5 owes on a call that reaches step 5. None of them decides whether
+   this call reaches it** — that is the Model Routing gate's, below. On `gate_tests_on_review: true` this
+   call stops after step 4 and returns `AWAITING_REVIEW` whatever the baseline said, and step 5 runs on the
+   later `phase: verify-resume` call, where these arms apply unchanged. **Read no arm here as licence to
+   run or to skip step 5 on a gated call**: doing either would take a `SIGNIFICANT` / `HIGH-RISK` CVE past
+   the Opus review the gate exists to put in front of it, and `/vuln` Step 3's own review dispatch fires
+   on `AWAITING_REVIEW` and on nothing else, so a different return there is a CVE that ships unreviewed.
    - On `Status: NO_TESTS`: every suite ran cleanly and the repository holds no tests. Proceed with the
      branch and the fix (steps 2-4), then **skip step 5 (Verify) entirely** — there is nothing to diff
      against — and go straight to step 6, noting in the output that no test suite was found. **This is the
      one `Status` that skips verify, and it is not a failure**: nothing was lost, so the run is not marked
-     down for it and `status: SUCCESS` is the ordinary return.
+     down for it and `status: SUCCESS` is the ordinary return. On a gated call the skip belongs to the
+     `verify-resume` call, which returns that `SUCCESS`; this call still stops at step 4 with
+     `AWAITING_REVIEW`, because a repository without tests is the case where the Opus review is the only
+     gate the CVE has and is the last one to skip.
    - On `Status: PARTIAL`: at least one suite produced counts, so there **is** a baseline to verify against.
      Proceed, and record in `notes` every suite `### Suites` does not mark `OK` or `NO_TESTS`, with its
      command, so the output says what this CVE's verification does not cover. A JavaScript runner that is not
      installed is not a reason to leave a CVE in the Ruby half of the same repository unfixed.
    - On `Status: RUN_FAILED` or `COMMAND_NOT_FOUND`: the operator has already been asked about this block
      and chose to have the fixes applied unverified (`/vuln` Step 3). **Proceed exactly as on any other
-     status and do not stop here** — the branch is created and the fix applied — and run step 5 as written:
-     verify refuses a baseline covering no suite before it runs anything and returns `RUN_FAILED`, which
-     step 5 turns into `TESTS_NOT_RUN` (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`). That
-     is what marks the CVE's finish down, and it needs no separate status of this agent's: **`BASELINE_FAILED`
-     is retired**, having existed only to report a capture this agent no longer takes.
+     status and do not stop here** — the branch is created and the fix applied — and let step 5 run
+     wherever this call reaches it: verify refuses a baseline covering no suite before it runs anything and
+     returns `RUN_FAILED`, which step 5 turns into `TESTS_NOT_RUN`
+     (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`). That is what marks the CVE's finish
+     down, and it needs no separate status of this agent's: **`BASELINE_FAILED` is retired**, having existed
+     only to report a capture this agent no longer takes. **A dead baseline is not a reason to bypass the
+     gate** — on a gated call this one still stops at step 4 with `AWAITING_REVIEW`, and the
+     `TESTS_NOT_RUN` arrives from the `verify-resume` call afterwards. It is the opposite of a reason: a
+     CVE whose tests cannot run is the one whose Opus review is carrying the whole gate.
    - **On every one of those values, `OK` and `NO_TESTS` included**, copy into `notes` — verbatim, beside
      whatever else that arm records there — each `### Notes` line the block opens with `CAVEAT: `. That mark
      is the baseliner's own (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so nothing here
@@ -115,10 +132,20 @@ reconstruct it.
 
 4. **Build** — Run the project build (compile only, no tests). On failure see "Build failure" below.
 
-5. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the **whole** baseline block from step 1
-   (or the `baseline_block` the orchestrator supplied) and a `Project root:` line set to this request's own `repo:` value —
-   the same root step 1's capture scanned, and the one `/vuln` Step 3 scanned where it captured instead.
-   **It is required and it must be that one**, for the reason step 1 gives.
+5. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the **whole** `baseline_block` the
+   orchestrator supplied and a `Project root:` line set to this request's own `repo:` value — the root
+   `/vuln` Step 3's capture scanned, which is the same value it sends here as `repo:`.
+   **It is required and it must be that one**: verify has no working-directory fallback, and `### Suites`
+   records each marker as a path relative to whatever root a call scanned, so a verify rooted elsewhere
+   makes every marker path disagree with the baseline's and manufactures a regression out of nothing
+   (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`, `repo:`).
+   **Where this request carries `command_hint:`, pass it on this call too, verbatim and in the same order.**
+   The orchestrator captured that baseline with it (`/vuln` Step 3), and a verify over a different set of
+   suites is not a comparison: drop it and a hinted suite the baseline recorded pairs with nothing here, so
+   its every baseline passing test falls out as **Missing from run** and this step reports `REGRESSIONS`
+   against a change that caused none — or, where the hint was all that was detected, nothing is detected at
+   all and the call returns `COMMAND_NOT_FOUND`. Neither is evidence about the fix, and the first would put
+   a revert on the table for a security remediation.
    - `status: OK` → proceed to step 6.
    - `status: PARTIAL` → proceed to step 6, recording the uncovered suites in `notes`. **Never revert on it:**
      a suite that could not run at either end is a fact about the environment, not evidence about this fix.
@@ -139,15 +166,19 @@ reconstruct it.
      left unattributed; and where the status is `REGRESSIONS` it can say those identifiers reached **Missing
      from run** without that being evidence this fix removed them. It is **never** a reason to revert — a marked line says what the comparison could not see,
      not that the fix is bad, which is the same disposition every value but `REGRESSIONS` already carries.
-   - **On every one of those values, read `### New failures` beside the `Status` and record each entry in
-     `notes`.** A test failing now that was in neither baseline list is a **New failure**, and **no `Status`
-     value carries one** (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so `OK` is reachable
-     with a red suite. It is reachable here on an ordinary `PARTIAL` baseline and needs no exotic state: a
-     suite that aborted at capture contributed no identifiers, so every test of it that fails at verify lands
-     in this list rather than in `### Regressions`. **This is disclosure, not a verdict** — the baseline never
-     recorded those tests, so nothing here says the fix caused them: do not revert, do not route to "Test
-     regression", and leave the `Status` arm's own return exactly as it stands. Naming them is what stops a
-     CVE being reported green over a suite that is not.
+   - **On every one of those values, read `### New failures` beside the `Status`.** A test failing now
+     that was in neither baseline list is a **New failure**, and **no `Status` value carries one**
+     (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so `OK` is reachable with a red
+     suite. It needs no exotic state to arrive: on an ordinary `PARTIAL` baseline a suite that aborted at
+     capture contributed no identifiers, so every test of it that fails here lands in this list rather
+     than in `### Regressions`. **Record each entry in `notes`, one per line and prefixed
+     `NEW-FAILURE: `.** The prefix is minted for the same reason `CAVEAT: ` is: `notes` is one free-text
+     field already holding auto-fix prose, uncovered-suite names and a regression diagnosis, so a bare
+     identifier list in it cannot be told from the failing list a `TEST_REGRESSION` return also writes —
+     and the caller tests for this prefix rather than reading the field. **This is disclosure, not a
+     verdict** — the baseline never recorded those tests, so nothing here says the fix caused them: do
+     not revert, do not route to "Test regression", and leave the `Status` arm's own return as it stands.
+     Naming them is what stops a CVE being reported green over a suite that is not.
 
 6. **Output** — Produce the result record (see `${CLAUDE_PLUGIN_ROOT}/references/handoff/vuln-fixer.md` output format).
 

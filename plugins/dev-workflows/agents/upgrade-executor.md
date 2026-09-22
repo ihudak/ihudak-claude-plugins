@@ -52,6 +52,12 @@ reconstruct it.
    `### Suites` records each marker as a path relative to the scan root, so a verify rooted elsewhere makes
    every marker path disagree with the baseline's
    (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`, `repo:`).
+   **Where this request carries `command_hint:`, pass it on this call too, verbatim and in the same order.**
+   The orchestrator captured that baseline with it (`commands/upgrade.md` Phase 2 prep step 2), and a verify
+   over a different set of suites is not a comparison: drop it and a hinted suite the baseline recorded pairs
+   with nothing here, so its every baseline passing test falls out as **Missing from run** and this step
+   reports `REGRESSIONS` against an upgrade that caused none — or, where the hint was all that was detected,
+   nothing is detected at all and the call returns `COMMAND_NOT_FOUND`. Neither is evidence about the upgrade.
    - `status: OK` → all green, proceed to step 4.
    - `status: PARTIAL` → proceed to step 4, recording the uncovered suites in `notes`. **Never revert on it:**
      a suite that could not run at either end is a fact about the environment, not evidence about this upgrade.
@@ -73,15 +79,19 @@ reconstruct it.
      left unattributed; and where the status is `REGRESSIONS` it can say those identifiers reached **Missing from
      run** without that being evidence this upgrade removed them. An unmarked
      note records where a command ran; leave it. `/upgrade` step 7 reads these off `notes` on every status.
-   - **On every one of those values, read `### New failures` beside the `Status` and record each entry in
-     `notes`.** A test failing now that was in neither baseline list is a **New failure**, and **no `Status`
-     value carries one** (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so `OK` is reachable
-     with a red suite. It needs no exotic state to arrive: on an ordinary `PARTIAL` baseline a suite that
-     aborted at capture contributed no identifiers, so every test of it that fails here lands in this list
-     rather than in `### Regressions`. **This is disclosure, not a verdict** — the baseline never recorded
-     those tests, so nothing here says the upgrade caused them: do not revert, do not route to "Test
-     regression", and leave the `Status` arm's own return as it stands. Naming them is what stops a component
-     being reported green over a suite that is not.
+   - **On every one of those values, read `### New failures` beside the `Status`.** A test failing now
+     that was in neither baseline list is a **New failure**, and **no `Status` value carries one**
+     (`${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md`), so `OK` is reachable with a red
+     suite. It needs no exotic state to arrive: on an ordinary `PARTIAL` baseline a suite that aborted at
+     capture contributed no identifiers, so every test of it that fails here lands in this list rather
+     than in `### Regressions`. **Record each entry in `notes`, one per line and prefixed
+     `NEW-FAILURE: `.** The prefix is minted for the same reason `CAVEAT: ` is: `notes` is one free-text
+     field already holding auto-fix prose, uncovered-suite names and a regression diagnosis, so a bare
+     identifier list in it cannot be told from the failing list a `TEST_REGRESSION` return also writes —
+     and the caller tests for this prefix rather than reading the field. **This is disclosure, not a
+     verdict** — the baseline never recorded those tests, so nothing here says the upgrade caused them: do
+     not revert, do not route to "Test regression", and leave the `Status` arm's own return as it stands.
+     Naming them is what stops a component being reported green over a suite that is not.
 
 4. **Output** — Produce the summary record (see `${CLAUDE_PLUGIN_ROOT}/references/handoff/upgrade-executor.md`).
 

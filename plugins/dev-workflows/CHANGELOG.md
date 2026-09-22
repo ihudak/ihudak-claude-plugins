@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
-## [4.2.0] — Unreleased
+## [4.2.0] — 2026-09-22
 
 ### Fixed — `/vuln` settles a dead test baseline the way `/implement` does, on both paths, and a verify against a baseline that captured nothing stops returning `OK`
 
@@ -35,7 +35,7 @@ A section headed `— Unreleased` has not been published yet; where more than on
 
 **Two referents of "the capture" in `/vuln` Step 3 are disambiguated.** The run-level `pre_existing_dirty` porcelain capture was already called "the capture" by the base-branch rule that follows it; inserting a section headed *Capture the test baseline* underneath made that sentence read as circular — switch after capture, capture after switch — and an agent resolving it the wrong way would have taken the baseline on the operator's own branch, which is the contamination the base-branch rule exists to prevent.
 
-## [4.1.2] — Unreleased
+## [4.1.2] — 2026-09-22
 
 **Update `workflows-core` to 1.7.1 with this plugin.** Each change below that rests on it carries its own **Rests on `workflows-core` 1.7.1** clause, naming the part of 1.7.1 it rests on; an entry without that clause rests on no `workflows-core` change.
 

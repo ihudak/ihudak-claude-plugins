@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
-## [1.7.2] — Unreleased
+## [1.7.2] — 2026-09-22
 
 ### Changed — the shared authorities admit `/docs-audit`, which `docs-workflows` 1.3.0 ships
 
@@ -13,7 +13,7 @@ Nine files here name the family's commands, and a new one in `docs-workflows` ha
 
 **Update this plugin with `docs-workflows` 1.3.0.** Nothing here is required by an older `docs-workflows`, but that release's `/docs-audit` reads all nine.
 
-## [1.7.1] — Unreleased
+## [1.7.1] — 2026-09-22
 
 ### Fixed — the `<merge-clause>` table resolved six of `phase-handoff` §4.1's eight outcome rows, and the two it dropped both lost what the run was holding
 

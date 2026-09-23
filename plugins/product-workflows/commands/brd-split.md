@@ -738,8 +738,8 @@ either skip a prompt that carries content or copy one row's reason onto rows tha
 
 **The set it offers to write.** Every row still `unallocated`, **minus** any row Phase 1.5's reading
 placed on a *different* disposition, **and minus**, on the ordinary `full` path, every row the one
-standing slice may not be offered — one its own ledger holds an orphan row for (Step 2's *Assign to
-a named slice*). A bulk write naming that slice would be exactly
+standing slice may not be offered — one its own ledger holds an orphan row for, or a row reading
+`covered-by` for while still claiming it (Step 2's *Assign to a named slice*). A bulk write naming that slice would be exactly
 the write that bullet refuses, so each such row is held back to the walk, named with the row that
 excludes it, and walked there with that slice not offered. Those keep the recommendation the instruction earned them (the
 `<recommended>` table in Step 2) and are walked one at a time. An instruction the operator typed is
@@ -994,12 +994,17 @@ them against this BRD's ledger, and `/product-workflows:prd-ground` refuses such
   terminal row the child holds would return that row to the initial state, which no command may
   write on a slice's ledger (§3); while leaving that row as it stands would have the child claim a
   `[BR#n]` whose own row records the claim as withdrawn, which its own walk never revisits. The
-  exclusion is **per row**, and it is **only** the orphan row: **a child that still claims this
-  `[BR#n]` is offered it, whatever its own row for it reads** — `unallocated` because Phase 3 step 5
-  seeded it for the child's provisional claim, or a terminal disposition the child's own walk wrote
-  before a `/product-workflows:brd-intake` re-run over this BRD reset this ledger's row. Re-assigning
-  it to that child seeds nothing and moves no row back: Step 3 finds the child already in step for
-  that row and writes nothing, and its own row stands. **Where no child is eligible for this row** —
+  exclusion is **per row**, and it bars the orphan row and one other: **a child that still claims
+  this `[BR#n]` while its own row for it reads `covered-by`** is barred too. No slice's own walk
+  writes `covered-by`, so that row is always a withdrawal this BRD's walk began and its Step 3 never
+  finished — a re-cut interrupted after Step 2R, or Step 1's re-cut bulk write, wrote the donor's
+  `covered-by: <B-KEY>` and before Step 3 withdrew its claim — and offering that child the row would
+  leave it claiming a `[BR#n]` its own row gives to somebody else, the stranded state above. **Every
+  other child that still claims this `[BR#n]` is offered it**, its own row reading `unallocated`
+  because Phase 3 step 5 seeded it for the child's provisional claim, or a terminal disposition the
+  child's own walk wrote before a `/product-workflows:brd-intake` re-run over this BRD reset this
+  ledger's row. Re-assigning it to that child seeds nothing and moves no row back: Step 3 finds the
+  child already in step for that row and writes nothing, and its own row stands. **Where no child is eligible for this row** —
   a parent with one child, say, holding an orphan row for it — do not prompt for a key: say so beside the picker, naming each child and
   the row that excludes it, and take one of the other three, each terminal. **Defer to this BRD** is
   always available; **reject** and **mark superseded** are available wherever the `[DEF#n]` or the
@@ -1108,8 +1113,9 @@ here gains its inventory and ledger rows here, written as Phase 3 steps 4 and 5 
 **What the wider selector reaches, case by case, because it now reaches children no walk of this run touched:**
 - **A child in step** — every child a completed run left standing, interviewed or not. Nothing is written for it, so nothing it has committed is touched.
 - **A child an earlier carve left out of step.** Its `claims:` entries and inventory rows are added or withdrawn to match this ledger; a row added gains its ledger row as Phase 3 step 5 writes one, unless the child's ledger already holds one for that `[BR#n]` still `unallocated`, which is that row; and a withdrawn claim's ledger row — still `unallocated`, seeded by that earlier run's Phase 3 step 5 — takes the orphan table's disposition below.
-- **A child still claiming a row this ledger delegates to it, whatever its own row for it reads** — in step for that row, so nothing is written, and its own row stands. That is every settled slice's ordinary state, and after a `/product-workflows:brd-intake` re-run over this BRD it is how a slice takes back each claimed row this walk gives it again: nothing it had settled is stripped.
-- **A child whose own ledger already settled a row this step would change** — a terminal disposition on a row this ledger no longer delegates to it, or an orphan row for one this ledger now delegates to it. The first is reached only where this BRD's allocation moved after the child settled the row: on the re-cut, whose donor row Step 2R has already written (below), and after a `/product-workflows:brd-intake` re-run over this BRD, which resets every row here to `unallocated` for this walk to re-allocate (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). **The second is written by no walk**: Step 2's *Assign to a named slice* and Step 1's bulk set refuse a child holding an orphan row for that `[BR#n]`, and Step 2R refuses a receiver holding any row for it, so only a ledger edited by hand, or one written before that exclusion, can bring it here. Reconcile its `claims:` list and inventory as for any other child, and **leave that ledger row exactly as it stands** — this step never rewrites a disposition another run recorded and never writes `unallocated` over a terminal row — and report each such row in the Final Report by child, `[BR#n]` and the disposition left standing: the child's own ledger records a decision about a row whose allocation changed under it, and only the operator can say what that decision is now worth.
+- **A child still claiming a row this ledger delegates to it, whatever its own row for it reads save `covered-by`** — in step for that row, so nothing is written, and its own row stands.
+- **A child still claiming a row its own ledger reads `covered-by` for, where this ledger does not delegate that row to it** — a withdrawal an earlier run of this step never finished (Step 2's *Assign to a named slice* says how it arises). This step finishes it rather than leaving it half-done: withdraw the `claims:` entry and the copied inventory row, and leave the ledger row as it stands, which is exactly the donor's share of a re-cut this step performs on any run. The row is then an orphan row by §2's own test (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), the second route's, with nothing moved back to `unallocated` (§3), and §6.1 counts it through this ledger's current disposition for that `[BR#n]`, so a `covered-by: <B-KEY>` an intake reset has since overtaken is counted by what this ledger now says. Where this ledger itself delegates the row to that child — reachable only by a hand edit, since every walk bars it — write nothing and report the row in the Final Report: the two ledgers disagree about who owns the requirement, and only the operator can say which is right. That is every settled slice's ordinary state, and after a `/product-workflows:brd-intake` re-run over this BRD it is how a slice takes back each claimed row this walk gives it again: nothing it had settled is stripped.
+- **A child whose own ledger already settled a row this step would change** — a terminal disposition on a row this ledger no longer delegates to it, or an orphan row for one this ledger now delegates to it. The first is reached only where this BRD's allocation moved after the child settled the row: on the re-cut, whose donor row Step 2R has already written (below), and after a `/product-workflows:brd-intake` re-run over this BRD, which resets every row here to `unallocated` for this walk to re-allocate (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). **The second is written by no walk**: Step 2's *Assign to a named slice* and Step 1's bulk set refuse a child holding an orphan row, or a claimed row reading `covered-by`, for that `[BR#n]`, and Step 2R refuses a receiver holding any row for it, so only a ledger edited by hand, or one written before that exclusion, can bring it here. Reconcile its `claims:` list and inventory as for any other child, and **leave that ledger row exactly as it stands** — this step never rewrites a disposition another run recorded and never writes `unallocated` over a terminal row — and report each such row in the Final Report by child, `[BR#n]` and the disposition left standing: the child's own ledger records a decision about a row whose allocation changed under it, and only the operator can say what that decision is now worth.
 - **A child Phase 0 step 9 marked unreconcilable** — its `brd/brd-inventory.md` or `coverage-ledger.md` missing or unreadable. Write nothing into it and report it by name. A missing file was either never written or lost after it was written, and re-seeding a lost ledger would write `unallocated` over whatever that child's own walk had settled; `/product-workflows:prd-ground`'s `PRD_GROUND_NO_INVENTORY` and `PRD_GROUND_NEEDS_SPLIT` stops tell those states apart and name the repair.
 
 **A row proposed for a child in Phase 3 but resolved elsewhere loses two of the three, never all
@@ -1561,11 +1567,9 @@ A ledger that cannot be read there contributes `unresolved`, never `covered`
 Phase 0's stops and §4's allocation gate are decided on this BRD's own rows, before any of this, and step 10's
 no-op decision is taken before it too. **Step 10 is no longer decided on this BRD's own rows alone, and the distinction is worth keeping straight**: its three parts are this ledger's `unallocated` count (step 8), step 9's child enumeration with its reconciliation test, and step 9a's re-cut candidate set — the second reads each child's `claims:` and inventory against this ledger's `covered-by` rows, and the last reads a child's ledger, one `disposition` column at a time for the `covered-by`/`deferred-to` pair that makes a row movable. Those are different reads from this one and feed nothing into it: no gate, no stop and no no-op branch turns on this line's arithmetic, which is computed here and reported and nowhere consulted. **In `allocate-only` mode there may still be rows to resolve,
 and the hop lands elsewhere.** This walk offers no `covered-by`, so it adds none — but a slice can
-already hold **orphan rows** (`coverage-ledger-format.md` §2). Those its parent's run wrote name a
-sibling under the same parent or that parent, and §6.1 resolves them exactly as it resolves a
-parent's delegated rows; one left standing as this slice's own overruled decision — §2's third
-route — is counted through the parent's current disposition for that `[BR#n]`, never as it reads
-(§6.1). So a slice's line reports zero delegated only when its parent withdrew none of its claims —
+already hold **orphan rows** (`coverage-ledger-format.md` §2). §6.1 counts every one of them through the
+parent's current disposition for its `[BR#n]`, never as it reads, and resolves a `covered-by` it
+maps to one hop, exactly as it resolves a parent's delegated rows. So a slice's line reports zero delegated only when its parent withdrew none of its claims —
 provisional, committed, or settled here before the parent re-allocated it, the three routes to an
 orphan row (§2) — never as a property of being a slice.
 

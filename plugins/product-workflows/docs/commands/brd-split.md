@@ -175,7 +175,9 @@ A slice's walk offers no `covered-by`, and the reason is about **who writes** it
 a slice may carry one. On a slice the disposition names a **sibling under the same parent, or that
 parent** — never a child, since no child can exist below a slice — only its Epics — and it records an
 **orphan row**: a ledger row for a `[BR#n]` this slice no longer claims, whose claim the **parent's**
-own walk withdrew. **Two routes reach that one state, and neither is a second kind of row.** On the
+own walk withdrew. **Two routes reach that one state — the first two of the three routes
+[`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §2 names, the only two that
+write `covered-by` — and neither is a second kind of row.** On the
 first the claim was never more than provisional: Phase 3 writes a child's `claims:` provisionally, and
 where Phase 4 settles a claimed requirement elsewhere the claim and the copied inventory row are
 withdrawn while the ledger row stays and takes that walk's terminal disposition. On the second the
@@ -432,7 +434,8 @@ with a "nothing to commit" report on the no-op path, and on a reconcile-path run
   superseded by another `[BR#n]`. A child whose own ledger holds an **orphan row** for that `[BR#n]`
   — a row for a requirement it no longer claims, recording a claim a walk withdrew from it — is never
   offered that row, and the walk says why; a child that still claims it is offered it whatever its
-  own row reads, so after a `/brd-intake` re-run over this BRD each slice can take back its own
+  own row reads, save `covered-by` — a re-cut withdrawal left unfinished, which the next run's
+  reconcile completes — so after a `/brd-intake` re-run over this BRD each slice can take back its own
   claimed rows with nothing stripped; where no child is
   left for it, the row is deferred, rejected or superseded, or a later run with an instruction
   placing it keys a new slice for it. `allocate-only` offers a different four: `covered-here` replaces

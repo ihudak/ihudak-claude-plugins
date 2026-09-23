@@ -152,7 +152,7 @@ The `prose-formatting` consumer sentence in `CLAUDE.md` named nine consumers and
 
 ## plugin-root-expansion
 
-`${CLAUDE_PLUGIN_ROOT}`'s expansion in slash-command bodies was verified in a live run by typing the slash command and comparing the received body against the file on disk: all 33 literal tokens in `docs-workflows`'s `document.md` arrived as absolute paths. Among environment-style variables the substitution is specific to this one, which is what makes it a harness feature rather than general expansion (`$ARGUMENTS` is a separate harness substitution of the command's arguments, which 43 command files use *(as of dd4eed5c)*): `${DOCS_PATH:-/workspace/docs}` and `${REPOS_PATH:-/workspace}` arrived **literal** in the same body. **`CLAUDE.md` previously claimed the opposite**, and that claim was the stated reason the `model-routing` skill exists; the claim is retired, the skill is not.
+`${CLAUDE_PLUGIN_ROOT}`'s expansion in slash-command bodies was verified in a live run by typing the slash command and comparing the received body against the file on disk: all 33 literal tokens in `docs-workflows`'s `document.md` arrived as absolute paths. So the substitution is not general expansion: of the variables that run tested, only this one expanded (`$ARGUMENTS` is the harness's separate argument substitution, which 43 command files use *(as of dd4eed5c)*; no variable beyond those named here was tested, so nothing here claims it is the only one that expands): `${DOCS_PATH:-/workspace/docs}` and `${REPOS_PATH:-/workspace}` arrived **literal** in the same body. **`CLAUDE.md` previously claimed the opposite**, and that claim was the stated reason the `model-routing` skill exists; the claim is retired, the skill is not.
 
 ## one-key-namespace
 

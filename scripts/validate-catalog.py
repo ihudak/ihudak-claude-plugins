@@ -289,9 +289,16 @@ def check_rules_paths(root: Path) -> tuple[int, int]:
             # .superpowers is dead for this gate's purposes even though Path.glob finds
             # bytes there.
             # Files only: `<dir>/**` yields <dir> itself, so an empty directory would
-            # otherwise keep a glob that no file read can ever trigger looking live.
+            # otherwise keep a glob that no file read can ever trigger looking live. And
+            # before Python 3.13 a trailing `**` yields directories only, never files, so
+            # the files-only filter alone would call every `<dir>/**` glob dead on CI's
+            # 3.11. Globbing `<pattern>/*` as well (a `**` then `*` matches every file at
+            # any depth below, on every version) makes the answer version-independent.
+            candidates = set(root.glob(glob))
+            if glob == "**" or glob.endswith("/**"):
+                candidates.update(root.glob(glob + "/*"))
             matches = [
-                p for p in root.glob(glob)
+                p for p in candidates
                 if p.is_file()
                 and not any(part in SKIP_DIRS for part in p.parts)
                 and not any(
@@ -592,6 +599,13 @@ def _selftest() -> int:
     case("a paths: glob matching only an empty directory is rejected", False,
          "plugins/fixture/empty/**", empty_dirs=("plugins/fixture/empty",),
          rules={"hollow.md": '---\npaths:\n  - "plugins/fixture/empty/**"\n---\n\nA rule.\n'})
+    # The version-independence pair. Before Python 3.13 Path.glob("<dir>/**") yields
+    # directories only, from 3.13 files as well; the gate must give one answer on both.
+    # A `dir/**` over a directory holding only a nested file is live; over an empty one,
+    # dead (the empty-directory case above).
+    case("a paths: glob `dir/**` over a directory holding only a nested file passes", True,
+         "OK", rules={"deep.md": '---\npaths:\n  - "plugins/fixture/**"\n---\n\nA rule.\n'})
+
     # Other top-level frontmatter keys around paths: -- a description: ahead of it and
     # another key after its list. The list ends at the next top-level key.
     case("a paths: key after another frontmatter key is found, and passes", True, "OK",

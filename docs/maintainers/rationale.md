@@ -133,3 +133,123 @@ The "twelve files, eleven commands" totals the `workflows-core:addressing` §7 b
 **Match the execution phrase, not the bare name.** The recipe that stood in `CLAUDE.md`'s `specs-repo-git` paragraph was `grep -l commit-artifacts plugins/*/commands/*.md`, and it returns thirty: `/docs-serve`'s only two occurrences of that string are its rule never to run it, so the bare-name grep counts a negative mention as a caller. A recipe that returns a wrong answer is worse than a stale count, because the next reader trusts what it returns.
 
 The `prose-formatting` consumer sentence in `CLAUDE.md` named nine consumers and missed `/prd-proposal` and `/brd-proposal`, which is why it now carries the recipe instead. The `finding-triage` consumer list omitted the two proposal commands until its grep was run against it.
+
+## plugin-root-expansion
+
+`${CLAUDE_PLUGIN_ROOT}`'s expansion in slash-command bodies was verified in a live run by typing the slash command and comparing the received body against the file on disk: all 33 literal tokens in `docs-workflows`'s `document.md` arrived as absolute paths. The substitution is specific to this variable, which is what makes it a harness feature rather than general expansion: `${DOCS_PATH:-/workspace/docs}` and `${REPOS_PATH:-/workspace}` arrived **literal** in the same body. **`CLAUDE.md` previously claimed the opposite**, and that claim was the stated reason the `model-routing` skill exists; the claim is retired, the skill is not.
+
+## one-key-namespace
+
+The rule that stood in `CLAUDE.md` forbade widening a *tracker-side* check to accept three segments, on the grounds that no tracker mints a three-segment key; with no tracker read by any command, every check is folder-side and the defect family it guarded against cannot occur. **What survives is the reason, not the rule** — the autolink detector's narrowness, which the rule in `CLAUDE.md` now states.
+
+## resolve-against-a-known-set
+
+All five sites of 3.3.0's longest-running defect family are this: four re-stated a key grammar locally instead of citing the one `workflows-core:addressing` §1 fixes, so the copies drifted apart and a valid slice key hard-stopped a command its own recommended redirect sent it to; the fifth extracted a key out of a branch name.
+
+Candidates come from the set, so nothing in a branch name can *become* a key and slug text can never be captured — where the obvious widened regex `[A-Z][A-Z0-9_]*(-[0-9]+)+` reads `PRODUCT-1234-2` out of `spec/PRODUCT-1234-2fa-rollout`.
+
+A key re-derived by pattern is a key nothing in the tree ever asserted.
+
+## claim-expiry-sweep
+
+Eleven such sentences were retired in 3.3.0, sitting in ten files — four commands, three references and three documentation pages — and the count grew from six to eleven only because successive agents walked the tree instead of trusting the list they were handed.
+
+The refinements are the ones the sibling re-cut paid for, and the rounds after it — each one bought by a review finding what the sweep had already walked past, which is why the list carries no count of its own.
+
+Nothing gates such sentences: they are ordinary prose, invisible to every script in `scripts/`. A sentence that named the absence as its reason for an offer needs a new reason because the state a run leaves is usually still a real constraint on what it can honestly offer next.
+
+### refinement-1
+
+One sweep landed in the right paragraph, read the sentence its own term matched, found it true and moved on — leaving two sentences beside it that the same change had falsified, in a command body an agent executes in order.
+
+### refinement-2
+
+The two most expensive misses on that branch contained none of the swept phrases at all; one was found only by reading Phase 0 in sequence, and a later task's end-to-end read turned up five more the same way.
+
+### refinement-3
+
+The exclusivity probe was missing through six task reviews, and two Important findings survived to the whole-branch review because of it.
+
+The five phrases were shown to be a starting set, not the vocabulary, on the 2026-09-22 whole-tree pass: four of six independent slices reported the same gap, and two of that pass's confirmed defects were reachable only past it. One slice's supplementary probe over the same files returned **44 further matches**; another's returned 29, one of which was the second site of a defect whose first site the five had found, so fixing on the five alone would have left a copy standing.
+
+Three wider rounds followed (2026-09-22/23), the second finding more than the first; what they ran and found, and what round 3's reviews deferred, is in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`.
+
+The exclusivity probe matters because that is where a falsified claim hides when it names none of the vocabulary the change introduced.
+
+### refinement-4
+
+The family's shared authorities live in `workflows-core`, so a per-plugin recipe cannot see them: `workflows-core:next-phase-offer` — the file `CLAUDE.md` names as the authority for the offer convention and for check 11's family derivation — carried a claim the re-cut falsified in both directions, and `workflows-core:phase-handoff` §3.4 kept an unqualified no-op claim the branch had corrected at four sites inside its own plugin. Both reached the final review untouched because the design's own sweep recipe was written as a grep over one plugin's commands and was structurally blind to everything else. The two root files were bought the same way, one round later: a review found that round's worst claim — the repo-root `README.md` selling a `gh auth` step for a diff-reading capability neither command has — in a file every recipe written in `CLAUDE.md` scoped past, while `CLAUDE.md` had been swept only because each ruling named it by hand.
+
+Keeping `CHANGELOG.md` in the sweep was measured before deciding, as this repo requires of any scope change: **25 of the 67 defects review passes A22–A28 and B22–B28 recorded are sited in a changelog** — the highest-yield single surface in the tree, ahead of `docs/` at 15 and `references/` at 13 — so keeping them in fires on defective content at a higher rate than any other file class, which is the opposite of the fires-only-on-correct-content result on which check 11's widening was refused twice. Nor is the file unread by the build — check 14 reads every text file in the repository, changelogs included, and a mutation of one fires it, so "no gate opens a changelog" is false as well as beside the point. `scratchpad/r47/sweep.py`, the instrument refinement 7 names, carries no such exclusion; two of this branch's citation resolvers did copy the gates' filename filter — one wrong phase citation was sitting in a changelog while they ran, in a file neither could open.
+
+Widening the scope is only half of it: four more of that citation's family were written into the same changelog later, and an existence check would have passed all five however wide its scope, because every one named `Phase 12` of a command that had a Phase 12. They were caught by reading the phase they cited — the axis, not the scope. Slicing the phase a citation names and finding the cited thing inside it falsifies a citation that is simply wrong, which is what a `Phase 12`-exists check cannot do. In `/document`, `# Mode A`'s `## Phase 3` reads the PRD folder and `# Mode B`'s implements a direct edit. Picking the wrong mode reports a miss rather than a false pass, which is the safe direction — but that is a property of this failure mode, not of the check.
+
+The scope clause binds a human or agent sweep and moves no gate's scope: `check-docs.sh` check 10 still leaves the root README alone, for its own unrelated reason. `check-id-grammar.sh` and `check-docs.sh` checks 12, 13, 16 and 19 exclude `CHANGELOG.md` by filename, each for the one stated reason that history keeps the retired form it shipped with — and a count, a citation or a claim about today's tree is most of what a changelog entry is. Reading the phase proves containment but not uniqueness: it does not prove the cited thing is only there, so a phrase living in two phases passes under either citation.
+
+### refinement-5
+
+The round that corrected the repo-matching claim in a `getting-started.md` page and a reference layout block swept both root files thoroughly on the *other* axis it was fixing — its commit message says so — and left the repo-root `README.md`'s two copies of the corrected claim standing, so the scope was honoured and the trigger was not, because nothing had landed. The instinct to sweep the phrasing just rewritten, taken alone, is what left a sixth copy standing.
+
+### refinement-6
+
+A sweep for *"no agent reads `$REPOS_PATH`"* cannot reach *"`code-scanner` resolves repositories under it"*, and one for *"there is no `pull_requests[]`"* cannot reach *"resolves the pull requests named there"*, which is how two corrections each shipped beside an uncorrected twin — one on the sibling page the corrected page links to, one in the corrected page itself.
+
+### refinement-7
+
+**The two measurements behind the addition-count rule disagree about whether one delimiter is enough, which is why it states a property and not a character count.** On the edit that added a wrapper alternation to the `test-notify` gate, one delimiter on each side suffices: the body `mvn test|gradlew test|…|make test` still returns 1 with `mvnw test|` inserted ahead of it, and returns 1 again on a fixture appending `|cargo test` instead — the second case being why the opening `(` is not enough on its own, since an insertion lands at either edge. On the edit that inserted five rows into `test-baseliner`'s parse table it does not, because there the delimiter bounds every row rather than the edit: the `Gradle` row alone returns 1 before and 1 after, that row with one character on each side returns 1 and 1 as well, and only the `Gradle` row *plus the `pytest` row that had followed it* falls 1 → 0.
+
+Measured over `commands/` and `references/`, a 17-character phrase survives the wrap break about six times in seven, but an 80-character one only about one time in three — so at sentence length a line-based grep misses an occurrence more often than it finds one, and the short count it reports is plausible rather than obviously wrong, which is what makes it dangerous on exactly the files refinement 7 exists for. The reviews on this branch ran the three-step method as `scratchpad/r47/sweep.py`, a session-local script this repo does not ship and which collapses the file but not the pattern.
+
+Reading the paragraph is not enough, and this was bought twice in one round and once more by the round that wrote the refinement: the round that corrected `between the three` to `between the four` in `workflows-core:phase-handoff` §4.3 had read that paragraph and left the identical string standing further down the same section, in the paragraph saying the array is not reworded for a missing remote — next to a second falsified count on that same line — while scoping *"the one reader a proposal has"* on six surfaces and leaving it on two more, one of them the §1 of the very reference whose §0 it had just made the census, and the other an instruction telling the run to **print** the retired sentence; then the round that wrote refinement 7 certified it with a count of that same string taken on the parent tree, publishing **3** in a commit whose own new prose quoted it — as this rationale section still does. One wrap-insensitive count per edited string, taken after the edit, catches every one of those; no other refinement does, because each of the others tells you where to look and this one tells you when you are done.
+
+A replacement changes text *inside* the span you counted, so the after-count falls however the query was framed, while an addition changes text only at that span's boundary and leaves the string standing inside the new form *by design*. A line-based `grep -c` over hard-wrapped files returns a number smaller than the truth with nothing to say it did. The three-step method is the rule, not any script: write your own and keep the method.
+
+### refinement-8
+
+**Two instances of the miss itself, one caught and one missed, which is what makes the pair evidence.** Correcting a probe's `git log` from *"the token"* to the run's whole token set falsified two changelog copies carrying the singular, and a sweep built on the **subject** found both in the same round. Narrowing a fallback's listing — so that a commit accounted for by the block recording it gets no line of its own — falsified six copies, and a sweep anchored on **one known site's wording** — the query string `that date rule dropped`, which exactly one of the five carried, the others varying enough that the round fixing them needed four different per-site strings — reached five and missed the sixth, a `docs/` page stating the same claim with a different noun. **And once prospectively, which is the one kind of evidence those two cannot supply**, both being reconstructions of misses already made: refinement 8 sent a reader to the distant copies of a claim the branch had just narrowed, and one was there — `dev-workflows`' released 2.52.0 entry still saying in the present tense what `phase-handoff` §4.1 *defines*, falsified by the count change one round earlier and sitting in a changelog nobody had reopened. **Recorded once and not added to**: a refinement that logged every later find would become a changelog of itself, and the point is made by one.
+
+The `docs/` copies need remembering, not a wider scope: refinement 4's scope already covers those pages. The second instance above is what anchoring a sweep on a noun costs.
+
+Refinement 8 says which strings to count; refinement 7 says when you are done counting them. **Copies vary in wording site by site, including among the ones you already hold**, which is the whole reason the query is built on the subject; and one noun across every copy is worth a little precision because a second noun is a copy the next sweep cannot see.
+
+## sentence-context
+
+**The risk peaks where a reader would least expect it**: of the four instances one batch's records carry, **three were introduced by fixes to earlier findings**, so the move is likeliest exactly when someone is already being careful about a rule they have just been shown to have got wrong.
+
+**Four surfaces, one move.** A **trigger**'s extent is the worked example below. A **rationale**'s is the second. A **report condition**'s is the third: a Final Report asked for `workflows-core:phase-handoff` §4.1's outcome line *on every run*, where a producer that never offers a handoff — `/frames` having written no index, `/idea` on `status: draft`, `/implement`'s Phase 4.5 no-op, the live cases §4.1 itself lists — has no line to print and would have had to assert a decline nobody was asked about; the widened condition reached all three of §4.1's outcome states, not the two the report line was written for. And the fourth is the same move at **sentence** scale: a gloss widened to say what else an option drops asserted *save one*, a count the run cannot make where the set may be none, one or many.
+
+**The trigger surface in full, because it is the clearest.** The array is the cheap half of such a change; the expensive half is every sentence around it that says what an option *does*, each written when only the old trigger could reach that question and free to assume whatever that trigger guaranteed. **Measured**, as an Important regression on its branch: `/brd-intake`'s same-or-new question gained a second trigger — a matched pair whose two anchors name one element without their text being the same — with no condition on the file's recorded state, while *Same requirement*'s stated effect kept the existing row whole, its anchor and its existing `text` with it. That effect was written for the unmatched-row case, where the file is recorded **unchanged** and the existing text is still what the document says; on a file Phase 2 recorded **replaced** it would have kept text the revised document no longer carries. The array was right and its options were right — the paragraph stating the effect was not, and it is the one a change that reads only the array never opens. It now turns on the file's recorded state: on a replaced file the option keeps the id, takes the returned `text` and reports the change old → new.
+
+**The rationale surface** — `pass9a-1-report.md` counts two of that batch's last three findings as this: a **rationale** clause added for a new rule, landing beside an older sentence written when the rule was narrower, where the instruction stays correct and the reason beside it goes false. In `/brd-intake` a carve-out gained a clause saying a revised document can make the agent start returning a row it had not returned, two clauses from a standing claim that the agent is handed the same inputs on every later run; sweeping that claim found a twin one paragraph away resting a prediction on the same premise. **A third site kept the claim unqualified and was right to**, being the re-dispatch *within one run*, where nothing the agent is handed can change. On qualifying by the class: the first repair (`d2cdba1a`) named a source the customer had not revised, and it survived exactly one review round before a corrected transcription — a change to what the agent is handed with no revision behind it — falsified it; the second (`9a5599a9`) closed the class instead.
+
+**The pointer face — one documented instance of each kind.** A `source:` ladder written from `product-workflows:brd-format` §1.1's vantage, where *this log* is the link log, was pasted into `brd/brd-figures.md`'s own layout block, where *this* re-points at the figures file — which is no log, and the opening line the instruction means is the link log's — so a writer meeting the instruction inside the block it is writing looks in the wrong file. And a clause across an em-dash read *"no later command of the route opens anything"*, where the object was the file named before the dash: read literally it is an absolute claim about every later command. **It arrived in a sentence written to repair an earlier finding** — `62c4a552`, the round-13 lead-in that gave `/brd-intake`'s one run-ending recommendation its reason where the choice is made — and the round after removed it (`19ea31f3`): the *risk peaks* claim above, counted there over the extent face alone, holds on this one too. Two instances, one check, so the pointer face stays a clause of the rule rather than a rule of its own.
+
+**Nothing in the rule quotes `brd-intake.md` for what it says today, deliberately**: the first draft of the rule quoted it four times, and one of those quotations was falsified within a round by the batch that owns the file — the rule, in miniature, at its own expense. The instances **describe** instead, which is what that audit settled on and what keeps them checkable; the one quotation that stands is of a clause two named commits add and then remove, which `git show` settles and no later edit of that file can move.
+
+Why the faces differ: on the extent face the sentence you wrote stays put while its neighbours go false, and it is the one you have already checked; on the pointer face the sentence you wrote is the one that goes wrong while its neighbours stay untouched, so the extent check is inert, nothing having widened and no case split existing to enumerate. The old precondition's out-of-reach paragraphs are where an assumption sits unstated precisely because nothing could once falsify it. The third-check threshold exists because three checks with their evidence will not read as one line; a face that needs a check of its own is a rule of its own.
+
+## verification-record-last
+
+Three of the 2026-08-07 round's records went stale because the record was written first; one was falsified by its own sub-project's next commit 17 minutes later. Two of that round's wrong values propagated by copying an `expect N` from another plan.
+
+## measure-the-population
+
+It was learned expensively. A resolver for the pre-rename artifact filenames was triaged, measured across ten commands, specified, approved and costed at four plugins before anyone asked the one question that decided it — *how many trees hold a pre-rename artifact?* None: every finding in it was reachable only on a specs repo written before the filenames lost their keys and never renamed since, and the loop it had found between `/update-prd` and `/create-prd` needed a legacy file to exist before either command could misbehave. What shipped instead was one paragraph, because the reason the defect looked live was a promise in `workflows-core:addressing` §5 that over-reached — *"the fallback means they need never do it"* — **from which the entire resolver was derivable, and had been derived.**
+
+Trace reachability per finding because a defect class assumed to be uniform routinely is not. The counter-case is stated so the rule is not over-applied.
+
+## drift-risk
+
+A refactor deleted `prd-source-resolution.md` rather than rewriting it, on the judgement that what remained was *"'resolve the folder, read `prd.md`' — two obvious lines, inlined into its two callers. Duplicating those is not the drift risk that duplicating a key grammar was."* What remained was **three** lines. The third identified the pre-rename PRD by a frontmatter field, and the commit immediately before had kept exactly that line on purpose and recorded why. Both callers lost it in the same change — one silently, one rewritten into a test for a field that had arrived in the same commit as the rename and so could never match — and the duplication then drifted into three disagreeing copies and five commands carrying none, one pair of which formed a remedy loop in which neither command could run.
+
+## plugin-update-cli
+
+`CLAUDE.md` named a `claude plugin reinstall` for a long time, in four places, and it does not exist: the CLI answers `error: unknown command 'reinstall'` and offers `install` and `uninstall`.
+
+That `marketplace update` leaves installed plugins alone was measured, not assumed: after a successful `marketplace update`, `claude plugins list` still reported `docs-workflows` at `1.0.0` while the catalogue advertised `1.1.0`. **`CLAUDE.md` previously claimed the opposite** — that refreshing the marketplace "does the same thing for every plugin installed from it, in one step" — and that claim is retired. The `/plugins` interface was verified live, where it took `docs-workflows` from 1.0.0 to 1.1.0 after a CLI `marketplace update` had left it at 1.0.0.
+
+`prose-style` 0.4.0 is the release whose checker applies the specs repository's house-style rules to `/release-notes`' draft. The `/plugins` interface is a human step, which is why `CLAUDE.md`'s update section leads with the per-plugin `update` command.
+
+## verify-branch-before-commit
+
+That is not hypothetical: one session branched away from `main` between two commits of another session's run, and the second commit — a fix for a release-gating defect — landed on the unrelated feature branch, where a `git push origin main` would have left it behind.

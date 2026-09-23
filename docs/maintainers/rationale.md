@@ -107,3 +107,11 @@ The `/implement` invariant that Phase 3.5 **names what it did not cover rather t
 Changing the tree to meet an unqualified first clause of the test-writing requirement was the alternative and was rejected: it would have to remove **both** escapes a user can choose — *"Accept the remaining failures and proceed"* and Pre-Phase 3.5's *"Skip tests for this run"* — and a gate-failed run that cannot finish is a run that leaves the implementation uncommitted, which `dev-workflows:code-handoff` §1 rule 5 exists to prevent. The completions nobody chooses are not options to remove at all: a suite that will not start is the environment's answer, not the operator's.
 
 The silent fourth member of kind 2 — a runner that narrows its own run past the test `test-writer` just wrote — was measured on Mocha 12.0.2, which does not default `--forbid-only` from `CI` (`dev-workflows:test-baseliner` capture step 1 draws that distinction per runner, and names the runners that abort instead): with an `it.only` already committed in the repository, `CI=true npm test` printed `1 passing` and exited 0 both before the run wrote a failing spec beside it and after.
+
+## brd-recut-readers
+
+The sibling re-cut rule names no recipe for its readers because the recipe that stood in its `CLAUDE.md` bullet was wrong. That recipe — `grep -l unallocated plugins/product-workflows/commands/brd-*.md` — returns six files and is wrong in both directions: `/brd-proposal` is in it and reads neither §3.2 nor the re-cut (its one `§3.2` is `workflows-core:phase-handoff`'s), and `/brd-intake` is in it citing §3.2 only to say it offers no re-cut, while `/create-prd`, `/create-ard`, `/specify` and `/prd-ground` each cite `coverage-ledger-format` §3.2 by name for a disposition the re-cut leaves behind and are all outside the glob.
+
+## addressing-fallback-totals
+
+The "twelve files, eleven commands" totals the `workflows-core:addressing` §7 bullet in `CLAUDE.md` used to tell readers to re-derive went false twice — cutting the tracker moved them without moving the number, and by 2026-09-23 the commands citing §7 did so for other reasons — `/brd-split` for its *Adoption is additive* rule, `/release-notes` to say why it has a row — and none to reach the fallback, while `/implement`, `/vuln` and `/brd-proposal` resolved through §3 with no row — so §7 now keeps none.

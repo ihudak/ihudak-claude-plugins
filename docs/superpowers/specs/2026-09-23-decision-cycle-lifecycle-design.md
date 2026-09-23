@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found five more (N7–N11). This spec fixes all twenty-two.
+Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found six more (N7–N12). This spec fixes all twenty-three.
 
 It covers:
 - `/brd-interview`, `/brd-reconcile`, `/prd-ground`, `/brd-split`, `/create-prd`, `/document` and `/release-notes`;
@@ -49,6 +49,7 @@ Abbreviations: `BI` = `plugins/product-workflows/commands/brd-interview.md`, `BR
 | N9 | D | Rows 2–3 of `/prd-ground`'s `PRD_GROUND_NO_INVENTORY` remedy table (no ledger in the folder) are unreachable under D1's gate order except where the ledger is on a ref but deleted from the worktree, and there their "no command has committed this slice's folder" is false. Found by Task 1's implementer |
 | N10 | C | `/prd-ground` Phase 8 lists `consumed_by: none` among the fields every written block carries, which read literally resets an on-file finding's `consumed_by` stamps on a re-run. Found by Task 2's implementer |
 | N11 | C | `/brd-interview`'s successor test 4 places a `[DG#n]` by the frame its evidence cites. A design finding whose evidence cites no frame can never have a successor, so a decision resting on one cannot be observed as confirmed or moved when it is superseded. Found by Task 2's implementer; reachability to be judged in review |
+| N12 | C | `/brd-interview`'s *A decision the re-grounding moved* takes a record only once **every** `evidence` finding reads `SUPERSEDED`, while `decision-register-format` §4 cause 1 fires on any superseding finding. So a decision resting on several findings, some of them superseded, reopens nothing. The `contradict` route (C1) makes this the common case. Found by Task 2's review |
 | v | E | CP step 6 does not say whether a `prd.md` with no `kind: prd` counts as found |
 | N6 | E | CP Phase 5 writes `prd.md` with no existence guard. Under the strict reading of v, a keyless `prd.md` is overwritten with no archive |
 | vi | E | `/document` and `/release-notes` stop on a found-but-unplaced folder, a BRD container, or a folder holding no PRD, using the "key dir not found" rule and `["Re-enter key", "Cancel"]`. That happens at two sites in each command |
@@ -152,6 +153,16 @@ Change PG Phase 7 (≈1038–1048) and GF §8:
 - **Sweep.** `docs/commands/prd-ground.md:361–362`, `docs/brd-workflow.md:183–189`, `docs/commands/brd-interview.md:345–353`, and PG:1150–1156. Narrow "the id never changes, so every existing citation into it still resolves" to own-run findings everywhere it appears.
 - `workflows-core` changes. Fold them into its unpublished `1.7.6` CHANGELOG section. Do not bump again.
 
+### C1a. Rulings from Task 2's review
+
+- **R15 (N12).** *A decision the re-grounding moved* takes a record where **any** of its `evidence` findings reads `SUPERSEDED`. That aligns it with DRF §4 cause 1.
+  - The confirmation test runs per superseded finding: its successors must confirm against its `prior_verdict`.
+  - The record is confirmed only where every superseded finding confirms. Otherwise it is reopened and re-put.
+  - Unsuperseded evidence stands as cited.
+  - Every copy of the "every … reads `SUPERSEDED`" premise is swept.
+- **R16 (N11).** A `[DG#n]`'s in-place rewrite, and any `[DG#n]` successor, keeps the frame citations of the evidence it replaces, alongside the verifier's `own_evidence`. A design finding therefore always cites a frame and can always be placed in a frame set.
+- **N10.** `consumed_by: none` is written only on a block this run appends. An on-file block keeps its stamps. The on-file block's `outcome` rule is stated once, without contradiction.
+
 ### C2. `prerequisite` in Phase 8's field list (viii)
 
 - In PG Phase 8's parenthetical (≈1144–1149), add `` `prerequisite` on every finding reading `horizon: will-change` `` beside the other conditional clauses.
@@ -253,5 +264,5 @@ The research flagged "Session cost (ALWAYS runs)" as false, because an abort or 
 - For every rewritten claim, a refinement-7 literal-string count across the sweep scope, taken before and after the edit and recorded with its command.
 - The per-item trace: each failure scenario in §3 is walked step by step against the new text, and the step where it now resolves is cited by file and phrase.
 - An exclusivity probe over the diff, covering new "only", "never" and "every" claims introduced by this pass.
-- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all twenty-two rows read FIXED is the known-bug count 0.
+- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all twenty-three rows read FIXED is the known-bug count 0.
 - Every row of the round-3 "Deferred by user decision" list gets a one-line pointer to this record.

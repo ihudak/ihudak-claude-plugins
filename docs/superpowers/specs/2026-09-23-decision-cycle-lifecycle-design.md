@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3). This spec fixes all seventeen.
+Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found a seventh (N7). This spec fixes all eighteen.
 
 It covers:
 - `/brd-interview`, `/brd-reconcile`, `/prd-ground`, `/brd-split`, `/create-prd`, `/document` and `/release-notes`;
@@ -44,6 +44,7 @@ Abbreviations: `BI` = `plugins/product-workflows/commands/brd-interview.md`, `BR
 | ix | D | PG Phase 0 step 6 does not state whether the ledger gate or the inventory gate resolves first, and the order changes the stop printed |
 | xi | D | BS's write order is untraced. An interrupted carve and a declined handoff look identical, and `PRD_GROUND_NOT_HANDED_OFF` tells the operator that a re-run which would resume the walk "is a no-op" |
 | N5 | D | xi's silent variant: a slice whose `claims:` names a `[BR#n]` its inventory does not hold passes every gate, and that row is never grounded |
+| N7 | D | A resumed `/brd-split` run reconciles (Phase 4 Step 3) only the children its own walk touched, so a stale provisional claim from an interrupted run survives on a slice. And once the parent is fully allocated, a bare re-run is a no-op, so no command repairs an out-of-step slice. Found by Task 1's implementer |
 | v | E | CP step 6 does not say whether a `prd.md` with no `kind: prd` counts as found |
 | N6 | E | CP Phase 5 writes `prd.md` with no existence guard. Under the strict reading of v, a keyless `prd.md` is overwritten with no archive |
 | vi | E | `/document` and `/release-notes` stop on a found-but-unplaced folder, a BRD container, or a folder holding no PRD, using the "key dir not found" rule and `["Re-enter key", "Cancel"]`. That happens at two sites in each command |
@@ -160,17 +161,39 @@ Change PG Phase 7 (≈1038–1048) and GF §8:
 - The step also states why: the ledger's row-F branch (a) disposes of an inventory the carve left behind (PG:238).
 - Where both gates stop, the ledger's stop is the one printed.
 
-### D2. An interrupted carve, told apart from a declined handoff (xi, N5)
+### D2. An unfinished carve, and slices out of step with their parent (xi, N5, N7). Revised 2026-09-23 by controller rulings R3–R6
 
-- **Parent read.** Before `PRD_GROUND_NOT_HANDED_OFF` (PG:294–322) prints any clause asserting "the parent's ledger fully allocated", read `<PARENT-KEY>`'s `coverage-ledger.md` from the worktree. Use the same read the file's other parent-ledger remedies use.
-  - Where any row reads `unallocated`, the stop takes a new clause instead. It says that the parent's carve is incomplete, that a bare `/product-workflows:brd-split <PARENT-KEY>` resumes its walk and may still change this slice's files, and that nothing should be committed until that run completes.
-  - Where no row is `unallocated`, today's clauses stand.
-- **Consistency gate (N5).** On `route: brd`, after the ledger and inventory gates pass or stop, compare two sets. The first is the `[BR#n]` set in the slice's `brd-link.md` `claims:`. The second is the `[BR#n]` set in `brd/brd-inventory.md`.
-  - Where the two differ, stop with a new named stop `PRD_GROUND_CLAIMS_INVENTORY_MISMATCH`. It names each id that is claimed but not inventoried, and each id that is inventoried but not claimed.
-  - The remedy is the same as the parent-read clause: re-run `/brd-split <PARENT-KEY>` to completion, whose Phase 4 Step 3 reconciles the three files.
-  - This resolves the ids against a known set and parses no free text. It closes N5 without a new marker in `/brd-split`.
-- **BS text.** BS gains no new behaviour. Its Phase 4 Step 2 `Cancel` paragraph (BS:817–822) adds one sentence: the slices' three files stay provisional until Step 3, and `/prd-ground` refuses them until then.
-- **Sweep.** `docs/commands/prd-ground.md` gains the new stop and the parent-read clause. Re-read `coverage-ledger-format.md` §3 and §5.1. Re-read the `/brd-split` line in `.claude/rules/brd-route.md`.
+The first draft of this section, a clause appended to `PRD_GROUND_NOT_HANDED_OFF` and a gate comparing `claims:` with the inventory, failed under implementation. Four reasons:
+- Phase 3's provisional files agree with each other by construction, so a carve cancelled and then committed passed both gates and was grounded.
+- The appended clause contradicted its own stop's "Commit …".
+- It named the bare `/brd-split` form, which stops with `BRD_SPLIT_NEEDS_INSTRUCTION` while any row is `unallocated`.
+- Its remedy could be a no-op.
+
+The revised design:
+
+- **R4, a new stop `PRD_GROUND_CARVE_UNFINISHED`.** On ledger row F branch (b), before `PRD_GROUND_NOT_HANDED_OFF`'s text, read `<PARENT-KEY>`'s own `coverage-ledger.md`.
+  - **It holds any `unallocated` row:** this stop fires in place of `PRD_GROUND_NOT_HANDED_OFF`. The wording is cause-neutral: say what the ledger shows (its carve is not finished) and never why. A `/brd-intake` re-run also resets rows. The stop names the instructed form `'/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'`, and says nothing here is to be committed until that run completes.
+  - **It holds no `unallocated` row:** `PRD_GROUND_NOT_HANDED_OFF` stands. Its "claims nothing" clause is unchanged.
+  - **The ledger is unreadable or absent:** use the file's existing idiom. Report it by path, name no `/brd-split` form, and assert neither state.
+- **R3, a reconciliation gate `PRD_GROUND_SLICE_UNRECONCILED`,** which replaces the draft's `PRD_GROUND_CLAIMS_INVENTORY_MISMATCH`. On `route: brd`, after both `require-on-main` gates pass, compare three sets, resolving ids and parsing no prose:
+  - (a) the `[BR#n]` in the slice's `brd-link.md` `claims:`;
+  - (b) the `[BR#n]` in `brd/brd-inventory.md`;
+  - (c) the rows of `<PARENT-KEY>`'s `coverage-ledger.md` reading `covered-by: <SLICE-KEY>`.
+
+  Where they are not all equal, stop. Name each id by which set lacks it. This catches:
+  - a carve cancelled and then committed (the parent reads `unallocated`, so the row is absent from (c));
+  - IP4 and IP5;
+  - N7's stale claim.
+
+  The implementer must first prove that (a) = (b) = (c) holds on every completed-run path: an ordinary carve, a re-cut (§3.2), a removal's key repair, and a child's own `deferred-to`. Any legitimate completed state that breaks it goes back to the controller.
+  - **Remedy:** where the parent holds an `unallocated` row, name the instructed form. Otherwise name the bare `'/product-workflows:brd-split <PARENT-KEY>'`, which R5 makes a live reconcile run.
+  - **Unreadable parent ledger:** as in R4.
+- **R5 (N7), `/brd-split` reconciles every child against the parent.** Phase 4 Step 3's selector widens to every child standing under this BRD, found by Phase 0 step 9's positive test. It reconciles each child's three files to the parent's `covered-by: <CHILD-KEY>` rows. Where they already agree, the step writes nothing for that child.
+  - Phase 0 step 10's branches gain a live path. On a fully-allocated parent with no instruction and no standing empty child, a bare run is **no longer a no-op where some child is out of step** (the same (a) = (b) = (c) test). It runs Step 3 reconcile only, then its usual close.
+  - Every statement of "re-running is a no-op" is swept: the command's `description:` frontmatter (whose budget is checked by `validate-catalog.py`), the docs page, and `coverage-ledger-format.md`.
+- **R6.** The draft's "Re-run it: it resumes the walk" wording is withdrawn everywhere.
+- **BS `Cancel` paragraph.** Append: each slice's three files stay provisional until Step 3 reconciles them against the parent, and `/prd-ground` refuses the slice until then (`PRD_GROUND_CARVE_UNFINISHED` / `PRD_GROUND_SLICE_UNRECONCILED`).
+- **Sweep.** `docs/commands/prd-ground.md`, `docs/commands/brd-split.md`, `coverage-ledger-format.md` §3, §5.1 and §6, and the `/brd-split` line in `.claude/rules/brd-route.md`.
 
 ## 8. Unit E: `/create-prd` and the unplaced-folder stops
 
@@ -223,5 +246,5 @@ The research flagged "Session cost (ALWAYS runs)" as false, because an abort or 
 - For every rewritten claim, a refinement-7 literal-string count across the sweep scope, taken before and after the edit and recorded with its command.
 - The per-item trace: each failure scenario in §3 is walked step by step against the new text, and the step where it now resolves is cited by file and phrase.
 - An exclusivity probe over the diff, covering new "only", "never" and "every" claims introduced by this pass.
-- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all seventeen rows read FIXED is the known-bug count 0.
+- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all eighteen rows read FIXED is the known-bug count 0.
 - Every row of the round-3 "Deferred by user decision" list gets a one-line pointer to this record.

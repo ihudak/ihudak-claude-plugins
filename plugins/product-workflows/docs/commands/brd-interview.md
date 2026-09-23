@@ -35,8 +35,9 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   `generated against:` line the last round's record carries (a record written before that line
   existed is compared at its last commit, which misses a change made while that round was still
   open, and, where no commit carries the record, detects no finding change at all), a requirement defect that became this BRD's to ask, or a re-grounding that moved a decision's
-  evidence, every finding it rests on superseded and the successors either no longer `will-change`,
-  for a decision the will-change rule held, or not confirming it, for any other (Phase 3 and Phase 8,
+  evidence — for a decision the will-change rule held, every finding it rests on superseded and the
+  successors no longer `will-change`; for any other, any finding it rests on superseded and that
+  finding's successors not confirming it (Phase 3 and Phase 8,
   below) — and opens that round only where some question source puts a question, so a
   `--rebaseline` pass that confirms every decision it bears on, or leaves it waiting on its
   prerequisite, is reported as re-grounded with nothing moved and opens nothing — **or, on a BRD with no round record at all, generates round 1's questions and branches on
@@ -344,13 +345,15 @@ but the push and the pull request cannot run.
   ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §6.1).
 - **Phase 3 — a decision a re-grounding moved is put again.** Where a re-grounding — a
   [`/prd-ground --rebaseline`](prd-ground.md) pass, or any `/prd-ground` run whose verifier
-  contradicts a finding an earlier run wrote — has superseded every finding a `decided` decision the will-change rule did not hold rests on, the
-  successor findings — the same requirement's, grounded against the same repository or frame set
-  and minted later — either confirm its premise — each superseded finding with a successor, and
-  each successor carrying the verdict its superseded finding carried, which that finding keeps as
-  `prior_verdict`, and the horizon that finding carried — or the decision is reopened, naming the successors as
+  contradicts an on-file finding — has superseded any finding a `decided` decision the will-change
+  rule did not hold rests on, the successor findings — the same requirement's, grounded against the
+  same repository or frame set and minted later — either confirm its premise — each superseded
+  finding with a successor, and each successor carrying the verdict its superseded finding carried,
+  which that finding keeps as `prior_verdict`, and the horizon that finding carried — or the
+  decision is reopened, naming the successors as
   the cause, and its question put again in the round this run opens. The test is the same for a
-  `[VD#n]` and a `[CD#n]`, and a decision that confirms raises nothing. A finding superseded before
+  `[VD#n]` and a `[CD#n]`, a finding the re-grounding did not supersede stands as cited, and a
+  decision that confirms raises nothing. A finding superseded before
   `prior_verdict` existed carries none, so a decision resting on one is reopened. A `[V]` is
   re-decided in place here, and a `[C]` by `/brd-reconcile` from the customer's answer in the next
   package, each keeping its id — unless another run has meanwhile left the record `withdrawn` or

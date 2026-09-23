@@ -342,9 +342,10 @@ and nothing downstream can tell the difference afterwards.
    the *Put each `[V]` to the operator* phase's picker and *The will-change rule* phase are where
    `options_considered`, `evidence` and `conditional_on` are taken). The reopen includes one this
    command makes on §4's first cause, against a `decided` `[VD#n]` or `[CD#n]` a re-grounding — a
-   `--rebaseline` pass, or a verifier's `contradict` on an on-file finding — moved the ground under (*A decision the re-grounding moved*, in *Generate the round's question
-   set*): on a `[CD#n]` it writes that `status` and that paragraph and nothing else, and the
-   re-decision is `/product-workflows:brd-reconcile`'s, from the customer's answer. The third: a
+   `--rebaseline` pass, or a verifier's `contradict` on an on-file finding — moved the ground under
+   (*A decision the re-grounding moved*, in *Generate the round's question set*): on a `[CD#n]` it
+   writes that `status` and that paragraph and nothing else, and the re-decision is
+   `/product-workflows:brd-reconcile`'s, from the customer's answer. The third: a
    `[VD#n]` the will-change rule held, whose question a later round re-put and answered — the *Write
    the register and the round record* phase moves its `status` to `superseded` and appends the
    closing `Superseded <YYYYMMDD>: by [VD#m]` paragraph `decision-register-format.md` §4 fixes,
@@ -507,7 +508,7 @@ the round record*), and where the two disagree the dispositions win.
   account line: the round-1 walk did not raise it, and a new round is exactly where it belongs (the
   round-1 test below) — or a record *A decision the re-grounding moved* puts again: one the
   will-change rule held, every `evidence` finding of which now reads `SUPERSEDED` and has a
-  successor, none of them still `will-change`, or a plain `decided` record every `evidence` finding
+  successor, none of them still `will-change`, or a plain `decided` record any `evidence` finding
   of which reads `SUPERSEDED` and whose successors do not confirm its premise — **whenever that
   supersession happened**: a record whose findings a re-grounding superseded while an earlier round
   was still open was not put again by that round, and its supersession predating the last closure
@@ -839,15 +840,21 @@ would have to state:
 code, writes each result as a new finding, and marks the finding it replaces `verdict: SUPERSEDED`,
 id retained, the verdict it carried kept as `prior_verdict`, every other field as it stood
 (`workflows-core:grounding-format` §2, §3, §5). **Any `/product-workflows:prd-ground` run does the
-same to an on-file finding its verifier contradicts**, at the same commit: the finding is
-superseded the same way, and a successor carrying the verifier's verdict, with the same `claim`,
-`commit` and `horizon`, is appended with the next id (`workflows-core:grounding-format` §8). A record in
-`decisions.md` **every one of whose `evidence` findings reads `SUPERSEDED`** rests on nothing on file
-any more, and this source takes it — as a *held* record or as a *plain* one, told apart by the
-record's own fields below. Two records it never takes. **One whose `evidence` names no finding** —
+same to an on-file finding its verifier contradicts**, at the same commit: the finding is superseded
+the same way, and a successor carrying the verifier's verdict, with the same `claim` and `commit`
+and the horizon that run's *Horizons* phase left, is appended with the next id
+(`workflows-core:grounding-format` §8). A record in `decisions.md` **any one of whose `evidence`
+findings reads `SUPERSEDED`** rests, in that part, on ground no longer on file, and this source
+takes it — as a *held* record or as a *plain* one, told apart by the record's own fields below.
+**Any, not every**: a supersession replaces findings one at a time, and a verifier's `contradict`
+routinely supersedes one finding of a record's list and leaves the rest standing, so a source that
+waited for the whole list would leave that record `decided` on a premise the code no longer shows
+(`decision-register-format.md` §4, cause 1). A finding of the list that does not read `SUPERSEDED`
+**stands as cited**: no test below reads it, and no successor is sought for it. Two records it never
+takes. **One whose `evidence` names no finding** —
 `evidence: []`, or any `[AS#n]`, whose `evidence` holds the statement of why no evidence exists
-rather than finding ids (`decision-register-format.md` §7): it rests on no finding, and "every
-finding in the list" is not read as true of a list holding none (`decision-register-format.md` §6).
+rather than finding ids (`decision-register-format.md` §7): it rests on no finding, so no finding of
+its list can read `SUPERSEDED` (`decision-register-format.md` §6).
 **And a `[CD#n]` frozen `open` for want of its reason** — the one
 `open` record whose `argumentation` names its reason absent (`/product-workflows:brd-reconcile`,
 *Confirm every candidate*): its question is still *held for the customer* and travels in the next
@@ -902,21 +909,24 @@ that as a test that did not pass.
   either kind that names an id its reconciliation changed.
 - **A plain record** — `status: decided` and not held. `decision-register-format.md` §4's first
   cause, a finding that supersedes one in its `evidence`, may reopen it, and this is what does.
-  **It is reopened unless its successors confirm its premise, by this test and no other**: the
-  premise is confirmed only where, for every finding in its `evidence`, the finding carries a
+  **It is reopened unless its successors confirm its premise, by this test and no other**, run
+  **per superseded finding**: a superseded finding confirms only where it carries a
   `prior_verdict`, it has a successor, and every successor carries a `verdict` equal to that
   `prior_verdict` and a `horizon` equal to the finding's own — which superseding leaves as it
-  stood. **Equal, not `current`**: a plain record may rest on one `current` finding and one
-  `will-change` one, which §6 leaves `decided` because the `current` one is ground that holds
-  (`decision-register-format.md` §6), and a pass run before the prerequisite ships re-grounds the
-  second as `will-change` again — the ground as it stood, which confirms. The pass after it ships
-  writes that successor `current`, a horizon the finding did not carry, so the record is reopened
-  then: the move from `will-change` to `current` is the prerequisite's shipping, and the premise
-  the record was decided on has changed. **The test is the same for a `[VD#n]` and a `[CD#n]`**, and
+  stood. **The record is confirmed only where every superseded finding in its `evidence`
+  confirms**; one that does not reopens it. A finding of the list that does not read `SUPERSEDED`
+  takes no part in the test and stands as cited. **Equal, not `current`**: a plain record may rest
+  on one `current` finding and one `will-change` one, which §6 leaves `decided` because the
+  `current` one is ground that holds (`decision-register-format.md` §6), and a pass run before the
+  prerequisite ships re-grounds the second as `will-change` again — the ground as it stood, which
+  confirms. The pass after it ships writes that successor `current`, a horizon the finding did not
+  carry, so the record is reopened then: the move from `will-change` to `current` is the
+  prerequisite's shipping, and the premise the record was decided on has changed. **The test is the
+  same for a `[VD#n]` and a `[CD#n]`**, and
   it reads the grounding files alone: `prior_verdict` is the verdict the finding carried when it was
   superseded, which the superseding run writes into the block (`workflows-core:grounding-format` §2),
-  so no register, round record or question entry is consulted for it. **Where a finding carries no
-  `prior_verdict`, has no successor, or any successor carries another verdict or another
+  so no register, round record or question entry is consulted for it. **Where a superseded finding
+  carries no `prior_verdict`, has no successor, or any successor carries another verdict or another
   horizon, the record is reopened** — the question is put rather than a confirmation assumed. A
   finding superseded before `prior_verdict` existed carries none, so its prior verdict is unknown and
   the record resting on it is reopened; that prior verdict is never inferred from the finding's
@@ -925,8 +935,8 @@ that as a test that did not pass.
   nothing, and nothing on it moves** — the ground was re-derived and came back as it stood.
   The reopen is written by the *Write the register and the round record* phase of the run that puts
   the question, and never before: `status: reopened`, and a closing `Reopened <YYYYMMDD>:` paragraph
-  appended to its `argumentation` naming as its cause every successor of every finding in its
-  `evidence`, each with its verdict and horizon, and each superseded finding that has none
+  appended to its `argumentation` naming as its cause every successor of every superseded finding
+  in its `evidence`, each with its verdict and horizon, and each superseded finding that has none
   (`decision-register-format.md` §4). A record reopened without its question would be taken by
   nothing afterwards — this source takes `decided` records — so the two go together.
 
@@ -944,8 +954,9 @@ record reopened with it) in the next one opened. The question:
   authority, and a `[V]` answered by a customer or a `[C]` by the operator would leave the record with
   an answer of the other register and no exit that reads it;
 - **is put against the current findings** — every successor, each with its verdict and horizon,
-  which for a `[C]` are its `- **Findings:**` line — and names the record and what it chose as
-  context, so whoever answers sees what was answered before and why it is asked again;
+  and every finding of its `evidence` that does not read `SUPERSEDED`, as it stands, which for a
+  `[C]` are its `- **Findings:**` line — and names the record and what it chose as context, so
+  whoever answers sees what was answered before and why it is asked again;
 - for a `[C]`, **carries a `- **Re-puts:** [CD#n]` line** naming the record. For a held record whose
   `settles` names a `[DEF#n]` still `open` in the log, it carries that id on its
   `- **Requirement defect:**` line too, with the `- **Rejected row:**` and `- **Defect image:**`
@@ -985,7 +996,7 @@ and the run that writes the answer names both, the new record and the terminal o
 still needs a human, since the question was put against a record that no longer stands. A question put again and *deferred* keeps its round open, and the
 record stands as it is until the question is answered. **No other source raises a question on a
 successor this source has read** — a successor of a finding in the `evidence` of any held record,
-waiting or put again, or of any plain record every `evidence` finding of which reads `SUPERSEDED`,
+waiting or put again, or of any plain record any `evidence` finding of which reads `SUPERSEDED`,
 put again or confirmed — **whatever that successor's verdict and horizon**: which question such a
 successor raises, if any, is this source's to say — the record's own, put again; none while a held
 record waits on its prerequisite; none where a plain record's successors confirm it. The *Round 1 is

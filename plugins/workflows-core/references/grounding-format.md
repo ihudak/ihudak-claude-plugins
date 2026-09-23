@@ -118,9 +118,10 @@ So, canonically:
   verdict, §8's `contradict` handling has already acted on it — on an own-run finding by replacing
   `verdict` and leaving a one-line note of what it was, on an on-file finding by superseding the
   block and appending a successor that carries the new verdict — so a correct record carries exactly
-  one verdict plus its history, never a live disagreement. **`prior_verdict` is a §2 field and not an exception to this**: it appears only
-  beside `verdict: SUPERSEDED`, so the block's one live verdict is still `SUPERSEDED`, and what it
-  keeps is the history a supersession would otherwise erase. This is the same failure §2.1 exists to prevent, met at the field set rather than at
+  one verdict plus its history, never a live disagreement. **`prior_verdict` is a §2 field and not
+  an exception to this**: it appears only beside `verdict: SUPERSEDED`, so the block's one live
+  verdict is still `SUPERSEDED`, and what it keeps is the history a supersession would otherwise
+  erase. This is the same failure §2.1 exists to prevent, met at the field set rather than at
   the bytes: a writer free to add a field produces an artifact whose readers disagree about which
   value is the finding's.
 - **A field that does not apply is omitted, never written empty** — `class` and `cites` on a
@@ -720,10 +721,11 @@ reconciles it against the requirement inventory it was handed — a BRD's `[BR#n
    hides.** Every other finding stands or falls on a search its own writer ran; this one stands on a
    conclusion another finding reached, so it goes stale when that finding moves while its own record
    shows nothing — the ids still match, the citation still resolves, and the correctness test above
-   passes on a pair that now disagree. **Wherever a cited `[CG#n]`'s `verdict` is replaced — in place, by §8's
-   `contradict` handling of an own-run finding, or by a supersession, which a re-grounding run
-   writes and §8's `contradict` handling of an on-file finding writes too — every class-4 `[DG#n]`
-   citing it is re-derived or superseded alongside it, never left standing.** A class-4 finding
+   passes on a pair that now disagree. **Wherever a cited `[CG#n]`'s `verdict` is replaced — in
+   place, by §8's `contradict` handling of an own-run finding, or by a supersession, which a
+   re-grounding run writes and §8's `contradict` handling of an on-file finding writes too — every
+   class-4 `[DG#n]` citing it is re-derived or superseded alongside it, never left standing.** A
+   class-4 finding
    outliving its own foundation is the one way this class reads as settled while resting on nothing,
    and a reader cannot detect it: they follow a citation that resolves.
 
@@ -775,18 +777,22 @@ outcome can never become evidence by the rule below.
 | `unprovable` | The verifier could not settle the claim either way, independent of what the original finding concluded |
 
 **What a `contradict` writes turns on whether the finding is already on file.** An **own-run
-finding** — produced by the run verifying it and not yet written — is cited by nothing, so the caller
-rewrites it in place: same id, the re-derived verdict and evidence, and a one-line note of the verdict
-it replaced. An **on-file finding** — written by an earlier run, as every finding inherited from an
-earlier run of this workflow is (below) — may already be cited by a decision, and rewriting it in
-place would leave that decision standing on a verdict it was never taken on, with nothing reading
-`SUPERSEDED` to tell any reader so. The caller supersedes it instead: the block takes
-`verdict: SUPERSEDED` with its on-file verdict as `prior_verdict` (§2), and a successor with the
-next id in its prefix carries the same `claim`, `commit`, `altitude`, `horizon` and `prerequisite`,
-the re-derived `verdict` and `evidence`, `outcome: contradict`, and a note naming the id it
-supersedes. Citations into the old id still resolve, to a finding reading `SUPERSEDED`, exactly as
-after a re-grounding run. `product-workflows:prd-ground`'s *Verify* phase holds the full procedure,
-its edge cases included.
+finding** — produced by the run verifying it and not yet written — is cited by nothing outside that
+run, so the caller rewrites it in place: same id, the re-derived verdict and evidence, and a
+one-line note of the verdict it replaced. An **on-file finding** — written before the verifying run
+began, as every inherited finding is (below), from an earlier run of this workflow or from another
+team's report alike — may already be cited by a decision, and rewriting it in place would leave that
+decision standing on a verdict it was never taken on, with nothing reading `SUPERSEDED` to tell any
+reader so. The caller supersedes it instead: the block takes `verdict: SUPERSEDED` with its on-file
+verdict as `prior_verdict` (§2), every other field of it as it stood, and a successor with the next
+id in its prefix carries the same `claim`, `commit` and `altitude`, the `horizon` and
+`prerequisite` the verifying run now holds for it, the re-derived `verdict` and `evidence`,
+`outcome: contradict`, and a note naming the id it supersedes. **On a `[DG#n]`, either write keeps
+every frame citation the replaced evidence carried beside the re-derived evidence**: a class-4
+finding is re-derived against the repository and may come back citing code alone, and a design
+finding that cites no frame can no longer be placed in its frame set. Citations into the old id
+still resolve, to a finding reading `SUPERSEDED`, exactly as after a re-grounding run.
+`product-workflows:prd-ground`'s *Verify* phase holds the full procedure, its edge cases included.
 
 **`agree` and `extend` both assert the verdict holds, so a differing re-derived verdict falsifies the
 outcome rather than qualifying it.** The verifier returns its own re-derived verdict alongside every

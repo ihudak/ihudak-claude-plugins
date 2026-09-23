@@ -203,9 +203,9 @@ too; and `Read` absolute paths.
    `<method, and the case it was pointed at> — <path:line>` or `— no match` shape
    (`workflows-core:grounding-format` §2.2). An outcome that asserts an absence with no control
    behind it is the defect this agent exists to catch, and it does not stop being one because a
-   verifier wrote it. It is its own field rather than a line inside `own_evidence` because the caller
-   writes it into the record when it rewrites the finding or writes its successor, and `own_evidence`'s shape requires a
-   `path` a failed control has not got.
+   verifier wrote it. It is its own field rather than a line inside `own_evidence` because the
+   caller writes it into the record when it rewrites the finding or writes its successor, and
+   `own_evidence`'s shape requires a `path` a failed control has not got.
 
 4. **Decide the outcome** from the closed set in `workflows-core:grounding-format` §8:
    - **`agree`** — your re-derivation reaches the same verdict.

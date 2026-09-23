@@ -2177,7 +2177,7 @@ option's own text like every other one in the list.
 Say plainly what remains, per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — names only,
 never behaviour a command of its own owns: a `[C]` the review did not answer keeps its round open and
 travels in the next package; a decision this run reopened is settled by another interview round; a
-challenged code claim is settled by a grounding pass and by nothing here, and a decision every
+challenged code claim is settled by a grounding pass and by nothing here, and a decision any
 finding of which that pass supersedes is reopened or put again by the next
 `/product-workflows:brd-interview` round where that command's *A decision the re-grounding moved*
 says so; a `[CD#n]` the

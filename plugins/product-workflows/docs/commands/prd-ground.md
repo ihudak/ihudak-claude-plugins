@@ -185,7 +185,11 @@ also runs, in Phase 11, for session lessons-learned.
   gates `coverage-ledger.md` on `origin/<default>` via `require-on-main` before reading anything
   else; an unmerged pull request stops the run naming the branch/PR state. It gates
   `brd/brd-inventory.md` separately, never inferring it from the ledger's gate, and splits that
-  file's own "on no ref" the same way. No inventory in the folder stops with
+  file's own "on no ref" the same way. **The ledger's gate resolves first** — including, where the
+  ledger is on no ref, whether it is in the folder at all — and the inventory's is evaluated only
+  after it, so where both stop, the ledger's stop is the one printed: the ledger's never-produced
+  branch accounts for an inventory an interrupted carve left behind, and an inventory stop printed
+  first would name the wrong remedy. No inventory in the folder stops with
   `PRD_GROUND_NO_INVENTORY`: on a slice, its remedy turns on the slice's `claims:` and the parent's
   ledger — a slice claiming nothing gets the empty-inventory remedy; a slice with no ledger in its
   folder either, none of whose claimed rows the parent's ledger settles onto it, was never given its
@@ -218,12 +222,24 @@ also runs, in Phase 11, for session lessons-learned.
   source document of its own to intake and its ledger and inventory are written by the parent's split
   ([`brd-format.md`](../../references/brd-format.md) §2.1,
   [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3). A ledger **in** the
-  folder and on no ref means it was produced and its handoff was declined, and stops with
-  `PRD_GROUND_NOT_HANDED_OFF`, whose action is to commit and merge the files already on disk. It
+  folder and on no ref means it was produced, but not whether the carve that wrote it finished:
+  `/brd-split` writes a slice's three files before its walk places a row and reconciles them against
+  the parent's ledger only when the walk completes. So the run reads the **parent's** ledger first.
+  Where that ledger still holds an `unallocated` row — an interrupted carve, or a `/brd-intake`
+  re-run over the parent, which resets every row; the stop says what the ledger shows and not
+  which — the run stops with `PRD_GROUND_CARVE_UNFINISHED`: the slice's files are provisional,
+  nothing in the folder is to be committed, and the fix is the parent's **instructed** re-run,
+  `/brd-split <PARENT-KEY> "<how to cut it>"`, taken to completion, since the bare form stops asking
+  for an instruction while a row is unallocated. Where the parent is fully allocated but this slice
+  is not what it records — a carve stopped after its last walk write and before it reconciled this
+  slice — the run stops with `PRD_GROUND_SLICE_UNRECONCILED` (below). Where the parent's ledger
+  cannot be read, the stop reports it by path and names no `/brd-split` form. Only where the parent
+  is fully allocated and this slice agrees with it was the handoff simply declined, and the run stops
+  with `PRD_GROUND_NOT_HANDED_OFF`, whose action is to commit and merge the files already on disk. It
   names the producing command only where re-running it would actually stage them, and the clause it
   carries is read off this slice's own `claims:` list. Where this slice **claims rows**, a **bare**
-  `/brd-split` on a fully-allocated parent is a no-op that stages nothing and opens no pull request —
-  but an instruction typed after the key can still make it a live run, where the parent holds a row a
+  `/brd-split` on a fully-allocated parent writes nothing into this slice and declares none of its
+  files — but an instruction typed after the key can still make it a live run, where the parent holds a row a
   child has recorded it will not build; that run stages what its own walk moved, never these files as
   they stand. Where this slice **claims nothing** the parent re-run is not a no-op at all: the bare
   form resolves the empty child and stages that decision rather than this slice's inventory and
@@ -231,6 +247,16 @@ also runs, in Phase 11, for session lessons-learned.
   lands them as its own walk leaves them. Committing what is already on disk stays the direct route to
   landing them as they stand. `/brd-intake` is never named here: it re-runs only over a BRD
   container, and every container has already been refused as a root.
+- **This slice in step with its parent.** Once both gates pass, the run compares three sets of
+  `[BR#n]` ids: the slice's `brd-link.md` `claims:`, the rows of its `brd/brd-inventory.md`, and the
+  rows of the parent's `coverage-ledger.md` reading exactly `covered-by: <this slice's key>`. Every
+  completed `/brd-split` run leaves the three equal, so a difference means the slice's files are not
+  the allocation the parent records — typically a carve cancelled mid-walk whose provisional files
+  were committed by hand, which both gates pass. The run stops with `PRD_GROUND_SLICE_UNRECONCILED`,
+  naming each id by the set that lacks it, and grounds nothing. Its remedy is the parent's
+  **instructed** re-run where the parent still holds an `unallocated` row, and otherwise the **bare**
+  `/brd-split <PARENT-KEY>`, which reconciles every child against the parent's ledger and writes
+  nothing for a child already in step; where the parent's ledger cannot be read, it names no form.
 
 ### On the idea route
 
@@ -311,7 +337,9 @@ ever proceeds once `/create-prd`'s own `prd/<KEY>-<slug>` branch has merged.
   route, this slice's inventory and its ledger, separately — the inventory's own stops name whether
   it is missing from the folder or merely unmerged, because re-running the producer on the second
   would rewrite it; no grounding starts until the command that wrote them — `/brd-split` on the
-  parent, since a root is refused before this gate — has merged its output.
+  parent, since a root is refused before this gate — has merged its output. Past both gates, the
+  slice must also agree with its parent's ledger (`PRD_GROUND_SLICE_UNRECONCILED`), because a carve
+  cancelled mid-walk leaves provisional files that pass both.
   On the idea route, `prd.md` itself — a claim list read off an unmerged artifact would ground a
   document `/create-ard` and `/specify` cannot yet see. See "What it needs" above for the exact stop
   conditions on each route.

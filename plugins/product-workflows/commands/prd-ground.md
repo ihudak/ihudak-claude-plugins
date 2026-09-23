@@ -185,6 +185,13 @@ behaviour, not the behaviour.
       which is what `PRD_GROUND_NEEDS_PRD` names for a `PRD-` folder in the same state.
 6. **On `route: brd`, gate this BRD's own inventory and ledger on main.** (The idea route's own
    gate is step 6i, immediately below — this whole step is the `route: brd` branch, unchanged.)
+   **The two gates below resolve in a fixed order: the ledger's first, the inventory's second.**
+   `coverage-ledger.md`'s `require-on-main` return is resolved in full first — on its row F that
+   includes whether the file is in the folder at all — and only then is `brd/brd-inventory.md`'s
+   gate evaluated and its stop printed. Where both returns stop, the ledger's stop is the one
+   printed. The order is not arbitrary: the ledger's row-F branch (a) below disposes of an
+   inventory an interrupted carve left behind, so an inventory stop printed first would name the
+   wrong remedy for that folder.
    Execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against the resolved BRD folder's `coverage-ledger.md`. Whichever
    command wrote that ledger wrote the inventory beside it in the same handoff commit
    (`coverage-ledger-format.md` §3's creator table). **That is a fact about the run that wrote them
@@ -198,7 +205,7 @@ behaviour, not the behaviour.
    `PRD_GROUND_EMPTY_INVENTORY` reports a *content* fact — the inventory holds no `[BR#n]` row — and
    its remedy re-runs `/brd-split` on `<PARENT-KEY>` to resolve the standing empty child. Row F reports a
    *merge* fact, and sending that operator to `/brd-split` on the parent risks the same no-op the
-   next split below refuses to name unconditionally — a fully-allocated parent stages nothing on a **bare** re-run.
+   next split below refuses to name unconditionally — a fully-allocated parent whose children all agree with its ledger stages nothing on a **bare** re-run.
    Split it on the same test the
    ledger's own row F uses — is the file in the folder at all:
    - **No `brd/brd-inventory.md` in the folder** — never produced, or lost after it was written; the table below tells them apart. Read the resolved folder's
@@ -233,9 +240,9 @@ behaviour, not the behaviour.
        | It claims rows, its folder holds no `coverage-ledger.md` (`/brd-split` writes a slice's ledger after its inventory, so one in the folder means this file was written and lost), none of them reads `covered-by: <this slice's key>` on `<PARENT-KEY>`'s ledger, and at least one still reads `unallocated` there | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md and before writing its inventory, so this file was never written — and that run reached neither its handoff nor its terminal commit, and brd-link.md is no path the specs repo's bookkeeping commit stages, so no command has committed this slice's folder either. A parent re-run will not finish it: its walk writes a slice's inventory and ledger rows only for the rows it adds to that slice, never the rows the slice already claims. Remove this slice's folder — delete it where git reports it untracked, and where it was committed by hand, remove it in a commit on every branch that carries it, the default branch included — then re-run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', which places every row still unallocated on <PARENT-KEY>'s ledger, the ones this slice claimed included, as though this slice had never been carved.` |
        | It claims rows, its folder holds no `coverage-ledger.md`, and none of them reads `covered-by: <this slice's key>` or `unallocated` on `<PARENT-KEY>`'s ledger | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md, so this file was never written, and every row it claims has since been settled elsewhere on <PARENT-KEY>'s ledger, so none is owed here. Its claims: list is left over from that run: empty it by hand in brd-link.md, then re-run /product-workflows:brd-split on <PARENT-KEY>, which offers to remove this slice or keep it against a recorded reason. Which form to type depends on that parent's own ledger: where it still holds an unallocated row, a run with rows still to place needs a slicing instruction, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'; where none is left, type the bare '/product-workflows:brd-split <PARENT-KEY>'.` |
        | It claims rows, and `<PARENT-KEY>`'s ledger still holds an `unallocated` row | `A parent re-run will not repair this file. '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' still has rows to walk, but it reconciles rather than rebuilds: it touches this slice's inventory only for the rows its walk moves onto or off this slice, never the rows the slice already claims. The file was lost after it was written, and no command re-creates the rows it held — restore it from the ref that carried it, or report it.` |
-       | It claims rows, and `<PARENT-KEY>`'s ledger holds no `unallocated` row | `A parent re-run carves nothing here: the bare '/product-workflows:brd-split <PARENT-KEY>' is a no-op, and an instructed one touches this slice's inventory only where it re-cuts a row onto or off this slice, and only the rows that move — never the rows the slice already claims. The file was lost after it was written, and no command re-creates the rows it held — restore it from the ref that carried it, or report it.` |
+       | It claims rows, and `<PARENT-KEY>`'s ledger holds no `unallocated` row | `A parent re-run carves nothing here: the bare '/product-workflows:brd-split <PARENT-KEY>' writes nothing into this slice — its reconcile step leaves a slice with a file missing untouched — and an instructed one touches this slice's inventory only where it re-cuts a row onto or off this slice, and only the rows that move — never the rows the slice already claims. The file was lost after it was written, and no command re-creates the rows it held — restore it from the ref that carried it, or report it.` |
        | `<PARENT-KEY>`'s ledger cannot be read | Report it by path and name no `/brd-split` form: which one runs is that ledger's to say |
-   - **The inventory is in the folder and on no ref, and so is a `coverage-ledger.md`** — produced, handoff declined. (Where the folder holds no `coverage-ledger.md`, do not print this stop: map the ledger's own `require-on-main` return instead — its row F takes branch (a) below, whose never-written row disposes of this inventory.) Land what is
+   - **The inventory is in the folder and on no ref, and so is a `coverage-ledger.md`** — produced, handoff declined. (Where the folder holds no `coverage-ledger.md`, do not print this stop: the gate order this step opens with has already resolved the ledger's own `require-on-main` return — its row F takes branch (a) below, whose never-written row disposes of this inventory.) Land what is
      already on disk, and **name no `/brd-intake` run**: that command refuses a slice
      (`BRD_INTAKE_SLICE`) and any folder that is not a container (`BRD_INTAKE_NOT_A_BRD`), and
      every container was refused as a root at step 5a:
@@ -250,8 +257,8 @@ behaviour, not the behaviour.
    **`absent` (row F) — nothing for this BRD is on any ref — is split twice before it is reported.**
    Row F conflates three states: *never produced*, *lost after it was written* and *produced, handoff declined*. Reported as one,
    the message tells an operator whose files are already written to go and produce them — and on a
-   slice it names `/brd-split`, which **re-run bare** in that state is a no-op that stages nothing and
-   does not land those files. Split row F **first on whether `coverage-ledger.md` exists in the worktree**,
+   slice it names `/brd-split`, which **re-run bare** in that state does not land those files as they
+   stand. Split row F **first on whether `coverage-ledger.md` exists in the worktree**,
    then by level — reading the resolved folder's `brd-link.md` from the worktree (it is there whether
    or not anything reached main) and branching on its `parent:` field, because a slice must never be
    told to run a command that would refuse it.
@@ -286,34 +293,65 @@ behaviour, not the behaviour.
      | It claims rows, none of them reads `covered-by: <this slice's key>` on `<PARENT-KEY>`'s ledger, and at least one still reads `unallocated` there | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md and before writing its ledger, so the files it had not reached were never written — and that run reached neither its handoff nor its terminal commit, and neither brd-link.md nor brd/brd-inventory.md is a path the specs repo's bookkeeping commit stages, so no command has committed this slice's folder either. A parent re-run will not finish it: its walk writes a slice's inventory and ledger rows only for the rows it adds to that slice, never the rows the slice already claims. Remove this slice's folder — delete it where git reports it untracked, and where it was committed by hand, remove it in a commit on every branch that carries it, the default branch included — then re-run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', which places every row still unallocated on <PARENT-KEY>'s ledger, the ones this slice claimed included, as though this slice had never been carved. Removing the folder discards any brd/brd-inventory.md that run had already written into it as well, which loses nothing: it holds only rows copied from <PARENT-KEY>'s own inventory, which still carries every one of them.` |
      | It claims rows, and none of them reads `covered-by: <this slice's key>` or `unallocated` on `<PARENT-KEY>`'s ledger | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md, so the files it had not reached were never written, and every row it claims has since been settled elsewhere on <PARENT-KEY>'s ledger, so none is owed here. Its claims: list is left over from that run: empty it by hand in brd-link.md, then re-run /product-workflows:brd-split on <PARENT-KEY>, which offers to remove this slice or keep it against a recorded reason. Which form to type depends on that parent's own ledger: where it still holds an unallocated row, a run with rows still to place needs a slicing instruction, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'; where none is left, type the bare '/product-workflows:brd-split <PARENT-KEY>'.` |
      | It claims rows, and `<PARENT-KEY>`'s ledger still holds an `unallocated` row | `A parent re-run will not repair this slice's files. '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' still has rows to walk, but it reconciles rather than rebuilds: it touches this slice's inventory and ledger only for the rows its walk moves onto or off this slice, never the rows the slice already claims. The ledger was lost after it was written, with the inventory too where that is missing as well, and no command re-creates the rows they held — restore what is missing from the ref that carried it, or report it.` |
-     | It claims rows, and `<PARENT-KEY>`'s ledger holds no `unallocated` row | `A parent re-run carves nothing here — with no row left unallocated there is nothing for an instruction to group — and where that parent holds no re-cuttable row it is a no-op that stages nothing: the slice's ledger was lost after it was written, with its inventory too where that is missing as well, and no command re-creates the rows they held — restore what is missing from the ref that carried it, or report it.` |
+     | It claims rows, and `<PARENT-KEY>`'s ledger holds no `unallocated` row | `A parent re-run carves nothing here — with no row left unallocated there is nothing for an instruction to group — and where that parent holds no re-cuttable row it writes nothing into this slice, whose reconcile step leaves a slice with a file missing untouched: the slice's ledger was lost after it was written, with its inventory too where that is missing as well, and no command re-creates the rows they held — restore what is missing from the ref that carried it, or report it.` |
      | `<PARENT-KEY>`'s ledger cannot be read | Report it by path and name no `/brd-split` form: which one runs is that ledger's to say |
 
-     **The condition qualifies the remedy, and every row must carry it.** The table once had two branches, both on a slice claiming rows, and so said nothing to a slice claiming nothing under a fully-allocated parent — a standing empty child, the one state here in which a parent re-run is live whatever the parent's ledger holds. The sibling rule under (b) below — *`/brd-split` is not a way out here, so do not name it* — already says not to name `/brd-split` for a fully-allocated parent, because re-running it **bare** there stages nothing and opens no pull request. Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
+     **The condition qualifies the remedy, and every row must carry it.** The table once had two branches, both on a slice claiming rows, and so said nothing to a slice claiming nothing under a fully-allocated parent — a standing empty child, the one state here in which a parent re-run acts on this slice whatever the parent's ledger holds. The sibling rule under (b) below — *`/brd-split` is not a way out here, so do not name it* — already says not to name `/brd-split` for a fully-allocated parent, because re-running it **bare** there stages nothing for this slice: its reconcile step leaves a child with a file missing untouched (`commands/brd-split.md` Phase 4 Step 3). Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
 
-   **(b) `coverage-ledger.md` is in the folder, and on no ref — it was produced and its handoff was
-   declined.** The files exist; what is missing is a commit. **Say so, and name landing them as the
-   action** — one stop code, because the remedy does not differ. **It speaks for the ledger only**: the inventory has its own gate above, with its own two stops, and this message must not report a merge state it did not test:
+   **(b) `coverage-ledger.md` is in the folder, and on no ref — it was produced, and either the carve
+   that wrote it has not finished or its handoff was declined.** The file alone cannot tell those
+   apart: `/brd-split` writes a slice's three files in its Phase 3, before its Phase 4 walk has placed
+   a single row, and reconciles them against the parent's ledger only in that walk's Step 3
+   (`commands/brd-split.md`), so a carve stopped anywhere between leaves the same files on disk as a
+   finished one whose handoff was declined. **The parent's ledger tells them apart**, so read
+   `<PARENT-KEY>`'s own `coverage-ledger.md` from the worktree — `<PARENT-KEY>` being the `parent:`
+   of the `brd-link.md` read above — before printing anything, and take the first case that matches:
+   - **`brd-link.md` names no `parent:`, or `<PARENT-KEY>`'s ledger cannot be read** — which one
+     holds is that ledger's to say, so report it by path, name no `/brd-split` form, and assert
+     neither state (`<path>` reads `no parent: named in brd-link.md` where there is no parent):
+     `PRD_GROUND_NOT_HANDED_OFF: <BRD-KEY>'s coverage-ledger.md is written at <BRD-dir> but is on no branch. The parent's ledger at <path> cannot be read, so whether the carve that wrote this slice's files has finished — and whether any /product-workflows:brd-split run still changes them — is that ledger's to say: report it. No /product-workflows:brd-split form is named here, and nothing in this folder is to be committed until that ledger is read.`
+   - **`<PARENT-KEY>`'s ledger holds any `unallocated` row** — the carve is not finished, and the
+     message says so by what the ledger shows and never by why: an interrupted `/brd-split` run
+     leaves this state, and so does a `/product-workflows:brd-intake` re-run over the parent, which
+     resets every row of its ledger to `unallocated` (`coverage-ledger-format.md` §3). Landing these
+     files now would land provisional ones, and naming the bare `/brd-split` form would name a run
+     that stops with `BRD_SPLIT_NEEDS_INSTRUCTION` while a row is unallocated, so name the instructed
+     form. `<N>` is the count of those rows:
+     `PRD_GROUND_CARVE_UNFINISHED: <BRD-KEY>'s coverage-ledger.md is written at <BRD-dir> but is on no branch, and its parent <PARENT-KEY>'s coverage-ledger.md still holds <N> unallocated row(s) — the carve of <PARENT-KEY> is not finished, so this slice's brd-link.md, brd/brd-inventory.md and coverage-ledger.md are provisional and may yet change. Commit nothing in this folder until that carve completes: run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' to completion — it walks every row still unallocated, then reconciles every child's three files against the parent's ledger — merge its handoff, then re-run '/product-workflows:prd-ground <BRD-KEY>'.`
+   - **No `unallocated` row, but this slice fails step 6a's reconciliation test** — run over this
+     folder's worktree copies of the three files, since none is on a ref yet. The parent's ledger is
+     allocated, and this slice is still not what it records: a carve stopped after its last walk
+     write and before its Step 3 reconciled this slice leaves exactly that. Landing the files would
+     land a disagreement, so print step 6a's `PRD_GROUND_SLICE_UNRECONCILED` with the remedy step 6a
+     gives for a fully-allocated parent, and not the stop below.
+   - **No `unallocated` row, and this slice passes step 6a's test** — the carve finished and its
+     handoff was declined. The files exist; what is missing is a commit. **Say so, and name landing
+     them as the action.** **It speaks for the ledger only**: the inventory has its own gate above,
+     with its own two stops, and this message must not report a merge state it did not test:
    `PRD_GROUND_NOT_HANDED_OFF: <BRD-KEY>'s coverage-ledger.md is written at <BRD-dir> but is on no branch — their handoff was declined, so nothing is missing but the commit. Commit brd/brd-inventory.md and coverage-ledger.md to the specs repo's default branch, then re-run '/product-workflows:prd-ground <BRD-KEY>'. <the clause below>`
 
    **`/brd-split` is not a way out here, so do not name it.** Re-running it **bare** on a parent whose ledger is fully
-     allocated and whose children are non-empty is a no-op by its own Phase 0
+     allocated and whose children are non-empty and in step with it is a no-op by its own Phase 0
      (`coverage-ledger-format.md` §4): it stages nothing, reports `nothing to commit` and opens no
-     pull request. `handoff-to-main` stages only the paths *that* run declared, so the slice's
+     pull request. Where some *other* child is out of step, the bare run is live, but it reconciles
+     that child and declares only the files it changes (its Phase 6), and this slice — in step, by
+     the case that brought the run here — is not one of them. `handoff-to-main` stages only the paths *that* run declared, so the slice's
      already-written files are OTHER to it
      (`workflows-core:phase-handoff` §2.3) and can never reach main by that
      route.
 
      **Every part of that condition matters, so the clause carries all of it.** A parent re-run is a
      no-op only where its ledger is fully allocated **and** no child is left standing while claiming
-     nothing **and** no row is re-cuttable under an instruction the run was given
+     nothing **and** every child is in step with the parent's ledger **and** no row is re-cuttable
+     under an instruction the run was given
      (`commands/brd-split.md` Phase 0 step 10); a standing empty child keeps that run alive through its empty-child phase, which does
-     stage a `brd-link.md` it writes a `reason:` into, and a re-cuttable row keeps it alive through its
+     stage a `brd-link.md` it writes a `reason:` into, a child out of step keeps it alive through its
+     reconcile step, which stages the files it rewrites for that child, and a re-cuttable row keeps it alive through its
      walk, which stages the receiving child's three files. Read the `claims:` list of the `brd-link.md`
      step 6 already opened for its `parent:` and branch on it, because the two states take different
      clauses and asserting the first over the second would tell an operator a live run does nothing:
-     - **This slice claims at least one `[BR#n]`** — the ordinary case, and the bare parent re-run is a
-       genuine no-op: `Re-running the bare /product-workflows:brd-split <PARENT-KEY> will not land them — with this slice claiming rows and the parent's ledger fully allocated, that run is a no-op: it stages nothing and opens no pull request. An instruction typed after the key can still make it a live run, where the parent holds a row a child has recorded it will not build; that run stages what its own walk moved, never these files as they stand.`
+     - **This slice claims at least one `[BR#n]`** — the ordinary case, and the bare parent re-run
+       writes nothing into this slice: `Re-running the bare /product-workflows:brd-split <PARENT-KEY> will not land them — with this slice claiming rows, in step with the parent's ledger, and that ledger fully allocated, that run writes nothing into this slice and declares none of its files. An instruction typed after the key can still make it a live run, where the parent holds a row a child has recorded it will not build; that run stages what its own walk moved, never these files as they stand.`
      - **This slice claims nothing** — it is a standing empty child, so the parent re-run is not a
        no-op, but a bare one still will not land *these* files: it declares that child's `brd-link.md`, not
        its inventory and ledger. An **instructed** run that re-cuts a row onto this slice is the one form that
@@ -325,6 +363,40 @@ behaviour, not the behaviour.
    (`BRD_RECONCILE_NEEDS_PACKAGE` versus `BRD_RECONCILE_PACKAGE_NOT_HANDED_OFF`), for the same
    reason: *never produced* and *produced but never handed off* are different facts, and a stop that
    collapses them names a command that does nothing in the state it is reporting.
+6a. **On `route: brd`, once both of step 6's gates pass, test this slice against its parent — the
+    reconciliation test.** The gates prove the slice's files are on main; they cannot prove those
+    files are the allocation that produced them. `/brd-split` writes a slice's three files
+    provisionally in its Phase 3 and reconciles them against the parent's ledger in its Phase 4
+    Step 3, so a carve stopped between the two leaves files that agree with each other and not with
+    the parent — and committing them by hand carries them past both gates. Read three sets of
+    `[BR#n]` ids, each off a structured field and never out of prose:
+    - **(a)** the entries of this slice's `brd-link.md` `claims:`, read id by id as
+      `brd-format.md` §2.1 fixes — a legacy bare or unquoted entry names the same id;
+    - **(b)** the `id` of every row of `brd/brd-inventory.md`;
+    - **(c)** the `id` of every row of `<PARENT-KEY>`'s own `coverage-ledger.md` (the `parent:` of
+      that `brd-link.md`, read from the worktree) whose `disposition` reads exactly
+      `covered-by: <BRD-KEY>` — the whole value equal to that string, never a prefix of it, so a
+      sibling whose key merely begins with this one's is not counted.
+
+    Every `/brd-split` run that completes leaves the three equal for every child it leaves standing,
+    because its Phase 4 Step 3 reconciles each against the parent's ledger on every path that does
+    not end as a no-op, and the no-op is taken only where every child already agrees. So where they
+    are equal, proceed. **This step never runs on `route: idea`**: that route has no `brd-link.md`,
+    no inventory and no parent, and step 6i is its whole gate.
+
+    Where `brd-link.md` names no `parent:`, or `<PARENT-KEY>`'s ledger cannot be read, stop
+    reporting it by path and naming no `/brd-split` form, since which form reconciles this slice is
+    that ledger's to say:
+    `PRD_GROUND_SLICE_UNRECONCILED: <BRD-KEY> cannot be tested against its parent: the parent's ledger at <path> cannot be read, and which /product-workflows:brd-split form reconciles this slice is that ledger's to say — report it; no form is named here.`
+
+    Otherwise, where the three sets are not all equal, stop, naming each id by the set that lacks
+    it — print only the clauses whose list is non-empty:
+    `PRD_GROUND_SLICE_UNRECONCILED: <BRD-KEY> is out of step with its parent <PARENT-KEY>'s coverage-ledger.md, so its files are not the allocation that ledger records and nothing here is ground. <Its brd-link.md claims: lacks [ids].> <Its brd/brd-inventory.md lacks [ids].> <<PARENT-KEY>'s ledger does not read covered-by: <BRD-KEY> on [ids].> <remedy>`
+
+    `<remedy>` turns on the parent's ledger, because the bare form stops with
+    `BRD_SPLIT_NEEDS_INSTRUCTION` while any row there is `unallocated`:
+    - **Any row reads `unallocated`** — `The parent's ledger still holds <N> unallocated row(s), so its carve is not finished: run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' to completion — it walks those rows, then reconciles every child's brd-link.md, brd/brd-inventory.md and coverage-ledger.md against the parent's ledger — merge its handoff, then re-run '/product-workflows:prd-ground <BRD-KEY>'.`
+    - **None does** — `Every row of the parent's ledger is allocated, so run the bare '/product-workflows:brd-split <PARENT-KEY>': it reconciles every child's brd-link.md, brd/brd-inventory.md and coverage-ledger.md against that ledger and writes nothing for a child already in step. Merge its handoff, then re-run '/product-workflows:prd-ground <BRD-KEY>'.`
 6i. **On `route: idea`, gate `prd.md` on main instead — there is neither a ledger nor an inventory
     on this route.** Execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3)
     against `<PRD-dir>/prd.md`. Map its §3.7 return by `stopped` first, exactly as step 6 does for
@@ -1143,7 +1215,7 @@ padding, keys in the §2 table's order, and an inapplicable field omitted rather
 That section is not a style note — a writer that aligns one section's keys and not the next produces
 a file whose readers report findings as missing that are on the page. Each block carries every field
 `workflows-core:grounding-format` §2 defines (`id`, `claim`, `verdict`, `evidence`, `altitude`, `horizon`,
-`consumed_by: none`, plus `prior_verdict` on every finding reading `SUPERSEDED`, `control` on every finding asserting an absence, `class`/`cites` on a
+`consumed_by: none`, plus `prior_verdict` on every finding reading `SUPERSEDED`, `prerequisite` on every finding reading `horizon: will-change`, `control` on every finding asserting an absence, `class`/`cites` on a
 `[DG#n]` and `commit` on everything **except** a
 `[DG#n]` of class 1, 2 or 3 — those are settled from the frame set alone and are pinned to no commit,
 per §2's applicability note) plus this run's verifier `outcome` **and any `notes` the verifier returned** — **and nothing else.** §2.1 makes the field set closed: `own_verdict`, `own_evidence`, `own_control`, `control_outcome` and the verifier's re-derivation `commit` are return fields Phase 7 has already acted on — where a `contradict` rewrote a finding, their values are already in that block under the record's own names (`verdict`, `evidence`, `control`) and the return names never appear — and a block carrying `own_verdict` beside `verdict` states two verdicts at once, leaving every downstream reader free to quote whichever half suits. That is the state `/brd-split` step 7 and `/brd-interview` step 7 now refuse, so writing it here deadlocks the route rather than merely muddying the record. Its contract calls those *"anything the caller should know before recording this outcome"*, so they are read before the outcome is written, not after — a verdict recorded without them is recorded against a caveat the verifier raised and nothing carried.
@@ -1471,7 +1543,7 @@ reference gap, `emit-block` (`workflows-core:feedback-emission`) fires at
 that halt before escalating. **None of Phase 0's stops qualify — every one is a user, sequencing or
 environment halt, never a plugin capability gap** — for example a missing key, an unresolved BRD,
 a resolved root BRD or Epic folder, an input not yet on main (`PRD_GROUND_NO_INVENTORY`, `PRD_GROUND_INVENTORY_NOT_HANDED_OFF`,
-`PRD_GROUND_NEEDS_INTAKE` or, for a slice, `PRD_GROUND_NEEDS_SPLIT`; `PRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off;
+`PRD_GROUND_NEEDS_INTAKE` or, for a slice, `PRD_GROUND_NEEDS_SPLIT`; `PRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off; `PRD_GROUND_CARVE_UNFINISHED` where the parent's carve that wrote them has not finished; `PRD_GROUND_SLICE_UNRECONCILED` where the slice does not agree with its parent's ledger;
 `PRD_GROUND_NEEDS_PRD` and `PRD_GROUND_PRD_NOT_HANDED_OFF` on the idea route), a key naming the wrong
 folder (the no-parent forms of `PRD_GROUND_NO_INVENTORY` and `PRD_GROUND_NEEDS_INTAKE`, on a folder
 that is neither a slice nor a BRD container — an argument halt, not a missing input, save on a

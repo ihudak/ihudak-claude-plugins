@@ -99,7 +99,7 @@ Replace the legacy-record anchor at BI:499–504 as follows:
 2. `candidates = git -C "$SPECS_PATH" log --all --format=%H -- <record>`.
 3. The anchor is the **earliest** candidate whose `git -C "$SPECS_PATH" rev-parse <sha>:./<record-path>` equals `blob`. The round record is append-only, so that commit is where its current content was first written. The rule resolves the anchor against the candidate set and does not trust log order alone.
 4. Where no candidate matches, read every finding as unchanged and print *no commit on any ref holds round `<N>`'s record as it stands on disk, so no finding change could be detected*.
-5. Where the matched commit is a squash or merge commit whose grounding files may already include later changes, name the residual on the report line. A commit is a squash commit where it is the only match and is not the first commit to touch the record's path on its own branch. The line reads: *compared at `<short-sha>`, a commit that may postdate the record's write*.
+5. Where the matched commit's grounding files may already include later changes, name the residual on the report line: *compared at `<short-sha>`, a commit that may postdate the record's write*. A squash commit that is the only holder is the case this covers. The condition must be an observable test, never a judgement. The fallback test is that the matched commit itself changed a file under `grounding/`.
 
 Apply the same change to BI:526–528, BI:1004–1008 and BI:1517–1518, and to `docs/commands/brd-interview.md:35–37`.
 

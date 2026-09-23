@@ -93,3 +93,17 @@ A failure is located by content because mermaid numbers its errors from text it 
 ## choices-arity
 
 The plugin nonetheless shipped a convention saying the opposite of the harness schema (2–4 options, no authored Other), stated across the command files (*"last choice is always `"Other… (describe)"`"*), which authored duplicate options in bulk and pushed dozens of arrays past the cap — the measured figures are in `scripts/check-docs.sh`'s check-12 header, cited rather than restated in `CLAUDE.md` because two copies of one census is how they came to disagree while `workflows-core:escalation-rules` simultaneously required every array be presented verbatim — a rule the harness made unfollowable. **Two consequences outlive the cleanup** (both stated in `CLAUDE.md`). Six closed-vocabulary pickers used to protect themselves by omitting the free-text option.
+
+## code-handoff-citation
+
+The code-oriented commands' not-clean-finish invariant cites `code-handoff`'s *A run that did not end clean* by heading rather than by number: it read §2.8 from 3.10.0, where that was right, until 3.12.0 inserted `### 2.7 The title and the body file` above that section and shifted every later section by one — and a stale §-citation is invisible to a §-existence sweep, because it resolves, to the wrong section.
+
+## implement-phase-3-5
+
+The `/implement` invariant that Phase 3.5 **names what it did not cover rather than assuming it** is the honest form of the "full test suite is verified" that invariant used to claim in `CLAUDE.md`, a claim three reachable completions denied — the three the invariant now lists.
+
+## test-writing-requirement
+
+Changing the tree to meet an unqualified first clause of the test-writing requirement was the alternative and was rejected: it would have to remove **both** escapes a user can choose — *"Accept the remaining failures and proceed"* and Pre-Phase 3.5's *"Skip tests for this run"* — and a gate-failed run that cannot finish is a run that leaves the implementation uncommitted, which `dev-workflows:code-handoff` §1 rule 5 exists to prevent. The completions nobody chooses are not options to remove at all: a suite that will not start is the environment's answer, not the operator's.
+
+The silent fourth member of kind 2 — a runner that narrows its own run past the test `test-writer` just wrote — was measured on Mocha 12.0.2, which does not default `--forbid-only` from `CI` (`dev-workflows:test-baseliner` capture step 1 draws that distinction per runner, and names the runners that abort instead): with an `it.only` already committed in the repository, `CI=true npm test` printed `1 passing` and exited 0 both before the run wrote a failing spec beside it and after.

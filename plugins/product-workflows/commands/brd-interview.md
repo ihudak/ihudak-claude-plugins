@@ -1869,6 +1869,6 @@ gate: the allocation gate in *Resolve inputs and gate the grounded BRD* is decid
 rows before any of this, and a non-zero `unallocated` term in the line — a row this BRD delegated to
 a child that has not walked it yet — is that resolution working, never this run having failed. A slice does **not** always reach this with
 nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
-names a sibling under the same parent or that parent and marks an **orphan row** — a ledger row for a `[BR#n]` this slice no longer claims, reached by either of §2's two routes: the parent's walk withdrawing a claim that was never more than provisional, or a re-cut moving a claim the slice had committed to and then recorded it would not build (§3.2). Those rows are resolved one hop exactly like a parent's
+names a sibling under the same parent or that parent and marks an **orphan row** — a ledger row for a `[BR#n]` this slice no longer claims, reached by either of the first two of §2's routes, the only two that write `covered-by`: the parent's walk withdrawing a claim that was never more than provisional, or a re-cut moving a claim the slice had committed to and then recorded it would not build (§3.2). Those rows are resolved one hop exactly like a parent's
 delegated rows, so a slice reports zero delegated only when its parent withdrew none of its
 claims.

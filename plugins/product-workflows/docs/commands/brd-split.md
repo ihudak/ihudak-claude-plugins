@@ -7,8 +7,8 @@ inherits, and an unallocated coverage ledger of its own. On a **slice** it inste
 grounding finding carrying a verifier verdict. Both runs then walk every unallocated coverage-ledger
 row one at a time through four resolutions until none remain `unallocated`, and write `slices.md`
 with the rationale for each slice and each deferral. Where one answer is uniform by construction
-**and two or more rows are still `unallocated`** — exactly one slice standing on a parent, or any
-run on a slice — the walk first offers to write that single disposition across every remaining row
+**and two or more rows are still `unallocated` and offerable** — exactly one slice standing on a
+parent, or any run on a slice — the walk first offers to write that single disposition across every remaining row
 in one confirmation, stating each row it would write and letting any of them be held back to the
 one-at-a-time walk. Run on a **slice** it allocates but does not slice: the proposal and
 child-creation phases are skipped and the walk offers its own four resolutions — the same count as
@@ -429,9 +429,11 @@ with a "nothing to commit" report on the no-op path, and on a reconcile-path run
   `unallocated`. Every remaining row is presented one at a time via `AskUserQuestion`, through
   exactly four resolutions in `split_mode: full` — assign to a named
   slice (`covered-by`), defer to this BRD (`deferred-to`), reject citing a `[DEF#n]`, or mark
-  superseded by another `[BR#n]`. A child whose own ledger already holds a row for that `[BR#n]`
-  in any disposition but `unallocated` — a claim an earlier walk withdrew, or its own decision on a
-  claim it has since lost — is never offered that row, and the walk says why; where no child is
+  superseded by another `[BR#n]`. A child whose own ledger holds an **orphan row** for that `[BR#n]`
+  — a row for a requirement it no longer claims, recording a claim a walk withdrew from it — is never
+  offered that row, and the walk says why; a child that still claims it is offered it whatever its
+  own row reads, so after a `/brd-intake` re-run over this BRD each slice can take back its own
+  claimed rows with nothing stripped; where no child is
   left for it, the row is deferred, rejected or superseded, or a later run with an instruction
   placing it keys a new slice for it. `allocate-only` offers a different four: `covered-here` replaces
   `covered-by`, which is the one that walk does not offer. `covered-here` is what makes a **slice**

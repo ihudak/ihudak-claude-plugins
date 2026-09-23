@@ -24,9 +24,9 @@ A count taken off the prose it was meant to check agrees with that prose by cons
 
 ## check-10
 
-The binding reason for the identity quarantine is **forks**: a hardcoded container URL is wrong in anyone's fork. Before check 10 existed two per-command pages linked a sibling plugin by full container URL and survived releases, found only by hand.
+Check 10 enforces the identity quarantine; before that check existed two per-command pages linked a sibling plugin by full container URL and survived releases, found only by hand. The binding reason is **forks**: a hardcoded container URL is wrong in anyone's fork.
 
-Check 10 matches on word boundaries because an unanchored match produced 38 failures on correct pages when the marketplace was renamed to a word another identifier contains, and a gate a fork must disable is a gate a fork does not have.
+Check 10 matches its tokens on word boundaries, not as substrings: an unanchored match produced 38 failures on correct pages when the marketplace was renamed to a word another identifier contains, and a gate a fork must disable is a gate a fork does not have.
 
 ## check-11
 
@@ -36,7 +36,7 @@ The widening census lives only in `workflows-core:next-phase-offer`'s scope-para
 
 ## check-12
 
-A non-greedy regex parser is how the census that motivated the check missed three live arrays, two of them six-option.
+Check 12's parser is **bracket-matched and quote-aware, not a non-greedy regex**, and that is the whole point: `choices:\s*\[(.*?)\]` stops at a `]` inside an option string and silently skips that array, which is how the census that motivated the check missed three live arrays, two of them six-option.
 
 ## stop-routing-no-check
 
@@ -60,7 +60,7 @@ Check 14's token list is stored base64-encoded for one reason worth stating plai
 
 ## check-15
 
-The diagram is asserted separately from the page because prose below a diagram is where a command lands when someone adds it in a hurry. A review demonstrated the gap checks 3 and 4 leave by deleting a command from all four listing surfaces and watching the build stay green. The defect that actually shipped this way was the same shape and smaller: `/frames` reached the workflow page's prose but not its diagram, under an opening sentence promising "every command shown here".
+**Check 15 gates index membership** — every command must appear in `docs/README.md`, in the plugin README, and inside `docs/workflow.md`'s **mermaid diagram**, asserted separately from the page because prose below a diagram is where a command lands when someone adds it in a hurry. Check 4 proves a command has a page and check 3 proves that page is reachable from *some* page; neither proves it is findable, and a review demonstrated the gap by deleting a command from all four listing surfaces and watching the build stay green. The defect that actually shipped this way was the same shape and smaller: `/frames` reached the workflow page's prose but not its diagram, under an opening sentence promising "every command shown here".
 
 ## check-16
 
@@ -68,11 +68,11 @@ The loader contract is the trade the split made explicit: the shared reference c
 
 Each of the three citation forms is load-bearing for a different file: the **bare** form is the only thing reaching `dependencies.md`, while the **plugin-root** form is the only reason `instruction-file-maintenance.md`, `handoff/code-scanner.md` and `handoff/impl-maintenance.md` are not reported as dead, since each is read by one of core's own agents by path.
 
-The by-path relation is gated only over `commands/`, `agents/` and `references/` because widening it to the whole plugin fires once, on correct content, which is the result on which two earlier widenings were refused. Within those directories the preamble relation is an **exact** match — every file that cites, carries — while a comparable number of files outside them cite a core reference and correctly carry none, so an unscoped implementation fires on every one of those on a clean tree. The `CLAUDE.md` sentence describing check 16 carried a second copy of the check-16 figures, both copies went stale, and the rule stated with check 11 — re-measure in one place, cite it everywhere else — is the one that would have prevented it.
+No file outside core cites a core reference by path in either of the two forms that resolve to the reading plugin — the defect the loader exists to prevent, gated only over `commands/`, `agents/` and `references/` because widening it to the whole plugin fires once, on correct content, which is the result on which two earlier widenings were refused. **Scope is `commands/`, `agents/` and `references/`, measured rather than chosen**: within them the preamble relation is an **exact** match — every file that cites, carries — while a comparable number of files outside them cite a core reference and correctly carry none, so an unscoped implementation fires on every one of those on a clean tree. **All four of those figures live in `scripts/check-docs.sh`'s check-16 header and nowhere else, deliberately**: the `CLAUDE.md` sentence describing check 16 carried a second copy of them, both copies went stale, and the rule stated with check 11 — re-measure in one place, cite it everywhere else — is the one that would have prevented it — and admitting `docs/` as a *citation source* would make the reverse direction unfalsifiable, since core's own `docs/reference/references.md` enumerates every reference file by name.
 
 ## check-17
 
-A ledger item (PS15) recorded a live defect: an agent self-disclosed dispatching a stray subagent mid-run, outside its own sanctioned set. Verifying *runtime* behaviour is impossible from a static script, and a check that merely asserted "the rule exists" would have passed on the very run that misbehaved: **measured first**, only 3 of the agents under `PLUGIN_RELS` carried `Task` in their tool list at all (`upgrade-executor`, `vuln-fixer`, `docs-style-checker`), and all three already carried a NEVER-dispatch rule naming their sanctioned subagent, in near-identical wording, when one of them still mis-dispatched. That was 3-for-3 *(as of d5f3034b)* — green on the tree — and the reverse direction was verified green on the same three-file tree before it shipped.
+A ledger item (PS15) recorded a live defect: an agent self-disclosed dispatching a stray subagent mid-run, outside its own sanctioned set. Verifying *runtime* behaviour is impossible from a static script, and a check that merely asserted "the rule exists" would have passed on the very run that misbehaved: **measured first**, only 3 of the agents under `PLUGIN_RELS` carried `Task` in their tool list at all (`upgrade-executor`, `vuln-fixer`, `docs-style-checker`), and all three already carried a NEVER-dispatch rule naming their sanctioned subagent, in near-identical wording, when one of them still mis-dispatched. That is 3-for-3 today *(as of d5f3034b)* — green on the current tree — and it fires the moment a fourth agent gains `Task` without the rule, which is the realistic way this decays. **The reverse direction is asserted too**, the same call checks 8 and 11 already made for their own declared-vs-observed pairs: an agent carrying the rule but not `Task` declares a dispatch authority the harness would refuse, which is stale and misleading — verified green on the same three-file tree before it shipped.
 
 ## check-18
 
@@ -92,4 +92,4 @@ A failure is located by content because mermaid numbers its errors from text it 
 
 ## choices-arity
 
-The plugin nonetheless shipped a convention saying the opposite, stated across the command files (*"last choice is always `"Other… (describe)"`"*), which authored duplicate options in bulk and pushed dozens of arrays past the cap — the measured figures are in `scripts/check-docs.sh`'s check-12 header, cited rather than restated in `CLAUDE.md` because two copies of one census is how they came to disagree while `workflows-core:escalation-rules` simultaneously required every array be presented verbatim — a rule the harness made unfollowable. **Two consequences outlive the cleanup** (both stated in `CLAUDE.md`). Six closed-vocabulary pickers used to protect themselves by omitting the free-text option.
+The plugin nonetheless shipped a convention saying the opposite of the harness schema (2–4 options, no authored Other), stated across the command files (*"last choice is always `"Other… (describe)"`"*), which authored duplicate options in bulk and pushed dozens of arrays past the cap — the measured figures are in `scripts/check-docs.sh`'s check-12 header, cited rather than restated in `CLAUDE.md` because two copies of one census is how they came to disagree while `workflows-core:escalation-rules` simultaneously required every array be presented verbatim — a rule the harness made unfollowable. **Two consequences outlive the cleanup** (both stated in `CLAUDE.md`). Six closed-vocabulary pickers used to protect themselves by omitting the free-text option.

@@ -2051,10 +2051,10 @@ PYEOF
 # comment on the offending line without corrupting what it quotes. A fenced block is NOT
 # skipped by default -- templates and handoff blocks are exactly where a tracker-shaped
 # field would hide -- so the marked/unmarked fence pair is a selftest case.
-# Sanctioned users -- 15 marked lines across 8 files, in four kinds. Re-derive with
+# Sanctioned users -- 16 marked lines across 8 files, in four kinds. Re-derive with
 # `grep -rn --exclude=CHANGELOG.md vendor-token-ok: plugins CLAUDE.md .claude/rules
 # docs/maintainers` rather than adjusting the number -- scoped to `plugins`, not to one plugin,
-# because six of the fifteen moved into workflows-core with the reference corpus:
+# because six of the sixteen moved into workflows-core with the reference corpus:
 #   * recognition (8): branch-naming.md's three quotes of a repository's own convention file
 #     plus its fenced verbatim pattern; /vuln's no-address placeholder literals (its prose
 #     step, its two handoff blocks) and the docs page mirroring them -- foreign text the
@@ -2064,14 +2064,15 @@ PYEOF
 #     key the preserve-unknown-keys rule exists to protect;
 #   * provenance (1): getting-started.md naming the subject of a sibling plugin dev-workflows
 #     does not use;
-#   * instruction-file rationale (4): CLAUDE.md's two explanations of WHY the requirement-ID
+#   * instruction-file rationale (5): CLAUDE.md's two explanations of WHY the requirement-ID
 #     grammar and the pre-lint autolink detector exist -- both are rules about a tracker's key
-#     shape and are unexplainable without naming it; docs/maintainers/rationale.md's check-13
+#     shape and are unexplainable without naming it; CLAUDE.md's hard-constraint statement of
+#     this check's rule, which writes the marker itself; docs/maintainers/rationale.md's check-13
 #     evidence, which cites the shipped defects this check was created to remove and cannot
 #     quote them otherwise; and .claude/rules/gates.md's check-13 description, which writes
 #     the marker itself and its census recipe (the recipe matches its own line).
-# Each but the last has to write the vendor's name in order to match, illustrate, or
-# attribute it; the last names no vendor and is counted because the recipe counts it.
+# Each but the last two has to write the vendor's name in order to match, illustrate, or
+# attribute it; those two name no vendor and are counted because the recipe counts them.
 #
 # SCOPE IS EVERY TEXT FILE UNDER THE PLUGIN, not just *.md, and the widening was
 # measured before it was made. A tracker name leaks as readily through plugin.json's

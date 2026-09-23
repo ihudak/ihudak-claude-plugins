@@ -245,12 +245,21 @@ reads was already independently verified by `/prd-ground`'s own agents.
   re-cut's invocation, and this stop is unreachable on that path, which only exists where an
   instruction was given. A slice needs no instruction at
   all — its walk takes recommendations from one but does not require it.
-- **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the
-  the levels below it that `resolve-address` searches — stops the run with `BRD_SPLIT_NOT_FOUND`. That stop names both ways a folder
+- **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at every level `resolve-address`
+  bounds (three below `specifications/`, plus its legacy fallback) — stops the run with `BRD_SPLIT_NOT_FOUND`. That stop names both ways a folder
   comes to exist rather than asserting one: `/brd-intake` for a BRD with a source document of its
   own, `/brd-split` on the parent for a slice. With no folder there is no `brd-link.md` to say
   which of the two the key was meant to be, and a key's segment count is a naming convention, not a
   depth declaration.
+- **Not an idea-route PRD folder.** A `PRD-` folder carrying no `brd-link.md` — `/create-prd`'s own
+  output, never carved from a BRD — has no ledger and no inventory to allocate, and would otherwise
+  be read as a root that owns its source document. It stops with `BRD_SPLIT_NOT_A_BRD` before the
+  run mode is set, naming `/create-ard` and `/specify` as the way the idea route goes on, and
+  `/brd-intake` where the key was meant to name a BRD.
+- **Not an Epic folder.** An `EPIC-` folder carries no `brd-link.md` either, and would be read the
+  same way; it stops with `BRD_SPLIT_EPIC_LEVEL` before the run mode is set, naming
+  `/brd-split <SLICE-KEY>` on the slice above the Epic where it sits in one, and no command where it
+  does not.
 - **Nothing more, at either level.** A key that resolves to a **slice** does not stop the run; it
   sets `allocate-only` (see "Two modes" above) and emits the `BRD_SPLIT_ON_SLICE` notice. What the
   one-level cap forbids is creating anything below a slice but its Epics
@@ -265,9 +274,15 @@ reads was already independently verified by `/prd-ground`'s own agents.
   state, and a BRD that has never been grounded at all stops naming the fix — but which fix depends
   on why no findings exist. With at least one `[BR#n]` row in the inventory, grounding simply has
   not run: `BRD_SPLIT_NEEDS_GROUNDING`, naming `/prd-ground`. With **no** row, there is nothing to
-  ground and `/prd-ground` would stop on the same emptiness, so naming it would be a loop:
-  `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only)` instead, naming `/brd-split` on the
-  parent.
+  ground and `/prd-ground` would stop on the same emptiness (`PRD_GROUND_EMPTY_INVENTORY`), so
+  naming it would be a loop: `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only)` instead, naming
+  `/brd-split` on the parent, or no form of it where the parent's ledger cannot be read. With **no inventory file** at all — never written, by a `/brd-split` run on
+  the parent interrupted after it wrote this slice's `brd-link.md`, or lost after it was written —
+  `/prd-ground` stops with
+  `PRD_GROUND_NO_INVENTORY`, so this run stops with `BRD_SPLIT_NO_INVENTORY (split_mode:
+  allocate-only)`, whose remedy is `/prd-ground`'s own for that stop and turns on the slice's
+  `claims:` and the parent's ledger, and tells the two causes apart — a slice claiming nothing gets
+  the empty-inventory remedy.
 - **On a slice: there is grounding to verify.** Two presence tests run before the count below,
   because a count is vacuously satisfied by an empty set and this gate once shipped as the count
   alone — a BRD with two indexed frame sets and no design grounding at all passed it, and its
@@ -296,6 +311,13 @@ reads was already independently verified by `/prd-ground`'s own agents.
   here at all — `/brd-intake`'s inventory is what this mode reads. Zero `[BR#n]` rows stops with
   `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full)`, naming a corrected `/brd-intake` re-run over the
   same folder rather than `/prd-ground`, which refuses a root outright (`PRD_GROUND_ROOT_LEVEL`).
+  That re-run is named only on a BRD container. A legacy folder with no prefix that carries neither
+  a coverage ledger nor an inventory, and no `prd.md` the idea-route refusal could act on, also runs
+  in this mode and stops the same way; it is no container, and `/brd-intake` refuses to re-run over
+  it, so its stop names a fresh intake under a new key instead — and, where the folder holds an
+  `idea.md` and no `prd.md` (an idea handed off before the kind prefixes), also
+  [`/create-prd`](create-prd.md) on the same key, which accepts the folder and writes the `prd.md`
+  that turns a re-run into the idea-route refusal above.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
 
 ## What it produces

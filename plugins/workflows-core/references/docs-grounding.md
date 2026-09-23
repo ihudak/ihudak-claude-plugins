@@ -33,8 +33,8 @@ documentation does not inform that decision.
    - it contains at least one markdown file
      (`find "$docs_root" -type f -name '*.md' -print -quit` is non-empty).
    On a host where `/workspace/docs` is absent, the gate fails → `OFF` → the run
-   behaves exactly as it does today.
-3.5. **Index state — qmd only.** Skip entirely when `command -v qmd` fails: `retrieval: fallback`, silent, exactly as today. Otherwise probe with `timeout 10s qmd status` and `timeout 10s qmd collection list`. **If either probe fails or times out, treat that exactly as `qmd` absent** — `retrieval: fallback`, silent, no prompt — which mirrors `docs-grounder`'s rung 3 so the command and the agent degrade identically instead of disagreeing about the same broken install. Otherwise take one branch.
+   behaves exactly as it does without docs grounding.
+3.5. **Index state — qmd only.** Skip entirely when `command -v qmd` fails: `retrieval: fallback`, silent, exactly as it does without this step. Otherwise probe with `timeout 10s qmd status` and `timeout 10s qmd collection list`. **If either probe fails or times out, treat that exactly as `qmd` absent** — `retrieval: fallback`, silent, no prompt — which mirrors `docs-grounder`'s rung 3 so the command and the agent degrade identically instead of disagreeing about the same broken install. Otherwise take one branch.
 
    **A collection covers `docs_root`** → `timeout 60s qmd update`. Incremental (qmd re-indexes only changed files), instant when nothing changed, and safe to kill because the index is SQLite and rolls back. On a cap breach, prompt once — never silently pay 60 seconds on every future run:
 
@@ -98,8 +98,8 @@ default for this retrieval agent):
 ```
 
 Wait for the digest. On `status: ERROR` or any dispatch failure, treat as
-`docs_grounding: OFF` and proceed as today (record one line in the final report).
-On `status: EMPTY`, proceed as today; the digest simply adds nothing.
+`docs_grounding: OFF` and proceed as the run does without docs grounding (record one line in the final report).
+On `status: EMPTY`, proceed the same way; the digest simply adds nothing.
 
 ## Consumption
 

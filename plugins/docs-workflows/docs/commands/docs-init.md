@@ -1,6 +1,6 @@
 # /docs-init
 
-Scaffolds a documentation repository for a project that has none — one that builds, serves, lints, and carries the profile `/docs-serve`, `/document` and `/docs-brand` read.
+Scaffolds a documentation repository for a project that has none — one that builds, serves, lints, and carries the profile `/document`, `/docs-serve`, `/docs-brand` and `/docs-audit` read.
 
 ## Who runs it
 
@@ -57,7 +57,7 @@ Findings are triaged by the orchestrator before anything is applied: each is ver
 ## Outputs
 
 - **The scaffolded repository**, on a branch with one commit and a drafted pull-request message. Nothing is pushed and nothing is merged.
-- **`.dev-workflows/docs-profile.yml`** — the output the family's other docs-repo commands read: `/docs-serve` reads its `dev_servers` block — whose two commands carry `{port}` where a port would go, so `/docs-serve` can serve either build on another port after a collision or under `--port`, and every consumer substitutes the port it serves on — `/document` reads its content roots and commands, a standalone `/docs-brand` reads its branch-naming pattern, and the CI workflow's conditional image step is written against its `images.policy`. `/release-notes` reads no docs profile.
+- **`.dev-workflows/docs-profile.yml`** — the output the family's other docs-repo commands read: `/docs-serve` reads its `dev_servers` block — whose two commands carry `{port}` where a port would go, so `/docs-serve` can serve either build on another port after a collision or under `--port`, and every consumer substitutes the port it serves on — `/document` reads its content roots and commands, a standalone `/docs-brand` reads its branch-naming pattern, `/docs-audit` reads its `source_repos[]` and content roots — and writes `source_repos[]` back where it confirmed a set the profile did not record — and the CI workflow's conditional image step is written against its `images.policy`. `/release-notes` reads no docs profile.
 - **A session cost entry and any feedback**, filed under `$SPECS_PATH/documentation/<docs-repo-slug>/` — per documentation repository rather than in the pending queue, because a documentation run frequently has no PRD and never will. See [Session cost](../reference/session-cost.md).
 
 ## Failure modes

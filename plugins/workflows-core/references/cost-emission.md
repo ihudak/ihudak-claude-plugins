@@ -1,6 +1,6 @@
 # Session Cost Emission — Shared Reference
 
-Single source of truth for the dev-workflows session-cost subsystem. Twenty-five of
+Single source of truth for the plugin family's session-cost subsystem. Twenty-five of
 the twenty-seven commands with an §7 row cite this file from their terminal
 "Session cost" phase and execute its steps inline through the single `emit-cost`
 entry point (§11). The other two — `/prompt-brainstorm` and `/prompt-grill-me` —
@@ -123,7 +123,7 @@ into the entry (§6) and writes `new_checkpoint` back (§3).
 ## 3. Chained-checkpoint model
 
 Single touchpoint per command; a command's window START is the previous
-dev-workflows command's END in the same session.
+family command's END in the same session.
 
 - **Checkpoint file:** `~/.claude/dev-workflows/cost-state/<session_id>.json` —
   per-user, per-session, **transient/local, NEVER committed** (safe to delete).

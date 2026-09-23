@@ -45,6 +45,7 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 | `id` | `[CG#1]`, `[DG#1]`, … — contiguous within its own prefix, assigned once, never renumbered |
 | `claim` | the requirement premise under test — a `[BR#n]` on the BRD route, an `[AC#n]`/`[FR#n]`/`[US#n]` on the idea route — quoted or closely paraphrased |
 | `verdict` | exactly one of the six values in §3 |
+| `prior_verdict` | *(required where `verdict` is `SUPERSEDED`, omitted otherwise)* the verdict the finding carried at the moment it was superseded — one of §3's other five, never `SUPERSEDED`. Written by whichever run marks the finding `SUPERSEDED`, in the same write, since superseding overwrites `verdict` and this is the only place the verdict survives. It is history, not a second verdict: `verdict` reads `SUPERSEDED` and is the one every consumer reads |
 | `evidence` | a `file:line` list, or — when the verdict is `NOT-PROVABLE` or the finding asserts an absence — an explicit statement of why no evidence exists rather than an empty field |
 | `control` | *(required wherever the finding asserts an absence — the second half of `evidence`'s own disjunction, not the whole of it: a `NOT-PROVABLE` finding that asserts no absence owes `evidence` and no control; omitted otherwise)* the **positive control** on the search that reached that absence: the same method, run against a case of the same kind known to be present in this same source, and what it returned (§2.2) |
 | `commit` | the pinned commit SHA the finding was checked against (`baseline-integrity`, §4); **absent on a `[DG#n]` of class 1, 2 or 3**, which is settled from the frame set and the requirement text alone (§6) and is pinned to no commit. A class-4 `[DG#n]` carries the cited `[CG#n]`'s own |
@@ -59,8 +60,16 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 what the four classes mean and why the fourth requires a citation; this table fixes only the field
 names, where they apply, and when `cites` is required.
 
-**`commit`'s applicability is not universal — nor is `class`'s, `cites`'s, `prerequisite`'s or
-`control`'s — and saying so is load-bearing.**
+**`prior_verdict` is what lets a reader compare a superseded finding with what replaced it.** A
+decision taken on a finding records the finding's id, not its verdict, so once `verdict` reads
+`SUPERSEDED` the verdict the decision was taken on is gone unless the record keeps it — and
+`product-workflows:brd-interview`'s *A decision the re-grounding moved* test needs exactly that
+comparison to tell a re-grounding that came back as it stood from one that moved the ground. **A
+finding superseded before this field existed carries none**; a reader treats its prior verdict as
+unknown, never as matching, and never infers it from the finding's `notes`.
+
+**`commit`'s applicability is not universal — nor is `class`'s, `cites`'s, `prerequisite`'s,
+`prior_verdict`'s or `control`'s — and saying so is load-bearing.**
 §8's verification is fail-closed on exactly this: `product-workflows:grounding-verifier`'s Inputs table puts
 a `[DG#n]` in the design-only row **only** where its `class` positively reads 1, 2 or 3, and demands
 `repo_path` and `commit` everywhere else. A design-only finding that carried a `commit` anyway would
@@ -108,13 +117,15 @@ So, canonically:
   verdicts at once and a reader can quote whichever half suits. Where a re-derivation moved the
   verdict, §8's `contradict` handling has already replaced `verdict` and left a one-line note of what
   it was — so a correct record carries exactly one verdict plus its history, never a live
-  disagreement. This is the same failure §2.1 exists to prevent, met at the field set rather than at
+  disagreement. **`prior_verdict` is a §2 field and not an exception to this**: it appears only
+  beside `verdict: SUPERSEDED`, so the block's one live verdict is still `SUPERSEDED`, and what it
+  keeps is the history a supersession would otherwise erase. This is the same failure §2.1 exists to prevent, met at the field set rather than at
   the bytes: a writer free to add a field produces an artifact whose readers disagree about which
   value is the finding's.
 - **A field that does not apply is omitted, never written empty** — `class` and `cites` on a
   `[CG#n]`, `cites` on a `[DG#n]` of class 1, 2 or 3, `commit` on a `[DG#n]` of class 1, 2 or 3,
-  `prerequisite` on any finding whose `horizon` is `current`, and `control` on a finding that
-  asserts no absence. On a finding record, an empty value asserts that the field applies and its
+  `prerequisite` on any finding whose `horizon` is `current`, `prior_verdict` on any finding whose
+  `verdict` is not `SUPERSEDED`, and `control` on a finding that asserts no absence. On a finding record, an empty value asserts that the field applies and its
   value is unknown, which is a different claim from the field not applying — a reading this section
   fixes for finding records only, not for a register that borrows a field name and gives its own
   empty value a meaning of its own. §2's `cites` row said "empty otherwise" until this section was
@@ -287,7 +298,7 @@ Exactly six:
 | `REWRITTEN` | The premise is materially wrong; the finding replaces it |
 | `FALSE-FRIEND` | A name, field or constant appears to support the premise and does not |
 | `NOT-PROVABLE` | Cannot be established from the repository — a valid, final answer |
-| `SUPERSEDED` | Replaced by a later finding; the ID is retained |
+| `SUPERSEDED` | Replaced by a later finding; the ID is retained, and the verdict it carried is kept as `prior_verdict` (§2) |
 
 ### `NOT-PROVABLE` is a destination, not a defeat
 
@@ -475,7 +486,7 @@ exporting frames and dropping the folder in, and it is exactly what `/frames` ex
 requirement above is strict *and*, until that command, had no recovery but hand-authoring an index.
 
 **Writing an index is not consuming one, on either route.** Neither writer dispatches
-`design-grounder`, produces a `[DG#n]`, consults an index, or reaches a verifier — `/idea` Phase 4.5
+`design-grounder`, produces a `[DG#n]`, consults an index as evidence, or reaches a verifier — `/idea` Phase 4.5
 stops at the index exactly as `/frames` does. The index makes the frame set *readable* — it does not
 make anything read it. **`/frames` is not that capability and must not be read as it having
 arrived**: it describes frames so that a set *can* be read, and reconciles nothing against any

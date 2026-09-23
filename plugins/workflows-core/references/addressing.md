@@ -59,16 +59,25 @@ touches no filesystem — a pure string test, safe to call before `$SPECS_PATH` 
 **Reserved subdirectory names are not folder kinds.** A folder under `specifications/` may hold
 fixed-name subdirectories whose names carry no key and that are never resolved by one — `brd/`,
 `grounding/`, `interview/`, `dev-workflows/`, `design/` (exported frame sets, one per immediate subdirectory, each
-indexed per `references/grounding-format.md` §6.1–§6.2), and `attachments/` (the text and markdown sources a run copied
-into the folder — `product-workflows:idea-format`, *Vendored sources*). None matches §3's `*-<KEY>-*` glob,
+indexed per `references/grounding-format.md` §6.1–§6.2), `attachments/` (the text and markdown sources a run copied
+into the folder — `product-workflows:idea-format`, *Vendored sources*), `revisions/` (a document's archived
+prior revisions — `/product-workflows:update-prd` for a PRD, `product-workflows:proposal-format` for a proposal),
+`bundle-<YYYYMMDD>/` (a customer package — `product-workflows:bundle-packaging`), `customer-sent-<YYYYMMDD>/`
+(the material a `--sent` run records — `/product-workflows:brd-reconcile`), and `Doc screenshots/` (images `/docs-workflows:document`
+stages for a page — that command's own Phase 5.6). None matches §3's `*-<KEY>-*` glob,
 so resolution passes over them without a rule of its own, and none carries a `brd-link.md`, so
 `/brd-split`'s positive test excludes them by construction rather than by an exclusion list.
 
 **Each reserved name is defined once, elsewhere, and cited here.** This list is the register of names
-resolution must pass over; it is not where any of them acquires its meaning. `design/` is
+resolution must pass over; it is not where any of them acquires its meaning. `brd/` is
+`product-workflows:brd-format`'s (§1.1 for its `source/` capture, §2 for the inventory inside it),
+`grounding/` is `references/grounding-format.md`'s (§2 for the finding files it holds, which
+`/product-workflows:prd-ground` Phase 8 writes), `interview/` is `/product-workflows:brd-interview`'s
+(Phase 9, which writes each round record, with `product-workflows:interview-tagging` §5 owning what a
+round is), `dev-workflows/` is `references/specs-repo-git.md` §2.1's, `design/` is
 `grounding-format.md` §6.1's — with §6.2 owning the index every set inside it must carry —
-`attachments/` is `idea-format.md`'s, and a name added here without an
-authority to cite is a name two files will disagree about.
+`attachments/` is `idea-format.md`'s, and each other name is the owner cited beside it in the list
+above; a name added here without an authority to cite is a name two files will disagree about.
 
 **A user whose own key begins with a kind token gets `PRD-PRD-1234-…`.** That is a documented
 consequence of a documented convention, not a defect, and it is not hypothetical: a key like
@@ -92,6 +101,16 @@ the kind is frequently what decides the run's mode.
    question resolution exists to ask, and re-deriving an answer they supplied would only introduce a way
    to disagree with them. The one check a path still needs is the kind: a `<KIND>` argument that
    disagrees with the folder's own `kind:` is a stop naming both.
+
+   **A path to a folder with no carrier** — one written before §4's rule, whose artifacts assert no
+   `kind:` or `key:` (§5) — returns `kind` and `key` both **empty**: this branch searched for no key
+   that could stand in, as §5's does, and none is parsed out of the name. The `<KIND>` check above
+   refuses no such folder, since nothing is asserted to disagree. The caller places it by §4.1's
+   positive evidence as it would any unprefixed folder, and a caller that needs the key — for an
+   artifact's `key:`, a branch, a commit subject or a stop's text — stops, naming the folder and the
+   two ways on: give it a carrier (§5), or, where its name is still unprefixed, address it by its
+   `<KEY>` instead, which §5's fallback resolves with that key — a prefixed name with no carrier is
+   found by no key at all (§5).
 
 2. **Anything else → the key branch.** `key-valid <ARG>`; on `invalid`, return `status: invalid`. On
    `valid`, `resolve-key <ARG> [<KIND>]` and return `form: key`.
@@ -132,8 +151,8 @@ the kind is frequently what decides the run's mode.
 ```yaml
 status:  found | absent | ambiguous | invalid
 path:    <absolute path of the resolved folder>   # found only
-kind:    brd | prd | epic                         # found only
-key:     <the folder's asserted key>              # found only; read, never parsed (§4)
+kind:    brd | prd | epic                         # found only; empty on a folder with no carrier (§5)
+key:     <the folder's asserted key>              # found only; read, never parsed (§4) — on a folder with no carrier, the key searched for (§5), or empty on a path to one (§3 step 1)
 form:    key | path                               # which form the caller supplied
 legacy:  true | false                             # true when §5's fallback resolved it
 matches: [ <absolute path>, … ]                   # ambiguous only
@@ -163,7 +182,8 @@ identifier defeats. Reading the field turns the guess into an assertion.
 written down as one there. The rule is:
 
 > The command that creates a folder writes a keyed artifact into it in the same act, so a folder is
-> never keyless — not even between its creation and its first document. A resolver reads `kind:` and
+> never keyless — not even between its creation and its first document. (A folder written before
+> this rule can be; §5 says what resolving one returns.) A resolver reads `kind:` and
 > `key:` off the folder's **carrier**, found in this order:
 >
 > 1. **The folder's top level.** Take its files in byte-wise order of name, and the carrier is the
@@ -234,7 +254,23 @@ names, which §3 resolves without the fallback and so without the flag.
    legacy BRD-route slice, whose carrier asserts `brd`.
 
 A folder none of the three places is never guessed at: the caller stops, naming the folder and what
-it carries.
+it carries — and, where what it carries is an `idea.md` and no `prd.md`, naming
+`/product-workflows:create-prd <KEY>` too, the run whose `prd.md` places it by rule 3 when the caller
+is re-run (on an `@<path>`, which returns no key for such a folder, §3 step 1 says how the operator
+supplies it). That command is named by a caller for which it is a way on: one working at the PRD
+level, which the placing lets re-run, or a BRD-route command refusing the folder, which names it as
+the idea route's next step (`/product-workflows:brd-interview`'s and `/product-workflows:brd-split`'s
+no-parent stops and `/product-workflows:prd-ground`'s two no-link stops in its Phase 0 step 6 among them). `/product-workflows:brd-intake` names no command for the folder it refuses, and its
+own stop says why. **That stop binds a caller that needs the folder placed, and not every caller does:**
+one that refuses only the levels it does not work at tests for those and proceeds on the rest, and
+where what it writes asserts `kind: prd` beside the key, that file places the folder from then on.
+`/product-workflows:create-prd` and `/product-workflows:idea` are two such callers, each stating its
+own test. On a folder with no prefix, `/create-prd` refuses only what rules 1 and 2 place and writes
+`prd.md`, and `/idea` refuses only what rules 1 and 2 place or a `brd-link.md` naming a `parent:`
+marks as a slice, and writes `idea.md`. A legacy folder holding an `idea.md` and nothing any rule above
+reads — where the idea route handed off before the prefixes, an `idea.md` then asserting no `kind:`
+or `key:` (§5) — is the ordinary case: it is placed by none of the three until one of them writes
+its file into it, and by rule 3 from then on.
 
 **What a caller does at each level is its own, and so is its refusal of a level it does not work
 at.** Where a refusal names the slices under a container, it finds them by
@@ -244,9 +280,32 @@ a `brd-link.md` whose `parent:` names the container — and never by a name matc
 ## 5. The legacy layout
 
 A specs repo written before the kind prefixes existed holds `specifications/<KEY>-<slug>/`, with a BRD
-slice one level inside its parent. `resolve-key` therefore falls back to the **unprefixed** form —
-matching `<KEY>{-|_}<slug>/` at either level, tolerating a human-adjusted slug and a stray extra `-`/`_`
+slice, or a per-Epic subfolder, one level inside its parent. `resolve-key` therefore falls back to the **unprefixed** form —
+matching `<KEY>{-|_}<slug>/` directly under `specifications/` first and one level inside a folder there
+only where the top level kept no candidate, tolerating a human-adjusted slug and a stray extra `-`/`_`
 immediately after the key, exactly as the pre-prefix resolution did.
+
+**It matches on the folder name, and §3 step 2's filter drops only a candidate that asserts a
+different key.** The pre-prefix resolution read no frontmatter at all — `brd-addressing.md` §2 and
+each command's own feature-folder step matched the directory name alone
+(`git show 8e2ec7b9^:plugins/dev-workflows/references/brd-addressing.md`) — and the artifacts a
+pre-prefix folder holds usually assert nothing: `idea.md` gained `kind:` and `key:` on 2026-09-01
+(7c1e19f7), a day after the prefixes (8e2ec7b9), and a PRD still named `<KEY>_<slug>.md`, or a
+`brd-link.md` of that time, carries no `key:` either. So a fallback candidate is kept where §4 finds
+it a carrier asserting `key: <KEY>` (and, where `<KIND>` was supplied, that kind), **or where §4
+finds it no carrier at all**; one whose carrier
+asserts another key is dropped, exactly as §3 step 2 drops it. Filtering out a folder that asserts
+nothing would make unaddressable every folder this section exists to reach.
+
+**What the record carries for a folder with no carrier.** `key` is the `<KEY>` the caller searched
+for — a key the run already holds, which the name match tested the folder against, never one parsed
+out of the name — and `kind` is empty. (An `@<path>` to such a folder searched for nothing, so both
+are empty there; §3 step 1 says what its caller does.) The caller places the folder by §4.1's positive evidence, never
+by a kind nothing asserted, and §4's hard stop on a key that disagrees with its folder name does not
+fire, because nothing is asserted to disagree. A `<KIND>` argument refuses no such folder, for the
+same reason. Once a command writes a keyed artifact into it — `/product-workflows:create-prd` writing
+`prd.md` into a legacy folder holding only an `idea.md` is the ordinary case — that artifact is its
+carrier from then on.
 
 **The fallback is reached only after the prefixed glob has already missed**, so a prefixed tree resolves
 exactly as it would if this section did not exist. A run that resolves through it sets `legacy: true`
@@ -254,7 +313,14 @@ and reports it **once per run** as deprecated. `@<path>` bypasses it along with 
 
 **No migration command ships.** A user's specs repo is theirs, it is a git repository they review, and a
 renaming script that cannot be tested against their tree is a liability. Renaming a folder is one
-`git mv`, and the fallback above means they need never do it.
+`git mv`, and the fallback above means they need never do it — **but a folder with no carrier is
+renamed only together with the edit that gives it one**, in the same commit: add `key: <KEY>` and
+its folder kind to the artifact §4 will read as its carrier — `prd.md`, or `idea.md` where the folder
+holds no `prd.md` (`kind: prd`), `epic.md` (`kind: epic`), a slice's `brd-link.md` or a root's
+`brd/brd-inventory.md` (`kind: brd`). Keeping a candidate that asserts nothing is this fallback's
+exception alone: renamed without a carrier, the folder is found by §3's glob and dropped by its step
+2 filter, which keeps only a folder asserting the key, while this fallback no longer matches its name
+— so no key resolves it, and only an `@<path>` reaches it.
 
 **The fallback covers the folder name and nothing inside it, which is a narrowing of what this
 paragraph used to claim.** It said the fallback meant a user need never rename, unqualified — and that
@@ -262,7 +328,14 @@ covered filenames it never reached. Every command resolves an artifact by its **
 carries a fallback of its own, so a folder written before the artifact filenames lost their keys still
 needs its `<KEY>_<slug>.md` renamed to `prd.md` and its `<KEY>_ARD.md` to `ard.md`. Two more `git mv`s,
 and unlike the folder nothing resolves them for you: a command meeting the old filename reports the
-artifact absent and stops on that, with a remedy written for a folder that never had one. **The
+artifact absent and stops on that, with a remedy written for a folder that never had one. **Each
+renamed file also takes the `kind:` and `key:` its format now carries** — `kind: prd` and
+`key: <KEY>` on `prd.md`, `kind: ard` and the key on `ard.md` — because those fields arrived in the
+same commit as the keyless filenames (1da74804), so no file written under the old names carries
+them. A `prd.md` asserting no `kind:` is no carrier and no PRD: §4 passes over it, so a folder holding
+nothing else keyed is placed by nothing in §4.1, and every command that gates on `prd.md`'s own
+`kind: prd` — `/product-workflows:epics`, `/product-workflows:prd-ground`,
+`/product-workflows:brd-split` — reads the folder as holding no PRD. **The
 unqualified claim was load-bearing in the wrong direction** — a resolver for the legacy artifact names
 is derivable from it, and was derived in full, before anyone measured how many trees it would serve.
 State the boundary here so the derivation stops at this paragraph.

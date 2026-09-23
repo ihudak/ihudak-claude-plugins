@@ -10,8 +10,9 @@ Read-only cross-artifact reviewer invoked from `/ready` Phase 4, **after** the p
 judges the quality of **one** artifact, `readiness-reviewer` is the only reviewer that **synthesises a
 verdict across** artifacts. Several of those reviewers do open a companion artifact — `design-reviewer`
 the source `specification.md` for traceability, `ard-reviewer` an inherited PRD-level ARD for
-non-contradiction, `epic-reviewer` the PRD inventory and the sibling Epics for coverage — so *in
-isolation*, which this sentence used to say, was false of three of the five. The distinction is the
+non-contradiction, `spec-reviewer` the `applicable_ard` invariants for ARD conformance, `epic-reviewer`
+the PRD inventory and the sibling Epics for coverage — so *in isolation*, which this sentence used to
+say, was false of four of the five. The distinction is the
 verdict, not the reading list; `dev-workflows/docs/commands/ready.md`'s Phase 4 paragraph states it the
 same way. What is joint here: it checks whether the PRD/Epic/ARD/spec/design artifacts, taken
 together, actually justify the phase the caller derived from them and the next transition — against the

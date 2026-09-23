@@ -65,7 +65,8 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
    slices — and one it places at no level is not guessed at. Stop on either here, before Phase 1 asks
    anything, with the `key dir not found` rule in `workflows-core:escalation-rules`
    (`["Re-enter key", "Cancel"]`), naming the folder and what it carries and, for a container, each
-   slice under it — found by the positive test §4.1 names — as an address to re-enter.
+   slice under it — found by the positive test §4.1 names — as an address to re-enter — and, for a folder §4.1 places at no level that holds an `idea.md` and no
+   `prd.md`, `/product-workflows:create-prd <KEY>`, whose `prd.md` places it (`workflows-core:addressing` §4.1).
 
 2. **Resolve the docs repo (cwd-preferred).** This command writes feature documentation into a product docs repository; running it outside such a repository is almost always a mistake. The **docs signals** checked throughout this step are:
    - `package.json` with any script matching `*:start`, `*:build`, `*:lint`, `docs:*`, or
@@ -74,7 +75,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
    Resolve `docs_repo_path` in this order:
 
-   - **(a) cwd with signals (preserves today's behavior).** Run `git rev-parse --show-toplevel` from cwd to resolve the git root. If it succeeds **and** ≥ 1 docs signal is present there → `docs_repo_path` = that git root and proceed silently. This keeps every downstream phase that assumes cwd correct.
+   - **(a) cwd with signals (the cwd-preferred rung).** Run `git rev-parse --show-toplevel` from cwd to resolve the git root. If it succeeds **and** ≥ 1 docs signal is present there → `docs_repo_path` = that git root and proceed silently. This keeps every downstream phase that assumes cwd correct.
    - **(a.5) `$DOCS_PATH` hint.** Else, resolve `${DOCS_PATH:-/workspace/docs}`. If it exists and carries **≥ 1 docs signal** (the same signal set as (a)) **or** an in-repo `.dev-workflows/docs-profile.yml`, set `docs_repo_path` = that path and proceed. In an AI container the docs clone is mounted here, so this is the common fast path when cwd carries no docs signals. The check is signal-based, never keyed to a particular repository's name or file layout.
    - **(b) Search for a docs repo.** Else, look under `${REPOS_PATH:-/workspace}` (single dir or colon-separated list) for a git root that carries an in-repo `.dev-workflows/docs-profile.yml` **or** ≥ 1 docs signal from (a)'s set. If exactly one matches → `docs_repo_path` = that path. If several match, list them and ask which to use (`choices` array of 2–4, a profiled repo recommended first; where more repos match than fit, list them all as prose and let the array carry the three likeliest plus one option naming the rest, per `workflows-core:next-phase-offer`'s overflow rule). Discovery is by signal, never by repository name — no repo name is special-cased.
    - **(c) Ask.** Else, ask:
@@ -100,6 +101,28 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
    - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/docs-profile` flow against `docs_repo_resolved` (Skill tool, `skill: "docs-workflows:docs-profile"`, with `docs_repo_resolved --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to return. Pass the directory step 2's rung answered with, not its top level: profiling's Phase 0 step 3 tests the directory it is handed and that directory's top level for a docs signal, so handed the top level of a monorepo whose site sits in `docs/` it tests one signal-less directory twice and asks "Profile it anyway?" about a repository this command has just found by its signal. It resolves the same top level (its Phase 0 step 2) and, finding no profile there — (a) has just looked — bootstraps one: it cuts its branch, writes `<docs_repo_path>/.dev-workflows/docs-profile.yml`, commits it, and hands back that branch as `profile_branch` and that commit as `profile_commit` (its Phase 6). Load the file, and record `profile_source: generated` with both values — Phase 6.2 renames `profile_branch` and Phase 8.5 squashes onto `profile_commit`. It also hands back two lists, `fixed_port_servers` and `server_command_defects`, the lines its standalone report would carry: print both to the operator now, as prose under a `Profile notes:` line, before the run goes on, and carry them into Phase 9's `### Assumptions & limitations`. Each is `none` where no server qualifies, and then one line says so. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /docs-workflows:docs-profile or switch to a profiled repo.` Where profiling stops on a named error of its own instead — `DOCS_PROFILE_BOOTSTRAP_BRANCH_EXISTS`, which it raises on a bootstrap branch an earlier run left behind — stop with that error as it stands, since it names what to fix.
 
      **Where profiling hands back no commit** — it made none, as its refresh does when answered "Keep existing, write nothing" or when it finds nothing to change — it cut no branch either. (a) and profiling look for the profile in the same place, so profiling starts from none here and that refresh does not arise; should profiling hand back no commit anyway and leave a profile at `<docs_repo_path>/.dev-workflows/docs-profile.yml`, load it and record `profile_source: in-repo`, never `generated`. The two lists above are handed back here too, and shown the same way, since the profile this run loads is the final one either way. The in-repo base guard below then tests whether that profile is on the base, and Phase 6.2 takes its normal case: its inline-profiling case renames `profile_branch`, a branch this run did not cut, and Phase 8.5 has no `profile_commit` to squash onto.
+
+     **A stop after inline profiling committed names what it leaves behind.** Where profiling handed
+     back a `profile_commit`, the docs repository is now on `profile_branch`, holding one commit — the
+     generated profile — that is on no other branch and pushed nowhere, and nothing in this command
+     switches back, merges, pushes or deletes it before Phase 6.2 renames that branch into the run's
+     docs branch. So **every stop and every Cancel from here until Phase 6.2's rename** — step 7's
+     `TOOLCHAIN_UNAVAILABLE`, a Cancel at any Phase 1, 1.5 or 2 prompt (Phase 1.5's relaunch
+     included, which ends this run), every stop in Phases 3 to 6.1, and a Cancel at Phase 6.2's
+     step 2 clean-tree or step 4 branch-name prompt, both of which come before step 5 renames the
+     branch — ends, after its own message,
+     with this notice in the family's four-part form (`workflows-core:specs-repo-git` §5), as the
+     run's last printed output. `<base>` is resolved at the stop exactly as the in-repo guard below
+     resolves it — the branch Phase 6.2 would have cut from, and the one profiling cut from:
+
+     ```
+     Docs repo left on a branch: <docs_repo_path> is on <profile_branch>, whose commit <profile_commit> (the generated .dev-workflows/docs-profile.yml) is on no other branch and pushed nowhere.
+     Not done: this run did not switch back to <base>, and did not merge, push or delete <profile_branch>.
+     To resolve: git -C <docs_repo_path> switch <base>   — then keep the profile by merging <profile_branch> into <base> (pushing it for review keeps the branch, and the next inline-profiling run stops on it until it is merged or deleted), or drop it with: git -C <docs_repo_path> branch -D <profile_branch>
+     If ignored: the next /document run that profiles this repository inline stops with DOCS_PROFILE_BOOTSTRAP_BRANCH_EXISTS until <profile_branch> is gone.
+     ```
+
+     A run whose profiling handed back no commit cut no branch, and prints no such notice.
 
    Hold the loaded profile for later phases.
 
@@ -151,7 +174,8 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      **verbatim** (the "Choice lists are presented verbatim" rule in
      `workflows-core:escalation-rules` binds this prompt — `(Recommended)` stays
      on "Cancel"). On "Cancel", stop with the named error
-     `TOOLCHAIN_UNAVAILABLE: <comma-separated missing tools> not available in this environment.` On
+     `TOOLCHAIN_UNAVAILABLE: <comma-separated missing tools> not available in this environment.` — followed,
+     where step 4(c) committed a generated profile, by that step's left-on-a-branch notice. On
      "Continue anyway", pre-seed the affected gates' rows per `toolchain-preflight.md` §5 with the
      user's choice quoted verbatim in `user_decision`, and proceed.
 
@@ -183,6 +207,8 @@ All discovery defaults to `/workspace` (`${REPOS_PATH:-/workspace}`); on a host,
 
 Group questions where possible; use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
 
+Every **Cancel** below stops the run; where Phase 0 step 4(c) committed a generated profile, it ends with that step's left-on-a-branch notice.
+
 Ask about:
 
 - **Output filename / sub-path under the resolved `docs_repo_path`** (Phase 0) (default: `<KEY>-<slug>.md`; the `doc-location-finder` in Phase 5.5 may override this per target).
@@ -206,7 +232,7 @@ Ask about:
   ```bash
   the resolved PRD folder
   ```
-  - **Found** → record the matched folder as `<project_dir>` (the project-folder root — reused as an image source in Phase 5.6), and set `<screenshot_staging_dir>` to that project folder's screenshot subfolder: prefer an existing `Doc screenshots/` or `Attachments/` subdirectory; otherwise `Doc screenshots/` (created on first write).
+  - **Found** → record the matched folder as `<project_dir>` (the project-folder root — reused as an image source in Phase 5.6), and set `<screenshot_staging_dir>` to that project folder's screenshot subfolder, `Doc screenshots/` (created on first write). An existing `Attachments/` subdirectory is not a candidate: the folder's `attachments/` holds only the text and markdown sources a run vendored (`workflows-core:addressing` §2, *Reserved subdirectory names*), and on a case-insensitive filesystem the two names are one directory.
   - **Not found** (e.g. a ticket whose project has no project folder) → `<project_dir>` is null (Phase 5.6's project-folder scan then contributes nothing); ask:
     ```
     choices: ["Enter an absolute staging directory (you'll be prompted)", "Skip — only needed if the docs repo turns out to be cdn_upload_required", "Cancel"]
@@ -253,7 +279,7 @@ Each subagent dispatch below cites which chain it uses (the §9 role→chain map
   ```
   choices: ["Relaunch /docs-workflows:document under Opus — I'll restart (Recommended)", "Proceed on <current_model>", "Cancel"]
   ```
-  Otherwise proceed without prompting.
+  Otherwise proceed without prompting. The relaunch and **Cancel** both end this run, and where Phase 0 step 4(c) committed a generated profile, each ends with that step's left-on-a-branch notice.
 - **`current_model` is NOT on the §2 chain and `opus_available: false`** → `planning_model`, `review_model`, and the **doc-writer** all fall to the Sonnet floor; record the degradation in `notes` and the Phase 9 report; proceed.
 
 ---
@@ -277,7 +303,7 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 - **Approve** → proceed to Phase 3
 - **Revise** → ask what to change, update, re-show, re-ask
-- **Cancel** → stop and summarise what was planned
+- **Cancel** → stop and summarise what was planned — and, where Phase 0 step 4(c) committed a generated profile, print that step's left-on-a-branch notice last
 
 ---
 
@@ -345,7 +371,7 @@ a tracker export that no command produces any more, and the tree stops at the Ep
 change-scoped phases below consume `focus_items` in place of the full hierarchy — Phase 4 (repo
 resolution), Phase 5 (diff summarisation) and Phase 5.7 (doc planning) — while every phase that
 describes the PRD as a whole keeps the full handoff. When `focus_key`
-is null, every phase uses the full hierarchy exactly as today.
+is null, every phase uses the full hierarchy, as it does on a run with no Epic address.
 
 ---
 
@@ -472,13 +498,13 @@ The confirmed target list (from any of the three paths above) is the **authorita
 
 Build this list only when `new_images_wanted` is `true` (Phase 1); when `false`, the add list is empty and contributes nothing to the merged prompt below — skip straight to the existing-image list. When `true`, build a **merged, deduped candidate list** from four sources (by this point Phase 0's `specs_dir`, the Phase 1 `<project_dir>`, the Phase 3 the folder read `attachments[]`, and the Phase 4 resolved repos are all in hand):
 
-1. **Recursive scan of `<specs_dir>`** — when Phase 0 resolved a `specs_dir` (not `none`), recursively scan it for image files across the spec root, `epics/`, and `spec/`:
+1. **Recursive scan of `<specs_dir>`** — when Phase 0 resolved a `specs_dir` (not `none`), recursively scan it for image files — its root and every folder below it, each `EPIC-*/` subfolder included:
    ```bash
-   find "<specs_dir>" \( -path "*/epics/*" -o -path "*/spec/*" -o -path "<specs_dir>/*" \) \
+   find "<specs_dir>" \
      -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.gif" -o -iname "*.svg" -o -iname "*.webp" \) 2>/dev/null
    ```
    When `specs_dir` is `none`, this source contributes nothing.
-2. **PRD-folder attachments** — the image paths enumerated under the resolved PRD folder's `attachments/` directory, where one exists. May be empty.
+2. **PRD-folder attachments** — the image paths enumerated under the resolved PRD folder's `attachments/` directory, where one exists. May be empty. This source reads an image already there and never moves it; this run never places one there (see *add a new image* below).
 3. **Recursive scan of `<project_dir>`** — when Phase 1 resolved a `<project_dir>` (the folder this run resolved), recursively scan it for image files:
    ```bash
    find "<project_dir>" -type f \
@@ -535,7 +561,7 @@ When both lists are empty, skip presenting this prompt — there is nothing to s
 
 For any **manual** free-text paths, accept any absolute filesystem path (`/tmp`, home, the docs repo); accept multiple (one per line or space-separated). Validate each path exists and has an image extension (`.png|.jpg|.jpeg|.gif|.svg|.webp`); drop and report any that don't.
 
-When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds — including a replacement source for an accepted existing-image entry), place it in the resolved PRD folder's `attachments/` directory, beside the images source 2 enumerates. There is one home for a feature's images now, and it is the folder the run already resolved.
+When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds — including a replacement source for an accepted existing-image entry), place it in the resolved PRD folder's `Doc screenshots/` subfolder — the one Phase 1 defaults `<screenshot_staging_dir>` to — where source 3's scan of `<project_dir>` finds it. **Never in the folder's `attachments/`**, which holds only the text and markdown sources a run vendored (`workflows-core:addressing` §2, *Reserved subdirectory names*); an image found there is still read, as source 2, and left where it is. There is one home for a feature's new images, and it is a subfolder of the folder the run already resolved.
 
 The selected add-list paths populate the existing **`screenshots[]`** passed to `doc-planner` in Phase 5.7 — the downstream placement machinery (per-screenshot `dest`/`staging`/`upload_note`, `image_policy`) is unchanged. An accepted item — from either list — carries into Phase 6.1 for its CDN URL. The outcome is recorded as `existing_image_decisions[]` (schema above; matches `doc-writer`'s input contract) and carried in the Phase 6.3 handoff file alongside `cdn_urls`.
 
@@ -677,6 +703,7 @@ Every git call in this phase, and in Phase 6.3's commit and Phase 8.5, runs as `
    ```
    choices: ["Stash changes and continue (Recommended)", "Proceed anyway — pre-existing changes will appear in the diff", "Cancel"]
    ```
+   **Cancel** stops the run; where Phase 0 step 4(c) committed a generated profile, it ends with that step's left-on-a-branch notice.
 
 3. **Derive branch name from repo conventions.** In priority order, look at the repo root — `docs_repo_path` — for `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`. Grep each for a branch-naming section (case-insensitive, patterns like "Branch name", "Branch naming", "naming your branch"). If a pattern like `<user>/<KEY>-<slug>` or `<prefix>/<name>` is documented, derive the branch name by filling placeholders with known values (key from Phase 0, slug from the feature summary, and any **identity** placeholder (`<user>`, `<your-name-or-initials>`, `<initials>`, …) from the §2 ladder in `Skill(skill: "workflows-core:reference", args: "branch-naming")` — `$GIT_USER_INITIALS` → `git -C <docs_repo_path> config user.initials` → inference from existing branches → its §2.5 prompt). Classify the pattern's segments per §1.2 and never add an identity segment it does not ask for. If multiple patterns are documented, offer them all to the user. When no pattern is documented (§1.4), take the whole prefix from the same ladder, whose fallback for this command is `docs/`.
 
@@ -684,6 +711,7 @@ Every git call in this phase, and in Phase 6.3's commit and Phase 8.5, runs as `
    ```
    choices: ["Use proposed name: <name>", "Edit name (you'll be prompted)", "Cancel"]
    ```
+   **Cancel** stops the run; where Phase 0 step 4(c) committed a generated profile, it ends with that step's left-on-a-branch notice.
    Fallback default when no convention is found: `<prefix>/<key>-<slug>`, where `<prefix>` comes from `workflows-core:branch-naming` §2 (fallback `docs/`).
 
 5. **Create or adopt the branch, and record handoff anchors.** Record `base_branch` = the base resolved in step 1 (the Phase 8.5 squash uses it).
@@ -1252,8 +1280,8 @@ follow-ups by invoking `Skill(skill: "workflows-core:reference", args: "followup
    §1–§3; dedupe per §5.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
 
-ADDITIVE — the follow-ups also remain in the Phase 9 report (today's
-behaviour). This phase NEVER fails the run, NEVER commits (still true — this
+ADDITIVE — the follow-ups also remain in the Phase 9 report, as they
+do without this phase. This phase NEVER fails the run, NEVER commits (still true — this
 phase only writes follow-up files; those writes are committed by the separate
 terminal `commit-artifacts` step, per
 `workflows-core:specs-repo-git` §4), and NEVER writes
@@ -1310,7 +1338,7 @@ name is ever written (§10 privacy).
 - ALWAYS run Phase 0 docs-repo detection; if 0 signals, require user confirmation before proceeding
 - NEVER call a forge's REST API directly over HTTPS, on any host. A keyed run has no forge URL to resolve in the first place: it passes `refs[]` only (Phase 4 step 6), and `diff-summarizer` takes a `refs` element's diff with pure local `git`. The one forge command this command names is the `gh pr create` Phase 8.5 offers the **user** for the run's own pull request, and `gh` wraps the API rather than calling it directly
 - NEVER write inside `_archive/` — that path is read-only by convention
-- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0). Outside the docs repository and its remote the run writes these and nothing else: the resolved PRD folder's two drafts, the `<KEY>-implementation-gaps.md` bug-report draft and `pr-draft.md`; screenshots staged under `<screenshot_staging_dir>`, and, for each one staged under `$SPECS_PATH`, one line in that repository's local exclude file (Phase 6.3); its session bookkeeping under `$SPECS_PATH`, with the commits, pushes and branch moves `specs-preflight` and `commit-artifacts` make there (`workflows-core:specs-repo-git`), and the session-cost checkpoint Phase 11 advances under `~/.claude/dev-workflows/cost-state/` (`workflows-core:cost-emission` §3); its temporary files, each made by `mktemp` — Phase 6.3's handoff file and Phase 7's claims file, removed at the top of Phase 8, and Phase 6.5's smoke logs, each removed as `render-verification.md` §2 step 5 removes one, save a log that step keeps because it could not show its server stopped, which the record naming it leaves in place; the refresh Phase 1 chose for the resolved code clones, in their own git state (Phase 5's `diff-summarizer`, its Refresh step); whatever the tools it invokes write of their own accord — the repository's own linter, build and server commands, which Phases 6.4 and 6.5 run, above all; and, only behind Phase 8.6's own consent, each accepted Agent 2 or Agent 3 proposal, written to the file that proposal names — which may lie outside every repository, `~/.claude/CLAUDE.md` or `~/.claude/memory/` among them.
+- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0). Outside the docs repository and its remote the run writes these and nothing else: the resolved PRD folder's two drafts, the `<KEY>-implementation-gaps.md` bug-report draft and `pr-draft.md`; a new image placed in the resolved PRD folder's `Doc screenshots/` (Phase 5.6), never its `attachments/`; screenshots staged under `<screenshot_staging_dir>`, and, for each one staged under `$SPECS_PATH`, one line in that repository's local exclude file (Phase 6.3); its session bookkeeping under `$SPECS_PATH`, with the commits, pushes and branch moves `specs-preflight` and `commit-artifacts` make there (`workflows-core:specs-repo-git`), and the session-cost checkpoint Phase 11 advances under `~/.claude/dev-workflows/cost-state/` (`workflows-core:cost-emission` §3); its temporary files, each made by `mktemp` — Phase 6.3's handoff file and Phase 7's claims file, removed at the top of Phase 8, and Phase 6.5's smoke logs, each removed as `render-verification.md` §2 step 5 removes one, save a log that step keeps because it could not show its server stopped, which the record naming it leaves in place; the refresh Phase 1 chose for the resolved code clones, in their own git state (Phase 5's `diff-summarizer`, its Refresh step); whatever the tools it invokes write of their own accord — the repository's own linter, build and server commands, which Phases 6.4 and 6.5 run, above all; and, only behind Phase 8.6's own consent, each accepted Agent 2 or Agent 3 proposal, written to the file that proposal names — which may lie outside every repository, `~/.claude/CLAUDE.md` or `~/.claude/memory/` among them.
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `docs-style-checker` (Phase 6.4) before `doc-reviewer` (Phase 7)
 - ALWAYS run the Phase 0 toolchain preflight (`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md`) after profile resolution and before Phase 1; it prompts only when a required tool is missing
@@ -1752,7 +1780,7 @@ directory, where it is not the specs repository; no user name is ever written (�
 ## Invariants (always enforced)
 
 - ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
-- ALWAYS run Phase 3.5 (style check) after editing — `docs-style-checker` falls back to `prose-style-checker`; never skip style on tool-absence judgement
+- ALWAYS run Phase 3.5 (style check) after editing — `docs-style-checker` always also runs `prose-style-checker` — complementary beside a repo linter that produced a result, FALLBACK where every detected rung failed, SOLE where the repository configures none (its step 5); never skip style on tool-absence judgement
 - NEVER create a git branch — this mode never branches. `specs-preflight` may switch `$SPECS_PATH` between branches that already exist, and only ones the plugin created (`workflows-core:specs-repo-git` §2.2); it creates none.
 - NEVER run tests (this command has no test phase)
 - NEVER invoke Opus (no planning agent, no review agent — docs edits are always SIMPLE or MODERATE)

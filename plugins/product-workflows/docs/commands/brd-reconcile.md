@@ -9,8 +9,13 @@ It is the command that closes the customer loop: the `[C]` questions `/brd-inter
 
 `/brd-reconcile` runs in the [pm](../roles-and-phases.md#pm--product-management) role,
 cost-attribution phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route. It
-is the route's last command: nothing in the route runs after it, though it may itself run again on
-a reopened decision or an unanswered question.
+is the route's last command in the ordinary case, but not the end of every slice's route: a reopened
+decision sends the slice back to [`/brd-interview`](brd-interview.md), a question still held for the
+customer to [`/brd-package`](brd-package.md), and a challenged code claim to
+[`/prd-ground --rebaseline`](prd-ground.md), each of which leads back here. It runs again on the
+same review itself in two cases: to finish a run cancelled or stopped partway, where the re-run skips
+what the earlier pass already froze and offers the rest, and to sweep a dependent it could only
+record, once that dependent has its own register on the default branch.
 
 ## Synopsis
 
@@ -18,11 +23,13 @@ a reopened decision or an unanswered question.
 /brd-reconcile <BRD-KEY> @<review-file> [--sent <path>…]
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the slice this review answers. `resolve-address` still searches both
-  levels a `<BRD-KEY>` can name, because a root has to resolve before it can be refused by name;
+- **`<BRD-KEY>`** (mandatory) — the slice this review answers. `resolve-address` searches every
+  level it bounds (three) — a root, a slice, an idea-route PRD folder or an Epic folder alike — because a root has to resolve before it can be refused by name;
   format-validated only, never checked against a tracker. **Only a slice is reconciled**: a resolved
-  root stops with `BRD_RECONCILE_ROOT_LEVEL`, naming [`/brd-split`](brd-split.md) as the way to
-  carve one.
+  root stops with `BRD_RECONCILE_ROOT_LEVEL`, naming [`/brd-split`](brd-split.md) as the way to carve one, and an idea-route PRD folder — a `PRD-`
+  folder no BRD carved, carrying no `brd-link.md` — stops with `BRD_RECONCILE_NOT_A_SLICE`, naming
+  [`/create-ard`](create-ard.md) and [`/specify`](specify.md) as the way that route goes on. An `EPIC-` folder stops with `BRD_RECONCILE_EPIC_LEVEL`, naming the slice the Epic sits in where it sits in one. `--sent`
+  does not lift it.
 - **`@<review-file>`** (mandatory) — the file the customer sent back, **at whatever path it arrived
   on**. It does not have to be inside `$SPECS_PATH`, and it is never searched for: the operator says
   which file is the review, because a file the command picked is a file nobody submitted as the
@@ -108,8 +115,11 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
 
 - **`<BRD-KEY>` and `@<review-file>`** — either absent or malformed stops the run with
   `BRD_RECONCILE_NEEDS_KEY` or `BRD_RECONCILE_NEEDS_REVIEW`.
-- **A slice, not a root.** The moment the folder resolves, its prefix is tested — `BRD-` is a root,
-  `PRD-` is a slice — never the folder's asserted `kind:`. A resolved root stops with
+- **A slice, not a root and not an idea-route PRD folder.** The moment the folder resolves, its
+  prefix is tested — `BRD-` is a root, `EPIC-` an Epic folder, `PRD-` a slice or an idea-route PRD folder — never the
+  folder's asserted `kind:`. An `EPIC-` folder stops with `BRD_RECONCILE_EPIC_LEVEL` before any gate runs: an Epic holds none of what this command reads, so the stop names `/brd-reconcile <SLICE-KEY>` on the slice above it where there is one, and no command where there is none. A `PRD-` folder carrying no `brd-link.md` was never carved from a BRD
+  and stops with `BRD_RECONCILE_NOT_A_SLICE` before any gate runs: it has no package, ledger or inventory for a returned review to land in, and `--sent` does not lift it, so the stop sends it on along the
+  idea route — `/create-ard` or `/specify`, or, where the folder holds a `prd.md`, `/update-prd` to revise that PRD from what the review says. A resolved root stops with
   `BRD_RECONCILE_ROOT_LEVEL`, naming `/brd-split <BRD-KEY> "<how to cut it>"` to carve a slice and
   then `/brd-reconcile <SLICE-KEY> @<review-file>` on it; where the root already carries
   reconciliation artifacts written under the earlier two-level model, the stop names those files and
@@ -150,14 +160,22 @@ Under the BRD folder:
 
 A **customer decision that overturns an earlier customer decision** is handled like any other
 overturn, not left to mint a rival answer: the earlier `[CD#n]` is `superseded` where the new answer
-replaces it, and `reopened` where it contradicts or constrains without replacing. Both are statuses
-the register already defines for `[VD#n]` *and* `[CD#n]`, and an incoming customer decision is one of
+replaces it — naming it in a closing `Superseded <YYYYMMDD>: by [CD#m]` paragraph, and moving nothing
+else — and `reopened` where it contradicts or constrains without replacing, which only a `decided`
+record can be. A record the will-change rule held `open` is superseded where an answer to its own
+question replaces it; one `open` for want of its reason is completed by such an answer instead,
+minting nothing; a `reopened` one is re-decided in place where the answered entry names it on a
+`- **Re-puts:**` line, and superseded where an answer to its question names it no such way. Where
+the answer bears on any of the three without replacing it, the record keeps its status and is named,
+with the constraining `[CD#n]`, under what still needs a human. `superseded` and `reopened` are
+both statuses the register already defines for `[VD#n]` *and* `[CD#n]`, and an incoming customer decision is one of
 the two causes that may reopen anything. The case this exists for is the corrected resend the
 canonicalisation step calls ordinary — without it, two `decided` answers to one question sit in the
 register with nothing to adjudicate between them.
 
-And it updates, in place: `decisions.md` (the new `[CD#n]`, the superseded `[AS#n]`, the reopened
-`[VD#n]` — created first, as its header line alone, where a `--sent` run finds none), the `[C]`
+And it updates, in place: `decisions.md` (the new `[CD#n]`, the superseded `[AS#n]` and `[CD#n]`,
+each with its closing `Superseded` paragraph, the reopened `[VD#n]` and `[CD#n]`, the `[CD#n]`
+re-decided in place — created first, as its header line alone, where a `--sent` run finds none), the `[C]`
 question set where one is on file — a slice never interviewed holds none, nor any round record —
 `coverage-ledger.md`, the defect log — **the parent's**, when the
 run stands on a slice — every dated artifact it banners, every dependent BRD's register the
@@ -216,7 +234,8 @@ unmatched row can be told apart from a question set nobody passed.
 
 - **Phase 0 — the root refusal, tested the moment the folder resolves.** A resolved `BRD-` root
   stops with `BRD_RECONCILE_ROOT_LEVEL` before any other gate runs: reconciling happens at the slice
-  and nowhere else.
+  and nowhere else. A resolved `EPIC-` folder stops with `BRD_RECONCILE_EPIC_LEVEL` at the same moment. An idea-route PRD folder stops next, with `BRD_RECONCILE_NOT_A_SLICE`, before any
+  other gate runs.
 - **Phase 0 — the package merged, or `--sent` supplying it.** Reconciling against a package that exists only in a working tree
   would freeze customer authority against a document nobody can produce later. `--sent` meets that same requirement from the other direction, by committing the material the customer was actually sent into the folder beside the review; it is refused where a handed-off package already exists. Allocation and the
   interview rounds are **not** re-gated: both were gated upstream, and a second differently-worded
@@ -277,23 +296,45 @@ unmatched row can be told apart from a question set nobody passed.
   confirmation, and a free-text answer is otherwise **normalised into those values or the candidate
   is re-asked** — never written through as another.
   `workflows-core:escalation-rules` names this picker for that reason:
-  the prompt's free-text option is supplied by the harness and no picker can decline it, so the one
-  picker through which customer authority enters the register is protected by what the run does with
+  the prompt's free-text option is supplied by the harness and no picker can decline it, so a picker through which customer authority enters the register — this one, the missing-reason picker, the conflicting-answer picker and the propagation sweep's — is protected by what the run does with
   the answer rather than by what the array leaves out. Aborting the walk stops the run with **nothing
   frozen**: no record exists until the freeze phase, so an aborted walk loses its confirmations and
   a re-run re-offers every candidate.
 - **Phase 4 — a resumed run never re-asks what it already froze.** A candidate whose target already
-  carries a `decided` `[CD#n]` from an earlier pass over the same review is skipped, because two
-  customer answers to one question is a contradiction one record cannot hold. A target carrying an
-  `open` `[CD#n]` is re-offered, and confirming it **completes that record** rather than minting a
-  second id.
+  carries, from an earlier pass over the same review, a `decided` `[CD#n]` or one the will-change
+  rule held `open` is skipped, because two customer answers to one question is a contradiction one
+  record cannot hold. A target carrying a `[CD#n]` that is `open` for want of its reason is
+  re-offered, and confirming it **completes that record** rather than minting a second id. A record
+  the will-change rule held open is never completed: it already carries the customer's choice and
+  reason, so a later review's answer against it mints a new `[CD#n]` that supersedes it — never
+  reopens it, since a record held `open` was never decided — and the rule is tested on the new one.
+  One the rule wrote `conditional_on` its prerequisite is decided, so an answer that constrains it
+  without replacing it may reopen it instead. And an answer to a question that puts a record again,
+  on an entry naming it on a `- **Re-puts:**` line, turns on that record's status, read as the
+  register stood before the freeze wrote anything: a record the rule held is superseded by the new
+  `[CD#n]`; one `/brd-interview` reopened because a re-grounding moved its evidence is **re-decided
+  in place**, keeping its id, the customer's new reason appended beneath the `Reopened` paragraph;
+  and one something else withdrew or superseded while the question travelled keeps its status, the
+  answer frozen as a new `[CD#n]` and both named under what still needs a human. Where another
+  answer in the same run also bears on that record, the `- **Re-puts:**` line decides it. Where
+  answers reach one record with none naming it on such a line — one replacing it, others only
+  constraining it — the one that replaces it decides it, as it would for the status the record held:
+  superseded by that `[CD#n]`, or, where it was frozen `open` for want of its reason, completed by
+  it; a terminal record takes nothing. Two or more answers that only constrain one `decided` record
+  reopen it once, naming every one of them as the cause. In every case the record is named with every
+  `[CD#n]` that reached it under what still needs a human.
+- **Phase 4 — two candidates answering one question are never both frozen.** Where a second
+  candidate is confirmed onto a question another candidate of the walk already took, the operator is
+  shown both and picks one to freeze — or asks the customer and freezes neither; the one set aside is
+  named under what still needs a human as a conflicting answer, beside the one frozen in its place (or noting that the one kept went back to the customer for its reason); a later candidate onto a question the operator sent back to the customer goes back with it.
 - **Phase 4 — a reason nobody gave.** A confirmed candidate whose reason is `not stated` takes one
   of exactly two routes: ask the customer and freeze nothing, or freeze it `status: open`, which puts
   the answer on the record and makes it unusable downstream until the reason arrives. Supplying the
   reason is not on the list — a supplied reason is the delivery team's argument recorded as the
-  customer's, and it will be defended later as theirs. A question whose `[CD#n]` is `open` **keeps**
-  its *held for the customer* state and its round stays open, so the next package asks for the
-  missing reason; closing the round there would retire the only mechanism that would ever chase it.
+  customer's, and it will be defended later as theirs. A question whose `[CD#n]` is `open` for want
+  of its reason **keeps** its *held for the customer* state and its round stays open, so the next
+  package asks for the missing reason; closing the round there would retire the only mechanism that
+  would ever chase it.
 - **Phase 5 — a row the slice does not claim is written with the parent's key in front.** Every
   field the freeze writes names such a row `<PARENT-KEY> [BR#n]`, as
   [`/brd-interview`](brd-interview.md) wrote the question — the decision's statement and the options
@@ -301,6 +342,30 @@ unmatched row can be told apart from a question set nobody passed.
   in the slice's next package, which carries only the slice's own inventory. The customer's quoted
   reason, and an answer quoted outside the options, stay exactly as they wrote them, and
   [`/brd-package`](brd-package.md) reports a hit there rather than stopping on it.
+- **Phase 5 — the will-change rule binds a customer decision too.** Where *every* finding in a
+  `[CD#n]`'s `evidence` list carries `horizon: will-change`, the record is still written with the
+  customer's answer verbatim, but never as an unconditional `decided`: `conditional_on` the
+  prerequisite decision where every such finding names the same one, and `status: open` where they
+  name more than one. Re-basing it on a `current` finding is not offered here, because a `[CD#n]`'s
+  evidence is the question's as the customer was put it. A finding whose prerequisite does not carry
+  its BRD key is never resolved into one: the record is held `open` and the unqualified value named.
+  Either way the record is listed under what still needs a human in the reconciliation record. The
+  customer did answer, so the question closes as *answered by the customer* and its round can close.
+  Another answer to the question as put never settles a record held `open` or `conditional_on` — the
+  new record's evidence is the question's too, so the rule fires on it again and it is written the
+  same way in turn — superseding one held `open`, and one written `conditional_on` where the customer
+  answered differently. What settles it is the prerequisite
+  shipping, a `--rebaseline` grounding pass that supersedes the findings it rests on, and a later
+  interview round — proposed once every round is closed, and only once the new findings no longer
+  carry `will-change` — that puts the question against them on an entry naming the record on a
+  `- **Re-puts:**` line, whose answer, frozen by a later run of this command, supersedes it
+  ([`decision-register-format.md`](../../references/decision-register-format.md) §6). A record held
+  `open` fires no re-entry option of its own, and is named in what remains. One written
+  `conditional_on` is decided and consumable downstream, fires no re-entry option either, and has a
+  second exit: the propagation sweep reaches it by that field when the prerequisite's decision
+  moves, and may revert or reopen it in place. The propagation sweep's citation pass also reaches a
+  held record of either kind that names an id a later reconciliation changed, and may withdraw or
+  revert one held open.
 - **Phase 6 — the correction gate.** Every section-12 row takes `applied`,
   `applied-with-deviation`, `refused-with-reason` or `deferred-to-next-round`.
 - **Phase 7 — dated snapshots are bannered, never rewritten.** A banner is prepended; nothing beneath
@@ -318,21 +383,27 @@ unmatched row can be told apart from a question set nobody passed.
 - **Phase 10 — the sweep gate.** Every position the propagation sweep reaches takes
   `inherited-unchanged`, `reverted`, `reopened` or `withdrawn`, and an `inherited-unchanged` row is
   written too: an item checked and found unaffected and an item never reached are different facts.
-  Two of the four are withheld where the format cannot carry them, and the item is named for a human
-  instead: `reopened` on an assumption, whose status vocabulary admits only `open`, `superseded` and
+  Two of the four are withheld where the format cannot carry them; the item takes one of the others,
+  and where the withheld one is what it would have taken, it is also named for a human: `reopened` on an assumption, whose status vocabulary admits only `open`, `superseded` and
   `withdrawn`, so writing it would drop the assumption out of the *open* set the next package puts
-  to the customer; and `reverted` where the record no longer says what the earlier position was — a
-  re-decision overwrote those fields, and only the reasoning appended to `argumentation` survives
-  it. A resumed run skips what an earlier pass disposed **and wrote**, and re-sweeps in full every
+  to the customer, and on any decision that is not `decided`, since `reopened` follows `decided`;
+  and `reverted` where the record no longer says what the earlier position was — a re-decision
+  overwrote those fields, and only the reasoning appended to `argumentation` survives it — or where
+  the restored evidence fires the will-change rule and the restored position carries none of its
+  resolutions. An item whose record is `superseded` or `withdrawn` is not presented at all: its row
+  is written `inherited-unchanged`, and it is named for a human where this run's change would have
+  moved it. A resumed run skips what an earlier pass disposed **and wrote**, and re-sweeps in full every
   dependent that pass could only record — otherwise merging that dependent's pull request, which is
   exactly what unblocks the sweep, would never let it land.
 
 ## The two sweeps
 
 **Propagation.** Two sets are swept, and only the first is a scan: every BRD whose `brd-link.md`
-declares `depends-on:` carrying this key, at either level; **and every BRD this ledger delegates to**,
-looked up from its own `covered-by` rows. The second exists because a child declares `parent:` and
-`claims:`, never `depends-on:` — so the scan alone could not reach it, and a customer withdrawing a
+declares `depends-on:` carrying this key — a slice, in practice, since every command that writes
+the field refuses a root, though the scan searches every level for a hand-edited one; **and every BRD
+this ledger delegates to**, looked up from its own `covered-by` rows. The second exists because a
+child is carved with `parent:` and `claims:` and no `depends-on:` naming the BRD it was carved from
+— so the scan alone could not reach it, and a customer withdrawing a
 requirement this BRD had delegated would have left the owning BRD still grounding, interviewing and
 packaging an obligation that was gone. A row whose disposition this run moved puts its owning BRD in
 the set on that account alone, whether or not anything there cites a changed id. Decisions and assumptions carrying `conditional_on` are the **first** target and are
@@ -447,11 +518,15 @@ row holds no PRD of its own at all.
 
 Each takes **one** address: a second positional token is refused (`CREATE_ARD_ONE_ADDRESS` / `SPECIFY_ONE_ADDRESS`), on every route,
 so neither of the optional two is ever offered with an Epic beside it. The three are **alternatives,
-not a sequence** — neither of the unconditional two waits on the PRD — and none of them carries the
-`<merge-clause>` placeholder, because none runs `require-on-main` against anything this command
-writes (`workflows-core:next-phase-offer`). No option in either of
-Phase 14's arrays carries `(Recommended)`: which one is right depends entirely on what the reconciliation left behind,
-so each option states its own condition in its own text.
+not a sequence** — neither of the unconditional two waits on the PRD — and **all three carry the
+`<merge-clause>` placeholder**, because each runs `require-on-main` on the slice's `decisions.md`
+before it reads the register, and the register is one of the files this command hands off: each
+would stop on a register this run wrote and has not merged (`workflows-core:next-phase-offer`). The
+clause names that wait and no other — `/create-prd`'s gate on `idea.md` and the other two's on
+`prd.md` target files this command does not write. No option in either of
+Phase 14's arrays carries `(Recommended)`: which one is right depends entirely on what the reconciliation left behind.
+An option whose condition this run did not meet is **dropped** from the array rather than annotated,
+so every option an operator sees is one that applies.
 
 The same phase also offers the route's **re-entries** — another [`/brd-interview`](brd-interview.md)
 round where this run reopened a decision, [`/brd-package`](brd-package.md) where questions remain for
@@ -465,7 +540,8 @@ customer, any finding the review left to re-derive, any dependent it could only 
 any of those is true the three the BRD route options are **dropped**, not annotated. That is a
 refusal only this phase can make, unlike the level refusal above, which each of the three now makes
 for itself: `/create-ard` on the BRD route and `/specify` on the BRD route run no gate
-that catches a reopened decision, since routing an `open` or `reopened` record into their own
+that catches a reopened decision — their gate on `decisions.md` tests which ref the register is on,
+never what it holds — since routing an `open` or `reopened` record into their own
 open-questions section is correct behaviour rather than a stop, so an operator sent there would get
 an artifact built around a hole with nothing having refused it. Each re-entry option is likewise
 conditioned on its own trigger and dropped otherwise, so the list an operator actually sees is
@@ -527,7 +603,8 @@ offered. Had the run instead reopened a decision or left a question held for the
   returned review carries, and the one-new-file rule that makes section 12 the only channel for a
   change to a package document.
 - [`decision-register-format.md`](../../references/decision-register-format.md) — the `[CD#n]` record,
-  the mandatory `argumentation`, the two causes that may reopen a decision, and `conditional_on`.
+  the mandatory `argumentation`, the two causes that may reopen a decision, `conditional_on`, and the
+  will-change rule the freeze applies to a `[CD#n]`.
 - [`interview-tagging.md`](../../references/interview-tagging.md) — the `[C]` tag and the round
   vocabulary whose terminal disposition *answered by the customer* this command writes.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the dispositions, and

@@ -3,7 +3,7 @@
 Grounding workflow serving both routes into a PRD, its route detected from the resolved folder and
 never declared. Pins every mounted repository to a verified commit, grounds every claim in the
 resolved folder's own claim list against code (`code-grounder`, Opus) and an exported design frame set
-(`design-grounder`, Opus), independently re-derives every finding (`grounding-verifier`, Opus), and, on
+(`design-grounder`, Opus), independently re-derives every live finding (`grounding-verifier`, Opus), and, on
 the BRD route, assigns each finding a `current` / `will-change` horizon against declared
 prerequisite BRDs.
 
@@ -25,7 +25,15 @@ exactly the folder this command must accept, so a kind-based test would refuse e
   its claims come from its own `prd.md`.
 - **Resolved through the legacy unprefixed fallback, with no ledger and no inventory** — split on
   `prd.md` being present and asserting `kind: prd`: present → the idea route; absent, or present
-  without `kind: prd` → the interrupted-intake branch, unchanged.
+  without `kind: prd` → the BRD route's no-link branch, which stops naming what the folder carries
+  (`PRD_GROUND_NO_INVENTORY` or `PRD_GROUND_NEEDS_INTAKE`). Since product-workflows 3.7.0
+  `/brd-intake` writes the inventory's header before it copies anything; a folder an earlier intake
+  left with `brd/source/` alone carries neither BRD file, and `/brd-intake` refuses it too, so the
+  remedy is the same. It is no BRD container, so the stop names a fresh `/brd-intake` under a new
+  key rather than a re-run over this folder, which that command refuses. **Where the folder holds an
+  `idea.md` and no `prd.md`** — an idea handed off before the kind prefixes — the stop also names
+  [`/create-prd`](create-prd.md) on the same key, which accepts the folder and writes the `prd.md`
+  that puts a re-run of this command on the idea route.
 
 ## Who runs it
 
@@ -90,7 +98,9 @@ sits with PA/Dev rather than PM. On this route it is **optional and ungated**: n
 - **`--docs <path>`** (optional) — point documentation grounding at that root for this run instead of `${DOCS_PATH:-/workspace/docs}`. The flag and its value are stripped together before the address is parsed.
 - **`--rebaseline`** (optional) — re-run grounding against code that has moved since the last
   pass. Supersedes the affected findings by id rather than renumbering them, so a citation into an
-  already-sent package still resolves.
+  already-sent package still resolves, and keeps on each the verdict it carried as `prior_verdict`,
+  which is what lets [`/brd-interview`](brd-interview.md) tell a re-grounding that came back as it
+  stood from one that moved a decision's ground.
 
 ## How it runs
 
@@ -158,10 +168,10 @@ also runs, in Phase 11, for session lessons-learned.
   ground, so this command writes no finding and hands nothing off — and every downstream command on
   the route gates on that handoff. Rather than reporting a quiet success that leaves `/brd-split`
   and `/brd-interview` refusing the slice and naming this command as the fix, the run stops with
-  `PRD_GROUND_EMPTY_INVENTORY` and names the upstream fix by level: re-running `/brd-intake` over
-  the same folder with a corrected source for a BRD that owns its document, or `/brd-split` on the
-  parent for a slice that was allocated nothing. Which form of that run to type depends on the
-  parent's own ledger, and the stop says so. Where the parent still holds an `unallocated` row the
+  `PRD_GROUND_EMPTY_INVENTORY` and names the upstream fix: `/brd-split` on the parent, since a
+  slice that was allocated nothing has no document of its own to intake. Which form of that run to
+  type depends on the parent's own ledger, and the stop says so — and where that ledger cannot be
+  read it names neither form, a case every remedy table that hands this stop's remedy on inherits. Where the parent still holds an `unallocated` row the
   run walks it too and can offer `covered-by` against this slice — and a run with rows still to place
   needs a slicing instruction to group them. Where none is left, the **bare** run offers to remove
   this slice or to keep it against a recorded reason, and that is the whole of what it offers; adding
@@ -173,13 +183,38 @@ also runs, in Phase 11, for session lessons-learned.
   slice emptied after its own interview can only be removed or kept.
 - **This BRD's own inventory and ledger already on the specs repo's main branch.** `/prd-ground`
   gates `coverage-ledger.md` on `origin/<default>` via `require-on-main` before reading anything
-  else; an unmerged pull request stops the run naming the branch/PR state. Where the gate reports
+  else; an unmerged pull request stops the run naming the branch/PR state. It gates
+  `brd/brd-inventory.md` separately, never inferring it from the ledger's gate, and splits that
+  file's own "on no ref" the same way. No inventory in the folder stops with
+  `PRD_GROUND_NO_INVENTORY`: on a slice, its remedy turns on the slice's `claims:` and the parent's
+  ledger — a slice claiming nothing gets the empty-inventory remedy; a slice with no ledger in its
+  folder either, none of whose claimed rows the parent's ledger settles onto it, was never given its
+  inventory, by a parent `/brd-split` interrupted after writing the slice's `brd-link.md` — a folder no command has committed — so the remedy is to remove that folder, from every branch carrying it where it was committed by hand, the default branch included, and run the parent's instructed
+  re-run where one of those rows is still `unallocated` there, and to empty the left-over `claims:`
+  by hand and re-run the parent in the form its ledger calls for where every one is settled
+  elsewhere; and otherwise the file was lost after it was written
+  and is restored from the ref that carried it, since a parent `/brd-split` reconciles only the rows
+  its walk moves and never writes back the ones the slice already claims — and on a folder naming no
+  parent it names a fresh intake under a new key, and also `/create-prd` on the same key where the
+  folder holds an `idea.md` and no `prd.md`. An inventory in the folder and on no ref, with a `coverage-ledger.md` there too, stops with
+  `PRD_GROUND_INVENTORY_NOT_HANDED_OFF`, whose action is to commit and merge it, and which names no
+  `/brd-intake` run: that command refuses a slice and any folder that is not a container, and every
+  container has already been refused as a root. Where the gate reports
   the ledger is on no ref at all, the run **splits a state the gate cannot**, exactly as
   [`/brd-reconcile`](brd-reconcile.md) does on its own row F. No `coverage-ledger.md` in the folder
-  means it was never produced, and the stop names the producing run by level: a BRD with a source
-  document of its own stops with `PRD_GROUND_NEEDS_INTAKE`, naming [`/brd-intake`](brd-intake.md); a
+  means it was never produced or was lost after it was written, and the stop names the producing run by level: a folder naming no
+  parent — no slice, and no container [`/brd-intake`](brd-intake.md) would re-run over — stops with
+  `PRD_GROUND_NEEDS_INTAKE`, naming a fresh intake under a new key, and also `/create-prd` on the
+  same key where the folder holds an `idea.md` and no `prd.md`; a
   **slice** — recognised by the `parent:` field in its `brd-link.md` — stops with
-  `PRD_GROUND_NEEDS_SPLIT`, naming [`/brd-split`](brd-split.md) on the parent, because a slice has no
+  `PRD_GROUND_NEEDS_SPLIT`, whose remedy turns on the slice's `claims:` and the parent's ledger — it
+  gives the empty-inventory remedy where the slice claims nothing; where none of the rows it claims
+  is settled onto it on the parent's ledger, the files that run had not reached were never written, by a parent
+  [`/brd-split`](brd-split.md) interrupted after writing the slice's `brd-link.md`, so it names
+  removing that folder — which no command committed, and which is removed from every branch carrying it where it was committed by hand, the default branch included — and then that parent's instructed re-run where one of those
+  rows is still `unallocated` there, and otherwise the hand edit that empties the left-over `claims:`
+  followed by the parent re-run in the form its ledger calls for; otherwise it says the ledger was lost after it was written, with the inventory where that is missing too, and what is missing must be restored from the ref that carried it; and it names no form where the
+  parent's ledger cannot be read — because a slice has no
   source document of its own to intake and its ledger and inventory are written by the parent's split
   ([`brd-format.md`](../../references/brd-format.md) §2.1,
   [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3). A ledger **in** the
@@ -194,10 +229,8 @@ also runs, in Phase 11, for session lessons-learned.
   form resolves the empty child and stages that decision rather than this slice's inventory and
   ledger, while an **instructed** run that re-cuts a row onto this slice does declare all three and
   lands them as its own walk leaves them. Committing what is already on disk stays the direct route to
-  landing them as they stand. `/brd-intake` is named only on a BRD that owns its source document, as a
-  slower second route, since it re-extracts the inventory and, wherever its read finds a requirement,
-  rewrites the ledger before handing it off (its Phase 0 step 7 names what a re-run keeps and what
-  it discards).
+  landing them as they stand. `/brd-intake` is never named here: it re-runs only over a BRD
+  container, and every container has already been refused as a root.
 
 ### On the idea route
 
@@ -277,8 +310,8 @@ ever proceeds once `/create-prd`'s own `prd/<KEY>-<slug>` branch has merged.
 - **Phase 0 — `require-on-main`, on whichever artifact the route makes authoritative.** On the BRD
   route, this slice's inventory and its ledger, separately — the inventory's own stops name whether
   it is missing from the folder or merely unmerged, because re-running the producer on the second
-  would rewrite it; no grounding starts until whichever command wrote them has merged its output —
-  `/brd-intake` for a BRD with a source document of its own, `/brd-split` on the parent for a slice.
+  would rewrite it; no grounding starts until the command that wrote them — `/brd-split` on the
+  parent, since a root is refused before this gate — has merged its output.
   On the idea route, `prd.md` itself — a claim list read off an unmerged artifact would ground a
   document `/create-ard` and `/specify` cannot yet see. See "What it needs" above for the exact stop
   conditions on each route.
@@ -306,7 +339,9 @@ ever proceeds once `/create-prd`'s own `prd/<KEY>-<slug>` branch has merged.
   diverges from instead, because a divergence is not an answer to a requirement premise, and a new
   prefix would sit permanently unverified in a namespace where an unverified id blocks
   [`/brd-split`](brd-split.md) (`workflows-core:grounding-format` §8).
-- **Phase 7 — `grounding-verifier` over every finding, pinned to Opus.** A finding without a
+- **Phase 7 — `grounding-verifier` over every finding, pinned to Opus.** Every finding the run holds,
+  except any already reading `SUPERSEDED`: a retired finding keeps the outcome it had, and re-deriving
+  it could only bring it back to life beside its successor. A finding without a
   verifier outcome is never treated as evidence. **The outcome is first reconciled against the verdict
   the verifier re-derived**, which it returns on every outcome: `agree` means *the same verdict* and
   `extend` means *the claim holds*, so either arriving with a differing verdict is a return that
@@ -359,7 +394,7 @@ has merged:
 
 The run resolves the slice, gates its inventory and ledger on main, resolves the repositories in
 scope and the documentation root, pins and proves each repository clean, grounds every `[BR#n]`
-claim against code and any exported design frames, independently re-derives every finding on Opus,
+claim against code and any exported design frames, independently re-derives every live finding on Opus,
 assigns horizons against any declared prerequisites, writes the findings, and offers to branch,
 commit, push, and open a pull request. Its next-step offer names
 [`/brd-split`](brd-split.md) running in `allocate-only` mode: this slice's ledger is walked to a

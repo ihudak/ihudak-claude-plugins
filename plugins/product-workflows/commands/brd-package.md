@@ -18,9 +18,10 @@ happen, not to restate it.
 
 Usage: `/brd-package <BRD-KEY> [--depends-on <BRD-KEY>…]`
 
-`<BRD-KEY>` still resolves through either of the two levels `resolve-address` searches
-(`workflows-core:addressing` §3) — a BRD that owns its source document, or one of its slices —
-because a root must be resolved before Phase 0 step 5a can refuse it by name. **Only a slice is
+`<BRD-KEY>` still resolves through `resolve-address`, which searches every level
+`workflows-core:addressing` §3 bounds — three below `specifications/` — and so returns a BRD that owns
+its source document, one of its slices, an idea-route PRD folder or an Epic folder alike, because a
+root must be resolved before Phase 0 step 5a can refuse it by name. **Only a slice is
 packaged: a root BRD is refused, and packaging happens at the slice and nowhere else** — a slice
 holds its own register, its own `[C]` question set and its own findings, and it is packaged from
 those and no others. The bundle this run builds is the bundle of the BRD it was given.
@@ -115,8 +116,9 @@ cannot review, and they will not tell you that — they will review it anyway, b
    `key-valid` and drop (warn, do not stop the run) any that fail shape — the same handling
    `/prd-ground` Phase 0 gives the same flag, because the flag means the same thing here and a
    mistyped prerequisite must not cost the operator the whole run. Any key at any level is
-   admissible (D17), so a slice depending on another BRD and a BRD depending on a sibling express
-   identically. What the flag then does is the *Resolve prerequisites and their packages* phase's
+   admissible as the value (D17), so a slice depending on a source-owning BRD and a slice depending
+   on a sibling express identically; the declarer is always a slice, since this command refuses a
+   root. What the flag then does is the *Resolve prerequisites and their packages* phase's
    business.
 3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
    `Required path environment variable unset` rule in
@@ -130,13 +132,13 @@ cannot review, and they will not tell you that — they will review it anyway, b
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
 5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
-   `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
+   every level `workflows-core:addressing` §3 bounds — three below `specifications/`, plus §5's legacy fallback — and so can return any folder kind it finds there: a `BRD-` folder directly under `specifications/`, a `PRD-` folder (a slice inside a BRD, or an idea-route PRD folder), or an `EPIC-` folder inside a `PRD-` folder. Step 5a answers the level question on what it returns. Absent
    → stop, without asserting which command would have created it:
-   `BRD_PACKAGE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent.`
-5a. **The root refusal — packaging happens at the slice and nowhere else.** Take this the moment
+   `BRD_PACKAGE_NOT_FOUND: no folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent.`
+5a. **The root and Epic refusals — packaging happens at the slice and nowhere else.** Take this the moment
     step 5 returns a resolved folder, before step 6 opens anything — the level question is answered
     before any gate that follows it. Test the **resolved directory's prefix**: `BRD-` is a root,
-    `PRD-` is a slice — the kind-prefix convention `workflows-core:addressing` §2 fixes, read off
+    `EPIC-` an Epic folder, `PRD-` a slice or an idea-route PRD folder, which step 5b tells apart — the kind-prefix convention `workflows-core:addressing` §2 fixes, read off
     the resolved folder's own name. **Never test the folder's asserted `kind:`** — `/brd-split`
     writes `kind: brd` into the `brd-link.md` it places inside the `PRD-` slice folder it carves
     (`commands/brd-split.md` Phase 3), so a slice **asserts** `brd` while being exactly the folder
@@ -147,7 +149,17 @@ cannot review, and they will not tell you that — they will review it anyway, b
     there is no prefix to test.** Answer the root question by **positive evidence, never by the
     absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, the
     shared authority every consumer of this test in this plugin takes it from, directly or through
-    `workflows-core:addressing` §4.1, and not restated here.
+    `workflows-core:addressing` §4.1, and not restated here — and the Epic question the same way, as
+    §4.1 places a folder with no prefix: a resolved `kind: epic` is an Epic folder, refused below
+    exactly as an `EPIC-` folder is.
+
+    **An `EPIC-` folder is refused on the same prefix test, and at the same moment.**
+    `resolve-address` searches every level `workflows-core:addressing` §3 bounds, the Epic level
+    included, so an Epic's key resolves here exactly as a slice's does — and without this refusal an
+    `EPIC-` folder, which is neither `BRD-` nor `PRD-`, passed both this step and step 5b and reached
+    step 6 on a folder that holds no decision register, coverage ledger or grounding of its own, whose row-F branch then named a remedy for a BRD it
+    is not. A prefix is the name beginning `EPIC-<the resolved key>-`, as §4.1 defines one, so a
+    legacy folder whose key merely begins `EPIC-` is not refused by its name.
 
     On a root, look for the root-level artifacts this run would have produced under the retired
     two-level model — any `bundle-<YYYYMMDD>/`, `customer-review-prompt-<YYYYMMDD>.md` or
@@ -157,6 +169,29 @@ cannot review, and they will not tell you that — they will review it anyway, b
 
     Stop:
     `BRD_PACKAGE_ROOT_LEVEL: <BRD-KEY> is a root BRD, and packaging happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-package <SLICE-KEY>'.<where root-level artifacts exist, append:> This BRD carries root-level package artifacts at <paths> from the earlier two-level model; it is left in place, and this command never reads it.`
+
+    Stop, on an Epic folder:
+    `BRD_PACKAGE_EPIC_LEVEL: <KEY> resolves to an Epic folder at <path>, and packaging happens at a slice carved from a customer's BRD — an Epic is refined from the PRD folder above it and holds no decision register, coverage ledger or grounding of its own. No gate was run and nothing was written. <remedy> Re-running this command on this Epic stops here again.`
+    `<remedy>` turns on the folder containing this one: where it carries a `brd-link.md` naming a
+    `parent:` — a slice — `Run '/product-workflows:brd-package <SLICE-KEY>' against the slice this Epic sits in.`, `<SLICE-KEY>` being that `brd-link.md`'s own `key`, read and
+    never parsed out of either folder's name; anywhere else, `The folder above it is not a slice carved from a customer's BRD, so there is no register for this command to package here.` — naming no command, since step 5b refuses an idea-route PRD folder too. It is an argument halt, so `emit-block` does not fire.
+5b. **The idea-route refusal — a `PRD-` folder is a slice only where a BRD carved it.** Step 5a's
+    prefix test accepts every `PRD-` folder, and an idea-route PRD folder — `/product-workflows:create-prd`'s
+    own output, never carved from a BRD — is one. Take this immediately after 5a, before step 6 opens anything: step 6's row-F
+    branch would otherwise send this folder to `/product-workflows:brd-interview`, which refuses it.
+    Decide it by **positive evidence, exactly as `/product-workflows:prd-ground` Phase 0 step 5a
+    sets `route: idea`**, and never by the absence of a ledger or inventory alone:
+    - **A `PRD-` directory carrying no `brd-link.md`** — `/brd-split` is the only writer of a
+      `brd-link.md` naming a `parent:` inside a `PRD-` folder, so this one was never carved from a
+      BRD.
+    - **A folder resolved through `workflows-core:addressing` §5's legacy unprefixed fallback,
+      carrying no `brd-link.md`, neither `coverage-ledger.md` nor `brd/brd-inventory.md`, and a
+      `prd.md` asserting `kind: prd`** — a legacy idea-route PRD folder
+      (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1). The same shape without
+      such a `prd.md` is not decided here, and step 6 handles it as it always has.
+
+    Stop:
+    `BRD_PACKAGE_NOT_A_SLICE: <KEY> resolves to an idea-route PRD folder (<path> carries no brd-link.md), not a slice carved from a customer's BRD — no gate was run and nothing was written. Packaging bundles a BRD slice's decision register for the customer who wrote the BRD, and this folder has no customer BRD, no coverage ledger and no interview behind it, so there is no register to bundle. The idea route goes on from its PRD: run '/product-workflows:create-ard <KEY>' or '/product-workflows:specify <KEY>' (after '/product-workflows:create-prd <KEY>' where the folder holds no prd.md yet). Re-running this command on this folder stops here again.`
 6. **Gate the decision register on main.** This command **consumes** a `$SPECS_PATH` deliverable it
    did not write, so per `workflows-core:phase-handoff` §5 rule 2 it executes
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
@@ -192,7 +227,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
      `/product-workflows:brd-reconcile` where either created the register
      (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1). **Do not send the
      operator back to `/brd-interview`**: whether it opens a new round is
-     its *Resolve the round* phase's own test of what changed since the last round closed — that
+     its *Resolve the round* phase's own test of what changed after the last round was generated — that
      phase's to state, and cited, never restated here — and where the test finds nothing it takes
      the no-new-round path, reaches its handoff phase with nothing staged, reports `nothing to
      commit` and opens no pull request, while where it finds something the round it opens is handed
@@ -303,7 +338,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
 8. **Gate on there being something to review — and report it as a finished state, not a missing
    step.** A package with **no** `[C]` question, **no** open `[AS#n]`, and **no** `[VD#n]` in the
    register has nothing for a customer to confirm, correct or attack. Stop rather than sending it:
-   `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — every question its rounds asked was settled from verified findings, so there is nothing in them for a customer to confirm, correct or attack, and a package built from it would ask for a review of nothing. Whether that leaves this BRD decided is /product-workflows:brd-interview's to say: where it would open a new round, or names the '/product-workflows:brd-interview <BRD-KEY> --round 1' re-open for open requirement defects no round has asked, that run is the fix, and a bare '/product-workflows:brd-interview <BRD-KEY>' says which, handing off nothing where neither applies. New evidence can make a round askable too: '/product-workflows:prd-ground <BRD-KEY> --rebaseline' re-derives the findings against current commits, and a decision reopened or superseded in decisions.md has the same effect. Where none of that applies, this BRD is decided — a finished state, not a missing step, and the delivery team owes the customer no decision here.`
+   `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — every question its rounds asked was settled from verified findings, so there is nothing in them for a customer to confirm, correct or attack, and a package built from it would ask for a review of nothing. Whether that leaves this BRD decided is /product-workflows:brd-interview's to say: where it would open a new round, or names the '/product-workflows:brd-interview <BRD-KEY> --round 1' re-open for open requirement defects no round has asked, that run is the fix, and a bare '/product-workflows:brd-interview <BRD-KEY>' says which, handing off nothing where neither applies. New evidence can make a round askable too: '/product-workflows:prd-ground <BRD-KEY> --rebaseline' re-grounds every claim against current commits. Where none of that applies, this BRD is decided — a finished state, not a missing step, and the delivery team owes the customer no decision here.`
    **Test `interview/` FIRST, and independently of what the register holds.** This was once a branch
    *inside* the stop above — reached only where there was nothing to review — and that placement had a
    hole the moment a second command gained the power to write an `[AS#n]`:
@@ -320,7 +355,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
 
    **Why the message hands the verdict to `/brd-interview`, and names grounding beside it.** Whether
    a settled BRD still has something to ask is decided by `/brd-interview`'s *Resolve the round*
-   phase — its test of what changed since the last round closed, which opens a new round, and its
+   phase — its test of what changed after the last round was generated, which opens a new round, and its
    round-1 test, which names the `--round 1` re-open for requirement defects a slice interviewed
    before that question source existed has never asked. Both are that phase's to state and are
    cited, never restated here: this command cannot evaluate either without a second copy of the
@@ -1423,7 +1458,7 @@ state rather than about the plugin. This run packaged a BRD whose customer round
 it is open, and `/create-prd` on the BRD route reads exactly that register as its seed. The answers are
 frozen by `/product-workflows:brd-reconcile` and by nothing here, so the reconciled BRD that route needs
 is the state the *next* command leaves rather than this one, and `/product-workflows:brd-reconcile`'s own
-next-step phase is where the three the BRD route options are offered. The same holds for the BRD route
+next-step phase is where the three BRD-route options are offered. The same holds for the BRD route
 on `/create-ard` and `/specify`, which read the architecture- and implementation-altitude seeds
 alongside the same register. So the honest offer is the state this run actually leaves behind:
 
@@ -1482,7 +1517,9 @@ broke its return contract twice, the rule `/product-workflows:brd-reconcile` app
 by a list**: each reports the operator's own argument, the tree or the environment, a gate working,
 the operator's own ruling, or a defect in the package's own content that a sentence in it has to
 change to fix — as a review BLOCK is a defect in the work and not in the plugin. Among them: a
-missing or malformed key, an unresolved BRD, a resolved root BRD, an ungated, absent or unmerged
+missing or malformed key, an unresolved BRD, a resolved root BRD, a resolved Epic folder
+(`BRD_PACKAGE_EPIC_LEVEL`), an idea-route PRD folder
+(`BRD_PACKAGE_NOT_A_SLICE`), an ungated, absent or unmerged
 register or round record, an unsettled or uninterviewed round, nothing to review, a bundle directory
 that already exists, and an unset `$SPECS_PATH` are environment or sequencing halts; the other
 bundle-integrity checks (`BRD_PACKAGE_DEAD_CITATION`, `BRD_PACKAGE_CITATION_MISMATCH`,
@@ -1531,7 +1568,9 @@ full because those are the ones the customer will read; whether a second reviewe
 `[AS#n]`, `escalated-to-customer` findings, and the `[CDF#n]` counts parts 6, 8 and 11 each carry,
 `in-scope`, `conditional` and `out-of-scope` respectively; **every prerequisite named under *what
 could still move***, with whether it resolved, whether its decisions are customer-reviewed, and whether a
-package of its own was copied in; the four artifacts written, by path; **the citation check's
+package of its own was copied in; every artifact written, by path — the self-review, the customer
+prompt, the delivery note and the bundle, and `brd-link.md` where this run added a prerequisite to
+it; **the citation check's
 outcome** — how many identifier references resolved, across how many source packages, how many
 named another BRD and were discharged, and every hit inside verbatim customer content or a
 customer-derived locator — this check's and the plugin-free scan's alike — that the operator was

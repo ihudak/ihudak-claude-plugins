@@ -1,4 +1,4 @@
-# dev-workflows session-cost price table. USD per MILLION tokens, keyed by model id.
+# The plugin family's session-cost price table. USD per MILLION tokens, keyed by model id.
 # Rates sourced from https://platform.claude.com/docs/en/about-claude/pricing (standard
 # first-party Claude API, Sonnet/Opus/Haiku/Fable re-verified live 2026-09-02). Batch / fast-mode / data-residency
 # modifiers are NOT applied (interactive Claude Code sessions bill at standard rates).

@@ -1,10 +1,10 @@
 ---
 name: statusline
-description: Install the dev-workflows multi-line status line (session identity, git, context bar, cost, tokens, rate limits) into your Claude Code settings. Vendors the script to a stable per-user path, backs up anything it would overwrite, and enables the Option B cost snapshot used by session cost reporting.
+description: Install the plugin family's multi-line status line (session identity, git, context bar, cost, tokens, rate limits) into your Claude Code settings. Vendors the script to a stable per-user path, backs up anything it would overwrite, and enables the Option B cost snapshot used by session cost reporting.
 allowed-tools: Read Write Edit Bash
 ---
 
-Install the dev-workflows status line: $ARGUMENTS
+Install the plugin family's status line: $ARGUMENTS
 
 `/workflows-core:statusline` installs the plugin's multi-line, truecolor status
 line and wires it into `~/.claude/settings.json`. The shipped script also

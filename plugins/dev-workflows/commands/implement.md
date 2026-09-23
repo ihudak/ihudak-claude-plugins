@@ -60,7 +60,7 @@ folder an `@<path>` names, a name beginning with a kind token being prefixed onl
 `<KIND>-<the resolved key>-` — is otherwise placed by positive evidence: a resolved `kind: epic`
 counts as an `EPIC-` folder below, and a resolved `kind: prd`, or a `brd-link.md` naming a
 `parent:`, as a `PRD-` folder. A folder none of these places is not guessed at — stop, naming the
-folder and what it carries. Then:
+folder and what it carries — and, where it holds an `idea.md` and no `prd.md`, name `/product-workflows:create-prd <KEY>` too, whose `prd.md` places it (`workflows-core:addressing` §4.1). Then:
 
 - **The address named an `EPIC-` folder** → `focus_key` is its `key`; proceed for that Epic. The
   Phase 1.7 scan and specs resolution both scope to it.

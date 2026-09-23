@@ -17,9 +17,10 @@ happen, not to restate it.
 
 Usage: `/brd-interview <BRD-KEY> [--round N]`
 
-`<BRD-KEY>` still resolves through either of the two levels `resolve-address` searches
-(`workflows-core:addressing` §3) — a BRD that owns its source document, or one of its slices —
-because a root must be resolved before Phase 0 step 5a can refuse it by name. **Only a slice is
+`<BRD-KEY>` still resolves through `resolve-address`, which searches every level
+`workflows-core:addressing` §3 bounds — three below `specifications/` — and so returns a BRD that owns
+its source document, one of its slices, an idea-route PRD folder or an Epic folder alike, because a
+root must be resolved before Phase 0 step 5a can refuse it by name. **Only a slice is
 interviewed: a root BRD is refused, and deciding happens at the slice and nowhere else** — a slice
 holds its own findings, its own ledger, and its own register, and it reaches its decisions exactly
 as its parent does. The register this run writes is the register of the BRD it was given, and no
@@ -123,14 +124,14 @@ and nothing downstream can tell the difference afterwards.
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
 5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
-   `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
+   every level `workflows-core:addressing` §3 bounds — three below `specifications/`, plus §5's legacy fallback — and so can return any folder kind it finds there: a `BRD-` folder directly under `specifications/`, a `PRD-` folder (a slice inside a BRD, or an idea-route PRD folder), or an `EPIC-` folder inside a `PRD-` folder. Step 5a answers the level question on what it returns. Absent
    → stop, without asserting which command would have created it, because nothing on disk says
    whether this key names a BRD with a source document or a slice of one:
-   `BRD_INTERVIEW_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent.`
-5a. **The root refusal — deciding happens at the slice and nowhere else.** Take this the moment
+   `BRD_INTERVIEW_NOT_FOUND: no folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent.`
+5a. **The root and Epic refusals — deciding happens at the slice and nowhere else.** Take this the moment
     step 5 returns a resolved folder, before step 6 opens anything — the level question is answered
     before any gate that follows it. Test the **resolved directory's prefix**: `BRD-` is a root,
-    `PRD-` is a slice — the kind-prefix convention `workflows-core:addressing` §2 fixes, read off
+    `EPIC-` an Epic folder, `PRD-` a slice or an idea-route PRD folder, which step 5b tells apart — the kind-prefix convention `workflows-core:addressing` §2 fixes, read off
     the resolved folder's own name. **Never test the folder's asserted `kind:`** — `/brd-split`
     writes `kind: brd` into the `brd-link.md` it places inside the `PRD-` slice folder it carves
     (`commands/brd-split.md` Phase 3), so a slice **asserts** `brd` while being exactly the folder
@@ -141,7 +142,17 @@ and nothing downstream can tell the difference afterwards.
     there is no prefix to test.** Answer the root question by **positive evidence, never by the
     absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, the
     shared authority every consumer of this test in this plugin takes it from, directly or through
-    `workflows-core:addressing` §4.1, and not restated here.
+    `workflows-core:addressing` §4.1, and not restated here — and the Epic question the same way, as
+    §4.1 places a folder with no prefix: a resolved `kind: epic` is an Epic folder, refused below
+    exactly as an `EPIC-` folder is.
+
+    **An `EPIC-` folder is refused on the same prefix test, and at the same moment.**
+    `resolve-address` searches every level `workflows-core:addressing` §3 bounds, the Epic level
+    included, so an Epic's key resolves here exactly as a slice's does — and without this refusal an
+    `EPIC-` folder, which is neither `BRD-` nor `PRD-`, passed both this step and step 5b and reached
+    step 6 on a folder that holds no coverage ledger, inventory or grounding of its own, whose row-F branch then named a remedy for a BRD it
+    is not. A prefix is the name beginning `EPIC-<the resolved key>-`, as §4.1 defines one, so a
+    legacy folder whose key merely begins `EPIC-` is not refused by its name.
 
     On a root, look for the root-level artifacts this run would have produced under the retired
     two-level model — `decisions.md`, `interview/` — and name whichever exist in the stop, so an
@@ -151,6 +162,30 @@ and nothing downstream can tell the difference afterwards.
 
     Stop:
     `BRD_INTERVIEW_ROOT_LEVEL: <BRD-KEY> is a root BRD, and deciding happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-interview <SLICE-KEY>'.<where root-level artifacts exist, append:> This BRD carries root-level decisions and interview records at <paths> from the earlier two-level model; it is left in place, and this command never reads it.`
+
+    Stop, on an Epic folder:
+    `BRD_INTERVIEW_EPIC_LEVEL: <KEY> resolves to an Epic folder at <path>, and deciding happens at a slice carved from a customer's BRD — an Epic is refined from the PRD folder above it and holds no coverage ledger, inventory or grounding of its own. No gate was run and nothing was written. <remedy> Re-running this command on this Epic stops here again.`
+    `<remedy>` turns on the folder containing this one: where it carries a `brd-link.md` naming a
+    `parent:` — a slice — `Run '/product-workflows:brd-interview <SLICE-KEY>' against the slice this Epic sits in.`, `<SLICE-KEY>` being that `brd-link.md`'s own `key`, read and
+    never parsed out of either folder's name; anywhere else, `The folder above it is not a slice carved from a customer's BRD, so there is nothing for this command to decide here.` — naming no command, since step 5b refuses an idea-route PRD folder too. It is an argument halt, so `emit-block` does not fire.
+5b. **The idea-route refusal — a `PRD-` folder is a slice only where a BRD carved it.** Step 5a's
+    prefix test accepts every `PRD-` folder, and an idea-route PRD folder — `/product-workflows:create-prd`'s
+    own output, never carved from a BRD — is one. Take this immediately after 5a, before step 6
+    opens anything: nothing below may read an inventory or a ledger on a folder that has neither.
+    Decide it by **positive evidence, exactly as `/product-workflows:prd-ground` Phase 0 step 5a
+    sets `route: idea`**, and never by the absence of a ledger or inventory alone:
+    - **A `PRD-` directory carrying no `brd-link.md`** — `/brd-split` is the only writer of a
+      `brd-link.md` naming a `parent:` inside a `PRD-` folder, so this one was never carved from a
+      BRD.
+    - **A folder resolved through `workflows-core:addressing` §5's legacy unprefixed fallback,
+      carrying no `brd-link.md`, neither `coverage-ledger.md` nor `brd/brd-inventory.md`, and a
+      `prd.md` asserting `kind: prd`** — a legacy idea-route PRD folder
+      (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1). The same shape without
+      such a `prd.md` is not decided here — a legacy folder holding only an `idea.md`, say — and
+      step 6's row-F branch still has to ask.
+
+    Stop:
+    `BRD_INTERVIEW_NOT_A_SLICE: <KEY> resolves to an idea-route PRD folder (<path> carries no brd-link.md), not a slice carved from a customer's BRD — no gate was run and nothing was written. Interviewing settles a BRD slice's requirements into a decision register the customer reviews, and this folder has no coverage ledger, no requirement inventory and no customer BRD to decide against. The idea route goes on from its PRD: run '/product-workflows:create-ard <KEY>' or '/product-workflows:specify <KEY>' (after '/product-workflows:create-prd <KEY>', its handoff merged, where the folder holds no prd.md yet — each gates prd.md with require-on-main); each reads this folder's grounding/ findings wherever /product-workflows:prd-ground wrote them, and marks the ones it drew on. Re-running this command on this folder stops here again, whatever grounding it holds.`
 6. **Gate the grounding deliverable on main.** This command **consumes** a `$SPECS_PATH` deliverable
    it did not write, so per `workflows-core:phase-handoff` §5 rule 2 it executes
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
@@ -162,24 +197,57 @@ and nothing downstream can tell the difference afterwards.
    state it reports; `pass` → proceed; `pass_amending` → proceed, printing the §3.3 row-B message;
    `unmanaged` → proceed as before this feature; `absent` (row F — grounding findings are on no ref at
    all) → **split it before stopping, on a test row F cannot make**, the way `/brd-reconcile` splits
-   its own row F. Row F covers two states here, and the message for the second one must not name a
-   command that stops on the same emptiness. Read `<BRD-dir>/brd/brd-inventory.md` from the worktree
-   and count its `[BR#n]` rows:
+   its own row F. Row F covers more than one state here, and the message for any state in which
+   `/prd-ground` would not produce the findings this gate wants must not name it. Read
+   `<BRD-dir>/brd/brd-inventory.md` from the worktree and count its `[BR#n]` rows:
    - **One or more rows** — grounding simply has not run yet, and running it is the fix:
      `BRD_INTERVIEW_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /product-workflows:prd-ground <BRD-KEY> first.`
-   - **Zero rows** — there is nothing to ground, so `/prd-ground` stops with
-     `PRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants, and naming it
-     here would be the loop. The fix is upstream, so read the resolved folder's `brd-link.md` and
-     branch on its `parent:` field: this read is a bare worktree read with no gate ahead of it, and
-     an absent `brd/brd-inventory.md` counts as zero rows here just as a present-but-empty one
-     does — 5a's own legacy-fallback test lets a folder carrying **neither**
-     `coverage-ledger.md` **nor** `brd/brd-inventory.md` through unrefused
-     (`coverage-ledger-format.md` §5.1), so a folder reaching this branch is not always the slice
-     step 5a would otherwise guarantee — it may be a legacy root BRD whose intake was interrupted
-     before the inventory was ever written:
-     - **No `brd-link.md`, or one with no `parent:`** —
-       `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and no question this command could ask about it — do not run /product-workflows:prd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
-     - **`parent: <PARENT-KEY>` present** — this is a slice:
+   - **Zero rows, or no inventory file at all** — `/prd-ground` would not produce the findings this
+     gate wants, and naming it here would be the loop. The fix is upstream, so read the resolved
+     folder's `brd-link.md` and branch on its `parent:` field — and, on a slice, on whether the
+     inventory file is there at all, because an absent inventory and an empty one are different
+     states with different fixes, exactly as `/product-workflows:prd-ground` Phase 0 step 6 splits
+     them (`PRD_GROUND_NO_INVENTORY` against step 8's `PRD_GROUND_EMPTY_INVENTORY`). This read is a
+     bare worktree read with no gate ahead of it. 5a's own legacy-fallback test lets a folder
+     carrying **neither** `coverage-ledger.md` **nor** `brd/brd-inventory.md` through unrefused
+     (`coverage-ledger-format.md` §5.1), and step 5b refuses such a folder only where it holds a
+     `prd.md` asserting `kind: prd`, so a folder reaching this branch is not always the slice step 5a
+     would otherwise guarantee — a legacy unprefixed folder holding only an `idea.md`, say, gets this
+     far. Nor does an interrupted intake change the remedy: since 3.7.0 `/brd-intake` writes the
+     inventory's header before it copies anything (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md`
+     §2), and a folder an earlier intake left with `brd/source/` alone carries neither BRD file, so
+     `/brd-intake` refuses it too and the remedy is the same as the first branch below gives. The
+     branches:
+     - **No `brd-link.md`, or one with no `parent:`** — not a slice, and not a root: a folder
+       holding an inventory beside no `brd-link.md` naming a `parent:` has already been refused, a
+       legacy one by 5a's §5.1 test and a `PRD-` one carrying no `brd-link.md` at all by 5b. What
+       reaches here is an unprefixed folder carrying neither BRD file, or a `PRD-` folder whose
+       `brd-link.md` names no `parent:`, which no command writes (`/brd-split` is the only writer of
+       one inside a `PRD-` folder, and always with `parent:`). **Name no re-run of `/brd-intake`
+       over it**: that command re-runs only over a container (`workflows-core:addressing` §4.1)
+       and refuses this folder with `BRD_INTAKE_NOT_A_BRD`, so a customer's BRD is intaken under a
+       new key instead. Substitute `<what it carries>` with the folder's top-level files and
+       subdirectories, as read:
+       `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY> resolves to <path>, which carries <what it carries> and no brd-link.md naming a parent: — it is not a slice carved from a customer's BRD, and not a BRD /product-workflows:brd-intake would re-run over, since that command refuses any folder that is not a BRD container. There is nothing to ground and no question this command could ask; nothing was written. Do not run /product-workflows:prd-ground, which refuses this folder before it reads any inventory. To intake a customer's BRD, run '/product-workflows:brd-intake <NEW-KEY> @<brd-file>' with a key no folder under $SPECS_PATH/specifications/ asserts; this folder is left exactly as it stands.<where the folder holds an idea.md and no prd.md, append:> It holds an idea.md and no prd.md, so the idea route goes on from it: run '/product-workflows:create-prd <BRD-KEY>', merge its handoff, then '/product-workflows:create-ard <BRD-KEY>' or '/product-workflows:specify <BRD-KEY>' — each gates prd.md with require-on-main.`
+       The appended sentence is the legacy unprefixed folder holding only an `idea.md` — an idea
+       handed off before the kind prefixes, which step 5b leaves undecided — and `/create-prd`
+       accepts it (`workflows-core:addressing` §4.1, §5), so the fresh intake is not its only
+       exit.
+     - **`parent: <PARENT-KEY>` present, and no `brd/brd-inventory.md` in the folder** — a slice
+       with no inventory file at all, which is not the same as one whose inventory holds no row
+       (below). Two causes reach it, and the remedy table cited below tells them apart by this slice's
+       `claims:` and the parent's ledger: the inventory was
+       **never written** — a `/brd-split` run on the parent interrupted after it wrote this slice's
+       `brd-link.md` — or it was **written and has since been lost** from the working tree. Stop:
+       `BRD_INTERVIEW_NO_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and has no brd/brd-inventory.md, so there is no claim list to ground or to decide. <remedy>`
+       — `<remedy>` taken from the table `/product-workflows:prd-ground` Phase 0 step 6 gives its own
+       `PRD_GROUND_NO_INVENTORY` on a slice, read the same way and never restated here — that
+       table is the one place the remedy for each cause above is fixed, so a change to it reaches
+       this stop without a second copy to drift.
+     - **`parent: <PARENT-KEY>` present, and the inventory present with no row** — this is a slice
+       that claims nothing.
+       Where `<PARENT-KEY>`'s own `coverage-ledger.md` cannot be read, the stop names neither `/brd-split` form: replace its text from `Re-run /product-workflows:brd-split on <PARENT-KEY>` to the end exactly as `/product-workflows:prd-ground` Phase 0 step 8 replaces its own copy's, since which form runs is that ledger's to say.
+       Otherwise:
        `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to decide. Do not run /product-workflows:prd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case, apart from the key repair a removal performs, in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
 7. **Gate on verification — and on there being grounding to verify.** Three tests, in this order,
    because **the second is a count and a count is vacuously satisfied by an empty set**. This gate
@@ -214,7 +282,7 @@ and nothing downstream can tell the difference afterwards.
       than anywhere else on the route — every `[G]` question is answered from the findings and from
       nothing else, so a finding with two verdicts is a `[VD#n]` frozen against whichever half the
       run happened to read, and `/brd-package` puts that decision in front of the customer.
-      stop: `BRD_INTERVIEW_MALFORMED_FINDING: N finding blocks carry a key workflows-core:grounding-format §2.1 does not define (<finding-id>: <key>, …) — the record's field set is closed to §2's fields plus outcome and notes. A block carrying own_verdict beside verdict states two verdicts at once, and every [G] answered from it is answered from whichever half was read. Remove the offending key from each block by hand in <path>, leaving every other key untouched, and re-run. Do not re-run '/product-workflows:prd-ground <BRD-KEY> --rebaseline' for this: it re-derives every finding against current commits to delete a line no command should have written.`
+      stop: `BRD_INTERVIEW_MALFORMED_FINDING: N finding blocks carry a key workflows-core:grounding-format §2.1 does not define (<finding-id>: <key>, …) — the record's field set is closed to §2's fields plus outcome and notes. A block carrying own_verdict beside verdict states two verdicts at once, and every [G] answered from it is answered from whichever half was read. Remove the offending key from each block by hand in <path>, leaving every other key untouched, and re-run. Do not re-run '/product-workflows:prd-ground <BRD-KEY> --rebaseline' for this: it re-grounds every claim against current commits to delete a line no command should have written.`
 
    **No design-presence relation here, and that is deliberate rather than an omission.**
    `/brd-split`'s third test exists because allocating a requirement to a slice that will be built
@@ -259,7 +327,7 @@ and nothing downstream can tell the difference afterwards.
    parent test, `commands/brd-split.md` Phase 0), which is how it tells a defect already asked from
    one that is not — an absent one holds no entry. A previous run's register, round records and
    code-defect log are inputs, never scratch: nothing below deletes, renumbers or rewrites a record
-   another run wrote. **Two changes to another run's record are the admitted exceptions, and naming
+   another run wrote. **Three changes to another run's record are the admitted exceptions, and naming
    them here is what keeps this sentence and the rules below from having to be refereed by a
    reader.** The first: a `[CDF#n]`'s `disposition` — with `blocked_on` added or dropped as the new
    disposition requires — may be re-taken by the *Put each `[V]` to the operator* phase and written
@@ -272,8 +340,16 @@ and nothing downstream can tell the difference afterwards.
    record's fields under §4's per-field rules and its argumentation after that paragraph, never over
    it or what stands above it (§4, which names that set and owns the reopen and the re-decision alike;
    the *Put each `[V]` to the operator* phase's picker and *The will-change rule* phase are where
-   `options_considered`, `evidence` and `conditional_on` are taken). Nothing else on either record
-   moves, and no other record here carries an exception. **An addition is not a rewrite, and one
+   `options_considered`, `evidence` and `conditional_on` are taken). The reopen includes one this
+   command makes on §4's first cause, against a `decided` `[VD#n]` or `[CD#n]` a `--rebaseline` pass
+   moved the ground under (*A decision the re-grounding moved*, in *Generate the round's question
+   set*): on a `[CD#n]` it writes that `status` and that paragraph and nothing else, and the
+   re-decision is `/product-workflows:brd-reconcile`'s, from the customer's answer. The third: a
+   `[VD#n]` the will-change rule held, whose question a later round re-put and answered — the *Write
+   the register and the round record* phase moves its `status` to `superseded` and appends the
+   closing `Superseded <YYYYMMDD>: by [VD#m]` paragraph `decision-register-format.md` §4 fixes,
+   naming the `[VD#n]` that answered the re-put question (*A decision the re-grounding moved*).
+   Nothing else on any of the three records moves, and no other record here carries an exception. **An addition is not a rewrite, and one
    is made to another run's entry**: the `- **Requirement defect:**` line — with its
    `- **Defect image:**` line, where the defect sits on a row drawn from an image — that
    *Resolve the round* appends to a
@@ -365,9 +441,9 @@ the round record*), and where the two disagree the dispositions win.
   do not restart the round, and do not re-ask a question that already carries a terminal
   disposition. Re-asking a `[C]` is the case §5 singles out, and the register is the reason: two customer answers to one
   question is a contradiction one `[CD#n]` record has no way to hold.
-- **No round record exists at all** → **generate round 1's questions first, then decide.** The change
-  test below does not apply here: it reads "since the last round closed", and no round has closed, so
-  it has no referent. Run *Round 1 is generated from the grounding* (below) and branch on what it
+- **No round record exists at all** → **generate round 1's questions first, then decide.** The *Every
+  round is closed* branch below does not apply here: it generates from what changed "after the last
+  round was generated", and no round has been, so it has no referent. Run *Round 1 is generated from the grounding* (below) and branch on what it
   produced:
   - **At least one question** → open round 1 and work it, exactly as ever.
   - **No question at all** — no finding whose verdict leaves the premise open (the first two
@@ -385,7 +461,7 @@ the round record*), and where the two disagree the dispositions win.
     branch rather than after it. Otherwise → **write `interview/round-1.md` recording the walk and
     what it found nothing of, and close the round in the same write** — it holds no question, so
     there is none to leave hanging, and a round left open would trap every later run on the resume
-    rule and make the change test unreachable forever. Then carry on through the rest of the run —
+    rule and make the *Every round is closed* branch unreachable forever. Then carry on through the rest of the run —
     the register phase (which writes no record — no `[VD#n]`, no `[AS#n]`, no `[C]` — and so writes
     the register's header alone where none is on file), the handoff, and the next-step offer. **This
     is a completed run, not a stop**: it produced a deliverable, so it stages and hands off like any
@@ -411,22 +487,53 @@ the round record*), and where the two disagree the dispositions win.
   decide whether the refusal is fair — a second copy of this rule in another command is how the two
   drift apart, and the first question source added to one and not the other ships a package over a
   question nobody walked. It tests for the record; this branch is what makes an honest one exist.
-- **Every round is closed** → a new round is proposed **only if findings or decisions have changed,
-  or a requirement defect became this BRD's to ask, since the last round closed**. Concretely: a
-  `[CG#n]`/`[DG#n]` added or superseded since that round's record was written, a verifier outcome
-  changed, or a decision in `decisions.md` moved to `reopened` or `superseded` — or a requirement
-  defect this BRD owns, that is open and that is not asked (*Round 1 is generated from the
-  grounding* fixes all three tests), where round 1's record carries the requirement-defect account
-  line: the round-1 walk did not raise it, and a new round is exactly where it belongs (the round-1
-  test below). Nothing changed → there is nothing a new round could ask that the last one did not
-  already have in front of it; report that plainly, run the round-1 test below — every round being
-  closed, all it can do here is report — and, **where no `decisions.md` is on file, write it as its
-  header line alone** (*Write the register and the round record*): a BRD interviewed before this
-  command wrote the register on every round, over rounds that recorded no decision, holds none, and
-  `/product-workflows:brd-package` refuses the folder without one. Then skip to the handoff phase —
-  with nothing to commit where the register was already on file, and with `decisions.md` alone where
-  this path wrote it — and end on the ledger line. Something changed → open round `<highest + 1>`
-  (round 1 when none exists), naming in its record exactly what changed and made it askable.
+- **Every round is closed** → **generate round `<highest + 1>`'s questions first, then decide** —
+  the order the no-round-record branch takes, and for its reason: whether a round has anything to
+  ask is the generation's output, never a gloss on what changed. A change is only where the
+  generation looks (*A later round is generated from what changed*, in *Generate the round's
+  question set*): a `[CG#n]`/`[DG#n]` added or superseded, or its verdict or verifier outcome
+  changed, since the last round was generated — **read off that round's `generated against:` line**
+  (*Write the register and the round record*), never off a date, which no finding carries: a finding
+  on file that the line does not list and that does not read `SUPERSEDED` was added, one whose verdict or outcome differs from what the line
+  records changed, and one it lists that now reads `SUPERSEDED` was superseded, whenever the change
+  happened. **A round record written before that line existed carries none**, and there the anchor
+  is that record's last write instead: the grounding files as they stood at the commit that last
+  wrote it (`git -C "$SPECS_PATH" log -1 --format=%H -- <record>`, each file read there with
+  `git -C "$SPECS_PATH" show <sha>:./<its path relative to $SPECS_PATH>` (the `./` form resolves from `$SPECS_PATH` whether or not it is the repository's top level), a file absent at `<sha>` holding no finding there), compared the same way — which misses any change made while that round
+  was still open, before its last write, and where no commit carries the record, reads every
+  finding as unchanged —
+  or a requirement defect this BRD owns, that is open and that is not asked (*Round 1 is generated
+  from the grounding* fixes all three tests), where round 1's record carries the requirement-defect
+  account line: the round-1 walk did not raise it, and a new round is exactly where it belongs (the
+  round-1 test below) — or a record *A decision the re-grounding moved* puts again: one the
+  will-change rule held, every `evidence` finding of which now reads `SUPERSEDED` and has a
+  successor, none of them still `will-change`, or a plain `decided` record every `evidence` finding
+  of which reads `SUPERSEDED` and whose successors do not confirm its premise — **whenever that
+  supersession happened**: a record whose findings a re-grounding superseded while an earlier round
+  was still open was not put again by that round, and its supersession predating the last closure
+  must not strand it. **A change raises a question only where a source puts one**, and many do not:
+  a `--rebaseline` pass supersedes every finding it re-grounds, shipped or not, so a pass whose
+  successors confirm every plain record they bear on, and leave every held record waiting on its
+  prerequisite, changes the files and raises nothing — every such successor is *A decision the
+  re-grounding moved*'s to say, and that source says nothing; and a decision another command moved
+  to `reopened` or `superseded` raises nothing by that move alone, since no source here reads a
+  status change as a question.
+  - **At least one question** → open round `<highest + 1>`, naming in its record exactly what
+    changed and made it askable, and work it.
+  - **No question at all** → **open no round** and write no round record: a round with nothing in it
+    holds nothing for anyone to answer, and a record of one would read as a round nobody finished
+    (*An empty in-scope set is a finished state*, in *Generate the round's question set*, refuses the
+    same record for the same reason). Report it plainly — *nothing changed
+    since round `<highest>` was generated* where nothing did, or, where something did, each change and why it raised
+    nothing (below); where the anchor was the fallback, add *compared at round `<highest>`'s last commit `<sha>`, which misses a change made while it was open*, and where no commit carries the record, print *no commit carries round `<highest>`'s record, so no finding change could be detected* in place of *nothing changed*. Each change and why it raised
+    nothing: a re-grounding as *re-grounded, nothing moved*, naming each plain record its successors
+    confirmed and each held record still waiting on its prerequisite — run the round-1 test below — every round being closed, all it
+    can do here is report — and, **where no `decisions.md` is on file, write it as its header line
+    alone** (*Write the register and the round record*): a BRD interviewed before this command wrote
+    the register on every round, over rounds that recorded no decision, holds none, and
+    `/product-workflows:brd-package` refuses the folder without one. Then skip to the handoff phase
+    — with nothing to commit where the register was already on file, and with `decisions.md` alone
+    where this path wrote it — and end on the ledger line.
 
 **`--round N` given:**
 
@@ -455,8 +562,9 @@ the round record*), and where the two disagree the dispositions win.
   `BRD_INTERVIEW_NO_SUCH_ROUND: <BRD-KEY> has no round N — rounds on file: <list, or "none">. Omit --round to continue at the first round still holding a question without a terminal disposition.`
   The one exception: `N` is exactly `<highest + 1>` (or `1` when none exists), which is a request to
   open the next round, and takes **whichever branch the no-flag path would take for that same
-  request** — the change test where rounds are on file, and the generate-then-branch rule where none
-  is, including its nothing-askable outcome. The two branches of *Resolve the round* differ, and a
+  request** — the *Every round is closed* branch where rounds are on file, and the no-round-record
+  branch where none is, each generating before it decides and each including its nothing-askable
+  outcome. The two branches of *Resolve the round* differ, and a
   flag must not reach a different answer than the bare command would. Naming a round is never a way
   to accidentally do something else, and that cuts both ways: it must also never be a way to
   accidentally do *less*.
@@ -493,7 +601,7 @@ already open — and by nothing else either:
 - **Round 1's record carries no line** → this slice was interviewed before the requirement-defect
   source existed, so every such defect belongs in **round 1** — a question round 1 could have asked
   stays in round 1, never in a new round (*Generate the round's question set*: a later round holds
-  only what became askable once the previous round was answered):
+  only what became askable after the previous round's questions were written):
   - **Round 1 is open** → no re-open is needed. Where this run works round 1 — the bare path always
     does, round 1 being the lowest-numbered open round, and so does a run that has just re-opened
     it — append a question for each to round 1 now, numbered after its last question and never
@@ -535,10 +643,12 @@ records is stamped with it.
 Write the round's questions **before tagging any of them**, so the set is generated by what the BRD
 needs settled rather than by what would be convenient to route.
 
-**Where *Resolve the round* has already generated round 1, this phase works that set and generates
-nothing again.** That phase's no-round-record branch runs the scoping below and *Round 1 is
-generated from the grounding* to learn whether there is a round to open at all, so both have run
-once already, and a second pass would write a second copy of the same questions. **Nor does it
+**Where *Resolve the round* has already generated the round it opens, this phase works that set and
+generates nothing again.** That phase's no-round-record branch runs the scoping below and *Round 1 is
+generated from the grounding* to learn whether there is a round to open at all, and its *Every
+round is closed* branch does the same for a later round (*A later round is generated from what
+changed*, below), so both have run once already, and a second pass would write a second copy of the
+same questions. **Nor does it
 generate on a round it resumes or re-opens, whatever the cause**: a resumed or re-opened round's
 questions are on file, and the only questions a run adds to one — round 1 open or re-opened
 included — are those the round-1 test and *One question per row* append (*Resolve the round*), so
@@ -694,8 +804,15 @@ would have to state:
   (`commands/brd-split.md` Phase 0), this one included — has an `interview/customer-questions.md`
   entry whose `- **Requirement defect:**` line carries it, the line the *Hold every `[C]`* phase
   writes or *One question per row* appends, and no other mention in the entry. That is a structured
-  fact read across the slices, never a search of round records for the id, so a defect asked once is
-  never asked again, whichever slice asked it and whoever owns it now. **Three states make the
+  fact read across the slices, never a search of round records for the id, so this source never
+  raises a defect asked once again, whichever slice asked it and whoever owns it now. **An answer the
+  will-change rule held `open` keeps its defect `asked` and `open` alike** — the entry still carries
+  the line, and `/product-workflows:brd-reconcile` resolves nothing from a `[CD#n]` it froze `open` —
+  so this source does not raise it again, and it reaches the customer a second time only on the
+  question that re-puts that record (*A decision the re-grounding moved*, below). One the rule held
+  `conditional_on` its prerequisite is `decided`, and resolved its defect when it was frozen
+  (`/product-workflows:brd-reconcile`, *Resolve the defects the review settled*), so that defect is
+  no longer `open` and nothing here raises it. **Three states make the
   answer undecidable, and each withholds the defect**: a row it joins still `unallocated` — in the
   parent's ledger, or in the ledger of the slice the parent names — which may become live later and
   take it; a sibling ledger that cannot be read; and a sibling `customer-questions.md` that exists
@@ -717,11 +834,182 @@ would have to state:
   an `[AS#n]`, and the *Write the register and the round record* phase records it as one
   (`decision-register-format.md` §7).
 
-**A later round holds only what became askable once the previous round was answered.** A question
+**A decision the re-grounding moved is put again — one source, two cases.** A
+`/product-workflows:prd-ground <BRD-KEY> --rebaseline` pass re-grounds every claim against the moved
+code, writes each result as a new finding, and marks the finding it replaces `verdict: SUPERSEDED`,
+id retained, the verdict it carried kept as `prior_verdict`, every other field as it stood
+(`workflows-core:grounding-format` §2, §3, §5). A record in
+`decisions.md` **every one of whose `evidence` findings reads `SUPERSEDED`** rests on nothing on file
+any more, and this source takes it — as a *held* record or as a *plain* one, told apart by the
+record's own fields below. Two records it never takes. **One whose `evidence` names no finding** —
+`evidence: []`, or any `[AS#n]`, whose `evidence` holds the statement of why no evidence exists
+rather than finding ids (`decision-register-format.md` §7): it rests on no finding, and "every
+finding in the list" is not read as true of a list holding none (`decision-register-format.md` §6).
+**And a `[CD#n]` frozen `open` for want of its reason** — the one
+`open` record whose `argumentation` names its reason absent (`/product-workflows:brd-reconcile`,
+*Confirm every candidate*): its question is still *held for the customer* and travels in the next
+package, so a question put here as well would reach the customer twice for one decision. It becomes
+this source's only once a later review supplies the reason and completes it.
+
+**A superseded finding's successors are read off the grounding files and nothing else**: every
+finding on file that passes all four of these tests against it —
+1. **the same prefix**, `[CG#n]` or `[DG#n]`;
+2. **a `verdict` that is not `SUPERSEDED`**;
+3. **a `claim` opening with the same requirement id** — each grounder writes the id first
+   (`agents/code-grounder.md`, `agents/design-grounder.md`);
+4. **grounded against the same source, and minted after it** — a higher id of that prefix. The
+   source is read off records already on file, never off the finding's prose, because
+   `/product-workflows:prd-ground` grounds every claim once per repository and once per frame set
+   (its *Fan out grounding* phase) and a `--rebaseline` pass re-grounds only the repositories
+   whose `HEAD` moved, so a sibling repository's or a sibling frame set's finding on the same
+   requirement id is not a successor. **A `[CG#n]`'s source is its repository**: the one
+   repository whose `<BRD-dir>/grounding/baselines.md` entry records a pin equal to the finding's `commit`
+   — that file is appended to, never overwritten, so the pin a superseded finding was grounded
+   against still resolves. **A `[DG#n]`'s source is its frame set**: the one
+   `<BRD-dir>/design/<frame-set>/` whose index names every frame the finding's `evidence` cites by path
+   (`workflows-core:grounding-format` §6.2), since a finding record carries no frame-set field.
+
+Where a test cannot be decided — a `claim` opening with no requirement id, a `commit` no
+`baselines.md` entry records or that more than one repository's entry records, a `[DG#n]` whose
+frames no index names or more than one set's index names — it is not passed. A superseded finding
+that no finding on file passes all four against has **no successor**, and every test below reads
+that as a test that did not pass.
+
+- **A held record** — one the will-change rule held: every finding in its `evidence` carries
+  `horizon: will-change`, which superseding leaves as it was, and it stands `open`, or `decided` with a
+  `conditional_on` — a `[VD#n]` *The will-change rule* phase resolved by deferral or by condition, or
+  a `[CD#n]` `/product-workflows:brd-reconcile`'s *Freeze the customer decisions* phase froze
+  conditional or open. Its question was closed — *decided*, or *answered by the customer* — so no
+  resume returns to it: another answer against the same findings fires the same test, which is why
+  the record waits rather than its question. **It is put again once every finding in its `evidence`
+  reads `SUPERSEDED`, each has a successor, and no successor of any of them carries
+  `horizon: will-change`.** A
+  `--rebaseline` pass keeps `will-change` on a successor until the naming decision ships
+  (`commands/prd-ground.md` Phase 6), and it supersedes every finding it re-grounds whether or not
+  anything shipped — so a supersession alone observes nothing, and **the observation that the
+  prerequisite shipped is a successor no longer `will-change`**. A record with a successor still
+  `will-change`, or with some of its findings superseded and some not, rests on ground still about to
+  move: it **waits on its prerequisite**, and the final report names it with each such successor and
+  the prerequisite it names, raising nothing. One with a superseded finding that has no successor
+  waits too, named with that finding: no re-grounding has yet written ground its question could be
+  put against, or none that the four tests above tie to that finding's own source. **This round is not its only exit**: one written
+  `conditional_on` is also reached by `/product-workflows:brd-reconcile`'s propagation sweep the day
+  its prerequisite's decision moves, which may revert it or reopen it in place
+  (`decision-register-format.md` §5, §6), and that sweep's citation pass reaches a held record of
+  either kind that names an id its reconciliation changed.
+- **A plain record** — `status: decided` and not held. `decision-register-format.md` §4's first
+  cause, a finding that supersedes one in its `evidence`, may reopen it, and this is what does.
+  **It is reopened unless its successors confirm its premise, by this test and no other**: the
+  premise is confirmed only where, for every finding in its `evidence`, the finding carries a
+  `prior_verdict`, it has a successor, and every successor carries a `verdict` equal to that
+  `prior_verdict` and a `horizon` equal to the finding's own — which superseding leaves as it
+  stood. **Equal, not `current`**: a plain record may rest on one `current` finding and one
+  `will-change` one, which §6 leaves `decided` because the `current` one is ground that holds
+  (`decision-register-format.md` §6), and a pass run before the prerequisite ships re-grounds the
+  second as `will-change` again — the ground as it stood, which confirms. The pass after it ships
+  writes that successor `current`, a horizon the finding did not carry, so the record is reopened
+  then: the move from `will-change` to `current` is the prerequisite's shipping, and the premise
+  the record was decided on has changed. **The test is the same for a `[VD#n]` and a `[CD#n]`**, and
+  it reads the grounding files alone: `prior_verdict` is the verdict the finding carried when it was
+  superseded, which the superseding run writes into the block (`workflows-core:grounding-format` §2),
+  so no register, round record or question entry is consulted for it. **Where a finding carries no
+  `prior_verdict`, has no successor, or any successor carries another verdict or another
+  horizon, the record is reopened** — the question is put rather than a confirmation assumed. A
+  finding superseded before `prior_verdict` existed carries none, so its prior verdict is unknown and
+  the record resting on it is reopened; that prior verdict is never inferred from the finding's
+  `notes`, nor from a `[C]` entry's `- **Findings:**` line, which records the verdicts a question
+  was put against and not the ones a supersession overwrote. **A record whose successors confirm raises
+  nothing, and nothing on it moves** — the ground was re-derived and came back as it stood.
+  The reopen is written by the *Write the register and the round record* phase of the run that puts
+  the question, and never before: `status: reopened`, and a closing `Reopened <YYYYMMDD>:` paragraph
+  appended to its `argumentation` naming as its cause every successor of every finding in its
+  `evidence`, each with its verdict and horizon, and each superseded finding that has none
+  (`decision-register-format.md` §4). A record reopened without its question would be taken by
+  nothing afterwards — this source takes `decided` records — so the two go together.
+
+Such a record — a held one ready to be put again, or a plain one its successors do not confirm — is
+a question that makes a new round askable (*Resolve the round*, the *Every round is closed*
+bullet), and **it is raised in the round this run opens**, one question per record, never in a round
+it resumes or re-opens — that round's question set is settled — and where this run works an open
+round instead, it is reported as waiting on that round, like a changed finding, and raised (a plain
+record reopened with it) in the next one opened. The question:
+
+- **carries the tag of the question it re-puts** — `[V]` for a `[VD#n]`, `[C]` for a `[CD#n]` — and
+  arrives at *Tag every question* carrying it, which that phase records rather than re-derives. **The
+  tag never moves on a question put again**: the answer's prefix is fixed by the tag
+  (`decision-register-format.md` §1), a record is replaced or re-decided only by an answer of its own
+  authority, and a `[V]` answered by a customer or a `[C]` by the operator would leave the record with
+  an answer of the other register and no exit that reads it;
+- **is put against the current findings** — every successor, each with its verdict and horizon,
+  which for a `[C]` are its `- **Findings:**` line — and names the record and what it chose as
+  context, so whoever answers sees what was answered before and why it is asked again;
+- for a `[C]`, **carries a `- **Re-puts:** [CD#n]` line** naming the record. For a held record whose
+  `settles` names a `[DEF#n]` still `open` in the log, it carries that id on its
+  `- **Requirement defect:**` line too, with the `- **Rejected row:**` and `- **Defect image:**`
+  lines the answered entry carried (*Hold every `[C]`*) — so `/product-workflows:brd-reconcile`
+  copies `settles` into the answering `[CD#n]` and settles the defect from it. **That defect is the
+  one a later question carries after it was asked**: the *asked* test above counts it asked, so the
+  requirement-defect source never raises it again, and the re-put question is how it reaches the
+  customer the second time — as the question its earlier answer could not close, never as a second
+  question beside one still standing. A reopened record's question carries no such line: its
+  `settles` stands under §4, and the defect it names keeps the resolution
+  `/product-workflows:brd-reconcile`'s *Resolve the defects the review settled* phase wrote when the
+  record was first written `decided` (frozen so, or completed from `open`) — `resolved-by: <SLICE-KEY>/[CD#n]` naming this record, or a `withdrawn` or
+  `customer-amended` resolution naming no id at all (`brd-format.md` §4).
+
+**What the answer does turns on the record's `status` as the answer's writer reads it**, read off
+the record and never judged. For a `[V]`, that is when this command writes the answer — or, for a
+plain record this run reopens, the `reopened` the same register write gives it: the answer and that
+reopen are written together, by the *Write the register and the round record* phase, so the record
+still reads `decided` while the operator answers. For a `[C]`, it is the register as it stood before
+the `/product-workflows:brd-reconcile` run that freezes the answer wrote anything, which that
+command reads every status from (its *Freeze the customer decisions* phase). A
+record reading `reopened` — a plain one this source reopened, in this run or an earlier one, or a
+held one written `conditional_on` that a propagation sweep reopened while its question waited — is
+**re-decided in place** under §4, keeping its id: a `[V]` by *Put each `[V]` to the operator*'s
+re-decision rule, a `[C]` by `/product-workflows:brd-reconcile` from the answering entry's
+`- **Re-puts:**` line. One reading `open` or `decided` — a held record, `open` or `conditional_on`
+— is **superseded** by the answer, never completed or re-decided in place by this round: a `[V]`
+answered *decided* produces a new `[VD#n]`, which *The will-change rule* phase tests like any other,
+and the *Write the register and the round record* phase moves the held record to `superseded` with
+its closing `Superseded <YYYYMMDD>: by [VD#m]` paragraph (`decision-register-format.md` §4); a
+`[C]` is held for the customer, and `/product-workflows:brd-reconcile`'s *Freeze the customer
+decisions* phase supersedes the held `[CD#n]` from the same line. **One reading `withdrawn` or
+`superseded` — terminal (§3), which a sweep or a reconciliation may have written while its question
+waited — does not move**: the answer still mints a new record — a `[VD#n]` here, a `[CD#n]` by
+`/product-workflows:brd-reconcile` — the terminal record keeps its status and gains no paragraph,
+and the run that writes the answer names both, the new record and the terminal one, under what
+still needs a human, since the question was put against a record that no longer stands. A question put again and *deferred* keeps its round open, and the
+record stands as it is until the question is answered. **No other source raises a question on a
+successor this source has read** — a successor of a finding in the `evidence` of any held record,
+waiting or put again, or of any plain record every `evidence` finding of which reads `SUPERSEDED`,
+put again or confirmed — **whatever that successor's verdict and horizon**: which question such a
+successor raises, if any, is this source's to say — the record's own, put again; none while a held
+record waits on its prerequisite; none where a plain record's successors confirm it. The *Round 1 is
+generated from the grounding* bullets therefore pass such a successor over, the `will-change` one
+included, so the decision a question put again carries is never asked about twice.
+
+**A later round holds only what became askable after the previous round's questions were written.** A question
 that could have been asked in round 1 and was not is not "moved" to round 2; it stays in round 1,
 carrying a holding state, and the resumption in *Resolve the round* is what returns to it. This
 matters for the record: a decision from round 1 was taken without anything round 2 discovered, and
 saying so later requires the round number to still mean what it says (§5).
+
+**A later round is generated from what changed after the last round was generated, by the same
+sources, and before it is opened.** *Resolve the round*'s *Every round is closed* branch runs the scoping
+above and this generation for round `<highest + 1>` to learn whether that round would hold anything,
+and opens it only where it would — so, as for round 1, this phase then works that set and generates
+nothing again. The generation takes: the *Round 1 is generated from the grounding* bullets, applied
+to each finding added, or whose verdict or verifier outcome changed, since the last round was
+generated, whenever the change happened — the last round's `generated against:` line is the
+anchor, and a record carrying no such line is compared at its last write, both as *Resolve the round*'s
+*Every round is closed* branch fixes; a round's record is re-written by every run that works it,
+and a finding a `--rebaseline` pass changed while that round was still open predates both its last
+write and its closure, which is why the line and not the write is the anchor — less every successor *A decision the re-grounding moved* reads (above), and less every
+finding reading `SUPERSEDED`, which raises nothing; *A decision the re-grounding moved* itself, one
+question per record it puts again; and each requirement defect the round-1 test in *Resolve the
+round* places in a new round. A finding that stood when the last round was generated and has not
+changed since raises nothing again: its question, where it had one, is in the round that asked it.
 
 **Questions carry no minted identifier.** The workflow's identifier namespaces are fixed (D21) and
 none of them denotes a question, so nothing here invents a `[Q#n]`-style prefix. A question is
@@ -770,6 +1058,13 @@ three:
   it until the test has something to bite on. It is not filed with a guessed tag in the meantime,
   and it is not asked while it carries one: guessing a tag to unblock a round is precisely how a
   `[V]` reaches a customer.
+
+**A question putting a decision again arrives with its tag, and this phase records that tag rather
+than re-deriving it** (*A decision the re-grounding moved*, in *Generate the round's question set*):
+it is the question the record answered, put again against moved ground, so it takes the first
+outcome above with the tag that record's prefix names, and a finding that now seems to settle it is
+context for whoever answers, never a reason to route it to `[G]`. Nor is it split or re-tagged here
+or later: its tag never moves, which is what keeps its answer one the record can take.
 
 **The invariant this phase exists to establish**, and which every later phase depends on: when this
 phase ends, every question in the round carries exactly one tag, and the three sets — `[G]`, `[V]`,
@@ -899,10 +1194,11 @@ earlier round found something it did not. `round` does not move either — §2 d
 that **raised** the defect, not the round that last touched it, and the re-disposition is reported in
 this run's round record instead.
 
-**This is one of the two carve-outs from the standing rule that a previous run's records are inputs,
+**This is one of the three carve-outs from the standing rule that a previous run's records are inputs,
 never scratch** (*Resolve inputs and gate the grounded BRD*, step 9, which states the rule and names
-both — the other being a decision reopened under `decision-register-format.md` §4 and the
-re-decision that follows it). Rule and carve-out are not in tension: a re-disposition writes a
+all three — the others being a decision reopened under `decision-register-format.md` §4 and the
+re-decision that follows it, and a `[VD#n]` the will-change rule held, superseded by the answer to
+the question that put it again). Rule and carve-out are not in tension: a re-disposition writes a
 `disposition`, and the `blocked_on` that goes with it, on one record, and deletes, renumbers and
 rewrites nothing. **There is still no `fixed` disposition** — nothing on
 this route builds anything and no command here can observe a repair, so a defect that was fixed
@@ -932,14 +1228,40 @@ above read across**: a defect's `round` is the round that *raised* it
 while a decision's is the round that produced the position on record, so a re-decision carries it
 forward. Two records, two fields of the same name, two authorities.
 
+**A question putting again a `[VD#n]` the will-change rule held is not a re-decision either**, and
+takes the list above: its answer mints a new `[VD#n]` against the current findings, and the held
+record, where it reads `open` or `decided`, is moved to `superseded`, with the closing
+`Superseded <YYYYMMDD>: by [VD#m]` paragraph naming it, by the *Write the register and the round
+record* phase — never re-decided in place, since it was never reopened under §4 and one of the two
+it may be, `open`, is not a status §4 reopens. Where another run has meanwhile left it `withdrawn` or
+`superseded`, it does not move, and the run names it with the new record under what still needs a
+human (*A decision the re-grounding moved*). **One putting again a `[VD#n]` that reads `reopened`
+when the answer is taken, or that this run reopens in the same register write, is a re-decision**,
+and takes the paragraph above — a plain record this run or an earlier one reopened, or a held one a
+propagation sweep reopened meanwhile (*A decision the re-grounding moved*, in *Generate the round's
+question set*). **One that reads `withdrawn` or `superseded` when the answer is taken** — a plain
+record reopened for its question and left terminal by another run while it waited — is neither, and
+takes the list above as a held one another run left terminal does: its answer mints a new `[VD#n]`,
+the terminal record does not move, and the run names both under what still needs a human.
+
 **Deferring is a recorded holding state, not a disposition and not a skip.** It records the reason
 the question is not answerable yet, keeps the round **open**, and never converts the question to
 another tag on the way out. It does **not** move the question into a later round: the question stays
 where it was raised (the *Generate the round's question set* phase fixes that), and the resume rule
 in *Resolve the round* returns to it. A round whose remaining questions are all deferred is an open
-round with work left, and is reported as one. **`Cancel` stops the run** naming how many `[V]` questions
-remain, and every decision already taken this pass stays written — nothing already decided is rolled
-back.
+round with work left, and is reported as one. **This is the defer entry of the picker above, and
+only that one**: *The will-change rule* phase's *Defer it until the prerequisite ships* resolves a
+question that was answered, records the wait on the `[VD#n]` rather than on the question, and keeps
+no round open (that phase says so). **An abort — the harness's free-text option, since the array
+lists no `Cancel` — stops the run** naming how many `[V]` questions remain, **and writes nothing**:
+a `[VD#n]` taken in this phase is held for the register phase, which is the only writer of
+`decisions.md` and of the round record, and an abort never reaches it. So no answer this pass took
+survives it, the round record stays as the last write left it, and the next run resumes at the
+first question that record shows without a terminal disposition — each `[V]` decided this pass
+among them — and puts it again; or, for a round this run opened, which no record yet holds,
+regenerates that round's questions afresh and opens it again where they are still there to ask. What *Resolve the round* already appended before this
+phase — a defect's line on a held entry (*One question per row*) — is on disk and stays, named by
+no round record yet. Say so when the abort is taken: the answers given are lost with the run.
 
 ---
 
@@ -973,9 +1295,15 @@ downstream artifact the answer must reach — the PRD, the ARD or the specificat
 and a customer answer has no other source for it; **for a `rejected` row's question, that row, on a
 line of its own labelled exactly `- **Rejected row:** [BR#n]`**, which is how a later run finds the
 row's question rather than raising a second one (*One question per row*, in *Resolve the round*);
-**for a question the requirement-defect source raised, or a `rejected` row's question carrying the
-defect it cites, the `[DEF#n]` it asks about, on a line of its own labelled exactly
-`- **Requirement defect:** [DEF#n]`**, carrying that id and nothing else; **and, where the defect
+**for a question the requirement-defect source raised, a `rejected` row's question carrying the
+defect it cites, or a re-put question carrying the defect its held record `settles`, the `[DEF#n]`
+it asks about, on a line of its own labelled exactly `- **Requirement defect:** [DEF#n]`**,
+carrying that id and nothing else; **for a question putting a `[CD#n]` again — one the will-change
+rule held, or one this run reopened on its successor findings — that record, on a line of its own
+labelled exactly `- **Re-puts:** [CD#n]`** — the one line `/product-workflows:brd-reconcile`
+supersedes a held record, or re-decides a reopened one, from, since the entry's context names the
+earlier answer too (*A decision the re-grounding moved*, in *Generate the round's question set*);
+**and, where the defect
 sits on a row drawn from an image, that image's path relative to `brd/`, on the next line, labelled
 exactly `- **Defect image:** <path relative to brd/>`** — the form an image anchor names it by
 (`brd-format.md` §2), which the bundle's manifest maps to the image's bundled filename, so the
@@ -1030,6 +1358,23 @@ Record the outcome as that table prescribes: a changed `evidence` list, a `condi
 specific decision of the prerequisite (`EPIC-008/[VD#3]`, never `EPIC-008` alone — §5), or
 `status: open` with the blocking prerequisite named.
 
+**Whichever of the three is taken, the question stays *decided*, naming the `[VD#n]`, and its round
+can close.** The operator answered it, with argumentation; what the rule holds back is the record,
+not the question. So *Defer it until the prerequisite ships* is **not** the *deferred* holding state
+of the *Put each `[V]` to the operator* phase: that state records a question nobody could answer yet,
+and keeps its round open so the resume rule returns to it, while this one records an answer whose
+ground is about to move — and a resume that returned to it would put the same question against the
+same findings, which fires this same test again. The record, `open` or `conditional_on` its
+prerequisite, is the thing that waits. Its exit is the question a later round puts again once a
+`--rebaseline` pass has superseded every `will-change` finding it rests on and no successor of them
+is still `will-change` — the prerequisite having shipped (*A decision the re-grounding moved*, in
+*Generate the round's question set*) — proposed in the ordinary way once every round is closed,
+which a round held open around this question would have prevented for good. A record written
+`conditional_on` has a second exit besides: `/product-workflows:brd-reconcile`'s propagation sweep,
+which reaches it by that field when the prerequisite's decision moves
+(`decision-register-format.md` §5); that sweep's citation pass also reaches a held record of either
+kind that names an id its reconciliation changed.
+
 **This picker's vocabulary is closed, and holding it closed is required here rather than merely
 permitted.** `workflows-core:escalation-rules` names this picker among the arrays
 whose free-text answer is normalised into their own vocabulary rather than written through — the
@@ -1038,8 +1383,16 @@ what the run does with the answer, not in the array's shape. The rule being appl
 **exactly three** resolutions and says so — "Three resolutions, and exactly three"
 (`decision-register-format.md` §6). An open-ended fourth entry would invite a resolution the rule
 does not have, and the two most likely things an operator would write into it are precisely the two
-evasions §6 and §7 already refuse (below). `Cancel` remains, so nobody is trapped: it stops the run
-with the decision still `open`, which is itself one of the three.
+evasions §6 and §7 already refuse (below). `Cancel` remains, so nobody is trapped — and it is not
+a fourth resolution, nor the third under another name: it stops the run before *Write the register
+and the round record*, the only writer of `decisions.md` and of the round record, so **nothing this
+run decided is written** — not this `[VD#n]` in any status, and not any other this pass took. The
+question keeps whatever state the round record last recorded, and the next run puts it again — or,
+for a round this run opened, which no record yet holds, regenerates that round's questions afresh
+and opens it again where they are still there to ask. Two things are already on disk by then and
+stay, and no round record yet names either: any held `[C]` entry *Hold every `[C]`* wrote to
+`interview/customer-questions.md` in this run, and any defect line *Resolve the round* appended to
+a held entry there (*One question per row*). Say all of it when `Cancel` is taken.
 
 **Two things this picker deliberately does not offer.** It does not offer to **remove** the
 `will-change` finding from the `evidence` list: a decision whose evidence was thinned until the rule
@@ -1066,10 +1419,28 @@ Ids are contiguous within their own prefix, assigned once, **never renumbered an
 never reused after a terminal status** (§1) — a re-run continues the sequence from the highest id on
 file and never restarts it. A run that reopens a decision writes `status: reopened` with its cause
 named in the closing `Reopened <YYYYMMDD>:` paragraph §4 appends to its `argumentation`, against the
-original record's id; it never mints a new id for the same question. That, and the re-decision
+original record's id; it never mints a new id for the same question, unless another run has
+meanwhile left that record terminal, when the answer mints a new `[VD#n]` and the terminal record is
+not written (below). That, and the re-decision
 following it — in this run or a later one — which writes the record's fields under §4's per-field
-rules and its argumentation after that paragraph, is the second of the two exceptions the *Resolve
-inputs and gate the grounded BRD* phase admits to rewriting another run's record.
+rules and its argumentation after that paragraph, is the second of the three exceptions the *Resolve
+inputs and gate the grounded BRD* phase admits to rewriting another run's record. **The reopen
+this phase writes includes the one *A decision the re-grounding moved* (in *Generate the round's
+question set*) takes on a plain `[VD#n]` or `[CD#n]` in the run that puts its question**, its
+`Reopened` paragraph naming the successor findings as that section fixes; on a `[CD#n]` the status
+and that paragraph are all this command writes, the customer's `chosen` and quoted reason standing
+untouched until `/product-workflows:brd-reconcile` re-decides it from the customer's answer. **The
+third is the held record's, and it mints a new id for a question already answered**: a `[V]`
+putting again a `[VD#n]` the will-change rule held is answered by a new `[VD#n]`, and the held
+record, where it reads `open` or `decided`, has its `status` moved to `superseded` and its
+`argumentation` given the closing `Superseded <YYYYMMDD>: by [VD#m]` paragraph
+`decision-register-format.md` §4 fixes, naming the new id — nothing else on it moves. That record
+was never reopened, so there is no re-decision to write onto it, and one `open` under §6 is not a
+status §4 reopens at all. **A re-put `[VD#n]` another run has meanwhile left `withdrawn` or
+`superseded` — a held one, or a plain one this source reopened — is answered by a new `[VD#n]`
+too, and is not written**: its status is terminal (§3), and the new `[VD#n]` is written beside it,
+both named under what still needs a human in the final report (*A decision the re-grounding
+moved*) — a mint with no rewrite, and so no exception.
 
 **The register is written on every run that reaches this phase, whether or not the round produced a
 record.** Where no register is on file, this run creates it, and its first line is the header —
@@ -1131,6 +1502,21 @@ with a *deferred* question still open beside it — and the dispositions win ove
 next `/brd-interview` write of the record appends a line that agrees. A record carrying no `Status:`
 line at all is read off its questions' dispositions the same way, and the next write of it adds one.
 
+**The first write of every round record carries one `generated against:` line, and no later write
+adds or edits one.** It lists every finding on file under `grounding/` not reading `SUPERSEDED`
+when the round's questions were generated, each with the verdict and verifier outcome it then
+carried, or reads `none` where there was no such finding:
+
+```
+generated against: [CG#n]=<verdict>/<outcome>, [DG#n]=<verdict>/<outcome>, …
+```
+
+It is the anchor *Resolve the round*'s *Every round is closed* branch compares the grounding against
+to learn what changed since this round was generated — so the round-1 record of a walk that raised
+no question carries it as every other first write does — and it records the generation, never a
+later run's view: a `--round N` re-open appends to a record that already has its line, or that
+predates the line and keeps the fallback that branch names.
+
 **Every round record this command writes carries one line accounting for the requirement-defect
 source**, whether or not the round raised a question. It accounts for every open requirement defect
 that joins a row of this BRD's in-scope set and that no slice had asked before this round — each of
@@ -1153,7 +1539,7 @@ unallocated row, or the sibling whose ledger or question set could not be read, 
 that cannot open yet). Either half is left out where it is empty, and where there is no such defect
 at all the line reads `requirement defects: none this BRD asks`. **Never
 `none open in this BRD's scope`**: that is false wherever an in-scope row carries a defect a sibling
-asks. *Resolve the round* reads round 1's line and no other — whether round 1's record carries it is
+asks. *Resolve the round* reads this line on round 1's record and on no other round's — whether round 1's record carries it is
 what tells a slice interviewed before this source existed from one interviewed after.
 
 **`<BRD-dir>/interview/customer-questions.md`** — written by the *Hold every `[C]`* phase, and
@@ -1220,10 +1606,12 @@ naming a disposition no ref carries), `title: <BRD-KEY> Record round <N> intervi
 `body_facts` = the round number and whether it opened, resumed or re-opened; the question counts by
 tag; the `[G]` answers and the re-tags with their causes; the `[VD#n]`, `[AS#n]` and `[CDF#n]` ids
 written and every `[CDF#n]` re-dispositioned, each with its old and new disposition; the `[C]` count
-held, and every defect line appended to a held entry; and every will-change resolution taken. Emit
+held, and every defect line appended to a held entry; every will-change resolution taken; every
+held record put again, with the record that superseded it where this round wrote one; and every plain
+record reopened on its successor findings, with the question that puts it again. Emit
 its §4.1 outcome line in the final report.
 
-The no-new-round path in *Resolve the round* — every round closed and nothing changed — reaches this
+The no-new-round path in *Resolve the round* — every round closed and nothing a question source would ask — reaches this
 phase with nothing staged where the register was already on file, so it reports the
 `nothing to commit` line rather than opening a pull request; where that path wrote the register's
 header line, `decisions.md` is the one path it hands off. **The nothing-askable first run is not
@@ -1286,7 +1674,7 @@ without it, and the next one carries it.
 **`package_offerable: yes`:**
 
 ```
-choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /product-workflows:brd-package <BRD-KEY> <merge-clause>", "Work another round now — /product-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed, or a requirement defect became this BRD's to ask)", "Interview another BRD or slice"]
+choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /product-workflows:brd-package <BRD-KEY> <merge-clause>", "Work another round now — /product-workflows:brd-interview <BRD-KEY> (only if findings have changed, a requirement defect became this BRD's to ask, or a re-grounding moved a decision's evidence)", "Interview another BRD or slice"]
 ```
 
 **`package_offerable: rounds-unsettled` — `/brd-package` is left out rather than offered and
@@ -1312,18 +1700,18 @@ choices: ["Re-open round 1 to ask the requirement defects — /product-workflows
 
 **`package_offerable: nothing-to-review` — say plainly that this BRD is decided, and do not offer
 either the packaging step or another round of this command.** Both would stop or report a no-op: the
-packaging step on its step-8 gate, and this command because it opens a new round only where the
-findings or the decisions have changed, or a requirement defect became this BRD's to ask, since the
-last round closed — which nothing here has done. Of those, only the findings can be moved from here:
-a decision reopens on a new finding or a customer's answer (`decision-register-format.md` §4), and a
-requirement defect becomes this BRD's to ask through events outside this command — for instance
+packaging step on its step-8 gate, and this command because it opens a new round only where a
+question source puts a question on what changed after the last round was generated — the findings,
+or a requirement defect becoming this BRD's to ask; a decision another command moved to `reopened`
+or `superseded` raises nothing by that move alone (*Resolve the round*) — and nothing here has
+changed. Of those, only the findings can be moved from here: a requirement defect becomes this BRD's to ask through events outside this command — for instance
 `/product-workflows:brd-intake` re-run over a revised source the customer sends, an allocation or a
 re-cut elsewhere under the parent, a sibling's `/product-workflows:brd-reconcile` moving its row to
 `rejected` or `superseded-by`, or a sibling file that could not be read becoming readable. So a fresh
 grounding pass is what the list carries:
 
 ```
-choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-derive the findings against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what makes a new round askable)", "Interview another BRD or slice"]
+choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-ground every claim against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what can make a new round askable)", "Interview another BRD or slice"]
 ```
 
 **Three of the four lists carry no `(Recommended)` marker, and that omission is deliberate**, per
@@ -1388,13 +1776,17 @@ a finding block only through a plugin command transcribing a return into the rec
 origin is the plugin's own dispatch — so it fires `emit-block` before the operator's hand repair.
 Every other stop reports the state of the operator's own argument, the tree or the environment,
 never a capability, reference or command path this plugin lacks, so a stop added later is classified
-by the same test. Among them, every *Resolve inputs and gate the grounded BRD* stop — a missing or
-malformed key or `--round` value (`BRD_INTERVIEW_BAD_ROUND`), an unresolved BRD, a resolved root
-BRD, an ungated or absent grounding deliverable, a grounding file on main recording no finding
-(`BRD_INTERVIEW_NO_FINDINGS`), an inventory carrying no claim at all
-(`BRD_INTERVIEW_EMPTY_INVENTORY` — a fact about what the parent allocated to this slice, or about an
-interrupted intake's own source document, never about this plugin), unverified findings, an
-unallocated ledger, and an unset `$SPECS_PATH` are environment / sequencing halts.
+by the same test. Among them, the *Resolve inputs and gate the grounded BRD* stops that report the
+operator's argument are argument halts — a missing or malformed key or `--round` value
+(`BRD_INTERVIEW_BAD_ROUND`), an unresolved BRD, a resolved root BRD, a resolved Epic folder
+(`BRD_INTERVIEW_EPIC_LEVEL`), an idea-route PRD folder (`BRD_INTERVIEW_NOT_A_SLICE` — the operator's
+key naming a folder no BRD carved), and the no-parent form of `BRD_INTERVIEW_EMPTY_INVENTORY`, whose
+key names a folder that is neither a slice nor a BRD container. The rest of that phase's stops are
+environment / sequencing halts: an ungated or absent grounding deliverable, a grounding file on main
+recording no finding (`BRD_INTERVIEW_NO_FINDINGS`), a slice's inventory carrying no claim at all
+(`BRD_INTERVIEW_EMPTY_INVENTORY`'s slice form — a fact about what the parent allocated to this slice,
+never about this plugin), a slice's inventory absent (`BRD_INTERVIEW_NO_INVENTORY` — never written,
+by an interrupted `/brd-split` on the parent, or written and since lost), unverified findings, an unallocated ledger, and an unset `$SPECS_PATH`.
 `BRD_INTERVIEW_NO_SUCH_ROUND` is an argument naming a round that does not exist, and
 `BRD_INTERVIEW_ALL_DELEGATED` — a BRD that kept no requirement of its own — is an allocation outcome
 this command reports correctly, not a capability it lacks.
@@ -1446,7 +1838,15 @@ round and the `[CDF#n]` re-dispositioned, each with its old and new disposition,
 holding them, stated together with the fact that
 `/product-workflows:brd-package` is the command that carries them to the customer and
 `/product-workflows:brd-reconcile` the one that records the answer; every will-change resolution taken and how it was
-recorded; the count of decisions and assumptions still `consumed_by: none`
+recorded; every record *A decision the re-grounding moved* took — each held record this round put
+again, with the question that puts it and, for a `[VD#n]` answered here, the record that superseded
+it — or, where another run had left that record `withdrawn` or `superseded`, its status and the new
+`[VD#n]` beside it, both as still needing a human; each plain record reopened, with its successor findings and the question that puts it, and, for one answered here that another run
+had meanwhile left `withdrawn` or `superseded`, its status and the new `[VD#n]` beside it, both as
+still needing a human; and each
+such record that waits on an open round instead, with that round; every held record waiting on its
+prerequisite, with the successor still `will-change` and the prerequisite it names; and every plain
+record whose successors confirmed it, which raised nothing; the count of decisions and assumptions still `consumed_by: none`
 (`decision-register-format.md` §1); whether the round closed or stays open, and what it is waiting on;
 the feedback + cost paths; the `Phase handoff:` outcome line (`workflows-core:phase-handoff` §4.1); the
 `Specs repo:` outcome line (`workflows-core:specs-repo-git` §6); the next-step recommendation; and end with the

@@ -1,6 +1,6 @@
 ---
 name: brd-proposal
-description: Programme effort-proposal workflow (PM phase, BRD-route only, optional and ungated) — author the umbrella proposal for a BRD- container by rolling up its slices' own proposals. Enumerates slices by the positive brd-link.md parent test, walks each to a computed recommendation (stop and price it, exclude and disclose it, or re-run a stale one), and gates on each included slice's proposal.md being on the default branch. The roll-up is not a sum: cross-slice effort that exists in no slice is added and named, work two slices priced from the same verified finding is flagged for the operator rather than counted twice, and peak concurrency is computed from the programme schedule instead of summing FTE. Computes coverage from the root coverage ledger and enumerates the remainder by identifier. Carries no money for human hours. Nothing on the build ladder reads a proposal or waits on one.
+description: Programme effort-proposal workflow (PM phase, BRD-route only, optional and ungated) — author the umbrella proposal for a BRD- container by rolling up its slices' own proposals. Enumerates slices by the positive brd-link.md parent test, walks each to a computed recommendation (stop and price it, exclude and disclose it, re-run a stale one, or include a current one without asking), and gates on each included slice's proposal.md being on the default branch. The roll-up is not a sum: cross-slice effort that exists in no slice is added and named, work two slices priced from the same verified finding is flagged for the operator rather than counted twice, and peak concurrency is computed from the programme schedule instead of summing FTE. Computes coverage from the root coverage ledger and enumerates the remainder by identifier. Carries no money for human hours. Nothing on the build ladder reads a proposal or waits on one.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -222,17 +222,25 @@ BRD_PROPOSAL_NO_SLICES: <BRD-KEY> at <path> has no slices — nothing has been c
 ## Phase 3 — The readiness walk
 
 Walk every slice Phase 2 enumerated, one at a time, and **carry a computed recommendation for each —
-the decision stays the operator's**. Three states, and the recommendation each one computes to:
+the decision stays the operator's**. Four states — two with no `proposal.md` and two with one, so
+every slice is in exactly one — and the recommendation each one computes to:
 
 | Slice state | Recommendation |
 |---|---|
 | no `proposal.md`, and the slice grades tier ≥ 2 | **Stop.** Run `/product-workflows:prd-proposal <SLICE-KEY>` first — the slice is estimable, and excluding it understates the programme |
 | no `proposal.md`, and the slice grades tier 1 or holds no `prd.md` | **Exclude, and disclose.** Nothing better is available today, and stopping buys nothing |
 | `proposal.md` present but older than the slice's own `prd.md`, `decisions.md` or grounding files | **Re-run it.** The common case, and the easiest to miss |
+| `proposal.md` present and older than none of them | **Include.** The slice is priced and current, so there is nothing to decide: the walk asks no question for it and records it as included |
 
 Grade a slice's tier against `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §5's ladder, over
 that slice's own folder — the same grading `/prd-proposal` Phase 3 performs, applied here only to
-decide which of the three rows a slice is in.
+decide which of the two no-`proposal.md` rows a slice is in; a slice with a `proposal.md` is placed by
+the modification times Phase 2 recorded, and its tier is the one its proposal already carries.
+
+**A current slice is the one row with no array.** It is still printed in the walk's picture with its
+**Include** recommendation, and it is included exactly as an operator's *"Include it as it stands"* on
+a stale one would be — through Phase 4's gate like every included slice — but it is not an operator's
+decision and is never reported as one.
 
 **Always print the computed recommendation beside the array**, so the operator reads the run's
 judgement and the available answers separately: the printed line is what carries the judgement, and an
@@ -696,8 +704,9 @@ user name is ever written.
 ## Final report
 
 Report: the resolved folder and the `BRD-` key; **every slice Phase 2 enumerated, with the walk's
-computed recommendation and the operator's decision for each** — included, excluded, or left for
-re-pricing — so an inclusion taken against a **Stop** recommendation is visible rather than implied.
+computed recommendation and, for each slice the walk asked about, the operator's decision** —
+included, excluded, or left for re-pricing — and each current slice as included without a question,
+so an inclusion taken against a **Stop** recommendation is visible rather than implied.
 **On a run the walk ended** — the operator answered "Price the slice first" or "Re-price it first" —
 the report is that walk plus the list of slices still to price, and it says plainly that no artifact
 was written and nothing was excluded; the rest of this list describes a run that reached Phase 8.

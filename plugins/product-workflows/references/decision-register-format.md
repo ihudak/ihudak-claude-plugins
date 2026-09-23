@@ -18,13 +18,14 @@ a question's answer lands in, and the rounds a decision is stamped with, belong 
 belongs to `workflows-core:addressing` §1.
 
 **Consumed by `commands/brd-interview.md`**, which writes `[VD#n]` and `[AS#n]` records against this
-shape and enforces §6; by `commands/create-prd.md`, which writes an `[AS#n]` — and only an `[AS#n]` —
+shape, enforces §6, and — on §4's first cause — reopens a `decided` `[VD#n]` or `[CD#n]` a
+`--rebaseline` pass moved the ground under; by `commands/create-prd.md`, which writes an `[AS#n]` — and only an `[AS#n]` —
 for a customer-authority gap that only PRD authoring could surface (§7); by `agents/brd-package-reviewer.md`, which reads them; and by
 `commands/brd-package.md`, which surfaces every open `[AS#n]` in the customer prompt (§7) and finds
 every position resting on a prerequisite by its `conditional_on` field (§5); and by
-`commands/brd-reconcile.md`, which writes the `[CD#n]` records — the only command that does —
-supersedes the `[AS#n]` each one settles, reopens what an incoming customer decision overturns under
-§4, and runs the propagation sweep §5 exists to serve. **It has more readers than those**: the three
+`commands/brd-reconcile.md`, which mints the `[CD#n]` records — the only command that does — and
+enforces §6 on them as it freezes them, supersedes the `[AS#n]` each one settles, reopens what an incoming customer decision overturns under
+§4, re-decides in place a `[CD#n]` whose reopened question the customer has answered, and runs the propagation sweep §5 exists to serve. **It has more readers than those**: the three
 commands §1's `altitude` row names each read the register filtered on their own value and stamp
 `consumed_by` on what they drew on, and `commands/prd-ground.md`, `commands/brd-split.md`'s re-cut
 report, `commands/prd-proposal.md`'s tier grading, `agents/proposal-reviewer.md` and
@@ -174,7 +175,7 @@ Exactly five.
 | `open` | Raised, not yet settled. A decision may not be consumed downstream while it is open |
 | `decided` | Settled, with `chosen` and `argumentation` filled in |
 | `reopened` | Was `decided`, and a cause under §4 has reopened it |
-| `superseded` | Replaced by a later decision, which the record names; the identifier is retained, never reused |
+| `superseded` | Replaced by a later decision, which the record names in a closing `Superseded <YYYYMMDD>: by [XD#m]` paragraph appended to its `argumentation` (§4); the identifier is retained, never reused |
 | `withdrawn` | No longer asked for at all — the question stopped applying rather than being answered |
 
 **`withdrawn` is first-class, and it is not a tidier spelling of `superseded`.** A superseded
@@ -218,6 +219,42 @@ the re-decision has to argue against. None of §1's thirteen fields is a cause, 
 is the one that already answers *why*. On a `[CD#n]`, whose `argumentation` is the customer's own
 reason quoted, the paragraph follows the quotation and leaves it exactly as written; its opening
 marker is what tells the plugin's words from the customer's (`references/bundle-packaging.md` §6.3).
+
+**A supersession names its replacement the same way**, because §3's `superseded` says the record
+names the decision that replaced it and a status alone names nothing: a closing paragraph appended
+to `argumentation` beneath what the field already holds, reading `Superseded <YYYYMMDD>: by [XD#m]`
+— `[XD#m]` being the replacing record's id, `[VD#m]` or `[CD#m]`, bare, since a supersession is
+always by a record of the same BRD's `decisions.md`: a `[VD#n]` by the `[VD#m]` that answered its
+question put again, or by the `[CD#m]` a customer's answer replaced it with, a `[CD#n]` by the
+`[CD#m]` that answered its, and an `[AS#n]` by the `[CD#m]` that settles it (§7) — where the
+replacing record is of the other prefix it is still in the same file, which is what a bare id
+resolves against (below). **Superseding moves `status` to `superseded` and adds that
+paragraph; nothing else on the record moves** — it is neither a re-decision nor a reversion, so none
+of the per-field rules below applies to it, and the superseded position stays on the page exactly as
+it was taken, which is what lets a reader see what was replaced. Every writer of `superseded` writes
+it this way: `commands/brd-interview.md` for a `[VD#n]` the will-change rule held, whose question a
+later round put again (*A decision the re-grounding moved*); and `commands/brd-reconcile.md` for a
+`[VD#n]` or `[CD#n]` a later customer answer replaces and for an `[AS#n]` a `[CD#n]` settles (its
+*Freeze the customer decisions* phase, steps 2 and 3; §7).
+
+**Cause 1 has a command that observes it.** A `commands/prd-ground.md` `--rebaseline` pass marks
+every finding it replaces `verdict: SUPERSEDED`, and `commands/brd-interview.md` (*A decision the
+re-grounding moved*) takes each `decided` record §6 did not hold, every one of whose `evidence`
+findings a pass has superseded: it reopens the record, naming the successor findings as the cause, unless those
+successors confirm its premise by the test that section fixes, and puts its question in the next
+round it opens. That section also fixes which findings are a superseded finding's successors. The
+test is mechanical and the same for a `[VD#n]` and a `[CD#n]`: every superseded finding in the
+record's `evidence` carries a `prior_verdict` — the verdict it carried, kept on it when it was
+superseded (`workflows-core:grounding-format` §2) — and has at least one successor, and every
+successor carries that verdict and the superseded finding's own `horizon`, which superseding
+leaves as it stood. A finding carrying no `prior_verdict`, superseded before the field existed,
+confirms nothing, and nor does one no successor answers: "every successor" is not read as true of
+none. The horizon is compared, not required to be `current`, because a record §6 left `decided`
+may rest on a `will-change` finding beside a `current` one, and a pass before the prerequisite
+ships re-grounds it `will-change` again — the ground as it stood. A successor that has moved from
+`will-change` to `current` does not confirm: the prerequisite shipped, and the premise the record
+was decided on moved with it. A record whose successors
+confirm is not reopened — the ground was re-derived and came back as it stood, which is no cause.
 
 **This section names one set — a record's *decision fields*, all thirteen §1 defines — and fixes
 what each of them does when a record already on file is written again.** A re-decision and a
@@ -319,20 +356,59 @@ person taking it; a sweep cannot infer the dependency from a `statement` that ne
 
 **A decision may not rest solely on a `will-change` finding.** Where *every* finding in a decision's
 `evidence` list carries `horizon: will-change` (`workflows-core:grounding-format` §5), the decision
-may not be closed as `decided`, and `/brd-interview` refuses to close it.
+may not be closed as an unconditional `decided`. Both commands that write a decision enforce it:
+`/brd-interview` refuses to close a `[VD#n]` on such a list, and `/brd-reconcile`'s *Freeze the
+customer decisions* phase writes a `[CD#n]` on one with the customer's answer intact but conditional
+or open rather than unconditionally decided — `conditional_on` the prerequisite where every
+`will-change` finding names the same one and each names it with its BRD key, `status: open` where
+they name more than one or any names a bare id carrying no BRD key, which is never resolved or
+parsed into one (`conditional_on` needs `<BRD-KEY>/<decision-id>`, §5) — and lists it, with any
+such unqualified value, under what still needs a human. A customer's answer does not make a premise
+the code is going to falsify any firmer than an operator's does.
 
 The reason is the one D19 states: a finding is true of a pinned commit, and a `will-change` finding
 is one an approved-but-unbuilt prerequisite is going to make false. A decision resting on nothing
 else is standing on ground that is about to move — correct today, wrong the moment the prerequisite
 ships, and nothing in the record would say so.
 
-Three resolutions, and exactly three:
+Three resolutions, and exactly three — `/brd-reconcile` takes only the second and third, because
+the first changes a `[CD#n]`'s `evidence`, which is copied from the question the customer was put:
 
 | Resolution | Recorded as |
 |---|---|
 | Re-base it on a `current` finding | the decision's `evidence` list changes |
 | Make it explicitly conditional on the prerequisite | `conditional_on: <BRD-KEY>/<decision-id>` |
 | Defer it until the prerequisite ships | `status: open`, with the blocking prerequisite named |
+
+**The resolution holds the record, never the question.** The question was answered — by the
+delivery team or by the customer — so it takes its terminal disposition and its round can close;
+another answer to it against the same findings would fire this rule again, so nothing is gained by
+keeping it open. **A held record's exit is a later round** — and, for one written `conditional_on`,
+also `commands/brd-reconcile.md`'s propagation sweep (§5), which reaches it by that field the day
+the prerequisite's decision moves and may revert it or reopen it in place, as it may any `decided`
+record. One held `open` carries no `conditional_on`, so the sweep's field pass never reaches it; its
+citation pass may, where the record names a changed id, and may withdraw or revert it. Otherwise its exit is
+the round. The round comes once the prerequisite has shipped, and **the route observes that as a
+successor finding that no longer carries `horizon: will-change`**: a `commands/prd-ground.md`
+`--rebaseline` pass marks every finding it re-grounds `SUPERSEDED` and writes its successor
+(`workflows-core:grounding-format` §3, §5), but it keeps `will-change` on a successor until the
+naming decision ships, so a supersession alone observes nothing — every pass after the pinned code
+moves writes one. So once every finding in the record's `evidence` is `SUPERSEDED`, each has a
+successor, and no successor is `will-change`, `commands/brd-interview.md` counts the record's question among those
+that make a new round askable and puts it again in that round, under the tag it had, against the
+current findings (its *A decision the re-grounding moved*); until then the record waits on its
+prerequisite, and that run reports it so. The answer is tested by this rule like any other, and
+what it does turns on the held record's `status` as the answer's writer reads it —
+`commands/brd-interview.md` for a `[VD#n]`, and `commands/brd-reconcile.md` for a `[CD#n]`, from
+the answering question's `- **Re-puts:**` line and from the register as it stood before that run
+wrote anything: `open` or `decided`, the answer is a new record and the held one is `superseded` by
+it (§3, §4); `reopened`, the answer re-decides it in place (below); and `withdrawn` or
+`superseded`, which are terminal (§3), the held record does not move — the answer is a new record
+all the same, and the earlier one is named with it under what still needs a human. **The re-put
+round never completes or re-decides a held record in place** — one held `open` was never `decided`,
+so §4 has nothing to reopen; what may move one written `conditional_on` in place is the sweep
+above, and a record it reopened is re-decided in place, not superseded, by the answer to a question
+that puts it again — `reopened`, as the answer's writer reads it, means a re-decision.
 
 Three things the rule does not say. It does **not** forbid a `will-change` finding in an `evidence`
 list — a decision resting on one `current` finding and two `will-change` ones is not caught, because
@@ -438,6 +514,7 @@ round contribute nothing to it — which is correct, because they came from no r
 
 An `[AS#n]` that the customer confirms does not silently become a fact: their confirmation is a
 customer decision, entering the register as a `[CD#n]` under §1's confirmation rule (D14), with the
-assumption recorded as `superseded` by it. An `[AS#n]` the customer contradicts is `superseded` the
+assumption recorded as `superseded` by it — its closing `Superseded <YYYYMMDD>: by [CD#m]` paragraph
+naming that decision (§4). An `[AS#n]` the customer contradicts is `superseded` the
 same way, by the decision that contradicts it, and everything that was built on it is reopened under
 §4 — the incoming customer decision is precisely one of the two causes that rule admits.

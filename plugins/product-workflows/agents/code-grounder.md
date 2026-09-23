@@ -93,8 +93,9 @@ of theirs would otherwise run in its place and could print into what you read; g
    repository where attribution is written through an association and never spells the column name a
    grep was looking for.
 
-5. **Decide the verdict** from the closed set in `workflows-core:grounding-format` §3. Do not restate the
-   definitions here; apply them as written there.
+5. **Decide the verdict** from the closed set in `workflows-core:grounding-format` §3, less
+   `SUPERSEDED`, which marks a finding a later one replaced and is written by the re-grounding run,
+   never returned by you. Do not restate the definitions here; apply them as written there.
 
    **`NOT-PROVABLE` is a legitimate, final answer, not a shortfall.** When a claim genuinely cannot
    be settled from the repository — the mechanism it describes could live in a system this
@@ -134,7 +135,7 @@ commit: <the resolved commit this run grounded against>
 findings:
   - id: CG#<n>
     claim: <the requirement id as given — BR#n, AC#n, FR#n, or US#n> — <the claim text as given>
-    verdict: CONFIRMED | AMENDED | REWRITTEN | FALSE-FRIEND | NOT-PROVABLE | SUPERSEDED
+    verdict: CONFIRMED | AMENDED | REWRITTEN | FALSE-FRIEND | NOT-PROVABLE   # never SUPERSEDED — never emitted by a grounder; only a re-grounding run marks a finding SUPERSEDED, writing its prior_verdict (workflows-core:grounding-format §2)
     evidence:
       - path: <relative to repo_path>
         lines: [<1-based line numbers>]   # omit only when the evidence is a whole-file read

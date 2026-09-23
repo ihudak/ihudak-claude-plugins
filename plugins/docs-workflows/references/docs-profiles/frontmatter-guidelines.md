@@ -84,11 +84,11 @@ replace.
 
 ## Reserved keys for the docs-workflow family
 
-Design authority: `docs/superpowers/specs/2026-08-29-docs-workflow-family-design.md` §8.6, D18 (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-08-29-docs-workflow-family-design.md` retrieves it). The docs-workflow family reserves four frontmatter keys — `type`, `audience`, `visibility`, `unit` — on **any** docs repo its commands scaffold or write into, not only one carrying the example-docs profile, and touches nothing else in this skill's territory; the reservation binds `/docs-audit`, which ships and reads two of them, and the family's later commands, `/docs-write` among them, as they ship. What is unchanged: the fields above, and `docs-frontmatter`'s ownership of the schema as a whole, are unchanged by this section.
+Design authority: `docs/superpowers/specs/2026-08-29-docs-workflow-family-design.md` §8.6, D18 (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-08-29-docs-workflow-family-design.md` retrieves it). The docs-workflow family reserves four frontmatter keys — `type`, `audience`, `visibility`, `unit` — on **any** docs repo its commands scaffold or write into, not only one carrying the example-docs profile, and touches nothing else in this skill's territory; the reservation binds `/docs-audit`, which ships and reads one of them — `unit`, to match a page back to its backlog unit (`### unit` below) — and the family's later commands, `/docs-write` among them, as they ship. What is unchanged: the fields above, and `docs-frontmatter`'s ownership of the schema as a whole, are unchanged by this section.
 
 ### `type` (RESERVED)
 
-Diátaxis or engineering type; the field the coverage grid reads as its second axis (`references/docs-audit/coverage-model.md` §3). The vocabulary depends on `audience`:
+Diátaxis or engineering type; the same vocabulary as a backlog unit's `type`, which is the coverage grid's second axis (`references/docs-audit/coverage-model.md` §3). The grid is computed from the backlog's `units[]`, not from this key. The vocabulary depends on `audience`:
 
 | `audience` | `type` values |
 |---|---|

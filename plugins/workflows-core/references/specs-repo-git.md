@@ -110,8 +110,8 @@ bookkeeping commit; the default subfolder, `Doc screenshots/`, carries a space, 
 `git status --porcelain` once quoted out of step 2's sight — a side effect step 1's `-z` retires,
 so the classifier now reads that path raw and places it in OTHER, and what keeps the copy out of
 `git status` at all is the local exclude named below, never the quoting; and
-the run may stage into an existing `Attachments/` subfolder holding the operator's own files, which
-a directory shape would sweep in. So `/document` keeps each copy it stages under `$SPECS_PATH` out
+a staging directory the operator names at `/document`'s Phase 1 may sit under `$SPECS_PATH` beside
+the operator's own files, which a directory shape would sweep in. So `/document` keeps each copy it stages under `$SPECS_PATH` out
 of `git status` itself, through that repository's local exclude file (its Phase 6.3), and nothing
 here stages or touches it. A staging directory the operator names outside `$SPECS_PATH` is outside
 this reference's scope.
@@ -190,7 +190,7 @@ state in this container setup.
 
 **A failed gate is not one disposition but three, and conflating them is what made a misconfiguration indistinguishable from a supported state.**
 
-- **`$SPECS_PATH` is unset → silent no-op here.** Whether that is a supported state is the caller's to say, and it says so *before* this step: a command that resolves or creates its deliverable's folder in the specs tree by key stops in Phase 0 on the unset variable (`workflows-core:escalation-rules` *Required path environment variable unset*, or the same two-option list inline), so it never reaches this gate unset — `grep -lE 'Set SPECS_PATH|Required path environment variable unset' plugins/*/commands/*.md` names them, and `/implement` and `/document` in keyed mode are among them for a `<KEY>` address only; a command that writes into a folder it resolves from an address but carries no such stop — `/epics` and `/release-notes` on either address form, and `/implement` and `/document` in keyed mode on an `@<path>` address (`implementation.md`; `pr-draft.md` and the implementation-gaps draft) — stops not-found on a `<KEY>` address, there being no tree to search, and on an `@<path>` address runs on, writing into the folder given (`/implement` and `/document` never reach the not-found stop unset, having stopped on the variable first); a command for which the specs repository holds only its bookkeeping — `/document` in direct mode, `/implement` on a direct prompt, `/upgrade`, `/vuln`, `/docs-init`, `/docs-brand`, `/docs-audit` and the four logging commands — runs on, and its emitters fall to the report-only tier. Those three classes are every caller of this entry point.
+- **`$SPECS_PATH` is unset → silent no-op here.** Whether that is a supported state is the caller's to say, and it says so *before* this step: a command that resolves or creates its deliverable's folder in the specs tree by key stops in Phase 0 on the unset variable (`workflows-core:escalation-rules` *Required path environment variable unset*, or the same two-option list inline), so it never reaches this gate unset — `grep -lE 'Set SPECS_PATH|Required path environment variable unset' plugins/*/commands/*.md` names them, and `/implement`, `/document` in keyed mode and `/release-notes` are among them for a `<KEY>` address only; a command that writes into a folder it resolves from an address but carries no such stop on the address form it was given — `/epics` on either address form, and `/implement`, `/document` in keyed mode and `/release-notes` on an `@<path>` address (`implementation.md`; `pr-draft.md` and the implementation-gaps draft; the `release-notes.md` draft) — stops not-found on a `<KEY>` address, there being no tree to search, and on an `@<path>` address runs on, writing into the folder given (`/implement`, `/document` and `/release-notes` never reach the not-found stop unset, having stopped on the variable first); a command for which the specs repository holds only its bookkeeping — `/document` in direct mode, `/implement` on a direct prompt, `/upgrade`, `/vuln`, `/docs-init`, `/docs-brand`, `/docs-audit` and the four logging commands — runs on, and its emitters fall to the report-only tier. Those three classes are every caller of this entry point.
 - **`.git` resolves but is not writable → silent no-op**, exactly as before. The artifacts are going to a report-only tier the plugin does not manage, and a read-only specs mount is a normal state in this container setup. Saying nothing is correct here: there is nothing for the operator to fix.
 - **`$SPECS_PATH` is set to a path that is not a directory, or `rev-parse --git-dir` fails there → emit a one-line notice** naming the variable and the path, then continue. This is **never** a supported state: a set-but-not-a-repository `$SPECS_PATH` is a typo, a missing mount, or a path that was right in another container. Under the old blanket silence it looked identical to the read-only case, so a run would write its deliverables, commit nothing, open no pull request, and end on a terminal gate-failed line that named none of it — the operator's first clue being an empty specs tree some time later.
 
@@ -416,8 +416,8 @@ than one invocation.
 **A run that refuses before it has written anything still runs this tail, and
 each member settles for itself what it does there.** A Phase 0 refusal — an
 unresolvable address, a folder of the wrong kind, a missing argument, a root
-where the command works only on a slice — ends the run before it has a
-deliverable, a branch or a handoff, and nothing above said whether feedback,
+where the command works only on a slice — ordinarily ends the run before it
+has a deliverable, a branch or a handoff (the exception is named below), and nothing above said whether feedback,
 follow-ups, the cost entry and `resume.md` still fire. They do, and the answer
 is each member's own rather than a new condition here:
 
@@ -453,9 +453,13 @@ is the obvious rule to reach for and the wrong one: the cost entry is itself
 such a write, so that test would drop it on exactly the refusals that spend
 most — one that resolves an address, reads a tree and only then refuses. **And
 it is scoped to a refusal taken before the run has a deliverable, a branch or
-a handoff**, which is what every Phase 0 stop in the family is today; a run
-that stops later has written something, and what its tail does is that
-command's to state.
+a handoff**, which is what most Phase 0 stops in the family are, never all: a
+Phase 0 stop taken after the run cut a branch is outside it — `/document` in
+keyed mode is one, its Phase 0 having cut a docs-repository branch and
+committed the generated profile on it wherever it profiled that repository
+inline, before its later Phase 0 stops. Such a run, like one that stops in a
+later phase, has written something, and what its tail does is that command's
+to state.
 
 1. **Gate.** All of §3.1's environment conditions, **plus** the run must not
    carry `specs_git: blocked` from §3.3 G0.

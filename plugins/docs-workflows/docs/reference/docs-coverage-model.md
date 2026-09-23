@@ -1,14 +1,14 @@
 # The coverage model
 
-An audit cannot tell you what documentation is missing without first agreeing what "all of it" would have been. That set is the **denominator**, and this family builds it from the product's own code rather than from anybody's memory of what the product does. This page explains the two nouns the backlog is written in — a **surface** and a **unit** — how they differ, what decides which units get written first, and what "done" means when documentation work has no natural end.
+An audit cannot tell you what documentation is missing without first agreeing what "all of it" would have been. That set is the **denominator**, and this family builds it from the product's own code and the documents committed to its specs tree, rather than from anybody's memory of what the product does. This page explains the two nouns the backlog is written in — a **surface** and a **unit** — how they differ, what decides which units get written first, and what "done" means when documentation work has no natural end.
 
 The runnable version of everything here lives in the plugin's own `references/docs-audit/coverage-model.md`, which the audit command and its agents read. This page is the same model written for a person.
 
 ## Surfaces: what the audit counts
 
-A **surface** is a thing in the product that documentation can be about, found by scanning the code. There are seven kinds, and each one is derived from a different part of a repository:
+A **surface** is a thing in the product that documentation can be about, found by scanning the code — or, for two of the seven kinds, `decision` and `release`, by reading the committed documents in the specs tree. Each kind is derived from a different place:
 
-| Surface kind | Found in the code as | What it earns |
+| Surface kind | Found as | What it earns |
 |---|---|---|
 | `role` | The authorisation model — roles, permissions, policy objects | A roles page, and an axis on every user page |
 | `task` | Routes, controller actions, UI flows, forms | A how-to guide |

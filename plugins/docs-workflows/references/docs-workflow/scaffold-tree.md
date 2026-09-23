@@ -6,7 +6,7 @@ Consumed by `/docs-init` (Phase 3 writes §1–§6, Phase 4 writes §7), by `/do
 
 Its entry points, so a command can say which part it is executing: **the tree** (§1), **the stubs** (§3), **nav generation** (§4), **the mkdocs configs** (§5 and §6), and **the vale config** (§7, which also carries `requirements-docs.txt`, `.gitignore` with its create-or-merge rule, and the Vale exit criterion both the scaffold's own verification and its CI apply).
 
-The navigation is **product-shaped** (design D15). Diátaxis lives in each page's `type:` frontmatter, the field `/docs-audit`'s coverage grid reads as its second axis, so the tree looks like a documentation portal a reader recognises while the quadrant discipline stays fully intact.
+The navigation is **product-shaped** (design D15). Diátaxis lives in each page's `type:` frontmatter, whose vocabulary is that of the page type `/docs-audit`'s coverage grid takes as its second axis from the backlog's units, so the tree looks like a documentation portal a reader recognises while the quadrant discipline stays fully intact.
 
 ---
 

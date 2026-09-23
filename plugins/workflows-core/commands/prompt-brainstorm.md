@@ -6,7 +6,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 
 Log a corrective interaction, then brainstorm the fix: $ARGUMENTS
 
-`/prompt-brainstorm` is for when a dev-workflows command produced something
+`/prompt-brainstorm` is for when a command of this plugin family produced something
 wrong and the correction needs **exploration** rather than a one-shot fix. It
 captures the **corrective triple** as plugin feedback, then hands off to
 `superpowers:brainstorming`. `origin: prompt`.

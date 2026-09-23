@@ -35,7 +35,7 @@ brd_parent: <that slice's parent BRD key, from its brd-link.md; always present o
 depends_on: [ ... ]           # prerequisite BRD keys, from that brd-link.md's depends-on; omit when empty or outside the BRD route
 revision_of: <path to the archived prior PRD snapshot; written by `/update-prd` on refresh; omit otherwise>
 built_from_date: <YYYY-MM-DD of the resolved folder the `/update-prd` refresh was built from; omit otherwise>
-workitem_key: <optional — your own tracker's identity for this work; the plugin never writes it>
+workitem_key: <optional — your own tracker's identity for this work; the plugin never writes this field>
 ---
 ```
 
@@ -50,8 +50,9 @@ can no longer author. An absent `brd_parent` beside a present `brd_key` is there
 not a legitimate omission, and `product-workflows:prd-reviewer` raises it. **`/update-prd` preserves all three and authors
 none of them** — on a PRD that carries them it copies each through the refresh unchanged, and on a
 PRD that does not it writes none — so the *written only by* rule above still reads exactly as it
-says: carrying an existing value forward mints no new one, and `/update-prd` reads no BRD tree it
-could mint one from. They record, on the PRD itself, the BRD identity and the prerequisites the
+says: carrying an existing value forward mints no new one, and `/update-prd` reads nothing of a BRD
+tree it could mint one from — its Phase 0 opens a slice's `brd-link.md` and ledger only to word a
+stop's remedy, never as a source for any of the three. They record, on the PRD itself, the BRD identity and the prerequisites the
 customer committed to — and **no command of the build ladder consumes them** — which is a claim about
 *behaviour*, not about every read. Neither `/epics` nor `/ready` reads any of the three, and no command from
 `/create-ard` to `/implement` branches on them. Two reads sit outside that claim. `brd_key` and `brd_parent`
@@ -86,7 +87,7 @@ key is the key. **So there is no
 legitimate state in which `brd_key` stands beside an absent `key`** — `product-workflows:prd-reviewer` raises
 one as a finding on every route.
 
-**`workitem_key` is reserved, documented, and never written by the plugin.**
+**`workitem_key` is reserved, documented, and never written into frontmatter by the plugin** — only carried through a rewrite unchanged. Outside frontmatter the plugin does write its value: into a commit's `Work-Item:` trailer (below).
 
 ```yaml
 workitem_key: CU-8x9f2a1     # optional, the user's own; the plugin never mints it

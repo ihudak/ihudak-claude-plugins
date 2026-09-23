@@ -27,7 +27,7 @@ Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-b
 ## Phase 0 — Resolve input
 
 1. **Resolve the address — strip every recognised flag first.** `--design-twice` is removed from
-   `$ARGUMENTS` before anything else, exactly as `commands/idea.md`'s Phase 1 strips its own: an
+   `$ARGUMENTS` before anything else, exactly as `/product-workflows:idea`'s Phase 1 strips its own: an
    unstripped flag is read as the positional token and resolution then fails on a token that was
    never an address.
 
@@ -54,7 +54,7 @@ Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-b
    where it begins `<KIND>-<the resolved key>-` — is otherwise placed by positive evidence: a
    resolved `kind: epic` counts as an `EPIC-` folder above; a resolved `kind: prd`, or a
    `brd-link.md` naming a `parent:`, as a `PRD-` folder. A folder none of these places is not
-   guessed at — stop, naming the folder and what it carries.
+   guessed at — stop, naming the folder and what it carries — and, where it holds an `idea.md` and no `prd.md`, name `/product-workflows:create-prd <KEY>` too, whose `prd.md` places it (`workflows-core:addressing` §4.1).
 
    With no positional address, stop with
    `DESIGN_NEEDS_KEY: /design needs a PRD or Epic address — a key, or an @<path> to its folder.` —
@@ -364,7 +364,7 @@ Write the feature folder: `design.md` (flat, alongside `specification.md`), the 
 Then **offer** (commit-when-asked — never automatic), invoking `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and presenting its §4.3 choice array verbatim:
 `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`
 
-On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: design`; `feature_folder` as resolved in Phase 0 — the per-Epic subfolder for a **per-Epic** design (`<EPIC>` set; every `EPIC-` folder sits under a PRD folder, so this is the only Epic-level shape), or the PRD dir for a **broad PRD-level** design (`<EPIC>` null); Epic keys are globally unique, so the per-Epic form needs no PRD prefix — §2.2 derives `design/<EPIC>-<eslug>` or `design/<PRD>-<vslug>` from it, matching today's branch names, both forms using hyphens; `deliverable_paths` = `design.md`, the amended `specification.md`, `_design-session.md`, and `_design-glossary.md`; `title: <EPIC|PRD> Add engineering design`; and `body_facts` = the `design.md` sections authored, the spec-challenge count (`## Engineering review` notes / new spec `- [ ]`), the confirmed repo set, and the `design-reviewer` verdict. **Merged-to-main = ready for `/implement`.** Emit its §4.1 outcome line in the Final report.
+On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: design`; `feature_folder` as resolved in Phase 0 — the per-Epic subfolder for a **per-Epic** design (`<EPIC>` set; every `EPIC-` folder sits under a PRD folder, so this is the only Epic-level shape), or the PRD dir for a **broad PRD-level** design (`<EPIC>` null); Epic keys are globally unique, so the per-Epic form needs no PRD prefix — §2.2 derives `design/<EPIC>-<eslug>` or `design/<PRD>-<vslug>` from it, both forms using hyphens; `deliverable_paths` = `design.md`, the amended `specification.md`, `_design-session.md`, and `_design-glossary.md`; `title: <EPIC|PRD> Add engineering design`; and `body_facts` = the `design.md` sections authored, the spec-challenge count (`## Engineering review` notes / new spec `- [ ]`), the confirmed repo set, and the `design-reviewer` verdict. **Merged-to-main = ready for `/implement`.** Emit its §4.1 outcome line in the Final report.
 
 ### Next Epic (after a per-Epic design from a multi-Epic PRD)
 
@@ -479,7 +479,7 @@ The report always states exactly one of the Phase 5 interface fan-out outcomes w
 
 End the report with a `### Next step` recommendation per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` (guidance only — never auto-invoked): → `/dev-workflows:implement <EPIC>` where `<EPIC>` is set, and `/dev-workflows:implement <PRD>` after a broad PRD-level design, where it is null (depth, still Dev) `<merge-clause>` — the one address this design's folder answers to, so the offer never carries a null key — which stops rather than proceeding wherever this design reached a branch (`workflows-core:phase-handoff` §3.3 rows D/E) and is unaffected wherever it reached none (§3.4's `/implement` row); the **Epic fan-out** `/dev-workflows:design <SIBLING-EPIC>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). Each is **one** address — the Epic's own key encodes its ancestry, so no command here takes a `<PRD> <Epic>` pair (D4). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
 
-`<merge-clause>` is the placeholder `workflows-core:next-phase-offer` owns, resolved from this run's own `Phase handoff:` outcome line (§4.1) and never written as the unconditional "once the pull request above is merged" — the handoff offered above reaches a declined, a push-failed and a nothing-to-commit outcome, and two of the three open no pull request to wait on. This offer is prose rather than a `choices:` array, so `scripts/check-docs.sh` check 11 cannot see it: it is held by review alone, even though `design.md` is exactly the intersection that check looks for.
+`<merge-clause>` is the placeholder `workflows-core:next-phase-offer` owns, resolved from this run's own `Phase handoff:` outcome line (§4.1) and never written as the unconditional "once the pull request above is merged" — the handoff offered above reaches a declined, a push-failed and a nothing-to-commit outcome among others §4.1 lists, and none of those three opens a pull request to wait on. This offer is prose rather than a `choices:` array, so `scripts/check-docs.sh` check 11 cannot see it: it is held by review alone, even though `design.md` is exactly the intersection that check looks for.
 
 ### Context hygiene
 

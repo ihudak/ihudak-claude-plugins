@@ -1,14 +1,14 @@
 # Session Feedback Emission — Shared Reference
 
-Single source of truth for the dev-workflows session-feedback emitter. Every
+Single source of truth for the plugin family's session-feedback emitter. Every
 capture surface — the automatic maintenance phase of all twenty-five workflow
 commands, and the `/feedback` and `/prompt*` commands — cites this file and
 executes its steps inline. The orchestrator owns every prompt; this reference
 owns the entry format, the persistence ladder, dedup/attribution, the
 plugin-facing predicate, and the caller contract.
 
-**Purpose.** Capture friction and improvement signals about the **dev-workflows
-plugin itself** and persist them per-PRD into the **specs repo** so the plugin
+**Purpose.** Capture friction and improvement signals about the **plugin
+family itself** and persist them per-PRD into the **specs repo** so the plugin
 maintainer can aggregate feedback across engineers. Feedback reaches the
 maintainer only if it lands in the committed, pushed specs repo — hence the
 persistence ladder is **specs-first** (§2), and hence every command's terminal
@@ -171,7 +171,7 @@ signal the maintainer needs.
 - **Automatic (`emit-auto`)** entries are written **silently**; the caller lists
   the persisted path (or "no plugin-facing signal — nothing persisted") in its
   output. A routine session with no plugin-facing signal writes nothing — no
-  empty entry, byte-identical to today's report-only behavior.
+  empty entry, byte-identical to the report-only behavior the run has without `emit-auto`.
 - **`/feedback` and `/prompt*`** are user-invoked, so invocation *is* the
   intent; they write silently and surface the resulting path (and any
   degradation notice) in the command output.

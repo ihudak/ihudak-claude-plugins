@@ -98,7 +98,7 @@ Every `choices:` option in the `/brd-*` and `/prd-*` families — the families c
 
 **The bracketed documentation placeholder is not an argument** — the preamble quotes `args: "<name>"` on scores of files, so a forward direction that resolves every `args:` string it meets reports one defect per file on correct content, and it is the placeholder that relation 3 looks for. **Scope is `commands/`, `agents/` and `references/`, measured rather than chosen**, and the check-16 figures live in `scripts/check-docs.sh`'s check-16 header and nowhere else, deliberately. Admitting `docs/` as a *citation source* would make the reverse direction unfalsifiable, since core's own `docs/reference/references.md` enumerates every reference file by name.
 
-**What check 16 cannot see:** the bare-basename class — an unqualified `<name>.md` inside core — which is undecidable by pattern, because `design.md`, `idea.md`, `epics.md` and `ready.md` are artifact filenames in the specs tree as well as command basenames; that is `CLAUDE.md`'s own "resolve against a known set, never parse one out of free text" rule met in the wild, and it is left to review.
+**What check 16 cannot see:** the bare-basename class — an unqualified `<name>.md` inside core — which is undecidable by pattern, because `design.md`, `idea.md`, `epics.md` and `ready.md` are artifact filenames in the specs tree as well as command basenames; that is `CLAUDE.md`'s own *Resolve an identifier against a known set; never parse one out of free text* rule met in the wild, and it is left to review.
 
 ### Check 17
 

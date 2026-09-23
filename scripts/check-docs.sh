@@ -898,15 +898,16 @@ check_identity_quarantine() {
 #
 # WHY NOT `head -1` OVER THE WHOLE FILE, which is what this was. That was a proxy, and it held
 # only while the scope paragraph happened to be the first `<plugin>:<family>*` phrase in the
-# file. CLAUDE.md has always said the family comes from the scope paragraph; the proxy agreed
-# with it by accident of line order. The file also carries a `## Not pipeline nodes` list --
-# commands that print NO offer -- and the moment a phrase there qualifies for the plugin under
-# check, the proxy hands that plugin a family the rule never bound: check_handoff_applicability
-# forces it into HANDOFF_PLUGIN_RELS, check_merge_clause then finds no offer of it anywhere,
-# and NEITHER branch is green. Anchoring is behaviour-preserving on a file whose scope
-# paragraph does come first, and it is strictly stronger in the direction CLAUDE.md asks for: a
-# reworded scope sentence now empties the glob and turns the build red, where before any stray
-# phrase elsewhere in the file would silently stand in for it.
+# file. The repo's instructions (now .claude/rules/gates.md, § Check 11) have always said the
+# family comes from the scope paragraph; the proxy agreed with it by accident of line order. The
+# file also carries a `## Not pipeline nodes` list -- commands that print NO offer -- and the
+# moment a phrase there qualifies for the plugin under check, the proxy hands that plugin a
+# family the rule never bound: check_handoff_applicability forces it into HANDOFF_PLUGIN_RELS,
+# check_merge_clause then finds no offer of it anywhere, and NEITHER branch is green. Anchoring
+# is behaviour-preserving on a file whose scope paragraph does come first, and it is strictly
+# stronger in the direction .claude/rules/gates.md asks for: a reworded scope sentence now
+# empties the glob and turns the build red, where before any stray phrase elsewhere in the file
+# would silently stand in for it.
 #
 # WHY NOT `head -1` ON THE ANCHORED LINE EITHER, which is what this became next. That held only
 # while the scope paragraph named exactly one glob per plugin, and it stopped holding the moment
@@ -2273,10 +2274,10 @@ check_index_membership() {
 #
 # SCOPE IS $CMD_DIR/, agents/ and $REF_DIR/, and the bound is measured rather than tasteful.
 # THIS HEADER IS THE ONE HOME OF THIS CENSUS. Every figure in it is derived from the scan
-# below rather than kept by hand, and CLAUDE.md cites this comment instead of holding a
-# second copy -- the two copies disagreed for two increments before that. Re-derive by
-# instrumenting the scan itself (print real_calls / entry_calls / preamble_files after the
-# plugin loop); never adjust a figure by the size of your own change.
+# below rather than kept by hand, and .claude/rules/gates.md (§ Check 16) cites this comment
+# instead of holding a second copy -- the two copies disagreed for two increments before that.
+# Re-derive by instrumenting the scan itself (print real_calls / entry_calls / preamble_files
+# after the plugin loop); never adjust a figure by the size of your own change.
 #
 # Relation 3 over those three directories is an EXACT match on this tree -- 74 files cite a
 # core reference, 74 carry the preamble -- while 38 further files cite one from OUTSIDE them

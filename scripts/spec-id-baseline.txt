@@ -3,7 +3,8 @@
 # deliberately OUTSIDE the [PREFIX#N] grammar and must stay byte-identical:
 # a change here means a global replace reached the spec/design namespace.
 #
-# Scan root: plugins/ CLAUDE.md   (all commands below are run from the repository root)
+# Scan root: plugins/ CLAUDE.md .claude/rules/ docs/maintainers/   (all commands below are run
+#   from the repository root; the last two hold text the 2026-09-23 split moved out of CLAUDE.md)
 #
 # CHANGELOG.md is EXCLUDED, for the same reason the grammar gate excludes it:
 # it is history, and a changelog entry quoting [Uxx] is prose *about* the
@@ -28,13 +29,13 @@
 # Regenerate, preserving this header:
 #   ( grep '^#' scripts/spec-id-baseline.txt; \
 #     grep -rhoE '\[U0[0-9]+\]|\[AC0[0-9]+\]|\[TC0[0-9]+\]|\[Uxx\]|\[ACxx\]|\[TCxx\]' \
-#       --include='*.md' --exclude='CHANGELOG.md' plugins/ CLAUDE.md 2>/dev/null | sort | uniq -c \
+#       --include='*.md' --exclude='CHANGELOG.md' plugins/ CLAUDE.md .claude/rules/ docs/maintainers/ 2>/dev/null | sort | uniq -c \
 #   ) > scripts/spec-id-baseline.new \
 #   && mv scripts/spec-id-baseline.new scripts/spec-id-baseline.txt
 #
 # Verify (must print nothing):
 #   grep -rhoE '\[U0[0-9]+\]|\[AC0[0-9]+\]|\[TC0[0-9]+\]|\[Uxx\]|\[ACxx\]|\[TCxx\]' \
-#     --include='*.md' --exclude='CHANGELOG.md' plugins/ CLAUDE.md 2>/dev/null | sort | uniq -c \
+#     --include='*.md' --exclude='CHANGELOG.md' plugins/ CLAUDE.md .claude/rules/ docs/maintainers/ 2>/dev/null | sort | uniq -c \
 #   | diff <(grep -v '^#' scripts/spec-id-baseline.txt) -
       1 [AC01]
       1 [AC03]

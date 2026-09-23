@@ -26,8 +26,9 @@ levels below `specifications/` regardless.
 
 **One grammar, one namespace.** There is no second, narrower grammar for a "tracker" key: the plugin
 reads no tracker, mints its own keys, and validates every key against this one expression. A caller
-that re-states this grammar locally instead of citing this section is the defect family
-`CLAUDE.md` names — the copies drift, and a key that is valid here hard-stops somewhere else.
+that re-states this grammar locally instead of citing this section is the defect family this
+repository's `docs/maintainers/rationale.md` records under `resolve-against-a-known-set` — the
+copies drift, and a key that is valid here hard-stops somewhere else.
 
 **Shape only, never checked against anything.** A key names a folder in `$SPECS_PATH`, not a record
 in a system that could confirm it exists. Validating shape and validating existence are two different
@@ -175,8 +176,9 @@ directory name.
 **A directory name is not a safe place to parse from.** `PRD-ACME-90-01-orders` divides into key and
 slug only under a rule about where numeric segments stop, and a slug beginning with a numeric segment
 falsifies it. More fundamentally, a key re-derived by pattern is a key nothing in the tree ever
-asserted — `CLAUDE.md`'s standing rule — so every match is a guess that a longer or differently-shaped
-identifier defeats. Reading the field turns the guess into an assertion.
+asserted — the standing rule `CLAUDE.md` states as *Resolve an identifier against a known set* —
+so every match is a guess that a longer or differently-shaped identifier defeats. Reading the field
+turns the guess into an assertion.
 
 **Which artifact carries it is not a fixed filename at the folder's top level**, and must not be
 written down as one there. The rule is:

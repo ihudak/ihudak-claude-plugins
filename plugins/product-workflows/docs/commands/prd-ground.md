@@ -386,8 +386,14 @@ ever proceeds once `/create-prd`'s own `prd/<KEY>-<slug>` branch has merged.
   normalises to `contradict` even where the verifier's own search also found nothing: two searches
   sharing one blind spot is the state a control exists to expose. The one exception is a finding
   already reading `NOT-PROVABLE` with its own failed control recorded — that is what the format tells
-  a writer to do, and reproducing its result is agreement. A `contradict` outcome rewrites the finding
-  in place — same id, replaced verdict and evidence — so an existing citation keeps resolving; an
+  a writer to do, and reproducing its result is agreement. A `contradict` outcome on an own-run finding
+  — one this run produced, which nothing cites yet — rewrites it in place: same id, replaced verdict
+  and evidence. On an on-file finding — one an earlier run wrote, which a decision may already cite —
+  it supersedes the finding instead, keeping its verdict as `prior_verdict`, and appends a successor
+  with the next id carrying the verifier's verdict, so an existing citation keeps resolving and
+  [`/brd-interview`](brd-interview.md) sees the change as it sees any re-grounding; a class-4
+  `[DG#n]` citing a code finding superseded this way is superseded with it, naming the `--no-code`
+  run that re-derives it. An
   `agree`/`extend`/`unprovable` outcome is recorded alongside the finding unchanged (`extend` also
   appends the additional evidence the verifier's own search turned up). Which anchor each finding
   is verified against depends on what it rests on: a `[CG#n]` and a class-4 `[DG#n]` are re-derived

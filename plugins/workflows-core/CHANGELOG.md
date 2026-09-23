@@ -10,6 +10,9 @@ A section headed `— Unreleased` has not been published yet; where more than on
 ### Changed
 - `addressing.md` §1 no longer says the repo-root `CLAUDE.md` names the defect family a locally re-stated key grammar belongs to. That account moved to `docs/maintainers/rationale.md`, section `resolve-against-a-known-set`, and §1 now points there — to *the plugin source repository's* copy, since at run time "this repository" would mean the user's, which carries no such file. §4's citation of the standing rule now names it, *Resolve an identifier against a known set*, which is still in `CLAUDE.md`. Wording only, no behaviour. (The run-time reading of §1's pointer was corrected before this version was released, so it is folded into this entry rather than bumped again.)
 
+### Fixed — behaviour
+- **A verifier's `contradict` on a finding an earlier run wrote no longer rewrites it in place.** `grounding-format.md` §8 now splits the outcome by origin: an own-run finding, which nothing cites yet, is still rewritten under the same id, while an on-file finding is superseded — its on-file verdict kept as `prior_verdict` — and a successor carrying the re-derived verdict is appended with the next id. The in-place rewrite left a decision citing the id standing on a verdict it was never taken on, with nothing reading `SUPERSEDED` for `product-workflows`' `/brd-interview` to see, and a later supersession then recorded the rewritten verdict as the one the decision was taken on. §2.1 and §6.3 name both routes.
+
 ## [1.7.5] — 2026-09-23
 
 **Update `dev-workflows`, `product-workflows` and `docs-workflows` with this release**: their model-routing pages and command placeholders name the chain's new head.

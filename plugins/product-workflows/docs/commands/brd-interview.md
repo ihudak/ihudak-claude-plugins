@@ -342,8 +342,9 @@ but the push and the pull request cannot run.
   the BRD it names — a child here, a sibling or the parent on a slice — so a fully-allocated parent
   routinely reports a non-zero term for work that belongs to another BRD's walk
   ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §6.1).
-- **Phase 3 — a decision a re-grounding moved is put again.** Where a `--rebaseline` pass has
-  superseded every finding a `decided` decision the will-change rule did not hold rests on, the
+- **Phase 3 — a decision a re-grounding moved is put again.** Where a re-grounding — a
+  [`/prd-ground --rebaseline`](prd-ground.md) pass, or any `/prd-ground` run whose verifier
+  contradicts a finding an earlier run wrote — has superseded every finding a `decided` decision the will-change rule did not hold rests on, the
   successor findings — the same requirement's, grounded against the same repository or frame set
   and minted later — either confirm its premise — each superseded finding with a successor, and
   each successor carrying the verdict its superseded finding carried, which that finding keeps as

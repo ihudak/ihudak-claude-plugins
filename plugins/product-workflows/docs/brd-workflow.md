@@ -180,12 +180,15 @@ its run wrote anything; one a propagation sweep reopened meanwhile is re-decided
 another run left `withdrawn` or `superseded` does not move and is named beside the new record under
 what still needs a human.
 
-**A settled decision a re-grounding moved is reopened.** Where a `--rebaseline` pass supersedes
+**A settled decision a re-grounding moved is reopened.** Where a re-grounding supersedes
 every finding a decided `[VD#n]` or `[CD#n]` the will-change rule did not hold rests on,
 `/brd-interview` reopens it, naming the successor findings as the cause, unless every superseded
 finding has a successor — a later finding on the same requirement, grounded against the same
 repository or frame set — and each successor carries the verdict its superseded finding carried,
-kept on that finding as `prior_verdict`, and the horizon that finding carried; a reopened decision
+kept on that finding as `prior_verdict`, and the horizon that finding carried. A `/prd-ground --rebaseline`
+pass is not the only run that supersedes: any `/prd-ground` run whose verifier contradicts a
+finding an earlier run wrote supersedes it too, appending a successor that carries the verifier's
+verdict rather than rewriting it in place, so a decision citing it is tested like any other. A reopened decision
 has its question put in the next round, and a confirmed one raises nothing. A `[V]` is re-decided there, and a `[C]` by
 `/brd-reconcile` from the customer's answer in the next package, each keeping its id — unless another
 run has meanwhile left the record `withdrawn` or `superseded`, when it does not move and the answer is

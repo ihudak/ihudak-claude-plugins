@@ -199,7 +199,9 @@ identified, still carrying the reason it was withdrawn, and it is no longer requ
 **Only two things may reopen a decision:**
 
 1. **A new grounding finding** that bears on it — including a finding that supersedes one already in
-   the decision's `evidence` list (`workflows-core:grounding-format` §3).
+   the decision's `evidence` list (`workflows-core:grounding-format` §3). A verifier's
+   `contradict` on an on-file finding is recorded as a supersession
+   (`workflows-core:grounding-format` §8), so it reaches this cause like any other supersession.
 2. **An incoming customer decision** that contradicts or constrains it.
 
 Nothing else. Not a later reader's discomfort, not a fresh idea, not a review pass that would have
@@ -238,9 +240,10 @@ later round put again (*A decision the re-grounding moved*); and `commands/brd-r
 *Freeze the customer decisions* phase, steps 2 and 3; §7).
 
 **Cause 1 has a command that observes it.** A `commands/prd-ground.md` `--rebaseline` pass marks
-every finding it replaces `verdict: SUPERSEDED`, and `commands/brd-interview.md` (*A decision the
-re-grounding moved*) takes each `decided` record §6 did not hold, every one of whose `evidence`
-findings a pass has superseded: it reopens the record, naming the successor findings as the cause, unless those
+every finding it replaces `verdict: SUPERSEDED`, and so does any `commands/prd-ground.md` run whose
+verifier contradicts an on-file finding, appending its successor; and `commands/brd-interview.md`
+(*A decision the re-grounding moved*) takes each `decided` record §6 did not hold, every one of whose `evidence`
+findings a run has superseded: it reopens the record, naming the successor findings as the cause, unless those
 successors confirm its premise by the test that section fixes, and puts its question in the next
 round it opens. That section also fixes which findings are a superseded finding's successors. The
 test is mechanical and the same for a `[VD#n]` and a `[CD#n]`: every superseded finding in the
@@ -393,7 +396,8 @@ successor finding that no longer carries `horizon: will-change`**: a `commands/p
 `--rebaseline` pass marks every finding it re-grounds `SUPERSEDED` and writes its successor
 (`workflows-core:grounding-format` §3, §5), but it keeps `will-change` on a successor until the
 naming decision ships, so a supersession alone observes nothing — every pass after the pinned code
-moves writes one. So once every finding in the record's `evidence` is `SUPERSEDED`, each has a
+moves writes one — and a verifier's `contradict` on an on-file finding writes a successor carrying
+the superseded finding's own horizon, so it observes nothing either. So once every finding in the record's `evidence` is `SUPERSEDED`, each has a
 successor, and no successor is `will-change`, `commands/brd-interview.md` counts the record's question among those
 that make a new round askable and puts it again in that round, under the tag it had, against the
 current findings (its *A decision the re-grounding moved*); until then the record waits on its

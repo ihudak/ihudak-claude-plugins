@@ -341,8 +341,8 @@ and nothing downstream can tell the difference afterwards.
    it or what stands above it (§4, which names that set and owns the reopen and the re-decision alike;
    the *Put each `[V]` to the operator* phase's picker and *The will-change rule* phase are where
    `options_considered`, `evidence` and `conditional_on` are taken). The reopen includes one this
-   command makes on §4's first cause, against a `decided` `[VD#n]` or `[CD#n]` a `--rebaseline` pass
-   moved the ground under (*A decision the re-grounding moved*, in *Generate the round's question
+   command makes on §4's first cause, against a `decided` `[VD#n]` or `[CD#n]` a re-grounding — a
+   `--rebaseline` pass, or a verifier's `contradict` on an on-file finding — moved the ground under (*A decision the re-grounding moved*, in *Generate the round's question
    set*): on a `[CD#n]` it writes that `status` and that paragraph and nothing else, and the
    re-decision is `/product-workflows:brd-reconcile`'s, from the customer's answer. The third: a
    `[VD#n]` the will-change rule held, whose question a later round re-put and answered — the *Write
@@ -838,7 +838,10 @@ would have to state:
 `/product-workflows:prd-ground <BRD-KEY> --rebaseline` pass re-grounds every claim against the moved
 code, writes each result as a new finding, and marks the finding it replaces `verdict: SUPERSEDED`,
 id retained, the verdict it carried kept as `prior_verdict`, every other field as it stood
-(`workflows-core:grounding-format` §2, §3, §5). A record in
+(`workflows-core:grounding-format` §2, §3, §5). **Any `/product-workflows:prd-ground` run does the
+same to an on-file finding its verifier contradicts**, at the same commit: the finding is
+superseded the same way, and a successor carrying the verifier's verdict, with the same `claim`,
+`commit` and `horizon`, is appended with the next id (`workflows-core:grounding-format` §8). A record in
 `decisions.md` **every one of whose `evidence` findings reads `SUPERSEDED`** rests on nothing on file
 any more, and this source takes it — as a *held* record or as a *plain* one, told apart by the
 record's own fields below. Two records it never takes. **One whose `evidence` names no finding** —

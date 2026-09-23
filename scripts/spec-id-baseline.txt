@@ -3,7 +3,8 @@
 # deliberately OUTSIDE the [PREFIX#N] grammar and must stay byte-identical:
 # a change here means a global replace reached the spec/design namespace.
 #
-# Scan root: plugins/ CLAUDE.md   (all commands below are run from the repository root)
+# Scan root: plugins/ CLAUDE.md .claude/rules/ docs/maintainers/   (all commands below are run
+#   from the repository root; the last two hold text the 2026-09-23 split moved out of CLAUDE.md)
 #
 # CHANGELOG.md is EXCLUDED, for the same reason the grammar gate excludes it:
 # it is history, and a changelog entry quoting [Uxx] is prose *about* the
@@ -25,23 +26,39 @@
 # was -1 on each of the three placeholder forms; every concrete [U01]/[AC01]/[TC01]
 # -style identifier is unmoved, which is what the tripwire actually guards.
 #
+# 2026-09-23: regenerated at +1 for each of [AC01], [TCxx], [U01] -- a drift that
+# predates this file's own move to the CLAUDE.md-split branch: it was already live on
+# main at d5f3034b, reproduced byte-for-byte there before this branch changed anything
+# here. Traced to two ordinary content commits, both after the 2026-08-22 regeneration
+# above and neither touching this file: b8710a3e ("feat(brd): --from-brd on /create-ard
+# and /specify", 2026-08-30) added the BRD-route section now at
+# plugins/product-workflows/commands/specify.md:814 and :817, which illustrates the
+# seed-to-story grammar with a concrete `[U01]…` user story and an `[AC01]`-level EARS
+# statement; and 9e5f04e1a ("product-workflows 3.8.0: /specify no longer renders an
+# HTML copy of the specification", 2026-09-22) restated the test-case micro-format's
+# rationale at plugins/product-workflows/references/specification-format.md:116,
+# naming `[TCxx]` as what a reader traces field by field once the deleted renderer no
+# longer justified the format. Verified before regenerating: the ONLY delta from the
+# previous baseline was +1 on each of [AC01], [TCxx] and [U01], each accounted for by
+# one of these three sites, and no other placeholder or concrete ID moved.
+#
 # Regenerate, preserving this header:
 #   ( grep '^#' scripts/spec-id-baseline.txt; \
 #     grep -rhoE '\[U0[0-9]+\]|\[AC0[0-9]+\]|\[TC0[0-9]+\]|\[Uxx\]|\[ACxx\]|\[TCxx\]' \
-#       --include='*.md' --exclude='CHANGELOG.md' plugins/ CLAUDE.md 2>/dev/null | sort | uniq -c \
+#       --include='*.md' --exclude='CHANGELOG.md' plugins/ CLAUDE.md .claude/rules/ docs/maintainers/ 2>/dev/null | sort | uniq -c \
 #   ) > scripts/spec-id-baseline.new \
 #   && mv scripts/spec-id-baseline.new scripts/spec-id-baseline.txt
 #
 # Verify (must print nothing):
 #   grep -rhoE '\[U0[0-9]+\]|\[AC0[0-9]+\]|\[TC0[0-9]+\]|\[Uxx\]|\[ACxx\]|\[TCxx\]' \
-#     --include='*.md' --exclude='CHANGELOG.md' plugins/ CLAUDE.md 2>/dev/null | sort | uniq -c \
+#     --include='*.md' --exclude='CHANGELOG.md' plugins/ CLAUDE.md .claude/rules/ docs/maintainers/ 2>/dev/null | sort | uniq -c \
 #   | diff <(grep -v '^#' scripts/spec-id-baseline.txt) -
-      1 [AC01]
+      2 [AC01]
       1 [AC03]
      18 [ACxx]
       2 [TC01]
       1 [TC07]
-     16 [TCxx]
-      1 [U01]
+     17 [TCxx]
+      2 [U01]
       1 [U02]
      20 [Uxx]

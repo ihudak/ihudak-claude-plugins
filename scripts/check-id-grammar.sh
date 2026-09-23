@@ -57,9 +57,18 @@ if [ "${1:-}" = "--selftest" ]; then
   printf '# compliant\n\n[AC#1] and [SM#1]\n' > "$wtroot/green/kept.md"
   printf '# not a root-level worktree\n\n[AC-1] and [SM-1]\n' \
     > "$wtroot/red/nested/worktrees/copy/prd-bad.md"
+  # docs/: only docs/superpowers/ (design and verification records quoting the old form) is
+  # history. docs/maintainers/ holds live rationale moved out of CLAUDE.md and is gated. A
+  # PAIR: the green root proves docs/superpowers stays excluded, the red one proves
+  # docs/maintainers is not -- a wholesale `docs` exclusion passes green and fails red.
+  mkdir -p "$wtroot/green/docs/superpowers/verification" "$wtroot/maint/docs/maintainers"
+  printf '# a record quoting the retired form\n\n[AC-1]\n' \
+    > "$wtroot/green/docs/superpowers/verification/record.md"
+  printf '# live rationale\n\n[FR-1]\n' > "$wtroot/maint/docs/maintainers/rationale.md"
   expect "a worktree copy at the scan root is not walked"  0 "$wtroot/green"
   expect "a \`worktrees\` directory below the scan root is still walked" 1 "$wtroot/red" \
          "[AC-1]" "[SM-1]"
+  expect "docs/maintainers is scanned although docs/superpowers is not" 1 "$wtroot/maint" "[FR-1]"
   if [ "$rc" -eq 0 ]; then
     echo "SELFTEST PASS"
   else
@@ -106,7 +115,9 @@ PATTERN="\[(US|AC|SM|SMC|UC|FR|AD)-${NUM}+\]|\[SM-C${NUM}+\]|(^|[^[:alnum:]_[])(
 # plugins/<name>/docs/ -- which is a silent hole in a gate whose whole job is
 # to have no silent holes. `.git` stays a name-match: it is never in scope at
 # any depth.
-#   docs/            -- this repo's design and verification records, which quote the old form
+#   docs/superpowers/ -- this repo's design and verification records, which quote the old form.
+#                       docs/maintainers/ is NOT excluded: it is live rationale moved out of
+#                       CLAUDE.md, and nothing about moving a rule exempts it from the grammar.
 #   .remember/       -- session history, untracked
 #   .superpowers/    -- SDD workspace, untracked
 #   .worktrees/      -- git worktrees: a SECOND FULL COPY of the tree, git-ignored,
@@ -119,7 +130,7 @@ PATTERN="\[(US|AC|SM|SMC|UC|FR|AD)-${NUM}+\]|\[SM-C${NUM}+\]|(^|[^[:alnum:]_[])(
 #                       names are excluded because both are what the worktree tooling
 #                       creates; only `.worktrees` is in this repo's .gitignore today.
 #   scripts/fixtures -- this gate's own negative-control fixtures
-EXCLUDED_SUBTREES='^\./(docs|\.remember|\.superpowers|\.worktrees|worktrees|scripts/fixtures)/'
+EXCLUDED_SUBTREES='^\./(docs/superpowers|\.remember|\.superpowers|\.worktrees|worktrees|scripts/fixtures)/'
 
 # CHANGELOG.md is history and keeps the dash form (spec Global Constraints).
 # A line carrying the marker `id-grammar-ok:` is documenting the legacy form on

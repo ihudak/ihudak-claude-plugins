@@ -220,7 +220,12 @@ check_links_and_anchors() {
              | grep -vE '^(https?|mailto):')
   done < <({ find "$root/$PLUGIN_REL/docs" -name '*.md' 2>/dev/null
              [ -f "$root/$PLUGIN_REL/README.md" ] && printf '%s\n' "$root/$PLUGIN_REL/README.md"
-             [ -f "$root/README.md" ] && printf '%s\n' "$root/README.md"; })
+             [ -f "$root/README.md" ] && printf '%s\n' "$root/README.md"
+             # The instruction tiers: every why-link from CLAUDE.md or a rules file lands on
+             # a docs/maintainers anchor, and a renamed rationale heading must turn this red.
+             for extra in "$root/CLAUDE.md" "$root"/.claude/rules/*.md "$root"/docs/maintainers/*.md; do
+               [ -f "$extra" ] && printf '%s\n' "$extra"
+             done; })
 }
 
 # ------------------------------------------------------------------- check 3
@@ -893,15 +898,16 @@ check_identity_quarantine() {
 #
 # WHY NOT `head -1` OVER THE WHOLE FILE, which is what this was. That was a proxy, and it held
 # only while the scope paragraph happened to be the first `<plugin>:<family>*` phrase in the
-# file. CLAUDE.md has always said the family comes from the scope paragraph; the proxy agreed
-# with it by accident of line order. The file also carries a `## Not pipeline nodes` list --
-# commands that print NO offer -- and the moment a phrase there qualifies for the plugin under
-# check, the proxy hands that plugin a family the rule never bound: check_handoff_applicability
-# forces it into HANDOFF_PLUGIN_RELS, check_merge_clause then finds no offer of it anywhere,
-# and NEITHER branch is green. Anchoring is behaviour-preserving on a file whose scope
-# paragraph does come first, and it is strictly stronger in the direction CLAUDE.md asks for: a
-# reworded scope sentence now empties the glob and turns the build red, where before any stray
-# phrase elsewhere in the file would silently stand in for it.
+# file. The repo's instructions (now .claude/rules/gates.md, § Check 11) have always said the
+# family comes from the scope paragraph; the proxy agreed with it by accident of line order. The
+# file also carries a `## Not pipeline nodes` list -- commands that print NO offer -- and the
+# moment a phrase there qualifies for the plugin under check, the proxy hands that plugin a
+# family the rule never bound: check_handoff_applicability forces it into HANDOFF_PLUGIN_RELS,
+# check_merge_clause then finds no offer of it anywhere, and NEITHER branch is green. Anchoring
+# is behaviour-preserving on a file whose scope paragraph does come first, and it is strictly
+# stronger in the direction .claude/rules/gates.md asks for: a reworded scope sentence now
+# empties the glob and turns the build red, where before any stray phrase elsewhere in the file
+# would silently stand in for it.
 #
 # WHY NOT `head -1` ON THE ANCHORED LINE EITHER, which is what this became next. That held only
 # while the scope paragraph named exactly one glob per plugin, and it stopped holding the moment
@@ -1412,6 +1418,27 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
     "printf 'A stale claim about a Jira status.\n' >> CLAUDE.md"
   expect_pass_after "a MARKED vendor token in CLAUDE.md is accepted" \
     "printf 'A stale claim about a Jira status. <!-- vendor-token-ok: fixture -->\n' >> CLAUDE.md"
+  # Check 13 and checks 1-2 over the CLAUDE.md split's two new surfaces, each as a red/green
+  # pair: an implementation that added the files but dropped the marker logic (13) or the
+  # anchor resolution (2) passes every red case and fails its green twin.
+  expect_fail "an unmarked vendor token in a .claude/rules file is rejected" 13 \
+    "mkdir -p .claude/rules && printf -- '---\npaths:\n  - \"plugins/**\"\n---\n\nA stale claim about a Jira status.\n' > .claude/rules/area.md"
+  expect_pass_after "a MARKED vendor token in a .claude/rules file is accepted" \
+    "mkdir -p .claude/rules && printf -- '---\npaths:\n  - \"plugins/**\"\n---\n\nA stale claim about a Jira status. <!-- vendor-token-ok: fixture -->\n' > .claude/rules/area.md"
+  expect_fail "an unmarked vendor token in docs/maintainers is rejected" 13 \
+    "mkdir -p docs/maintainers && printf '# Rationale\n\nA stale claim about a Jira status.\n' > docs/maintainers/rationale.md"
+  expect_pass_after "a MARKED vendor token in docs/maintainers is accepted" \
+    "mkdir -p docs/maintainers && printf '# Rationale\n\nA stale claim about a Jira status. <!-- vendor-token-ok: fixture -->\n' > docs/maintainers/rationale.md"
+  expect_fail "a broken link in CLAUDE.md is caught" 1 \
+    "printf '\nSee [the rule](docs/maintainers/nowhere.md).\n' >> CLAUDE.md"
+  expect_fail "a broken link in a .claude/rules file is caught" 1 \
+    "mkdir -p .claude/rules && printf 'See [the rule](../../docs/maintainers/nowhere.md).\n' > .claude/rules/area.md"
+  expect_fail "a why-link to a missing rationale anchor is caught" 2 \
+    "mkdir -p docs/maintainers && printf '# Rationale\n\n## real-slug\n\nEvidence.\n' > docs/maintainers/rationale.md && printf '\nA rule. ([why](docs/maintainers/rationale.md#no-such-slug))\n' >> CLAUDE.md"
+  expect_pass_after "a why-link to a present rationale anchor passes, from CLAUDE.md and from a rules file" \
+    "mkdir -p docs/maintainers .claude/rules && printf '# Rationale\n\n## real-slug\n\nEvidence.\n' > docs/maintainers/rationale.md && printf '\nA rule. ([why](docs/maintainers/rationale.md#real-slug))\n' >> CLAUDE.md && printf 'A rule. ([why](../../docs/maintainers/rationale.md#real-slug))\n' > .claude/rules/area.md"
+  expect_fail "a broken link inside docs/maintainers is caught" 1 \
+    "mkdir -p docs/maintainers && printf '# Rationale\n\nSee [x](nowhere.md).\n' > docs/maintainers/rationale.md"
   expect_fail "the foreign organisation named OUTSIDE the plugin is rejected" 14 \
     "printf '%s\n' \"\$(b64d \$FOREIGN_IDENTITY_SAMPLE_B64)\" >> README.md"
   expect_fail "a command missing from the plugin README is rejected" 15 \
@@ -2002,18 +2029,21 @@ PYEOF
 # same shape of result -- fires only on correct content, catches nothing -- on which check
 # 11's widening was measured and rejected twice, so it is rejected here for the same reason.
 #
-# SCOPE is $PLUGIN_REL plus CLAUDE.md. The repo-root README stays out: it documents the whole
-# marketplace, including a sibling plugin whose SUBJECT is a vendor CLI, so vendor names there
-# are its subject matter rather than this plugin's vocabulary -- the same reason check 10 leaves
-# that file alone. CLAUDE.md was OUT of scope and is now in, on evidence: it DESCRIBES this
-# plugin's behaviour, so it drifts in exactly the way the plugin does, and it drifted. While the
-# plugin itself reached ZERO unmarked tracker mentions, CLAUDE.md still held ten -- among them
-# `/ready` described as "read-only for Jira status" (the very defect this check's header records
-# as fixed, corrected in the README and left standing here), `doc-planner` described as
-# synthesising a tracker's data when its own agent file says PRD content, and `/update-prd`
-# excluded from a gate because "its base is the Jira import" when the command resolves a PRD from
-# the specs tree. A file outside the gate that describes the thing inside it is how a constraint
-# comes back. CHANGELOG.md is excluded: it is history, and history keeps the words it shipped with.
+# SCOPE is $PLUGIN_REL plus the repo-root instruction tiers: CLAUDE.md, .claude/rules/*.md and
+# docs/maintainers/*.md (the 2026-09-23 split moved CLAUDE.md's area rules and evidence into
+# the latter two, and moved text must not escape the gate). The repo-root README stays out: it
+# documents the whole marketplace, including a sibling plugin whose SUBJECT is a vendor CLI,
+# so vendor names there are its subject matter rather than this plugin's vocabulary -- the
+# same reason check 10 leaves that file alone. CLAUDE.md was OUT of scope and is now in, on
+# evidence: it DESCRIBES this plugin's behaviour, so it drifts in exactly the way the plugin
+# does, and it drifted. While the plugin itself reached ZERO unmarked tracker mentions,
+# CLAUDE.md still held ten -- among them `/ready` described as "read-only for Jira status"
+# (the very defect this check's header records as fixed, corrected in the README and left
+# standing here), `doc-planner` described as synthesising a tracker's data when its own agent
+# file says PRD content, and `/update-prd` excluded from a gate because "its base is the Jira
+# import" when the command resolves a PRD from the specs tree. A file outside the gate that
+# describes the thing inside it is how a constraint comes back. CHANGELOG.md is excluded: it
+# is history, and history keeps the words it shipped with.
 #
 # THE MARKER, `vendor-token-ok:`, predates this check by one user and had no enforcer.
 # It sanctions the line it sits on; on a fence-OPENING line it sanctions that fenced block,
@@ -2022,10 +2052,10 @@ PYEOF
 # comment on the offending line without corrupting what it quotes. A fenced block is NOT
 # skipped by default -- templates and handoff blocks are exactly where a tracker-shaped
 # field would hide -- so the marked/unmarked fence pair is a selftest case.
-# Sanctioned users -- 14 marked lines across 6 files, in four kinds. Re-derive with
-# `grep -rn --exclude=CHANGELOG.md vendor-token-ok: plugins CLAUDE.md` rather than adjusting the
-# number -- scoped to `plugins`, not to one plugin, because six of the fourteen moved into
-# workflows-core with the reference corpus:
+# Sanctioned users -- 16 marked lines across 8 files, in four kinds. Re-derive with
+# `grep -rn --exclude=CHANGELOG.md vendor-token-ok: plugins CLAUDE.md .claude/rules
+# docs/maintainers` rather than adjusting the number -- scoped to `plugins`, not to one plugin,
+# because six of the sixteen moved into workflows-core with the reference corpus:
 #   * recognition (8): branch-naming.md's three quotes of a repository's own convention file
 #     plus its fenced verbatim pattern; /vuln's no-address placeholder literals (its prose
 #     step, its two handoff blocks) and the docs page mirroring them -- foreign text the
@@ -2035,11 +2065,18 @@ PYEOF
 #     key the preserve-unknown-keys rule exists to protect;
 #   * provenance (1): getting-started.md naming the subject of a sibling plugin dev-workflows
 #     does not use;
-#   * instruction-file rationale (3): CLAUDE.md's two explanations of WHY the requirement-ID
-#     grammar and the pre-lint autolink detector exist -- both are rules about a tracker's key
-#     shape and are unexplainable without naming it -- and this check's own description, which
-#     cites the shipped defects it was created to remove and cannot quote them otherwise.
-# Each has to write the vendor's name in order to match, illustrate, or attribute it.
+#   * instruction-file rationale (5): the two explanations of WHY the requirement-ID grammar
+#     (docs/maintainers/rationale.md's id-grammar evidence) and the pre-lint autolink detector
+#     (CLAUDE.md's key-namespace rule) exist -- both are rules about a tracker's key shape and
+#     are unexplainable without naming it; CLAUDE.md's hard-constraint statement of
+#     this check's rule, which writes the marker itself; docs/maintainers/rationale.md's check-13
+#     evidence, which cites the shipped defects this check was created to remove and cannot
+#     quote them otherwise; and .claude/rules/gates.md's check-13 description, which writes
+#     the marker itself and its census recipe (the recipe matches its own line).
+# Each has to write the vendor's name in order to match, illustrate, or attribute it (a
+# fence-opening marker, in the block it opens) except two: CLAUDE.md's hard-constraint
+# statement of this check's rule and .claude/rules/gates.md's check-13 description name no
+# vendor and are counted because the recipe counts them.
 #
 # SCOPE IS EVERY TEXT FILE UNDER THE PLUGIN, not just *.md, and the widening was
 # measured before it was made. A tracker name leaks as readily through plugin.json's
@@ -2075,7 +2112,12 @@ check_vendor_tokens() {
   # skips binaries by -I, so a compiled artifact or an image cannot reach awk. CHANGELOG.md
   # stays excluded, as history.
   files=$(grep -rIl '' "$p" 2>/dev/null | grep -v '/CHANGELOG\.md$' | sort)
-  [ -f "$root/CLAUDE.md" ] && files=$(printf '%s\n%s\n' "$files" "$root/CLAUDE.md")
+  # The repo-root instruction tiers: CLAUDE.md, its path-scoped rules and the rationale they
+  # link to. Text moved between them by the 2026-09-23 split stays under this check.
+  local extra
+  for extra in "$root/CLAUDE.md" "$root"/.claude/rules/*.md "$root"/docs/maintainers/*.md; do
+    [ -f "$extra" ] && files=$(printf '%s\n%s\n' "$files" "$extra")
+  done
   [ -n "$files" ] \
     || { fail 13 "no markdown under $PLUGIN_REL to scan -- this check would examine nothing"; return; }
   hits=$(while IFS= read -r f; do
@@ -2232,10 +2274,10 @@ check_index_membership() {
 #
 # SCOPE IS $CMD_DIR/, agents/ and $REF_DIR/, and the bound is measured rather than tasteful.
 # THIS HEADER IS THE ONE HOME OF THIS CENSUS. Every figure in it is derived from the scan
-# below rather than kept by hand, and CLAUDE.md cites this comment instead of holding a
-# second copy -- the two copies disagreed for two increments before that. Re-derive by
-# instrumenting the scan itself (print real_calls / entry_calls / preamble_files after the
-# plugin loop); never adjust a figure by the size of your own change.
+# below rather than kept by hand, and .claude/rules/gates.md (§ Check 16) cites this comment
+# instead of holding a second copy -- the two copies disagreed for two increments before that.
+# Re-derive by instrumenting the scan itself (print real_calls / entry_calls / preamble_files
+# after the plugin loop); never adjust a figure by the size of your own change.
 #
 # Relation 3 over those three directories is an EXACT match on this tree -- 74 files cite a
 # core reference, 74 carry the preamble -- while 38 further files cite one from OUTSIDE them

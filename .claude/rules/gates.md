@@ -86,7 +86,7 @@ Every `choices:` option in the `/brd-*` and `/prd-*` families — the families c
 
 ### Check 14
 
-**Check 14 is a different constraint wearing a similar shape, and the two must not be conflated** — it quarantines the identity of the organisation this plugin was extracted from, has **no marker and no exception**, and its scope is the **whole repository** rather than the plugin, because a name leaks through a script comment or a JSON description as easily as through prose. Its token list is stored base64-encoded, never in clear text. ([why](../../docs/maintainers/rationale.md#check-14))
+**Check 14 is a different constraint wearing a similar shape, and the two must not be conflated** — it enforces the organisation-identity half of the identity quarantine, the rule in `CLAUDE.md` § Hard constraints, and it honours no marker. It scans the **whole repository** rather than the plugin, because a name leaks through a script comment or a JSON description as easily as through prose. Its token list is stored base64-encoded, never in clear text. ([why](../../docs/maintainers/rationale.md#check-14))
 
 ### Check 15
 

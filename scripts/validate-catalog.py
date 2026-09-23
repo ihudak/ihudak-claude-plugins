@@ -548,6 +548,18 @@ def _selftest() -> int:
          rules={"bad.md": '---\npaths:\n  - "plugins/does-not-exist/**"\n---\n\nA rule.\n'})
     case("a rules file with no frontmatter is rejected", False, "no paths:",
          rules={"noheader.md": "A rule with no frontmatter at all.\n"})
+    # The three ERROR branches inside a present paths: key. Each needle is the branch's own
+    # message text, so a case passes only when that branch -- not the no-frontmatter one,
+    # which shares the "no paths:" prefix -- fired.
+    case("a rules file whose paths: list is empty is rejected", False,
+         "(the paths: list is empty)",
+         rules={"empty.md": "---\npaths:\n---\n\nA rule.\n"})
+    case("a paths: list item that is not a '- ' line is rejected", False,
+         "unexpected line in the paths: list",
+         rules={"malformed.md": '---\npaths:\n  "plugins/fixture/**/*.json"\n---\n\nA rule.\n'})
+    case("a paths: list item that is empty is rejected", False,
+         "an empty entry in the paths: list",
+         rules={"blank.md": '---\npaths:\n  - ""\n---\n\nA rule.\n'})
     # The pair. Both globs target the same real file -- plugins/fixture/.claude-plugin/
     # plugin.json, two directories below plugins/fixture/ -- so only the `*`-vs-`**`
     # difference explains the opposite outcomes; nothing else about the fixture changed.

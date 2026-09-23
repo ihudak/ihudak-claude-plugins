@@ -59,6 +59,16 @@ Do NOT edit `~/.claude/claude-config/` — that repo is retired and will be dele
 4. Register in `.claude-plugin/marketplace.json` with `"source": "./plugins/<name>"`.
 5. Commit and push to `main`. Claude Code picks up changes on next sync/reinstall.
 
+## Where the rest of the guidance lives
+
+## Editing discipline
+
+## Hard constraints
+
+## Running the gates
+
+## Shared authorities
+
 ## Conventions
 
 - Agent `.md` files must start with YAML frontmatter (`---`) containing at minimum `name` and `description`.

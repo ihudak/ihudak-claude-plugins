@@ -54,8 +54,8 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    `commit-artifacts` step skips on it.
 7. **Resolve or derive the BRD folder** via `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Found → this is an existing BRD folder
    and this invocation is a re-run over it; use it. **A slice is never a legitimate target here** —
-   it has no source document of its own to intake, and its inventory and ledger are the parent's
-   `/brd-split` to write (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1,
+   it has no source document of its own to intake, and its inventory and ledger are created by the
+   parent's `/brd-split` (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1,
    `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3) — so a resolved folder whose
    `brd-link.md` carries a `parent:` field is a mis-keyed invocation, and the run **stops** on it.
    Take this refusal **here, before the re-run confirmation below is composed**, and note that it
@@ -71,7 +71,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    (`coverage-ledger-format.md` §3), whose inventory holds its header and no row,
    which this step's own test reads as no prior inventory at all — that confirmation is skipped
    silently, so Phase 2 would write into the slice with no consent asked anywhere. Stop, on a slice:
-   `BRD_INTAKE_SLICE: <BRD-KEY> resolves to a slice of <the parent: field of its own brd-link.md>, and a slice has no source document to intake — the source and the records beside it under brd/ are the parent's, one hop, and the slice's own brd/brd-inventory.md and coverage-ledger.md are '/product-workflows:brd-split' to write. Re-intake the parent with '/product-workflows:brd-intake <PARENT-KEY> <the @<brd-file> this run was given>'; that run leaves every row of the parent's ledger unallocated, so re-take the dispositions with the root walk it offers you when it finishes, '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', and only then re-allocate a slice the walk left a row unallocated in, with '/product-workflows:prd-ground <SLICE-KEY>' and then '/product-workflows:brd-split <SLICE-KEY>'.`
+   `BRD_INTAKE_SLICE: <BRD-KEY> resolves to a slice of <the parent: field of its own brd-link.md>, and a slice has no source document to intake — the source and the records beside it under brd/ are the parent's, one hop, and the slice's own brd/brd-inventory.md and coverage-ledger.md are created by '/product-workflows:brd-split' on the parent. Re-intake the parent with '/product-workflows:brd-intake <PARENT-KEY> <the @<brd-file> this run was given>'; that run leaves every row of the parent's ledger unallocated, so re-take the dispositions with the root walk it offers you when it finishes, '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', and only then re-allocate a slice the walk left a row unallocated in, with '/product-workflows:prd-ground <SLICE-KEY>' and then '/product-workflows:brd-split <SLICE-KEY>'.`
    **Three of the five slots are substituted and two stay literal, and the text says which.**
    `<PARENT-KEY>` is that `parent:` field as it reads, never a key parsed out of the folder's name
    (`CLAUDE.md`, *Resolve an identifier against a known set*); `<BRD-KEY>` is the address typed; and
@@ -168,8 +168,8 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
 
    **A single illegal root `covered-here` row does not need this run**, and the offer says so rather
    than letting a re-run be taken for the only exit: `coverage-ledger-format.md` §5 names the
-   one-row hand repair that leaves every other disposition standing, and the four container refusals
-   in `/product-workflows:create-prd`, `/product-workflows:create-ard`, `/product-workflows:specify` and
+   one-row hand repair that leaves every other disposition standing, and the container refusals of
+   `/product-workflows:create-prd`, `/product-workflows:create-ard`, `/product-workflows:specify` and
    `/product-workflows:epics` offer that repair first and this re-run second.
 
 `/brd-intake` is the **first command of the BRD-to-PRD route** — unlike every downstream `/brd-*`
@@ -1000,9 +1000,10 @@ choices: ["Finished with this item — the rows shown are all it binds (Recommen
     line reads
     `ledger: 0 requirements — 0 covered, 0 deferred, 0 rejected, 0 unallocated, 0 unresolved (0 delegated, 0 not built)`.
     **Say plainly, here and in the final report, that the route stops on this BRD until the
-    inventory has a row.** `/prd-ground` has nothing to ground, and it stops with
-    `PRD_GROUND_EMPTY_INVENTORY` rather than reporting a quiet success; `/brd-split` and
-    `/brd-interview` stop the same way. Phase 8 offers the one thing that changes it — re-running
+    inventory has a row.** `/brd-split` has nothing to carve, and it stops with
+    `BRD_SPLIT_EMPTY_INVENTORY` rather than reporting a quiet success; `/prd-ground` and
+    `/brd-interview` refuse a root outright (`PRD_GROUND_ROOT_LEVEL`, `BRD_INTERVIEW_ROOT_LEVEL`),
+    so no slice exists for them to run on. Phase 8 offers the one thing that changes it — re-running
     this command over this same folder with a source whose requirements `brd-reader` can identify —
     and does **not** offer grounding, because offering a command that would refuse this BRD is worse
     than offering nothing. Carry the `EMPTY` result forward to Phase 8 as the flag that picks its
@@ -1333,9 +1334,10 @@ above as that row counts it, and its `<next-phase-clause>` the **advisory** one,
 array's parenthetical promised (`workflows-core:phase-handoff` §4.1, §4.3). Either way the run goes
 on to Phase 8 and Phase 9's emitter tail.
 
-`brd` is the branch prefix `workflows-core:phase-handoff` §2.9 lists as shared by every `/brd-*`
-command (the way `prd` is shared by `/create-prd` and `/update-prd`) — a BRD is neither a PRD nor
-any of the other five prefixes, and reusing `prd` would collide with the `prd/<SLICE-KEY>-<slug>`
+`brd` is the branch prefix `workflows-core:phase-handoff` §2.9's `prefix` row lists as shared by
+every `/brd-*` command and, on the BRD route, `/prd-ground` (the way that row shares `prd` among the
+producers it names) — a BRD is neither a PRD nor any other prefix §1 rule 3 there lists, and
+reusing `prd` would collide with the `prd/<SLICE-KEY>-<slug>`
 branch `/create-prd` on the BRD route opens once a slice of this BRD is PRD-eligible. **That
 switch ships**, so the collision is live rather than hypothetical: that command's handoff derives
 `prd/<SLICE-KEY>-<slug>` from a slice folder nested inside the very folder this run wrote into,

@@ -137,10 +137,11 @@ and nothing downstream can tell the difference afterwards.
     this refusal must accept; a gate on the asserted kind would refuse every slice and accept
     nothing.
 
-    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
-    fallback, there is no prefix to test.** Answer the root question by **positive evidence, never
-    by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1,
-    the shared authority every consumer of this test takes it from, and not restated here.
+    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed fallback,
+    there is no prefix to test.** Answer the root question by **positive evidence, never by the
+    absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, the
+    shared authority every consumer of this test in this plugin takes it from, directly or through
+    `workflows-core:addressing` §4.1, and not restated here.
 
     On a root, look for the root-level artifacts this run would have produced under the retired
     two-level model — `decisions.md`, `interview/` — and name whichever exist in the stop, so an
@@ -179,7 +180,7 @@ and nothing downstream can tell the difference afterwards.
      - **No `brd-link.md`, or one with no `parent:`** —
        `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and no question this command could ask about it — do not run /product-workflows:prd-ground, which stops on the same emptiness. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
      - **`parent: <PARENT-KEY>` present** — this is a slice:
-       `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to decide. Do not run /product-workflows:prd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
+       `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to decide. Do not run /product-workflows:prd-ground, and do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case, apart from the key repair a removal performs, in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
 7. **Gate on verification — and on there being grounding to verify.** Three tests, in this order,
    because **the second is a count and a count is vacuously satisfied by an empty set**. This gate
    shipped as the count alone, exactly as `/brd-split`'s did: zero findings on file means zero
@@ -338,14 +339,15 @@ and a holding state keeps the round open:
 | *needs grounding* | no finding bears on a `[G]` yet; only a `/prd-ground` run can move it |
 | *untagged* | the §2 test could not resolve it into exactly one tag; what is wrong with it is recorded and it is rewritten before it is asked |
 
-**Why the distinction is load-bearing rather than tidy.** Both rules that read a question's state —
-this phase's resume rule and the *Write the register and the round record* phase's closure rule —
-are stated in this one vocabulary, so they cannot drift apart. Were a holding state counted as a
-disposition, a round whose remainder sat in any holding state — *deferred* or *needs grounding*,
-say — would close, and the resume rule would then skip past the very question this run promised to
-return to. §5 sides with the
-holding states: *"A round with an outstanding `[C]` stays open until that answer comes back through
-the package — the customer's turnaround is not a reason to declare the round finished around them."*
+**Why the distinction is load-bearing rather than tidy.** Every rule that reads a question's state
+— this phase's resume rule, the *Write the register and the round record* phase's closure rule,
+`/product-workflows:brd-package`'s gate on the rounds, and `/product-workflows:brd-reconcile`'s
+closing of a round its answers settle — is stated in this one vocabulary, so they cannot drift
+apart. Were a holding state counted as a disposition, a round whose remainder sat in any holding
+state — *deferred* or *needs grounding*, say — would close, and the resume rule would then skip past
+the very question this run promised to return to. §5 sides with the holding states: *"A round with
+an outstanding `[C]` stays open until that answer comes back through the package — the customer's
+turnaround is not a reason to declare the round finished around them."*
 
 A round is **open** while any question in it lacks a **terminal** disposition, and **closed** once
 every one has one. **A question's state is the last one its record records at that question's
@@ -735,8 +737,9 @@ another after it, with nothing on file saying they are the same question. **Two 
 sit at that one address, and the last one governs.** The record is append-only, so the *re-tagged*
 disposition stays where it was written and every later state for that question is appended beneath
 it; every reader that asks what state a question is in — the resume rule in *Resolve the round*, the
-closure rule in *Write the register and the round record*, and `/product-workflows:brd-package`'s
-gate on the rounds — takes the **last** state recorded at the address, and the earlier ones are
+closure rule in *Write the register and the round record*, `/product-workflows:brd-package`'s
+gate on the rounds, and `/product-workflows:brd-reconcile`'s closing of a round its answers settle —
+takes the **last** state recorded at the address, and the earlier ones are
 history, exactly as an earlier `Status:` line is (*Write the register and the round record*). A
 question re-tagged and then *deferred* is deferred: its round
 stays open and the resume rule returns to it. A question re-tagged and then *decided* carries a
@@ -977,10 +980,12 @@ sits on a row drawn from an image, that image's path relative to `brd/`, on the 
 exactly `- **Defect image:** <path relative to brd/>`** — the form an image anchor names it by
 (`brd-format.md` §2), which the bundle's manifest maps to the image's bundled filename, so the
 customer can find the picture the question is about. The path never goes on the defect's line,
-whose one value a reader copies. **The `- **Requirement defect:**` line is the one both readers
-read, and nothing else in the entry**, whose context may name other `[DEF#n]`s: `/brd-reconcile`
-copies its id into the answering `[CD#n]`'s `settles` field, and every slice under the parent reads
-it to know the defect is **asked** (*Round 1 is generated from the grounding*); and, where a `[G]`
+whose one value a reader copies. **The `- **Requirement defect:**` line is the one every reader of
+the entry takes the defect from, and nothing else in the entry**, whose context may name other
+`[DEF#n]`s: `/brd-reconcile` copies its id into the answering `[CD#n]`'s `settles` field, every
+slice under the parent reads it to know the defect is **asked** (*Round 1 is generated from the
+grounding*), and `/product-workflows:brd-package` renders it into the customer's copy of the
+question; and, where a `[G]`
 part of the same original question was answered first, that answer — because the business question
 it leaves is materially different from the one that would have been asked without it (§4).
 
@@ -1374,16 +1379,25 @@ Terminal phase — runs after *Next steps*, NEVER interrupts an earlier phase, a
 no-new-round path exactly as on any other.
 
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
-gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt before
-escalating. None of the *Resolve inputs and gate the grounded BRD* stops qualify — a missing or
-malformed key, an unresolved BRD, a resolved root BRD, an ungated or absent grounding deliverable,
-an inventory carrying no claim at all (`BRD_INTERVIEW_EMPTY_INVENTORY` — a fact about what the
-parent allocated to this slice, or about an interrupted intake's own source document, never about
-this plugin), unverified findings, an unallocated
-ledger, and an unset `$SPECS_PATH` are environment / sequencing halts, never a plugin capability
-gap. `BRD_INTERVIEW_NO_SUCH_ROUND` is not one either: it is an argument naming a round
-that does not exist, and neither is `BRD_INTERVIEW_ALL_DELEGATED` — a BRD that kept no requirement of
-its own is an allocation outcome this command reports correctly, not a capability it lacks.
+gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt before escalating. **One
+of this command's stops qualifies, and the test is a rule rather than this list.**
+`BRD_INTERVIEW_MALFORMED_FINDING` is a record-integrity gap of the plugin's own making: the keys it
+finds in practice are `grounding-verifier`'s return fields, `own_verdict` above all, and those reach
+a finding block only through a plugin command transcribing a return into the record — the same test
+`/product-workflows:brd-reconcile` applies to its `BRD_RECONCILE_READER_CONTRACT`, a gap whose
+origin is the plugin's own dispatch — so it fires `emit-block` before the operator's hand repair.
+Every other stop reports the state of the operator's own argument, the tree or the environment,
+never a capability, reference or command path this plugin lacks, so a stop added later is classified
+by the same test. Among them, every *Resolve inputs and gate the grounded BRD* stop — a missing or
+malformed key or `--round` value (`BRD_INTERVIEW_BAD_ROUND`), an unresolved BRD, a resolved root
+BRD, an ungated or absent grounding deliverable, a grounding file on main recording no finding
+(`BRD_INTERVIEW_NO_FINDINGS`), an inventory carrying no claim at all
+(`BRD_INTERVIEW_EMPTY_INVENTORY` — a fact about what the parent allocated to this slice, or about an
+interrupted intake's own source document, never about this plugin), unverified findings, an
+unallocated ledger, and an unset `$SPECS_PATH` are environment / sequencing halts.
+`BRD_INTERVIEW_NO_SUCH_ROUND` is an argument naming a round that does not exist, and
+`BRD_INTERVIEW_ALL_DELEGATED` — a BRD that kept no requirement of its own — is an allocation outcome
+this command reports correctly, not a capability it lacks.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-interview`; what was produced (the round

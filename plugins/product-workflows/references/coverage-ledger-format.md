@@ -129,7 +129,7 @@ nothing ever would, and the slice could never be ground in its own right: `/prd-
 gates on that ledger. `/brd-split` is also the only command holding both the parent's rows and the
 allocation that says which of them the slice claims.
 
-**Two commands write a disposition once the ledger exists, and they write different subsets.**
+**Two commands allocate or settle a row once the ledger exists, and they write different subsets.**
 `/brd-split` walks every `unallocated` row to a terminal disposition (§4), and it is the only command
 that may write `covered-here` or `covered-by`: allocation — which BRD builds a requirement — is that
 walk and nothing else. `commands/brd-reconcile.md` moves a row to `deferred-to`, `rejected` or
@@ -156,7 +156,9 @@ those but the fact that this slice claimed it and does not any more, naming the 
 **`covered-by` is the one disposition whose meaning depends on level, and the only one with a
 different writer at each.** On a BRD that owns its source document it names a **child** and is
 written by that BRD's own Phase 4 walk. On a slice it names a **sibling under the same parent, or
-that parent**, and is written by the **parent's** Phase 4 walk — never by the slice's own. It is
+that parent**, and is written by the **parent's** run — its Phase 4 walk, or its Phase 4.5 removal
+repair, which re-points a row naming a removed child onto `<PARENT-KEY>` (§3.2) — never by the
+slice's own. It is
 never a child at either level below the root: nesting is capped at one level
 (`workflows-core:addressing` §6), so **no child can exist below a slice** and no key a slice
 writes could name one.
@@ -198,9 +200,10 @@ unchanged: which resolutions a picker offers stays `commands/brd-split.md`'s to 
 **A `covered-by` row's requirement is not this BRD's to question, to decide, or to put to a
 customer.** §3 says the named BRD *owns* it; ownership is the whole content of the disposition, and
 a BRD that owns nothing about a requirement has nothing to ask about it. Every consumer that puts a
-requirement in front of a human therefore reads it over the rows this BRD is answerable for —
-`covered-here`, `deferred-to`, `rejected` and `superseded-by` — and **never over a `covered-by`
-row.**
+requirement to a customer or into an interview round therefore reads it over the rows this BRD is
+answerable for — `covered-here`, `deferred-to`, `rejected` and `superseded-by` — and **never over a
+`covered-by` row.** (`/brd-split`'s sibling re-cut does put a parent's `covered-by` row in front of
+the operator, §3.2 — as an allocation to make, never as a question about the requirement.)
 
 **Which consumers, and why each needs saying.** `commands/brd-interview.md` generates its round from
 the findings and the inventory; `commands/brd-package.md` states the review's scope to the customer
@@ -257,13 +260,13 @@ the ledger's job is to record a requirement's fate, not to force every requireme
 
 **Two rows decide the move; they are not always the only two rows that change, and the difference is §6.1's to enforce.** A `[BR#n]` can be named by `covered-by` on more than one ledger at a time: a child D whose provisional claim on that same row an earlier walk withdrew holds an orphan row `covered-by: <A>` for it (§2), so D names the donor too. Left as it stands, D's line resolves one hop onto A's row, meets a `covered-by` there, and is counted `unresolved` (§6.1) — a requirement D once claimed is then reported as unreadable rather than as owned by the BRD that now owns it. So every **other** ledger holding a `covered-by: <A>` row for that `[BR#n]` takes `covered-by: <B-KEY>` too. **That is not a further relaxation and moves nothing's ownership**: each such row is already an orphan row recording a claim withdrawn long ago, and re-pointing it re-states the same fact against the BRD that now holds the requirement. **Which ledgers are read, in what order, and how the sweep is reported are `commands/brd-split.md` Phase 4's**, which performs the identical read before removing an empty child; this file fixes only that no ledger is left naming the donor for a row the donor no longer holds. B is never in that sweep, because a child already holding a row for this `[BR#n]` is not its receiver (above).
 
-**What A keeps.** A's `claims:` entry and its copied `brd/brd-inventory.md` row are withdrawn together, exactly as for any row a walk moves off `covered-by: <A>` — that is the withdrawal `commands/brd-split.md` Phase 4 Step 3 already performs, over a set that walk has to widen to reach this row. **The behaviour is existing; the input set is not.** Step 3 today visits only rows that were `unallocated` when Phase 0 read the ledger, and a re-cut row is by definition not one of them, so Phase 4 must bring it into that set — which is the command's change to make, not a new rule of this file's. What the withdrawal produces is what makes A's row an **orphan row** — the second of the two routes §2 names. **A's ledger row is never deleted** (§2). **A's grounding findings and its decision register are not touched.** A ground the row before deferring it, so a `[CG#n]` or `[DG#n]` in A's grounding files may cite a `[BR#n]` A no longer owns. Those findings cannot move — a finding's id is contiguous within its prefix and is assigned once — and they cannot be inherited either, because `workflows-core:grounding-format` §8 holds a finding carried in from an earlier run to be unverified by definition. So B re-derives against the same pins rather than inheriting, at the cost of one row's grounding. A's decisions stay, and stay true, for the same reason: a `[VD#n]` or a frozen `[CD#n]` taken about deferring this row records *A's refusal to build it*, which the re-cut does not disturb. What a run surfaces about those decisions is `commands/brd-split.md`'s to state; what this file fixes is that neither file is edited.
+**What A keeps.** A's `claims:` entry and its copied `brd/brd-inventory.md` row are withdrawn together, exactly as for any row a walk moves off `covered-by: <A>` — that is the withdrawal `commands/brd-split.md` Phase 4 Step 3 already performs, over a set that walk has to widen to reach this row. **The behaviour is existing; the input set was widened to reach it.** Step 3 visits two kinds of row: rows that were `unallocated` when Phase 0 read the ledger, and — on the re-cut path — the candidate rows Step 2R re-pointed, which were never `unallocated` that run; a re-cut row is therefore in its set (`commands/brd-split.md` Phase 4 Step 3), and the widening is the command's, not a new rule of this file's. What the withdrawal produces is what makes A's row an **orphan row** — the second of the two routes §2 names. **A's ledger row is never deleted** (§2). **A's grounding findings and its decision register are not touched.** A ground the row before deferring it, so a `[CG#n]` or `[DG#n]` in A's grounding files may cite a `[BR#n]` A no longer owns. Those findings cannot move — a finding's id is contiguous within its prefix and is assigned once — and they cannot be inherited either, because `workflows-core:grounding-format` §8 holds a finding carried in from an earlier run to be unverified by definition. So B re-derives against the same pins rather than inheriting, at the cost of one row's grounding. A's decisions stay, and stay true, for the same reason: a `[VD#n]` or a frozen `[CD#n]` taken about deferring this row records *A's refusal to build it*, which the re-cut does not disturb. What a run surfaces about those decisions is `commands/brd-split.md`'s to state; what this file fixes is that neither file is edited.
 
 **The receiver has not been interviewed.** B is a sibling under the same parent — never a child of A, and never A itself — that holds no `decisions.md` carrying a `[VD#n]` or `[CD#n]` record and no `interview/round-*.md` on disk. `references/decision-register-format.md` §4 admits exactly two causes for reopening a decision, a new grounding finding or an incoming customer decision, and adding scope to a slice is neither; a register that exists and holds decisions is therefore closed to this, and the two-part test is the cheapest honest reading of "the customer conversation about B has not started". **This eligibility test is the re-cut's alone.** It says nothing about which children an ordinary walk may write `covered-by` against, and widening it there is out of scope: that walk allocates rows carrying no fate yet, which is a different act from moving one that already carries a fate, and the eligibility test exists only to license the second.
 
 **Where the receiver is later removed.** A child left standing while claiming nothing is resolved by removal or kept against a recorded reason (`commands/brd-split.md` Phase 4.5). Where the child removed is one a re-cut pointed at, the parent's row takes `deferred-to: <PARENT-KEY>` — which on the parent's own ledger is §3's `deferred-to: <this BRD>`, a live obligation of the parent, kept and not built now — and every other child whose ledger reads `covered-by: <that removed child>` for the same `[BR#n]`, A among them, takes `covered-by: <PARENT-KEY>`. **Neither is a new mapping.** Both are §3's own orphan-table row for a parent's deferral, quoted from that table rather than adapted: left column `deferred-to: <the parent>` — a live obligation of the parent — and right column `covered-by: <PARENT-KEY>`. The row goes **not** back to A, which recorded that it will not build it, and **not** to `unallocated`, which `/brd-split` never writes onto a row already carrying a fate (§3).
 
-**What this does not relax, said because a reader will reach for each of them.** No row returns to `unallocated`, so §4's gate is never reopened: every write above replaces one terminal disposition with another. The one-level nesting cap (`workflows-core:addressing` §6) is untouched — a re-cut carves a **sibling**, never a child, so no `covered-by` key written here names a child of a slice, at either level. What relaxes is only the weaker rule that `/brd-split` never re-allocates a row already carrying a fate, and it relaxes against the owner's own recorded refusal and against nothing else. **The consequential re-points above are not a second relaxation, and the test is whether a write changes who owns the requirement.** Two rows decide that — the parent's and the donor's — and both move only against the donor's written refusal. Every other row the same run rewrites is an **orphan row** (§2): a record that some BRD claimed this `[BR#n]` and does not any more, whose `covered-by` key names whichever BRD took it. Re-pointing one asserts nothing new about ownership; it re-states the same withdrawn claim against the BRD that now holds the requirement, which is the only reading of it that stays true. This file already writes exactly that under *Where the receiver is later removed* above, over the same set and by quoting the same table, and the removal repair shipped before the re-cut did.
+**What this does not relax, said because a reader will reach for each of them.** No row returns to `unallocated`, so §4's gate is never reopened: every write above replaces one terminal disposition with another. The one-level nesting cap (`workflows-core:addressing` §6) is untouched — a re-cut carves a **sibling**, never a child, so no `covered-by` key written here names a child of a slice, at either level. What relaxes is only the weaker rule that `/brd-split` never re-allocates a row already carrying a fate — apart from the key repair a removal performs (`commands/brd-split.md` Phase 4.5, *Where the receiver is later removed* above) — and it relaxes against the owner's own recorded refusal and against nothing else. **The consequential re-points above are not a second relaxation, and the test is whether a write changes who owns the requirement.** Two rows decide that — the parent's and the donor's — and both move only against the donor's written refusal. Every other row the same run rewrites is an **orphan row** (§2): a record that some BRD claimed this `[BR#n]` and does not any more, whose `covered-by` key names whichever BRD took it. Re-pointing one asserts nothing new about ownership; it re-states the same withdrawn claim against the BRD that now holds the requirement, which is the only reading of it that stays true. This file already writes exactly that under *Where the receiver is later removed* above, over the same set and by quoting the same table, and the removal repair shipped before the re-cut did.
 
 ## 4. The allocation gate
 
@@ -428,7 +431,8 @@ a slice it is simply wrong. Read the ledger's own rows. On a slice the narrowing
 rather than coinciding with the ledger, and
 it is safe in both directions: **an orphan row can neither create eligibility nor withhold it.** It
 is never `covered-here` — §3's table gives it `covered-by`, `rejected` or `superseded-by` and
-nothing else, and only the parent's walk writes it — so it cannot make an ineligible slice look
+nothing else, and only the parent's run writes it — its walk, or its Phase 4.5 removal repair,
+which writes `covered-by` too — so it cannot make an ineligible slice look
 eligible; and it is never `unallocated`, so it cannot make an eligible one look unallocated.
 
 This is **read from the ledger, not decided in advance.** Slicing a BRD entirely and slicing it
@@ -459,9 +463,11 @@ container:
 - a legacy **idea-route PRD folder**, `specifications/<KEY>-<slug>/` holding `idea.md` and `prd.md`,
   written before the kind prefixes shipped.
 
-**Neither carries a `brd-link.md`.** `/brd-intake` writes none — only `/prd-ground`, `/brd-split`
-and `/brd-package` ever do, and the first and third write one carrying `depends-on:` and no
-`parent:` — and the idea route has never written one at all. So "no `brd-link.md`, or one carrying
+**Neither carries a `brd-link.md`.** `/brd-intake` writes none — only `/prd-ground`, `/brd-split`,
+`/brd-package` and `/brd-reconcile` ever do, and all but `/brd-split` write only `depends-on:`,
+never `parent:` (`/brd-reconcile` only where a returned review's correction asks to add a
+prerequisite, its *Apply the required corrections* table's `brd-link.md` row) — and the idea route
+has never written one at all. So "no `brd-link.md`, or one carrying
 no `parent:`", which is the correct test for **root versus slice** *once a folder is known to be on
 the BRD route*, separates nothing here: used as the container test it refuses the legacy idea-route
 PRD folder too, and then offers `/brd-split` on a folder holding no coverage ledger to walk — a stop
@@ -470,7 +476,7 @@ naming a remedy that cannot run. An unprefixed idea-route folder is not an exoti
 every time.
 
 **What a root BRD carries and an idea-route PRD folder never does is the BRD bookkeeping**, and
-exactly two commands write it: `coverage-ledger.md` (`/brd-intake` Phase 5; `/brd-split` Phase 3
+exactly two commands create it: `coverage-ledger.md` (`/brd-intake` Phase 5; `/brd-split` Phase 3
 step 5 for a slice) and `brd/brd-inventory.md` (`/brd-intake` Phase 3; `/brd-split` Phase 3 step 4
 for a slice). **No command on the idea route writes either, ever**, so their presence — not any
 absence — is the test. On an unprefixed folder:
@@ -492,7 +498,10 @@ and route consumers are `/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a)
 (step 5a) and `/brd-reconcile` (step 5a); **the effort-proposal pair and their reviewer take the same
 §5.1 test and were missing from this paragraph** — `/prd-proposal` (Phase 0 step 4, refusing a `BRD-`
 container), `/brd-proposal` (Phase 0 step 4, refusing a `PRD-` slice on the same test with the
-disposition inverted) and `proposal-reviewer`. **Read that as a list, not as a count, and re-derive it
+disposition inverted) and `proposal-reviewer`; and the companion `dev-workflows` plugin's
+`/design`, `/implement` and `/ready` take it too, through `workflows-core:addressing` §4.1, which
+states the same positive test for a plugin that cannot read this file — the recipe below reaches
+them only through the remedy text each cites §5 in. **Read that as a list, not as a count, and re-derive it
 against the tree rather than adjusting it** — the recipe is `grep -rn 'coverage-ledger-format.*§5'
 plugins/*/commands/*.md plugins/*/agents/*.md`, each hit opened, since `/brd-intake` names §5.1 only
 to describe the other commands' refusals and is correctly not a consumer. The sentence said *all
@@ -526,7 +535,7 @@ resolved slice's own ledger (`commands/create-prd.md` Phase 0 step 7):
 |---|---|---|
 | the resolved folder's prefix, or §5.1's evidence where it has none (§5, §5.1) | it is a `BRD-` container | `CREATE_PRD_BRD_NOT_SLICED` — the `PRD-` slices under it, or `/brd-split <BRD-KEY> "<how to cut it>"` where there are none |
 | the gate set | a row is still `unallocated` | `CREATE_PRD_BRD_UNALLOCATED` — `/brd-split <SLICE-KEY>`, whose walk moves exactly those rows |
-| the gate set | no row is `covered-here` | `CREATE_PRD_BRD_NOT_ELIGIBLE` — `/brd-split <PARENT-KEY>` where the gate set is **empty** (a standing empty child), and **no command at all** where it is non-empty |
+| the gate set | no row is `covered-here`, and none `unallocated` (the row above is tested first) | `CREATE_PRD_BRD_NOT_ELIGIBLE` — `/brd-split <PARENT-KEY>` where the gate set is **empty** (a standing empty child), and **no command at all** where it is non-empty |
 
 **The gate set is this slice's own `coverage-ledger.md` rows, narrowed by its `brd-link.md`
 `claims:`** — the same set Phase 0 step 7 defines, read the same way, and read **out of the ledger
@@ -553,9 +562,9 @@ list is empty — which the table above resolves to `/brd-split <PARENT-KEY>`, a
 file to the same offer would send an operator to keep-or-remove a slice on evidence nobody has.
 **Name no option at all.** Report the absent `<slice-dir>/coverage-ledger.md` by path, say that
 `/brd-split` wrote it and landed it with the slice, and leave recovering it from the specs repo's
-history to the operator — nothing in this plugin rewrites a slice's ledger in place. Stated once
-here, in the authority every offering command already cites, rather than three times over in the
-commands that read a slice's ledger to shape an offer.
+history to the operator — nothing in this plugin rewrites a slice's ledger in place. The rule is
+stated here, in the authority every offering command already cites; each command that reads a slice's
+ledger to shape an offer or a remedy carries a row for this state that cites it.
 
 **Where a data refusal would fire, drop the `/create-prd` option and say which test failed.** The
 precedent is `commands/brd-reconcile.md` Phase 14, which runs both data tests before offering

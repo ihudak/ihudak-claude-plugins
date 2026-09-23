@@ -279,10 +279,10 @@ Diff grounding is opt-in and advisory here: a repo the user skips degrades the g
 **Resolve `run_phase`.** `/release-notes` runs at two points in a PRD's life, and the
 `release-note-types.md` §4 documentation-link rule depends on which. Reuse the existing signal from
 `workflows-core:cost-emission` §7 — resolve the PRD's specs dir
-by calling `resolve-address <PRD>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), then glob it for `specification.md` and `design.md`. That entry point searches every level §3 bounds and carries §5's legacy fallback; §7 records why this command is one of its adopters.
-A flat glob alone would also be **narrower than the signal this step says it reuses**: §7 defers to
-the specs-dir matching `workflows-core:feedback-emission` and `workflows-core:followup-emission` perform, whose pattern
-already spans both levels.
+by calling `resolve-address <PRD>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), then glob it for `specification.md` and `design.md`. That entry point searches every level §3 bounds and carries §5's legacy fallback; `workflows-core:addressing` §7 records why this command is one of its adopters.
+A flat glob alone would also be **narrower than the signal this step says it reuses**: cost-emission
+§7 defers to the specs-dir matching `workflows-core:feedback-emission` and
+`workflows-core:followup-emission` perform, whose pattern already spans both levels.
 
 - **neither present** → `run_phase: pm`. The feature is not built and its documentation does not
   exist yet, so the note carries no documentation link and the command never asks for one.

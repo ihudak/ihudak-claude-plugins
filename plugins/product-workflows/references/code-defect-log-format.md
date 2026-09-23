@@ -7,10 +7,18 @@ carries, the five dispositions one can hold, the rule that every entry cites a v
 for the behaviour and names its intent basis separately, and the two spellings `blocked_on` takes.
 Design authority: `docs/superpowers/specs/2026-09-08-code-defect-record-design.md`.
 
-**Written by `commands/brd-interview.md`**, which is the only writer; **read by
-`agents/brd-package-reviewer.md`**, which raises a finding where an `argumentation` asserts a
-recorded defect that no `defects:` field names; and **shipped to the customer** by
-`commands/brd-package.md`, per `references/bundle-packaging.md` §1.1.
+**Written by `commands/brd-interview.md`**, which is the only writer; **shipped to the customer**
+by `commands/brd-package.md`, per `references/bundle-packaging.md` §1.1; and **read by more than
+those two** — among them `agents/brd-package-reviewer.md`, which raises a finding where an
+`argumentation` asserts a recorded defect that no `defects:` field names, `commands/brd-package.md`'s
+own Phase 0 gate, `commands/brd-reconcile.md` (its inputs and its propagation sweep, which reaches a
+dependent's log), `/prd-proposal`'s defect sweep (`references/proposal-format.md` §7) and
+`agents/proposal-reviewer.md`, which confirms a driver's cited `[CDF#n]` is on file. `grep -l
+'code-defect-log' commands/*.md agents/*.md references/*.md`, run from this plugin's root, lists
+every file that names the log. It is not a list of readers in either direction: a file may name
+the log only to say it is a different register, and a command that reads it only through a
+reference appears as that reference — `/prd-proposal` does, through `references/proposal-format.md`
+§7, and its own command file is not in the list.
 
 ## 1. Why this is not a grounding finding
 

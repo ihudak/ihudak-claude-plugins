@@ -12,7 +12,7 @@ Scaffold a documentation repository: $ARGUMENTS
 
 **Signature:** `/docs-init [<docs-repo-path>] [--generator mkdocs-material] [--no-brand] [--public-only] [--with-pricing] [--with-compliance]`
 
-**It is the cold-start command, and its acceptance test is inverted because of that.** Every sibling in this family wants a docs repository that already **exists** — `/docs-workflows:docs-profile` to describe one, `/docs-workflows:docs-brand` to brand one, `/docs-workflows:docs-serve` to serve one. This one wants a place to **make** one, so a directory carrying a docs signal is a **stop**, not a match (design D23). An implementer who copies a sibling's ladder gets that exactly backwards, and the scaffold then refuses the one directory it was pointed at.
+**It is the cold-start command, and its acceptance test is inverted because of that.** Every sibling in this family that resolves a docs repository wants one that already **exists** — `/docs-workflows:docs-profile` to describe one, `/docs-workflows:docs-brand` to brand one, `/docs-workflows:docs-serve` to serve one, `/docs-workflows:docs-audit` to audit one, and `/docs-workflows:document` to write into one. This one wants a place to **make** one, so a directory carrying a docs signal is a **stop**, not a match (design D23). An implementer who copies a sibling's ladder gets that exactly backwards, and the scaffold then refuses the one directory it was pointed at.
 
 ---
 
@@ -45,7 +45,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 `/docs-init` is **MODERATE** — mechanical scaffolding against a known template held in this plugin's own references, applied as a templated diff whose output is reviewed as a pull request before anyone relies on it. State the classification and a one-line reason. (Contrast `/docs-audit`, which classifies SIGNIFICANT because it reasons about what a codebase's documentation *ought* to contain.)
 
-**The review gate is Opus regardless of class.** D17 and D20: every artefact-writing command of the docs-workflow family the 2026-08-29 design's §4 table lists (`/docs-init`, `/docs-brand`, `/docs-audit`, `/docs-serve` and the commands that design plans after them — **not** every command in this plugin: `/release-notes` takes a light gate and `/docs-profile` no review gate at all) passes a high-tier review with no tiering by unit, and a MODERATE classification lowers which model plans and executes, never which model reviews. Record a `model_routing` block:
+**The review gate is Opus regardless of class.** D17 and D20: every artefact-writing command of the docs-workflow family the 2026-08-29 design's §4 table lists (`/docs-init`, `/docs-brand`, `/docs-audit` and the artefact-writing commands that design plans after them — **not** every command in this plugin: `/document` in direct mode takes a style check and no review gate, `/release-notes` a light gate, `/docs-profile` no review gate at all, and `/docs-serve` writes no artefact and runs none) passes a high-tier review with no tiering by unit, and a MODERATE classification lowers which model plans and executes, never which model reviews. Record a `model_routing` block:
 
 ```yaml
 model_routing:

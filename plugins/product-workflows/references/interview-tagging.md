@@ -17,6 +17,9 @@ test to a question already routed, and by `commands/brd-package.md`, which route
 into the customer review prompt and reads §5's round vocabulary at its gate, and by
 `commands/brd-reconcile.md`, which writes §5's terminal disposition *answered by the customer* when
 an operator confirms a returned answer — the only thing that ever closes a round holding a `[C]`.
+`commands/create-prd.md` applies §2's test outside any round, to triage a gap its grill could not
+close by who could settle it, and `agents/customer-review-reader.md` cites §2 for why an escalated
+`[SR#n]` reaches the customer under its own id rather than as a `[C]`.
 What this file fixes is the contract every one of them is built against, so that the tag on a
 question means the same thing to whichever one is holding it.
 

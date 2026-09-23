@@ -187,14 +187,19 @@ resolves to nothing that exists. `<VAR>` is that variable's own name, written ou
 the variable the run is missing, never a generic placeholder.
 
 `/brd-intake` (Phase 0 step 5), `/prd-ground` (Phase 0 step 3 for `SPECS_PATH` and Phase 0 step 7
-for `REPOS_PATH`), `/brd-split` (Phase 0 step 2), `/brd-interview` (Phase 0 step 3),
-`/brd-package` (Phase 0 step 3), `/brd-reconcile` (Phase 0 step 3), `/frames` (Phase 0 step 0),
-`/prd-proposal` (Phase 0 step 1) and `/brd-proposal` (Phase 0 step 1)
-cite this rule by name — for `/brd-interview`, `/brd-package`, `/brd-reconcile`, `/frames`,
-`/prd-proposal` and `/brd-proposal`, `SPECS_PATH` is the only path variable they need, since
-none of them opens a repository. **Name them rather than counting from the end of the list**: the
-clause read "for the last four" until the list grew, at which point it silently described a
-different set. Derive the set rather than trusting this list:
+for `REPOS_PATH`), `/brd-split` (Phase 0 step 2), `/brd-interview` (Phase 0 step 3), `/brd-package`
+(Phase 0 step 3), `/brd-reconcile` (Phase 0 step 3), `/frames` (Phase 0 step 0), `/prd-proposal`
+(Phase 0 step 1), `/brd-proposal` (Phase 0 step 1), `/idea` (Phase 0 step 1), `/implement` (Phase 0
+*Address resolution*, on a `<KEY>` address only) and `/document` (*Mode detection*, keyed mode on a
+`<KEY>` address only) cite this rule by name — for every one of them but `/prd-ground`, `SPECS_PATH`
+is the only path variable it requires, since none of the others requires a repository root
+(`/idea --ground-code` and `/document` read `${REPOS_PATH:-/workspace}` with its default and never
+stop on it unset; a `$DOCS_PATH` that does not resolve only skips documentation grounding, or, in
+`/document`, one rung of its docs-repository ladder, and stops nothing). **State the set by its
+property, not by counting from the end of the list, nor by naming a subset**: the clause read "for
+the last four" until the list grew, at which point it silently described a different set, and a
+named subset that replaced it then left `/brd-split` and `/brd-intake` out of it. Derive the set
+rather than trusting this list:
 `grep -rl 'Required path environment variable unset' plugins/*/commands/*.md`, run from the
 repository root. It is a stop, not a degradation: there is no "continue without it" option, because
 the path is where the run's inputs and outputs live. Other commands reproduce the same two-option

@@ -19,8 +19,8 @@ convention live in ONE place.
    `none`.
 
    **This step is the only route by which that resolution reaches an ARD.** All six consumers below
-   delegate their ARD lookup here, so five of them resolving their *own* PRD folder would still not
-   find an ARD in a nested one — and `/implement` resolves no PRD folder at all, reaching an ARD
+   delegate their ARD lookup here, so none of them finds an ARD by resolving its *own* folder —
+   `/implement` included, which resolves its own folder on a keyed run and still reaches an ARD
    solely by citing this file.
 2. Collect candidate ARD files **inside the folder step 1 resolved**, by filename — never a path
    re-derived from the key (`addressing.md` §4):

@@ -27,7 +27,20 @@ Implement the following: $ARGUMENTS
 address** in `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a folder in the specs tree. Present →
 resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3) and the run
 is **keyed**; absent → the run is **direct** (free-text / `@file`, this command's existing flow).
-That is the whole mode test, and it unifies the input grammar with `/document`.
+That is the whole mode test, and it unifies the input grammar with `/document`. **On a `<KEY>`,
+`$SPECS_PATH` comes first:** if it is unset, stop naming it before resolving anything
+(`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`, `workflows-core:escalation-rules`
+*Required path environment variable unset*) — a key is found only by searching the specs tree, so
+with no tree the `absent` stop below would name the wrong cause and offer a re-enter that cannot
+succeed. An `@<path>` address needs no specs tree: it is resolved without the variable and runs on,
+its record written into the folder it names, and a direct run is unaffected. `ambiguous` is §3's
+hard stop, naming every match. **`status: absent` is a stop, never a fall-through to direct mode**
+— the `key dir not found` rule in `workflows-core:escalation-rules` (`["Re-enter key", "Cancel"]`),
+naming what creates a folder this command reads: a `PRD-` folder comes from
+`/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from
+`/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder from
+`/product-workflows:epics <PRD-ADDRESS>`. A keyed run with no folder has nowhere for Phase 4.7's
+record to go.
 
 The classification table above still applies to every other `@path` token: a spec folder contributes
 to `specs`, a code repo is an `/implement`-only scan target. Carry `mode` (`keyed | direct`), the

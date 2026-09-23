@@ -188,8 +188,9 @@ directory is **writable**. Test `.git` specifically, not just the worktree —
 `commit` and `fetch` both write there, and a read-only specs mount is a normal
 state in this container setup.
 
-**A failed gate is not one disposition but two, and conflating them is what made a misconfiguration indistinguishable from a supported state.**
+**A failed gate is not one disposition but three, and conflating them is what made a misconfiguration indistinguishable from a supported state.**
 
+- **`$SPECS_PATH` is unset → silent no-op here.** Whether that is a supported state is the caller's to say, and it says so *before* this step: a command that resolves or creates its deliverable's folder in the specs tree by key stops in Phase 0 on the unset variable (`workflows-core:escalation-rules` *Required path environment variable unset*, or the same two-option list inline), so it never reaches this gate unset — `grep -lE 'Set SPECS_PATH|Required path environment variable unset' plugins/*/commands/*.md` names them, and `/implement` and `/document` in keyed mode are among them for a `<KEY>` address only; a command that writes into a folder it resolves from an address but carries no such stop — `/epics` and `/release-notes` on either address form, and `/implement` and `/document` in keyed mode on an `@<path>` address (`implementation.md`; `pr-draft.md` and the implementation-gaps draft) — stops not-found on a `<KEY>` address, there being no tree to search, and on an `@<path>` address runs on, writing into the folder given (`/implement` and `/document` never reach the not-found stop unset, having stopped on the variable first); a command for which the specs repository holds only its bookkeeping — `/document` in direct mode, `/implement` on a direct prompt, `/upgrade`, `/vuln`, `/docs-init`, `/docs-brand`, `/docs-audit` and the four logging commands — runs on, and its emitters fall to the report-only tier. Those three classes are every caller of this entry point.
 - **`.git` resolves but is not writable → silent no-op**, exactly as before. The artifacts are going to a report-only tier the plugin does not manage, and a read-only specs mount is a normal state in this container setup. Saying nothing is correct here: there is nothing for the operator to fix.
 - **`$SPECS_PATH` is set to a path that is not a directory, or `rev-parse --git-dir` fails there → emit a one-line notice** naming the variable and the path, then continue. This is **never** a supported state: a set-but-not-a-repository `$SPECS_PATH` is a typo, a missing mount, or a path that was right in another container. Under the old blanket silence it looked identical to the read-only case, so a run would write its deliverables, commit nothing, open no pull request, and end on a terminal gate-failed line that named none of it — the operator's first clue being an empty specs tree some time later.
 
@@ -215,18 +216,17 @@ the ancestry test, skipped entirely when there is no remote. On failure (offline
 `<default-ref>` and note `offline — ancestry checked against the
 last-fetched ref`. Never fatal.
 
-**Run key set:** every key the run is scoped to — the identity each of this run's
-own branches is *named for* — taking each key already resolved at the call site.
-A PRD-scoped run contributes its PRD key. An **Epic-scoped** run — one whose
-single address resolved an `EPIC-` folder (`/create-ard`, `/specify`, `/design`,
-`/ready`, `/frames`) — contributes **both**, because the Epic's key encodes its ancestry: the Epic
-is as much this run's key as the PRD is. For four of the five the run also *reads* the PRD from the
-folder above; `/frames` does not (it indexes what the resolved folder holds and never looks up), so
-ancestry alone carries it — which is enough, because what the second key is for is §3.5 recognising a
-branch named for either, and §3.5 must recognise a branch named for either (§3.6). Two keys
-in the set, one address on the command line (D4). When no key is resolved at the call site the set is empty and
-the run is **keyless**. Both are correct behaviour — no command needs to defer
-its preflight in order to obtain a key.
+**Run key set:** every key the run is scoped to — the identity each of this run's own branches is
+*named for* — taking each key already resolved at the call site. A PRD-scoped run contributes its
+PRD key. An **Epic-scoped** run — one whose single address resolved an `EPIC-` folder, on any
+command that accepts an Epic address — contributes **both**, because the Epic's key encodes its
+ancestry: the Epic is as much this run's key as the PRD is. Whether the run also *reads* the PRD
+from the folder above is the command's own business, and not every one does — `/frames` does not (it
+indexes what the resolved folder holds and never looks up) — so ancestry alone carries the PRD key,
+which is enough, because what the second key is for is §3.5 recognising a branch named for either
+(§3.6). Two keys in the set, one address on the command line (D4). When no key is resolved at the
+call site the set is empty and the run is **keyless**. Both are correct behaviour — no command needs
+to defer its preflight in order to obtain a key.
 
 **`/create-prd` contributes a key, and the rule does not read the route.** The
 positional token is validated by that command's own Phase 0 **step 1**, before the
@@ -369,7 +369,7 @@ B3 now exists for two reasons.
 
 **Second, `/ready`'s explicit checkout.** The user may choose to proceed on the current checkout rather than switch to the default branch. Switching off it mid-run while the readiness report still claims that checkout is the one that was read would make the report false.
 
-**The same shape reaches Epic-scoped runs — which is why §3.2 resolves a key *set*, not a single key.** `/specify <EPIC>` authors `specification.md` on `spec/<EPIC>-<eslug>`, a branch keyed by the **Epic**. The follow-up `/design <EPIC>` run resolves the PRD as its primary key, so a single-key comparison would read branch key ≠ run key, fall through to B4, and switch away from the branch holding the very `specification.md` `/design`'s resume depends on — the same reachability loss described above, one key earlier in the chain. Matching the branch key against **any** key in the set keeps B3 in force for Epic-scoped runs (`/create-ard`, `/specify`, `/design`, `/ready`, `/frames`) exactly as it holds for PRD-scoped ones.
+**The same shape reaches Epic-scoped runs — which is why §3.2 resolves a key *set*, not a single key.** `/specify <EPIC>` authors `specification.md` on `spec/<EPIC>-<eslug>`, a branch keyed by the **Epic**. The follow-up `/design <EPIC>` run resolves the PRD as its primary key, so a single-key comparison would read branch key ≠ run key, fall through to B4, and switch away from the branch holding the very `specification.md` `/design`'s resume depends on — the same reachability loss described above, one key earlier in the chain. Matching the branch key against **any** key in the set keeps B3 in force for Epic-scoped runs, on every command that takes an Epic address, exactly as it holds for PRD-scoped ones.
 
 The failure this section used to defend against — `/create-ard` continuing silently against the wrong source when the authored PRD file existed only on an unmerged branch — is now caught loudly instead: `phase-handoff.md` §3.3 rows D and E stop that run rather than letting it proceed, so the defense moved there.
 

@@ -316,8 +316,9 @@ and reason are still required.
 
 When a scanning step must digest more than a single working tree, a single
 explorer subagent on a weak session model comprehends it poorly. This section
-is the shared policy for that case. It is consulted by `/implement` and
-generalizes the pattern `/epics` already uses.
+is the shared policy for that case. It generalizes the pattern `/epics`
+already used; the commands that run §8.2 and those that also adopt §8.5 are
+named in §8.5's *Opt-in* paragraph, which is the one list of them.
 
 ### 8.1 Trigger (input shape, not measured volume)
 

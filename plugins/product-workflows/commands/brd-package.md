@@ -143,10 +143,11 @@ cannot review, and they will not tell you that — they will review it anyway, b
     this refusal must accept; a gate on the asserted kind would refuse every slice and accept
     nothing.
 
-    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
-    fallback, there is no prefix to test.** Answer the root question by **positive evidence, never
-    by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1,
-    the shared authority every consumer of this test takes it from, and not restated here.
+    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed fallback,
+    there is no prefix to test.** Answer the root question by **positive evidence, never by the
+    absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, the
+    shared authority every consumer of this test in this plugin takes it from, directly or through
+    `workflows-core:addressing` §4.1, and not restated here.
 
     On a root, look for the root-level artifacts this run would have produced under the retired
     two-level model — any `bundle-<YYYYMMDD>/`, `customer-review-prompt-<YYYYMMDD>.md` or
@@ -1467,16 +1468,27 @@ only — nothing is auto-run.
 Terminal phase — runs after *Next steps*, and NEVER interrupts an earlier phase.
 
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
-gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt before
-escalating. Three of this command's stops **do** qualify and are the reason the invariant is named
-here: `BRD_PACKAGE_SCHEMA_BOUNDARY`, `BRD_PACKAGE_SCHEMA_EXAMPLE_ID` and `BRD_PACKAGE_PROMPT_LEAK`
-are all reference-integrity gaps — a rendered authority whose boundary moved, a rendered authority
-carrying an example identifier with a number in it, and a package artifact carrying a citation that
-should never have been written into it. None of the others do: a missing or malformed key, an
-unresolved BRD, a resolved root BRD, an ungated or absent register, an unsettled round, a bundle
-directory that already exists, and an unset `$SPECS_PATH` are environment or sequencing halts.
-`BRD_PACKAGE_UNDISPOSED` is not one either — it is the gate working — and nor is
-`BRD_PACKAGE_CUSTOMER_CONTENT_HELD`, which is the operator's own ruling on the customer's words.
+gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt before escalating. Six of
+this command's stops **do** qualify and are the reason the invariant is named here:
+`BRD_PACKAGE_SCHEMA_BOUNDARY`, `BRD_PACKAGE_SCHEMA_EXAMPLE_ID` and `BRD_PACKAGE_PROMPT_LEAK` are all
+reference-integrity gaps — a rendered authority whose boundary moved, a rendered authority carrying
+an example identifier with a number in it, and a package artifact carrying a citation that should
+never have been written into it; `BRD_PACKAGE_CORPUS_UNREADABLE` and `BRD_PACKAGE_SET_UNREADABLE`
+are record-integrity gaps — each is, by its own text, this command's parse or read of the plugin's
+own records failing on content that is there, which no sentence in the package can fix; and
+`BRD_PACKAGE_REVIEW_UNACCOUNTED` is an agent-contract gap, a dispatch this command owns whose agent
+broke its return contract twice, the rule `/product-workflows:brd-reconcile` applies to its own
+`BRD_RECONCILE_READER_CONTRACT`. **Every other stop fails that test and is classified by it, never
+by a list**: each reports the operator's own argument, the tree or the environment, a gate working,
+the operator's own ruling, or a defect in the package's own content that a sentence in it has to
+change to fix — as a review BLOCK is a defect in the work and not in the plugin. Among them: a
+missing or malformed key, an unresolved BRD, a resolved root BRD, an ungated, absent or unmerged
+register or round record, an unsettled or uninterviewed round, nothing to review, a bundle directory
+that already exists, and an unset `$SPECS_PATH` are environment or sequencing halts; the other
+bundle-integrity checks (`BRD_PACKAGE_DEAD_CITATION`, `BRD_PACKAGE_CITATION_MISMATCH`,
+`BRD_PACKAGE_SET_MISMATCH`) report what the assembled bundle and the records it was built from hold;
+`BRD_PACKAGE_UNDISPOSED` is the gate working; and `BRD_PACKAGE_CUSTOMER_CONTENT_HELD` is the
+operator's own ruling on the customer's words.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-package`; what was produced (the

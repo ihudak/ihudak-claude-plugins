@@ -89,7 +89,7 @@ Byte for byte the same command, and every step above happens the same way. The s
 
 ## See also
 
-- Roles and phases — the `pm` and `dev` roles this command straddles, and what distinguishes the `prd-creation` and `documenting` cost phases. The page that defines all four is `dev-workflows`'s `docs/roles-and-phases.md`; `workflows-core`'s page of the same name carries `prd-creation` but neither role nor the `documenting` phase.
+- Roles and phases — the `pm` and `dev` roles this command straddles, and what distinguishes the `prd-creation` and `documenting` cost phases. No one page defines all four. `workflows-core:cost-emission` §7 is the authority that assigns each command its phase and role, this command's inference included; `product-workflows`' `docs/roles-and-phases.md` defines the `pm` role and the `prd-creation` phase; `dev-workflows`' page of the same name describes the `dev` role; and `documenting` has no roles page — [Session cost](../reference/session-cost.md) says which commands emit it. `workflows-core`'s `docs/roles-and-phases.md` carries `prd-creation` but neither role nor the `documenting` phase.
 - `/product-workflows:create-prd` — the upstream command that produces the PRD a PM-phase run of `/release-notes` typically drafts from; it ships in the companion pipeline plugin.
 - [`/document`](document.md) — the command whose eventual published page a dev-phase run's documentation link points at; the sibling command whose own phase/role is fixed rather than inferred.
 - `/product-workflows:epics` — Epic drafting; deliberately excluded from the `/release-notes` phase/role discriminator even though it can run before or after this command.

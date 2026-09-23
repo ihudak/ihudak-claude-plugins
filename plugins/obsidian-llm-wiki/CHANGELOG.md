@@ -21,6 +21,10 @@ Versions follow semver at the plugin level.
   beside it, and `/wiki-init` creating `.raw/` and its `.gitkeep`; `wiki-schema`'s
   *"All other wiki operations"* sentence names the first two. Re-run `/wiki-init` to sync
   a vault's copies.
+- `skills/_shared/task-rules.md` said it is *"Referenced by `/wiki-task` and
+  `/wiki-tasks-extract`"*; `/wiki-init` also copies it into a vault as
+  `.obsidian/copilot/task-creation-rules.md`, and `wiki-schema` and `tag-index-template.md`
+  point to it. The header now names them all.
 
 ## [0.4.0]
 

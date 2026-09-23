@@ -6,7 +6,7 @@ Consumed by `/docs-brand`, both standalone and as `/docs-init`'s branding phase.
 
 ---
 
-**Why this file exists.** `/docs-brand` derives a palette from a product's own code and must not apply one that makes body text unreadable. The rule it needs is a threshold pair and a formula, not a review rulebook — so the family carries it rather than reaching into `guideline-reviewers`, whose `references/guidelines/accessibility.md` states the same rule inside 183 lines of application-UI review vocabulary and is not loadable from `docs-workflows` at all (design D24). That file is worth reading and is cited here as further reading; **nothing loads it at runtime**, so an install without that plugin behaves identically.
+**Why this file exists.** `/docs-brand` derives a palette from a product's own code and must not apply one that makes body text unreadable. The rule it needs is a threshold pair and a formula, not a review rulebook — so the family carries it rather than reaching into `guideline-reviewers`, whose `references/guidelines/accessibility.md` states the same rule inside 183 lines of application-UI review vocabulary and is not loadable from `docs-workflows` at all (design D24). That file is worth reading and is cited here as further reading; **nothing in this family's docs path loads it at runtime** — its only runtime reader is `guideline-reviewers`' own `guideline-reviewer` agent — so an install without that plugin behaves identically.
 
 ## 1. The thresholds
 

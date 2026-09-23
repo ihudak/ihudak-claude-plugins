@@ -6,12 +6,12 @@ defined once rather than reinvented per caller. Design authority:
 `docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` §§4–5.
 
 **Consumed by every command that addresses a folder in the specs tree.** Each calls `resolve-address`
-(§3) and, where it validates a key before touching the filesystem, `key-valid` (§1). The six
-`/brd-*` commands, `/prd-ground` and `/prd-proposal`, the eleven commands in §7's table, and the one shared authority
-§7 names all reach the tree through this file; `product-workflows:brd-format` and
+(§3) and, where it validates a key before touching the filesystem, `key-valid` (§1). Those commands
+are what `grep -l resolve-address plugins/*/commands/*.md` returns — re-run it rather than keeping a
+list or a count here, since both went stale in this paragraph — and they, with the one shared
+authority §7 names, all reach the tree through this file; `product-workflows:brd-format` and
 `product-workflows:coverage-ledger-format` cite it for the key grammar and folder resolution neither
-of them restates. Read §7's list as a **list**, not as a count — it is longer than a reader expects,
-and summarising it is how an adopter goes missing.
+of them restates.
 
 ## 1. Key grammar
 
@@ -309,15 +309,26 @@ precisely to become a PRD. Refusing a further child, not the walk, is the whole 
 
 ## 7. The shared fallback for existing commands
 
-Every command outside the `/brd-*` family, `/prd-ground` and `/prd-proposal` that addresses a PRD directory resolved it as the flat form
-`specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD (`/create-prd` on the BRD
-route authors into the `PRD-` slice folder one level inside a BRD). All of them therefore reach the tree through `resolve-address`, which searches
-every level §3 bounds and carries §5's fallback. One shared rule, defined here once rather than reinvented
-per caller. The adopter list below is the authority on who applies it — **it is longer than the six the
-original design named**, and it is meant to be read as a list, not summarised as a count.
+Every command outside the `/brd-*` family, `/prd-ground` and `/prd-proposal` that addresses a PRD
+directory once resolved it as the flat form `specifications/<KEY>-<slug>/`, which on its own cannot see
+a nested PRD (`/create-prd` on the BRD route authors into the `PRD-` slice folder one level inside a
+BRD). **Every command that addresses a folder now reaches the tree through `resolve-address` (§3)**,
+which searches every level §3 bounds and carries §5's fallback — so the fallback is reached by calling
+§3, and a caller cites §3 (and §5 for the fallback itself), not this section. One shared rule, defined
+here once rather than reinvented per caller.
 
-**Adopted in twelve files.** Eleven commands cite this section from the step that resolves their PRD
-directory — or, for `/frames`, the folder of any kind whose frame sets it indexes:
+**Re-derive the set; do not read it off this section.** `grep -l resolve-address plugins/*/commands/*.md`
+returns every command that resolves a folder in the specs tree. No total is kept here, deliberately:
+this section once carried two — *"twelve files"*, *"eleven commands cite this section"* — and both went
+false, the second because no command cites it to reach the fallback (each cites §3; `/brd-split`
+cites only its *Adoption is additive* rule) and both because the set grew past the table below
+(`/implement`, `/vuln` and `/brd-proposal` resolve through §3 and are in no row of it).
+
+**The table is a finding aid, not the set.** It names the resolving step, and what the resolved
+directory is for, for eleven of those commands — all but the five `/brd-*` route commands,
+`/prd-ground`, the proposal pair, `/implement` and `/vuln`. For `/frames` the directory is a folder of
+any kind whose frame sets it indexes. A command absent from the table is not absent from the fallback.
+The eleven rows:
 
 | Command | Step (by name) | What the resolved directory is for |
 |---|---|---|
@@ -333,46 +344,24 @@ directory — or, for `/frames`, the folder of any kind whose frame sets it inde
 | `/document` | *Resolve the address*, Phase 0 step 1 | the `specs` files it grounds documentation in |
 | `/frames` | *The address (mandatory)*, Phase 0 step 1 | the folder whose `design/*/` frame sets it indexes |
 
-One further file adopts it and **it is not a command** — it is a shared authority commands delegate
-to, which is why the adopter count and the command count differ:
+**One shared authority calls it too, and it is not a command:**
 
 - `references/ard-resolution.md`, from step 1 of its *Resolution (most-specific first)*. It is where the
-  fallback reaches an **ARD**: `/create-ard`, `/design`, `/specify`, `/epics` and `/ready` delegate ARD
-  lookup to it rather than resolving an ARD path themselves, so their own adoption above would not have
-  found an ARD in a nested directory.
-**Twelve files, twelve commands** — and the two matching is a coincidence of this moment, not a rule.
-One command adopts it purely **by delegation** and appears nowhere in the table: `/implement`, which
-reaches an ARD solely by citing `ard-resolution.md`. It is not in the table for the same reason the
-`/brd-*` commands, `/prd-ground` and `/prd-proposal` are not — it resolves its own single positional address with `resolve-address` (§3),
-which already searches every level, so §5's fallback is reached without adopting anything. (It once
-resolved no folder of its own, and this sentence still said so after that changed; the delegation half
-was always the real reason it appears nowhere here.) Counting
-files rather than commands is what keeps both facts visible — a reader who counted only the table would
-conclude `/implement` was left flat, and one who counted only commands would miss a shared authority
-that needed the fallback in its own right.
+  fallback reaches an **ARD**: `/create-ard`, `/design`, `/implement`, `/specify`, `/epics` and `/ready`
+  delegate ARD lookup to it rather than resolving an ARD path themselves, so their own resolution of a
+  folder would not have found an ARD in a nested directory. `/implement` in particular reaches an ARD
+  solely through it, though it resolves its own positional address with §3 on a keyed run.
 
-**Re-derive both, every time, rather than adjusting them.** Cutting the tracker moved this arithmetic
-twice in one increment and never by the amount a decrement would have guessed: retiring the shared
-front-end removed an authority *and* moved `/document` into the table on its own account, leaving both
-totals where they started; folding the PRD-source resolver into its two callers then removed a file
-without removing a command; adding `/frames` then moved both by one at once, which is the only kind of
-change that leaves the coincidence intact. Eleven commands in the table, one by delegation, one shared
-authority.
+**Where a handoff crosses two callers, both must resolve through §3.** `/create-prd` redirects to
+`/update-prd` on finding an existing PRD (its *Prior PRD* step), including one found through this
+fallback; `/idea` writes `idea.md` into the folder `/create-prd` then reads, resolving it with this
+file's §3 on its first write and **never relocating it afterwards** (D7). A redirect, or a first write
+into a folder a command with a narrower resolution then has to find again, is a dead-end handoff, which
+is why neither was deferred as low-risk.
 
-**Where a handoff crosses two adopters, both must carry it.** `/create-prd` redirects to `/update-prd` on
-finding an existing PRD (its *Prior PRD* step), including one found through this fallback; `/idea`
-writes `idea.md` into the folder `/create-prd` then reads, resolving it with this file's §3 on its
-first write and **never relocating it afterwards** (D7). A redirect, or a first write into a folder a
-command with a narrower resolution then has to find again, is a dead-end handoff, which is why those
-two are in the table rather than deferred as low-risk.
-
-**Not adopters, and correctly so.** The `/brd-*` commands, `/prd-ground` and `/prd-proposal` resolve a folder with `resolve-address` (§3)
-directly, which already searches every level — the fallback here is §5's rule restated for callers that
-were never wired to it. `/implement` is covered by delegation as above.
-
-**Adoption is additive, in all twelve.** §5's fallback is reached only where the prefixed glob already
+**Adoption is additive, for every caller.** §5's fallback is reached only where the prefixed glob already
 returned nothing, so a key whose folder resolves at the first attempt resolves exactly as it did before
-any of them adopted this — and where a command creates the folder it did not find, it still creates it
+the fallback existed — and where a command creates the folder it did not find, it still creates it
 with the §2 prefix: the fallback honors a legacy folder that exists, it never proposes one. The one shared authority creates nothing at all — `ard-resolution.md` is a reader, so for it the additive
 claim is simply that a resolvable key returns what it returned before: the same `found` / `none` /
 `unmerged`.

@@ -131,12 +131,13 @@ behaviour, not the behaviour.
     altitude. Grounding is PRD-altitude on both routes, so the refusal is the same directory-prefix
     test as `BRD-`'s, taken at the same moment.
 
-    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
-    fallback, there is no prefix to test.** Answer the root question by **positive evidence, never
-    by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1,
-    the shared authority every consumer of this test takes it from, and not restated here — and the
-    Epic question the same way, as `workflows-core:addressing` §4.1 places a folder with no prefix:
-    a resolved `kind: epic` is an Epic folder, refused below exactly as an `EPIC-` folder is.
+    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed fallback,
+    there is no prefix to test.** Answer the root question by **positive evidence, never by the
+    absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, the
+    shared authority every consumer of this test in this plugin takes it from, directly or through
+    `workflows-core:addressing` §4.1, and not restated here — and the Epic question the same way, as
+    `workflows-core:addressing` §4.1 places a folder with no prefix: a resolved `kind: epic` is an
+    Epic folder, refused below exactly as an `EPIC-` folder is.
 
     On a root, look for the root-level artifacts this run would have produced under the retired
     two-level model — `grounding/code-grounding.md`, `grounding/design-grounding.md`,
@@ -238,7 +239,7 @@ behaviour, not the behaviour.
      (`coverage-ledger-format.md` §3). Stop:
      `PRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger exist on no ref and in no folder — where <PARENT-KEY>'s ledger still holds unallocated rows, run /product-workflows:brd-split <PARENT-KEY> "<how to cut it>" and merge the pull request first. Where the parent is already fully allocated and this slice claims rows, that run carves nothing — with no row left unallocated there is nothing for the instruction to group — and where that parent holds no re-cuttable row it is a no-op that stages nothing: the slice's files were lost after they were written, and no command re-creates the rows they held — restore them from the ref that carried them, or report it. Do not run /brd-intake on a slice; it has no source document of its own.`
 
-     **The condition qualifies the remedy, and both branches must carry it.** The sibling rule thirty lines below already says not to name `/brd-split` for a fully-allocated parent, because re-running it **bare** there stages nothing and opens no pull request. Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
+     **The condition qualifies the remedy, and both branches must carry it.** The sibling rule under (b) below — *`/brd-split` is not a way out here, so do not name it* — already says not to name `/brd-split` for a fully-allocated parent, because re-running it **bare** there stages nothing and opens no pull request. Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
 
    **(b) `coverage-ledger.md` is in the folder, and on no ref — it was produced and its handoff was
    declined.** The files exist; what is missing is a commit. **Say so, and name landing them as the
@@ -283,10 +284,11 @@ behaviour, not the behaviour.
 
     **The gate is here, not skipped, for the reason step 6 already gates the ledger: a claim list
     read off an unmerged artifact produces a finding set nothing downstream can reproduce.**
-    `/product-workflows:create-ard` and `/product-workflows:specify` both read `prd.md` from the
-    specs repo's default branch, never from a working tree or a branch of this command's own, so a
-    finding this run derived from a `prd.md` written only to a working tree would ground a document
-    those two commands cannot yet see — a `[CG#n]` or `[DG#n]` whose premise agrees with nobody's
+    `/product-workflows:create-ard` and `/product-workflows:specify` both gate `prd.md` with their
+    own `require-on-main` before reading it as the PRD — one on a branch stops them, and one on no
+    ref at all returns `absent` and is reported as no authored PRD — so a finding this run derived
+    from a `prd.md` written only to a working tree would ground a document those two commands do not
+    yet take as the PRD — a `[CG#n]` or `[DG#n]` whose premise agrees with nobody's
     committed copy of the requirement but this run's own.
 
     **Row F splits the same way the BRD route's row F does, and for the same reason: *never
@@ -327,7 +329,7 @@ behaviour, not the behaviour.
    `<PARENT-KEY>` from the resolved folder's `brd-link.md` `parent:` field. A slice reaches this
    state only as the empty child `/brd-split`'s empty-child check offered to keep with a recorded
    reason:
-     `PRD_GROUND_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground. Do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
+     `PRD_GROUND_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground. Do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case, apart from the key repair a removal performs, in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
 
    **Why a stop rather than an empty handoff.** Writing an empty `grounding/code-grounding.md` and
    handing it off would let both downstream gates pass, but it would assert that grounding ran over
@@ -880,8 +882,8 @@ invocation, unreproduced, is the second of those, regardless of how confident it
 mislabelling it `own-run` would tell the verifier to relax exactly where §5 of its own instructions
 say rigor must not drop.
 
-**Act on `status` first — an `outcome` exists only on `status: OK`.** The four statuses below are
-refusals, not verdicts: the agent performed no re-derivation and returned no `outcome`, and a
+**Act on `status` first — an `outcome` exists only on `status: OK`.** Every status below other than
+`OK` is a refusal, not a verdict: the agent performed no re-derivation and returned no `outcome`, and a
 finding carrying no outcome is not evidence and blocks `/brd-split` for as long as it stays on file
 (`workflows-core:grounding-format` §8). So none of them may be shrugged off and none may be written:
 
@@ -1257,7 +1259,7 @@ only); emit its §4.1 outcome line in the final report.
 ## Phase 10 — Next steps
 
 **On `route: idea`, the offer is `/product-workflows:create-ard` and `/product-workflows:specify`
-— the two consumers of what this run's Phase 0 gated and what its own findings can now seed —
+— the two downstream authors of what this run's Phase 0 gated and what its own findings can now seed —
 with `/product-workflows:update-prd` named first where any requirement claim this run wrote came
 back `CONFIRMED`.** Neither `/create-ard` nor `/specify` is required the way `/brd-split`'s allocation is
 below, and neither carries a `(Recommended)` marker over the other where both are simply offered

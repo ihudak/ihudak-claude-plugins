@@ -1,6 +1,6 @@
 # Session feedback
 
-Session feedback is the family's channel for friction about **the plugin itself**, as distinct from the product it is used to build. `references/feedback-emission.md` is the contract; this page says what the four commands in this plugin put through it.
+Session feedback is the family's channel for friction about **the plugin itself**, as distinct from the product it is used to build. `references/feedback-emission.md` is the contract; this page says what the four feedback commands in this plugin put through it. The plugin's fifth emitter, `/frames`, puts through only the automatic end-of-run feedback every long-running command emits, described below.
 
 ## What gets logged, and by what
 

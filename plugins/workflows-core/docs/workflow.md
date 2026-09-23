@@ -38,6 +38,6 @@ These run outside any role pipeline, at any time:
 - **Setup.** `/statusline` installs the family's multi-line status line. It collides with a Claude Code built-in of the same name, so type the qualified `/workflows-core:statusline`.
 - **Specs-tree repair.** [`/frames`](commands/frames.md) (re)builds the frame-set index of any folder holding exported design frames — a BRD, PRD, or Epic folder alike — so a set somebody dropped in by hand becomes readable. It advances no phase and grounds nothing.
 
-None of the six advances a pipeline phase. What they do share with the pipeline is the cost ledger: each is charged to the phase of the command it is correcting or the folder it is acting on — see [Roles and phases](roles-and-phases.md).
+None of the six advances a pipeline phase. What five of them share with the pipeline is the cost ledger: each is charged to the phase of the command it is correcting or the folder it is acting on, while `/statusline` emits no cost entry at all — see [Roles and phases](roles-and-phases.md).
 
 See the [documentation index](README.md) for everything else.

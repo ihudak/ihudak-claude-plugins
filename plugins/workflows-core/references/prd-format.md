@@ -100,11 +100,14 @@ its shape, and never resolves a folder by it — a folder is addressed by `key` 
 parses is how a field ends up meaning something narrower than it says: someone writing a ClickUp sync <!-- vendor-token-ok: one named third-party tool standing for "any tracker a user keeps", the argument's whole point -->
 who reads a field named for one vendor reasonably wonders whether it must be that vendor's shape.
 
-**It is not decorative, and here is its one consumer.** `/document` and `/release-notes` search commit
+**It is not decorative, and it has two consumers.** `/document` and `/release-notes` search commit
 messages for the run's identifiers, and `workitem_key` is one of the tokens they grep for — so a team
-whose commit convention carries their tracker key gets hand-made commits found. That is a *search for
-a token the run already holds*, not a lookup: the plugin still learns nothing about whether a tracker
-exists.
+whose commit convention carries their tracker key gets hand-made commits found. And the three
+code-changing commands, `/implement`, `/vuln` and `/upgrade`, write it into their own commits as a
+`Work-Item:` trailer where the unit's folder carries one (`dev-workflows:code-handoff` §2.3,
+`references/implementation-format.md` §3) — which is what lets that same search find the plugin's
+own commits by it. Both are uses of *a token the run already holds*, not a lookup: the plugin still
+learns nothing about whether a tracker exists.
 
 **Unknown frontmatter keys are preserved.** Every command that rewrites this file — `/update-prd`
 most of all — keeps fields it does not recognise, in place and unmodified. Without this rule a user's

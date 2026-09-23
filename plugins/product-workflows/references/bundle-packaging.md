@@ -26,7 +26,11 @@ plugin-free rules, its §1.1 content allow-list, its de-Obsidianising pass, its 
 its delivery-note ceiling, its committed dated directory and its §6 citation-resolution check — and
 cited by `agents/brd-package-reviewer.md` for what the customer will actually be able to open.
 `commands/brd-reconcile.md` reads a review returned against a bundle built this way, and cites §5
-for why nothing inside that committed directory is ever bannered or rewritten afterwards.
+for why nothing inside that committed directory is ever bannered or rewritten afterwards. Commands
+upstream of the package cite it too, for what they write that a bundle will later carry —
+`commands/brd-interview.md` (§1.1, §6.2's cross-BRD id spelling and relation 1, §6.3 rule 1) and
+`commands/prd-ground.md` (§6.2 relation 2) — as do several of this plugin's references; `grep -l
+bundle-packaging commands/*.md agents/*.md references/*.md` lists every file that cites it.
 
 ## 1. Plugin-free by construction (D12)
 
@@ -150,8 +154,8 @@ filename alone:
   and `escalated-to-customer` findings under *the decisions the customer must make* — so shipping
   the file itself would defeat that filter and hand the customer an internal disagreement to
   referee. It also carries the model the pass actually ran on, which is delivery-side bookkeeping.
-- **Every other working record in the BRD folder** — `slices.md`, `brd-link.md`, the three seed
-  files, `interview/round-<N>.md`, earlier `reconciliation-<YYYYMMDD>.md`, earlier
+- **Every other working record in the BRD folder** — among them `slices.md`, `brd-link.md`, the
+  three seed files, `interview/round-<N>.md`, earlier `reconciliation-<YYYYMMDD>.md`, earlier
   `customer-review-<YYYYMMDD>.md`, and `dev-workflows/`. No prompt part sends the reviewer to any of
   them.
 

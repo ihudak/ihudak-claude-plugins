@@ -8,15 +8,16 @@ Single source of truth for the step that turns finished work in a **code reposit
 
 **Why this file exists.** `/implement` and `/upgrade` each created a branch, wrote into it, ran their gates, and then ended — leaving every change uncommitted, with nothing but the user's own memory standing between a finished implementation and a stray `git checkout`. `/vuln` did commit and open a pull request, but named no mechanics for either: no capability probe, no fallback for a host without `gh`, no defined base branch. All three are now this file's callers.
 
-**Relationship to the other two git references.** Three references, and what separates them is which repository each may write into:
+**Relationship to the other git references.** Four references, and what separates them is which repository each may write into:
 
 | Reference | Repository | Scope |
 |---|---|---|
 | `workflows-core:specs-repo-git` | `$SPECS_PATH` | bookkeeping — session artifacts, cost, feedback |
 | `workflows-core:phase-handoff` | `$SPECS_PATH` | phase deliverables — idea, PRD, ARD, specification, design, readiness, BRD artifacts |
 | **this file** | the **code** repo (under `$REPOS_PATH`, or the working clone) | the code the run just wrote |
+| `docs-workflows:finish-and-handoff` | a **docs** repo (the one `/docs-workflows:document` resolved) | a keyed documentation run's edits — squashed, pushed only on opt-in, its pull request drafted rather than opened |
 
-This file never writes into `$SPECS_PATH` and neither of the others ever writes into a code repo; the two that share `$SPECS_PATH` are separated by *which paths* they stage, not by repository (`workflows-core:specs-repo-git` §2.1's bounded bookkeeping set versus the caller's own declared deliverable paths). A single run may execute all three against different targets, and the outcome lines — `Specs repo:`, `Phase handoff:`, `Code repo:` — are what keep them attributable in its output.
+This file never writes into `$SPECS_PATH` or a docs repo, and none of the others ever writes into a code repo; the two that share `$SPECS_PATH` are separated by *which paths* they stage, not by repository (`workflows-core:specs-repo-git` §2.1's bounded bookkeeping set versus the caller's own declared deliverable paths). A single run of this file's callers may execute the first three against different targets, and the outcome lines — `Specs repo:`, `Phase handoff:`, `Code repo:` — are what keep them attributable in its output.
 
 ---
 

@@ -127,3 +127,9 @@ The "twelve files, eleven commands" totals the `workflows-core:addressing` §7 b
 ## release-notes-worthiness
 
 `/release-notes` once read the PRD's own `relevant_for_release_notes` and stopped on an explicit `false` or `no`. Every PRD is relevant for release notes, so the field asked a question with one answer and the only value that changed anything was one nobody should write.
+
+## recipe-returns-wrong-answer
+
+**Match the execution phrase, not the bare name.** The recipe that stood in `CLAUDE.md`'s `specs-repo-git` paragraph was `grep -l commit-artifacts plugins/*/commands/*.md`, and it returns thirty: `/docs-serve`'s only two occurrences of that string are its rule never to run it, so the bare-name grep counts a negative mention as a caller. A recipe that returns a wrong answer is worse than a stale count, because the next reader trusts what it returns.
+
+The `prose-formatting` consumer sentence in `CLAUDE.md` named nine consumers and missed `/prd-proposal` and `/brd-proposal`, which is why it now carries the recipe instead. The `finding-triage` consumer list omitted the two proposal commands until its grep was run against it.

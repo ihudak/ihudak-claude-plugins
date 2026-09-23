@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [1.0.2] — 2026-09-23
+
+### Changed — a neutral example header name
+
+`api-guideline-reviewer`'s tenant-header check and the Spectral ruleset comment beside it gave spelling-drift examples prefixed with an organisation's initials. They now use a neutral `Acme-Tenant` / `AcmeTenant`. The rule itself is unchanged.
+
 ## [1.0.1] — 2026-09-18
 
 ### Fixed — the overlay variables are written with one `$`

@@ -1,5 +1,7 @@
 # BRD-route follow-ups, from a live engagement
 
+> **Removed from the tree 2026-09-23:** every design spec and plan this record cites under `docs/superpowers/specs/` or `docs/superpowers/plans/` (the one exception being `docs/superpowers/specs/2026-09-22-claude-md-split-design.md`, which stays). Each is still retrievable at its cited path with `git show 62e791e8:<path>`.
+
 Reported by the operator after running the BRD route against a real customer engagement, on a **pre-split** version of the plugin. Triaged against the tree at `b774016`; each entry records whether it still reproduces. Ordered as reported — by what it cost that day.
 
 Per **S18**, nothing releases while any of these is open.
@@ -365,7 +367,7 @@ register created to fix it contained the same unrecorded claim.
 
 **What was taken instead, because the alternative was leaving a false promise standing.** `addressing` §5 said the fallback meant a user "need never" rename, unqualified — and **this entire spec is derivable from that sentence**, which is how it was derived. §5 now states the boundary: the fallback covers the folder name and nothing inside it, and a pre-rename tree renames its own artifacts. Shipped in `workflows-core` 1.3.4. Three commands contradicted the narrowed rule and moved with it (`product-workflows` 3.3.1): `/create-ard` and `/specify` dropped the key-globbed PRD fallback at their `require-on-main` gates — a fallback that matched nothing on a current tree and, on the one tree it was written for, also matched that tree's `<KEY>_ARD.md` — and `/create-prd` step 6 dropped its claim that a pre-rename file is identified by `kind: prd`, a field the same change introduced. **The live defect the investigation surfaced was therefore fixed; only the legacy tolerance was declined.**
 
-**Kept for its archaeology, not for its plan:** `docs/superpowers/specs/2026-09-08-legacy-artifact-resolution-design.md`, marked not-implemented. Its §1 records how a rule that existed, and was deliberately kept by `75029fe`, was deleted by `469c656` under the judgement that *"Duplicating those is not the drift risk that duplicating a key grammar was"* — and what the duplication then cost. That is worth keeping whether or not the resolver is ever built.
+**Kept for its archaeology, not for its plan:** `docs/superpowers/specs/2026-09-08-legacy-artifact-resolution-design.md`, marked not-implemented — kept in the tree until 2026-09-23, and in history since (`git show 62e791e8:docs/superpowers/specs/2026-09-08-legacy-artifact-resolution-design.md`). Its §1 records how a rule that existed, and was deliberately kept by `75029fe`, was deleted by `469c656` under the judgement that *"Duplicating those is not the drift risk that duplicating a key grammar was"* — and what the duplication then cost. That is worth keeping whether or not the resolver is ever built.
 
 **The reachability lesson, stated plainly because this session paid for it twice.** G3-4 asked a reachability question and the answer closed it. E-6 was opened out of that same investigation and was *not* asked the same question — the design was measured, specified and approved before anyone counted the trees it would serve. Ask it first.
 

@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [3.8.1] — 2026-09-23
+
+### Changed
+- The design-spec citations in `/epics` and in the `brd-format`, `bundle-packaging`, `code-defect-log-format`, `coverage-ledger-format`, `customer-review-schema`, `decision-register-format`, `interview-tagging`, `linked-sources` and `proposal-format` references now say the spec was removed from the tree on 2026-09-23 and name the `git show 62e791e8:<path>` that retrieves it; the section and decision ids they cite are unchanged. Wording only, no behaviour.
+
 ## [3.8.0] — 2026-09-22
 
 **Update `workflows-core` to 1.7.3 with this release**: its `phase-handoff` register still lists the rendered `.html` among `/specify`'s handed-off artifacts until then — wording only, no behaviour.

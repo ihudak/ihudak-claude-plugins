@@ -5,7 +5,7 @@
 The canonical shape of the BRD-to-PRD route's **code-defect log**: the record every `[CDF#n]`
 carries, the five dispositions one can hold, the rule that every entry cites a verified `[CG#n]`
 for the behaviour and names its intent basis separately, and the two spellings `blocked_on` takes.
-Design authority: `docs/superpowers/specs/2026-09-08-code-defect-record-design.md`.
+Design authority: `docs/superpowers/specs/2026-09-08-code-defect-record-design.md` (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-09-08-code-defect-record-design.md` retrieves it).
 
 **Written by `commands/brd-interview.md`**, which is the only writer; **shipped to the customer**
 by `commands/brd-package.md`, per `references/bundle-packaging.md` §1.1; and **read by more than

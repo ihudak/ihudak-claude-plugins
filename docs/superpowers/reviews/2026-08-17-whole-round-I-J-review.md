@@ -1,8 +1,10 @@
 # Whole-round review — sub-projects I and J (2026-08-17)
 
+> **Removed from the tree 2026-09-23:** every design spec and plan this record cites under `docs/superpowers/specs/` or `docs/superpowers/plans/` (the one exception being `docs/superpowers/specs/2026-09-22-claude-md-split-design.md`, which stays). Each is still retrievable at its cited path with `git show 62e791e8:<path>`.
+
 Scope set by `specs/2026-08-16-next-whole-round-review-scope.md`: canonical range `bcffb4c..748817b` — sub-project **I** (2.51.0), sub-project **J** (2.52.0, phase-handoff gates), plus `clear-deferred-minors`, `persist-j-decisions`, and the post-J bugs-first pass. 36 product files, 87 commits, +683/−328.
 
-Three reviewers on Fable 5, at most two concurrent: **gate contract vs. its callers**, **claims that expired**, **cross-edition parity**. A fourth axis — mechanical canonical↔mgd parity — was run directly.
+Three reviewers on Fable 5, at most two concurrent: **gate contract vs. its callers**, **claims that expired**, **cross-edition parity**. A fourth axis — mechanical canonical↔internal parity — was run directly.
 
 ## Verdict
 
@@ -51,11 +53,11 @@ Every top-level guidance and changelog document enumerated the ten states as `H/
 
 ## Minor (all fixed)
 
-`/epics` map showed the gate after jira-reader and the scan when it runs before both · a dead phase name (`Pre-Phase 2`) · `jira-input-resolution.md` declared 5 consumers of 8 · `impl-maintenance` missing from 7 map lines · five reference docs missing from canonical/mgd README catalogs and two from copilot's · a drifted `:230` line pointer (removed rather than corrected — a rule cited by number cannot drift) · a slash-form `/specify` in a copilot Python comment.
+`/epics` map showed the gate after jira-reader and the scan when it runs before both · a dead phase name (`Pre-Phase 2`) · `jira-input-resolution.md` declared 5 consumers of 8 · `impl-maintenance` missing from 7 map lines · five reference docs missing from canonical/internal README catalogs and two from copilot's · a drifted `:230` line pointer (removed rather than corrected — a rule cited by number cannot drift) · a slash-form `/specify` in a copilot Python comment.
 
 ## Clean
 
-Consent arrays byte-identical across all eight producers (md5-verified). No consumer stops on `absent` except the sanctioned `/design`. All seven test `stopped` before `on_main`. Row order free of shadowing. Counts correct — 21 commands, 33 agents, 4 hooks, 8 producers / 7 consumers, ~20 more. All 21 agent "used by" lines accurate. Every §-reference added in the range resolves. Copilot's J port complete and section-identical modulo sanctioned dialect; canonical↔mgd parity exactly the five identity files.
+Consent arrays byte-identical across all eight producers (md5-verified). No consumer stops on `absent` except the sanctioned `/design`. All seven test `stopped` before `on_main`. Row order free of shadowing. Counts correct — 21 commands, 33 agents, 4 hooks, 8 producers / 7 consumers, ~20 more. All 21 agent "used by" lines accurate. Every §-reference added in the range resolves. Copilot's J port complete and section-identical modulo sanctioned dialect; canonical↔internal parity exactly the five identity files.
 
 ## Method notes worth keeping
 

@@ -241,7 +241,9 @@ def command_envelope(obj):
 
     Deliberately independent of any manifest -- a namespace, a bare built-in
     name, or a command from a marketplace this one has never heard of all
-    qualify equally. 2026-09-02-marketplace-split-design.md section 8.7 found
+    qualify equally. The marketplace-split design spec's section 8.7 (git show
+    62e791e8:docs/superpowers/specs/2026-09-02-marketplace-split-design.md;
+    removed from the tree 2026-09-23) found
     that resolving THIS question against the manifest was itself the defect: a
     boundary this test cannot see is swallowed whole into whichever claim's
     segment it falls inside (section 13.3 gives a claim the segment up to the

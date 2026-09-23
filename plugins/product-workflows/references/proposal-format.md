@@ -6,7 +6,7 @@ The canonical shape of the two artifacts `/prd-proposal` and `/brd-proposal` wri
 each carries, the two identifier namespaces they mint, the readiness tiers that cap confidence, the
 confidence grades that fix the range, the closed set of evidence classes a cost driver may cite, the
 rules a reviewer checks, and — in §14 — what an umbrella run adds over a slice's own proposal. Design authority:
-`docs/superpowers/specs/2026-09-08-proposal-commands-design.md`.
+`docs/superpowers/specs/2026-09-08-proposal-commands-design.md` (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-09-08-proposal-commands-design.md` retrieves it).
 
 **Written by `commands/prd-proposal.md` and `commands/brd-proposal.md`; reviewed against by
 `agents/proposal-reviewer.md`.** The one command that reads **another folder's** proposal as a

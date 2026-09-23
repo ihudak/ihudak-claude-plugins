@@ -74,5 +74,5 @@ These forms were reported by round-2 readers and matched by no family:
 ## Not verified
 
 1. **No command body was executed.** Every finding is a comparison of a claim against the tree. The behaviour fixes above were read, not run.
-2. **`docs/superpowers/` was out of scope**, as `CLAUDE.md` scopes the probe. That archive names the internal repository and organisation this work was once extracted from. It was flagged to the user on 2026-09-23 and left as found, pending their decision.
+2. **`docs/superpowers/` was out of scope**, as `CLAUDE.md` scopes the probe. That archive named the organisation this edition was written inside and its internal repositories. It was flagged to the user on 2026-09-23, who decided the same day: the design specs and plans under `docs/superpowers/specs/` and `docs/superpowers/plans/` were removed from the tree (all but the active CLAUDE.md split design; each remains readable with `git show 62e791e8:<path>`), every live citation of one was repointed at that command, the names were scrubbed from every other file outside the plugin changelogs, and `scripts/check-docs.sh` check 19 now fails the build if one returns. Git history was not rewritten.
 3. **Run-behaviour prose was triaged out, not checked.** It is still the large majority of hits.

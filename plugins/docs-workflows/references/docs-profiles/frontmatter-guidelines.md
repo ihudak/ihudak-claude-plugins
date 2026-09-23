@@ -84,7 +84,7 @@ replace.
 
 ## Reserved keys for the docs-workflow family
 
-Design authority: `docs/superpowers/specs/2026-08-29-docs-workflow-family-design.md` §8.6, D18. The docs-workflow family reserves four frontmatter keys — `type`, `audience`, `visibility`, `unit` — on **any** docs repo its commands scaffold or write into, not only one carrying the example-docs profile, and touches nothing else in this skill's territory; the reservation binds `/docs-audit`, which ships and reads two of them, and the family's later commands, `/docs-write` among them, as they ship. What is unchanged: the fields above, and `docs-frontmatter`'s ownership of the schema as a whole, are unchanged by this section.
+Design authority: `docs/superpowers/specs/2026-08-29-docs-workflow-family-design.md` §8.6, D18 (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-08-29-docs-workflow-family-design.md` retrieves it). The docs-workflow family reserves four frontmatter keys — `type`, `audience`, `visibility`, `unit` — on **any** docs repo its commands scaffold or write into, not only one carrying the example-docs profile, and touches nothing else in this skill's territory; the reservation binds `/docs-audit`, which ships and reads two of them, and the family's later commands, `/docs-write` among them, as they ship. What is unchanged: the fields above, and `docs-frontmatter`'s ownership of the schema as a whole, are unchanged by this section.
 
 ### `type` (RESERVED)
 

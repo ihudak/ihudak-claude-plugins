@@ -1,11 +1,13 @@
 # Harvest status pointer — dev-workflows upstream harvest
 
+> **Removed from the tree 2026-09-23:** every design spec and plan this record cites under `docs/superpowers/specs/` or `docs/superpowers/plans/` (the one exception being `docs/superpowers/specs/2026-09-22-claude-md-split-design.md`, which stays). Each is still retrievable at its cited path with `git show 62e791e8:<path>`.
+
 ## COMPLETE & SHIPPED (2026-07-29)
 The 8-item harvest (freebie + Tier 1 + Tier 2) is implemented, reviewed, and **merged to `main` + pushed**
 in all three editions:
 - `ihudak-claude-plugins` (canonical) — `main` at `b9cfd38`; dev-workflows **2.38.0**. Passed the opus
   whole-branch review (Ready-to-merge: YES; 4 Minors fixed in `dab042c`).
-- `mgd-claude-plugins` — `main` at `dd39786`; dev-workflows **2.38.0** (byte-identical copy of canonical).
+- the internal edition — `main` at `dd39786`; dev-workflows **2.38.0** (byte-identical copy of canonical).
 - `ihudak-copilot-plugins` — `main` at `e4e3703`; dev-workflows **2.8.0** (hand-adapted conversion:
   `~/.copilot/…/skills/_shared/` paths, `implement:`/`design:` keywords).
 
@@ -17,7 +19,7 @@ tree" rename, deep-module/seam vocab, risk-planner no-placeholders, VI counter-m
 
 ## Wave 3 — SHIPPED (2026-08-01; NIT follow-up 2026-08-02)
 Five deferred nuggets + the cheap half of the Adjacent item shipped to all three editions. Current tips:
-canonical `72bb7ae` (**2.39.1**), mgd `5478b74` (**2.39.1**), Copilot `9fca4db` (**2.9.1**) — the `.1`
+canonical `72bb7ae` (**2.39.1**), internal `5478b74` (**2.39.1**), Copilot `9fca4db` (**2.9.1**) — the `.1`
 patch was a whole-branch-review NIT follow-up (`context-management.md` 4th-strategy summary consistency);
 wave-3 base was 341b5df/557526b/fa25405 (2.39.0 / 2.9.0). Spec + plan:
 `docs/superpowers/specs|plans/2026-08-01-dev-workflows-deferred-nuggets*.md`. What shipped: ADR
@@ -30,7 +32,7 @@ frontmatter at runtime). Passed the Opus whole-branch review (READY; 3 minors fi
 
 ## Wave M (the `/implement` dispatch file-handoff) — SHIPPED (2026-08-02)
 The deferred M item shipped to all three editions. Current tips: canonical `5d8f56c` (**2.39.2**),
-mgd `f2d0ac3` (**2.39.2**), Copilot `2de7eb2` (**2.9.2**). Spec + plan:
+internal `f2d0ac3` (**2.39.2**), Copilot `2de7eb2` (**2.9.2**). Spec + plan:
 `docs/superpowers/specs|plans/2026-08-02-implement-dispatch-file-handoff*.md`. What shipped: extended
 the existing `/document` + `/epics` `mktemp` handoff pattern to `/implement`'s four in-loop dispatches
 (`risk-planner`, `test-writer`, `code-review`, `review-fixer`) plus the Phase 3.5 sibling — the
@@ -42,7 +44,7 @@ the re-review paths now refresh `review_diff_file`, and a review-fixer note peri
 
 ## Wave S (the `/vuln` + `/upgrade` dispatch file-handoff) — SHIPPED (2026-08-02)
 The S follow-up shipped to all three editions. Current tips: canonical `04e51f4` (**2.39.3**),
-mgd `e1a7ab5` (**2.39.3**), Copilot `d7ad4b3` (**2.9.3**). Spec+plan (one doc):
+internal `e1a7ab5` (**2.39.3**), Copilot `d7ad4b3` (**2.9.3**). Spec+plan (one doc):
 `docs/superpowers/specs/2026-08-02-vuln-upgrade-dispatch-file-handoff-design.md`. What shipped: the
 `/vuln` research report (→ `vuln-fixer`, `code-review`, resumes) and the `/upgrade` planner handoff
 (→ `risk-planner`, `upgrade-executor`, resumes), plus each command's `code-review` `git diff`, are
@@ -53,7 +55,7 @@ Behavior-preserving. Passed the Opus whole-branch review (READY WITH MINORS; all
 
 ## Review-fix wave — SHIPPED (2026-08-02; committed + pushed)
 An independent whole-branch review of the last 10 days across all three editions found 9 defects in
-the shipped waves and fixed them: canonical/mgd **2.39.4**, Copilot **2.9.4**. Two were functional:
+the shipped waves and fixed them: canonical/internal **2.39.4**, Copilot **2.9.4**. Two were functional:
 (1) the `/vuln` + `/upgrade` post-`review-fixer` re-review re-used the *pre-fix* `review_diff_file`
 (the `/implement` correction from the 2.39.2 follow-up was never carried into the 2.39.3 siblings), and
 (2) `/implement`'s two `test-writer` dispatches embedded the `mktemp` + `git diff` capture **inside**
@@ -66,45 +68,45 @@ inline-only, the `risk-planner` ID example in `[AC-3]` instead of `[AC03]` form,
 two long-standing conversion gaps: the never-ported `phase: regression-resume` directive in
 `vuln-fixer` + `upgrade-executor`, and 16 Claude tool names (`Read`/`Write`/`Glob`/`Grep`/`LS`) in
 prose that edition never grants. Verified: `claude plugin validate` clean (both Claude repos),
-canonical↔mgd byte-identical outside the 5 expected files, handle counts match canonical↔Copilot.
+canonical↔internal byte-identical outside the 5 expected files, handle counts match canonical↔Copilot.
 Both this wave and the pre-existing-issue wave below were squashed into one commit per repo and
-pushed: canonical `2d20bd2`, mgd `4b78b34`, Copilot `2b54f94`.
+pushed: canonical `2d20bd2`, internal `4b78b34`, Copilot `2b54f94`.
 
 ## Pre-existing-issue wave — SHIPPED (2026-08-02; committed + pushed)
 Same session, after the user asked for older defects too. Six more, all older than the reviewed window:
 - **Dead `LS` tool entry** in every `allowed-tools` / `tools` list (50 dev-workflows files per Claude
-  edition + `managed-docs`' spec-planner + the `/ready` prose). Verified against the shipped Claude Code
+  edition + the internal docs plugin's spec-planner + the `/ready` prose). Verified against the shipped Claude Code
   **v2.1.218** binary: zero occurrences of `"LS"`, and the legacy alias map is
   `{Task:"Agent", KillShell:"TaskStop", KillBash:"TaskStop", AgentOutputTool:"TaskOutput", …}` with no
   `LS` entry. Unmatched entries are dropped silently, so the lists worked — but a `tools` list whose
   entries *all* fail to match makes the Agent tool refuse to launch. **`Task` was kept** — still a live
   alias for `Agent`.
 - **Stale `/impl:jira:docs` / `/impl:jira:epics` / `/impl` / `/impl:docs` command names** plus a
-  non-existent "Phase 6.7", in `dt-style-guide/README.md` + `agents/dt-style-checker.md` (all three
-  editions) and `managed-docs/commands/process-managed-doc.md`. Corrected to `/document` (Jira mode)
+  non-existent "Phase 6.7", in the predecessor style plugin's `README.md` + its style-checker agent (all three
+  editions) and the internal docs plugin's processing command. Corrected to `/document` (Jira mode)
   **Phase 6.4** and `/epics` **Phase 6.2**, with the mechanism restated accurately (`docs-style-checker`
-  runs the primary linter *and* `dt-style-checker` internally, merging both finding sets).
+  runs the primary linter *and* `prose-style-checker` internally, merging both finding sets).
 - Copilot marketplace: `obsidian-llm-wiki` entry had no `homepage` (only entry missing it).
 - Copilot manifests: "Thirty-one dispatched sub-agents" and a `README.md` tree saying "30 sub-agents"
   where there are 32.
 - `plugins/acli/plugin.json` `"skills": ["./skills"]` removed — the default `skills/` scan is always
   performed and the `skills` field only *adds* to it, so the entry registered the directory twice and
   diverged from every sibling plugin.
-- mgd `dev-workflows/README.md` agent-table row order realigned to canonical (`idea-reader`).
+- internal `dev-workflows/README.md` agent-table row order realigned to canonical (`idea-reader`).
 
-Versions: dev-workflows **2.39.4** (canonical+mgd) / **2.9.4** (Copilot); dt-style-guide **0.2.4** /
-**0.3.3**; acli **0.1.1** (Claude); managed-docs **0.1.1**. All `claude plugin validate` clean; all 12
-marketplace↔plugin.json versions in sync; canonical↔mgd dev-workflows byte-identical outside the 5
+Versions: dev-workflows **2.39.4** (canonical+internal) / **2.9.4** (Copilot); the predecessor style plugin **0.2.4** /
+**0.3.3**; acli **0.1.1** (Claude); the internal docs plugin **0.1.1**. All `claude plugin validate` clean; all 12
+marketplace↔plugin.json versions in sync; canonical↔internal dev-workflows byte-identical outside the 5
 expected files. Committed and pushed together with the review-fix wave above (canonical `2d20bd2`,
-mgd `4b78b34`, Copilot `2b54f94`).
+internal `4b78b34`, Copilot `2b54f94`).
 
 ### RETRACTED finding — do not "fix" this
 An earlier pass in this session flagged "18 unconverted `/slash-command` names" in the Copilot
 `skills/_shared/docs-grounding.md`, `agents/docs-grounder.md`, and `skills/upgrade/README.md`, and by
-extension the ~126 `/wiki-*` and ~20 `/dt-*` names in the other Copilot plugins' READMEs. **That was
+extension the ~126 `/wiki-*` and ~20 of the predecessor style plugin's command names in the other Copilot plugins' READMEs. **That was
 wrong.** Copilot CLI registers every user-invocable loaded skill as a slash command — verified in the
 CLI 1.0.74 bundle: `getLoadedSkills().filter(n=>n.userInvocable && …).map(n=>({name:`/${…}`, isSkill:!0,
-skill:n}))`. `/wiki-init`, `/dt-review-pr`, and `/idea` are all valid invocations there. The dev-workflows
+skill:n}))`. `/wiki-init`, the predecessor style plugin's PR-review command, and `/idea` are all valid invocations there. The dev-workflows
 edition additionally documents a keyword form (`idea:`) via each skill's description; both work. Left
 untouched deliberately.
 
@@ -118,9 +120,9 @@ confirmed in the CLI bundle (`R_="view"`; `grepToolName??"grep"`, `globToolName?
 consistency across all 32 agents. Switch to the alias layer only if this edition ever needs to run on
 GitHub.com cloud agent or in an IDE as well.
 
-**`acli` is intentionally opensource-only** (confirmed 2026-08-02): the Dynatrace side uses the
-PII-scrubbing `acli-pii` (`cli-for-atlassian-proxy`), which cannot ship in a public repo — so the
-opensource marketplaces carry plain `acli` instead. The 1:1 ihudak→mgd rule does **not** apply to this
+**`acli` is intentionally opensource-only** (confirmed 2026-08-02): the internal edition uses the
+PII-scrubbing variant built on an internal CLI proxy, which cannot ship in a public repo — so the
+opensource marketplaces carry plain `acli` instead. The 1:1 ihudak→internal rule does **not** apply to this
 plugin; do not "fix" the absence.
 
 ## Audit-residue + branch-naming wave — SHIPPED (2026-08-04; committed + pushed)
@@ -129,7 +131,7 @@ three-edition port-parity sweep, found **zero functional gaps** — every plan, 
 deferral traces to a shipped artifact, all 12 marketplace↔plugin.json versions were in sync, and
 `claude plugin validate` passed. Seven cosmetic residues were found and fixed:
 - **Two dead `LS` tool names** the 2.39.4 sweep missed, in inline Agent-dispatch prose
-  (`commands/document.md` Phase 10, `commands/implement.md` Phase 2A) — canonical + mgd only; the
+  (`commands/document.md` Phase 10, `commands/implement.md` Phase 2A) — canonical + internal only; the
   Copilot edition already read `view/glob/grep`. → folded into dev-workflows **2.40.0**.
 - **Copilot `skills/_shared/branch-naming.md` was documented but never wired.** The `$GIT_USER_INITIALS`
   prefix ladder had shipped since Copilot 1.6.0 and both `README.md` and the CHANGELOG described it as
@@ -137,16 +139,16 @@ deferral traces to a shipped artifact, all 12 marketplace↔plugin.json versions
   `git branch -a` sniff, so the env var had no effect. **An earlier pass in this session deleted the
   file as dead; that was wrong** — the user relies on the feature. Instead it is now genuinely wired
   into all five branch-creating orchestrators in **all three editions**, and promoted to a first-class
-  feature: new canonical/mgd `references/branch-naming.md`, consumed by `/implement`, `/document`
+  feature: new canonical/internal `references/branch-naming.md`, consumed by `/implement`, `/document`
   (both modes), `/docs-profile`, `/upgrade`, and `/vuln` (via `vuln-fixer`). Two latent defects in the
   policy fixed at the same time: §1.3 inference rejected **hyphenated** initials (`^[a-z0-9]+$` vs
   §4's `[a-z0-9-]`), so `iv-gu/…` branches were invisible to it; and §1.5's mandatory
   "no prefix detected" prompt was never implemented — now registered in `escalation-rules.md` as
   "Branch prefix undetected". `/docs-profile`'s ad-hoc `git config user.name` initials derivation was
   replaced by the shared ladder. `GIT_USER_INITIALS` is now documented in both repo-root READMEs.
-  → dev-workflows **2.40.0** (canonical + mgd) / **2.10.0** (Copilot) — MINOR, not PATCH.
-- **mgd carried two stray plugin-embedded planning docs** (`plugins/dev-workflows/docs/{plans,specs}/
-  2026-07-17-update-vi-*`) with no canonical counterpart. `git mv`-ed to mgd's repo-root
+  → dev-workflows **2.40.0** (canonical + internal) / **2.10.0** (Copilot) — MINOR, not PATCH.
+- **The internal edition carried two stray plugin-embedded planning docs** (`plugins/dev-workflows/docs/{plans,specs}/
+  2026-07-17-update-vi-*`) with no canonical counterpart. `git mv`-ed to the internal edition's repo-root
   `docs/superpowers/`, restoring strict plugin 1:1. Canonical's empty `plugins/dev-workflows/docs/`
   tree removed too.
 - **28 design docs carried pre-implementation `Status:` headers** (`pending implementation`,
@@ -163,7 +165,7 @@ deferral traces to a shipped artifact, all 12 marketplace↔plugin.json versions
   repointed at `docs/superpowers/harvest/NEXT.md`, which superseded it.
 
 Verified: `claude plugin validate` clean (both Claude repos), all 12 marketplace↔plugin.json versions
-in sync, canonical↔mgd dev-workflows byte-identical outside the 5 expected files, zero `LS` outside
+in sync, canonical↔internal dev-workflows byte-identical outside the 5 expected files, zero `LS` outside
 CHANGELOG history, and `branch-naming.md` reachable from all five branch-creating orchestrators in all
 three editions (grep-proven, no orphan). Passed an independent whole-branch review over all three
 diffs (READY TO MERGE; 10/10 hard invariants PASS, 2 NITs fixed — the `[a-z0-9-]` first-character
@@ -177,7 +179,7 @@ repo's own documented convention — so `branch-naming.md`'s claim that a repo-d
 "outranks this ladder" was **unenforceable** in `/implement`, `/upgrade`, and `/vuln`, which never read
 those files. (Same class of defect as the orphaned Copilot file it replaced: policy documented, not
 wired.) The user's intent: the repo's own `CONTRIBUTING.md` / `README.md` rule is the source of truth,
-and initials fill an identity placeholder **only where the rule has one** — as `dynatrace-docs` does
+and initials fill an identity placeholder **only where the rule has one** — as the organisation's docs repo does
 (`<your-name-or-initials>/<JIRA-ISSUE-KEY>-<short-branch-name>`, `CONTRIBUTING.md` §Branch name).
 
 Inverted and closed in all three editions: every branch-creating orchestrator now reads the repo's
@@ -189,9 +191,9 @@ generic prefixes; and the §2.5 escalation drops its generic-fallback choice whe
 filled. The ladder supplies the whole prefix only when a repo documents no convention at all (§1.4).
 `/implement` prefixes a resolved Jira key to its slug when the chosen shape has no key segment.
 Passed an independent whole-branch review (READY TO MERGE; 12/12 criteria PASS incl. an end-to-end walk
-of the dynatrace-docs case → `iv-gu/PRODUCT-17753-add-oauth`, and the no-identity case → `feat/…`;
+of the organisation's docs-repo case → `iv-gu/PRODUCT-17753-add-oauth`, and the no-identity case → `feat/…`;
 1 NIT fixed — `DOCUMENTATION-GUIDELINES.md` added to canonical `/vuln` + `/upgrade` inline lists for
-cross-edition parity). Versions: dev-workflows **2.41.0** (canonical + mgd) / **2.11.0** (Copilot).
+cross-edition parity). Versions: dev-workflows **2.41.0** (canonical + internal) / **2.11.0** (Copilot).
 
 ## Harvest round 2 — "verify what you assert" — SHIPPED (2026-08-21; merged 2026-08-22)
 Second harvest from the same four upstreams (BMAD-METHOD, github/spec-kit, obra/superpowers,
@@ -201,7 +203,7 @@ act on, report, or accept a claim you have not verified against the thing it nam
 `docs/superpowers/specs/2026-08-21-upstream-harvest-round-2-design.md` and
 `docs/superpowers/plans/2026-08-21-upstream-harvest-round-2.md`.
 
-What shipped on the branch (all three editions — canonical authored, mgd ported, Copilot hand-adapted):
+What shipped on the branch (all three editions — canonical authored, internal ported, Copilot hand-adapted):
 - **Item 1 — the read-failure contract** (`references/context-management.md`, new `## The read-failure
   contract` section). Every input a caller may hand over "inline or as an absolute file path" resolves
   into one of two tiers, fixed by the consuming agent where it takes that input, never at runtime:
@@ -240,14 +242,14 @@ claimed `code-review` had 8 dimensions (it already had 10) and `epic-reviewer` 9
 - All 12 plan tasks are complete, and the final whole-branch review's fix wave (2 Critical, 2 Important,
   7 Minor) is applied in all three editions.
 - **Ported.** All three editions are built on branch `iv-gu/upstream-harvest-round-2`: canonical
-  (authored), mgd (byte-identical to canonical outside the five identity files), Copilot (hand-adapted —
+  (authored), internal (byte-identical to canonical outside the five identity files), Copilot (hand-adapted —
   never `cp`; and its `epic-reviewer` README row carries **no** dimension count, so do not import
   canonical's).
-- **Versioned.** dev-workflows **2.54.0** (canonical + mgd) / **2.24.0** (Copilot) — all six
+- **Versioned.** dev-workflows **2.54.0** (canonical + internal) / **2.24.0** (Copilot) — all six
   `plugin.json` / `marketplace.json` files carry it, and every edition's `CHANGELOG.md` has the entry.
 - **Merged and pushed** in all three repos on 2026-08-22. Canonical `0f51443` and Copilot `8d2885f`
-  merged directly; mgd went through **PR #1** (`6db9e9c`) rather than a direct push, because
-  `Dynatrace-Internal/mgd-claude-plugins` requires PRs on `main` and the account's bypass privilege
+  merged directly; internal went through **PR #1** (`6db9e9c`) rather than a direct push, because
+  the internal edition's repository requires PRs on `main` and the account's bypass privilege
   would have skipped the org's review gate on a shared internal repo. Prefer the PR route there again.
 - **Two Criticals were found by the final whole-branch review, after every per-task review had passed.**
   Both lived in the *seam between two tasks*, which no single task's diff contained: the triage step's
@@ -266,7 +268,7 @@ claimed `code-review` had 8 dimensions (it already had 10) and `epic-reviewer` 9
 
 ## Harvest round 3a — items 5 + 7 — SHIPPED, all three editions, merged (2026-08-22)
 > Label corrected 2026-08-22: this round was written while it was still on a branch and canonical-only.
-> It merged (`98b58e7`) and was ported — canonical/mgd `2.55.0`, Copilot `2.25.0`.
+> It merged (`98b58e7`) and was ported — canonical/internal `2.55.0`, Copilot `2.25.0`.
 Items 5 and 7 taken as one small bounded round; item 6 (design-it-twice) deliberately left for its own
 architectural cycle, because it adds a parallel sub-agent fan-out to `/design` with its own gate, cost
 story, and `design-reviewer` implications — bundling it with two additive hardening items would either
@@ -291,9 +293,9 @@ own reviewer silently overrides that choice while producing a verdict nobody con
 path.
 
 ## Harvest round 3b — item 6 — SHIPPED, all three editions, merged (2026-08-22)
-Canonical `b456ceb` and Copilot `0a79666` merged directly; mgd went through **PR #3** (`0847555`),
-the same route PR #1 took, because `Dynatrace-Internal/mgd-claude-plugins` requires PRs on `main`.
-Versions: canonical/mgd `2.56.0`, Copilot `2.26.0`. The `interface-designer` agent, the
+Canonical `b456ceb` and Copilot `0a79666` merged directly; internal went through **PR #3** (`0847555`),
+the same route PR #1 took, because the internal edition's repository requires PRs on `main`.
+Versions: canonical/internal `2.56.0`, Copilot `2.26.0`. The `interface-designer` agent, the
 three-take Phase 5 fan-out in `/design` with `--design-twice` forcing it, `design-format.md`'s
 unconditional `### Alternatives considered` and its four dependency categories, and `design-reviewer`'s
 two new checks. Plan: `docs/superpowers/plans/2026-08-22-design-it-twice.md`; spec:
@@ -302,8 +304,8 @@ two new checks. Plan: `docs/superpowers/plans/2026-08-22-design-it-twice.md`; sp
 ## Post-round review wave — 2.56.1 + 2.56.2 — SHIPPED & MERGED (2026-08-22)
 A comprehensive review of rounds 2 → 3b along three axes — every agent's tool grants, every
 producer→consumer data path, and the plan/design docs — found **four** live defects, all fixed and
-merged in all three editions. **2.56.1** (canonical `882a200` / mgd PR #4 `664ea98` / Copilot
-`96607d3`) carried the first three; **2.56.2** (canonical `64b8dae` / mgd PR #5 `566a7de` / Copilot
+merged in all three editions. **2.56.1** (canonical `882a200` / internal PR #4 `664ea98` / Copilot
+`96607d3`) carried the first three; **2.56.2** (canonical `64b8dae` / internal PR #5 `566a7de` / Copilot
 `73d4cb9`, Copilot **2.26.1**→**2.26.2**) carried the fourth, which this entry had briefly recorded as
 "left as-is" before the bugs-first policy was applied to it.
 
@@ -311,7 +313,7 @@ merged in all three editions. **2.56.1** (canonical `882a200` / mgd PR #4 `664ea
   caller "reads it to decide whether re-running the review is worth doing" and "must surface the deferred
   BLOCKERs to the user and stop the automated cycle" — and `grep -c 'Stop condition'` returned **0** in
   `/document`, `/epics`, and both Copilot skills. Three sites closed. `/epics`' style cycle deliberately
-  gets none: `dt-style-checker` caps at `MAJOR`, so the flag cannot fire there — `doc-fixer.md` now
+  gets none: `prose-style-checker` caps at `MAJOR`, so the flag cannot fire there — `doc-fixer.md` now
   records that reachability map so the absence is not later "fixed" into an unreachable guard.
   **2.54.0 fixed this exact class for `review-fixer`** across its three callers, then scoped the sweep to
   `review-fixer` and never asked whether the plugin's *other* fixer emitted the same flag. It did. Round 2
@@ -374,7 +376,7 @@ absence as a verdict. Source: round-2 design §1.1 and §12.
   show its output".
 - **Item 6 — "design it twice" for `/design`.** Three parallel sub-agents under different interface
   constraints, compared on depth / locality / seam placement; plus `DEEPENING.md`'s four dependency
-  categories for `design-format.md`'s `## Seams`. **SHIPPED in round 3b** (canonical/mgd `2.56.0`,
+  categories for `design-format.md`'s `## Seams`. **SHIPPED in round 3b** (canonical/internal `2.56.0`,
   Copilot `2.26.0`).
 - **Item 7 — subagent-dispatch bounds** for the three agents that hold `Task` (`docs-style-checker`,
   `upgrade-executor`, `vuln-fixer`), and the Claude-only half: reviewers must return findings as text,
@@ -400,4 +402,4 @@ presets, SDD ledger / 5-round fix-breaker, generic lens engine, git-push-blockin
   Waves through 2.41.0 used `Claude Opus 4.8 (1M context)`; harvest round 2 used
   `Claude Opus 5 (1M context)`.
 - Do NOT edit `references/specification-format.md` (frozen snapshot).
-- mgd push bypasses a PR-required branch rule (user: "ok for now").
+- The internal edition's push bypasses a PR-required branch rule (user: "ok for now").

@@ -5,7 +5,7 @@
 The canonical shape of the **coverage ledger** (`coverage-ledger.md`): the row a BRD (business
 requirements document) keeps per requirement, the states that row can carry, and the rule that
 blocks a split until every row has one. Design authority:
-`docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §4, §4.1. Requirement and defect
+`docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §4, §4.1 (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` retrieves it). Requirement and defect
 identifiers (`[BR#n]`, `[DEF#n]`) are defined once in `references/brd-format.md` — cited here, not
 restated; key grammar and folder resolution are defined once in `workflows-core:addressing`.
 

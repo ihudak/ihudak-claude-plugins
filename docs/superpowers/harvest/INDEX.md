@@ -3,7 +3,7 @@
 Cross-checked the adapted `dev-workflows` artifacts against four upstreams' recent churn
 (SpecKit +956, Matt Pocock +295/316, superpowers +273, BMAD +242 commits). Analysis is on the
 canonical `ihudak-claude-plugins/plugins/dev-workflows`; adopted changes then port to the copilot
-mirror + mgd via the existing sync. Per-upstream detail: `mattpocock.md`, `superpowers.md`,
+mirror + the internal edition via the existing sync. Per-upstream detail: `mattpocock.md`, `superpowers.md`,
 `bmad.md`, `speckit.md`. Nothing was edited — this is advisory.
 
 ## Freebie (do regardless — it's a real collision)

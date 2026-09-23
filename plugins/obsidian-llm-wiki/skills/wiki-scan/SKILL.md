@@ -71,11 +71,11 @@ Show the scan summary before processing anything:
 Wiki Scan Results — <directory or "all sources">
 ─────────────────────────────────────────────────
 New files (N):
-  - Meetings/MGD/2026-04-15 Sprint Review.md
+  - Meetings/ACME/2026-04-15 Sprint Review.md
   - .raw/articles/mcp-patterns-2026-04-20.md
 
 Changed files (M):
-  - Projects/Products/P43241 MCP server for Managed.md  (hash changed)
+  - Projects/Products/P1234 MCP server for Acme.md  (hash changed)
 
 Unchanged files: K (skipping)
 

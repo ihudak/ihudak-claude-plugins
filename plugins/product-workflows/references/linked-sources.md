@@ -11,7 +11,7 @@ Before this file existed `/brd-intake` Phase 2 defined the link forms and `idea-
 in full, which is two copies of one rule — and they had already drifted: the command did not
 recognise a `[[wikilink]]` at all, and the agent recognised one but never said how a bare name
 resolves. Design authority: `docs/superpowers/specs/2026-09-18-brd-figures-and-appendices-design.md`
-§14.
+§14 (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-09-18-brd-figures-and-appendices-design.md` retrieves it).
 
 ## 1. The link forms
 

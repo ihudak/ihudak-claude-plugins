@@ -149,8 +149,8 @@ wiki-status: stable
   Suggested fix: create stub page or remove wikilink.
 
 ## Check 3 — Stale Sources [severity: medium]
-- `Meetings/MGD/2026-04-10 MCP Planning.md`: hash changed since ingest on 2026-04-10.
-  Suggested fix: run `/wiki-ingest Meetings/MGD/2026-04-10 MCP Planning.md`
+- `Meetings/ACME/2026-04-10 MCP Planning.md`: hash changed since ingest on 2026-04-10.
+  Suggested fix: run `/wiki-ingest Meetings/ACME/2026-04-10 MCP Planning.md`
 
 ## Check 4 — Unresolved Contradictions [severity: high]
 - [[concepts/MCP Server]]: contains `> [!warning]` contradiction callout. Needs review.

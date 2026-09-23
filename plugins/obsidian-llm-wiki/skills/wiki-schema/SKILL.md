@@ -137,9 +137,9 @@ updated: 2026-04-28
 tags:
   - ai
   - mcp
-  - mgd
+  - acme
 sources:
-  - "[[Meetings/MGD/2026-04-10 MCP Planning.md]]"
+  - "[[Meetings/ACME/2026-04-10 MCP Planning.md]]"
 related:
   - "[[concepts/API Gateway]]"
   - "[[decisions/MCP Server Architecture]]"
@@ -156,7 +156,7 @@ wiki-status: stable
 created: 2026-04-28
 updated: 2026-04-28
 tags:
-  - mgd
+  - acme
 sources:
   - "[[People/John Brown.md]]"
 related:
@@ -177,10 +177,10 @@ decision-date: 2026-04-10
 decision-status: active | superseded | proposed
 tags:
   - mcp
-  - mgd
+  - acme
   - api
 sources:
-  - "[[Meetings/MGD/2026-04-10 MCP Planning.md]]"
+  - "[[Meetings/ACME/2026-04-10 MCP Planning.md]]"
 related:
   - "[[concepts/MCP Server]]"
 ---
@@ -233,7 +233,7 @@ Most applicable tags for wiki pages:
 
 | Category | Tags |
 |----------|------|
-| Work area | `#mgd` `#oa` `#saas` |
+| Work area | `#acme` `#platform` `#cloud` |
 | Technical | `#ai` `#mcp` `#api` `#k8s` `#lambda` `#docker` `#security` `#sql` |
 | Work type | `#doc` `#learn` `#review` |
 | Special | `#hide` (exclude from task dashboards if wiki page appears in them) |
@@ -250,7 +250,7 @@ which scans the vault (or a target directory) for undocumented tags and updates 
 1. **Between wiki pages**: `[[Page Title]]` — Obsidian resolves by filename; no path
    prefix needed as long as filenames are unique across the vault.
 2. **Back to Layer 1 source files**: use full vault-root-relative path:
-   `[[Meetings/MGD/2026-04-10 MCP Planning.md]]`
+   `[[Meetings/ACME/2026-04-10 MCP Planning.md]]`
 3. **First mention rule**: the first time a concept, entity, or decision appears in a
    wiki page body, make it a wikilink.
 4. **Every non-seed page must have at least one `related` wikilink** in frontmatter.
@@ -260,7 +260,7 @@ which scans the vault (or a target directory) for undocumented tags and updates 
 
 Wiki page filenames must be unique across the entire vault. Before creating a page,
 verify the name does not conflict with any existing file anywhere in the vault. If a
-conflict exists, add a disambiguating qualifier: `MCP Server (Managed).md`.
+conflict exists, add a disambiguating qualifier: `MCP Server (Acme).md`.
 
 ---
 
@@ -286,7 +286,7 @@ updated: YYYY-MM-DD
 ## Entities
 | Page | Summary | Tags | Updated |
 |------|---------|------|---------|
-| [[entities/John Brown]] | Software engineer, BRAVO team | #mgd | 2026-04-28 |
+| [[entities/John Brown]] | Software engineer, BRAVO team | #acme | 2026-04-28 |
 
 ## Decisions
 | Page | Summary | Tags | Updated |
@@ -321,7 +321,7 @@ title: "Wiki Log"
 
 # Wiki Log
 
-## [2026-04-28] ingest | Meetings/MGD/2026-04-10 MCP Planning.md
+## [2026-04-28] ingest | Meetings/ACME/2026-04-10 MCP Planning.md
 - Pages created: [[concepts/MCP Server]], [[decisions/Use gRPC for MCP Transport]]
 - Pages updated: [[entities/John Brown]]
 - Key insight: Team chose gRPC for latency; REST considered but rejected.
@@ -355,7 +355,7 @@ Tracks ingested files to prevent duplicate processing.
 {
   "version": 1,
   "sources": {
-    "Meetings/MGD/2026-04-10 MCP Planning.md": {
+    "Meetings/ACME/2026-04-10 MCP Planning.md": {
       "hash": "abc123def456",
       "ingested_at": "2026-04-28",
       "wiki_pages": [

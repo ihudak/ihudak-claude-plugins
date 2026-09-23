@@ -2,7 +2,7 @@
 
 The shape of `implementation.md`, the file `/implement` appends to when it finishes work for a keyed
 run, and the commit convention that makes work findable when the plugin was not the one that did it.
-Design authority: `docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` §7.3 and §7.3.1.
+Design authority: `docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` §7.3 and §7.3.1 (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` retrieves it).
 
 **Written by `/implement`. Read by `/document` and `/release-notes`**, which hand the refs it records
 to `diff-summarizer`; and, for whether it holds a block (§1) or for the repositories its entries

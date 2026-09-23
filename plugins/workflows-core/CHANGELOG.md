@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [1.7.4] — 2026-09-23
+
+### Changed
+- The design-spec citations in the `addressing`, `grounding-format` and `implementation-format` references, and the one in `scripts/session-cost.py`'s docstring, now say the spec was removed from the tree on 2026-09-23 and name the `git show 62e791e8:<path>` that retrieves it. `read-only-repos` no longer names an internal repository in its read-only-mount measurement. Wording only, no behaviour.
+
 ## [1.7.3] — 2026-09-22
 
 ### Changed — `phase-handoff`'s unread register no longer lists `/specify`'s rendered `.html`

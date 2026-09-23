@@ -1,5 +1,7 @@
 # Rulings made while executing the BRD figures and appendices plan
 
+> **Removed from the tree 2026-09-23:** every design spec and plan this record cites under `docs/superpowers/specs/` or `docs/superpowers/plans/` (the one exception being `docs/superpowers/specs/2026-09-22-claude-md-split-design.md`, which stays). Each is still retrievable at its cited path with `git show 62e791e8:<path>`.
+
 Branch `iv-gu/brd-figures`. Plan `docs/superpowers/plans/2026-09-18-brd-figures-and-appendices.md`, spec `docs/superpowers/specs/2026-09-18-brd-figures-and-appendices-design.md`. Companion to `2026-09-22-brd-figures-execution-runs.md`, which records the verification runs.
 
 ## What a ruling is, and why they are here

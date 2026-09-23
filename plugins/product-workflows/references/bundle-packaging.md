@@ -6,7 +6,7 @@ How the customer-facing bundle for a BRD→PRD package is built, what it may and
 three degradation tiers a bundle can ship at and what each obliges the reviewer to state, the
 delivery note's hard length rule, and where the rendered bundle lands and why it is committed.
 Design authority: `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §8.1, §8.3 and
-§8.5, and decision rows D12, D13, D18 and D20 in §3.
+§8.5, and decision rows D12, D13, D18 and D20 in §3 (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` retrieves it).
 
 Neighbouring rules are owned elsewhere and cited, not restated: the twelve sections a returned
 review carries, and the constraint that governs the one file rendered verbatim into the customer's
@@ -404,7 +404,7 @@ one that resolves to the wrong requirement (§6.2's relation 2), and
 `BRD_PACKAGE_CORPUS_UNREADABLE` for a corpus that cannot be parsed (§6.1). A fourth,
 `BRD_PACKAGE_CUSTOMER_CONTENT_HELD`, is no failure of the check: it is the operator holding the
 package over a hit in the customer's own words, on the question §6.3 fixes. Design authority:
-`docs/superpowers/specs/2026-09-08-bundle-citation-resolution-design.md` §3–§7.
+`docs/superpowers/specs/2026-09-08-bundle-citation-resolution-design.md` §3–§7 (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-09-08-bundle-citation-resolution-design.md` retrieves it).
 
 ### 6.1 The corpus is built per source package, and never crossed
 

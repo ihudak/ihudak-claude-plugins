@@ -5,7 +5,7 @@ is not, the finding record every `[CG#n]`/`[DG#n]` carries, the six verdicts, th
 `baseline-integrity` procedure that gates every run, the two horizons a finding can carry, the four
 design-grounding reconciliation classes, the optional derivation matrix, and the four verification
 outcomes. Design authority: `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §5
-(all subsections) and decision rows D6, D7, D19 in §3. Requirement identifiers are defined once
+(all subsections) and decision rows D6, D7, D19 in §3 (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` retrieves it). Requirement identifiers are defined once
 each and cited here, not restated: `[BR#n]` in `product-workflows:brd-format` for the BRD route,
 `[AC#n]`/`[FR#n]`/`[US#n]` in `references/prd-format.md` for the idea route. The read-only posture for a
 mounted repository is defined once in `references/read-only-repos.md` and applies unchanged to

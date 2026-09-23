@@ -1,6 +1,6 @@
 # Read-only repository mounts (shared reference)
 
-The AI container mounts repositories from the host, and some arrive **read-only** — verified 2026-08-11, 2 of 12 clones under `/workspace` are (`docs`, `observability-requirements`). Every agent that prepares a clone before reading it must work on those mounts rather than fail on them.
+The AI container mounts repositories from the host, and some arrive **read-only** — verified 2026-08-11, 2 of 12 clones under `/workspace` are (`docs` and a requirements repository). Every agent that prepares a clone before reading it must work on those mounts rather than fail on them.
 
 This file is the single source of truth for that behavior. Consumers: `code-scanner`, `diff-summarizer`, `docs-grounder`, `code-grounder` and `grounding-verifier` — the first two also emit the §6 `prep` block; the other three return a digest or a finding instead, and `docs-grounder` consumes §1–§4 only. §3 also defines, for these callers, the default branch they switch onto or cut a branch from (**A switch takes the name**): `code-scanner`'s and `diff-summarizer`'s writable refresh, and `/document`, `/docs-profile`, `/docs-brand` and `/docs-init` where each bases a branch in a docs repository. Two ladders stay outside it, each with its own reason: `dev-workflows:code-handoff` §2.8 adds `develop` for the code-changing commands, and `specs-repo-git.md` §3.2 serves the specs repository.
 

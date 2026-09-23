@@ -189,15 +189,14 @@ also runs, in Phase 11, for session lessons-learned.
   ledger is on no ref, whether it is in the folder at all — and the inventory's is evaluated only
   after it, so where both stop, the ledger's stop is the one printed: the ledger's never-produced
   branch accounts for an inventory an interrupted carve left behind, and an inventory stop printed
-  first would name the wrong remedy. No inventory in the folder stops with
-  `PRD_GROUND_NO_INVENTORY`: on a slice, its remedy turns on the slice's `claims:` and the parent's
-  ledger — a slice claiming nothing gets the empty-inventory remedy; a slice with no ledger in its
-  folder either, none of whose claimed rows the parent's ledger settles onto it, was never given its
-  inventory, by a parent `/brd-split` interrupted after writing the slice's `brd-link.md` — a folder no command has committed — so the remedy is to remove that folder, from every branch carrying it where it was committed by hand, the default branch included, and run the parent's instructed
-  re-run where one of those rows is still `unallocated` there, and to empty the left-over `claims:`
-  by hand and re-run the parent in the form its ledger calls for where every one is settled
-  elsewhere; and otherwise the file was lost after it was written
-  and is restored from the ref that carried it, since a parent `/brd-split` writes nothing into a slice
+  first would name the wrong remedy. **The one exception** is a ledger in the folder and on no ref
+  beside a missing inventory: there the inventory's own stop prints, because a slice missing a file
+  cannot be reconciled against its parent. No inventory in the folder stops with
+  `PRD_GROUND_NO_INVENTORY`, and under that order the ledger was always written when it does, so
+  on a slice the inventory was written and then lost: its remedy turns on the slice's `claims:` and
+  the parent's ledger — a slice claiming nothing gets the empty-inventory remedy; a slice whose
+  ledger is on the default branch but missing from the working tree is told to restore it from
+  there; and otherwise the inventory is restored from the ref that carried it, or reported, since a parent `/brd-split` writes nothing into a slice
   with a file missing and never re-creates one — and on a folder naming no
   parent it names a fresh intake under a new key, and also `/create-prd` on the same key where the
   folder holds an `idea.md` and no `prd.md`. An inventory in the folder and on no ref, with a `coverage-ledger.md` there too, stops with
@@ -224,8 +223,8 @@ also runs, in Phase 11, for session lessons-learned.
   [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3). A ledger **in** the
   folder and on no ref means it was produced, but not whether the carve that wrote it finished:
   `/brd-split` writes a slice's three files before its walk places a row and reconciles them against
-  the parent's ledger only when the walk completes. So the run reads the **parent's** ledger first.
-  Where that ledger still holds an `unallocated` row — an interrupted carve, or a `/brd-intake`
+  the parent's ledger only when the walk completes. So the run reads the **parent's** ledger first
+  — unless the inventory is missing, the exception above. Where that ledger still holds an `unallocated` row — an interrupted carve, or a `/brd-intake`
   re-run over the parent, which resets every row; the stop says what the ledger shows and not
   which — the run stops with `PRD_GROUND_CARVE_UNFINISHED`: the slice's files are provisional,
   nothing in the folder is to be committed, and the fix is the parent's **instructed** re-run,
@@ -233,7 +232,8 @@ also runs, in Phase 11, for session lessons-learned.
   for an instruction while a row is unallocated. Where the parent is fully allocated but this slice
   is not what it records — a carve stopped after its last walk write and before it reconciled this
   slice — the run stops with `PRD_GROUND_SLICE_UNRECONCILED` (below). Where the parent's ledger
-  cannot be read, the stop reports it by path and names no `/brd-split` form. Only where the parent
+  cannot be read, the run stops with `PRD_GROUND_SLICE_UNRECONCILED`, reporting that ledger by path
+  and naming no `/brd-split` form. Only where the parent
   is fully allocated and this slice agrees with it was the handoff simply declined, and the run stops
   with `PRD_GROUND_NOT_HANDED_OFF`, whose action is to commit and merge the files already on disk. It
   names the producing command only where re-running it would actually stage them, and the clause it

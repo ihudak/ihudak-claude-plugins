@@ -214,11 +214,13 @@ allocated ledger satisfies the front of two of them and only one is the run the 
   Phase 3 keys whatever was confirmed, Phase 4 runs **Step 2R in place of Step 2**, and Phases 4.5,
   5, 6 and 7 run as usual — so a parent holding both a re-cuttable row and a standing empty child
   resolves both in the same run.
-- **The no-op** — no row `unallocated`, no child standing empty, every child in step with the
+- **The no-op** — no row `unallocated`, no child standing empty, no child out of step with the
   parent's ledger, and no re-cuttable row: the run skips straight from Phase 0 to Phase 6, which
   reports nothing to commit. A child is **in step** where its `brd-link.md` `claims:`, the rows of
   its `brd/brd-inventory.md`, and the parent's rows reading `covered-by: <that child>` name the same
   `[BR#n]` ids — the same test [`/prd-ground`](prd-ground.md) applies before grounding a slice. A
+  child missing its inventory or ledger is not out of step: it is reported, never reconciled, since
+  re-seeding a lost ledger would overwrite what that child's own walk settled. A
   **bare** re-run builds no candidate set at all, so on a fully allocated parent it is this path
   **where no child is standing empty or out of step** — where one is, it takes the third path below,
   which is exactly what keeps a bare run the reachable fix the stops naming it promise.

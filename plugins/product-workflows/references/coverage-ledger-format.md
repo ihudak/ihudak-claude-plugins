@@ -286,8 +286,10 @@ level-specific pair drifts the next time either §3 or the picker changes. §3 i
 disposition's meaning and its writer are decided;
 `commands/brd-split.md` Phase 4 is where the paths a walk offers are decided — read each off the
 file that owns it, and never take one as the count of the other. Re-running a **bare** `/brd-split` on a
-BRD whose ledger is already fully allocated changes **no row of that BRD's own ledger**: no row there
-moves, and the command still reports the ledger line (§6). It can still write a **child's** ledger:
+BRD whose ledger is already fully allocated changes **no row of that BRD's own ledger** — save the key
+repair a Phase 4.5 removal performs, where that ledger still names the standing empty child removed
+(`commands/brd-split.md` Phase 4.5): no other row there moves, and the command still reports the
+ledger line (§6). It can still write a **child's** ledger:
 where a child's `claims:`, its inventory and this ledger's `covered-by: <that child>` rows disagree —
 a carve stopped before it reconciled them — the run reconciles that child, seeding a new
 `unallocated` row for a claim it adds and settling a withdrawn claim's still-`unallocated` row by §3's

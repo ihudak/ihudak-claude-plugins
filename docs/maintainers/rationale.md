@@ -115,3 +115,15 @@ The sibling re-cut rule names no recipe for its readers because the recipe that 
 ## addressing-fallback-totals
 
 The "twelve files, eleven commands" totals the `workflows-core:addressing` §7 bullet in `CLAUDE.md` used to tell readers to re-derive went false twice — cutting the tracker moved them without moving the number, and by 2026-09-23 the commands citing §7 did so for other reasons — `/brd-split` for its *Adoption is additive* rule, `/release-notes` to say why it has a row — and none to reach the fallback, while `/implement`, `/vuln` and `/brd-proposal` resolved through §3 with no row — so §7 now keeps none.
+
+## prose-style-roles
+
+**The `CLAUDE.md` sentence stating `docs-workflows`' style-gate dependency used to call the dispatch a fallback gated on the rungs failing**, which left the ordinary case — a repo whose Vale run succeeds, where the checker runs anyway as the complementary semantic pass — unstated.
+
+## docs-grounding-flags
+
+`/idea` was the only implementation of `--no-docs` / `--docs <path>` until the other eight consumers were given a flag-stripping rung, four of which had none at all and would have read the flag as a positional token.
+
+## release-notes-worthiness
+
+`/release-notes` once read the PRD's own `relevant_for_release_notes` and stopped on an explicit `false` or `no`. Every PRD is relevant for release notes, so the field asked a question with one answer and the only value that changed anything was one nobody should write.

@@ -4,9 +4,13 @@ Never auto-loaded. Each section holds the measured cases, refused widenings and 
 
 ## description-budget
 
+The limit is GitHub Copilot CLI's, and it rejects the **whole catalog** — one over-long blurb makes every plugin in the marketplace fail to install or update.
+
 Claude Code enforces no limit, which is exactly why over-long blurbs kept shipping: the Claude editions grew unchecked and the Copilot edition inherited the overflow at port time. The blurb reached 2788 chars by appending one sentence per release, and was trimmed by hand three times in the Copilot edition before the check existed.
 
 ## id-grammar
+
+A dash-separated ID has the shape of a Jira issue key, so pasting a PRD, ARD, or Epic draft into Jira auto-links it to an unrelated real ticket in any project sharing the prefix, and a wiki-style importer rewrites it into a triple-bracketed wikilink on export. <!-- vendor-token-ok: names the tracker whose autolinking is the hazard the requirement-ID grammar exists to avoid; the rule is unexplainable without it -->
 
 The exit code alone was not enough and this was proven rather than assumed: each negative fixture carries several violating lines, so any surviving alternation holds the exit at 1, and a review deleted both `SM-C` alternations, watched `--selftest` print PASS, and then watched the degraded gate accept a live bracketed legacy counter-metric ID in a shipped reference file. `scripts/validate-catalog.py` now carries a `--selftest` of its own for the same reason.
 
@@ -20,6 +24,8 @@ No case count is stated for `check-docs.sh --selftest` because it changes every 
 
 ## number-gating
 
+`check-docs.sh` check 9 gates seven sentences **per gated plugin**, and every one of them lives under that plugin's own tree — none is in `CLAUDE.md` or `.claude/rules/`. Some of their inventory numbers (each plugin's slash commands, subagents, skills and hooks) have a counterpart sentence in a file check 9 does gate, so a tree change turns the build red somewhere and prompts the edit in `CLAUDE.md` or the rules file; every other number in them — the documentation-page totals, `check-docs.sh`'s own check count, both marker tallies, and the caller and consumer counts — has no counterpart anywhere and is held by hand alone.
+
 A count taken off the prose it was meant to check agrees with that prose by construction and tells nobody anything, and it is at its most convincing exactly when the finding beside it is right. **The case is `CLAUDE.md`'s own**: a branch reported a released changelog entry as claiming *eleven* states where it says *ten* and lists ten, having read a 660-character window centred on another word, met it mid-way at *"n-state gate"*, and completed it from memory — from `CLAUDE.md`, which does say eleven, about today's table. The rendering was read for the thing, the gap filled from a belief about the current tree, and nothing beside it was wrong.
 
 ## check-10
@@ -27,6 +33,8 @@ A count taken off the prose it was meant to check agrees with that prose by cons
 Check 10 enforces the identity quarantine; before that check existed two per-command pages linked a sibling plugin by full container URL and survived releases, found only by hand. The binding reason is **forks**: a hardcoded container URL is wrong in anyone's fork.
 
 Check 10 matches its tokens on word boundaries, not as substrings: an unanchored match produced 38 failures on correct pages when the marketplace was renamed to a word another identifier contains, and a gate a fork must disable is a gate a fork does not have.
+
+`getting-started.md` is the single sanctioned exception to the identity quarantine, which is why it carries the install commands inline instead of linking out.
 
 ## check-11
 
@@ -84,6 +92,8 @@ The organisation's name and its internal repositories were named by the design a
 
 ## mermaid-gate
 
+The rule exists because GitHub draws each ```` ```mermaid ```` block as a diagram and shows *"Unable to render rich display"* where it does not parse.
+
 Until `scripts/mermaid/check-mermaid.mjs` existed nothing in this repository parsed mermaid (`check-docs.sh` check 15 extracts diagrams, but only to test which commands appear in one). `plugins/product-workflows/docs/workflow.md` shipped from product-workflows 3.0.0 onward with five unquoted edge labels carrying `[BR#n]`, `[CG#n]/[DG#n]` and `[AC#n]/[FR#n]`, which mermaid reads as the start of a node shape; a person found it by opening the page.
 
 **Its first version used a hand-rolled fence scanner, and a release review found three kinds of diagram GitHub draws that it never saw** — inside a blockquote, on a list-marker line, and after a line opening with a backtick code span — plus a four-space-indented block it wrongly rejected.
@@ -93,6 +103,10 @@ A failure is located by content because mermaid numbers its errors from text it 
 ## choices-arity
 
 The plugin nonetheless shipped a convention saying the opposite of the harness schema (2–4 options, no authored Other), stated across the command files (*"last choice is always `"Other… (describe)"`"*), which authored duplicate options in bulk and pushed dozens of arrays past the cap — the measured figures are in `scripts/check-docs.sh`'s check-12 header, cited rather than restated in `CLAUDE.md` because two copies of one census is how they came to disagree while `workflows-core:escalation-rules` simultaneously required every array be presented verbatim — a rule the harness made unfollowable. **Two consequences outlive the cleanup** (both stated in `CLAUDE.md`). Six closed-vocabulary pickers used to protect themselves by omitting the free-text option.
+
+The harness's schema is the authority on the arity, not the plugin's taste. A five-option array is not a long prompt — it is a tool call rejected at validation, so the run cannot present it at all. Of the four customer-authority pickers, three used to omit the free-text option and `/brd-reconcile`'s conflicting-answer picker never could; normalising a free-text answer there, never writing it through, is where D14's protection now lives. The next-phase-offer overflow rule's full menu in prose is already that file's "universal minimum". The epic-picker's directory-listing case is the one no static check can see, because a PRD with four Epics overflows an array that has no literal options to count.
+
+Verbatim presentation binds every command of the family, not only `/document` and `/epics`. The two rules are one rule — verbatim presentation and the arity rule: an array the harness cannot render is an array no orchestrator can present verbatim, which is what the retired "last choice is always `Other… (describe)`" convention produced.
 
 ## code-handoff-citation
 
@@ -116,6 +130,8 @@ The sibling re-cut rule names no recipe for its readers because the recipe that 
 
 The "twelve files, eleven commands" totals the `workflows-core:addressing` §7 bullet in `CLAUDE.md` used to tell readers to re-derive went false twice — cutting the tracker moved them without moving the number, and by 2026-09-23 the commands citing §7 did so for other reasons — `/brd-split` for its *Adoption is additive* rule, `/release-notes` to say why it has a row — and none to reach the fallback, while `/implement`, `/vuln` and `/brd-proposal` resolved through §3 with no row — so §7 now keeps none.
 
+A regression in the shared fallback reaches `/epics`, `/design` and `/ready`, which have nothing to do with BRDs.
+
 ## prose-style-roles
 
 **The `CLAUDE.md` sentence stating `docs-workflows`' style-gate dependency used to call the dispatch a fallback gated on the rungs failing**, which left the ordinary case — a repo whose Vale run succeeds, where the checker runs anyway as the complementary semantic pass — unstated.
@@ -138,6 +154,8 @@ The `prose-formatting` consumer sentence in `CLAUDE.md` named nine consumers and
 
 `${CLAUDE_PLUGIN_ROOT}`'s expansion in slash-command bodies was verified in a live run by typing the slash command and comparing the received body against the file on disk: all 33 literal tokens in `docs-workflows`'s `document.md` arrived as absolute paths. The substitution is specific to this variable, which is what makes it a harness feature rather than general expansion: `${DOCS_PATH:-/workspace/docs}` and `${REPOS_PATH:-/workspace}` arrived **literal** in the same body. **`CLAUDE.md` previously claimed the opposite**, and that claim was the stated reason the `model-routing` skill exists; the claim is retired, the skill is not.
 
+The `model-routing` skill stays although the claim once given as the reason it exists is retired.
+
 ## one-key-namespace
 
 The rule that stood in `CLAUDE.md` forbade widening a *tracker-side* check to accept three segments, on the grounds that no tracker mints a three-segment key; with no tracker read by any command, every check is folder-side and the defect family it guarded against cannot occur. **What survives is the reason, not the rule** — the autolink detector's narrowness, which the rule in `CLAUDE.md` now states.
@@ -154,7 +172,7 @@ A key re-derived by pattern is a key nothing in the tree ever asserted.
 
 Eleven such sentences were retired in 3.3.0, sitting in ten files — four commands, three references and three documentation pages — and the count grew from six to eleven only because successive agents walked the tree instead of trusting the list they were handed.
 
-The refinements are the ones the sibling re-cut paid for, and the rounds after it — each one bought by a review finding what the sweep had already walked past, which is why the list carries no count of its own.
+**Refinements the sibling re-cut paid for, and the rounds after it — each one bought by a review finding what the sweep had already walked past, which is why the refinement list carries no count of its own.**
 
 Nothing gates such sentences: they are ordinary prose, invisible to every script in `scripts/`. A sentence that named the absence as its reason for an offer needs a new reason because the state a run leaves is usually still a real constraint on what it can honestly offer next.
 
@@ -182,9 +200,9 @@ The family's shared authorities live in `workflows-core`, so a per-plugin recipe
 
 Keeping `CHANGELOG.md` in the sweep was measured before deciding, as this repo requires of any scope change: **25 of the 67 defects review passes A22–A28 and B22–B28 recorded are sited in a changelog** — the highest-yield single surface in the tree, ahead of `docs/` at 15 and `references/` at 13 — so keeping them in fires on defective content at a higher rate than any other file class, which is the opposite of the fires-only-on-correct-content result on which check 11's widening was refused twice. Nor is the file unread by the build — check 14 reads every text file in the repository, changelogs included, and a mutation of one fires it, so "no gate opens a changelog" is false as well as beside the point. `scratchpad/r47/sweep.py`, the instrument refinement 7 names, carries no such exclusion; two of this branch's citation resolvers did copy the gates' filename filter — one wrong phase citation was sitting in a changelog while they ran, in a file neither could open.
 
-Widening the scope is only half of it: four more of that citation's family were written into the same changelog later, and an existence check would have passed all five however wide its scope, because every one named `Phase 12` of a command that had a Phase 12. They were caught by reading the phase they cited — the axis, not the scope. Slicing the phase a citation names and finding the cited thing inside it falsifies a citation that is simply wrong, which is what a `Phase 12`-exists check cannot do. In `/document`, `# Mode A`'s `## Phase 3` reads the PRD folder and `# Mode B`'s implements a direct edit. Picking the wrong mode reports a miss rather than a false pass, which is the safe direction — but that is a property of this failure mode, not of the check.
+Widening the scope is only half of it: four more of that citation's family were written into the same changelog later, and an existence check would have passed all five however wide its scope, because every one named `Phase 12` of a command that had a Phase 12. They were caught by reading the phase they cited — the axis, not the scope. **Reading the phase proves containment, not uniqueness**, and the difference is worth carrying: slicing the phase a citation names and finding the cited thing inside it falsifies a citation that is simply wrong, which is what a `Phase 12`-exists check cannot do — but it does not prove the cited thing is only there, so a phrase living in two phases passes under either citation. And where one command file carries two modes over the same phase numbers, the reader has to pick the mode before slicing: `/document`'s `# Mode A` and `# Mode B` each carry a `## Phase 3`, one reading the PRD folder and one implementing a direct edit. Picking the wrong mode reports a miss rather than a false pass, which is the safe direction — but that is a property of this failure mode, not of the check.
 
-The scope clause binds a human or agent sweep and moves no gate's scope: `check-docs.sh` check 10 still leaves the root README alone, for its own unrelated reason. `check-id-grammar.sh` and `check-docs.sh` checks 12, 13, 16 and 19 exclude `CHANGELOG.md` by filename, each for the one stated reason that history keeps the retired form it shipped with — and a count, a citation or a claim about today's tree is most of what a changelog entry is. Reading the phase proves containment but not uniqueness: it does not prove the cited thing is only there, so a phrase living in two phases passes under either citation.
+The scope clause binds a human or agent sweep and moves no gate's scope: `check-docs.sh` check 10 still leaves the root README alone, for its own unrelated reason. `check-id-grammar.sh` and `check-docs.sh` checks 12, 13, 16 and 19 do exclude `CHANGELOG.md` by filename, each for the one stated reason that **history keeps the retired form it shipped with** — which exempts a *quotation* and nothing else: a count, a line citation, a phase name or a claim about today's tree goes stale in an entry exactly as it does in a command, and that is most of what an entry is.
 
 ### refinement-5
 
@@ -200,7 +218,7 @@ A sweep for *"no agent reads `$REPOS_PATH`"* cannot reach *"`code-scanner` resol
 
 Measured over `commands/` and `references/`, a 17-character phrase survives the wrap break about six times in seven, but an 80-character one only about one time in three — so at sentence length a line-based grep misses an occurrence more often than it finds one, and the short count it reports is plausible rather than obviously wrong, which is what makes it dangerous on exactly the files refinement 7 exists for. The reviews on this branch ran the three-step method as `scratchpad/r47/sweep.py`, a session-local script this repo does not ship and which collapses the file but not the pattern.
 
-Reading the paragraph is not enough, and this was bought twice in one round and once more by the round that wrote the refinement: the round that corrected `between the three` to `between the four` in `workflows-core:phase-handoff` §4.3 had read that paragraph and left the identical string standing further down the same section, in the paragraph saying the array is not reworded for a missing remote — next to a second falsified count on that same line — while scoping *"the one reader a proposal has"* on six surfaces and leaving it on two more, one of them the §1 of the very reference whose §0 it had just made the census, and the other an instruction telling the run to **print** the retired sentence; then the round that wrote refinement 7 certified it with a count of that same string taken on the parent tree, publishing **3** in a commit whose own new prose quoted it — as this rationale section still does. One wrap-insensitive count per edited string, taken after the edit, catches every one of those; no other refinement does, because each of the others tells you where to look and this one tells you when you are done.
+Reading the paragraph is not enough either, and this was bought twice in one round and once more by the round that wrote the refinement: the round that corrected `between the three` to `between the four` in `workflows-core:phase-handoff` §4.3 had read that paragraph and left the identical string standing further down the same section, in the paragraph saying the array is not reworded for a missing remote — next to a second falsified count on that same line — while scoping *"the one reader a proposal has"* on six surfaces and leaving it on two more, one of them the §1 of the very reference whose §0 it had just made the census, and the other an instruction telling the run to **print** the retired sentence; then the round that wrote refinement 7 certified it with a count of that same string taken on the parent tree, publishing **3** in a commit whose own new prose quoted it — as this rationale section still does. One wrap-insensitive count per edited string, taken after the edit rather than before it, catches every one of those; no other refinement on the list does, because each of the others tells you where to look and this one tells you when you are done.
 
 A replacement changes text *inside* the span you counted, so the after-count falls however the query was framed, while an addition changes text only at that span's boundary and leaves the string standing inside the new form *by design*. A line-based `grep -c` over hard-wrapped files returns a number smaller than the truth with nothing to say it did. The three-step method is the rule, not any script: write your own and keep the method.
 
@@ -228,6 +246,8 @@ Refinement 8 says which strings to count; refinement 7 says when you are done co
 
 Why the faces differ: on the extent face the sentence you wrote stays put while its neighbours go false, and it is the one you have already checked; on the pointer face the sentence you wrote is the one that goes wrong while its neighbours stay untouched, so the extent check is inert, nothing having widened and no case split existing to enumerate. The old precondition's out-of-reach paragraphs are where an assumption sits unstated precisely because nothing could once falsify it. The third-check threshold exists because three checks with their evidence will not read as one line; a face that needs a check of its own is a rule of its own.
 
+Refinement 8 of the claim-expiry sweep fires on the same change as the extent face and covers the *other* axis — the **copies** of that claim elsewhere — so a reader who does one and not the other is half covered: the extent face is about the adjacent assumption, refinement 8 about the distant copy.
+
 ## verification-record-last
 
 Three of the 2026-08-07 round's records went stale because the record was written first; one was falsified by its own sub-project's next commit 17 minutes later. Two of that round's wrong values propagated by copying an `expect N` from another plan.
@@ -250,6 +270,24 @@ That `marketplace update` leaves installed plugins alone was measured, not assum
 
 `prose-style` 0.4.0 is the release whose checker applies the specs repository's house-style rules to `/release-notes`' draft. The `/plugins` interface is a human step, which is why `CLAUDE.md`'s update section leads with the per-plugin `update` command.
 
+An edit that "did not land" is very often a session that has not restarted since the update.
+
 ## verify-branch-before-commit
 
 That is not hypothetical: one session branched away from `main` between two commits of another session's run, and the second commit — a fix for a release-gating defect — landed on the unrelated feature branch, where a `git push origin main` would have left it behind.
+
+## docs-workflows-not-a-dependency
+
+`dev-workflows` offers `/document` and `/release-notes` as next steps and `product-workflows` offers `/release-notes`, and both cite their references in prose, but load nothing from them, so a run completes whether or not `docs-workflows` is installed.
+
+## gate-chain-exit
+
+A trailing `echo "EXIT=$?"` prints the **chain's** status correctly — `$?` expands before the `echo` runs, and a `;` and a newline are the same separator, so neither form changes what is printed. What it does change is the *invocation's own* exit status, which becomes 0 either way: a reader who trusts the wrapper's status instead of the printed value reads a red build as green, which one round did five times before catching it. Appending nothing and letting the chain's own status stand works too.
+
+## model-routing-fan-out
+
+§8.5's opt-in seeded second round has its adopters named in §8.5's own *Opt-in* paragraph, not copied into `CLAUDE.md`.
+
+## worktree-not-checkout
+
+A duplicate commit on another session's branch is theirs to resolve and, where the content is identical, merges cleanly.

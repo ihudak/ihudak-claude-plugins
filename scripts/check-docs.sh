@@ -2064,9 +2064,10 @@ PYEOF
 #     key the preserve-unknown-keys rule exists to protect;
 #   * provenance (1): getting-started.md naming the subject of a sibling plugin dev-workflows
 #     does not use;
-#   * instruction-file rationale (5): CLAUDE.md's two explanations of WHY the requirement-ID
-#     grammar and the pre-lint autolink detector exist -- both are rules about a tracker's key
-#     shape and are unexplainable without naming it; CLAUDE.md's hard-constraint statement of
+#   * instruction-file rationale (5): the two explanations of WHY the requirement-ID grammar
+#     (docs/maintainers/rationale.md's id-grammar evidence) and the pre-lint autolink detector
+#     (CLAUDE.md's key-namespace rule) exist -- both are rules about a tracker's key shape and
+#     are unexplainable without naming it; CLAUDE.md's hard-constraint statement of
 #     this check's rule, which writes the marker itself; docs/maintainers/rationale.md's check-13
 #     evidence, which cites the shipped defects this check was created to remove and cannot
 #     quote them otherwise; and .claude/rules/gates.md's check-13 description, which writes

@@ -12,7 +12,7 @@ Loaded when `/docs-serve`'s command file or docs page is read, or `docs-workflow
 
 ## Run state
 
-`/docs-serve` writes no deliverable anywhere (only its own run state: the pid/port record beside the profile, one exclude line, and each start's log; what a `--build` or a dev server writes is that command's), which is why `CLAUDE.md` calls it a pure utility.
+`/docs-serve` writes no deliverable anywhere (only its own run state: the pid/port record beside the profile, one exclude line, and each start's log; what a `--build` or a dev server writes is that command's), which is why it is a pure utility: it runs no `specs-preflight`, no `commit-artifacts`, no review gate and no maintenance phase, and it is absent from every caller list in `CLAUDE.md` and `.claude/rules/` for that reason rather than by oversight.
 
 ## Workflow map
 

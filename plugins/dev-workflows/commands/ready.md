@@ -53,7 +53,7 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
      `brd-link.md` naming a `parent:` — is a PRD-level run (`<EPIC>` is `null`) judged on the PRD
      ladder.
 
-   A folder none of these places is not guessed at: stop, naming the folder and what it carries
+   A folder none of these places is not guessed at: stop, naming the folder and what it carries — and, where it holds an `idea.md` and no `prd.md`, name `/product-workflows:create-prd <KEY>` too, whose `prd.md` places it
    (§4.1). Two positional keys are no longer accepted, because the second was always derivable from
    the first — `workflows-core:addressing` §4's `key` is what supplies both. Carry forward:
    - `<PRD>` — the **PRD folder's** `key`, read off its carrier (§4): the resolved folder's own on a

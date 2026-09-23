@@ -37,7 +37,13 @@ This command makes **zero external API calls** and **never writes into the docs 
    path is. `--docs` and `--no-docs` are carried to the `resolve-docs-grounding` call; `--version` is
    consumed where the version is needed.
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
-   folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Carry the resolved `path`, `kind` and
+   folder or a file inside one. **On a `<KEY>`, `$SPECS_PATH` comes first:** if it is unset, stop
+   naming it before resolving anything or running the specs-repo preflight below
+   (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`, `workflows-core:escalation-rules`
+   *Required path environment variable unset*) — a key is found only by searching the specs tree, so
+   with no tree the `absent` stop below would name the wrong cause and offer a re-enter that cannot
+   succeed. An `@<path>` address needs no specs tree to resolve and runs on, exactly as `/document`'s
+   *Mode detection* does. Then resolve the address with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Carry the resolved `path`, `kind` and
    `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command.
 
    **Place the folder, and carry the PRD folder and the focus.** An `EPIC-` address drafts the note
@@ -56,7 +62,8 @@ This command makes **zero external API calls** and **never writes into the docs 
    slices — and one it places at no level is not guessed at. Stop on either here, before Phase 1 asks
    anything, with the same `key dir not found` rule, naming the folder and what it carries and, for a
    container, each slice under it — found by the positive test §4.1 names — as an address to
-   re-enter.
+   re-enter — and, for a folder §4.1 places at no level that holds an `idea.md` and no
+   `prd.md`, `/product-workflows:create-prd <KEY>`, whose `prd.md` places it (`workflows-core:addressing` §4.1).
 
    With no positional address, stop with
    `RELEASE_NOTES_NEEDS_KEY: /release-notes needs a PRD or Epic address — a key, or an @<path> to its folder.` —
@@ -225,7 +232,7 @@ render input** to that `EPIC-` folder and what it holds — its `epic.md`, `spec
 `design.md` and `implementation.md`; there is no Story / Sub-task level beneath it — so the release
 note covers that Epic's user-facing changes rather than the whole PRD. This scopes only what Phase 6
 renders; it does not mutate the stored handoff that other phases read. When `focus_key` is null, the
-draft covers the whole ticket/PRD exactly as today.
+draft covers the whole PRD, as it does on a run with no Epic address.
 
 If the PRD folder holds no PRD, surface `choices: ["Re-enter key", "Cancel"]`.
 

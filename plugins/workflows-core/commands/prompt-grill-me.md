@@ -6,7 +6,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task
 
 Log a corrective interaction, then grill the fix: $ARGUMENTS
 
-`/prompt-grill-me` is for when a dev-workflows command produced something wrong
+`/prompt-grill-me` is for when a command of this plugin family produced something wrong
 and you want a **bounded one-question-at-a-time interrogation** (≤5 questions) of
 the correction. It captures the **corrective triple** as plugin feedback, then
 grills the fix **inline** following the embedded grilling technique

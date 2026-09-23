@@ -21,7 +21,7 @@ Three pages orient you before you touch a command: [Getting started](getting-sta
 
 ## Commands
 
-- [`/docs-init`](commands/docs-init.md) — scaffold a documentation repository for a project that has none: a product-shaped page skeleton with a stub in every section, two builds over one content root, Vale, a CI workflow with the visibility gates, and the profile `/docs-serve`, `/document` and `/docs-brand` read.
+- [`/docs-init`](commands/docs-init.md) — scaffold a documentation repository for a project that has none: a product-shaped page skeleton with a stub in every section, two builds over one content root, Vale, a CI workflow with the visibility gates, and the profile `/document`, `/docs-serve`, `/docs-brand` and `/docs-audit` read.
 - [`/docs-profile`](commands/docs-profile.md) — scan a documentation repository and write or refresh the machine-readable profile `/document` consumes, as a reviewable pull request.
 - [`/docs-brand`](commands/docs-brand.md) — extract a logo and a rough primary/accent colour pair from a product's own code and apply them to the docs site, standalone or `--inline` from `/docs-init`.
 - [`/docs-serve`](commands/docs-serve.md) — start, stop, or check a profiled repo's dev server, and report a URL that actually opens from the host.
@@ -37,7 +37,7 @@ Three pages orient you before you touch a command: [Getting started](getting-sta
 - [Environment](reference/environment.md) — every environment variable the plugin reads, and what it configures.
 - [Hooks](reference/hooks.md) — the two bundled hooks and what each one does.
 - [Documentation visibility](reference/docs-visibility.md) — the two-build public/internal model a scaffolded portal uses, the two traps that make the obvious checks useless, and the CI gates that assert on built output instead.
-- [Coverage model](reference/docs-coverage-model.md) — what counts as a documentation surface and how the seven kinds come out of code, how a surface differs from a backlog unit, which page types a surface earns, and what decides the order they get written in.
+- [Coverage model](reference/docs-coverage-model.md) — what counts as a documentation surface and how the seven kinds are found — five in code, two in the specs tree — how a surface differs from a backlog unit, which page types a surface earns, and what decides the order they get written in.
 - [Documentation backlog](reference/docs-backlog.md) — the file an audit writes and you keep: where it lives, what each block holds, the states a page moves through and which of them anything automates yet, and what the coverage fraction actually counts.
 - [Evidence and walkthroughs](reference/docs-evidence.md) — what a page's claims are allowed to rest on for each audience, the three kinds of evidence, what an unverified claim looks like on the page, and how to walk a verification checklist by hand.
 - [Session cost](reference/session-cost.md) — which commands here emit a cost entry, what they charge to, and where the file lands.

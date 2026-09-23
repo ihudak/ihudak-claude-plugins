@@ -1,7 +1,7 @@
 # Source-Code Truth (Shared Policy)
 
 This document is the **single source of truth** for one of the most important
-rules in the `dev-workflows` plugin:
+rules in the `dev-workflows` plugin family:
 
 > **Verify against the implementation; escalate every discrepancy to the user.**
 > The source code is what customers will use. PRDs, design specs,
@@ -30,11 +30,12 @@ it presents the discrepancy and asks the user. The user has context the plugin
 doesn't (PM intent, sprint planning, agreed scope, customer expectations).
 
 **When a spec is provided, the spec markdown is the authoritative "intended"
-source.** Some runs (notably `/document`) pass an implementation spec —
-the Product Requirements Document spec, its child Epic specs, and the synthesised
-`requirements.md` / `design.md`. When that spec is present, *it* defines the
+source.** Some runs (notably `/document`) pass an implementation spec — the
+resolved folder's `specification.md` and `design.md`, and each `EPIC-*/`
+subfolder's `epic.md`, `specification.md` and `design.md`, whichever exist.
+When that spec is present, *it* defines the
 intended behaviour: it is the agreed, current contract for what should ship.
-The PRD then **corroborates** the spec (it is the older customer-narrative
+The PRD (`prd.md`) then **corroborates** the spec (it is the older customer-narrative
 phrasing) and the source code remains the **"actual"** — what shipped. So the
 comparison becomes three-way: the spec says what was *intended*, the PRD echoes
 it (and may have drifted), and the code shows what is *actual*. When no spec
@@ -43,10 +44,11 @@ the comparison is the original two-way (PRD vs. code).
 
 The authoritative file set, when a spec is provided:
 
-- **Authoritative ("intended"):** the PRD spec markdown, the child Epic spec
-  markdown, and the synthesised `requirements.md` and `design.md`.
-- **Secondary:** `tasks.md` (implementation breakdown — supporting, not
-  contractual).
+- **Authoritative ("intended"):** `specification.md` and `design.md` at
+  either level — the PRD folder's own and each `EPIC-*/` subfolder's — and
+  each Epic's `epic.md`.
+- **Corroborating:** the PRD, `prd.md` — the narrative the three-way
+  comparison checks the spec against, never part of the spec itself.
 - **Ignore:** `idea.md` and `prompt.md` (pre-spec brainstorming) and any
   rendered HTML mirrors of the above.
 
@@ -81,10 +83,11 @@ from what shipped.
 
 The **"intended"** phrasing for every claim is taken from the **spec markdown
 when a spec is provided**, falling back to the PRD's description when no spec is
-present. When a spec is present, the authoritative file set is: the PRD spec
-markdown, the child Epic spec markdown, and the synthesised `requirements.md`
-and `design.md`; `tasks.md` is secondary (supporting, not contractual); and
-`idea.md`, `prompt.md`, and any rendered HTML mirrors are ignored. The
+present. When a spec is present, the authoritative file set is
+`specification.md` and `design.md` at either level (the PRD folder's and each
+`EPIC-*/` subfolder's) and each Epic's `epic.md`; `prd.md` is the PRD, the
+corroborating side; and `idea.md`, `prompt.md`, and any rendered HTML mirrors
+are ignored. The
 **"actual"** phrasing is always taken from the source code.
 
 For every documentation page, snippet, or release-notes entry produced by a
@@ -125,14 +128,15 @@ specificity:
 
 When the run provides a spec, read the spec tree to establish the
 authoritative **intended** phrasing for each claim before verifying it against
-code. Read the PRD spec markdown, the child Epic spec markdown, and the
-synthesised `requirements.md` / `design.md`; treat `tasks.md` as secondary;
-ignore `idea.md`, `prompt.md`, and any rendered HTML mirrors.
+code. Read `specification.md` and `design.md` at either level — the PRD
+folder's and each `EPIC-*/` subfolder's — and each Epic's `epic.md`; read
+`prd.md` as the PRD, the corroborating side, not as spec; ignore `idea.md`,
+`prompt.md`, and any rendered HTML mirrors.
 
 ```bash
 grep -rn "<claim-keyword>" <spec_dir> \
   --include="*.md" 2>/dev/null \
-  | grep -vE "/(idea|prompt)\.md|\.html$"
+  | grep -E "/(specification|design|epic)\.md:"
 ```
 
 This is the source of the `spec_phrasing` field (§4.2). When no spec is

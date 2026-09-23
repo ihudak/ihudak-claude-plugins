@@ -498,13 +498,25 @@ and route consumers are `/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a)
 (step 5a) and `/brd-reconcile` (step 5a); **the effort-proposal pair and their reviewer take the same
 §5.1 test and were missing from this paragraph** — `/prd-proposal` (Phase 0 step 4, refusing a `BRD-`
 container), `/brd-proposal` (Phase 0 step 4, refusing a `PRD-` slice on the same test with the
-disposition inverted) and `proposal-reviewer`; and the companion `dev-workflows` plugin's
-`/design`, `/implement` and `/ready` take it too, through `workflows-core:addressing` §4.1, which
-states the same positive test for a plugin that cannot read this file — the recipe below reaches
-them only through the remedy text each cites §5 in. **Read that as a list, not as a count, and re-derive it
-against the tree rather than adjusting it** — the recipe is `grep -rn 'coverage-ledger-format.*§5'
-plugins/*/commands/*.md plugins/*/agents/*.md`, each hit opened, since `/brd-intake` names §5.1 only
-to describe the other commands' refusals and is correctly not a consumer. The sentence said *all
+disposition inverted) and `proposal-reviewer`; **two more of this plugin's own commands take it and
+were missing too** — `/idea` (Phase 0, refusing a container with `IDEA_NOT_AN_IDEA_FOLDER`, through
+`workflows-core:addressing` §4.1) and `/update-prd` (Phase 0 step 4's no-PRD table, citing §5.1
+directly to word its stop); **two route commands take it too, neither to refuse a container, since
+both run at the root** — `/brd-intake` (Phase 0 step 7, through `workflows-core:addressing` §4.1,
+to accept as a re-run only a folder the test places as a container) and `/brd-split` (Phase 0
+step 5, citing §5.1 directly to refuse the legacy idea-route shape with `BRD_SPLIT_NOT_A_BRD`, and
+step 8, through §4.1, to word its full-mode empty-inventory stop); and the companion plugins' commands that take it through
+`workflows-core:addressing` §4.1, which states the same positive test for a plugin that cannot read
+this file — `dev-workflows`' `/design`, `/implement` and `/ready`, and `docs-workflows`' `/document`
+(keyed mode) and `/release-notes` — take it too. The recipe below reaches a command that takes the
+test through §4.1 only where its remedy text happens to cite §5 as well, so run
+`grep -ln 'addressing. §4\.1' plugins/*/commands/*.md` beside it, each hit opened, since that grep
+also returns commands citing §4.1 for placement alone. **Read that as a list, not as a count, and
+re-derive it against the tree rather than adjusting it** — the recipe is `grep -rn 'coverage-ledger-format.*§5'
+plugins/*/commands/*.md plugins/*/agents/*.md`, each hit opened, since a hit may cite §5 for
+something other than this test — `/brd-intake` also names §5.1 to describe the other commands'
+refusals, and `/brd-split` cites §5 for what makes a slice PRD-eligible — and neither of those two
+citations is what makes either a consumer. The sentence said *all
 eight* while the tree held more, which is the arithmetic this paragraph's own closing instruction
 exists to prevent. `/create-prd` cannot test for `prd.md` — it is the run that is about to
 write it — so a test keyed off the PRD's presence would have to be worded differently in
@@ -535,7 +547,7 @@ resolved slice's own ledger (`commands/create-prd.md` Phase 0 step 7):
 |---|---|---|
 | the resolved folder's prefix, or §5.1's evidence where it has none (§5, §5.1) | it is a `BRD-` container | `CREATE_PRD_BRD_NOT_SLICED` — the `PRD-` slices under it, or `/brd-split <BRD-KEY> "<how to cut it>"` where there are none |
 | the gate set | a row is still `unallocated` | `CREATE_PRD_BRD_UNALLOCATED` — `/brd-split <SLICE-KEY>`, whose walk moves exactly those rows |
-| the gate set | no row is `covered-here`, and none `unallocated` (the row above is tested first) | `CREATE_PRD_BRD_NOT_ELIGIBLE` — `/brd-split <PARENT-KEY>` where the gate set is **empty** (a standing empty child), and **no command at all** where it is non-empty |
+| the gate set | no row is `covered-here`, and none `unallocated` (the row above is tested first) | `CREATE_PRD_BRD_NOT_ELIGIBLE` — where the gate set is **empty** (a standing empty child), `/brd-split <PARENT-KEY>`, in the form the parent's own ledger decides: `/brd-split <PARENT-KEY> "<how to cut it>"` where it still holds an `unallocated` row (a bare run stops there with `BRD_SPLIT_NEEDS_INSTRUCTION`), the bare `/brd-split <PARENT-KEY>` where it holds none, and neither form, the parent's ledger reported by path, where it cannot be read; **no command at all** where the gate set is non-empty |
 
 **The gate set is this slice's own `coverage-ledger.md` rows, narrowed by its `brd-link.md`
 `claims:`** — the same set Phase 0 step 7 defines, read the same way, and read **out of the ledger
@@ -558,8 +570,8 @@ damage, and it is not an empty gate set.** `/brd-split` writes both files in the
 commits them together, so no run of this plugin leaves a slice carrying one and not the other. A
 consumer that meets it can evaluate neither data refusal, and must not read the absent file as a gate
 set of zero rows: that is the *standing empty child* — a slice whose ledger exists and whose `claims:`
-list is empty — which the table above resolves to `/brd-split <PARENT-KEY>`, and resolving a missing
-file to the same offer would send an operator to keep-or-remove a slice on evidence nobody has.
+list is empty — which the table above resolves to `/brd-split <PARENT-KEY>` (with or without an
+instruction, as the parent's ledger decides), and resolving a missing file to the same offer would send an operator to keep-or-remove a slice on evidence nobody has.
 **Name no option at all.** Report the absent `<slice-dir>/coverage-ledger.md` by path, say that
 `/brd-split` wrote it and landed it with the slice, and leave recovering it from the specs repo's
 history to the operator — nothing in this plugin rewrites a slice's ledger in place. The rule is
@@ -571,8 +583,10 @@ precedent is `commands/brd-reconcile.md` Phase 14, which runs both data tests be
 `/product-workflows:create-prd <SLICE-KEY>` and **drops** the option rather than annotating it, on the
 stated ground that a hard refusal in another command's Phase 0 is not a state the reader can judge
 for themselves. Dropping is not going quiet: name what moves the failing test where a command exists
-— `/brd-split <SLICE-KEY>` for an `unallocated` row, the keep-or-remove `/brd-split <PARENT-KEY>` for
-a standing empty child — and where none exists, say so. **The non-empty
+— `/brd-split <SLICE-KEY>` for an `unallocated` row, `/brd-split <PARENT-KEY>` for a standing empty
+child, in the table's form: with a slicing instruction where the parent still holds an `unallocated`
+row, bare (the keep-or-remove run) where it holds none, and neither, reporting the parent's ledger by
+path, where it cannot be read — and where none exists, say so. **The non-empty
 `CREATE_PRD_BRD_NOT_ELIGIBLE` branch is the one that must never be offered into**: it names no
 command by design, so an offer that sends the operator there hands them a stop with no way out, and
 nothing in this plugin moves a slice's `deferred-to`, `rejected` or `superseded-by` row back to

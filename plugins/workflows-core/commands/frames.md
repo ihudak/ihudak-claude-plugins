@@ -64,6 +64,24 @@ adjacent to it would invite an operator who wanted an index into the wrong comma
    - `status: found` → carry `path`, `kind` and `key`. Report `legacy: true` once as deprecated when
      §5's fallback resolved it.
 
+   **First, a spec folder with no carrier.** A legacy folder whose artifacts assert no `kind:` or
+   `key:` comes back `found` with `kind` empty (§5) — and, on an `@<path>`, with `key` empty too (§3
+   step 1). The kind test below would call it "not a BRD, PRD or Epic folder" and send the operator to
+   the folder above it, which is wrong for a spec folder written before §4's rule; and this run cannot
+   index it without a kind, which the kind test below and Phase 4's cost attribution read — nor, on an
+   `@<path>`, without a key, which the index's `key:`, the `frames/` branch and the commit subject all
+   take. So test it here, on positive evidence only: the folder is such a spec folder where the record
+   is a `<KEY>` run's with `kind` empty — §5's fallback is the only resolution that returns one, since
+   §3 step 2 keeps a prefixed candidate only where it asserts the key — or, on an `@<path>` run with
+   `kind` empty, where the folder holds at least one of the artifacts §5 names as a carrier — `prd.md`,
+   `idea.md`, `epic.md`, `brd-link.md`, `brd/brd-inventory.md`. An `@<path>` to any other directory
+   asserting nothing — a frame set not yet indexed, whose `index.md` does not exist yet, is the
+   reachable one — is not this case and goes on to the kind test, whose message is the right one for
+   it. Stop:
+   `FRAMES_NO_CARRIER: <path> is a spec folder carrying no artifact that asserts its kind and key (it holds <the carrier files present>) — a folder written before workflows-core:addressing §4's rule, which /frames cannot index. Give it a carrier as addressing.md §5 says — add key: and its folder kind to one of those files — then re-run '/workflows-core:frames <KEY>'.`
+   — and where it holds an `idea.md` and no `prd.md`, add `Or run '/product-workflows:create-prd <KEY>', whose prd.md gives it one.` — **on an `@<path>` run, only where the folder's name carries no kind prefix**: `/create-prd <KEY>` resolves by key, and a prefixed folder asserting no key is dropped by §3 step 2 and never matched by §5's fallback, so that run would resolve `absent` and create a second folder. On a `<KEY>` run the folder came back through §5's fallback and is unprefixed by construction. On a `<KEY>` run `<KEY>` is the key it was addressed by; on an `@<path>` run, which holds no key, write `<KEY>` literally, as the key the operator supplies (§3 step 1). Addressing it by its key instead is not offered as a way on, as §3 step 1 offers it to a caller that needs only the key: §5's fallback resolves such a folder with its key and still with no kind, which this step stops on the same way.
+   **Where it holds none of those files** — reachable only on a `<KEY>` run, since the `@<path>` test above requires one; a folder whose PRD still carries its pre-rename name is one such — write `(it holds none of them)` in the parenthesis, and in place of `add key: and its folder kind to one of those files` write `where its PRD still carries a pre-rename name such as <KEY>_<slug>.md, rename it to prd.md and add kind: prd and key: <KEY> to it; otherwise add the carrier file its level takes, with key: and its folder kind`, which is §5's own advice for a folder written before the artifact filenames lost their keys.
+
    **Then test the kind, because passing no `<KIND>` removed the only guard the path branch had.**
    §3's path branch checks a supplied `<KIND>` against the folder's own and nothing else, so with none
    supplied *any* directory resolves. `kind` must be one of `brd`, `prd`, `epic`; anything else — or a
@@ -377,7 +395,7 @@ gap** (a capability the run needed but the plugin lacked), `emit-block` (per
    resolved folder's own `kind`, which Phase 0 already read: `brd` attributes the run to
    `brd-to-prd`/`pm`, `prd` and `epic` to `prd-creation`/`pm`. A BRD-route slice is a `PRD-` folder
    asserting `brd`, so its frame set is `brd-to-prd`; an Epic folder under it asserts `epic`, and
-   is `prd-creation`. The key is always present on any path that reaches here — Phase 0's stops (`FRAMES_NEEDS_ADDRESS`, `FRAMES_EXTRA_ARGUMENT`, `FRAMES_NO_FOLDER`, `FRAMES_NOT_A_SPEC_FOLDER`, an ambiguous key, an unset `SPECS_PATH`) all refuse before a folder is resolved, and this phase runs after them, which is why its scope is stated as *every path that reached Phase 1* rather than every path. This
+   is `prd-creation`. The key is always present on any path that reaches here — Phase 0's stops (`FRAMES_NEEDS_ADDRESS`, `FRAMES_EXTRA_ARGUMENT`, `FRAMES_NO_FOLDER`, `FRAMES_NO_CARRIER`, `FRAMES_NOT_A_SPEC_FOLDER`, an ambiguous key, an unset `SPECS_PATH`) all stop Phase 0 before it has a spec folder whose kind and key it can index — `FRAMES_NO_CARRIER` among them, taken on a folder asserting neither — and this phase runs after them, which is why its scope is stated as *every path that reached Phase 1* rather than every path. This
    command refuses to run without a resolved folder — so the entry lands on the keyed tier and never
    on the pending ladder (§9), which **advances the chained checkpoint** (§3); surface the persisted
    path (or the report-only notice).

@@ -52,8 +52,9 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
    `commit-artifacts` step skips on it.
-7. **Resolve or derive the BRD folder** via `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Found → this is an existing BRD folder
-   and this invocation is a re-run over it; use it. **A slice is never a legitimate target here** —
+7. **Resolve or derive the BRD folder** via `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Found → an existing folder, and where it is a
+   root BRD this invocation is a re-run over it; use it. Only a root is: the slice test below and the
+   level test after it refuse every other folder. **A slice is never a legitimate target here** —
    it has no source document of its own to intake, and its inventory and ledger are created by the
    parent's `/brd-split` (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1,
    `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3) — so a resolved folder whose
@@ -72,8 +73,9 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    which this step's own test reads as no prior inventory at all — that confirmation is skipped
    silently, so Phase 2 would write into the slice with no consent asked anywhere. Stop, on a slice:
    `BRD_INTAKE_SLICE: <BRD-KEY> resolves to a slice of <the parent: field of its own brd-link.md>, and a slice has no source document to intake — the source and the records beside it under brd/ are the parent's, one hop, and the slice's own brd/brd-inventory.md and coverage-ledger.md are created by '/product-workflows:brd-split' on the parent. Re-intake the parent with '/product-workflows:brd-intake <PARENT-KEY> <the @<brd-file> this run was given>'; that run leaves every row of the parent's ledger unallocated, so re-take the dispositions with the root walk it offers you when it finishes, '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', and only then re-allocate a slice the walk left a row unallocated in, with '/product-workflows:prd-ground <SLICE-KEY>' and then '/product-workflows:brd-split <SLICE-KEY>'.`
-   **Three of the five slots are substituted and two stay literal, and the text says which.**
-   `<PARENT-KEY>` is that `parent:` field as it reads, never a key parsed out of the folder's name
+   **Four of the six slots are substituted and two stay literal, and the text says which.**
+   `<PARENT-KEY>`, and the slot naming the `parent:` field in the stop's first sentence, are both
+   that `parent:` field as it reads, never a key parsed out of the folder's name
    (`CLAUDE.md`, *Resolve an identifier against a known set*); `<BRD-KEY>` is the address typed; and
    the source is the `@<brd-file>` this invocation was given, substituted exactly as typed — the run
    holds it, and it is telling the operator to re-type it against a different key.
@@ -82,7 +84,34 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    that would carve or confirm that slice has not run yet. **The `brd/` half is stated by what is
    the parent's rather than by the directory**: a slice *does* hold a `brd/` of its own, holding
    exactly `brd/brd-inventory.md` (`brd-format.md` §2.1) — which is why naming the whole directory
-   the parent's would contradict the clause after it. Absent → this is a
+   the parent's would contradict the clause after it.
+
+   **A found folder that is not a BRD at all is refused here too, just after the slice test and
+   before the re-run confirmation below is composed.** `resolve-address` searches every level
+   `workflows-core:addressing` §3 bounds, so a key naming an idea-route PRD folder or an Epic folder
+   resolves here exactly as a BRD's does, and *Found* above once read every such folder as a re-run
+   over a BRD. Neither holds a `brd/brd-inventory.md`, so the confirmation below is skipped silently
+   on both, and Phase 2 would copy the customer's document into the folder, Phase 3 write an
+   inventory there and Phase 5 a coverage ledger beside a `prd.md` or an `epic.md` — a folder
+   afterwards half one route and half the other, with a customer's source inside a folder that
+   belongs to neither. Place the found folder as `workflows-core:addressing` §4.1
+   places it — by its kind prefix, and, where it carries none, by §4.1's positive evidence in §4.1's
+   order, the container test first, so a legacy root BRD is never placed below it — and never by the
+   kind its carrier asserts:
+   - **A container** — a `BRD-` folder, or an unprefixed one §4.1's first test places there → the
+     re-run below. This is the one found folder this command runs on.
+   - **Epic-level** — an `EPIC-` folder, or an unprefixed one resolved `kind: epic`. Stop:
+     `BRD_INTAKE_EPIC_LEVEL: <BRD-KEY> resolves to an existing Epic folder at <path>, not a BRD — nothing was copied or written. A customer's BRD is intaken into a BRD- folder of its own, which this command creates only where the key resolves to no folder at all, and an Epic is refined from the PRD folder above it, never intaken into. Re-run '/product-workflows:brd-intake <NEW-KEY> <the @<brd-file> this run was given>' with a key no folder under $SPECS_PATH/specifications/ asserts; this Epic folder is left exactly as it stands. Re-running with this key stops here again.`
+   - **PRD-level, and not the slice refused above** — a `PRD-` folder, or an unprefixed one resolved
+     `kind: prd` — and **anything §4.1 places at no level**, which §4.1 never guesses at. Stop:
+     `BRD_INTAKE_NOT_A_BRD: <BRD-KEY> resolves to an existing folder at <path> that is not a BRD — <a PRD folder carrying no brd-link.md naming a parent:, so an idea-route one no BRD carved | a folder carrying <what it carries>, which addressing.md §4.1 places at no level> — and nothing was copied or written. A customer's BRD is intaken into a BRD- folder of its own, which this command creates only where the key resolves to no folder at all. Re-run '/product-workflows:brd-intake <NEW-KEY> <the @<brd-file> this run was given>' with a key no folder under $SPECS_PATH/specifications/ asserts; this folder is left exactly as it stands. Re-running with this key stops here again.`
+
+   `<NEW-KEY>` stays literal — choosing a key is the operator's — and the source is substituted
+   exactly as typed, as in `BRD_INTAKE_SLICE`. **Neither stop names a command for the folder it
+   refused**: what runs next on an idea-route PRD folder or an Epic depends on what that folder
+   already holds, which this command has not read and has no reason to, and a remedy naming a run
+   that refuses the folder would be worse than none. Both are argument halts, so `emit-block` does
+   not fire (Phase 9). Absent → this is a
    brand-new BRD: derive `<slug>` from the source file's first heading — lowercase it, turn every run
    of characters outside `[a-z0-9]` into one `-`, and trim `-` from both ends, so
    `Acme reporting — business requirements` gives `acme-reporting-business-requirements` — falling
@@ -110,7 +139,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs] [-
    a pre-prefix repo already holds; this command does not add to them.
 
 
-   **A re-run over an existing folder re-reads the source and rewrites the inventory, the ledger and
+   **A re-run over an existing root BRD folder re-reads the source and rewrites the inventory, the ledger and
    the records beside them, and the confirmation for that is taken here — before Phase 2's first
    write.** Where the folder resolved above already holds a `brd/brd-inventory.md` with at least one
    row — an earlier intake's; one holding its header and no row is no prior inventory (Phase 3) —
@@ -1286,13 +1315,16 @@ and sort its sections **by altitude** — product-level content (what / why / fo
 implementation-level content into `<BRD-dir>/spec-seed.md`.
 
 **These land on the BRD root, and every consumer resolves a slice — so say where they are.** `<BRD-dir>`
-is always a root `BRD-` container (Phase 0 step 7 stops on a slice with `BRD_INTAKE_SLICE`), while
-`/create-prd`, `/create-ard` and `/specify` each read their seed out of the resolved `PRD-` slice and
-each refuse a `BRD-` container before reading anything. Slices do not exist yet at intake time, so the
-seeds cannot be written into them here, and this run must not pretend otherwise: **name the three paths
-in the run's output and state that a later slice consumer reads them from this folder, one level up
-from itself.** Without that the migration's whole output sits where nothing looks — written, committed,
-and never read by any command.
+is always a root `BRD-` container (Phase 0 step 7 stops on a slice with `BRD_INTAKE_SLICE`, and on
+an Epic or any other folder that is not a BRD with `BRD_INTAKE_EPIC_LEVEL` or `BRD_INTAKE_NOT_A_BRD`), while
+`/create-prd`, `/create-ard` and `/specify` each refuse a `BRD-` container before reading anything,
+and each looks for its seed in the resolved `PRD-` slice first and, only where the slice holds none,
+in the parent BRD folder its `brd-link.md` names — which is how a seed written here is read at all.
+Slices do not exist yet at intake time, so the seeds cannot be written into them here, and this run
+must not pretend otherwise: **name the three paths in the run's output and state that a later slice
+consumer reads them from this folder, one level up from itself, wherever the slice holds no seed of
+its own.** An operator who looks for them in a slice finds nothing there, and without that line would
+take the migration's output for lost.
 
 State plainly in the run's output that
 this is **the migration path for work already done by hand**, before this workflow existed — and
@@ -1341,8 +1373,10 @@ reusing `prd` would collide with the `prd/<SLICE-KEY>-<slug>`
 branch `/create-prd` on the BRD route opens once a slice of this BRD is PRD-eligible. **That
 switch ships**, so the collision is live rather than hypothetical: that command's handoff derives
 `prd/<SLICE-KEY>-<slug>` from a slice folder nested inside the very folder this run wrote into,
-exactly as `/product-workflows:create-ard` on the BRD route derives `ard/<SLICE-KEY>-<slug>` and
-`/product-workflows:specify` on the BRD route derives `spec/<SLICE-KEY>-<slug>` from it. Keeping `brd`
+exactly as `/product-workflows:create-ard` and `/product-workflows:specify` on the BRD route derive
+`ard/<SLICE-KEY>-<slug>` and `spec/<SLICE-KEY>-<slug>` from it on a PRD-level run — an Epic-level
+run under a slice derives `ard/<EPIC>-<eslug>` or `spec/<EPIC>-<eslug>` from the `EPIC-` subfolder
+instead, a branch that collides with nothing here either. Keeping `brd`
 separate is what lets all four branches exist on one key without either family renaming anything —
 and this command's own `<BRD-KEY>` never carries the other three, because **the folder it creates is
 a container**: a PRD, an ARD and a specification are authored in the `PRD-` slices under it, one
@@ -1433,8 +1467,9 @@ Terminal phase — runs after Phase 8, NEVER interrupts an earlier phase.
 **Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command /
 reference gap**, `emit-block` (per `workflows-core:feedback-emission`) at that
 halt **before** escalating. None of Phase 0's stops qualify — a missing key, a missing source, a
-non-markdown source, a key that resolves to a slice (`BRD_INTAKE_SLICE`), and an unset
-`$SPECS_PATH` are all environment / user halts, never a plugin
+non-markdown source, a key that resolves to a slice (`BRD_INTAKE_SLICE`), to an Epic folder
+(`BRD_INTAKE_EPIC_LEVEL`) or to a folder that is not a BRD at all (`BRD_INTAKE_NOT_A_BRD`), and an
+unset `$SPECS_PATH` are all environment / user halts, never a plugin
 capability gap, so `emit-block` never fires from this command's own Phase 0. Nor does Phase 1's
 `BRD_INTAKE_UNREAD_ATTACHMENTS`: linked files the operator must convert first are an operator halt,
 as Phase 1 says where it stops.

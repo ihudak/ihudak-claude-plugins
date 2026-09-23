@@ -12,13 +12,13 @@ Its entry points, so a command can say which part it is executing: **the surface
 
 ## 1. Why a denominator
 
-An audit cannot list what is missing without a denominator — the set of things a product could be documented against. It builds one from code, so the denominator is derived rather than asserted, and can be rebuilt when the code moves.
+An audit cannot list what is missing without a denominator — the set of things a product could be documented against. It builds one from code, and from the specs tree's committed decisions and release-notes drafts (§2), so the denominator is derived rather than asserted, and can be rebuilt when either moves.
 
 ---
 
 ## 2. Surfaces
 
-A **surface** is a thing in the product that documentation can be about. The seven kinds are enumerated mechanically from the scanned repositories:
+A **surface** is a thing in the product that documentation can be about. Five of the seven kinds are enumerated mechanically from the scanned repositories; `decision` and `release` are enumerated from the specs tree, by `/docs-audit`'s own read (its Phase 2.5):
 
 | Surface kind | Derived from | Feeds |
 |---|---|---|
@@ -38,7 +38,7 @@ Because the enumeration is mechanical, it is only as good as the scan behind it.
 
 ## 3. Page types
 
-**Diátaxis is used at exactly one level: it is the page `type`, and nothing else.** It is the second axis of the coverage grid, and it is a reserved frontmatter key — `references/docs-profiles/frontmatter-guidelines.md`, *Reserved keys for the docs-workflow family*, which fixes `type` alongside `audience`, `visibility` and `unit`. Do not confuse it with `meta.content-type`, a differently-named enum the plugin's own `docs-frontmatter` skill owns; the two are separate keys and the coverage grid reads only `type`. It is **not** the navigation, **not** the folder tree, and **not** a per-surface quota.
+**Diátaxis is used at exactly one level: it is the page `type`, and nothing else.** It is the second axis of the coverage grid, and it is a reserved frontmatter key — `references/docs-profiles/frontmatter-guidelines.md`, *Reserved keys for the docs-workflow family*, which fixes `type` alongside `audience`, `visibility` and `unit`. Do not confuse it with `meta.content-type`, a differently-named enum the plugin's own `docs-frontmatter` skill owns; the two are separate keys, and the coverage grid's axis is the page type as a backlog unit records it — the grid is computed from `units[]` and reads no page's frontmatter. It is **not** the navigation, **not** the folder tree, and **not** a per-surface quota.
 
 **That reserved-key section states the same user and engineering type vocabulary this section does, and the two copies move together.** It is the one sanctioned second *authoritative* copy, because the frontmatter side has to state what a page may write and the coverage side has to state what a cell may be. They agree today, which is exactly when a drift between them would be invisible: change one and change the other in the same edit, and treat this file as the authority where they ever disagree. **It is not the only other place the eight names are written**: `backlog-format.md` §1's schema comments, `commands/docs-audit.md`'s Final Report *Coverage* template, and two human-facing pages, `docs/reference/docs-coverage-model.md` and `docs/docs-workflow.md`, list them illustratively and are no authority — but a change to the vocabulary goes stale in them too, so sweep them with it. `grep -rl 'api-reference' plugins/docs-workflows --exclude=CHANGELOG.md` finds every file that names the vocabulary.
 

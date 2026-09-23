@@ -74,7 +74,7 @@ Findings are triaged by the orchestrator before anything is applied: each is ver
 - `DOCS_AUDIT_UNRESOLVED_BLOCKER` — a BLOCKER finding from `docs-audit-reviewer` was neither fixed nor accepted by you. The backlog the run wrote stays on disk, reviewed and not fixed.
 - `DOCS_AUDIT_NOT_WRITEABLE` — the resolved repository's git top level cannot be written to, so there is nowhere to put the backlog.
 
-**Every one of those stops still finishes the run's bookkeeping.** A stop prints its line, reports it, and then runs the emitter tail: the cost entry and any feedback are recorded and the terminal commit into `$SPECS_PATH` still happens. The one exception is a rejected flag, which ends the run before any repository is resolved and so has nothing to file an entry against.
+**Every one of those stops still finishes the run's bookkeeping.** A stop prints its line, reports it, and then runs the emitter tail: the cost entry and any feedback are recorded and the terminal commit into `$SPECS_PATH` still happens. The exceptions are the three flag stops — `DOCS_AUDIT_UNKNOWN_AUDIENCE`, `DOCS_AUDIT_BAD_THRESHOLD` and `DOCS_AUDIT_UNKNOWN_FLAG` — and a Cancel where the repository ladder asks you to choose or name one: each ends the run before any repository is resolved, and so has nothing to file an entry against.
 - A run that enumerated no surface at all is not a failure: no plan is made, no backlog is written, an existing one is left exactly as it was, and the report says whether the product genuinely has none of these things or the scan could not tell.
 - Cancelling at the overwrite prompt — the one a run without `--refresh` raises when a backlog is already there — writes nothing. The cost entry is still recorded.
 

@@ -69,8 +69,14 @@ in Phase 9, for session lessons-learned.
 
 - **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_INTAKE_NEEDS_KEY`. A key
   that resolves to a **slice** stops the run with `BRD_INTAKE_SLICE`, naming the parent to re-intake
-  instead: a slice has no source document of its own, its `brd/` directory is the parent's one hop
-  up, and re-running here would overwrite the allocations `/brd-split` recorded in its ledger.
+  instead: a slice has no source document of its own — the source and the records beside it under
+  `brd/` are the parent's, one hop up, while the slice's own `brd/brd-inventory.md` and
+  `coverage-ledger.md` are created by `/brd-split` on the parent — and re-running here would overwrite the allocations `/brd-split` recorded in its ledger. A key
+  that resolves to any other folder that is not a BRD stops too, before anything is copied: an
+  **Epic** folder with `BRD_INTAKE_EPIC_LEVEL`, and an **idea-route PRD folder** — a `PRD-` folder no
+  BRD carved — or a folder placed at no level with `BRD_INTAKE_NOT_A_BRD`. Both leave the folder as it
+  stands and ask for a key no folder asserts, since the run creates a BRD folder only where the key
+  resolves to nothing; an existing root BRD is the one folder a key may name, and that is a re-run.
 - **`@<brd-file>`** — mandatory; absent stops the run with `BRD_INTAKE_NEEDS_SOURCE`.
 - **Your answer about what the document links.** Phase 1 walks every link first, read-only, and shows
   you what it found. Where anything lies outside the document's own folder it asks whether to capture

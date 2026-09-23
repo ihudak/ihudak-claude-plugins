@@ -1,4 +1,4 @@
-# Verification: the exclusivity probe, wider vocabulary (rounds 1 and 2)
+# Verification: the exclusivity probe, wider vocabulary (rounds 1–3)
 
 **Dates:** 2026-09-22 – 2026-09-23 · **Branch:** `iv-gu/excl-probe-wide` · **Commits:** `1515bddc` (round 1), `0a824488` (round 2), plus the provenance removal and this record · **Predecessor:** `2026-09-22-exclusivity-probe-whole-tree.md`
 
@@ -52,9 +52,9 @@ The round-2 instrument's families are recorded in the table above. The script it
 - **Subagents see the main checkout's `CLAUDE.md`, not the worktree's.** Three readers reported a `CLAUDE.md` defect that the branch had already fixed, because the project `CLAUDE.md` loaded into their context came from the primary checkout. Tell every agent working in a worktree to read the worktree's copy.
 - **A `grep -l <file>` inventory recipe misses generic readers.** For example, "every markdown file under X" is a reader of every file under X, and a grep for one file's name cannot see it. That is how the proposal-edit behaviour defect hid.
 
-## Not yet run (round 3's starting vocabulary)
+## Round 2's unmatched forms (round 3's vocabulary)
 
-These forms were reported by round-2 readers and matched by no family:
+These forms were reported by round-2 readers and matched by no family. Round 3 ran every one of them (below):
 
 - **Location-authority claims**: "the page that defines X", "is where X lives".
 - **`N further / N more <noun>` followed by a list**: "Two further agents …", "Twenty more …".
@@ -71,8 +71,71 @@ These forms were reported by round-2 readers and matched by no family:
 - **Frontmatter `description` inventories**: "consumed by the X agent", "Referenced by …".
 - **Temporal "today" and pending-change claims**: "Step 3 today visits only …", "the command's change to make".
 
+## Round 3
+
+**Dates:** 2026-09-23 · **Branch:** `iv-gu/excl-probe-r3` · **Commit:** `a39806b5`, plus this section · **Released with:** the archive prune (`c5ca8a09`).
+
+**Probe.** The fourteen forms above, as families, with the same method (wrap-insensitive, emphasis-stripped, both sides verified before editing), over `plugins/`, the repo-root `README.md` and `CLAUDE.md`:
+
+| Family | Hits | Family | Hits |
+|---|---|---|---|
+| `temporal` | 260 | `list-verb` | 38 |
+| `n-of-n` | 100 | `fidelity` | 38 |
+| `possessive-count` | 96 | `neither-list` | 28 |
+| `the-exception` | 48 | `location-authority` | 21 |
+| `shared-with` | 45 | `other-cmd-behaviour` | 11 |
+| `n-further` | 42 | `respectively` | 10 |
+| `named-subset` | 5 | `description-inventory` | 1 |
+
+743 hits in total, read in seven slices. The probe found about 53 defects, eight of them behaviour defects. Four needed a decision from the user, and each was put as a question:
+- the BRD route's register (`decisions.md`) is now gated on the specs repo's default branch by `/create-prd`, `/create-ard` and `/specify`;
+- `/document`'s new screenshots now go to `Doc screenshots/`, not `attachments/`;
+- the will-change rule (D19) is now enforced when `/brd-reconcile` freezes a customer decision;
+- a stale-`decided`-record gap that predates this round is now closed. `/brd-interview` now re-puts or reopens a decision whose evidence a `--rebaseline` superseded, and it confirms such a decision mechanically against a new `prior_verdict` that every superseded finding keeps.
+
+**Review waves.** Six full waves and one final narrow review, each fixed before the next:
+
+| Wave | 1 | 2 | 3 | 4 | 5 | 6 | final |
+|---|---|---|---|---|---|---|---|
+| Defects | 33 | 22 | 28 | 24 | 19 | 12 | 8 |
+
+**The count did not fall steadily, and the reason is worth recording.**
+- Everything outside `/brd-interview`'s and `/brd-reconcile`'s decision cycle converged by wave 5. Wave 5 found 3 defects in `/prd-ground`, and wave 6 found 3.
+- The decision cycle did not converge. Each wave's fix to its state machine (re-put, reopen, successor matching, conflict handling) was a new mechanism, and each new mechanism was where the next wave's defects were.
+- **This is `CLAUDE.md`'s *risk peaks* observation at scale.** On two occasions a behaviour defect in one wave came from the previous wave's new mechanism:
+  - the successor relation counted findings from sibling repositories;
+  - the conflicting-answer picker's ordering against the missing-reason picker had no disposition.
+- From wave 4 on, fixers were told to prefer the narrowest fix and to add a mechanism only where a state had no disposition at all.
+
+**Released defects this round fixed.** These are behaviour defects that shipped in 62e791e8, not claims:
+- `/brd-interview` anchored "what changed" on a round record's last write, so it lost a finding that changed while that round was open. It also opened a later round with no question to ask. Each round record now carries a `generated against:` line, which is the new anchor.
+- `/brd-reconcile`'s propagation-sweep changed-id set missed records this run reopened, superseded or completed.
+- Its sweep picker offered *Reopened* on a record that was not `decided`, and offered a terminal record at all.
+- Its reconciliation record left out items the sweep had dropped and `unallocated` rows.
+- Nothing stopped two customer answers to one question from both being frozen.
+- `/prd-ground` dispatched already-`SUPERSEDED` findings to the verifier. This looped on `COMMIT_MISMATCH` or resurrected a retired finding.
+- `/prd-ground`'s `PRD_GROUND_INVENTORY_NOT_HANDED_OFF` called an interrupted `/brd-split` a declined handoff.
+
+**Deferred by user decision** ("Split it out", 2026-09-23). These are an explicit exception to the zero-known-bugs rule. The decision-cycle lifecycle gaps that predate this round, or that its reviews surfaced beyond a narrow fix, go to their own design pass (brainstorm → spec → plan):
+1. A Phase 8 *Cancel* in `/brd-interview` leaves stray held `[C]` entries.
+2. No question source takes up a record reopened by `/brd-reconcile` or by the sweep.
+3. `/brd-interview`'s handoff names a stale key event.
+4. It is unstated whether `/create-prd` treats a keyless `prd.md` as found.
+5. `/document`'s and `/release-notes`' unplaced-folder stop wording is wrong.
+6. An in-place `contradict` rewrite reopens nothing.
+7. `/prd-ground`'s Phase 8 field list omits `prerequisite`.
+8. `/prd-ground` step 6 does not state its gate order.
+9. `/brd-reconcile` has no disposition for a same-answer resend that carries no `Re-puts:` line.
+10. The order of `/brd-split`'s parent and child writes is untraced.
+11. The fallback's `git log` is reachable from HEAD only.
+
+**Method notes new to round 3:**
+- **`temporal` is the noisiest family** (260 hits). Most were `RUN` or `RULE`. Its true positives were pre-feature "as today" idioms and stale not-yet claims.
+- **Changelog passes need their own rule.** One version's section was being edited while that version was still unreleased. Bullets that corrected this round's own earlier text described states no user ever saw, and a review caught 9 of them. From wave 3 on, fixers edited no changelog. A dedicated pass rewrote each top section against `62e791e8`, and a bullet saying "X said Y" was kept only where `git show 62e791e8:<file>` carries Y.
+- **Snapshot branches** (`r3-snap-prefixw1`…`w5`, deleted after merge) made each wave's delta reviewable. Without them, a reviewer can see only the whole round.
+
 ## Not verified
 
-1. **No command body was executed.** Every finding is a comparison of a claim against the tree. The behaviour fixes above were read, not run.
+1. **No command body was executed, in any round.** Every finding is a comparison of a claim against the tree. The behaviour fixes above were read, not run.
 2. **`docs/superpowers/` was out of scope**, as `CLAUDE.md` scopes the probe. That archive named the organisation this edition was written inside and its internal repositories. It was flagged to the user on 2026-09-23, who decided the same day: the design specs and plans under `docs/superpowers/specs/` and `docs/superpowers/plans/` were removed from the tree (all but the active CLAUDE.md split design; each remains readable with `git show 62e791e8:<path>`), every live citation of one was repointed at that command, the names were scrubbed from every other file outside the plugin changelogs, and `scripts/check-docs.sh` check 19 now fails the build if one returns. Git history was not rewritten.
 3. **Run-behaviour prose was triaged out, not checked.** It is still the large majority of hits.

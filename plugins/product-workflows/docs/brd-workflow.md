@@ -76,9 +76,13 @@ slice, deferring it, rejecting it against a logged defect, or marking it superse
 slice re-enters at `/prd-ground`, and the second `/brd-split` run — on that same slice, in
 **allocate-only** mode — walks its own ledger to a recorded fate with the findings already in hand,
 offering a different four: `covered-here` in place of `covered-by`, since nothing can exist below a
-slice but its Epics. That second run is what hands on to `/brd-interview`; the root's own key has no
-further step of its own, and every one of `/prd-ground`, `/brd-interview`, `/brd-package` and
-`/brd-reconcile` refuses a resolved root outright. So a requirement ordinarily reaches a fate twice —
+slice but its Epics. That second run is what hands on to `/brd-interview`; the root's own key takes
+no further step **forward**. It still takes other runs — `/brd-split` again (to carve a further
+slice, to resolve a child left standing empty, or for the sibling re-cut below), `/brd-intake` again
+on a revised document, `/frames` over its `design/`, and
+[`/brd-proposal`](commands/brd-proposal.md), which rolls its slices' proposals up and gates nothing downstream —
+while every one of `/prd-ground`, `/brd-interview`, `/brd-package` and `/brd-reconcile` refuses a
+resolved root outright. So a requirement ordinarily reaches a fate twice —
 once by the root's walk, once by the slice's — before it either has a home to be built in or a
 recorded reason it does not. The two dashed edges leaving `/brd-reconcile` are different in kind:
 they are not capped, because a review can legitimately reopen a decision or leave a question the
@@ -160,6 +164,33 @@ confirmed answer as a `[CD#n]` only once an operator has confirmed it against th
 words, and then sweeps every dependent BRD and every artifact still asserting a position the answer
 overturned.
 
+**A decision resting only on findings a prerequisite is about to make false is answered, not
+settled.** Both `/brd-interview` and `/brd-reconcile` write it `conditional_on` that prerequisite or
+hold it `open`, and close its question, so its round can close: what waits is the record. Its exit
+is a later round — and, for one written `conditional_on`, also `/brd-reconcile`'s propagation sweep,
+which reaches it by that field when the prerequisite's decision moves; that sweep's citation pass
+also reaches a held record of either kind that names an id its reconciliation changed. The round comes once the
+prerequisite has shipped, which the route sees as a `/prd-ground --rebaseline` pass whose successor
+findings no longer carry `will-change`: every such pass supersedes the findings it re-grounds, but
+keeps `will-change` on a successor until the prerequisite ships. Then a new `/brd-interview` round is
+askable, and the round opened puts the question again against the current findings, under the tag
+it had. The answer supersedes the held record where it reads `open` or `decided`, in `/brd-interview` for
+a `[V]` and in `/brd-reconcile` for a `[C]`, which reads each status as the register stood before
+its run wrote anything; one a propagation sweep reopened meanwhile is re-decided in place, and one
+another run left `withdrawn` or `superseded` does not move and is named beside the new record under
+what still needs a human.
+
+**A settled decision a re-grounding moved is reopened.** Where a `--rebaseline` pass supersedes
+every finding a decided `[VD#n]` or `[CD#n]` the will-change rule did not hold rests on,
+`/brd-interview` reopens it, naming the successor findings as the cause, unless every superseded
+finding has a successor — a later finding on the same requirement, grounded against the same
+repository or frame set — and each successor carries the verdict its superseded finding carried,
+kept on that finding as `prior_verdict`, and the horizon that finding carried; a reopened decision
+has its question put in the next round, and a confirmed one raises nothing. A `[V]` is re-decided there, and a `[C]` by
+`/brd-reconcile` from the customer's answer in the next package, each keeping its id — unless another
+run has meanwhile left the record `withdrawn` or `superseded`, when it does not move and the answer is
+a new record named beside it under what still needs a human.
+
 **Where the route hands over is `/brd-reconcile`**: a BRD whose customer decisions are frozen and
 whose tree holds nothing the review made false is the state the PRD pipeline is entered from.
 the BRD route **ships** on `/create-prd`, `/create-ard` and `/specify`, and `/brd-reconcile`'s
@@ -182,9 +213,12 @@ the reconciled ledger leaves no row `unallocated` and at least one `covered-here
 its own Phase 0 raises) — while `/create-ard` on the BRD route and `/specify` on the BRD route carry none of
 their own, since neither reads the ledger as an authoring input, and the PRD gate both run reports an absent PRD rather than stopping on it.
 The difference is where the enforcement sits: the level test and `/create-prd`'s eligibility test are
-each refused by the offered command's own Phase 0, whereas
-nothing downstream refuses an unsettled register, so the advance/re-entry split is a judgement only
-`/brd-reconcile` can make. **The diagram above draws all three**, as the three solid edges leaving
+each refused by the offered command's own Phase 0, whereas the one gate all three run on the register
+— `require-on-main` on `decisions.md`, stopping on a register left on an unmerged branch — tests
+which ref it is on and never what it holds, so nothing downstream refuses a merged register carrying
+a `reopened` or `open` record, and the advance/re-entry split is a judgement only `/brd-reconcile`
+can make. That same gate is why all three advance options carry the `<merge-clause>`: the register
+is one of the files `/brd-reconcile` hands off, and each offered command stops until it is merged. **The diagram above draws all three**, as the three solid edges leaving
 `/brd-reconcile` into the right-hand box. They are alternatives rather than a sequence: neither of
 the other two waits on anything `/create-prd` on the BRD route produces, so an ARD or a specification can
 be authored from a BRD whose ledger will never qualify for a PRD of its own. [Workflow overview](workflow.md) draws
@@ -199,23 +233,23 @@ each of those three also has a keyed form that this route never uses.
 
 | Command | Required | Optional | Notes |
 |---|---|---|---|
-| `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>`, `--no-docs` | Source must already be markdown — a PDF or similar is rejected, never converted. `<BRD-KEY>` names a folder, never a tracker ticket |
-| `/prd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-code`, `--no-design`, `--no-docs` | A root BRD is never ground (`PRD_GROUND_ROOT_LEVEL`); grounding runs at a `PRD-` folder — a slice, or an idea-route PRD folder. Needs `$REPOS_PATH`; read-only on every repo |
+| `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>`, `--no-docs`, `--docs <path>` | Source must already be markdown — a PDF or similar is rejected, never converted. `<BRD-KEY>` names a folder, never a tracker ticket |
+| `/prd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-code`, `--no-design`, `--no-docs`, `--docs <path>` | A root BRD is never ground (`PRD_GROUND_ROOT_LEVEL`); grounding runs at a `PRD-` folder — a slice, or an idea-route PRD folder. Needs `$REPOS_PATH`; read-only on every repo |
 | `/brd-split` | `<BRD-KEY> [<instruction>]` | — | No flags. Mandatory on a root still holding an unallocated row (`BRD_SPLIT_NEEDS_INSTRUCTION`), optional on a slice (allocate-only there), and on a fully allocated root it means the sibling re-cut |
 | `/brd-interview` | `<BRD-KEY>` | `--round N` | Only a slice is interviewed — a root stops with `BRD_INTERVIEW_ROOT_LEVEL`. No flag continues at the first open question; `--round N` resumes or re-opens one, cause recorded |
-| `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Only a slice is packaged — a root stops with `BRD_PACKAGE_ROOT_LEVEL`. `--depends-on` is repeatable at either level; a mistyped key is warned and dropped, never fatal |
+| `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Only a slice is packaged — a root stops with `BRD_PACKAGE_ROOT_LEVEL`. `--depends-on` is repeatable; a mistyped key is warned and dropped, never fatal |
 | `/brd-reconcile` | `<BRD-KEY> @<review-file>` | `--sent <path>…` | Only a slice is reconciled — a root stops with `BRD_RECONCILE_ROOT_LEVEL`. The review is taken at whatever path it arrived on and is never searched for |
-| `/create-prd` | `<SLICE-KEY>` | `--lean`/`--hybrid`/`--full`, `--no-docs`, `@<idea.md>` | A `BRD-` container is refused. Otherwise offered only where the slice's own claimed rows leave none `unallocated` and one `covered-here`. Profile defaults to `--full`; `--from-prd` accepted |
-| `/create-ard` | `<SLICE-KEY>` | `--no-docs` | A `BRD-` container is refused. Otherwise offered on any advancing slice run; gates `prd.md` as on the idea route, never authors from the ledger. One address (`CREATE_ARD_ONE_ADDRESS`) |
-| `/specify` | `<SLICE-KEY>` | `--no-docs` | A `BRD-` container is refused. Otherwise offered on the same terms as `/create-ard`. One address; a second token stops it (`SPECIFY_ONE_ADDRESS`) |
+| `/create-prd` | `<SLICE-KEY>` | `--lean`/`--hybrid`/`--full`, `--no-docs`, `--docs <path>`, `@<idea.md>` | A `BRD-` container is refused. Otherwise offered only where the slice's own claimed rows leave none `unallocated` and one `covered-here`. Profile defaults to `--full`; `--from-prd` accepted |
+| `/create-ard` | `<SLICE-KEY>` | `--no-docs`, `--docs <path>` | A `BRD-` container is refused. Otherwise offered on any advancing slice run; gates `prd.md` as on the idea route, never authors from the ledger. One address (`CREATE_ARD_ONE_ADDRESS`) |
+| `/specify` | `<SLICE-KEY>` | `--no-docs`, `--docs <path>` | A `BRD-` container is refused. Otherwise offered on the same terms as `/create-ard`. One address; a second token stops it (`SPECIFY_ONE_ADDRESS`) |
 
-`--no-docs` appears on two of the six **route** rows and means the same thing on both: turn off the
-optional grounding on shipped product documentation that `/brd-intake` and `/prd-ground` do when
-`$DOCS_PATH` resolves. The other four route commands have no such flag because none of them does
+`--no-docs` and `--docs <path>` appear together on two of the six **route** rows and mean the same
+thing on both: turn off, or point at another root, the optional grounding on shipped product
+documentation that `/brd-intake` and `/prd-ground` do when `$DOCS_PATH` resolves. The other four route commands have no such flag because none of them does
 docs grounding to turn off — `/brd-split` allocates requirements, and the last three work on
 decisions already taken, on which a documentation page (a claim *about* behaviour, not the
-behaviour) settles nothing. It reappears on all three **handover** rows, where it turns off that
-same grounding in the authoring run itself rather than in the route. See
+behaviour) settles nothing. The pair reappears on all three **handover** rows, where it turns off or
+re-points that same grounding in the authoring run itself rather than in the route. See
 `workflows-core:docs-grounding` for the resolution gate and the two
 consumption modes this route uses.
 
@@ -224,11 +258,22 @@ for shape only and never against a tracker — a BRD is a markdown file under `$
 tracker ticket. **That shape is two segments or three**: a BRD owning its source document is keyed
 `EPIC-008` and a slice of it `EPIC-008-01`, and the grammar prefers neither — a key's segment count
 is a naming convention, never a depth declaration. Every command after `/brd-intake` resolves a key
-at either level `resolve-address` searches — a BRD folder directly under `specifications/`, or the
-`PRD-` folder of a slice inside it — because a root has to resolve before it can be refused by name.
+through `resolve-address`, which searches three levels below `specifications/` — a BRD folder
+directly under it, the `PRD-` folder of a slice inside that, and an `EPIC-` folder below either kind of
+PRD folder — because a root has to resolve before it can be refused by name.
 `/brd-split` alone acts on either level once resolved; `/prd-ground`, `/brd-interview`,
-`/brd-package` and `/brd-reconcile` each refuse a resolved root outright. The three handover rows
-resolve at either level too — and then **refuse the upper one**: a PRD, an ARD and a specification
+`/brd-package` and `/brd-reconcile` each refuse a resolved root outright. An idea-route PRD folder —
+a `PRD-` folder carrying no `brd-link.md`, never carved from a BRD — is refused by `/brd-split`,
+`/brd-interview`, `/brd-package` and `/brd-reconcile` (`BRD_SPLIT_NOT_A_BRD`,
+`BRD_INTERVIEW_NOT_A_SLICE`, `BRD_PACKAGE_NOT_A_SLICE`, `BRD_RECONCILE_NOT_A_SLICE`), each naming `/create-ard` and `/specify` as the way that route goes on;
+`/prd-ground` grounds one. `resolve-address` searches the Epic level too, so a key naming an
+`EPIC-` folder resolves as readily, and all five refuse it before any gate
+(`PRD_GROUND_EPIC_LEVEL`, `BRD_SPLIT_EPIC_LEVEL`, `BRD_INTERVIEW_EPIC_LEVEL`,
+`BRD_PACKAGE_EPIC_LEVEL`, `BRD_RECONCILE_EPIC_LEVEL`), each naming the folder above the Epic where
+that command runs on it. `/brd-intake` runs on no existing folder but a root: a key resolving to an Epic folder stops with
+`BRD_INTAKE_EPIC_LEVEL`, and one resolving to an idea-route PRD folder with `BRD_INTAKE_NOT_A_BRD`,
+before anything is copied into it. The three handover rows
+resolve through the same search too — and then **refuse the `BRD-` container**: a PRD, an ARD and a specification
 are authored in a slice's `PRD-` folder, never in the `BRD-` container above it.
 
 **The BRD route is detected, never declared**, on all three of those rows. There is no flag and no
@@ -293,8 +338,10 @@ are shared with the idea route: `design/` holds exported frame sets, one immedia
 images plus an index that `workflows-core:grounding-format` §6.1 makes
 mandatory — `design-grounder` returns `NO_INDEX` rather than read a frame set without one, because a
 filename is not a reliable statement of what a frame shows. `attachments/` holds the text and markdown
-sources a run copied into the folder; today [`/idea`](commands/idea.md) is its only writer, and it
-writes only into an idea-route PRD folder — it refuses a BRD container and a BRD-route slice alike
+sources a run copied into the folder; [`/idea`](commands/idea.md) is its only writer — the companion
+`docs-workflows` plugin's `/document` reads an image it finds there as one of its screenshot sources
+and leaves it in place, but places a new one in the folder's `Doc screenshots/` subfolder, never here
+— and `/idea` writes only into an idea-route PRD folder — it refuses a BRD container and a BRD-route slice alike
 (`IDEA_NOT_AN_IDEA_FOLDER`) — so on this route the name is reserved and nothing writes it, and neither
 is its `design/idea-sources/` frame set. Neither name carries a key, neither is resolved by one, and
 both are reserved at either level — a `BRD-` folder or a `PRD-` folder inside it.

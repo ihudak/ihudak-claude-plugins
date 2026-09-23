@@ -317,8 +317,8 @@ is.
   it, a block that reached the specs checkout after it, a commit whose own date clears the note
   while the heading of a block recording it does not, and a commit or a block within a day of the
   boundary wherever the writer of either worked in another zone. **Population: every
-  `/release-notes` run with diff grounding on over a `release-notes.md` an earlier release wrote —
-  which is every one that exists today — and none of the notes written from `docs-workflows` 1.2.2
+  `/release-notes` run with diff grounding on over a `release-notes.md` an earlier release wrote,
+  and none of the notes written from `docs-workflows` 1.2.2
   on, since a note that records its read set never reaches this rule.** So the run lists, beside the
   ones it used, **every block the date rule dropped — by its record and heading date — and every
   commit that rule dropped by that commit's own date, by SHA, date and subject.** A commit dropped

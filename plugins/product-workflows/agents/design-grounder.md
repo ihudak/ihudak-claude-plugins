@@ -153,7 +153,7 @@ index_file: <relative path to the index file found>
 findings:
   - id: DG#<n>
     claim: <the requirement id as given — BR#n, AC#n, FR#n, or US#n> — <the requirement text>, or "none — frame-only" for a class-1 finding with no corresponding requirement
-    verdict: CONFIRMED | AMENDED | REWRITTEN | FALSE-FRIEND | NOT-PROVABLE | SUPERSEDED
+    verdict: CONFIRMED | AMENDED | REWRITTEN | FALSE-FRIEND | NOT-PROVABLE   # never SUPERSEDED — never emitted by a grounder; only a re-grounding run marks a finding SUPERSEDED, writing its prior_verdict (workflows-core:grounding-format §2)
     evidence:
       - path: <relative path to the frame image, per the index>
         note: <what the frame actually shows, and how it diverges from the requirement text>

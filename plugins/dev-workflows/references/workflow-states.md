@@ -46,8 +46,8 @@ stated cost of removing the mirror, not an oversight.
 occupy.** The PRD row above calls the slice *the PRD folder holding a flat `specification.md`*, and
 `/ready` derives its phase on this ladder exactly as it derives an Epic's — but `Open`'s expected
 artifact is an *Epic draft*, an `epic.md`, and the slice is a PRD folder rather than an `EPIC-`
-folder: `/epics` is the only command that writes an `epic.md` and it writes one only into an `EPIC-`
-folder (D6). So the slice's ladder is read from **In Preparation**, and the permanently absent
+folder: `/epics` is the only command that creates an `epic.md` and it creates one only into an
+`EPIC-` folder (D6). So the slice's ladder is read from **In Preparation**, and the permanently absent
 `epic.md` is not an artifact it straddles — a slice carrying `specification.md` and `design.md` is
 *Refined*, not the lower rung the straddle rule would otherwise name. Nothing else about the ladder
 changes for it, and an Epic, which can hold an `epic.md`, is read from `Open` as before.

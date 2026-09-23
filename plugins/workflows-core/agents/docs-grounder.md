@@ -134,7 +134,7 @@ notes: <when EMPTY: why nothing found; when a path degraded: which and why>
   (a scope/opportunity signal).
 
 `status: EMPTY` → both arrays empty and `notes` explains; the caller proceeds as
-today.
+it does without docs grounding.
 
 ## Hard rules
 

@@ -49,23 +49,24 @@ to protect that by omitting the free-text option. **Under §0 they cannot** — 
 whatever the array says — so the protection moves from the array's shape to the run's handling of the
 answer:
 
-**A free-text answer on one of the eight arrays below is normalised into that array's own vocabulary,
+**A free-text answer on one of the nine arrays below is normalised into that array's own vocabulary,
 or the question is re-asked. It is never written through as a new value.** `/document`'s image
 disposition is the shipped worked example: its free text *"resolves to one of the three dispositions
 above … There is no fourth disposition and no 'skip on my own judgement' path here."*
 
-**The eight:**
+**The nine:**
 
 | Array | Its closed vocabulary | Owner |
 |---|---|---|
 | the candidate-confirmation picker, with its two-option form for an answer matching no question the package put | `confirm` / `correct` / `reject` / `ask-the-customer`; on that form, `record-for-a-human` / `reject`, or a re-point onto a question the package put, which re-asks the candidate on the four-option form — never a freeze | `/product-workflows:brd-reconcile`, *Confirm every candidate* |
 | the missing-reason picker | ask the customer, or freeze `status: open` | `/product-workflows:brd-reconcile`, *Confirm every candidate* |
-| the propagation-sweep picker | `inherited-unchanged` / `reverted` / `reopened` / `withdrawn`; presented without `reopened` on an `[AS#n]` item, and without `reverted` on an item whose prior position the record does not preserve | `/product-workflows:brd-reconcile`, *The propagation sweep* |
+| the propagation-sweep picker | `inherited-unchanged` / `reverted` / `reopened` / `withdrawn`; presented without `reopened` on an `[AS#n]` item or on any decision not `decided`, without `reverted` on an item whose prior position the record does not preserve or whose restored evidence the will-change rule fires on unresolved, and not presented at all on an item whose record is `superseded` or `withdrawn` | `/product-workflows:brd-reconcile`, *The propagation sweep* |
 | the will-change resolution picker | the exactly three resolutions of `product-workflows:decision-register-format` §6 | `/product-workflows:brd-interview` |
 | the `[SR#n]` disposition picker | `fixed` / `accepted-risk` / `escalated-to-customer` / `rejected-with-reason`; presented without `fixed` where the finding's named artifact is one this command may not change | `/product-workflows:brd-package` |
 | the degradation-tier picker | `Full` / `Partial` / `Documents only` — the three rows of `product-workflows:bundle-packaging` §3 | `/product-workflows:brd-package` |
 | the customer-content ruling picker | ship the package, or hold it — the two outcomes `product-workflows:bundle-packaging` §6.3's *The operator's ruling* fixes | `/product-workflows:brd-package`, once per pass that reports a hit |
 | the `engagement_model` picker | `time-and-material` / `fixed-price` | `/product-workflows:prd-proposal` Phase 2, over the two shapes `product-workflows:proposal-format` §4 sections 16–18 fixes; `/product-workflows:brd-proposal` re-asks the same question over the same committed profile |
+| the conflicting-answer picker | freeze this candidate / keep the earlier one / ask the customer — the one not frozen set aside as a conflicting answer, never a second freeze | `/product-workflows:brd-reconcile`, *Confirm every candidate* |
 
 **The eighth is the one whose value is re-read as configuration by later runs of the same commands**,
 which is why it is here rather than left to the command: the answer is written to a committed
@@ -74,10 +75,10 @@ which of `product-workflows:proposal-format` §4's two section shapes to render 
 written through would be re-read indefinitely by two commands with no shape to render for it. It is
 never consumed once and closed.
 
-**Outliving its own run is not what distinguishes it, and five rows above falsify that weaker
+**Outliving its own run is not what distinguishes it, and six other rows falsify that weaker
 property** — it was claimed here once and was wrong. Row 5's `[SR#n]` disposition is read by a later
 run of a **different** command, as the defect-remediation sweep's third source
-(`product-workflows:proposal-format` §7). Rows 1, 2 and 4 write into `decisions.md`, whose frozen
+(`product-workflows:proposal-format` §7). Rows 1, 2, 4 and 9 write into `decisions.md`, whose frozen
 `[VD#n]`s and `[CD#n]`s are read on later runs by `/create-prd`, `/create-ard` and `/specify`, each
 filtering them by altitude. Row 3's disposition is written onto a dependent BRD's register row and
 read there the same way. Every one of those is a **record** of what was decided, read back as evidence
@@ -91,7 +92,7 @@ the row is in the table.
 The eighth also has a **second route to the same field** — the proposal-profile confirmation
 picker's *Correct a field* option, in both commands — and that route is normalised the same way.
 
-**The first three are load-bearing beyond tidiness, and the reason is worth carrying.** They are the
+**The first three, and the ninth, are load-bearing beyond tidiness, and the reason is worth carrying.** They are the
 pickers through which a customer's authority enters the decision register, and D14 exists because
 **normalising prose into a register row is inference, and promoting inference to customer authority
 silently is the one way that workflow could fabricate a mandate the customer never gave.** A free-text
@@ -101,10 +102,10 @@ re-opened by an adjustment made in good faith against this file. A rule contradi
 authority is not a rule, so the carve-out is written here, by name, rather than left to each command
 to assert against a reference that overrules it.
 
-**No operator is trapped, and the reason is no longer `Cancel`.** Three of the eight carried a
+**No operator is trapped, and the reason is no longer `Cancel`.** Three of the nine carried a
 trailing `Cancel` until the four-option cap was enforced, and it was dropped from each — a fifth slot
 the harness would not render. The escape that replaces it is the free-text option, which is always
-present and, on these eight, is normalised rather than frozen. Where aborting has a consequence the
+present and, on these nine, is normalised rather than frozen. Where aborting has a consequence the
 operator must see before choosing, the command states it in the prose introducing the walk rather
 than in an option: `/brd-package`'s and `/brd-reconcile`'s walks both do.
 
@@ -190,11 +191,12 @@ the variable the run is missing, never a generic placeholder.
 for `REPOS_PATH`), `/brd-split` (Phase 0 step 2), `/brd-interview` (Phase 0 step 3), `/brd-package`
 (Phase 0 step 3), `/brd-reconcile` (Phase 0 step 3), `/frames` (Phase 0 step 0), `/prd-proposal`
 (Phase 0 step 1), `/brd-proposal` (Phase 0 step 1), `/idea` (Phase 0 step 1), `/implement` (Phase 0
-*Address resolution*, on a `<KEY>` address only) and `/document` (*Mode detection*, keyed mode on a
-`<KEY>` address only) cite this rule by name — for every one of them but `/prd-ground`, `SPECS_PATH`
-is the only path variable it requires, since none of the others requires a repository root
-(`/idea --ground-code` and `/document` read `${REPOS_PATH:-/workspace}` with its default and never
-stop on it unset; a `$DOCS_PATH` that does not resolve only skips documentation grounding, or, in
+*Address resolution*, on a `<KEY>` address only), `/document` (*Mode detection*, keyed mode on a
+`<KEY>` address only) and `/release-notes` (Phase 0 step 1, on a `<KEY>` address only) cite this
+rule by name — for every one of them but `/prd-ground`, `SPECS_PATH` is the only path variable it
+requires, since none of the others requires a repository root (`/idea --ground-code`, `/document`
+and `/release-notes`' opt-in diff grounding read `${REPOS_PATH:-/workspace}` with its default and
+never stop on it unset; a `$DOCS_PATH` that does not resolve only skips documentation grounding, or, in
 `/document`, one rung of its docs-repository ladder, and stops nothing). **State the set by its
 property, not by counting from the end of the list, nor by naming a subset**: the clause read "for
 the last four" until the list grew, at which point it silently described a different set, and a

@@ -1,6 +1,6 @@
 ---
 name: prd-ground
-description: Grounding workflow serving both routes into a PRD, its route detected from the resolved folder and never declared — the BRD-to-PRD route's PA phase, run once per slice `/brd-split` carves and again when a re-cut gives a slice a new row; and, optionally and ungated, once after `/create-prd` on the idea route. Pins every mounted repository to a verified commit and grounds every claim in the resolved folder's own claim list — a BRD slice's [BR#n] rows on the BRD route, a PRD's [AC#n]/[FR#n] rows (plus a [US#n] whose story carries neither) on the idea route, excluding [UC#n]/[SM#n]/[SMC#n] on either — against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and, on the BRD route, assigns each finding a current/will-change horizon against declared prerequisite BRDs (--depends-on; refused on the idea route, which has no decision register to freeze one against). Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (off with --no-docs, and under --no-code) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split on the BRD route; on the idea route, /create-ard and /specify, with /update-prd named first wherever a requirement claim came back CONFIRMED.
+description: Grounding workflow serving both routes into a PRD, its route detected from the resolved folder and never declared — the BRD-to-PRD route's PA phase, run once per slice `/brd-split` carves and again when a re-cut gives a slice a new row; and, optionally and ungated, once after `/create-prd` on the idea route. Pins every mounted repository to a verified commit and grounds every claim in the resolved folder's own claim list — a BRD slice's [BR#n] rows on the BRD route, a PRD's [AC#n]/[FR#n] rows (plus a [US#n] whose story carries neither) on the idea route, excluding [UC#n]/[SM#n]/[SMC#n] on either — against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every live finding (grounding-verifier, Opus), and, on the BRD route, assigns each finding a current/will-change horizon against declared prerequisite BRDs (--depends-on; refused on the idea route, which has no decision register to freeze one against). Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (off with --no-docs, and under --no-code) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. --no-code adds design grounding over an already-verified code grounding without re-deriving it; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split on the BRD route; on the idea route, /create-ard and /specify, with /update-prd named first wherever a requirement claim came back CONFIRMED.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -18,9 +18,10 @@ that discipline happen, not to ground anything itself.
 
 Usage: `/prd-ground <KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-code] [--no-design] [--no-docs] [--docs <path>] [--rebaseline]`
 
-`<BRD-KEY>` still resolves through either of the two levels `resolve-address` searches
-(`workflows-core:addressing` §3) — a BRD that owns its source document, or one of its slices —
-because a root must be resolved before Phase 0 step 5a can refuse it by name. **A root BRD is never
+`<BRD-KEY>` still resolves through `resolve-address`, which searches every level
+`workflows-core:addressing` §3 bounds — three below `specifications/` — and so returns a BRD that owns
+its source document, one of its slices, an idea-route PRD folder or an Epic folder alike, because a
+root must be resolved before Phase 0 step 5a can refuse it by name. **A root BRD is never
 ground: it is refused, and grounding happens at a `PRD-` folder — on the BRD route a slice**, over
 the requirements that slice's own inventory claims, **or an idea-route PRD folder**, over its PRD's
 own rows.
@@ -76,8 +77,9 @@ behaviour, not the behaviour.
      design pass that still could not split:
      `PRD_GROUND_NO_CODE_UNGROUNDED: --no-code adds design grounding over an existing code grounding, and <KEY> has <no code grounding on file | no [CG#n] findings | N of M [CG#n] findings carrying no verifier outcome> — re-run '/product-workflows:prd-ground <KEY>' without --no-code.`
 
-   **Every other flag carries over unchanged, on either route, including every refusal combination
-   above** — stated here rather than left for a reader to infer from silence. `--no-design`,
+   **Every flag but `--depends-on` carries over unchanged, on either route, including every refusal
+   combination above** — stated here rather than left for a reader to infer from silence;
+   `--depends-on` is the one route-bound flag, refused on `route: idea` at the top of this step. `--no-design`,
    `--no-docs`, `--docs <path>`, `--rebaseline`, and `--derivation-matrix`/`--no-derivation-matrix`
    test only one another and the resolved folder's own grounding files, never a BRD-route artifact,
    so none of them needs a route branch of its own. The one worth looking at rather than assuming is
@@ -99,13 +101,13 @@ behaviour, not the behaviour.
    when the specs repo is clean and on its default branch. If it returns `specs_git: blocked`
    (§3.3 G0), carry that flag for the whole run.
 5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
-   `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it.
+   every level `workflows-core:addressing` §3 bounds — three below `specifications/`, plus §5's legacy fallback — and so can return any folder kind it finds there: a `BRD-` folder directly under `specifications/`, a `PRD-` folder (a slice inside a BRD, or an idea-route PRD folder), or an `EPIC-` folder inside a `PRD-` folder. Step 5a answers the level question on what it returns.
    Absent → stop, without asserting which command would create it: no folder exists, so no
    `brd-link.md` exists either, and nothing on disk says whether this key names a BRD with a source
    document, a slice of one, or an idea-route PRD folder never authored. Naming `/brd-intake`
    unconditionally would be the wrong advice for two of those three cases, exactly as it is in step
    6's `absent` branch below:
-   `PRD_GROUND_NOT_FOUND: no folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent; an idea-route PRD folder is created by /product-workflows:create-prd <KEY>. Do not run /brd-intake on a slice or on an idea-route PRD key; neither has a source document of its own.`
+   `PRD_GROUND_NOT_FOUND: no folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — check the key. A BRD with a source document of its own is created by /product-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /product-workflows:brd-split on its parent; an idea-route PRD folder is created by /product-workflows:create-prd <KEY>. Do not run /brd-intake on a slice or on an idea-route PRD key; neither has a source document of its own.`
 5a. **The level refusals, and the route fork — a root BRD is never ground: grounding happens at a
     `PRD-` folder, a slice or an idea-route PRD folder, and its claim source forks by which route
     produced it.** Take this the moment step 5
@@ -168,14 +170,19 @@ behaviour, not the behaviour.
       legacy slice to `route: brd`. What is left unresolved is exactly the shape §5.1 calls "a legacy
       idea-route PRD folder" — neither `coverage-ledger.md` nor `brd/brd-inventory.md`, and, by that
       shape's own definition, no `brd-link.md` either — and that shape is **not** automatically
-      `route: idea`: before this route existed, the only way this command ever reached such a folder
-      was an intake interrupted after `brd/source/` was copied and before Phase 3/5 ever wrote the
-      ledger and inventory, which step 6 below still has to catch. **Split it on `prd.md` being
+      `route: idea`: a legacy folder holding only an `idea.md`, say, is no PRD folder yet, and step 6
+      below still has to report it. **Split it on `prd.md` being
       present and asserting `kind: prd` — positive evidence each way, never the absence of a file,
       exactly the rule this step already applies to the root question above.** Present →
       `route: idea`, and step 6i gates that file instead of step 6's ledger branch ever opening.
-      Absent, or present without `kind: prd` → the existing interrupted-intake branch at step 6,
-      unchanged: nothing here has told that branch its folder is settled, so it still has to ask.
+      Absent, or present without `kind: prd` → step 6's no-link branch, unchanged in where it sends
+      the run: nothing here has told that branch its folder is settled, so it still has to ask.
+      **Where that folder holds an `idea.md` and no `prd.md`** — the folder the idea route handed an
+      idea off into before the kind prefixes, which `workflows-core:addressing` §5 resolves on its
+      name alone — each no-link stop in step 6 appends its `/product-workflows:create-prd <KEY>`
+      clause: that command accepts the folder (its Phase 0 steps 5a and 5b refuse only a container and
+      an Epic folder) and writes the `prd.md` whose `kind: prd` sets `route: idea` here on the re-run,
+      which is what `PRD_GROUND_NEEDS_PRD` names for a `PRD-` folder in the same state.
 6. **On `route: brd`, gate this BRD's own inventory and ledger on main.** (The idea route's own
    gate is step 6i, immediately below — this whole step is the `route: brd` branch, unchanged.)
    Execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against the resolved BRD folder's `coverage-ledger.md`. Whichever
@@ -189,26 +196,50 @@ behaviour, not the behaviour.
    states outright. Map its return exactly as the ledger's below, **except
    for row F, which needs its own two-branch stop and must not borrow step 8's.** Step 8's
    `PRD_GROUND_EMPTY_INVENTORY` reports a *content* fact — the inventory holds no `[BR#n]` row — and
-   its remedy re-runs `/brd-split <PARENT-KEY>` to resolve the standing empty child. Row F reports a
+   its remedy re-runs `/brd-split` on `<PARENT-KEY>` to resolve the standing empty child. Row F reports a
    *merge* fact, and sending that operator to `/brd-split` on the parent risks the same no-op the
    next split below refuses to name unconditionally — a fully-allocated parent stages nothing on a **bare** re-run.
    Split it on the same test the
    ledger's own row F uses — is the file in the folder at all:
-   - **No `brd/brd-inventory.md` in the folder** — never produced. Read the resolved folder's
+   - **No `brd/brd-inventory.md` in the folder** — never produced, or lost after it was written; the table below tells them apart. Read the resolved folder's
      `brd-link.md` and branch on its `parent:` field: 5a's own legacy-fallback test lets a folder
      carrying **neither** `coverage-ledger.md` **nor** `brd/brd-inventory.md` through unrefused
      (`coverage-ledger-format.md` §5.1), so a folder reaching this branch is not always the slice
-     step 5a would otherwise guarantee — it may be a legacy root BRD whose intake was interrupted
-     after `brd/source/` was copied and before Phase 3/5 ever wrote the inventory and ledger.
-     - **No `brd-link.md`, or one with no `parent:`** — this reads as an interrupted intake, not a
-       slice with a `<PARENT-KEY>` to read. Stop:
-       `PRD_GROUND_NO_INVENTORY: <BRD-KEY> has no brd/brd-inventory.md and no brd-link.md naming a parent — this reads as an interrupted intake, not a slice. Re-run '/product-workflows:brd-intake <BRD-KEY> @<brd-file>' to complete it (an existing BRD folder is a re-run, not a refusal).`
+     step 5a would otherwise guarantee. Since product-workflows 3.7.0 `/brd-intake` writes the
+     inventory's header before it copies anything (`brd-format.md` §2); a folder an earlier intake
+     left with `brd/source/` alone carries neither BRD file, and `/brd-intake` refuses it too, so the
+     remedy is the same.
+     - **No `brd-link.md`, or one with no `parent:`** — not a slice with a `<PARENT-KEY>` to read,
+       and not a BRD container either: it carries neither BRD file, or is a `PRD-` folder whose
+       `brd-link.md` names no `parent:`, which no command writes. `/brd-intake` re-runs only over a
+       container (`workflows-core:addressing` §4.1) and refuses this folder with
+       `BRD_INTAKE_NOT_A_BRD`, so name no re-run over it — and, where the folder holds an `idea.md` and
+       no `prd.md`, name `/create-prd` on this key (step 5a). `<what it carries>` is the folder's
+       top-level files and subdirectories, as read. Stop:
+       `PRD_GROUND_NO_INVENTORY: <BRD-KEY> resolves to <path>, which carries <what it carries> and has no brd/brd-inventory.md and no brd-link.md naming a parent — it is not a slice, and not a BRD container /product-workflows:brd-intake would re-run over. Nothing was written. To intake a customer's BRD, run '/product-workflows:brd-intake <NEW-KEY> @<brd-file>' with a key no folder under $SPECS_PATH/specifications/ asserts; this folder is left exactly as it stands.<where the folder holds an idea.md and no prd.md, append:> It holds an idea.md and no prd.md, so the idea route goes on from it: run '/product-workflows:create-prd <BRD-KEY>', merge its handoff, then re-run '/product-workflows:prd-ground <BRD-KEY>'.`
      - **`parent: <PARENT-KEY>` present** — this is a slice. Stop:
-       `PRD_GROUND_NO_INVENTORY: <BRD-KEY> has no brd/brd-inventory.md, so there is no claim list to ground. Run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', which writes the slice's inventory from the rows the parent delegated to it.`
-   - **The inventory is in the folder and on no ref** — produced, handoff declined. Land what is
-     already on disk, and **do not name `/brd-intake`**: re-running it rewrites the inventory and the
-     ledger dispositions recorded against it go with it:
-     `PRD_GROUND_INVENTORY_NOT_HANDED_OFF: <BRD-KEY>'s brd/brd-inventory.md is written at <path> but is on no branch — its handoff was declined. Commit and merge it to the specs repo's default branch and re-run; do not re-run /product-workflows:brd-intake, which would rewrite the inventory and orphan the coverage-ledger dispositions already recorded against it.` What the single-commit fact still buys is the *rest* of the set: it was
+       `PRD_GROUND_NO_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and has no brd/brd-inventory.md, so there is no claim list to ground. <remedy>`
+
+       **`<remedy>` is conditional, exactly as `PRD_GROUND_NEEDS_SPLIT`'s below is, because a
+       parent re-run touches a slice's inventory only where its walk moves a row onto or off that
+       slice, and then only the rows that move**
+       (`commands/brd-split.md` Phase 4's reconcile step re-derives a child's three files only for
+       a child that walk gave a row or took one from). Read this slice's `brd-link.md` `claims:`
+       and `<PARENT-KEY>`'s own `coverage-ledger.md`, and take the first row that matches:
+
+       | State | `<remedy>` |
+       |---|---|
+       | This slice's `claims:` names no `[BR#n]` | It claims nothing — the standing-empty-child state step 8's `PRD_GROUND_EMPTY_INVENTORY` reports — so give that stop's remedy unchanged, which already names the `/brd-split` form by the parent's ledger |
+       | It claims rows, its folder holds no `coverage-ledger.md` (`/brd-split` writes a slice's ledger after its inventory, so one in the folder means this file was written and lost), none of them reads `covered-by: <this slice's key>` on `<PARENT-KEY>`'s ledger, and at least one still reads `unallocated` there | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md and before writing its inventory, so this file was never written — and that run reached neither its handoff nor its terminal commit, and brd-link.md is no path the specs repo's bookkeeping commit stages, so no command has committed this slice's folder either. A parent re-run will not finish it: its walk writes a slice's inventory and ledger rows only for the rows it adds to that slice, never the rows the slice already claims. Remove this slice's folder — delete it where git reports it untracked, and where it was committed by hand, remove it in a commit on every branch that carries it, the default branch included — then re-run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', which places every row still unallocated on <PARENT-KEY>'s ledger, the ones this slice claimed included, as though this slice had never been carved.` |
+       | It claims rows, its folder holds no `coverage-ledger.md`, and none of them reads `covered-by: <this slice's key>` or `unallocated` on `<PARENT-KEY>`'s ledger | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md, so this file was never written, and every row it claims has since been settled elsewhere on <PARENT-KEY>'s ledger, so none is owed here. Its claims: list is left over from that run: empty it by hand in brd-link.md, then re-run /product-workflows:brd-split on <PARENT-KEY>, which offers to remove this slice or keep it against a recorded reason. Which form to type depends on that parent's own ledger: where it still holds an unallocated row, a run with rows still to place needs a slicing instruction, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'; where none is left, type the bare '/product-workflows:brd-split <PARENT-KEY>'.` |
+       | It claims rows, and `<PARENT-KEY>`'s ledger still holds an `unallocated` row | `A parent re-run will not repair this file. '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' still has rows to walk, but it reconciles rather than rebuilds: it touches this slice's inventory only for the rows its walk moves onto or off this slice, never the rows the slice already claims. The file was lost after it was written, and no command re-creates the rows it held — restore it from the ref that carried it, or report it.` |
+       | It claims rows, and `<PARENT-KEY>`'s ledger holds no `unallocated` row | `A parent re-run carves nothing here: the bare '/product-workflows:brd-split <PARENT-KEY>' is a no-op, and an instructed one touches this slice's inventory only where it re-cuts a row onto or off this slice, and only the rows that move — never the rows the slice already claims. The file was lost after it was written, and no command re-creates the rows it held — restore it from the ref that carried it, or report it.` |
+       | `<PARENT-KEY>`'s ledger cannot be read | Report it by path and name no `/brd-split` form: which one runs is that ledger's to say |
+   - **The inventory is in the folder and on no ref, and so is a `coverage-ledger.md`** — produced, handoff declined. (Where the folder holds no `coverage-ledger.md`, do not print this stop: map the ledger's own `require-on-main` return instead — its row F takes branch (a) below, whose never-written row disposes of this inventory.) Land what is
+     already on disk, and **name no `/brd-intake` run**: that command refuses a slice
+     (`BRD_INTAKE_SLICE`) and any folder that is not a container (`BRD_INTAKE_NOT_A_BRD`), and
+     every container was refused as a root at step 5a:
+     `PRD_GROUND_INVENTORY_NOT_HANDED_OFF: <BRD-KEY>'s brd/brd-inventory.md is written at <path> but is on no branch — its handoff was declined. Commit and merge it to the specs repo's default branch and re-run. This names no /product-workflows:brd-intake run: that command refuses a slice and any folder that is not a container.` What the single-commit fact still buys is the *rest* of the set: it was
    `/brd-split` running on the parent, and there is no *requirement* defect log to land — a slice
    reads the parent's `brd/brd-defect-log.md` (`brd-format.md` §2.1), and the slice-owned
    `code-defect-log.md` is a different register this phase's set never held.
@@ -217,7 +248,7 @@ behaviour, not the behaviour.
    the §3.3 row-B message; `unmanaged` → proceed as before this feature.
 
    **`absent` (row F) — nothing for this BRD is on any ref — is split twice before it is reported.**
-   Row F conflates two states: *never produced* and *produced, handoff declined*. Reported as one,
+   Row F conflates three states: *never produced*, *lost after it was written* and *produced, handoff declined*. Reported as one,
    the message tells an operator whose files are already written to go and produce them — and on a
    slice it names `/brd-split`, which **re-run bare** in that state is a no-op that stages nothing and
    does not land those files. Split row F **first on whether `coverage-ledger.md` exists in the worktree**,
@@ -225,21 +256,40 @@ behaviour, not the behaviour.
    or not anything reached main) and branching on its `parent:` field, because a slice must never be
    told to run a command that would refuse it.
 
-   **(a) No `coverage-ledger.md` in the folder — it was never produced.** Read `brd-link.md`, if
+   **(a) No `coverage-ledger.md` in the folder — never produced, or lost after it was written; the table below tells them apart.** Read `brd-link.md`, if
    present, and branch on its `parent:` field: 5a's own legacy-fallback test lets a folder carrying
    **neither** `coverage-ledger.md` **nor** `brd/brd-inventory.md` through unrefused
    (`coverage-ledger-format.md` §5.1), so a folder reaching this branch is not always the slice
-   step 5a would otherwise guarantee — it may be a legacy root BRD whose intake was interrupted
-   after `brd/source/` was copied and before Phase 3/5 ever wrote the inventory and ledger.
-   - **No `brd-link.md`, or one with no `parent:`** — this reads as an interrupted intake. Stop:
-     `PRD_GROUND_NEEDS_INTAKE: no intake artifacts on main for <BRD-KEY>, and none in the folder either — run /product-workflows:brd-intake <BRD-KEY> @<brd-file> for it and merge the pull request first.`
+   step 5a would otherwise guarantee — and, as step 6's inventory branch above says, one an intake
+   earlier than product-workflows 3.7.0 left with `brd/source/` alone is refused by `/brd-intake`
+   too, so the remedy is the same.
+   - **No `brd-link.md`, or one with no `parent:`** — not a slice and not a BRD container, so
+     `/brd-intake` refuses it with `BRD_INTAKE_NOT_A_BRD` rather than re-running over it; name a new
+     key instead — and, where the folder holds an `idea.md` and no `prd.md`, `/create-prd` on this
+     one (step 5a) — `<what it carries>` being the folder's top-level files and subdirectories, as read.
+     Stop:
+     `PRD_GROUND_NEEDS_INTAKE: <BRD-KEY> resolves to <path>, which carries <what it carries> — no intake artifacts on main and none in the folder either, and no brd-link.md naming a parent. It is not a slice, and not a BRD container /product-workflows:brd-intake would re-run over. Nothing was written. To intake a customer's BRD, run '/product-workflows:brd-intake <NEW-KEY> @<brd-file>' with a key no folder under $SPECS_PATH/specifications/ asserts and merge the pull request; this folder is left exactly as it stands.<where the folder holds an idea.md and no prd.md, append:> It holds an idea.md and no prd.md, so the idea route goes on from it: run '/product-workflows:create-prd <BRD-KEY>', merge its handoff, then re-run '/product-workflows:prd-ground <BRD-KEY>'.`
    - **`parent: <PARENT-KEY>` present** — this is a slice, and `/brd-intake` is not the fix: a
      slice has no document of its own to intake (`brd-format.md` §2.1), and the command that writes
      a slice's ledger and inventory is `/brd-split` on the parent
      (`coverage-ledger-format.md` §3). Stop:
-     `PRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger exist on no ref and in no folder — where <PARENT-KEY>'s ledger still holds unallocated rows, run /product-workflows:brd-split <PARENT-KEY> "<how to cut it>" and merge the pull request first. Where the parent is already fully allocated and this slice claims rows, that run carves nothing — with no row left unallocated there is nothing for the instruction to group — and where that parent holds no re-cuttable row it is a no-op that stages nothing: the slice's files were lost after they were written, and no command re-creates the rows they held — restore them from the ref that carried them, or report it. Do not run /brd-intake on a slice; it has no source document of its own.`
+     `PRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its coverage-ledger.md exists on no ref and in no folder. <remedy> Do not run /brd-intake on a slice; it has no source document of its own.`
 
-     **The condition qualifies the remedy, and both branches must carry it.** The sibling rule under (b) below — *`/brd-split` is not a way out here, so do not name it* — already says not to name `/brd-split` for a fully-allocated parent, because re-running it **bare** there stages nothing and opens no pull request. Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
+     **`<remedy>` is conditional, on two of the three reads `PRD_GROUND_NO_INVENTORY`'s takes above** — this
+     slice's `brd-link.md` `claims:` and `<PARENT-KEY>`'s own `coverage-ledger.md` — because which
+     `/brd-split` run changes anything depends on both. The third, whether a `coverage-ledger.md`
+     stands in this slice's folder, this branch has already answered: none does. Take the first row that matches:
+
+     | State | `<remedy>` |
+     |---|---|
+     | This slice's `claims:` names no `[BR#n]` | It claims nothing — a standing empty child, which a parent re-run resolves in either form — so give step 8's `PRD_GROUND_EMPTY_INVENTORY` remedy unchanged, which names the `/brd-split` form by the parent's ledger |
+     | It claims rows, none of them reads `covered-by: <this slice's key>` on `<PARENT-KEY>`'s ledger, and at least one still reads `unallocated` there | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md and before writing its ledger, so the files it had not reached were never written — and that run reached neither its handoff nor its terminal commit, and neither brd-link.md nor brd/brd-inventory.md is a path the specs repo's bookkeeping commit stages, so no command has committed this slice's folder either. A parent re-run will not finish it: its walk writes a slice's inventory and ledger rows only for the rows it adds to that slice, never the rows the slice already claims. Remove this slice's folder — delete it where git reports it untracked, and where it was committed by hand, remove it in a commit on every branch that carries it, the default branch included — then re-run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', which places every row still unallocated on <PARENT-KEY>'s ledger, the ones this slice claimed included, as though this slice had never been carved. Removing the folder discards any brd/brd-inventory.md that run had already written into it as well, which loses nothing: it holds only rows copied from <PARENT-KEY>'s own inventory, which still carries every one of them.` |
+     | It claims rows, and none of them reads `covered-by: <this slice's key>` or `unallocated` on `<PARENT-KEY>`'s ledger | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md, so the files it had not reached were never written, and every row it claims has since been settled elsewhere on <PARENT-KEY>'s ledger, so none is owed here. Its claims: list is left over from that run: empty it by hand in brd-link.md, then re-run /product-workflows:brd-split on <PARENT-KEY>, which offers to remove this slice or keep it against a recorded reason. Which form to type depends on that parent's own ledger: where it still holds an unallocated row, a run with rows still to place needs a slicing instruction, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'; where none is left, type the bare '/product-workflows:brd-split <PARENT-KEY>'.` |
+     | It claims rows, and `<PARENT-KEY>`'s ledger still holds an `unallocated` row | `A parent re-run will not repair this slice's files. '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' still has rows to walk, but it reconciles rather than rebuilds: it touches this slice's inventory and ledger only for the rows its walk moves onto or off this slice, never the rows the slice already claims. The ledger was lost after it was written, with the inventory too where that is missing as well, and no command re-creates the rows they held — restore what is missing from the ref that carried it, or report it.` |
+     | It claims rows, and `<PARENT-KEY>`'s ledger holds no `unallocated` row | `A parent re-run carves nothing here — with no row left unallocated there is nothing for an instruction to group — and where that parent holds no re-cuttable row it is a no-op that stages nothing: the slice's ledger was lost after it was written, with its inventory too where that is missing as well, and no command re-creates the rows they held — restore what is missing from the ref that carried it, or report it.` |
+     | `<PARENT-KEY>`'s ledger cannot be read | Report it by path and name no `/brd-split` form: which one runs is that ledger's to say |
+
+     **The condition qualifies the remedy, and every row must carry it.** The table once had two branches, both on a slice claiming rows, and so said nothing to a slice claiming nothing under a fully-allocated parent — a standing empty child, the one state here in which a parent re-run is live whatever the parent's ledger holds. The sibling rule under (b) below — *`/brd-split` is not a way out here, so do not name it* — already says not to name `/brd-split` for a fully-allocated parent, because re-running it **bare** there stages nothing and opens no pull request. Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
 
    **(b) `coverage-ledger.md` is in the folder, and on no ref — it was produced and its handoff was
    declined.** The files exist; what is missing is a commit. **Say so, and name landing them as the
@@ -328,7 +378,12 @@ behaviour, not the behaviour.
    never the fix: a slice has no document of its own to intake (`brd-format.md` §2.1). Read
    `<PARENT-KEY>` from the resolved folder's `brd-link.md` `parent:` field. A slice reaches this
    state only as the empty child `/brd-split`'s empty-child check offered to keep with a recorded
-   reason:
+   reason. **Where `<PARENT-KEY>`'s own `coverage-ledger.md` cannot be read**, the stop names
+   neither `/brd-split` form, since which one runs is that ledger's to say: replace everything from
+   `Re-run /product-workflows:brd-split on <PARENT-KEY>` to the end of the message with
+   `The parent's ledger at <path> cannot be read, and which /product-workflows:brd-split form resolves this slice is that ledger's to say — report it; neither form is named here.`
+   Every remedy table in step 6 that hands this stop's remedy on inherits that case with it, so a
+   first row matching a claimless slice never names a form its own last row would withhold:
      `PRD_GROUND_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground. Do not run /product-workflows:brd-intake on a slice; it has no source document of its own. Re-run /product-workflows:brd-split on <PARENT-KEY>: either way it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason. Which form to type depends on that parent's own ledger. Where it still holds an unallocated row, the run walks it too and will offer covered-by against this slice — and a run with rows still to place needs a slicing instruction to group them, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Where no row is left unallocated, the bare '/product-workflows:brd-split <PARENT-KEY>' is the run, and removing this slice or keeping it against a recorded reason is the whole of what it offers here. Adding an instruction to that same run, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row the parent delegated to a sibling that has since recorded it will not build it — the one case, apart from the key repair a removal performs, in which /brd-split re-allocates a row already carrying a fate, and the only third thing that can change this slice's state. That third one is not guaranteed to be on offer: it needs such a row to exist, and it needs this slice never to have been interviewed, so a slice emptied after its own interview can only be removed or kept.`
 
    **Why a stop rather than an empty handoff.** Writing an empty `grounding/code-grounding.md` and
@@ -826,6 +881,17 @@ to the Opus chain (`review_model`, frontmatter-pinned, no override):
   >                 design-grounder was handed it; omit for a CG#n]
   > provenance: [own-run | inherited — see below]"
 
+**A finding already reading `verdict: SUPERSEDED` is not in that set, whichever run superseded it.**
+It no longer stands (`workflows-core:grounding-format` §3), and its verifier `outcome` stays
+exactly as the run that retired it left it. Dispatching it would re-derive the claim it once answered:
+a `[CG#n]` superseded by a `--rebaseline` pass is pinned to the commit the repository has left, so
+the verifier stops the run with `COMMIT_MISMATCH`, and the `--rebaseline` re-run that stop names
+would dispatch the same finding again and stop the same way; and any other re-derivation returns a live verdict, which the reconciliation below
+normalises to `contradict` against `SUPERSEDED` and the `contradict` branch would write — a retired
+finding brought back to life beside its successor, its `prior_verdict` left on a block whose verdict
+is no longer `SUPERSEDED`, where §2.1 forbids it. The class-4 sweep below excludes the same findings
+for the same reason.
+
 Supply the finding **exactly as the agent's own Inputs contract declares it** — including
 `evidence` and, for a class-4 `[DG#n]`, `cites` — even though the agent's own hard rules forbid
 reading either before it finishes its independent re-derivation. That sequencing discipline is the
@@ -971,7 +1037,9 @@ Act on `outcome`:
   in the report as verification-inconclusive.
 - **`contradict`** — **the finding is rewritten, and the rewrite retains the same id.** Replace
   the finding's `verdict` and `evidence` with the verifier's `own_verdict` and `own_evidence`, and
-  keep a one-line note of the pre-rewrite verdict for the audit trail. **Where the rewritten finding *owes* a control — §2.2's
+  keep a one-line note of the pre-rewrite verdict for the audit trail — and where `own_verdict` is
+  `SUPERSEDED`, write the pre-rewrite verdict as `prior_verdict` too, since every write of that
+  verdict carries one (`workflows-core:grounding-format` §2). **Where the rewritten finding *owes* a control — §2.2's
   closed-set rule, the same test the verifier applied to the original and not "does it assert an
   absence", which gets classes 1 and 4 wrong — its `control` is the verifier's `own_control`**: a
   rewritten finding owes one exactly as an original does, and the run holds no other search to build
@@ -1007,7 +1075,8 @@ this phase rewrote:
 
 - **Where this run holds a resolved `frame_set_dir` for that finding's own frame set** — its design
   pass ran over it — re-dispatch `grounding-verifier` once and act on the returned outcome as above.
-- **Otherwise, mark the finding `verdict: SUPERSEDED`, id retained, with a one-line note** naming
+- **Otherwise, mark the finding `verdict: SUPERSEDED`, id retained, writing the verdict it carried
+  as `prior_verdict` (`workflows-core:grounding-format` §2), with a one-line note** naming
   the `[CG#n]`, the verdict it used to carry, the verdict it carries now, and
   `/product-workflows:prd-ground <KEY> --no-code` as the run that replaces it. Its verifier `outcome`
   stays exactly as it is. Nothing is re-derived and nothing is invented.
@@ -1074,20 +1143,25 @@ padding, keys in the §2 table's order, and an inapplicable field omitted rather
 That section is not a style note — a writer that aligns one section's keys and not the next produces
 a file whose readers report findings as missing that are on the page. Each block carries every field
 `workflows-core:grounding-format` §2 defines (`id`, `claim`, `verdict`, `evidence`, `altitude`, `horizon`,
-`consumed_by: none`, plus `control` on every finding asserting an absence, `class`/`cites` on a
+`consumed_by: none`, plus `prior_verdict` on every finding reading `SUPERSEDED`, `control` on every finding asserting an absence, `class`/`cites` on a
 `[DG#n]` and `commit` on everything **except** a
 `[DG#n]` of class 1, 2 or 3 — those are settled from the frame set alone and are pinned to no commit,
 per §2's applicability note) plus this run's verifier `outcome` **and any `notes` the verifier returned** — **and nothing else.** §2.1 makes the field set closed: `own_verdict`, `own_evidence`, `own_control`, `control_outcome` and the verifier's re-derivation `commit` are return fields Phase 7 has already acted on — where a `contradict` rewrote a finding, their values are already in that block under the record's own names (`verdict`, `evidence`, `control`) and the return names never appear — and a block carrying `own_verdict` beside `verdict` states two verdicts at once, leaving every downstream reader free to quote whichever half suits. That is the state `/brd-split` step 7 and `/brd-interview` step 7 now refuse, so writing it here deadlocks the route rather than merely muddying the record. Its contract calls those *"anything the caller should know before recording this outcome"*, so they are read before the outcome is written, not after — a verdict recorded without them is recorded against a caveat the verifier raised and nothing carried.
 A `--rebaseline` run appends its new findings after the existing ones and marks any finding it
-superseded with `verdict: SUPERSEDED`, id retained, rather than deleting or renumbering it.
+superseded with `verdict: SUPERSEDED`, id retained, rather than deleting or renumbering it — and
+writes the verdict that finding carried until then as its `prior_verdict`, in the same block
+(`workflows-core:grounding-format` §2). **Every write of `verdict: SUPERSEDED` in this phase carries
+one**, the class-4 and frame-set supersessions below included: superseding overwrites `verdict`, and
+`/product-workflows:brd-interview`'s *A decision the re-grounding moved* reads `prior_verdict` to
+tell a re-grounding that came back as it stood from one that moved a decision's ground.
 **Superseding a `[CG#n]` supersedes every class-4 `[DG#n]` citing it, in the same pass.** That
 `[DG#n]` asserted the pinned code could not perform a capture, on the authority of a finding this run
 has just replaced against a moved commit; leaving it means a design finding standing on a superseded
 code finding, with a citation that still resolves and a claim id that still matches — the state
 `workflows-core:grounding-format` §6.3 forbids and the one no reader can detect. Each is either
 re-derived against the new pin by this run's own Phase 5 design pass, and supersedes the old id like
-any other re-grounded finding, or — where no design pass ran this run — marked `SUPERSEDED` with a
-one-line note naming the `[CG#n]` that took it there, so the next `/prd-ground` re-derives it rather
+any other re-grounded finding, or — where no design pass ran this run — marked `SUPERSEDED`, with
+its `prior_verdict` and a one-line note naming the `[CG#n]` that took it there, so the next `/prd-ground` re-derives it rather
 than a reader trusting it.
 
 **A finding the Phase 7 class-4 sweep touched is written in place, whichever set it came from.** The
@@ -1128,8 +1202,8 @@ disposition:
 
 **A set this run re-ground supersedes its own prior findings, and the mode that makes that ordinary
 is `--no-code`.** Where this run wrote `[DG#n]` for a frame set that already had them on file, mark
-every superseded one `verdict: SUPERSEDED`, id retained, exactly as a `--rebaseline` pass does for
-`[CG#n]` — never delete or renumber, so an existing citation still resolves. Without this rule a
+every superseded one `verdict: SUPERSEDED`, id retained, its `prior_verdict` written, exactly as a
+`--rebaseline` pass does for `[CG#n]` — never delete or renumber, so an existing citation still resolves. Without this rule a
 second `--no-code` run over a changed frame set appends a whole new finding set beside the stale one,
 both unmarked, and `/brd-split` sees the set recorded `ground` and passes. `--rebaseline` cannot be
 the answer here: it is a code-pin concept and `--no-code` refuses it outright, so the supersession
@@ -1394,13 +1468,18 @@ Terminal phase — runs after Phase 10, NEVER interrupts an earlier phase.
 
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command /
 reference gap, `emit-block` (`workflows-core:feedback-emission`) fires at
-that halt before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD,
-a resolved root BRD, an inventory or ledger not yet on main (`PRD_GROUND_NO_INVENTORY`, `PRD_GROUND_INVENTORY_NOT_HANDED_OFF`,
-`PRD_GROUND_NEEDS_INTAKE` or, for a slice, `PRD_GROUND_NEEDS_SPLIT`; `PRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off),
+that halt before escalating. **None of Phase 0's stops qualify — every one is a user, sequencing or
+environment halt, never a plugin capability gap** — for example a missing key, an unresolved BRD,
+a resolved root BRD or Epic folder, an input not yet on main (`PRD_GROUND_NO_INVENTORY`, `PRD_GROUND_INVENTORY_NOT_HANDED_OFF`,
+`PRD_GROUND_NEEDS_INTAKE` or, for a slice, `PRD_GROUND_NEEDS_SPLIT`; `PRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off;
+`PRD_GROUND_NEEDS_PRD` and `PRD_GROUND_PRD_NOT_HANDED_OFF` on the idea route), a key naming the wrong
+folder (the no-parent forms of `PRD_GROUND_NO_INVENTORY` and `PRD_GROUND_NEEDS_INTAKE`, on a folder
+that is neither a slice nor a BRD container — an argument halt, not a missing input, save on a
+legacy folder holding an `idea.md` and no `prd.md`, whose missing input is the PRD),
 an inventory carrying no claim at all
 (`PRD_GROUND_EMPTY_INVENTORY`, which is a fact about what the
-parent allocated, not about this plugin), and an unset `$REPOS_PATH` are environment / sequencing
-halts, never a plugin capability gap. `PRD_GROUND_DIRTY_TREE`, `PRD_GROUND_NEEDS_REBASELINE`, and Phase 7's
+parent allocated, not about this plugin), and an unset `$REPOS_PATH`. The list is illustrative and
+the rule is what binds: a Phase 0 stop added later is covered by it without being named here. `PRD_GROUND_DIRTY_TREE`, `PRD_GROUND_NEEDS_REBASELINE`, and Phase 7's
 `PRD_GROUND_VERIFY_COMMIT_MISMATCH` are repository state, not a plugin gap, either — unlike Phase
 7's `INPUT_MISSING`, which is this command getting its own dispatch contract wrong and does fire
 `emit-block`.

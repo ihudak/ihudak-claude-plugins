@@ -6,7 +6,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task
 
 Log a corrective interaction and act on it: $ARGUMENTS
 
-`/prompt` is for when a dev-workflows command (`/specify`, `/design`,
+`/prompt` is for when a command of this plugin family (`/specify`, `/design`,
 `/implement`, `/document`, …) produced something wrong and you want to correct
 it directly. It captures the **corrective triple** as plugin feedback, then
 performs the correction. `origin: prompt`.

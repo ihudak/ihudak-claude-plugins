@@ -86,9 +86,9 @@ if [ -n "$cost_direct" ] && [ "$cost_direct" != "null" ]; then
   session_cost=$(printf "%.4f" "$cost_direct")
 fi
 
-# ── dev-workflows cost snapshot (Option B enabler) ────────────────────────────
+# ── plugin-family cost snapshot (Option B enabler) ────────────────────────────
 # Persist the authoritative session cost (.cost.total_cost_usd) so the
-# dev-workflows terminal cost phase can cross-check its transcript-computed
+# family's terminal cost phase can cross-check its transcript-computed
 # estimate. Overwrites a single-object snapshot each render (bounded size).
 # Fully silent — never alters the rendered status line, never fails the render.
 if [ -n "$cost_direct" ] && [ "$cost_direct" != "null" ] \

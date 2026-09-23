@@ -19,15 +19,16 @@ questions it held, are what this command gates on and packages.
 /brd-package <BRD-KEY> [--depends-on <BRD-KEY>…]
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the slice this run packages. `resolve-address` still searches both
-  levels a `<BRD-KEY>` can name, because a root has to resolve before it can be refused by name;
+- **`<BRD-KEY>`** (mandatory) — the slice this run packages. `resolve-address` searches every
+  level it bounds (three) — a root, a slice, an idea-route PRD folder or an Epic folder alike — because a root has to resolve before it can be refused by name;
   format-validated only, never checked against a tracker. **Only a slice is packaged**: a resolved
-  root stops with `BRD_PACKAGE_ROOT_LEVEL`, naming [`/brd-split`](brd-split.md) as the way to carve
-  one.
+  root stops with `BRD_PACKAGE_ROOT_LEVEL`, naming [`/brd-split`](brd-split.md) as the way to carve one, and an idea-route PRD folder — a `PRD-`
+  folder no BRD carved, carrying no `brd-link.md` — stops with `BRD_PACKAGE_NOT_A_SLICE`, naming
+  [`/create-ard`](create-ard.md) and [`/specify`](specify.md) as the way that route goes on. An `EPIC-` folder stops with `BRD_PACKAGE_EPIC_LEVEL`, naming the slice the Epic sits in where it sits in one.
 - **`--depends-on <BRD-KEY>`** (optional, repeatable) — declares a prerequisite BRD. Persisted
   additively to `brd-link.md`, never replacing what is already there. Any key at any level is
-  admissible, so a slice depending on another BRD and a BRD depending on a sibling express
-  identically. Each resolved prerequisite's own package is copied into the bundle and marked *not
+  admissible as the value, so a slice depending on a source-owning BRD and a slice depending on a
+  sibling express identically; the declarer is always the slice being packaged. Each resolved prerequisite's own package is copied into the bundle and marked *not
   for re-review*, and each one whose decisions are not yet customer-reviewed is named to the
   customer under *what could still move*.
 
@@ -82,8 +83,11 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
 ## What it needs
 
 - **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_PACKAGE_NEEDS_KEY`.
-- **A slice, not a root.** The moment the folder resolves, its prefix is tested — `BRD-` is a root,
-  `PRD-` is a slice — never the folder's asserted `kind:`. A resolved root stops with
+- **A slice, not a root and not an idea-route PRD folder.** The moment the folder resolves, its
+  prefix is tested — `BRD-` is a root, `EPIC-` an Epic folder, `PRD-` a slice or an idea-route PRD folder — never the
+  folder's asserted `kind:`. An `EPIC-` folder stops with `BRD_PACKAGE_EPIC_LEVEL` before any gate runs: an Epic holds none of what this command reads, so the stop names `/brd-package <SLICE-KEY>` on the slice above it where there is one, and no command where there is none. A `PRD-` folder carrying no `brd-link.md` was never carved from a BRD
+  and stops with `BRD_PACKAGE_NOT_A_SLICE` before any gate runs: it has no register and no customer to package for, so the stop sends it on along the
+  idea route — `/create-ard` or `/specify`. A resolved root stops with
   `BRD_PACKAGE_ROOT_LEVEL`, naming `/brd-split <BRD-KEY> "<how to cut it>"` to carve a slice and
   then `/brd-package <SLICE-KEY>` on it; where the root already carries package artifacts written
   under the earlier two-level model, the stop names those files and leaves them in place, unread.
@@ -128,8 +132,8 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   command opens a round is its own rule, which the stop cites rather than restates. Where
   `/brd-interview` would open a new round, or names the `--round 1` re-open for open requirement
   defects no round has asked, running it is the fix; a bare run says which, and hands off nothing
-  where neither applies. `/prd-ground <BRD-KEY> --rebaseline`, or a
-  decision reopened or superseded in the register, can also make a round askable. Where none of
+  where neither applies. `/prd-ground <BRD-KEY> --rebaseline` can also make a round askable, where the re-grounding moves a
+  decision or raises a question; a status change alone opens no round. Where none of
   that applies, the BRD is decided — a **finished** state rather than a missing step. A package
   carrying `[VD#n]` positions and no `[C]` question is legitimate and is packaged.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
@@ -222,7 +226,8 @@ attack.
 
 - **Phase 0 — the root refusal, tested the moment the folder resolves.** A resolved `BRD-` root
   stops with `BRD_PACKAGE_ROOT_LEVEL` before any other gate runs: packaging happens at the slice and
-  nowhere else.
+  nowhere else. A resolved `EPIC-` folder stops with `BRD_PACKAGE_EPIC_LEVEL` at the same moment. An idea-route PRD folder stops next, with `BRD_PACKAGE_NOT_A_SLICE`, before any
+  other gate runs.
 - **Phase 0 — the register merged, the rounds settled, something to review.** All three run before
   anything else is read. The rounds gate admits exactly one holding state, *held for the customer*,
   and refuses the other three. That reading is forced: a round holding a `[C]` stays open **until the

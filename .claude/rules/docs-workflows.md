@@ -12,13 +12,13 @@ Loaded when a file under `plugins/docs-workflows/` is read, or `/epics`'s comman
 
 Ruling, recorded in the ledger: this file carries the `/epics` globs. The base's *"Key invariants for `/document` (keyed mode) and `/epics`"* section states shared bullets for both commands. Splitting shared bullets into two files would create two copies of one rule, which spec §4 forbids.
 
-Split out to keep this file under 20,000 characters: `/docs-serve`'s map line and run state → `.claude/rules/docs-serve.md`; `/release-notes`' map line, invariants and the `release-note-types` authority → `.claude/rules/release-notes.md`; `$DOCS_PATH` docs grounding, whose rules bind consumers in four plugins → `.claude/rules/docs-grounding.md`.
+Split out to keep this file under 20,000 characters: `/docs-serve`'s map line and run state → `.claude/rules/docs-serve.md`; `/release-notes`' map line, invariants and the `release-note-types` authority → `.claude/rules/release-notes.md`; `$DOCS_PATH` docs grounding, whose rules bind consumers in three plugins → `.claude/rules/docs-grounding.md`.
 
 ## Plugin facts
 
 `/document`, `/docs-profile` and `/release-notes` all assume documentation already exists and work against a delta. The cold-start trio is `/docs-init` (scaffold a docs repository for a project that has none), `/docs-brand` (logo and colours out of the product's own code, contrast-checked) and `/docs-serve` (run the site's dev server). `/docs-audit` enumerates the documentation surfaces a product's own code and the specs tree imply, crosses each with the page types it earns, and writes a prioritised backlog and a coverage grid — it writes no documentation content.
 
-The eleven subagents are `diff-summarizer`, `doc-location-finder`, `doc-planner`, `doc-reviewer`, `doc-writer`, `docs-audit-reviewer`, `docs-auditor`, `docs-scaffold-reviewer`, `docs-style-checker`, `ia-planner` and `release-notes-writer`. The twenty-three reference files are twenty-one markdown pages plus `default-owners.txt` and `docs-profile.default.yml`, which are read as data.
+The subagents are `diff-summarizer`, `doc-location-finder`, `doc-planner`, `doc-reviewer`, `doc-writer`, `docs-audit-reviewer`, `docs-auditor`, `docs-scaffold-reviewer`, `docs-style-checker`, `ia-planner` and `release-notes-writer`. The reference files are twenty-one markdown pages plus `default-owners.txt` and `docs-profile.default.yml`, which are read as data.
 
 `docs-workflows` declares `workflows-core` and `prose-style` as dependencies, both by bare name, as `workflows-core:dependencies` requires — `/release-notes` hands `prose-style-checker` the `repo_root` input 0.4.0 added and checks the checker's echo of it, so an older `prose-style` gives a stated `DEGRADED` style check rather than a silent one.
 

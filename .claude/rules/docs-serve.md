@@ -2,13 +2,13 @@
 paths:
   - "plugins/docs-workflows/commands/docs-serve.md"
   - "plugins/docs-workflows/docs/commands/docs-serve.md"
-  - "plugins/docs-workflows/references/render-verification.md"
+  - "plugins/docs-workflows/references/docs-profiles/render-verification.md"
   - "plugins/docs-workflows/references/toolchain-preflight.md"
 ---
 
 # docs-workflows — `/docs-serve`
 
-Loaded when `/docs-serve`'s command file or docs page is read, or `docs-workflows:render-verification` or `docs-workflows:toolchain-preflight`, the references its workflow-map line cites. Split out of `.claude/rules/docs-workflows.md` to keep that file under 20,000 characters; the plugin's other rules are there, and the rule that `/docs-serve` is a pure utility is in `CLAUDE.md`.
+Loaded when `/docs-serve`'s command file or docs page is read, or `docs-workflows:docs-profiles/render-verification` or `docs-workflows:toolchain-preflight`, the references its workflow-map line cites. Split out of `.claude/rules/docs-workflows.md` to keep that file under 20,000 characters; the plugin's other rules are there, and the rule that `/docs-serve` is a pure utility is in `CLAUDE.md`.
 
 ## Run state
 

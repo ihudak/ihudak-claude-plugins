@@ -131,6 +131,8 @@ The evidence behind the rules — measured cases, refused widenings, history —
 
 **Run the gates as one `&&` chain and read the chain's own exit code.** `.github/workflows/validate-catalog.yml`'s `run:` steps are the authoritative list of them, in order. A trailing `echo "EXIT=$?"` makes the invocation's own status 0, so read the printed value. ([why](docs/maintainers/rationale.md#gate-chain-exit))
 
+`scripts/validate-catalog.py` fails `CLAUDE.md` above 40,000 characters and warns above 36,000; a rules file warns above 20,000 — overflow belongs in a rules file or the rationale.
+
 ## Shared authorities
 
 Each reference below is the **single source of truth** for what it owns; `<plugin>:<name>` is `plugins/<plugin>/references/<name>.md`. Its full paragraph — consumers, entry points, invariants — is in the `.claude/rules/` file named. `model-routing/classification.md` is in § Model routing reference below.

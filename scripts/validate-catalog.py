@@ -45,6 +45,12 @@ fail on correct content. The half-fix it might have caught (Copilot's
 marketplace trimmed to 964 while its plugin.json stayed at 2091) is already
 caught by applying the length check to both files.
 
+It also enforces the repo-root instruction budget: ``CLAUDE.md`` fails above 40,000
+characters and warns above 36,000, and each ``.claude/rules/*.md`` warns above 20,000.
+And it checks that every ``.claude/rules/*.md`` declares a non-empty ``paths:`` frontmatter
+list whose every glob matches at least one file, so a rule that would load into every
+session, or a glob left dead by a rename, fails the build instead of surviving unnoticed.
+
 Usage:
     python3 scripts/validate-catalog.py [REPO_ROOT ...]
     python3 scripts/validate-catalog.py --selftest
@@ -79,6 +85,15 @@ DESCRIPTION_MAX = 1024
 # with enough headroom that trimming happens as routine maintenance instead of
 # as an outage.
 DESCRIPTION_WARN = 900
+
+# The repo-root CLAUDE.md loads into every session and every non-fork subagent here. It
+# reached 189,969 characters by accretion before the 2026-09-23 split moved area rules to
+# .claude/rules/ (loaded by path) and evidence to docs/maintainers/rationale.md (never
+# loaded). Characters, not bytes or lines: the budget is context, and the file is unwrapped
+# paragraphs, so a line count means nothing.
+CLAUDE_MD_MAX = 40_000
+CLAUDE_MD_WARN = 36_000
+RULES_FILE_WARN = 20_000
 
 SKIP_DIRS = {".git", "node_modules", ".superpowers", ".idea"}
 
@@ -160,6 +175,121 @@ def check_description(label: str, description: str) -> tuple[int, int]:
         )
         return 0, 1
     return 0, 0
+
+
+def check_instruction_sizes(root: Path) -> tuple[int, int]:
+    """Return (errors, warnings) for the repo-root instruction tiers' size budget."""
+    errors = warnings = 0
+    claude = root / "CLAUDE.md"
+    if claude.is_file():
+        size = len(claude.read_text(encoding="utf-8"))
+        if size > CLAUDE_MD_MAX:
+            print(
+                f"  ERROR CLAUDE.md is {size} characters, limit is {CLAUDE_MD_MAX} -- "
+                f"move a rule that binds one area to .claude/rules/<area>.md, and "
+                f"evidence to docs/maintainers/rationale.md"
+            )
+            errors += 1
+        elif size > CLAUDE_MD_WARN:
+            print(
+                f"  WARN  CLAUDE.md is {size} characters, nearing the {CLAUDE_MD_MAX} "
+                f"limit -- move evidence to docs/maintainers/rationale.md now"
+            )
+            warnings += 1
+    for rules_file in sorted((root / ".claude" / "rules").glob("*.md")):
+        size = len(rules_file.read_text(encoding="utf-8"))
+        if size > RULES_FILE_WARN:
+            rel = rules_file.relative_to(root)
+            print(
+                f"  WARN  {rel} is {size} characters, past {RULES_FILE_WARN} -- split it "
+                f"by command group with narrower paths: globs, or move evidence to "
+                f"docs/maintainers/rationale.md"
+            )
+            warnings += 1
+    return errors, warnings
+
+
+def check_rules_paths(root: Path) -> tuple[int, int]:
+    """Return (errors, warnings): every .claude/rules/*.md must declare a non-empty `paths:`
+    list, and every glob in it must match at least one file under root."""
+    errors = warnings = 0
+    rules_dir = root / ".claude" / "rules"
+    if not rules_dir.is_dir():
+        return errors, warnings
+
+    no_paths = (
+        "no paths: -- without one, Claude Code loads this file into every session, "
+        "which defeats the split"
+    )
+
+    for rules_file in sorted(rules_dir.glob("*.md")):
+        rel = rules_file.relative_to(root)
+        lines = rules_file.read_text(encoding="utf-8").splitlines()
+
+        if not lines or lines[0].rstrip() != "---":
+            print(f"  ERROR {rel}: {no_paths} (no frontmatter)")
+            errors += 1
+            continue
+
+        try:
+            close = 1 + lines[1:].index("---")
+        except ValueError:
+            print(f"  ERROR {rel}: {no_paths} (frontmatter '---' is never closed)")
+            errors += 1
+            continue
+
+        frontmatter = lines[1:close]
+        if not frontmatter or frontmatter[0].rstrip() != "paths:":
+            print(f"  ERROR {rel}: {no_paths} (frontmatter has no 'paths:' key)")
+            errors += 1
+            continue
+
+        globs: list[str] = []
+        malformed = False
+        for line in frontmatter[1:]:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if not stripped.startswith("-"):
+                print(f"  ERROR {rel}: unexpected line in the paths: list -- {line!r}")
+                errors += 1
+                malformed = True
+                break
+            item = stripped[1:].strip()
+            if len(item) >= 2 and item[0] == item[-1] and item[0] in "\"'":
+                item = item[1:-1]
+            if not item:
+                print(f"  ERROR {rel}: an empty entry in the paths: list")
+                errors += 1
+                malformed = True
+                break
+            globs.append(item)
+        if malformed:
+            continue
+
+        if not globs:
+            print(f"  ERROR {rel}: {no_paths} (the paths: list is empty)")
+            errors += 1
+            continue
+
+        for glob in globs:
+            # Mirror find_files' SKIP_DIRS/SKIP_PREFIXES exclusion, anchored at root: a
+            # glob whose only matches sit under .git, a worktree copy, node_modules or
+            # .superpowers is dead for this gate's purposes even though Path.glob finds
+            # bytes there.
+            matches = [
+                p for p in root.glob(glob)
+                if not any(part in SKIP_DIRS for part in p.parts)
+                and not any(
+                    p.relative_to(root).parts[: len(prefix)] == prefix
+                    for prefix in SKIP_PREFIXES
+                )
+            ]
+            if not matches:
+                print(f"  ERROR {rel}: paths: glob {glob!r} matches no file under {root}")
+                errors += 1
+
+    return errors, warnings
 
 
 def validate_repo(root: Path) -> tuple[int, int]:
@@ -261,6 +391,14 @@ def validate_repo(root: Path) -> tuple[int, int]:
             )
             errors += 1
 
+    e, w = check_instruction_sizes(root)
+    errors += e
+    warnings += w
+
+    e, w = check_rules_paths(root)
+    errors += e
+    warnings += w
+
     if errors == 0 and warnings == 0:
         print("  OK")
     return errors, warnings
@@ -273,7 +411,8 @@ def _selftest() -> int:
     def build(root: Path, *, version: str = "1.0.0", catalog_version: str | None = None,
               description: str = "A fixture plugin.", ghost_manifest: bool = False,
               second_plugin_name: str | None = None,
-              duplicate_at: str | None = None) -> None:
+              duplicate_at: str | None = None,
+              claude_md: str | None = None, rules: dict[str, str] | None = None) -> None:
         plugin = root / "plugins" / "fixture" / ".claude-plugin"
         plugin.mkdir(parents=True)
         (plugin / "plugin.json").write_text(json.dumps(
@@ -320,6 +459,12 @@ def _selftest() -> int:
             (copy / "plugin.json").write_text(json.dumps(
                 {"name": "fixture", "version": version, "description": description}),
                 encoding="utf-8")
+        if claude_md is not None:
+            (root / "CLAUDE.md").write_text(claude_md, encoding="utf-8")
+        for rel, text in (rules or {}).items():
+            path = root / ".claude" / "rules" / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding="utf-8")
 
     rc = 0
 
@@ -368,6 +513,49 @@ def _selftest() -> int:
          duplicate_at=".worktrees/wt")
     case("a duplicate under a `worktrees` directory below the root is still rejected",
          False, "is already declared by", duplicate_at="nested/worktrees/wt")
+
+    # The instruction-file budget. Characters, not bytes: every `→` and `—` is three bytes,
+    # so a byte count would fail a file that is under the budget -- the multi-byte case
+    # below passes only if the gate counts characters.
+    #
+    # "Passes" means "does not error" (want_ok=True checks errors == 0), not "prints a bare
+    # OK": CLAUDE_MD_WARN (36,000) sits below CLAUDE_MD_MAX (40,000), so any size in that
+    # 4,000-character band -- including CLAUDE_MD_MAX itself -- is legitimately inside the
+    # WARN zone as well as under the error cap. A size exactly at CLAUDE_MD_MAX cannot print
+    # a bare "OK": it is definitionally > CLAUDE_MD_WARN. The needle below asserts the WARN
+    # text that size actually produces, which is what proves the ERROR branch's `>` (not
+    # `>=`) held rather than merely testing an assertion that no combination of these two
+    # constants could satisfy.
+    case("CLAUDE.md at the limit passes", True,
+         f"WARN  CLAUDE.md is {CLAUDE_MD_MAX} characters", claude_md="x" * CLAUDE_MD_MAX)
+    case("CLAUDE.md one character over the limit is rejected", False,
+         f"CLAUDE.md is {CLAUDE_MD_MAX + 1} characters", claude_md="x" * (CLAUDE_MD_MAX + 1))
+    case("CLAUDE.md of multi-byte characters under the limit passes", True,
+         f"WARN  CLAUDE.md is {CLAUDE_MD_MAX - 1} characters", claude_md="→" * (CLAUDE_MD_MAX - 1))
+    case("CLAUDE.md past the warning threshold is reported", True, "WARN  CLAUDE.md",
+         claude_md="x" * (CLAUDE_MD_WARN + 1))
+    case("a rules file past its threshold is reported", True, "WARN  .claude/rules/area.md",
+         rules={"area.md": '---\npaths:\n  - "plugins/**"\n---\n\n' + "x" * (RULES_FILE_WARN + 1)})
+    case("a repository with no CLAUDE.md passes", True, "OK")
+
+    # check_rules_paths: paths: frontmatter and live globs. "plugins/fixture/.claude-plugin/
+    # plugin.json" is the one file every fixture build() call creates, so every glob below
+    # is checked against a real, always-present path three directories deep.
+    case("a rules file whose glob matches a file in the fixture passes", True, "OK",
+         rules={"good.md": '---\npaths:\n  - "plugins/fixture/**/*.json"\n---\n\nA rule.\n'})
+    case("a rules file whose glob matches nothing is rejected", False,
+         "plugins/does-not-exist/**",
+         rules={"bad.md": '---\npaths:\n  - "plugins/does-not-exist/**"\n---\n\nA rule.\n'})
+    case("a rules file with no frontmatter is rejected", False, "no paths:",
+         rules={"noheader.md": "A rule with no frontmatter at all.\n"})
+    # The pair. Both globs target the same real file -- plugins/fixture/.claude-plugin/
+    # plugin.json, two directories below plugins/fixture/ -- so only the `*`-vs-`**`
+    # difference explains the opposite outcomes; nothing else about the fixture changed.
+    case("a paths: glob using ** matches only a nested file, and passes", True, "OK",
+         rules={"nested.md": '---\npaths:\n  - "plugins/fixture/**/*.json"\n---\n\nA rule.\n'})
+    case("a paths: glob using a single * does not cross a directory boundary, "
+         "and is rejected", False, "plugins/fixture/*.json",
+         rules={"nested.md": '---\npaths:\n  - "plugins/fixture/*.json"\n---\n\nA rule.\n'})
 
     print("SELFTEST PASS" if rc == 0 else "SELFTEST FAIL")
     return rc

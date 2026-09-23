@@ -675,6 +675,23 @@ def selftest():
     def check(cond, msg):
         print("ok    " + msg) if cond else bad(msg)
 
+    # Prefix shadowing: `claude-opus-5` is a prefix of `claude-opus-5-5`. With both keyed,
+    # each id must price at its OWN key (exact match first), and a dated Opus 5.5 id at
+    # the longest matching key -- never at Opus 5's rates.
+    _pt = {"models": {
+        "claude-opus-5": {"input": 5, "output": 25, "cache_read": 0.5,
+                          "cache_write_5m": 6.25, "cache_write_1h": 10},
+        "claude-opus-5-5": {"input": 4, "output": 20, "cache_read": 0.2,
+                            "cache_write_5m": 5, "cache_write_1h": 8}}}
+    _tk = {"input": 1_000_000, "output": 0, "cache_read": 1_000_000,
+           "cache_write_5m": 0, "cache_write_1h": 0}
+    check(price_model("claude-opus-5-5", _tk, _pt) == (4.2, None),
+          "claude-opus-5-5 prices at its own key, not the claude-opus-5 prefix")
+    check(price_model("claude-opus-5-5-20260901", _tk, _pt) == (4.2, None),
+          "a dated Opus 5.5 id prices at the longest matching key")
+    check(price_model("claude-opus-5", _tk, _pt) == (5.5, None),
+          "claude-opus-5 still prices at its own key")
+
     tmp = tempfile.mkdtemp(prefix="session-cost-selftest-")
     tpath = os.path.join(tmp, "t.jsonl")
     with open(tpath, "w", encoding="utf-8") as fh:

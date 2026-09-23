@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [3.8.2] — 2026-09-23
+
+### Changed
+- `docs/reference/model-routing.md`'s fallback chain now starts at `claude-opus-5-5`, matching `workflows-core` 1.7.5.
+
 ## [3.8.1] — 2026-09-23
 
 **Update `workflows-core` to 1.7.4 with this release**: its `phase-handoff` §3.4 register row and `next-phase-offer`'s `/brd-reconcile` offers describe the `decisions.md` gate these commands now run; an older one says none of those offers carries `<merge-clause>`, its `grounding-format` defines no `prior_verdict`, the field `/prd-ground` now writes on a superseded finding and `/brd-interview` reads, and its `escalation-rules` does not list `/brd-reconcile`'s new conflicting-answer picker among the pickers whose free-text answer is normalised.

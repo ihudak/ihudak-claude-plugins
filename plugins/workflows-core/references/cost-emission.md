@@ -179,7 +179,8 @@ fallback rate map. Any model id absent from `models:` is always priced
 is set to.
 
 Cache multipliers follow Anthropic's standard model (read 0.1x, 5m write 1.25x,
-1h write 2x); the transcript's `ephemeral_5m` / `ephemeral_1h` split lets cache
+1h write 2x) — except Opus 5.5, whose cache reads bill at 0.05x, and the table keys
+every rate explicitly for that reason; the transcript's `ephemeral_5m` / `ephemeral_1h` split lets cache
 pricing be exact, and a message without the split prices
 `cache_creation_input_tokens` at the 5m rate.
 
@@ -624,7 +625,10 @@ and `cost-prices.yaml:22` both used to carry:
    `cache_write_1h`, USD per million tokens, **permanent/standard rate only**
    — §4) keyed by the same undated model id, and update the chain-summary
    comment above the relevant block (e.g. "Opus 5 and Opus 4.6-4.8 all bill at
-   $5 / $25") so it still lists every model actually in the chain.
+   $5 / $25"). **A new id that extends an existing key** (`claude-opus-5-5` extends
+   `claude-opus-5`) is priced at the shorter key's rates by the prefix fallback until it
+   has its own entry — silently, with no `unpriced-model` note — so for such an id (2)
+   is not optional so it still lists every model actually in the chain.
 
 Do (1) without (2) and the new model routes but prices as `unpriced-model`
 every run — silently at first, loudly once §6.1's dominance warning fires. Do

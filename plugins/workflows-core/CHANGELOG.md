@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [1.7.5] — 2026-09-23
+
+**Update `dev-workflows`, `product-workflows` and `docs-workflows` with this release**: their model-routing pages and command placeholders name the chain's new head.
+
+### Added
+- **Claude Opus 5.5 heads the powerful-model chain.** `model-routing/classification.md` §2 now resolves `claude-opus-5-5` first, ahead of `claude-opus-5`, and its handoff-block examples name it.
+- **`cost-prices.yaml` prices Opus 5.5 at its standard rates**, from Anthropic's pricing page: $4 input, $20 output, $0.20 cache read, $5 5-minute and $8 1-hour cache writes per million tokens. Its cache reads bill at 0.05x input, not the usual 0.1x, which the header and `cost-emission.md` now say.
+
+### Fixed — behaviour
+- **Every Opus 5.5 turn was priced at Opus 5's rates.** The price engine falls back to the longest table key that prefixes a model id, and `claude-opus-5` prefixes `claude-opus-5-5`, so with no key of its own Opus 5.5 was costed about 25% high, with no `unpriced-model` note to show it. The new key fixes it; `session-cost.py --selftest` now pins exact-key pricing for an id that extends another key, and `cost-emission.md`'s add-a-model steps say a price entry is not optional for such an id.
+
 ## [1.7.4] — 2026-09-23
 
 ### Changed

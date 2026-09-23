@@ -41,13 +41,14 @@ All fourteen commands in this plugin load the `model-routing` skill, run this cl
 
 Every `SIGNIFICANT`/`HIGH-RISK` Opus step resolves against the same ordered list, taking the first model available in the environment:
 
-1. `claude-opus-5`
-2. `claude-opus-4-8`
-3. `claude-opus-4-7`
-4. `claude-opus-4-6`
-5. `claude-sonnet-5` (fallback only — the report notes that no Opus was available)
-6. `claude-sonnet-4-6` (further fallback)
-7. `claude-sonnet-4-5` (further fallback — the report notes "no Opus or Sonnet 5/4.6 available")
+1. `claude-opus-5-5`
+2. `claude-opus-5`
+3. `claude-opus-4-8`
+4. `claude-opus-4-7`
+5. `claude-opus-4-6`
+6. `claude-sonnet-5` (fallback only — the report notes that no Opus was available)
+7. `claude-sonnet-4-6` (further fallback)
+8. `claude-sonnet-4-5` (further fallback — the report notes "no Opus or Sonnet 5/4.6 available")
 
 `claude-sonnet-4-5` is the floor. If nothing in the list is available, the run stops and asks how to proceed rather than silently downgrading. You never pick a model for any of this yourself — the orchestrator resolves the chain automatically against what your environment has available, and every downgrade from the top of the chain is announced in the run's own report rather than happening quietly.
 

@@ -76,13 +76,14 @@ when the change is **production-critical, security-critical, or data-irreversibl
 
 Use the first model in this list that is available in the environment:
 
-1. `claude-opus-5`
-2. `claude-opus-4-8`
-3. `claude-opus-4-7`
-4. `claude-opus-4-6`
-5. `claude-sonnet-5` (fallback only — note in the report that no Opus was available)
-6. `claude-sonnet-4-6` (further fallback)
-7. `claude-sonnet-4-5` (further fallback — note "no Opus or Sonnet 5/4.6 available")
+1. `claude-opus-5-5`
+2. `claude-opus-5`
+3. `claude-opus-4-8`
+4. `claude-opus-4-7`
+5. `claude-opus-4-6`
+6. `claude-sonnet-5` (fallback only — note in the report that no Opus was available)
+7. `claude-sonnet-4-6` (further fallback)
+8. `claude-sonnet-4-5` (further fallback — note "no Opus or Sonnet 5/4.6 available")
 
 Sonnet 4.5 is the floor; if no model in the list is available, abort the
 SIGNIFICANT/HIGH-RISK gates and ask the user how to proceed rather than
@@ -170,9 +171,9 @@ own `model:` argument. Format:
 model_routing:
   classification: SIMPLE | MODERATE | SIGNIFICANT | HIGH-RISK
   reason: <one-line justification citing the §1 trigger that applied>
-  current_model: <e.g. claude-opus-5>        # the model the orchestrator is running
-  planning_model: <e.g. claude-opus-5>       # only set for SIGNIFICANT/HIGH-RISK
-  review_model:   <e.g. claude-opus-5>       # only set for SIGNIFICANT/HIGH-RISK
+  current_model: <e.g. claude-opus-5-5>        # the model the orchestrator is running
+  planning_model: <e.g. claude-opus-5-5>       # only set for SIGNIFICANT/HIGH-RISK
+  review_model:   <e.g. claude-opus-5-5>       # only set for SIGNIFICANT/HIGH-RISK
   implementation_model: <e.g. claude-sonnet-5 or current_model>
   detection_model: <e.g. claude-sonnet-5>    # mid-tier steps (§2.1); never the session model
   fixes_model:    <same as implementation_model>
@@ -181,7 +182,7 @@ model_routing:
                                        # When true, the executor/fixer sub-agent stops after the build,
                                        # returns status: AWAITING_REVIEW, and waits for a follow-up call
                                        # with phase: verify-resume to run tests / commit / PR.
-  notes: <optional — e.g. "Opus 5 unavailable, fell back to 4.8">
+  notes: <optional — e.g. "Opus 5.5 unavailable, fell back to Opus 5">
 ```
 
 The `phase` field used to resume an executor/fixer after the Opus review is
@@ -231,7 +232,7 @@ task(
   # the two `dev-workflows:` forms are dispatchable from `dev-workflows`'s own commands, and
   # from a plugin that depends on it; every other reader uses "general-purpose" — see the note below
   subagent_type: "dev-workflows:risk-planner" | "dev-workflows:code-review" | "general-purpose",
-  model:      "claude-opus-5",   # or the highest available per §2
+  model:      "claude-opus-5-5", # or the highest available per §2
   prompt:     "<full self-contained context — sub-agent has no memory>",
   description:"Opus planning critique" | "Opus code review",
   mode:       "sync"               # always sync for plan/review gates

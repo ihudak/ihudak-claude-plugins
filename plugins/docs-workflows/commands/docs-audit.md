@@ -90,7 +90,7 @@ model_routing:
   reason: "cross-cutting synthesis of every scanned repository; the backlog steers every page written from it"
   current_model: <the model this orchestrator is running under>
   detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # code-scanner, docs-auditor, impl-maintenance
-  review_model: <the §2 Opus chain — claude-opus-5, fallback per §2 — pinned regardless of classification, per D17/D20>
+  review_model: <the §2 Opus chain — claude-opus-5-5, fallback per §2 — pinned regardless of classification, per D17/D20>
   opus_available: true | false
   notes: <any §2 degradation, e.g. "Opus unavailable; docs-audit-reviewer fell back to Sonnet 5">
 ```

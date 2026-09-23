@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [4.2.3] — 2026-09-23
+
+### Changed
+- `docs/reference/model-routing.md`'s fallback chain now starts at `claude-opus-5-5`, matching `workflows-core` 1.7.5.
+
 ## [4.2.2] — 2026-09-23
 
 ### Fixed — behaviour

@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found three more (N7–N9). This spec fixes all twenty.
+Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found five more (N7–N11). This spec fixes all twenty-two.
 
 It covers:
 - `/brd-interview`, `/brd-reconcile`, `/prd-ground`, `/brd-split`, `/create-prd`, `/document` and `/release-notes`;
@@ -47,6 +47,8 @@ Abbreviations: `BI` = `plugins/product-workflows/commands/brd-interview.md`, `BR
 | N7 | D | A resumed `/brd-split` run reconciles (Phase 4 Step 3) only the children its own walk touched, so a stale provisional claim from an interrupted run survives on a slice. And once the parent is fully allocated, a bare re-run is a no-op, so no command repairs an out-of-step slice. Found by Task 1's implementer |
 | N8 | D | An ordinary `/brd-split` walk can assign a row to a child that already holds a terminal orphan row for that `[BR#n]` (reachable after a `/brd-intake` re-run over the parent). The child then claims the row while its own ledger names another owner, and no command resolves it. Found by Task 1's implementer |
 | N9 | D | Rows 2–3 of `/prd-ground`'s `PRD_GROUND_NO_INVENTORY` remedy table (no ledger in the folder) are unreachable under D1's gate order except where the ledger is on a ref but deleted from the worktree, and there their "no command has committed this slice's folder" is false. Found by Task 1's implementer |
+| N10 | C | `/prd-ground` Phase 8 lists `consumed_by: none` among the fields every written block carries, which read literally resets an on-file finding's `consumed_by` stamps on a re-run. Found by Task 2's implementer |
+| N11 | C | `/brd-interview`'s successor test 4 places a `[DG#n]` by the frame its evidence cites. A design finding whose evidence cites no frame can never have a successor, so a decision resting on one cannot be observed as confirmed or moved when it is superseded. Found by Task 2's implementer; reachability to be judged in review |
 | v | E | CP step 6 does not say whether a `prd.md` with no `kind: prd` counts as found |
 | N6 | E | CP Phase 5 writes `prd.md` with no existence guard. Under the strict reading of v, a keyless `prd.md` is overwritten with no archive |
 | vi | E | `/document` and `/release-notes` stop on a found-but-unplaced folder, a BRD container, or a folder holding no PRD, using the "key dir not found" rule and `["Re-enter key", "Cancel"]`. That happens at two sites in each command |
@@ -251,5 +253,5 @@ The research flagged "Session cost (ALWAYS runs)" as false, because an abort or 
 - For every rewritten claim, a refinement-7 literal-string count across the sweep scope, taken before and after the edit and recorded with its command.
 - The per-item trace: each failure scenario in §3 is walked step by step against the new text, and the step where it now resolves is cited by file and phrase.
 - An exclusivity probe over the diff, covering new "only", "never" and "every" claims introduced by this pass.
-- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all twenty rows read FIXED is the known-bug count 0.
+- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all twenty-two rows read FIXED is the known-bug count 0.
 - Every row of the round-3 "Deferred by user decision" list gets a one-line pointer to this record.

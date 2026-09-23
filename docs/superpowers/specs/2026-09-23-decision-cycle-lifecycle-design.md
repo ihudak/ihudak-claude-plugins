@@ -6,12 +6,11 @@
 
 ## 1. Purpose
 
-Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up seven more defects of the same kind (N1–N6 and F in §3). This spec fixes all eighteen.
+Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3). This spec fixes all seventeen.
 
 It covers:
 - `/brd-interview`, `/brd-reconcile`, `/prd-ground`, `/brd-split`, `/create-prd`, `/document` and `/release-notes`;
-- the shared references `workflows-core:grounding-format` and `product-workflows:decision-register-format`;
-- the "Session cost (ALWAYS runs)" heading in 23 command files.
+- the shared references `workflows-core:grounding-format` and `product-workflows:decision-register-format`.
 
 Prose is executed, so each fix is a text change. It is complete only when every statement of the rule it changes, docs pages included, says the same thing (CLAUDE.md, *Editing discipline*, claim-expiry sweep refinements 4–8).
 
@@ -24,7 +23,7 @@ Abbreviations: `BI` = `plugins/product-workflows/commands/brd-interview.md`, `BR
 | D1 | (x) A corrected resend re-answers a question whose `[CD#n]` is `decided` | **Skip if identical, otherwise supersede** |
 | D2 | (vii) A verifier `contradict`s an on-file finding | **Supersede the on-file finding**; own-run findings keep the in-place rewrite |
 | D3 | (v) A `prd.md` with no `kind: prd` | **Counts as found**, plus a Phase 5 pre-write guard |
-| D4 | "Session cost (ALWAYS runs)" is false on abort or Cancel | **Reword in this pass**; no behaviour change |
+| D4 | "Session cost (ALWAYS runs)" in 23 command files | First decided "reword in this pass". **Revised the same day: dropped, not a defect** (§9) |
 | D5 | Execution order | CLAUDE.md split first (done), then this pass; push both once known bugs = 0 |
 
 ## 3. Scope: the defect list
@@ -48,9 +47,8 @@ Abbreviations: `BI` = `plugins/product-workflows/commands/brd-interview.md`, `BR
 | v | E | CP step 6 does not say whether a `prd.md` with no `kind: prd` counts as found |
 | N6 | E | CP Phase 5 writes `prd.md` with no existence guard. Under the strict reading of v, a keyless `prd.md` is overwritten with no archive |
 | vi | E | `/document` and `/release-notes` stop on a found-but-unplaced folder, a BRD container, or a folder holding no PRD, using the "key dir not found" rule and `["Re-enter key", "Cancel"]`. That happens at two sites in each command |
-| F | F | 23 command files head their cost step "Session cost (ALWAYS runs)", yet an abort or Cancel stops before it runs |
 
-Out of scope: any change to what an abort or Cancel does (D4), and any structural "carve in progress" marker in `/brd-split` (Unit D's gate closes N5 without one).
+Out of scope: any change to what an abort or Cancel does, and any structural "carve in progress" marker in `/brd-split` (Unit D's gate closes N5 without one).
 
 ## 4. Unit A: `/brd-interview` lifecycle
 
@@ -198,21 +196,22 @@ In `plugins/docs-workflows/commands/document.md` (Phase 0 step 1, ≈64–66, an
 - **Sweep.** `docs/commands/document.md` and `docs/commands/release-notes.md` document the three stops. `escalation-rules.md:175` keeps "key dir not found" for a folder that really is absent. Its description is re-read so that it no longer implies these cases.
 - `epics.md:420–421`, which says an empty PRD is "the `key dir not found` case", has the same mislabel. It gets `EPICS_NO_PRD`'s existing stop or a named sibling. The implementer checks whether `EPICS_NO_PRD` already covers it.
 
-## 9. Unit F: "Session cost (ALWAYS runs)" (D4)
+## 9. Unit F: dropped (D4, revised)
 
-- In each of the 23 files `grep -l "ALWAYS runs" plugins/*/commands/*.md` returns (`ready.md` and `document.md` hold two instances each), reword the heading so it is true. The cost step runs on every run that reaches this terminal phase, and a run stopped earlier by a Cancel or an abort ends without it.
-- One fixed phrase is used in every file, so the next sweep can match on it: `**Session cost (runs on every run that reaches this phase).**`
-- Check `workflows-core:cost-emission` and `feedback-emission` for a matching "always" claim, and fix it the same way.
-- Re-run the count after the edit. It should be 0 hits for `ALWAYS runs` and 25 for the new phrase, re-derived at edit time and not copied from here.
+The research flagged "Session cost (ALWAYS runs)" as false, because an abort or a Cancel stops a run before its cost step. Planning re-read it in context, and it is true there.
+- It heads step 3 of a command's terminal phase.
+- It follows step 2, the feedback step, which persists nothing when there is no plugin signal.
+- `workflows-core:cost-emission` §0 states the same contrast: "Unlike feedback … the cost phase always computes."
+
+"ALWAYS" therefore contrasts cost with feedback inside the phase. It makes no claim about runs that never reach the phase, and an aborted run skips feedback and cost alike. The user decided to drop the unit. No file changes for it.
 
 ## 10. Releases
 
 | Plugin | Now | After | Why |
 |---|---|---|---|
-| `workflows-core` | 1.7.6 (unpublished) | 1.7.6 | Unit C's GF edits, plus Unit F if its references change. Folded into the dated 1.7.6 section |
-| `product-workflows` | 3.8.2 | 3.8.3 | Units A–E and F |
-| `docs-workflows` | 1.3.3 | 1.3.4 | E2 and F |
-| `dev-workflows` | 4.2.3 | 4.2.4 | F |
+| `workflows-core` | 1.7.6 (unpublished) | 1.7.6 | Unit C's GF edits. Folded into the dated 1.7.6 section |
+| `product-workflows` | 3.8.2 | 3.8.3 | Units A–E |
+| `docs-workflows` | 1.3.3 | 1.3.4 | E2 |
 
 - Each version is bumped in `plugin.json` and in `marketplace.json`.
 - Every new CHANGELOG section is dated before it reaches `main` (check 18).
@@ -224,5 +223,5 @@ In `plugins/docs-workflows/commands/document.md` (Phase 0 step 1, ≈64–66, an
 - For every rewritten claim, a refinement-7 literal-string count across the sweep scope, taken before and after the edit and recorded with its command.
 - The per-item trace: each failure scenario in §3 is walked step by step against the new text, and the step where it now resolves is cited by file and phrase.
 - An exclusivity probe over the diff, covering new "only", "never" and "every" claims introduced by this pass.
-- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all eighteen rows read FIXED is the known-bug count 0.
+- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all seventeen rows read FIXED is the known-bug count 0.
 - Every row of the round-3 "Deferred by user decision" list gets a one-line pointer to this record.

@@ -13,8 +13,8 @@ The moment `<KEY>` resolves to a folder, this command tests the **directory pref
 folder's asserted `kind:` — a BRD-route slice's own `brd-link.md` asserts `kind: brd` while being
 exactly the folder this command must accept, so a kind-based test would refuse every slice.
 
-- **A resolved `BRD-` folder is a root** — refused (`PRD_GROUND_ROOT_LEVEL`); grounding happens at
-  the slice and nowhere else.
+- **A resolved `BRD-` folder is a root** — refused (`PRD_GROUND_ROOT_LEVEL`); a root BRD is never
+  ground — grounding happens at a `PRD-` folder, a slice or an idea-route PRD folder.
 - **A resolved `EPIC-` folder is refused too** (`PRD_GROUND_EPIC_LEVEL`) — grounding is PRD-altitude
   on both routes, and an Epic folder holds no `prd.md` of its own (it sits one level up). A legacy
   folder with no prefix whose carrier asserts `kind: epic` is an Epic folder, and is refused the same
@@ -167,7 +167,8 @@ also runs, in Phase 11, for session lessons-learned.
   this slice or to keep it against a recorded reason, and that is the whole of what it offers; adding
   an instruction to that same run can additionally **re-cut** onto this slice a row the parent
   delegated to a sibling that has since recorded `deferred-to` against it — the one case in which
-  `/brd-split` re-allocates a row already carrying a fate. That third outcome is not guaranteed to be
+  `/brd-split` re-allocates a row already carrying a fate, apart from the key repair a removal
+  performs (its Phase 4.5). That third outcome is not guaranteed to be
   on offer: it needs such a row to exist and it needs this slice never to have been interviewed, so a
   slice emptied after its own interview can only be removed or kept.
 - **This BRD's own inventory and ledger already on the specs repo's main branch.** `/prd-ground`
@@ -264,9 +265,9 @@ Under the resolved folder — the `PRD-<SLICE-KEY>-<slug>/` slice folder inside 
 Behind Phase 9's consent choice, these are committed, pushed, and a pull request opened against the
 specs repo's default branch — under the shared `brd/<KEY>-<slug>` branch prefix on the BRD route
 (shared by every `/brd-*` command), or `prd/<KEY>-<slug>` on the idea route (shared with
-`/create-prd` and `/update-prd`). A collision between the two is unreachable in the sanctioned flow:
-an idea-route run has already gated `prd.md` with `require-on-main`, so it only ever proceeds once
-`/create-prd`'s own `prd/<KEY>-<slug>` branch has merged.
+`/create-prd`, `/update-prd` and `/prd-proposal`). A collision between the two is unreachable in the
+sanctioned flow: an idea-route run has already gated `prd.md` with `require-on-main`, so it only
+ever proceeds once `/create-prd`'s own `prd/<KEY>-<slug>` branch has merged.
 
 ## Gates
 

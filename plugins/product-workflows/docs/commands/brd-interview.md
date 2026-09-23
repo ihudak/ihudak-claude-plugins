@@ -204,7 +204,7 @@ subagent is dispatched — every finding this command reads was already independ
   an instruction and no parent row left unallocated, can re-cut onto this slice a row a sibling has
   recorded `deferred-to` against in its own ledger, which is that sibling writing down that it will
   not build it, as long as this slice has never been interviewed. A row its holder is still
-  committed to is moved by no command; un-delegating that one is a decision taken with the
+  committed to is re-pointed onto another slice by no command; un-delegating that one is a decision taken with the
   customer.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
 - **No repository, and no `$REPOS_PATH`.** Every `file:line` this command reads was already pinned

@@ -20,7 +20,7 @@ claude plugin install product-workflows@ihudak-plugins
 
 **What you also need, and it is not a plugin.** Nothing beyond `gh`, when present, for opening the pull requests it drafts — without it a run reports the branch it pushed and leaves the pull request to you. The specs repo is the one markdown tree the pipeline *writes*; it also reads your product-docs clone under `$DOCS_PATH` and, where a command grounds on code, the clones under `$REPOS_PATH`, which are no markdown tree at all. If you keep your work in a tracker as well, syncing the two is yours to arrange; no command here learns whether one exists.
 
-**What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki` and `acli` — neither is used by `product-workflows`. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
+**What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki`, `acli` and `guideline-reviewers` — none of them is used by `product-workflows`. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
 
 ## Update
 

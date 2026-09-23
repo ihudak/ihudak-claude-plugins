@@ -200,10 +200,15 @@ as context — do not announce it, do not summarise it. Run `/wiki-hot` to refre
 
 Wiki operations MUST NEVER write to: `Meetings/`, `Daily/`, `Projects/`, `Customers/`,
 `People/`, `Clippings/`, `Research/`. Read these directories; never modify them.
-Write only to `wiki/`.
+Write only to `wiki/`, and to `.raw/` only to archive a processed file under
+`.raw/_processed/YYYY-MM/` or, in `/wiki-scan`, to write an HTML file's markdown
+conversion beside it (`/wiki-init` also creates `.raw/` itself and its `.gitkeep`).
 
-**Exception**: `/wiki-task` and `/wiki-tasks-extract` intentionally write to `Projects/`
-files and `Tasks.md`. These are the only wiki commands allowed outside `wiki/` and `.raw/`.
+**Exceptions**: `/wiki-task` and `/wiki-tasks-extract` intentionally write to `Projects/`
+files and `Tasks.md`; `/wiki-tags-refresh` updates `.obsidian/copilot/tag-index.md`;
+`/wiki-init` writes `.obsidian/copilot/` and the wiki blocks in `CLAUDE.md` and
+`.github/copilot-instructions.md`. These are the only wiki commands that write outside
+`wiki/` and `.raw/`.
 
 Only use tags from `.obsidian/copilot/tag-index.md`. Never invent new tags.
 <!-- WIKI_BLOCK_END -->
@@ -265,10 +270,15 @@ Read the schema fully before any operation that creates or modifies wiki pages.
 
 Wiki operations MUST NEVER write to: `Meetings/`, `Daily/`, `Projects/`, `Customers/`,
 `People/`, `Clippings/`, `Research/`. Read these directories; never modify them.
-Write only to `wiki/`.
+Write only to `wiki/`, and to `.raw/` only to archive a processed file under
+`.raw/_processed/YYYY-MM/` or, in `/wiki-scan`, to write an HTML file's markdown
+conversion beside it (`/wiki-init` also creates `.raw/` itself and its `.gitkeep`).
 
-**Exception**: `/wiki-task` and `/wiki-tasks-extract` intentionally write to `Projects/`
-files and `Tasks.md`. These are the only wiki commands allowed outside `wiki/` and `.raw/`.
+**Exceptions**: `/wiki-task` and `/wiki-tasks-extract` intentionally write to `Projects/`
+files and `Tasks.md`; `/wiki-tags-refresh` updates `.obsidian/copilot/tag-index.md`;
+`/wiki-init` writes `.obsidian/copilot/` and the wiki blocks in `CLAUDE.md` and
+`.github/copilot-instructions.md`. These are the only wiki commands that write outside
+`wiki/` and `.raw/`.
 
 Only use tags from `.obsidian/copilot/tag-index.md`. Never invent new tags.
 If a concept needs a new tag, flag it with `tag-needed: <proposed>` and let the user

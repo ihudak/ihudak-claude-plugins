@@ -143,10 +143,11 @@ cannot review, and they will not tell you that — they will review it anyway, b
     this refusal must accept; a gate on the asserted kind would refuse every slice and accept
     nothing.
 
-    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed
-    fallback, there is no prefix to test.** Answer the root question by **positive evidence, never
-    by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1,
-    the shared authority every consumer of this test takes it from, and not restated here.
+    **Where the folder resolved through `workflows-core:addressing` §5's legacy unprefixed fallback,
+    there is no prefix to test.** Answer the root question by **positive evidence, never by the
+    absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, the
+    shared authority every consumer of this test in this plugin takes it from, directly or through
+    `workflows-core:addressing` §4.1, and not restated here.
 
     On a root, look for the root-level artifacts this run would have produced under the retired
     two-level model — any `bundle-<YYYYMMDD>/`, `customer-review-prompt-<YYYYMMDD>.md` or
@@ -155,7 +156,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
     key is wrong. Never delete them; they record work done, and nothing in this run reads them.
 
     Stop:
-    `BRD_PACKAGE_ROOT_LEVEL: <BRD-KEY> is a root BRD, and packaging happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-package <SLICE-KEY>'.<where root-level artifacts exist, append:> This BRD carries root-level package artifacts at <paths> from the earlier two-level model; it is left in place and nothing reads it.`
+    `BRD_PACKAGE_ROOT_LEVEL: <BRD-KEY> is a root BRD, and packaging happens at the slice. Carve one with '/product-workflows:brd-split <BRD-KEY> "<how to cut it>"', then run '/product-workflows:brd-package <SLICE-KEY>'.<where root-level artifacts exist, append:> This BRD carries root-level package artifacts at <paths> from the earlier two-level model; it is left in place, and this command never reads it.`
 6. **Gate the decision register on main.** This command **consumes** a `$SPECS_PATH` deliverable it
    did not write, so per `workflows-core:phase-handoff` §5 rule 2 it executes
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
@@ -417,8 +418,9 @@ model_routing:
 `grounding-verifier` does in `/prd-ground` — `review_model` is recorded, never used to override the
 pin. **The classification floors at `SIGNIFICANT`** because of what this run produces rather than how
 much of it there is: a self-review that finds nothing is a rubber stamp, and a rendered prompt is
-the one artifact in this plugin that a person outside the organisation reads without anyone
-present to correct it. If no Opus resolves, degrade to best-available, record it in `notes`, in the
+the one artifact in this plugin that an outside party pastes into an agent and runs, with nobody
+from the delivery team present to correct it — a proposal is read outside the organisation too, but
+it is read, not run. If no Opus resolves, degrade to best-available, record it in `notes`, in the
 self-review's own header and in the final report — a package whose adversarial pass ran on a weaker
 model is still a package, and the customer's own reviewer is the second pass, but the operator must
 know which they got. Never hard-block.
@@ -1466,16 +1468,27 @@ only — nothing is auto-run.
 Terminal phase — runs after *Next steps*, and NEVER interrupts an earlier phase.
 
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
-gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt before
-escalating. Three of this command's stops **do** qualify and are the reason the invariant is named
-here: `BRD_PACKAGE_SCHEMA_BOUNDARY`, `BRD_PACKAGE_SCHEMA_EXAMPLE_ID` and `BRD_PACKAGE_PROMPT_LEAK`
-are all reference-integrity gaps — a rendered authority whose boundary moved, a rendered authority
-carrying an example identifier with a number in it, and a package artifact carrying a citation that
-should never have been written into it. None of the others do: a missing or malformed key, an
-unresolved BRD, a resolved root BRD, an ungated or absent register, an unsettled round, a bundle
-directory that already exists, and an unset `$SPECS_PATH` are environment or sequencing halts.
-`BRD_PACKAGE_UNDISPOSED` is not one either — it is the gate working — and nor is
-`BRD_PACKAGE_CUSTOMER_CONTENT_HELD`, which is the operator's own ruling on the customer's words.
+gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt before escalating. Six of
+this command's stops **do** qualify and are the reason the invariant is named here:
+`BRD_PACKAGE_SCHEMA_BOUNDARY`, `BRD_PACKAGE_SCHEMA_EXAMPLE_ID` and `BRD_PACKAGE_PROMPT_LEAK` are all
+reference-integrity gaps — a rendered authority whose boundary moved, a rendered authority carrying
+an example identifier with a number in it, and a package artifact carrying a citation that should
+never have been written into it; `BRD_PACKAGE_CORPUS_UNREADABLE` and `BRD_PACKAGE_SET_UNREADABLE`
+are record-integrity gaps — each is, by its own text, this command's parse or read of the plugin's
+own records failing on content that is there, which no sentence in the package can fix; and
+`BRD_PACKAGE_REVIEW_UNACCOUNTED` is an agent-contract gap, a dispatch this command owns whose agent
+broke its return contract twice, the rule `/product-workflows:brd-reconcile` applies to its own
+`BRD_RECONCILE_READER_CONTRACT`. **Every other stop fails that test and is classified by it, never
+by a list**: each reports the operator's own argument, the tree or the environment, a gate working,
+the operator's own ruling, or a defect in the package's own content that a sentence in it has to
+change to fix — as a review BLOCK is a defect in the work and not in the plugin. Among them: a
+missing or malformed key, an unresolved BRD, a resolved root BRD, an ungated, absent or unmerged
+register or round record, an unsettled or uninterviewed round, nothing to review, a bundle directory
+that already exists, and an unset `$SPECS_PATH` are environment or sequencing halts; the other
+bundle-integrity checks (`BRD_PACKAGE_DEAD_CITATION`, `BRD_PACKAGE_CITATION_MISMATCH`,
+`BRD_PACKAGE_SET_MISMATCH`) report what the assembled bundle and the records it was built from hold;
+`BRD_PACKAGE_UNDISPOSED` is the gate working; and `BRD_PACKAGE_CUSTOMER_CONTENT_HELD` is the
+operator's own ruling on the customer's words.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-package`; what was produced (the
@@ -1551,8 +1564,9 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 `/brd-package` never changes a ledger disposition — the line simply reports where allocation stands.
 **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
 `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — this run always stands on a slice
-(step 6 already confirmed `decisions.md` is on main, and that file is written exclusively by
-`/brd-interview`, which itself refuses to run on a root), so that is always a sibling or the parent
+(step 6 already confirmed `decisions.md` is on main, and every command that writes that file —
+`/brd-interview`, `/create-prd` (an `[AS#n]`, and its own `consumed_by` stamps), `/brd-reconcile`, and the
+`consumed_by` stamps of `/create-ard` and `/specify` — itself refuses to run on a root), so that is always a sibling or the parent
 (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). A slice does **not** always reach this with
 nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it

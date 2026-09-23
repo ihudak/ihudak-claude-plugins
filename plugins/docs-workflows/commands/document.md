@@ -20,7 +20,7 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 
 `/document` has **two modes**, selected by the first argument token:
 
-- **Keyed mode (Mode A)** — the first token is a **single positional address**: a `<KEY>` matching `workflows-core:addressing` §1's grammar, or an `@<path>` naming a folder in the specs tree. `resolve-address` (§3) turns it into a folder; `ambiguous` is a stop naming every match. **`status: absent` is a stop, not a folder to create** — it surfaces the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`), the same rule Phase 3 surfaces for a folder that exists and holds no PRD, and names what creates a folder this command reads — **all three creators, not one**: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command. Naming only `/create-prd` is wrong on the BRD route, where that command refuses the container above the slice, and wrong for an `EPIC-` address, which it never mints — the same list `/dev-workflows:ready`, `/docs-workflows:release-notes`, `/product-workflows:epics` and `/product-workflows:create-ard` each print in their own `absent` stops. It never falls through to direct mode: an address that resolved to nothing is a typo to correct, not a prose prompt to document.
+- **Keyed mode (Mode A)** — the first token is a **single positional address**: a `<KEY>` matching `workflows-core:addressing` §1's grammar, or an `@<path>` naming a folder in the specs tree. **On a `<KEY>`, `$SPECS_PATH` comes first:** if it is unset, stop naming it before resolving anything or running the preflight below (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`, `workflows-core:escalation-rules` *Required path environment variable unset*) — a key is found only by searching the specs tree, so with no tree the `absent` stop below would name the wrong cause and offer a re-enter that cannot succeed. An `@<path>` address needs no specs tree and runs on, and direct mode is unaffected. `resolve-address` (§3) turns the address into a folder; `ambiguous` is a stop naming every match. **`status: absent` is a stop, not a folder to create** — it surfaces the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`), the same rule Phase 3 surfaces for a folder that exists and holds no PRD, and names what creates a folder this command reads — **all three creators, not one**: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command. Naming only `/create-prd` is wrong on the BRD route, where that command refuses the container above the slice, and wrong for an `EPIC-` address, which it never mints — the same list `/dev-workflows:ready`, `/docs-workflows:release-notes`, `/product-workflows:epics` and `/product-workflows:create-ard` each print in their own `absent` stops. It never falls through to direct mode: an address that resolved to nothing is a typo to correct, not a prose prompt to document.
 - **Direct mode (Mode B)** — no positional address: a leading `@file` token, free-text prose, or a directory that is not in the specs tree, which Mode B handles via its existing "anything else" path.
 
 **The mode test is the presence of an address**, which is what replaces the retired shared front-end's own mode return. Mode B is unchanged in every other respect — a direct-mode run is byte-identical to before.
@@ -45,8 +45,9 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 1. **Resolve the address.** Parse the single positional address from `$ARGUMENTS` — a `<KEY>`, or
    an `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Present and resolving → `mode: keyed`;
    absent from the argument list → `mode: direct`, and the rest of this phase's keyed steps are
-   skipped. Carry the resolved `path`, `kind`, `key`, and the `specs` files found in that folder
-   forward.
+   skipped. A `<KEY>` with `$SPECS_PATH` unset never reaches this step: Mode detection has already
+   stopped on it. Carry the resolved `path`, `kind`, `key`, and the `specs` files found in that
+   folder forward.
 
    **Place the folder, and carry the PRD folder and the focus.** An `EPIC-` address documents one
    Epic, and its folder holds no `prd.md`: the PRD it belongs to is the folder above it. So place the
@@ -110,8 +111,8 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      ```
    Skip this check for `profile_source: built-in` (no profile file) and `generated` (the inline profiling branch is adopted by Phase 6.2, so the profile rides the single docs branch — a base check would false-fire).
 
-5. **Specs (additive).** Use the `specs` list from the front-end (§Specs
-   resolution — `$SPECS_PATH` then the directory case). `specs: []` is fine —
+5. **Specs (additive).** Use the `specs` files step 1 found in the resolved
+   folder. `specs: []` is fine —
    specs are additive context for `/document`; proceed without prompting. For
    the downstream phases that scan or cite a single specs location (the Phase 5.6
    image scan, the Phase 5.7 `doc-planner` dispatch, and the Phase 5.8 three-way

@@ -18,7 +18,7 @@ the Opus `readiness-reviewer`.
 
 Key distinction from every other pipeline command: `/ready` **authors nothing** in the PRD/Epic/ARD/spec/design sense — it never writes any of those, and it never writes a status. Its only authored write is an overwritten `_readiness.md` snapshot under `$SPECS_PATH`, and it branches only via the `workflows-core:phase-handoff` §4.3 consent choice to hand that snapshot off, creating `ready/<KEY>-<slug>` — `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created (`workflows-core:specs-repo-git` §2.2). `_readiness.md` is likewise committed only through that same §4.3 choice, never automatically — declining leaves it uncommitted; the terminal `commit-artifacts` step commits ONLY the run's bounded session-artifact paths (`workflows-core:specs-repo-git` §2.1), which `_readiness.md` is not. Where `/design`'s repo gate is a **strict, hard-stop** mount check because it is about to ground code decisions, `/ready`'s repo check is **best-effort presence only** — it never scans code, it only notes whether a needed repo is mounted.
 
-Key distinction from every other consumer of `workflows-core:phase-handoff` §3 (`require-on-main`) and `workflows-core:ard-resolution`: every other caller stops when a gated ARD/spec/design resolves off the specs repo's default branch; `/ready` **never** does. That state becomes a readiness finding — "authored but not handed off" — that caps the eventual verdict at `PARTIAL`; an artifact that is absent outright is recorded as missing in the coverage roll-up, exactly as before this feature. Reporting readiness is `/ready`'s whole function, so a run that stops instead of reporting has failed at the one thing it exists to do.
+Key distinction from every other consumer of `workflows-core:phase-handoff` §3 (`require-on-main`) and `workflows-core:ard-resolution`: every other caller's own gate stops it when a gated ARD/spec/design resolves off the specs repo's default branch (`/product-workflows:brd-reconcile` reads a stopping row without stopping at two sites and never at its ordinary Phase 0 gate — its cross-BRD write guard, and a `--sent` run's redundancy check at Phase 0 step 6, which reads the gate inverted; `phase-handoff` §3.7 names both); `/ready` **never** stops. That state becomes a readiness finding — "authored but not handed off" — that caps the eventual verdict at `PARTIAL`; an artifact that is absent outright is recorded as missing in the coverage roll-up, exactly as before this feature. Reporting readiness is `/ready`'s whole function, so a run that stops instead of reporting has failed at the one thing it exists to do.
 
 Key distinction from `/design`'s Epic-picker behavior: a **`PRD-` address** is a first-class
 **PRD-level** check (workflow-states.md's PRD ladder), not something that must be resolved down to a
@@ -127,9 +127,10 @@ best-effort-checks repos under `$REPOS_PATH`; cwd need not be inside either.
 3. **The status peek is retired, and nothing replaces it.** It read a
    `| Key | Type | Status | Summary | Role |` table out of a per-key index file that a tracker export
    wrote. Nothing in `$SPECS_PATH` writes such a file, so the read had no source — and D8 removed its
-   purpose as well: the phase is **derived from the artifacts** (Phase 3(0)), and the only status
-   anyone declares is the one the operator passes to `--claimed` (step 1a), which Phase 3 compares
-   against the derivation. **Do not reconstruct it**: a second,
+   purpose as well: the phase is **derived from the artifacts** (Phase 3(0)), and the only workflow
+   phase anyone declares to this run is the one the operator passes to `--claimed` (step 1a), which
+   Phase 3 compares against the derivation. (`prd.md`'s own frontmatter does carry a `status:` —
+   `workflows-core:prd-format` — and this run never reads it as a phase.) **Do not reconstruct it**: a second,
    softer statement of the phase beside the derived one is exactly the duplicated state D8 exists to
    remove.
 
@@ -197,13 +198,14 @@ already is. Nothing is read out of the PRD's title for it, and no title is inven
   derivation that never ran. Update the template to carry both.
 
   Then **carry a readiness finding, which caps the verdict exactly as an unmerged artifact and an
-  over-claimed `--claimed` phase do**, through the mechanism this command already has for those. The finding names the PRD and the repair — `/product-workflows:update-prd <KEY>` to state
-  the requirements — so it reads like every other finding here. **Its cap is to `NOT-SUPPORTED`, and
+  over-claimed `--claimed` phase do**, through the mechanism this command already has for those. The
+  finding names the PRD and the repair — `/product-workflows:update-prd <PRD>` to state the
+  requirements — so it reads like every other finding here. **Its cap is to `NOT-SUPPORTED`, and
   that is a floor rather than a ceiling**: the other two cap *at* `PARTIAL`, meaning "no better than
-  partial", whereas this one settles the verdict outright, because nothing at all was verified. Where
-  this finding and a `PARTIAL` cap both fire, this one wins — the strongest constraint is the one
-  that says no evidence was available, and a `PARTIAL` from a run that checked nothing would claim
-  more than it did.
+  partial", whereas this one settles the verdict outright, because nothing at all was verified.
+  Where this finding and a `PARTIAL` cap both fire, this one wins — the strongest constraint is the
+  one that says no evidence was available, and a `PARTIAL` from a run that checked nothing would
+  claim more than it did.
 
   **Do not refuse the run, and the reason is the rubric.** `dev-workflows:workflow-states` has rungs
   — `Open` (artifact: *PRD stub*) and `Problem stated` (artifact: *PRD with Problem/Goal*) — at which
@@ -232,7 +234,8 @@ When `focus_key` is set, validate it names one of those folders; if not, surface
 `READY_FOCUS_NOT_FOUND: <focus_key> is not an Epic of <PRD>.` with
 `choices: ["Check PRD-level readiness instead (the whole PRD)", "Re-enter the Epic key", "Cancel"]`.
 
-**Nothing here reads a declared status, because there is nothing to read one from.** The phase is
+**Nothing here reads a declared phase, because nothing in the tree declares one** — `prd.md`'s
+frontmatter `status:` is not read as one. The phase is
 derived in Phase 3(0) from the artifacts above; a status the operator declares enters the run only
 through `--claimed` (Phase 0 step 1a) and is compared against that derivation, never substituted for
 it.
@@ -352,7 +355,7 @@ and a pointer to the rubric.
   > applicable_ard:          [the Phase 2.5 invariants, or omit entirely if status was none]
   > workflow_states_rubric:  ${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md"
 
-**There is no `declared_status` field, and adding one back would be the defect this pair replaced.** Nothing in `$SPECS_PATH` declares a per-PRD or per-Epic status for this run to paste (Phase 1 step 3, Phase 2), so the two fields above are the whole of what the run holds: `derived_phase`, which Phase 3(0) derived from the artifacts, and `claimed_status`, which exists only on a `--claimed` run. The reviewer's own dimension 1 compares the second against the first; sending neither, or sending a field with nothing to fill it, silently degrades that comparison to "absent, there is nothing to diverge from".
+**There is no `declared_status` field, and adding one back would be the defect this pair replaced.** Nothing in `$SPECS_PATH` declares a per-PRD or per-Epic workflow phase for this run to paste (Phase 1 step 3, Phase 2) — `prd.md`'s frontmatter `status:` (`workflows-core:prd-format`) is never read as one — so the two fields above are the whole of what the run holds: `derived_phase`, which Phase 3(0) derived from the artifacts, and `claimed_status`, which exists only on a `--claimed` run. The reviewer's own dimension 1 compares the second against the first; sending neither, or sending a field with nothing to fill it, silently degrades that comparison to "absent, there is nothing to diverge from".
 
 Carry back the verdict (`SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED`) and the full Findings section
 (by dimension) for Phase 5. `readiness-reviewer` never modifies files and never re-derives the phase — a

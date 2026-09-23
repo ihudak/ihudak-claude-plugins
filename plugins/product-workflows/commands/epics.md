@@ -1,6 +1,6 @@
 ---
 name: epics
-description: keyed Epic-writing workflow. Takes one address and accepts exactly two shapes — a PRD- folder (draft new Epics) or an EPIC- folder that has a PRD above it (re-refine that Epic) — refusing a stand-alone EPIC- folder and a BRD- container, since Epics come from a PRD only and this is the only command that creates an EPIC- folder. Reads the Product Requirements Document and existing Epics from the resolved folder in the specs tree, optionally scans code repos, drafts child Epic definitions, runs `prose-style-checker` unconditionally as a non-gating quality pass (`prose-style` is a declared dependency of this plugin), and gates on the Opus epic-reviewer.
+description: keyed Epic-writing workflow. Takes one address and accepts exactly two shapes — a PRD- folder holding its prd.md (draft new Epics) or an EPIC- folder that holds its epic.md and has a PRD above it (re-refine that Epic) — refusing everything else, among it a stand-alone EPIC- folder, an EPIC- folder holding no epic.md, a PRD- folder with no PRD authored yet and a BRD- container, since Epics come from a PRD only and this is the only command that creates an EPIC- folder. Reads the Product Requirements Document and existing Epics from the resolved folder in the specs tree, optionally scans code repos, drafts child Epic definitions, runs `prose-style-checker` unconditionally as a non-gating quality pass (`prose-style` is a declared dependency of this plugin), and gates on the Opus epic-reviewer.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -12,7 +12,7 @@ Draft child Epics for the resolved Product Requirements Document: $ARGUMENTS
 
 Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not yet implemented** — there are no PRs to diff. Code scanning (when enabled) is a plain filesystem search to understand what exists and what needs to be built.
 
-**`/epics` accepts exactly two shapes and refuses everything else** (Phase 0 steps 1a and 1b): a `PRD-` folder, which it partitions into new Epics, or an `EPIC-` folder **that has a PRD above it**, which it re-refines. A stand-alone `EPIC-` folder and a `BRD-` container are both refused. **Epics come from a PRD only**, and `/epics` is the only command in this plugin that creates an `EPIC-` folder — `/create-ard` and `/specify` refuse an absent one rather than minting it.
+**`/epics` accepts exactly two shapes and refuses everything else** (Phase 0 steps 1a and 1b): a `PRD-` folder, which it partitions into new Epics, or an `EPIC-` folder holding its `epic.md` **that has a PRD above it**, which it re-refines. A stand-alone `EPIC-` folder, an `EPIC-` folder holding no `epic.md` and a `BRD-` container are all refused. **Epics come from a PRD only**, and `/epics` is the only command in this plugin that creates an `EPIC-` folder — `/create-ard` and `/specify` refuse an absent one rather than minting it.
 
 `/epics` **never branches** and **never commits the Epic drafts** (still true — the run's git **writes** are confined to `$SPECS_PATH`, per `workflows-core:specs-repo-git`; the run does make read-only git calls elsewhere — Phase 4's `git remote get-url origin` per candidate clone and Phase 8's `git diff --stat` from `project_root` — but none of them writes), and writes only inside the resolved PRD folder — one `EPIC-<PRD-KEY>-NN-<eslug>/` per Epic, plus `_coverage.md` beside `prd.md`. Git hygiene of the write target is the user's responsibility — they may or may not have it under version control. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths (`workflows-core:specs-repo-git` §2.1) — via the `specs-preflight` flush at run start (§3.4) and the terminal `commit-artifacts` step (§4); never the drafts, never the write target. It still creates no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`workflows-core:specs-repo-git` §2.2); it creates none).
 
@@ -49,7 +49,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    this command makes. **Epics come from a PRD only, and there are no Epics at BRD level**
    (`docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` D6): a BRD is a container,
    and the `EPIC-` folders this command writes belong under the `PRD-` slices carved from it — never
-   beside `brd/`, `grounding/`, `coverage-ledger.md` and `slices.md`, in a folder
+   beside `brd/`, `coverage-ledger.md` and `slices.md`, in a folder
    `workflows-core:addressing` §2 invariant 1 gives no Epic. This refusal is
    taken here rather than left to step 1b: a container fails 1b's test anyway (it holds no `prd.md`),
    but 1b's remedy names `/product-workflows:create-prd`, which refuses a container in turn — a stop
@@ -67,7 +67,8 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    fallback, or an unprefixed folder an `@<path>` named — the question is answered by positive
    evidence that it is a BRD, never by the absence of a file** —
    `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, the shared authority
-   `/create-prd`, `/create-ard` and `/specify` take this same test from.
+   every container or root refusal in this plugin takes this same test from, directly or through
+   `workflows-core:addressing` §4.1 (which cites it, and which `/idea`'s refusal takes).
    In short: a legacy folder carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no
    `brd-link.md` naming a `parent:`, is a root container; a legacy folder carrying **neither** of
    those two files is a legacy **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md`
@@ -79,16 +80,17 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    ledger**, exactly like the remedy below: it asks which files the folder carries —
    `coverage-ledger.md` and `brd/brd-inventory.md` are tested for presence and never read — and
    opens at most one file, the `brd-link.md` whose `parent:` separates a legacy root from a legacy
-   slice, which is the same single file the remedy's slice enumeration below reads. The one place
-   this command opens a `coverage-ledger.md` is step 1b's `EPICS_NO_PRD` offer test, which runs only
-   after the run has already been refused.
+   slice, which is the same single file the remedy's slice enumeration below reads. The only places
+   this command opens a `coverage-ledger.md` are step 1b's table — at the `EPICS_NO_PRD` stop, and at
+   `EPICS_EPIC_NOT_UNDER_PRD`'s, which applies it to the `PRD-` folder above the Epic — each after the
+   run has already been refused.
 
    Stop gracefully:
    ```
    EPICS_BRD_NOT_SLICED: <BRD-KEY> resolves to a BRD- container at <path>, and a BRD has no Epics — they are minted under the PRD- slices carved from it, one set each (addressing.md §2 invariant 1). <the remedy, per the branch below>
    ```
 
-   **The remedy is a directory listing rather than a ledger read** — this command reads no coverage
+   **The remedy is a directory listing rather than a ledger read** — this remedy opens no coverage
    ledger and does not start now. Enumerate slices by `/brd-split` Phase 0 step 9's **positive
    test**: an immediate subdirectory carrying a `brd-link.md` whose `parent:` names this BRD.
    - **One or more slices** — the ordinary shape, since a split always confirms at least one. Name
@@ -106,7 +108,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
      optional there — a root is never ground, so that run has no findings to cluster candidate slices
      from and stops with `BRD_SPLIT_NEEDS_INSTRUCTION` where it has rows to place and was given
      none; and **where this BRD's ledger leaves no row `unallocated` that run is a no-op** (its
-     Phase 0 step 10) and carves nothing, since nothing but the `/brd-intake` re-run below moves a
+     Phase 0 step 10) and carves nothing, since no command but the `/brd-intake` re-run below moves a
      terminal row back to `unallocated`
      (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). Say what the operator does
      then rather than leaving the offer to fail silently. There are two ways to reach it and **both
@@ -146,9 +148,10 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
      decisions — saying only that the dispositions are replaced is not the disclosure.
 
 1b. **`/epics` accepts exactly two shapes, and the gate is the artifact's own `kind:`.** A `PRD-`
-   folder is partitioned into Epics; an `EPIC-` folder **that has a PRD above it** is re-refined.
-   Everything else is refused, and `/epics` is the only command in this plugin that creates an
-   `EPIC-` folder (D6).
+   folder holding its `prd.md` is partitioned into Epics; an `EPIC-` folder **that holds its `epic.md`
+   and has a PRD above it** is re-refined. Everything else is refused — among it an `EPIC-` folder
+   holding no `epic.md`, whatever is above it — and `/epics` is the only command in this plugin that
+   creates an `EPIC-` folder (D6).
 
    **Gate on `prd.md`'s own `kind: prd`, never on the folder's asserted `kind:`.** A slice folder
    asserts `kind: brd` (step 1a), so an asserted-kind gate would refuse every slice while accepting
@@ -164,7 +167,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    | Holds a `prd.md` asserting `kind: prd` | **Draft.** `prd_dir` = the resolved `path`, `<PRD-KEY>` = the folder's own `key`, `focus_key` = `null`. This is the `PRD-` folder on either route — the one `/idea` wrote into, or the slice `/brd-split` carved |
    | Holds an `epic.md` asserting `kind: epic`, and its **parent** holds a `prd.md` asserting `kind: prd` | **Re-refine.** `prd_dir` = the **parent**, `<PRD-KEY>` = the parent's own `key`, `focus_key` = the resolved Epic folder's own `key` — all three read from frontmatter (`workflows-core:addressing` §4), never parsed from a directory name |
    | Holds an `epic.md` asserting `kind: epic`, and its parent holds no such `prd.md` | Refuse — `EPICS_EPIC_NOT_UNDER_PRD` below |
-   | Anything else — including a `PRD-` folder in which no `prd.md` has been authored yet | Refuse — `EPICS_NO_PRD` below |
+   | Anything else — including a `PRD-` folder in which no `prd.md` has been authored yet, and an `EPIC-` folder holding no `epic.md` | Refuse — `EPICS_NO_PRD` below |
 
    **This revives a path that was already written and unreachable.** `/epics` parses `focus_key`
    below (Phase 3, Phase 3.5, Phase 6) but nothing ever set it, so refine-by-focus could not run and
@@ -176,27 +179,30 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    it (D4). `/epics` takes **one** address; there is no `<PRD> <Epic>` pair to give.
 
    **No authored PRD.** The remedy is `/product-workflows:create-prd`, and it is named **only where that
-   command can actually run**. `/create-prd` refuses **three** shapes, not one, and step 1a has
+   command can actually run**. `/create-prd` refuses **three** BRD-route shapes, not one, and step 1a has
    taken only the first — the container
    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2, which is the authority and is
    not restated here). The other two are data refusals on a slice's own ledger, and they exist only
    for a folder carrying a `brd-link.md`, so an idea-route PRD folder takes the first row below with
    no ledger opened. Read the dispositions from `coverage-ledger.md` itself, never from a `ledger:`
-   line (§6.1). **This is the one read of a coverage ledger `/epics` makes**, it is confined to this
-   stop, and it happens after every other gate has already refused the run — the step 1a remedy
+   line (§6.1). **This table is the one reason `/epics` reads a coverage ledger**, it is confined to
+   this stop and to `EPICS_EPIC_NOT_UNDER_PRD`'s, which applies its slice rows to the folder above,
+   and each happens after every other gate has already refused the run — the step 1a remedy
    above is still a directory listing, and no phase of a proceeding run opens a ledger.
 
    | The resolved folder | What the stop names |
    |---|---|
+   | An `EPIC-` folder — its name beginning `EPIC-<the resolved key>-`, a prefix as `workflows-core:addressing` §4.1 defines one — holding no `epic.md` | **Not** `/create-prd` or `/update-prd`, which refuse an Epic folder with `CREATE_PRD_EPIC_FOLDER` and `UPDATE_PRD_EPIC_FOLDER`; every row below reads a folder that is not this one. No command writes an `EPIC-` folder without its `epic.md`, so this one is hand-made or left by an interrupted run, and no command takes it as an input. Where the folder above holds a `prd.md` asserting `kind: prd`, name `/product-workflows:epics <PRD-KEY>`, `<PRD-KEY>` being that `prd.md`'s own `key` — it drafts this PRD's Epics, each in a folder it creates and keys itself, so this folder is not an input to it; say what the folder holds, and that it may be removed once the operator has checked nothing in it is wanted — a hand-made folder can hold notes. Where the folder above is a `PRD-` folder holding no `prd.md`, name `/product-workflows:create-prd <PARENT-KEY>` first, `<PARENT-KEY>` being that folder's own `key`, subject to the rows below applied to *that* folder, and `/product-workflows:epics <PARENT-KEY>` second, once that PRD exists. Anywhere else, name no command and say so |
    | No `brd-link.md` — an idea-route `PRD-` folder | `/product-workflows:create-prd <KEY>`. It is greenfield-only and redirects to `/update-prd` where a PRD is already there, which this stop has already excluded, and neither data refusal exists off the BRD route |
+   | A `brd-link.md`, and no `coverage-ledger.md` beside it while `brd-link.md` claims rows | **Name no command at all**: report the missing `<slice-dir>/coverage-ledger.md` by path and say `/brd-split` wrote it with the slice. This is not an empty gate set — `claims:` names rows and the evidence for judging them is gone — so neither data refusal can be evaluated, and §5.2 forbids resolving it to the empty row's `/brd-split <PARENT-KEY>` (`/product-workflows:create-prd` Phase 0 step 7 names no option on it either) |
    | A `brd-link.md`; the gate set leaves **no** row `unallocated` **and** at least one `covered-here` | `/product-workflows:create-prd <KEY>` — all three refusals cleared |
    | A `brd-link.md`; a gate-set row is still `unallocated` | **Not** `/create-prd`, which raises `CREATE_PRD_BRD_UNALLOCATED`. Name `/product-workflows:brd-split <KEY>`, whose walk moves exactly those rows and which on a slice runs allocate-only — and say beside it that its own Phase 0 gates on this slice's grounding findings each carrying a verifier verdict and stops naming `/product-workflows:prd-ground <KEY>` when they do not |
    | A `brd-link.md`; no gate-set row `covered-here`, and the gate set is **empty** | **Not** `/create-prd`, which raises `CREATE_PRD_BRD_NOT_ELIGIBLE`. This is a standing empty child: name the keep-or-remove `/product-workflows:brd-split <PARENT-KEY>`, the one run that resolves one and not a no-op there (`commands/brd-split.md` Phase 0 step 10) |
-   | A `brd-link.md`; no gate-set row `covered-here`, and the gate set is **non-empty** | **Name no command at all**, and say why rather than going quiet: this slice holds no PRD of its own, `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE` whose non-empty branch names nothing either, and nothing in this plugin moves a slice's terminal row back to `unallocated` (§3). Report what the gate-set rows actually resolved to — `deferred-to` is a live obligation of this slice, `rejected` is an obligation of nobody, `superseded-by` was absorbed by the `[BR#n]` that replaced it |
+   | A `brd-link.md`; no gate-set row `covered-here` and none `unallocated`, and the gate set is **non-empty** | **Name no command at all**, and say why rather than going quiet: this slice holds no PRD of its own, `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE` whose non-empty branch names nothing either, and nothing in this plugin moves a slice's terminal row back to `unallocated` (§3). Report what the gate-set rows actually resolved to — `deferred-to` is a live obligation of this slice, `rejected` is an obligation of nobody, `superseded-by` was absorbed by the `[BR#n]` that replaced it |
 
    Stop gracefully:
    ```
-   EPICS_NO_PRD: <KEY> resolves to <path>, which holds no prd.md asserting kind: prd — /epics partitions a PRD and there is nothing here to partition. <the remedy, per the row above that matches — and in the last row, what became of the requirements and why no command is named>
+   EPICS_NO_PRD: <KEY> resolves to <path>, which holds no prd.md asserting kind: prd — /epics partitions a PRD and there is nothing here to partition. <the remedy, per the row above that matches — and wherever the matching row names no command, why — what became of the requirements, the missing ledger's path, or the absence of any PRD above>
    ```
    **Naming `/create-prd <KEY>` unconditionally was a defect of exactly the anatomy step 1a exists
    to prevent, one refusal further on.** The prose here claimed step 1a had "already taken the one
@@ -204,15 +210,30 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    allocated, and holds every claimed row `deferred-to` or `rejected` passes step 1a, holds no
    `prd.md`, and reaches `/create-prd` only to be refused by a branch that names no command.
 
-   **A stand-alone `EPIC-` folder — one with no PRD above it.** Stop gracefully. It names no plugin
-   command, because none of them authors a PRD over an `EPIC-` folder that already exists:
+   **A stand-alone `EPIC-` folder — one with no PRD above it.** Stop gracefully. What it names turns
+   on the folder above, because `/create-prd` authors a PRD only in a `PRD-` folder and refuses the
+   Epic folder itself (`commands/create-prd.md` step 5b):
    ```
-   EPICS_EPIC_NOT_UNDER_PRD: <KEY> resolves to an Epic folder at <path> with no PRD above it, and an Epic comes from a PRD only — /epics drafts Epics under a PRD folder and re-refines an Epic that has one. No command in this plugin authors a PRD above an Epic folder that already exists. If this Epic's PRD folder exists elsewhere, move the folder into it (git mv) and re-run '/product-workflows:epics <KEY>'. If the work has no PRD at all, it starts at /product-workflows:create-prd <A-NEW-PRD-KEY>, which creates its own PRD- folder — this Epic folder is not an input to that run.
+   EPICS_EPIC_NOT_UNDER_PRD: <KEY> resolves to an Epic folder at <path> with no PRD above it, and an Epic comes from a PRD only — /epics drafts Epics under a PRD folder and re-refines an Epic that has one. <remedy>
    ```
-   A top-level `EPIC-` folder is a shape nothing in this plugin produces: `/epics` writes every
-   `EPIC-` folder under a PRD folder, and `commands/create-ard.md` and `commands/specify.md` refuse
-   an absent one rather than creating it. So it is a legacy tree or a hand-made folder, and `git mv`
-   — not a plugin command — is what moves it.
+   `<remedy>` has two forms. Where the folder above is a `PRD-` folder holding no `prd.md` — a
+   prefix as `workflows-core:addressing` §4.1 defines one, `<PARENT-KEY>` being that folder's own
+   `key` (§4), never parsed out of its name — it is `The PRD folder above it holds no PRD yet:
+   author one with '/product-workflows:create-prd <PARENT-KEY>', then re-run
+   '/product-workflows:epics <KEY>'.` That run resolves the `PRD-` folder, not this one, and on a
+   slice applies its refusals to the slice's own ledger, so the offer is subject to step 1b's
+   `EPICS_NO_PRD` slice rows applied to *that* folder where it carries a `brd-link.md`, as that
+   table's own Epic row is. Anywhere else — a top-level `EPIC-` folder, or one
+   below a folder that is not PRD-level — no plugin command authors a PRD above it, and it is `If
+   this Epic's PRD folder exists elsewhere, move the folder into it (git mv) and re-run
+   '/product-workflows:epics <KEY>'. If the work has no PRD at all, it starts at
+   /product-workflows:create-prd <A-NEW-PRD-KEY>, which creates its own PRD- folder — this Epic
+   folder is not an input to that run.` It is a user halt, so `emit-block` does not fire.
+
+   Neither shape is one this plugin produces: `/epics` writes every `EPIC-` folder under a PRD it
+   has read, and `commands/create-ard.md` and `commands/specify.md` refuse an absent one rather than
+   creating it. So the folder is a legacy tree or a hand-made one — or its PRD was removed after the
+   Epics were drafted — and `git mv`, not a plugin command, is what moves it.
 
 `/epics` is **cwd-agnostic**: it writes Epic drafts to an absolute output
 directory (resolved in Phase 1), so it does **not** require cwd to be anywhere in particular.
@@ -548,7 +569,7 @@ The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1
    ```
    choices: ["Provide the missing input (you'll be prompted)", "Cancel"]
    ```
-   On a provided value, rewrite the handoff and re-dispatch once. Nothing is committed here (still true — this step writes only `epic.md` files into the PRD folder, which `commit-artifacts` never stages; git management there is the user's responsibility).
+   On a provided value, rewrite the handoff and re-dispatch once. Nothing is committed here (still true — this step writes only `epic.md` files and `_coverage.md` into the PRD folder, none of which `commit-artifacts` stages; git management there is the user's responsibility).
 
    Also record `coverage_file` (the `_coverage.md` path) and `clarifications_needed[]` for Phases 6.1 and 7.
 
@@ -931,7 +952,7 @@ user name is ever written (§10 privacy).
 - ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
 - ALWAYS resolve one positional address (Phase 0) — a key or an `@<path>` naming a folder in the specs tree works without it; `/epics` is cwd-agnostic and rejects `mode: direct`
 - ALWAYS gate the resolved folder in Phase 0 step 1b on **`prd.md`'s own `kind: prd`** (and, one level down, `epic.md`'s own `kind: epic`) — NEVER on the folder's asserted `kind:`, which a `PRD-` slice folder sets to `brd`; two shapes are accepted (a PRD folder → draft; an `EPIC-` folder with a PRD above it → re-refine, `focus_key` derived from it) and every other shape is refused
-- NEVER partition a `BRD-` container (step 1a, `EPICS_BRD_NOT_SLICED`, taken on the directory prefix before any read) or a stand-alone `EPIC-` folder (`EPICS_EPIC_NOT_UNDER_PRD`) — Epics come from a PRD only, and `/epics` is the ONLY command that creates an `EPIC-` folder
+- NEVER partition a `BRD-` container (step 1a, `EPICS_BRD_NOT_SLICED`, taken on the directory prefix before any read) or an `EPIC-` folder with no PRD above it (`EPICS_EPIC_NOT_UNDER_PRD`) or no `epic.md` in it (`EPICS_NO_PRD`) — Epics come from a PRD only, and `/epics` is the ONLY command that creates an `EPIC-` folder
 - NEVER create a git branch — this command never branches. `specs-preflight` may switch `$SPECS_PATH` between branches that already exist, and only ones the plugin created (`workflows-core:specs-repo-git` §2.2); it creates none.
 - NEVER commit the Epic files, or anything in the current working directory, where it is not the specs repository — git management there is the user's responsibility. **Say what leaving them uncommitted costs**: an `epic.md` in the PRD folder is an `OTHER` path to `workflows-core:specs-repo-git` §2.1, so it fires §3.3's G1 advisory on every later run of any command and keeps the preflight's leftover flush and branch settle skipped until it is committed or removed. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1).
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run

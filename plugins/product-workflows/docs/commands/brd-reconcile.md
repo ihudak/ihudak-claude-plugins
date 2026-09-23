@@ -236,18 +236,25 @@ unmatched row can be told apart from a question set nobody passed.
   record a date the review does not carry. Only declining to name a suffix stops the run
   (`BRD_RECONCILE_REVIEW_EXISTS`).
 - **Phase 6 — a section-12 row instructs an edit; it does not authorise a field this command may not
-  write.** Prose, `slices.md` and the seed files are corrected in place — `code-defect-log.md` is
-  the one exception, whose prose is not corrected in place either. A row asking to change a
-  coverage-ledger `disposition`, an inventory row's `id`/`text`/`source_anchor`, **any field of a
-  register record** — all thirteen of them, `argumentation` among them — `brd-link.md`'s
-  `parent:`/`claims:`, or any field of a `[CDF#n]` in the code-defect log is
-  **`refused-with-reason`** — each is fixed by a rule this command does not
-  own, and the customer cannot be expected to know which. The refusal names the channel that *does*
-  carry the substance: a `[CD#n]`, a `customer-amended` defect resolution, a later
-  [`/brd-interview`](brd-interview.md) round, whose operator owns every code-defect disposition, the
-  next [`/brd-intake`](brd-intake.md) run, or — for a row asked to be built that already carries a
-  fate, which no command allocates — a person, named in the reconciliation record's *what still
-  needs a human*.
+  write.** Prose, `slices.md` and the seed files are corrected in place — with two exceptions whose
+  prose is not corrected in place either: `code-defect-log.md`, and an effort proposal
+  (`proposal.md` or `proposal-brief.md`, a slice's or the umbrella's, reachable only where a
+  `--sent` package carried one, since a package [`/brd-package`](brd-package.md) builds carries
+  none). A row asking to change a coverage-ledger `disposition`, an inventory row's
+  `id`/`text`/`source_anchor`, **any field of a register record** — all thirteen of them,
+  `argumentation` among them —
+  `brd-link.md`'s `parent:`/`claims:`, any field of a `[CDF#n]` in the code-defect log, or any line
+  of an effort proposal or of an archived revision of one is **`refused-with-reason`** — each is
+  fixed by a rule this command does not own, and the customer cannot be expected to know which; a
+  proposal moves only by a revision, which archives the prior and classifies what moved, so it is
+  never edited at all. The refusal names the channel that *does* carry the substance: a `[CD#n]`, a
+  `customer-amended` defect resolution, a later [`/brd-interview`](brd-interview.md) round, whose
+  operator owns every code-defect disposition, the next [`/brd-intake`](brd-intake.md) run, a re-run
+  of the command that wrote the proposal ([`/prd-proposal`](prd-proposal.md) for a slice's,
+  [`/brd-proposal`](brd-proposal.md) for the umbrella's, none for a row naming only an archived
+  revision, and the row carried into *what still needs a human* either way), or — for a row asked to
+  be built that already carries a fate, which no command allocates — a person, named in the
+  reconciliation record's *what still needs a human*.
   **What is refused is the edit, not the change** — and saying so is the difference between a
   refusal the customer accepts and one they re-request next round. **A correction to the
   transcription of a customer's image is applied**: the review's section 4 asks the customer to
@@ -355,14 +362,20 @@ contradiction is invisible from the register, which is the only place anybody lo
 A hit is corrected only where it is **prose** that nothing else owns. Inside a coverage ledger's
 `disposition`, an inventory row's `id`/`text`/`source_anchor`, **any field of a register record bar
 its `argumentation`** — the one field of a record an `updated` may reach, being the route's own
-prose — any entry of the code-defect log, any line of the figures file, or any line of the
-customer's own captured files, it becomes `needs-a-human` instead: each of those is
-fixed by a rule the sweep does not own — allocation belongs to [`/brd-split`](brd-split.md)'s walk,
-an inventory row mirrors an immutable source, a decision moves only through the four sweep
-dispositions or the two reopening causes, every code-defect disposition is the operator's, a
-transcription records what the customer's image shows, which no decision changes, and the customer's
-document and every file captured with it are never touched at all. The scope is every markdown file
-under the parent, which is exactly why the carve-out has to be written down.
+prose — any entry of the code-defect log, any line of the figures file, any line of an effort
+proposal or its brief (a slice's or the umbrella's, archived revisions included), or any line of the
+customer's own captured files, it becomes `needs-a-human` instead: each of those is fixed by a rule
+the sweep does not own — allocation belongs to [`/brd-split`](brd-split.md)'s walk, an inventory row
+mirrors an immutable source, a decision moves only through this command's own freeze, the four sweep
+dispositions or the two reopening causes — and its `consumed_by` through the stamp
+[`/create-prd`](create-prd.md), [`/create-ard`](create-ard.md) or [`/specify`](specify.md) writes on
+a record it drew on — every code-defect disposition is the operator's, a transcription records what
+the customer's image shows, which no decision changes, a proposal moves only by a revision —
+re-running [`/prd-proposal`](prd-proposal.md) or [`/brd-proposal`](brd-proposal.md), which archives
+the prior and classifies each change as a correction or a re-estimate, is the fix the reconciliation
+record names — and the customer's document and every file captured with it are never touched at all.
+The scope is every markdown file under the parent, which is exactly why the carve-out has to be
+written down.
 
 ## What it does not do
 
@@ -413,7 +426,7 @@ precondition the offered command actually enforces:
 | Handover | Offered when | Why |
 |---|---|---|
 | [`/create-prd <SLICE-KEY>`](create-prd.md) (PM) | **On a slice**, and only where no ledger row is still `unallocated` and one is `covered-here` | Exactly the three refusals its own Phase 0 raises; offering it otherwise hands over a run that stops immediately |
-| [`/create-ard <SLICE-KEY>`](create-ard.md) (PA, optional) | **On a slice**, with no further condition | Reads only the specs tree; the PRD gate runs on every route but its `absent` branch proceeds, so no wait on a PRD that has not been authored; and it reads neither `claims:` nor the ledger |
+| [`/create-ard <SLICE-KEY>`](create-ard.md) (PA, optional) | **On a slice**, with no further condition | Consults no tracker; the PRD gate runs on every route, but its `absent` branch proceeds, so no wait on an unauthored PRD; it reads neither `claims:` nor the ledger as an authoring input |
 | [`/specify <SLICE-KEY>`](specify.md) (PE) | **On a slice**, with no further condition | The same reasons, read out of its own Phase 0 rather than assumed symmetric with `/create-prd`'s |
 
 **A root BRD never reaches this phase.** `/brd-reconcile` refuses one at its own Phase 0, with

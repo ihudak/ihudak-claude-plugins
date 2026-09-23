@@ -30,8 +30,11 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
    `IDEA_NEEDS_KEY: /idea needs a PRD key (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-77) — it names the folder this idea will live in. Re-run '/product-workflows:idea <PRD-KEY> [<prompt>|@<file>]'.`
 
    **The key is an argument because there is nowhere keyless to write.** `idea.md` lands in its final
-   folder on the first write — `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/`. Resolve it
-   here with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`,
+   folder on the first write — `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/`. **So `$SPECS_PATH`
+   comes first:** if it is unset, stop naming it (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`,
+   `workflows-core:escalation-rules` *Required path environment variable unset*) — resolution and Phase 4's
+   write both need it, and an empty one would aim `idea.md` at `/specifications/` under the filesystem root.
+   Resolve the folder here with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`,
    §3): `found` is the folder this run writes into — **where it is an idea-route PRD folder**, below
    — and `ambiguous` is §3's hard stop. **On `absent` nothing is created here**, because Phase 0
    holds no slug to name a folder with: the folder is created by Phase 4's first write, as
@@ -54,13 +57,27 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
    holds a PRD, a slice's PRD is seeded from its BRD with no idea ladder, and an Epic folder sits
    below its PRD:
    `IDEA_NOT_AN_IDEA_FOLDER: <KEY> resolves to <folder path>, <a BRD container | a BRD-route slice | an Epic folder> — /idea writes only into an idea-route PRD folder. <remedy> For a separate idea, give it a key of its own: '/product-workflows:idea <NEW-KEY> [<prompt>|@<file>]'.`
-   `<remedy>` names the run that does take that folder's work, by what the folder is:
+   `<remedy>` names the run that does take that folder's work, by what the folder is — and, in the
+   slice and Epic rows below, names a run **only where that run can itself take the folder**, since
+   each command it could name refuses some shape of it. **The BRD container row is the exception**:
+   it names each slice's `/create-prd` as where a PRD belongs, not as a run promised to start, and
+   `/brd-split` with its no-op case said beside it. The slice rows read the gate set
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2 defines — this slice's own
+   `coverage-ledger.md` rows narrowed by its `brd-link.md` `claims:`, read out of the ledger file
+   and never off a `ledger:` line (§6.1) — exactly as `/product-workflows:update-prd` Phase 0 step 4
+   and `/product-workflows:epics` Phase 0 step 1b read it:
 
    | The folder is | `<remedy>` |
    |---|---|
-   | a BRD-route slice | `Its PRD is authored from its BRD: run '/product-workflows:create-prd <KEY>'.` |
-   | a BRD container | `A BRD holds no PRD of its own: carve a slice with '/product-workflows:brd-split <KEY> "<how to cut it>"', or run '/product-workflows:create-prd <SLICE-KEY>' on one already carved.` |
-   | an Epic folder | `An Epic is refined from the PRD above it: revise that PRD with '/product-workflows:update-prd <PRD-KEY>', re-refine this Epic with '/product-workflows:epics <KEY>', or specify it with '/product-workflows:specify <KEY>'.` |
+   | a BRD-route slice already holding a `prd.md` | `Its PRD is already authored: revise it with '/product-workflows:update-prd <KEY>'.` |
+   | a BRD-route slice holding no `prd.md`, whose `coverage-ledger.md` is **absent** while its `brd-link.md` claims rows | Name no command: report the missing `<slice-dir>/coverage-ledger.md` by path and say `/brd-split` wrote it with the slice. This is not an empty gate set — `claims:` names rows and the evidence for judging them is gone — so neither data refusal can be evaluated, and §5.2 forbids resolving it to the empty row's `/brd-split <PARENT-KEY>` (`/product-workflows:create-prd` Phase 0 step 7 names no option on it either) |
+   | a BRD-route slice holding no `prd.md`, whose gate set leaves **no** row `unallocated` **and** at least one `covered-here` | `Its PRD is authored from its BRD: run '/product-workflows:create-prd <KEY>'.` |
+   | a BRD-route slice holding no `prd.md`, a gate-set row still `unallocated` | Not `/create-prd`, which raises `CREATE_PRD_BRD_UNALLOCATED`: `Its rows are not all allocated yet: run '/product-workflows:brd-split <KEY>' (allocate-only on a slice; its own Phase 0 stops naming '/product-workflows:prd-ground <KEY>' where this slice's grounding findings do not each carry a verifier verdict), then '/product-workflows:create-prd <KEY>' where that walk leaves a claimed row covered-here.` |
+   | a BRD-route slice holding no `prd.md`, no gate-set row `covered-here`, the gate set **empty** | Not `/create-prd`, which raises `CREATE_PRD_BRD_NOT_ELIGIBLE`: `This slice claims nothing: keep or remove it with '/product-workflows:brd-split <PARENT-KEY>'.`, `<PARENT-KEY>` read off the same `brd-link.md` the `claims:` list came from |
+   | a BRD-route slice holding no `prd.md`, no gate-set row `covered-here` and none `unallocated`, the gate set **non-empty** | Name no command, and say why: this slice holds no PRD of its own, `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE`, and nothing in this plugin moves a slice's terminal row back to `unallocated` — report what its gate-set rows resolved to |
+   | a BRD container | `A BRD holds no PRD of its own: it is authored in one of its PRD- slices.` Then name each slice under it — found by `/product-workflows:brd-split` Phase 0 step 9's positive test (an immediate subdirectory whose `brd-link.md` `parent:` names this BRD), never by a name match — with `'/product-workflows:create-prd <SLICE-KEY>'`, as the statement that a PRD belongs there rather than a promise that the slice is eligible; where it holds none, `'/product-workflows:brd-split <KEY> "<how to cut it>"'` carves one, and say beside it that that run is a no-op on a ledger with no `unallocated` row |
+   | an Epic folder whose parent holds a `prd.md` asserting `kind: prd` | `An Epic is refined from the PRD above it: revise that PRD with '/product-workflows:update-prd <PRD-KEY>', re-refine this Epic with '/product-workflows:epics <KEY>', or specify it with '/product-workflows:specify <KEY>'.` — where this folder holds no `epic.md`, `/product-workflows:epics <KEY>` refuses it (`EPICS_NO_PRD`), so that clause names `'/product-workflows:epics <PRD-KEY>'` instead, which drafts the PRD's Epics in folders of its own |
+   | an Epic folder whose parent holds no such `prd.md` | Not `/update-prd`, which stops `UPDATE_PRD_NO_PRD` there, nor `/epics <KEY>`, which stops `EPICS_EPIC_NOT_UNDER_PRD` or `EPICS_NO_PRD`: where the parent is a `PRD-` folder, `The PRD folder above it holds no PRD yet: author one there with '/product-workflows:create-prd <PARENT-KEY>'.`, `<PARENT-KEY>` being that folder's own `key`, subject to the slice rows above applied to *that* folder where it carries a `brd-link.md`; anywhere else, name no parent and say so |
 
    `<PRD-KEY>` is the key of the folder above the Epic folder, read off that folder's carrier
    (`workflows-core:addressing` §4) — never parsed out of either folder's name.
@@ -476,8 +493,10 @@ repairs where `idea.md` points.
    rule's rule 1 reuses such a file rather than copying it (`idea-format.md`), and the writer table
    gives this run only what it *copied* — and a later `/workflows-core:frames` run can still
    describe either. **The index is not optional**:
-   `workflows-core:grounding-format` §6.1 makes its absence unrecoverable, so images
-   written without one would be a frame set nothing can ever read. **Writing it is still not
+   `workflows-core:grounding-format` §6.1 makes its absence a refusal of design grounding, recovered
+   only by writing one (`/workflows-core:frames` is the supported way; a hand-written index serves
+   too), so images written without one would be a frame set `design-grounder` refuses on sight until
+   someone does. **Writing it is still not
    grounding it** — nothing here dispatches `design-grounder`, produces a `[DG#n]`, or reaches a
    verifier, and this phase keeps that true. What changes is that the set this phase writes is read
    later: `/prd-ground` grounds it against this same PRD's `[AC#n]`/`[FR#n]`/`[US#n]` rows, whenever an

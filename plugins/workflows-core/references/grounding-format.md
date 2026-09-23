@@ -14,7 +14,7 @@ every repository grounding reads.
 **Consumed by** the three grounding agents that write against the contract fixed here —
 `product-workflows:code-grounder`, `product-workflows:design-grounder`, and `product-workflows:grounding-verifier` — and by
 the two commands that read what they produce: `/product-workflows:prd-ground`, which orchestrates all
-three, and `/product-workflows:brd-split`, whose Phase 0 gate turns on §8's verification outcomes. **That list is the §1–§5 and §8 contract's, not the file's**, and this header used to read as the whole of it: §6's frame-set sections have their own consumers — `/workflows-core:frames` and `workflows-core:frame-describer` build and rebuild an index to §6.2, and `/product-workflows:idea` Phase 4.5 writes one for the images it read, which is why `product-workflows:idea-format` calls §6.2's writer table two-rowed. Several build-ladder commands also cite §8's *no verifier outcome ⇒ not evidence* rule without orchestrating a grounding run at all. **Re-derive the real set before editing any section here** — `grep -l grounding-format plugins/*/commands/*.md plugins/*/agents/*.md`, reading each hit for which section it depends on; a change to §6 that consulted only the five named above would land under three files that were never asked.
+three, and `/product-workflows:brd-split`, whose Phase 0 gate turns on §8's verification outcomes. **That list is the §1–§5 and §8 contract's, not the file's**, and this header used to read as the whole of it: §6's frame-set sections have their own consumers — `/workflows-core:frames` and `workflows-core:frame-describer` build and rebuild an index to §6.2, and `/product-workflows:idea` Phase 4.5 writes one for the images it read, which is why `product-workflows:idea-format` calls §6.2's writer table two-rowed. Several build-ladder commands also cite §8's *no verifier outcome ⇒ not evidence* rule without orchestrating a grounding run at all. Other shared references cite it too — decision, ledger, packaging and proposal formats among them. **Re-derive the real set before editing any section here** — `grep -rl grounding-format plugins/*/commands plugins/*/agents plugins/*/references`, reading each hit for which section it depends on; the five named above are a small part of what it returns, so a change consulted only against them lands under files that were never asked.
 
 ## 1. What grounding is, and is not
 
@@ -440,14 +440,15 @@ screen or report images plus **an index file** naming what each frame depicts.
 <any-specs-folder>/design/<frame-set-name>/   <images…> + an index file
 ```
 
-**The index is not optional, and its absence is recoverable in exactly one way.** `design-grounder`
+**The index is not optional, and its absence is recovered only by writing one.** `design-grounder`
 returns `NO_INDEX` rather than reading the directory, because a filename is not a reliable statement of what
 a frame shows, and a finding citing a frame the agent cannot actually identify is worse than no
 finding. The index may be named by whatever the frame-set convention uses — a manifest, a captions
 file, a README enumerating the frames — but something must map frame to subject.
 
 **The way out is `/workflows-core:frames <ADDRESS>`**, which looks at the frames of every set in one
-resolved folder and writes the index this section requires. Any command or agent that reports
+resolved folder and writes the index this section requires; an index a person writes by hand, in any of
+the forms above, serves as well. Any command or agent that reports
 `NO_INDEX` to a human names it: a refusal whose remedy is not stated reads as a dead end, and the
 hand-export it fires on is the ordinary way a frame set arrives.
 
@@ -468,7 +469,7 @@ asked for yet, which `/prd-ground` settles the moment an operator invokes it.
 copies the images it actually read into `<PRD-folder>/design/idea-sources/` and indexes that set;
 `/frames` (re)builds the index of **every** `design/*/` set of one resolved folder, whatever kind of
 folder that is. **Writing images into a set without its index was never an option**: the paragraph
-above makes the index's absence unrecoverable, so images dropped into a frame set with no index would
+above makes a missing index a refusal, so images dropped into a frame set with no index would
 be a directory `design-grounder` refuses on sight. That is also the state a human produces by
 exporting frames and dropping the folder in, and it is exactly what `/frames` exists to repair — the
 requirement above is strict *and*, until that command, had no recovery but hand-authoring an index.
@@ -563,8 +564,8 @@ as it keeps every described row whose frame is still there.
 **The index is rebuilt from the frame set as it stands on disk, never from the list of images the run
 itself produced.** A set accumulates, so from the second run onward "what this run touched" and "what
 the set holds" are different sets — and writing the smaller one leaves every earlier frame sitting in
-an indexed directory that identifies none of them: §6.1's own unrecoverable failure, reproduced at row
-granularity and silently. Nor is it recoverable from the run's own inputs, because a run holds no
+an indexed directory that identifies none of them: the state §6.1 makes a refusal, reproduced at row
+granularity and silently. Nor can the run repair it from its own inputs, because a run holds no
 description for a frame it never looked at.
 
 Every writer runs exactly these steps, **after** whatever files it was going to add have landed:

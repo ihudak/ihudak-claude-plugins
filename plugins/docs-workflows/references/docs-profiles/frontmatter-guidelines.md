@@ -8,7 +8,9 @@ conventions are documented separately and only cross-linked here.
 
 Applied by the `docs-frontmatter` skill and the `/document` docs
 pipeline (`doc-planner` plans, `doc-writer` writes, `doc-reviewer` checks) **only
-under the example-docs profile** — a generic docs repo is unaffected.
+under the example-docs profile** — a generic docs repo is unaffected by the
+`## Fields` below. The one exception is the last section, *Reserved keys for the
+docs-workflow family*, which binds **any** docs repo the family writes into.
 
 ## Fields
 

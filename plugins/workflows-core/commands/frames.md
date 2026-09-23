@@ -9,7 +9,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 `design/` is a reserved subdirectory of **any** folder under `specifications/` — a BRD folder, a PRD
 folder, or an Epic folder alike — and each of its immediate subdirectories is one exported frame set
 (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.1). That section makes each set's **index
-mandatory and its absence unrecoverable**: `design-grounder` returns `NO_INDEX` rather than reading a
+mandatory, and a set without one a refusal**: `design-grounder` returns `NO_INDEX` rather than reading a
 set without one, because a filename is not a reliable statement of what a frame shows.
 
 **This command is the recovery path for that.** The obvious workflow — a human exports frames and

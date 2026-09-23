@@ -58,7 +58,7 @@ obsidian_vault/
 ├── .raw/               ← ad-hoc inbox (wiki may archive processed files here)
 │   └── _processed/     ← auto-created; archived files moved here after ingest
 │       └── YYYY-MM/
-├── wiki/           ← wiki output (only directory wiki writes to)
+├── wiki/           ← wiki output (where every wiki page is written)
 │   ├── _index.md
 │   ├── _log.md
 │   ├── _manifest.json
@@ -256,13 +256,18 @@ Run `/wiki-tags-refresh [directory]` after heavy ingest sessions to:
 Wiki operations **never** write to or delete files in:
 `Meetings/`, `Daily/`, `Projects/`, `Customers/`, `People/`, `Clippings/`, `Research/`
 
-The only directory wiki may modify (besides `wiki/`) is `.raw/`, where it
+The only directory wiki cleans up (besides `wiki/`) is `.raw/`, where it
 archives processed files to `.raw/_processed/YYYY-MM/`.
 
-Wiki operations write only to `wiki/` and `.raw/`.
+Wiki operations write only to `wiki/` and `.raw/`, with four exceptions, each to fixed
+files only:
 
-**Exception**: `/wiki-task` and `/wiki-tasks-extract` intentionally write to `Projects/`
-files and `Tasks.md`. These are the only wiki commands allowed outside `wiki/` and `.raw/`.
+- `/wiki-task` and `/wiki-tasks-extract` intentionally write to `Projects/` files and
+  `Tasks.md`.
+- `/wiki-tags-refresh` updates `.obsidian/copilot/tag-index.md`.
+- `/wiki-init` writes the vault's integration files — `.obsidian/copilot/` (the schema,
+  the task rules, and a tag index where none exists) and its wiki blocks in `CLAUDE.md`
+  and `.github/copilot-instructions.md`.
 
 ---
 

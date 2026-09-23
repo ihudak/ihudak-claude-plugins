@@ -9,17 +9,22 @@ rules a reviewer checks, and — in §14 — what an umbrella run adds over a sl
 `docs/superpowers/specs/2026-09-08-proposal-commands-design.md`.
 
 **Written by `commands/prd-proposal.md` and `commands/brd-proposal.md`; reviewed against by
-`agents/proposal-reviewer.md`.** The one command that reads **another folder's** proposal is
-`commands/brd-proposal.md`, which rolls each slice's into the umbrella; no command of the build
-ladder opens one at all. The other readers open only their own folder's: `commands/prd-proposal.md`
-and `commands/brd-proposal.md` each open the canonical `proposal.md` a prior run of theirs left
-there — §8's stability anchor, read in Phase 6 and archived only in the `proposal.md`-authoring phase
-that follows it, **Phase 7 in `/prd-proposal` and Phase 8 in `/brd-proposal`** (the two do not share
-the number: `/prd-proposal`'s Phase 8 authors the *brief*), which is what lets §12's changelog name
-the cause of every figure that moved — and the reviewer above opens the `proposal.md`
-it is handed and refuses without it. **That own-folder read is why an umbrella's `proposal.md` is
-classed `advisory` rather than `unread`** in `workflows-core:phase-handoff` §4.0: a later run of the
-command that wrote it is a reader like any other.
+`agents/proposal-reviewer.md`.** The one command that reads **another folder's** proposal as a
+proposal is `commands/brd-proposal.md`, which rolls each slice's into the umbrella; no command of
+the build ladder opens one at all. The other targeted readers open only their own folder's:
+`commands/prd-proposal.md` and `commands/brd-proposal.md` each open the canonical `proposal.md` a
+prior run of theirs left there — §8's stability anchor, read in Phase 6 and archived only in the
+`proposal.md`-authoring phase that follows it, **Phase 7 in `/prd-proposal` and Phase 8 in
+`/brd-proposal`** (the two do not share the number: `/prd-proposal`'s Phase 8 authors the *brief*),
+which is what lets §12's changelog name the cause of every figure that moved — and the reviewer
+above opens the `proposal.md` it is handed and refuses without it. **That own-folder read is why an
+umbrella's `proposal.md` is classed `advisory` rather than `unread`** in
+`workflows-core:phase-handoff` §4.0: a later run of the command that wrote it is a reader like any
+other. **One read is not a proposal read at all**: `commands/brd-reconcile.md`'s
+stale-cross-reference sweep scans every markdown file under a parent BRD as prose, a proposal among
+them, and never edits one it hits — the hit goes to *what still needs a human*, because a proposal
+has its own revision model: re-running the command that wrote it archives the prior revision and
+classifies each change it records as a correction or a re-estimate (§12).
 
 ## 1. What this format governs, and the two quantities it must never conflate
 
@@ -36,14 +41,15 @@ not produce, and a git-committed rate card is a disclosure waiting to happen.
 
 **A proposal gates nothing on the build ladder.** `/create-ard`, `/specify`, `/epics`, `/design`,
 `/implement` and `/ready` each resolve the same folder and neither know nor care whether it holds a
-proposal: none requires one, reads one, or behaves differently because one exists, and no grade in this
-file withholds permission to begin work. The one command that reads **another folder's** proposal is
-`/brd-proposal`, which gates on a slice's in order to roll it into the umbrella — a second proposal
-rather than a phase of the build. **Every other read is an own-folder one, and §0 above is the
-census**: a later run of either producing command, opening the `proposal.md` it left there as §8's
-stability anchor, and `agents/proposal-reviewer.md` inside the run that wrote it. Do not restate that
-census here as "the one reader" — an unscoped form of this sentence stood on six surfaces against §0,
-and this is the sentence it was copied from. A proposal is a document a vendor sends a customer; it is
+proposal: none requires one, reads one, or behaves differently because one exists, and no grade in
+this file withholds permission to begin work. The one command that reads **another folder's**
+proposal as a proposal is `/brd-proposal`, which gates on a slice's in order to roll it into the
+umbrella — a second proposal rather than a phase of the build. **Every other such read is an
+own-folder one, and §0 above is the census** (with the one prose-only scan it names beside it): a
+later run of either producing command, opening the `proposal.md` it left there as §8's stability
+anchor, and `agents/proposal-reviewer.md` inside the run that wrote it. Do not restate that census
+here as "the one reader" — an unscoped form of this sentence stood on six surfaces against §0, and
+this is the sentence it was copied from. A proposal is a document a vendor sends a customer; it is
 not a phase and never a prerequisite for building anything.
 
 ## 2. The two artifacts, where they live, and how a revision is archived
@@ -181,23 +187,25 @@ The grade stays Low because Low is honest. **What does not ride on it is a prohi
 argument, and below tier 2 that spine does not exist. A two-page pre-read explaining why a number is
 large, written when the reasons are unknown, is the one artifact this format must not produce.
 
-**An idea-route PRD caps at tier 1 today, and that is a truthful grade rather than a defect.**
-**The cap rests on the register alone.** `commands/prd-ground.md` runs on `route: idea`, gating
-`prd.md` rather than a ledger, so *verified grounding* is reachable from a folder `/idea` and
-`/create-prd` built — it is the optional, ungated run that supplies that half of tier 2 on **either**
-route. What no idea-route folder can reach is the other half: a `decisions.md` has exactly two
-writers — `commands/brd-interview.md`, which opens the register and settles each round into it, and
-`commands/brd-reconcile.md`, which freezes the customer's `[CD#n]`s into it and writes the dependent
-BRDs' registers in its propagation sweep — **and both run only on a BRD slice**, so the cap holds for
-the same reason whichever of the two is named. So an idea-route folder that has been ground still
-grades tier 1, and it grades there because it holds no register — which is what the run prints as the
-cap, rather than a claim that nothing was ground. **The limitation is disclosed rather than
-mitigated**: the tier is printed, the brief is withheld, the driver section says outright that the
-drivers are unknown, and no re-estimate gate is written for a trigger this route does not produce. A
-code scan discovers capability; grounding asks whether a specific claim is true of a specific commit,
-and only the second can carry a driver. A tier-1 proposal is still a real document — scope, packages,
-team, schedule, a ranged number, every assumption and dependency. What it does not carry is the
-argument for why the number is what it is.
+**An idea-route PRD caps at tier 1 today, and that is a truthful grade rather than a defect.** **The
+cap rests on the register alone.** `commands/prd-ground.md` runs on `route: idea`, gating `prd.md`
+rather than a ledger, so *verified grounding* is reachable from a folder `/idea` and `/create-prd`
+built — it is the optional, ungated run that supplies that half of tier 2 on **either** route. What
+no idea-route folder can reach is the other half: a `decisions.md` holds a decision only from
+`commands/brd-interview.md`, which settles each round into it, and `commands/brd-reconcile.md`,
+which freezes the customer's `[CD#n]`s into it and writes the dependent BRDs' registers in its
+propagation sweep — **and both run only on a BRD slice**; every other write into one —
+`commands/create-prd.md`'s `[AS#n]` for a customer-authority gap, which may create the file, and the
+`consumed_by` stamps the build ladder puts on records it drew on — also happens only on a BRD slice,
+so the cap holds for the same reason whichever writer is named. So an idea-route folder that has
+been ground still grades tier 1, and it grades there because it holds no register — which is what
+the run prints as the cap, rather than a claim that nothing was ground. **The limitation is
+disclosed rather than mitigated**: the tier is printed, the brief is withheld, the driver section
+says outright that the drivers are unknown, and no re-estimate gate is written for a trigger this
+route does not produce. A code scan discovers capability; grounding asks whether a specific claim is
+true of a specific commit, and only the second can carry a driver. A tier-1 proposal is still a real
+document — scope, packages, team, schedule, a ranged number, every assumption and dependency. What
+it does not carry is the argument for why the number is what it is.
 
 ## 6. Confidence grades, the default band, and what a deviation costs
 
@@ -369,10 +377,13 @@ document that gets read first.
 
 ## 11. Which form a requirement is cited in
 
-**A proposal cites a requirement in the form the source artifact carries it.** Every other artifact the
-plugin writes is read by the operator or pasted into a tracker; a proposal is read by the **customer**,
-who wrote those identifiers in their own document in their own form. Rendering the plugin's bracketed
-form to a reader who has never seen it makes the traceability section unusable to its only reader.
+**A proposal cites a requirement in the form the source artifact carries it.** Most of what the
+plugin writes is read by the operator or pasted into a tracker, and what a customer does see of the
+rest — `commands/brd-package.md`'s bundle — arrives with a prompt that explains the plugin's own
+records to them (`references/bundle-packaging.md`); a proposal is read by the **customer** with no
+such prompt, who wrote those identifiers in their own document in their own form. Rendering the
+plugin's bracketed form to a reader who has never seen it makes the traceability section unusable to
+its only reader.
 
 **The two artifacts sit outside `workflows-core:pre-lint`'s *Auto-link collision* check, which is
 scoped to PRD, ARD and Epic files, and that exclusion is deliberate rather than an oversight.** That

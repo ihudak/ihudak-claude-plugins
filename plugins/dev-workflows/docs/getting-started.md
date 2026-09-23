@@ -22,7 +22,7 @@ claude plugin install dev-workflows@ihudak-plugins
 
 **One more that is not in this marketplace.** [`superpowers`](https://github.com/obra/superpowers) is a separate Claude Code plugin, recommended rather than required: the companion `workflows-core` plugin's `/prompt-brainstorm` cedes its Phase 3 to `superpowers:brainstorming`, and the brainstorm → plan → subagent-driven-development flow this plugin's own development uses comes from it. Without it that one hand-off has nowhere to go; everything else degrades gracefully. Note that *grilling* is **not** an external dependency — the relentless-interrogation technique `/design`'s own embedded interview runs is bundled here, in `workflows-core:grilling-technique`.
 
-**What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki` (compiling a vault into a cross-referenced wiki), `acli` (an Atlassian CLI reference skill) <!-- vendor-token-ok: names the subject of a sibling plugin this one does not use -->, and `prose-style` (the prose linter the companion `product-workflows` and `docs-workflows` plugins depend on). None of the three is used by `dev-workflows` today: none of its five remaining commands dispatches a prose-style checker, and `acli` is referenced nowhere in it. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
+**What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki` (compiling a vault into a cross-referenced wiki), `acli` (an Atlassian CLI reference skill) <!-- vendor-token-ok: names the subject of a sibling plugin this one does not use -->, `prose-style` (the prose linter the companion `product-workflows` and `docs-workflows` plugins depend on), and `guideline-reviewers` (the API- and UI-guideline review commands, moved out of this plugin). None of the four is used by `dev-workflows` today: none of its five remaining commands dispatches a prose-style checker or a guideline reviewer, and `acli` is referenced nowhere in it. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
 
 ## Update
 
@@ -81,7 +81,7 @@ Claude Code ships its own built-in `/statusline` command, so typing the bare for
 
 Here is what to expect:
 
-1. **A gate.** `/design` refuses to start if `specification.md` is not found on the specs repo's default branch — the one hard exception to the "absent input falls back" rule the rest of the pipeline follows.
+1. **A gate.** `/design` refuses to start if `specification.md` is not found on the specs repo's default branch — this plugin's one hard exception to the "absent input falls back" rule (the companion `product-workflows` commands whose gated input was never optional stop too, as `workflows-core:phase-handoff` §3.4 lists).
 2. **Grounding and a grill.** It resolves any applicable ARD, derives and confirms the implementation repos under `$REPOS_PATH`, hard-stops if none is mounted, scans the confirmed set, then grills you through challenging the spec and designing the implementation.
 3. **A written design.** It writes `design.md` into the same specs feature folder, then offers to commit, push, and open a pull request against the specs repo's default branch. Once that lands, `/implement EPIC-98760` picks up the design and starts the code change.
 

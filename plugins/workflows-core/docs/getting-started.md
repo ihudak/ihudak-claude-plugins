@@ -36,7 +36,7 @@ Where your code clones live — one directory, or a colon-separated list of them
 
 ### `DOCS_PATH`
 
-A **read-only** clone of your shipped product documentation, used by `docs-grounder` to ground a draft against what is already published. Never written to; every miss is a silent, non-blocking skip.
+A **read-only** clone of your shipped product documentation, used by `docs-grounder` to ground a draft against what is already published. Never written to as a grounding root — a `docs-workflows` command that resolves `$DOCS_PATH` as the documentation repository it edits writes into it, which is a different use of the same path; every grounding miss is a silent, non-blocking skip.
 
 ### `GIT_USER_INITIALS`
 

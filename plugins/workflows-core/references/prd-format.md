@@ -52,17 +52,20 @@ none of them** — on a PRD that carries them it copies each through the refresh
 PRD that does not it writes none — so the *written only by* rule above still reads exactly as it
 says: carrying an existing value forward mints no new one, and `/update-prd` reads no BRD tree it
 could mint one from. They record, on the PRD itself, the BRD identity and the prerequisites the
-customer committed to — and **no command consumes them yet** — which is a claim about *behaviour*, not about
-every read. Neither `/epics` nor `/ready` reads any of the three, and nothing branches on them. But
-`brd_key` and `brd_parent` do have a reader: `product-workflows:prd-reviewer`'s review method raises a finding
+customer committed to — and **no command of the build ladder consumes them** — which is a claim about
+*behaviour*, not about every read. Neither `/epics` nor `/ready` reads any of the three, and no command from
+`/create-ard` to `/implement` branches on them. Two reads sit outside that claim. `brd_key` and `brd_parent`
+have a reader: `product-workflows:prd-reviewer`'s review method raises a finding
 when one is present without the other, exactly as this file says six lines above. That is an integrity
 check on the pair, not a consumer of what they record, and the distinction matters in both directions —
 an increment scoped on "these have no reader" would be scoped against a check that already ships and
-already gates every PRD on both routes.
-**Nothing consumes the prerequisites these fields record.** Wiring a consumer is new behaviour on
-commands used heavily by non-BRD routes and belongs in its own increment with its own review. They are
-written, and preserved through a refresh, because provenance recorded at authoring time is the
-precondition for any future consumer: re-deriving it later would mean re-reading a BRD tree that may
+already gates every PRD on both routes. And `depends_on` has a consumer off the build ladder:
+`/product-workflows:brd-proposal` takes slice order from it when it computes an umbrella proposal's peak
+concurrency (`product-workflows:proposal-format` §14), a slice whose PRD records none contributing no edge.
+**No build-ladder command consumes the prerequisites these fields record.** Wiring one there is new
+behaviour on commands used heavily by non-BRD routes and belongs in its own increment with its own review.
+They are written, and preserved through a refresh, because provenance recorded at authoring time is the
+precondition for any build-ladder consumer: re-deriving it later would mean re-reading a BRD tree that may
 have moved on. A `brd_key` may carry a third numeric segment
 (`references/addressing.md` §1 fixes no depth), so a PRD authored inside a BRD slice is filed
 under a key the two-segment form would reject — validate **that folder-side key**, and the
@@ -97,11 +100,14 @@ its shape, and never resolves a folder by it — a folder is addressed by `key` 
 parses is how a field ends up meaning something narrower than it says: someone writing a ClickUp sync <!-- vendor-token-ok: one named third-party tool standing for "any tracker a user keeps", the argument's whole point -->
 who reads a field named for one vendor reasonably wonders whether it must be that vendor's shape.
 
-**It is not decorative, and here is its one consumer.** `/document` and `/release-notes` search commit
+**It is not decorative, and it has two consumers.** `/document` and `/release-notes` search commit
 messages for the run's identifiers, and `workitem_key` is one of the tokens they grep for — so a team
-whose commit convention carries their tracker key gets hand-made commits found. That is a *search for
-a token the run already holds*, not a lookup: the plugin still learns nothing about whether a tracker
-exists.
+whose commit convention carries their tracker key gets hand-made commits found. And the three
+code-changing commands, `/implement`, `/vuln` and `/upgrade`, write it into their own commits as a
+`Work-Item:` trailer where the unit's folder carries one (`dev-workflows:code-handoff` §2.3,
+`references/implementation-format.md` §3) — which is what lets that same search find the plugin's
+own commits by it. Both are uses of *a token the run already holds*, not a lookup: the plugin still
+learns nothing about whether a tracker exists.
 
 **Unknown frontmatter keys are preserved.** Every command that rewrites this file — `/update-prd`
 most of all — keeps fields it does not recognise, in place and unmodified. Without this rule a user's

@@ -34,7 +34,7 @@ and no import, two of them described places that no longer exist.
 ## What no longer becomes a follow-up
 
 The three chores this emitter mostly used to carry are gone, so do not go looking for them: *paste
-the PRD into the tracker*, *paste the release note*, and *re-import the increment*. No command
+the PRD into the tracker*, *paste the release note into the tracker*, and *re-import the increment*. No command
 performs a round-trip, so none of the three is ever emitted.
 
 ## What qualifies as a follow-up

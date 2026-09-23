@@ -1,6 +1,6 @@
 ---
 name: brd-proposal
-description: Programme effort-proposal workflow (PM phase, BRD-route only, optional and ungated) — author the umbrella proposal for a BRD- container by rolling up its slices' own proposals. Enumerates slices by the positive brd-link.md parent test, walks each to a computed recommendation (stop and price it, exclude and disclose it, or re-run a stale one), and gates on each included slice's proposal.md being on the default branch. The roll-up is not a sum: cross-slice effort that exists in no slice is added and named, work two slices priced from the same verified finding is flagged for the operator rather than counted twice, and peak concurrency is computed from the programme schedule instead of summing FTE. Computes coverage from the root coverage ledger and enumerates the remainder by identifier. Carries no money for human hours. Nothing downstream reads a proposal or waits on one.
+description: Programme effort-proposal workflow (PM phase, BRD-route only, optional and ungated) — author the umbrella proposal for a BRD- container by rolling up its slices' own proposals. Enumerates slices by the positive brd-link.md parent test, walks each to a computed recommendation (stop and price it, exclude and disclose it, or re-run a stale one), and gates on each included slice's proposal.md being on the default branch. The roll-up is not a sum: cross-slice effort that exists in no slice is added and named, work two slices priced from the same verified finding is flagged for the operator rather than counted twice, and peak concurrency is computed from the programme schedule instead of summing FTE. Computes coverage from the root coverage ledger and enumerates the remainder by identifier. Carries no money for human hours. Nothing on the build ladder reads a proposal or waits on one.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -30,9 +30,10 @@ folder that exists, which is the ordering `/create-prd` and `/create-ard` state 
 
 **This command gates nothing on the build ladder and nothing on it waits.** It gates its own input —
 each included slice's `proposal.md` — and nothing beyond it. **No command of the build ladder reads a
-proposal**, and every read of the umbrella this run writes is an own-folder one — a later run of this
-same command, anchoring its re-estimate on it (§8), and `proposal-reviewer` inside this run
-(Phase 10): `/create-ard`, `/specify`, `/epics`,
+proposal**, and every targeted read of the umbrella this run writes is an own-folder one — a later
+run of this same command, anchoring its re-estimate on it (§8), and `proposal-reviewer` inside this
+run (Phase 10); `/product-workflows:brd-reconcile`'s stale cross-reference sweep reads it only as
+prose, among every file under the parent, and never edits it: `/create-ard`, `/specify`, `/epics`,
 `/dev-workflows:design`, `/dev-workflows:implement` and `/dev-workflows:ready` each resolve a slice
 folder and neither know nor care whether anything above it holds a proposal, and no readiness tier
 withholds permission to build. **The umbrella offers no forward advance** — it is the end of this
@@ -103,9 +104,11 @@ not work: a flag is a token, so `--redo` would arrive as the address.
    other container gates guard against. Where the folder carries no prefix — resolved through
    `workflows-core:addressing` §5's legacy unprefixed fallback, or an unprefixed folder an `@<path>`
    named — there is no prefix to test: answer the question by the positive-evidence test in
-   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1 — the shared authority the
-   family's container refusals already cite, and not restated here. A legacy folder that fails that
-   test is a slice or an idea-route PRD folder either way, and takes the same stop.
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1 — the shared authority this
+   plugin's container and root refusals take, directly or through `workflows-core:addressing` §4.1
+   (which cites it, and which `/idea`'s refusal takes), and not restated here. A legacy folder that
+   fails that test is a slice or an idea-route PRD folder either way, and takes the same stop —
+   unless it resolves `kind: epic`, which step 4a refuses instead.
 
    Read `<PARENT-KEY>` from this folder's own `brd-link.md` `parent:` field where it carries one, and
    name it in the stop; where it carries none, say so rather than inventing a parent. Stop:
@@ -116,6 +119,29 @@ not work: a flag is a token, so `--redo` would arrive as the address.
      For this slice:              /product-workflows:prd-proposal <SLICE-KEY>
      For the programme above it:  /product-workflows:brd-proposal <PARENT-KEY>   (read from brd-link.md's parent:, or absent where this folder has none)
    ```
+
+4a. **Refuse an Epic folder too.** Among prefixed folders, step 4 refuses only a `PRD-` one, and
+   `resolve-address` searches **every** level `workflows-core:addressing` §3 bounds, the Epic level
+   included — so without this step an `EPIC-` folder passes step 4, Phase 2 finds no slice under it,
+   and `BRD_PROPOSAL_NO_SLICES` names `/product-workflows:brd-split` with the Epic's key, a folder
+   that is no BRD and holds no ledger to walk. An Epic sits two levels below the container this
+   command prices. **The test is the directory prefix**, a prefix as §4.1 defines one — the name
+   beginning `EPIC-<the resolved key>-` — so a legacy folder keyed `EPIC-008-01` and named
+   `EPIC-008-01-orders/` is not refused by its name. **Where the folder carries no prefix**, place
+   it by §4.1's positive evidence, taken after step 4's container test as §4.1 orders it: a resolved
+   `kind: epic` refuses here, and nothing else on an unprefixed folder does. Read the remedy's keys
+   off files, never out of either folder's name: `<PRD-KEY>` from a `prd.md` asserting `kind: prd`
+   in the folder above, and `<PARENT-KEY>` from that folder's `brd-link.md` `parent:` field. Stop:
+
+   ```
+   BRD_PROPOSAL_EPIC_FOLDER: <ADDRESS> resolves to an Epic folder at <path>, and the umbrella aggregates a BRD's slices rather than pricing an Epic.
+
+     For the PRD above it:        /product-workflows:prd-proposal <PRD-KEY>   (absent where the folder above holds no prd.md)
+     For the programme above it:  /product-workflows:brd-proposal <PARENT-KEY>   (absent where that folder's brd-link.md names no parent:)
+   ```
+
+   Where both lines are absent, say so rather than inventing a key. It is a user halt, so
+   `emit-block` does not fire.
 
 5. **Note whether this run is a revision**, last: whether `proposal.md` and `proposal-brief.md`
    already exist in the resolved folder. Where either does, Phase 6 treats the prior as the anchor
@@ -297,7 +323,10 @@ this run reads it rather than defining a second one.
 **How the profile is obtained, in three states** — the same three, for the same reasons:
 
 - **Absent** — grill it into existence (`workflows-core:grilling-technique`), field by field, and
-  write it. `engagement_model` **restructures the engagement-governance, change-control and
+  write it. **The depth is relentless**: no cap and no `Q<n>/<cap>` numbering — the grill is done
+  when every field of the profile `/prd-proposal` Phase 2 defines has been asked and none is left as a recorded gap, and it cannot
+  close while `roles`, `productivity` or `calendar` lacks an answer — a proposal cannot state a
+  team, a schedule or a productivity basis without them. `engagement_model` **restructures the engagement-governance, change-control and
   priced-options sections wholesale** (§4 sections 16, 17 and 18), so it is asked rather than assumed:
   `choices: ["time-and-material", "fixed-price"]`.
 - **Present** — **show it back for confirmation, every run, never read silently.** A productivity
@@ -620,9 +649,10 @@ canonical emitter tail (`workflows-core:session-hygiene` §5 rule 2): feedback �
 gap, `emit-block` (per `workflows-core:feedback-emission`) fires at that halt **before** escalating.
 **None of this command's own stops qualifies**, and that is the point of naming them here:
 `BRD_PROPOSAL_NEEDS_KEY`, `BRD_PROPOSAL_NOT_FOUND`, `BRD_PROPOSAL_NOT_A_CONTAINER`,
-`BRD_PROPOSAL_NO_SLICES`, `BRD_PROPOSAL_SLICE_NOT_HANDED_OFF`, `BRD_PROPOSAL_NEEDS_PROFILE` and an
-unset `$SPECS_PATH` each report the state of the operator's own argument list, tree or environment —
-not a capability this plugin lacks. A review BLOCK is not one either: that is the gate working.
+`BRD_PROPOSAL_EPIC_FOLDER`, `BRD_PROPOSAL_NO_SLICES`, `BRD_PROPOSAL_SLICE_NOT_HANDED_OFF`,
+`BRD_PROPOSAL_NEEDS_PROFILE` and an unset `$SPECS_PATH` each report the state of the operator's own
+argument list, tree or environment — not a capability this plugin lacks. A review BLOCK is not one
+either: that is the gate working.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/brd-proposal`; what was
@@ -668,9 +698,10 @@ user name is ever written.
 Report: the resolved folder and the `BRD-` key; **every slice Phase 2 enumerated, with the walk's
 computed recommendation and the operator's decision for each** — included, excluded, or left for
 re-pricing — so an inclusion taken against a **Stop** recommendation is visible rather than implied.
-**On a run the walk ended** — the operator answered "Price the slice first" — the report is that walk
-plus the list of slices still to price, and it says plainly that no artifact was written and nothing
-was excluded; the rest of this list describes a run that reached Phase 8. Otherwise:
+**On a run the walk ended** — the operator answered "Price the slice first" or "Re-price it first" —
+the report is that walk plus the list of slices still to price, and it says plainly that no artifact
+was written and nothing was excluded; the rest of this list describes a run that reached Phase 8.
+Otherwise:
 the `require-on-main` return for each included slice; **the umbrella's readiness tier, the slice that
 set it, and the full tier mix**, with the confidence ceiling that tier sets; the row set's totals and
 **the programme's expected hours with its summed low and high** (hours, never money), each named
@@ -700,8 +731,10 @@ the next-step recommendation.
 
 **Say plainly, at the end, that this document gates nothing and that nothing on the build ladder
 reads it.** No command of that ladder reads a proposal and no tier withholds permission to begin
-work; every read of an umbrella is an own-folder one — a later run of this command, anchoring its own
-re-estimate on it (§8), and `proposal-reviewer` inside the run that wrote it. It is the end of this
+work; every targeted read of an umbrella is an own-folder one — a later run of this command,
+anchoring its own re-estimate on it (§8), and `proposal-reviewer` inside the run that wrote it;
+`/brd-reconcile`'s stale cross-reference sweep reads one only as prose, and never edits it. It is
+the end of this
 branch rather than a phase in the ladder.
 The residual risk `${CLAUDE_PLUGIN_ROOT}/references/proposal-format.md` §13 states is carried by the
 person who sends the document, and that person is the reader of this report.

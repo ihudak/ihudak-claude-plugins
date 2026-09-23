@@ -18,7 +18,7 @@ tools: ["Read", "Glob", "Grep", "Bash", "Edit", "Task", "Skill"]
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/vuln-fixer.md` for the exact input/output document format.
 Read `${CLAUDE_PLUGIN_ROOT}/references/fix-vuln/build-systems.md` for per-ecosystem update commands.
-Read `${CLAUDE_PLUGIN_ROOT}/commands/vuln.md` sections "Git Workflow" and "Handling Test Failures" for branch naming and the regression protocol. The commit message and PR format documented there are the **orchestrator's** to apply in Step 3.9 — read them for context, never act on them.
+Read `${CLAUDE_PLUGIN_ROOT}/commands/vuln.md` sections "Git Workflow" and "Handling Test Failures" for context on the branch and for the regression protocol. The branch name, the commit message and the PR format documented there are the **orchestrator's** — it resolves the name per CVE in Step 1 and hands it to you as `branch:` (step 2 below), and applies the commit and PR format in Step 3.9 — so read them for context, never act on them: create the branch you are handed and never derive one.
 Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md` for the test-baseliner handoff format.
 
 ## Process

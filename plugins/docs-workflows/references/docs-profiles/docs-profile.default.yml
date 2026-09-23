@@ -1,6 +1,8 @@
 # Built-in default profile for example-docs (dev-workflows).
 # Used by /document when the resolved docs repo is recognized as
-# example-docs and no in-repo .dev-workflows/docs-profile.yml is present.
+# example-docs and no in-repo .dev-workflows/docs-profile.yml is present,
+# and by the changelog-owners-reminder hook whenever it finds no in-repo
+# profile above the edited file.
 # An in-repo profile, if present, overrides this file.
 schema_version: 1
 repo:

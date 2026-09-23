@@ -53,9 +53,12 @@ flowchart TD
 **The right-hand box is not part of the route.** Its three nodes are the PRD pipeline's own
 commands, drawn here because `/brd-reconcile` is where this route hands over to them and a reader
 following the diagram needs somewhere to go next. The route itself is still the six commands above —
-five `/brd-*` commands and `/prd-ground`: nothing in that box extracts a requirement, allocates a ledger row or opens a question —
-each of the three only reads what this route already wrote, at its own altitude, and stamps
-`consumed_by` on what it took.
+five `/brd-*` commands and `/prd-ground`: nothing in that box extracts a requirement or allocates a ledger row —
+each of the three reads what this route already wrote, at its own altitude, beside the documentation
+under `$DOCS_PATH` and, for `/create-ard` and `/specify`, the code under `$REPOS_PATH`, and stamps
+`consumed_by` on what it took. The one record any of them adds to the route's own is
+`/create-prd`'s: an `[AS#n]` in `decisions.md` for a gap only the customer can settle, which
+`/brd-package` then carries to the customer.
 
 **The `Off-platform` box is the route's defining feature, not a decoration.** Everything else in
 the diagram is a command this plugin runs; that box is a wait, and nothing in the plugin can
@@ -177,7 +180,7 @@ three advance options, because a `reopened` record may not be consumed downstrea
 consume the register. On an advancing slice run, `/create-prd` on the BRD route carries one further condition —
 the reconciled ledger leaves no row `unallocated` and at least one `covered-here` (the two refusals
 its own Phase 0 raises) — while `/create-ard` on the BRD route and `/specify` on the BRD route carry none of
-their own, since neither dispatches the folder read, neither gates a PRD and neither reads the ledger.
+their own, since neither reads the ledger as an authoring input, and the PRD gate both run reports an absent PRD rather than stopping on it.
 The difference is where the enforcement sits: the level test and `/create-prd`'s eligibility test are
 each refused by the offered command's own Phase 0, whereas
 nothing downstream refuses an unsettled register, so the advance/re-entry split is a judgement only
@@ -197,13 +200,13 @@ each of those three also has a keyed form that this route never uses.
 | Command | Required | Optional | Notes |
 |---|---|---|---|
 | `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>`, `--no-docs` | Source must already be markdown — a PDF or similar is rejected, never converted. `<BRD-KEY>` names a folder, never a tracker ticket |
-| `/prd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-code`, `--no-design`, `--no-docs` | Only a slice is ground — a root stops with `PRD_GROUND_ROOT_LEVEL`. Needs `$REPOS_PATH` mounted; read-only against every repository it touches |
+| `/prd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-code`, `--no-design`, `--no-docs` | A root BRD is never ground (`PRD_GROUND_ROOT_LEVEL`); grounding runs at a `PRD-` folder — a slice, or an idea-route PRD folder. Needs `$REPOS_PATH`; read-only on every repo |
 | `/brd-split` | `<BRD-KEY> [<instruction>]` | — | No flags. Mandatory on a root still holding an unallocated row (`BRD_SPLIT_NEEDS_INSTRUCTION`), optional on a slice (allocate-only there), and on a fully allocated root it means the sibling re-cut |
 | `/brd-interview` | `<BRD-KEY>` | `--round N` | Only a slice is interviewed — a root stops with `BRD_INTERVIEW_ROOT_LEVEL`. No flag continues at the first open question; `--round N` resumes or re-opens one, cause recorded |
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Only a slice is packaged — a root stops with `BRD_PACKAGE_ROOT_LEVEL`. `--depends-on` is repeatable at either level; a mistyped key is warned and dropped, never fatal |
 | `/brd-reconcile` | `<BRD-KEY> @<review-file>` | `--sent <path>…` | Only a slice is reconciled — a root stops with `BRD_RECONCILE_ROOT_LEVEL`. The review is taken at whatever path it arrived on and is never searched for |
 | `/create-prd` | `<SLICE-KEY>` | `--lean`/`--hybrid`/`--full`, `--no-docs`, `@<idea.md>` | A `BRD-` container is refused. Otherwise offered only where the slice's own claimed rows leave none `unallocated` and one `covered-here`. Profile defaults to `--full`; `--from-prd` accepted |
-| `/create-ard` | `<SLICE-KEY>` | `--no-docs` | A `BRD-` container is refused. Otherwise offered on any advancing slice run: it gates the slice's `prd.md` as the idea route does, reads no ledger. One address (`CREATE_ARD_ONE_ADDRESS`) |
+| `/create-ard` | `<SLICE-KEY>` | `--no-docs` | A `BRD-` container is refused. Otherwise offered on any advancing slice run; gates `prd.md` as on the idea route, never authors from the ledger. One address (`CREATE_ARD_ONE_ADDRESS`) |
 | `/specify` | `<SLICE-KEY>` | `--no-docs` | A `BRD-` container is refused. Otherwise offered on the same terms as `/create-ard`. One address; a second token stops it (`SPECIFY_ONE_ADDRESS`) |
 
 `--no-docs` appears on two of the six **route** rows and means the same thing on both: turn off the
@@ -236,9 +239,9 @@ disagreement to have.
 
 ## What lands where
 
-Every artifact lands under `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` (a slice gets its own
-such folder inside its parent's — one level, and only one, per the addressing rule the whole route
-shares):
+Every artifact lands under `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` — the root's own
+records at its top level, and everything from grounding onward in the `PRD-` slice folders nested
+inside it (one level, and only one, per the addressing rule the whole route shares):
 
 ```
 specifications/BRD-<BRD-KEY>-<slug>/
@@ -251,40 +254,50 @@ specifications/BRD-<BRD-KEY>-<slug>/
 │   ├── brd-figures.md           # each captured image's transcription and the rows it yields, /brd-intake; /brd-reconcile applies a customer's correction
 │   └── brd-defect-log.md        # confirmed [DEF#n] entries, /brd-intake and /brd-reconcile
 ├── coverage-ledger.md           # one row per [BR#n]; /brd-intake writes it, /brd-split resolves it
-├── grounding/
-│   ├── baselines.md             # one dated entry per pinned repository, /prd-ground
-│   ├── code-grounding.md        # [CG#n] findings, /prd-ground
-│   └── design-grounding.md      # [DG#n] + ## Frame sets covered, /prd-ground (always written)
-├── design/                      # exported frame sets — one subdirectory each, images + an index
-│   └── <frame-set>/             # what /prd-ground Phase 5 reads; no index means it is not read
-├── brd-link.md                  # depends-on / parent-child links, /prd-ground, /brd-split, /brd-package
 ├── slices.md                    # slice rationale and deferral notes, /brd-split
-├── decisions.md                 # the register: [VD#n] and [AS#n] from /brd-interview, [CD#n] from /brd-reconcile
-├── code-defect-log.md           # [CDF#n] code defects a decision turns on, from /brd-interview
-├── interview/
-│   ├── round-<N>.md             # one append-only record per round, /brd-interview
-│   └── customer-questions.md    # the [C] questions held for the customer, /brd-interview; /brd-reconcile marks each answered
-├── self-review-<date>.md        # every [SR#n] with its disposition, /brd-package
-├── customer-review-prompt-<date>.md   # the self-contained prompt the customer pastes, /brd-package
-├── customer-delivery-note-<date>.md   # the covering letter — the email, not a bundle document, /brd-package
-├── bundle-<date>/               # the de-Obsidianised bundle actually sent, /brd-package
-├── customer-review-<date>.md    # the returned review, copied in byte for byte, /brd-reconcile
-├── customer-sent-<date>/        # what the customer was sent, --sent runs only, /brd-reconcile
-├── reconciliation-<date>.md     # what the review changed and what still needs a human, /brd-reconcile
-├── dev-workflows/                # session bookkeeping: resume pointer, feedback, cost entries
+├── design/                      # exported frame sets — one subdirectory each, images + an index; /frames indexes it, no grounding reads it (a root is never ground)
+├── dev-workflows/               # session bookkeeping: resume pointer, feedback, cost entries
 └── PRD-<CHILD-KEY>-<child-slug>/ # a slice /brd-split confirmed — where its PRD, ARD and spec are authored
-    ├── attachments/          # text/markdown sources /idea vendored — reserved at either level
-    └── design/idea-sources/  # images /idea vendored, with the frame-set index it writes
+    ├── brd-link.md              # parent, claims and depends-on; /brd-split writes it, /prd-ground, /brd-package and /brd-reconcile add depends-on
+    ├── brd/brd-inventory.md     # the parent's rows this slice claims, copied verbatim, /brd-split
+    ├── coverage-ledger.md       # one row per claimed [BR#n]; /brd-split seeds and resolves it, /prd-ground fills evidence, /brd-reconcile moves a row on a frozen [CD#n]
+    ├── grounding/
+    │   ├── baselines.md         # one dated entry per pinned repository, /prd-ground
+    │   ├── code-grounding.md    # [CG#n] findings, /prd-ground
+    │   └── design-grounding.md  # [DG#n] + ## Frame sets covered, /prd-ground (always written)
+    ├── design/<frame-set>/      # what /prd-ground Phase 5 reads; no index means it is not read
+    ├── decisions.md             # the register: [VD#n] and [AS#n] from /brd-interview, [AS#n] also from /create-prd, [CD#n] from /brd-reconcile
+    ├── code-defect-log.md       # [CDF#n] code defects a decision turns on, from /brd-interview
+    ├── interview/
+    │   ├── round-<N>.md         # one append-only record per round, /brd-interview
+    │   └── customer-questions.md # the [C] questions held for the customer, /brd-interview; /brd-reconcile marks each answered
+    ├── self-review-<date>.md    # every [SR#n] with its disposition, /brd-package
+    ├── customer-review-prompt-<date>.md # the self-contained prompt the customer pastes, /brd-package
+    ├── customer-delivery-note-<date>.md # the covering letter — the email, not a bundle document, /brd-package
+    ├── bundle-<date>/           # the de-Obsidianised bundle actually sent, /brd-package
+    ├── customer-review-<date>.md # the returned review, copied in byte for byte, /brd-reconcile
+    ├── customer-sent-<date>/    # what the customer was sent, --sent runs only, /brd-reconcile
+    ├── reconciliation-<date>.md # what the review changed and what still needs a human, /brd-reconcile
+    └── attachments/             # reserved at either level; no command writes it on this route (/idea, its one writer, refuses a slice)
 ```
+
+A root written before grounding moved to the slice may still hold `grounding/`, `decisions.md`,
+`interview/` and the packaging and review files at its own level. No command creates them there
+any more — `/prd-ground`, `/brd-interview`, `/brd-package` and `/brd-reconcile` each refuse a
+resolved root — and they are left in place rather than moved. (A slice's `/brd-reconcile` can still
+edit one: its stale cross-reference sweep reads every markdown file under the parent, and may
+update the argumentation of a record in a leftover root `decisions.md`.)
 
 Two of those entries are **reserved subdirectory names** rather than this route's own files, and both
 are shared with the idea route: `design/` holds exported frame sets, one immediate subdirectory each,
 images plus an index that `workflows-core:grounding-format` §6.1 makes
 mandatory — `design-grounder` returns `NO_INDEX` rather than read a frame set without one, because a
 filename is not a reliable statement of what a frame shows. `attachments/` holds the text and markdown
-sources a run copied into the folder; today [`/idea`](commands/idea.md) is its only writer. Neither
-carries a key, neither is resolved by one, and both may appear at either level — a `BRD-` folder or a
-`PRD-` folder inside it.
+sources a run copied into the folder; today [`/idea`](commands/idea.md) is its only writer, and it
+writes only into an idea-route PRD folder — it refuses a BRD container and a BRD-route slice alike
+(`IDEA_NOT_AN_IDEA_FOLDER`) — so on this route the name is reserved and nothing writes it, and neither
+is its `design/idea-sources/` frame set. Neither name carries a key, neither is resolved by one, and
+both are reserved at either level — a `BRD-` folder or a `PRD-` folder inside it.
 
 The dated artifacts are the ones to read carefully. **A dated bundle is never rewritten**, and a
 superseded snapshot is bannered rather than edited: rewriting either destroys the only evidence of

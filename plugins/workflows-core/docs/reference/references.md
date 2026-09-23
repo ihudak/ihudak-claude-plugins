@@ -6,7 +6,7 @@ This is the corpus the whole `dev-workflows` plugin family reads. A sibling plug
 
 ## Addressing and artifact formats
 
-How a command finds the folder it is about, and the one artifact format that is shared rather than owned by a single authoring command.
+How a command finds the folder it is about, and the artifact formats that are shared rather than owned by a single authoring command.
 
 - `addressing.md` — the key grammar, the kind-prefixed directory convention (`<KIND>-<KEY>-<slug>/`, kind `BRD`/`PRD`/`EPIC`), the two address forms a command accepts, the rule that a folder's kind and key are read from frontmatter and never parsed out of its directory name, the rule that a folder's level is its prefix — or, on a folder with none, positive evidence — and never the kind it asserts, the register of reserved subdirectory names resolution passes over, and the deprecated unprefixed layout resolution falls back to only after the prefixed glob has missed. Every command that addresses a folder in the specs tree calls its `resolve-address` entry point.
 - `prd-format.md` — canonical structure and per-section rules for a Product Requirements Document — one **prd.md** per PRD folder, its identity carried by the folder rather than by its own name — plus its `kind:`/`key:` frontmatter: `key:` records the folder's key and `kind: prd` names the document, and `addressing.md` §4 reads the folder's identity off the PRD only where no top-level file before it in byte-wise order names a folder kind — a BRD-route slice's link file and an idea brief both do.

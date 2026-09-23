@@ -128,9 +128,3 @@ person scanning the spec:
 `[Uxx]` unique+contiguous document-wide; `[ACxx]` unique+contiguous within each story; `[TCxx]`
 unique+contiguous within each AC. After `Published: yes`, IDs are contracts — never silently
 change/remove; changes are traced via the specs repo's change-management (human-run).
-
-## Provenance
-
-Snapshot imported from `mgd-specifications` `.claude/skills/specification-*` on 2026-07-07. Embedded
-so `/specify` is self-sufficient (no runtime dependency on that repo). Re-sync manually if the source
-format changes.

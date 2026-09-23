@@ -7,6 +7,10 @@ A section headed `— Unreleased` has not been published yet; where more than on
 
 ## [4.2.1] — 2026-09-22
 
+### Changed
+
+- **`references/design-format.md`** no longer compares itself with `specification-format.md` as "a snapshot from" a named source repository: `product-workflows` 3.8.0 drops that file's provenance section, since the repository it named is not public.
+
 ### Fixed — behaviour
 
 - **`/implement` gave a keyed address that resolved to no folder no disposition** (behaviour). Phase 0 resolved a `<KEY>` with `resolve-address` and carried the result forward, but said nothing about `status: absent` or `ambiguous`, so a mistyped key — or any key while `$SPECS_PATH` was unset, there being no tree to search — reached a keyed run with no folder, where Phase 4.7's `implementation.md` record had nowhere to go. `absent` now stops with the `key dir not found` rule (`["Re-enter key", "Cancel"]`), naming the commands that create each kind of folder, and never falls through to a direct-prompt run; `ambiguous` is `workflows-core:addressing` §3's stop naming every match. An `@<path>` address still resolves without the variable and writes its record into the folder it names. `docs/commands/implement.md` and `docs/reference/environment.md` say so; the latter had described only `/implement`'s preflight and spec gate self-gating.

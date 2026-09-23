@@ -3,6 +3,8 @@ paths:
   - "plugins/product-workflows/**"
   - "plugins/dev-workflows/commands/design.md"
   - "plugins/dev-workflows/commands/ready.md"
+  - "plugins/dev-workflows/commands/implement.md"
+  - "plugins/docs-workflows/commands/release-notes.md"
   - "plugins/workflows-core/references/addressing.md"
   - "plugins/workflows-core/references/grilling-technique.md"
   - "plugins/workflows-core/references/prd-format.md"
@@ -10,7 +12,7 @@ paths:
 
 # product-workflows — invariants, workflow map, agent callers
 
-Loaded when a file under `plugins/product-workflows/` is read, or `/design`'s or `/ready`'s command file, or `workflows-core:addressing`, `workflows-core:grilling-technique` or `workflows-core:prd-format` — the files outside the plugin that the PRD-creation invariants below bind. Repo-wide rules are in `CLAUDE.md`; evidence is in `docs/maintainers/rationale.md`.
+Loaded when a file under `plugins/product-workflows/` is read, or `/design`'s, `/ready`'s, `/implement`'s or `/release-notes`' command file, or `workflows-core:addressing`, `workflows-core:grilling-technique` or `workflows-core:prd-format` — the files outside the plugin that the PRD-creation invariants below bind. Repo-wide rules are in `CLAUDE.md`; evidence is in `docs/maintainers/rationale.md`.
 
 The BRD route's map lines and its slice-kind, PRD-eligibility, sibling re-cut and route-detection invariants are in `.claude/rules/brd-route.md`, split out to keep each rules file under 20,000 characters.
 
@@ -22,7 +24,7 @@ The two effort-proposal commands `/prd-proposal` and `/brd-proposal` price a gra
 
 **`brd-` names the route, not the folder kind, and `/prd-ground` is the only one of the six that leaves the route** — it also runs, optionally and ungated, on an idea-route PRD folder with no BRD anywhere in its ancestry, grounding that PRD's own `[AC#n]`/`[FR#n]` rows the same way it grounds a slice's `[BR#n]` rows on the BRD route. Four of the six route commands refuse a root outright (`/prd-ground`, `/brd-interview`, `/brd-package` and `/brd-reconcile`, each with its own `*_ROOT_LEVEL` stop), so "runs on a slice" is the wrong test for which one renames: `/brd-intake` and `/brd-split` are route commands that genuinely run at root, while interviewing, packaging and reconciling exist only because a customer handed over a BRD and will never run anywhere else — `/prd-ground` alone left the route, which is why it alone carries the `prd-` name.
 
-No absent case for `prose-style` (S12): `/epics`, `/create-prd`, and `/update-prd` all run `prose-style-checker` unconditionally as a non-gating quality pass, with no branch left for `prose-style` being absent.
+`/epics`, `/create-prd`, and `/update-prd` all run `prose-style-checker` unconditionally as a non-gating quality pass, with no branch left for `prose-style` being absent.
 
 ## Docs tree
 

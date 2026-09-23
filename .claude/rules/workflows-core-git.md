@@ -6,11 +6,13 @@ paths:
   - "plugins/workflows-core/references/grounding-format.md"
   - "plugins/dev-workflows/references/code-handoff.md"
   - "plugins/*/commands/*.md"
+  - "plugins/*/references/**"
+  - "plugins/*/agents/*.md"
 ---
 
 # workflows-core — git authorities and specs-repo git invariants
 
-Loaded when a git reference (`workflows-core:specs-repo-git`, `workflows-core:phase-handoff`, `workflows-core:read-only-repos`, `workflows-core:grounding-format`, `dev-workflows:code-handoff`) or any command file is read: every command that writes into `$SPECS_PATH` runs `specs-preflight` and `commit-artifacts` (`CLAUDE.md` § Hard constraints), so these rules bind an edit to any of them. Split out of `.claude/rules/workflows-core.md` to keep that file under 20,000 characters; repo-wide rules are in `CLAUDE.md`; evidence is in `docs/maintainers/rationale.md`.
+Loaded when a git reference (`workflows-core:specs-repo-git`, `workflows-core:phase-handoff`, `workflows-core:read-only-repos`, `workflows-core:grounding-format`, `dev-workflows:code-handoff`) or any command, reference or agent file of any plugin is read: every command that writes into `$SPECS_PATH` runs `specs-preflight` and `commit-artifacts` (`CLAUDE.md` § Hard constraints), and the references and agents those commands load invoke the same entry points or emit and consume `prep`, so these rules bind an edit to any of them. Split out of `.claude/rules/workflows-core.md` to keep that file under 20,000 characters; repo-wide rules are in `CLAUDE.md`; evidence is in `docs/maintainers/rationale.md`.
 
 ## Authorities
 

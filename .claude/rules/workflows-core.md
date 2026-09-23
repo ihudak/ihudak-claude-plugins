@@ -7,15 +7,15 @@ paths:
 
 Loaded when a file under `plugins/workflows-core/` is read. Repo-wide rules are in `CLAUDE.md`; evidence is in `docs/maintainers/rationale.md`.
 
-Split out to keep this file under 20,000 characters: the git authorities (`specs-repo-git`, `phase-handoff`, `read-only-repos`) and the specs-repo git invariants → `.claude/rules/workflows-core-git.md`, which also loads with every command file, since every command that writes into `$SPECS_PATH` runs those entry points. `instruction-file-maintenance` binds hand edits to `CLAUDE.md` and is stated there, in § Editing discipline.
+Split out to keep this file under 20,000 characters: the git authorities (`specs-repo-git`, `phase-handoff`, `read-only-repos`) and the specs-repo git invariants → `.claude/rules/workflows-core-git.md`, which also loads with every command, reference and agent file, since every command that writes into `$SPECS_PATH` runs those entry points and its references and agents invoke them. `instruction-file-maintenance` binds hand edits to `CLAUDE.md` and is stated there, in § Editing discipline.
 
 ## Plugin facts
 
-`workflows-core` carries twenty-nine reference files, five agents (`code-scanner`, `doc-fixer`, `docs-grounder`, `frame-describer`, `impl-maintenance`), two bundled skills (`model-routing` and the `reference` loader), the cost and status-line scripts under `scripts/`, and six family-meta commands — `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline` and `/frames`.
+`workflows-core` carries twenty-nine reference files, five agents (`code-scanner`, `doc-fixer`, `docs-grounder`, `frame-describer`, `impl-maintenance`), two bundled skills (`model-routing` and the `reference` loader), the cost and status-line scripts under `scripts/`, and the six family-meta commands `CLAUDE.md` § Active plugins names.
 
 It ships two hooks — `notify-done` and `test-notify`, both session-wide rather than command-scoped, which is why they live in `workflows-core`: every family plugin declares `workflows-core`, so one copy serves everyone.
 
-The host installs `workflows-core` alongside any of the three family plugins that name it, and an unsatisfied dependency disabling the plugin that named it is what the family wants — every pipeline command loads at least one core reference in its first phase, which is why there is no degraded mode.
+The host installs `workflows-core` alongside any of the three family plugins that name it, and every pipeline command loads at least one core reference in its first phase — the reason the tier-1 dependency rule is what the family wants.
 
 ## Docs tree
 

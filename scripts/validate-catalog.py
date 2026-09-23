@@ -211,7 +211,14 @@ def check_instruction_sizes(root: Path) -> tuple[int, int]:
 
 def check_rules_paths(root: Path) -> tuple[int, int]:
     """Return (errors, warnings): every .claude/rules/*.md must declare a non-empty `paths:`
-    list, and every glob in it must match at least one file under root."""
+    list, and every glob in it must match at least one file under root.
+
+    Parser limits, stated so a reader does not mistake them for Claude Code's: `paths:` must
+    be a top-level (unindented) key of the frontmatter, other top-level keys may sit before
+    or after it, and its value must be a block list of `- ` items -- an inline `[a, b]` list
+    or a bare string is not read. Globs go through pathlib, which has no brace expansion, so
+    a `{a,b}` glob matches nothing and is reported dead; Claude Code's support for braces is
+    unverified, so write each alternative as its own entry."""
     errors = warnings = 0
     rules_dir = root / ".claude" / "rules"
     if not rules_dir.is_dir():
@@ -239,17 +246,21 @@ def check_rules_paths(root: Path) -> tuple[int, int]:
             continue
 
         frontmatter = lines[1:close]
-        if not frontmatter or frontmatter[0].rstrip() != "paths:":
-            print(f"  ERROR {rel}: {no_paths} (frontmatter has no 'paths:' key)")
+        key_at = [i for i, line in enumerate(frontmatter) if line.rstrip() == "paths:"]
+        if not key_at:
+            print(f"  ERROR {rel}: {no_paths} (frontmatter has no top-level 'paths:' key "
+                  f"with a block list under it)")
             errors += 1
             continue
 
         globs: list[str] = []
         malformed = False
-        for line in frontmatter[1:]:
+        for line in frontmatter[key_at[0] + 1:]:
             stripped = line.strip()
             if not stripped:
                 continue
+            if not line[:1].isspace() and not stripped.startswith("-"):
+                break  # the next top-level key ends the paths: list
             if not stripped.startswith("-"):
                 print(f"  ERROR {rel}: unexpected line in the paths: list -- {line!r}")
                 errors += 1
@@ -277,9 +288,12 @@ def check_rules_paths(root: Path) -> tuple[int, int]:
             # glob whose only matches sit under .git, a worktree copy, node_modules or
             # .superpowers is dead for this gate's purposes even though Path.glob finds
             # bytes there.
+            # Files only: `<dir>/**` yields <dir> itself, so an empty directory would
+            # otherwise keep a glob that no file read can ever trigger looking live.
             matches = [
                 p for p in root.glob(glob)
-                if not any(part in SKIP_DIRS for part in p.parts)
+                if p.is_file()
+                and not any(part in SKIP_DIRS for part in p.parts)
                 and not any(
                     p.relative_to(root).parts[: len(prefix)] == prefix
                     for prefix in SKIP_PREFIXES
@@ -412,7 +426,8 @@ def _selftest() -> int:
               description: str = "A fixture plugin.", ghost_manifest: bool = False,
               second_plugin_name: str | None = None,
               duplicate_at: str | None = None,
-              claude_md: str | None = None, rules: dict[str, str] | None = None) -> None:
+              claude_md: str | None = None, rules: dict[str, str] | None = None,
+              empty_dirs: tuple[str, ...] = ()) -> None:
         plugin = root / "plugins" / "fixture" / ".claude-plugin"
         plugin.mkdir(parents=True)
         (plugin / "plugin.json").write_text(json.dumps(
@@ -461,6 +476,8 @@ def _selftest() -> int:
                 encoding="utf-8")
         if claude_md is not None:
             (root / "CLAUDE.md").write_text(claude_md, encoding="utf-8")
+        for rel in empty_dirs:
+            root.joinpath(*rel.split("/")).mkdir(parents=True, exist_ok=True)
         for rel, text in (rules or {}).items():
             path = root / ".claude" / "rules" / rel
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -568,6 +585,18 @@ def _selftest() -> int:
     case("a paths: glob using a single * does not cross a directory boundary, "
          "and is rejected", False, "plugins/fixture/*.json",
          rules={"nested.md": '---\npaths:\n  - "plugins/fixture/*.json"\n---\n\nA rule.\n'})
+
+    # A `**` glob over a directory that holds no file. Path.glob("<dir>/**") yields the
+    # directory itself, so a gate that counted any path would call this glob live; Claude
+    # Code loads a rules file on a *file* read, so a glob matching only directories is dead.
+    case("a paths: glob matching only an empty directory is rejected", False,
+         "plugins/fixture/empty/**", empty_dirs=("plugins/fixture/empty",),
+         rules={"hollow.md": '---\npaths:\n  - "plugins/fixture/empty/**"\n---\n\nA rule.\n'})
+    # Other top-level frontmatter keys around paths: -- a description: ahead of it and
+    # another key after its list. The list ends at the next top-level key.
+    case("a paths: key after another frontmatter key is found, and passes", True, "OK",
+         rules={"keyed.md": '---\ndescription: an area\npaths:\n  - "plugins/fixture/**/*.json"\n'
+                            'other: x\n---\n\nA rule.\n'})
 
     print("SELFTEST PASS" if rc == 0 else "SELFTEST FAIL")
     return rc

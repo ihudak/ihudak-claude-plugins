@@ -26,8 +26,8 @@ levels below `specifications/` regardless.
 
 **One grammar, one namespace.** There is no second, narrower grammar for a "tracker" key: the plugin
 reads no tracker, mints its own keys, and validates every key against this one expression. A caller
-that re-states this grammar locally instead of citing this section is the defect family this
-repository's `docs/maintainers/rationale.md` records under `resolve-against-a-known-set` — the
+that re-states this grammar locally instead of citing this section is the defect family the plugin
+source repository's `docs/maintainers/rationale.md` records under `resolve-against-a-known-set` — the
 copies drift, and a key that is valid here hard-stops somewhere else.
 
 **Shape only, never checked against anything.** A key names a folder in `$SPECS_PATH`, not a record

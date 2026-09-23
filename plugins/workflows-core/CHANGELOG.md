@@ -8,7 +8,7 @@ A section headed `— Unreleased` has not been published yet; where more than on
 ## [1.7.6] — 2026-09-23
 
 ### Changed
-- `addressing.md` §1 no longer says the repo-root `CLAUDE.md` names the defect family a locally re-stated key grammar belongs to. That account moved to `docs/maintainers/rationale.md`, section `resolve-against-a-known-set`, and §1 now points there. §4's citation of the standing rule now names it, *Resolve an identifier against a known set*, which is still in `CLAUDE.md`. Wording only, no behaviour.
+- `addressing.md` §1 no longer says the repo-root `CLAUDE.md` names the defect family a locally re-stated key grammar belongs to. That account moved to `docs/maintainers/rationale.md`, section `resolve-against-a-known-set`, and §1 now points there — to *the plugin source repository's* copy, since at run time "this repository" would mean the user's, which carries no such file. §4's citation of the standing rule now names it, *Resolve an identifier against a known set*, which is still in `CLAUDE.md`. Wording only, no behaviour. (The run-time reading of §1's pointer was corrected before this version was released, so it is folded into this entry rather than bumped again.)
 
 ## [1.7.5] — 2026-09-23
 

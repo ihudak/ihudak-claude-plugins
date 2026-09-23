@@ -38,13 +38,12 @@ plugins/
 
 `plugins/workflows-core/` carries the family's shared foundation — reference corpus, agents, skills, two session-wide hooks, and six family-meta commands — `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline` and `/frames` (detail in `.claude/rules/workflows-core.md`). **All three of `dev-workflows`, `product-workflows`, and `docs-workflows` name it in `dependencies`**; an unsatisfied dependency disables the plugin that named it rather than letting it half-run, and there is no degraded mode to fall back to.
 
-The live pipeline relies on a larger set of helper agents and
-workflow roles spread across these plugins; see the taxonomy below, and the workflow map in the `## Workflow map` sections of `.claude/rules/*.md`, one per plugin or split-out area.
+The workflow map is in the `## Workflow map` sections of `.claude/rules/*.md`, one per plugin or split-out area.
 
 **Internal reference convention:**
 - Agents are invoked by `subagent_type` (`<plugin>:<agent>`, e.g. `dev-workflows:risk-planner`, `workflows-core:impl-maintenance`) — never by reading the agent file. Claude Code loads the agent body as its system prompt and honours its `model:` frontmatter. **An agent crosses a plugin boundary for free**; a reference file does not.
 - **A shared reference is cited `workflows-core:<name>` and loaded through the loader skill** — `Skill(skill: "workflows-core:reference", args: "<name>")`, with an optional second whitespace-separated token naming an entry point within the reference to execute inline (`args: "specs-repo-git specs-preflight"`). Never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to the *reading* plugin, which does not carry the corpus. Every command and agent outside `workflows-core` that cites one carries a preamble saying so, and `check-docs.sh` check 16 gates the contract in both directions.
-- Inside **agent** and **skill** bodies (and `hooks.json` / MCP / monitor configs), reference the reading plugin's **own** bundled files via `${CLAUDE_PLUGIN_ROOT}/...`. **This variable DOES expand in slash-command bodies.** No other variable expands there: `${DOCS_PATH:-/workspace/docs}` and `${REPOS_PATH:-/workspace}` arrive **literal**. It expands to the plugin's real location — the working tree under a directory-source marketplace, not the cache. ([why](docs/maintainers/rationale.md#plugin-root-expansion))
+- Inside **agent** and **skill** bodies (and `hooks.json` / MCP / monitor configs), reference the reading plugin's **own** bundled files via `${CLAUDE_PLUGIN_ROOT}/...`. **This variable DOES expand in slash-command bodies**, and among environment-style variables it alone does: `${DOCS_PATH:-/workspace/docs}` and `${REPOS_PATH:-/workspace}` arrive **literal**. `$ARGUMENTS` is the harness's separate argument substitution. It expands to the plugin's real location — the working tree under a directory-source marketplace, not the cache. ([why](docs/maintainers/rationale.md#plugin-root-expansion))
 - Slash **commands** that need their own plugin's bundled content invoke a skill that resolves `${CLAUDE_PLUGIN_ROOT}` on their behalf; `workflows-core`'s `reference` skill is the general form of that, and its `model-routing` skill the named one.
 Do NOT hardcode `~/.claude/plugins/data/...@.../` paths — that directory holds only empty per-plugin state; installed content lives under `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`.
 
@@ -69,21 +68,23 @@ Do NOT edit `~/.claude/claude-config/` — that repo is retired and will be dele
 
 ## Where the rest of the guidance lives
 
-Area rules live in `.claude/rules/`; each file loads only when you read a file matching its `paths:`. A Bash `grep` or `git diff` does not load it, so read a file in the area before editing there.
+Area rules live in `.claude/rules/`; each file loads only when you open a file matching its `paths:` with the **Read tool**. A Bash `cat`, `sed`, `grep` or `git diff` loads no rules file, and only the Read tool is proven to trigger loading, so Read a file in the area before editing or reviewing there.
 
-| Rules file | `paths:` (under `plugins/` unless shown) | Holds |
+The table abbreviates each file's `paths:` frontmatter, which is authoritative: paths are under `plugins/` unless shown, and `dir/`: `a`, `b` means `dir/a` and `dir/b`.
+
+| Rules file | `paths:` | Holds |
 |---|---|---|
 | `gates.md` | `scripts/**`, `.github/**` (repo root) | what each check enforces and cannot see |
 | `dev-workflows.md` | `dev-workflows/**` | invariants, map, callers, two authorities |
-| `dev-workflows-tests.md` | `dev-workflows/{commands/implement.md,agents/test-*.md,docs/commands/implement.md}` | test-writing requirement |
-| `product-workflows.md` | `product-workflows/**`, `dev-workflows/commands/{design,ready,implement}.md`, `docs-workflows/commands/release-notes.md`, `workflows-core/references/{addressing,grilling-technique,prd-format}.md` | invariants, map, callers |
-| `brd-route.md` | `product-workflows/**`, `dev-workflows/commands/{design,ready,implement}.md`, `workflows-core/references/addressing.md`, `workflows-core/commands/frames.md` | BRD-route map lines, folder-kind invariants |
-| `docs-workflows.md` | `docs-workflows/**`, `product-workflows/{commands/epics.md,agents/epic-*.md,docs/commands/epics.md}` | invariants, map, callers, three authorities |
-| `docs-serve.md` | `docs-workflows/{commands/docs-serve.md,docs/commands/docs-serve.md,references/docs-profiles/render-verification.md,references/toolchain-preflight.md}` | `/docs-serve` |
-| `release-notes.md` | `docs-workflows/{commands/release-notes.md,agents/release-notes-writer.md,references/release-note-types.md,docs/commands/release-notes.md}` | `/release-notes` and its authority |
-| `docs-grounding.md` | `workflows-core/{references/docs-grounding.md,agents/docs-grounder.md}` and 20 command files: the nine grounding consumers and eleven that resolve none | `$DOCS_PATH` docs grounding |
-| `workflows-core.md` | `workflows-core/**` | plugin facts, model-routing callers, authorities, map |
-| `workflows-core-git.md` | `workflows-core/references/{specs-repo-git,phase-handoff,read-only-repos,grounding-format}.md`, `dev-workflows/references/code-handoff.md`, `*/commands/*.md`, `*/references/**`, `*/agents/*.md` | git authorities and invariants |
+| `dev-workflows-tests.md` | `dev-workflows/`: `commands/implement.md`, `agents/test-*.md`, `docs/commands/implement.md`, `references/handoff/test-*.md`, `docs/reference/test-suite-detection.md`, `references/code-handoff.md` | test-writing requirement |
+| `product-workflows.md` | `product-workflows/**`; `dev-workflows/commands/`: `design.md`, `ready.md`, `implement.md`; `docs-workflows/commands/release-notes.md`; `workflows-core/references/`: `addressing.md`, `grilling-technique.md`, `prd-format.md` | invariants, map, callers |
+| `brd-route.md` | `product-workflows/**`; `dev-workflows/commands/`: `design.md`, `ready.md`, `implement.md`; `workflows-core/references/addressing.md`; `workflows-core/commands/frames.md`; `docs-workflows/commands/`: `document.md`, `release-notes.md` | BRD-route map lines, folder-kind invariants |
+| `docs-workflows.md` | `docs-workflows/**`; `product-workflows/`: `commands/epics.md`, `agents/epic-*.md`, `docs/commands/epics.md` | invariants, map, callers, three authorities |
+| `docs-serve.md` | `docs-workflows/`: `commands/docs-serve.md`, `docs/commands/docs-serve.md`, `references/docs-profiles/render-verification.md`, `references/toolchain-preflight.md` | `/docs-serve` |
+| `release-notes.md` | `docs-workflows/`: `commands/release-notes.md`, `agents/release-notes-writer.md`, `references/release-note-types.md`, `docs/commands/release-notes.md` | `/release-notes` and its authority |
+| `docs-grounding.md` | `workflows-core/`: `references/docs-grounding.md`, `agents/docs-grounder.md`; and 20 command files: the nine grounding consumers and eleven that resolve none | `$DOCS_PATH` docs grounding |
+| `workflows-core.md` | `workflows-core/**`, `*/commands/*.md`, `*/agents/*.md` | plugin facts, model routing, authorities, map |
+| `workflows-core-git.md` | `workflows-core/references/`: `specs-repo-git.md`, `phase-handoff.md`, `read-only-repos.md`, `grounding-format.md`; `dev-workflows/references/code-handoff.md`; `*/commands/*.md`, `*/references/**`, `*/agents/*.md` | git authorities and invariants |
 
 The evidence behind the rules — measured cases, refused widenings, history — is in `docs/maintainers/rationale.md`, reached by each rule's `why` link. It is never auto-loaded; read a rule's section before proposing to change the rule.
 
@@ -108,7 +109,7 @@ The evidence behind the rules — measured cases, refused widenings, history —
   - **Pointer face.** Re-read a sentence from where it lands for a **pointer** (`this`, `that`, `here`, `above`, `below`, `it`) that re-points at whatever is now nearest, and an **omitted subject or object** carried from earlier in the sentence. **One tell is mechanical and covers one pointer only**: a bare `this <noun>` whose noun names a **kind of file** that is not the file the block belongs to; `above`, `below`, `it` and an omitted subject have no tell and fall to the re-read, which is the check — the tell is a way into it, never a substitute for it.
   - A face that needs a check of its own is a rule of its own, and a **third check** means this has stopped being one rule: the root stays in `CLAUDE.md` and the checks move to a `workflows-core` reference the sentence-context bullet cites. The test is the root and the checks, never the length.
 - **A sub-project's verification record is written last** — after the final fix wave, never before it. Re-derive every expected value against the tree being verified, and never copy an `expect N` from another plan. ([why](docs/maintainers/rationale.md#verification-record-last))
-- **Measure the population a fix serves before designing the fix, not after** — as for a gate widening. Ask the reachability question first, as a count — which trees, which users, which states — and trace it **per finding**. Where the answer is "none", the defect is in the claim that made it look live, and the fix belongs where that claim is written rather than in every consumer of it. The counter-case: *newly shipped* machinery also has a population of zero, which is why it has not bitten yet, not a reason it will not. ([why](docs/maintainers/rationale.md#measure-the-population))
+- **Measure the population a fix serves before designing the fix, not after** — as for a gate widening (`.claude/rules/gates.md`, intro). Ask the reachability question first, as a count — which trees, which users, which states — and trace it **per finding**. Where the answer is "none", the defect is in the claim that made it look live, and the fix belongs where that claim is written rather than in every consumer of it. The counter-case: *newly shipped* machinery also has a population of zero, which is why it has not bitten yet, not a reason it will not. ([why](docs/maintainers/rationale.md#measure-the-population))
 - **A rule's drift risk is not proportional to how obvious the rule looks.** **Before inlining a shared rule into its callers, itemise what the shared file still says, line by line, against the premise being retired.** "What remains is obvious" is a judgement about the lines you remembered, not the ones that are there. `workflows-core:instruction-file-maintenance` already binds the same point from the other direction: a rewrite that narrows a rule is a deletion, and is itemised separately. ([why](docs/maintainers/rationale.md#drift-risk))
 
 ## Hard constraints
@@ -120,6 +121,7 @@ The evidence behind the rules — measured cases, refused widenings, history —
 - **Vendor neutrality:** no text file under `plugins/` or in the instruction tiers (`CLAUDE.md`, `.claude/rules/`, `docs/maintainers/`) names a tracker unless its line, or the fence opening its block, carries `<!-- vendor-token-ok: <why> -->`; `CHANGELOG.md` is exempt as history; check 13 enforces it. ([why](docs/maintainers/rationale.md#check-13))
 - **Identity quarantine:** no page under `docs/` may name a marketplace or a container repo — `getting-started.md` is the single sanctioned exception, pinned by check 7; check 10 enforces it ([why](docs/maintainers/rationale.md#check-10)). The organisation this plugin was extracted from is never named anywhere in the repository, with no marker and no exception; check 14 enforces it ([why](docs/maintainers/rationale.md#check-14)).
 - **Every ```` ```mermaid ```` block in every tracked markdown file must parse.** **Quote any node or edge label containing `[ ] ( ) { } |` or `#`** — `-->|"verified [CG#n]"|`, never `-->|verified [CG#n]|`. `scripts/mermaid/check-mermaid.mjs` enforces it. ([why](docs/maintainers/rationale.md#mermaid-gate))
+- **Date every `— Unreleased` `CHANGELOG.md` section before it reaches `main`**: whatever is on `main` is what users install, and check 18 fires only on the push that publishes it. ([why](docs/maintainers/rationale.md#check-18))
 - **Every `choices:` array is an `AskUserQuestion` call, so the harness's schema is the authority on its shape**: `minItems: 2, maxItems: 4`, and *"There should be no 'Other' option, that will be provided automatically."* `workflows-core:escalation-rules` §0 states the rule, and check 12 enforces it. The free-text option is *unconditional*, so the four pickers through which a customer's authority enters the decision register cannot omit it — a free-text answer there is **normalised into the picker's own vocabulary or re-asked, never written through**. A fifth option moves rather than disappears: `workflows-core:next-phase-offer`'s overflow rule puts the full menu in prose and lets the array carry the likeliest, and `workflows-core:epic-picker` *The cap* does the same for a picker built from a directory listing. Every command of the family presents a phase's `choices:` array verbatim — order, wording, and the `(Recommended)` marker are not the orchestrator's to change (`workflows-core:escalation-rules`' *Choice lists are presented verbatim*). ([why](docs/maintainers/rationale.md#choices-arity))
 - Every command that writes into `$SPECS_PATH` runs `specs-preflight` at run start — as early as `$SPECS_PATH` is known (Phase 0 in most commands, Step 0 in `/vuln`, the shared `## Mode detection` section in `/document`) — and `commit-artifacts` as its last action, or immediately before a phase that cedes control (`workflows-core:specs-repo-git` §4) — bounded to the artifact paths and to plugin-created branches, and reported once as a `Specs repo:` line.
 - **`workflows-core:addressing` §7's shared-fallback adoption is additive, and it keeps no totals.** Every command that addresses a folder reaches the tree through `resolve-address` (§3), and §5's legacy unprefixed fallback is tried ONLY where the prefixed glob already returned nothing — so a key whose folder carries its kind prefix resolves exactly as it did before, and a command that creates the folder it did not find creates it **prefixed** (§2). The fallback honours a legacy folder that exists; it never proposes one. **Re-derive the set with `grep -l resolve-address plugins/*/commands/*.md`; do not count it off §7's table**, which is a finding aid and not the set. ([why](docs/maintainers/rationale.md#addressing-fallback-totals))
@@ -131,12 +133,13 @@ The evidence behind the rules — measured cases, refused widenings, history —
 
 **Run the gates as one `&&` chain and read the chain's own exit code.** `.github/workflows/validate-catalog.yml`'s `run:` steps are the authoritative list of them, in order. A trailing `echo "EXIT=$?"` makes the invocation's own status 0, so read the printed value. ([why](docs/maintainers/rationale.md#gate-chain-exit))
 
-`scripts/validate-catalog.py` fails `CLAUDE.md` above 40,000 characters and warns above 36,000; a rules file warns above 20,000 — overflow belongs in a rules file or the rationale.
+`scripts/validate-catalog.py` fails `CLAUDE.md` above 40,000 characters and warns above 36,000, warns on a rules file above 20,000, and fails a rules file without `paths:` or with a glob matching no file — overflow belongs in a rules file or the rationale (`.claude/rules/gates.md` § `scripts/validate-catalog.py`).
 
 ## Shared authorities
 
-Each reference below is the **single source of truth** for what it owns; `<plugin>:<name>` is `plugins/<plugin>/references/<name>.md`. Its full paragraph — consumers, entry points, invariants — is in the `.claude/rules/` file named. `model-routing/classification.md` is in § Model routing reference below.
+Each reference below is the **single source of truth** for what it owns; `<plugin>:<name>` is `plugins/<plugin>/references/<name>.md`. Its full paragraph — consumers, entry points, invariants — is in the `.claude/rules/` file named.
 
+- `workflows-core:model-routing/classification` — complexity classes, the model fallback chain, the Opus review checklist, the `model_routing` block, the §8 scan fan-out → `workflows-core.md`
 - `workflows-core:source-truth` — the Implementation-vs-Description discrepancy-escalation protocol → `workflows-core.md`
 - `workflows-core:prose-formatting` — output line-wrapping: never hard-wrap prose → `workflows-core.md`
 - `workflows-core:implementation-format` — the append-only `implementation.md` record, the `[<key>]` commit convention, the two-source read → `workflows-core.md`
@@ -160,19 +163,6 @@ Each reference below is the **single source of truth** for what it owns; `<plugi
 - **Agents** (`agents/`) are Claude Code sub-agent system prompts, not user entry points: each does one bounded job — planning, research, review, fixing, test writing, grounding, or maintenance — and returns its result to the invoking command.
 - **Skills** (`skills/`, optional) package durable instructions or domain knowledge that multiple commands or agents may consult; a skill is neither a command nor an agent. If a plugin has no `skills/`, keep shared runtime docs under `references/`.
 - **Working rule:** commands orchestrate, agents execute bounded tasks, skills provide reusable knowledge. Keep those roles separate so workflows stay predictable.
-
-## Model routing reference
-
-`plugins/workflows-core/references/model-routing/classification.md` is the
-**single source of truth** for:
-
-- Task complexity classification (`SIMPLE` / `MODERATE` / `SIGNIFICANT` /
-  `HIGH-RISK`)
-- The model fallback chain (Opus 5.5 → 5 → 4.8 → 4.7 → 4.6 → Sonnet 5 → Sonnet 4.6 → Sonnet 4.5)
-- The mandatory Opus code-review checklist
-- The `model_routing` YAML handoff block shared between commands and agents
-- The `phase: verify-resume` protocol for review-gated verification
-- The large-input scan fan-out policy (§8): the input-shape trigger, the `resolved-folder read → parallel code-scanner (cap 4) → Opus synthesis` pattern, the SIGNIFICANT floor it imposes, and §8.5's opt-in seeded second round with its rule that an unresolved theme is named, never flattened into a gap ([why](docs/maintainers/rationale.md#model-routing-fan-out))
 
 ## Updating installed plugins after editing
 

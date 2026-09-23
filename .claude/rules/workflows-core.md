@@ -1,11 +1,13 @@
 ---
 paths:
   - "plugins/workflows-core/**"
+  - "plugins/*/commands/*.md"
+  - "plugins/*/agents/*.md"
 ---
 
 # workflows-core — plugin facts, model-routing callers, shared authorities, workflow map
 
-Loaded when a file under `plugins/workflows-core/` is read. Repo-wide rules are in `CLAUDE.md`; evidence is in `docs/maintainers/rationale.md`.
+Loaded when a file under `plugins/workflows-core/`, or any plugin's command or agent file, is read: the model-routing callers, the consumer sets of the core authorities below and the core agents' caller lines change when a command or agent in another plugin does. Repo-wide rules are in `CLAUDE.md`; evidence is in `docs/maintainers/rationale.md`.
 
 Split out to keep this file under 20,000 characters: the git authorities (`specs-repo-git`, `phase-handoff`, `read-only-repos`) and the specs-repo git invariants → `.claude/rules/workflows-core-git.md`, which also loads with every command, reference and agent file, since every command that writes into `$SPECS_PATH` runs those entry points and its references and agents invoke them. `instruction-file-maintenance` binds hand edits to `CLAUDE.md` and is stated there, in § Editing discipline.
 
@@ -20,6 +22,19 @@ The host installs `workflows-core` alongside any of the three family plugins tha
 ## Docs tree
 
 `workflows-core` carries 16 pages — `docs/README.md` (the index), `getting-started.md`, `workflow.md` and `roles-and-phases.md`, 6 command pages under `docs/commands/` and 6 reference pages under `docs/reference/`.
+
+## Model routing reference
+
+`plugins/workflows-core/references/model-routing/classification.md` is the
+**single source of truth** for:
+
+- Task complexity classification (`SIMPLE` / `MODERATE` / `SIGNIFICANT` /
+  `HIGH-RISK`)
+- The model fallback chain (Opus 5.5 → 5 → 4.8 → 4.7 → 4.6 → Sonnet 5 → Sonnet 4.6 → Sonnet 4.5)
+- The mandatory Opus code-review checklist
+- The `model_routing` YAML handoff block shared between commands and agents
+- The `phase: verify-resume` protocol for review-gated verification
+- The large-input scan fan-out policy (§8): the input-shape trigger, the `resolved-folder read → parallel code-scanner (cap 4) → Opus synthesis` pattern, the SIGNIFICANT floor it imposes, and §8.5's opt-in seeded second round with its rule that an unresolved theme is named, never flattened into a gap ([why](../../docs/maintainers/rationale.md#model-routing-fan-out))
 
 ## Model routing callers
 

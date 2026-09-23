@@ -10,7 +10,7 @@ paths:
 
 Loaded when a file under `plugins/docs-workflows/` is read, or `/epics`'s command, agent or docs page. Repo-wide rules are in `CLAUDE.md`; evidence is in `docs/maintainers/rationale.md`.
 
-Ruling, recorded in the ledger: this file carries the `/epics` globs. The base's *"Key invariants for `/document` (keyed mode) and `/epics`"* section states shared bullets for both commands. Splitting shared bullets into two files would create two copies of one rule, which spec §4 forbids.
+This file also loads with `/epics`'s command, agent and docs page, because the *Key invariants for `/document` (keyed mode) and `/epics`* section's bullets bind both commands; keep them here and never copy them into `product-workflows.md`, where two copies would drift.
 
 Split out to keep this file under 20,000 characters: `/docs-serve`'s map line and run state → `.claude/rules/docs-serve.md`; `/release-notes`' map line, invariants and the `release-note-types` authority → `.claude/rules/release-notes.md`; `$DOCS_PATH` docs grounding, whose rules bind consumers in three plugins → `.claude/rules/docs-grounding.md`.
 

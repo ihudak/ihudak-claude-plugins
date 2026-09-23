@@ -52,7 +52,7 @@ Matching the stop-ID condition suffix (`BRD_SPLIT_EMPTY_INVENTORY` → `PRD_GROU
 
 ## check-13
 
-Vendor neutrality was a hard constraint held by prose alone until it was not. The marker convention already existed with exactly one user and no enforcer.
+Check 13 excludes the changelog by *filename*, which is not cosmetic — the older `| grep -v '/CHANGELOG.md:'` form filtered on line content and so silently dropped from its own audit any line quoting the filter. Vendor neutrality was a hard constraint held by prose alone until it was not. The marker convention already existed with exactly one user and no enforcer.
 
 **The narrow token set is evidence, not taste, and is recorded so the widening is not re-proposed:** the tracker names fire on 13 sites, of which 3 were real defects (the plugin README claiming `/ready` verifies a Jira status when it is artifact-anchored and reads no tracker; `docs/commands/vuln.md` twice calling `/vuln`'s optional address — a key resolved against `$SPECS_PATH` — a Jira ID) and 10 correct content, now marked. <!-- vendor-token-ok: quotes the two shipped defects check 13 was created to remove, which cannot be cited without naming the token they carried -->
 
@@ -84,7 +84,7 @@ A ledger item (PS15) recorded a live defect: an agent self-disclosed dispatching
 
 ## check-18
 
-A gate that fired on both the red case and its green twin would be red for the life of every release branch, and a gate that blocks correct work is a gate someone disables. **The recurrence is what bought it**: commit 47050554 dated every such section on 2026-09-19 and said so in its message, and by 2026-09-22 seven more stood across four plugins, all live on origin. Matching the bare `## [Unreleased]` form would fire on correct content and nothing else, the same result on which earlier widenings of `check-docs.sh` were refused.
+Each changelog's header says a section headed `— Unreleased` *"has not been published yet"*; on the default branch that is false by construction, because `claude plugin update` fetches from there and whatever is on main is what users install. The gate fires only on the push to the default branch that publishes the section, which is why the rule itself stands in `CLAUDE.md` § Hard constraints rather than only beside the gate. A gate that fired on both the red case and its green twin would be red for the life of every release branch, and a gate that blocks correct work is a gate someone disables. **The recurrence is what bought it**: commit 47050554 dated every such section on 2026-09-19 and said so in its message, and by 2026-09-22 seven more stood across four plugins, all live on origin. Matching the bare `## [Unreleased]` form would fire on correct content and nothing else, the same result on which earlier widenings of `check-docs.sh` were refused.
 
 ## check-19
 
@@ -152,7 +152,7 @@ The `prose-formatting` consumer sentence in `CLAUDE.md` named nine consumers and
 
 ## plugin-root-expansion
 
-`${CLAUDE_PLUGIN_ROOT}`'s expansion in slash-command bodies was verified in a live run by typing the slash command and comparing the received body against the file on disk: all 33 literal tokens in `docs-workflows`'s `document.md` arrived as absolute paths. The substitution is specific to this variable, which is what makes it a harness feature rather than general expansion: `${DOCS_PATH:-/workspace/docs}` and `${REPOS_PATH:-/workspace}` arrived **literal** in the same body. **`CLAUDE.md` previously claimed the opposite**, and that claim was the stated reason the `model-routing` skill exists; the claim is retired, the skill is not.
+`${CLAUDE_PLUGIN_ROOT}`'s expansion in slash-command bodies was verified in a live run by typing the slash command and comparing the received body against the file on disk: all 33 literal tokens in `docs-workflows`'s `document.md` arrived as absolute paths. Among environment-style variables the substitution is specific to this one, which is what makes it a harness feature rather than general expansion (`$ARGUMENTS` is a separate harness substitution of the command's arguments, which 43 command files use *(as of dd4eed5c)*): `${DOCS_PATH:-/workspace/docs}` and `${REPOS_PATH:-/workspace}` arrived **literal** in the same body. **`CLAUDE.md` previously claimed the opposite**, and that claim was the stated reason the `model-routing` skill exists; the claim is retired, the skill is not.
 
 ## one-key-namespace
 

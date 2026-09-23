@@ -2072,8 +2072,10 @@ PYEOF
 #     evidence, which cites the shipped defects this check was created to remove and cannot
 #     quote them otherwise; and .claude/rules/gates.md's check-13 description, which writes
 #     the marker itself and its census recipe (the recipe matches its own line).
-# Each but the last two has to write the vendor's name in order to match, illustrate, or
-# attribute it; those two name no vendor and are counted because the recipe counts them.
+# Each has to write the vendor's name in order to match, illustrate, or attribute it (a
+# fence-opening marker, in the block it opens) except two: CLAUDE.md's hard-constraint
+# statement of this check's rule and .claude/rules/gates.md's check-13 description name no
+# vendor and are counted because the recipe counts them.
 #
 # SCOPE IS EVERY TEXT FILE UNDER THE PLUGIN, not just *.md, and the widening was
 # measured before it was made. A tracker name leaks as readily through plugin.json's

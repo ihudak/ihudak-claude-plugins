@@ -154,8 +154,6 @@ The `prose-formatting` consumer sentence in `CLAUDE.md` named nine consumers and
 
 `${CLAUDE_PLUGIN_ROOT}`'s expansion in slash-command bodies was verified in a live run by typing the slash command and comparing the received body against the file on disk: all 33 literal tokens in `docs-workflows`'s `document.md` arrived as absolute paths. The substitution is specific to this variable, which is what makes it a harness feature rather than general expansion: `${DOCS_PATH:-/workspace/docs}` and `${REPOS_PATH:-/workspace}` arrived **literal** in the same body. **`CLAUDE.md` previously claimed the opposite**, and that claim was the stated reason the `model-routing` skill exists; the claim is retired, the skill is not.
 
-The `model-routing` skill stays although the claim once given as the reason it exists is retired.
-
 ## one-key-namespace
 
 The rule that stood in `CLAUDE.md` forbade widening a *tracker-side* check to accept three segments, on the grounds that no tracker mints a three-segment key; with no tracker read by any command, every check is folder-side and the defect family it guarded against cannot occur. **What survives is the reason, not the rule** — the autolink detector's narrowness, which the rule in `CLAUDE.md` now states.
@@ -172,7 +170,7 @@ A key re-derived by pattern is a key nothing in the tree ever asserted.
 
 Eleven such sentences were retired in 3.3.0, sitting in ten files — four commands, three references and three documentation pages — and the count grew from six to eleven only because successive agents walked the tree instead of trusting the list they were handed.
 
-**Refinements the sibling re-cut paid for, and the rounds after it — each one bought by a review finding what the sweep had already walked past, which is why the refinement list carries no count of its own.**
+The eight subsections below hold the evidence for the refinements the sibling re-cut paid for, and the rounds after it — each one bought by a review finding what the sweep had already walked past, which is why the refinement list carries no count of its own.
 
 Nothing gates such sentences: they are ordinary prose, invisible to every script in `scripts/`. A sentence that named the absence as its reason for an offer needs a new reason because the state a run leaves is usually still a real constraint on what it can honestly offer next.
 

@@ -47,7 +47,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
 
 1a. **Refuse a `BRD-` container**, the moment step 1 returns `status: found` and ahead of every read
    this command makes. **Epics come from a PRD only, and there are no Epics at BRD level**
-   (`docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` D6): a BRD is a container,
+   (`docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` D6, removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` retrieves it): a BRD is a container,
    and the `EPIC-` folders this command writes belong under the `PRD-` slices carved from it — never
    beside `brd/`, `coverage-ledger.md` and `slices.md`, in a folder
    `workflows-core:addressing` §2 invariant 1 gives no Epic. This refusal is

@@ -874,7 +874,7 @@ rules:
       spelling, used identically in every document the organization publishes.
       This rule pins that literal: any header parameter whose name contains
       "tenant" must be spelled exactly `Example-Tenant`. It is the check that
-      catches spelling drift (`X-Tenant`, `DT-Tenant`, `DtTenant`,
+      catches spelling drift (`X-Tenant`, `Acme-Tenant`, `AcmeTenant`,
       `Example-TenantId`) across operations and across documents, which no prose
       criterion can. Replace the literal once, in your own ruleset — see this
       file's header.

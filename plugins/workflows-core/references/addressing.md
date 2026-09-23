@@ -3,7 +3,7 @@
 The key grammar, the directory-naming convention, and the folder-resolution rule for **every** folder
 under `$SPECS_PATH/specifications/` — a BRD, a PRD, or an Epic alike. This file is where addressing is
 defined once rather than reinvented per caller. Design authority:
-`docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` §§4–5.
+`docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` §§4–5 (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` retrieves it).
 
 **Consumed by every command that addresses a folder in the specs tree.** Each calls `resolve-address`
 (§3) and, where it validates a key before touching the filesystem, `key-valid` (§1). Those commands

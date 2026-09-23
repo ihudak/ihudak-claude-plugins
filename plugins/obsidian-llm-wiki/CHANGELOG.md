@@ -4,6 +4,12 @@ All notable changes to the **obsidian-llm-wiki** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [0.4.2] — 2026-09-23
+
+### Changed
+- The worked examples in `wiki-lint`, `wiki-query`, `wiki-scan` and `wiki-schema` use a neutral example work area — the meeting folder `Meetings/ACME/` and the tag `acme` / `#acme` — in place of one that named a real organisation's internal team. Every skill uses the same pair, so the examples still agree with one another. Examples only; no behaviour changes.
+- The remaining worked examples are neutral too: `wiki-scan`'s changed-file line reads `Projects/Products/P1234 MCP server for Acme.md`, the disambiguating qualifier in `wiki-save` and `wiki-schema` reads `MCP Server (Acme).md`, and `wiki-schema`'s work-area tag row reads `#acme` `#platform` `#cloud` — each in place of a name taken from a real organisation's internal products. Examples only; no behaviour changes.
+
 ## [0.4.1]
 
 ### Fixed

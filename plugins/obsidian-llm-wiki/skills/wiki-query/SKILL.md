@@ -80,7 +80,7 @@ If the `wiki` collection is listed in the status output, use Path A. Otherwise u
 Write the answer in declarative present tense. Cite every claim:
 
 - For wiki pages: `(→ [[concepts/MCP Server]])`
-- For original source files: `(→ [[Meetings/MGD/2026-04-10 MCP Planning.md]])`
+- For original source files: `(→ [[Meetings/ACME/2026-04-10 MCP Planning.md]])`
 - For multiple sources: list all
 
 If the wiki contains contradicting information on the question: surface both sides and

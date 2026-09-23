@@ -4,7 +4,7 @@
 
 The canonical structure for a **BRD** (business requirements document): what it is, how its
 requirements are inventoried into `[BR#n]` rows, and how defects found in it are classified. Design
-authority: `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §4, D11, D21. Key
+authority: `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §4, D11, D21 (removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` retrieves it). Key
 grammar and folder resolution are defined once in `workflows-core:addressing` §1 — cited here,
 not restated.
 

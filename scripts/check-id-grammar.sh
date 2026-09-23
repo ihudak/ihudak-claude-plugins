@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Fails when a tracked plugin doc teaches the dash-form requirement-ID grammar.
-# Spec: docs/superpowers/specs/2026-08-18-jira-safe-requirement-ids-design.md
+# Spec: docs/superpowers/specs/2026-08-18-jira-safe-requirement-ids-design.md, removed from
+# the tree 2026-09-23 -- `git show 62e791e8:<that path>` retrieves it.
 set -uo pipefail
 
 # --selftest runs the gate against its own fixtures and asserts, per fixture, the
@@ -105,7 +106,7 @@ PATTERN="\[(US|AC|SM|SMC|UC|FR|AD)-${NUM}+\]|\[SM-C${NUM}+\]|(^|[^[:alnum:]_[])(
 # plugins/<name>/docs/ -- which is a silent hole in a gate whose whole job is
 # to have no silent holes. `.git` stays a name-match: it is never in scope at
 # any depth.
-#   docs/            -- this repo's plans and specs, which quote the old form
+#   docs/            -- this repo's design and verification records, which quote the old form
 #   .remember/       -- session history, untracked
 #   .superpowers/    -- SDD workspace, untracked
 #   .worktrees/      -- git worktrees: a SECOND FULL COPY of the tree, git-ignored,

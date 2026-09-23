@@ -62,7 +62,7 @@ Check that no page with this filename already exists anywhere in the vault:
 find "${VAULT}" -name "${PROPOSED_TITLE}.md"  # substitute resolved vault path and title
 ```
 
-If a conflict exists, propose a qualified name (e.g., `MCP Server (Managed).md`).
+If a conflict exists, propose a qualified name (e.g., `MCP Server (Acme).md`).
 
 Suggest: `"Save as [[<type>/<proposed-title>]]?"` — wait for user confirmation or
 alternative title before drafting.

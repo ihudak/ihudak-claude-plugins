@@ -23,7 +23,7 @@
 > — replaced with a generic Claude trailer.
 >
 > Merged and pushed to `main` in `ihudak-claude-plugins` (`1ff46a8`, v2.31.1)
-> and ported + merged + pushed to `main` in `mgd-claude-plugins` (`eb105a2`,
+> and ported + merged + pushed to `main` in the internal edition (`eb105a2`,
 > v2.31.1) as well, keeping the two marketplaces at feature parity.
 >
 > ## ✅ §4 RESOLVED — 2026-07-14
@@ -31,7 +31,7 @@
 > The one residual issue below (stale `clarifications_needed[]` cross-ref in
 > `epics.md`, "Phases 6.2 and 7" → "Phases 6.1 and 7") was fixed in both
 > repos as **v2.31.1** (`ihudak-claude-plugins@1ff46a8`,
-> `mgd-claude-plugins@eb105a2`), merged and pushed to `main` in both.
+> the internal edition's `eb105a2`), merged and pushed to `main` in both.
 
 ---
 
@@ -81,7 +81,7 @@ and it hides intent (e.g. whether these agents should be able to dispatch other 
 `references/X.md` that only resolves if the reading agent's cwd is the plugin root:
 - `agents/guideline-reviewer.md` (11), `agents/api-guideline-reviewer.md` (3)
 - `commands/create-ard.md`, `commands/create-vi.md` (description fields), `commands/docs-profile.md:115`
-- `references/dynatrace-docs/docs-profile.default.yml:52-53`, `docs-profile-schema.md:55-56`
+- `references/<org-docs>/docs-profile.default.yml:52-53`, `docs-profile-schema.md:55-56`
   — these two are config **values** written into a docs repo, so likely intentional repo-relative.
 
 **Fix:** prefix the agent/command prose citations with `${CLAUDE_PLUGIN_ROOT}/`; leave the
@@ -164,9 +164,9 @@ verify-resume protocol across all files, frontmatter Opus pins, baseline hand-ba
 ### 2B — Docs / Jira Pipeline
 **BLOCKER — `docs-style-checker` dispatches a sub-agent but lacks the `Task` tool.**
 `agents/docs-style-checker.md:4` declares `tools: [Read, Glob, Grep, LS, Bash]` (no `Task`), yet
-`:55-56` dispatches `subagent_type: "dt-style-guide:dt-style-checker"` as its complementary/fallback/
+`:55-56` dispatches `subagent_type: "prose-style:prose-style-checker"` as its complementary/fallback/
 sole pass. In Claude Code an agent WITH an explicit tools list can't use undeclared tools → the
-dispatch can't execute; for a no-primary-linter repo (dynatrace-docs case) the style gate silently
+dispatch can't execute; for a no-primary-linter repo (the organisation's docs repo) the style gate silently
 no-ops. **Fix:** add `Task` to the tools array. *(Same bug class as the port's task-gap — real in Claude too because this agent declares tools explicitly.)*
 
 **MAJOR — `doc-writer` told to put the Jira key in the changelog, which its own gate BLOCKs.**
@@ -216,7 +216,7 @@ and `document.md` Phase 8.5 all forbid it. The writer would emit output its own 
 \* BUG-1 is filed MAJOR mechanically but is functionally BLOCKER-level if Claude Code rejects the unknown `agent_type` param.
 
 ### Cross-cutting themes (fix once, benefits many)
-1. **Missing `Task` in `tools:`** — `docs-style-checker` (BLOCKER, 2B) can't dispatch `dt-style-checker`; the 4 no-tools agents (BUG-2) hide the same intent. Every agent that dispatches a sub-agent must declare `Task`.
+1. **Missing `Task` in `tools:`** — `docs-style-checker` (BLOCKER, 2B) can't dispatch `prose-style-checker`; the 4 no-tools agents (BUG-2) hide the same intent. Every agent that dispatches a sub-agent must declare `Task`.
 2. **Wrong dispatch param `agent_type:`** — BUG-1 (vuln/upgrade, ×7) + its source template (classification.md §5, MINOR 2A). Fix the SSOT §5 example AND the 7 call sites.
 3. **Missing `Skill` in `allowed-tools`** — all 3 code commands (MAJOR 2A) can't load the mandatory `model-routing` skill; verify every routing-aware command.
 4. **Inline agent `## Output` vs `references/handoff/*` SSOT drift** — recurs in jira-reader (MAJOR 2D), release-notes-writer (2B), code-scanner + diff-summarizer (2D), test-baseliner (BLOCKER 2A), vuln-fixer (2A). Systematic: pick the handoff doc as SSOT and regenerate every inline block from it.
@@ -236,7 +236,7 @@ batch missed (logged here per convention — NOT fixed in Claude during the port
 
 - **`commands/epics.md:332` (Claude) — stale cross-ref after the 6.1/6.2 label swap.**
   The v2.31.0 fix swapped the sub-phase labels so clarifications = Phase 6.1 and
-  Dynatrace style check = Phase 6.2. But the data-recording line still reads
+  the organisation's style check = Phase 6.2. But the data-recording line still reads
   "record `clarifications_needed[]` for **Phases 6.2 and 7**". `clarifications_needed[]`
   is consumed by the clarification gate (now **6.1**, `epics.md:340`) and the review
   (Phase 7, `:349`) — never by the style check (6.2). It should read

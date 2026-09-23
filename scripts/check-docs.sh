@@ -3,14 +3,14 @@
 #
 # Splitting one README into a multi-page tree multiplies the places drift can hide. Every
 # check below exists because a specific failure was observed -- in this plugin, or
-# in the two restructures this one follows (a sibling managed-plugins repo,
+# in the two restructures this one follows (a sibling plugin repo,
 # ai-containers#78).
 #
-# SEVENTEEN checks, numbered 1-17 in the order their functions appear below. The number is
+# NINETEEN checks, numbered 1-19 in the order their functions appear below. The number is
 # written here and nowhere else in this file, and nothing gates it -- re-derive it with
 # `grep -oE '\bfail [0-9]+ ' "$0" | awk '{print $2}' | sort -un` -- the numbers a fail() call
 # can actually report -- rather than trusting this sentence, and update it in the commit that
-# adds a check. Counting the banner comments instead gives 16: checks 1 and 2 share one.
+# adds a check. Counting the banner comments instead gives 18: checks 1 and 2 share one.
 #
 # --selftest mutates a copy of the passing fixture once per check and asserts the
 # gate rejects it. Without that, the fixtures are decorative: a gate that cannot
@@ -21,7 +21,7 @@ set -uo pipefail
 
 # ---------------------------------------------------------------- edition config
 # THE ONLY PART OF THIS FILE THAT DIFFERS BETWEEN EDITIONS. Never copy it across.
-# Everything below is byte-identical in ihudak-claude-plugins, mgd-claude-plugins
+# Everything below is byte-identical in ihudak-claude-plugins, the internal edition
 # and ihudak-copilot-plugins, so a fix to the gate ports by plain `cp` of the body.
 #
 # THE BODY REQUIRES EVERY NAME BELOW TO EXIST. `set -u` is on, so a ported edition whose
@@ -31,7 +31,8 @@ set -uo pipefail
 # that loop; CORE_PLUGIN_REL is read only inside check bodies, so it aborts at the first one
 # that reads it -- check_handoff_applicability, which runs for every listed plugin. All four
 # arrived with multi-plugin support and are the ones a config block copied from an older
-# edition will be missing.
+# edition will be missing. EDITION_FORBIDDEN_B64 (check 19, below) is required the same way:
+# an edition that forbids nothing defines it EMPTY, never leaves it out.
 # Space-separated; the dispatch loop sets PLUGIN_REL from it per iteration, so every
 # check function below is unchanged and still reads a single PLUGIN_REL. A one-element
 # list behaves exactly as the old scalar did, which is what keeps this body portable to
@@ -105,6 +106,20 @@ RUNTIME_VARS="CLAUDE_PLUGIN_ROOT ARGUMENTS OSTYPE BASH_SOURCE BASH_REMATCH ROOT 
 # Frozen (sorted) copy -- check_env_vars() asserts RUNTIME_VARS still sorts to exactly this,
 # so a silent edit to the list above fails check 5 instead of passing quietly.
 RUNTIME_VARS_FROZEN="ARGUMENTS BASH_REMATCH BASH_SOURCE CLAUDE_PLUGIN_ROOT OSTYPE OWNER_REPO ROOT"
+
+# Check 19's per-edition denylist: base64 of ONE extended regex, matched case-insensitively,
+# naming what THIS edition must never print anywhere in its tree outside a changelog. It is
+# edition config, not body, because the three editions disagree about it by design -- the
+# internal edition legitimately names the organisation it is written for, so its value is
+# EMPTY and check 19 passes there without looking; this public edition names that
+# organisation and its internal repositories nowhere, so its value is set. Encoded for the
+# reason check 14 gives for its own list: a denylist in clear text would put the names into
+# the tree, making the gate the one violation of the rule it enforces. `-` rather than `:-`
+# in the default is deliberate: an explicitly EMPTY value from the environment must win, which
+# is how the selftest proves the empty-config edition passes.
+EDITION_FORBIDDEN_B64="${EDITION_FORBIDDEN_B64-ZHluYXRyYWNlfG1nZC1zcGVjaWZpY2F0aW9uc3xtZ2QtY2xhdWRlLXBsdWdpbnN8KF58W15bOmFsbnVtOl1fXSltZ2QoW15bOmFsbnVtOl1fXXwkKQ==}"
+                                     # internal edition: "" -- it names that organisation
+                                     # by design
 
 FAILURES=0
 
@@ -1861,6 +1876,36 @@ with open(sys.argv[1], "w", encoding="utf-8") as fh:
     "ASSERT_PUBLISHED=1" \
     "rm -f plugins/*/CHANGELOG.md"
 
+  # CHECK 19. Every case sets EDITION_FORBIDDEN_B64 itself, to a fixture token, so the suite
+  # asserts the same thing in every edition -- including the internal one, whose own value is
+  # empty and would otherwise leave the red cases nothing to fire on. The token is written
+  # through the decoder, as check 14's cases write theirs. The RED case and its GREEN TWIN
+  # carry the identical token and differ only in the file it lands in; an implementation that
+  # ignored the CHANGELOG.md exemption passes the red case and fails the green one, and one
+  # that exempted everything passes the green case and fails the red.
+  local ef="EDITION_FORBIDDEN_B64=enotZWRpdGlvbi1mb3JiaWRkZW4tZml4dHVyZS10b2tlbg=="
+  expect_fail_env "an edition-forbidden token in a docs page is rejected" 19 "$ef" \
+    "printf '%s\n' \"\$(b64d enotZWRpdGlvbi1mb3JiaWRkZW4tZml4dHVyZS10b2tlbg==)\" >> $PLUGIN_REL/docs/README.md"
+  expect_pass_after_env "the same token in a CHANGELOG.md is accepted" "$ef" \
+    "printf '%s\n' \"\$(b64d enotZWRpdGlvbi1mb3JiaWRkZW4tZml4dHVyZS10b2tlbg==)\" >> $PLUGIN_REL/CHANGELOG.md"
+  # The edition that forbids nothing: an EMPTY value passes with the token present, which is the
+  # internal edition's configuration and the reason the body must tolerate it under set -u.
+  expect_pass_after_env "an empty EDITION_FORBIDDEN_B64 passes with the token present" "EDITION_FORBIDDEN_B64=" \
+    "printf '%s\n' \"\$(b64d enotZWRpdGlvbi1mb3JiaWRkZW4tZml4dHVyZS10b2tlbg==)\" >> $PLUGIN_REL/docs/README.md"
+  # VACUITY GUARD: a value that decodes to nothing must turn the build red, not green.
+  expect_fail_env "an undecodable EDITION_FORBIDDEN_B64 is rejected" 19 "EDITION_FORBIDDEN_B64=@@@" "true"
+  # The work-tree scope, as a pair: inside a git work tree an UNTRACKED page is still read (a new
+  # page must not pass for want of a `git add`), and a git-IGNORED file is not (a main checkout's
+  # ignored .worktrees/ copy must not redden it). Needs git; skipped, and said so, without it.
+  if command -v git >/dev/null 2>&1; then
+    expect_fail_env "an untracked page naming the token inside a git work tree is rejected" 19 "$ef" \
+      "git init -q . && printf '%s\n' \"\$(b64d enotZWRpdGlvbi1mb3JiaWRkZW4tZml4dHVyZS10b2tlbg==)\" >> $PLUGIN_REL/docs/README.md"
+    expect_pass_after_env "a git-ignored file naming the token is accepted" "$ef" \
+      "git init -q . && printf 'ignored-copy/\n' > .gitignore && mkdir ignored-copy && printf '%s\n' \"\$(b64d enotZWRpdGlvbi1mb3JiaWRkZW4tZml4dHVyZS10b2tlbg==)\" > ignored-copy/page.md"
+  else
+    printf 'skip  check 19 work-tree scope cases: git not found\n'
+  fi
+
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
   exit "$rc"
 }
@@ -2556,6 +2601,53 @@ EOF
     || fail 18 "no plugins/*/CHANGELOG.md found at all -- this check would examine nothing, which means the glob has drifted rather than the marketplace having shipped no changelog"
 }
 
+# --------------------------------------------------------------- check 19
+# CHECK 19 gates the edition's own denylist, EDITION_FORBIDDEN_B64 in the config block: base64
+# of one extended regex naming what this edition must never print. It exists because a
+# constraint held by discipline alone stopped holding: the public edition's design archive,
+# with its neighbouring records, named the organisation it was written inside and that
+# organisation's internal repositories, across more than a hundred files before anyone swept
+# them out on 2026-09-23. Check 14 could not see it -- check 14 quarantines a DIFFERENT
+# organisation, the one the plugin was extracted from, and its list is body, identical in
+# every edition. This list cannot be body, because the
+# internal edition legitimately names exactly what this one forbids; so the pattern is edition
+# config, and an EMPTY value means "this edition forbids nothing" and the check passes without
+# opening a file.
+#
+# SCOPE is every text file under the root minus .git, like check 14's, with two differences.
+# First, files named CHANGELOG.md are exempt: a changelog is history and keeps what it shipped
+# with, the exemption check-id-grammar.sh and checks 12, 13 and 16 already make by filename.
+# Second, where the root is its work tree's top level the file list is
+# `git ls-files -co --exclude-standard` --
+# tracked AND untracked, so a page not yet added is still examined (the vacuous-pass failure
+# this file's header records), but not git-ignored: a main checkout holds ignored second copies
+# of the tree (.worktrees/, which can sit on a branch older than the sweep) and ignored
+# container state, and a gate that reads them goes red for a reason that is not the tree being
+# checked -- the same reason check-id-grammar.sh excludes .worktrees/. Anywhere else (outside a
+# work tree, as the selftest's fixture copies are, or below its top level) it walks the directory.
+check_edition_forbidden() {
+  local root="$1" pat hits top
+  [ -n "$EDITION_FORBIDDEN_B64" ] || return 0
+  pat="$(b64d "$EDITION_FORBIDDEN_B64")"
+  # The same vacuity guard check 14 carries: a value that decodes to nothing would examine
+  # nothing while reporting success.
+  [ -n "$pat" ] \
+    || { fail 19 "EDITION_FORBIDDEN_B64 is set but did not decode -- this check would examine nothing"; return; }
+  top="$(git -C "$root" rev-parse --show-toplevel 2>/dev/null || true)"
+  if [ -n "$top" ] && [ "$(cd "$top" && pwd -P)" = "$(cd "$root" && pwd -P)" ]; then
+    hits=$(cd "$root" && git ls-files -z -co --exclude-standard \
+      | tr '\0' '\n' | grep -v -E '(^|/)CHANGELOG\.md$' | tr '\n' '\0' \
+      | xargs -0 grep -HEinIs -- "$pat" 2>/dev/null | head -50)
+  else
+    hits=$(grep -rEinIs --exclude-dir=.git --exclude=CHANGELOG.md -- "$pat" "$root" 2>/dev/null \
+      | sed "s|^$root/||" | head -50)
+  fi
+  [ -n "$hits" ] || return 0
+  local h; while IFS= read -r h; do
+    [ -n "$h" ] && fail 19 "$(printf '%s' "$h" | cut -d: -f1-2) names something this edition's EDITION_FORBIDDEN_B64 forbids -- it must not appear anywhere in this repository; files named CHANGELOG.md are the only exemption, because history keeps what it shipped with"
+  done <<<"$hits"
+}
+
 # ---------------------------------------------------------------------- main
 # selftest() runs before the dispatch loop below ever assigns PLUGIN_REL per iteration,
 # and its fixture mutations reference the bare (singular) $PLUGIN_REL directly -- so it
@@ -2614,6 +2706,11 @@ check_dispatch_authority  "$ROOT"
 # Check 18 sits outside the loop too: its population is every plugin's changelog, not the
 # docs-gated subset PLUGIN_RELS names, and it is a no-op unless ASSERT_PUBLISHED=1.
 check_published_changelog "$ROOT"
+
+# Check 19 sits outside the loop as well: its population is the whole repository, so a
+# per-plugin dispatch would report every hit once per plugin -- the repetition check 14 lives
+# with inside the loop.
+check_edition_forbidden   "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_RELS" >&2

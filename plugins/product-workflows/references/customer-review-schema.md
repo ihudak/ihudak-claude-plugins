@@ -7,7 +7,7 @@ sections it must carry, in the order it must carry them, the rule that puts the 
 limitations in front of every claim that rests on them, and the rule that makes the review exactly
 one new file. Design authority: `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md`
 §8.4 and §8.1, and decision rows D12, D13 and D20 in §3 — D12 governs section 1 here, D13 section
-3, and D20 section 6.
+3, and D20 section 6. That design spec was removed from the tree 2026-09-23; `git show 62e791e8:docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` retrieves it.
 
 **This file is unlike every other reference here: its body is rendered verbatim into text a customer
 pastes into a vanilla agent with nothing installed.** The rendered body is **everything from section

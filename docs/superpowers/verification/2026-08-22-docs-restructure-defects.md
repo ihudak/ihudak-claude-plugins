@@ -67,7 +67,7 @@
 
 **True:** `references/` holds 98 files, of which 93 are markdown; the remaining 5 include `cost-prices.yaml` — the default per-model token-price table, directly user-overridable via `$DEV_WORKFLOWS_COST_PRICES` (see D4) — which is user-facing and belongs in a reference inventory even though it is not markdown.
 
-**Found:** by comparing a `find references -type f | wc -l` count against a `find references -type f -name '*.md' | wc -l` count while auditing what the restructure needed to account for; the five-file gap included `cost-prices.yaml` plus four other non-markdown reference assets (`dynatrace-docs/managed-owners.txt`, `dynatrace-docs/docs-profile.default.yml`, `guidelines/check_guidelines.py`, `api-guidelines/template/openapi-template.yaml`).
+**Found:** by comparing a `find references -type f | wc -l` count against a `find references -type f -name '*.md' | wc -l` count while auditing what the restructure needed to account for; the five-file gap included `cost-prices.yaml` plus four other non-markdown reference assets (`<org-docs>/managed-owners.txt`, `<org-docs>/docs-profile.default.yml`, `guidelines/check_guidelines.py`, `api-guidelines/template/openapi-template.yaml`).
 
 **Disposition:** **Fixed** by Task 5. `docs/reference/references.md` now inventories reference *files*, not just reference *markdown*, and explicitly documents `cost-prices.yaml` as user-overridable. Defended by `check-docs.sh` check 4, which counts the same way (`find ... -type f`, not `-name '*.md'`) so a future non-markdown reference file added without a corresponding doc entry will drift the count and fail the gate.
 

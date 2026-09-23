@@ -51,7 +51,7 @@ Carriers changed: `references/cost-emission.md` §7, `references/workflow-states
 
 ## Carried forward, outside this branch
 
-The role collapse touches files that are `cp`-ported to `mgd-claude-plugins` and hand-adapted for `ihudak-copilot-plugins`. Both editions still carry the five-role vocabulary and the retired `QA` label wherever their own copies of these references live. The port is its own change — see the cross-repo porting notes before starting it.
+The role collapse touches files that are `cp`-ported to the internal edition and hand-adapted for `ihudak-copilot-plugins`. Both editions still carry the five-role vocabulary and the retired `QA` label wherever their own copies of these references live. The port is its own change — see the cross-repo porting notes before starting it.
 
 ---
 

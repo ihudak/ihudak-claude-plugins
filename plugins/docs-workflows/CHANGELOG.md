@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [1.3.2] — 2026-09-23
+
+### Changed
+- The design-spec citation in the `docs-profiles/frontmatter-guidelines` reference now says the spec was removed from the tree on 2026-09-23 and names the `git show 62e791e8:<path>` that retrieves it. Wording only, no behaviour.
+
 ## [1.3.1] — 2026-09-22
 
 ### Fixed — behaviour

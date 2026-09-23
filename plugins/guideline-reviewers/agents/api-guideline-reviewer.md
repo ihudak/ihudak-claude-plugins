@@ -149,7 +149,7 @@ Work through the areas below. Skip any check the "What Pass 0 covers" list above
 
 Systematically verify edge cases:
 - Exact spelling of well-known field names (`timeZone`, `languageCode`, `countryCode`)
-- Tenant header spelled identically everywhere it appears (no `DT-Tenant`/`DtTenant`-style drift), and not `X-`prefixed
+- Tenant header spelled identically everywhere it appears (no `Acme-Tenant`/`AcmeTenant`-style drift), and not `X-`prefixed
 - All endpoints have security specifications
 - No snake_case in JSON field names
 - Version numbers are consistent across `info.version`, `servers[].url`, and `x-gateway-url` where present

@@ -233,9 +233,9 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    (§3), so the two normally coincide; where they do not, `claims:` is what this slice is answerable
    for and the narrower set is the right one. **They diverge in exactly one way, and it is benign in
    both directions**: a slice's ledger may hold an **orphan row** — a ledger row for a `[BR#n]` it no longer claims, whose claim `/brd-split`'s walk on the parent withdrew and whose row stays and takes a terminal disposition; that claim was either still provisional or one this slice had committed to and then recorded it would not build, which a re-cut then moved to a sibling (`coverage-ledger-format.md` §2, §3, §3.2). `claims:` names none of them, so none is in this
-   gate set; and were one read anyway it could change no verdict, because an orphan row is never
-   `covered-here` (so it cannot manufacture eligibility) and never `unallocated` (so it cannot
-   manufacture refusal 1). A slice claiming nothing has an empty gate set — the
+   gate set — and it must not be read anyway: an orphan row is never `unallocated`, so it could not
+   manufacture refusal 1, but one left standing as this slice's own earlier decision can read
+   `covered-here` (`coverage-ledger-format.md` §2), and read outside the gate set it would manufacture eligibility. A slice claiming nothing has an empty gate set — the
    standing-empty-child state `/brd-split` Phase 4.5 keeps against a recorded reason — and reaches
    refusal 2 by the empty-set row of the table below, never refusal 1.
 

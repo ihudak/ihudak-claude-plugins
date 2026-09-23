@@ -1973,8 +1973,8 @@ this phase offers.
   **The rows are this slice's ledger rows, narrowed by its `brd-link.md` `claims:`.** This
   is the same gate set `/product-workflows:create-prd`'s Phase 0 step 7 defines, read the same way — and
   the narrowing drops something real, without changing either verdict: a slice's
-  ledger may hold **orphan rows** — ledger rows for `[BR#n]`s it no longer claims, whose claim `/brd-split`'s walk on the parent withdrew and wrote to a terminal disposition, whether that claim was still provisional or was one this slice had committed to and then recorded it would not build, which a re-cut then moved to a sibling (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2, §3, §3.2). `claims:` names none of them, and an orphan row is never `covered-here` and never
-  `unallocated`, so it can neither add the option nor withhold it however it is read.
+  ledger may hold **orphan rows** — ledger rows for `[BR#n]`s it no longer claims, whose claim `/brd-split`'s walk on the parent withdrew and wrote to a terminal disposition, or left at the one this slice's own walk had written, whether that claim was still provisional or was one this slice had committed to and then recorded it would not build, which a re-cut then moved to a sibling (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2, §3, §3.2). `claims:` names none of them, so the gate set never reaches one — which matters, because an orphan row left standing as the slice's own earlier decision can read `covered-here` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), and read outside the gate set it would add
+  the option.
   These two tests are exactly the two *data* refusals that command's own Phase 0 raises
   (`CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE`) — so naming the option where
   either fails would hand the operator a run that stops on its first phase. **Read the dispositions off the

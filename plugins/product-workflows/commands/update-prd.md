@@ -58,7 +58,7 @@ Usage: `/update-prd <KEY> [@transcript-or-notes ...] [--no-docs] [--docs <path>]
    **The gate set is §5.2's, cited rather than re-derived**: this slice's own `coverage-ledger.md`
    rows narrowed by its `brd-link.md` `claims:`, read **out of the ledger file and never off a
    `ledger:` line** (§6.1), with an orphan row neither adding the option nor withholding it because
-   it is never `covered-here` and never `unallocated`. **This table is the only reason
+   the narrowing leaves it out — one left standing as the slice's own earlier decision can read `covered-here` (§2), so the narrowing, not the row, is what keeps it inert. **This table is the only reason
    `/update-prd` ever opens a coverage ledger**, it is confined to this stop and to step 3a's, which
    applies it to the folder above an Epic, and each happens after the run has already been refused
    — no phase of a proceeding run reads one.

@@ -164,7 +164,7 @@ declaration.
 | Phase 2 — propose slices | runs | skipped |
 | Phase 3 — key and nest children | runs | skipped — this is the child creation the one-level cap forbids |
 | Phase 4 — walk the ledger | runs, **four** resolutions — no `covered-here` | runs, **four** — this walk offers no `covered-by` |
-| Phase 4 Step 1 — the bulk offer | on an ordinary run, fires only when **exactly one** slice stands and ≥2 rows are unallocated; writes `covered-by: <that slice>` | fires whenever ≥2 rows are unallocated; writes `covered-here`, and carries the marker the per-row picker already carries |
+| Phase 4 Step 1 — the bulk offer | on an ordinary run, fires only when **exactly one** slice stands and ≥2 unallocated rows may be offered to it; writes `covered-by: <that slice>` | fires whenever ≥2 rows are unallocated; writes `covered-here`, and carries the marker the per-row picker already carries |
 | Phase 4 Step 2R — the re-cut walk | runs **in place of** the walk above on a fully allocated ledger an instruction found a re-cuttable row on | never — the candidate set is built in `full` mode only |
 | Phase 4.5 — resolve standing empty children | runs | skipped — a slice has no children |
 | `rejected: [DEF#n]` resolves in | this BRD's own defect log | the **parent's** log, one hop ([`brd-format.md`](../../references/brd-format.md) §4) |
@@ -429,7 +429,11 @@ with a "nothing to commit" report on the no-op path, and on a reconcile-path run
   `unallocated`. Every remaining row is presented one at a time via `AskUserQuestion`, through
   exactly four resolutions in `split_mode: full` — assign to a named
   slice (`covered-by`), defer to this BRD (`deferred-to`), reject citing a `[DEF#n]`, or mark
-  superseded by another `[BR#n]`. `allocate-only` offers a different four: `covered-here` replaces
+  superseded by another `[BR#n]`. A child whose own ledger already holds a row for that `[BR#n]`
+  in any disposition but `unallocated` — a claim an earlier walk withdrew, or its own decision on a
+  claim it has since lost — is never offered that row, and the walk says why; where no child is
+  left for it, the row is deferred, rejected or superseded, or a later run with an instruction
+  placing it keys a new slice for it. `allocate-only` offers a different four: `covered-here` replaces
   `covered-by`, which is the one that walk does not offer. `covered-here` is what makes a **slice**
   PRD-eligible, and it is absent from the parent's picker because a BRD is a container that builds
   nothing itself — every row that must be built goes to a slice, and Phase 2 always produces at
@@ -438,7 +442,8 @@ with a "nothing to commit" report on the no-op path, and on a reconcile-path run
   becoming one slice is the ordinary shape of this route: every row on the parent takes
   `covered-by: <the one slice>`, and every row on that slice then takes `covered-here`. Where that
   answer is fixed by construction — **exactly one** slice standing on a parent, any run on a slice —
-  and two or more rows are still `unallocated`, the walk asks **once** instead of once per row. A
+  and two or more rows are still `unallocated` and offerable to it, the walk asks **once** instead of
+  once per row. A
   forty-row BRD resolved to a single slice costs 40 + 40 = **80** prompts without it and **2** with
   it, across the same two runs and the same two pull requests. **On a re-cut run it fires on a third
   condition, over a different uniformity**: two or more placed candidates carrying **one** confirmed

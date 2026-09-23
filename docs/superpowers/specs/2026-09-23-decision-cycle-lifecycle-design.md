@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found six more (N7–N12). This spec fixes all twenty-three.
+Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found nine more (N7–N15). This spec fixes all twenty-six.
 
 It covers:
 - `/brd-interview`, `/brd-reconcile`, `/prd-ground`, `/brd-split`, `/create-prd`, `/document` and `/release-notes`;
@@ -50,6 +50,9 @@ Abbreviations: `BI` = `plugins/product-workflows/commands/brd-interview.md`, `BR
 | N10 | C | `/prd-ground` Phase 8 lists `consumed_by: none` among the fields every written block carries, which read literally resets an on-file finding's `consumed_by` stamps on a re-run. Found by Task 2's implementer |
 | N11 | C | `/brd-interview`'s successor test 4 places a `[DG#n]` by the frame its evidence cites. A design finding whose evidence cites no frame can never have a successor, so a decision resting on one cannot be observed as confirmed or moved when it is superseded. Found by Task 2's implementer; reachability to be judged in review |
 | N12 | C | `/brd-interview`'s *A decision the re-grounding moved* takes a record only once **every** `evidence` finding reads `SUPERSEDED`, while `decision-register-format` §4 cause 1 fires on any superseding finding. So a decision resting on several findings, some of them superseded, reopens nothing. The `contradict` route (C1) makes this the common case. Found by Task 2's review |
+| N13 | C | On a plain `/prd-ground` re-run the design pass receives no code findings, so it writes no class-4 `[DG#n]`. The frame-set supersession rule still retires the old class-4 findings of every re-grounded frame set, and nothing regenerates them. Found by Task 2's implementer |
+| N14 | C | Phase 6 overwrites the `horizon` of an on-file finding it does not supersede, the same in-place class of defect as vii. Found by Task 2's implementer |
+| N15 | C | Design findings rewritten in place before R16 cite code only, so they can never be placed in a frame set. Found by Task 2's implementer |
 | v | E | CP step 6 does not say whether a `prd.md` with no `kind: prd` counts as found |
 | N6 | E | CP Phase 5 writes `prd.md` with no existence guard. Under the strict reading of v, a keyless `prd.md` is overwritten with no archive |
 | vi | E | `/document` and `/release-notes` stop on a found-but-unplaced folder, a BRD container, or a folder holding no PRD, using the "key dir not found" rule and `["Re-enter key", "Cancel"]`. That happens at two sites in each command |
@@ -264,5 +267,5 @@ The research flagged "Session cost (ALWAYS runs)" as false, because an abort or 
 - For every rewritten claim, a refinement-7 literal-string count across the sweep scope, taken before and after the edit and recorded with its command.
 - The per-item trace: each failure scenario in §3 is walked step by step against the new text, and the step where it now resolves is cited by file and phrase.
 - An exclusivity probe over the diff, covering new "only", "never" and "every" claims introduced by this pass.
-- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all twenty-three rows read FIXED is the known-bug count 0.
+- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all twenty-six rows read FIXED is the known-bug count 0.
 - Every row of the round-3 "Deferred by user decision" list gets a one-line pointer to this record.

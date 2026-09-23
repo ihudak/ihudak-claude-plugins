@@ -98,7 +98,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
      `PRD-` folder and passes this refusal; whether it then passes step 1b depends on whether a
      `prd.md` has been authored in that slice, which the offer **states** rather than promises. Do
      **not** name `/product-workflows:brd-split <BRD-KEY>` here: the slices it would carve exist, and on
-     a parent whose ledger is fully allocated that run is a no-op (`commands/brd-split.md` Phase 0
+     a parent whose ledger is fully allocated that run carves nothing (`commands/brd-split.md` Phase 0
      step 10).
    - **No slice at all** — `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` is the run that
      carves one, walking every row still `unallocated` and always confirming at least one slice (its

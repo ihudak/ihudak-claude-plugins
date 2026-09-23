@@ -49,7 +49,7 @@ already made mandatory for carving a root.
   so it carries no findings to cluster candidate slices from, and the instruction is the only
   grouping signal there is — absent, the run stops with `BRD_SPLIT_NEEDS_INSTRUCTION`. A root run
   that proposes nothing needs none and does not stop: on a fully allocated ledger there is nothing
-  to group, whether the run is a no-op or is there to resolve a standing empty child. **That is the
+  to group, whether the run is a no-op or is there to resolve a standing empty child or reconcile a child out of step. **That is the
   one run on which the argument is otherwise free, and it is given a meaning there rather than a
   flag being added for it** — on a fully allocated root it selects the sibling re-cut (below). On a slice it stays optional and seeds only the
   walk's per-row recommendation; omitted there, the command behaves exactly as it did before the
@@ -197,7 +197,7 @@ flowchart TD
     p1 --> p15["Phase 1.5 — Read the slicing instruction (only when one was given; both modes)"]
     p15 --> p2["Phase 2 — Propose slices"]
     p2 --> p3["Phase 3 — Key and nest each confirmed slice"]
-    p3 --> p4["Phase 4 — Walk the ledger (Step 1 bulk offer where one answer is uniform by construction, then the one-at-a-time walk — Step 2, or Step 2R on the re-cut path)"]
+    p3 --> p4["Phase 4 — Walk the ledger (Step 1 bulk offer where one answer is uniform by construction, then the one-at-a-time walk — Step 2, or Step 2R on the re-cut path — then Step 3 reconciles every standing child)"]
     p4 --> p45["Phase 4.5 — Resolve standing empty children"]
     p45 --> p5["Phase 5 — Write slices.md"]
     p5 --> p6["Phase 6 — Handoff"]
@@ -214,21 +214,30 @@ allocated ledger satisfies the front of two of them and only one is the run the 
   Phase 3 keys whatever was confirmed, Phase 4 runs **Step 2R in place of Step 2**, and Phases 4.5,
   5, 6 and 7 run as usual — so a parent holding both a re-cuttable row and a standing empty child
   resolves both in the same run.
-- **The no-op** — no row `unallocated`, no child standing empty, and no re-cuttable row: the run
-  skips straight from Phase 0 to Phase 6, which reports nothing to commit. A **bare** re-run builds
-  no candidate set at all, so on a fully allocated parent it is this path **where no child is
-  standing empty** — where one is, it takes the third path below, which is exactly what keeps a bare
-  run the reachable fix the stops naming it promise.
-- **Phase 4.5 alone** — no row `unallocated`, but a child standing empty. Not a no-op: the walk it
-  has no rows for is skipped and the empty-child resolution runs on its own, which is what keeps a
-  child kept empty by an earlier run reachable by the one command that can remove it.
+- **The no-op** — no row `unallocated`, no child standing empty, every child in step with the
+  parent's ledger, and no re-cuttable row: the run skips straight from Phase 0 to Phase 6, which
+  reports nothing to commit. A child is **in step** where its `brd-link.md` `claims:`, the rows of
+  its `brd/brd-inventory.md`, and the parent's rows reading `covered-by: <that child>` name the same
+  `[BR#n]` ids — the same test [`/prd-ground`](prd-ground.md) applies before grounding a slice. A
+  **bare** re-run builds no candidate set at all, so on a fully allocated parent it is this path
+  **where no child is standing empty or out of step** — where one is, it takes the third path below,
+  which is exactly what keeps a bare run the reachable fix the stops naming it promise.
+- **The reconcile path** — no row `unallocated`, but a child standing empty or a child out of step.
+  Not a no-op: the walk it has no rows for is skipped, Phase 4's Step 3 reconciles every standing
+  child against the parent's ledger — writing nothing for a child already in step — and then the
+  empty-child resolution runs. Step 3 goes first because it can change which children are empty: a
+  carve cancelled after it re-pointed a row onto an empty child, and before it reconciled that child,
+  leaves the parent naming a child that claims nothing, and reconciling it gives the child its claim
+  back rather than offering it for removal. This path keeps a child kept empty by an earlier run
+  reachable by the one command that can remove it, and a child an interrupted carve left out of
+  step reachable by the one command that writes a slice's claims.
 - **The ordinary run** — anything else: Phases 2–6 as written, in whichever mode Phase 0 resolved.
 
-**The re-cut branch and the Phase 4.5-only branch were each added for the same reason.** Deciding the no-op on the ledger alone made a
-standing empty child unreachable in every run after the one that created it; deciding it before the
+**The re-cut branch and the reconcile branch were each added for the same reason.** Deciding the no-op on the ledger alone made a
+standing empty child, and a child a stopped carve left out of step, unreachable in every run after the one that left it so; deciding it before the
 candidate set was built would have swallowed the re-cut, whose starting state is indistinguishable
 from a no-op's until that set exists. The decision is taken in **both** run modes, so a fully allocated
-slice reaches it exactly as a parent does — `allocate-only` simply satisfies the other two parts by
+slice reaches it exactly as a parent does — `allocate-only` simply satisfies the other parts by
 construction, since no child exists or can be created below a slice and the candidate set is built in
 `full` mode only. `workflows-core:impl-maintenance` runs in
 Phase 8 for session lessons-learned; no other subagent is dispatched — every finding this command
@@ -368,7 +377,10 @@ so no child folder is created.
   `source_anchor` in it still resolving against the parent's files — its `brd/source/`,
   `brd/source-external/` or `brd/brd-figures.md`, by the anchor's form
   ([`brd-format.md`](../../references/brd-format.md) §2.1); and its own `coverage-ledger.md` with
-  every row `unallocated`. The claim list is **provisional** until the walk ends: a row proposed for
+  every row `unallocated`. The claim list is **provisional** until the walk ends and Phase 4's Step 3
+  reconciles every standing child against this BRD's ledger — a run cancelled before that leaves
+  the three files provisional, [`/prd-ground`](prd-ground.md) refuses such a slice, and the next run
+  of this command that reaches Step 3 reconciles it: a row proposed for
   a child but settled elsewhere loses its claim and its inventory row, while its ledger row stays as
   an **orphan row** carrying the disposition the walk settled — including `covered-by: <SIBLING-KEY>`
   where another child took it. A ledger row is never deleted. **A re-cut withdraws a claim that was
@@ -391,7 +403,7 @@ so no child folder is created.
 
 Behind Phase 6's consent choice, these are committed, pushed, and a pull request opened against
 the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix — skipped
-with a "nothing to commit" report on the no-op path.
+with a "nothing to commit" report on the no-op path, and on a reconcile-path run that reconciled nothing and kept every empty child unchanged.
 
 ## Gates
 
@@ -480,7 +492,7 @@ with a "nothing to commit" report on the no-op path.
   ended the walk resolved elsewhere, any child an earlier run left empty, and — on the re-cut path —
   a **donor** whose last remaining claim was moved to a sibling. Emptiness is **recomputed here,
   after the walk**, off each standing child's `claims:` list as the reconcile left it, never taken
-  from what Phase 0 marked: on a re-cut run that marking goes stale inside the same run in both
+  from what Phase 0 marked: on a re-cut run, and on the reconcile path, that marking goes stale inside the same run in both
   directions, since a child it marked may have just been given a row and a child it did not mark may
   have just lost its last one. A child with no
   recorded reason is offered removal (recommended); one already carrying a reason is offered keeping
@@ -549,9 +561,9 @@ keys and nests a folder per confirmed slice, walks every remaining ledger row to
 resolutions, writes `slices.md`, and offers to branch, commit, push, and open a pull request. Its
 next-step offer names [`/prd-ground`](prd-ground.md) on **each child that gained a row this run** —
 the slices this run keyed and still claiming a row after the empty-child phase, and any child that
-already stood which the walk newly resolved a row to — once
+already stood which the walk newly resolved a row to or Phase 4's Step 3 added a row to — once
 this run's deliverables reach the specs repo's default branch — the `<merge-clause>` placeholder
-(`workflows-core:next-phase-offer`) resolves that, since a no-op run and a declined handoff open no
+(`workflows-core:next-phase-offer`) resolves that, since a no-op run, a reconcile-path run that wrote nothing, and a declined handoff open no
 pull request to wait on. The offer says which of three cases each child is, because only one of them
 is a re-run: a slice keyed this run and a standing child nobody ever ground are each a first pass,
 while a standing child that is **already** ground needs `/prd-ground` again — the row arrived after

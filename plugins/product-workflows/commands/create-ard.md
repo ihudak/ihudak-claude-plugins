@@ -138,7 +138,7 @@ this stage). Zero external calls.
    - **One or more slices** — the ordinary shape, since a split always confirms at least one. Name
      every slice and offer `/product-workflows:create-ard <SLICE-KEY>` once per slice. Do **not** name
      `/product-workflows:brd-split <BRD-KEY>`: the slices exist, and on a parent whose ledger is fully
-     allocated that run is a no-op (`commands/brd-split.md` Phase 0 step 10).
+     allocated that run carves nothing (`commands/brd-split.md` Phase 0 step 10).
    - **No slice at all** — `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` is the run that
      carves one, walking every row still `unallocated` and always confirming at least one slice (its
      Phase 2). **Two conditions travel with that offer**, in its own text, because this command holds

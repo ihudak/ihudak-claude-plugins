@@ -197,8 +197,8 @@ also runs, in Phase 11, for session lessons-learned.
   re-run where one of those rows is still `unallocated` there, and to empty the left-over `claims:`
   by hand and re-run the parent in the form its ledger calls for where every one is settled
   elsewhere; and otherwise the file was lost after it was written
-  and is restored from the ref that carried it, since a parent `/brd-split` reconciles only the rows
-  its walk moves and never writes back the ones the slice already claims — and on a folder naming no
+  and is restored from the ref that carried it, since a parent `/brd-split` writes nothing into a slice
+  with a file missing and never re-creates one — and on a folder naming no
   parent it names a fresh intake under a new key, and also `/create-prd` on the same key where the
   folder holds an `idea.md` and no `prd.md`. An inventory in the folder and on no ref, with a `coverage-ledger.md` there too, stops with
   `PRD_GROUND_INVENTORY_NOT_HANDED_OFF`, whose action is to commit and merge it, and which names no

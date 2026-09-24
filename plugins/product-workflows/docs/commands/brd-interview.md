@@ -329,7 +329,9 @@ line naming what was already on file, so nothing this run adds is mistaken for a
 re-disposition of a code defect is applied to the log only after the round record names it, and a
 run that stopped in between is completed by the next one's Phase 0. Every phase before it — the `[V]` answers, the held `[C]` entries, a defect line added to a
 held entry, a `--round N` re-open, a question the round-1 test adds — builds its part and holds it
-there, so a `Cancel`, an abort or an interruption before Phase 9 writes nothing into the BRD folder.
+there, so a `Cancel`, an abort or an interruption before Phase 9 writes nothing the run decided into
+the BRD folder — the one earlier write being Phase 0's completion of a code-defect re-disposition a
+round record already names, which decides nothing.
 The round record is the commit point
 ([`decision-register-format.md`](../../references/decision-register-format.md) §8): an item stamped
 with a round whose record does not exist or does not name it — what a run that stopped between those
@@ -427,7 +429,7 @@ but the push and the pull request cannot run.
   `[V]`, by `/brd-reconcile` for a `[C]`. One a propagation sweep reopened meanwhile is re-decided
   in place instead, and one another run has left `withdrawn` or `superseded` does not move, and is
   named beside the new record under what still needs a human.
-  **Cancel on this picker writes nothing**: it stops the run before the register phase, so no
+  **Cancel on this picker writes nothing the run decided**: it stops the run before the register phase, so no
   decision this run took is written, and no `[C]` question it held either, and the next run puts the question again — or, for a round
   this run opened, regenerates it and asks only what is still askable.
 - **Round closure.** A round closes only when every question in it carries a **terminal**

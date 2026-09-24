@@ -206,8 +206,9 @@ cannot review, and they will not tell you that — they will review it anyway, b
     (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1), so a torn record or entry would
     reach the customer as a decision nobody recorded taking or a question no round recorded asking.
     Removing them is `/brd-interview`'s alone (§8). **A half-applied re-disposition counts with
-    them**: a `[CDF#n]` whose latest `re-dispositioned` move a counted round record's `code defects:`
-    line names while the log still reads that move's `<old>` (§8) — the log would ship a disposition
+    them**: a `[CDF#n]` whose latest `re-dispositioned` move — the highest move number `#k` any
+    counted round record's `code defects:` line names for it, never the highest round (§8) — the log
+    does not yet carry, the log still reading that move's `<old>` — the log would ship a disposition
     the record has already replaced, and `/brd-interview` completes the move at its next run's
     start. Name each in the stops below beside the torn writes. Any → stop, on the first of these
     that holds:
@@ -216,10 +217,12 @@ cannot review, and they will not tell you that — they will review it anyway, b
       `BRD_PACKAGE_ROUND_UNREADABLE: <BRD-KEY>'s <path> exists and cannot be read, so whether the items claiming round <N> (<each, by id or heading>) are torn writes cannot be decided. Repair or restore that file from the specs repo's history (git -C "<SPECS_PATH>" log -- <path>), then re-run. Nothing was written.`
     - **A slice every row of whose `coverage-ledger.md` is an orphan row** — one that kept no
       requirement of its own, where `/brd-interview` stops with `BRD_INTERVIEW_ALL_DELEGATED` before
-      it removes anything:
-      `BRD_PACKAGE_TORN_WRITES: <BRD-KEY> holds items a /product-workflows:brd-interview run left when it stopped before writing the round record that would name them (<each, by id or heading, with the round it claims>), and it kept no requirement of its own — every coverage-ledger row is an orphan row — so there is nothing to package. No reader counts those items; /product-workflows:brd-interview stops on this slice with BRD_INTERVIEW_ALL_DELEGATED and will not remove them, so delete them by hand if the files should read clean. Nothing was written.`
+      it removes anything. Its *Resolve inputs* phase does complete a half-applied re-disposition
+      first, since that phase runs before the stop, but the run never reaches its handoff, so the
+      completed log is left for the operator to land:
+      `BRD_PACKAGE_TORN_WRITES: <BRD-KEY> kept no requirement of its own — every coverage-ledger row is an orphan row — so there is nothing to package. <where torn writes were found:> It holds items a /product-workflows:brd-interview run left when it stopped before writing the round record that would name them (<each, by id or heading, with the round it claims>); no reader counts them, and /product-workflows:brd-interview stops on this slice with BRD_INTERVIEW_ALL_DELEGATED without removing them, so delete them by hand if the files should read clean. <where half-applied re-dispositions were found:> Its code-defect-log.md has not yet taken moves a round record already names (<each [CDF#n] #k <old> → <new>>) — the round record was written and the run stopped before the log was; run '/product-workflows:brd-interview <BRD-KEY>', whose first phase applies them before it stops, then commit and merge code-defect-log.md yourself, since that run hands nothing off. Nothing was written.`
     - **Otherwise:**
-      `BRD_PACKAGE_TORN_WRITES: <BRD-KEY> holds items a /product-workflows:brd-interview run left when it stopped before writing the round record that would name them (<each, by id or heading, with the round it claims>). No reader counts them, and a package built now would ship them. Run '/product-workflows:brd-interview <BRD-KEY>' and merge its handoff: any run of it that reaches its handoff removes them. Nothing was written.`
+      `BRD_PACKAGE_TORN_WRITES: <BRD-KEY>'s folder is not in a state a package can ship. <where torn writes were found:> It holds items a /product-workflows:brd-interview run left when it stopped before writing the round record that would name them (<each, by id or heading, with the round it claims>); no reader counts them. <where half-applied re-dispositions were found:> Its code-defect-log.md has not yet taken moves a round record already names (<each [CDF#n] #k <old> → <new>>) — the round record was written and the run stopped before the log was. Run '/product-workflows:brd-interview <BRD-KEY>' and merge its handoff: any run of it that reaches its handoff removes the torn writes, and any run that passes its input gates applies the pending moves in its first phase. Nothing was written.`
 6. **Gate the decision register on main.** This command **consumes** a `$SPECS_PATH` deliverable it
    did not write, so per `workflows-core:phase-handoff` §5 rule 2 it executes
    `require-on-main` (§3) here, before any content is read — step 5c's worktree test reads items

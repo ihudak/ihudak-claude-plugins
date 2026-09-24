@@ -358,7 +358,9 @@ and nothing downstream can tell the difference afterwards.
    §8 gives this command alone — its *Write the register and the round record* phase, or, on a run
    that skips that phase, *Resolve the round*'s no-new-round path.
    **Then complete any re-disposition an interrupted run left half-written**, now: for each `[CDF#n]`, take the latest `re-dispositioned` move any counted
-   round record's `code defects:` line names for it, and where `code-defect-log.md` still reads that
+   round record's `code defects:` line names for it — **the one with the highest move number `#k`**,
+   never the one in the highest-numbered round, since a `--round N` re-open writes into an earlier
+   round's record after later rounds exist (§8) — and where `code-defect-log.md` still reads that
    move's `<old>`, write its `<new>` — `blocked_on` added or dropped as the line says — and nothing
    else (§8). The record already names the move, so this writes nothing it does not count, and a
    log already reading `<new>`, or reading anything but `<old>`, is left alone. Report each move
@@ -1098,8 +1100,9 @@ changed since raises nothing again: its question, where it had one, is in the ro
 `round` is `<highest + 1>` — a re-decision that a run which stopped before writing that round's
 record left standing, §8 counting a record carrying a `Reopened` paragraph whatever round it names —
 is a question of the round being generated. **It is generated already disposed**: tagged `[V]`,
-the tag of the question a `[VD#n]` answers — only this command re-decides a record, and only a
-`[VD#n]` — and carrying the terminal disposition *decided* naming the record, the answer the
+the tag of the question a `[VD#n]` answers — the only re-decision a stopped run of this command
+can leave standing is a `[VD#n]`'s, since `/product-workflows:brd-reconcile` re-decides a `[CD#n]`
+and this command only reopens one — and carrying the terminal disposition *decided* naming the record, the answer the
 stopped run took. *Tag every question* records that tag as it arrives, and *Put each `[V]` to the
 operator* never queues it, since its queue holds only questions without a terminal disposition, so
 it is put to nobody. That disposition is what names the record (§8), and the question makes the
@@ -1355,7 +1358,9 @@ only that one**: *The will-change rule* phase's *Defer it until the prerequisite
 question that was answered, records the wait on the `[VD#n]` rather than on the question, and keeps
 no round open (that phase says so). **An abort — the harness's free-text option, since the array
 lists no `Cancel` — stops the run** naming how many `[V]` questions remain, **and writes nothing
-into the BRD folder**: a `[VD#n]` taken in this phase is held for the register phase, which writes
+this run decided into the BRD folder** — the one earlier write a run can have made is *Resolve
+inputs and gate the grounded BRD*'s completion of a move a counted round record already names, which
+decides nothing: a `[VD#n]` taken in this phase is held for the register phase, which writes
 every deliverable of the round — `decisions.md`, `code-defect-log.md`,
 `interview/customer-questions.md` and the round record — and an abort never reaches it. So no answer
 this pass took survives it, the round record stays as the last write left it, and the next run
@@ -1495,7 +1500,8 @@ does not have, and the two most likely things an operator would write into it ar
 evasions §6 and §7 already refuse (below). `Cancel` remains, so nobody is trapped — and it is not
 a fourth resolution, nor the third under another name: it stops the run before *Write the register
 and the round record*, which writes every deliverable of the round, so **`Cancel` writes nothing
-into the BRD folder** — not this `[VD#n]` in any status, not any other this pass took, not a `[C]`
+this run decided into the BRD folder** — beyond, at most, *Resolve inputs and gate the grounded
+BRD*'s completion of a move a counted round record already names — not this `[VD#n]` in any status, not any other this pass took, not a `[C]`
 entry *Hold every `[C]`* built, and not a defect line *One question per row* decided to add. The
 question keeps whatever state the round record last recorded, and the next run puts it again — or,
 for a round this run opened, which no record yet holds, regenerates that round's questions afresh
@@ -1524,7 +1530,9 @@ the round record names them**, each re-disposition the *Put each `[V]` to the op
 is applied to `code-defect-log.md`. Every phase before this one builds what it contributes and holds
 it here — a `[VD#n]` or `[AS#n]`, a `[CDF#n]` or a re-disposition, a held entry, a defect line, a
 `--round N` re-open, a question the round-1 test adds — so a run that stops before this phase, by a
-`Cancel`, an abort or an interruption, writes nothing into the BRD folder. **The round record is the
+`Cancel`, an abort or an interruption, writes nothing it decided into the BRD folder — the one
+earlier write being *Resolve inputs and gate the grounded BRD*'s completion of a re-disposition a
+counted round record already names, which decides nothing. **The round record is the
 commit point** (`decision-register-format.md` §8): a round's deliverables count only once its record
 names them, so an interruption between these writes leaves **torn writes**, which no reader
 counts, beside the in-place changes §8 lets stand — a reopen, a re-decision — each true whether or
@@ -1631,7 +1639,8 @@ carrying no terminal disposition — the same test, in the same words, that *Res
 resumes on.
 
 **Every write of a round record ends with one `Status:` line, which records the round's state; the
-dispositions decide it.** The line reads
+dispositions decide it** — save the baseline append (above), which records no state and names
+nothing new, and which this phase's own write of the record follows in the same run. The line reads
 `Status: open — waiting on <each holding state a question in it is in>` or
 `Status: closed <YYYYMMDD> — <why>`, dated the day of the write; which of the two is the closure
 rule's to say (below), never a separate judgement. The record is append-only, so a write that
@@ -1689,15 +1698,20 @@ asks. *Resolve the round* reads this line on round 1's record and on no other ro
 what tells a slice interviewed before this source existed from one interviewed after.
 
 **Every write of a round record carries one line accounting for the code-defect log**, whether or
-not the write touched it:
+not the write touched it — save the baseline append, whose `code defects on file:` line names only
+what was already there and which raised nothing:
 
 ```
-code defects: raised [CDF#n], …; re-dispositioned [CDF#m] <old> → <new>, …
+code defects: raised [CDF#n], …; re-dispositioned [CDF#m] #k <old> → <new>, …
 ```
 
 — either half left out where it is empty, and `code defects: none` where both are; a move to
-`conditional` is written `re-dispositioned [CDF#m] <old> → conditional (blocked_on: <what would
-settle it>)`, so the line alone carries everything the move writes. It is where the round record
+`conditional` is written `re-dispositioned [CDF#m] #k <old> → conditional (blocked_on: <what would
+settle it>)`, so the line alone carries everything the move writes. **`#k` numbers the moves of one
+`[CDF#n]`**: `k` is one more than the number of numbered moves the counted round records of this
+BRD already name for it — a known set, read at this run's start — so the order of a `[CDF#n]`'s
+moves is carried by the files and never inferred from round numbers, which a `--round N` re-open
+breaks (`decision-register-format.md` §8). It is where the round record
 names each `[CDF#n]` this write raised, which is what keeps an entry of the log from reading as a
 torn write (`decision-register-format.md` §8), and it is the **only** authority for a
 re-disposition: the move is applied to the log after this record is written, and a run that stops

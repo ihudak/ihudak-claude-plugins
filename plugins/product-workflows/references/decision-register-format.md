@@ -614,12 +614,19 @@ that test.
 
 **A re-disposition is written after the record that names it.** A `[CDF#n]`'s `disposition`, with
 the `blocked_on` that goes with it, moves in the log only once the round record's `code defects:`
-line has named the move — `re-dispositioned [CDF#m] <old> → <new>` — so a run that stops before the
-record leaves the entry as it was, and the next run offers the re-disposition again. **A run
-that stops after the record and before the move is completed by the next**: every run of
-`commands/brd-interview.md`, at its start, reads the latest re-disposition any counted round record
-names for each `[CDF#n]`, and where the log still reads that move's `<old>`, applies `<new>` — the
-latest only, so a later move back is never undone by an earlier line. Until it does, the log
+line has named the move — `re-dispositioned [CDF#m] #k <old> → <new>` — so a run that stops before the
+record leaves the entry as it was, and the next run offers the re-disposition again. **`#k` orders
+one `[CDF#n]`'s moves**: `k` is one more than the number of numbered moves counted round records
+already name for that `[CDF#n]`, so it is read off a known set and never off a date or a round
+number — round numbers are not time order, since a `--round N` re-open writes an earlier round's
+record after later rounds exist. A move a torn run numbered was never counted, so the next run
+reuses its number. **The latest move is the one with the highest `k`.** A move reported before the
+`code defects:` line existed carries no number: it was applied to the log in the run that reported
+it, so there is nothing to complete, and it ranks below every numbered move and counts toward no
+`k`. **A run that stops after the record and before the move is completed by the next**: every run
+of `commands/brd-interview.md`, at its start, reads the latest move any counted round record names
+for each `[CDF#n]`, and where the log still reads that move's `<old>`, applies `<new>` — the latest
+only, so a later move back is never undone by an earlier one. Until it does, the log
 disagrees with a counted record: a reader that only reads takes the record's `<new>`, and one that
 ships the log whole refuses it as it refuses a torn write (`commands/brd-package.md`, Phase 0
 step 5c).

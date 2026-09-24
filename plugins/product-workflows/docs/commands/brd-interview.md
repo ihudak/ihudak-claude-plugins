@@ -30,7 +30,9 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
 - **`--round N`** (optional) — target one round: resume it if it is open, or re-open it if it is
   closed, recorded as a re-open with its cause. Naming the next round opens it only where every
   round is closed: beside an open round it stops with `BRD_INTERVIEW_ROUND_STILL_OPEN`, naming the
-  open round, since the bare command would resume that one. With no flag the run continues at the first round
+  open round, since the bare command would resume that one, and the step each of its holding states
+  needs — the package and the reconciliation for a question held for the customer, a grounding pass
+  for one that needs grounding, and the bare resume for a deferred or untagged one. With no flag the run continues at the first round
   still holding a question without a terminal disposition; with every round closed it generates the
   next round's questions from what changed after the last one was generated — a finding added or
   superseded, or its verdict or verifier outcome changed, whenever that happened, read against the

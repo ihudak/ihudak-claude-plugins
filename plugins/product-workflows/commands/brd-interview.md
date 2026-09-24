@@ -630,7 +630,16 @@ the round record*), and where the two disagree the dispositions win.
   disposition — the request has no branch to mirror**: the no-flag path would resume that round and
   open none, so opening round `<highest + 1>` beside it would be a different answer. Stop, naming
   the lowest-numbered open round and what holds it open:
-  `BRD_INTERVIEW_ROUND_STILL_OPEN: <BRD-KEY> cannot open round N while round <open> is open — it still holds <each holding state a question in it is in>. Re-run '/product-workflows:brd-interview <BRD-KEY>' to resume round <open>; a new round opens once every round is closed.`
+  `BRD_INTERVIEW_ROUND_STILL_OPEN: <BRD-KEY> cannot open round N while round <open> is open — it still holds <each holding state a question in it is in>. <remedy> A new round opens once every round is closed.`
+  `<remedy>` names one step per holding state the round holds, every one that applies, since each
+  moves only by its own run. A round can hold any of four holding states (the table in *Terminal
+  dispositions and holding states*):
+  - *held for the customer* → `Package the held questions with '/product-workflows:brd-package <BRD-KEY>', and record the customer's answers with '/product-workflows:brd-reconcile <BRD-KEY> @<review-file>'.` — no run of this command can close such a question;
+  - *needs grounding* → `Ground the questions no finding bears on with '/product-workflows:prd-ground <BRD-KEY>', then resume round <open> with '/product-workflows:brd-interview <BRD-KEY>'.`;
+  - *deferred* or *untagged* → `Resume round <open> with '/product-workflows:brd-interview <BRD-KEY>'.` — the operator answers a deferred question there, and an untagged one is rewritten there.
+
+  Where round `<open>` holds more than one, the steps are named in that order, and the resume is
+  named once.
   Nothing else here forbids two open rounds at once: a `--round N` re-open of a closed round while a
   later one is open is deliberate (the round-1 test below, and *Next steps*' `defects-unasked`).
 
@@ -1352,7 +1361,8 @@ has no terminal disposition and carries no `- **Re-puts:**` line, build the **ca
 `[VD#n]` reading `reopened`, every held `[VD#n]` *A decision the re-grounding moved* would put
 again now, and every `[VD#n]` carrying a `Reopened` paragraph whose `round` is the question's round
 — a re-decision a stopped run took in answer to it, which the resume rule then records — less every
-record another question's line holds in flight. **An empty candidate set asks
+record another question's line holds in flight, and less every record this run's picker has
+already tied to another question, so one record is never tied to two. **An empty candidate set asks
 nothing**: the question is an ordinary `[V]`, and *Write the register and the round record* gives it
 `- **Re-puts:** none` like any other. Otherwise, before the queue opens, put one tie
 picker per such question, quoting the question and listing every candidate in prose above the
@@ -2031,7 +2041,9 @@ meets `/brd-package`'s `BRD_PACKAGE_NOT_INTERVIEWED`, which fires where `intervi
 record whatever the register holds, and there is no `not-interviewed` value to compute. Otherwise,
 step 7 passes and step 8 fails →
 `package_offerable: nothing-to-review`, which is not a defect in this run: every question was
-settled from verified findings and the delivery team owes the customer no decision. **Whatever the
+settled from verified findings and the delivery team owes the customer no decision — save a
+reopened `[CD#n]` waiting on the round this run worked, which the customer re-decides and which
+takes the list of its own below. **Whatever the
 state, name beside its list every requirement defect the round-1 test left waiting on an open
 round** (*Resolve the round*), with the round it will be asked in: a package offered now goes out
 without it, and the next one carries it. **Name beside it, too, every reopened record *A decision

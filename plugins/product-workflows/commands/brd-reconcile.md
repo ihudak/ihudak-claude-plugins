@@ -2201,8 +2201,10 @@ option's own text like every other one in the list.
 **Beside either list, name `/product-workflows:brd-interview <DEPENDENT-KEY>` for every record
 this run's propagation sweep wrote `reopened` in a dependent BRD**, one line per dependent, with
 each record by id qualified as that sweep names it. That dependent's own next `/brd-interview` run
-puts the record's question again (its *A decision reopened elsewhere*), and no command on the
-dependent's side offers that run, so this is the one place it is named. It is prose and never an
+puts the record's question again (its *A decision reopened elsewhere*). On the dependent's side
+that run is named only by a `/brd-interview` run already made there, whose *Next steps* names it
+where the record waited on the round that run worked; until one is made, nothing on the dependent's
+side names it, so this is the first place it is named. It is prose and never an
 array option — it names work on a different key — and it carries no `<merge-clause>`: that command
 gates on the dependent's `grounding/code-grounding.md`, which this run never writes. A dependent
 recorded-not-written has no such line, since nothing was reopened there yet.

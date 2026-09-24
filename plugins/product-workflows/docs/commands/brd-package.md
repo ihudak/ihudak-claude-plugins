@@ -91,8 +91,8 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   `BRD_PACKAGE_ROOT_LEVEL`, naming `/brd-split <BRD-KEY> "<how to cut it>"` to carve a slice and
   then `/brd-package <SLICE-KEY>` on it; where the root already carries package artifacts written
   under the earlier two-level model, the stop names those files and leaves them in place, unread.
-- **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the one
-  level below it — stops with `BRD_PACKAGE_NOT_FOUND`, which names both ways a folder comes to exist
+- **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at every level
+  `resolve-address` bounds (three below `specifications/`) — stops with `BRD_PACKAGE_NOT_FOUND`, which names both ways a folder comes to exist
   rather than asserting one.
 - **No torn write in the folder.** An item stamped with a round whose `interview/round-<N>.md` does
   not exist or does not name it — what a [`/brd-interview`](brd-interview.md) run left when it
@@ -283,7 +283,7 @@ attack.
 - **Phase 4 — a `fixed` correction re-opens the review, exactly once, whatever artifact it named.**
   The correction changes what the customer will be shown, and one made under one finding can break a
   position another left standing — so the reviewer runs again, with this run's self-review, the
-    corrections recorded in it, in `prior_reviews`. Once, not until clean: an unbounded loop trades
+  corrections recorded in it, in `prior_reviews`. Once, not until clean: an unbounded loop trades
   the customer's review for the delivery team's.
 - **Phase 4 — a finding escalated again says which earlier one it is.** Every package numbers its
   findings from `[SR#1]` again, so on a re-package a finding taking `escalated-to-customer` that

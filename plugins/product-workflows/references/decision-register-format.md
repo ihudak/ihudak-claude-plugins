@@ -35,7 +35,9 @@ lists every command and agent that names the register. It is not a list of reade
 direction: a file may name it only to compare its modification time or to describe another
 command's write, and `agents/customer-review-reader.md` reads it without naming it — it is handed
 the register by path, as its `assumptions` input. **Every one of them reads the register through
-§8**: an item a stopped `/brd-interview` run left, which no round record names, is never counted.
+§8** — the agent through its caller, which applies §8 to what the agent returns, since it reads the
+files it is handed as they stand: an item a stopped `/brd-interview` run left, which no round record
+names, is never counted.
 
 ## 1. Record shape
 
@@ -237,8 +239,10 @@ resolves against (below). **Superseding moves `status` to `superseded` and adds 
 paragraph; nothing else on the record moves** — it is neither a re-decision nor a reversion, so none
 of the per-field rules below applies to it, and the superseded position stays on the page exactly as
 it was taken, which is what lets a reader see what was replaced. Every writer of `superseded` writes
-it this way: `commands/brd-interview.md` for a `[VD#n]` the will-change rule held, whose question a
-later round put again (*A decision the re-grounding moved*); and `commands/brd-reconcile.md` for a
+it this way: `commands/brd-interview.md` for a `[VD#n]` reading `open` or `decided` whose question
+a later round put again and answered — one the will-change rule held, or a reopened one a
+propagation sweep's reversion returned to `open` or `decided` while its question waited (*A
+decision the re-grounding moved*); and `commands/brd-reconcile.md` for a
 `[VD#n]` or `[CD#n]` a later customer answer replaces and for an `[AS#n]` a `[CD#n]` settles (its
 *Freeze the customer decisions* phase, steps 2 and 3; §7).
 
@@ -579,9 +583,13 @@ means:
   not stamped with that run's round and stands. A `[CDF#n]`'s re-disposition is not among them: it
   reaches the log only after the round record names it (below), so a stopped run leaves none. **One
   exception**: a `Superseded <YYYYMMDD>: by [VD#m]` paragraph naming a `[VD#m]` that is a torn write
-  is part of that torn write. A reader reads the held record it sits on as it stood before it —
-  `open`, or `decided` where it carries `conditional_on`, the two statuses a record the will-change
-  rule held can hold (§6) — and the removal below restores exactly that.
+  is part of that torn write. A reader reads the record it sits on as it stood before it, with the
+  `status` it held before that supersession, and the removal below restores exactly that. Superseding
+  moves nothing else (§4), and `commands/brd-interview.md` supersedes only a record reading `open` or
+  `decided`, so that status is read off the record's other fields by §6: `open` where it carries no
+  `conditional_on` and every finding in its `evidence`, of which there is at least one, carries
+  `horizon: will-change` — the only shape in which §6 lets a `[VD#n]` stand `open` — and `decided` otherwise, a
+  held record written `conditional_on` and a reverted one alike.
 
 **A reader never counts a torn write.** A torn record is read as absent from the register, a torn
 entry as absent from the question set, and a torn defect line as absent from its entry. The test

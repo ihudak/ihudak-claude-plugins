@@ -124,8 +124,8 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   then `/brd-reconcile <SLICE-KEY> @<review-file>` on it; where the root already carries
   reconciliation artifacts written under the earlier two-level model, the stop names those files and
   leaves them in place, unread.
-- **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the one
-  level below it — stops with `BRD_RECONCILE_NOT_FOUND`, which names both ways a folder comes to
+- **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at every level
+  `resolve-address` bounds (three below `specifications/`) — stops with `BRD_RECONCILE_NOT_FOUND`, which names both ways a folder comes to
   exist rather than asserting one.
 - **A review the reader could read.** Where `customer-review-reader` returns no decisions, no
   required changes and no challenges, the run reads **section 2's verdict** to tell two states
@@ -166,7 +166,8 @@ paragraph, and moving nothing else — and `reopened` where it contradicts or co
 replacing, which only a `decided` record can be. A record the will-change rule held `open` is
 superseded where an answer to its own question replaces it; one `open` for want of its reason is
 completed instead, minting nothing, by an answer choosing what it chose and stating a reason — never
-on an entry that puts a record again on a `- **Re-puts:**` line, where it is superseded (step 3); a
+on an entry that puts a record again on a `- **Re-puts:**` line, where it is superseded (step 3) —
+and superseded by a new `[CD#n]` where the answer chooses differently, with a reason or without; a
 `reopened` one is re-decided in place where
 the answered entry names it on a `- **Re-puts:**` line, and superseded where an answer to its
 question names it no such way. Where
@@ -340,9 +341,8 @@ command removes none of them; the next `/brd-interview` run does.
   nothing, marks nothing answered and adds nothing to the propagation sweep; any other answer to
   that record, once frozen — the same option with a different reason included — is a new answer
   that supersedes it. An answer whose live record is `withdrawn` freezes nothing: the operator
-  records it for a human or rejects it, and where it is recorded for a human, a held question it
-  answers is closed, naming the withdrawal, so its round can close; rejected, the question stays
-  held. A live record `open` for want of its reason is **completed**,
+  records it for a human or rejects it, and either way a held question it answers is closed,
+  naming the withdrawal, so its round can close and no later package carries it. A live record `open` for want of its reason is **completed**,
   minting nothing, by an answer with its own `chosen` and a reason now stated — never on an entry
   that puts a record again on a `- **Re-puts:**` line, where it is superseded (step 3) — and
   superseded by one choosing differently. A record
@@ -358,8 +358,8 @@ command removes none of them; the next `/brd-interview` run does.
   [`/brd-interview`](brd-interview.md) put its question again — is **re-decided in place**, keeping its id, the customer's new reason appended beneath the `Reopened` paragraph;
   one another answer superseded while the question travelled is followed to its live successor,
   which the answer then acts on as though the line named it; and one withdrawn while it travelled
-  keeps its status and takes no answer — nothing is frozen, and where the operator records the
-  answer for a human, it is named there and the question is closed, naming the withdrawal. Where another
+  keeps its status and takes no answer — nothing is frozen; recorded for a human, it is
+  named there, and whether recorded or rejected the question is closed, naming the withdrawal. Where another
   answer in the same run also bears on that record, the `- **Re-puts:**` line decides it. Where
   answers reach one record with none naming it on such a line — one replacing it, others only
   constraining it — the one that replaces it decides it, as it would for the status the record held:
@@ -576,9 +576,11 @@ An option whose condition this run did not meet is **dropped** from the array ra
 so every option an operator sees is one that applies.
 
 The same phase also offers the route's **re-entries** — another [`/brd-interview`](brd-interview.md)
-round where this run reopened a decision and left every round closed — while a round stays open, the
-reopened decision is named as waiting behind the re-package, since `/brd-interview` puts its question
-only in a round it opens — [`/brd-package`](brd-package.md) where questions remain for
+round where this run reopened a decision and left every round closed, or where the round still
+open holds a deferred or untagged question for the resume to work, after a grounding pass where it
+holds one that needs grounding; a reopened decision behind a round held open only for the customer
+is named as waiting behind the re-package, since `/brd-interview` puts its question only in a round
+it opens — [`/brd-package`](brd-package.md) where questions remain for
 the customer, [`/prd-ground --rebaseline`](prd-ground.md) where the review challenged a code claim,
 and a second `/brd-reconcile` pass on this same review once a dependent recorded-not-written has its
 own register on the default branch.

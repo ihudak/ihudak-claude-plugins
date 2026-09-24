@@ -175,8 +175,10 @@ A run that finds every round closed and nothing a question source would ask sinc
 opens no new round: it reports that plainly — nothing changed, or each change and why it raised
 nothing — with any requirement defect that belongs to a closed round 1, and the re-open
 that asks it — removes any torn write an interrupted run left and reports each one, and reaches the handoff with nothing
-to commit where the register is already on file and nothing was torn; where none is, it writes
-`decisions.md` as its header line alone and hands that off.
+to commit where the register is already on file, nothing was torn, no interrupted
+re-disposition of a code defect was completed and none was left uncommitted; otherwise it hands off what it wrote — `decisions.md`
+as its header line alone where none was on file, any file a torn-write removal or a completed
+re-disposition changed, and a code-defect log an earlier run left changed and uncommitted.
 `workflows-core:impl-maintenance` runs in the terminal phase for session lessons-learned; no other
 subagent is dispatched — every finding this command reads was already independently re-derived by
 `/prd-ground`'s own verifier pass.
@@ -197,8 +199,8 @@ subagent is dispatched — every finding this command reads was already independ
   then `/brd-interview <SLICE-KEY>` on it; where the root already carries decisions or interview
   records written under the earlier two-level model, the stop names those files and leaves them in
   place, unread.
-- **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the one
-  level below it — stops the run with `BRD_INTERVIEW_NOT_FOUND`, which names both ways a folder comes
+- **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at every level
+  `resolve-address` bounds (three below `specifications/`) — stops the run with `BRD_INTERVIEW_NOT_FOUND`, which names both ways a folder comes
   to exist rather than asserting one.
 - **`/prd-ground`'s findings already merged to the specs repo's default branch.** `require-on-main`
   runs against `grounding/code-grounding.md` before anything else is read; an unmerged grounding pull
@@ -273,9 +275,10 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   own prefix, assigned once, never renumbered, and never reused after a terminal status, a removed
   torn write (below) aside. A record
   already on file moves only three ways here: reopened, with a closing `Reopened` paragraph naming
-  its cause; re-decided after a reopen, keeping its id; or, for a `[VD#n]` the will-change rule held
-  whose question a later round put again and which still reads `open` or `decided`, superseded by
-  the new record, with a closing
+  its cause; re-decided after a reopen, keeping its id; or, for a `[VD#n]` whose question a later
+  round put again and which reads `open` or `decided` when the answer is written — one the
+  will-change rule held, or a reopened one a propagation sweep reverted while its question waited —
+  superseded by the new record, with a closing
   `Superseded <YYYYMMDD>: by [VD#m]` paragraph. **Written
   on every run that records a round**, even one that produced no record — a round of `[C]` questions
   alone, or one with nothing to ask — **and on a run that finds every round closed and nothing a
@@ -284,7 +287,9 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
 - `interview/round-<N>.md` — the round's append-only record: every question in the order it was
   written, its tag, on a question that puts a decision on file again that decision on its own
   line labelled `- **Re-puts:**`, whatever the tag, and on every other `[V]` the same line reading
-  `none` — so a deferred `[V]` without the line is one an earlier version wrote, and it is tied
+  `none`, written by the write that first records the question as `[V]` — its first write, or the
+  one recording a re-tag from `[G]` or a rewrite out of *untagged* — so a deferred `[V]` whose
+  `[V]` tag is on file without the line is one an earlier version wrote, and it is tied
   when its round is resumed: the run asks the operator which reopened or held decision it puts
   again, from those that could be, or none, and writes the answer as the line, so it is asked once;
   an ordinary `[V]` written since carries `none` and is never asked about — every re-tag with the finding that caused it,
@@ -327,8 +332,8 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   `/brd-reconcile`, once the customer answers, supersedes a held record that reads `open` or
   `decided` and re-decides a reopened one in place — reading each status as the register stood
   before its run wrote anything — follows a `superseded` one to its live successor and acts on that
-  one instead, and, where the record or its successor reads `withdrawn`, freezes nothing, and, where
-  the operator records the answer for a human, closes the question, naming the withdrawal.
+  one instead, and, where the record or its successor reads `withdrawn`, freezes nothing, and closes the question, naming the withdrawal, whether
+  the operator records the answer for a human or rejects it.
 - `code-defect-log.md` — the code-defect log: one `[CDF#n]` per defect in the code that a decision
   turns on, each citing the verified `[CG#n]` that established the behaviour and naming separately
   what the code is supposed to do and what says so. Written where a round raised one **or
@@ -411,8 +416,8 @@ but the push and the pull request cannot run.
   package, each keeping its id — unless another run has meanwhile left the record `withdrawn` or
   `superseded`, when it does not move: a `[V]` answer is then a new record named beside it under
   what still needs a human, while `/brd-reconcile` acts on a superseded `[CD#n]`'s live successor
-  and freezes nothing beside a withdrawn one, closing the question only where the operator
-  records the answer for a human. The tag
+  and freezes nothing beside a withdrawn one, closing the
+  question whichever way the operator takes the answer. The tag
   never moves, and no other question source raises a question on those successors, so one decision
   is never asked about twice. A decision resting on no finding, and a customer answer still waiting
   for its reason, are never taken, and nor is a decision whose question is already put and still
@@ -467,7 +472,8 @@ but the push and the pull request cannot run.
   in place instead, and one another run has left `withdrawn` or `superseded` does not move: for a
   `[V]` the answer is a new record named beside it under what still needs a human, and for a `[C]`
   `/brd-reconcile` acts on a superseded record's live successor, and on a withdrawn one freezes
-  nothing, closing the question only where the operator records the answer for a human.
+  nothing, closing the
+  question whichever way the operator takes the answer.
   **Cancel on this picker writes nothing the run decided**: it stops the run before the register phase, so no
   decision this run took is written, and no `[C]` question it held either, and the next run puts the question again — or, for a round
   this run opened, regenerates it and asks only what is still askable.

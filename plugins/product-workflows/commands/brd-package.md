@@ -323,7 +323,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
      `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §8 never counts a torn write.
      There is nothing to land, and `/brd-interview` is the command that writes that round's record
      (its *A later round is generated from what changed*):
-     `BRD_PACKAGE_ROUND_NOT_RECORDED: <BRD-KEY>'s decisions.md names rounds <list> through <records>, each a re-decision an interrupted /product-workflows:brd-interview run left standing, and no interview/round-<N>.md for <these> exists anywhere. Run '/product-workflows:brd-interview <BRD-KEY>' and merge its handoff: the round it opens records each such re-decision, and then re-run this command.`
+     `BRD_PACKAGE_ROUND_NOT_RECORDED: <BRD-KEY>'s decisions.md names rounds <list> through <records>, each a re-decision an interrupted /product-workflows:brd-interview run left standing, and no interview/round-<N>.md for <these> exists anywhere. Run '/product-workflows:brd-interview <BRD-KEY>' and merge its handoff, then re-run this command: once every round is closed, the round it opens records each such re-decision; while a round is still open it resumes that round instead, and the re-decision is recorded in the round it opens once that one closes.`
    Where both kinds are collected, print both stops, the second first.
 
    **A round that only re-decided is in the set, and the round it re-decided out of may not be.** A
@@ -972,6 +972,14 @@ the picture a question about an image-drawn requirement is about — the manifes
 image's bundled filename (*Assemble the bundle* rule 6) — so an entry rendered without it asks about
 a picture the reviewer cannot locate.
 
+**Only a held entry is rendered, and that is what keeps a question about a withdrawn record from
+travelling twice.** An entry whose `- **Re-puts:**` line names a record that has since been
+withdrawn — the record itself, or the live successor its supersessions lead to — is rendered like
+any other while it is held: a customer's reply is the one thing that can close it, and leaving it
+out would hold its round open for good. `/product-workflows:brd-reconcile` closes it on the first
+review that answers it, whichever way its operator takes that answer (its *Confirm every
+candidate* phase), so once answered it is no longer held and no later package carries it.
+
 **Part 7 and part 9 both carry every open `[AS#n]`, and that duplication is deliberate.** They ask
 for different things. Part 7 asks the customer to **decide** — an assumption is corrected in one
 sentence while it is still an assumption, and that is the cheapest correction in the whole loop.
@@ -1038,8 +1046,9 @@ first section agree and either can settle it. **Then print the package's own ide
 line, `Package reviewed: <BRD-KEY> <YYYYMMDD>`, with this run's stamp substituted**, and ask for it
 to be copied exactly into section 1 as its own line (`customer-review-schema.md` §4). It is a
 separate, labelled field and never the review's date, which is asked for apart from it above, so it
-does not re-create the echo that paragraph rules out: `/product-workflows:brd-reconcile` reads it,
-and nothing else, to know which package the review answers — and so which self-review's `[SR#n]`
+does not re-create the echo that paragraph rules out: `/product-workflows:brd-reconcile` reads it
+first, before any other rung of its resolution, to know which package the review answers — and so
+which self-review's `[SR#n]`
 ids its answers cite, since every package numbers those from `[SR#1]` again. One line saying it is
 the only file to send back. The
 D13 rule stated **again** here, having already been stated in part 1, because an agent asked to

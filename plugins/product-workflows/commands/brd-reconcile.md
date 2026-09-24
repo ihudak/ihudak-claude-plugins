@@ -722,16 +722,20 @@ answer too unclear to freeze, and a decline is perfectly clear. **What *Reject* 
 decline itself** — the customer's words, and their reason or `not stated` as the plain fact it is —
 in this run's own reconciliation record and in the rejection's recorded reason. **The question's own
 state does not move**: a held one keeps the *held for the customer* holding state `/brd-interview`
-gave it, and a later round can put it again, drop it, or take it as a `[V]` the delivery team
-settles; one an earlier review already answered stays *answered by the customer*, its record
-untouched.
+gave it, and the next package puts it to the customer again, an answer frozen from a later review
+being its only exit; one an earlier review already answered stays *answered by the customer*, its record
+untouched. **One held question is the exception**: an entry whose `- **Re-puts:**` line put again a
+record since withdrawn is closed on *Reject* as on *Record it for a human* (*A live record reading
+`withdrawn`*, below).
 **Nothing writes "declined" anywhere**, and that is the point rather than an omission — it is in
 neither vocabulary `/brd-interview` fixes (five terminal dispositions, four holding states, and
 everything else a holding state and never a disposition), so a run that recorded it as a terminal
 disposition would let the round's closure test see every question settled and **close a round on a
 question the customer expressly refused to answer**, which is the D14 failure this disposition
-exists to prevent, arriving quietly. *Reject* mints no `[C]`, writes nothing into the question
-set, and closes no round.
+exists to prevent, arriving quietly. *Reject* mints no `[C]` and writes nothing into the question
+set, save to close the one exception above, whose question asks for no decision the register could
+take any more: the record it put again is withdrawn, so no customer decision is left for its round
+to wait on.
 
 **This is not an escalation choice list** — its four options are the four fates a candidate
 answering a question the package put can take in this command (one answering none takes the two
@@ -982,10 +986,13 @@ words and the withdrawn record — whether an answer to a question that had stop
 stands is a judgement this run does not take — and, where the answered entry is a held one whose `-
 **Re-puts:**` line put again a record since withdrawn, the *Freeze the customer decisions* phase's
 step 1 closes that entry *answered by the customer*, naming the withdrawn record and that nothing
-was frozen from the answer, so its round can close. *Reject* moves nothing, as it does anywhere:
-such an entry stays held, the next package puts it again, and the way out is a
-`/product-workflows:brd-interview` round, which can drop the question or take it otherwise (the
-*Reject* paragraph above).
+was frozen from the answer, so its round can close. ***Reject* closes such an entry the same way**,
+naming the withdrawn record, that nothing was frozen from the reply and why the reply was rejected —
+the one place *Reject* moves a question's state (the *Reject* paragraph above). Left held, it would
+hold its round open for a customer answer that can settle nothing, and every later package would
+put it again for a record nothing can revive. So such an entry closes on the first review that
+answers it, whichever option the operator takes, and no later package carries it:
+`/product-workflows:brd-package` renders held entries alone.
 
 **Completing an `open` record is not minting a new one — and only a record open for want of its
 reason, answered with its own `chosen`, is completed.** Where a later review supplies the reason a
@@ -1201,10 +1208,11 @@ Then, in the same phase and from the same confirmed set:
    record runs through each in turn (*Confirm every candidate*) — and its round takes no
    `Status:` line on its account, since the answer closed no held question. **A held entry whose
    `- **Re-puts:**` line put again a record since withdrawn is closed too, with nothing frozen**:
-   where *Confirm every candidate* recorded its answer for a human because the entry's live record
-   reads `withdrawn`, it moves to *answered by the customer*, naming the withdrawn record and that
-   nothing was frozen from the answer — the customer did answer, and the question they answered had
-   stopped applying — and counts toward closing its round as below. Held, it would be put to the
+   where *Confirm every candidate* put its answer on the two-option array because the entry's live
+   record reads `withdrawn` — recorded for a human or rejected alike — it moves to *answered by the
+   customer*, naming the withdrawn record, that nothing was frozen from the answer and, where it was
+   rejected, why — the customer replied, and the question had stopped applying — and counts toward
+   closing its round as below. Held, it would be put to the
    customer again in every package for a record nothing can revive.
 
    **Where that leaves every question in the round with a terminal disposition** — its last held
@@ -1358,7 +1366,8 @@ Then, in the same phase and from the same confirmed set:
      the answer on the two-option array, not the four, and on *Record it for a human* named it, with
      the customer's words and the withdrawn record, under *what still needs a human* — whether an
      answer to a question that had stopped applying still stands is a judgement this run does not
-     take — and step 1 closes the entry, naming the withdrawal, so its round can close.
+     take — or on *Reject* recorded why — and step 1 closes the entry either way, naming the
+     withdrawal, so its round can close.
 
    **Every status this step and the mint rule above read is the register's as it stood before this
    phase wrote anything**, never one an earlier candidate's write in this same phase left — so the
@@ -2381,19 +2390,34 @@ Where this run can go next:
 ```
 
 ```
-choices: ["Stop here — this run's changes are recorded; the route resumes when the items named above are settled", "Work another round — /product-workflows:brd-interview <BRD-KEY>, for the decision this run reopened or the question it left askable", "Package again — /product-workflows:brd-package <BRD-KEY> <merge-clause>, for the questions still held for the customer", "Re-ground a moved claim — /product-workflows:prd-ground <BRD-KEY> --rebaseline <merge-clause>"]
+choices: ["Stop here — this run's changes are recorded; the route resumes when the items named above are settled", "Work another round — /product-workflows:brd-interview <BRD-KEY>, for the decision this run reopened or the open round it waits behind", "Package again — /product-workflows:brd-package <BRD-KEY> <merge-clause>, for the questions still held for the customer", "Re-ground a moved claim — /product-workflows:prd-ground <BRD-KEY> --rebaseline <merge-clause>"]
 ```
 
-***Work another round* fires on a reopened decision only where every round of this BRD is closed
-once this run's writes land** — read off the round records by the dispositions, as
-`/product-workflows:brd-interview` reads them. That command puts a reopened record's question only in
-a round it opens, and opens one only once every round is closed (its *A decision reopened
-elsewhere*), so where a round stays open — a `[C]` this review left unanswered, say — the bare run
-would resume that round and report the record waiting: the no-op offer this phase refuses to make
-(below). There, name the reopened record beside the list as waiting behind *Package again*, in the
-order the route settles it: the package carries the held questions, this command records their
-answers and closes the round, and the next `/brd-interview` run puts the reopened decision's
-question. Its other trigger, a question this run left askable, is unchanged.
+***Work another round* fires on a reopened decision only where the bare
+`/product-workflows:brd-interview` run would move something** — read off the round records by the
+dispositions, as that command reads them once this run's writes land. That command puts a reopened
+record's question only in a round it opens, and opens one only once every round is closed (its *A
+decision reopened elsewhere*); with a round still open, the bare run resumes that round instead.
+So, by what holds a round open:
+
+- **No round open** → it fires, and that run puts the reopened decision's question.
+- **A *deferred* or *untagged* question** → it fires as the resume that works that question, and
+  the reopened decision's question follows in the round opened once every round is closed.
+- **A *needs grounding* question** → it fires as that resume too, and
+  `/product-workflows:prd-ground <BRD-KEY>` is named beside the list as the step before it, so the
+  resume finds a finding that answers that question or names why it cannot.
+- **Only questions *held for the customer*** → it does not fire: the bare run would resume that
+  round and report the record waiting, the no-op offer this phase refuses to make (below). Name the
+  reopened record beside the list as waiting behind *Package again*: the package carries the held
+  questions, this command records their answers and closes the round, and the next
+  `/brd-interview` run puts the reopened decision's question.
+
+Where the open round holds more than one of those, name the steps in the order
+`/product-workflows:brd-interview`'s `BRD_INTERVIEW_ROUND_STILL_OPEN` remedy fixes — the grounding
+pass, then the resume, then the package — since `/product-workflows:brd-package` refuses a round
+still holding a *deferred*, *needs grounding* or *untagged* question (`BRD_PACKAGE_ROUND_UNSETTLED`).
+That state is reachable here: a `--sent` run, for one, reconciles a review no package gate of this
+route checked.
 
 **The trigger filter runs first and the four-option cap applies to what survives it**
 (`workflows-core:next-phase-offer`'s overflow rule). Typically two or three

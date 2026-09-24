@@ -100,7 +100,8 @@ them is.
    BRD*; the round re-open cause prompt in *Resolve the round*; the `[V]` queue and the argumentation
    prompt that follows each of its answers; the code-defect offer that follows it; the will-change
    resolution picker; the handoff choice; the next-step offer; and, in *Put each `[V]` to the
-   operator*, the re-put tie picker for a resumed `[V]` that carries no `- **Re-puts:**` line. Only
+   operator*, the re-put tie picker for a resumed `[V]` whose `[V]` tag is on file with no
+   `- **Re-puts:**` line. Only
    the third carries a question from the set — and the argumentation prompt inside it asks why the
    answer just given was given, never a question of its own. The tie picker names a question of the
    set but asks only which record it puts again, never for its answer.
@@ -354,8 +355,14 @@ and nothing downstream can tell the difference afterwards.
    what a run that stopped before its round record was written left behind, whether an earlier
    version wrote them before its own register phase or this one was interrupted inside it; a record
    carrying a `Reopened` paragraph, which §8 never counts torn, is reported beside them where its
-   `round` names a round whose record does not name it, as a re-decision that stands. A previous
-   run's register, round records and
+   `round` names a round whose record does not name it, as a re-decision that stands. **Report, too,
+   every `## Round <N>, question <position>` heading that more than one entry of this BRD's
+   `interview/customer-questions.md` carries**, with the round, the position and how many carry it:
+   an earlier version wrote an entry for each `[C]` of the round on every run, resumes included, and
+   §8 counts every such entry that its round record names, so nothing here removes one. Say that
+   `/product-workflows:brd-package` would put the question to the customer once per entry, and that
+   the operator reduces them to one by hand, keeping every labelled line any of them carries. A
+   previous run's register, round records and
    code-defect log are inputs, never scratch: nothing below deletes, renumbers or rewrites a record
    another run wrote, **save the removal of a torn write**, which no reader ever counted and which
    §8 gives this command alone — its *Write the register and the round record* phase, or, on a run
@@ -367,7 +374,9 @@ and nothing downstream can tell the difference afterwards.
    move's `<old>`, write its `<new>` — `blocked_on` added or dropped as the line says — and nothing
    else (§8). The record already names the move, so this writes nothing it does not count, and a
    log already reading `<new>`, or reading anything but `<old>`, is left alone. Report each move
-   completed, and hand the log off with this run's deliverables. **Three changes to another run's record are the admitted exceptions, and naming
+   completed, and hand the log off with this run's deliverables; say in the report that the log stays
+   uncommitted until a run of this command reaches its handoff, since a stop, an abort or a `Cancel`
+   before this run's leaves it so, and the next run that reaches one stages it (*Handoff*). **Three changes to another run's record are the admitted exceptions, and naming
    them here is what keeps this sentence and the rules below from having to be refereed by a
    reader.** The first: a `[CDF#n]`'s `disposition` — with `blocked_on` added or dropped as the new
    disposition requires — may be re-taken by the *Put each `[V]` to the operator* phase and written
@@ -386,10 +395,12 @@ and nothing downstream can tell the difference afterwards.
    (*A decision the re-grounding moved*, in *Generate the round's question set*): on a `[CD#n]` it
    writes that `status` and that paragraph and nothing else, and the re-decision is
    `/product-workflows:brd-reconcile`'s, from the customer's answer. The third: a
-   `[VD#n]` the will-change rule held, whose question a later round re-put and answered — the *Write
-   the register and the round record* phase moves its `status` to `superseded` and appends the
-   closing `Superseded <YYYYMMDD>: by [VD#m]` paragraph `decision-register-format.md` §4 fixes,
-   naming the `[VD#n]` that answered the re-put question (*A decision the re-grounding moved*).
+   `[VD#n]` reading `open` or `decided` whose question a later round re-put and answered — one the
+   will-change rule held, or a reopened one whose `reopened` a propagation sweep's *Reverted* undid
+   while its re-put question waited — the *Write the register and the round record* phase moves its
+   `status` to `superseded` and appends the closing `Superseded <YYYYMMDD>: by [VD#m]` paragraph
+   `decision-register-format.md` §4 fixes, naming the `[VD#n]` that answered the re-put question
+   (*A decision the re-grounding moved*).
    Nothing else on any of the three records moves, and no other record here carries an exception. **An addition is not a rewrite, and one
    is made to another run's entry**: the `- **Requirement defect:**` line — with its
    `- **Defect image:**` line, where the defect sits on a row drawn from an image — that
@@ -607,9 +618,10 @@ the round record*), and where the two disagree the dispositions win.
     skips that phase, and a torn write left here would sit on file with nothing to remove it — and
     **report each one removed**, by id or heading with the round it claimed, in the final report.
     Then skip to the handoff phase — with nothing to commit where the register was already on file,
-    nothing was torn and no re-disposition was completed, and otherwise with the files this path
-    wrote, removed a torn write from or completed a re-disposition in — and end on the ledger
-    line.
+    nothing was torn, no re-disposition was completed and no earlier run left `code-defect-log.md`
+    changed, and otherwise with the files this path wrote, removed a torn write from or completed a
+    re-disposition in, and that log where an earlier run left it changed (*Handoff*) — and end on
+    the ledger line.
 
 **`--round N` given:**
 
@@ -1113,21 +1125,24 @@ held one written `conditional_on` that a propagation sweep reopened while its qu
 one *A decision reopened elsewhere* (below) puts again — is **re-decided in place** under §4,
 keeping its id, the record being the one the question's `- **Re-puts:**` line names: a `[V]` by
 *Put each `[V]` to the operator*'s re-decision rule, a `[C]` by
-`/product-workflows:brd-reconcile` from the answering entry's line. One reading `open` or `decided` — a held record, `open` or `conditional_on`
-— is **superseded** by the answer, never completed or re-decided in place by this round: a `[V]`
-answered *decided* produces a new `[VD#n]`, which *The will-change rule* phase tests like any other,
-and the *Write the register and the round record* phase moves the held record to `superseded` with
-its closing `Superseded <YYYYMMDD>: by [VD#m]` paragraph (`decision-register-format.md` §4); a
-`[C]` is held for the customer, and `/product-workflows:brd-reconcile`'s *Freeze the customer
-decisions* phase supersedes the held `[CD#n]` from the same line. **One reading `withdrawn` or
+`/product-workflows:brd-reconcile` from the answering entry's line. One reading `open` or `decided`
+— a held record, `open` or `conditional_on`, or a reopened one whose `reopened` a propagation
+sweep's *Reverted* undid while its question waited, the reversion restoring its `status` with the
+rest of the position (`decision-register-format.md` §4) — is **superseded** by the answer, never
+completed or re-decided in place by this round: a `[V]` answered *decided* produces a new `[VD#n]`,
+which *The will-change rule* phase tests like any other, and the *Write the register and the round
+record* phase moves the record the line names to `superseded` with its closing
+`Superseded <YYYYMMDD>: by [VD#m]` paragraph (`decision-register-format.md` §4); a `[C]` is held
+for the customer, and `/product-workflows:brd-reconcile`'s *Freeze the customer decisions* phase
+supersedes the `[CD#n]` the line names. **One reading `withdrawn` or
 `superseded` — terminal (§3), which a sweep or a reconciliation may have written while its question
 waited — does not move**, and gains no paragraph. For a `[V]`, the answer still mints a new
 `[VD#n]` here, and this run names both, the new record and the terminal one, under what still needs
 a human, since the question was put against a record that no longer stands. For a `[C]`,
 `/product-workflows:brd-reconcile` follows a `superseded` record to its live successor and acts on
 that one as though the line named it, and freezes nothing from an answer whose record, or live
-successor, reads `withdrawn`: the operator records the answer for a human or rejects it, and only
-on *Record it for a human* is the entry closed *answered by the customer*, naming the withdrawal
+successor, reads `withdrawn`: the operator records the answer for a human or rejects it, and either
+way the entry is closed *answered by the customer*, naming the withdrawal
 (its *Confirm every candidate* phase and its *Freeze the customer
 decisions* phase, steps 1 and 3). A question put again and *deferred* keeps its round open, and the
 record stands as it is until the question is answered. **No other source raises a question on a
@@ -1248,10 +1263,11 @@ resumes the round records the question *decided* naming the record, the answer t
 took, and *Put each `[V]` to the operator* never queues it. The next write of the round record
 names the record, which is what counts it (§8). Where the record reads `reopened` again — another
 command reopened it after that re-decision — the question is put as ever, and its answer re-decides
-the record once more. A re-put `[V]` whose answer superseded a held record needs no such rule: the
-stopped run's answer to it is a new `[VD#n]`, a torn write the *Write the register and the round record* phase removes,
-with the `Superseded` paragraph it wrote on the held record (§8), so the question is put again
-against the record as it stood.
+the record once more. A re-put `[V]` whose answer superseded the record — a held one, or one a
+propagation sweep reverted — needs no such rule: the stopped run's answer to it is a new `[VD#n]`,
+a torn write the *Write the register and the round record* phase removes, with the `Superseded`
+paragraph it wrote on that record (§8), so the question is put again against the record as it
+stood.
 
 **Questions carry no minted identifier.** The workflow's identifier namespaces are fixed (D21) and
 none of them denotes a question, so nothing here invents a `[Q#n]`-style prefix. A question is
@@ -1376,18 +1392,25 @@ from generation, or, in a round this run resumes, from the resume, and a questio
 one is never asked.
 
 **First, tie each resumed `[V]` that carries no `- **Re-puts:**` line to the record it puts again,
-or to none — by asking, never by reading its prose.** Every `[V]` this version writes carries the
-line, reading `none` where it puts no record again (*Write the register and the round record*), so
-a `[V]` with no line is exactly one a released version wrote before the line existed. That version
+or to none — by asking, never by reading its prose.** Every write of this version that records a
+`[V]` tag at a question's address carries the line, reading `none` where the question puts no
+record again — its first write, and the write recording a re-tag or a rewrite into `[V]` alike
+(*Write the register and the round record*) — so a question whose `[V]` tag is **on file** with no
+line is exactly one a released version wrote before the line existed. That version
 wrote a re-put `[V]` with its record named in prose alone, and every reader of a re-put keys on the
-line: this phase's re-decision rule, the held-record supersession *Write the register and the round
-record* writes, the resume rule for a standing re-decision and the in-flight test (*Generate the
+line: this phase's re-decision rule, the supersession *Write the register and the round record*
+writes, the resume rule for a standing re-decision and the in-flight test (*Generate the
 round's question set*). Nothing on file tells such a question's re-put from an ordinary one, so the
 test is the known set, never the text, and **a `[V]` carrying the line — `none` included — is never
-put to this picker**. For each `[V]` in a round this run resumes that
-has no terminal disposition and carries no `- **Re-puts:**` line, build the **candidate set**: every
+put to this picker**. **Nor is a question this run tags `[V]`** — by a re-tag in *Answer every
+`[G]` from the findings*, or by rewriting an *untagged* one — since its `[V]` tag is not on file
+yet and this run's write of the round record gives it the line. For each `[V]` in a round this run
+resumes whose `[V]` tag the round record on file already records, that has no terminal disposition
+and carries no `- **Re-puts:**` line, build the **candidate set**: every
 `[VD#n]` reading `reopened`, every held `[VD#n]` *A decision the re-grounding moved* would put
-again now, and every `[VD#n]` carrying a `Reopened` paragraph whose `round` is the question's round
+again now, every `[VD#n]` reading `open` or `decided` whose `argumentation` carries a `Reverted`
+paragraph after its last `Reopened` one — a reopened record a propagation sweep reverted, whose
+question may still be waiting — and every `[VD#n]` carrying a `Reopened` paragraph whose `round` is the question's round
 — a re-decision a stopped run took in answer to it, which the resume rule then records — less every
 record another question's line holds in flight, and less every record this run's picker has
 already tied to another question, so one record is never tied to two. **An empty candidate set asks
@@ -1410,8 +1433,8 @@ appends it to the round record under that question, before its state: `- **Re-pu
 `- **Re-puts:** none`, so the question then carries the line and the picker never asks about it
 again. A question tied to a record is then a re-put
 `[V]` like any other: the resume rule for a standing re-decision (*A later round is generated from
-what changed*) applies to it first, and this phase's re-decision rule, or the held-record
-supersession, to its answer. **This picker asks which record, never the question itself**, and the
+what changed*) applies to it first, and this phase's re-decision rule, or the supersession, to its
+answer. **This picker asks which record, never the question itself**, and the
 queue below is unchanged by it.
 
 Present each question **exactly one at a time, never batched**, via `AskUserQuestion`, quoting the
@@ -1486,8 +1509,9 @@ this run's round record instead.
 **This is one of the three carve-outs from the standing rule that a previous run's records are inputs,
 never scratch** (*Resolve inputs and gate the grounded BRD*, step 9, which states the rule and names
 all three — the others being a decision reopened under `decision-register-format.md` §4 and the
-re-decision that follows it, and a `[VD#n]` the will-change rule held, superseded by the answer to
-the question that put it again). Rule and carve-out are not in tension: a re-disposition writes a
+re-decision that follows it, and a `[VD#n]` reading `open` or `decided` — held by the will-change
+rule, or reopened and then reverted by a propagation sweep — superseded by the answer to the
+question that put it again). Rule and carve-out are not in tension: a re-disposition writes a
 `disposition`, and the `blocked_on` that goes with it, on one record, and deletes, renumbers and
 rewrites nothing. **There is still no `fixed` disposition** — nothing on
 this route builds anything and no command here can observe a repair, so a defect that was fixed
@@ -1524,8 +1548,13 @@ record, where it reads `open` or `decided`, is moved to `superseded`, with the c
 record* phase — never re-decided in place, since it was never reopened under §4 and one of the two
 it may be, `open`, is not a status §4 reopens. Where another run has meanwhile left it `withdrawn` or
 `superseded`, it does not move, and the run names it with the new record under what still needs a
-human (*A decision the re-grounding moved*). **One putting again a `[VD#n]` that reads `reopened`
-when the answer is taken, or that this run reopens in the same register write, is a re-decision**,
+human (*A decision the re-grounding moved*). **Nor is one putting again a reopened `[VD#n]` that a
+propagation sweep's *Reverted* returned to `open` or `decided` while its question waited**: a
+reversion writes `status` afresh with the rest of the position it restores
+(`decision-register-format.md` §4), so the record no longer reads `reopened`, and nothing on it
+awaits a re-decision. It takes the list above exactly as a held one does — a new `[VD#n]`, and the
+record moved to `superseded` with that paragraph by the same phase. **One putting again a `[VD#n]`
+that reads `reopened` when the answer is taken, or that this run reopens in the same register write, is a re-decision**,
 and takes the paragraph above — a plain record this run or an earlier one reopened, a held one a
 propagation sweep reopened meanwhile (*A decision the re-grounding moved*, in *Generate the round's
 question set*), or one *A decision reopened elsewhere* put again. **Which record a question puts
@@ -1551,7 +1580,8 @@ no round open (that phase says so). **An abort — the harness's free-text optio
 lists no `Cancel` — stops the run** naming how many `[V]` questions remain, **and writes nothing
 this run decided into the BRD folder** — the one earlier write a run can have made is *Resolve
 inputs and gate the grounded BRD*'s completion of a move a counted round record already names, which
-decides nothing: a `[VD#n]` taken in this phase is held for the register phase, which writes
+decides nothing and stays uncommitted in `code-defect-log.md` until a later run of this command
+reaches its handoff, which stages it: a `[VD#n]` taken in this phase is held for the register phase, which writes
 every deliverable of the round — `decisions.md`, `code-defect-log.md`,
 `interview/customer-questions.md` and the round record — and an abort never reaches it. So no answer
 this pass took survives it, the round record stays as the last write left it, and the next run
@@ -1693,7 +1723,8 @@ evasions §6 and §7 already refuse (below). `Cancel` remains, so nobody is trap
 a fourth resolution, nor the third under another name: it stops the run before *Write the register
 and the round record*, which writes every deliverable of the round, so **`Cancel` writes nothing
 this run decided into the BRD folder** — beyond, at most, *Resolve inputs and gate the grounded
-BRD*'s completion of a move a counted round record already names — not this `[VD#n]` in any status, not any other this pass took, not a `[C]`
+BRD*'s completion of a move a counted round record already names, left uncommitted until a later run
+reaches its handoff — not this `[VD#n]` in any status, not any other this pass took, not a `[C]`
 entry *Hold every `[C]`* built, and not a defect line *One question per row* decided to add. The
 question keeps whatever state the round record last recorded, and the next run puts it again — or,
 for a round this run opened, which no record yet holds, regenerates that round's questions afresh
@@ -1733,26 +1764,27 @@ phase's and are not a round's: `/product-workflows:brd-reconcile` writes the reg
 set and the round record by its own rules, and *Resolve the round*'s no-new-round path writes the
 register's header line where none is on file, as a completed run.
 
-**First, remove every torn write in this BRD's folder** — the ones the *Resolve inputs and gate the
-grounded BRD* phase reported — each in the write of the file that holds it, before this run appends
-its own: a torn record from `decisions.md`, a torn `[CDF#n]` from `code-defect-log.md`, a torn entry
-or a torn defect line from `interview/customer-questions.md`; and, where a torn `[VD#m]` superseded a
-held record, that record's `Superseded <YYYYMMDD>: by [VD#m]` paragraph with it, its `status`
-restored as §8 says. It is the one deletion this command makes in a deliverable — the no-new-round
-path, which skips this phase, makes the same one — and it deletes nothing any reader counted. So
-where this run regenerates a round an interrupted run opened, that round's entries are written
-afresh at the headings this run's positions give them, whatever positions the interrupted run gave
-its own.
+**First, before any of the writes above, where the round record this run writes to already exists
+and carries no `code defects:` line or no `requirement defects:` line, append the baseline line §8
+fixes for each it lacks** — `code defects on file:` naming every `[CDF#n]` of the round on file at
+this run's start, and `requirement defects on file:` naming every `[DEF#n]` a defect line on the
+round's entries carried then, none of them a torn write, each reading `none` where the set is empty.
+A record written before those lines existed is read as naming every item of its kind in its round
+(§8); the baseline pins that reading to what was there, so no item this run adds is counted before
+a later line names it. It names nothing new, and it is not an account line: *Resolve the round*'s
+round-1 test reads `requirement defects:` alone.
 
-**Next, where the round record this run writes to already exists and carries no `code defects:`
-line or no `requirement defects:` line, append the baseline line §8 fixes for each it lacks** —
-`code defects on file:` naming every `[CDF#n]` of the round on file at this run's start, and
-`requirement defects on file:` naming every `[DEF#n]` a defect line on the round's entries carried
-then, none of them a torn write, each reading `none` where the set is empty — before any of the
-writes above. A record written before those lines existed is read as naming every item of its kind
-in its round (§8); the baseline pins that reading to what was there, so no item this run adds is
-counted before a later line names it. It names nothing new, and it is not an account line: *Resolve
-the round*'s round-1 test reads `requirement defects:` alone.
+**Then, in the write of each file that holds a torn write — one of the writes above, made for the
+removal alone where this round writes nothing else to that file — remove them before appending this
+run's own** — every torn write in this BRD's folder, the ones the *Resolve inputs and gate the
+grounded BRD* phase reported: a torn record from `decisions.md`, a torn `[CDF#n]` from
+`code-defect-log.md`, a torn entry or a torn defect line from `interview/customer-questions.md`;
+and, where a torn `[VD#m]` superseded a record, that record's `Superseded <YYYYMMDD>: by [VD#m]`
+paragraph with it, its `status` restored as §8 says. It is the one deletion this command makes in a
+deliverable — the no-new-round path, which skips this phase, makes the same one — and it deletes
+nothing any reader counted. So where this run regenerates a round an interrupted run opened, that
+round's entries are written afresh at the headings this run's positions give them, whatever
+positions the interrupted run gave its own.
 
 **`<BRD-dir>/decisions.md`** — one block per `[VD#n]` and per `[AS#n]`. A block this run records for
 the first time carries every field `decision-register-format.md` §1 defines on a `[VD#n]`, and on
@@ -1767,7 +1799,8 @@ file and never restarts it. A run that reopens a decision writes `status: reopen
 named in the closing `Reopened <YYYYMMDD>:` paragraph §4 appends to its `argumentation`, against the
 original record's id; it never mints a new id for the same question, unless another run has
 meanwhile left that record terminal, when the answer mints a new `[VD#n]` and the terminal record is
-not written (below). That, and the re-decision
+not written, or a propagation sweep has meanwhile reverted it, when the answer mints a new `[VD#n]`
+that supersedes it (both below). That, and the re-decision
 following it — in this run or a later one — which writes the record's fields under §4's per-field
 rules and its argumentation after that paragraph, is the second of the three exceptions the *Resolve
 inputs and gate the grounded BRD* phase admits to rewriting another run's record. **The reopen
@@ -1776,15 +1809,16 @@ question set*) takes on a plain `[VD#n]` or `[CD#n]` in the run that puts its qu
 `Reopened` paragraph naming the successor findings as that section fixes; on a `[CD#n]` the status
 and that paragraph are all this command writes, the customer's `chosen` and quoted reason standing
 untouched until `/product-workflows:brd-reconcile` re-decides it from the customer's answer. **The
-third is the held record's, and it mints a new id for a question already answered**: a `[V]`
-putting again a `[VD#n]` the will-change rule held is answered by a new `[VD#n]`, and the held
-record — the one the question's `- **Re-puts:**` line names, or the tie picker's held answer
-names where this write gives the question its line — where it reads `open` or `decided`,
-has its `status` moved to `superseded` and its
-`argumentation` given the closing `Superseded <YYYYMMDD>: by [VD#m]` paragraph
-`decision-register-format.md` §4 fixes, naming the new id — nothing else on it moves. That record
-was never reopened, so there is no re-decision to write onto it, and one `open` under §6 is not a
-status §4 reopens at all. **A re-put `[VD#n]` another run has meanwhile left `withdrawn` or
+third is the superseded record's, and it mints a new id for a question already answered**: a `[V]`
+putting again a `[VD#n]` that reads `open` or `decided` when its answer is written — one the
+will-change rule held, or a reopened one whose `reopened` a propagation sweep's *Reverted* undid
+while the question waited — is answered by a new `[VD#n]`, and that record — the one the
+question's `- **Re-puts:**` line names, or the tie picker's held answer names where this write
+gives the question its line — has its `status` moved to `superseded` and its `argumentation` given
+the closing `Superseded <YYYYMMDD>: by [VD#m]` paragraph `decision-register-format.md` §4 fixes,
+naming the new id — nothing else on it moves. Neither kind reads `reopened`, so there is no
+re-decision to write onto it: a held one was never reopened, and one `open` under §6 is not a status
+§4 reopens at all; a reverted one's reopen was undone with the rest of its position. **A re-put `[VD#n]` another run has meanwhile left `withdrawn` or
 `superseded` — a held one, or a reopened one — is answered by a new `[VD#n]`
 too, and is not written**: its status is terminal (§3), and the new `[VD#n]` is written beside it,
 both named under what still needs a human in the final report (*A decision the re-grounding
@@ -1820,7 +1854,8 @@ That is a complete record of a completed walk, which is exactly what the all-del
 prohibition on an *empty* record is protecting against. Otherwise: every question in the order it
 was written, its tag, **on every question that puts an existing record again, that record on a
 line of its own labelled exactly `- **Re-puts:** [VD#n]` or `- **Re-puts:** [CD#n]`**, whatever the
-question's tag, **and on every other `[V]` the same line reading `- **Re-puts:** none`**, every re-tag with the finding that caused it, every split with the parts it
+question's tag, **and on every other `[V]` the same line reading `- **Re-puts:** none`**, written
+by the write that first records its `[V]` tag (below), every re-tag with the finding that caused it, every split with the parts it
 became, and each question's state **as the record last records it** — a re-tagged question carrying
 two states at one address, the *re-tagged* disposition and whatever the question then reached, of
 which the last governs (*Questions carry no minted identifier*, in *Generate the round's question
@@ -1845,16 +1880,23 @@ earlier record as context names none — a requirement defect asked anew, which 
 `[CD#n]` its row's answer froze (*One question per row*, in *Resolve the round*), among them —
 because the line is what re-decides or supersedes the record it names. Every reader that ties such
 a question to its record reads the line and parses nothing else: *Put each `[V]` to the operator*'s
-re-decision rule, *Write the register and the round record*'s supersession of a held record, the
+re-decision rule, *Write the register and the round record*'s supersession of the record it names, the
 resume rule for a standing re-decision, the in-flight test of *A decision reopened elsewhere*, and,
 from the `[C]` entry's copy of the line, `/product-workflows:brd-reconcile`. **`none` names no
 record**, so every one of those readers reads a `[V]` carrying it as an ordinary question: it puts
-nothing in flight, is re-decided and supersedes nothing, and takes no standing re-decision. The
-line is written when the question is first written and never moves, the record being append-only —
-**save one late write**: a `[V]` a released version wrote before the line existed carries none, and
-gets it, appended under the question, from *Put each `[V]` to the operator*'s tie picker, or reading
-`none` where that picker asks nothing (*Put each `[V]` to the operator*). A `[V]` with no line is
-therefore exactly such a question, and the picker's only subject.
+nothing in flight, is re-decided and supersedes nothing, and takes no standing re-decision. **The
+line is written by the write that first records a `[V]` tag at the question's address, and never
+moves after it**, the record being append-only. That is the question's first write where it is
+written `[V]` — a re-put, a standing re-decision, or any other question tagged `[V]` as it is
+generated, added or split off — and otherwise the later write recording it `[V]`: a re-tag from `[G]` (*Answer
+every `[G]` from the findings*), or a rewrite out of *untagged* (*Tag every question*), whose line
+is appended under that state and reads `none`. A question that puts a record again is never
+re-tagged, since its tag never moves, so a line written at a re-tag or a rewrite always reads
+`none`. **Save one late write**: a `[V]` whose `[V]` tag a released version wrote before the line
+existed carries none, and gets it, appended under the question, from *Put each `[V]` to the
+operator*'s tie picker, or reading `none` where that picker asks nothing (*Put each `[V]` to the
+operator*). A question whose `[V]` tag is on file with no line is therefore exactly such a
+question, and the picker's only subject.
 
 **Every write of a round record ends with one `Status:` line, which records the round's state; the
 dispositions decide it** — save the baseline append (above), which records no state and names
@@ -1946,7 +1988,8 @@ Where no `[C]` was held and no line added, the file is not written, save to remo
 file, each carrying every field `${CLAUDE_PLUGIN_ROOT}/references/code-defect-log-format.md` §2
 defines. Ids are contiguous, assigned once, never renumbered and never reused: a re-run continues the
 sequence from the highest id on file. **The file is written where this round raised an entry or
-re-dispositioned one already on file, and is absent only where it did neither** — that absence is
+re-dispositioned one already on file, or to remove a torn write, and is absent only where no run
+raised one** — that absence is
 an ordinary state that no later gate reads as a failure. Every entry's `behaviour` names a `[CG#n]`
 that is on file in this BRD's own `grounding/code-grounding.md` and carries a verifier outcome; an
 entry citing anything else is not written, because the packaging run will refuse the bundle over it
@@ -2001,23 +2044,30 @@ grounded BRD* phase, `deliverable_paths` = every file this run wrote or updated 
 `code-defect-log.md` when this round raised a `[CDF#n]`, **re-dispositioned one already on file**,
 removed a torn write from it or completed an earlier run's re-disposition in it — a run that only
 re-dispositioned still wrote the file, and leaving it out of the set would hand off a round record
-naming a disposition no ref carries),
+naming a disposition no ref carries — and also wherever
+`git -C "$SPECS_PATH" status --porcelain -- <its path>` reports it changed, since an earlier run that completed a re-disposition in step 9 and
+stopped before its own handoff left it so),
 `title: <BRD-KEY> Record round <N> interview decisions`, and
 `body_facts` = the round number and whether it opened, resumed or re-opened; the question counts by
 tag; the `[G]` answers and the re-tags with their causes; the `[VD#n]`, `[AS#n]` and `[CDF#n]` ids
 written and every `[CDF#n]` re-dispositioned, each with its old and new disposition, and every
 re-disposition completed for an interrupted run; every torn write removed; the `[C]` count
 held, and every defect line appended to a held entry; every will-change resolution taken; every
-held record put again, with the record that superseded it where this round wrote one; every plain
+held record put again, with the record that superseded it where this round wrote one; every
+reopened record a propagation sweep reverted whose re-put question this round answered, with the
+record that superseded it; every plain
 record reopened on its successor findings, with the question that puts it again; and every reopened
 record *A decision reopened elsewhere* put again, with its question. Emit
 its §4.1 outcome line in the final report.
 
 The no-new-round path in *Resolve the round* — every round closed and nothing a question source would ask — reaches this
-phase with nothing staged where the register was already on file and it removed no torn write, so
-it reports the `nothing to commit` line rather than opening a pull request; where that path wrote
-the register's header line, `decisions.md` is among the paths it hands off, with any file its
-torn-write removal changed. **The nothing-askable first run is not
+phase with nothing staged where the register was already on file, it removed no torn write,
+*Resolve inputs and gate the grounded BRD* completed no re-disposition and `code-defect-log.md`
+carries no change an earlier run left uncommitted, so it reports the `nothing
+to commit` line rather than opening a pull request; otherwise it hands off what it wrote —
+`decisions.md` where it wrote the register's header line, any file its torn-write removal changed,
+and `code-defect-log.md` where step 9 completed a re-disposition in it or an earlier run left one
+uncommitted. **The nothing-askable first run is not
 that path and does stage**: it wrote `interview/round-1.md`, and `decisions.md` with it (the header
 alone, where none was on file), and both are deliverables handed off with the rest.
 
@@ -2275,7 +2325,9 @@ still needing a human; and each
 such record that waits on an open round instead, with that round; every reopened record *A decision
 reopened elsewhere* put again, with what reopened it and the question that puts it, and every one
 that waits on an open round instead, with that round; every re-put `[V]` a resumed round recorded
-*decided* from a re-decision a stopped run left standing, naming the record; every held record waiting on its
+*decided* from a re-decision a stopped run left standing, naming the record; every reopened record a
+propagation sweep reverted while its re-put `[V]` waited, answered here, with the new `[VD#n]` that
+superseded it; every held record waiting on its
 prerequisite, with the successor still `will-change` and the prerequisite it names; and every plain
 record whose successors confirmed it, which raised nothing; the count of decisions and assumptions still `consumed_by: none`
 (`decision-register-format.md` §1); whether the round closed or stays open, and what it is waiting on;

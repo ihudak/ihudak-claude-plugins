@@ -180,7 +180,7 @@ its run wrote anything; one a propagation sweep reopened meanwhile is re-decided
 another run left `withdrawn` or `superseded` does not move. For a `[V]` the answer is then a new
 record named beside it under what still needs a human; for a `[C]`, `/brd-reconcile` acts on a
 superseded record's live successor instead, and on a withdrawn one freezes nothing, and closes the
-question only where the operator records the answer for a human.
+question whichever way the operator takes the answer.
 
 **A settled decision a re-grounding moved is reopened.** Where a re-grounding supersedes
 any finding a decided `[VD#n]` or `[CD#n]` the will-change rule did not hold rests on,
@@ -200,7 +200,7 @@ re-decided there, and a `[C]` by
 run has meanwhile left the record `withdrawn` or `superseded`, when it does not move: a `[V]` answer
 is then a new record named beside it under what still needs a human, while `/brd-reconcile` acts on
 a superseded `[CD#n]`'s live successor and freezes nothing beside a withdrawn one, closing the
-question only where the operator records the answer for a human.
+question whichever way the operator takes the answer.
 
 **A decision reopened elsewhere is put again too.** `/brd-reconcile` reopens a decided `[VD#n]` or
 `[CD#n]` when a customer answer contradicts or constrains it without replacing it, and its

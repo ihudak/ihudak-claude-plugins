@@ -160,18 +160,21 @@ Under the BRD folder:
 
 A **customer decision that overturns an earlier customer decision** is handled like any other
 overturn, not left to mint a rival answer: the earlier `[CD#n]` is `superseded` where the new answer
-replaces it — naming it in a closing `Superseded <YYYYMMDD>: by [CD#m]` paragraph, and moving nothing
-else — and `reopened` where it contradicts or constrains without replacing, which only a `decided`
-record can be. A record the will-change rule held `open` is superseded where an answer to its own
-question replaces it; one `open` for want of its reason is completed by such an answer instead,
-minting nothing; a `reopened` one is re-decided in place where the answered entry names it on a
-`- **Re-puts:**` line, and superseded where an answer to its question names it no such way. Where
+replaces it — answers its own question again, whatever it chooses, so the same option with a
+different reason replaces it too — naming it in a closing `Superseded <YYYYMMDD>: by [CD#m]`
+paragraph, and moving nothing else — and `reopened` where it contradicts or constrains without
+replacing, which only a `decided` record can be. A record the will-change rule held `open` is
+superseded where an answer to its own question replaces it; one `open` for want of its reason is
+completed by such an answer instead, minting nothing; a `reopened` one is re-decided in place where
+the answered entry names it on a `- **Re-puts:**` line, and superseded where an answer to its
+question names it no such way. Where
 the answer bears on any of the three without replacing it, the record keeps its status and is named,
 with the constraining `[CD#n]`, under what still needs a human. `superseded` and `reopened` are
 both statuses the register already defines for `[VD#n]` *and* `[CD#n]`, and an incoming customer decision is one of
 the two causes that may reopen anything. The case this exists for is the corrected resend the
 canonicalisation step calls ordinary — without it, two `decided` answers to one question sit in the
-register with nothing to adjudicate between them.
+register with nothing to adjudicate between them. A resend's answer that repeats a `decided` record
+exactly never gets that far: Phase 4 skips it (below).
 
 And it updates, in place: `decisions.md` (the new `[CD#n]`, the superseded `[AS#n]` and `[CD#n]`,
 each with its closing `Superseded` paragraph, the reopened `[VD#n]` and `[CD#n]`, the `[CD#n]`
@@ -311,7 +314,14 @@ command removes none of them; the next `/brd-interview` run does.
 - **Phase 4 — a resumed run never re-asks what it already froze.** A candidate whose target already
   carries, from an earlier pass over the same review, a `decided` `[CD#n]` or one the will-change
   rule held `open` is skipped, because two customer answers to one question is a contradiction one
-  record cannot hold. A target carrying a `[CD#n]` that is `open` for want of its reason is
+  record cannot hold. A different review — a corrected resend — is skipped too where its answer
+  repeats the target's current `decided` record exactly, `conditional_on` or not: the same `chosen`,
+  and a reason byte-equal to the customer's words the record's `argumentation` closes on once
+  whitespace is collapsed. It is reported as *already reconciled, re-affirmed by* that review, mints
+  nothing, marks nothing answered and adds nothing to the propagation sweep; any other answer to
+  that record, once frozen — the same option with a different reason included — is a new answer
+  that supersedes it, and where another candidate of the walk has the same target neither is
+  skipped. A target carrying a `[CD#n]` that is `open` for want of its reason is
   re-offered, and confirming it **completes that record** rather than minting a second id. A record
   the will-change rule held open is never completed: it already carries the customer's choice and
   reason, so a later review's answer against it mints a new `[CD#n]` that supersedes it — never

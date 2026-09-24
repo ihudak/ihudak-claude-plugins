@@ -94,8 +94,19 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
 - **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the one
   level below it — stops with `BRD_PACKAGE_NOT_FOUND`, which names both ways a folder comes to exist
   rather than asserting one.
+- **No torn write in the folder.** An item stamped with a round whose `interview/round-<N>.md` does
+  not exist or does not name it — what a [`/brd-interview`](brd-interview.md) run left when it
+  stopped before writing that record — counts for nothing
+  ([`decision-register-format.md`](../../references/decision-register-format.md) §8), and the bundle
+  carries the register, the question set and the code-defect log whole, so a package built now
+  would ship them. The run stops with `BRD_PACKAGE_TORN_WRITES`, naming each; any
+  `/brd-interview` run that reaches its handoff removes them, save on a slice that kept no
+  requirement of its own, which that command refuses and this stop says so. A round record that
+  exists and cannot be read stops the run with `BRD_PACKAGE_ROUND_UNREADABLE` instead, since it
+  decides nothing. This test runs before the register gate below, so that gate's remedy — commit
+  the register — never lands a torn write first.
 - **`/brd-interview`'s register already merged to the specs repo's default branch.**
-  `require-on-main` runs against `decisions.md` before anything else is read; an unmerged pull
+  `require-on-main` runs against `decisions.md` before any content is read; an unmerged pull
   request stops the run naming the branch/PR state. Where the gate reports the register is on no ref
   at all, the run **splits a state the gate cannot**, as [`/brd-reconcile`](brd-reconcile.md) does on
   its own row F: no `decisions.md` in the folder means no interview has written one
@@ -110,18 +121,23 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   **not** send the operator back to `/brd-interview`: a bare re-run of that command hands off only
   the files it writes itself — nothing at all where it finds nothing new to ask, and where it opens a
   new round, that round's record and not the earlier ones already on disk.
-- **No torn write in the folder.** An item stamped with a round whose `interview/round-<N>.md` does
-  not exist or does not name it — what a [`/brd-interview`](brd-interview.md) run left when it
-  stopped before writing that record — counts for nothing
-  ([`decision-register-format.md`](../../references/decision-register-format.md) §8), and the bundle
-  carries the register, the question set and the code-defect log whole, so a package built now
-  would ship them. The run stops with `BRD_PACKAGE_TORN_WRITES`, naming each; any
-  `/brd-interview` run that reaches its handoff removes them.
+- **The question set and the code-defect log on the default branch too, each where it is in the
+  folder.** The bundle ships both whole, and the register being merged says nothing about either: a
+  handoff declined and landed in part, or a later interview run that lands the register without a
+  question set an earlier run left, merges `decisions.md` alone. Each is gated with
+  `require-on-main`, and one in the folder and on no ref stops the run with
+  `BRD_PACKAGE_SHIPPED_NOT_HANDED_OFF`. A file absent from the folder is not gated: a slice whose
+  rounds held no `[C]` has no question set, and one whose decisions turned on no code defect has no
+  log.
 - **Every round the register or the held questions name, on the default branch.** The rounds this
   BRD has are the distinct `round` values `decisions.md` records, together with the round of every
   held `[C]` question in **interview/customer-questions.md** — a round of held `[C]` questions puts
   no record in the register — and each one's **interview/round-`<N>`.md** is gated with
-  `require-on-main`; any on no ref stop the run together with `BRD_PACKAGE_ROUNDS_NOT_ON_MAIN`. The
+  `require-on-main`; any on no ref stop the run together with `BRD_PACKAGE_ROUNDS_NOT_ON_MAIN` —
+  save a round whose record exists nowhere, not even in the folder, which is named only by a
+  re-decision an interrupted `/brd-interview` run left standing: there is nothing to land, so that
+  one stops with `BRD_PACKAGE_ROUND_NOT_RECORDED`, naming `/brd-interview` as the run that writes
+  the record. The
   set is derived from those two sources rather than from the **interview/** listing, which is what
   makes a partial merge visible — enumerating the directory finds the rounds that landed and never
   learns a third was owed.

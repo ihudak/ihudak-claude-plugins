@@ -38,7 +38,8 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   evidence — for a decision the will-change rule held, every finding it rests on superseded and the
   successors no longer `will-change`; for any other, any finding it rests on superseded and that
   finding's successors not confirming it (Phase 3 and Phase 8,
-  below) — and opens that round only where some question source puts a question, so a
+  below), or a re-decision an interrupted run left standing at that round, which the round records
+  as a `[V]` already disposed *decided* and puts to nobody (*What it produces*, below) — and opens that round only where some question source puts a question, so a
   `--rebaseline` pass that confirms every decision it bears on, or leaves it waiting on its
   prerequisite, is reported as re-grounded with nothing moved and opens nothing — **or, on a BRD with no round record at all, generates round 1's questions and branches on
   what it finds.** At least one question opens the round as ever; none at all writes
@@ -161,7 +162,7 @@ flowchart TD
 A run that finds every round closed and nothing a question source would ask since the last one
 opens no new round: it reports that plainly — nothing changed, or each change and why it raised
 nothing — with any requirement defect that belongs to a closed round 1, and the re-open
-that asks it — removes any torn write an interrupted run left, and reaches the handoff with nothing
+that asks it — removes any torn write an interrupted run left and reports each one, and reaches the handoff with nothing
 to commit where the register is already on file and nothing was torn; where none is, it writes
 `decisions.md` as its header line alone and hands that off.
 `workflows-core:impl-maintenance` runs in the terminal phase for session lessons-learned; no other
@@ -321,8 +322,12 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   [`code-defect-log-format.md`](../../references/code-defect-log-format.md).
 
 **One phase writes all of it, in one order, and the round record goes last.** Phase 9 writes
-`decisions.md`, then `code-defect-log.md`, then `interview/customer-questions.md`, then the round
-record. Every phase before it — the `[V]` answers, the held `[C]` entries, a defect line added to a
+`code-defect-log.md`, then `decisions.md` — the log first, so no decision cites a defect entry that
+is on no file — then `interview/customer-questions.md`, then the round record. A round record
+written before its `code defects:` and `requirement defects:` lines existed first gets a baseline
+line naming what was already on file, so nothing this run adds is mistaken for an old item. A
+re-disposition of a code defect is applied to the log only after the round record names it, and a
+run that stopped in between is completed by the next one's Phase 0. Every phase before it — the `[V]` answers, the held `[C]` entries, a defect line added to a
 held entry, a `--round N` re-open, a question the round-1 test adds — builds its part and holds it
 there, so a `Cancel`, an abort or an interruption before Phase 9 writes nothing into the BRD folder.
 The round record is the commit point
@@ -334,8 +339,11 @@ after holding its `[C]` questions — is a **torn write**. No reader counts one:
 not [`/brd-reconcile`](brd-reconcile.md), and not the PRD, ARD and specification commands. Phase 0
 reports each one it finds, and Phase 9 removes them before it appends its own — the one deletion
 this command makes, of items nothing ever counted. A re-decision a stopped run wrote onto a record
-already on file is the exception: what it replaced cannot be restored, so it stands, and the next
-round opened at its round records it as decided.
+already on file is the exception: what it replaced cannot be restored, so it stands. Where its
+round is one no record yet holds, the next round opened at that number records it as a question
+of its own, tagged `[V]` and generated already disposed *decided* naming the record: it is never
+queued and put to nobody, and it makes that round askable by itself, so the round's record exists
+for `/brd-package` to find.
 
 **No `[CD#n]` is ever minted by this command.** A customer decision enters the register only once
 the customer has actually answered and an operator has confirmed the answer; the customer answering

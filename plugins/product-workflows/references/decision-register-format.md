@@ -536,9 +536,13 @@ same way, by the decision that contradicts it, and everything that was built on 
 ## 8. Torn writes
 
 `commands/brd-interview.md` writes a round's deliverables in one phase, *Write the register and the
-round record*, and in one order: `decisions.md`, then `code-defect-log.md`, then
-`interview/customer-questions.md`, then `interview/round-<N>.md` **last**. **The round record is the
-commit point**: a round's deliverables count only once its record names them. A run that stops
+round record*, and in one order: `code-defect-log.md`, then `decisions.md`, then
+`interview/customer-questions.md`, then `interview/round-<N>.md` **last** — the log first, so a
+counted decision never cites a `[CDF#n]` that is on no file. **The round record is the commit
+point**: a round's deliverables count only once its record names them. Two writes sit outside that
+order, each keyed to the record so that no interruption can falsify it: a **baseline** line,
+appended to a round record that predates the lines below before anything new is written, and each
+**re-disposition** of a `[CDF#n]`, applied to the log only **after** the round record names it. A run that stops
 between those writes — a crash, a lost session, a context exhausted mid-phase — leaves items on disk
 that claim a round no record holds, and a reader that counted them would act on questions nobody
 recorded asking and decisions nobody recorded taking. Such an item is a **torn write**. This section
@@ -552,9 +556,9 @@ means:
 |---|---|---|
 | a `[VD#n]` whose `argumentation` carries no `Reopened` paragraph | its `round: N` | a question in the record carries the state *decided* naming that id |
 | an `[AS#n]` | its `round: N` | the record exists: an assumption is recorded only by the run that generates its round (`commands/brd-interview.md`, *Generate the round's question set*), and that run's write of the record is its first |
-| a `[CDF#n]` (`references/code-defect-log-format.md`) | its `round: N` | one of the record's `code defects:` lines names it raised; or a record that is not itself a torn write cites it in `defects`. A record none of whose writes carries a `code defects:` line was written before the line existed, and names every `[CDF#n]` of its round |
+| a `[CDF#n]` (`references/code-defect-log-format.md`) | its `round: N` | one of the record's `code defects:` lines names it raised, or its `code defects on file:` baseline line lists it; or a record that is not itself a torn write cites it in `defects`. A record carrying neither line was written before both existed, and names every `[CDF#n]` of its round — no run that writes to such a record leaves it so (the baseline, below) |
 | an entry in `interview/customer-questions.md` | its heading, `## Round <N>, question <position>` | the question at `<position>` carries the tag `[C]` in its last recorded state — *held for the customer*, or *answered by the customer* |
-| a `- **Requirement defect:** [DEF#n]` line on an entry that is not itself a torn write and carries no `- **Re-puts:**` line | its entry's heading | one of the record's `requirement defects:` lines lists that `[DEF#n]` asked. A record none of whose writes carries such a line was written before it existed, and names every such line |
+| a `- **Requirement defect:** [DEF#n]` line on an entry that is not itself a torn write and carries no `- **Re-puts:**` line | its entry's heading | one of the record's `requirement defects:` lines lists that `[DEF#n]` asked, or its `requirement defects on file:` baseline line lists it. A record carrying neither line was written before both existed, and names every such line — no run that writes to such a record leaves it so (the baseline, below) |
 
 **Nothing else is ever a torn write**, and four things in particular are not:
 
@@ -564,8 +568,9 @@ means:
 - **A `[CD#n]`.** `commands/brd-reconcile.md` mints it by its own rules, and a customer's answer is
   never removed by a rule about another command's interruption.
 - **A record carrying no `round`** (§1, §7), and an entry whose heading has not that form.
-- **A change made in place to an item the stopped run did not first write** — a reopen, a
-  `[CDF#n]`'s re-disposition — which is not stamped with that run's round and stands. **One
+- **A change made in place to an item the stopped run did not first write** — a reopen — which is
+  not stamped with that run's round and stands. A `[CDF#n]`'s re-disposition is not among them: it
+  reaches the log only after the round record names it (below), so a stopped run leaves none. **One
   exception**: a `Superseded <YYYYMMDD>: by [VD#m]` paragraph naming a `[VD#m]` that is a torn write
   is part of that torn write. A reader reads the held record it sits on as it stood before it —
   `open`, or `decided` where it carries `conditional_on`, the two statuses a record the will-change
@@ -580,11 +585,44 @@ for an unreadable input.
 
 **`commands/brd-interview.md` removes torn writes, and nothing else does.** Its *Write the register
 and the round record* phase removes every torn write in this BRD's folder in the same writes, before
-it appends its own, restoring each `superseded` paragraph above; the path on which it opens no round
-does the same before its handoff. That removal is the one deletion any run makes inside a register,
+it appends its own, restoring each `superseded` paragraph above; the path on which it opens no round,
+itself a completed run, does the same before its handoff and reports what it removed. That removal is the one deletion any run makes inside a register,
 a question set or a log it leaves standing, and it deletes nothing any reader ever counted. **Its *Resolve inputs*
 phase reports each torn write it finds**, by id or heading, so an operator sees what an interrupted
 run left before anything is removed.
+
+**The baseline.** A round record that `commands/brd-interview.md` is about to write to — a round it
+resumes or re-opens — and that carries no `code defects:` line, or no `requirement defects:` line,
+was written before that line existed, and the table above reads it as naming every item of its kind
+in its round. That reading is right for the items on file when the run began, and wrong for any this
+run writes, so **before its first write of the round's deliverables** the run appends to the record
+a baseline line for each line it lacks, naming the known set exactly — the items of that kind the
+run read at its start, none of them a torn write:
+
+```
+code defects on file: [CDF#n], …
+requirement defects on file: [DEF#n], …
+```
+
+— each reading `none` where the set is empty. From then on the record carries a line of that kind,
+so the pre-line reading no longer applies to it, and an item this run writes counts only once a line
+the record's later writes carry names it. The baseline names nothing new, so an interruption right
+after it falsifies nothing. **A baseline line is not an account line**: `commands/brd-interview.md`'s
+*Resolve the round* reads round 1's `requirement defects:` account line to learn whether the
+requirement-defect source has run there, and a `requirement defects on file:` line never answers
+that test.
+
+**A re-disposition is written after the record that names it.** A `[CDF#n]`'s `disposition`, with
+the `blocked_on` that goes with it, moves in the log only once the round record's `code defects:`
+line has named the move — `re-dispositioned [CDF#m] <old> → <new>` — so a run that stops before the
+record leaves the entry as it was, and the next run offers the re-disposition again. **A run
+that stops after the record and before the move is completed by the next**: every run of
+`commands/brd-interview.md`, at its start, reads the latest re-disposition any counted round record
+names for each `[CDF#n]`, and where the log still reads that move's `<old>`, applies `<new>` — the
+latest only, so a later move back is never undone by an earlier line. Until it does, the log
+disagrees with a counted record: a reader that only reads takes the record's `<new>`, and one that
+ships the log whole refuses it as it refuses a torn write (`commands/brd-package.md`, Phase 0
+step 5c).
 
 **Ids.** A rule that continues an id sequence from the highest id on file reads a torn write as on
 file, so no id ever names two blocks at once. A number a removed torn write held may be assigned
@@ -593,5 +631,5 @@ gap. That gap is the only break in §1's contiguity, and in `references/code-def
 
 **A round record written and not yet handed off is not a torn write.** Its items are named, and they
 count. They are simply on no ref — the state a declined handoff leaves, with the same remedy, which
-`commands/brd-package.md` names where it gates the register and the round records (Phase 0 steps 6
-and 7).
+`commands/brd-package.md` names where it gates the register, the question set and log, and the
+round records (Phase 0 steps 6, 6b and 7).

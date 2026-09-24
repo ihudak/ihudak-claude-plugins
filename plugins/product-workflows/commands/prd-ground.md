@@ -920,7 +920,8 @@ across the whole finding set:
 For each finding, and for each declared prerequisite whose decisions Phase 4 found **frozen**:
 read the frozen decision text and judge whether it directly determines this finding's claim once
 built — not merely mentions the same area. Where it does, set `horizon: will-change` and record
-`prerequisite: <the specific decision, by id and a one-line summary>` — naming the decision itself,
+`prerequisite: <the specific decision, by id and a one-line summary>` — on an on-file finding by
+superseding it (below), never in place — naming the decision itself,
 never merely the prerequisite BRD (`workflows-core:grounding-format` §5). Where no declared prerequisite has any
 `status: decided` record at all, every finding stays `current`, and this is reported plainly rather
 than left to look like nothing was checked.
@@ -939,14 +940,45 @@ A finding already carrying `horizon: will-change` from a previous `--rebaseline`
 unless the naming decision itself has since shipped (superseded by a later finding, per §3) —
 `will-change` findings are never silently reverted to `current`.
 
+**This phase never moves an on-file finding's `horizon` or `prerequisite` in place**
+(`workflows-core:grounding-format` §5). A finding this invocation produced takes the horizon this
+phase settles directly, since nothing outside this run cites it. An on-file finding — one already
+written under `<BRD-dir>/grounding/` before this invocation, as Phase 7 defines it — may already be
+cited by a decision taken on the horizon it carries, so where this phase would move either field —
+and never on a block already reading `SUPERSEDED`, which no longer stands and is not reassessed,
+nor on one a `--rebaseline` pass replaces this run, which Phase 8 supersedes and whose re-derived
+successor takes this phase's horizon directly:
+
+- the on-file block takes `verdict: SUPERSEDED`, its verdict written as `prior_verdict`, every
+  other field as it stood on file, and a one-line note naming its successor;
+- a successor is appended with the next free id in its prefix — after every id Phase 3 and Phase 5
+  assigned, in the order of the ids superseded — carrying the block's `claim`, `commit`,
+  `altitude`, `verdict`, `evidence` and `control`, and on a `[DG#n]` its `class` and `cites`, with
+  the new `horizon` and `prerequisite`, `consumed_by: none`, and the note `supersedes [CG#n]` (or
+  `[DG#n]`). It carries no `outcome`: this invocation produced it, so it is an **own-run** finding
+  and Phase 7 verifies it like any other, and the block it succeeds, reading `SUPERSEDED`, leaves
+  Phase 7's dispatch set.
+
+`/product-workflows:brd-interview`'s *A decision the re-grounding moved* then sees the move: a
+successor carrying the superseded finding's verdict and a different horizon does not confirm, so a
+decision taken on the old horizon is reopened, and a held decision whose successors are no longer
+`will-change` is put again. A superseded `[CG#n]` takes every class-4 `[DG#n]` citing it with it
+(Phase 8's cascade). **Two exceptions, each reported by finding id with the horizon this phase
+would have written:** under `--no-code` an on-file `[CG#n]` is this run's input and
+`code-grounding.md` is not opened for writing (Phase 8), so its horizon stays and the next run
+without that mode moves it; and an on-file `[DG#n]` the frame-set placement (Phase 8, *A set this
+run re-ground*) cannot place in exactly one frame set keeps its horizon, since Phase 7 could not
+hand the verifier the `frame_set_dir` its successor would need.
+
 ---
 
 ## Phase 7 — Verify
 
 Dispatch `grounding-verifier` over **every** finding this run holds — Phase 3's baseline `[CG#n]`
-findings, freshly-merged Phase 5 claim findings, and any pre-existing ones a `--rebaseline` pass is
-re-checking — one instance per finding, same ≤4-concurrent batching discipline as Phase 5, pinned
-to the Opus chain (`review_model`, frontmatter-pinned, no override):
+findings, freshly-merged Phase 5 claim findings, the successors Phase 6 appended for a moved
+horizon, and any pre-existing ones a `--rebaseline` pass is re-checking — one instance per finding,
+same ≤4-concurrent batching discipline as Phase 5, pinned to the Opus chain (`review_model`,
+frontmatter-pinned, no override):
 
 → Agent (subagent_type: "product-workflows:grounding-verifier", model: `<review_model>`):
   > "finding:
@@ -998,8 +1030,10 @@ that could drift from it. Two consequences for this dispatch:
   the class on every `[DG#n]` it merged; pass it through.
 - **Always pass `frame_set_dir` for a `[DG#n]`.** Phase 5 dispatched `design-grounder` once per
   frame set, so every `[DG#n]` on file traces back to exactly one directory; carry that association
-  forward from Phase 5 rather than re-deriving it here. A class-4 `[DG#n]` gets both it and the
-  code pair — it is the one finding with a foot in each source.
+  forward from Phase 5 rather than re-deriving it here. A `[DG#n]` Phase 6 appended as a successor
+  was produced by no Phase 5 dispatch: its directory is the one frame set Phase 8's placement puts
+  its superseded block in, which Phase 6 required before it superseded anything. A class-4 `[DG#n]`
+  gets both it and the code pair — it is the one finding with a foot in each source.
 - **Always pass `inventory` for a `[DG#n]`** — the same Phase 0 step 8 claim list Phase 5 handed
   `design-grounder`, unchanged. A `[DG#n]` is a reconciliation between the frame set and the
   inventory, so handing over only the frames gives the verifier one side of the comparison. A
@@ -1010,7 +1044,8 @@ that could drift from it. Two consequences for this dispatch:
   become evidence (`workflows-core:grounding-format` §8). This dispatch omitted the field, which is
   where that dead end came from.
 
-**Under `--no-code`, "every finding this run holds" is the new `[DG#n]` set and nothing else.**
+**Under `--no-code`, "every finding this run holds" is the new `[DG#n]` set — Phase 5's, and any
+successor Phase 6 appended — and nothing else.**
 Every `[CG#n]` on file was neither produced nor reproduced by this invocation and already carries
 the outcome from the run that did produce it. Re-dispatching them would spend one Opus verification
 per finding to re-decide a settled one, and a single `contradict` would supersede a finding and
@@ -1155,14 +1190,12 @@ Act on `outcome`:
     on-file block takes `verdict: SUPERSEDED`, its on-file verdict written as `prior_verdict` — the
     verdict any decision citing it was taken on (`workflows-core:grounding-format` §2) — and a
     one-line note naming its successor. **Every other field of that block stays as it stood on
-    file** — `horizon` and `prerequisite` included, even where Phase 6 moved them this run, and
-    `outcome` and `consumed_by` with them: the `contradict` is the successor's. The successor takes
-    the next free id in the finding's prefix — after every id Phase 3 and Phase 5 assigned, in the
-    order of the ids superseded — and carries:
-    - `claim`, `commit` and `altitude` as the superseded block holds them, and `horizon` and
-      `prerequisite` **as Phase 6 left them this run** — so a horizon Phase 6 moved shows as a
-      successor whose horizon differs from its superseded finding's, which is exactly what
-      `/product-workflows:brd-interview` compares;
+    file**, `outcome` and `consumed_by` included: the `contradict` is the successor's. The successor
+    takes the next free id in the finding's prefix — after every id Phase 3, Phase 5 and Phase 6
+    assigned, in the order of the ids superseded — and carries:
+    - `claim`, `commit`, `altitude`, `horizon` and `prerequisite` as the superseded block holds
+      them — Phase 6 never moves an on-file finding's horizon in place, so the block still carries
+      the horizon it was written with;
     - the verifier's `own_verdict` as `verdict`, and `own_evidence` as `evidence` — on a `[DG#n]`
       beside every frame citation the superseded block's evidence carried, for the reason the
       own-run branch gives;
@@ -1202,16 +1235,18 @@ finding, and two rules claiming one block is how a block ends up with two confli
 **The set is every class-4 `[DG#n]` this run holds**, less any this phase has itself marked
 `SUPERSEDED`. **An on-file class-4 finding is never in it, and needs no exclusion to keep it out**:
 an earlier run wrote it, so the `[CG#n]` it cites is on file too, and this phase never rewrites an
-on-file `[CG#n]` in place — it supersedes it, which is Phase 8's. A held one cites only a `[CG#n]`
-this run produced: Phase 5 hands `design-grounder` only its own merged `[CG#n]` set, and under
-`--no-code`, where it hands the on-file set instead, this phase verifies no `[CG#n]` at all.
-**A `--no-design` run holds no class-4 finding, so the sweep does nothing on it**; every on-file
-class-4 finding such a run leaves standing on a superseded `[CG#n]` is Phase 8's cascade's too.
+on-file `[CG#n]` in place — it supersedes it, which is Phase 8's. **A held one matches only where
+Phase 5 produced it**: Phase 5 hands `design-grounder` only its own merged `[CG#n]` set, and under
+`--no-code`, where it hands the on-file set instead, this phase verifies no `[CG#n]` at all; and a
+held class-4 finding Phase 6 appended as a successor cites the on-file `[CG#n]` its superseded block
+cited, which this phase never rewrites in place either. **So a `--no-design` run, which produces no
+class-4 finding in Phase 5, gives the sweep nothing to do**; every class-4 finding such a run
+leaves standing on a superseded `[CG#n]` is Phase 8's cascade's.
 
-**Every finding in the set carries the `frame_set_dir` its own Phase 5 dispatch named** (Phase 5,
-*Record which frame set each `[DG#n]` came from*), so every one whose cited `[CG#n]` this phase
-rewrote can be re-derived rather than retired: re-dispatch `grounding-verifier` once and act on the
-returned outcome as above — the own-run branch, since a held finding is not on file.
+**Every finding the sweep re-dispatches carries the `frame_set_dir` its own Phase 5 dispatch named**
+(Phase 5, *Record which frame set each `[DG#n]` came from*), so every one whose cited `[CG#n]` this
+phase rewrote can be re-derived rather than retired: re-dispatch `grounding-verifier` once and act
+on the returned outcome as above — the own-run branch, since a held finding is not on file.
 
 **An inherited finding that owes a control and carries none is `contradict` like any other, and gets
 no discount for being old.** `workflows-core:grounding-format` §8 makes an inherited finding
@@ -1227,13 +1262,14 @@ Where the cited `[CG#n]` was rewritten and still settles the capture question th
 is recorded as re-checked and nothing changes. **Report every state the sweep reached** — the findings
 re-derived; the findings re-checked and left standing because the rewritten `[CG#n]` still settles
 the capture question the same way; and the three ways the sweep can legitimately do nothing, which
-are different facts and are not reported as the same one: **the set was empty** — no class-4
-finding held, as on every `--no-design` run, a run with no `design/` folder, and a run whose design
-pass emitted no class-4 finding; **the set was non-empty but this phase rewrote no
-`[CG#n]`**, which is every `--no-code` run and any run whose verifier agreed throughout or
-contradicted only on-file findings; and **the set was non-empty and `[CG#n]` were rewritten, but no
-class-4 finding in it cites one of them**, which is the ordinary shape of a corpus whose design
-findings rest on code the verifier upheld. Say which. None of the three is reported as "none", which
+are different facts and are not reported as the same one: **the set was empty** — no class-4 finding
+held, as on a run whose Phase 5 produced none — a `--no-design` run, one with no `design/` folder,
+one whose design pass emitted none — and whose Phase 6 appended none; **the set was non-empty but
+this phase rewrote no `[CG#n]`**, which is every `--no-code` run and any run whose verifier agreed
+throughout or contradicted only on-file findings; and **the set was non-empty and `[CG#n]` were
+rewritten, but no class-4 finding in it cites one of them**, which is the ordinary shape of a corpus
+whose design findings rest on code the verifier upheld. Say which. None of the three is reported as
+"none", which
 would read as a sweep that ran over findings and found nothing wrong with them. A state this run did
 not reach is omitted, not reported as zero. The class-4 findings Phase 8's cascade supersedes are
 reported with that cascade, not here.
@@ -1264,18 +1300,20 @@ per §2's applicability note) plus this run's verifier `outcome` — on every bl
 A `--rebaseline` run appends its new findings after the existing ones and marks any finding it
 superseded with `verdict: SUPERSEDED`, id retained, rather than deleting or renumbering it — and
 writes the verdict that finding carried until then as its `prior_verdict`, in the same block
-(`workflows-core:grounding-format` §2). **Phase 7's `contradict` on an on-file finding is written
-the same way**, on any run: the block it superseded keeps its id and takes `SUPERSEDED` and its
-`prior_verdict`, and the successor Phase 7 settled is appended after the existing findings.
+(`workflows-core:grounding-format` §2). **Phase 6's horizon supersession and Phase 7's `contradict`
+on an on-file finding are written the same way**, on any run: the block superseded keeps its id and
+takes `SUPERSEDED` and its `prior_verdict`, and its successor is appended after the existing
+findings.
 **Every write of `verdict: SUPERSEDED` in this phase carries one**, the class-4 and frame-set
 supersessions below included: superseding overwrites `verdict`, and
 `/product-workflows:brd-interview`'s *A decision the re-grounding moved* reads `prior_verdict` to
 tell a re-grounding that came back as it stood from one that moved a decision's ground.
 
-**Superseding a `[CG#n]` supersedes every class-4 `[DG#n]` citing it, in the same pass — whichever
-route superseded it.** Two routes do: a `--rebaseline` pass, which replaces a `[CG#n]` against a
-moved commit, and Phase 7's `contradict` on an on-file `[CG#n]`, which replaces it at the same
-commit. Either way the `[DG#n]` asserted the pinned code could not perform a capture on the
+**Superseding a `[CG#n]` supersedes every class-4 `[DG#n]` citing it, on file or held, in the same
+pass — whichever route superseded it.** Three routes do: a `--rebaseline` pass, which replaces a
+`[CG#n]` against a moved commit; Phase 7's `contradict` on an on-file `[CG#n]`, which replaces its
+verdict at the same commit; and Phase 6's horizon supersession, which replaces its horizon at the
+same commit. In each case the `[DG#n]` asserted the pinned code could not perform a capture on the
 authority of a finding this run has just replaced; leaving it means a design finding standing on a
 superseded code finding, with a citation that still resolves and a claim id that still matches —
 the state `workflows-core:grounding-format` §6.3 forbids and the one no reader can detect. It is
@@ -1283,17 +1321,18 @@ never Phase 7's sweep's, which acts only on a `[CG#n]` rewritten in place.
 
 **Which rule writes such a `[DG#n]` turns on its frame set, never on the route:**
 
-- **Where this run wrote `[DG#n]` for that finding's frame set** — the set the frame-set rule below
-  places it in — that rule supersedes it, as it supersedes every prior finding of a set this run
-  re-ground, and this rule writes nothing more to it: two rules claiming one block is how a block
-  ends up with two conflicting writes. On the `--rebaseline` route that set's new findings are this
+- **Where the frame-set rule below supersedes it** — a prior class-4 finding of a set this run
+  wrote `[DG#n]` for, whose cited `[CG#n]`'s repository this run re-ground — that rule writes it, and
+  this rule writes nothing more to it: two rules claiming one block is how a block ends up with two
+  conflicting writes. That is the `--rebaseline` route's case, and that set's new findings are this
   run's re-derivation against the new pin.
-- **Otherwise it is marked `SUPERSEDED`**, on either route — on every `--no-design` run, for a set
-  recorded `skipped: no index`, and for a set this run's design pass reached without writing a
-  `[DG#n]` for it. On the `contradict` route nothing this run wrote could have re-derived it against
-  the successor in any case: Phase 5's design pass is never handed an on-file `[CG#n]` — outside
-  `--no-code` it is handed only this run's own merged set, and under `--no-code` Phase 7 verifies
-  no `[CG#n]` — so no `[DG#n]` it wrote cites the successor.
+- **Otherwise it is marked `SUPERSEDED`**, on any route — on every `--no-design` run, for a set
+  recorded `skipped: no index`, for a set this run's design pass reached without writing a `[DG#n]`
+  for it, for a class-4 finding this run holds, and on the other two routes always, since neither
+  re-grounds a repository. On those two routes no `[DG#n]` this run wrote cites the successor:
+  Phase 5's design pass ran before Phase 6 or Phase 7 appended any successor, and it is handed only
+  this run's own merged `[CG#n]` set, never an on-file one — under `--no-code`, where it is handed
+  the on-file set, no `[CG#n]` is superseded at all.
 
 **Marked `SUPERSEDED` means**: id retained, the verdict it carried written as `prior_verdict`, and a
 one-line note naming the `[CG#n]` that took it there, the verdict that finding carried, the verdict
@@ -1321,19 +1360,20 @@ there, the route that superseded that `[CG#n]`, and the `--no-code` re-run that 
 the Final report, beside the Phase 7 sweep's own states and never folded into them.
 
 **Every edit to a finding already on file is written in place — same id, never a second block
-appended for it** — among them every supersession: Phase 7's on a `contradict`, a `--rebaseline`
-pass's, the cascade's above, and a re-ground frame set's (below). A successor is a
-new block with a new id, appended; it is never written over the block it succeeds. The Phase 7
-sweep edits none of them: every finding it re-derives is one this run holds, written like any other
-of this run's. **This applies on a `--no-design` run too**, which otherwise writes no `[DG#n]` at
-all: on such a run an on-file design finding changes by the cascade above, through either route —
-a `--rebaseline` supersession on a `--rebaseline --no-design` run, and a `contradict` on an on-file
-`[CG#n]` on that run or on a plain `--no-design` one — and a run
-that superseded a finding and did not write it would leave a record on disk still asserting a
-capture its own foundation no longer supports. Opening `design-grounding.md` to edit those blocks is
-not the same as writing design findings, and this mode's rule below is unchanged: the cascade edits
-only blocks it superseded, alongside whatever else this phase already appends to that file on such
-a run.
+appended for it** — among them every supersession: Phase 6's for a moved horizon, Phase 7's on a
+`contradict`, a `--rebaseline` pass's, the cascade's above, and a re-ground frame set's (below). A
+successor is a new block with a new id, appended; it is never written over the block it succeeds.
+The Phase 7 sweep edits none of them: every finding it re-derives is one this run holds, written
+like any other of this run's. **This applies on a `--no-design` run too**, which writes no
+`[DG#n]` of Phase 5's: on such a run an on-file design finding changes by Phase 6's horizon
+supersession, or by the cascade above through any of its routes — a `--rebaseline` supersession on
+a `--rebaseline --no-design` run, and a `contradict` or a horizon supersession of an on-file
+`[CG#n]` on that run or on a plain `--no-design` one — and a run that superseded a finding and did
+not write it would leave a record on disk still asserting a capture its own foundation no longer
+supports. Opening `design-grounding.md` to edit those blocks is not the same as writing design
+findings, and this mode's rule below is unchanged: Phase 6 and the cascade edit only blocks they
+superseded, and append only Phase 6's successors, alongside whatever else this phase already
+appends to that file on such a run.
 
 **Under `--no-code` this phase writes `design-grounding.md` and, on `route: brd`, the coverage
 ledger's `evidence` column (below) — and nothing else.**
@@ -1363,14 +1403,21 @@ disposition:
 
 **A set this run re-ground supersedes its own prior findings, and the mode that makes that ordinary
 is `--no-code`.** Where this run wrote `[DG#n]` for a frame set that already had them on file, mark
-every one of that set's prior findings `verdict: SUPERSEDED`, id retained, its `prior_verdict`
-written, exactly as a `--rebaseline` pass does for `[CG#n]` — never delete or renumber, so an
-existing citation still resolves. **A prior finding belongs to the set whose index names every
-frame its `evidence` cites** — the placement `/product-workflows:brd-interview`'s successor test
-makes, since a finding record carries no frame-set field — and one no single set's index places
-belongs to none here. **Never re-mark a block already reading `SUPERSEDED`**: its verdict is
-already retired, and a second write would record `SUPERSEDED` as its `prior_verdict`, which
-`workflows-core:grounding-format` §2 forbids. Without this rule a
+that set's prior findings `verdict: SUPERSEDED`, id retained, its `prior_verdict` written, exactly as
+a `--rebaseline` pass does for `[CG#n]` — never delete or renumber, so an existing citation still
+resolves. **A prior class-4 finding is among them only where this run re-ground the repository its
+cited `[CG#n]` is pinned to** — the one whose `grounding/baselines.md` entry records a pin equal to
+that `[CG#n]`'s `commit`, and whose claims Phase 5 grounded this run — **or under `--no-code`**,
+where `cg_findings` is the whole unsuperseded `[CG#n]` set on file. Otherwise it stands: a design
+pass handed no `[CG#n]` for its repository emits no class-4 finding at all, so superseding it would
+retire a claim nothing replaces, and the class-4 cascade above retires it once its cited `[CG#n]` is
+superseded. **A prior finding belongs to the one set whose index names every path of its `evidence`
+that any set's index names, there being at least one such path** — the placement
+`/product-workflows:brd-interview`'s successor test makes, since a finding record carries no
+frame-set field and a design finding's `evidence` may cite code paths beside its frames — and one
+that placement does not settle belongs to none here. **Never re-mark a block already reading
+`SUPERSEDED`**: its verdict is already retired, and a second write would record `SUPERSEDED` as its
+`prior_verdict`, which `workflows-core:grounding-format` §2 forbids. Without this rule a
 second `--no-code` run over a changed frame set appends a whole new finding set beside the stale one,
 both unmarked, and `/brd-split` sees the set recorded `ground` and passes. `--rebaseline` cannot be
 the answer here: it is a code-pin concept and `--no-code` refuses it outright, so the supersession
@@ -1688,7 +1735,9 @@ corpus was actually ground at, stated as its own line on every run rather than o
 one, because a reader cannot otherwise tell an Opus corpus from a degraded one and the two are not
 interchangeable evidence; the prerequisite-readiness block from Phase 4, verbatim
 in the two-column form Phase 4 step 3 fixes (on `route: idea` this is always `prerequisites: none
-declared`, per step 2's refusal); finding counts by verdict for `[CG#n]` and `[DG#n]`
+declared`, per step 2's refusal); every on-file finding Phase 6 superseded for a moved horizon,
+with its successor's id and both horizons, and every horizon it did not move, with the exception
+that held it; finding counts by verdict for `[CG#n]` and `[DG#n]`
 separately, and the verifier
 tally (`agree` / `extend` / `contradict` / `unprovable`) with every `contradict` named by id and by
 what it wrote — an own-run finding's in-place rewrite; an on-file finding's supersession with its

@@ -67,11 +67,14 @@ sits with PA/Dev rather than PM. On this route it is **optional and ungated**: n
   ([`decision-register-format.md`](../../references/decision-register-format.md) §3), never a record
   that merely reads as settled. A prerequisite declared while it is still in flight carries `open`
   records and contributes nothing, which is ordinary and is reported as its own state rather than as
-  a silent absence. **Refused outright on the idea route** — `PRD_GROUND_NO_PREREQUISITES` — because
-  a `will-change` horizon needs a decision register to freeze a prerequisite's decision in, and the
-  idea route has none anywhere: every finding there is `current`, whatever this flag names, so
-  accepting it and doing nothing would leave a documented flag with a stated effect that never
-  happens.
+  a silent absence. A horizon a new prerequisite moves on a finding an earlier run wrote — an
+  on-file finding — is never rewritten in place: the finding is superseded and a successor with the
+  same verdict and the new horizon is appended and verified, so a decision taken on the old horizon
+  is put again by [`/brd-interview`](brd-interview.md). **Refused outright on the idea route** —
+  `PRD_GROUND_NO_PREREQUISITES` — because a `will-change` horizon needs a decision register to
+  freeze a prerequisite's decision in, and the idea route has none anywhere: every finding there is
+  `current`, whatever this flag names, so accepting it and doing nothing would leave a documented
+  flag with a stated effect that never happens.
 - **`--derivation-matrix` / `--no-derivation-matrix`** (optional, mutually exclusive) — force the
   implementation-altitude data-source matrix on or off. Left unset, the command defaults it on when
   the claim list reads as reporting- or data-centric, on either route, and off otherwise.

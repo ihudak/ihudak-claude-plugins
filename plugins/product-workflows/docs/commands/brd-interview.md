@@ -345,13 +345,13 @@ but the push and the pull request cannot run.
   ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §6.1).
 - **Phase 3 — a decision a re-grounding moved is put again.** Where a re-grounding — a
   [`/prd-ground --rebaseline`](prd-ground.md) pass, or any `/prd-ground` run whose verifier
-  contradicts an on-file finding — has superseded any finding a `decided` decision the will-change
-  rule did not hold rests on, the successor findings — the same requirement's, grounded against the
-  same repository or frame set and minted later — either confirm its premise — each superseded
-  finding with a successor, and each successor carrying the verdict its superseded finding carried,
-  which that finding keeps as `prior_verdict`, and the horizon that finding carried — or the
-  decision is reopened, naming the successors as
-  the cause, and its question put again in the round this run opens. The test is the same for a
+  contradicts an on-file finding, or whose horizon pass moves one's horizon — has superseded any
+  finding a `decided` decision the will-change rule did not hold rests on, the successor findings —
+  the same requirement's, grounded against the same repository or frame set and minted later —
+  either confirm its premise — each superseded finding with a successor, and each successor carrying
+  the verdict its superseded finding carried, which that finding keeps as `prior_verdict`, and the
+  horizon that finding carried — or the decision is reopened, naming the successors as the cause,
+  and its question put again in the round this run opens. The test is the same for a
   `[VD#n]` and a `[CD#n]`, a finding the re-grounding did not supersede stands as cited, and a
   decision that confirms raises nothing. A finding superseded before
   `prior_verdict` existed carries none, so a decision resting on one is reopened. A `[V]` is
@@ -393,7 +393,9 @@ but the push and the pull request cannot run.
   `conditional_on` its prerequisite, a `[VD#n]` or a `[CD#n]` that `/brd-reconcile` froze the same
   way — is superseded, each has a successor, and no successor is `will-change`, that is a change which makes a new round
   askable, and the round opened puts the question again against the current findings, under the tag
-  it had; until then the record waits on its prerequisite, and the run says so. Its answer is a new
+  it had; until then the record waits on its prerequisite, and the run says so — unless a superseded
+  finding it rests on has a source no successor can ever be placed against, when the record is put
+  again at once, naming that finding. Its answer is a new
   record, and the held one — where it reads `open` or `decided` — is superseded by it: here for a
   `[V]`, by `/brd-reconcile` for a `[C]`. One a propagation sweep reopened meanwhile is re-decided
   in place instead, and one another run has left `withdrawn` or `superseded` does not move, and is

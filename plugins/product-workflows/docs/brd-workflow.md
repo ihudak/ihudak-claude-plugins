@@ -189,7 +189,9 @@ kept on that finding as `prior_verdict`, and the horizon that finding carried; a
 on that was not superseded stands as cited. A `/prd-ground --rebaseline` pass is not the only run
 that supersedes: any `/prd-ground` run whose verifier contradicts an on-file finding — one an
 earlier run wrote — supersedes it too, appending a successor that carries the verifier's verdict
-rather than rewriting it in place, so a decision citing it is tested like any other. A reopened
+rather than rewriting it in place, and so does any run that moves an on-file finding's horizon,
+appending a successor with the same verdict and the new horizon, so a decision citing either is
+tested like any other. A reopened
 decision has its question put in the next round, and a confirmed one raises nothing. A `[V]` is
 re-decided there, and a `[C]` by
 `/brd-reconcile` from the customer's answer in the next package, each keeping its id — unless another

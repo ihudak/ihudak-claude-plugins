@@ -508,7 +508,8 @@ the round record*), and where the two disagree the dispositions win.
   account line: the round-1 walk did not raise it, and a new round is exactly where it belongs (the
   round-1 test below) — or a record *A decision the re-grounding moved* puts again: one the
   will-change rule held, every `evidence` finding of which now reads `SUPERSEDED` and has a
-  successor, none of them still `will-change`, or a plain `decided` record any `evidence` finding
+  successor, none of them still `will-change`, or one resting on a superseded finding whose own
+  source cannot be decided, or a plain `decided` record any `evidence` finding
   of which reads `SUPERSEDED` and whose successors do not confirm its premise — **whenever that
   supersession happened**: a record whose findings a re-grounding superseded while an earlier round
   was still open was not put again by that round, and its supersession predating the last closure
@@ -841,11 +842,13 @@ code, writes each result as a new finding, and marks the finding it replaces `ve
 id retained, the verdict it carried kept as `prior_verdict`, every other field as it stood
 (`workflows-core:grounding-format` §2, §3, §5). **Any `/product-workflows:prd-ground` run does the
 same to an on-file finding its verifier contradicts**, at the same commit: the finding is superseded
-the same way, and a successor carrying the verifier's verdict, with the same `claim` and `commit`
-and the horizon that run's *Horizons* phase left, is appended with the next id
-(`workflows-core:grounding-format` §8). A record in `decisions.md` **any one of whose `evidence`
-findings reads `SUPERSEDED`** rests, in that part, on ground no longer on file, and this source
-takes it — as a *held* record or as a *plain* one, told apart by the record's own fields below.
+the same way, and a successor carrying the verifier's verdict, with the same `claim`, `commit` and
+`horizon`, is appended with the next id (`workflows-core:grounding-format` §8); **and to an on-file
+finding whose horizon or prerequisite its *Horizons* phase moves**, whose successor carries the same
+verdict and evidence and the new horizon (`workflows-core:grounding-format` §5). A record in
+`decisions.md` **any one of whose `evidence` findings reads `SUPERSEDED`** rests, in that part, on
+ground no longer on file, and this source takes it — as a *held* record or as a *plain* one, told
+apart by the record's own fields below.
 **Any, not every**: a supersession replaces findings one at a time, and a verifier's `contradict`
 routinely supersedes one finding of a record's list and leaves the rest standing, so a source that
 waited for the whole list would leave that record `decided` on a premise the code no longer shows
@@ -876,12 +879,15 @@ finding on file that passes all four of these tests against it —
    repository whose `<BRD-dir>/grounding/baselines.md` entry records a pin equal to the finding's `commit`
    — that file is appended to, never overwritten, so the pin a superseded finding was grounded
    against still resolves. **A `[DG#n]`'s source is its frame set**: the one
-   `<BRD-dir>/design/<frame-set>/` whose index names every frame the finding's `evidence` cites by path
-   (`workflows-core:grounding-format` §6.2), since a finding record carries no frame-set field.
+   `<BRD-dir>/design/<frame-set>/` whose index names every path of the finding's `evidence` that any
+   set's index names, there being at least one such path (`workflows-core:grounding-format` §6.2) —
+   a finding record carries no frame-set field, and a design finding's `evidence` may cite code
+   paths beside its frames, which no index names and which so take no part in the placement.
 
 Where a test cannot be decided — a `claim` opening with no requirement id, a `commit` no
 `baselines.md` entry records or that more than one repository's entry records, a `[DG#n]` whose
-frames no index names or more than one set's index names — it is not passed. A superseded finding
+evidence names no path any index names, or whose named paths no single set's index holds all of —
+it is not passed. A superseded finding
 that no finding on file passes all four against has **no successor**, and every test below reads
 that as a test that did not pass.
 
@@ -901,8 +907,13 @@ that as a test that did not pass.
   `will-change`, or with some of its findings superseded and some not, rests on ground still about to
   move: it **waits on its prerequisite**, and the final report names it with each such successor and
   the prerequisite it names, raising nothing. One with a superseded finding that has no successor
-  waits too, named with that finding: no re-grounding has yet written ground its question could be
-  put against, or none that the four tests above tie to that finding's own source. **This round is not its only exit**: one written
+  **yet** waits too, named with that finding: no re-grounding has yet written ground its question
+  could be put against. **One with a superseded finding whose own source cannot be decided** — a
+  `commit` no `baselines.md` entry records or more than one records, or a `[DG#n]` the frame-set
+  placement in test 4 does not settle — **is put again instead**, as a plain record would be, naming
+  that finding and saying no successor can ever be placed for it: test 4 can pass nothing against a
+  finding whose source it cannot read, so waiting would wait for good. Such a finding is left as it
+  stands on file; nothing migrates it. **This round is not its only exit**: one written
   `conditional_on` is also reached by `/product-workflows:brd-reconcile`'s propagation sweep the day
   its prerequisite's decision moves, which may revert it or reopen it in place
   (`decision-register-format.md` §5, §6), and that sweep's citation pass reaches a held record of
@@ -940,7 +951,8 @@ that as a test that did not pass.
   (`decision-register-format.md` §4). A record reopened without its question would be taken by
   nothing afterwards — this source takes `decided` records — so the two go together.
 
-Such a record — a held one ready to be put again, or a plain one its successors do not confirm — is
+Such a record — a held one ready to be put again, a held one resting on a superseded finding
+whose source cannot be decided, or a plain one its successors do not confirm — is
 a question that makes a new round askable (*Resolve the round*, the *Every round is closed*
 bullet), and **it is raised in the round this run opens**, one question per record, never in a round
 it resumes or re-opens — that round's question set is settled — and where this run works an open

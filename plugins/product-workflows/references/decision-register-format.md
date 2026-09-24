@@ -199,9 +199,10 @@ identified, still carrying the reason it was withdrawn, and it is no longer requ
 **Only two things may reopen a decision:**
 
 1. **A new grounding finding** that bears on it — including a finding that supersedes one already in
-   the decision's `evidence` list (`workflows-core:grounding-format` §3). A verifier's
-   `contradict` on an on-file finding is recorded as a supersession
-   (`workflows-core:grounding-format` §8), so it reaches this cause like any other supersession.
+   the decision's `evidence` list (`workflows-core:grounding-format` §3). A verifier's `contradict`
+   on an on-file finding is recorded as a supersession (`workflows-core:grounding-format` §8), so it
+   reaches this cause like any other supersession, and so is a grounding run's move of an on-file
+   finding's horizon (`workflows-core:grounding-format` §5).
 2. **An incoming customer decision** that contradicts or constrains it.
 
 Nothing else. Not a later reader's discomfort, not a fresh idea, not a review pass that would have
@@ -241,26 +242,26 @@ later round put again (*A decision the re-grounding moved*); and `commands/brd-r
 
 **Cause 1 has a command that observes it.** A `commands/prd-ground.md` `--rebaseline` pass marks
 every finding it replaces `verdict: SUPERSEDED`, and so does any `commands/prd-ground.md` run whose
-verifier contradicts an on-file finding, appending its successor; and `commands/brd-interview.md`
-(*A decision the re-grounding moved*) takes each `decided` record §6 did not hold, **any** one of
-whose `evidence` findings a run has superseded — a supersession replaces findings one at a time, so
-waiting for the whole list would leave the record standing on a premise the code no longer shows: it
-reopens the record, naming the successor findings as the cause, unless those successors confirm its
-premise by the test that section fixes, and puts its question in the next round it opens. A finding
-of the list no run superseded stands as cited and takes no part in the test. That section also fixes
-which findings are a superseded finding's successors. The test is mechanical and the same for a
-`[VD#n]` and a `[CD#n]`: every superseded finding in the record's `evidence` carries a
-`prior_verdict` — the verdict it carried, kept on it when it was superseded
-(`workflows-core:grounding-format` §2) — and has at least one successor, and every successor carries
-that verdict and the superseded finding's own `horizon`, which superseding leaves as it stood. A
-finding carrying no `prior_verdict`, superseded before the field existed, confirms nothing, and nor
-does one no successor answers: "every successor" is not read as true of none. The horizon is
-compared, not required to be `current`, because a record §6 left `decided` may rest on a
-`will-change` finding beside a `current` one, and a pass before the prerequisite ships re-grounds it
-`will-change` again — the ground as it stood. A successor that has moved from `will-change` to
-`current` does not confirm: the prerequisite shipped, and the premise the record was decided on
-moved with it. A record whose successors confirm is not reopened — the ground was re-derived and
-came back as it stood, which is no cause.
+verifier contradicts an on-file finding, or whose horizon pass moves one's horizon, appending its
+successor; and `commands/brd-interview.md` (*A decision the re-grounding moved*) takes each
+`decided` record §6 did not hold, **any** one of whose `evidence` findings a run has superseded — a
+supersession replaces findings one at a time, so waiting for the whole list would leave the record
+standing on a premise the code no longer shows: it reopens the record, naming the successor findings
+as the cause, unless those successors confirm its premise by the test that section fixes, and puts
+its question in the next round it opens. A finding of the list no run superseded stands as cited and
+takes no part in the test. That section also fixes which findings are a superseded finding's
+successors. The test is mechanical and the same for a `[VD#n]` and a `[CD#n]`: every superseded
+finding in the record's `evidence` carries a `prior_verdict` — the verdict it carried, kept on it
+when it was superseded (`workflows-core:grounding-format` §2) — and has at least one successor, and
+every successor carries that verdict and the superseded finding's own `horizon`, which superseding
+leaves as it stood. A finding carrying no `prior_verdict`, superseded before the field existed,
+confirms nothing, and nor does one no successor answers: "every successor" is not read as true of
+none. The horizon is compared, not required to be `current`, because a record §6 left `decided` may
+rest on a `will-change` finding beside a `current` one, and a pass before the prerequisite ships
+re-grounds it `will-change` again — the ground as it stood. A successor that has moved from
+`will-change` to `current` does not confirm: the prerequisite shipped, and the premise the record
+was decided on moved with it. A record whose successors confirm is not reopened — the ground was
+re-derived and came back as it stood, which is no cause.
 
 **This section names one set — a record's *decision fields*, all thirteen §1 defines — and fixes
 what each of them does when a record already on file is written again.** A re-decision and a
@@ -399,15 +400,18 @@ successor finding that no longer carries `horizon: will-change`**: a `commands/p
 `--rebaseline` pass marks every finding it re-grounds `SUPERSEDED` and writes its successor
 (`workflows-core:grounding-format` §3, §5), but it keeps `will-change` on a successor until the
 naming decision ships, so a supersession alone observes nothing — every pass after the pinned code
-moves writes one — and a verifier's `contradict` on an on-file finding writes a successor carrying
-the horizon that run's horizon pass left it, which leaves `will-change` only where that pass saw the
-naming decision ship, so it observes the same thing and nothing more. So once every finding in the
+moves writes one. A verifier's `contradict` on an on-file finding writes a successor carrying the
+superseded finding's own horizon, so it observes nothing either; and a run whose horizon pass moves
+an on-file finding's horizon supersedes it with a successor carrying the new one, which moves off
+`will-change` only where that pass saw the naming decision ship. So once every finding in the
 record's `evidence` is `SUPERSEDED`, each has a successor, and no successor is `will-change`,
 `commands/brd-interview.md` counts the record's question among those that make a new round askable
 and puts it again in that round, under the tag it had, against the current findings (its *A decision
 the re-grounding moved*); until then the record waits on its prerequisite, and that run reports it
-so. The answer is tested by this rule like any other, and
-what it does turns on the held record's `status` as the answer's writer reads it —
+so — except where a superseded finding's own source cannot be decided, when no successor can ever be
+placed for it and the record is put again at once, naming that finding. The answer is tested by this
+rule like any other, and what it does turns on the held record's `status` as the answer's writer
+reads it —
 `commands/brd-interview.md` for a `[VD#n]`, and `commands/brd-reconcile.md` for a `[CD#n]`, from
 the answering question's `- **Re-puts:**` line and from the register as it stood before that run
 wrote anything: `open` or `decided`, the answer is a new record and the held one is `superseded` by

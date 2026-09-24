@@ -433,7 +433,20 @@ contributes no `will-change` horizons at all** — there is nothing stable enoug
 finding that touches it stays `current`, and that absence is itself reported rather than silently
 assumed. A `will-change` finding is not deleted once its prerequisite ships and the code catches up
 — it stays as a true record of what the pinned commit showed; what changes is that a *later*
-finding, at a *later* commit, supersedes it (§3, `SUPERSEDED`).
+finding supersedes it (§3, `SUPERSEDED`) — at a *later* commit once the code has caught up, or at
+the same commit where a grounding run's horizon pass sees the naming decision ship.
+
+**A finding's `horizon` and `prerequisite` are never moved in place once the finding is written.**
+A decision taken on a finding records its id, not its horizon, so a horizon rewritten under that id
+would leave the decision standing on ground it was never taken on — the same failure §8's
+`contradict` handling avoids for a verdict. Where a grounding run would move either field on a
+finding already written, it supersedes the finding instead: the block takes `verdict: SUPERSEDED`
+with its verdict as `prior_verdict` (§2) and every other field as it stood, and a successor with the
+next id in its prefix carries the same `claim`, `commit`, `altitude`, `verdict`, `evidence` and
+`control`, the new `horizon` and `prerequisite`, and a note naming the id it supersedes. The run
+produced that successor, so it is unverified until §8's verifier re-derives it like any other of the
+run's own findings. A finding the run itself produced and has not yet written takes its horizon
+directly. `product-workflows:prd-ground`'s *Horizons* phase holds the full procedure.
 
 The motivating shape: a finding says a mechanism does not exist, and a prerequisite BRD has already
 decided to build exactly that mechanism. The finding is not wrong — it is true of the code under
@@ -723,7 +736,8 @@ reconciles it against the requirement inventory it was handed — a BRD's `[BR#n
    shows nothing — the ids still match, the citation still resolves, and the correctness test above
    passes on a pair that now disagree. **Wherever a cited `[CG#n]`'s `verdict` is replaced — in
    place, by §8's `contradict` handling of an own-run finding, or by a supersession, which a
-   re-grounding run writes and §8's `contradict` handling of an on-file finding writes too — every
+   re-grounding run writes, and §8's `contradict` handling of an on-file finding and §5's horizon
+   rule write too — every
    class-4 `[DG#n]` citing it is re-derived or superseded alongside it, never left standing.** A
    class-4 finding
    outliving its own foundation is the one way this class reads as settled while resting on nothing,
@@ -785,8 +799,8 @@ team's report alike — may already be cited by a decision, and rewriting it in 
 decision standing on a verdict it was never taken on, with nothing reading `SUPERSEDED` to tell any
 reader so. The caller supersedes it instead: the block takes `verdict: SUPERSEDED` with its on-file
 verdict as `prior_verdict` (§2), every other field of it as it stood, and a successor with the next
-id in its prefix carries the same `claim`, `commit` and `altitude`, the `horizon` and
-`prerequisite` the verifying run now holds for it, the re-derived `verdict` and `evidence`,
+id in its prefix carries the same `claim`, `commit`, `altitude`, `horizon` and `prerequisite`
+(§5: a horizon is never moved in place), the re-derived `verdict` and `evidence`,
 `outcome: contradict`, and a note naming the id it supersedes. **On a `[DG#n]`, either write keeps
 every frame citation the replaced evidence carried beside the re-derived evidence**: a class-4
 finding is re-derived against the repository and may come back citing code alone, and a design

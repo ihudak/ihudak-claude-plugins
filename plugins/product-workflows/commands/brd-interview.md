@@ -634,12 +634,14 @@ the round record*), and where the two disagree the dispositions win.
   `<remedy>` names one step per holding state the round holds, every one that applies, since each
   moves only by its own run. A round can hold any of four holding states (the table in *Terminal
   dispositions and holding states*):
-  - *held for the customer* → `Package the held questions with '/product-workflows:brd-package <BRD-KEY>', and record the customer's answers with '/product-workflows:brd-reconcile <BRD-KEY> @<review-file>'.` — no run of this command can close such a question;
-  - *needs grounding* → `Ground the questions no finding bears on with '/product-workflows:prd-ground <BRD-KEY>', then resume round <open> with '/product-workflows:brd-interview <BRD-KEY>'.`;
-  - *deferred* or *untagged* → `Resume round <open> with '/product-workflows:brd-interview <BRD-KEY>'.` — the operator answers a deferred question there, and an untagged one is rewritten there.
+  - *needs grounding* → `Ground the questions no finding bears on with '/product-workflows:prd-ground <BRD-KEY>'.`;
+  - *deferred* or *untagged* — or *needs grounding*, once grounded → `Resume round <open> with '/product-workflows:brd-interview <BRD-KEY>'.` — the operator answers a deferred question there, an untagged one is rewritten there, and a grounded one is answered there;
+  - *held for the customer* → `Package the held questions with '/product-workflows:brd-package <BRD-KEY>', and record the customer's answers with '/product-workflows:brd-reconcile <BRD-KEY> @<review-file>'.` — no run of this command can close such a question.
 
-  Where round `<open>` holds more than one, the steps are named in that order, and the resume is
-  named once.
+  **Where round `<open>` holds more than one, name the steps in that order, the resume once.** The
+  order is forced: `/product-workflows:brd-package`'s rounds gate (its Phase 0 step 7) refuses a
+  BRD while any question is *deferred*, *needs grounding* or *untagged*, so the package can only
+  follow the grounding pass and the resume.
   Nothing else here forbids two open rounds at once: a `--round N` re-open of a closed round while a
   later one is open is deliberate (the round-1 test below, and *Next steps*' `defects-unasked`).
 

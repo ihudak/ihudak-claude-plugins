@@ -529,7 +529,8 @@ every route, with no exemption** — the idea route, `--from-prd` and the BRD ro
 whichever Phase 1 step 2 choice brought the run here: copy it into `<feature-folder>/revisions/` by
 the rule `/product-workflows:update-prd` Phase 3 fixes (*Archive the base before the first write*) —
 `<KEY>_<slug>_<YYYYMMDD>.md`, `<slug>` the resolved folder's own name less its `<KIND>-<KEY>-`
-prefix, and where that name is taken by any file, the first free `<KEY>_<slug>_<YYYYMMDD>-2.md`,
+prefix, or less `<KEY>-` on a legacy unprefixed folder, and `<KEY>_<YYYYMMDD>.md` where nothing
+remains, and where that name is taken by any file, the first free `<KEY>_<slug>_<YYYYMMDD>-2.md`,
 `-3`, … — and report the archive path. This is the archive Phase 1 step 2's Overwrite options name,
 and it also covers a `prd.md` that appeared after Phase 0 step 6 looked. **It runs once per run**:
 where the file did not exist, nothing is archived and nothing later is, and every later write in

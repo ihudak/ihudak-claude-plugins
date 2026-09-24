@@ -28,7 +28,14 @@ Usage: `/update-prd <KEY> [@transcript-or-notes ...] [--no-docs] [--docs <path>]
    UPDATE_PRD_EPIC_FOLDER: <KEY> resolves to an Epic folder at <path>, and an Epic is never the folder a PRD lives in — a PRD lives in a PRD- folder, and this Epic's PRD is the one in the folder above it. <remedy>
    ```
    `<remedy>` names the parent PRD as the likely intended target wherever there is one: where the folder above holds a `prd.md` asserting `kind: prd`, `This is probably the PRD you meant: re-run '/product-workflows:update-prd <PRD-KEY>'; to re-refine this Epic instead, run '/product-workflows:epics <KEY>'.`, `<PRD-KEY>` being that `prd.md`'s own `key` (`workflows-core:addressing` §4), never parsed out of either folder's name — and where this folder holds no `epic.md`, `/product-workflows:epics <KEY>` refuses it (`EPICS_NO_PRD`), so that clause names `'/product-workflows:epics <PRD-KEY>'` instead; where the folder above holds none, this Epic has no PRD above it, the shape `/product-workflows:epics <KEY>` reports as `EPICS_EPIC_NOT_UNDER_PRD` where this folder holds an `epic.md` and as `EPICS_NO_PRD` where it holds none, and the remedy is the one both stops give: where the folder above is a `PRD-` folder, `The PRD folder above it holds no PRD yet: author one there with '/product-workflows:create-prd <PARENT-KEY>'.`, `<PARENT-KEY>` being that folder's own `key`, subject to step 4's table applied to *that* folder where it carries a `brd-link.md`; anywhere else, name no parent and say so. It is a user halt, so `emit-block` does not fire.
-4. **Resolve the base PRD.** It is the `prd.md` in the folder step 3 resolved — the only current copy there is (earlier revisions are archived under `revisions/` and never read as the base), and therefore authoritative without a test. Absent → stop gracefully:
+4. **Resolve the base PRD.** It is the `prd.md` in the folder step 3 resolved — the only current copy there is (earlier revisions are archived under `revisions/` and never read as the base), and therefore authoritative without a test.
+
+   **Present but unreadable → stop before any write.** A `prd.md` that exists but cannot be read is
+   no base to refresh and no file Phase 3 could archive, so stop here, before the grill:
+   ```
+   UPDATE_PRD_BASE_UNREADABLE: <feature-folder>/prd.md exists but cannot be read (<error>). /update-prd refreshes the PRD it reads as its base and never overwrites one it has not archived. Make the file readable, then re-run '/product-workflows:update-prd <KEY>'.
+   ```
+   **Absent → stop gracefully:**
    ```
    UPDATE_PRD_NO_PRD: <ADDRESS> resolves a folder at <path> holding no prd.md, and /update-prd refreshes an existing PRD rather than authoring one. <the remedy, per the row below that matches>
    ```
@@ -190,7 +197,7 @@ The resume pointer is written in the terminal cost phase (Phase 7), per `workflo
 
 Terminal phase — runs after Phase 6, NEVER interrupts an earlier phase.
 
-**Capture-at-block invariant.** If an EARLIER phase halts on a plugin/skill/command/reference gap, `emit-block` (per `workflows-core:feedback-emission`) at that halt **before** escalating. NEVER `emit-block` for an environment/user halt (missing key, unset `$SPECS_PATH`, a key whose folder does not resolve, is an Epic folder or holds no `prd.md`, `UPDATE_PRD_ARCHIVE_FAILED`, cancellation) or a work-quality review BLOCK.
+**Capture-at-block invariant.** If an EARLIER phase halts on a plugin/skill/command/reference gap, `emit-block` (per `workflows-core:feedback-emission`) at that halt **before** escalating. NEVER `emit-block` for an environment/user halt (missing key, unset `$SPECS_PATH`, a key whose folder does not resolve, is an Epic folder or holds no `prd.md`, `UPDATE_PRD_BASE_UNREADABLE`, `UPDATE_PRD_ARCHIVE_FAILED`, cancellation) or a work-quality review BLOCK.
 
 **Session-hygiene invariant.** End Phase 6 with a `### Context hygiene` block per `workflows-core:session-hygiene` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `workflows-core:session-hygiene` §1 — this block prints the guidance only), then a span suggestion (PM continue → `/compact`; PA/PE handoff → `/clear`). Guidance only, never auto-run.
 

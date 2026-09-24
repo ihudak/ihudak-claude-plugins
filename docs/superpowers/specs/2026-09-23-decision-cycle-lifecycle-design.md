@@ -114,6 +114,12 @@ A1 as first written did not recover from a crash between Phase 9 writes. The reg
 - **Timing.** A record reopened while a round is open waits and is reported, as a changed finding does today (BI:930–935).
 - **Sweep.** DRF:287–288 ("or by a later one") becomes true, so re-read it. Re-read and keep BR:2119, 2165 and 2179, `docs/workflow.md:70`, the edge in `docs/brd-workflow.md:46`, `docs/commands/brd-reconcile.md` (12–13, 108, 531–532), `create-ard.md:289` and `specify.md:334`. Rewrite every copy of "raises nothing by that move alone". Update `docs/commands/brd-interview.md`'s description of question sources to list the new source.
 
+### A2a. Rulings from Task 4's review
+
+- **R31.** A resumed re-put `[V]` written by a released version carries no `- **Re-puts:**` line. For it, `/brd-interview` asks the operator which record it re-puts, or none. The choices come from the known set of `reopened` records and held records that fit its question, using the overflow rule for more than four. Phase 9 writes the line. No prose is parsed, and a `CHANGELOG.md` upgrade note names the case.
+- **R32.** `/brd-reconcile` offers *Work another round* only where every round is closed, per its own rule against offering a run that reports nothing new. BI's matching `yes` label follows. This overrides A2's "re-read and keep BR:2119".
+- **R33.** Only one round is open at a time. `--round <highest+1>` while a lower round is open stops and names the open round, unless the implementer finds text that deliberately allows concurrent open rounds. In that case the finding goes back to the controller.
+
 ### A3. Delete the dead key event (iv)
 
 - Remove "a cancelled `[V]` queue" from BI Phase 12's key-events list (BI:1797–1799).

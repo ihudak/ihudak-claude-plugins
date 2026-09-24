@@ -436,17 +436,19 @@ assumed. A `will-change` finding is not deleted once its prerequisite ships and 
 finding supersedes it (§3, `SUPERSEDED`) — at a *later* commit once the code has caught up, or at
 the same commit where a grounding run's horizon pass sees the naming decision ship.
 
-**A finding's `horizon` and `prerequisite` are never moved in place once the finding is written.**
-A decision taken on a finding records its id, not its horizon, so a horizon rewritten under that id
+**A finding's `horizon` and `prerequisite` are never moved in place once the finding is written.** A
+decision taken on a finding records its id, not its horizon, so a horizon rewritten under that id
 would leave the decision standing on ground it was never taken on — the same failure §8's
 `contradict` handling avoids for a verdict. Where a grounding run would move either field on a
 finding already written, it supersedes the finding instead: the block takes `verdict: SUPERSEDED`
 with its verdict as `prior_verdict` (§2) and every other field as it stood, and a successor with the
 next id in its prefix carries the same `claim`, `commit`, `altitude`, `verdict`, `evidence` and
-`control`, the new `horizon` and `prerequisite`, and a note naming the id it supersedes. The run
-produced that successor, so it is unverified until §8's verifier re-derives it like any other of the
-run's own findings. A finding the run itself produced and has not yet written takes its horizon
-directly. `product-workflows:prd-ground`'s *Horizons* phase holds the full procedure.
+`control`, the new `horizon` and `prerequisite`, and a note naming the id it supersedes — or, where
+the run cannot give a successor what its verifier needs, none, the note then naming the horizon it
+would have written and why no successor can be placed, so that no stale horizon is left standing.
+The run produced that successor, so it is unverified until §8's verifier re-derives it like any
+other of the run's own findings. A finding the run itself produced and has not yet written takes its
+horizon directly. `product-workflows:prd-ground`'s *Horizons* phase holds the full procedure.
 
 The motivating shape: a finding says a mechanism does not exist, and a prerequisite BRD has already
 decided to build exactly that mechanism. The finding is not wrong — it is true of the code under

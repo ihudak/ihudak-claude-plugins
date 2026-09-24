@@ -945,9 +945,13 @@ unless the naming decision itself has since shipped (superseded by a later findi
 phase settles directly, since nothing outside this run cites it. An on-file finding — one already
 written under `<BRD-dir>/grounding/` before this invocation, as Phase 7 defines it — may already be
 cited by a decision taken on the horizon it carries, so where this phase would move either field —
-and never on a block already reading `SUPERSEDED`, which no longer stands and is not reassessed,
-nor on one a `--rebaseline` pass replaces this run, which Phase 8 supersedes and whose re-derived
-successor takes this phase's horizon directly:
+and never on a block already reading `SUPERSEDED`, which no longer stands and is not reassessed, nor
+on one a `--rebaseline` pass replaces this run, which Phase 8 supersedes and whose re-derived
+successor takes this phase's horizon directly, nor on one Phase 8's frame-set rule supersedes this
+run (*A set this run re-ground supersedes its own prior findings* — a prior finding of a set Phase 5
+wrote `[DG#n]` for, and a class-4 one only on the terms that rule gives), whose re-derived successor
+in that set takes this phase's horizon directly — a copy appended here would stand beside it as a
+second live finding for one claim:
 
 - the on-file block takes `verdict: SUPERSEDED`, its verdict written as `prior_verdict`, every
   other field as it stood on file, and a one-line note naming its successor;
@@ -964,11 +968,16 @@ successor carrying the superseded finding's verdict and a different horizon does
 decision taken on the old horizon is reopened, and a held decision whose successors are no longer
 `will-change` is put again. A superseded `[CG#n]` takes every class-4 `[DG#n]` citing it with it
 (Phase 8's cascade). **Two exceptions, each reported by finding id with the horizon this phase
-would have written:** under `--no-code` an on-file `[CG#n]` is this run's input and
+would have written.** Under `--no-code` an on-file `[CG#n]` is this run's input and
 `code-grounding.md` is not opened for writing (Phase 8), so its horizon stays and the next run
-without that mode moves it; and an on-file `[DG#n]` the frame-set placement (Phase 8, *A set this
-run re-ground*) cannot place in exactly one frame set keeps its horizon, since Phase 7 could not
-hand the verifier the `frame_set_dir` its successor would need.
+without that mode moves it. And an on-file `[DG#n]` the frame-set placement (Phase 8, *A set this
+run re-ground*) cannot place in exactly one frame set **is superseded with no successor**: the
+block takes `verdict: SUPERSEDED` and its `prior_verdict` as above, and its note names the horizon
+this phase would have written and says why no successor can be placed — Phase 7 could not hand the
+verifier the `frame_set_dir` a successor needs. A stale horizon is never left standing for a
+downstream reader to consume: a plain decision resting on the finding reads a finding with no
+successor and is reopened, and a held one is put again, its finding's source being one that cannot
+be decided (`/product-workflows:brd-interview`, *A decision the re-grounding moved*).
 
 ---
 
@@ -1321,8 +1330,8 @@ never Phase 7's sweep's, which acts only on a `[CG#n]` rewritten in place.
 
 **Which rule writes such a `[DG#n]` turns on its frame set, never on the route:**
 
-- **Where the frame-set rule below supersedes it** — a prior class-4 finding of a set this run
-  wrote `[DG#n]` for, whose cited `[CG#n]`'s repository this run re-ground — that rule writes it, and
+- **Where the frame-set rule below supersedes it**, on the terms that rule gives a prior class-4
+  finding (*A set this run re-ground supersedes its own prior findings*) — that rule writes it, and
   this rule writes nothing more to it: two rules claiming one block is how a block ends up with two
   conflicting writes. That is the `--rebaseline` route's case, and that set's new findings are this
   run's re-derivation against the new pin.
@@ -1736,8 +1745,9 @@ one, because a reader cannot otherwise tell an Opus corpus from a degraded one a
 interchangeable evidence; the prerequisite-readiness block from Phase 4, verbatim
 in the two-column form Phase 4 step 3 fixes (on `route: idea` this is always `prerequisites: none
 declared`, per step 2's refusal); every on-file finding Phase 6 superseded for a moved horizon,
-with its successor's id and both horizons, and every horizon it did not move, with the exception
-that held it; finding counts by verdict for `[CG#n]` and `[DG#n]`
+with its successor's id and both horizons — or, for a design finding no frame set places, with no
+successor and the horizon it would have written — and every `--no-code` horizon it did not move;
+finding counts by verdict for `[CG#n]` and `[DG#n]`
 separately, and the verifier
 tally (`agree` / `extend` / `contradict` / `unprovable`) with every `contradict` named by id and by
 what it wrote — an own-run finding's in-place rewrite; an on-file finding's supersession with its

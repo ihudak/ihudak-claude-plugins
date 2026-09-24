@@ -69,7 +69,8 @@ sits with PA/Dev rather than PM. On this route it is **optional and ungated**: n
   records and contributes nothing, which is ordinary and is reported as its own state rather than as
   a silent absence. A horizon a new prerequisite moves on a finding an earlier run wrote — an
   on-file finding — is never rewritten in place: the finding is superseded and a successor with the
-  same verdict and the new horizon is appended and verified, so a decision taken on the old horizon
+  same verdict and the new horizon is appended and verified — or, for a design finding no frame
+  set places, it is superseded with none — so a decision taken on the old horizon
   is put again by [`/brd-interview`](brd-interview.md). **Refused outright on the idea route** —
   `PRD_GROUND_NO_PREREQUISITES` — because a `will-change` horizon needs a decision register to
   freeze a prerequisite's decision in, and the idea route has none anywhere: every finding there is

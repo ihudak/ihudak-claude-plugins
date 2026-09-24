@@ -950,8 +950,9 @@ on one a `--rebaseline` pass replaces this run, which Phase 8 supersedes and who
 successor takes this phase's horizon directly, nor on one Phase 8's frame-set rule supersedes this
 run (*A set this run re-ground supersedes its own prior findings* — a prior finding of a set Phase 5
 wrote `[DG#n]` for, and a class-4 one only on the terms that rule gives), whose re-derived successor
-in that set takes this phase's horizon directly — a copy appended here would stand beside it as a
-second live finding for one claim:
+in that set, where that set has one on its claim, takes this phase's horizon directly — a copy
+appended here would stand beside that successor as a second live finding for one claim, and would
+put a second rule's write on a block that rule retires:
 
 - the on-file block takes `verdict: SUPERSEDED`, its verdict written as `prior_verdict`, every
   other field as it stood on file, and a one-line note naming its successor;
@@ -1307,16 +1308,19 @@ a file whose readers report findings as missing that are on the page. Each block
 `[DG#n]` of class 1, 2 or 3 — those are settled from the frame set alone and are pinned to no commit,
 per §2's applicability note) plus this run's verifier `outcome` — on every block but one Phase 7 superseded, which keeps the `outcome` it holds, its `contradict` written on its successor or, where there is none, recorded in the Final report only (Phase 7, *On-file*) — **and any `notes` the verifier returned** — **and nothing else.** §2.1 makes the field set closed: `own_verdict`, `own_evidence`, `own_control`, `control_outcome` and the verifier's re-derivation `commit` are return fields Phase 7 has already acted on — where a `contradict` rewrote an own-run finding or appended an on-file finding's successor, their values are already in that block under the record's own names (`verdict`, `evidence`, `control`) and the return names never appear — and a block carrying `own_verdict` beside `verdict` states two verdicts at once, leaving every downstream reader free to quote whichever half suits. That is the state `/brd-split` step 7 and `/brd-interview` step 7 now refuse, so writing it here deadlocks the route rather than merely muddying the record. Its contract calls those *"anything the caller should know before recording this outcome"*, so they are read before the outcome is written, not after — a verdict recorded without them is recorded against a caveat the verifier raised and nothing carried.
 A `--rebaseline` run appends its new findings after the existing ones and marks any finding it
-superseded with `verdict: SUPERSEDED`, id retained, rather than deleting or renumbering it — and
-writes the verdict that finding carried until then as its `prior_verdict`, in the same block
+superseded — never one already reading `SUPERSEDED`, whichever run retired it — with `verdict:
+SUPERSEDED`, id retained, rather than deleting or renumbering it — and writes the verdict that
+finding carried until then as its `prior_verdict`, in the same block
 (`workflows-core:grounding-format` §2). **Phase 6's horizon supersession and Phase 7's `contradict`
 on an on-file finding are written the same way**, on any run: the block superseded keeps its id and
 takes `SUPERSEDED` and its `prior_verdict`, and its successor is appended after the existing
-findings.
-**Every write of `verdict: SUPERSEDED` in this phase carries one**, the class-4 and frame-set
-supersessions below included: superseding overwrites `verdict`, and
-`/product-workflows:brd-interview`'s *A decision the re-grounding moved* reads `prior_verdict` to
-tell a re-grounding that came back as it stood from one that moved a decision's ground.
+findings. **Every write of `verdict: SUPERSEDED` in this phase carries one**, the class-4 and
+frame-set supersessions below included, **and none of them is made on a block already reading
+`SUPERSEDED`**, which would record `SUPERSEDED` as its `prior_verdict`
+(`workflows-core:grounding-format` §2 forbids it) and put a second rule's note on a block the first
+already retired: superseding overwrites `verdict`, and `/product-workflows:brd-interview`'s *A
+decision the re-grounding moved* reads `prior_verdict` to tell a re-grounding that came back as it
+stood from one that moved a decision's ground.
 
 **Superseding a `[CG#n]` supersedes every class-4 `[DG#n]` citing it, on file or held, in the same
 pass — whichever route superseded it.** Three routes do: a `--rebaseline` pass, which replaces a
@@ -1342,6 +1346,12 @@ never Phase 7's sweep's, which acts only on a `[CG#n]` rewritten in place.
   Phase 5's design pass ran before Phase 6 or Phase 7 appended any successor, and it is handed only
   this run's own merged `[CG#n]` set, never an on-file one — under `--no-code`, where it is handed
   the on-file set, no `[CG#n]` is superseded at all.
+- **Never on a block already reading `SUPERSEDED`**, on any route — one an earlier run retired, or
+  one Phase 6 superseded this run for its horizon, before this rule runs. That block keeps the write
+  it has; re-marking it would record `SUPERSEDED` as its `prior_verdict` and put two rules' notes on
+  it. Where Phase 6 appended it a successor, the successor is a class-4 finding this run holds and
+  cites the same superseded `[CG#n]`, so the bullet above marks the successor instead; where Phase 6
+  appended none (its second exception), there is nothing further to mark.
 
 **Marked `SUPERSEDED` means**: id retained, the verdict it carried written as `prior_verdict`, and a
 one-line note naming the `[CG#n]` that took it there, the verdict that finding carried, the verdict

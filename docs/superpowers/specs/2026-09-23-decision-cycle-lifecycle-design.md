@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found ten more (N7–N16). This spec fixes all twenty-seven.
+Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found thirteen more (N7–N19). This spec fixes all thirty.
 
 It covers:
 - `/brd-interview`, `/brd-reconcile`, `/prd-ground`, `/brd-split`, `/create-prd`, `/document` and `/release-notes`;
@@ -54,6 +54,9 @@ Abbreviations: `BI` = `plugins/product-workflows/commands/brd-interview.md`, `BR
 | N14 | C | Phase 6 overwrites the `horizon` of an on-file finding it does not supersede, the same in-place class of defect as vii. Found by Task 2's implementer |
 | N15 | C | Design findings rewritten in place before R16 cite code only, so they can never be placed in a frame set. Found by Task 2's implementer |
 | N16 | A | After a declined handoff, `/brd-package` step 6 assumes `customer-questions.md` merged along with `decisions.md`, inferring one artifact's merged-ness from a sibling's gate (`workflows-core:phase-handoff` §4.0 forbids this). Found by Task 3's implementer. Ruling R26: step 6 executes `require-on-main` against each file it ships |
+| N17 | B | A resend with the same `chosen` and `reason: not stated` goes to the missing-reason picker. Its "freeze open" option supersedes a `decided` record with an `open` one that nothing chases, and step 1's "stays held for the customer" is then false. Found by Task 6's implementer |
+| N18 | B | A resend answering a question whose record was superseded through a `Re-puts` line, or withdrawn, freezes a second `decided` answer to that question. Found by Task 6's implementer |
+| N19 | B | The reader's "an open `[AS#n]`" filters the same way N4 did, and step 2 has no rule for re-answering an `[AS#n]` that is already superseded. Found by Task 6's implementer |
 | v | E | CP step 6 does not say whether a `prd.md` with no `kind: prd` counts as found |
 | N6 | E | CP Phase 5 writes `prd.md` with no existence guard. Under the strict reading of v, a keyless `prd.md` is overwritten with no archive |
 | vi | E | `/document` and `/release-notes` stop on a found-but-unplaced folder, a BRD container, or a folder holding no PRD, using the "key dir not found" rule and `["Re-enter key", "Cancel"]`. That happens at two sites in each command |
@@ -159,6 +162,13 @@ Apply the same change to BI:526–528, BI:1004–1008 and BI:1517–1518, and to
 - Reword BR:630's third column so it describes the question the entry holds, whatever that question's state.
 - A question that is already *answered by the customer* still matches. The corrected-resend branch depends on it matching, and B1's skip rule then disposes of it.
 - Check `agents/customer-review-reader.md` (≈150–156) for the same wording.
+
+### B3. Rulings from Task 6
+
+- **R37 (N17).** A candidate that repeats the target record's `chosen` and states no reason re-affirms the record: it is skipped, as B1's skip is. A missing reason is not a different reason, and the recorded reason stands. Only a different `chosen`, or a different stated reason, supersedes.
+- **R38 (N18).** An answer's target resolves to the question's **live** record, following supersession (`Re-puts` included) to its successor, and B1 compares against that record. An answer to a question whose live record is `withdrawn` freezes nothing, and is listed under "what still needs a human".
+- **R39 (N19).** The reader's `[AS#n]` row describes the record without filtering it. A re-answer to an `[AS#n]` that is already superseded resolves to its successor, as R38 does.
+- **R40.** B1's skip also covers `[AS#n]` and `[SR#n]` targets, so an identical re-answer never supersedes needlessly.
 
 ## 6. Unit C: grounding supersession
 
@@ -301,5 +311,5 @@ The research flagged "Session cost (ALWAYS runs)" as false, because an abort or 
 - For every rewritten claim, a refinement-7 literal-string count across the sweep scope, taken before and after the edit and recorded with its command.
 - The per-item trace: each failure scenario in §3 is walked step by step against the new text, and the step where it now resolves is cited by file and phrase.
 - An exclusivity probe over the diff, covering new "only", "never" and "every" claims introduced by this pass.
-- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all twenty-seven rows read FIXED is the known-bug count 0.
+- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all thirty rows read FIXED is the known-bug count 0.
 - Every row of the round-3 "Deferred by user decision" list gets a one-line pointer to this record.

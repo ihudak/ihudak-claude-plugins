@@ -165,7 +165,9 @@ different reason replaces it too — naming it in a closing `Superseded <YYYYMMD
 paragraph, and moving nothing else — and `reopened` where it contradicts or constrains without
 replacing, which only a `decided` record can be. A record the will-change rule held `open` is
 superseded where an answer to its own question replaces it; one `open` for want of its reason is
-completed by such an answer instead, minting nothing; a `reopened` one is re-decided in place where
+completed instead, minting nothing, by an answer choosing what it chose and stating a reason — never
+on an entry that puts a record again on a `- **Re-puts:**` line, where it is superseded (step 3); a
+`reopened` one is re-decided in place where
 the answered entry names it on a `- **Re-puts:**` line, and superseded where an answer to its
 question names it no such way. Where
 the answer bears on any of the three without replacing it, the record keeps its status and is named,
@@ -341,8 +343,9 @@ command removes none of them; the next `/brd-interview` run does.
   records it for a human or rejects it, and where it is recorded for a human, a held question it
   answers is closed, naming the withdrawal, so its round can close; rejected, the question stays
   held. A live record `open` for want of its reason is **completed**,
-  minting nothing, by an answer with its own `chosen` and a reason now stated, and superseded by one
-  choosing differently. A record
+  minting nothing, by an answer with its own `chosen` and a reason now stated — never on an entry
+  that puts a record again on a `- **Re-puts:**` line, where it is superseded (step 3) — and
+  superseded by one choosing differently. A record
   the will-change rule held open is never completed: it already carries the customer's choice and
   reason, so a later review's answer against it mints a new `[CD#n]` that supersedes it — never
   reopens it, since a record held `open` was never decided — and the rule is tested on the new one.

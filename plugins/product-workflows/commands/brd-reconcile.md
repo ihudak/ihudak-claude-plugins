@@ -989,8 +989,10 @@ such an entry stays held, the next package puts it again, and the way out is a
 
 **Completing an `open` record is not minting a new one — and only a record open for want of its
 reason, answered with its own `chosen`, is completed.** Where a later review supplies the reason a
-`[CD#n]` was frozen `open` for, and chooses what that record chose, the missing `argumentation` is
-written onto **that record**, which moves to `decided` — unless the *Freeze the customer decisions*
+`[CD#n]` was frozen `open` for, and chooses what that record chose — never on an entry that puts a
+record again on a `- **Re-puts:**` line, where it is superseded (step 3) — the missing
+`argumentation` is written onto **that record**, which moves to `decided` — unless the *Freeze the
+customer decisions*
 phase's will-change rule, tested on it before it is written `decided`, holds it open. Ids are
 assigned once and never reused (§1), and one record holds one `chosen` — a second id for the same
 answer would leave two on the page with nothing to adjudicate between them. **A different `chosen`

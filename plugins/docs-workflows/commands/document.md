@@ -34,6 +34,14 @@ is clean and on its default branch. If a guard fires, emit its §5 notice;
 if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
 run — the terminal `commit-artifacts` step skips on it.
 
+**The run key set it is handed** (`workflows-core:specs-repo-git` §3.2) is fixed here, before either
+mode runs, and without reading any `prd.md`. In Mode A it is the resolved `key`, and, where
+`workflows-core:addressing` §4.1 places the resolved folder at Epic level — an `EPIC-` prefix, or with
+no prefix a resolved `kind: epic` — also the key its parent's carrier asserts (§4), which is the
+`<PRD>` Mode A Phase 0 step 1 carries. Without it, §3.5 would resolve a `prd/<PRD-KEY>-…` branch to
+no key and switch away from it. A key that came back empty adds nothing. In Mode B there is no
+address and the set is empty: a keyless run (§3.2).
+
 Echo the detected mode, then proceed to that mode's phases. The two modes share the same style pass and the same fixer — `docs-workflows:docs-style-checker`, which reports and never modifies a file, and `workflows-core:doc-fixer`, which applies what it reports; the two ship from different plugins and are dispatched by their qualified `subagent_type` everywhere below; only Keyed mode also runs `doc-reviewer` (each mode emits its own final report).
 
 ---

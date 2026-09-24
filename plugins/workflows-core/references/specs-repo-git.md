@@ -635,10 +635,8 @@ A command that writes anything into `$SPECS_PATH` must do all four of these.
 Omitting any one of them is a defect, not a style choice.
 
 1. **Cite and execute `specs-preflight` (§3)** at run start, once the run key
-   set is known — after address resolution, where the command takes an
-   address, and before any placement or refusal reads the resolved folder;
-   where resolution comes first, a run that stops on its address runs none
-   (§3). Phase 0 in most
+   set is known, in whichever of §3's cases the command falls; a run that
+   stops on its address after resolution runs none. Phase 0 in most
    commands. Carry any returned `specs_git: blocked`
    flag for the whole run.
 2. **Cite and execute `commit-artifacts` (§4)** as the last action of the run,

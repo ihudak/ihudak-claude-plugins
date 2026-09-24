@@ -230,6 +230,14 @@ finding's answer as `unmatched` — an answer the customer gave, reported as mat
 indistinguishable from one they never gave. The reader also reports which sets it was given, so an
 unmatched row can be told apart from a question set nobody passed.
 
+**A torn write matches nothing.** An entry, a record or a code-defect entry stamped with a round
+whose `interview/round-<N>.md` does not exist or does not name it — what a
+[`/brd-interview`](brd-interview.md) run left when it stopped before writing that record — counts
+for nothing ([`decision-register-format.md`](../../references/decision-register-format.md) §8). An
+answer citing a torn entry or a torn `[AS#n]` is carried `unmatched` and never frozen, a torn record
+is neither superseded, reopened nor swept, and the final report names each torn write found. This
+command removes none of them; the next `/brd-interview` run does.
+
 ## Gates
 
 - **Phase 0 — the root refusal, tested the moment the folder resolves.** A resolved `BRD-` root

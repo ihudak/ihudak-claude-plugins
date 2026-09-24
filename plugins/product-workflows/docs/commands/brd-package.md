@@ -110,6 +110,13 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   **not** send the operator back to `/brd-interview`: a bare re-run of that command hands off only
   the files it writes itself — nothing at all where it finds nothing new to ask, and where it opens a
   new round, that round's record and not the earlier ones already on disk.
+- **No torn write in the folder.** An item stamped with a round whose `interview/round-<N>.md` does
+  not exist or does not name it — what a [`/brd-interview`](brd-interview.md) run left when it
+  stopped before writing that record — counts for nothing
+  ([`decision-register-format.md`](../../references/decision-register-format.md) §8), and the bundle
+  carries the register, the question set and the code-defect log whole, so a package built now
+  would ship them. The run stops with `BRD_PACKAGE_TORN_WRITES`, naming each; any
+  `/brd-interview` run that reaches its handoff removes them.
 - **Every round the register or the held questions name, on the default branch.** The rounds this
   BRD has are the distinct `round` values `decisions.md` records, together with the round of every
   held `[C]` question in **interview/customer-questions.md** — a round of held `[C]` questions puts

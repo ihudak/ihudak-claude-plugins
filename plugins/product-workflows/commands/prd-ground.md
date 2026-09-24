@@ -744,7 +744,10 @@ For every declared prerequisite (this run's plus any already on file):
    each exclusion is that section's own rule rather than this command's caution: `open` and
    `reopened` "may not be consumed downstream" while they stand; `superseded` and `withdrawn` are
    terminal and describe a position that is no longer held; and an `[AS#n]` never reaches `decided`
-   at all (§7), so an assumption is never a frozen decision however confidently it is written.
+   at all (§7), so an assumption is never a frozen decision however confidently it is written. **Nor
+   does a torn write** (§8) — a record a `/brd-interview` run left when it stopped before writing the
+   round record that would name it, read here from the prerequisite's own `interview/` records — which
+   counts for nothing whatever its `status` reads.
    **Read the status, do not infer it from how settled a record sounds** — the register carries the
    answer in a field precisely so that this reader does not have to weigh prose, and
    `/product-workflows:brd-reconcile` uses the same equivalence when it says what freezing a `[CD#n]`

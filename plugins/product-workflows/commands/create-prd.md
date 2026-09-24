@@ -442,7 +442,9 @@ Read exactly two files from the BRD folder Phase 0 step 5 resolved, and no other
   `workflows-core:prd-format`'s quality rules forbid.
 - **`decisions.md`** — the register, per
   `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1. Phase 0 step 7a has already gated it on the default branch, so
-  what is read here is the merged register or, where the folder holds none, nothing.
+  what is read here is the merged register or, where the folder holds none, nothing. It is read through §8 there: a **torn write** — a record a `/brd-interview` run left when it
+  stopped before writing the round record that would name it — is read as absent, frozen against
+  nothing and stamped `consumed_by` by nothing.
 
 A BRD-route run with **no `prd-seed.md`** is not a stop, and is the **ordinary** shape: nothing on
 the normal route creates a seed file at all (above), so a reconciled BRD routinely holds none. Say so

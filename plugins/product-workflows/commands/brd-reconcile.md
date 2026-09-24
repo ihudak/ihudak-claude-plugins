@@ -359,7 +359,16 @@ write would re-ask a question already answered.
    `[CG#n]`/`[DG#n]` with its `horizon`; and, when this is not the first reconciliation, every
    earlier `reconciliation-<YYYYMMDD>.md` and every earlier canonicalised review. Every one of those
    is an input, never scratch: nothing below deletes, renames or rewrites a dated artifact another
-   run wrote.
+   run wrote. **The register, the log and the question set are read through
+   `decision-register-format.md` §8, in this BRD's folder and in every folder the propagation sweep
+   reaches**: a **torn write** — an item a `/brd-interview` run left when it stopped before writing
+   the round record that would name it — counts for nothing. A torn entry or a torn `[AS#n]` matches
+   no answer, so an answer the customer gave against it — whatever `customer-review-reader`, which
+   reads the files it is handed as they stand, matched it to — is carried `unmatched`, as an answer
+   to no question is, and never frozen; a torn record is read as absent, so it is neither superseded,
+   nor reopened, nor swept; and a torn `[CDF#n]` resolves no `defects` id. This command removes none
+   of them: removing a torn write is `/product-workflows:brd-interview`'s alone (§8), and the final
+   report names each one found, with that command as the step that removes it.
 9. **Fix the run's date.** One `<YYYYMMDD>` stamp, taken once, used for the reconciliation record
    this run writes and for the `Status:` line of any round it closes. It is **not** the stamp on the
    canonicalised review, which carries the customer's date — the *Canonicalise the returned review*
@@ -2257,7 +2266,9 @@ Report: the BRD folder and which level it sits at; the classification and model 
 (+ any Opus degradation); **the review** — the canonicalised path, the original path, the mode and
 what decided it, the verdict, the readiness statement quoted verbatim, and the evidence limitations
 as stated or the fact that they were not; **every anomaly**, unrepaired, because each one changes how
-the rest of the review should be read; **every `[CD#n]` frozen**, with what it answers and its
+the rest of the review should be read; every torn write found (`decision-register-format.md` §8), by
+id or heading, with `/product-workflows:brd-interview` as the run that removes it, and every answer
+carried `unmatched` because it cited one; **every `[CD#n]` frozen**, with what it answers and its
 status — naming, for each the will-change rule bound, the `conditional_on` it wrote or that it held
 the record open — every candidate rejected or sent back to the customer with its reason, and every candidate
 the operator re-pointed onto a question, with the target the reader returned; the `[C]`

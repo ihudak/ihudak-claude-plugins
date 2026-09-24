@@ -336,7 +336,9 @@ folder does not meet:
    rule that a finding carrying no verifier outcome is not evidence, applied to every finding in
    `grounding/code-grounding.md` and `grounding/design-grounding.md`; *a settled register* is
    **`decisions.md` present, and every `interview/round-<N>.md` it names settled** — the test
-   `commands/brd-package.md` already applies. **Test the presence first and do not collapse the two**
+   `commands/brd-package.md` already applies, counting no record that
+   `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §8 calls a torn write, and neither
+   do the drivers and the defect sweep below. **Test the presence first and do not collapse the two**
    (§5): a folder holding no register names no round, so the settled half alone is vacuously true on
    an idea-route folder that has never held one, and this step would grade it tier 2 on grounding
    alone. Tier **2 · Grounded**.

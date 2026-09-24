@@ -134,7 +134,8 @@ refusal on readiness is the absence of the caller's own gated input, which that 
 **Both tier conditions reuse rules that already exist.** *Verified grounding* means every finding
 carries a verifier outcome — `workflows-core:grounding-format`'s rule that a finding without an
 outcome is not evidence. *A settled register* means **a `decisions.md` is present and every interview
-round it names is settled**, the test `commands/brd-package.md` already applies. **The presence half
+round it names is settled**, the test `commands/brd-package.md` already applies, a torn write
+(`references/decision-register-format.md` §8) naming no round. **The presence half
 is not redundant**: a folder holding no register at all names no round, so a condition worded only as
 *every round is settled* is vacuously true there — and combined with grounding, which is reachable on
 either route, it would grade a folder with no register at all at tier 2 and unlock the brief this
@@ -255,7 +256,8 @@ on a question the vendor's policy has already answered.
 near sufficient — `code-defect-log.md` has one writer and it records only defects a decision turned on:
 
 1. **`code-defect-log.md`** — every `[CDF#n]` whose disposition is `open`, `in-scope` or
-   `conditional`. Needs no confirmation: a standing `[CDF#n]` is a defect somebody already
+   `conditional`, save one `references/decision-register-format.md` §8 calls a torn write, which
+   no round recorded raising. Needs no confirmation: a standing `[CDF#n]` is a defect somebody already
    adjudicated.
 2. **A verified grounding finding whose own text records a defect** rather than a capability.
    **Operator confirmation required.**

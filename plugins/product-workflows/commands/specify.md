@@ -598,7 +598,9 @@ folder does hold. Then:
   exists precisely to keep it from doing.
 - **`decisions.md`** — the register, per
   `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1. Phase 0's register gate has already gated it on the default
-  branch, so what is read here is the merged register or, where the folder holds none, nothing.
+  branch, so what is read here is the merged register or, where the folder holds none, nothing. It is read through §8 there: a **torn write** — a record a `/brd-interview` run left when it
+  stopped before writing the round record that would name it — is read as absent, frozen against
+  nothing and stamped `consumed_by` by nothing.
 - **`brd-link.md`** — for `parent:` and `depends-on:` only. This run reads no `claims:` list and no
   coverage ledger **as an authoring input**: PRD eligibility and the allocation gate are
   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5's rule about authoring a **PRD**,

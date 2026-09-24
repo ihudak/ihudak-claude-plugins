@@ -235,6 +235,19 @@ cannot review, and they will not tell you that — they will review it anyway, b
      paths *that* run declared (`workflows-core:phase-handoff` §2.3), and the round records already
      on disk are not among them. What is needed is the register already written, landed:
      `BRD_PACKAGE_REGISTER_NOT_HANDED_OFF: <BRD-KEY>'s decision register is written at <path> but is on no branch — its handoff was declined. Commit and merge decisions.md and the interview/ round records to the specs repo's default branch, then re-run; do not re-run /product-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
+6a. **Refuse a folder holding a torn write.** Read `interview/customer-questions.md`,
+    `code-defect-log.md` where it is present, and every `interview/round-<N>.md` from the worktree
+    beside `decisions.md`, and find every **torn write**
+    `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §8 defines — an item stamped with
+    a round whose record does not exist or does not name it, which a `/brd-interview` run left when
+    it stopped before writing that record. No reader counts one, and this command cannot simply
+    leave them out: the bundle carries `decisions.md`, `interview/customer-questions.md` and
+    `code-defect-log.md` whole (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1), so a
+    torn record or entry would reach the customer as a decision nobody recorded taking or a question
+    no round recorded asking. Removing them is `/brd-interview`'s alone (§8). Any → stop:
+    `BRD_PACKAGE_TORN_WRITES: <BRD-KEY> holds items a /product-workflows:brd-interview run left when it stopped before writing the round record that would name them (<each, by id or heading, with the round it claims>). No reader counts them, and a package built now would ship them. Run '/product-workflows:brd-interview <BRD-KEY>' and merge its handoff: any run of it that reaches its handoff removes them. Nothing was written.`
+    A round record that exists and cannot be read decides nothing: name it in the same stop, as
+    the round whose items could not be tested.
 7. **Gate on the interview's rounds — and read the precondition the only way that is not a
    deadlock.** Read every `interview/round-<N>.md`.
 
@@ -245,6 +258,8 @@ cannot review, and they will not tell you that — they will review it anyway, b
    `interview/customer-questions.md`**, which `/brd-interview` writes with the question's round and
    position. So the rounds this BRD *has* are the distinct `round` values across every record kind
    in the register that carries the field, **together with the round of every held `[C]` entry** —
+   none of them a torn write, which step 6a has already refused, and none of which counts
+   (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §8) —
    read off that entry's own heading, `## Round <N>, question <position>`, which
    `/product-workflows:brd-interview` pins as the entry's boundary and spelling for exactly this
    reader (*Hold every `[C]`*): a
@@ -1520,7 +1535,7 @@ change to fix — as a review BLOCK is a defect in the work and not in the plugi
 missing or malformed key, an unresolved BRD, a resolved root BRD, a resolved Epic folder
 (`BRD_PACKAGE_EPIC_LEVEL`), an idea-route PRD folder
 (`BRD_PACKAGE_NOT_A_SLICE`), an ungated, absent or unmerged
-register or round record, an unsettled or uninterviewed round, nothing to review, a bundle directory
+register or round record, a folder holding a torn write (`BRD_PACKAGE_TORN_WRITES`), an unsettled or uninterviewed round, nothing to review, a bundle directory
 that already exists, and an unset `$SPECS_PATH` are environment or sequencing halts; the other
 bundle-integrity checks (`BRD_PACKAGE_DEAD_CITATION`, `BRD_PACKAGE_CITATION_MISMATCH`,
 `BRD_PACKAGE_SET_MISMATCH`) report what the assembled bundle and the records it was built from hold;

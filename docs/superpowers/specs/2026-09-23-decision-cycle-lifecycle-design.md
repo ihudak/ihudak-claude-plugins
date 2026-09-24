@@ -78,6 +78,20 @@ Out of scope: any change to what an abort or Cancel does, and any structural "ca
 - **Readers.** The *asked* test (BI:802–808), BP step 7's round derivation, BP part 7 and BR matching need no change, because under A1 no new stray can arise. Their premise, that every entry has a round record, is now true for any entry written after this change. The legacy detector covers entries written before it.
 - **Sweep.** `docs/commands/brd-interview.md` (≈397–399) is now true as written; re-read it. Re-read BI:352–357, 615–627, 1320–1337, 1545–1547 and 1600–1602 against the new write timing.
 
+### A1a. Rulings from Task 3 (revise A1)
+
+A1 as first written did not recover from a crash between Phase 9 writes. The regenerated round need not hold a `[C]` at the same positions. The *asked* test counts a stray entry's defect line, and every reader of an entry trusts it. A crash between the round record and the register also silently lost decisions.
+
+- **R23, write order.** Phase 9 writes `decisions.md`, then `code-defect-log.md`, then `customer-questions.md`, then `round-<N>.md` **last**. The round record is the commit point: a round's deliverables count only once its record names them.
+- **R24, torn writes.** A register record, `[CDF#n]` or `customer-questions.md` entry stamped with round N is a **torn write** where `interview/round-<N>.md` does not exist, or does not name it. The definition is stated once, in `decision-register-format.md`, and every reader cites it and never counts a torn item. The readers are:
+  - BI's *asked* test and question generation;
+  - BP step 7's round derivation and part 7;
+  - BR's matching;
+  - every consumer of the register that the implementer's sweep finds.
+
+  BI Phase 0 reports torn items. BI Phase 9 removes them in the same writes, before appending its own. That is the only deletion a run makes, and nothing ever counted those items. The idempotency rule of A1 is replaced by this.
+- **R25, pre-Phase-9 writes.** The `--round` re-open append and the round-1 test's appended questions are held in memory until Phase 9, like the `[C]` entries. "Phase 9 is the only writer" is scoped to a round's deliverables within `/brd-interview`. `/brd-reconcile` writes the same files by its own rules, and the no-new-round path's register header is a completed run's write, not a round's. A Cancel or an abort then writes nothing.
+
 ### A2. Question source for a reopened record (iii) and a structured re-puts marker (N1)
 
 - **N1 marker.** Every question in a round record that re-puts an existing record carries a structured line `- **Re-puts:** [VD#n]` (or `[CD#n]`, or `[AS#n]` where applicable), whatever its tag. The spelling is the one `[C]` entries already use, so there is one noun across the family. This covers:

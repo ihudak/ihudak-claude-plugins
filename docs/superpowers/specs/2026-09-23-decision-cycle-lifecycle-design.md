@@ -93,6 +93,11 @@ A1 as first written did not recover from a crash between Phase 9 writes. The reg
   BI Phase 0 reports torn items. BI Phase 9 removes them in the same writes, before appending its own. That is the only deletion a run makes, and nothing ever counted those items. The idempotency rule of A1 is replaced by this.
 - **R25, pre-Phase-9 writes.** The `--round` re-open append and the round-1 test's appended questions are held in memory until Phase 9, like the `[C]` entries. "Phase 9 is the only writer" is scoped to a round's deliverables within `/brd-interview`. `/brd-reconcile` writes the same files by its own rules, and the no-new-round path's register header is a completed run's write, not a round's. A Cancel or an abort then writes nothing.
 
+- **R27 (amends R23).** The order is `code-defect-log.md`, then `decisions.md`, then `customer-questions.md`, then `round-<N>.md`. A counted decision never cites a `[CDF#n]` that is on no file, and a crash can never let a later raise reuse that id.
+- **R28.** Where the round record being written, or resumed, carries no `code defects:` line (or requirement-defect line), Phase 9 first appends a baseline line naming the known set, before any new entry. So the legacy fallback ("a record without that line names every `[CDF#n]` of its round") never counts a torn entry.
+- **R29.** A `[CDF#n]` re-disposition is applied as a fifth write, after the round record. BI Phase 0 re-applies it idempotently from a counted record's `code defects: re-dispositioned … <old> → <new>` line. DRF §8 no longer lists a re-disposition among the in-place changes that stand.
+- **R30.** The no-new-round path also removes torn writes, since it completes a run. It reports what it removed.
+
 ### A2. Question source for a reopened record (iii) and a structured re-puts marker (N1)
 
 - **N1 marker.** Every question in a round record that re-puts an existing record carries a structured line `- **Re-puts:** [VD#n]` (or `[CD#n]`, or `[AS#n]` where applicable), whatever its tag. The spelling is the one `[C]` entries already use, so there is one noun across the family. This covers:

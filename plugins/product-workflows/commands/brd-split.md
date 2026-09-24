@@ -1403,10 +1403,7 @@ decisions exactly as its parent does, and the register it writes is its own. If 
 `/product-workflows:create-prd <SLICE-KEY>` applies in its own Phase 0 — the other being the level
 test that refuses the `BRD-` container this slice sits inside. It is still not offered here, and the reason is the register rather than the ledger: that run
 seeds its PRD from this slice's `decisions.md`, which `/product-workflows:brd-interview` has not written
-yet, so starting it from here would author a PRD off an allocation and no decisions at all. The route
-crosses into the PRD pipeline from `/product-workflows:brd-reconcile`'s own next-step offer, once the
-customer answers are frozen — three commands further on, which is why only the next one is named
-here:
+yet, so starting it from here would author a PRD off an allocation and no decisions at all. The route crosses into the PRD pipeline from `/product-workflows:brd-reconcile`'s own next-step offer, once the customer answers are frozen — three commands further on — or, on a slice whose every question `/product-workflows:brd-interview` settles from the findings, from that command's own next-step offer, one command on; either way the register comes first, which is why only the next command is named here:
 
 ```
 choices: ["Decide this slice's open questions — /product-workflows:brd-interview <BRD-KEY> (Recommended) <merge-clause>", "Stop here — this slice's allocation is complete"]

@@ -53,6 +53,18 @@ this stage). Zero external calls.
    gracefully:
    `CREATE_ARD_ONE_ADDRESS: /create-ard takes one address; <second-token> was given as a second. The folder the address resolves to sets the altitude by its prefix — an EPIC- folder gives an Epic-level ARD, with its PRD read from the folder above it; a PRD- folder gives a PRD-level one — and a legacy folder with no prefix by what it holds. Re-run '/product-workflows:create-ard <ADDRESS>' with the single address you meant.`
 
+   **Where the resolution returns `status: found`, settle the specs checkout before anything below
+   reads the folder.** Fix the run key set (`workflows-core:specs-repo-git` §3.2), reading only
+   carrier frontmatter (`key:`, `kind:`) as §4 does, whatever file that is, and testing no file's
+   presence: the resolved `key` and, where `workflows-core:addressing` §4.1 places the resolved
+   folder at Epic level — an `EPIC-` prefix, or with no prefix a resolved `kind: epic` — also the
+   key its parent's carrier asserts (§4), the would-be `<PRD>`. Then run the specs-repo preflight
+   below, and only then place the folder, detect the route and take step 1a's refusal and every
+   later read. A stale plugin branch the preflight switches away from would otherwise hide a
+   slice's `brd-link.md` from step 1a's listing, or the file that places the folder or detects the
+   route, and the run would list the wrong slices or stop where it would have proceeded. `absent`
+   runs no preflight at all: step 3 stops it with `CREATE_ARD_NOT_FOUND`, which reads nothing.
+
    **The resolved folder decides the altitude — as `workflows-core:addressing` §4.1 places it: by
    its prefix, never by the `kind` it asserts**, which on a slice is its `brd-link.md`'s `brd` (§4).
    This is what replaces the old two-key grammar:
@@ -85,9 +97,11 @@ this stage). Zero external calls.
    **The BRD route is detected, not declared.** A folder carrying `brd-link.md` was produced by
    `/brd-split` and holds the seed this command reads; nothing about that needs restating on the
    command line, and a flag that could disagree with the folder it names is one more disagreement to
-   have. Print which route the run entered before doing anything else.
+   have. Print which route the run entered — detected once the preflight above has run — before
+   doing anything else.
 
-1a. **Refuse a `BRD-` container — on either route, and the moment the address resolves.**
+1a. **Refuse a `BRD-` container — on either route, and the moment the specs-repo preflight step 1
+   ends with has run.**
 
    **Resolution waits on `$SPECS_PATH`, and there is exactly one of them.** `resolve-key` globs
    `specifications/**/*-<KEY>-*`, so it needs `$SPECS_PATH`; run step 1's resolution only after step 2
@@ -233,7 +247,7 @@ this stage). Zero external calls.
 
 `/create-ard` is **cwd-agnostic**; it reads the resolved folder's PRD/Epic — and, on the BRD route, that slice folder's seed, register and findings **in addition** — and scans repos under `$REPOS_PATH`.
 
-**Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run, retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts` step skips on it.
+**Specs-repo preflight** — run in step 1, once the resolution returns `status: found`, with the run key set step 1 fixes, before step 1 places the folder and before step 1a or any later step reads it. Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run, retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts` step skips on it.
 
 **Gate the PRD — on every route, with no branch.** The folder gated is **the PRD folder this run resolved**: the resolved folder itself for a PRD-level run, its parent for an Epic-level one, and — on the BRD route — the resolved `PRD-` slice folder, which *is* that route's PRD folder (§4.1). One rule, one path expression, no route test. Execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against the PRD file in that folder (written below as `specifications/<PRD>-<vslug>/` for brevity; the folder on disk carries its kind prefix — `PRD-<PRD>-<vslug>/` on a current tree, the unprefixed form only through §5's legacy fallback — and it is always the folder step 3 resolved, never a path re-derived here) — that file is `prd.md`, a constant. `/create-prd` and `/update-prd` write no other canonical name — the only other PRD file either writes is the dated copy `/update-prd` archives under `revisions/`, which is no PRD this gate could mean — and `workflows-core:addressing` §5 fixes the boundary: the legacy fallback resolves a folder name and nothing inside it, so a pre-rename tree renames its artifacts rather than being resolved for. **A key-globbed filename was gated here once, and is not restored.** The pre-rename `<KEY>_<slug>.md` form matches nothing in a current repo — so the gate returned `absent` for every PRD that was present and the rows D/E stop could never fire — and on the one tree it was written for it also matches the pre-rename ARD `<KEY>_ARD.md`, so it can gate the wrong artifact entirely. Gating the constant is correct on both trees: on a current one it names the file that is there, and on a pre-rename one it reports `absent`, which is what §5 now tells that operator to fix. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, read the authored PRD in Phase 2 as it would be read without this gate; on `absent`, the existing folder-read fallback applies — but report it: *"No authored PRD on `<default>` for `<PRD>` — architecting from the resolved folder at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
 
@@ -729,7 +743,7 @@ substitution out in full, `/create-prd` being reachable there on the `prd.md` te
 | A row still `unallocated` | `/product-workflows:brd-split <SLICE-KEY>` instead: `/create-prd` would raise `CREATE_PRD_BRD_UNALLOCATED`, and that walk is what moves those rows (allocate-only on a slice). Its own Phase 0 gates on this slice's grounding findings carrying a verifier verdict, so say so beside the offer |
 | No row `covered-here`, gate set **empty** — `brd-link.md` claims nothing | `/product-workflows:brd-split <PARENT-KEY>` instead — the keep-or-remove run for a standing empty child, and not a no-op there — in the form the parent's own ledger decides, exactly as `/product-workflows:create-prd` Phase 0 step 7's empty-gate-set row decides it: where that ledger still holds an `unallocated` row, `/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"`, since that run walks the row too and stops with `BRD_SPLIT_NEEDS_INSTRUCTION` without an instruction; where it holds none, the bare form; where it cannot be read, report it by path and name neither form |
 | No row `covered-here` and none `unallocated`, gate set **non-empty** | **Drop the option and name nothing in its place.** `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE`, whose non-empty branch names no command at all by design; say instead what the gate-set rows resolved to and that nothing in the plugin moves a terminal row back to `unallocated` |
-| No `coverage-ledger.md` beside the `brd-link.md`, while that file claims rows | **Drop the option and name nothing in its place**, and report the missing `<slice-dir>/coverage-ledger.md` by path: this is not an empty gate set, and `coverage-ledger-format.md` §5.2 forbids resolving it to the empty row's `/brd-split <PARENT-KEY>` |
+| No readable `coverage-ledger.md` beside the `brd-link.md` — absent, or present and unreadable — while that file claims rows | **Drop the option and name nothing in its place**, and report `<slice-dir>/coverage-ledger.md` by path, as missing or as unreadable with the read error: this is not an empty gate set, and `coverage-ledger-format.md` §5.2 forbids resolving it to the empty row's `/brd-split <PARENT-KEY>` |
 
 **Dropping rather than annotating follows `commands/brd-reconcile.md` Phase 14**, which runs these
 same two data tests before offering `/product-workflows:create-prd <SLICE-KEY>` and drops the option on
@@ -754,7 +768,7 @@ judge for themselves. Where the option is dropped and nothing replaces it, the a
   - **No `prd.md`, and a claimed row is still `unallocated`** — `choices: ["Author this slice's specification — /product-workflows:specify <SLICE-KEY> (PE) (Recommended) <merge-clause>", "Allocate this slice's ledger — /product-workflows:brd-split <SLICE-KEY> (PM) <merge-clause>", "Stop here"]`
   - **No `prd.md`, no row `covered-here`, the gate set is empty — a standing empty child — and the parent's own `coverage-ledger.md` still holds an `unallocated` row** — `choices: ["Author this slice's specification — /product-workflows:specify <SLICE-KEY> (PE) (Recommended) <merge-clause>", "Keep or remove this empty slice — /product-workflows:brd-split <PARENT-KEY> \"<how to cut it>\" (PM)", "Stop here"]` — that run walks the parent's unallocated row too and stops with `BRD_SPLIT_NEEDS_INSTRUCTION` without an instruction, so the bare form would name a run that stops on arrival (`/product-workflows:create-prd` Phase 0 step 7's empty-gate-set row).
   - **No `prd.md`, no row `covered-here`, the gate set is empty, and the parent's own `coverage-ledger.md` holds no `unallocated` row** — `choices: ["Author this slice's specification — /product-workflows:specify <SLICE-KEY> (PE) (Recommended) <merge-clause>", "Keep or remove this empty slice — /product-workflows:brd-split <PARENT-KEY> (PM)", "Stop here"]`
-  - **No `prd.md`, and either no row `covered-here` and none `unallocated` with the gate set non-empty, or no `coverage-ledger.md` while `brd-link.md` claims rows, or the gate set empty and the parent's `coverage-ledger.md` unreadable** — `choices: ["Author this slice's specification — /product-workflows:specify <SLICE-KEY> (PE) (Recommended) <merge-clause>", "Stop here"]` — the second option is dropped and nothing takes its place, per the precondition table's third, fourth and fifth rows; say instead what the gate-set rows resolved to, or, where a ledger is missing or unreadable, report it by path.
+  - **No `prd.md`, and either no row `covered-here` and none `unallocated` with the gate set non-empty, or no readable `coverage-ledger.md` while `brd-link.md` claims rows, or the gate set empty and the parent's `coverage-ledger.md` unreadable** — `choices: ["Author this slice's specification — /product-workflows:specify <SLICE-KEY> (PE) (Recommended) <merge-clause>", "Stop here"]` — the second option is dropped and nothing takes its place, per the precondition table's third, fourth and fifth rows; say instead what the gate-set rows resolved to, or, where a ledger is missing or unreadable, report it by path.
   - **`/product-workflows:specify <SLICE-KEY>` is always reachable from this state.** It takes
     the same slice key this run resolved — and passes that command's own container refusal for the
     same reason this run did, finds the same folder through `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), and needs no key minted anywhere else. It
@@ -903,7 +917,7 @@ read that content out of is the one this run already read. Say plainly whether `
 folder holds no authored `prd.md`, and name what Phase 7's precondition table put in its place —
 `/product-workflows:create-prd <SLICE-KEY>`, a `/product-workflows:brd-split` against this slice or its
 parent, or nothing at all where this slice's gate set holds no `covered-here` row, none
-`unallocated`, and is not empty, or where its `coverage-ledger.md` is missing. Where the answer is
+`unallocated`, and is not empty, or where its `coverage-ledger.md` is missing or unreadable. Where the answer is
 *nothing*, say that too, and say why: `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE` and
 that branch names no command either — or, for a missing ledger, that there is no gate set to judge,
 naming the file by path. Name the folder tested, the

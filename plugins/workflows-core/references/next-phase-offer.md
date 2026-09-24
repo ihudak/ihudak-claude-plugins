@@ -140,7 +140,9 @@ array carries every option.
   `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>` (PM).
 - `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>` → the route's hand-over into the PRD
   pipeline, and its own re-entry. **Re-entry:** another `/product-workflows:brd-interview <BRD-KEY>`
-  round where this run reopened a decision and left every round closed, `/product-workflows:brd-package <BRD-KEY>` where questions
+  round where this run reopened a decision and no round stays open holding only questions held for the
+  customer — a round open on a *deferred*, *untagged* or *needs grounding* question is one that run
+  resumes — `/product-workflows:brd-package <BRD-KEY>` where questions
   remain for the customer, or `/product-workflows:prd-ground <BRD-KEY> --rebaseline` where the review
   challenged a code claim. **Advance is offered off the slice key this run reconciled** —
   `/product-workflows:brd-reconcile` itself never resolves a root, so there is no level of its own

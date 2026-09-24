@@ -585,7 +585,10 @@ list is empty — which the table above resolves to `/brd-split <PARENT-KEY>` (w
 instruction, as the parent's ledger decides), and resolving a missing file to the same offer would send an operator to keep-or-remove a slice on evidence nobody has.
 **Name no option at all.** Report the absent `<slice-dir>/coverage-ledger.md` by path, say that
 `/brd-split` wrote it and landed it with the slice, and leave recovering it from the specs repo's
-history to the operator — nothing in this plugin rewrites a slice's ledger in place. The rule is
+history to the operator — nothing in this plugin rewrites a slice's ledger in place. **A
+`coverage-ledger.md` that is present and cannot be read is the same state for this purpose**: its
+rows are `unresolved` (§6.2), so neither data refusal can be evaluated either — name no option, and
+report the file by path with the read error. The rule is
 stated here, in the authority every offering command already cites; each command that reads a slice's
 ledger to shape an offer or a remedy carries a row for this state that cites it.
 

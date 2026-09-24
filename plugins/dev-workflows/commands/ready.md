@@ -33,6 +33,16 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
    folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). `status: found` → carry its `path`, `kind`
    and `key` forward; `ambiguous` → stop, naming every match; `invalid` → stop with `READY_NEEDS_KEY` below, naming the token that failed §1's grammar. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command.
 
+   **Then settle the specs checkout, before the placement below reads anything.** Fix the run key
+   set (`workflows-core:specs-repo-git` §3.2), reading only carrier frontmatter (`key:`, `kind:`) as
+   §4 does, whatever file that is, and testing no file's presence: the resolved `key` and, where
+   `workflows-core:addressing` §4.1 places the resolved folder at Epic level — an `EPIC-` prefix, or
+   with no prefix a resolved `kind: epic` — also the key its parent's carrier asserts (§4), the
+   would-be `<PRD>`. Then run the specs-repo preflight below, and only then place the folder and
+   take its stops. A stale plugin branch the preflight switches away from would otherwise hide a
+   slice's `brd-link.md` from `READY_BRD_NOT_SLICED`'s listing, or hide the file that places the
+   folder, and the run would list the wrong slices or stop where it would have proceeded.
+
    **The folder decides the altitude and the ladder, replacing the two-key grammar — as
    `workflows-core:addressing` §4.1 places it, never by the kind it asserts.** A BRD-route slice is
    a `PRD-` folder whose `brd-link.md` asserts `kind: brd` (§4), and `workflow-states.md` has no
@@ -64,7 +74,8 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
    `/ready` is **address-required**: with no positional address, or one `resolve-address` returns
    `invalid`, stop with
    `READY_NEEDS_KEY: /ready needs a PRD or Epic address — a key, or an @<path> to its folder.` —
-   `/ready` has no direct-prompt behavior.
+   `/ready` has no direct-prompt behavior. On `invalid` the message goes on, naming the token:
+   ` — '<token>' is not a key (workflows-core:addressing §1).`
 
 1a. **`--claimed "<status>"` (optional).** Its value is a workflow phase the operator declares — a
     status pasted from whatever tracker they keep, or typed from memory. When present, the run
@@ -81,9 +92,13 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
 
 2. **Resolve `$SPECS_PATH`.** `/ready` reads the ARD/spec/design artifacts and writes `_readiness.md`
    under `$SPECS_PATH/specifications/`. If `$SPECS_PATH` is unset, stop with a clear error naming
-   `SPECS_PATH`: `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`.
+   `SPECS_PATH`: `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`. **Take this test before
+   step 1 resolves anything**: a key is found only by searching the specs tree, so with no tree
+   step 1's `absent` stop would name the wrong cause, and the preflight step 1 ends with needs the
+   variable.
 
-**Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run,
+**Specs-repo preflight** — run at the end of step 1's address resolution, with the run key set step 1
+fixes, before step 1 places the folder or takes any of its stops. Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run,
 retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the
 specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
 `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts`

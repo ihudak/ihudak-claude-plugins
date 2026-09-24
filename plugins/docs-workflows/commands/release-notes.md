@@ -66,7 +66,8 @@ This command makes **zero external API calls** and **never writes into the docs 
    for these stops only once it has settled the specs checkout's branch: a stale plugin branch it
    switches away from would otherwise make a `prd.md` that is on the default branch look absent. None of these is the `key dir not found` rule: the key resolved, so re-entering it cannot help. A
    PRD-level or Epic-level folder whose PRD folder holds a `prd.md` and carries a key takes none of
-   them and runs on as above.
+   them and runs on as above. **Each of these stops is a user halt** — it reports the operator's own
+   tree, not a capability this plugin lacks — **so `emit-block` does not fire** on any of them.
    - **A BRD container** — the folder §4.1's container test places — holds no PRD: a BRD's PRDs are
      authored in its `PRD-` slices. List the slices under it by the positive test §4.1 names, each
      immediate subdirectory carrying a `brd-link.md` whose `parent:` names the container. A slice
@@ -78,7 +79,19 @@ This command makes **zero external API calls** and **never writes into the docs 
      key", or in the harness's free-text option — is resolved against the keyed slices this stop
      listed, and never parsed or resolved on its own.** An answer equal to one listed key
      re-enters this step's address resolution with that slice's `@<path>`, which the listing already
-     holds, so no key is searched for again and `$SPECS_PATH` is not needed for it. An answer equal
+     holds, so no key is searched for again and `$SPECS_PATH` is not needed for it.
+     **Re-entering fixes the run key set afresh, for the slice** — its key, as the placement fixes it for
+     any address — **and runs the specs-repo preflight again with it before step 1's stops are
+     tested.** The preflight is prompt-free and idempotent, and the container's key set is the wrong
+     one for the slice: it can have kept the run on a plugin branch named for the container, which
+     the slice's key set switches away from (`workflows-core:specs-repo-git` §3.5 B4), exactly as a
+     direct run on the slice would. **The one state a second preflight cannot restore is a branch
+     the first one left**: where the first preflight's B4 switched away from a plugin branch that
+     §3.5's `branch-key` resolves to the slice's key, switch back to it first —
+     `git -C "$SPECS_PATH" switch <branch>`, a branch that already exists and that the plugin
+     created — because it is the branch a direct run's B3 would have kept, and holds whatever of
+     the slice is not merged yet; the second preflight's B3 then stays on it. Where that switch
+     fails, report it with the branch name and go on from the branch the run stands on. An answer equal
      to none — a keyless slice's path among them — re-presents this stop, saying the answer named
      none of the enterable slices. "Cancel" ends the run. **Where the test finds no slice, there is
      nothing to enter, so no `choices:` array is shown** and the stop is a plain one: its message
@@ -94,14 +107,19 @@ This command makes **zero external API calls** and **never writes into the docs 
      `@<path>`, and the remedy's `<KEY>` is left for the operator to supply (§3 step 1).
    - **A PRD folder with no key.** Where §4.1 places the PRD folder at PRD level but `<PRD>` came
      back empty — an `@<path>` to a folder with no carrier (§3 step 1), such as a slice whose
-     `brd-link.md` asserts no `key:`, or an Epic whose PRD folder has none — stop, naming that folder
-     and the two ways on §3 step 1 gives: give it a carrier (`workflows-core:addressing` §5), or,
-     where its name is unprefixed, address it by its `<KEY>`. This command needs the key:
+     `brd-link.md` asserts no `key:`, or an Epic whose PRD folder has none — stop, a plain stop with
+     no `choices:`, naming that folder and the two ways on §3 step 1 gives:
+     `RELEASE_NOTES_PRD_NO_KEY: the PRD folder <path> asserts no key, and /release-notes needs one — Phase 8 titles a new release-notes.md with it. Give it a carrier (workflows-core:addressing §5)<or-key>.`
+     `<or-key>` is `, or address it by its <KEY>` where the folder's name is unprefixed, and empty
+     where it carries a kind prefix. This command needs the key:
      Phase 8 titles a new `release-notes.md` `# Release notes — <PRD> <slug>`.
    - **A PRD folder holding no `prd.md`.** Where §4.1 places the resolved folder at PRD or Epic
      level, test the PRD folder for a `prd.md`. The test is the file's presence: a `prd.md` asserting
-     no `kind: prd` is read in Phase 3, not refused. Where there is none, stop — a plain stop with no
-     `choices:`:
+     no `kind: prd` is read in Phase 3, not refused. **A `prd.md` that is present and cannot be read
+     is no PRD the run can read either**: stop on this same code, a plain stop naming no command and
+     taking none of the remedies below —
+     `RELEASE_NOTES_NO_PRD: <KEY>'s folder <path> holds a prd.md this run cannot read (<error>). Make it readable, then re-run.`
+     Where there is none, stop — a plain stop with no `choices:`:
      `RELEASE_NOTES_NO_PRD: <KEY>'s folder <path> holds no prd.md. <the remedy>`
      `<KEY>` is `<PRD>` and `<path>` the PRD folder, on an Epic-level run as on a PRD-level one.
      `<the remedy>` turns on what that folder carries, because `/product-workflows:create-prd`
@@ -111,8 +129,9 @@ This command makes **zero external API calls** and **never writes into the docs 
      - **A `brd-link.md`** — a BRD-route slice. Read the rows its `claims:` names (its gate set) and
        their dispositions from the slice's own `coverage-ledger.md`, never from a `ledger:` line,
        and take the first row that applies:
-       - `coverage-ledger.md` missing while `claims:` names rows: name no command. Report the
-         missing `<path>/coverage-ledger.md`, and say `/product-workflows:brd-split` wrote it with
+       - `coverage-ledger.md` missing, or present and unreadable, while `claims:` names rows: name no
+         command. Report `<path>/coverage-ledger.md` as missing, or as unreadable with the read
+         error, and say `/product-workflows:brd-split` wrote it with
          the slice.
        - A gate-set row still `unallocated`:
          `Allocate it with /product-workflows:brd-split <KEY>, then run /product-workflows:create-prd <KEY>.`
@@ -135,7 +154,8 @@ This command makes **zero external API calls** and **never writes into the docs 
 
    With no positional address, or one `resolve-address` returns `invalid`, stop with
    `RELEASE_NOTES_NEEDS_KEY: /release-notes needs a PRD or Epic address — a key, or an @<path> to its folder.` —
-   this command has no direct-prompt behavior.
+   this command has no direct-prompt behavior. On `invalid` the message goes on, naming the token:
+   ` — '<token>' is not a key (workflows-core:addressing §1).`
 
 **Specs-repo preflight** — run as soon as step 1 has resolved and placed the address, and before
 step 1's named stops (above). Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session
@@ -303,8 +323,8 @@ note covers that Epic's user-facing changes rather than the whole PRD. This scop
 renders; it does not mutate the stored handoff that other phases read. When `focus_key` is null, the
 draft covers the whole PRD, as it does on a run with no Epic address.
 
-The PRD folder holds a `prd.md` here: Phase 0 step 1's `RELEASE_NOTES_NO_PRD` has already
-stopped a run whose PRD folder holds none.
+The PRD folder holds a readable `prd.md` here: Phase 0 step 1's `RELEASE_NOTES_NO_PRD` has already
+stopped a run whose PRD folder holds none, or holds one it cannot read.
 
 Capture `change_type` and `release_notes_category` from the PRD folder's `prd.md`, where it
 carries them (null when absent). **Read them from the PRD, which is the reversal**: these were
@@ -599,7 +619,7 @@ current working directory, where it is not the specs repository; no user name is
 
 ## Invariants (always enforced)
 
-- ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation).
+- ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation, and Phase 0 step 1's named stops on a folder that resolved — `RELEASE_NOTES_BRD_NOT_SLICED`, `RELEASE_NOTES_FOLDER_NOT_PLACED`, `RELEASE_NOTES_PRD_NO_KEY` and `RELEASE_NOTES_NO_PRD`, each reporting the operator's own tree).
 - ZERO external API calls — this run has no forge URL to resolve in the first place: Phase 3 builds `refs[]` from `implementation.md` and the commit scan, and `diff-summarizer` takes a ref's diff with pure local `git`.
 - Every read of the specs tree is read-only.
 - The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block. The scope comment Phase 8 writes above it names a key and the commits the run read, and is not part of the draft (`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1).
@@ -608,7 +628,7 @@ current working directory, where it is not the specs repository; no user name is
 - The run has **no worthiness gate**: every PRD is relevant for release notes, so there is no content state in which this command refuses to draft. `relevant_for_release_notes` is retired (`workflows-core:prd-format`) and a value left in an existing PRD is read by nothing. Whether a note is drafted is the decision of whoever runs the command.
 - NEVER write into a docs repo. The draft's one destination is `release-notes.md` in the resolved PRD folder, which is persistent (never `/tmp`), and it is appended to, never overwritten: no earlier section is ever rewritten or removed (Phase 8). The style gate's scratch copy is removed in every case, with `command rm -f --` (Phase 7).
 - ALWAYS use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
-- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`workflows-core:specs-repo-git` §2.2); it creates none), and no commit of anything in a docs/code repo or the current working directory, where it is not the specs repository. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1) — the draft, `release-notes.md` in the resolved PRD folder, among them, so it is committed in the specs repository and nowhere else.
-- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
+- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight`, and the one switch Phase 0 step 1 makes itself, back to a branch the first preflight left when the operator enters a slice key, move `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`workflows-core:specs-repo-git` §2.2); neither creates one), and no commit of anything in a docs/code repo or the current working directory, where it is not the specs repository. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1) — the draft, `release-notes.md` in the resolved PRD folder, among them, so it is committed in the specs repository and nowhere else.
+- ALWAYS run `specs-preflight` at Phase 0 — again, with the slice's key set, where step 1 re-enters for a slice the operator entered at `RELEASE_NOTES_BRD_NOT_SLICED` — and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the PRD is fully processed).
 - ALWAYS end the Phase 8 report with a `### Context hygiene` block per `workflows-core:session-hygiene` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `workflows-core:session-hygiene` §1 — this block prints the guidance only), then a leaf-aware suggestion (done → nothing; pending role → `/clear`) + `/rename <PRD-ID>-<slug>-<role>` using this run's inferred lane (`pm` or `dev`, per the Phase 6 inference); guidance only, never auto-run.

@@ -644,8 +644,8 @@ Had this ledger left a row `unallocated`, or left none `covered-here`, the first
 dropped from the offer and the stop would say which test failed; the other two would still be
 offered. Had the run instead reopened a decision or left a question held for the customer,
 `advance_ready` would be `no`, and Phase 14 would offer the re-entry the trigger names — another
-`/brd-interview` round where every round is closed, a re-package, or a `/prd-ground --rebaseline`
-pass — never the three above. Whatever else it offers, a record its propagation sweep reopened in a
+`/brd-interview` round where every round is closed, or the resume of an open one that is not held
+only for the customer, a re-package, or a `/prd-ground --rebaseline` pass — never the three above. Whatever else it offers, a record its propagation sweep reopened in a
 dependent BRD is named beside the list with `/brd-interview` on that dependent's key.
 
 ## See also

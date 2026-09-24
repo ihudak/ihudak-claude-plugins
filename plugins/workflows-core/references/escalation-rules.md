@@ -178,8 +178,9 @@ Used when the address resolved to no folder — `resolve-address` returned `stat
 folder that resolved earlier in the run is gone when a later phase reads it.
 **A folder that is there is never this case, whatever it holds**: re-entering a key that resolved
 cannot help. A command that stops on what such a folder holds — a BRD container, a folder placed at
-no level, a PRD folder with no `prd.md` — raises a named stop of its own instead, as `/document`'s
-and `/release-notes`' `*_BRD_NOT_SLICED`, `*_FOLDER_NOT_PLACED` and `*_NO_PRD` do. (The
+no level, a PRD folder carrying no key, a PRD folder with no `prd.md` — raises a named stop of its
+own instead, as `/document`'s and `/release-notes`' `*_BRD_NOT_SLICED`, `*_FOLDER_NOT_PLACED`,
+`*_PRD_NO_KEY` and `*_NO_PRD` do. (The
 folder read is an inline step each command performs, not an agent returning a status — this rule
 described a dispatch that no longer exists.)
 

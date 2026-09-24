@@ -467,7 +467,7 @@ traceability is relative links that resolve rather than names a reader must go a
 links reach down into the slice folders, which is where the priced detail lives.
 
 **Archive the predecessor before overwriting it**, exactly as §2 fixes it: the path under
-`revisions/`, the same-day suffix, and the `revision_of:` the new canonical records are all §2's, and
+`revisions/`, the first free name it falls to wherever the dated one is taken, and the `revision_of:` the new canonical records are all §2's, and
 Phase 11 hands off the paths it produced.
 
 **Render §4's twenty-three-row section set, in its order, at umbrella altitude** — §14 fixes what
@@ -514,7 +514,7 @@ spine-only brief is a defect, not a shorter brief** (§10): every item in rows 2
 carries reaches the brief, and every figure the brief repeats matches the umbrella.
 
 **Archive the prior brief only where this run renders one** (§2) — the prior `proposal-brief.md`
-moves to `<folder>/revisions/<KEY>_proposal-brief_<YYYYMMDD>.md` under §2's same-day suffix rule.
+moves to `<folder>/revisions/<KEY>_proposal-brief_<YYYYMMDD>.md` under §2's first-free rule.
 Archiving is tied to overwriting, so a run that renders no brief archives none. Where a prior brief
 is therefore left standing beside a newly written umbrella, **say so plainly in the final report**:
 that file describes the archived revision and not this one.
@@ -595,8 +595,9 @@ On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:re
 (§2.9's table — the shared prefix every `/brd-*` command uses; the eight prefixes §1 rule 3 fixes are
 not extended, and nothing about an umbrella makes it a ninth phase), `feature_folder` as resolved in
 Phase 0, `deliverable_paths` = `proposal.md`, `proposal-brief.md` where this run rendered one, and, on
-a revision, the archived prior under `revisions/` — `<KEY>_proposal_<YYYYMMDD>.md`, and
-`<KEY>_proposal-brief_<YYYYMMDD>.md` where a brief was archived beside it,
+a revision, the archived prior under `revisions/` at the name §2's first-free rule actually wrote —
+`<KEY>_proposal_<YYYYMMDD>.md`, or the first free `-2`, `-3` form where that was taken — and the brief
+archived beside it, where one was, at the name the same rule wrote for it,
 `title: <BRD-KEY> Programme effort proposal <YYYYMMDD>`, and `body_facts` = the slices included and
 the slices excluded, each by key; the umbrella tier with the slice that set it and the tier mix; the
 `[WP#n]` count and the total expected hours with its summed range; every named adjustment and what it

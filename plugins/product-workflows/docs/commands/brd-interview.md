@@ -326,8 +326,9 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   `- **Re-puts:**`, the same line the question carries in the round record, from which
   `/brd-reconcile`, once the customer answers, supersedes a held record that reads `open` or
   `decided` and re-decides a reopened one in place — reading each status as the register stood
-  before its run wrote anything — and leaves a `withdrawn` or `superseded` one as it is, naming it
-  beside the new record under what still needs a human.
+  before its run wrote anything — follows a `superseded` one to its live successor and acts on that
+  one instead, and, where the record or its successor reads `withdrawn`, freezes nothing, names the
+  answer under what still needs a human and closes the question, naming the withdrawal.
 - `code-defect-log.md` — the code-defect log: one `[CDF#n]` per defect in the code that a decision
   turns on, each citing the verified `[CG#n]` that established the behaviour and naming separately
   what the code is supposed to do and what says so. Written where a round raised one **or
@@ -408,8 +409,10 @@ but the push and the pull request cannot run.
   `prior_verdict` existed carries none, so a decision resting on one is reopened. A `[V]` is
   re-decided in place here, and a `[C]` by `/brd-reconcile` from the customer's answer in the next
   package, each keeping its id — unless another run has meanwhile left the record `withdrawn` or
-  `superseded`, when it does not move and the answer is a new record named beside it under what
-  still needs a human. The tag
+  `superseded`, when it does not move: a `[V]` answer is then a new record named beside it under
+  what still needs a human, while `/brd-reconcile` acts on a superseded `[CD#n]`'s live successor
+  and freezes nothing beside a withdrawn one, naming the answer for a human and closing the
+  question. The tag
   never moves, and no other question source raises a question on those successors, so one decision
   is never asked about twice. A decision resting on no finding, and a customer answer still waiting
   for its reason, are never taken, and nor is a decision whose question is already put and still
@@ -461,8 +464,10 @@ but the push and the pull request cannot run.
   again at once, naming that finding. Its answer is a new
   record, and the held one — where it reads `open` or `decided` — is superseded by it: here for a
   `[V]`, by `/brd-reconcile` for a `[C]`. One a propagation sweep reopened meanwhile is re-decided
-  in place instead, and one another run has left `withdrawn` or `superseded` does not move, and is
-  named beside the new record under what still needs a human.
+  in place instead, and one another run has left `withdrawn` or `superseded` does not move: for a
+  `[V]` the answer is a new record named beside it under what still needs a human, and for a `[C]`
+  `/brd-reconcile` acts on a superseded record's live successor, and on a withdrawn one freezes
+  nothing, names the answer for a human and closes the question.
   **Cancel on this picker writes nothing the run decided**: it stops the run before the register phase, so no
   decision this run took is written, and no `[C]` question it held either, and the next run puts the question again — or, for a round
   this run opened, regenerates it and asks only what is still askable.

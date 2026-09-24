@@ -1121,10 +1121,14 @@ its closing `Superseded <YYYYMMDD>: by [VD#m]` paragraph (`decision-register-for
 `[C]` is held for the customer, and `/product-workflows:brd-reconcile`'s *Freeze the customer
 decisions* phase supersedes the held `[CD#n]` from the same line. **One reading `withdrawn` or
 `superseded` — terminal (§3), which a sweep or a reconciliation may have written while its question
-waited — does not move**: the answer still mints a new record — a `[VD#n]` here, a `[CD#n]` by
-`/product-workflows:brd-reconcile` — the terminal record keeps its status and gains no paragraph,
-and the run that writes the answer names both, the new record and the terminal one, under what
-still needs a human, since the question was put against a record that no longer stands. A question put again and *deferred* keeps its round open, and the
+waited — does not move**, and gains no paragraph. For a `[V]`, the answer still mints a new
+`[VD#n]` here, and this run names both, the new record and the terminal one, under what still needs
+a human, since the question was put against a record that no longer stands. For a `[C]`,
+`/product-workflows:brd-reconcile` follows a `superseded` record to its live successor and acts on
+that one as though the line named it, and freezes nothing from an answer whose record, or live
+successor, reads `withdrawn`: it names the answer for a human and closes the entry *answered by the
+customer*, naming the withdrawal (its *Confirm every candidate* phase and its *Freeze the customer
+decisions* phase, steps 1 and 3). A question put again and *deferred* keeps its round open, and the
 record stands as it is until the question is answered. **No other source raises a question on a
 successor this source has read** — a successor of a finding in the `evidence` of any held record,
 waiting or put again, or of any plain record any `evidence` finding of which reads `SUPERSEDED`,

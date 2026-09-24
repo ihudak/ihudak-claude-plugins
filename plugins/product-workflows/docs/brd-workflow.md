@@ -177,8 +177,10 @@ askable, and the round opened puts the question again against the current findin
 it had. The answer supersedes the held record where it reads `open` or `decided`, in `/brd-interview` for
 a `[V]` and in `/brd-reconcile` for a `[C]`, which reads each status as the register stood before
 its run wrote anything; one a propagation sweep reopened meanwhile is re-decided in place, and one
-another run left `withdrawn` or `superseded` does not move and is named beside the new record under
-what still needs a human.
+another run left `withdrawn` or `superseded` does not move. For a `[V]` the answer is then a new
+record named beside it under what still needs a human; for a `[C]`, `/brd-reconcile` acts on a
+superseded record's live successor instead, and on a withdrawn one freezes nothing, names the
+answer for a human and closes the question.
 
 **A settled decision a re-grounding moved is reopened.** Where a re-grounding supersedes
 any finding a decided `[VD#n]` or `[CD#n]` the will-change rule did not hold rests on,
@@ -195,8 +197,10 @@ tested like any other. A reopened
 decision has its question put in the next round, and a confirmed one raises nothing. A `[V]` is
 re-decided there, and a `[C]` by
 `/brd-reconcile` from the customer's answer in the next package, each keeping its id — unless another
-run has meanwhile left the record `withdrawn` or `superseded`, when it does not move and the answer is
-a new record named beside it under what still needs a human.
+run has meanwhile left the record `withdrawn` or `superseded`, when it does not move: a `[V]` answer
+is then a new record named beside it under what still needs a human, while `/brd-reconcile` acts on
+a superseded `[CD#n]`'s live successor and freezes nothing beside a withdrawn one, naming the answer
+for a human and closing the question.
 
 **A decision reopened elsewhere is put again too.** `/brd-reconcile` reopens a decided `[VD#n]` or
 `[CD#n]` when a customer answer contradicts or constrains it without replacing it, and its

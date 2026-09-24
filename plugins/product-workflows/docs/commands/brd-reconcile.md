@@ -173,8 +173,8 @@ with the constraining `[CD#n]`, under what still needs a human. `superseded` and
 both statuses the register already defines for `[VD#n]` *and* `[CD#n]`, and an incoming customer decision is one of
 the two causes that may reopen anything. The case this exists for is the corrected resend the
 canonicalisation step calls ordinary — without it, two `decided` answers to one question sit in the
-register with nothing to adjudicate between them. A resend's answer that repeats a `decided` record
-exactly never gets that far: Phase 4 skips it (below).
+register with nothing to adjudicate between them. A resend's answer that re-affirms the question's live
+record never gets that far: Phase 4 records it and freezes nothing (below).
 
 And it updates, in place: `decisions.md` (the new `[CD#n]`, the superseded `[AS#n]` and `[CD#n]`,
 each with its closing `Superseded` paragraph, the reopened `[VD#n]` and `[CD#n]`, the `[CD#n]`
@@ -311,23 +311,29 @@ command removes none of them; the next `/brd-interview` run does.
   the answer rather than by what the array leaves out. Aborting the walk stops the run with **nothing
   frozen**: no record exists until the freeze phase, so an aborted walk loses its confirmations and
   a re-run re-offers every candidate.
-- **Phase 4 — a resumed run never re-asks what it already froze.** A candidate whose target already
-  carries, from an earlier pass over the same review, a `decided` `[CD#n]` or one the will-change
-  rule held `open` is skipped, because two customer answers to one question is a contradiction one
-  record cannot hold. Every target is first resolved to its question's **live record** — the
-  record its answer, its assumption or its `- **Re-puts:**` line names, followed through every
-  supersession to the successor that stands — and everything below reads that record. A different
-  review — a corrected resend — is skipped too where its answer re-affirms the live record: on a
-  `decided` one, `conditional_on` or not, the same `chosen` and a reason byte-equal to the customer's
-  words the record's `argumentation` closes on once whitespace is collapsed; on a `decided` or
-  `open` one, the same `chosen` with no reason stated at all, since a missing reason is not a
-  different one. It is reported as *already reconciled, re-affirmed by* that review, mints nothing,
-  marks nothing answered and adds nothing to the propagation sweep; any other answer to that record,
-  once frozen — the same option with a different reason included — is a new answer that supersedes
-  it, and where another candidate of the walk reaches the same live record neither is skipped. An
-  answer whose live record is `withdrawn` freezes nothing and is named under what still needs a
-  human. A target carrying a `[CD#n]` that is `open` for want of its reason is
-  re-offered, and confirming it **completes that record** rather than minting a second id. A record
+- **Phase 4 — a resumed run never re-asks what it already settled.** Every target is first
+  resolved to its question's **live record**: the earliest record frozen against it — the one its
+  first answer names, an answer frozen `open` for want of its reason on a question still held, the
+  assumption itself, or the record its `- **Re-puts:**` line names — followed through every
+  supersession to the successor that stands. An escalated `[SR#n]` resolves only through the
+  self-review file of the package the review answers, since every package numbers those findings
+  from `[SR#1]` again; where that file cannot be determined, nothing is skipped and the answer
+  supersedes nothing. A candidate whose chain holds a record an earlier pass over **the same
+  review** wrote is skipped as already reconciled, whatever that record's status is now, so
+  re-running an earlier review never reverts a later one's answer. A different review — a corrected
+  resend — freezes nothing where its answer re-affirms the live record, tested once the operator
+  has confirmed the row, and so the option it maps to and, in free-text mode, a missing reason: on
+  a `decided` record, `conditional_on` or not, the same `chosen` and a reason byte-equal to the
+  customer's words the record's `argumentation` closes on once whitespace is collapsed; on a
+  `decided` or `open` one, the same `chosen` with no reason stated at all, since a missing reason is
+  not a different one. It is reported as *already reconciled, re-affirmed by* that review, mints
+  nothing, marks nothing answered and adds nothing to the propagation sweep; any other answer to
+  that record, once frozen — the same option with a different reason included — is a new answer
+  that supersedes it. An answer whose live record is `withdrawn` freezes nothing: the operator
+  records it for a human or rejects it, and a held question it answers is closed, naming the
+  withdrawal, so its round can close. A live record `open` for want of its reason is **completed**,
+  minting nothing, by an answer with its own `chosen` and a reason now stated, and superseded by one
+  choosing differently. A record
   the will-change rule held open is never completed: it already carries the customer's choice and
   reason, so a later review's answer against it mints a new `[CD#n]` that supersedes it — never
   reopens it, since a record held `open` was never decided — and the rule is tested on the new one.
@@ -340,15 +346,15 @@ command removes none of them; the next `/brd-interview` run does.
   [`/brd-interview`](brd-interview.md) put its question again — is **re-decided in place**, keeping its id, the customer's new reason appended beneath the `Reopened` paragraph;
   one another answer superseded while the question travelled is followed to its live successor,
   which the answer then acts on as though the line named it; and one withdrawn while it travelled
-  keeps its status and takes no answer — nothing is frozen, and the answer is named under what
-  still needs a human. Where another
+  keeps its status and takes no answer — nothing is frozen, the answer is named under what still
+  needs a human, and the question is closed, naming the withdrawal. Where another
   answer in the same run also bears on that record, the `- **Re-puts:**` line decides it. Where
   answers reach one record with none naming it on such a line — one replacing it, others only
   constraining it — the one that replaces it decides it, as it would for the status the record held:
-  superseded by that `[CD#n]`, or, where it was frozen `open` for want of its reason, completed by
-  it; a terminal record takes nothing. Two or more answers that only constrain one `decided` record
-  reopen it once, naming every one of them as the cause. In every case the record is named with every
-  `[CD#n]` that reached it under what still needs a human.
+  superseded by that `[CD#n]`, or, where it was frozen `open` for want of its reason and the answer
+  chose what it chose, completed by it; a terminal record takes nothing. Two or more answers that
+  only constrain one `decided` record reopen it once, naming every one of them as the cause. In
+  every case the record is named with every `[CD#n]` that reached it under what still needs a human.
 - **Phase 4 — two candidates answering one question are never both frozen.** Where a second
   candidate is confirmed onto a question another candidate of the walk already took, the operator is
   shown both and picks one to freeze — or asks the customer and freezes neither; the one set aside is

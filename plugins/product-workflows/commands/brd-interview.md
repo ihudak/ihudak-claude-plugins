@@ -542,11 +542,24 @@ the round record*), and where the two disagree the dispositions win.
   on file that the line does not list and that does not read `SUPERSEDED` was added, one whose verdict or outcome differs from what the line
   records changed, and one it lists that now reads `SUPERSEDED` was superseded, whenever the change
   happened. **A round record written before that line existed carries none**, and there the anchor
-  is that record's last write instead: the grounding files as they stood at the commit that last
-  wrote it (`git -C "$SPECS_PATH" log -1 --format=%H -- <record>`, each file read there with
-  `git -C "$SPECS_PATH" show <sha>:./<its path relative to $SPECS_PATH>` (the `./` form resolves from `$SPECS_PATH` whether or not it is the repository's top level), a file absent at `<sha>` holding no finding there), compared the same way — which misses any change made while that round
-  was still open, before its last write, and where no commit carries the record, reads every
-  finding as unchanged —
+  is the **earliest commit on any ref that holds the record exactly as it stands on disk** — the
+  record is append-only, so that commit is where its current content was first written. Take the
+  record's blob with `blob=$(git -C "$SPECS_PATH" hash-object -- <record>)`, list the candidates,
+  newest first, with `git -C "$SPECS_PATH" log --all --format=%H -- <record>`, and compare each
+  candidate's `git -C "$SPECS_PATH" rev-parse <sha>:./<record-path>` to `$blob`, a candidate at
+  which the record is absent matching nothing. The anchor is the **last** matching candidate in that
+  order, resolved against the whole candidate set and never taken off its first line: a record
+  committed only on another branch is found there, and one committed on a branch that still stands
+  and then squash-merged is anchored at the branch commit, not the squash. Each grounding file is
+  read at the anchor with `git -C "$SPECS_PATH" show <sha>:./<its path relative to $SPECS_PATH>`
+  (the `./` form resolves from `$SPECS_PATH` whether or not it is the repository's top level), a
+  file absent at `<sha>` holding no finding there, and compared the same way. **Git records when a
+  record was committed, never when it was written**, so this misses any grounding change committed
+  before the anchor or in it — one made while that round was still open, before its last write,
+  and one made after that write and committed no later than the record, which a squash commit or a
+  late commit of the record carries; the *No question at all* branch below says what the report
+  names. Where no candidate matches — the record in no commit at all, or its last write in none —
+  the comparison reads every finding as unchanged —
   or a requirement defect this BRD owns, that is open and that is not asked (*Round 1 is generated
   from the grounding* fixes all three tests), where round 1's record carries the requirement-defect
   account line: the round-1 walk did not raise it, and a new round is exactly where it belongs (the
@@ -575,7 +588,7 @@ the round record*), and where the two disagree the dispositions win.
     (*An empty in-scope set is a finished state*, in *Generate the round's question set*, refuses the
     same record for the same reason). Report it plainly — *nothing changed
     since round `<highest>` was generated* where nothing did, or, where something did, each change and why it raised
-    nothing (below); where the anchor was the fallback, add *compared at round `<highest>`'s last commit `<sha>`, which misses a change made while it was open*, and where no commit carries the record, print *no commit carries round `<highest>`'s record, so no finding change could be detected* in place of *nothing changed*. Each change and why it raised
+    nothing (below); where the anchor was the fallback, add *compared at `<short-sha>`, the earliest commit holding round `<highest>`'s record as it stands on disk, which misses a grounding change committed before it or in it*, and where that commit itself changed a file under `grounding/` — `git -C "$SPECS_PATH" diff-tree --root --no-commit-id --name-only -r <sha>` returns a path beginning `grounding/` — add *compared at `<short-sha>`, a commit that may postdate the record's write* after it: nothing git records tells a squash commit from an ordinary one, both having one parent, and a grounding change in the anchor itself is the one sign git does record that the grounding read there moved with the record rather than before it. Where no candidate matches, print *no commit on any ref holds round `<highest>`'s record as it stands on disk, so no finding change could be detected* in place of *nothing changed*. Each change and why it raised
     nothing: a re-grounding as *re-grounded, nothing moved*, naming each plain record its successors
     confirmed and each held record still waiting on its prerequisite — run the round-1 test below — every round being closed, all it
     can do here is report — and, **where no `decisions.md` is on file, write it as its header line
@@ -1190,7 +1203,8 @@ and opens it only where it would — so, as for round 1, this phase then works t
 nothing again. The generation takes: the *Round 1 is generated from the grounding* bullets, applied
 to each finding added, or whose verdict or verifier outcome changed, since the last round was
 generated, whenever the change happened — the last round's `generated against:` line is the
-anchor, and a record carrying no such line is compared at its last write, both as *Resolve the round*'s
+anchor, and a record carrying no such line is compared at the earliest commit on any ref holding it
+as it stands on disk, both as *Resolve the round*'s
 *Every round is closed* branch fixes; a round's record is re-written by every run that works it,
 and a finding a `--rebaseline` pass changed while that round was still open predates both its last
 write and its closure, which is why the line and not the write is the anchor — less every successor *A decision the re-grounding moved* reads (above), and less every

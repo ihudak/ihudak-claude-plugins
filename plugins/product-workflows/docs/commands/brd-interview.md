@@ -39,8 +39,11 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   next round's questions from what changed after the last one was generated — a finding added or
   superseded, or its verdict or verifier outcome changed, whenever that happened, read against the
   `generated against:` line the last round's record carries (a record written before that line
-  existed is compared at its last commit, which misses a change made while that round was still
-  open, and, where no commit carries the record, detects no finding change at all), a requirement defect that became this BRD's to ask, or a re-grounding that moved a decision's
+  existed is compared at the earliest commit on any ref, any branch included, that holds it exactly
+  as it stands on disk, which misses a grounding change committed before that commit or in it — one
+  made while that round was still open, or one a squash commit or a late commit of the record
+  carries, which the report flags where that commit itself changed a grounding file — and, where no
+  commit on any ref holds the record as it stands, detects no finding change at all), a requirement defect that became this BRD's to ask, or a re-grounding that moved a decision's
   evidence — for a decision the will-change rule held, every finding it rests on superseded and the
   successors no longer `will-change`; for any other, any finding it rests on superseded and that
   finding's successors not confirming it (Phase 3 and Phase 8,

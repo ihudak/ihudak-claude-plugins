@@ -2207,29 +2207,42 @@ re-cut elsewhere under the parent, a sibling's `/product-workflows:brd-reconcile
 grounding pass is what the list carries — and, beside it, the step a decided slice is ready for.
 **A slice that needs no customer review goes to the authoring ladder without a reconciliation**:
 `/product-workflows:create-prd`, `/product-workflows:create-ard` and `/product-workflows:specify`
-each gate this slice's `decisions.md` on the default branch and read no reconciliation record, and
-this command's own gate has already found no ledger row `unallocated`. **Offer the three only where
-the slice's own `coverage-ledger.md` holds at least one `covered-here` row** — `/create-prd` refuses
-a slice with none (`product-workflows:coverage-ledger-format` §5), and such a slice owns no
-requirement to author. Where it holds one, print the three in prose, per
-`workflows-core:next-phase-offer`'s overflow rule, and carry the PRD in the array:
+each gate this slice's `decisions.md` on the default branch and read no reconciliation record. They
+are offered here on the conditions `/product-workflows:brd-reconcile`'s own advancing list applies,
+and for the same reasons: **`/product-workflows:create-ard <BRD-KEY>` and
+`/product-workflows:specify <BRD-KEY>` on the level test alone** — this command runs on a slice
+only (`BRD_INTERVIEW_ROOT_LEVEL`) — and **`/product-workflows:create-prd <BRD-KEY>` only where the
+slice is PRD-eligible**: no row of the gate set `/product-workflows:create-prd`'s Phase 0 step 7
+defines — this slice's ledger rows, narrowed by its `brd-link.md` `claims:`, so an orphan row
+reading `covered-here` never counts — is still `unallocated`, and at least one of them is
+`covered-here` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5). This command's own
+gate has already found no row `unallocated`, so the covered-here test is the one left to read.
+
+Five routes do not fit in the prompt's four slots, so apply `workflows-core:next-phase-offer`'s
+overflow rule: print every route in prose, in the order below, then one line saying the list is
+longer than the prompt and that anything on it is reachable by typing it into the free-text option.
+Leave the PRD line out of both the prose and the array where the slice is not PRD-eligible, and say
+why:
 
 ```
 Where this run can go next:
   • Author this slice's PRD           — /product-workflows:create-prd <BRD-KEY> <merge-clause>   (PM)
   • Author this slice's architecture  — /product-workflows:create-ard <BRD-KEY> <merge-clause>   (PA, optional)
   • Author this slice's specification — /product-workflows:specify <BRD-KEY> <merge-clause>      (PE)
+  • Re-ground every claim against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline
+  • Interview another BRD or slice
 ```
+
+Where the slice is PRD-eligible:
 
 ```
 choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Author this slice's PRD — /product-workflows:create-prd <BRD-KEY> (PM) <merge-clause>", "Re-ground every claim against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what can make a new round askable)", "Interview another BRD or slice"]
 ```
 
-Where the slice's ledger holds no `covered-here` row, say so, name no authoring command, and
-present the list without the PRD option:
+Where it is not:
 
 ```
-choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-ground every claim against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what can make a new round askable)", "Interview another BRD or slice"]
+choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Author this slice's architecture — /product-workflows:create-ard <BRD-KEY> (PA, optional) <merge-clause>", "Re-ground every claim against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what can make a new round askable)", "Interview another BRD or slice"]
 ```
 
 **`package_offerable: nothing-to-review` with a reopened record waiting — name each record, with
@@ -2286,8 +2299,13 @@ set could not be read — because until that changes no slice can tell whether t
 The resume pointer is written in the terminal cost phase, per
 `workflows-core:session-hygiene` §1. Working another round of the same BRD, or
 going on to `/product-workflows:brd-package <BRD-KEY>`? Both stay in the PM lane
-(§2's *Same role* bullet) → run **`/compact`**. Moving to a different BRD or slice? → run **`/clear`**. Guidance only — nothing is
-auto-run.
+(§2's *Same role* bullet) → run **`/compact`**. Moving to a different BRD or slice? → run **`/clear`**.
+**Where the `nothing-to-review` list offers the authoring ladder, it spans roles, so print both
+branches** (§2's *Next options span both* bullet): authoring this slice's PRD yourself as PM
+(`/product-workflows:create-prd <BRD-KEY>`)? → run **`/compact`**. Handing on to PA
+(`/product-workflows:create-ard <BRD-KEY>`) or PE (`/product-workflows:specify <BRD-KEY>`), even
+when the same person does it? → run **`/clear`**; those runs read the slice folder from the specs
+repo, not from this session. Guidance only — nothing is auto-run.
 
 ---
 

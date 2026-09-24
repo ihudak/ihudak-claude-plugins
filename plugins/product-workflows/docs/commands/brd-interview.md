@@ -536,10 +536,7 @@ read becoming readable; and a reconciliation can reopen one of its decisions); n
 step nor another round of this command is offered, because both would stop or report a no-op —
 save where the run names a reopened decision that waited on the round it worked, when it says the
 BRD is not decided and offers, in a list of its own, the round that puts that decision's question.
-A decided slice needs no reconciliation before authoring, so where its ledger holds at least one
-`covered-here` row it is also offered the authoring ladder — [`/create-prd`](create-prd.md) in the
-list, with [`/create-ard`](create-ard.md) and [`/specify`](specify.md) named beside it — and where
-it holds none, no authoring command is named, since `/create-prd` refuses such a slice.
+A decided slice needs no reconciliation before authoring, so it is also offered the authoring ladder, on the conditions [`/brd-reconcile`](brd-reconcile.md) applies: [`/create-ard`](create-ard.md) and [`/specify`](specify.md) always, and [`/create-prd`](create-prd.md) only where the slice is PRD-eligible — some row it claims is `covered-here` — since `/create-prd` refuses one that is not.
 Re-opening a closed round later, with its cause recorded:
 
 ```

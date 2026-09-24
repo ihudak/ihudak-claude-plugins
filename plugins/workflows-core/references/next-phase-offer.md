@@ -135,10 +135,10 @@ array carries every option.
   (`/product-workflows:brd-package` Phase 0 owns that test); otherwise → another
   `/product-workflows:brd-interview <BRD-KEY>` round (PM), or `/product-workflows:prd-ground <BRD-KEY>` (PA)
   for a question no finding bears on yet. Where nothing is left for the customer to review, the slice is
-  decided and hands over from here, with no reconciliation: → `/product-workflows:create-prd <BRD-KEY>`
-  (PM), `/product-workflows:create-ard <BRD-KEY>` (PA, optional) or `/product-workflows:specify <BRD-KEY>`
-  (PE), offered only where the slice's own ledger holds a `covered-here` row
-  (`/product-workflows:brd-interview`'s next-step phase owns that list).
+  decided and hands over from here, with no reconciliation: → `/product-workflows:create-ard <BRD-KEY>`
+  (PA, optional) or `/product-workflows:specify <BRD-KEY>` (PE), and `/product-workflows:create-prd <BRD-KEY>`
+  (PM) where the slice is PRD-eligible — the same conditions `/product-workflows:brd-reconcile`'s
+  advancing list applies (`/product-workflows:brd-interview`'s next-step phase owns that list).
 - `/product-workflows:brd-package <BRD-KEY>` → *(the customer reviews it off-platform, and the round
   holding each customer question stays open until the answer comes back)* →
   `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>` (PM).
@@ -172,7 +172,7 @@ array carries every option.
   Phase 0, so offering either wrongly hands over a run that stops;
   the advance/re-entry split is enforced **nowhere downstream** — `/create-ard` on the BRD route and
   `/specify` on the BRD route treat an `open` or `reopened` record as an open question to record rather
-  than as a stop — so `/product-workflows:brd-reconcile` is the only station that can make it. **All
+  than as a stop — so the station that offers them must make it: `/product-workflows:brd-reconcile` for a slice the customer reviewed, and `/product-workflows:brd-interview`, whose `nothing-to-review` state keeps a reopened record's list apart from the one that offers the three, for a slice that needs no review. **All
   three carry `<merge-clause>`**: on the BRD route each runs `require-on-main` against the slice's
   `decisions.md` (`phase-handoff.md` §3.4), which this run's second handoff — the reconciliation
   record's — lands, so each stops while that pull request is open and the clause resolves from that

@@ -27,7 +27,7 @@ Run the last line once per plugin you use, then restart Claude Code. Environment
 
 ### Changed
 
-- `next-phase-offer`'s `/brd-interview` entry names the hand-over into `/create-prd`, `/create-ard` and `/specify` on a slice with nothing left for the customer to review, and its `/brd-reconcile` entry says it is the hand-over for a slice the customer reviewed.
+- `next-phase-offer`'s `/brd-interview` entry names the hand-over into `/create-prd`, `/create-ard` and `/specify` on a slice with nothing left for the customer to review, and its `/brd-reconcile` entry says it is the hand-over for a slice the customer reviewed. The rule that the station offering the three must make the advance/re-entry split no longer names `/brd-reconcile` as the only such station.
 - The Workflow diagram's `/frames` edge names its reader — design grounding in `/product-workflows:prd-ground` — and its nodes use the family map's colours.
 
 ## [1.7.6] — 2026-09-23

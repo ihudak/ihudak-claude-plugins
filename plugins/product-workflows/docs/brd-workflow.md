@@ -48,7 +48,7 @@ flowchart TD
     reconcile -->|slice key + the BRD route — nothing left to re-enter for, fully allocated, one row covered-here| createprd
     reconcile -->|slice key + the BRD route — nothing left to re-enter for| createard
     reconcile -->|slice key + the BRD route — nothing left to re-enter for| specify
-    interview -.->|nothing for the customer to review, one row covered-here — no reconciliation needed| createprd
+    interview -.->|nothing for the customer to review, PRD-eligible — no reconciliation needed| createprd
 
     classDef prod fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a
     classDef cust fill:#f3f4f6,stroke:#6b7280,color:#1f2937
@@ -220,11 +220,11 @@ whose tree holds nothing the review made false is the state the PRD pipeline is 
 the BRD route **ships** on `/create-prd`, `/create-ard` and `/specify`, and `/brd-reconcile`'s
 next-step phase names all three — **against a slice key, and on a run that left nothing to re-enter
 for.** **A slice that needs no customer review hands over one step earlier**: where `/brd-interview`
-settled every question from the findings and the slice's ledger holds a `covered-here` row, it names
-the same three, since each gates the slice's `decisions.md` and none reads a reconciliation record.
-The conditions below are written for `/brd-reconcile`'s phase; the level and ledger conditions bind
-`/brd-interview`'s offer the same way, and it has no re-entry split to make, since nothing in that
-state is left for a customer.
+settled every question from the findings, it names the same three on the same conditions, since each
+gates the slice's `decisions.md` and none reads a reconciliation record. The conditions below are
+written for `/brd-reconcile`'s phase and bind `/brd-interview`'s offer the same way, and
+`/brd-interview` makes its own advance/re-entry split: a reopened decision waiting on the next round
+takes a list of its own, which offers that round and none of the three.
 
 **The first condition is the level, and it is the one this increment added.** A BRD is a container:
 `prd.md`, `ard.md` and `specification.md` are authored in the `PRD-` slice folders under it, one of
@@ -245,8 +245,7 @@ The difference is where the enforcement sits: the level test and `/create-prd`'s
 each refused by the offered command's own Phase 0, whereas the one gate all three run on the register
 — `require-on-main` on `decisions.md`, stopping on a register left on an unmerged branch — tests
 which ref it is on and never what it holds, so nothing downstream refuses a merged register carrying
-a `reopened` or `open` record, and the advance/re-entry split is a judgement only `/brd-reconcile`
-can make. That same gate is why all three advance options carry the `<merge-clause>`: the register
+a `reopened` or `open` record, and the advance/re-entry split is a judgement only the offering station can make — `/brd-reconcile`, or `/brd-interview` on a slice that needs no customer review. That same gate is why all three advance options carry the `<merge-clause>`: the register
 is one of the files `/brd-reconcile` hands off, and each offered command stops until it is merged. **The diagram above draws all three**, as the three solid edges leaving
 `/brd-reconcile` into the right-hand box. They are alternatives rather than a sequence: neither of
 the other two waits on anything `/create-prd` on the BRD route produces, so an ARD or a specification can

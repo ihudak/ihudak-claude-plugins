@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found eighteen more (N7–N24). This spec fixes all thirty-five.
+Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found nineteen more (N7–N25). This spec fixes all thirty-six.
 
 It covers:
 - `/brd-interview`, `/brd-reconcile`, `/prd-ground`, `/brd-split`, `/create-prd`, `/document` and `/release-notes`;
@@ -64,6 +64,7 @@ Abbreviations: `BI` = `plugins/product-workflows/commands/brd-interview.md`, `BR
 | N22 | E | `/create-prd`'s three Overwrite choice labels promise "(archives the current one)", but no step performs, locates, names or stages that archive, so every Overwrite loses the prior PRD. Found by Task 7's implementer |
 | N23 | E | `/update-prd`'s archive step (Phase 5 step 1) states no collision rule, so a second update on the same day overwrites the first archive and loses that revision. Found by Task 7's implementer. Ruling R51: same first-free `-2`, `-3` rule as R50 |
 | N24 | E | `/update-prd` updates `prd.md` live in Phase 3, before its Phase 5 archive, so the prior revision is lost on every update. Found by Task 7's review |
+| N25 | E | `/release-notes` and `/ready` have no handling for `resolve-address` `status: invalid` (a malformed key), and the `key dir not found` rule's grammar-failure clause has no caller. Found by Task 8's review |
 | vi | E | `/document` and `/release-notes` stop on a found-but-unplaced folder, a BRD container, or a folder holding no PRD, using the "key dir not found" rule and `["Re-enter key", "Cancel"]`. That happens at two sites in each command |
 
 Out of scope: any change to what an abort or Cancel does, and any structural "carve in progress" marker in `/brd-split` (Unit D's gate closes N5 without one).
@@ -315,6 +316,12 @@ In `plugins/docs-workflows/commands/document.md` (Phase 0 step 1, ≈64–66, an
 - **Sweep.** `docs/commands/document.md` and `docs/commands/release-notes.md` document the three stops. `escalation-rules.md:175` keeps "key dir not found" for a folder that really is absent. Its description is re-read so that it no longer implies these cases.
 - `epics.md:420–421`, which says an empty PRD is "the `key dir not found` case", has the same mislabel. It gets `EPICS_NO_PRD`'s existing stop or a named sibling. The implementer checks whether `EPICS_NO_PRD` already covers it.
 
+### E2a. Rulings from Task 8's review
+
+- **R55 (revises E2's site).** The `<CMD>_NO_PRD` test moves to Phase 0 step 1, where everything it tests is already known. It runs before any docs-repo commit, preflight, grounding consent or question. That includes the Epic variant.
+- **R56.** On a BRD-route slice, `<CMD>_NO_PRD`'s remedy is qualified by the slice's state: `unallocated` rows lead to `/brd-split <KEY>`; no `covered-here` row gets its own remedy; a missing ledger gets its own remedy too. This mirrors `EPICS_NO_PRD`'s remedy table.
+- **R57 (N25).** `/release-notes` and `/ready` stop on `status: invalid` with their own named stop, as their siblings do (`*_NEEDS_KEY`). The `key dir not found` rule's grammar-failure clause, which then has no caller, is deleted.
+
 ## 9. Unit F: dropped (D4, revised)
 
 The research flagged "Session cost (ALWAYS runs)" as false, because an abort or a Cancel stops a run before its cost step. Planning re-read it in context, and it is true there.
@@ -342,5 +349,5 @@ The research flagged "Session cost (ALWAYS runs)" as false, because an abort or 
 - For every rewritten claim, a refinement-7 literal-string count across the sweep scope, taken before and after the edit and recorded with its command.
 - The per-item trace: each failure scenario in §3 is walked step by step against the new text, and the step where it now resolves is cited by file and phrase.
 - An exclusivity probe over the diff, covering new "only", "never" and "every" claims introduced by this pass.
-- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all thirty-five rows read FIXED is the known-bug count 0.
+- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all thirty-six rows read FIXED is the known-bug count 0.
 - Every row of the round-3 "Deferred by user decision" list gets a one-line pointer to this record.

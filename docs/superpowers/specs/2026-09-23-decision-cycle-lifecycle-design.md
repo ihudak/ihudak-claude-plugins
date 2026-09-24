@@ -167,6 +167,8 @@ Change PG Phase 7 (≈1038–1048) and GF §8:
 - **R17 (N13).** PG Phase 8's frame-set rule retires a prior class-4 `[DG#n]` only where this run re-ground the repository its cited `[CG#n]` is pinned to, or under `--no-code`. Otherwise the finding stands, and only the cascade retires it. The cascade's first bullet reads "where the frame-set rule supersedes it".
 - **R18 (N14).** Phase 6 never edits an on-file finding's `horizon` or `prerequisite` in place. It supersedes the block and appends a successor carrying the same verdict, evidence and control, and the new horizon. That successor is own-run, so Phase 7 verifies it. GF §5 states the rule.
 - **R19 (N15).** In BI's held-record bullet, where a superseded finding's source cannot be decided (as opposed to having no successor yet), the held record is put again rather than waiting, and the question names that finding. No migration.
+- **R20.** A design re-run that does not re-emit an unchanged divergence reopens the decisions citing it. That is DRF §4 cause 1 by contract, and it is not dampened. Damping would leave a divergence that changed frames resolved still live, which is worse than an extra question.
+- **R21.** Phase 6's second exception: an on-file `[DG#n]` that cannot be placed in a frame set is superseded with no successor. Its note names the horizon Phase 6 would have written and why no successor can be placed. A stale horizon is never left for downstream to consume.
 - **N10.** `consumed_by: none` is written only on a block this run appends. An on-file block keeps its stamps. The on-file block's `outcome` rule is stated once, without contradiction.
 
 ### C2. `prerequisite` in Phase 8's field list (viii)

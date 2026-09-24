@@ -59,8 +59,12 @@ This command makes **zero external API calls** and **never writes into the docs 
      places it at PRD level.
 
    **An address that resolves but leads to no `prd.md` the run can read stops here, and so does
-   one whose PRD folder carries no key — before anything else in this phase runs, and before Phase 1
-   asks anything — each with a stop of its own.** None of these is the `key dir not found` rule: the key resolved, so re-entering it cannot help. A
+   one whose PRD folder carries no key — after the specs-repo preflight below and before Phase 1
+   asks anything — each with a stop of its own.** The placement above is all the preflight needs:
+   it gives the run key set (`workflows-core:specs-repo-git` §3.2) — the resolved key, and on an
+   Epic run `<PRD>` beside `focus_key`. So run the preflight as soon as placement is done, and test
+   for these stops only once it has settled the specs checkout's branch: a stale plugin branch it
+   switches away from would otherwise make a `prd.md` that is on the default branch look absent. None of these is the `key dir not found` rule: the key resolved, so re-entering it cannot help. A
    PRD-level or Epic-level folder whose PRD folder holds a `prd.md` and carries a key takes none of
    them and runs on as above.
    - **A BRD container** — the folder §4.1's container test places — holds no PRD: a BRD's PRDs are
@@ -133,7 +137,8 @@ This command makes **zero external API calls** and **never writes into the docs 
    `RELEASE_NOTES_NEEDS_KEY: /release-notes needs a PRD or Epic address — a key, or an @<path> to its folder.` —
    this command has no direct-prompt behavior.
 
-**Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session
+**Specs-repo preflight** — run as soon as step 1 has resolved and placed the address, and before
+step 1's named stops (above). Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session
 artifacts from an earlier run, retry an artifact commit that failed to push,
 and settle the branch. This runs against `$SPECS_PATH` only — `git -C
 "$SPECS_PATH"`, never a `cd`, so the code/docs repo this run is working

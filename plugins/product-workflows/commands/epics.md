@@ -169,6 +169,9 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    | Holds an `epic.md` asserting `kind: epic`, and its parent holds no such `prd.md` | Refuse — `EPICS_EPIC_NOT_UNDER_PRD` below |
    | Anything else — including a `PRD-` folder in which no `prd.md` has been authored yet, and an `EPIC-` folder holding no `epic.md` | Refuse — `EPICS_NO_PRD` below |
 
+   **A `prd.md` either accepting row names is tested for requirements next, once the specs-repo
+   preflight below has run** — `EPICS_PRD_NO_REQUIREMENTS`, still in Phase 0 and before Phase 1.
+
    **This revives a path that was already written and unreachable.** `/epics` parses `focus_key`
    below (Phase 3, Phase 3.5, Phase 6) but nothing ever set it, so refine-by-focus could not run and
    an `EPIC-` address was silently partitioned as though it were a PRD. Deriving it here is what
@@ -246,6 +249,20 @@ and settle the branch. Prompt-free and silent when the specs repo is clean and
 on its default branch. If a guard fires, emit its §5 notice; if it returns
 `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the
 terminal `commit-artifacts` step skips on it.
+
+**Refuse a PRD that states no requirements**, right after the preflight has settled the specs
+checkout's branch and before Phase 1 asks anything. The `prd.md` step 1b's table accepted — the
+resolved folder's on a Draft row, the parent's on a Re-refine row — is the one tested, and the test
+runs here rather than inside step 1b so that a stale plugin branch the preflight switches away from
+cannot hide requirements that are on the default branch. A `prd.md` that carries no `[US#n]`,
+`[AC#n]`, `[SM#n]`, `[UC#n]` or `[FR#n]` — the identifiers Phase 3 builds `requirements[]` from —
+states no requirements, and drafting against it would give an empty ground truth that every Epic
+passes vacuously. The key resolved and the PRD is there, so this is neither the `key dir not found`
+rule, whose re-enter cannot help, nor `EPICS_NO_PRD`, whose message says no PRD is there:
+```
+EPICS_PRD_NO_REQUIREMENTS: <PRD-KEY>'s prd.md at <path> states no requirements — no [US#n], [AC#n], [SM#n], [UC#n] or [FR#n] — so there is nothing to partition. Add them with /product-workflows:update-prd <PRD-KEY>, then re-run /product-workflows:epics <KEY>.
+```
+It is a user halt, so `emit-block` does not fire.
 
 ---
 
@@ -420,15 +437,10 @@ the PRD states: its `id` (`[US#n]` / `[AC#n]` / `[SM#n]` / `[UC#n]` / `[FR#n]`),
 **Existing Epics come from the same read**, as one entry per `EPIC-` subfolder with its `key` and
 title, which is what the non-duplication dimension compares a new draft against.
 
-**A `prd.md` that states no requirements stops here**, rather than proceeding with an empty ground
-truth, which would let every Epic pass coverage vacuously. A PRD folder with no `prd.md` does not
-reach this phase: step 1b's gate refused it with `EPICS_NO_PRD`. The key resolved and the PRD is
-there, so this is neither the `key dir not found` rule, whose re-enter cannot help, nor
-`EPICS_NO_PRD`, whose message says no PRD is there:
-```
-EPICS_PRD_NO_REQUIREMENTS: <PRD-KEY>'s prd.md at <path> states no requirements — no [US#n], [AC#n], [SM#n], [UC#n] or [FR#n] — so there is nothing to partition. Add them with /product-workflows:update-prd <PRD-KEY>, then re-run /product-workflows:epics <KEY>.
-```
-It is a user halt, so `emit-block` does not fire.
+The `prd.md` read here states at least one requirement: Phase 0 has already stopped a PRD folder
+with no `prd.md` (step 1b, `EPICS_NO_PRD`) and a `prd.md` that states none
+(`EPICS_PRD_NO_REQUIREMENTS`, after the specs-repo preflight), so `requirements[]` is never an empty
+ground truth that every Epic would pass vacuously.
 
 **This step used to dispatch an agent and wait for a handoff.** That agent read a tracker export and
 was deleted; the direct read replaced it, but the `requirements[]` the handoff used to return had no

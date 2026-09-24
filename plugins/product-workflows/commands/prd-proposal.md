@@ -80,15 +80,7 @@ token, so `--redo` would arrive as the address and `--baseline <path>` would sup
    `Required path environment variable unset` rule in `workflows-core:escalation-rules`:
    `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`.
 
-2. **Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")`
-   and execute its `specs-preflight` entry point (§3) inline, as early as `$SPECS_PATH` is known and
-   **before** the gate in step 5 — `require-on-main` performs no fetch of its own
-   (`workflows-core:phase-handoff` §3.2) and relies on this step's best-effort one. Prompt-free and
-   silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5
-   notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the
-   terminal `commit-artifacts` step skips on it.
-
-3. **Resolve the address.** Resolve the single positional `<ADDRESS>` — a `<KEY>`, or an `@<path>`
+2. **Resolve the address.** Resolve the single positional `<ADDRESS>` — a `<KEY>`, or an `@<path>`
    naming a folder — with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3).
    A key that fails §1's grammar stops with
    `PRD_PROPOSAL_NEEDS_KEY: /prd-proposal needs an address (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. PRODUCT-1234 or the slice PRODUCT-1234-01) — re-run '/product-workflows:prd-proposal <ADDRESS>'.`
@@ -96,6 +88,21 @@ token, so `--redo` would arrive as the address and `--baseline <path>` would sup
    `status: absent` stops with
    `PRD_PROPOSAL_NOT_FOUND: no folder found for <KEY> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — /prd-proposal prices an existing PRD folder and creates none.`
    This command creates no folder in the specs tree.
+
+3. **Specs-repo preflight — once step 2's resolution returns `status: found`.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")`
+   and execute its `specs-preflight` entry point (§3) inline, before step 4's container refusal, step 4a's Epic refusal and step 5's gate — `require-on-main` performs no fetch of its own
+   (`workflows-core:phase-handoff` §3.2) and relies on this step's best-effort one. Prompt-free and
+   silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5
+   notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the
+   terminal `commit-artifacts` step skips on it.
+   Its run key set (`workflows-core:specs-repo-git` §3.2) is fixed from what step 2 returned and
+   nothing more: the resolved `key`, read off the folder's carrier frontmatter as
+   `workflows-core:addressing` §4 does, and, where §4.1 places the folder at Epic level — an `EPIC-`
+   prefix, or with no prefix a resolved `kind: epic` — also the key its parent's carrier asserts.
+   Nothing between the resolution and this step reads the folder beyond that frontmatter, so a stale
+   plugin branch the preflight switches away from cannot have shaped a refusal; an `@<path>` whose
+   folder asserts no key gives an empty set, a keyless run (§3.2). A run that stops on its address
+   in step 2 runs no preflight.
 
 4. **Refuse a `BRD-` container**, structurally, **on the directory prefix, before any file inside the
    folder is read**. An effort proposal for a container is the umbrella rather than a slice's own

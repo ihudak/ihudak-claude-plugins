@@ -64,6 +64,15 @@ adjacent to it would invite an operator who wanted an index into the wrong comma
    - `status: found` → carry `path`, `kind` and `key`. Report `legacy: true` once as deprecated when
      §5's fallback resolved it.
 
+   **Then, on `status: found`, run the specs-repo preflight below, before anything below reads the
+   folder.** Its run key set (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §3.2) is the
+   resolved `key` and, on an Epic folder, the key its parent's carrier asserts, as §3.2 gives any
+   Epic-scoped run — read off carrier frontmatter alone, testing no file's presence; this command
+   reads nothing else above the folder. Where the record carries no key, the set is empty and the
+   run keyless. The carrier test that follows reads an `@<path>` folder for its
+   carrier files, and a stale plugin branch the preflight switches away from would otherwise decide
+   what it finds. A run that stops above, on its address, runs no preflight.
+
    **First, a spec folder with no carrier.** A legacy folder whose artifacts assert no `kind:` or
    `key:` comes back `found` with `kind` empty (§5) — and, on an `@<path>`, with `key` empty too (§3
    step 1). The kind test below would call it "not a BRD, PRD or Epic folder" and send the operator to
@@ -110,7 +119,8 @@ adjacent to it would invite an operator who wanted an index into the wrong comma
    artifact of opinion here to review. If no model of the detection chain resolves, degrade to the
    best available and record it in `notes` and the Final report.
 
-**Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
+**Specs-repo preflight** — run at the end of step 1's resolution, on `status: found`, with the run key
+set step 1 fixes, before step 1's carrier and kind tests read the folder. Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
 `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run,
 retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the
 specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns

@@ -46,6 +46,17 @@ This command makes **zero external API calls** and **never writes into the docs 
    *Mode detection* does. Then resolve the address with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Carry the resolved `path`, `kind` and
    `key` forward; `ambiguous` → stop, naming every match; `invalid` → stop with `RELEASE_NOTES_NEEDS_KEY` below, naming the token that failed §1's grammar (a token that fails it is no `<KEY>`, so the `$SPECS_PATH` test above does not stop it, and `resolve-address` tests the grammar before it searches). **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command.
 
+   **Then settle the specs checkout, before the placement below reads anything.** Fix the run key
+   set (`workflows-core:specs-repo-git` §3.2), reading only carrier frontmatter (`key:`, `kind:`) as
+   §4 does, whatever file that is, and testing no file's presence: the resolved `key` and, where
+   `workflows-core:addressing` §4.1 places the resolved folder at Epic level — an `EPIC-` prefix, or
+   with no prefix a resolved `kind: epic` — also the key its parent's carrier asserts (§4), the
+   would-be `<PRD>`. Then run the specs-repo preflight below, and only then place the folder and
+   take its stops. The container test below reads an unprefixed folder for `coverage-ledger.md` and
+   `brd/brd-inventory.md`, and a stale plugin branch the preflight switches away from would
+   otherwise hide either of them, a slice's `brd-link.md` or a `prd.md` that is on the default
+   branch.
+
    **Place the folder, and carry the PRD folder and the focus.** An `EPIC-` address drafts the note
    for one Epic, and its folder holds no `prd.md`: the PRD it belongs to is the folder above it. So
    place the resolved folder at a level as `workflows-core:addressing` §4.1 does — by its prefix,
@@ -60,11 +71,7 @@ This command makes **zero external API calls** and **never writes into the docs 
 
    **An address that resolves but leads to no `prd.md` the run can read stops here, and so does
    one whose PRD folder carries no key — after the specs-repo preflight below and before Phase 1
-   asks anything — each with a stop of its own.** The placement above is all the preflight needs:
-   it gives the run key set (`workflows-core:specs-repo-git` §3.2) — the resolved key, and on an
-   Epic run `<PRD>` beside `focus_key`. So run the preflight as soon as placement is done, and test
-   for these stops only once it has settled the specs checkout's branch: a stale plugin branch it
-   switches away from would otherwise make a `prd.md` that is on the default branch look absent. None of these is the `key dir not found` rule: the key resolved, so re-entering it cannot help. A
+   asks anything — each with a stop of its own.** None of these is the `key dir not found` rule: the key resolved, so re-entering it cannot help. A
    PRD-level or Epic-level folder whose PRD folder holds a `prd.md` and carries a key takes none of
    them and runs on as above. **Each of these stops is a user halt** — it reports the operator's own
    tree, not a capability this plugin lacks — **so `emit-block` does not fire** on any of them.
@@ -80,7 +87,7 @@ This command makes **zero external API calls** and **never writes into the docs 
      listed, and never parsed or resolved on its own.** An answer equal to one listed key
      re-enters this step's address resolution with that slice's `@<path>`, which the listing already
      holds, so no key is searched for again and `$SPECS_PATH` is not needed for it.
-     **Re-entering fixes the run key set afresh, for the slice** — its key, as the placement fixes it for
+     **Re-entering fixes the run key set afresh, for the slice** — its key, as step 1 fixes it for
      any address — **and runs the specs-repo preflight again with it before step 1's stops are
      tested.** The preflight is prompt-free and idempotent, and the container's key set is the wrong
      one for the slice: it can have kept the run on a plugin branch named for the container, which
@@ -154,8 +161,8 @@ This command makes **zero external API calls** and **never writes into the docs 
    this command has no direct-prompt behavior. On `invalid` the message goes on, naming the token:
    ` — '<token>' is not a key (workflows-core:addressing §1).`
 
-**Specs-repo preflight** — run as soon as step 1 has resolved and placed the address, and before
-step 1's named stops (above). Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session
+**Specs-repo preflight** — run at the end of step 1's address resolution, with the run key set step 1
+fixes, before step 1 places the folder or takes any of its named stops (above). Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session
 artifacts from an earlier run, retry an artifact commit that failed to push,
 and settle the branch. This runs against `$SPECS_PATH` only — `git -C
 "$SPECS_PATH"`, never a `cd`, so the code/docs repo this run is working

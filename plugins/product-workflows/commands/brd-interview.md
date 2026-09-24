@@ -1021,7 +1021,7 @@ finding on file that passes all four of these tests against it —
    a finding record carries no frame-set field, and a design finding's `evidence` may cite code
    paths beside its frames, which no index names and which so take no part in the placement.
 
-Where a test cannot be decided — a `claim` opening with no requirement id and not reading
+Where a test cannot be decided — a `claim` opening with no requirement id and not opening
 `none — frame-only`, a frame-only finding carrying no field token (test 3), a `commit` no
 `baselines.md` entry records or that more than one repository's entry records, a `[DG#n]` whose
 evidence names no path any index names, or whose named paths no single set's index holds all of —

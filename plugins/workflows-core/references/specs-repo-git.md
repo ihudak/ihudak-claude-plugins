@@ -177,10 +177,12 @@ strictly (§3.3 G0, §3.7): nothing is committed at all.
 ## 3. `specs-preflight` — run start
 
 Runs at run start, once the run key set (§3.2) is known — Phase 0 in most commands. A command
-that takes an address resolves it first, since the key set is read from what resolution returns
-(the resolved key, and on an Epic-level folder the key its parent's carrier asserts), and runs this
-before any placement or refusal reads the resolved folder; a command that takes none, or whose key
-is its validated argument, runs it as soon as `$SPECS_PATH` is known. Where resolution comes first,
+that takes an address and reads its key set from resolution resolves it first, since the set is
+what resolution returns (the resolved key, and on an Epic-level folder the key its parent's carrier
+asserts), and runs this before any placement or refusal reads the resolved folder; a command that
+takes none, or whose key set is its validated argument keys as typed — `/dev-workflows:vuln`'s
+per-token keys among them, keyless where no token carries one — runs it as soon as `$SPECS_PATH`
+is known, and resolves afterwards. Where resolution comes first,
 a run that stops on its address — `invalid`, `ambiguous`, or `absent` — runs none. Prompt-free.
 Silent when the repository is already clean and on the default branch; it emits
 a block only when it acts or when a guard fires.

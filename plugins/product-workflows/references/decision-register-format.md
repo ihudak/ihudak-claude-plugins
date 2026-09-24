@@ -33,7 +33,8 @@ report, `commands/prd-proposal.md`'s tier grading, `agents/proposal-reviewer.md`
 lists every command and agent that names the register. It is not a list of readers in either
 direction: a file may name it only to compare its modification time or to describe another
 command's write, and `agents/customer-review-reader.md` reads it without naming it — it is handed
-the register by path, as its `assumptions` input.
+the register by path, as its `assumptions` input. **Every one of them reads the register through
+§8**: an item a stopped `/brd-interview` run left, which no round record names, is never counted.
 
 ## 1. Record shape
 
@@ -70,7 +71,7 @@ round: 2
 
 | Field | Notes |
 |---|---|
-| `id` | `[VD#n]` or `[CD#n]` — contiguous within its own prefix, assigned once, never renumbered, never reused after a terminal status |
+| `id` | `[VD#n]` or `[CD#n]` — contiguous within its own prefix, assigned once, never renumbered, never reused after a terminal status; a removed torn write is the one exception to each (§8) |
 | `statement` | one sentence, stating the decision itself and not the discussion that produced it |
 | `options_considered` | what was actually on the table, including the one chosen — save on a `[CD#n]` whose customer answered outside it (below). **A question put as yes or no, listing no options, records `["yes", "no"]`**; one that listed its options records them as put — the set a customer answering yes or no was offered, written down rather than left for a reader to infer. **A `[CD#n]` answering what put no options records a fixed pair**: an `[AS#n]`, which asserts rather than offers, `["as assumed", "not as assumed"]`; an escalated `[SR#n]`, which sets the package's position against an attack on it, `["as the package states", "as the finding argues"]` |
 | `chosen` | exactly one member of `options_considered` — **or, on a `[CD#n]` only, where the customer answered with none of the options put, their answer quoted after one fixed marker**: `chosen: "outside the options: <the customer's answer, verbatim>"`. `options_considered` then stays exactly as put and is never widened to take the answer in: it records what the customer was offered, and an option added afterwards would claim they were offered what they volunteered. The marker is the only way a `chosen` may name no member, so a reader tells the two cases apart by the field alone. **Quote it so YAML reads it back exactly**: a one-line answer carrying no `"` and no `\` in the double-quoted form above; any other — spanning lines, or carrying either character — as a literal block scalar, `chosen: |`, its first line `outside the options: ` and the answer following verbatim, so the answer's own line breaks and quotes are never escaped or folded. A `[VD#n]` never takes it: an option the operator names joins `options_considered` before it is chosen (`commands/brd-interview.md`, *Put each `[V]` to the operator*) |
@@ -440,7 +441,7 @@ detail an author may settle for themselves. All thirteen are accounted for here.
 
 | §1 field | On an `[AS#n]` |
 |---|---|
-| `id` | **As-is**, under its own prefix: `[AS#1]`, `[AS#2]`, … contiguous within that prefix, assigned once, never renumbered or reused |
+| `id` | **As-is**, under its own prefix: `[AS#1]`, `[AS#2]`, … contiguous within that prefix, assigned once, never renumbered or reused, a removed torn write aside (§8) |
 | `statement` | **As-is**: one sentence, saying what is assumed — the assumption itself, never the reason for it and never the reason it is unevidenced |
 | `options_considered` | **Not applicable.** An assumption is an assertion, not a choice between options; a record that weighs options is a decision and takes a `[VD#n]` or `[CD#n]` |
 | `chosen` | **Not applicable**, for the same reason: there is nothing to choose from |
@@ -531,3 +532,66 @@ assumption recorded as `superseded` by it — its closing `Superseded <YYYYMMDD>
 naming that decision (§4). An `[AS#n]` the customer contradicts is `superseded` the
 same way, by the decision that contradicts it, and everything that was built on it is reopened under
 §4 — the incoming customer decision is precisely one of the two causes that rule admits.
+
+## 8. Torn writes
+
+`commands/brd-interview.md` writes a round's deliverables in one phase, *Write the register and the
+round record*, and in one order: `decisions.md`, then `code-defect-log.md`, then
+`interview/customer-questions.md`, then `interview/round-<N>.md` **last**. **The round record is the
+commit point**: a round's deliverables count only once its record names them. A run that stops
+between those writes — a crash, a lost session, a context exhausted mid-phase — leaves items on disk
+that claim a round no record holds, and a reader that counted them would act on questions nobody
+recorded asking and decisions nobody recorded taking. Such an item is a **torn write**. This section
+defines it once; every reader cites it and none restates it.
+
+**An item stamped with round N is a torn write where `interview/round-<N>.md` in the same BRD folder
+does not exist, or does not name it.** The items, what stamps each with a round, and what naming it
+means:
+
+| Item | Stamped with round N by | Named by round N's record where |
+|---|---|---|
+| a `[VD#n]` whose `argumentation` carries no `Reopened` paragraph | its `round: N` | a question in the record carries the state *decided* naming that id |
+| an `[AS#n]` | its `round: N` | the record exists: an assumption is recorded only by the run that generates its round (`commands/brd-interview.md`, *Generate the round's question set*), and that run's write of the record is its first |
+| a `[CDF#n]` (`references/code-defect-log-format.md`) | its `round: N` | one of the record's `code defects:` lines names it raised; or a record that is not itself a torn write cites it in `defects`. A record none of whose writes carries a `code defects:` line was written before the line existed, and names every `[CDF#n]` of its round |
+| an entry in `interview/customer-questions.md` | its heading, `## Round <N>, question <position>` | the question at `<position>` carries the tag `[C]` in its last recorded state — *held for the customer*, or *answered by the customer* |
+| a `- **Requirement defect:** [DEF#n]` line on an entry that is not itself a torn write and carries no `- **Re-puts:**` line | its entry's heading | one of the record's `requirement defects:` lines lists that `[DEF#n]` asked. A record none of whose writes carries such a line was written before it existed, and names every such line |
+
+**Nothing else is ever a torn write**, and four things in particular are not:
+
+- **A record carrying a `Reopened` paragraph** (§4). It was on file before the run that last wrote
+  it, so no rule may remove it. A re-decision a stopped run wrote onto it stands and is counted:
+  what it replaced survives only in `argumentation` (§4) and cannot be restored.
+- **A `[CD#n]`.** `commands/brd-reconcile.md` mints it by its own rules, and a customer's answer is
+  never removed by a rule about another command's interruption.
+- **A record carrying no `round`** (§1, §7), and an entry whose heading has not that form.
+- **A change made in place to an item the stopped run did not first write** — a reopen, a
+  `[CDF#n]`'s re-disposition — which is not stamped with that run's round and stands. **One
+  exception**: a `Superseded <YYYYMMDD>: by [VD#m]` paragraph naming a `[VD#m]` that is a torn write
+  is part of that torn write. A reader reads the held record it sits on as it stood before it —
+  `open`, or `decided` where it carries `conditional_on`, the two statuses a record the will-change
+  rule held can hold (§6) — and the removal below restores exactly that.
+
+**A reader never counts a torn write.** A torn record is read as absent from the register, a torn
+entry as absent from the question set, and a torn defect line as absent from its entry. The test
+reads the worktree's round records, never a ref: whether a round record has merged is
+`workflows-core:phase-handoff`'s question and not this one. A round record that exists and cannot be
+read decides nothing; a reader that needs the answer treats the item as undecidable, by its own rule
+for an unreadable input.
+
+**`commands/brd-interview.md` removes torn writes, and nothing else does.** Its *Write the register
+and the round record* phase removes every torn write in this BRD's folder in the same writes, before
+it appends its own, restoring each `superseded` paragraph above; the path on which it opens no round
+does the same before its handoff. That removal is the one deletion any run makes inside a register,
+a question set or a log it leaves standing, and it deletes nothing any reader ever counted. **Its *Resolve inputs*
+phase reports each torn write it finds**, by id or heading, so an operator sees what an interrupted
+run left before anything is removed.
+
+**Ids.** A rule that continues an id sequence from the highest id on file reads a torn write as on
+file, so no id ever names two blocks at once. A number a removed torn write held may be assigned
+again, since nothing counted ever named it, and one assigned after it before the removal leaves a
+gap. That gap is the only break in §1's contiguity, and in `references/code-defect-log-format.md` §2's.
+
+**A round record written and not yet handed off is not a torn write.** Its items are named, and they
+count. They are simply on no ref — the state a declined handoff leaves, with the same remedy, which
+`commands/brd-package.md` names where it gates the register and the round records (Phase 0 steps 6
+and 7).

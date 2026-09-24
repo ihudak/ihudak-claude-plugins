@@ -18,7 +18,8 @@ dependent's log), `/prd-proposal`'s defect sweep (`references/proposal-format.md
 every file that names the log. It is not a list of readers in either direction: a file may name
 the log only to say it is a different register, and a command that reads it only through a
 reference appears as that reference — `/prd-proposal` does, through `references/proposal-format.md`
-§7, and its own command file is not in the list.
+§7, and its own command file is not in the list. **Every reader, whichever route it reaches the log
+by, never counts an entry `references/decision-register-format.md` §8 calls a torn write.**
 
 ## 1. Why this is not a grounding finding
 
@@ -54,7 +55,7 @@ round: 2
 
 | Field | Notes |
 |---|---|
-| `id` | `[CDF#1]`, `[CDF#2]`, … — contiguous, assigned once, **never renumbered and never reused**, with no terminal-status qualifier: unlike a decision, this record has no state a later run may reopen. A re-run continues from the highest id on file |
+| `id` | `[CDF#1]`, `[CDF#2]`, … — contiguous, assigned once, **never renumbered and never reused**, with no terminal-status qualifier: unlike a decision, this record has no state a later run may reopen. A re-run continues from the highest id on file. The one exception is an entry a stopped run left, which no round record names: `references/decision-register-format.md` §8 calls it a torn write, no reader counts it, and `/brd-interview` removes it |
 | `statement` | one sentence stating what is wrong, not the investigation that found it |
 | `behaviour` | exactly one **verified** `[CG#n]` in this BRD's own `grounding/code-grounding.md`, whose verdict is one that states what the code does — `CONFIRMED`, `AMENDED`, `REWRITTEN` or `FALSE-FRIEND` (`workflows-core:grounding-format` §3). There is no entry without one. **`NOT-PROVABLE` does not qualify**: it is the correct and final answer that the repository cannot settle the claim, so it establishes no behaviour for an `intent` to be judged against, and an entry resting on one would assert a defect nothing found. Neither does `SUPERSEDED`, whose premise a later finding replaced — cite that later finding instead. `commands/brd-interview.md`'s Phase 6 offer fires on the narrower three, which is a trigger and not this rule: an entry may be raised against a `CONFIRMED` finding at any point |
 | `intent` | one sentence stating what the code is supposed to do instead |

@@ -161,8 +161,9 @@ flowchart TD
 A run that finds every round closed and nothing a question source would ask since the last one
 opens no new round: it reports that plainly — nothing changed, or each change and why it raised
 nothing — with any requirement defect that belongs to a closed round 1, and the re-open
-that asks it — and reaches the handoff with nothing to commit where the register is already on file;
-where none is, it writes `decisions.md` as its header line alone and hands that off.
+that asks it — removes any torn write an interrupted run left, and reaches the handoff with nothing
+to commit where the register is already on file and nothing was torn; where none is, it writes
+`decisions.md` as its header line alone and hands that off.
 `workflows-core:impl-maintenance` runs in the terminal phase for session lessons-learned; no other
 subagent is dispatched — every finding this command reads was already independently re-derived by
 `/prd-ground`'s own verifier pass.
@@ -256,7 +257,8 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   assumption carries every one of them §7 admits and none it marks *not applicable*, which §1.1 has
   omitted rather than written empty — §7 accounts for all thirteen, and says of each whether it is
   as-is, means something different, or does not apply. Ids are contiguous within their
-  own prefix, assigned once, never renumbered, and never reused after a terminal status. A record
+  own prefix, assigned once, never renumbered, and never reused after a terminal status, a removed
+  torn write (below) aside. A record
   already on file moves only three ways here: reopened, with a closing `Reopened` paragraph naming
   its cause; re-decided after a reopen, keeping its id; or, for a `[VD#n]` the will-change rule held
   whose question a later round put again and which still reads `open` or `decided`, superseded by
@@ -317,6 +319,23 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   because a defect disposed `in-scope` is part of the delivery boundary rather than delivery-side
   bookkeeping. Format:
   [`code-defect-log-format.md`](../../references/code-defect-log-format.md).
+
+**One phase writes all of it, in one order, and the round record goes last.** Phase 9 writes
+`decisions.md`, then `code-defect-log.md`, then `interview/customer-questions.md`, then the round
+record. Every phase before it — the `[V]` answers, the held `[C]` entries, a defect line added to a
+held entry, a `--round N` re-open, a question the round-1 test adds — builds its part and holds it
+there, so a `Cancel`, an abort or an interruption before Phase 9 writes nothing into the BRD folder.
+The round record is the commit point
+([`decision-register-format.md`](../../references/decision-register-format.md) §8): an item stamped
+with a round whose record does not exist or does not name it — what a run that stopped between those
+writes leaves behind, or what an earlier version of this command left when a run was cancelled
+after holding its `[C]` questions — is a **torn write**. No reader counts one: not this command's
+*asked* test or generation, not [`/brd-package`](brd-package.md), which refuses a folder holding one,
+not [`/brd-reconcile`](brd-reconcile.md), and not the PRD, ARD and specification commands. Phase 0
+reports each one it finds, and Phase 9 removes them before it appends its own — the one deletion
+this command makes, of items nothing ever counted. A re-decision a stopped run wrote onto a record
+already on file is the exception: what it replaced cannot be restored, so it stands, and the next
+round opened at its round records it as decided.
 
 **No `[CD#n]` is ever minted by this command.** A customer decision enters the register only once
 the customer has actually answered and an operator has confirmed the answer; the customer answering
@@ -401,7 +420,7 @@ but the push and the pull request cannot run.
   in place instead, and one another run has left `withdrawn` or `superseded` does not move, and is
   named beside the new record under what still needs a human.
   **Cancel on this picker writes nothing**: it stops the run before the register phase, so no
-  decision this run took is written, and the next run puts the question again — or, for a round
+  decision this run took is written, and no `[C]` question it held either, and the next run puts the question again — or, for a round
   this run opened, regenerates it and asks only what is still askable.
 - **Round closure.** A round closes only when every question in it carries a **terminal**
   disposition. A holding state — *held for the customer*, *deferred*, *needs grounding*, *untagged* — is not one

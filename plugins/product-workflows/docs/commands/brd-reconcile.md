@@ -228,10 +228,12 @@ was offered or what it settles.
 
 **All three question sets are handed to the reader**, and that is what makes the third shape
 matchable rather than merely asserted: `interview/customer-questions.md`, `decisions.md`, and the
-`self-review-<date>.md` of the package the review answers — the one whose date the review's section
-1 names, or the only one on file. Every package numbers its escalated findings from `[SR#1]`
-again, so no other package's file is ever handed over: where the package cannot be determined, no
-self-review is passed, and every `[SR#n]` answer comes back `unmatched` and goes to a human. A
+`self-review-<date>.md` of the package the review answers — named by the `Package reviewed` line
+the prompt prints and the review's section 1 repeats, else by a date section 1 names that matches
+exactly one package, else the only package on file, else the operator's pick from the dated
+prompts on file. Every package numbers its escalated findings from `[SR#1]` again, so no other
+package's file is ever handed over: where the operator cannot tell either, no self-review is
+passed, and every `[SR#n]` answer comes back `unmatched` and goes to a human. A
 reader given only the first two returns every escalated
 finding's answer as `unmatched` — an answer the customer gave, reported as matching nothing, which is
 indistinguishable from one they never gave. The reader also reports which sets it was given, so an
@@ -321,8 +323,9 @@ command removes none of them; the next `/brd-interview` run does.
   assumption itself, or the record its `- **Re-puts:**` line names — followed through every
   supersession to the successor that stands. An escalated `[SR#n]` resolves only through the
   self-review file of the package the review answers, since every package numbers those findings
-  from `[SR#1]` again, and follows a `- **Re-escalates:**` line on its entry to the earlier finding
-  the customer already answered; where nothing resolves, nothing is skipped and the answer supersedes
+  from `[SR#1]` again, and follows a `- **Re-escalates:**` line on its entry — one the operator
+  confirmed names the same finding — to the earlier finding the customer already answered; where
+  nothing resolves, nothing is skipped and the answer supersedes
   nothing. A candidate whose chain holds a record an earlier pass over **the same
   review** wrote is skipped as already reconciled, whatever that record's status is now, so
   re-running an earlier review never reverts a later one's answer. A different review — a corrected
@@ -335,8 +338,9 @@ command removes none of them; the next `/brd-interview` run does.
   nothing, marks nothing answered and adds nothing to the propagation sweep; any other answer to
   that record, once frozen — the same option with a different reason included — is a new answer
   that supersedes it. An answer whose live record is `withdrawn` freezes nothing: the operator
-  records it for a human or rejects it, and a held question it answers is closed, naming the
-  withdrawal, so its round can close. A live record `open` for want of its reason is **completed**,
+  records it for a human or rejects it, and where it is recorded for a human, a held question it
+  answers is closed, naming the withdrawal, so its round can close; rejected, the question stays
+  held. A live record `open` for want of its reason is **completed**,
   minting nothing, by an answer with its own `chosen` and a reason now stated, and superseded by one
   choosing differently. A record
   the will-change rule held open is never completed: it already carries the customer's choice and
@@ -351,8 +355,8 @@ command removes none of them; the next `/brd-interview` run does.
   [`/brd-interview`](brd-interview.md) put its question again — is **re-decided in place**, keeping its id, the customer's new reason appended beneath the `Reopened` paragraph;
   one another answer superseded while the question travelled is followed to its live successor,
   which the answer then acts on as though the line named it; and one withdrawn while it travelled
-  keeps its status and takes no answer — nothing is frozen, the answer is named under what still
-  needs a human, and the question is closed, naming the withdrawal. Where another
+  keeps its status and takes no answer — nothing is frozen, and where the operator records the
+  answer for a human, it is named there and the question is closed, naming the withdrawal. Where another
   answer in the same run also bears on that record, the `- **Re-puts:**` line decides it. Where
   answers reach one record with none naming it on such a line — one replacing it, others only
   constraining it — the one that replaces it decides it, as it would for the status the record held:

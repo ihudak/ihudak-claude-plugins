@@ -232,7 +232,7 @@ Assembled from the package, never hand-written, in a fixed order that is not re-
 | 7 | The decisions the customer must make | the `[C]` question set, every open `[AS#n]`, every escalated `[SR#n]` |
 | 8 | What could still move | prerequisites not yet customer-reviewed, every `conditional_on` position, and every `conditional` `[CDF#n]` |
 | 9 | Where to attack us hardest | every open `[AS#n]`, and every `accepted-risk` `[SR#n]` |
-| 10 | The required output file, its exact name, and the inlined schema | the one-new-file rule, and the rendered schema |
+| 10 | The required output file, its exact name, and the inlined schema | the one-new-file rule, the `Package reviewed` line section 1 repeats, and the rendered schema |
 | 11 | What this session cannot settle | the ledger, the prerequisites, the review's own limits, and every `out-of-scope` `[CDF#n]` |
 
 **Parts 8 and 9 are the two that are easy to lose and expensive to omit.** A package that names its
@@ -288,11 +288,13 @@ attack.
 - **Phase 4 — a finding escalated again says which earlier one it is.** Every package numbers its
   findings from `[SR#1]` again, so on a re-package a finding taking `escalated-to-customer` that
   matches one an earlier package escalated — the same class, and a target that is the same single
-  record id, compared as whole values and never read out of prose — gets a
+  record id, compared as whole values and never read out of prose — is shown to the operator beside
+  the earlier finding's words, and only where they
+  confirm the two are one finding does it get a
   `- **Re-escalates:** self-review-<date>.md [SR#k]` line in this run's self-review, naming the most
   recent earlier match. [`/brd-reconcile`](brd-reconcile.md) follows that line, so the customer's new
-  answer is judged against the answer they gave before. No match on those fields, or two in one
-  file, writes no line, and the answer is frozen fresh.
+  answer is judged against the answer they gave before. No match on those fields, two in one file, or an
+  operator who does not confirm writes no line, and the answer is frozen fresh.
 - **Phase 5 — the tier is assigned from what was shippable.** Full, Partial or Documents only, never
   promoted, never chosen by the reviewer, and never quietly Full because the repositories were
   *probably* at the right commit. A tier is not a quality grade: a documents-only review that states

@@ -1126,8 +1126,9 @@ waited — does not move**, and gains no paragraph. For a `[V]`, the answer stil
 a human, since the question was put against a record that no longer stands. For a `[C]`,
 `/product-workflows:brd-reconcile` follows a `superseded` record to its live successor and acts on
 that one as though the line named it, and freezes nothing from an answer whose record, or live
-successor, reads `withdrawn`: it names the answer for a human and closes the entry *answered by the
-customer*, naming the withdrawal (its *Confirm every candidate* phase and its *Freeze the customer
+successor, reads `withdrawn`: the operator records the answer for a human or rejects it, and only
+on *Record it for a human* is the entry closed *answered by the customer*, naming the withdrawal
+(its *Confirm every candidate* phase and its *Freeze the customer
 decisions* phase, steps 1 and 3). A question put again and *deferred* keeps its round open, and the
 record stands as it is until the question is answered. **No other source raises a question on a
 successor this source has read** — a successor of a finding in the `evidence` of any held record,

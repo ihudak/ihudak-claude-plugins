@@ -50,7 +50,7 @@ review_path: <absolute path to the returned review file, already canonicalised b
 package:
   questions:   <path to the [C] question set the package put to the customer, when available>
   assumptions: <path to the register holding the open [AS#n] the package surfaced, when available>
-    self_review: <path to the dated self-review of the package this review answers, holding the
+  self_review: <path to the dated self-review of the package this review answers, holding the
                 [SR#n] findings it escalated to the customer — omitted where the caller could not
                 determine which package that is>
 mode: auto | schema | free-text   # default auto — see Process step 1
@@ -184,6 +184,8 @@ sections:                          # the schema's twelve, in its order
     state:  present | stated-none | absent
     content: |
       <the section as written, or the prose drafted into it in free-text mode>
+package_reviewed: <the `Package reviewed: <BRD-KEY> <YYYYMMDD>` line section 1 carries, copied
+                  exactly, or `absent` — never inferred from a date elsewhere in the review>
 evidence_limitations:
   stated: true | false
   tier:   full | partial | documents-only | not-stated

@@ -716,7 +716,8 @@ a package arguing with itself in front of the person it is trying to convince. W
 disposes it differently it is not a restatement: both stand, and each governs its own finding.
 
 **A finding escalated to the customer again carries a `- **Re-escalates:**` line, and the line is
-written from a structured match or not at all.** Every package numbers its findings from `[SR#1]`
+written from a structured match the operator confirms, or not at all.** Every package numbers its
+findings from `[SR#1]`
 again (above), so without it nothing ties a finding a later package escalates to the answer the
 customer already gave it under another id, and `/product-workflows:brd-reconcile` freezes the new
 answer beside the old. On a re-package, once a finding takes `escalated-to-customer`, look for it in
@@ -726,8 +727,19 @@ of them only on structured fields, compared as whole values and never parsed out
 `class`, and a `target` whose whole value is the same single bracketed id — a `[VD#n]`, an `[AS#n]`
 or another record of this BRD, the form `agents/brd-package-reviewer.md` writes a target in where
 the position attacked is one record. Take the most recent earlier self-review holding a match; where
-it holds exactly one, write on the new finding's entry in this run's self-review, beneath its
-disposition:
+it holds exactly one, the match only proposes. **A target names the record attacked, not the attack**,
+and two different findings can share a class and a record — so show the operator the earlier
+finding's `target`, `attack` and `what_would_settle_it`, its disposition and the file it sits in,
+beside the new finding's own, and ask whether they are one finding:
+
+```
+choices: ["The same finding — the customer has answered it before; link it", "Not the same finding — send it as a new one"]
+```
+
+No option is marked `(Recommended)`: the structured match is what brought the pair here, and
+whether the two attacks are the same is the judgement it cannot make. A free-text answer is
+normalised into the two or the pair is re-asked, and any doubt takes the second. Only on the first,
+write on the new finding's entry in this run's self-review, beneath its disposition:
 
 ```
 - **Re-escalates:** self-review-<YYYYMMDD>.md [SR#k]
@@ -736,8 +748,9 @@ disposition:
 naming that file and that finding's id as it stands there. The line names one step: the earlier
 finding carries its own line where it re-escalated one before it, and
 `/product-workflows:brd-reconcile` follows each in turn (its *Confirm every candidate* phase). **No
-line is written where nothing structured matches** — a `target` naming a passage of a document or
-more than one id, a different `class`, or two matches in one file: the finding goes to the customer
+line is written where nothing structured matches, or the operator does not confirm the match** — a
+`target` naming a passage of a document or more than one id, a different `class`, two matches in one
+file, or the second option above: the finding goes to the customer
 as a new one and its answer is frozen fresh, which is the safe direction, since a wrong line would
 judge the answer to one finding against the answer to another. That is also what a self-review
 written before this line existed reads as. The Final report names every line written.
@@ -843,7 +856,7 @@ sections do.
 | 7 | The decisions the customer must make | `interview/customer-questions.md`, every open `[AS#n]`, and every `escalated-to-customer` `[SR#n]` |
 | 8 | What could still move | the prerequisites resolved above, every `conditional_on` position (D20), and every `conditional` `[CDF#n]` |
 | 9 | Where to attack us hardest | every open `[AS#n]`, and every `accepted-risk` `[SR#n]` |
-| 10 | The required output file, its name, and the inlined schema | the D13 rule, and `render-schema` below |
+| 10 | The required output file, its name, and the inlined schema | the D13 rule, the `Package reviewed` line, and `render-schema` below |
 | 11 | What this session cannot settle | the ledger, the prerequisites, every `out-of-scope` `[CDF#n]`, and the review's own limits |
 
 **No fixed sentence this command renders carries an identifier with a number in it.** Every sentence
@@ -1021,7 +1034,14 @@ review is dated by when it was *written*. Stamping the package's date onto the f
 customer echo it back, and `/product-workflows:brd-reconcile` then derives the review's date from a
 filename that records when the delivery team sent the package — which is the one thing that phase
 says the date must not be. Ask for the same date in the review's section 1, so the file and its own
-first section agree and either can settle it. One line saying it is the only file to send back. The
+first section agree and either can settle it. **Then print the package's own identity as a labelled
+line, `Package reviewed: <BRD-KEY> <YYYYMMDD>`, with this run's stamp substituted**, and ask for it
+to be copied exactly into section 1 as its own line (`customer-review-schema.md` §4). It is a
+separate, labelled field and never the review's date, which is asked for apart from it above, so it
+does not re-create the echo that paragraph rules out: `/product-workflows:brd-reconcile` reads it,
+and nothing else, to know which package the review answers — and so which self-review's `[SR#n]`
+ids its answers cite, since every package numbers those from `[SR#1]` again. One line saying it is
+the only file to send back. The
 D13 rule stated **again** here, having already been stated in part 1, because an agent asked to
 review documents will otherwise helpfully edit them. Then the schema, inlined by `render-schema`
 below.

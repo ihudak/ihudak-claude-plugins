@@ -584,21 +584,42 @@ Dispatch `customer-review-reader` **once**, at `detection_model`:
   > package:
   >   questions:   [path to interview/customer-questions.md, when one is on file]
   >   assumptions: [path to decisions.md, when one is on file]
-    >   self_review: [path to the self-review of the package this review answers, resolved below — omitted where it cannot be determined]
+  >   self_review: [path to the self-review of the package this review answers, resolved below — omitted where it cannot be determined]
   > mode: auto"
 
 **Resolve the self-review of the package this review answers, before the dispatch.** An `[SR#n]` is
 scoped to one dated self-review, and every package numbers its findings from `[SR#1]` again
 (`/product-workflows:brd-package`), so the same id names a different finding in each: the reader
-may be handed only the file of the package the review answers, and never another. That package is
-the one whose date the review's own section 1 names — the prompt's or the bundle's date, among the
-documents it lists as available, read as this command reads that section for the review's date (the
-*Canonicalise the returned review* phase, step 1) — or, where it names none, the only package on
-file. **Where neither determines it** — section 1 names no package and more than one is on file —
-`self_review` is omitted, so every `[SR#n]` answer in the review comes back `unmatched`, and each is
-listed under *what still needs a human* as an answer to a finding of an undetermined package,
-never matched against another package's file; the *Confirm every candidate* phase's re-point
-refuses an `[SR#n]` on this run for the same reason. The reconciliation record names the file
+may be handed only the file of the package the review answers, and never another. The known set
+is the dated `customer-review-prompt-<YYYYMMDD>.md` files in the folder, one per package built, and
+the package is resolved against it, reading section 1 as this command reads it for the review's date
+(the *Canonicalise the returned review* phase, step 1), in this order:
+
+1. **The `Package reviewed: <BRD-KEY> <YYYYMMDD>` line** `/product-workflows:brd-package` prints
+   into the prompt and the review's section 1 repeats (`customer-review-schema.md` §4), where
+   section 1 carries it, its key is this BRD's, and its date names exactly one prompt on file.
+2. **Otherwise a date section 1 names among the documents it lists as available** — the prompt's or
+   the bundle's — where exactly one such date names exactly one prompt on file.
+3. **Otherwise the only package on file**, where there is one.
+4. **Otherwise ask the operator** — section 1 names no package, names a date that matches no prompt
+   on file, or names dates that match two — with the dated prompts printed above the prompt, most
+   recent first, and the date or dates section 1 named, if any, beside them. Two or three prompts
+   on file: every one, then the decline —
+   `choices: ["<BRD-KEY> package <YYYYMMDD-1>", "<BRD-KEY> package <YYYYMMDD-2>", "Cannot tell — leave it undetermined"]`,
+   with a third package before the decline where there is one. Four or more: the three most recent
+   and the overflow option, the full list staying in the prose above it as
+   `workflows-core:epic-picker`'s *The cap* sets out —
+   `choices: ["<BRD-KEY> package <YYYYMMDD-1>", "<BRD-KEY> package <YYYYMMDD-2>", "<BRD-KEY> package <YYYYMMDD-3>", "Another package from the list above — name its date"]`,
+   where declining is a free-text answer. No option is marked `(Recommended)`: which package the
+   customer answered is theirs to know, and the run has nothing to rank by. A free-text answer is
+   resolved only against the dated prompts on file, never parsed into a date that names none; one
+   that names no package on file, or declines, leaves the package undetermined.
+
+**Where nothing determines it** — the operator could not tell — `self_review` is omitted, so every
+`[SR#n]` answer in the review comes back `unmatched`, and each is listed under *what still needs a
+human* as an answer to a finding of an undetermined package, never matched against another
+package's file; the *Confirm every candidate* phase's re-point refuses an `[SR#n]` on this run for
+the same reason. The reconciliation record names the file
 resolved, or that none could be (*Write the reconciliation record*). A `--sent` run has no
 self-review at all and supplies none (*Resolve inputs and gate the sent package*, step 8).
 
@@ -617,7 +638,9 @@ operator has said outright that the file is prose — a narrowing, never a widen
 second dispatch.** Re-dispatching a review that came back free-text, hoping for a parse, is the same
 override taken slowly.
 
-**Record what the digest says, before working it.** The mode and its `mode_evidence`; the twelve
+**Record what the digest says, before working it.** The mode and its `mode_evidence`; the
+`package_reviewed` line the reader found, and, where it names a package other than the one resolved
+above, that disagreement as an anomaly; the twelve
 sections with each marked `present`, `stated-none` or `absent` — two facts that are never merged;
 `evidence_limitations`, including a `stated: false` that says the review's evidentiary basis is
 unknown; the decisions with their provenance; `unanswered_questions`; `challenges`;
@@ -837,9 +860,14 @@ supersedes a later review's answer. Where the live record is no longer that pass
 report says which it is instead: *already reconciled, superseded since by* `[CD#m]`, or *already
 reconciled, withdrawn since*. Without this rule a run cancelled halfway and restarted would mint a
 second `[CD#n]` for one question, and **two customer answers to one question is a contradiction one
-record has no way to hold** (`interview-tagging.md` §5, `decision-register-format.md` §1). The rule
-compares nothing — it keys on the review's name and the record's id — so it is taken before the
-candidate is shown. A candidate whose target no pass over this review froze anything for — every
+record has no way to hold** (`interview-tagging.md` §5, `decision-register-format.md` §1). **For an
+`[SR#n]` target the rule needs no self-review file**: a pass
+over the same review answered the same package, so an earlier pass over this same review that lists
+a `[CD#n]` answering this `[SR#n]` is enough, and the chain is followed from that record — which
+keeps the rule working on a reconciliation record written before passes named their self-review
+file. The rule compares nothing — it keys on the review's name and the record's id — so it is taken
+before the candidate is shown. A candidate whose target no pass over this review froze anything for
+— every
 candidate onto it was rejected or sent back to the customer — is offered again.
 
 **Every target resolves to its question's live record before any candidate is shown.** Start from
@@ -867,8 +895,10 @@ the earliest record frozen against the target:
   record lists as answering that `[SR#n]` of that same file (*Write the reconciliation record* names
   the file each pass resolved against). **Where no earlier pass answered it and its entry in that
   file carries a `- **Re-escalates:** <earlier self-review file> [SR#k]` line**
-  (`/product-workflows:brd-package`, *The disposition gate*), the finding was put to the customer
-  before under that other id: resolve `[SR#k]` of the named file the same way — its own line
+  (`/product-workflows:brd-package`, *The disposition gate*) — a line written only where the operator
+  confirmed, beside both findings' words, that the two are the same finding — the finding was put
+  to the customer before under that other id: resolve `[SR#k]` of the named file the same way — its
+  own line
   followed in turn — and the chain starts at what that resolves to, so the new answer is judged
   against the earlier answer's live record. **Where nothing resolves** — no pass answered the id or
   one it re-escalates, or the pass that did names no file it resolved against — the `[SR#n]` has no
@@ -1019,7 +1049,10 @@ candidate* phase set aside as a conflicting answer.
 The *Confirm every candidate* phase's rule is the carve-out and it is repeated here because the mint
 and the exception live in two different phases, which is precisely where this would regress: a
 candidate confirmed against a target whose live record is an **`open`** `[CD#n]` **open for want of
-its reason**, choosing what that record chose and now stating a reason, **mints nothing** — its
+its reason**, choosing what that record chose and now stating a reason — never on an entry that
+puts a record
+again on a `- **Re-puts:**` line (step 3), where an open record of either kind is superseded —
+**mints nothing** — its
 reason is written as the `argumentation` of that record, which moves to `decided` unless the
 will-change rule below holds it open. **One choosing differently is not that case**: it is a new
 answer (D1) and mints a new `[CD#n]`, which step 3 below sets against the open record. **Nor is a
@@ -1263,8 +1296,9 @@ Then, in the same phase and from the same confirmed set:
      Which of them an answer to the record's own question replaces is not the same for all three.
      **A record the will-change rule held `open` is replaced by it** and takes the first bullet
      (*Completing an `open` record*). **One frozen `open` for want of its reason** is completed,
-     minting
-     nothing, by an answer choosing what it chose and now stating a reason (the mint rule above),
+     minting nothing, by an answer choosing what it chose and now stating a reason (the mint rule
+     above) — never on an entry that puts a record again on a `- **Re-puts:**` line, where it is
+     superseded (below) —
      and replaced by one choosing differently, which takes the first bullet. **A `reopened`
      one named on the answered entry's `- **Re-puts:**` line is re-decided in place** (below); one
      the answered entry does not name that way — a corrected resend of the review that first
@@ -2062,8 +2096,10 @@ changed, why, which ids, and what still needs a human:
   was committed under `customer-sent-<YYYYMMDD>/`, and say plainly that this material was not
   assembled under `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md`'s rules — a later reader
     weighing what a quotation was checkable against needs to know which of the two they are holding.
-  Name the package the review answers by its date, and the `self-review-<YYYYMMDD>.md` its `[SR#n]`
-  ids were resolved against, or say that it could not be determined and why — a later pass resolves
+  Name the package the review answers by its date, how it was determined — the `Package reviewed`
+  line, a date section 1 named, the only package on file, or the operator's pick — and the
+  `self-review-<YYYYMMDD>.md` its `[SR#n]` ids were resolved against, or say that it could not be
+  determined and why — a later pass resolves
   an `[SR#n]` through this line and no other (*Confirm every candidate*).
 - **The review** — the canonicalised copy by path, the original path it arrived on, the mode the
   reader worked in and what decided it, the verdict, the readiness statement **quoted verbatim** (it

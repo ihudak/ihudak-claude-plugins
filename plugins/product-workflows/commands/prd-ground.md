@@ -1137,8 +1137,8 @@ that could drift from it. Two consequences for this dispatch:
   `design-grounder`, unchanged. A `[DG#n]` is a reconciliation between the frame set and the
   inventory, so handing over only the frames gives the verifier one side of the comparison. A
   **class-1** finding cannot be re-derived at all without it: it asserts that no requirement asks
-  for what the frame shows — a negative over the whole set — and its `claim` is the literal
-  `none — frame-only`, so there is no requirement id in the record to stand in for the set. The verifier
+  for what the frame shows — a negative over the whole set — and its `claim` is
+  `none — frame-only: <field>`, naming a field and no requirement, so there is no requirement id in the record to stand in for the set. The verifier
   correctly returns `NOT-PROVABLE`, and the finding is then permanently unverifiable and can never
   become evidence (`workflows-core:grounding-format` §8). This dispatch omitted the field, which is
   where that dead end came from.
@@ -1728,7 +1728,7 @@ in two repositories, or by a `[CG#n]` and a `[DG#n]` both, counts once. **A `CON
 `claim` names no requirement id contributes none**, which is where Phase 3's baseline `[CG#n]` falls
 out: its `claim` is not a requirement premise, so nothing resolves it back to a requirement row —
 `workflows-core:grounding-format` §4.1 rule 1, the same property on which that section already
-excludes baselines from the unconsumed-item report. A class-1 `[DG#n]` recorded `none — frame-only`
+excludes baselines from the unconsumed-item report. A class-1 `[DG#n]`, whose `claim` opens `none — frame-only`,
 falls out the same way. **That exclusion is what keeps this branch off the greenfield run the
 sentence above excludes by name:** a baseline finding is `CONFIRMED` by construction and Phase 3
 assigns one per repository that passes its gate, so counting them would hold `<N>` at one or more on

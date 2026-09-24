@@ -467,8 +467,8 @@ but the push and the pull request cannot run.
   askable, and the round opened puts the question again against the current findings, under the tag
   it had; until then the record waits on its prerequisite, and the run says so — unless a superseded
   finding it rests on is one no successor will come to, when the record is put again at once, naming
-  that finding: it cannot be matched to a successor — its source cannot be read, or it is one of
-  several frame-only findings on the same frame — or the `/prd-ground` run that retired it re-ground
+  that finding: it cannot be matched to a successor — its source cannot be read, or it is a
+  frame-only finding written before such findings named their field — or the `/prd-ground` run that retired it re-ground
   its frame set and found nothing to succeed it. Its answer is a new
   record, and the held one — where it reads `open` or `decided` — is superseded by it: here for a
   `[V]`, by `/brd-reconcile` for a `[C]`. One a propagation sweep reopened meanwhile is re-decided

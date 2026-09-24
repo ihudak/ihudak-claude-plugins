@@ -226,7 +226,7 @@ allocated ledger satisfies the front of two of them and only one is the run the 
   child missing its inventory or ledger is not out of step: it is reported, never reconciled, since
   re-seeding a lost ledger would overwrite what that child's own walk settled — and never offered a
   row either, by any walk or re-cut of the run, which names it beside each list it is left out of,
-  with the file it is missing; [`/prd-ground`](prd-ground.md) on that child names the repair. A
+  with the file it is missing or cannot read; [`/prd-ground`](prd-ground.md) on that child names the repair. A
   **bare** re-run builds no candidate set at all, so on a fully allocated parent it is this path
   **where no child is standing empty or out of step** — where one is, it takes the third path below,
   which is exactly what keeps a bare run the reachable fix the stops naming it promise.

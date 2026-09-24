@@ -86,7 +86,7 @@ never become evidence (§8).
 
 **`inventory` is required for every `[DG#n]`, and a class-1 finding is why.** A class-1 finding
 asserts *"this frame shows a field no requirement asks for"* — a **negative over the whole
-requirement set** — and `design-grounder` writes its `claim` as the literal `none — frame-only`,
+requirement set** — and `design-grounder` writes its `claim` as `none — frame-only: <field>`, naming the field and no requirement,
 because there is no requirement id to name. Handed the frames and that claim and nothing else, this agent
 cannot re-derive the assertion at all: it can see the field on the frame and has no set to establish
 the absence against. It correctly returns `NOT-PROVABLE` and says why, which is the contract working

@@ -722,7 +722,11 @@ reconciles it against the requirement inventory it was handed — a BRD's `[BR#n
 `[AC#n]`/`[FR#n]`/`[US#n]` rows — in exactly four classes:
 
 1. **A frame shows a field no requirement ever asks for.** The design carries more than the
-   requirement asked for; the finding names the field and the frame.
+   requirement asked for; the finding names the field and the frame. There is no requirement to
+   name, so its `claim` is `none — frame-only: <field>`, `<field>` being that one field's label
+   exactly as the frame displays it: one finding per field, so two unasked-for fields on one frame
+   are two findings told apart by that token (`product-workflows:design-grounder` writes it,
+   `product-workflows:brd-interview`'s successor test matches on it).
 2. **A requirement asks for a field no frame shows.** The inventory names something the design
    never surfaces; the finding names the requirement id and the frame set that was checked.
 3. **A frame contradicts the requirement text.** The design and the requirement disagree about the

@@ -992,20 +992,21 @@ finding on file that passes all four of these tests against it —
 2. **a `verdict` that is not `SUPERSEDED`**;
 3. **a `claim` opening with the same requirement id** — each grounder writes the id first
    (`agents/code-grounder.md`, `agents/design-grounder.md`) — **or, where the superseded finding's
-   `claim` is the literal `none — frame-only`**, a class-1 `[DG#n]` reconciling a frame against no
-   requirement (`agents/design-grounder.md`), **a `claim` reading that same literal and citing the
-   same frames**: the paths of its `evidence` that its frame set's index names are exactly the
-   superseded finding's. With no requirement id to match, the match is on the frame set — test 4
-   places both in one — and on the frames of it each cites, read off the parsed `evidence` paths
-   against that index and never off prose; a match on the set alone would let a finding on one
-   frame stand as the successor of a finding on another, confirming a divergence the frames no
-   longer show. **The frames cannot tell two findings on one frame apart**, though — one frame can
-   diverge from the inventory in two ways, over two fields, and carry a frame-only finding for each —
-   so **where more than one other frame-only `[DG#n]` on file in that set, superseded or not, cites
-   any frame the superseded finding cites, this branch cannot be decided**: a successor it picked
-   could be the other divergence's, confirming one the frames no longer show. A plain record resting
-   on such a finding is then reopened, and a held one is put again (below), since no finding on file
-   is ever deleted and the branch stays undecidable;
+   `claim` opens `none — frame-only`**, a class-1 `[DG#n]` reconciling a frame against no
+   requirement, **the same field token and the same frames**. `design-grounder` writes such a
+   `claim` as `none — frame-only: <field>`, `<field>` being the one unasked-for field's label as
+   the frame displays it (`agents/design-grounder.md`, `workflows-core:grounding-format` §6.3), so a
+   successor's `claim` equals the superseded one's exactly, token included, and the paths of its
+   `evidence` that its frame set's index names are exactly the superseded finding's — both read
+   off the record's fields, never off prose. The frames alone cannot tell two findings on one frame
+   apart, since one frame can show two unasked-for fields and carry a finding for each; the token
+   does, and a frame's own chain of re-emissions matches link to link, however long it grows.
+   **A superseded class-1 finding whose `claim` is the bare `none — frame-only`, carrying no
+   token** — written before the token existed — **cannot be decided**: nothing on the record says
+   which of a frame's fields it was about. That is the safe direction and it costs one reopen: a
+   plain record resting on it is reopened, and a held one is put again (below), and the answer is
+   taken against the current findings, which carry the token, so the record that replaces it never
+   meets this case again;
 4. **grounded against the same source, and minted after it** — a higher id of that prefix. The
    source is read off records already on file, never off the finding's prose, because
    `/product-workflows:prd-ground` grounds every claim once per repository and once per frame set
@@ -1021,8 +1022,7 @@ finding on file that passes all four of these tests against it —
    paths beside its frames, which no index names and which so take no part in the placement.
 
 Where a test cannot be decided — a `claim` opening with no requirement id and not reading
-`none — frame-only`, a frame-only finding whose frames more than one other frame-only finding
-cites (test 3), a `commit` no
+`none — frame-only`, a frame-only finding carrying no field token (test 3), a `commit` no
 `baselines.md` entry records or that more than one repository's entry records, a `[DG#n]` whose
 evidence names no path any index names, or whose named paths no single set's index holds all of —
 it is not passed. A superseded finding
@@ -1051,8 +1051,8 @@ that as a test that did not pass.
   - **it cannot be matched to one** — its own source cannot be decided, a `commit` no
     `baselines.md` entry records or more than one records, or a `[DG#n]` the frame-set placement in
     test 4 does not settle, so test 4 can pass nothing against it; or it is a frame-only finding
-    whose frames more than one other frame-only finding cites, so test 3 can pass nothing against
-    it. Either stays true whatever any later run writes, since no finding on file is ever deleted;
+    carrying no field token, so test 3 can pass nothing against it. Either stays true whatever any
+    later run writes, since a finding on file is never rewritten to supply what it lacks;
   - **the run that retired it re-ground its source**: the finding, or a finding on file that passes
     tests 1, 3 and 4 against it — its chain of successors, every one now `SUPERSEDED` —
     carries the note `superseded: frame set <frame-set> re-ground`, matched exactly, with

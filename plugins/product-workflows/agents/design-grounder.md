@@ -152,7 +152,7 @@ frame_set_dir: <absolute path as received>
 index_file: <relative path to the index file found>
 findings:
   - id: DG#<n>
-    claim: <the requirement id as given — BR#n, AC#n, FR#n, or US#n> — <the requirement text>, or "none — frame-only" for a class-1 finding with no corresponding requirement
+    claim: <the requirement id as given — BR#n, AC#n, FR#n, or US#n> — <the requirement text>, or "none — frame-only: <field>" for a class-1 finding with no corresponding requirement, where <field> is the one field the frame shows and no requirement asks for — its label copied exactly as the frame displays it, never paraphrased, and the same string on every run that finds it, because /product-workflows:brd-interview matches a class-1 finding's successor on it (a class-1 finding is always about one field, per workflows-core:grounding-format §6.3; a frame showing two unasked-for fields gets two findings, one per field)
     verdict: CONFIRMED | AMENDED | REWRITTEN | FALSE-FRIEND | NOT-PROVABLE   # never SUPERSEDED — never emitted by a grounder; only a re-grounding run marks a finding SUPERSEDED, writing its prior_verdict (workflows-core:grounding-format §2)
     evidence:
       - path: <relative path to the frame image, per the index>

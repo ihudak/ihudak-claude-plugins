@@ -419,8 +419,8 @@ record's `evidence` is `SUPERSEDED`, each has a successor, and no successor is `
 and puts it again in that round, under the tag it had, against the current findings (its *A decision
 the re-grounding moved*); until then the record waits on its prerequisite, and that run reports it
 so — except where a superseded finding is one no successor will come to, because it cannot be
-matched to one — its own source cannot be decided, or it is one of several frame-only findings on
-one frame — or because the run that retired it re-ground its frame set and found none, when the
+matched to one — its own source cannot be decided, or it is a frame-only finding written before
+such findings named their field — or because the run that retired it re-ground its frame set and found none, when the
 record is put again at once, naming that finding. The answer is tested by this
 rule like any other, and what it does turns on the held record's `status` as the answer's writer
 reads it —

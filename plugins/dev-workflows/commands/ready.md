@@ -31,7 +31,7 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). `status: found` → carry its `path`, `kind`
-   and `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command.
+   and `key` forward; `ambiguous` → stop, naming every match; `invalid` → stop with `READY_NEEDS_KEY` below, naming the token that failed §1's grammar. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command.
 
    **The folder decides the altitude and the ladder, replacing the two-key grammar — as
    `workflows-core:addressing` §4.1 places it, never by the kind it asserts.** A BRD-route slice is
@@ -61,7 +61,8 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
    - `<EPIC>` — the resolved folder's `key` on an Epic-level run, `null` on a PRD-level one. The
      later steps call it `focus_key` — one value under two names — and test it as *set* or *null*.
 
-   `/ready` is **address-required**: with no positional address, stop with
+   `/ready` is **address-required**: with no positional address, or one `resolve-address` returns
+   `invalid`, stop with
    `READY_NEEDS_KEY: /ready needs a PRD or Epic address — a key, or an @<path> to its folder.` —
    `/ready` has no direct-prompt behavior.
 

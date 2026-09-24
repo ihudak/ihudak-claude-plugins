@@ -20,7 +20,7 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 
 `/document` has **two modes**, selected by the first argument token:
 
-- **Keyed mode (Mode A)** — the first token is a **single positional address**: a `<KEY>` matching `workflows-core:addressing` §1's grammar, or an `@<path>` naming a folder in the specs tree. **On a `<KEY>`, `$SPECS_PATH` comes first:** if it is unset, stop naming it before resolving anything or running the preflight below (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`, `workflows-core:escalation-rules` *Required path environment variable unset*) — a key is found only by searching the specs tree, so with no tree the `absent` stop below would name the wrong cause and offer a re-enter that cannot succeed. An `@<path>` address needs no specs tree and runs on, and direct mode is unaffected. `resolve-address` (§3) turns the address into a folder; `ambiguous` is a stop naming every match. **`status: absent` is a stop, not a folder to create** — it surfaces the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) — a folder that resolves and holds no PRD takes a named stop instead, Mode A Phase 0 step 1's `DOCUMENT_BRD_NOT_SLICED` or `DOCUMENT_FOLDER_NOT_PLACED`, or Phase 3's `DOCUMENT_NO_PRD` — and names what creates a folder this command reads — **all three creators, not one**: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command. Naming only `/create-prd` is wrong on the BRD route, where that command refuses the container above the slice, and wrong for an `EPIC-` address, which it never mints — the same list `/dev-workflows:ready`, `/docs-workflows:release-notes`, `/product-workflows:epics` and `/product-workflows:create-ard` each print in their own `absent` stops. It never falls through to direct mode: an address that resolved to nothing is a typo to correct, not a prose prompt to document.
+- **Keyed mode (Mode A)** — the first token is a **single positional address**: a `<KEY>` matching `workflows-core:addressing` §1's grammar, or an `@<path>` naming a folder in the specs tree. **On a `<KEY>`, `$SPECS_PATH` comes first:** if it is unset, stop naming it before resolving anything or running the preflight below (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`, `workflows-core:escalation-rules` *Required path environment variable unset*) — a key is found only by searching the specs tree, so with no tree the `absent` stop below would name the wrong cause and offer a re-enter that cannot succeed. An `@<path>` address needs no specs tree and runs on, and direct mode is unaffected. `resolve-address` (§3) turns the address into a folder; `ambiguous` is a stop naming every match. **`status: absent` is a stop, not a folder to create** — it surfaces the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and names what creates a folder this command reads — **all three creators, not one**: a `PRD-` folder comes from `/product-workflows:idea <KEY>` or `/product-workflows:create-prd <KEY>` on the idea route and from `/product-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/product-workflows:epics <PRD-ADDRESS>` and from no other command. Naming only `/create-prd` is wrong on the BRD route, where that command refuses the container above the slice, and wrong for an `EPIC-` address, which it never mints — the same list `/dev-workflows:ready`, `/docs-workflows:release-notes`, `/product-workflows:epics` and `/product-workflows:create-ard` each print in their own `absent` stops. It never falls through to direct mode: an address that resolved to nothing is a typo to correct, not a prose prompt to document. An address that resolves but leads to no `prd.md` the run can read is not this rule's: it takes one of Mode A Phase 0 step 1's named stops — `DOCUMENT_BRD_NOT_SLICED`, `DOCUMENT_FOLDER_NOT_PLACED` or `DOCUMENT_NO_PRD`.
 - **Direct mode (Mode B)** — no positional address: a leading `@file` token, free-text prose, or a directory that is not in the specs tree, which Mode B handles via its existing "anything else" path.
 
 **The mode test is the presence of an address**, which is what replaces the retired shared front-end's own mode return. Mode B is unchanged in every other respect — a direct-mode run is byte-identical to before.
@@ -61,31 +61,76 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
    - `focus_key` — the resolved folder's `key` where §4.1 places it at Epic level, `null` where it
      places it at PRD level. Phase 3 derives `focus_items` from it.
 
-   **A BRD container and a folder placed at no level each stop here, before Phase 1 asks anything,
-   with a stop of its own.** Neither is the `key dir not found` rule: the key resolved, so re-entering
-   it cannot help. An Epic-level or PRD-level folder takes neither stop and runs on as above.
+   **An address that resolves but leads to no `prd.md` the run can read stops here, and so does
+   one whose PRD folder carries no key — before anything else in this phase runs, and before Phase 1
+   asks anything — each with a stop of its own.** None of these is the `key dir not found` rule: the key resolved, so re-entering it cannot help. A
+   PRD-level or Epic-level folder whose PRD folder holds a `prd.md` and carries a key takes none of
+   them and runs on as above.
    - **A BRD container** — the folder §4.1's container test places — holds no PRD: a BRD's PRDs are
      authored in its `PRD-` slices. List the slices under it by the positive test §4.1 names, each
-     immediate subdirectory carrying a `brd-link.md` whose `parent:` names the container, each by
-     the `key` its own carrier asserts (§4), or by `@<path>` where that carrier asserts none. Stop:
+     immediate subdirectory carrying a `brd-link.md` whose `parent:` names the container. A slice
+     is listed by the `key` its own carrier asserts (§4); one whose carrier asserts none is listed by
+     its `@<path>` with `(no key — give it a carrier, workflows-core:addressing §5)` and is not
+     enterable. Stop:
      `DOCUMENT_BRD_NOT_SLICED: <KEY> resolves to a BRD container at <path>, which holds no PRD — its PRDs are authored in its PRD- slices: <each slice key, found by workflows-core:addressing §4.1's positive test>.`
      `choices: ["Enter a slice key", "Cancel"]`. **The key the operator types — after "Enter a slice
-     key", or in the harness's free-text option — is resolved against the slices this stop listed,
-     and never parsed or resolved on its own.** An answer equal to one listed key or `@<path>`
-     re-enters step 1's address resolution with that slice's `@<path>`, which the listing
-     already holds, so no key is searched for again and `$SPECS_PATH` is not needed for it. An
-     answer equal to none re-presents this stop, saying the answer named none of the listed
-     slices. "Cancel" ends the run. **Where the test finds no slice, there is nothing to enter, so
-     no `choices:` array is shown** and the stop is a plain one, its list replaced by `It has no slice yet: '/product-workflows:brd-split <KEY> "<how to cut it>"' carves one where this BRD's ledger leaves a row unallocated; where it leaves none, coverage-ledger-format.md §5 names the repairs.`
+     key", or in the harness's free-text option — is resolved against the keyed slices this stop
+     listed, and never parsed or resolved on its own.** An answer equal to one listed key
+     re-enters step 1's address resolution with that slice's `@<path>`, which the listing already
+     holds, so no key is searched for again and `$SPECS_PATH` is not needed for it. An answer equal
+     to none — a keyless slice's path among them — re-presents this stop, saying the answer named
+     none of the enterable slices. "Cancel" ends the run. **Where the test finds no slice, there is
+     nothing to enter, so no `choices:` array is shown** and the stop is a plain one: its message
+     ends at `…authored in its PRD- slices.`, and `It has no slice yet: '/product-workflows:brd-split <KEY> "<how to cut it>"' carves one where this BRD's ledger leaves a row unallocated; where it leaves none, coverage-ledger-format.md §5 names the repairs.` follows it.
    - **A folder §4.1 places at no level** is not guessed at. Stop, a plain stop with no `choices:`,
      because nothing the run can offer fixes the folder:
      `DOCUMENT_FOLDER_NOT_PLACED: <KEY> resolves to <path>, which carries <what it carries> and nothing workflows-core:addressing §4.1 places at any level. <the remedy>`
      `<what it carries>` names its top-level files and what `kind:` and `key:` each asserts — a
-     `prd.md` asserting no `kind:` among them, where it holds one. `<the remedy>` is to give the folder a carrier
-     (`workflows-core:addressing` §5) and, where it holds an `idea.md` and no `prd.md`, to run
-     `/product-workflows:create-prd <KEY>`, whose `prd.md` places it (§4.1). On an `@<path>` to a
-     folder with no carrier, §3 returns no key: `<KEY>` in the message is that `@<path>`, and the
-     remedy's `<KEY>` is left for the operator to supply (§3 step 1).
+     `prd.md` asserting no `kind:` among them, where it holds one. `<the remedy>` is to give the
+     folder a carrier (`workflows-core:addressing` §5) and, where it holds an `idea.md` and no
+     `prd.md`, to run `/product-workflows:create-prd <KEY>`, whose `prd.md` places it (§4.1). On an
+     `@<path>` to a folder with no carrier, §3 returns no key: `<KEY>` in the message is that
+     `@<path>`, and the remedy's `<KEY>` is left for the operator to supply (§3 step 1).
+   - **A PRD folder with no key.** Where §4.1 places the PRD folder at PRD level but `<PRD>` came
+     back empty — an `@<path>` to a folder with no carrier (§3 step 1), such as a slice whose
+     `brd-link.md` asserts no `key:`, or an Epic whose PRD folder has none — stop, naming that folder
+     and the two ways on §3 step 1 gives: give it a carrier (`workflows-core:addressing` §5), or,
+     where its name is unprefixed, address it by its `<KEY>`. This command needs the key:
+     it is one of the commit scan's tokens (Phase 3).
+   - **A PRD folder holding no `prd.md`.** Where §4.1 places the resolved folder at PRD or Epic
+     level, test the PRD folder for a `prd.md`. The test is the file's presence: a `prd.md` asserting
+     no `kind: prd` is read in Phase 3, not refused. Where there is none, stop — a plain stop with no
+     `choices:`:
+     `DOCUMENT_NO_PRD: <KEY>'s folder <path> holds no prd.md. <the remedy>`
+     `<KEY>` is `<PRD>` and `<path>` the PRD folder, on an Epic-level run as on a PRD-level one.
+     `<the remedy>` turns on what that folder carries, because `/product-workflows:create-prd`
+     refuses a BRD-route slice in three states, as `/product-workflows:epics`' `EPICS_NO_PRD`
+     remedy table also records:
+     - **No `brd-link.md`** — an idea-route PRD folder: `Run /product-workflows:create-prd <KEY> first.`
+     - **A `brd-link.md`** — a BRD-route slice. Read the rows its `claims:` names (its gate set) and
+       their dispositions from the slice's own `coverage-ledger.md`, never from a `ledger:` line,
+       and take the first row that applies:
+       - `coverage-ledger.md` missing while `claims:` names rows: name no command. Report the
+         missing `<path>/coverage-ledger.md`, and say `/product-workflows:brd-split` wrote it with
+         the slice.
+       - A gate-set row still `unallocated`:
+         `Allocate it with /product-workflows:brd-split <KEY>, then run /product-workflows:create-prd <KEY>.`
+         Say beside it that `/brd-split`'s own Phase 0 stops, naming `/product-workflows:prd-ground <KEY>`,
+         where this slice's grounding findings do not each carry a verifier verdict.
+       - No gate-set row `covered-here`, and the gate set **empty**: a standing empty child. Name
+         `/product-workflows:brd-split <PARENT-KEY>`, which keeps or removes it, `<PARENT-KEY>` read
+         off the same `brd-link.md`'s `parent:` — with `"<how to cut it>"` where the parent's ledger
+         still holds an `unallocated` row, bare where it holds none, and neither form, reporting the
+         parent's ledger by path, where it cannot be read.
+       - No gate-set row `covered-here`, and the gate set **non-empty**: name no command.
+         `This slice holds no PRD of its own — <what each claimed row resolved to> — so there is nothing here to document.`
+       - Otherwise: `Run /product-workflows:create-prd <KEY> first.`
+
+     **Where the PRD folder is above an Epic and §4.1 does not place it at PRD level** — an Epic
+     folder at the top of `specifications/`, or under a BRD container or any other folder that is
+     not PRD-level — no PRD folder stands above the Epic, and the stop reads instead:
+     `DOCUMENT_NO_PRD: <focus_key> resolves to an Epic folder at <path> with no PRD folder above it. Move the Epic folder into its PRD folder (git mv) and re-run.`
+     — `<path>` here being the Epic folder's own.
 
 2. **Resolve the docs repo (cwd-preferred).** This command writes feature documentation into a product docs repository; running it outside such a repository is almost always a mistake. The **docs signals** checked throughout this step are:
    - `package.json` with any script matching `*:start`, `*:build`, `*:lint`, `docs:*`, or
@@ -380,9 +425,7 @@ the shape its Inputs declare for `refs[]`, `title` optional — taken on the pur
 repeated inside an element. No URL, no host classification, no `gh` requirement.
 
 
-If the PRD folder holds no `prd.md`, stop. The test is the file's presence: this phase reads a `prd.md` whatever its frontmatter, so one asserting no `kind: prd` is read, not refused. The key resolved, so this is a plain stop with no `choices:` rather than the `key dir not found` rule, whose re-enter cannot help:
-`DOCUMENT_NO_PRD: <KEY>'s folder <path> holds no prd.md. Run /product-workflows:create-prd <KEY> first.`
-`<KEY>` is `<PRD>` and `<path>` the PRD folder (Phase 0 step 1), on an Epic-level run as on a PRD-level one. **Where §4.1 does not place that folder at PRD level** — an Epic folder at the top of `specifications/`, or under a BRD container or any other folder that is not PRD-level — `/create-prd` authors no PRD above the Epic, so `<KEY>` is `focus_key` and the message's last sentence is replaced by `No PRD folder stands above this Epic: move the Epic folder into its PRD folder (git mv) and re-run.` Otherwise, store the handoff for downstream phases.
+The PRD folder holds a `prd.md` here: Phase 0 step 1's `DOCUMENT_NO_PRD` has already stopped a run whose PRD folder holds none. Store the handoff for downstream phases.
 
 When `focus_key` is set (Phase 0 step 1 — the address named an Epic folder), also derive
 `focus_items` = **that `EPIC-` folder and what it holds** — its `epic.md`, `specification.md`,

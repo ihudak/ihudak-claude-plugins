@@ -175,8 +175,7 @@ This rule binds every command in the family — this plugin's own and those of e
 `choices: ["Re-enter key", "Cancel"]`
 
 Used when the address resolved to no folder — `resolve-address` returned `status: absent`, or a
-folder that resolved earlier in the run is gone when a later phase reads it — or when a command's own
-Phase 0 rejects a `key` that fails `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1's grammar.
+folder that resolved earlier in the run is gone when a later phase reads it.
 **A folder that is there is never this case, whatever it holds**: re-entering a key that resolved
 cannot help. A command that stops on what such a folder holds — a BRD container, a folder placed at
 no level, a PRD folder with no `prd.md` — raises a named stop of its own instead, as `/document`'s

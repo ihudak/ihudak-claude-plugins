@@ -207,7 +207,9 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    this folder holds an `epic.md` and as `EPICS_NO_PRD` where it holds none, and the remedy is the
    one both stops give: where the folder above is a `PRD-` folder, it is `The PRD folder above it
    holds no PRD yet: author one there with '/product-workflows:create-prd <PARENT-KEY>'.`,
-   `<PARENT-KEY>` being that folder's own `key` — a run this step does not refuse, since it resolves
+   `<PARENT-KEY>` being that folder's own `key` (where that folder holds a `prd.md` asserting no
+   `kind: prd`, say that instead of "holds no PRD yet": step 6 counts the file as found on that
+   run, which then offers to refresh it or to overwrite it with an archive) — a run this step does not refuse, since it resolves
    the `PRD-` folder and not this one, subject to step 7's data refusals applied to *that* folder
    where it carries a `brd-link.md` (name instead what the matching row of
    `/product-workflows:update-prd` Phase 0 step 4's table names); anywhere else, name no parent and
@@ -215,7 +217,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    so `emit-block` does not fire. `/product-workflows:idea`'s `IDEA_NOT_AN_IDEA_FOLDER` refuses the
    same folder for the same reason.
 
-6. **Prior PRD (frontmatter-based).** Read `<feature-folder>/prd.md` — the only canonical PRD name this plugin writes (`/update-prd`'s archived copies under `revisions/` are never read as a PRD) and the only one it reads. `workflows-core:addressing` §5 resolves the *folder* either way and fixes the boundary there: a tree written before the artifact filenames lost their keys renames its artifacts rather than being resolved for, so a `<KEY>_<slug>.md` sitting beside no `prd.md` reads here as no PRD at all. `kind: prd` identifies the draft inside it. If a PRD is found, this is an **existing PRD** — `/create-prd` is greenfield-only, so **redirect** (see Phase 1) to `/update-prd <KEY>` unless `--from-prd` **or the BRD route** is present.
+6. **Prior PRD (frontmatter-based).** Read `<feature-folder>/prd.md` — the only canonical PRD name this plugin writes (the archived copies under `revisions/`, `/update-prd`'s and this command's own Phase 5 archive alike, are never read as a PRD) and the only one it reads. `workflows-core:addressing` §5 resolves the *folder* either way and fixes the boundary there: a tree written before the artifact filenames lost their keys renames its artifacts rather than being resolved for, so a `<KEY>_<slug>.md` sitting beside no `prd.md` reads here as no PRD at all. **The test for "found" is presence: any file at `<feature-folder>/prd.md` counts as found, whatever its frontmatter** — one asserting `kind: prd`, one asserting no `kind:` at all, and one asserting some other kind alike. **`kind:` does not decide presence here**, which matches `/product-workflows:update-prd`, whose base is that same file "authoritative without a test". The three commands `workflows-core:addressing` §5 names as gating on `prd.md`'s own `kind: prd` gate that way because they **consume** a PRD's content; this command gates on presence because it must not **overwrite** one. A `prd.md` that exists but cannot be read, or whose frontmatter does not parse, is found too — presence is a file test, never a read — and Phase 1 step 2 says it could not be read before offering its choice, so the operator chooses knowing that. If a PRD is found, this is an **existing PRD** — `/create-prd` is greenfield-only, so **redirect** (see Phase 1) to `/update-prd <KEY>` unless `--from-prd` **or the BRD route** is present.
 7. **The BRD gate (the BRD route only).** Its structural test already ran: step 5a refused a
    `BRD-` container on every route, so anything reaching this step is a `PRD-` folder.
 
@@ -361,7 +363,7 @@ Use `choices` arrays; 2–4 options, and never author an "Other" option — the 
 
 1. **Confirm** the feature folder, the profile, and the resolved `idea.md` (or "none — grill from scratch"); on the BRD route, the resolved `PRD-` slice folder, the profile (`--full` unless a flag overrode it), and — instead of an idea — a `from BRD:` line naming `<SLICE-KEY>` and the `parent:` its `brd-link.md` records (always present — step 5a refuses the container), its `depends-on:` if any, how many of its gate-set rows (Phase 0 step 7) are `covered-here` out of how many, and whether `prd-seed.md` and `decisions.md` were found.
    - **Resolve documentation grounding here, then show its line.** Run `resolve-docs-grounding create-prd` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — its step 3.5 index prompt included — and show the `docs grounding:` line from what it returns, in the form that reference fixes — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs). It runs here, before any agent is dispatched, because step 3.5 asks its one-time index question before the run's real work; this is the run's one resolution (`workflows-core:docs-grounding`, *Invariants*), and Phase 2.5 dispatches on the state it returns without resolving again.
-2. **Existing-PRD handling** (only if Phase 0 step 6 found a PRD for `<KEY>`):
+2. **Existing-PRD handling** (only if Phase 0 step 6 found a PRD for `<KEY>`): Where that `prd.md` could not be read or its frontmatter did not parse, say so first, above the choice.
    - **the BRD route present** → "author this slice's PRD" conflicts with "a PRD for this slice
      already exists here". **`/update-prd` has no BRD route** — it takes one address and refreshes
      the `prd.md` it finds there — so the redirect is honest about what it drops: it refreshes the
@@ -378,6 +380,8 @@ Use `choices` arrays; 2–4 options, and never author an "Other" option — the 
      ```
      choices: ["Update the existing <KEY> instead — /product-workflows:update-prd <KEY> (seed ignored) (Recommended)", "Overwrite <KEY> as a new seeded PRD (archives the current one)", "Cancel"]
      ```
+   **The archive every Overwrite option names is Phase 5's pre-write guard**, which archives the
+   existing `prd.md` before the new one is written; nothing in this phase copies or moves it.
 3. **Draft idea → warn-and-fold** (no-op on the BRD route, which resolves no idea; the equivalent there is the open `[VD#n]`/`[CD#n]`/`[AS#n]` set Phase 2 carries in). If `idea.md` is `status: draft` (open `[NEEDS CLARIFICATION]`), note that the grill resolves those items — do **not** hard-block.
 
 ---
@@ -628,7 +632,7 @@ written to `decisions.md`, which is a different file and unaffected by the profi
 continued, never restarted, and a gap already recorded is not recorded twice**: read `decisions.md`
 first, take the next `[AS#n]` after the highest on file, and where an open `[AS#n]` already states
 this same gap, leave it alone and name it in the report. The sanctioned *Overwrite as a fresh PRD*
-re-run (Phase 0) puts this command over the same folder more than once, and without both halves one
+re-run (Phase 1 step 2) puts this command over the same folder more than once, and without both halves one
 gap accumulates several open assumptions — each of which `/brd-package` then puts in front of the
 customer twice.
 
@@ -707,6 +711,18 @@ Act on the verdict (mirrors `/specify`):
 
 ## Phase 5 — Handoff
 
+**Pre-write guard — archive before every write.** Immediately before writing `prd.md`, test
+whether `<feature-folder>/prd.md` exists. Where it does, archive it first, **on every route, with
+no exemption** — the idea route, `--from-prd` and the BRD route alike, and whichever Phase 1 step 2
+choice brought the run here: copy it to `<feature-folder>/revisions/<KEY>_<slug>_<YYYYMMDD>.md`,
+the naming `/product-workflows:update-prd` Phase 5 step 1 fixes, and where that name is already
+taken in `revisions/` — by an earlier archive from either command — use the first free one of
+`-2`, `-3`, …. Report the archive path. This guard **is** the archive Phase 1 step 2's Overwrite
+options name; it also covers a `prd.md` that appeared after Phase 0 step 6 looked. **Where the copy
+fails** — the file cannot be read, or `revisions/` cannot be written — stop before writing
+anything, naming the path and the error: nothing is ever overwritten unarchived. Where no `prd.md`
+exists, there is nothing to archive and the write proceeds.
+
 Write the feature folder: `prd.md`. The in-contract `idea.md` is already there, committed by `/idea`; an out-of-contract idea stays where it is.
 
 **On the BRD route, also close the consumption loop before the offer.** The design's *Consumption
@@ -737,7 +753,7 @@ Then **offer** (commit-when-asked — never automatic), invoking `Skill(skill: "
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: prd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = the PRD file — **plus, on the BRD route, `decisions.md`**, because both of this run's register writes land there — the `consumed_by` stamps, and any `[AS#n]` Phase 3 recorded for a customer-authority gap — and an uncommitted register is one no later run can read, which for the `[AS#n]` means the question never reaches `/brd-package` and so never reaches the customer; `prd-seed.md` is not staged, because this run does not write to it — `title: <KEY> Add Product Requirements Document — <summary>`, and `body_facts` = the resolved profile (`--lean`/`--hybrid`/`--full`), the adapt-in clusters pulled, the user-story and acceptance-criteria counts, any `[NEEDS CLARIFICATION]` markers carried in, the `prd-reviewer` verdict, and — on the BRD route — the `<SLICE-KEY>` this PRD was seeded from and how many items were marked `consumed_by: PRD`; emit its §4.1 outcome line in the Final report.
+On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: prd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = the PRD file, plus the archived snapshot where the pre-write guard wrote one (an uncommitted archive is one no later run can read) — **plus, on the BRD route, `decisions.md`**, because both of this run's register writes land there — the `consumed_by` stamps, and any `[AS#n]` Phase 3 recorded for a customer-authority gap — and an uncommitted register is one no later run can read, which for the `[AS#n]` means the question never reaches `/brd-package` and so never reaches the customer; `prd-seed.md` is not staged, because this run does not write to it — `title: <KEY> Add Product Requirements Document — <summary>`, and `body_facts` = the resolved profile (`--lean`/`--hybrid`/`--full`), the adapt-in clusters pulled, the user-story and acceptance-criteria counts, any `[NEEDS CLARIFICATION]` markers carried in, the `prd-reviewer` verdict, and — on the BRD route — the `<SLICE-KEY>` this PRD was seeded from and how many items were marked `consumed_by: PRD`; emit its §4.1 outcome line in the Final report.
 
 ---
 
@@ -819,7 +835,7 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git 
 
 ## Final report
 
-Report: the PRD path + profile; US/AC/SM counts + which adapt-in clusters were included; open-question count; the `prd-reviewer` verdict; the prose style-check outcome (`OK` | `N fixed, M remaining`); the `Phase handoff:` outcome line from `handoff-to-main` (`workflows-core:phase-handoff` §4.1); the handoff reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`workflows-core:specs-repo-git` §6), with any guard notice repeated in full; and the next-step recommendations.
+Report: the PRD path + profile; the archived snapshot path where Phase 5's pre-write guard wrote one; US/AC/SM counts + which adapt-in clusters were included; open-question count; the `prd-reviewer` verdict; the prose style-check outcome (`OK` | `N fixed, M remaining`); the `Phase handoff:` outcome line from `handoff-to-main` (`workflows-core:phase-handoff` §4.1); the handoff reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`workflows-core:specs-repo-git` §6), with any guard notice repeated in full; and the next-step recommendations.
 
 **On the BRD route, additionally:** the `<SLICE-KEY>` seeded from and its resolved folder; which of
 `prd-seed.md` and `decisions.md` were present; the frontmatter `brd_key` / `brd_parent` /
